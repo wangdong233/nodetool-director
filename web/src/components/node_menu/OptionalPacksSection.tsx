@@ -45,6 +45,7 @@ import { useSecrets } from "../../hooks/useSecrets";
 import { getRequiredKeyForBuiltinPack } from "../../utils/providerPacks";
 import { getSecretDisplayName } from "../../utils/nodeProvider";
 import { isElectron } from "../../lib/env";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -118,6 +119,7 @@ const popoverStyles = (theme: Theme) =>
   });
 
 const OptionalPacksSection = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -212,12 +214,12 @@ const OptionalPacksSection = () => {
         type="button"
         className="optional-packs-trigger"
         onClick={handleOpen}
-        title="Reveal advanced and niche node packs"
+        title={t("editor:ui.revealAdvancedAndNicheNodePacks", { defaultValue: "Reveal advanced and niche node packs" })}
         aria-haspopup="dialog"
         aria-expanded={Boolean(anchorEl)}
       >
         <Inventory2OutlinedIcon className="icon" />
-        <span className="label">Optional packs</span>
+        <span className="label">{t("ui2:attrs.optionalPacks", { defaultValue: "Optional packs" })}</span>
         <span className="count">
           {enabledCount > 0 ? `${enabledCount}/${total}` : `+${total}`}
         </span>
@@ -234,27 +236,24 @@ const OptionalPacksSection = () => {
         <div css={popoverStyles(theme)}>
           <FlexColumn gap={1}>
             <Text size="normal" weight={600}>
-              Optional node packs
+              {t("editor:ui.optionalNodePacks")}
             </Text>
             <Text size="small" color="secondary">
-              Advanced and niche nodes are tucked into optional packs to keep
-              this menu focused. Turn on what you need — they appear in the list
-              right away. Search always finds every node, even when its pack is
-              off.
+              {t("editor:ui.advancedAndNicheNodesAreTuckedIntoOptionalPacks", { defaultValue: "Advanced and niche nodes are tucked into optional packs to keep this menu focused. Turn on what you need — they appear in the list right away. Search always finds every node, even when its pack is off." })}
             </Text>
 
             <Divider />
 
             <FlexRow align="center" justify="space-between">
               <Text size="small" weight={600}>
-                Categories
+                {t("editor:ui.categories")}
               </Text>
               <FlexRow gap={1.5} align="center">
                 <TextLink asButton onClick={() => enableAll()}>
-                  Show all
+                  {t("editor:ui.showAll", { defaultValue: "Show all" })}
                 </TextLink>
                 <TextLink asButton onClick={() => disableAll()}>
-                  Hide all
+                  {t("editor:ui.hideAll", { defaultValue: "Hide all" })}
                 </TextLink>
               </FlexRow>
             </FlexRow>
@@ -264,8 +263,18 @@ const OptionalPacksSection = () => {
                 <div className="pack-row" key={pack.id}>
                   <LabeledSwitch
                     size="small"
-                    label={pack.label}
-                    description={pack.description}
+                    label={
+                      pack.labelKey
+                        ? t(pack.labelKey, { defaultValue: pack.label })
+                        : pack.label
+                    }
+                    description={
+                      pack.descriptionKey
+                        ? t(pack.descriptionKey, {
+                            defaultValue: pack.description
+                          })
+                        : pack.description
+                    }
                     checked={enabledPackIds.includes(pack.id)}
                     onChange={(checked) => setPackEnabled(pack.id, checked)}
                   />
@@ -278,11 +287,10 @@ const OptionalPacksSection = () => {
                 <Divider />
                 <FlexColumn gap={0.25}>
                   <Text size="small" weight={600}>
-                    Providers
+                    {t("editor:ui.providers")}
                   </Text>
                   <Text size="small" color="secondary">
-                    Provider nodes appear once you add their API key — setting a
-                    key enables the pack automatically.
+                    {t("editor:ui.providerNodesAppearOnceYouAddTheirAPIKey", { defaultValue: "Provider nodes appear once you add their API key — setting a key enables the pack automatically." })}
                   </Text>
                 </FlexColumn>
                 <FlexColumn gap={0.25}>
@@ -303,18 +311,19 @@ const OptionalPacksSection = () => {
                           <span className="key-set">
                             <CheckCircleOutlineIcon />
                             <Text size="small" color="inherit">
-                              Key set
+                              {t("editor:ui.keySet", { defaultValue: "Key set" })}
                             </Text>
                           </span>
                         ) : (
                           <TextLink
                             asButton
                             onClick={openApiKeys}
-                            title={`Add ${getSecretDisplayName(
-                              provider.requiredKey
-                            )}`}
+                            title={t("editor:ui.addName", {
+                              defaultValue: "Add {{name}}",
+                              name: getSecretDisplayName(provider.requiredKey)
+                            })}
                           >
-                            Add API key
+                            {t("editor:ui.addApiKey", { defaultValue: "Add API key" })}
                           </TextLink>
                         )}
                       </FlexRow>
@@ -329,10 +338,10 @@ const OptionalPacksSection = () => {
                 <Divider />
                 <FlexColumn gap={0.25}>
                   <Text size="small" weight={600}>
-                    Local packs
+                    {t("editor:ui.localPacks", { defaultValue: "Local packs" })}
                   </Text>
                   <Text size="small" color="secondary">
-                    Run locally — no API key required.
+                    {t("editor:ui.runLocallyNoAPIKeyRequired", { defaultValue: "Run locally — no API key required." })}
                   </Text>
                 </FlexColumn>
                 <FlexColumn gap={0.25}>
@@ -359,7 +368,7 @@ const OptionalPacksSection = () => {
                 <Divider />
                 <FlexRow justify="flex-end">
                   <TextLink asButton onClick={handleManagePacks}>
-                    More packs…
+                    {t("editor:ui.morePacks")}
                   </TextLink>
                 </FlexRow>
               </>

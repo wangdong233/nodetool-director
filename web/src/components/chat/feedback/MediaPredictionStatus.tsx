@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import { Caption, FlexRow, ShimmerText, Text } from "../../ui_primitives";
 import { useElapsedSince } from "../../../hooks/useElapsedTime";
+import { i18n } from "../../../i18n";
 import {
   formatPredictionElapsed,
   mediaPredictionLabel,

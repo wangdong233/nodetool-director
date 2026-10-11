@@ -123,7 +123,10 @@ jest.mock("../../../hooks/workflow/usePlanWorkflow", () => ({
     planWorkflow: jest.fn(),
     planning: false,
     error: null
-  })
+  }),
+  // The setup flow calls this outside the hook (bilingual chip brief match);
+  // the test's brief is not a chip, so the real answer is null.
+  pinnedChipPlan: () => null
 }));
 let mockPersistedBuild: Record<string, unknown> | null = null;
 const mockBuildResult = {

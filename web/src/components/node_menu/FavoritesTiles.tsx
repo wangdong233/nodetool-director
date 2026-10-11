@@ -17,6 +17,10 @@ import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
 import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
 import ConfirmDialog from "../dialogs/ConfirmDialog";
+import { i18n } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
+import { useTranslation } from "react-i18next";
 
 const tooltipHintStyle: CSSProperties = {
   fontSize: "var(--fontSizeSmaller)",
@@ -146,6 +150,8 @@ const FavoritesTiles = memo(function FavoritesTiles({
   showEmpty = false,
   hideHeader = false
 }: FavoritesTilesProps = {}) {
+  const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => tileStyles(theme), [theme]);
 
@@ -252,7 +258,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
       removeFavorite(nodeType);
       addNotification({
         type: "info",
-        content: "Node removed from favorites",
+        content: i18n.t("editor:ui.nodeRemovedFromFavorites", { defaultValue: "Node removed from favorites" }),
         timeout: NOTIFICATION_TIMEOUT_SHORT
       });
     },
@@ -269,13 +275,14 @@ const FavoritesTiles = memo(function FavoritesTiles({
     (nodeType: string) => {
       const metadata = getMetadata(nodeType);
       if (metadata) {
-        return (
+        return nodeMenuTitle(
+          nodeType,
           metadata.title || metadata.node_type.split(".").pop() || nodeType
         );
       }
       return nodeType.split(".").pop() || nodeType;
     },
-    [getMetadata]
+    [getMetadata, languageVersion]
   );
 
   if (favorites.length === 0) {
@@ -287,14 +294,14 @@ const FavoritesTiles = memo(function FavoritesTiles({
         {!hideHeader && (
           <div className="tiles-header">
             <Text size="normal" weight={600}>
-              Favorites
+              {t("editor:ui.favorites", { defaultValue: "Favorites" })}
             </Text>
           </div>
         )}
         <EmptyState
           size="small"
-          title="No favorites yet"
-          description="Click the star next to any node to add it here."
+          title={t("editor:ui.noFavoritesYet", { defaultValue: "No favorites yet" })}
+          description={t("editor:ui.clickTheStarNextToAnyNodeToAddItHere")}
         />
       </Box>
     );
@@ -305,16 +312,16 @@ const FavoritesTiles = memo(function FavoritesTiles({
       {!hideHeader && (
         <div className="tiles-header">
           <Text size="normal" weight={600}>
-            Favorites
+            {t("editor:ui.favorites", { defaultValue: "Favorites" })}
           </Text>
           <ToolbarIconButton
             icon={<ClearIcon fontSize="small" />}
-            tooltip="Clear all favorites"
+            tooltip={t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
             tooltipPlacement="top"
             size="small"
             className="clear-button"
             onClick={() => setClearConfirmOpen(true)}
-            aria-label="Clear all favorites"
+            aria-label={t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
           />
         </div>
       )}
@@ -330,7 +337,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
                 <div>
                   <div>{displayName}</div>
                   <div style={tooltipHintStyle}>
-                    Click to place · Drag to canvas
+                    {t("editor:ui.clickToPlaceDragToCanvas")}
                   </div>
                 </div>
               }
@@ -377,10 +384,10 @@ const FavoritesTiles = memo(function FavoritesTiles({
         open={clearConfirmOpen}
         onClose={() => setClearConfirmOpen(false)}
         onConfirm={handleClearFavorites}
-        title="Clear all favorites?"
+        title={t("editor:ui.clearAllFavorites")}
         content={`This removes all ${favorites.length} favorite nodes. This cannot be undone.`}
-        confirmText="Clear favorites"
-        cancelText="Cancel"
+        confirmText={t("editor:ui.clearFavorites", { defaultValue: "Clear favorites" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         notificationMessage="Favorites cleared"
         notificationType="success"
       />

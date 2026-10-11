@@ -30,6 +30,7 @@ import { stageChatTurn } from "../../chat/pendingChatTurn";
 import { GameLandingChecklist } from "./GameLandingChecklist";
 import { useGameRunSummary } from "./gameRunSummary";
 import { gameBuildResult, readGameBuild } from "./gameExtras";
+import { i18n } from "../../../i18n";
 import {
   gameArchiveDownloadPath,
   gamePlayTestTurn,
@@ -106,7 +107,7 @@ const GameLandingPanelInternal: React.FC<GameLandingPanelProps> = ({
     if (!opened) return;
     const threadId = await createNewThread(undefined, null, { projectId: project.id });
     stageChatTurn(threadId, gamePlayTestTurn(design, directory));
-    openTab({ type: "chat", ref: threadId, mode: "view", title: "Play test", projectId: project.id });
+    openTab({ type: "chat", ref: threadId, mode: "view", title: i18n.t("storyboard:attrs.playTest", { defaultValue: "Play test" }), projectId: project.id });
   }, [createNewThread, directory, game?.design, openProject, openTab, projectId, projects]);
 
   const handleRegenerate = useCallback(() => {

@@ -6,6 +6,7 @@ import { useHuggingFaceImageModelsByProvider } from "../../hooks/useModelsByProv
 import { useWorkerCachedModelIds } from "../../hooks/useWorkerCachedModels";
 import { trpc } from "../../lib/trpc";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 interface HuggingFaceModelMenuDialogProps {
   open: boolean;
@@ -28,6 +29,7 @@ function HuggingFaceModelMenuDialog({
   recommendedModels: recommendedModelsFromProps,
   modelPacks
 }: HuggingFaceModelMenuDialogProps) {
+  const { t } = useTranslation();
   const modelData = useHuggingFaceImageModelsByProvider({ task, modelType });
   const workerCachedIds = useWorkerCachedModelIds();
 
@@ -101,7 +103,7 @@ function HuggingFaceModelMenuDialog({
       onClose={onClose}
       modelData={sortedModelData}
       onModelChange={onModelChange}
-      title="Select HuggingFace Model"
+      title={t("editor:ui.selectHuggingFaceModel", { defaultValue: "Select HuggingFace Model" })}
       searchPlaceholder="Search HuggingFace models..."
       storeHook={useHuggingFaceImageModelMenuStore}
       recommendedModels={recommendedModels}

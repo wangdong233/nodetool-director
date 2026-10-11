@@ -11,6 +11,7 @@ import { useDynamicProperty } from "../../../hooks/nodes/useDynamicProperty";
 import { SubgraphSync } from "./SubgraphSync";
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
+import { useTranslation } from "react-i18next";
 
 interface SubgraphNodeContentProps {
   id: string;
@@ -23,6 +24,7 @@ interface SubgraphNodeContentProps {
 
 export const SubgraphNodeContent: React.FC<SubgraphNodeContentProps> = memo(
   ({ id, nodeType, nodeMetadata, data, status, workflowId }) => {
+    const { t } = useTranslation();
     const { handleAddProperty } = useDynamicProperty(
       id,
       data.dynamic_properties
@@ -100,7 +102,7 @@ export const SubgraphNodeContent: React.FC<SubgraphNodeContentProps> = memo(
           type="button"
           className="nodrag nopan"
           onClick={handleOpen}
-          title="Open the subgraph in its own tab"
+          title={t("editor:ui.openTheSubgraphInItsOwnTab", { defaultValue: "Open the subgraph in its own tab" })}
           sx={{
             flexShrink: 0,
             mt: 0.5,
@@ -129,7 +131,7 @@ export const SubgraphNodeContent: React.FC<SubgraphNodeContentProps> = memo(
         >
           <FlexRow gap={0.5} align="center">
             <AccountTreeIcon sx={{ fontSize: 14 }} />
-            <Caption>Open subgraph</Caption>
+            <Caption>{t("ui2:attrs.openSubgraph", { defaultValue: "Open subgraph" })}</Caption>
           </FlexRow>
           <Caption>
             {innerNodeCount === 0

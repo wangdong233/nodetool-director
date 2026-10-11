@@ -19,6 +19,7 @@ import type {
 } from "../../../stores/GlobalChatStore";
 import PlanDocument from "./PlanDocument";
 import { parsePlanDocument } from "./parsePlanDocument";
+import { useTranslation } from "react-i18next";
 
 interface PlanApprovalCardProps {
   approvalId: string;
@@ -67,6 +68,7 @@ const PlanApprovalCard: React.FC<PlanApprovalCardProps> = ({
   approval,
   onResolve
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const [feedback, setFeedback] = useState("");
@@ -122,9 +124,9 @@ const PlanApprovalCard: React.FC<PlanApprovalCardProps> = ({
         <TextInput
           size="small"
           compact
-          label="What should change?"
+          label={t("editor:ui.whatShouldChange", { defaultValue: "What should change?" })}
           hideLabel
-          placeholder="What should change?"
+          placeholder={t("editor:ui.whatShouldChange", { defaultValue: "What should change?" })}
           value={feedback}
           onChange={handleFeedbackChange}
           onKeyDown={handleFeedbackKeyDown}
@@ -145,7 +147,7 @@ const PlanApprovalCard: React.FC<PlanApprovalCardProps> = ({
             Run this plan
           </EditorButton>
           <Tooltip
-            title="Describe the change first"
+            title={t("editor:ui.describeTheChangeFirst", { defaultValue: "Describe the change first" })}
             disabled={hasFeedback}
           >
             <span>
@@ -167,7 +169,7 @@ const PlanApprovalCard: React.FC<PlanApprovalCardProps> = ({
             className="plan-approval-dismiss"
             onClick={handleDismiss}
           >
-            Don't run
+            {t("editor:ui.donTRun")}
           </EditorButton>
         </FlexRow>
       </FlexColumn>

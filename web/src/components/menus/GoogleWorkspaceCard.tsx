@@ -7,6 +7,7 @@ import { isGoogleWorkspaceEnabled } from "../../lib/runtimeConfig";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import useAuth from "../../stores/useAuth";
 import googleColorIcon from "../../icons/providers/google-color.svg";
+import { i18n } from "../../i18n";
 import {
   Box,
   Card,
@@ -19,6 +20,7 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface GoogleTokensResponse {
   enabled: boolean;
@@ -38,6 +40,7 @@ const QUERY_KEY = ["oauth-token", "google"];
  * mode), where the integration does not exist.
  */
 const GoogleWorkspaceCard = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -74,14 +77,18 @@ const GoogleWorkspaceCard = () => {
       }
       await queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       addNotification({
-        content:
-          "Disconnected Google Workspace. Use Connect to restore access.",
+        content: i18n.t("tools:menus.disconnectedGoogleWorkspace", {
+          defaultValue:
+            "Disconnected Google Workspace. Use Connect to restore access."
+        }),
         type: "success",
         alert: true
       });
     } catch {
       addNotification({
-        content: "Failed to disconnect Google Workspace",
+        content: i18n.t("tools:menus.failedToDisconnectGoogleWorkspace", {
+          defaultValue: "Failed to disconnect Google Workspace"
+        }),
         type: "error",
         alert: true
       });
@@ -106,17 +113,24 @@ const GoogleWorkspaceCard = () => {
             <FlexRow align="center" gap={SPACING.sm}>
               <Text>Google Workspace</Text>
               <Chip
-                label={isConnected ? "Connected" : "Not connected"}
+                label={isConnected ? t("ui2:attrs.connected", { defaultValue: "Connected" }) : t("editor:ui.notConnected", { defaultValue: "Not connected" })}
                 color={isConnected ? "success" : "default"}
                 size="small"
               />
             </FlexRow>
             <Caption>
               {isConnected
-                ? `Drive, Gmail, Docs, Sheets and Calendar${
-                    account ? ` as ${account}` : ""
-                  }`
-                : "Connect to give agents and nodes access to Drive, Gmail, Docs, Sheets and Calendar."}
+                ? account
+                  ? t("editor:ui.driveGmailDocsSheetsAndCalendarAs", {
+                      defaultValue:
+                        "Drive, Gmail, Docs, Sheets and Calendar as {{account}}",
+                      account
+                    })
+                  : t("editor:ui.driveGmailDocsSheetsAndCalendar", {
+                      defaultValue:
+                        "Drive, Gmail, Docs, Sheets and Calendar"
+                    })
+                : t("editor:ui.connectToGiveAgentsAndNodesAccessToDriveGmailDocsSheetsAndCalendar", { defaultValue: "Connect to give agents and nodes access to Drive, Gmail, Docs, Sheets and Calendar." })}
             </Caption>
           </FlexColumn>
         </FlexRow>
@@ -129,7 +143,7 @@ const GoogleWorkspaceCard = () => {
             startIcon={<LinkOffIcon sx={{ fontSize: 14 }} />}
             onClick={disconnect}
           >
-            Disconnect
+            {t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
           </EditorButton>
         ) : (
           <EditorButton
@@ -138,7 +152,7 @@ const GoogleWorkspaceCard = () => {
             size="small"
             onClick={connect}
           >
-            Connect
+            {t("editor:ui.connect2", { defaultValue: "Connect" })}
           </EditorButton>
         )}
       </FlexRow>

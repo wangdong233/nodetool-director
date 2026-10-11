@@ -41,6 +41,8 @@ import { threadPreview } from "../chat/utils/threadUtils";
 import type { Message } from "../../stores/ApiTypes";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 type ThreadStatus = React.ComponentProps<typeof ChatThreadView>["status"];
 
@@ -228,6 +230,7 @@ interface ConversationOverlayProps {
 const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
   onCollapse
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -344,7 +347,7 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
         console.error("Failed to delete conversation:", err);
         addNotification({
           type: "error",
-          content: "Could not delete the conversation. Please try again."
+          content: i18n.t("editor:chat.deleteFailed", { defaultValue: "Could not delete the conversation. Please try again." })
         });
       });
     },
@@ -419,7 +422,7 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
         className="convo-resize convo-resize-top"
         onMouseDown={startResize("top")}
         role="separator"
-        aria-label="Resize conversation height"
+        aria-label={t("editor:ui.resizeConversationHeight", { defaultValue: "Resize conversation height" })}
       />
       <div
         className="convo-resize convo-resize-left"
@@ -459,43 +462,43 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
           {title || "Conversation"}
         </Text>
         <FlexRow gap={0.5} align="center" sx={{ ml: "auto" }}>
-          <Tooltip title="Show threads" delay={TOOLTIP_ENTER_DELAY}>
+          <Tooltip title={t("editor:ui.showThreads", { defaultValue: "Show threads" })} delay={TOOLTIP_ENTER_DELAY}>
             <button
               type="button"
               className={`convo-icon-btn${threadsOpen ? " active" : ""}`}
               onClick={() => setThreadsOpen(!threadsOpen)}
-              aria-label="Show threads"
+              aria-label={t("editor:ui.showThreads", { defaultValue: "Show threads" })}
               aria-pressed={threadsOpen}
             >
               <FormatListBulletedIcon />
             </button>
           </Tooltip>
-          <Tooltip title="Open in a workspace tab" delay={TOOLTIP_ENTER_DELAY}>
+          <Tooltip title={t("editor:ui.openInAWorkspaceTab", { defaultValue: "Open in a workspace tab" })} delay={TOOLTIP_ENTER_DELAY}>
             <button
               type="button"
               className="convo-icon-btn"
               onClick={handleExpand}
-              aria-label="Open in a workspace tab"
+              aria-label={t("editor:ui.openInAWorkspaceTab", { defaultValue: "Open in a workspace tab" })}
             >
               <OpenInNewIcon />
             </button>
           </Tooltip>
-          <Tooltip title="New conversation" delay={TOOLTIP_ENTER_DELAY}>
+          <Tooltip title={t("editor:ui.newConversation", { defaultValue: "New conversation" })} delay={TOOLTIP_ENTER_DELAY}>
             <button
               type="button"
               className="convo-icon-btn"
               onClick={() => void handleNewConversation()}
-              aria-label="New conversation"
+              aria-label={t("editor:ui.newConversation", { defaultValue: "New conversation" })}
             >
               <AddCommentOutlinedIcon />
             </button>
           </Tooltip>
-          <Tooltip title="Hide conversation" delay={TOOLTIP_ENTER_DELAY}>
+          <Tooltip title={t("editor:ui.hideConversation", { defaultValue: "Hide conversation" })} delay={TOOLTIP_ENTER_DELAY}>
             <button
               type="button"
               className="convo-icon-btn"
               onClick={onCollapse}
-              aria-label="Hide conversation"
+              aria-label={t("editor:ui.hideConversation", { defaultValue: "Hide conversation" })}
             >
               <KeyboardArrowDownIcon />
             </button>
@@ -535,18 +538,18 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
           <div className="convo-threads-panel">
             <div className="convo-threads-head">
               <SearchInput
-                placeholder="Search threads…"
+                placeholder={t("editor:ui.searchThreads", { defaultValue: "Search threads…" })}
                 value={searchQuery}
                 onChange={setSearchQuery}
                 fullWidth
                 showClear={false}
               />
-              <Tooltip title="Close threads" delay={TOOLTIP_ENTER_DELAY}>
+              <Tooltip title={t("editor:ui.closeThreads", { defaultValue: "Close threads" })} delay={TOOLTIP_ENTER_DELAY}>
                 <button
                   type="button"
                   className="convo-icon-btn"
                   onClick={() => setThreadsOpen(false)}
-                  aria-label="Close threads"
+                  aria-label={t("editor:ui.closeThreads", { defaultValue: "Close threads" })}
                 >
                   <CloseIcon />
                 </button>

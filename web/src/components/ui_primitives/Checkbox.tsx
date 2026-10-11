@@ -39,7 +39,7 @@ export interface CheckboxProps
  *
  * @example
  * // Compact size
- * <Checkbox label="Select" compact size="small" />
+ * <Checkbox label={i18n.t("timeline:tools.select", { defaultValue: "Select" })} compact size="small" />
  */
 const CheckboxInternal = forwardRef<HTMLButtonElement, CheckboxProps>(
   (

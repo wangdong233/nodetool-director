@@ -63,6 +63,8 @@ import { useVideoAudioImport } from "../../../hooks/timeline/useVideoAudioImport
 import { useLongPress } from "../../../hooks/timeline/useLongPress";
 import type { LongPressPoint } from "../../../hooks/timeline/useLongPress";
 import { layoutTrackRows } from "./trackWindow";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Two bars of 4/4 at 120 BPM — what an empty midi clip is sized to. */
 const DEFAULT_MIDI_CLIP_DURATION_MS = 4000;
@@ -113,6 +115,7 @@ interface TrackLaneProps {
 const CLIP_OVERSCAN_PX = 320;
 
 export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClips = false }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const timelineStore = useTimelineStoreApi();
   const msPerPx = useTimelineUIStore((s) => s.msPerPx);
@@ -322,7 +325,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
 
       // Multi-asset drags are not supported for clip creation — guide the user.
       if (dragData.type === "assets-multiple") {
-        showWarning("Drop one asset at a time onto a track.", true);
+        showWarning(i18n.t("timeline:attrs.dropOneAssetAtATimeOntoATrack", { defaultValue: "Drop one asset at a time onto a track." }), true);
         return;
       }
 
@@ -344,9 +347,11 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
 
       if (!isCompatibleWithTrack(mediaType, track.type)) {
         const expected =
-          mediaType === "audio" ? "an audio" : "a video or overlay";
+          mediaType === "audio"
+            ? i18n.t("timeline:attrs.anAudioTrack", { defaultValue: "an audio" })
+            : i18n.t("timeline:attrs.aVideoOrOverlayTrack", { defaultValue: "a video or overlay" });
         showWarning(
-          `Cannot drop ${mediaType} asset onto this ${track.type} track — use ${expected} track.`,
+          i18n.t("timeline:attrs.cannotDropAssetOntoTrack", { defaultValue: "Cannot drop {{mediaType}} asset onto this {{trackType}} track — use {{expected}} track.", mediaType, trackType: track.type, expected }),
           true
         );
         return;
@@ -661,12 +666,12 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
       trackId: track.id,
       startMs: contextMenuPos.startMs,
       durationMs: DEFAULT_TEXT_CLIP_DURATION_MS,
-      name: "Text",
+      name: i18n.t("editor:ui.text", { defaultValue: "Text" }),
       mediaType: "text",
       sourceType: "imported",
       status: "generated",
       textStyle: {
-        text: "Text",
+        text: i18n.t("editor:ui.text", { defaultValue: "Text" }),
         fontSizePx: DEFAULT_TEXT_CLIP_FONT_SIZE_PX,
         color: DEFAULT_TEXT_CLIP_COLOR
       }
@@ -748,7 +753,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
             generated-clip picker. */}
         {(track.type === "overlay" || track.type === "video") && (
           <MenuItemPrimitive
-            label="Add text"
+            label={t("timeline:attrs.addText", { defaultValue: "Add text" })}
             icon={<TitleIcon fontSize="small" />}
             onClick={handleAddText}
             compact
@@ -756,14 +761,14 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
         )}
         {track.type === "midi" ? (
           <MenuItemPrimitive
-            label="Add MIDI clip"
+            label={t("timeline:attrs.addMIDIClip", { defaultValue: "Add MIDI clip" })}
             icon={<AddIcon fontSize="small" />}
             onClick={handleAddMidi}
             compact
           />
         ) : (
           <MenuItemPrimitive
-            label="Add generated clip here…"
+            label={t("timeline:attrs.addGeneratedClipHere", { defaultValue: "Add generated clip here…" })}
             icon={<AddIcon fontSize="small" />}
             onClick={handleAddClipFromMenu}
             compact
@@ -771,7 +776,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
         )}
         {menuGap && (
           <MenuItemPrimitive
-            label="Close gap"
+            label={t("timeline:attrs.closeGap", { defaultValue: "Close gap" })}
             icon={<CompressOutlinedIcon fontSize="small" />}
             onClick={handleCloseGap}
             compact

@@ -28,6 +28,7 @@ import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropert
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
 import { FIT_NODE_TYPE } from "../../../constants/nodeTypes";
+import { useTranslation } from "react-i18next";
 
 const PRESETS: ReadonlyArray<number> = [256, 512, 768, 1024];
 
@@ -153,6 +154,7 @@ const FitBodyInner: React.FC<FitBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -225,7 +227,7 @@ const FitBodyInner: React.FC<FitBodyProps> = ({
               id={`fit-width-${id}`}
               nodeId={id}
               name="width"
-              description={widthProperty.description ?? "Target width"}
+              description={widthProperty.description ?? t("editor:ui.targetWidth", { defaultValue: "Target width" })}
               value={widthValue}
               min={widthProperty.min ?? 1}
               max={widthProperty.max ?? 8192}
@@ -244,7 +246,7 @@ const FitBodyInner: React.FC<FitBodyProps> = ({
               id={`fit-height-${id}`}
               nodeId={id}
               name="height"
-              description={heightProperty.description ?? "Target height"}
+              description={heightProperty.description ?? t("editor:ui.targetHeight", { defaultValue: "Target height" })}
               value={heightValue}
               min={heightProperty.min ?? 1}
               max={heightProperty.max ?? 8192}
@@ -260,7 +262,7 @@ const FitBodyInner: React.FC<FitBodyProps> = ({
       </FlexRow>
 
       <div className="presets-row">
-        <span className="presets-label">Presets</span>
+        <span className="presets-label">{t("editor:ui.presets", { defaultValue: "Presets" })}</span>
         {PRESETS.map((size) => {
           const active = widthValue === size && heightValue === size;
           return (

@@ -691,8 +691,24 @@ describe("NewProjectSurface", () => {
   it("opens blank documents outside any project", async () => {
     renderSurface();
     expect(catalogOptions).toHaveBeenCalledWith({ projectId: "default" });
-    await userEvent.click(screen.getByRole("button", { name: "Workflow" }));
+    await userEvent.click(screen.getByRole("button", { name: "New workflow" }));
     expect(createWorkflow).toHaveBeenCalled();
+  });
+
+  it("names each blank-document creator with the New verb", () => {
+    renderSurface();
+    // The strip's buttons are create actions: their accessible names carry
+    // the verb ("New workflow"), never the bare noun, so they cannot be
+    // confused with a same-named non-action elsewhere in the app.
+    expect(
+      screen.getByRole("button", { name: "New workflow" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "New text file… ▸" })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Workflow" })
+    ).not.toBeInTheDocument();
   });
 
   it("marks describe-idea when chat starts from the prompt", async () => {
@@ -729,7 +745,7 @@ describe("NewProjectSurface", () => {
 
   it("marks keep-creating when a blank document opens", async () => {
     renderSurface();
-    await userEvent.click(screen.getByRole("button", { name: "Workflow" }));
+    await userEvent.click(screen.getByRole("button", { name: "New workflow" }));
     expect(createWorkflow).toHaveBeenCalled();
     expect(useOnboardingStore.getState().completedSteps).toContain(
       "keep-creating"

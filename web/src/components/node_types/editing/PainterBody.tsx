@@ -67,6 +67,7 @@ import { createImageUrl } from "../../../utils/imageUtils";
 import { useResolvedMediaUri } from "../../../hooks/useResolvedMediaUri";
 import { PAINTER_NODE_TYPE } from "../../../constants/nodeTypes";
 import { isFunction, isNumber, isString } from "../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 // Inline SVG so we don't depend on an icon-set that ships an eraser glyph.
 // Stylized rubber/wedge eraser at the standard 24px MUI viewBox.
@@ -339,6 +340,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -1047,12 +1049,12 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             exclusive
             onChange={onToolChange}
             size="small"
-            aria-label="Paint tool"
+            aria-label={t("editor:ui.paintTool", { defaultValue: "Paint tool" })}
           >
-            <ToggleOption value="brush" aria-label="Brush">
+            <ToggleOption value="brush" aria-label={t("editor:ui.brush", { defaultValue: "Brush" })}>
               <BrushIcon />
             </ToggleOption>
-            <ToggleOption value="eraser" aria-label="Eraser">
+            <ToggleOption value="eraser" aria-label={t("editor:ui.eraser", { defaultValue: "Eraser" })}>
               <EraserIcon />
             </ToggleOption>
           </ToggleGroup>
@@ -1062,7 +1064,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             type="color"
             value={color}
             onChange={onColorChange}
-            aria-label="Brush color"
+            aria-label={t("editor:ui.brushColor", { defaultValue: "Brush color" })}
           />
           <div className="row-spacer" />
           <ToolbarIconButton
@@ -1070,7 +1072,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             size="small"
             onClick={onUndo}
             disabled={undoDisabled}
-            tooltip="Undo"
+            tooltip={t("timeline:shortcuts.undo", { defaultValue: "Undo" })}
             icon={<UndoIcon fontSize="small" />}
           />
           <ToolbarIconButton
@@ -1078,14 +1080,14 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             size="small"
             onClick={onRedo}
             disabled={redoDisabled}
-            tooltip="Redo"
+            tooltip={t("timeline:shortcuts.redo", { defaultValue: "Redo" })}
             icon={<RedoIcon fontSize="small" />}
           />
           <ToolbarIconButton
             className="nodrag"
             size="small"
             onClick={onClear}
-            tooltip="Clear painted mask"
+            tooltip={t("editor:ui.clearPaintedMask", { defaultValue: "Clear painted mask" })}
             icon={<RestartAltIcon fontSize="small" />}
           />
         </FlexRow>
@@ -1099,7 +1101,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
               id={`painter-size-${id}`}
               nodeId={id}
               name="size"
-              description="Brush size in pixels"
+              description={t("editor:ui.brushSizeInPixels")}
               value={brushSize}
               min={1}
               max={256}
@@ -1115,7 +1117,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
               id={`painter-opacity-${id}`}
               nodeId={id}
               name="opacity"
-              description="Brush opacity (0–1)"
+              description={t("editor:ui.brushOpacity01")}
               value={brushOpacity}
               min={0}
               max={1}
@@ -1134,8 +1136,8 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             <NumberInput
               id={`painter-canvas-w-${id}`}
               nodeId={id}
-              name="canvas width"
-              description="Canvas width in pixels"
+              name={t("editor:ui.canvasWidth", { defaultValue: "canvas width" })}
+              description={t("editor:ui.canvasWidthInPixels")}
               value={configuredW}
               min={1}
               max={4096}
@@ -1150,8 +1152,8 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
             <NumberInput
               id={`painter-canvas-h-${id}`}
               nodeId={id}
-              name="canvas height"
-              description="Canvas height in pixels"
+              name={t("editor:ui.canvasHeight", { defaultValue: "canvas height" })}
+              description={t("editor:ui.canvasHeightInPixels")}
               value={configuredH}
               min={1}
               max={4096}
@@ -1171,7 +1173,7 @@ const PainterBodyInner: React.FC<PainterBodyProps> = ({
               id={`painter-fade-${id}`}
               nodeId={id}
               name="background_opacity"
-              description="Background image opacity (0 = hide, 1 = full)"
+              description={t("editor:ui.backgroundImageOpacity0=Hide1=Full")}
               value={bgFade}
               min={0}
               max={1}

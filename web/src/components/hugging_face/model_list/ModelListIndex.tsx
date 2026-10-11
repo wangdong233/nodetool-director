@@ -50,6 +50,7 @@ import {
   getHfCacheKey
 } from "../../../utils/hfCache";
 import { isString } from "../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 /** Width of the category rail. */
 const SIDEBAR_WIDTH = 260;
@@ -149,6 +150,7 @@ type ListItem =
   | { type: "model"; model: UnifiedModel };
 
 const ModelListIndex: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);
@@ -426,13 +428,13 @@ const ModelListIndex: React.FC = () => {
       return {
         searchOff: true,
         title: `No models found for \u201C${modelSearchTerm}\u201D`,
-        description: "Try a different search term or adjust your filters."
+        description: t("editor:ui.tryADifferentSearchTermOrAdjustYourFilters", { defaultValue: "Try a different search term or adjust your filters." })
       };
     }
     if (source === "hub") {
       return {
         searchOff: false,
-        title: "Search the HuggingFace Hub",
+        title: t("editor:ui.searchTheHuggingfaceHub", { defaultValue: "Search the HuggingFace Hub" }),
         description:
           "Type a name above, or pick a category, to browse and download any public model from huggingface.co."
       };
@@ -440,7 +442,7 @@ const ModelListIndex: React.FC = () => {
     if (source === "recommended") {
       return {
         searchOff: false,
-        title: "No recommended models",
+        title: t("editor:ui.noRecommendedModels", { defaultValue: "No recommended models" }),
         description:
           "Recommended models are gathered from the nodes you have installed. Add nodes that run models to see suggestions here."
       };
@@ -448,18 +450,18 @@ const ModelListIndex: React.FC = () => {
     if (scope === "worker") {
       return {
         searchOff: false,
-        title: "No models cached on this worker yet",
+        title: t("editor:ui.noModelsCachedYet", { defaultValue: "No models cached on this worker yet" }),
         description:
           "While this worker is attached, any model you download lands on its volume."
       };
     }
     return {
       searchOff: true,
-      title: "No models available",
+      title: t("editor:ui.noModelsAvailable", { defaultValue: "No models available" }),
       description:
         "Try adjusting the size filter or selecting a different category."
     };
-  }, [modelSearchTerm, source, scope]);
+  }, [t, modelSearchTerm, source, scope]);
 
   if (isLoading) {
     return (
@@ -473,7 +475,7 @@ const ModelListIndex: React.FC = () => {
           textAlign: "center"
         }}
       >
-        <LoadingSpinner size="medium" text="Loading models" />
+        <LoadingSpinner size="medium" text={t("editor:ui.loadingModels")} />
       </Box>
     );
   }
@@ -503,7 +505,7 @@ const ModelListIndex: React.FC = () => {
         sx={{ textAlign: "center" }}
       >
         <Text size="big" color="error">
-          Could not load models
+          {t("editor:ui.couldNotLoadModels")}
         </Text>
         <Text size="normal" color="secondary" sx={{ maxWidth: 600 }}>
           {errorMessage}
@@ -525,7 +527,7 @@ const ModelListIndex: React.FC = () => {
                 sx={{ textDecoration: "underline" }}
                 color="primary"
               >
-                Download Ollama →
+                {t("editor:ui.downloadOllama")}
               </Text>
             )}
           </FlexColumn>

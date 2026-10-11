@@ -13,6 +13,7 @@ import {
 } from "../ui_primitives";
 import useAssets from "../../serverState/useAssets";
 import { ContextMenuProvider } from "../../providers/ContextMenuProvider";
+import { useTranslation } from "react-i18next";
 
 // AssetGrid sizes itself for the narrow left panel (a top margin and a
 // viewport-relative dropzone height cap). On the full-screen page those caps
@@ -48,14 +49,15 @@ const gridFillStyles = css({
  * with the Collections, Models, and Workspaces pages.
  */
 const AssetExplorer: React.FC = memo(() => {
+  const { t } = useTranslation();
   const { folderFiles, isLoading, error, refetchAssetsAndFolders } =
     useAssets();
 
   return (
     <ManagerPageLayout
       icon={<PermMediaOutlinedIcon sx={{ fontSize: 22 }} />}
-      title="Assets"
-      subtitle="Browse, organize, and preview your images, audio, video, and other files."
+      title={t("editor:explorer.title", { defaultValue: "Assets" })}
+      subtitle={t("editor:explorer.subtitle", { defaultValue: "Browse, organize, and preview your images, audio, video, and other files." })}
       docsTopic="assets"
       padded={false}
       actions={<StorageAnalytics assets={folderFiles} />}
@@ -63,15 +65,15 @@ const AssetExplorer: React.FC = memo(() => {
       <Box css={gridFillStyles}>
         {isLoading ? (
           <FlexColumn justify="center" align="center" sx={{ flex: 1 }}>
-            <LoadingSpinner size="large" text="Loading assets" />
+            <LoadingSpinner size="large" text={t("editor:explorer.loading", { defaultValue: "Loading assets" })} />
           </FlexColumn>
         ) : error ? (
           <FlexColumn justify="center" align="center" sx={{ flex: 1 }}>
             <EmptyState
               variant="error"
-              title="Could not load assets"
-              description={error.message || "An error occurred. Please try again."}
-              actionText="Retry"
+              title={t("editor:explorer.loadFailed", { defaultValue: "Could not load assets" })}
+              description={error.message || t("editor:explorer.errorGeneric", { defaultValue: "An error occurred. Please try again." })}
+              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={refetchAssetsAndFolders}
             />
           </FlexColumn>

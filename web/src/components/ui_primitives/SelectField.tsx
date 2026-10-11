@@ -73,7 +73,7 @@ export interface SelectFieldProps {
  * @example
  * // Basic select
  * <SelectField
- *   label="Color"
+ *   label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })}
  *   value={color}
  *   onChange={setColor}
  *   options={[
@@ -85,7 +85,7 @@ export interface SelectFieldProps {
  * @example
  * // With description
  * <SelectField
- *   label="Theme"
+ *   label={i18n.t("appbuilder:attrs.theme", { defaultValue: "Theme" })}
  *   value={theme}
  *   onChange={setTheme}
  *   options={[
@@ -98,7 +98,7 @@ export interface SelectFieldProps {
  * @example
  * // Small standard variant
  * <SelectField
- *   label="Size"
+ *   label={i18n.t("editor:asset.info.size", { defaultValue: "Size" })}
  *   value={size}
  *   onChange={setSize}
  *   options={[{ value: "s", label: "Small" }, { value: "m", label: "Medium" }]}

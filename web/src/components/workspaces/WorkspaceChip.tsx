@@ -29,6 +29,7 @@ import {
   useWorkspaceCacheWriter
 } from "../../hooks/useWorkspaces";
 import { useFolderPicker } from "./useFolderPicker";
+import { useTranslation } from "react-i18next";
 
 /** Derive a workspace name from an absolute folder path. */
 function nameFromPath(path: string): string {
@@ -95,6 +96,7 @@ interface WorkspaceChipProps {
 }
 
 const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const anchorRef = useRef<HTMLButtonElement>(null);
@@ -143,9 +145,9 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
         ref={anchorRef}
         icon={<FolderIcon fontSize="small" />}
         label={
-          isMobile || compact ? undefined : selected?.name || "Workspace"
+          isMobile || compact ? undefined : selected?.name || t("editor:ui.workspace", { defaultValue: "Workspace" })
         }
-        title={selected?.path ?? "Select a workspace folder"}
+        title={selected?.path ?? t("editor:ui.selectAWorkspaceFolder", { defaultValue: "Select a workspace folder" })}
         active={open}
         showChevron={false}
         truncate
@@ -164,9 +166,9 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
           boxShadow: `0 12px 40px ${theme.vars.palette.c_scrim}`
         }}
       >
-        <div css={cssStyles} role="menu" aria-label="Workspace">
+        <div css={cssStyles} role="menu" aria-label={t("nav:qa.workspace-files.label", { defaultValue: "Workspace" })}>
           <Caption className="workspace-menu-header" size="small">
-            Workspace
+            {t("editor:ui.workspace", { defaultValue: "Workspace" })}
           </Caption>
           {workspaces.map((workspace) => {
             const isSelected = workspace.id === workspaceId;
@@ -222,7 +224,7 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
               <span className="workspace-menu-icon">
                 <AddIcon fontSize="small" />
               </span>
-              <Text size="small">Add workspace…</Text>
+              <Text size="small">{t("editor:ui.addWorkspaceEllipsis", { defaultValue: "Add workspace…" })}</Text>
             </div>
           )}
         </div>

@@ -15,6 +15,7 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { MOTION, BORDER_RADIUS, reducedMotion } from "./tokens";
+import { useTranslation } from "react-i18next";
 
 const DEFAULT_CHECKER_SIZE = 12;
 
@@ -91,6 +92,7 @@ const CheckerDropzoneInner: React.FC<CheckerDropzoneProps> = ({
   children,
   className
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [isOver, setIsOver] = useState(false);
 
@@ -134,7 +136,7 @@ const CheckerDropzoneInner: React.FC<CheckerDropzoneProps> = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       role={onDrop ? "button" : undefined}
-      aria-label={onDrop ? message ?? "Drop files here" : undefined}
+      aria-label={onDrop ? message ?? t("editor:ui.dropFilesHere", { defaultValue: "Drop files here" }) : undefined}
     >
       {children ?? (
         <>

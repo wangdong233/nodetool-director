@@ -23,6 +23,7 @@ import { useMemo } from "react";
 import { getModelUnitPrice } from "../../utils/modelUnitPricing";
 import { useScriptStore } from "../../stores/script/ScriptStore";
 import { voiceTargets } from "../../stores/script/scriptVoicing";
+import { useTranslation } from "react-i18next";
 
 export interface VoiceCostEstimate {
   /** Lines the click would voice. */
@@ -60,6 +61,7 @@ interface VoiceGroup {
 }
 
 export function useVoiceCostEstimate(scriptId: string): VoiceCostEstimate {
+  const { t } = useTranslation();
   const script = useScriptStore((state) => state.scripts[scriptId]);
 
   return useMemo(() => {
@@ -102,7 +104,7 @@ export function useVoiceCostEstimate(scriptId: string): VoiceCostEstimate {
       );
       if (!price || price.declined || !Number.isFinite(price.unit_price)) {
         reasons.push(
-          `${group.model}: ${price?.declined ?? "no published price in the catalog"}`
+          `${group.model}: ${price?.declined ?? t("editor:ui.noPublishedPriceInTheCatalog", { defaultValue: "no published price in the catalog" })}`
         );
         continue;
       }
@@ -121,7 +123,7 @@ export function useVoiceCostEstimate(scriptId: string): VoiceCostEstimate {
       reasons: Array.from(new Set(reasons)),
       notes: Array.from(new Set(notes))
     };
-  }, [script]);
+  }, [t, script]);
 }
 
 export default useVoiceCostEstimate;

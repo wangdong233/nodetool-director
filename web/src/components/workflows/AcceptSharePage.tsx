@@ -16,8 +16,10 @@ import {
   SPACING
 } from "../ui_primitives";
 import { useAcceptShare } from "../../serverState/useWorkflowSharing";
+import { useTranslation } from "react-i18next";
 
 const AcceptSharePage = () => {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const accept = useAcceptShare();
@@ -56,7 +58,7 @@ const AcceptSharePage = () => {
       ) : (
         <>
           <LoadingSpinner />
-          <Text size="small">Opening shared workflow…</Text>
+          <Text size="small">{t("editor:ui.openingSharedWorkflow", { defaultValue: "Opening shared workflow…" })}</Text>
         </>
       )}
     </FlexColumn>

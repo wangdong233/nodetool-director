@@ -15,6 +15,7 @@ import {
 } from "../../ui_primitives";
 import { isObjectLike, isString } from "../../../utils/typePredicates";
 import type { Message, MessageContent } from "../../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 
 /**
  * `execution_event_type` of a compaction record — the persisted summary that
@@ -98,6 +99,7 @@ export interface CompactionCardProps {
  * and lets them read what the model kept.
  */
 const CompactionCard: React.FC<CompactionCardProps> = ({ content }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const summary = compactionSummary(content);
@@ -112,7 +114,7 @@ const CompactionCard: React.FC<CompactionCardProps> = ({ content }) => {
           <FlexRow align="center" gap={SPACING.xs}>
             <UnfoldLessRoundedIcon className="compaction-icon" />
             <Text size="small" className="compaction-title">
-              Earlier conversation summarized
+              {t("editor:ui.earlierConversationSummarized")}
             </Text>
           </FlexRow>
         }
@@ -123,7 +125,7 @@ const CompactionCard: React.FC<CompactionCardProps> = ({ content }) => {
           </Text>
         ) : (
           <Caption className="compaction-summary">
-            The summary is empty.
+            {t("editor:ui.theSummaryIsEmpty")}
           </Caption>
         )}
       </CollapsibleSection>

@@ -25,6 +25,7 @@ import { $createAssetMentionNode } from "./AssetMentionNode";
 import { $insertAssetMention } from "./promptEditorState";
 import { assetToUri } from "./promptTokens";
 import { hasAssetDrag, readAssetDrag } from "./assetDrag";
+import { i18n } from "../../../../i18n";
 
 /** Best-effort caret position from drop coordinates, across browsers. */
 const rangeFromPoint = (x: number, y: number): Range | null => {

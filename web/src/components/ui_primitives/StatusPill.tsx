@@ -109,7 +109,9 @@ const StatusPillInner = ({
       sx={{
         display: "inline-flex",
         alignItems: "center",
-        height: `${CONTROL.height.xs}px`,
+        // F-38 (r20): minHeight floor, not a fixed 24px box — under font
+        // inflation the pill grows with its label instead of clipping it.
+        minHeight: `${CONTROL.height.xs}px`,
         px: SPACING.sm,
         borderRadius: BORDER_RADIUS.pill,
         border: "1px solid",

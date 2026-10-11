@@ -30,6 +30,7 @@ import { Job } from "../../stores/ApiTypes";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import useWorkflowRunsStore from "../../stores/WorkflowRunsStore";
 import { notifyMutationError } from "../../utils/notifyMutationError";
+import { useTranslation } from "react-i18next";
 
 const RUNNING = new Set(["running"]);
 const QUEUED = new Set(["queued", "scheduled", "starting"]);
@@ -161,6 +162,7 @@ const RunningCard = memo(function RunningCard({
   isFocused: boolean;
   onFocusJob?: (jobId: string) => void;
 }) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const name = useJobName(job);
   const elapsed = formatClock(job.started_at, now);
@@ -205,7 +207,7 @@ const RunningCard = memo(function RunningCard({
           >
             <VisibilityIcon sx={{ fontSize: 12 }} />
             <Text size="smaller" sx={{ color: "primary.main" }}>
-              On canvas
+              {t("editor:ui.onCanvas")}
             </Text>
           </FlexRow>
         )}
@@ -218,7 +220,7 @@ const RunningCard = memo(function RunningCard({
         >
           <IconButton
             icon={<CloseIcon sx={{ fontSize: 15 }} />}
-            label="Stop run"
+            label={t("editor:ui.stopRun", { defaultValue: "Stop run" })}
             onClick={() => onCancel(job.id)}
             hoverColor="error.main"
           />
@@ -235,7 +237,7 @@ const RunningCard = memo(function RunningCard({
       <Box
         role="button"
         tabIndex={0}
-        aria-label="Show run on canvas"
+        aria-label={t("editor:ui.showRunOnCanvas", { defaultValue: "Show run on canvas" })}
         aria-pressed={isFocused}
         onClick={handleFocus}
         onKeyDown={(e: React.KeyboardEvent) => {
@@ -274,6 +276,7 @@ const EnqueuedCard = memo(function EnqueuedCard({
   index: number;
   onCancel: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const name = useJobName(job);
   return (
     <Box sx={cardSx}>
@@ -287,7 +290,7 @@ const EnqueuedCard = memo(function EnqueuedCard({
         </Text>
         <IconButton
           icon={<CloseIcon sx={{ fontSize: 15 }} />}
-          label="Remove from queue"
+          label={t("editor:ui.removeFromQueue", { defaultValue: "Remove from queue" })}
           onClick={() => onCancel(job.id)}
           hoverColor="error.main"
         />
@@ -391,6 +394,7 @@ const SingleName = memo(function SingleName({ job }: { job: Job }) {
  * is running or queued so it never clutters an idle canvas.
  */
 const QueueOverlay = memo(function QueueOverlay() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const { data: jobs } = useRunningJobs();
@@ -513,7 +517,7 @@ const QueueOverlay = memo(function QueueOverlay() {
             )}
             <IconButton
               icon={<KeyboardArrowDownIcon sx={{ fontSize: 18 }} />}
-              label="Expand queue"
+              label={t("editor:ui.expandQueue", { defaultValue: "Expand queue" })}
               onClick={() => setExpanded(true)}
             />
           </FlexRow>
@@ -549,7 +553,7 @@ const QueueOverlay = memo(function QueueOverlay() {
         </FlexRow>
         <IconButton
           icon={<RemoveIcon sx={{ fontSize: 16 }} />}
-          label="Collapse queue"
+          label={t("editor:ui.collapseQueue", { defaultValue: "Collapse queue" })}
           onClick={() => setExpanded(false)}
         />
       </FlexRow>
@@ -557,7 +561,7 @@ const QueueOverlay = memo(function QueueOverlay() {
       <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", px: 2, pb: 2 }}>
         {running.length > 0 && (
           <>
-            <SectionLabel>Running</SectionLabel>
+            <SectionLabel>{t("editor:ui.running", { defaultValue: "Running" })}</SectionLabel>
             <FlexColumn gap={1}>
               {running.map((job) => {
                 const isCurrentWf =
@@ -580,7 +584,7 @@ const QueueOverlay = memo(function QueueOverlay() {
         )}
         {queued.length > 0 && (
           <>
-            <SectionLabel>Enqueued</SectionLabel>
+            <SectionLabel>{t("ui2:attrs.enqueued", { defaultValue: "Enqueued" })}</SectionLabel>
             <FlexColumn gap={1}>
               {queued.map((job, index) => (
                 <EnqueuedCard
@@ -595,7 +599,7 @@ const QueueOverlay = memo(function QueueOverlay() {
         )}
         {cancelled.length > 0 && (
           <>
-            <SectionLabel>Cancelled</SectionLabel>
+            <SectionLabel>{t("ui2:attrs.cancelled", { defaultValue: "Cancelled" })}</SectionLabel>
             <FlexColumn gap={1}>
               {cancelled.map((job) => (
                 <CancelledCard key={job.id} job={job} />

@@ -9,6 +9,7 @@ import { NodeInputs } from "../../node/NodeInputs";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import OutputRenderer from "../../node/OutputRenderer";
 import NodeProgress from "../../node/NodeProgress";
+import { i18n } from "../../../i18n";
 
 export { CONSTANT_SKETCH_NODE_TYPE } from "./bespokeNodeTypes";
 

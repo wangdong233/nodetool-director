@@ -53,6 +53,8 @@ import { SetupFooterField } from "../SetupFooterField";
 import { AddStyleDialog } from "../storyboard/AddStyleDialog";
 import { useGameCustomStyle } from "./useGameCustomStyle";
 import type { StylePresetEntity } from "../../../serverState/useStylePresets";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * The tile that keeps a template's shipped audio. It is a real choice, not an
@@ -68,6 +70,8 @@ export type GameRowStatus = "loading" | "error" | "empty" | "ready";
 
 /** One row of tiles: what is on offer, and what the workflow remembers. */
 export interface GameModelRow {
+  /** Stable row id, e.g. "image" / "music" — never localized. */
+  id?: string;
   /** Heading above the row, e.g. "Image model". */
   label: string;
   tiles: readonly OptionCardItem[];
@@ -216,7 +220,7 @@ export const gameGenerationLine = (estimate: GameCostEstimate): string => {
 export const gameCostLine = (estimate: GameCostEstimate): string =>
   estimate.total !== null && estimate.total > 0
     ? `About ${formatUsd(estimate.total)}`
-    : "Cost unknown until the first asset returns";
+    : i18n.t("storyboard:attrs.costUnknownUntilTheFirstAssetReturns", { defaultValue: "Cost unknown until the first asset returns" });
 
 /** What the image picker lists: the models that draw text to image. */
 const IMAGE_MODEL_TASKS: ImageModelTask[] = ["text_to_image"];
@@ -229,6 +233,7 @@ const IMAGE_MODEL_TASKS: ImageModelTask[] = ["text_to_image"];
  * `${provider}:${id}`, so the stored answer and the build are unchanged.
  */
 const ImageModelStatus: React.FC<{ row: GameModelRow }> = ({ row }) => {
+  const { t } = useTranslation();
   if (row.status === "loading") {
     return (
       <FlexColumn gap={GAP.normal}>
@@ -238,7 +243,7 @@ const ImageModelStatus: React.FC<{ row: GameModelRow }> = ({ row }) => {
         <FlexRow gap={GAP.normal} align="center">
           <LoadingSpinner size="small" />
           <Caption color="secondary" component="span">
-            {`Reading what your providers offer for ${row.label.toLowerCase()}…`}
+            {t("storyboard:attrs.readingWhatYourProvidersOfferForRow", { defaultValue: "Reading what your providers offer for {{row}}…", row: row.label.toLowerCase() })}
           </Caption>
         </FlexRow>
       </FlexColumn>
@@ -331,6 +336,7 @@ export const GameImageModelFooterField: React.FC<{
 
 /** One row of tiles, with the four states its source can be in. */
 const ModelTileRow: React.FC<{ row: GameModelRow }> = ({ row }) => {
+  const { t } = useTranslation();
   const tiles = useMemo<OptionCardItem[]>(
     () =>
       row.placeholderLabel === undefined
@@ -355,7 +361,7 @@ const ModelTileRow: React.FC<{ row: GameModelRow }> = ({ row }) => {
         <FlexRow gap={GAP.normal} align="center">
           <LoadingSpinner size="small" />
           <Caption color="secondary" component="span">
-            {`Reading what your providers offer for ${row.label.toLowerCase()}…`}
+            {t("storyboard:attrs.readingWhatYourProvidersOfferForRow", { defaultValue: "Reading what your providers offer for {{row}}…", row: row.label.toLowerCase() })}
           </Caption>
         </FlexRow>
       ) : row.status === "error" ? (
@@ -393,7 +399,7 @@ const ModelTileRow: React.FC<{ row: GameModelRow }> = ({ row }) => {
           <Caption component="span">{row.emptyMessage}</Caption>
         </AlertBanner>
       ) : (
-        row.label === "Music model" ? (
+        row.id === "music" ? (
           <FlexRow gap={GAP.normal} align="center">
             {canOfferPlaceholder ? (
               <EditorButton
@@ -443,6 +449,7 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
   projectName,
   onProjectNameChange
 }) => {
+  const { t } = useTranslation();
   const [addingStyle, setAddingStyle] = useState(false);
 
   const applyCustomStyle = useCallback(
@@ -458,11 +465,11 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
     () =>
       presets.map((preset) => ({
         id: preset.entityId,
-        title: preset.name,
-        description: preset.descriptor.trim(),
+        title: t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name }),
+        description: t(`catalog:styles.${preset.name}.description`, { defaultValue: preset.descriptor.trim() }),
         image: preset.thumbnail
       })),
-    [presets]
+    [presets, t]
   );
 
   // A style the creator just made is a style entity like any other, but it is
@@ -525,8 +532,7 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
           Choose the look and the models
         </Text>
         <Text size="normal" color="secondary">
-          One style and one image model for every sprite, tile and background,
-          so the game reads as one game.
+          {t("storyboard:attrs.oneStyleAndOneImageModelForEveryAsset", { defaultValue: "One style and one image model for every sprite, tile and background, so the game reads as one game." })}
         </Text>
       </FlexColumn>
 
@@ -535,13 +541,25 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
           Style
         </Text>
         <Caption color="secondary" component="p">
-          {`Every prompt carries it: ${slotCounts.spritesheets} sprite sheet${
-            slotCounts.spritesheets === 1 ? "" : "s"
-          }, ${slotCounts.tilesets} tile sheet${
-            slotCounts.tilesets === 1 ? "" : "s"
-          } and ${slotCounts.images} background${
-            slotCounts.images === 1 ? "" : "s"
-          }.`}
+          {t("storyboard:attrs.everyPromptCarriesIt", {
+            defaultValue:
+              "Every prompt carries it: {{sprites}}, {{tiles}} and {{images}}.",
+            sprites: `${slotCounts.spritesheets} ${
+              slotCounts.spritesheets === 1
+                ? t("storyboard:attrs.spriteSheet", { defaultValue: "sprite sheet" })
+                : t("storyboard:attrs.spriteSheets", { defaultValue: "sprite sheets" })
+            }`,
+            tiles: `${slotCounts.tilesets} ${
+              slotCounts.tilesets === 1
+                ? t("storyboard:attrs.tileSheet", { defaultValue: "tile sheet" })
+                : t("storyboard:attrs.tileSheets", { defaultValue: "tile sheets" })
+            }`,
+            images: `${slotCounts.images} ${
+              slotCounts.images === 1
+                ? t("storyboard:attrs.background", { defaultValue: "background" })
+                : t("storyboard:attrs.backgrounds", { defaultValue: "backgrounds" })
+            }`
+          })}
         </Caption>
         <PresetTileGrid
           label="Style"
@@ -549,7 +567,7 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
           selectedId={styleEntityId}
           onSelect={onStyleChange}
           onAddOwn={openAddStyle}
-          addOwnLabel="Add your own style"
+          addOwnLabel={t("storyboard:attrs.addYourOwnStyle", { defaultValue: "Add your own style" })}
           addOwnDisabled={customStyleState.saving}
         />
       </FlexColumn>
@@ -601,7 +619,7 @@ const BuildDisclosure: React.FC<{ estimate: GameCostEstimate }> = ({
   <FlexColumn
     gap={GAP.tight}
     role="region"
-    aria-label="Before you build"
+    aria-label={i18n.t("editor:ui.beforeYouBuild", { defaultValue: "Before you build" })}
     sx={{
       borderTop: "1px solid",
       borderColor: "divider",

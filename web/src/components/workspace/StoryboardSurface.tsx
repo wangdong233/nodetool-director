@@ -35,6 +35,7 @@ import {
   useStoryboardSetupFlow,
   useStoryboardSetupStage
 } from "../setup/storyboard/useStoryboardSetupFlow";
+import { useTranslation } from "react-i18next";
 
 interface StoryboardSurfaceProps {
   refId: string;
@@ -47,8 +48,10 @@ interface StoryboardSurfaceProps {
 type MobilePane = "board" | "assistant";
 
 const MOBILE_TABS = [
-  { value: "board", label: "Board", icon: <TheatersIcon /> },
-  { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
+  // `labelKey`/`label` resolve per render in the component (see mobileTabs) —
+  // a module-level i18n.t would freeze before the lazy zh bundle lands (r12).
+  { value: "board", labelKey: "storyboard:attrs.board", label: "Board", icon: <TheatersIcon /> },
+  { value: "assistant", labelKey: "editor:ui.assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
 ];
 
 const MOBILE_PANES: readonly MobilePane[] = ["board", "assistant"];
@@ -68,6 +71,7 @@ const isMobilePane = (value: string): value is MobilePane =>
  * board, chat, and scroll state survive switches.
  */
 const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobilePane, setMobilePane] = useState<MobilePane>("board");
@@ -177,10 +181,21 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
     ]
   );
 
+  // Labels resolve per render so a language switch re-renders the switcher
+  // immediately (F-26 discipline for module-level label arrays).
+  const mobileTabs = useMemo(
+    () =>
+      MOBILE_TABS.map(({ labelKey, label, ...rest }) => ({
+        ...rest,
+        label: t(labelKey, { defaultValue: label })
+      })),
+    [t]
+  );
+
   // The store seeds an empty board on mount, so rendering before the server
   // copy lands looks like a board with no shots.
   if (loadState !== "ready") {
-    return <DocumentLoadStatus state={loadState} label="storyboard" />;
+    return <DocumentLoadStatus state={loadState} label={t("ui2:attrs.docStoryboard", { defaultValue: "storyboard" })} />;
   }
 
   if (setupStage !== "done") {
@@ -197,7 +212,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
       <FlexColumn fullHeight sx={{ minHeight: 0, position: "relative" }}>
         {conflictBanner}
         <TabGroup
-          tabs={MOBILE_TABS}
+          tabs={mobileTabs}
           value={mobilePane}
           onChange={(value) => {
             if (isMobilePane(value)) {
@@ -252,7 +267,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
       {mode !== "view" && (
         <ResizableSideDock
           storageKey="storyboard_assistant"
-          ariaLabel="Resize storyboard assistant"
+          ariaLabel={t("ui2:attrs.resizeStoryboardAssistant", { defaultValue: "Resize storyboard assistant" })}
         >
           <StoryboardAgentPanel boardId={refId} />
         </ResizableSideDock>

@@ -12,6 +12,7 @@ import {
 } from "../../ui_primitives";
 import { getEntityKindChipSx } from "../../entities/entityKind";
 import { SETUP_CONTENT_WIDTH, SETUP_MEDIA_WIDTH } from "../layout";
+import { useTranslation } from "react-i18next";
 
 interface ReviewStepProps {
   readonly assetId: string;
@@ -27,41 +28,41 @@ export const ReviewStep = ({
   name,
   descriptor,
   tags
-}: ReviewStepProps) => (
-  <FlexColumn gap={GAP.spacious} sx={{ maxWidth: SETUP_CONTENT_WIDTH }}>
-    <FlexColumn gap={GAP.tight}>
-      <Text size="big" component="h1">
-        Review your entity
-      </Text>
-      <Text color="secondary">
-        This reference and descriptor will be available anywhere entities can
-        be added.
-      </Text>
-    </FlexColumn>
+}: ReviewStepProps) => {
+  const { t } = useTranslation();
+  return (
+    <FlexColumn gap={GAP.spacious} sx={{ maxWidth: SETUP_CONTENT_WIDTH }}>
+      <FlexColumn gap={GAP.tight}>
+        <Text size="big" component="h1">{t("storyboard:attrs.reviewYourEntity", { defaultValue: "Review your entity" })}</Text>
+        <Text color="secondary">
+          {t("storyboard:attrs.thisReferenceAndDescriptorWillBeAvailableAnywhereEntitiesCanBeAdded", { defaultValue: "This reference and descriptor will be available anywhere entities can be added." })}
+        </Text>
+      </FlexColumn>
 
-    <ResponsiveImage
-      locator={`asset://${assetId}`}
-      alt={`${name} reference`}
-      aspectRatio="1/1"
-      fit="contain"
-      borderRadius={BORDER_RADIUS.md}
-      showErrorFallback
-      sx={{ width: SETUP_MEDIA_WIDTH, maxWidth: "100%", maxHeight: "44vh" }}
-    />
-    <FlexRow gap={GAP.normal} align="center" wrap>
-      <Text size="big">{name}</Text>
-      <Chip
-        label={kind}
-        compact
-        variant="outlined"
-        sx={getEntityKindChipSx(kind)}
+      <ResponsiveImage
+        locator={`asset://${assetId}`}
+        alt={t("storyboard:attrs.nameReference", { defaultValue: "{{name}} reference", name })}
+        aspectRatio="1/1"
+        fit="contain"
+        borderRadius={BORDER_RADIUS.md}
+        showErrorFallback
+        sx={{ width: SETUP_MEDIA_WIDTH, maxWidth: "100%", maxHeight: "44vh" }}
       />
-    </FlexRow>
-    <Text>{descriptor}</Text>
-    {tags.length > 0 ? (
-      <Caption color="secondary">Tags: {tags.join(", ")}</Caption>
-    ) : null}
-  </FlexColumn>
-);
+      <FlexRow gap={GAP.normal} align="center" wrap>
+        <Text size="big">{name}</Text>
+        <Chip
+          label={kind}
+          compact
+          variant="outlined"
+          sx={getEntityKindChipSx(kind)}
+        />
+      </FlexRow>
+      <Text>{descriptor}</Text>
+      {tags.length > 0 ? (
+        <Caption color="secondary">{t("storyboard:attrs.tagsColonTags", { defaultValue: "Tags: {{tags}}", tags: tags.join(", ") })}</Caption>
+      ) : null}
+    </FlexColumn>
+  );
+};
 
 export default ReviewStep;

@@ -7,6 +7,7 @@ import type { Theme } from "@mui/material/styles";
 import { Text, Box, BORDER_RADIUS, Z_INDEX, getSpacingPx, SPACING } from "../ui_primitives";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
 import LinearProgressWithLabel from "./LinearProgressWithLabel";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -41,6 +42,7 @@ const styles = (theme: Theme) =>
   });
 
 const AssetUploadOverlay = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { files, isUploading, overallProgress, completed } = useAssetUpload();
 
@@ -52,7 +54,7 @@ const AssetUploadOverlay = () => {
     <div css={styles(theme)} className="uploading-overlay">
       <div className="uploading-message">
         <Box>
-          <Text size="big" >Uploading assets</Text>
+          <Text size="big" >{t("ui2:attrs.uploadingAssets", { defaultValue: "Uploading assets" })}</Text>
           <Text size="normal" weight={600}>
             {completed} / {files.length} files completed
           </Text>

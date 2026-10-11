@@ -31,7 +31,7 @@ export interface SectionHeaderProps extends BoxProps {
  *
  * @example
  * // With action button
- * <SectionHeader title="Settings" action={<Button>Reset</Button>} />
+ * <SectionHeader title={i18n.t("nav:rail.settings", { defaultValue: "Settings" })} action={<Button>Reset</Button>} />
  *
  * @example
  * // Small uppercase header (for sidebar sections)
@@ -39,7 +39,7 @@ export interface SectionHeaderProps extends BoxProps {
  *
  * @example
  * // With subtitle
- * <SectionHeader title="Workflows" subtitle="Your saved workflows" />
+ * <SectionHeader title={i18n.t("nav:settings.docsTopics.workflows", { defaultValue: "Workflows" })} subtitle="Your saved workflows" />
  */
 export const SectionHeader: React.FC<SectionHeaderProps> = ({
   title,

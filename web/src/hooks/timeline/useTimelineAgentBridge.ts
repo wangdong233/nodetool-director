@@ -95,6 +95,7 @@ import { extractVideoFrames } from "../../components/timeline/Tracks/clipThumbna
 import { renderRasterClipFrames } from "../../components/timeline/preview/rasterClipFrames";
 import { persistFormatAdaptations } from "./useCreateFormatAdaptation";
 import { trpcClient } from "../../trpc/client";
+import { useTranslation } from "react-i18next";
 
 const KIND_TO_MODEL_KIND = {
   "text-to-video": "video",
@@ -279,6 +280,7 @@ function toTrackNode(
 }
 
 export const useTimelineAgentBridge = (sequenceId: string | null): void => {
+  const { t } = useTranslation();
   const doc = useTimelineStoreApi();
   const ui = useTimelineUIStoreApi();
   const playback = useTimelinePlaybackStoreApi();
@@ -687,8 +689,8 @@ export const useTimelineAgentBridge = (sequenceId: string | null): void => {
         } else if (!canGenerate) {
           note =
             kind === "text-to-audio" && !voice
-              ? "Clip created as a draft — set a provider, model and voice, then regenerate."
-              : "Clip created as a draft — no model resolved. Set a provider and model, then regenerate.";
+              ? t("timeline:attrs.clipCreatedAsADraftSetAProviderModelAndVoiceThenRegenerate", { defaultValue: "Clip created as a draft — set a provider, model and voice, then regenerate." })
+              : t("timeline:attrs.clipCreatedAsADraftNoModelResolvedSetAProviderAndModelThenRegenerate", { defaultValue: "Clip created as a draft — no model resolved. Set a provider and model, then regenerate." });
         } else {
           const requestId = await startDirectGen(clipId);
           generationStarted = requestId !== null;
@@ -1573,7 +1575,7 @@ export const useTimelineAgentBridge = (sequenceId: string | null): void => {
       }
     };
     return handlerImpl;
-  }, [doc, ui, playback, startDirectGen, startEdit, bakeClip, sequenceId]);
+  }, [doc, ui, playback, startDirectGen, startEdit, bakeClip, sequenceId, t]);
 
   useEffect(() => {
     if (!sequenceId) return;

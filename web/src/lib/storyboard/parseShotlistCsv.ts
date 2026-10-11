@@ -25,6 +25,7 @@ import {
   LENS_OPTIONS,
   MOVEMENT_OPTIONS
 } from "../../components/storyboard/cameraOptions";
+import { i18n } from "../../i18n";
 
 /** Without these two a row describes nothing (PRD § 7.7.8). */
 export const REQUIRED_COLUMNS = ["scene", "description"] as const;
@@ -249,7 +250,7 @@ function buildShot(
         row: row.row,
         column: "duration_seconds",
         value: duration,
-        reason: "Not a positive number. The shot imported without a duration."
+        reason: i18n.t("storyboard:attrs.notAPositiveNumberTheShotImportedWithoutADuration", { defaultValue: "Not a positive number. The shot imported without a duration." })
       });
     }
   }

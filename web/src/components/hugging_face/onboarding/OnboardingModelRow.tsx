@@ -18,11 +18,13 @@ import {
 } from "../../ui_primitives";
 import { useModelDownloadStore } from "../../../stores/ModelDownloadStore";
 import { DownloadProgress } from "../DownloadProgress";
+import { useTranslation } from "react-i18next";
 import {
   FIT_LABELS,
   getEngine,
   type FitLevel,
-  type OnboardingModel
+  type OnboardingModel,
+  FIT_LABEL_KEYS
 } from "./onboardingCatalog";
 
 interface OnboardingModelRowProps {
@@ -45,6 +47,7 @@ const OnboardingModelRow: React.FC<OnboardingModelRowProps> = ({
   downloaded,
   onDownload
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const downloadId = entry.model.repo_id || entry.model.id;
   const download = useModelDownloadStore((state) => state.downloads[downloadId]);
@@ -71,7 +74,7 @@ const OnboardingModelRow: React.FC<OnboardingModelRowProps> = ({
               {entry.name}
             </Text>
             {entry.featured && (
-              <Chip label="Popular" compact color="primary" variant="outlined" />
+              <Chip label={t("editor:ui.popular", { defaultValue: "Popular" })} compact color="primary" variant="outlined" />
             )}
             {engine && (
               <Tooltip title={engine.description} delay={400}>
@@ -99,7 +102,7 @@ const OnboardingModelRow: React.FC<OnboardingModelRowProps> = ({
 
         <FlexColumn gap={SPACING.xs} align="flex-end" sx={{ flexShrink: 0 }}>
           <Chip
-            label={FIT_LABELS[fit]}
+            label={t(FIT_LABEL_KEYS[fit], { defaultValue: FIT_LABELS[fit] })}
             compact
             color={FIT_COLOR[fit]}
             variant={fit === "unknown" ? "outlined" : "filled"}
@@ -112,7 +115,7 @@ const OnboardingModelRow: React.FC<OnboardingModelRowProps> = ({
                   color: theme.vars.palette.success.main
                 }}
               />
-              <Caption color="secondary">Installed</Caption>
+              <Caption color="secondary">{t("ui2:attrs.installed", { defaultValue: "Installed" })}</Caption>
             </FlexRow>
           ) : (
             <EditorButton

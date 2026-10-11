@@ -39,7 +39,7 @@ export interface TextInputProps
  *
  * @example
  * // Basic text input
- * <TextInput label="Name" value={name} onChange={handleChange} />
+ * <TextInput label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })} value={name} onChange={handleChange} />
  *
  * @example
  * // With error message
@@ -47,7 +47,7 @@ export interface TextInputProps
  *
  * @example
  * // Compact multiline
- * <TextInput label="Notes" multiline rows={3} compact />
+ * <TextInput label={i18n.t("timeline:attrs.notes", { defaultValue: "Notes" })} multiline rows={3} compact />
  *
  * @example
  * // Password input

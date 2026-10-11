@@ -8,6 +8,7 @@ import PropertyLabel from "../node/PropertyLabel";
 import { PropertyProps } from "../node/PropertyInput";
 import TextAssetDisplay from "./TextAssetDisplay";
 import isEqual from "../../utils/isEqual";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

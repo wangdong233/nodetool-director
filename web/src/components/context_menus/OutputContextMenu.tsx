@@ -40,10 +40,12 @@ import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { useCodeGenFromHandle } from "../../hooks/useCodeGenFromHandle";
 import { useHandleNodePlacement } from "../../hooks/useHandleNodePlacement";
 import { isNumber } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const NODE_ROW_HEIGHT = 28;
 
 const OutputContextMenu: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const {
     nodeId,
@@ -523,12 +525,12 @@ const OutputContextMenu: React.FC = () => {
             inputRef={searchInputRef}
             size="small"
             fullWidth
-            placeholder="Search nodes..."
+            placeholder={t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
             value={searchTerm}
             onChange={handleSearchChange}
             onClick={(event) => event.stopPropagation()}
             onKeyDown={handleSearchKeyDown}
-            aria-label="Search connectable nodes"
+            aria-label={t("editor:io.searchConnectable", { defaultValue: "Search connectable nodes" })}
             sx={{
               "& .MuiOutlinedInput-root": {
                 backgroundColor: "action.disabledBackground",
@@ -562,7 +564,7 @@ const OutputContextMenu: React.FC = () => {
                 endAdornment: searchTerm ? (
                   <InputAdornment position="end">
                     <ToolbarIconButton
-                      aria-label="clear search"
+                      aria-label={t("editor:io.clearSearch", { defaultValue: "clear search" })}
                       onClick={handleClearSearch}
                       size="small"
                       icon={<ClearIcon sx={{ fontSize: 16 }} />}
@@ -587,7 +589,7 @@ const OutputContextMenu: React.FC = () => {
                 <span className="icon-bg">
                   <DeleteOutlineIcon />
                 </span>
-                <Text size="small">Delete output</Text>
+                <Text size="small">{t("editor:io.deleteOutput", { defaultValue: "Delete output" })}</Text>
               </Box>
             </Box>
             <Divider />
@@ -603,7 +605,7 @@ const OutputContextMenu: React.FC = () => {
             sx={actionRowStyles}
           >
             <span className="icon-bg"><VisibilityIcon /></span>
-            <Text size="small">Preview</Text>
+            <Text size="small">{t("editor:io.preview", { defaultValue: "Preview" })}</Text>
           </Box>
           {outputNodeMetadata != null && (
             <Box
@@ -614,7 +616,7 @@ const OutputContextMenu: React.FC = () => {
               sx={actionRowStyles}
             >
               <span className="icon-bg"><DataObjectIcon /></span>
-              <Text size="small">Output</Text>
+              <Text size="small">{t("editor:io.output", { defaultValue: "Output" })}</Text>
             </Box>
           )}
           <Box
@@ -625,7 +627,7 @@ const OutputContextMenu: React.FC = () => {
             sx={actionRowStyles}
           >
             <span className="icon-bg"><AltRouteIcon /></span>
-            <Text size="small">Reroute</Text>
+            <Text size="small">{t("editor:io.reroute", { defaultValue: "Reroute" })}</Text>
           </Box>
             {saveNodeMetadata != null && (
               <Box
@@ -648,7 +650,7 @@ const OutputContextMenu: React.FC = () => {
                 sx={actionRowStyles}
               >
                 <span className="icon-bg"><AutoAwesomeIcon /></span>
-                <Text size="small">Transform this output…</Text>
+                <Text size="small">{t("editor:ui.transformThisOutput", { defaultValue: "Transform this output…" })}</Text>
               </Box>
             )}
           </Box>

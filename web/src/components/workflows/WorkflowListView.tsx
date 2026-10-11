@@ -10,6 +10,7 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import WorkflowListItem from "./WorkflowListItem";
 import { useShowGraphPreview, useSortBy } from "../../stores/WorkflowListViewStore";
 import { groupByDate } from "../../utils/groupByDate";
+import { useTranslation } from "react-i18next";
 
 type ListItem =
   | { type: "header"; label: string }
@@ -216,6 +217,7 @@ const WorkflowListView: React.FC<WorkflowListViewProps> = ({
   selectedWorkflows,
   showCheckboxes
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => listStyles(theme), [theme]);
   const currentWorkflowId = useWorkflowManager(
@@ -364,7 +366,7 @@ const WorkflowListView: React.FC<WorkflowListViewProps> = ({
       overscan={theme.virtualScroll.overscan.normal}
       getItemKey={getItemKey}
       getItemProps={getItemProps}
-      ariaLabel="Workflows"
+      ariaLabel={t("editor:ui.workflows", { defaultValue: "Workflows" })}
       renderItem={renderItem}
     />
   );

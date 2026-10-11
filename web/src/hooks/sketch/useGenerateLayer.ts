@@ -40,6 +40,7 @@ import {
 } from "../../lib/websocket/GlobalWebSocketManager";
 import { extractAssetId } from "../../stores/outputAssetId";
 import { isNumber, isObjectLike, isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 /**
  * Snapshot of the binding fields needed to generate a layer. Supplied by
@@ -362,7 +363,7 @@ export const handleJobMessage = async (
         });
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "Failed to append version";
+          error instanceof Error ? error.message : i18n.t("sketch:attrs.failedToAppendVersion", { defaultValue: "Failed to append version" });
         useErrorStore
           .getState()
           .setError(

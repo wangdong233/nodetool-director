@@ -14,6 +14,7 @@ import {
 } from "./ui_primitives";
 import GoogleAuthButton from "./buttons/GoogleAuthButton";
 import Logo from "./Logo";
+import { useTranslation } from "react-i18next";
 
 const STUDIO_URL = "https://nodetool.ai/studio";
 
@@ -70,6 +71,7 @@ const styles = (theme: Theme) =>
   });
 
 function Login() {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   return (
@@ -84,15 +86,13 @@ function Login() {
           enableText
         />
         <Caption className="alpha-badge" size="smaller" color="warning">
-          Cloud · Alpha
+          {t("editor:ui.cloudAlpha")}
         </Caption>
         <Text component="h1" size="giant" className="headline">
-          You direct the vision. The agent builds the film.
+          {t("editor:ui.youDirectTheVisionTheAgentBuildsTheFilm")}
         </Text>
         <Text component="p" size="normal" className="subhead">
-          Describe your idea. The agent writes the script, boards every scene,
-          generates the footage, and cuts a multi-track timeline you can still
-          edit.
+          {t("editor:ui.describeYourIdeaTheAgentWritesTheScriptBoardsEverySceneGeneratesTheFootageAndCutsAMultiTrackTimelineYouCanStillEdit")}
         </Text>
       </div>
 
@@ -100,14 +100,12 @@ function Login() {
 
       <div className="footnotes">
         <Caption size="small" color="secondary">
-          Bring your own keys. You pay every provider directly, at their
-          published prices.
+          {t("editor:ui.bringYourOwnKeysYouPayEveryProviderDirectlyAtTheirPublishedPrices")}
         </Caption>
         <Caption size="small" color="secondary">
-          Cloud is in alpha — expect rough edges and occasional downtime. For
-          work that has to ship today,{" "}
+          {t("editor:ui.cloudIsInAlphaExpectRoughEdgesAndOccasionalDowntime")}{" "}
           <ExternalLink href={STUDIO_URL} size="small" iconVariant="arrow">
-            run NodeTool Studio on your own machine
+            {t("editor:ui.runNodeToolStudioOnYourOwnMachine")}
           </ExternalLink>
           .
         </Caption>

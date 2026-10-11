@@ -9,6 +9,8 @@ import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
 import { NodeData } from "../../../stores/NodeData";
 import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import { isNumber } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export { DYNAMIC_FAL_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -25,6 +27,7 @@ export const FalSchemaLoader: React.FC<FalSchemaLoaderProps> = memo(({
   nodeId,
   data
 }) => {
+  const { t } = useTranslation();
   const updateNodeData = useNodes((state) => state.updateNodeData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +46,7 @@ export const FalSchemaLoader: React.FC<FalSchemaLoaderProps> = memo(({
 
   const handleLoad = useCallback(async (force = false) => {
     if (!modelInfo) {
-      setError("Node definition not found.");
+      setError(i18n.t("editor:ui.nodeDefinitionNotFound", { defaultValue: "Node definition not found." }));
       return;
     }
     setError(null);
@@ -115,7 +118,7 @@ export const FalSchemaLoader: React.FC<FalSchemaLoaderProps> = memo(({
         })
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load schema");
+      setError(err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadSchema", { defaultValue: "Failed to load schema" }));
     } finally {
       setLoading(false);
     }
@@ -137,9 +140,9 @@ export const FalSchemaLoader: React.FC<FalSchemaLoaderProps> = memo(({
 
   return (
     <Box sx={{ display: "inline-flex", alignItems: "center" }}>
-      <Tooltip title="Reload Schema" arrow delay={TOOLTIP_ENTER_DELAY}>
+      <Tooltip title={t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })} arrow delay={TOOLTIP_ENTER_DELAY}>
         <ToolbarIconButton
-          title="Reload Schema"
+          title={t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })}
           size="small"
           disabled={loading}
           onClick={() => void handleLoad(true)}

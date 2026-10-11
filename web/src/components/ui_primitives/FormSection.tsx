@@ -28,8 +28,8 @@ export interface FormSectionProps {
  *
  * @example
  * <FormSection label="Run settings">
- *   <SelectField label="Provider" ... />
- *   <TextInput label="Model" ... />
+ *   <SelectField label={i18n.t("editor:asset.info.provider", { defaultValue: "Provider" })} ... />
+ *   <TextInput label={i18n.t("editor:asset.info.model", { defaultValue: "Model" })} ... />
  * </FormSection>
  */
 export const FormSection = forwardRef<HTMLDivElement, FormSectionProps>(

@@ -9,6 +9,7 @@ import { type AssetTreeNode } from "../../stores/AssetStore";
 import { useFolderTree } from "../../serverState/useFolderTree";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import { i18n } from "../../i18n";
 
 interface FolderTreeProps {
   folder?: AssetTreeNode;

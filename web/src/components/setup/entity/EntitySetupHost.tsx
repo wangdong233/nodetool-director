@@ -21,12 +21,14 @@ import {
 } from "./DetailsStep";
 import { ReferenceStep } from "./ReferenceStep";
 import { ReviewStep } from "./ReviewStep";
+import { i18n } from "../../../i18n";
 import {
   clearEntitySetupDraft,
   readEntitySetupDraft,
   writeEntitySetupDraft,
   type EntitySetupStage
 } from "./entitySetupDraft";
+import { useTranslation } from "react-i18next";
 
 export interface EntitySetupHostProps {
   readonly projectId?: string;
@@ -51,14 +53,14 @@ const createBlankReferenceFile = (): Promise<File> =>
     canvas.height = 1024;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
-      reject(new Error("Canvas 2D context unavailable"));
+      reject(new Error(i18n.t("storyboard:attrs.canvas2DContextUnavailable", { defaultValue: "Canvas 2D context unavailable" })));
       return;
     }
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     canvas.toBlob((blob) => {
       if (!blob) {
-        reject(new Error("Failed to render blank image"));
+        reject(new Error(i18n.t("storyboard:attrs.failedToRenderBlankImage", { defaultValue: "Failed to render blank image" })));
         return;
       }
       resolve(new File([blob], "Untitled.png", { type: "image/png" }));
@@ -73,6 +75,7 @@ const EntitySetupHost = ({
   onFinish,
   onChangeFlow
 }: EntitySetupHostProps) => {
+  const { t } = useTranslation();
   const recoveredDraft = useMemo(
     () => readEntitySetupDraft(draftKey ?? projectId),
     [draftKey, projectId]
@@ -139,11 +142,11 @@ const EntitySetupHost = ({
       setDetails((current) => ({
         ...current,
         name:
-          current.name.trim().length > 0 ? current.name : "Untitled entity",
+          current.name.trim().length > 0 ? current.name : i18n.t("storyboard:attrs.untitledEntity", { defaultValue: "Untitled entity" }),
         descriptor:
           current.descriptor.trim().length > 0
             ? current.descriptor
-            : "A reusable visual entity."
+            : i18n.t("storyboard:attrs.aReusableVisualEntity", { defaultValue: "A reusable visual entity." })
       }));
       setAssetId(asset.id);
       setStage("review");
@@ -151,9 +154,10 @@ const EntitySetupHost = ({
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not start a blank entity: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        content: i18n.t("storyboard:attrs.couldNotStartABlankEntity", {
+          defaultValue: "Could not start a blank entity: {{message}}",
+          message: error instanceof Error ? error.message : String(error)
+        })
       });
     } finally {
       setStartingBlank(false);
@@ -162,7 +166,7 @@ const EntitySetupHost = ({
 
   const save = useCallback(async () => {
     if (!referenceAssetId || entitiesLoading || entitiesError) {
-      throw new Error("Choose a reference image before creating the entity.");
+      throw new Error(t("storyboard:attrs.chooseAReferenceImageBeforeCreatingTheEntity", { defaultValue: "Choose a reference image before creating the entity." }));
     }
     const input: Parameters<typeof saveEntity.mutateAsync>[0] = {
       assetId: referenceAssetId,
@@ -178,7 +182,7 @@ const EntitySetupHost = ({
     }
     const entity = await saveEntity.mutateAsync(input);
     if (!entity) {
-      throw new Error("The entity could not be read after it was created.");
+      throw new Error(t("storyboard:attrs.theEntityCouldNotBeReadAfterItWasCreated", { defaultValue: "The entity could not be read after it was created." }));
     }
     clearEntitySetupDraft(draftKey ?? projectId);
     onFinish(entity);
@@ -190,22 +194,23 @@ const EntitySetupHost = ({
     onFinish,
     projectId,
     referenceAssetId,
-    saveEntity
+    saveEntity,
+    t
   ]);
 
   const steps = useMemo<SetupStep<EntitySetupStage>[]>(
     () => [
       {
         stage: "details",
-        label: "Details",
-        primaryLabel: "Choose a reference",
+        label: t("storyboard:attrs.details", { defaultValue: "Details" }),
+        primaryLabel: t("storyboard:attrs.chooseAReference", { defaultValue: "Choose a reference" }),
         canAdvance:
           details.name.trim().length > 0 &&
           details.descriptor.trim().length > 0,
         blockedReason:
           details.name.trim().length === 0
-            ? "Name the entity"
-            : "Describe the traits to preserve",
+            ? t("storyboard:attrs.nameTheEntity", { defaultValue: "Name the entity" })
+            : t("storyboard:attrs.describeTheTraitsToPreserve", { defaultValue: "Describe the traits to preserve" }),
         render: () =>
           createElement(DetailsStep, {
             value: details,
@@ -216,15 +221,15 @@ const EntitySetupHost = ({
       },
       {
         stage: "reference",
-        label: "Reference",
-        primaryLabel: "Review entity",
+        label: t("storyboard:attrs.reference", { defaultValue: "Reference" }),
+        primaryLabel: t("storyboard:attrs.reviewEntity", { defaultValue: "Review entity" }),
         canAdvance:
           referenceAssetId !== null && !entitiesLoading && !entitiesError,
         blockedReason: entitiesError
-          ? "Could not verify your entity library"
+          ? t("storyboard:attrs.couldNotVerifyYourEntityLibrary", { defaultValue: "Could not verify your entity library" })
           : entitiesLoading
-            ? "Loading your entity library"
-            : "Choose a reference image",
+            ? t("storyboard:attrs.loadingYourEntityLibrary", { defaultValue: "Loading your entity library" })
+            : t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" }),
         render: () =>
           createElement(ReferenceStep, {
             name: details.name,
@@ -242,10 +247,10 @@ const EntitySetupHost = ({
       },
       {
         stage: "review",
-        label: "Review",
-        primaryLabel: "Create entity",
+        label: t("storyboard:attrs.review", { defaultValue: "Review" }),
+        primaryLabel: t("storyboard:attrs.createEntity", { defaultValue: "Create entity" }),
         pending: saveEntity.isPending,
-        pendingLabel: "Creating your entity",
+        pendingLabel: t("storyboard:attrs.creatingYourEntity", { defaultValue: "Creating your entity" }),
         render: () =>
           referenceAssetId
             ? createElement(ReviewStep, {
@@ -275,7 +280,7 @@ const EntitySetupHost = ({
   );
 
   const config: SetupFlowConfig<EntitySetupStage> = {
-    labels: { title: "Entity" },
+    labels: { title: "Entity", titleKey: "home:entry.entity.title" },
     steps,
     stage,
     onStageChange: setStage

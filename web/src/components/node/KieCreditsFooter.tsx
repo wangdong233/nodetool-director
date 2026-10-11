@@ -48,6 +48,7 @@ import {
   kiePricingExternalUrl,
 } from "../../utils/formatKieUnitPricing";
 import { isNumber } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 /**
  * Format a kie node's actual last-run charge. Since #3426, `provider_cost.amount`
@@ -94,6 +95,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
   variant = "nodeFooter",
   popoverResetDep,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const lastRunCost = useNodeProviderCost(workflowId ?? "", nodeId ?? "");
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -207,7 +209,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         {pricing?.source === "live" && (
           <span
             style={{ marginRight: 4, fontSize: "var(--fontSizeSmaller)", opacity: 0.85 }}
-            aria-label="live price"
+            aria-label={t("editor:ui.livePrice", { defaultValue: "live price" })}
           >
             ●
           </span>
@@ -236,7 +238,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   letterSpacing: "0.05em",
                 }}
               >
-                KIE pricing
+                {t("editor:ui.kiePricing")}
               </Caption>
               <Text
                 sx={{
@@ -288,7 +290,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
               letterSpacing: "0.05em",
             }}
           >
-            Account credits
+            {t("editor:ui.accountCredits", { defaultValue: "Account credits" })}
           </Caption>
           {creditsLoading ? (
             <FlexRow gap={1} align="center" sx={{ mt: 0.5 }}>
@@ -310,7 +312,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                 mt: 0.5,
               }}
             >
-              {creditsData === "error" ? "Could not load credits" : "—"}
+              {creditsData === "error" ? t("editor:ui.couldNotLoadCredits", { defaultValue: "Could not load credits" }) : "—"}
             </Text>
           ) : creditsData.unavailable ? (
             <FlexColumn gap={0.5} sx={{ mt: 0.5 }}>
@@ -322,7 +324,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   wordBreak: "break-word",
                 }}
               >
-                {creditsData.detail ?? "Credits unavailable"}
+                {creditsData.detail ?? t("editor:ui.creditsUnavailable", { defaultValue: "Credits unavailable" })}
               </Text>
               {kieCreditsDetailSuggestsKeysLink(creditsData.detail) && (
                 <ExternalLink
@@ -330,7 +332,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   iconVariant="launch"
                   size="small"
                 >
-                  kie.ai API keys
+                  {t("editor:ui.kieAiApiKeys", { defaultValue: "kie.ai API keys" })}
                 </ExternalLink>
               )}
             </FlexColumn>
@@ -360,7 +362,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   letterSpacing: "0.05em",
                 }}
               >
-                Last run
+                {t("editor:ui.lastRun", { defaultValue: "Last run" })}
               </Caption>
               <Text
                 sx={{
@@ -379,7 +381,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         <Divider />
 
         <MenuItemPrimitive
-          label="View pricing on kie.ai"
+          label={t("editor:ui.viewPricingOnKieai", { defaultValue: "View pricing on kie.ai" })}
           icon={<LaunchIcon sx={{ fontSize: 14 }} />}
           compact
           onClick={() => {
@@ -393,7 +395,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         />
 
         <MenuItemPrimitive
-          label="Top up credits"
+          label={t("editor:ui.topUpCredits", { defaultValue: "Top up credits" })}
           icon={<LaunchIcon sx={{ fontSize: 14 }} />}
           compact
           onClick={() => {

@@ -32,6 +32,7 @@ import {
   type QuickActionDefinition,
 } from "../node_menu/QuickActionTiles.constants";
 import type { NodeMetadata } from "../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 
 interface NodePickerDialogProps {
   open: boolean;
@@ -85,6 +86,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
   onSelect,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const autoFocusEnabled = useAutoFocusEnabled();
@@ -148,7 +150,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Add Node"
+      title={t("editor:ui.addNode")}
       minWidth="min(520px, 100vw - 32px)"
     >
       <FlexColumn gap={2} sx={{ minHeight: 400, maxHeight: "70vh" }}>
@@ -157,7 +159,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
         <TextInput
           fullWidth
           size="small"
-          placeholder="Search nodes..."
+          placeholder={t("editor:ui.searchNodes")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           autoFocus={autoFocusEnabled}
@@ -181,7 +183,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
           {!hasSearch ? (
             <FlexColumn gap={2}>
               <Text size="small" weight={600} color="secondary">
-                Quick Actions
+                {t("editor:ui.quickActions")}
               </Text>
               <div css={tileStyles}>
                 {QUICK_ACTION_BUTTONS.map((action) => (
@@ -207,7 +209,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
           ) : searchResults.length === 0 ? (
             <FlexColumn align="center" justify="center" sx={{ py: 6 }}>
               <Text size="small" color="secondary">
-                No nodes found
+                {t("editor:ui.noNodesFound", { defaultValue: "No nodes found" })}
               </Text>
             </FlexColumn>
           ) : (

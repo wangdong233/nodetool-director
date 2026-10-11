@@ -38,8 +38,10 @@ import {
   CONSTANT_NODE_OPTIONS,
   INPUT_NODE_OPTIONS
 } from "./paneNodeOptions";
+import { useTranslation } from "react-i18next";
 
 const PaneContextMenu: React.FC = () => {
+  const { t } = useTranslation();
   const { handlePaste } = useCopyPaste();
   const reactFlowInstance = useReactFlow();
   const { isClipboardValid } = useClipboard();
@@ -255,7 +257,7 @@ const PaneContextMenu: React.FC = () => {
       >
         <ContextMenuItem
           onClick={handlePasteAndClose}
-          label="Paste"
+          label={t("editor:common.paste", { defaultValue: "Paste" })}
           addButtonClassName={`action ${!isClipboardValid ? "disabled" : ""}`}
           IconComponent={<SouthEastIcon />}
           tooltip={
@@ -264,8 +266,7 @@ const PaneContextMenu: React.FC = () => {
                 {getShortcutTooltip("paste")}
                 <br />
                 <span className="attention">
-                  no valid node data <br />
-                  in clipboard
+                  {t("editor:pane.noValidData", { defaultValue: "no valid node data in clipboard" })}
                 </span>
               </span>
             ) : (
@@ -275,7 +276,7 @@ const PaneContextMenu: React.FC = () => {
         />
         <ContextMenuItem
           onClick={handleFitViewAndClose}
-          label="Fit Screen"
+          label={t("editor:pane.fitScreen", { defaultValue: "Fit Screen" })}
           IconComponent={<FitScreenIcon />}
           tooltip={getShortcutTooltip("fitView")}
         />
@@ -297,7 +298,7 @@ const PaneContextMenu: React.FC = () => {
             <StarIcon
               sx={{ fontSize: "var(--fontSizeNormal)", color: "warning.main" }}
             />
-            <Text>Favorites</Text>
+            <Text>{t("editor:pane.favorites", { defaultValue: "Favorites" })}</Text>
           </FlexRow>,
           ...favorites.map((favorite) => {
             const displayName = getNodeDisplayName(favorite.nodeType);
@@ -326,7 +327,7 @@ const PaneContextMenu: React.FC = () => {
               density="normal"
             >
               <DataObjectIcon />
-              <span className="label">Add Constant Node</span>
+              <span className="label">{t("editor:pane.addConstantNode", { defaultValue: "Add Constant Node" })}</span>
             </EditorButton>
           }
         />
@@ -339,32 +340,32 @@ const PaneContextMenu: React.FC = () => {
               density="normal"
             >
               <InputIcon />
-              <span className="label">Add Input Node</span>
+              <span className="label">{t("editor:pane.addInputNode", { defaultValue: "Add Input Node" })}</span>
             </EditorButton>
           }
         />
         <Divider />
         <ContextMenuItem
           onClick={handleAddCommentAndClose}
-          label="Add Comment"
+          label={t("editor:pane.addComment", { defaultValue: "Add Comment" })}
           IconComponent={<AddCommentIcon />}
-          tooltip={"Hold C key and drag"}
+          tooltip={t("editor:pane.addCommentTip", { defaultValue: "Hold C key and drag" })}
         />
         <ContextMenuItem
           onClick={handleAddGroupAndClose}
-          label="Add Group"
+          label={t("editor:pane.addGroup", { defaultValue: "Add Group" })}
           IconComponent={<GroupWorkIcon />}
-          tooltip={"Add a group node"}
+          tooltip={t("editor:pane.addGroupTip", { defaultValue: "Add a group node" })}
         />
         <ContextMenuItem
           onClick={handleCreateNode(WORKFLOW_NODE_TYPE)}
-          label="Add Workflow"
-          tooltip={"Add a workflow node"}
+          label={t("editor:pane.addWorkflow", { defaultValue: "Add Workflow" })}
+          tooltip={t("editor:pane.addWorkflowTip", { defaultValue: "Add a workflow node" })}
         />
         <ContextMenuItem
           onClick={handleCreateNode(SUBGRAPH_NODE_TYPE)}
-          label="Add Subgraph"
-          tooltip={"Add an inline subgraph node"}
+          label={t("editor:pane.addSubgraph", { defaultValue: "Add Subgraph" })}
+          tooltip={t("editor:pane.addSubgraphTip", { defaultValue: "Add an inline subgraph node" })}
         />
       </ContextMenu>
       <ContextMenu

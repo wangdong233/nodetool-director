@@ -24,6 +24,7 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { WorkflowList, Workflow } from "../../stores/ApiTypes";
 import { useActivateOnKey } from "../../hooks/useActivateOnKey";
 import { workflowListQueryKey } from "../../serverState/workflowQueryKeys";
+import { useTranslation } from "react-i18next";
 
 // Show the inline search field once the list grows past this many workflows.
 const SEARCH_THRESHOLD = 8;
@@ -146,6 +147,7 @@ const searchInputSx = {
  * workflow's assets (mutually exclusive with folder browsing).
  */
 const WorkflowTree: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const treeStyles = useMemo(() => styles(theme), [theme]);
   const [expanded, setExpanded] = useState(true);
@@ -195,12 +197,12 @@ const WorkflowTree: React.FC = () => {
         role="button"
         tabIndex={0}
         aria-expanded={expanded}
-        aria-label="Workflows"
+        aria-label={t("editor:ui.workflows", { defaultValue: "Workflows" })}
         onClick={toggleExpanded}
         onKeyDown={handleRootKeyDown}
       >
         <AccountTreeIcon className="root-icon" />
-        <span className="root-label">Workflows</span>
+        <span className="root-label">{t("ui2:attrs.workflows", { defaultValue: "Workflows" })}</span>
         <ExpandMoreIcon className="expand-icon" />
       </div>
 
@@ -210,7 +212,7 @@ const WorkflowTree: React.FC = () => {
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder="Search workflows..."
+              placeholder={t("editor:ui.searchWorkflows", { defaultValue: "Search workflows..." })}
               fullWidth
               size="small"
               sx={searchInputSx}
@@ -220,7 +222,7 @@ const WorkflowTree: React.FC = () => {
         {isLoading ? (
           <LoadingSpinner size="small" />
         ) : workflows.length === 0 ? (
-          <div className="empty-row">No workflows</div>
+          <div className="empty-row">{t("ui2:attrs.noWorkflows", { defaultValue: "No workflows" })}</div>
         ) : (
           workflows.map((workflow) => (
             <div

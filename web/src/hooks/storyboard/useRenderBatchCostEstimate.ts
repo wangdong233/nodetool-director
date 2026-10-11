@@ -23,6 +23,7 @@ import { compileRenderBatchRequestPlan } from "./renderBatchRequestPlan";
 import { priceRenderStep } from "./shotCostPricing";
 import { useBoardScriptLines } from "./useShotDuration";
 import { useBoardImageModel, useBoardVideoModel } from "./useShotCostEstimate";
+import { useTranslation } from "react-i18next";
 
 /** Which of the two render passes a batch is. */
 export type RenderStep = "still" | "clip";
@@ -60,6 +61,7 @@ export function useRenderBatchCostEstimate(
   step: RenderStep,
   modelForShot?: (shot: Shot) => ShotModelRef | null
 ): RenderBatchCostEstimate {
+  const { t } = useTranslation();
   const imageModel = useBoardImageModel(boardId);
   const videoModel = useBoardVideoModel(boardId);
   // Clip lengths come from the linked script's takes when there is one; the
@@ -77,8 +79,8 @@ export function useRenderBatchCostEstimate(
 
     // What the step is, decided once: only the duration varies per shot.
     const isStill = step === "still";
-    const label = isStill ? "Still" : "Clip";
-    const pickerLabel = isStill ? "still model" : "clip model";
+    const label = isStill ? t("storyboard:attrs.still", { defaultValue: "Still" }) : t("storyboard:attrs.clip", { defaultValue: "Clip" });
+    const pickerLabel = isStill ? t("editor:ui.stillModel", { defaultValue: "still model" }) : t("editor:ui.clipModel", { defaultValue: "clip model" });
     const resolution = isStill ? STILL_RESOLUTION : CLIP_RESOLUTION;
 
     const plan = compileRenderBatchRequestPlan({
@@ -125,7 +127,7 @@ export function useRenderBatchCostEstimate(
       reasons: Array.from(new Set(reasons)),
       notes: Array.from(new Set(notes))
     };
-  }, [shots, step, imageModel, videoModel, linesById, modelForShot]);
+  }, [t, shots, step, imageModel, videoModel, linesById, modelForShot]);
 }
 
 export default useRenderBatchCostEstimate;

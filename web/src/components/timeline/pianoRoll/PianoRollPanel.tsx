@@ -38,8 +38,9 @@ import {
   TruncatedText
 } from "../../ui_primitives";
 import type { TempoGridDivision } from "@nodetool-ai/timeline";
-import { GRID_DIVISION_OPTIONS } from "../Tracks/tempoGrid";
+import { localizedGridDivisionOptions } from "../Tracks/tempoGrid";
 import { PianoRoll } from "./PianoRoll";
+import { useTranslation } from "react-i18next";
 
 const HANDLE_HEIGHT_PX = 6;
 const TOUCH_HANDLE_HEIGHT_PX = 20;
@@ -87,6 +88,7 @@ interface PianoRollPanelProps {
 
 export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
   ({ fullHeight = false }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const clipId = useTimelineUIStore((s) => s.pianoRollClipId);
     const heightPx = useTimelineUIStore((s) => s.pianoRollHeightPx);
@@ -167,7 +169,7 @@ export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
             ref={handleRef}
             role="separator"
             aria-orientation="horizontal"
-            aria-label="Resize note editor"
+            aria-label={t("editor:ui.resizeNoteEditor", { defaultValue: "Resize note editor" })}
             aria-valuenow={heightPx}
             aria-valuemin={MIN_PIANO_ROLL_HEIGHT_PX}
             aria-valuemax={MAX_PIANO_ROLL_HEIGHT_PX}
@@ -197,8 +199,8 @@ export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
             {fullHeight && (
               <ToolbarIconButton
                 onClick={closePianoRoll}
-                tooltip="Back to tracks"
-                aria-label="Back to tracks"
+                tooltip={t("editor:ui.backToTracks", { defaultValue: "Back to tracks" })}
+                aria-label={t("editor:ui.backToTracks", { defaultValue: "Back to tracks" })}
               >
                 <ArrowBackIosNewIcon fontSize="small" />
               </ToolbarIconButton>
@@ -209,15 +211,15 @@ export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
             <Caption color="muted">
               {clip.notes?.length ?? 0} {(clip.notes?.length ?? 0) === 1 ? "note" : "notes"}
             </Caption>
-            <SelectField label="Note grid" hideLabel size="small" value={gridDivision}
-              options={GRID_DIVISION_OPTIONS} css={css({ width: 96 })}
+            <SelectField label={t("editor:ui.noteGrid", { defaultValue: "Note grid" })} hideLabel size="small" value={gridDivision}
+              options={localizedGridDivisionOptions(t)} css={css({ width: 96 })}
               onChange={(value) => setGridDivision(value as TempoGridDivision)} />
-            <EditorButton variant={snapEnabled ? "contained" : "text"} onClick={toggleSnap} aria-label="Snap notes" aria-pressed={snapEnabled}>Snap</EditorButton>
+            <EditorButton variant={snapEnabled ? "contained" : "text"} onClick={toggleSnap} aria-label={t("editor:ui.snapNotes", { defaultValue: "Snap notes" })} aria-pressed={snapEnabled}>{t("ui2:attrs.snap", { defaultValue: "Snap" })}</EditorButton>
             <FlexRow sx={{ flex: 1 }} />
             {!fullHeight && (
               <CloseButton
                 onClick={closePianoRoll}
-                tooltip="Close note editor"
+                tooltip={t("editor:ui.closeNoteEditor", { defaultValue: "Close note editor" })}
               />
             )}
           </FlexRow>

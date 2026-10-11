@@ -39,6 +39,7 @@ import { SetupFlow } from "../SetupFlow";
 import type { OptionCardItem } from "../OptionCardGrid";
 import { useWorkflowSetupFlow } from "./useWorkflowSetupFlow";
 import type { ModelRoleAvailability, ModelRoleStatus } from "./SetupStep";
+import { i18n } from "../../../i18n";
 
 /** A model as the setup step's tile row shows it. */
 interface RoleModel {
@@ -223,7 +224,7 @@ const WorkflowSetupHost: React.FC<WorkflowSetupHostProps> = ({
       const state = store.getState();
       const workflow = state.getWorkflow(workflowId);
       if (!workflow) {
-        throw new Error(`Workflow ${workflowId} is not open.`);
+        throw new Error(i18n.t("editor:ui.workflowIdIsNotOpen", { defaultValue: "Workflow {{id}} is not open.", id: workflowId }));
       }
       const next = {
         ...workflow,

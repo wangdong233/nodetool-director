@@ -24,6 +24,7 @@ import {
   useOpenApplication
 } from "../../hooks/useOpenApplication";
 import { trpc } from "../../trpc/client";
+import { i18n } from "../../i18n";
 import {
   Dialog,
   DocumentListPanel,
@@ -39,6 +40,7 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const pickerStyles = () =>
   css({
@@ -62,6 +64,7 @@ const pickerStyles = () =>
   });
 
 export const CreateApplicationButton = memo(function CreateApplicationButton() {
+  const { t } = useTranslation();
   const createApplication = useCreateApplication();
   const openApplication = useOpenApplication();
 
@@ -79,9 +82,9 @@ export const CreateApplicationButton = memo(function CreateApplicationButton() {
   }, [createApplication, openApplication]);
 
   return (
-    <Tooltip title="New app" placement="right-start">
+    <Tooltip title={t("editor:ui.newApp", { defaultValue: "New app" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New app"
+        ariaLabel={t("editor:ui.newApp", { defaultValue: "New app" })}
         onClick={() => void handleCreate()}
         disabled={createApplication.isPending}
         tabIndex={-1}
@@ -104,6 +107,7 @@ export const CreateApplicationFromWorkflowButton = memo(
   function CreateApplicationFromWorkflowButton({
     projectId
   }: CreateApplicationFromWorkflowButtonProps) {
+    const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [createError, setCreateError] = useState<string | null>(null);
     const createApplication = useCreateApplication();
@@ -130,7 +134,7 @@ export const CreateApplicationFromWorkflowButton = memo(
           setCreateError(
             error instanceof Error
               ? error.message
-              : "Could not create the app from this workflow."
+              : i18n.t("editor:ui.couldNotCreateTheAppFromThisWorkflow", { defaultValue: "Could not create the app from this workflow." })
           );
         }
       },
@@ -141,9 +145,9 @@ export const CreateApplicationFromWorkflowButton = memo(
 
     return (
       <>
-        <Tooltip title="Create app from workflow" placement="right-start">
+        <Tooltip title={t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })} placement="right-start">
           <ToolbarIconButton
-            ariaLabel="Create app from workflow"
+            ariaLabel={t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })}
             onClick={() => setOpen(true)}
             tabIndex={-1}
             icon={<AccountTreeOutlinedIcon />}
@@ -155,20 +159,20 @@ export const CreateApplicationFromWorkflowButton = memo(
             setOpen(false);
             setCreateError(null);
           }}
-          title="Create app from workflow"
+          title={t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })}
         >
           <div css={pickerStyles()}>
             {createError ? (
-              <AlertBanner severity="error" title="Could not create app">
+              <AlertBanner severity="error" title={t("editor:ui.couldNotCreateApp", { defaultValue: "Could not create app" })}>
                 {createError} Select the workflow again to retry.
               </AlertBanner>
             ) : null}
             {isLoading ? (
-              <LoadingSpinner text="Loading workflows" />
+              <LoadingSpinner text={t("editor:ui.loadingWorkflows")} />
             ) : workflows.length === 0 ? (
               <EmptyState
-                title="No workflows"
-                description="Create a workflow first, then build an app on top of it."
+                title={t("editor:ui.noWorkflows", { defaultValue: "No workflows" })}
+                description={t("editor:ui.createAWorkflowFirstThenBuildAnAppOnTopOfIt")}
               />
             ) : (
               <FlexColumn className="workflow-options" gap={0.5}>
@@ -201,6 +205,7 @@ interface ApplicationListPanelProps {
 }
 
 const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
+  const { t } = useTranslation();
   const { data, isLoading, isError, error } = useApplications(projectId);
   const activeTabId = useWorkspaceTabsStore((state) => state.activeTabId);
   const openApplication = useOpenApplication();
@@ -240,15 +245,23 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
               type: "error",
               alert: true,
               content: isConcurrencyConflict(error)
-                ? `"${current.name}" changed elsewhere — the rename to "${trimmed}" was not saved.`
-                : `Could not rename "${current.name}": ${error.message}`
+                ? t("editor:ui.renamedElsewhereNotSaved", {
+                    defaultValue: "\"{{name}}\" changed elsewhere — the rename to \"{{newName}}\" was not saved.",
+                    name: current.name,
+                    newName: trimmed
+                  })
+                : t("editor:ui.couldNotRenameError", {
+                    defaultValue: "Could not rename \"{{name}}\": {{error}}",
+                    name: current.name,
+                    error: error.message
+                  })
             });
             void utils.applications.list.invalidate();
           }
         }
       );
     },
-    [addNotification, data, updateApplication, utils]
+    [addNotification, data, updateApplication, utils, t]
   );
 
   const handleDuplicate = useCallback(
@@ -265,13 +278,15 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
         addNotification({
           type: "error",
           alert: true,
-          content: `Could not duplicate "${item.name}": ${
-            error instanceof Error ? error.message : "unknown error"
-          }`
+          content: t("editor:ui.couldNotDuplicateError", {
+            defaultValue: "Could not duplicate \"{{name}}\": {{error}}",
+            name: item.name,
+            error: error instanceof Error ? error.message : "unknown error"
+          })
         });
       }
     },
-    [addNotification, createApplication, utils]
+    [addNotification, createApplication, utils, t]
   );
 
   const handleRequestRename = useCallback((item: SidebarDocumentItem) => {
@@ -298,23 +313,27 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
           addNotification({
             type: "error",
             alert: true,
-            content: `Could not delete "${name}": ${error.message}`
+            content: t("editor:ui.couldNotDeleteNameError", {
+              defaultValue: "Could not delete \"{{name}}\": {{error}}",
+              name,
+              error: error.message
+            })
           });
           void utils.applications.list.invalidate();
         }
       }
     );
-  }, [addNotification, itemToDelete, deleteApplication, utils]);
+  }, [addNotification, itemToDelete, deleteApplication, utils, t]);
 
   return (
     <DocumentListPanel
-      singular="app"
-      plural="apps"
+      singular={t("editor:ui.appNoun", { defaultValue: "app" })}
+      plural={t("editor:ui.appsNoun", { defaultValue: "apps" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create an app with the + button above, or scaffold one from a workflow."
+      emptyDescription={t("editor:ui.createAnAppWithThe+ButtonAboveOrScaffoldOneFromAWorkflow", { defaultValue: "Create an app with the + button above, or scaffold one from a workflow." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}
@@ -322,13 +341,13 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
         <ListPanelItem
           id={app.id}
           name={app.name}
-          fallbackName={UNTITLED}
-          renameLabel="App name"
+          fallbackName={t("editor:ui.untitledApp", { defaultValue: "Untitled app" })}
+          renameLabel={t("editor:ui.appName", { defaultValue: "App name" })}
           icon={DashboardCustomizeOutlinedIcon}
           secondary={
             app.operationCount === 1
-              ? "1 operation"
-              : `${app.operationCount} operations`
+              ? t("editor:ui.oneOperation", { defaultValue: "1 operation" })
+              : t("editor:ui.nOperations", { defaultValue: "{{n}} operations", n: app.operationCount })
           }
           active={app.id === activeApplicationId}
           editing={app.id === editingId}

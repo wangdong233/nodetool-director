@@ -24,6 +24,7 @@ import { useAssetStore } from "../../stores/AssetStore";
 import { getAssetUrl } from "../../utils/assetHelpers";
 import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
 import { takeWorkflowMedia } from "./scriptWorkflowMedia";
+import { useTranslation } from "react-i18next";
 
 interface ScriptTakeGalleryProps {
   scriptId: string;
@@ -48,6 +49,7 @@ const TakeRow = ({
   take: ScriptTake;
   isCurrent: boolean;
 }) => {
+  const { t } = useTranslation();
   const setCurrentTake = useScriptStore((s) => s.setCurrentTake);
   const toggleFavorite = useScriptStore((s) => s.toggleTakeFavorite);
   const removeTake = useScriptStore((s) => s.removeTake);
@@ -87,7 +89,7 @@ const TakeRow = ({
   return (
     <FlexRow align="center" gap={SPACING.sm} fullWidth>
       <ToolbarIconButton
-        tooltip={isCurrent ? "Current take" : "Use this take"}
+        tooltip={isCurrent ? t("editor:ui.currentTake", { defaultValue: "Current take" }) : t("editor:ui.useThisTake", { defaultValue: "Use this take" })}
         onClick={useTake}
         icon={
           <CheckCircleIcon
@@ -103,7 +105,7 @@ const TakeRow = ({
           title={take.textSnapshot}
           sx={{ fontStyle: "italic" }}
         >
-          {take.textSnapshot || "(empty)"}
+          {take.textSnapshot || t("editor:ui.emptySnapshot", { defaultValue: "(empty)" })}
         </Text>
         <Text size="smaller" color="secondary">
           {formatDuration(take.durationMs)}
@@ -114,7 +116,7 @@ const TakeRow = ({
         </Text>
       </FlexColumn>
       <ToolbarIconButton
-        tooltip="Play take"
+        tooltip={t("editor:ui.playTake", { defaultValue: "Play take" })}
         onClick={() => void play()}
         icon={<PlayArrowIcon fontSize="small" />}
       />
@@ -123,7 +125,11 @@ const TakeRow = ({
         tooltip="Send take to a workflow"
       />
       <ToolbarIconButton
-        tooltip={take.favorite ? "Unfavorite" : "Favorite"}
+        tooltip={
+          take.favorite
+            ? t("editor:ui.unfavorite", { defaultValue: "Unfavorite" })
+            : t("editor:ui.favorite", { defaultValue: "Favorite" })
+        }
         onClick={() => toggleFavorite(scriptId, lineId, take.id)}
         icon={
           take.favorite ? (
@@ -134,7 +140,7 @@ const TakeRow = ({
         }
       />
       <ToolbarIconButton
-        tooltip="Delete take"
+        tooltip={t("editor:ui.deleteTake", { defaultValue: "Delete take" })}
         onClick={deleteTake}
         icon={<DeleteOutlineIcon fontSize="small" />}
       />
@@ -149,12 +155,13 @@ const ScriptTakeGallery = ({
   takes,
   currentTakeId
 }: ScriptTakeGalleryProps) => {
+  const { t } = useTranslation();
   if (takes.length === 0) {
     return (
       <Box sx={{ minWidth: 260, padding: SPACING.md }}>
         <EmptyState
-          title="No takes yet"
-          description="Voice this line to create the first take."
+          title={t("editor:ui.noTakesYet", { defaultValue: "No takes yet" })}
+          description={t("editor:ui.voiceThisLineToCreateTheFirstTake")}
         />
       </Box>
     );

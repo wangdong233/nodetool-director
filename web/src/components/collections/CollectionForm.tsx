@@ -21,6 +21,7 @@ import { CollectionCreate } from "../../stores/ApiTypes";
 import { trpcClient } from "../../trpc/client";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import EmbeddingModelSelect from "../properties/EmbeddingModelSelect";
+import { useTranslation } from "react-i18next";
 
 const slideIn = keyframes`
   from {
@@ -86,6 +87,7 @@ interface CollectionFormProps {
 }
 
 const CollectionForm = ({ onClose, onSuccess }: CollectionFormProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<CollectionCreate>({
@@ -139,7 +141,7 @@ const CollectionForm = ({ onClose, onSuccess }: CollectionFormProps) => {
     >
       <FlexRow gap={2} align="center" wrap>
         <FormField
-          label="Collection Name"
+          label={t("editor:ui.collectionName", { defaultValue: "Collection Name" })}
           required
           compact
           sx={{ flex: 1, minWidth: 180 }}
@@ -165,7 +167,7 @@ const CollectionForm = ({ onClose, onSuccess }: CollectionFormProps) => {
         </FormField>
 
         <FormField
-          label="Embedding Model"
+          label={t("settings:defModels.mEmbedding", { defaultValue: "Embedding Model" })}
           compact
           className="model-select"
           sx={{ flex: 1, minWidth: 200 }}
@@ -199,7 +201,7 @@ const CollectionForm = ({ onClose, onSuccess }: CollectionFormProps) => {
           <Text size="small" color="error">
             {createMutation.error instanceof Error
               ? createMutation.error.message
-              : "Failed to create collection"}
+              : t("editor:ui.failedToCreateCollection", { defaultValue: "Failed to create collection" })}
           </Text>
         </Box>
       )}

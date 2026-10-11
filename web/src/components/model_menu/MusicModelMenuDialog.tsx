@@ -3,6 +3,7 @@ import ModelMenuDialogBase from "./shared/ModelMenuDialogBase";
 import type { MusicModel, ModelPack, UnifiedModel } from "../../stores/ApiTypes";
 import { useMusicModelMenuStore } from "../../stores/ModelMenuStore";
 import { useMusicModelsByProvider } from "../../hooks/useModelsByProvider";
+import { useTranslation } from "react-i18next";
 
 interface MusicModelMenuDialogProps {
   open: boolean;
@@ -21,6 +22,7 @@ function MusicModelMenuDialog({
   recommendedModels,
   modelPacks
 }: MusicModelMenuDialogProps) {
+  const { t } = useTranslation();
   const modelData = useMusicModelsByProvider();
   return (
     <ModelMenuDialogBase<MusicModel>
@@ -29,7 +31,7 @@ function MusicModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select Music Model"
+      title={t("editor:ui.selectMusicModel", { defaultValue: "Select Music Model" })}
       searchPlaceholder="Search text-to-music models..."
       storeHook={useMusicModelMenuStore}
       modelType="music_model"

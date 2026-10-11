@@ -14,6 +14,8 @@ import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import { isMac } from "../../utils/platform";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import type { NodeMetadata } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -141,12 +143,13 @@ const SearchInput: React.FC<SearchInputProps> = ({
   onPressSpaceWhenEmpty,
   focusSearchInput = true,
   focusOnTyping = false,
-  placeholder = "Search...",
+  placeholder = i18n.t("editor:ui.searchDots", { defaultValue: "Search..." }),
   maxWidth = "unset",
   debounceTime = 50,
   searchTerm: externalSearchTerm = "",
   width = 150
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const searchStyles = useMemo(() => styles(theme), [theme]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -342,7 +345,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
           className={`clear-search-btn ${localSearchTerm.trim() === "" ? "disabled" : ""
             }`}
           tabIndex={-1}
-          aria-label="Clear search"
+          aria-label={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
           onClick={clearSearch}
           data-testid="search-clear-btn"
         >

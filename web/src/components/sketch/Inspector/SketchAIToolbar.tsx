@@ -18,8 +18,10 @@ import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
 import { useRegenerateStaleLayers } from "../../../hooks/sketch/useRegenerateStaleLayers";
 import { CreateGeneratedLayerDialog } from "./CreateGeneratedLayerDialog";
+import { useTranslation } from "react-i18next";
 
 const SketchAIToolbarInner: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Derive the counts directly via Zustand selectors so we don't iterate
   // every binding on every render of the toolbar.
@@ -65,7 +67,7 @@ const SketchAIToolbarInner: React.FC = () => {
         }}
       >
         <Tooltip
-          title="Generate Layer — bind a new layer to any workflow with an image output."
+          title={t("editor:ui.generateLayerBindANewLayerToAnyWorkflowWithAnImageOutput")}
           delay={TOOLTIP_ENTER_DELAY}
           placement="bottom"
         >
@@ -76,7 +78,7 @@ const SketchAIToolbarInner: React.FC = () => {
               startIcon={<AddPhotoAlternateIcon fontSize="small" />}
               data-testid="sketch-action-generate-layer"
             >
-              Generate Layer
+              {t("editor:ui.generateLayer", { defaultValue: "Generate Layer" })}
             </EditorButton>
           </span>
         </Tooltip>
@@ -84,8 +86,12 @@ const SketchAIToolbarInner: React.FC = () => {
         <Tooltip
           title={
             staleCount === 0
-              ? "No stale layers."
-              : `Re-generate ${staleCount} stale layer${staleCount === 1 ? "" : "s"} in dependency order.`
+              ? t("sketch:attrs.noStaleLayers", { defaultValue: "No stale layers." })
+              : t("sketch:attrs.regenStaleOrder", {
+                  defaultValue:
+                    "Re-generate {{count}} stale layer in dependency order.",
+                  count: staleCount
+                })
           }
           delay={TOOLTIP_ENTER_DELAY}
           placement="bottom"
@@ -98,7 +104,10 @@ const SketchAIToolbarInner: React.FC = () => {
               startIcon={<RefreshIcon fontSize="small" />}
               data-testid="sketch-action-regenerate-stale"
             >
-              Re-generate Stale ({staleCount})
+              {t("sketch:attrs.regenStaleLabel", {
+                defaultValue: "Re-generate Stale ({{count}})",
+                count: staleCount
+              })}
             </EditorButton>
           </span>
         </Tooltip>
@@ -112,11 +121,11 @@ const SketchAIToolbarInner: React.FC = () => {
       <Dialog
         open={confirmRegenOpen}
         onClose={() => setConfirmRegenOpen(false)}
-        title="Re-generate stale layers?"
+        title={t("editor:ui.reGenerateStaleLayers", { defaultValue: "Re-generate stale layers?" })}
         onConfirm={() => void handleConfirmRegen()}
         onCancel={() => setConfirmRegenOpen(false)}
-        confirmText="Re-generate"
-        cancelText="Cancel"
+        confirmText={t("editor:ui.reGenerate", { defaultValue: "Re-generate" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         showActions
       >
         <Text size="small" sx={{ mb: 1 }}>

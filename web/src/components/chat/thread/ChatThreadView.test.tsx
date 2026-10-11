@@ -6,6 +6,7 @@ import ChatThreadView from "./ChatThreadView";
 import mockTheme from "../../../__mocks__/themeMock";
 import { Message } from "../../../stores/ApiTypes";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
+import { i18n } from "../../../i18n";
 
 const mockScrollToIndex = jest.fn();
 let mockTotalSize: number | null = null;

@@ -6,6 +6,7 @@ import isEqual from "../../utils/isEqual";
 import type { PropertyProps } from "../node/PropertyInput.types";
 import { useStoryboards } from "../../hooks/storyboard/useStoryboards";
 import DocumentPickerProperty from "./DocumentPickerProperty";
+import { i18n } from "../../i18n";
 
 /**
  * A picked board is the template a graph reads, never a row it writes: the ref

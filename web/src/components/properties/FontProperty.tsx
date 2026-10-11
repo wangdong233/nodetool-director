@@ -7,6 +7,7 @@ import Select from "../inputs/Select";
 import { trpcClient } from "../../trpc/client";
 import type { FontEntry } from "@nodetool-ai/protocol/api-schemas/fonts.js";
 import { isObjectLike } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 /**
  * The fonts endpoint returns the bundled families first, then the system ones
@@ -30,6 +31,7 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
   onChange,
   tabIndex
 }) => {
+  const { t } = useTranslation();
   const id = `font-${property.name}-${propertyIndex}`;
 
   const {
@@ -55,16 +57,16 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
 
   const options = useMemo(() => {
     if (!fonts || isLoading || isError)
-      {return [{ value: "", label: "Select a font" }];}
+      {return [{ value: "", label: t("editor:ui.selectAFont") }];}
 
     return [
-      { value: "", label: "Select a font" },
+      { value: "", label: t("editor:ui.selectAFont") },
       ...fonts.map((font) => ({
         value: font.name,
         label: font.portable ? `${font.name} · portable` : font.name
       }))
     ];
-  }, [fonts, isLoading, isError]);
+  }, [t, fonts, isLoading, isError]);
 
   return (
     <div className="font-property">
@@ -75,16 +77,16 @@ const FontProperty: React.FC<PropertyProps<FontValue | null>> = ({
       />
       <div className="select-wrapper">
         {isLoading ? (
-          <div className="loading-state">Loading fonts…</div>
+          <div className="loading-state">{t("editor:ui.loadingFonts", { defaultValue: "Loading fonts…" })}</div>
         ) : isError ? (
-          <div className="error-state">Error loading fonts</div>
+          <div className="error-state">{t("ui2:attrs.errorLoadingFonts", { defaultValue: "Error loading fonts" })}</div>
         ) : (
           <Select
             value={currentValue}
             onChange={handleChange}
             options={options}
             tabIndex={tabIndex}
-            placeholder="Select a font"
+            placeholder={t("editor:ui.selectAFont", { defaultValue: "Select a font" })}
           />
         )}
       </div>

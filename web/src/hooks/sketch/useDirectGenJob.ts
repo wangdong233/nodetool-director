@@ -32,6 +32,7 @@ import type {
   LayerVersion,
   LayerWorkflowBinding
 } from "@nodetool-ai/image-editor";
+import { i18n } from "../../i18n";
 
 /**
  * What the take was made from. Two takes of the same binding hash the same, so
@@ -177,29 +178,29 @@ const classifyProviderError = (error: {
   if (match(/safety|content[_\s-]?polic|moderat|refus|blocked|nsfw/i)) {
     return {
       kind: "refused",
-      message: "The provider refused this prompt. Reword it and try again.",
+      message: i18n.t("sketch:attrs.theProviderRefusedThisPromptRewordItAndTryAgain", { defaultValue: "The provider refused this prompt. Reword it and try again." }),
       detail
     };
   }
   if (match(/timeout|timed[_\s-]?out|deadline|504/i)) {
     return {
       kind: "timeout",
-      message: "The provider took too long to answer. Try again.",
+      message: i18n.t("sketch:attrs.theProviderTookTooLongToAnswerTryAgain", { defaultValue: "The provider took too long to answer. Try again." }),
       detail
     };
   }
   if (match(/network|socket|econn|fetch failed|disconnect|offline/i)) {
     return {
       kind: "network",
-      message: "The connection dropped before the image came back. Try again.",
+      message: i18n.t("sketch:attrs.theConnectionDroppedBeforeTheImageCameBackTryAgain", { defaultValue: "The connection dropped before the image came back. Try again." }),
       detail
     };
   }
   return {
     kind: detail ? "provider" : "unknown",
     message: detail
-      ? "The provider refused the request."
-      : "The provider refused the request and gave no reason.",
+      ? i18n.t("sketch:attrs.theProviderRefusedTheRequest", { defaultValue: "The provider refused the request." })
+      : i18n.t("sketch:attrs.theProviderRefusedTheRequestAndGaveNoReason", { defaultValue: "The provider refused the request and gave no reason." }),
     detail
   };
 };
@@ -260,7 +261,7 @@ export function useDirectGenJob(): UseDirectGenJobApi {
     if (!binding.prompt || !binding.prompt.trim()) {
       failLayer(layerId, {
         kind: "no-prompt",
-        message: "This layer has no prompt to render.",
+        message: i18n.t("sketch:attrs.thisLayerHasNoPromptToRender", { defaultValue: "This layer has no prompt to render." }),
         detail: ""
       });
       return;
@@ -290,7 +291,7 @@ export function useDirectGenJob(): UseDirectGenJobApi {
       } else if (!binding.sourceLayerId) {
         failLayer(layerId, {
           kind: "no-source",
-          message: "This layer has no source image to work from.",
+          message: i18n.t("sketch:attrs.thisLayerHasNoSourceImageToWorkFrom", { defaultValue: "This layer has no source image to work from." }),
           detail: ""
         });
         return;
@@ -301,7 +302,7 @@ export function useDirectGenJob(): UseDirectGenJobApi {
         if (!sourceLayer) {
           failLayer(layerId, {
             kind: "no-source",
-            message: "The source layer this was built from is gone.",
+            message: i18n.t("sketch:attrs.theSourceLayerThisWasBuiltFromIsGone", { defaultValue: "The source layer this was built from is gone." }),
             detail: ""
           });
           return;
@@ -315,7 +316,7 @@ export function useDirectGenJob(): UseDirectGenJobApi {
             if (!canvas) {
               failLayer(layerId, {
                 kind: "no-source",
-                message: "The source layer is empty, so there is nothing to work from.",
+                message: i18n.t("sketch:attrs.theSourceLayerIsEmptySoThereIsNothingToWorkFrom", { defaultValue: "The source layer is empty, so there is nothing to work from." }),
                 detail: ""
               });
               return;
@@ -333,7 +334,7 @@ export function useDirectGenJob(): UseDirectGenJobApi {
           } catch (cause) {
             failLayer(layerId, {
               kind: "provider",
-              message: "The source image could not be prepared.",
+              message: i18n.t("sketch:attrs.theSourceImageCouldNotBePrepared", { defaultValue: "The source image could not be prepared." }),
               detail: causeDetail(cause)
             });
             return;
@@ -406,7 +407,7 @@ export function useDirectGenJob(): UseDirectGenJobApi {
         deleteTempUploads();
         failLayer(layerId, {
           kind: "provider",
-          message: "The request finished without an image.",
+          message: i18n.t("sketch:attrs.theRequestFinishedWithoutAnImage", { defaultValue: "The request finished without an image." }),
           detail: ""
         });
         return;
@@ -487,7 +488,7 @@ export function useDirectGenJob(): UseDirectGenJobApi {
       } catch (cause) {
         failLayer(layerId, {
           kind: "provider",
-          message: "The image came back but could not be placed on the canvas.",
+          message: i18n.t("sketch:attrs.theImageCameBackButCouldNotBePlacedOnTheCanvas", { defaultValue: "The image came back but could not be placed on the canvas." }),
           detail: causeDetail(cause)
         });
         return;

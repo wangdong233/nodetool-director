@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TextInput, Text } from "../ui_primitives";
 import useRemoteSettingsStore from "../../stores/RemoteSettingStore";
+import { i18n } from "../../i18n";
 
 interface ServerNumberSettingProps {
   /** Registry env var key (e.g. MAX_CONCURRENT_RUNS_PER_WORKFLOW). */

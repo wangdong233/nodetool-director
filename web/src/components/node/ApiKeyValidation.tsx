@@ -4,6 +4,8 @@ import { useApiKeyValidation } from "../../hooks/useApiKeyValidation";
 import { getRequiredSecretKeyForNamespace } from "../../utils/nodeProvider";
 import { openProviderOnboarding } from "../../stores/ProviderOnboardingStore";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ApiKeyValidationProps {
   nodeNamespace: string;
@@ -11,13 +13,14 @@ interface ApiKeyValidationProps {
 
 const ApiKeyValidation: React.FC<ApiKeyValidationProps> = React.memo(
   ({ nodeNamespace }) => {
+    const { t } = useTranslation();
     const missingAPIKey = useApiKeyValidation(nodeNamespace);
 
     const handleConnectProvider = useCallback(() => {
       openProviderOnboarding({
         highlightSecretKey:
           getRequiredSecretKeyForNamespace(nodeNamespace) ?? undefined,
-        reason: "This node needs a provider key. Connect it to run the node."
+        reason: i18n.t("editor:ui.thisNodeNeedsAProviderKeyConnectItToRunTheNode", { defaultValue: "This node needs a provider key. Connect it to run the node." })
       });
     }, [nodeNamespace]);
 
@@ -56,11 +59,11 @@ const ApiKeyValidation: React.FC<ApiKeyValidationProps> = React.memo(
               borderRadius: ".1em"
             }}
           >
-            Connect provider
+            {t("editor:ui.connectProvider")}
           </EditorButton>
         </>
       );
-    }, [missingAPIKey, handleConnectProvider]);
+    }, [t, missingAPIKey, handleConnectProvider]);
 
     return content;
   }

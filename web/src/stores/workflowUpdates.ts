@@ -60,6 +60,7 @@ import {
   isRecord,
   isString
 } from "../utils/typePredicates";
+import { i18n } from "../i18n";
 
 /**
  * Pending audio-chunk store appends, coalesced per node and flushed on a
@@ -297,9 +298,9 @@ const promptForProviderAuth = (
     return;
   }
   authPromptedRuns.add(runKey);
-  const provider = detail.provider ?? "the provider";
+  const provider = detail.provider ?? i18n.t("editor:ui.theProvider", { defaultValue: "the provider" });
   const onboarding: Parameters<typeof openProviderOnboarding>[0] = {
-    reason: `The run stopped because ${provider} rejected the credentials. Reconnect it to continue.`
+    reason: i18n.t("editor:ui.theRunStoppedBecause", { defaultValue: "The run stopped because {{provider}} rejected the credentials. Reconnect it to continue.", provider })
   };
   if (detail.secret_key) {
     onboarding.highlightSecretKey = detail.secret_key;
@@ -814,7 +815,7 @@ const validationIssueNotification = (
     content,
     timeout: NOTIFICATION_TIMEOUT_JOB_COMPLETED,
     action: {
-      label: "Show",
+      label: i18n.t("appbuilder:attrs.show", { defaultValue: "Show" }),
       onClick: () => {
         const store = getNodeStore(workflowId);
         if (!store) return;
@@ -1010,7 +1011,7 @@ const handleJobUpdate = (
       runner.addNotification({
         type: "info",
         alert: true,
-        content: "Job cancelled"
+        content: i18n.t("editor:ui.jobCancelled", { defaultValue: "Job cancelled" })
       });
       // Keep this run's per-job results slice (see "completed"): broad
       // clears here would erase a concurrent sibling. But do stop the

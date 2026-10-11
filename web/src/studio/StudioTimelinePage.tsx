@@ -16,12 +16,14 @@ import { LoadingSpinner } from "../components/ui_primitives";
 import { trpc } from "../trpc/client";
 import VideoSetupHost from "../components/setup/video/VideoSetupHost";
 import StudioShell from "./StudioShell";
+import { useTranslation } from "react-i18next";
 
 const TimelineEditor = lazy(
   () => import("../components/timeline/TimelineEditor")
 );
 
 const StudioTimelinePage = () => {
+  const { t } = useTranslation();
   const { sequenceId = "" } = useParams<{ sequenceId: string }>();
   const utils = trpc.useUtils();
   const query = trpc.timeline.get.useQuery(
@@ -43,7 +45,7 @@ const StudioTimelinePage = () => {
   const inSetup = !finished && query.isSuccess && stage !== "done";
 
   return (
-    <StudioShell title="Edit video">
+    <StudioShell title={t("editor:ui.editVideo", { defaultValue: "Edit video" })}>
       {query.isPending ? (
         <LoadingSpinner />
       ) : inSetup ? (

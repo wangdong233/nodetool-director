@@ -12,6 +12,7 @@ import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { playAuditionNote } from "../preview/audition";
 import FableSynthInstrumentEditor, { InstrumentKeyboard } from "./FableSynthInstrumentEditors";
 import { Button, Caption, FlexColumn, SelectField, SPACING } from "../../ui_primitives";
+import { useTranslation } from "react-i18next";
 export const AUDITION_DEBOUNCE_MS = 120;
 const containerStyles = (theme: Theme) => css({
   width: "100%", height: "100%", padding: theme.spacing(1),
@@ -26,6 +27,7 @@ interface TrackInstrumentPanelProps {
 
 export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
   ({ trackId }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const instrument = useTimelineStore(
       (s) =>
@@ -78,7 +80,7 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
       >
         <FlexColumn gap={SPACING.md}>
           <SelectField
-            label="Instrument preset"
+            label={t("timeline:attrs.instrumentPreset", { defaultValue: "Instrument preset" })}
             css={css({ width: 240, maxWidth: "100%", alignSelf: "flex-start" })}
             size="small"
             value={presetId}
@@ -96,17 +98,17 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
           />
           <Button size="small" variant="text" aria-pressed={showKeyboard}
             sx={{ alignSelf: "flex-start", color: showKeyboard ? "primary.main" : "text.secondary", backgroundColor: showKeyboard ? "action.selected" : "transparent" }}
-            onClick={() => toggleKeyboard(trackId)}>Keyboard</Button>
+            onClick={() => toggleKeyboard(trackId)}>{t("timeline:attrs.keyboard", { defaultValue: "Keyboard" })}</Button>
           {showKeyboard && <div className={`fs-editor fs-${instrument.type}`}>
             <InstrumentKeyboard start={instrument.type === "drum" ? instrument.baseNote : instrument.type === "bass" ? 36 : 48}
               onPlay={pitch => commit(instrument, pitch)} />
           </div>}
-          {instrument.type === "subtractive" ? <Caption color="muted">Choose a WT-1, BL-1, or DR-1 preset to edit this track’s instrument.</Caption> : (
+          {instrument.type === "subtractive" ? <Caption color="muted">{t("timeline:attrs.chooseAWT1BL1OrDR1PresetToEditThisTracksInstrument", { defaultValue: "Choose a WT-1, BL-1, or DR-1 preset to edit this track’s instrument." })}</Caption> : (
             <FableSynthInstrumentEditor key={trackId} instrument={instrument} onChange={commit} />
           )}
           <Caption color="muted">
-            Every clip on this track plays this voice. Changes are auditioned on{" "}
-            {instrument.type === "drum" ? "the selected pad" : "middle C"}.
+            {t("timeline:attrs.everyClipOnThisTrackPlaysThisVoiceChangesAreAuditionedOn", { defaultValue: "Every clip on this track plays this voice. Changes are auditioned on " })}{" "}
+            {instrument.type === "drum" ? t("timeline:attrs.theSelectedPad", { defaultValue: "the selected pad" }) : t("timeline:attrs.middleC", { defaultValue: "middle C" })}.
           </Caption>
         </FlexColumn>
       </div>

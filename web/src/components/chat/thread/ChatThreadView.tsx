@@ -40,6 +40,7 @@ import { isObjectLike, isString } from "../../../utils/typePredicates";
 import { collapseToolCallOnlyMessages } from "../message/groupToolCalls";
 import type { ChatStatus } from "../types/chat.types";
 import { useChatScrollAnchor } from "./useChatScrollAnchor";
+import { useTranslation } from "react-i18next";
 
 interface ChatThreadViewProps {
   /** Conversation rendered by this ChatView instance. */
@@ -246,6 +247,7 @@ const ChatThreadView: React.FC<ChatThreadViewProps> = ({
   showTaskUpdate = true,
   externalScroll = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   // Pending tool-approval prompts for the active thread, rendered inline at the
@@ -491,7 +493,7 @@ const ChatThreadView: React.FC<ChatThreadViewProps> = ({
           role="log"
           aria-live="polite"
           aria-relevant="additions text"
-          aria-label="Conversation"
+          aria-label={t("editor:ui.conversation", { defaultValue: "Conversation" })}
         >
           <div ref={realContentRef} className="chat-messages-real-content">
             <FlexRow justify="center" sx={{ minHeight: SPACING_PX.xxxl }}>
@@ -501,8 +503,8 @@ const ChatThreadView: React.FC<ChatThreadViewProps> = ({
                   disabled={loadingHistoryThread === visibleThreadId}
                 >
                   {loadingHistoryThread === visibleThreadId
-                    ? "Loading older messages…"
-                    : "Load older messages"}
+                    ? t("editor:ui.loadingOlderMessages", { defaultValue: "Loading older messages…" })
+                    : t("editor:ui.loadOlderMessages", { defaultValue: "Load older messages" })}
                 </EditorButton>
               )}
             </FlexRow>

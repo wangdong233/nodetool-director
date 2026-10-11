@@ -9,6 +9,7 @@ import type {
 } from "../../stores/ApiTypes";
 import { useTransformersJsModelsByType } from "../../hooks/useModelsByProvider";
 import ModelSelectButton from "./shared/ModelSelectButton";
+import { i18n } from "../../i18n";
 
 interface TransformersJsModelSelectProps {
   modelType: string;

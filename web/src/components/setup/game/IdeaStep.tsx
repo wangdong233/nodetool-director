@@ -29,6 +29,8 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { GameTemplate } from "../../../hooks/game/useGameTemplates";
 import { templateCards } from "./templates";
+import { useAppLanguage } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface GameIdeaStepProps {
   brief: string;
@@ -61,6 +63,10 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
   onStartBlank,
   onOpenTutorial
 }) => {
+  const { t } = useTranslation();
+  // The template cards' meta line is translated inside the memo, so its work
+  // must redo when the language flips (the frozen-i18n.t rule).
+  const { version: languageVersion } = useAppLanguage();
   const [picker, setPicker] = useState<Picker>(null);
 
   const handleChange = useCallback(
@@ -70,45 +76,48 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
     [onBriefChange]
   );
 
-  const cards = useMemo(() => templateCards(templates), [templates]);
+  const cards = useMemo(
+    () => templateCards(templates, t),
+    [templates, t, languageVersion]
+  );
 
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
       {
         id: "template",
-        title: "Start from a template",
-        description: "Pick the loop and skip straight to the design",
+        title: t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" }),
+        description: t("editor:ui.pickLoopSkipToDesign", { defaultValue: "Pick the loop and skip straight to the design" }),
         onSelect: () => setPicker("template"),
         disabled: templates.length === 0,
         disabledReason:
-          templates.length === 0 ? "Reading the shipped templates…" : undefined
+          templates.length === 0 ? t("storyboard:attrs.readingTheShippedTemplates", { defaultValue: "Reading the shipped templates…" }) : undefined
       },
       {
         id: "blank",
-        title: "Export a blank template",
-        description: "A running project with placeholder art, fill it later",
+        title: t("editor:ui.exportBlankTemplate", { defaultValue: "Export a blank template" }),
+        description: t("editor:ui.runningProjectPlaceholderArt", { defaultValue: "A running project with placeholder art, fill it later" }),
         onSelect: () => setPicker("blank"),
         disabled: templates.length === 0 || exportingBlank,
         disabledReason: exportingBlank
-          ? "Exporting the template…"
+          ? t("storyboard:attrs.exportingTheTemplate", { defaultValue: "Exporting the template…" })
           : templates.length === 0
-            ? "Reading the shipped templates…"
+            ? t("storyboard:attrs.readingTheShippedTemplates", { defaultValue: "Reading the shipped templates…" })
             : undefined
       },
       {
         id: "blank",
-        title: "Start with a blank canvas",
-        description: "Skip the plan and place nodes yourself",
+        title: t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
+        description: t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
         onSelect: onStartBlank
       },
       {
         id: "tutorial",
-        title: "Tutorial",
-        description: "Walk one project end to end, with the steps explained",
+        title: t("editor:ui.tutorial", { defaultValue: "Tutorial" }),
+        description: t("editor:ui.walkOneProjectEndToEnd", { defaultValue: "Walk one project end to end, with the steps explained" }),
         onSelect: onOpenTutorial
       }
     ],
-    [exportingBlank, onOpenTutorial, onStartBlank, templates.length]
+    [t, exportingBlank, onOpenTutorial, onStartBlank, templates.length]
   );
 
   if (picker !== null) {
@@ -117,16 +126,22 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            {blank ? "Export a blank template" : "Start from a template"}
+            {blank
+              ? t("editor:ui.exportBlankTemplate", {
+                  defaultValue: "Export a blank template"
+                })
+              : t("editor:ui.startFromATemplate", {
+                  defaultValue: "Start from a template"
+                })}
           </Text>
           <Caption color="secondary" component="p">
             {blank
-              ? "The template with its placeholder art, exported and ready to open in Godot."
-              : "Pick the loop and skip straight to the design."}
+              ? t("storyboard:attrs.theTemplateWithItsPlaceholderArtExportedAndReadyToOpenInGodot", { defaultValue: "The template with its placeholder art, exported and ready to open in Godot." })
+              : t("storyboard:attrs.pickTheLoopAndSkipStraightToTheDesign", { defaultValue: "Pick the loop and skip straight to the design." })}
           </Caption>
         </FlexColumn>
         <OptionCardGrid
-          label={blank ? "Blank template" : "Template"}
+          label={blank ? t("storyboard:attrs.blankTemplate", { defaultValue: "Blank template" }) : t("storyboard:attrs.template", { defaultValue: "Template" })}
           options={cards}
           onSelect={(id) => {
             setPicker(null);
@@ -156,11 +171,10 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            What&apos;s your game?
+            {t("editor:ui.whatSYourGame")}
           </Text>
           <Text size="normal" color="secondary">
-            Tell us the premise. We&apos;ll pick a template, write the design,
-            and fill every asset slot.
+            {t("storyboard:attrs.tellUsThePremiseWellPickATemplate", { defaultValue: "Tell us the premise. We'll pick a template, write the design, and fill every asset slot." })}
           </Text>
         </FlexColumn>
 
@@ -169,21 +183,25 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
           autoFocus
           multiline
           rows={4}
-          label="The premise"
+          label={t("storyboard:attrs.thePremise", { defaultValue: "The premise" })}
           hideLabel
-          placeholder="One sentence is enough: who you play, what you do, and what stops you."
+          placeholder={t("storyboard:attrs.oneSentenceIsEnoughWhoYouPlayWhatYouDoAndWhatStopsYou", { defaultValue: "One sentence is enough: who you play, what you do, and what stops you." })}
           onChange={handleChange}
         />
 
         <ExampleBriefs
-          examples={GAME_INSPIRATION_CHIPS.map((chip) => chip.brief)}
+          examples={GAME_INSPIRATION_CHIPS.map((chip) =>
+            t(`catalog:gameInspiration.${chip.id}`, {
+              defaultValue: chip.brief
+            })
+          )}
           brief={brief}
           onSelect={onBriefChange}
         />
       </FlexColumn>
 
       <AlternativesColumn
-        label="Other ways to start"
+        label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
     </Box>

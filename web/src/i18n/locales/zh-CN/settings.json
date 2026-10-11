@@ -1,0 +1,388 @@
+{
+  "general": {
+    "language": "语言",
+    "languageEnglish": "English",
+    "languageChinese": "简体中文",
+    "secCanvasNav": "画布与导航",
+    "secAutosaveHistory": "自动保存与版本历史",
+    "secFolders": "文件夹",
+    "secAccounts": "已连接账号",
+    "secMcp": "MCP 集成",
+    "secUpdates": "更新",
+    "catWorkspace": "工作区",
+    "catWorkflow": "工作流",
+    "catHistory": "历史",
+    "secEditor": "编辑器",
+    "secVaults": "保险库",
+    "secAppearance": "外观",
+    "secExecution": "执行",
+    "secCanvas": "画布",
+    "secDefaultModels": "默认模型",
+    "secAutosave": "自动保存",
+    "selectNodesOnDrag": "拖动时选中节点",
+    "updateChannel": "更新渠道",
+    "onCloseBehavior": "关闭时的行为",
+    "descSound": "工作流完成、导出结束或其它重要事件发生时播放系统提示音。",
+    "descUpdates": "从所选更新渠道检查并下载桌面应用更新。",
+    "descTimeFormat": "以 12 或 24 小时制显示时间。",
+    "descConfirmManyNodes": "运行工作流会一次执行全部节点。当一次运行会启动大量可能压垮 API 的模型/服务商节点时，先弹出确认。",
+    "descManyNodesThreshold": "当一次运行的模型/服务商节点（大模型、图像、音频、API 等）超过此数量时发出警告。",
+    "descAudioBuffer": "实时音频（模块合成器补丁）的播放缓冲。调低可减少操作到出声的延迟，调高可在编辑器繁忙时防止丢声。",
+    "descMaxParallelRuns": "可同时运行的工作流数量上限。超出的运行会排队，前面的结束后自动开始。",
+    "descMaxRunsPerWorkflow": "同一工作流可同时进行的运行数，超出的排队等待。适用于并发生成（时间线、图稿）；画布运行始终串行。",
+    "descSnapToGrid": "拖动时让节点对齐画布网格。桌面应用的视图菜单中也可开关。",
+    "descGridSize": "启用对齐网格时使用的网格大小。画布网格每 25 个单位绘制一条。",
+    "descSnapDistance": "连接节点时的吸附距离。",
+    "descAutosave": "按固定间隔自动保存工作流。",
+    "descAutosaveInterval": "自动保存工作流的时间间隔。",
+    "descCheckpoint": "运行工作流前先创建检查点版本。",
+    "descAutosaveOnClose": "关闭标签页或窗口时自动保存。",
+    "lblSoundNotifications": "声音通知",
+    "lblAutomaticUpdates": "自动更新",
+    "lblTimeFormat": "时间格式",
+    "lblWarnLargeRuns": "大规模运行前确认",
+    "lblLargeRunThreshold": "大规模运行阈值",
+    "lblAudioBuffer": "音频缓冲（毫秒）",
+    "lblMaxConcurrentRuns": "最大并行运行数",
+    "lblMaxRunsPerWorkflow": "每个工作流的最大并行数",
+    "lblLeftClickDrag": "左键拖动",
+    "lblSelectionMode": "节点框选模式",
+    "lblSnapToGrid": "对齐网格",
+    "lblGridSnapPrecision": "网格对齐精度",
+    "lblSnapRange": "连接吸附范围",
+    "lblEnableAutosave": "启用自动保存",
+    "lblAutosaveInterval": "自动保存间隔（分钟）",
+    "lblSaveBeforeRunning": "运行前保存",
+    "lblSaveOnClose": "关闭窗口时保存",
+    "opts": {
+      "latest": "稳定版",
+      "nightly": "Nightly",
+      "ask": "每次询问",
+      "quit": "退出应用",
+      "background": "后台运行",
+      "LMB": "平移画布",
+      "RMB": "框选节点",
+      "full": "完全包含",
+      "partial": "部分相交",
+      "1": "1 分钟",
+      "5": "5 分钟",
+      "10": "10 分钟",
+      "15": "15 分钟",
+      "30": "30 分钟",
+      "60": "60 分钟"
+    },
+    "descSelectDrag1": "改变节点位置后将其标记为选中。",
+    "descSelectDrag2": "关闭后，仍可点击节点进行选中。",
+    "descUpdateChannel": "稳定版跟随正式版本。Nightly 跟随预发布的每夜构建。每夜构建默认使用 Nightly 渠道。",
+    "descOnCloseIntro": "选择关闭主窗口时的行为。",
+    "descOnCloseAsk": "弹出对话框供选择。",
+    "descOnCloseQuit": "完全退出应用。",
+    "descOnCloseBackground": "应用保留在系统托盘中继续运行。",
+    "descPanIntro": "决定在空白画布上按住左键拖动的效果。",
+    "descPanPan": "左键拖动平移视图。",
+    "descPanSelect": "左键拖动绘制选框；用右键或中键平移（触控板也可双指滚动）。",
+    "descSelIntro": "绘制选框框选节点时：",
+    "descSelFull": "节点须完全落入选框。",
+    "descSelPartial": "与选框相交即选中。",
+    "apiTokenTitle": "Nodetool API 令牌",
+    "descApiToken": "此令牌用于向 Nodetool API 验证你的账户。",
+    "apiTokenSecret": "妥善保管此令牌，不要公开分享",
+    "optAskShort": "每次询问",
+    "optQuitShort": "退出",
+    "optBackgroundShort": "后台运行",
+    "optSelectNodesShort": "框选节点",
+    "apiIntTitle": "Nodetool API",
+    "apiIntDesc": "通过 Nodetool API 以程序方式运行工作流。",
+    "apiIntDocs": "GitHub 上的 API 文档",
+    "apiIntCopyTooltip": "复制到剪贴板",
+    "apiIntCopyToken": "复制令牌"
+  },
+  "search": {
+    "placeholder": "搜索设置…",
+    "noMatchesIn": "在“{{label}}”中没有找到匹配项。",
+    "alsoIn": "另见",
+    "see": "见",
+    "tabsLabel": "设置标签页"
+  },
+  "defModels": {
+    "title": "默认模型",
+    "desc": "为每类模型设置默认值。创建新节点时会自动填入。",
+    "mLanguage": "语言模型",
+    "mImage": "图像模型",
+    "mEmbedding": "嵌入模型",
+    "mTts": "TTS 语音合成模型",
+    "mAsr": "语音识别模型",
+    "mVideo": "视频模型",
+    "mCode": "代码生成",
+    "useChatPlaceholder": "使用对话模型",
+    "codeHint": "编写代码节点的代码。未设置时回退到对话模型。"
+  },
+  "vaults": {
+    "desc": "保险库是一个独立隔离的数据存储，拥有自己的数据库、素材和 RAG 知识库。切换保险库可将不同的工作流与数据分开存放。切换会重启后端并重新加载应用。",
+    "activeSuffix": "——使用中",
+    "newName": "新保险库名称",
+    "confirmBody": "从列表中移除保险库“{{name}}”？\n\n其数据库文件保留在磁盘上，可重新添加或手动删除。",
+    "renamePromptTitle": "重命名保险库"
+  },
+  "storage": {
+    "loading": "正在加载历史状态…",
+    "loadError": "无法加载数据库历史设置。",
+    "lblAutosavesPer": "每个工作流的自动保存数",
+    "descAutosavesPer": "每个工作流保留的最近自动保存数量上限。手动版本不计入此限制。",
+    "lblKeepDays": "自动保存保留天数",
+    "descKeepDays": "超期的自动保存会被移除，即使工作流未达数量上限。",
+    "lblKeepManual": "手动版本保留天数",
+    "descKeepManual": "超期的工作流手动快照会被移除。检查点始终保留。",
+    "lblKeepRuns": "已完成运行保留天数",
+    "descKeepRuns": "超期的已完成、失败与已取消的运行记录会被移除。进行中的运行保留。",
+    "lblKeepRunLogs": "运行事件日志保留天数",
+    "descKeepRunLogs": "运行产生的逐节点事件日志在此天数后移除。运行记录本身遵循上一条限制。",
+    "lblKeepGen": "生成详情保留天数",
+    "descKeepGen": "超过此天数后，生成记录中的提示词、参数与日志会被清除。计费记录——模型、服务商、令牌数、成本与日期——保留。",
+    "lblAutoClean": "自动清理历史",
+    "descAutoClean": "每天在后台应用一次这些限制。数据库压缩仍为手动。",
+    "dbLine": "数据库：{{size}} · 工作流版本{{versions}}个 · 运行{{runs}}次 · 运行事件{{events}}条",
+    "pendingLine": "{{count}}条记录超出当前限制。已删除的 SQLite 页面当前占用{{size}}，仅压缩后才会归还磁盘。",
+    "redactedLine": "{{total}}条生成记录中{{count}}条仍保留提示词与参数且已超期。清理会清除这些文本并保留计费记录。",
+    "cleanNow": "立即清理（{{count}}）",
+    "cleaning": "清理中…",
+    "compact": "压缩数据库",
+    "compacting": "压缩中…",
+    "confirmCompactTitle": "压缩数据库？",
+    "confirmCompactBody": "压缩会将闲置的 SQLite 页面归还磁盘。重建较大的本地数据库期间可能暂停数据库写入。",
+    "confirmCleanTitle": "清理旧历史？",
+    "confirmCleanBody": "移除{{clean}}条旧的工作流历史、已完成运行与运行事件记录，并清除{{redact}}条生成记录中的提示词与参数？每条生成的计费记录会保留。当前工作流、素材、检查点与进行中的运行不受影响。",
+    "confirmCompact": "压缩",
+    "confirmClean": "清理",
+    "bytesNA": "不可用",
+    "notifCleanSome": "已移除{{total}}条旧历史记录，并清除了{{redact}}条生成记录的提示词数据。",
+    "notifCleanAll": "已移除{{total}}条旧历史记录。",
+    "notifCompactDone": "数据库压缩完成。",
+    "notifUpdateFail": "无法更新历史限制：{{error}}",
+    "notifCleanFail": "历史清理失败：{{error}}",
+    "notifCompactFail": "数据库压缩失败：{{error}}"
+  },
+  "sidebar": {
+    "aboutCatApplication": "应用",
+    "aboutCatResources": "资源",
+    "aboutApplication": "应用",
+    "aboutOperatingSystem": "操作系统",
+    "aboutFeaturesVersions": "特性与版本",
+    "aboutInstallationPaths": "安装路径",
+    "aboutLinks": "链接",
+    "intCatConfiguration": "配置",
+    "intCatAccounts": "账号",
+    "intCatServers": "服务器",
+    "intCatCredentials": "凭据",
+    "folders": "文件夹",
+    "connectedAccounts": "已连接账号",
+    "nodetoolApiToken": "Nodetool API 令牌",
+    "localModelServers": "本地模型服务器",
+    "providerOptions": "服务商选项",
+    "observability": "可观测性",
+    "dataStorage": "数据与存储",
+    "other": "其他"
+  },
+  "remote": {
+    "FONT_PATH": {
+      "label": "字体路径",
+      "description": "图像处理节点（如 RenderText）所用字体文件夹的位置。未指定时使用系统默认字体。"
+    },
+    "BLENDER_PATH": {
+      "label": "Blender 路径",
+      "description": "nodetool.blender 节点所用 Blender 可执行文件路径。未指定时按 PATH 与常见安装位置查找。"
+    },
+    "VECTORSTORE_DB_PATH": {
+      "label": "向量库路径",
+      "description": "sqlite-vec 向量数据库文件位置。用于语义检索与 RAG 应用的嵌入存取。"
+    },
+    "USERS_FILE": {
+      "label": "用户文件",
+      "description": "多用户 Bearer 令牌认证的 users.yaml 路径。本地部署默认 ~/.config/nodetool/users.yaml。"
+    },
+    "TRANSFORMERS_JS_CACHE_DIR": {
+      "label": "Transformers JS 缓存目录",
+      "description": "Transformers.js（@huggingface/transformers）模型下载缓存目录。默认 <data-dir>/transformers-js-cache。与 Python HuggingFace Hub 缓存分离，因磁盘布局不同。"
+    },
+    "VLLM_BASE_URL": {
+      "label": "vLLM Base URL",
+      "description": "vLLM OpenAI 兼容服务的 Base URL（如 http://localhost:7777）。"
+    },
+    "OLLAMA_CONTEXT_LENGTH": {
+      "label": "Ollama 上下文长度",
+      "description": "Ollama 模型的上下文窗口大小（令牌数）。未设置时由服务商向模型查询默认值。"
+    },
+    "LLAMA_CPP_URL": {
+      "label": "llama.cpp URL",
+      "description": "llama.cpp 服务的 Base URL（如 http://127.0.0.1:8080）。"
+    },
+    "LLAMA_CPP_CONTEXT_LENGTH": {
+      "label": "llama.cpp 上下文长度",
+      "description": "llama.cpp 模型的上下文窗口大小（令牌数）。默认 128000。"
+    },
+    "NODE_LLAMA_CPP_MODELS_DIR": {
+      "label": "Node llama.cpp 模型目录",
+      "description": "进程内 llama.cpp 推理所用本地 GGUF 模型文件目录。默认为平台 llama.cpp 缓存目录。"
+    },
+    "NODE_LLAMA_CPP_GPU_BACKEND": {
+      "label": "Node llama.cpp GPU 后端",
+      "description": "进程内 llama.cpp 推理的 GPU 后端。'auto' 由 node-llama-cpp 自动选择最佳后端。"
+    },
+    "LMSTUDIO_API_URL": {
+      "label": "LM Studio API URL",
+      "description": "LM Studio OpenAI 兼容服务的 Base URL（如 http://localhost:1234）。"
+    },
+    "NODE_SUPABASE_URL": {
+      "label": "节点 Supabase URL",
+      "description": "用户自定义节点使用的 Supabase 项目 URL（与核心 SUPABASE_URL 分离）。"
+    },
+    "NODE_SUPABASE_SCHEMA": {
+      "label": "节点 Supabase 模式",
+      "description": "用户/节点 Supabase 表的可选模式（未设置时默认 public）。"
+    },
+    "NODE_SUPABASE_TABLE_PREFIX": {
+      "label": "节点 Supabase 表前缀",
+      "description": "用户/节点 Supabase 表的可选前缀，避免与核心表冲突。"
+    },
+    "TRACELOOP_ENABLED": {
+      "label": "启用 Traceloop",
+      "description": "启用 Traceloop OpenLLMetry 追踪。"
+    },
+    "TRACELOOP_APP_NAME": {
+      "label": "Traceloop 应用名",
+      "description": "覆盖 OpenLLMetry 应用名（默认为服务名）。"
+    },
+    "TRACELOOP_BASE_URL": {
+      "label": "Traceloop Base URL",
+      "description": "覆盖 Traceloop OTLP Base URL。"
+    },
+    "TRACELOOP_DISABLE_BATCH": {
+      "label": "禁用 Traceloop 批处理",
+      "description": "本地开发时禁用 Traceloop 批量 span 处理。"
+    },
+    "ZAI_USE_CODING_PLAN": {
+      "label": "智谱编码套餐",
+      "description": "使用智谱 Z.AI 编码套餐端点而非普通端点。"
+    },
+    "KIE_TIMEOUT_SECONDS": {
+      "label": "Kie 超时秒数",
+      "description": "Kie.ai API 调用的全局超时秒数（0=按模型默认超时）。"
+    },
+    "AUTOSAVE_ENABLED": {
+      "label": "启用自动保存",
+      "description": "启用工作流版本的自动保存（默认开启）。"
+    },
+    "AUTOSAVE_INTERVAL_MINUTES": {
+      "label": "自动保存间隔（分钟）",
+      "description": "两次自动保存的间隔分钟数（默认 5，范围 1–60）。"
+    },
+    "AUTOSAVE_MIN_INTERVAL_SECONDS": {
+      "label": "自动保存最小间隔（秒）",
+      "description": "两次自动保存之间的最小间隔，防止重复保存（默认 30 秒）。"
+    },
+    "AUTOSAVE_MAX_VERSIONS_PER_WORKFLOW": {
+      "label": "每个工作流自动保存上限",
+      "description": "每个工作流保留的自动保存版本数量上限（默认 20）。"
+    },
+    "AUTOSAVE_KEEP_DAYS": {
+      "label": "自动保存保留天数",
+      "description": "自动保存版本在清理前保留的天数（默认 7）。"
+    },
+    "MAX_CONCURRENT_JOBS": {
+      "label": "最大并行任务数",
+      "description": "单个客户端可同时运行的任务数量上限（默认 4）。超出的运行会排队，前面的结束后自动开始，避免压垮服务商/API。"
+    },
+    "MAX_CONCURRENT_RUNS_PER_WORKFLOW": {
+      "label": "每工作流最大并行运行数",
+      "description": "同一工作流可同时进行的运行数上限（默认 4）。仅适用于启用并发的运行（如时间线、图稿生成）；画布运行始终按工作流串行，另受 MAX_CONCURRENT_JOBS 约束。"
+    },
+    "NODETOOL_AGENT_TURN_COST_CAP_USD": {
+      "label": "智能体单轮成本上限（美元）",
+      "description": "一次智能体运行的服务商花费上限，单位美元（默认 5.00）。整个运行共享此额度：子智能体、后台子任务与智能体节点都从同一额度预留，而非各自开额。最坏情况会越限的轮次在调用前即被拒绝，运行停止并提示该上限。设为 0 表示完全不设限（纯本地安装的常见选择）——清空该值会恢复默认，因为空设置与未设置无法区分。"
+    },
+    "NODETOOL_AGENT_TURN_DEADLINE_MS": {
+      "label": "智能体单轮时限（毫秒）",
+      "description": "一次智能体运行的挂钟时间上限，毫秒（默认 1800000，即 30 分钟）。每次模型轮次与工具调用前检查，卡在慢服务商上的运行会终止而非挂起。"
+    },
+    "NODETOOL_AGENT_MAX_CONCURRENCY": {
+      "label": "智能体最大并发",
+      "description": "一次智能体运行可同时开启的服务商对话数上限（默认 8）。整个运行共享，防止步骤扇出内的子智能体再次扇出、叠加成数百个并发调用。"
+    },
+    "NODETOOL_AGENT_MAX_TURNS": {
+      "label": "智能体最大轮数",
+      "description": "一次智能体运行可执行的总模型轮数上限（默认 200），跨其启动的所有循环计数。这是无价格本地模型下依然成立的约束（美元上限无法适用时）。"
+    },
+    "NODETOOL_AGENT_UNPRICED_TOKEN_CEILING": {
+      "label": "未定价模型令牌上限",
+      "description": "价格目录未覆盖模型的单轮提示令牌上限（默认 400000）。未定价模型没有最坏情况成本可预留，自由放行会使美元上限形同虚设，故以规模设限。此类轮次计为未定价而非免费。"
+    },
+    "NODETOOL_CHAT_COMPACTION_TOKENS": {
+      "label": "对话压缩令牌阈值",
+      "description": "会话线程的估算提示规模（令牌数）达到此值时，一次对话轮会在调用模型前先摘要其前文（默认 120000）。估算对消息文本与工具调用做分词计数，并为附带的图像、音频、视频或文档按模态计入固定分值。它不含同轮发送的工具定义，因此取值应在模型上下文窗口之下留出余量，而非贴近上限。由服务商自身持有会话的形态（恢复的会话、Claude Agent SDK）不按此度量，而是在报告对话不再放得下时才压缩。"
+    },
+    "NODETOOL_CHAT_COMPACTION_KEEP_TURNS": {
+      "label": "对话压缩保留轮数",
+      "description": "压缩按原样保留的最近用户轮数（默认 4）。此前的一切归入摘要。切分点总落在用户消息上，因此工具调用绝不会与其结果分离。"
+    },
+    "NODETOOL_COMPACTION_MODEL": {
+      "label": "压缩模型",
+      "description": "撰写压缩摘要的模型，格式为 `provider/model`，或该轮所用服务商上的裸模型 id。未设置时，该轮直接用正在运行的模型做摘要。摘要模型失败时会话线程保持未压缩，该轮将面对完整历史运行。"
+    },
+    "SERP_PROVIDER": {
+      "label": "搜索服务商",
+      "description": "选择网页搜索操作所用的搜索服务商。"
+    },
+    "DASHSCOPE_BASE_URL": {
+      "label": "DashScope Base URL",
+      "description": "阿里云 Model Studio（DashScope）OpenAI 兼容端点的 Base URL。Model Studio 密钥按区域生效，请设为所在区域的端点（默认 https://dashscope-intl.aliyuncs.com/compatible-mode/v1，即国际/新加坡区域）。"
+    },
+    "OPENAI_API_KEY": {
+      "get": "获取 OpenAI API 密钥"
+    },
+    "ANTHROPIC_API_KEY": {
+      "get": "获取 Anthropic API 密钥"
+    },
+    "GEMINI_API_KEY": {
+      "get": "获取 Gemini API 密钥"
+    },
+    "OPENROUTER_API_KEY": {
+      "get": "获取 OpenRouter API 密钥"
+    },
+    "HF_TOKEN": {
+      "get": "获取 Hugging Face 令牌"
+    },
+    "REPLICATE_API_TOKEN": {
+      "get": "获取 Replicate 令牌"
+    },
+    "GOOGLE_APP_PASSWORD": {
+      "get": "获取 Google 应用密码"
+    },
+    "ELEVENLABS_API_KEY": {
+      "get": "获取 ElevenLabs 密钥"
+    },
+    "FAL_API_KEY": {
+      "get": "获取 FAL 密钥"
+    },
+    "SERPAPI_API_KEY": {
+      "get": "获取 SerpAPI 密钥"
+    },
+    "DATA_FOR_SEO_LOGIN": {
+      "get": "获取 DataForSEO 登录"
+    },
+    "BRAVE_API_KEY": {
+      "get": "获取 Brave Search 密钥"
+    },
+    "APIFY_API_TOKEN": {
+      "get": "获取 Apify 令牌"
+    },
+    "KIMI_API_KEY": {
+      "get": "获取 Moonshot（Kimi）密钥"
+    },
+    "DASHSCOPE_API_KEY": {
+      "get": "获取 DashScope 密钥"
+    },
+    "AKI_API_KEY": {
+      "get": "获取 AKI 密钥"
+    }
+  }
+}

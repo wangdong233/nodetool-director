@@ -13,10 +13,14 @@ import { ThemeProvider } from "@mui/material/styles";
 import mockTheme from "../../../../__mocks__/themeMock";
 import { useTimelineStore } from "../../../../stores/timeline/TimelineStore";
 import type { Asset } from "../../../../stores/ApiTypes";
+import { changeAppLanguage } from "../../../../i18n";
 import { IdeaStep } from "../IdeaStep";
 
+// Step 1 pulls its inspiration chips off the shipped example boards; the
+// default empty list exercises the no-chips shape, and the zh test fills it.
+let exampleBoards: { slug: string; logline: string }[] = [];
 jest.mock("../../../../hooks/storyboard/useStoryboards", () => ({
-  useExampleStoryboards: () => ({ data: [] })
+  useExampleStoryboards: () => ({ data: exampleBoards })
 }));
 jest.mock("../../../../hooks/useResolvedMediaUri");
 jest.mock("../../../../serverState/useEntities", () => ({
@@ -46,6 +50,7 @@ const renderStep = (onStartFromScript?: () => void) =>
 
 beforeEach(() => {
   importFiles.mockReset();
+  exampleBoards = [];
   useTimelineStore.getState().reset();
   useTimelineStore.getState().setSetup({ stage: "idea", brief: "" });
 });
@@ -180,5 +185,31 @@ describe("video IdeaStep", () => {
 
     await waitFor(() => expect(importFiles).toHaveBeenCalled());
     expect((importFiles.mock.calls[0][0] as File[])[0].name).toBe("hull.mp4");
+  });
+});
+
+describe("video IdeaStep examples (zh)", () => {
+  // 显示即所发: the chip's display text IS the brief it writes, so the
+  // localized label and the inserted text cannot diverge. The lookup is keyed
+  // by the board's stable slug, so the zh label comes from the catalog overlay
+  // even though the mocked query returns an English logline.
+  afterEach(async () => {
+    exampleBoards = [];
+    await changeAppLanguage("en");
+  });
+
+  it("inserts the same localized text a chip shows", async () => {
+    await changeAppLanguage("zh-CN");
+    exampleBoards = [
+      { slug: "sneaker-drop", logline: "Fifteen seconds for a running-shoe launch." }
+    ];
+    const user = userEvent.setup();
+    renderStep();
+
+    const zh = "十五秒跑鞋发布：影棚揭晓、一个材质特写，最后走到天刚亮的街头。";
+    const chip = await screen.findByText(zh);
+    await user.click(chip);
+
+    expect(useTimelineStore.getState().setup?.brief).toBe(zh);
   });
 });

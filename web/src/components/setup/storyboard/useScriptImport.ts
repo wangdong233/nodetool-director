@@ -17,6 +17,7 @@
  */
 
 import { useCallback, useState } from "react";
+import { i18n } from "../../../i18n";
 import type { Screenplay } from "@nodetool-ai/protocol";
 
 import { restFetch } from "../../../lib/rest-fetch";
@@ -28,7 +29,8 @@ import { parseFdx } from "../../../lib/storyboard/parseFdx";
 export const SCRIPT_ACCEPT = ".pdf,.docx,.fdx,application/pdf";
 
 /** The § 7.6 wording for a file no importer reads. */
-const UNSUPPORTED = "Unsupported file type. Upload a PDF, DOCX or FDX.";
+const UNSUPPORTED_KEY = "storyboard:attrs.unsupportedFileTypeUploadAPDFDOCXOrFDX";
+const UNSUPPORTED_DEFAULT = "Unsupported file type. Upload a PDF, DOCX or FDX.";
 
 /**
  * Mirrors `EXTRACT_TEXT_MAX_BYTES` on the route. Checked here so an oversize
@@ -53,7 +55,7 @@ async function extractionError(response: Response): Promise<string> {
   } catch {
     // A body that is not JSON says nothing more than the status does.
   }
-  return `This file could not be read. ${UNSUPPORTED}`;
+  return i18n.t("storyboard:attrs.thisFileCouldNotBeReadUnsupported", { defaultValue: "This file could not be read. {{reason}}", reason: i18n.t(UNSUPPORTED_KEY, { defaultValue: UNSUPPORTED_DEFAULT }) });
 }
 
 export interface ScriptImportResult {
@@ -73,7 +75,7 @@ export function useScriptImport(boardId: string): ScriptImportResult {
       setError(null);
       if (file.size > SCRIPT_MAX_BYTES) {
         setError(
-          `File is too large. The limit is ${Math.floor(SCRIPT_MAX_BYTES / (1024 * 1024))} MB.`
+          i18n.t("storyboard:attrs.fileIsTooLargeTheLimitIsCountMB", { defaultValue: "File is too large. The limit is {{count}} MB.", count: Math.floor(SCRIPT_MAX_BYTES / (1024 * 1024)) })
         );
         return;
       }
@@ -121,7 +123,7 @@ export function useScriptImport(boardId: string): ScriptImportResult {
             ? (body as { text: string }).text
             : "";
         if (text.trim() === "") {
-          setError(`This file could not be read. ${UNSUPPORTED}`);
+          setError(i18n.t("storyboard:attrs.thisFileCouldNotBeReadUnsupported", { defaultValue: "This file could not be read. {{reason}}", reason: i18n.t(UNSUPPORTED_KEY, { defaultValue: UNSUPPORTED_DEFAULT }) }));
           return;
         }
         store.setSetup(boardId, { brief: text });
@@ -134,7 +136,7 @@ export function useScriptImport(boardId: string): ScriptImportResult {
           preserveWords: false
         });
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : UNSUPPORTED);
+        setError(cause instanceof Error ? cause.message : i18n.t(UNSUPPORTED_KEY, { defaultValue: UNSUPPORTED_DEFAULT }));
       } finally {
         setImporting(false);
       }

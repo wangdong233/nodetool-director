@@ -79,6 +79,14 @@ describe('formatDateAndTime utilities', () => {
       expect(relativeTime(hourAgo.toISOString())).toBe('1 hour ago');
     });
 
+    test('returns an empty label for an invalid date instead of NaN', () => {
+      // Defense against NaN fall-through: an unparseable date must not
+      // surface "NaN sec ago" anywhere relativeTime is rendered.
+      expect(relativeTime(new Date(NaN))).toBe('');
+      expect(relativeTime('')).toBe('');
+      expect(relativeTime('invalid-date')).toBe('');
+    });
+
     test('counts a local day across the spring DST transition', () => {
       const originalTimezone = process.env.TZ;
       process.env.TZ = 'America/New_York';

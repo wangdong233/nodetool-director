@@ -20,6 +20,7 @@ import { useScriptAgentBridge } from "../../../hooks/script/useScriptAgentBridge
 import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
 import { SetupFlow } from "../SetupFlow";
 import { useScriptSetupFlow } from "./useScriptSetupFlow";
+import { i18n } from "../../../i18n";
 
 export interface ScriptSetupHostProps {
   scriptId: string;
@@ -60,7 +61,12 @@ const ScriptSetupHost = ({
   // The store seeds an empty script on mount, and an empty script's stage
   // reads `done` — rendering before the server copy lands would show no flow.
   if (loadState !== "ready") {
-    return <DocumentLoadStatus state={loadState} label="script" />;
+    return (
+      <DocumentLoadStatus
+        state={loadState}
+        label={i18n.t("ui2:attrs.docScript", { defaultValue: "script" })}
+      />
+    );
   }
 
   return (

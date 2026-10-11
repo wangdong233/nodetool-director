@@ -64,7 +64,10 @@ describe("useChainEditorStore", () => {
       const { chain, connections, workflowName } = useChainEditorStore.getState();
       expect(chain).toEqual([]);
       expect(connections).toEqual([]);
-      expect(workflowName).toBe("Untitled Workflow");
+      // resetStore() drives newWorkflow(), whose name fallback reads the
+      // dictionary ("Untitled workflow"); the capital-W literal only exists
+      // in the module-level initial state, never after a reset.
+      expect(workflowName).toBe("Untitled workflow");
     });
   });
 

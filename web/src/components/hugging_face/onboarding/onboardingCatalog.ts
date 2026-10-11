@@ -13,6 +13,7 @@
  * a genuine {@link UnifiedModel} the download service understands.
  */
 import type { UnifiedModel } from "../../../stores/ApiTypes";
+import { i18n } from "../../../i18n";
 
 /** What a model is for — drives the capability grouping in the UI. */
 export type OnboardingCapability =
@@ -31,6 +32,15 @@ export const CAPABILITY_LABELS = {
   "text-to-speech": "Text to Speech",
   embedding: "Embeddings & Search"
 } satisfies Record<OnboardingCapability, string>;
+
+export const CAPABILITY_LABEL_KEYS: Record<OnboardingCapability, string> = {
+  chat: "editor:ui.chatReasoning",
+  vision: "editor:ui.visionImageUnderstanding",
+  image: "editor:ui.imageGeneration",
+  "speech-to-text": "editor:ui.speechToText",
+  "text-to-speech": "editor:ui.textToSpeech",
+  embedding: "editor:ui.embeddingsSearch"
+};
 
 /** A local inference engine the user can run models on. */
 export interface OnboardingEngine {
@@ -59,6 +69,14 @@ export interface OnboardingEngine {
  * The local engines, roughly ordered easiest-first. Ollama ships with the
  * desktop app; the rest are installed from the Package Manager.
  */
+export const ENGINE_TAGLINE_KEYS: Record<string, string> = {
+  "ollama": "editor:ui.oneclickLocalLLMs",
+  "node-llama-cpp": "editor:ui.GGUFModelsInprocess",
+  "transformers-js": "editor:ui.ONNXModelsAnywhere",
+  "huggingface": "editor:ui.imageVideoAudioViaPython",
+  "mlx": "editor:ui.appleSiliconAcceleration"
+};
+
 export const ONBOARDING_ENGINES: readonly OnboardingEngine[] = [
   {
     id: "ollama",
@@ -120,6 +138,13 @@ export interface OnboardingNodePack {
   repoId: string;
   name: string;
   description: string;
+  /**
+   * Full i18n key (namespace included) for the localized description —
+   * rendered by the consumer as
+   * `i18n.t(pack.descriptionKey, { defaultValue: pack.description })`.
+   * Module-scope tables must not call i18n.t directly (freeze class).
+   */
+  descriptionKey?: string;
   capabilities: OnboardingCapability[];
 }
 
@@ -142,6 +167,7 @@ export const ONBOARDING_NODE_PACKS: readonly OnboardingNodePack[] = [
     repoId: "nodetool-ai/nodetool-ollama",
     name: "Ollama",
     description: "Chat and embedding nodes backed by your local Ollama models.",
+    descriptionKey: "tools:misc.onboardingPacks.ollama",
     capabilities: ["chat", "embedding"]
   }
 ];
@@ -438,6 +464,13 @@ export const FIT_LABELS = {
   over: "Needs more memory",
   unknown: "Set your memory to check"
 } satisfies Record<FitLevel, string>;
+
+export const FIT_LABEL_KEYS: Record<FitLevel, string> = {
+  fits: "editor:ui.fitsYourMachine",
+  tight: "editor:ui.tightFit",
+  over: "editor:ui.needsMoreMemory",
+  unknown: "editor:ui.setYourMemoryToCheck"
+};
 
 const FIT_ORDER = {
   fits: 0,

@@ -19,6 +19,7 @@ import {
   inferOutputKeysFromCode,
   inferInputKeysFromCode
 } from "../utils/codeOutputInference";
+import { i18n } from "../i18n";
 
 export const SNIPPET_NODE_PREFIX = "nodetool.";
 
@@ -144,7 +145,10 @@ export function generateSnippetMetadata() {
         required: false
       };
       if (declared?.description !== undefined) {
-        property.description = declared.description;
+        property.description = i18n.t(
+          `catalog:snippets.${declared.descriptionKey ?? ""}`,
+          { defaultValue: declared.description }
+        );
       }
       if (declared?.min !== undefined) property.min = declared.min;
       if (declared?.max !== undefined) property.max = declared.max;
@@ -162,8 +166,13 @@ export function generateSnippetMetadata() {
     }));
 
     result[nodeType] = {
-      title: snippet.title,
-      description: `${snippet.description}\n    ${snippet.tags.join(", ")}`,
+      title: i18n.t(`catalog:snippets.${snippet.titleKey ?? ""}`, {
+        defaultValue: snippet.title
+      }),
+      description: `${i18n.t(
+        `catalog:snippets.${snippet.descriptionKey ?? ""}`,
+        { defaultValue: snippet.description }
+      )}\n    ${snippet.tags.join(", ")}`,
       namespace,
       node_type: nodeType,
       layout: "default",

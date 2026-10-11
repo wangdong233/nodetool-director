@@ -35,6 +35,7 @@ import {
   InspectorSliderRow
 } from "./InspectorPrimitives";
 import { FillFields, TextCommitField } from "./InspectorMotionFields";
+import { useTranslation } from "react-i18next";
 import {
   formatNumberList,
   parseNumberList
@@ -75,6 +76,7 @@ interface ClipShapeSectionProps {
 
 export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
   ({ clip, shapeStyle }) => {
+    const { t } = useTranslation();
     const patchClip = useTimelineStore((s) => s.patchClip);
     const [open, setOpen] = usePersistedFold("shape");
 
@@ -204,7 +206,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Shape"
+              title={t("timeline:attrs.shape", { defaultValue: "Shape" })}
               icon={<CategoryOutlinedIcon />}
             />
           }
@@ -213,9 +215,9 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label="Kind">
+            <InspectorRow label={t("ui2:attrs.kind", { defaultValue: "Kind" })}>
               <InspectorSelect
-                label="Shape kind"
+                label={t("timeline:attrs.shapeKind", { defaultValue: "Shape kind" })}
                 value={kind}
                 options={SHAPE_KINDS}
                 onChange={handleKindChange}
@@ -224,36 +226,36 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
 
             {hasBounds && (
               <>
-                <InspectorRow label="Position">
+                <InspectorRow label={t("timeline:attrs.position", { defaultValue: "Position" })}>
                   <InspectorPillInput
                     value={(shapeStyle.x ?? 0).toFixed(2)}
                     minWidth={64}
                     scrub={SCRUB_UNIT}
                     onCommit={handleXCommit}
-                    ariaLabel="Shape X"
+                    ariaLabel={t("timeline:attrs.shapeX", { defaultValue: "Shape X" })}
                   />
                   <InspectorPillInput
                     value={(shapeStyle.y ?? 0).toFixed(2)}
                     minWidth={64}
                     scrub={SCRUB_UNIT}
                     onCommit={handleYCommit}
-                    ariaLabel="Shape Y"
+                    ariaLabel={t("timeline:attrs.shapeY", { defaultValue: "Shape Y" })}
                   />
                 </InspectorRow>
-                <InspectorRow label="Size">
+                <InspectorRow label={t("editor:asset.info.size", { defaultValue: "Size" })}>
                   <InspectorPillInput
                     value={(shapeStyle.width ?? 0).toFixed(2)}
                     minWidth={64}
                     scrub={SCRUB_UNIT}
                     onCommit={handleWidthCommit}
-                    ariaLabel="Shape width"
+                    ariaLabel={t("timeline:attrs.shapeWidth", { defaultValue: "Shape width" })}
                   />
                   <InspectorPillInput
                     value={(shapeStyle.height ?? 0).toFixed(2)}
                     minWidth={64}
                     scrub={SCRUB_UNIT}
                     onCommit={handleHeightCommit}
-                    ariaLabel="Shape height"
+                    ariaLabel={t("timeline:attrs.shapeHeight", { defaultValue: "Shape height" })}
                   />
                 </InspectorRow>
               </>
@@ -261,20 +263,20 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
 
             {isLine && (
               <>
-                <InspectorRow label="Start">
+                <InspectorRow label={t("timeline:attrs.start", { defaultValue: "Start" })}>
                   <InspectorPillInput
                     value={(shapeStyle.x ?? 0).toFixed(2)}
                     minWidth={64}
                     scrub={SCRUB_UNIT}
                     onCommit={handleXCommit}
-                    ariaLabel="Line start X"
+                    ariaLabel={t("timeline:attrs.lineStartX", { defaultValue: "Line start X" })}
                   />
                   <InspectorPillInput
                     value={(shapeStyle.y ?? 0).toFixed(2)}
                     minWidth={64}
                     scrub={SCRUB_UNIT}
                     onCommit={handleYCommit}
-                    ariaLabel="Line start Y"
+                    ariaLabel={t("timeline:attrs.lineStartY", { defaultValue: "Line start Y" })}
                   />
                 </InspectorRow>
                 <InspectorRow label="End">
@@ -283,14 +285,14 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
                     minWidth={64}
                     scrub={SCRUB_UNIT}
                     onCommit={handleX2Commit}
-                    ariaLabel="Line end X"
+                    ariaLabel={t("timeline:attrs.lineEndX", { defaultValue: "Line end X" })}
                   />
                   <InspectorPillInput
                     value={(shapeStyle.y2 ?? 0).toFixed(2)}
                     minWidth={64}
                     scrub={SCRUB_UNIT}
                     onCommit={handleY2Commit}
-                    ariaLabel="Line end Y"
+                    ariaLabel={t("timeline:attrs.lineEndY", { defaultValue: "Line end Y" })}
                   />
                 </InspectorRow>
               </>
@@ -298,10 +300,10 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
 
             {isPath && (
               <>
-                <InspectorRow label="Path">
+                <InspectorRow label={t("editor:ui.path", { defaultValue: "Path" })}>
                   <TextCommitField
                     value={shapeStyle.d ?? ""}
-                    ariaLabel="Shape path data"
+                    ariaLabel={t("timeline:attrs.shapePathData", { defaultValue: "Shape path data" })}
                     placeholder="M 0 0 L 1 0 L 1 1 Z"
                     onCommit={handlePathCommit}
                   />
@@ -313,19 +315,19 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
             )}
 
             {hasSides && (
-              <InspectorRow label="Points">
+              <InspectorRow label={t("timeline:attrs.points", { defaultValue: "Points" })}>
                 <InspectorPillInput
                   value={String(shapeStyle.sides ?? 5)}
                   scrub={SCRUB_COUNT}
                   onCommit={handleSidesCommit}
-                  ariaLabel="Shape point count"
+                  ariaLabel={t("timeline:attrs.shapePointCount", { defaultValue: "Shape point count" })}
                 />
               </InspectorRow>
             )}
 
             {kind === "star" && (
               <InspectorSliderRow
-                label="Inner radius"
+                label={t("timeline:attrs.innerRadius", { defaultValue: "Inner radius" })}
                 min={0}
                 max={1}
                 step={0.01}
@@ -336,17 +338,17 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
             )}
 
             {kind === "rect" && (
-              <InspectorRow label="Corner radius">
+              <InspectorRow label={t("timeline:attrs.cornerRadius", { defaultValue: "Corner radius" })}>
                 <InspectorPillInput
                   value={(shapeStyle.cornerRadius ?? 0).toFixed(3)}
                   scrub={SCRUB_UNIT}
                   onCommit={handleCornerRadiusCommit}
-                  ariaLabel="Shape corner radius"
+                  ariaLabel={t("timeline:attrs.shapeCornerRadius", { defaultValue: "Shape corner radius" })}
                 />
               </InspectorRow>
             )}
 
-            <InspectorRow label="Fill color">
+            <InspectorRow label={t("timeline:attrs.fillColor", { defaultValue: "Fill color" })}>
               <TextInput
                 type="color"
                 value={shapeStyle.fill ?? "#ffffff"}
@@ -360,7 +362,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
               onChange={handleFillStyleChange}
             />
 
-            <InspectorRow label="Stroke color">
+            <InspectorRow label={t("timeline:attrs.strokeColor", { defaultValue: "Stroke color" })}>
               <TextInput
                 type="color"
                 value={shapeStyle.stroke ?? "#000000"}
@@ -368,41 +370,41 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
                 inputProps={STROKE_COLOR_INPUT_PROPS}
               />
             </InspectorRow>
-            <InspectorRow label="Stroke width">
+            <InspectorRow label={t("timeline:attrs.strokeWidth", { defaultValue: "Stroke width" })}>
               <InspectorPillInput
                 value={String(shapeStyle.strokeWidthPx ?? 0)}
                 unit="px"
                 scrub={SCRUB_PX}
                 onCommit={handleStrokeWidthCommit}
-                ariaLabel="Shape stroke width"
+                ariaLabel={t("timeline:attrs.shapeStrokeWidth", { defaultValue: "Shape stroke width" })}
               />
             </InspectorRow>
-            <InspectorRow label="Dash">
+            <InspectorRow label={t("editor:ui.dash", { defaultValue: "Dash" })}>
               <TextCommitField
                 value={formatNumberList(shapeStyle.dash)}
-                ariaLabel="Shape dash pattern"
+                ariaLabel={t("timeline:attrs.shapeDashPattern", { defaultValue: "Shape dash pattern" })}
                 placeholder="0.02, 0.01"
                 onCommit={handleDashCommit}
               />
             </InspectorRow>
             <InspectorRow label="Cap">
               <InspectorSelect
-                label="Shape line cap"
+                label={t("timeline:attrs.shapeLineCap", { defaultValue: "Shape line cap" })}
                 value={shapeStyle.lineCap ?? "butt"}
                 options={LINE_CAPS}
                 onChange={handleLineCapChange}
               />
             </InspectorRow>
-            <InspectorRow label="Join">
+            <InspectorRow label={t("editor:ui.join", { defaultValue: "Join" })}>
               <InspectorSelect
-                label="Shape line join"
+                label={t("timeline:attrs.shapeLineJoin", { defaultValue: "Shape line join" })}
                 value={shapeStyle.lineJoin ?? "miter"}
                 options={LINE_JOINS}
                 onChange={handleLineJoinChange}
               />
             </InspectorRow>
             <InspectorSliderRow
-              label="Trim start"
+              label={t("timeline:attrs.trimStart", { defaultValue: "Trim start" })}
               min={0}
               max={1}
               step={0.01}
@@ -411,7 +413,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
               onChange={handleTrimStartChange}
             />
             <InspectorSliderRow
-              label="Trim end"
+              label={t("timeline:attrs.trimEnd", { defaultValue: "Trim end" })}
               min={0}
               max={1}
               step={0.01}

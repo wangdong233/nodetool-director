@@ -25,6 +25,7 @@ import {
   type TranscriptSegment
 } from "../../../stores/timeline/transcriptOps";
 import { trackHeaderWidthCss } from "./TrackHeader";
+import { useTranslation } from "react-i18next";
 
 export const SCRIPT_LANE_HEIGHT_PX = 46;
 
@@ -114,12 +115,15 @@ const HeaderCell = styled("div")(({ theme }) => ({
   "& svg": { fontSize: 15, color: theme.vars.palette.primary.main }
 }));
 
-export const ScriptLaneHeader: React.FC = () => (
-  <HeaderCell aria-label="Script lane">
+export const ScriptLaneHeader: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+  <HeaderCell aria-label={t("timeline:attrs.scriptLane", { defaultValue: "Script lane" })}>
     <GraphicEqIcon />
     SCRIPT
   </HeaderCell>
 );
+};
 
 /** A time span with a stable identity, sorted ascending and non-overlapping. */
 interface TimedKey {

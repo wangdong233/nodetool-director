@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from "react";
+import { useAppLanguage } from "../../i18n";
 import { useShallow } from "zustand/react/shallow";
 import SettingsIcon from "@mui/icons-material/Settings";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
@@ -18,6 +19,7 @@ import { useAppHeaderStore } from "../../stores/AppHeaderStore";
 import { useModelDownloadStore } from "../../stores/ModelDownloadStore";
 import { openPageTab } from "../workspace/openPageTab";
 import { type PageTabKey } from "../workspace/pageTabs";
+import { useTranslation } from "react-i18next";
 
 export interface AppMenuAction {
   key: string;
@@ -40,6 +42,7 @@ export interface AppMenuAction {
  * since the Downloads dialog and page tabs mount themselves but Help does not.
  */
 export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
+  const { t } = useTranslation();
   const handleOpenHelp = useAppHeaderStore((state) => state.handleOpenHelp);
   const { downloads, openDownloadsDialog } = useModelDownloadStore(
     useShallow((state) => ({
@@ -69,25 +72,27 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     return total > 0 ? Math.round((done / total) * 100) : 0;
   }, [downloads]);
 
+  const { language } = useAppLanguage(); // live language for the memo dep (R5-2)
+
   return useMemo(() => {
     const actions: AppMenuAction[] = [
       {
         key: "tutorials",
-        label: "Tutorials",
+        label: t("nav:rail.tutorials"),
         icon: <SchoolOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("tutorials")
       },
       {
         key: "examples",
-        label: "Examples",
+        label: t("nav:rail.examples"),
         icon: <AutoAwesomeOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("examples")
       },
       {
         key: "costs",
-        label: "Costs",
+        label: t("nav:rail.costs"),
         icon: <PaidOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("costs"),
@@ -95,7 +100,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
       },
       {
         key: "models",
-        label: "Model Manager",
+        label: t("nav:rail.models"),
         icon: <ViewInArOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("models")
@@ -105,7 +110,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     if (!isProduction) {
       actions.push({
         key: "packages",
-        label: "Package Manager",
+        label: t("nav:rail.packages"),
         icon: <Inventory2OutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("packages")
@@ -115,28 +120,28 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     actions.push(
       {
         key: "assets",
-        label: "Assets",
+        label: t("nav:rail.assets"),
         icon: <PermMediaOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("assets")
       },
       {
         key: "collections",
-        label: "Collections",
+        label: t("nav:rail.collections"),
         icon: <LibraryBooksOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("collections")
       },
       {
         key: "workspaces",
-        label: "Workspaces",
+        label: t("nav:rail.workspaces"),
         icon: <FolderSpecialOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("workspaces")
       },
       {
         key: "memory",
-        label: "Memory",
+        label: t("nav:rail.memory"),
         icon: <PsychologyOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("memory"),
@@ -144,14 +149,14 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
       },
       {
         key: "settings",
-        label: "Settings",
+        label: t("nav:rail.settings"),
         icon: <SettingsIcon />,
         placement: "logo",
         onClick: () => openPage("settings")
       },
       {
         key: "help",
-        label: "Help",
+        label: t("nav:rail.help"),
         icon: <HelpOutlineIcon />,
         placement: "logo",
         onClick: () => {
@@ -161,7 +166,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
       },
       {
         key: "downloads",
-        label: "Downloads",
+        label: t("nav:rail.downloads"),
         icon: <DownloadIcon />,
         placement: "logo",
         onClick: () => {
@@ -174,10 +179,12 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
 
     return actions;
   }, [
+    t,
     openPage,
     finish,
     handleOpenHelp,
     openDownloadsDialog,
-    downloadProgress
+    downloadProgress,
+    language
   ]);
 };

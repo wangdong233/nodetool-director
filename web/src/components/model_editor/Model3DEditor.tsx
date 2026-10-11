@@ -51,12 +51,14 @@ import {
   type PrimitiveKind
 } from "./objectFactory";
 import { exportSceneToGlb } from "./exportGltf";
+import { i18n } from "../../i18n";
 import {
   setModel3DToolHandler,
   type Model3DSceneNode,
   type Model3DToolHandler,
   type Model3DTransformPatch
 } from "./model3DToolBridge";
+import { useTranslation } from "react-i18next";
 
 type GizmoMode = "translate" | "rotate" | "scale";
 
@@ -378,6 +380,7 @@ const Model3DEditor = ({
   cameraPose,
   offlineLighting = false
 }: Model3DEditorProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   // Persistent group that owns all editable content and is exported on save.
@@ -468,7 +471,7 @@ const Model3DEditor = ({
         setLoadError(
           error instanceof Error
             ? error.message
-            : "Failed to load 3D model. Only .glb/.gltf are supported."
+            : i18n.t("editor:ui.failedToLoad3DModelOnlyGlbgltfAreSupported", { defaultValue: "Failed to load 3D model. Only .glb/.gltf are supported." })
         );
       }
     );
@@ -616,7 +619,7 @@ const Model3DEditor = ({
     } catch (error) {
       console.error("[Model3DEditor] Failed to export GLB:", error);
       setLoadError(
-        error instanceof Error ? error.message : "Failed to export model"
+        error instanceof Error ? error.message : i18n.t("editor:ui.failedToExportModel", { defaultValue: "Failed to export model" })
       );
     } finally {
       savingRef.current = false;
@@ -785,20 +788,20 @@ const Model3DEditor = ({
         <AddMenu onAdd={handleAdd} />
         <ToolbarIconButton
           icon={<DeleteOutlineIcon fontSize="small" />}
-          tooltip="Delete selected (Del)"
+          tooltip={t("editor:ui.deleteSelectedDel", { defaultValue: "Delete selected (Del)" })}
           onClick={handleDelete}
           disabled={!selectedObject}
           size="small"
         />
         <ToolbarIconButton
           icon={<CenterFocusStrongIcon fontSize="small" />}
-          tooltip="Frame scene"
+          tooltip={t("editor:ui.frameScene", { defaultValue: "Frame scene" })}
           onClick={() => setFitTrigger((t) => t + 1)}
           size="small"
         />
         <ToolbarIconButton
           icon={<GridOnIcon fontSize="small" />}
-          tooltip="Toggle grid"
+          tooltip={t("editor:ui.toggleGrid", { defaultValue: "Toggle grid" })}
           onClick={() => setShowGrid((v) => !v)}
           active={showGrid}
           size="small"
@@ -806,7 +809,7 @@ const Model3DEditor = ({
         <FlexRow style={{ marginLeft: "auto" }} gap={1} align="center">
           <ToolbarIconButton
             icon={<AutoAwesomeIcon fontSize="small" />}
-            tooltip={showAssistant ? "Hide assistant" : "Show assistant"}
+            tooltip={showAssistant ? t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" }) : t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })}
             onClick={toggleAssistant}
             active={showAssistant}
             size="small"
@@ -820,7 +823,7 @@ const Model3DEditor = ({
           >
             {isSaving ? "Saving…" : "Save"}
           </EditorButton>
-          <CloseButton onClick={onClose} tooltip="Close editor" />
+          <CloseButton onClick={onClose} tooltip={t("ui2:attrs.closeEditor", { defaultValue: "Close editor" })} />
         </FlexRow>
       </FlexRow>
 
@@ -897,7 +900,7 @@ const Model3DEditor = ({
         <FlexColumn className="side-panel right" fullHeight>
           <FlexRow className="panel-header">
             <Text size="small" weight={600}>
-              Properties
+              {t("editor:ui.properties")}
             </Text>
           </FlexRow>
           <PropertiesPanel object={selectedObject} tick={tick} onChanged={bump} />
@@ -909,7 +912,7 @@ const Model3DEditor = ({
           <ResizableSideDock
             storageKey="model3d_assistant"
             defaultWidth={ASSISTANT_PANEL_WIDTH}
-            ariaLabel="Resize 3D assistant"
+            ariaLabel={t("editor:ui.resize3DAssistant", { defaultValue: "Resize 3D assistant" })}
           >
             <FlexRow className="panel-header" justify="space-between" align="center">
               <FlexRow gap={1} align="center">
@@ -920,7 +923,7 @@ const Model3DEditor = ({
               </FlexRow>
               <CloseButton
                 onClick={() => toggleAssistant()}
-                tooltip="Hide assistant"
+                tooltip={t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" })}
               />
             </FlexRow>
             <div className="panel-body">

@@ -11,6 +11,7 @@ import {
 } from "../../stores/NotificationStore";
 import { CopyButton } from "../ui_primitives";
 import { NOTIFICATION_TIMEOUT_DEFAULT } from "../../config/constants";
+import { useTranslation } from "react-i18next";
 
 const TRANSITION_DURATION = 300;
 const ENTER_OFFSET_Y = 12;
@@ -132,6 +133,7 @@ const NotificationItem = memo(function NotificationItem({
   in: inProp,
   onExited
 }: NotificationItemProps) {
+  const { t } = useTranslation();
   const handleClose = useCallback(() => {
     onClose(notification.id);
   }, [notification.id, onClose]);
@@ -172,7 +174,7 @@ const NotificationItem = memo(function NotificationItem({
           <CopyButton
             value={notification.content}
             className={`copy-button ${notification.action ? "has-action" : ""}`}
-            tooltip="Copy to clipboard"
+            tooltip={t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
           />
         )}
       </li>

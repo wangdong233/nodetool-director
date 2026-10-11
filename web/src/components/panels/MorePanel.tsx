@@ -17,6 +17,7 @@ import {
 } from "../ui_primitives";
 import PanelHeadline from "../ui/PanelHeadline";
 import AppPagesList from "./AppPagesList";
+import { useTranslation } from "react-i18next";
 
 interface MorePanelProps {
   readonly onSelectView: (view: LeftPanelView) => void;
@@ -37,6 +38,7 @@ const MorePanelCategoryRow = ({
   category,
   onSelectView
 }: MorePanelCategoryRowProps) => {
+  const { t } = useTranslation();
   const handleClick = useCallback(
     () => onSelectView(category.id),
     [category.id, onSelectView]
@@ -45,8 +47,8 @@ const MorePanelCategoryRow = ({
   return (
     <ListItemRow
       icon={category.icon}
-      primary={category.label}
-      secondary={category.description}
+      primary={t(`nav:qa.${category.id}.label`, { defaultValue: category.label })}
+      secondary={t(`nav:qa.${category.id}.description`, { defaultValue: category.description })}
       onClick={handleClick}
     />
   );
@@ -58,6 +60,7 @@ const MorePanel: React.FC<MorePanelProps> = ({
   onAppPageAction,
   isMobile = false
 }) => {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
   const filteredGroups = LEFT_PANEL_MORE_GROUPS.map((group) => ({
@@ -69,7 +72,7 @@ const MorePanel: React.FC<MorePanelProps> = ({
       if (!normalizedQuery) {
         return true;
       }
-      return `${group.label} ${category.label} ${category.description}`
+      return `${group.label} ${t(`nav:qa.${category.id}.label`, { defaultValue: category.label })} ${t(`nav:qa.${category.id}.description`, { defaultValue: category.description })}`
         .toLowerCase()
         .includes(normalizedQuery);
     })
@@ -79,16 +82,16 @@ const MorePanel: React.FC<MorePanelProps> = ({
     <FlexColumn fullHeight>
       {!isMobile && (
         <PanelHeadline
-          title="More"
-          description="Search and open additional panels."
+          title={t("nav:tabs.more", { defaultValue: "More" })}
+          description={t("editor:ui.searchAndOpenAdditionalPanels")}
         />
       )}
       <FlexColumn padding={PADDING.spacious} gap={SPACING.md}>
         <SearchInput
           value={query}
           onChange={setQuery}
-          ariaLabel="Search all panels"
-          placeholder="Search all panels"
+          ariaLabel={t("editor:ui.searchAllPanels", { defaultValue: "Search all panels" })}
+          placeholder={t("editor:ui.searchAllPanels", { defaultValue: "Search all panels" })}
           fullWidth
         />
       </FlexColumn>
@@ -100,7 +103,14 @@ const MorePanel: React.FC<MorePanelProps> = ({
         <FlexColumn padding={PADDING.spacious} gap={SPACING.lg}>
           {filteredGroups.map((group) => (
             <FlexColumn key={group.id}>
-              <SectionHeader title={group.label} size="small" />
+              <SectionHeader
+              title={
+                group.labelKey
+                  ? t(group.labelKey, { defaultValue: group.label })
+                  : group.label
+              }
+              size="small"
+            />
               <ListGroup compact flush>
                 {group.categories.map((category) => (
                   <MorePanelCategoryRow

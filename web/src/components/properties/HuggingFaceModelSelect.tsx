@@ -7,6 +7,7 @@ import { useHuggingFaceImageModelsByProvider } from "../../hooks/useModelsByProv
 import { trpc } from "../../lib/trpc";
 import { useQuery } from "@tanstack/react-query";
 import ModelSelectButton from "./shared/ModelSelectButton";
+import { i18n } from "../../i18n";
 
 interface HuggingFaceModelSelectProps {
   modelType: string;

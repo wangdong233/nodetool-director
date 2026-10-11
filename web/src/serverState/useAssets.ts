@@ -17,6 +17,7 @@ import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore
 } from "../stores/WorkspaceTabsStore";
+import { i18n } from "../i18n";
 
 type FilterOptions = {
   searchTerm: string;
@@ -300,19 +301,19 @@ export const useAssets = () => {
     mutationFn: (name: string) =>
       createFolder(currentFolderId, name, activeProjectId),
     onSuccess: invalidateAssetSiblings,
-    onError: notifyMutationError("Error creating folder.")
+    onError: notifyMutationError(i18n.t("editor:ui.errorCreatingFolder", { defaultValue: "Error creating folder." }))
   });
 
   const deleteAssetMutation = useMutation({
     mutationFn: (assetId: string) => deleteAsset(assetId),
     onSuccess: invalidateAssetSiblings,
-    onError: notifyMutationError("Error deleting asset.")
+    onError: notifyMutationError(i18n.t("editor:ui.errorDeletingAsset", { defaultValue: "Error deleting asset." }))
   });
 
   const updateAssetMutation = useMutation({
     mutationFn: (updateData: AssetUpdate) => update(updateData),
     onSuccess: invalidateAssetSiblings,
-    onError: notifyMutationError("Error updating asset.")
+    onError: notifyMutationError(i18n.t("editor:ui.errorUpdatingAsset", { defaultValue: "Error updating asset." }))
   });
 
   const navigateToFolder = useCallback(

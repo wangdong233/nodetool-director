@@ -39,16 +39,18 @@ import type { Shot, ShotModelRef } from "@nodetool-ai/protocol";
 import AddIcon from "@mui/icons-material/Add";
 import TuneIcon from "@mui/icons-material/Tune";
 
-import { ASPECT_OPTIONS } from "./aspectOptions";
+import { ASPECT_OPTIONS, aspectOptionLabel } from "./aspectOptions";
 import {
   CLIP_TASK_LABELS,
   STILL_MODEL_TASKS,
   clipTaskForShot,
   imageValue,
   modelFieldSx,
-  videoValue
+  videoValue,
+  type ClipModelTask
 } from "./shotRenderModels";
 import RenderCostSummary from "./RenderCostSummary";
+import { i18n } from "../../i18n";
 
 import {
   Box,
@@ -164,6 +166,14 @@ const SHOT_COUNT_OPTIONS = [3, 4, 5, 6, 8, 10, 12].map((n) => ({
   value: n,
   label: `${n} shots`
 }));
+
+// zh keys for the clip-task picker labels; English defaults come from
+// CLIP_TASK_LABELS in ./shotRenderModels.
+const CLIP_TASK_LABEL_KEYS: Record<ClipModelTask, string> = {
+  image_to_video: "storyboard:attrs.animateStills",
+  text_to_video: "storyboard:attrs.generateFromPrompts",
+  reference_to_video: "storyboard:attrs.useEntityReferences"
+};
 
 const FORM_STACK_BELOW = 860;
 
@@ -903,9 +913,10 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           type: "error",
           alert: true,
           dismissable: true,
-          content: `Storyboard download failed. ${
-            error instanceof Error ? error.message : String(error)
-          }`
+          content: i18n.t("storyboard:attrs.storyboardDownloadFailed", {
+            defaultValue: "Storyboard download failed. {{error}}",
+            error: error instanceof Error ? error.message : String(error)
+          })
         });
       } finally {
         setDownloading(false);
@@ -994,7 +1005,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 onClick={togglePreview}
                 disabled={!hasPlayableShot}
               >
-                {previewOpen ? "Hide preview" : "Preview"}
+                {previewOpen ? i18n.t("storyboard:attrs.hidePreview", { defaultValue: "Hide preview" }) : i18n.t("storyboard:attrs.preview", { defaultValue: "Preview" })}
               </EditorButton>
               <EditorButton
                 variant={settingsVisible ? "contained" : "outlined"}
@@ -1113,7 +1124,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                         label="Aspect ratio"
                         value={aspectRatio}
                         onChange={(value) => setAspectRatio(boardId, value)}
-                        options={ASPECT_OPTIONS}
+                        options={ASPECT_OPTIONS.map((option) => ({ value: option.value, label: aspectOptionLabel(option) }))}
                       />
                     </FormField>
                     <FormField label="Shots">
@@ -1141,8 +1152,8 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                     {directError ??
                       assembleError ??
                       (hasShots
-                        ? "Re-directing rewrites the screenplay and replaces every shot."
-                        : "Direct writes the screenplay and seeds your shots.")}
+                        ? i18n.t("storyboard:attrs.reDirectingRewritesTheScreenplayAndReplacesEveryShot", { defaultValue: "Re-directing rewrites the screenplay and replaces every shot." })
+                        : i18n.t("storyboard:attrs.directWritesTheScreenplayAndSeedsYourShots", { defaultValue: "Direct writes the screenplay and seeds your shots." }))}
                   </Caption>
                   <EditorButton
                     variant="contained"
@@ -1213,7 +1224,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
             {clipModelTasks.map((task) => (
               <FormField
                 key={task}
-                label={CLIP_TASK_LABELS[task]}
+                label={i18n.t(CLIP_TASK_LABEL_KEYS[task], { defaultValue: CLIP_TASK_LABELS[task] })}
                 sx={modelFieldSx}
               >
                 <VideoModelSelect
@@ -1237,7 +1248,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           onClose={() => setConfirmRedirect(false)}
           title="Re-direct this storyboard?"
           onConfirm={handleConfirmRedirect}
-          confirmText="Re-direct"
+          confirmText={i18n.t("editor:ui.reDirect", { defaultValue: "Re-direct" })}
           destructive
         >
           <FlexColumn gap={SPACING.xs}>
@@ -1256,13 +1267,13 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           onClose={() => setAssembleConfirmOpen(false)}
           title="Rebuild linked timeline?"
           onConfirm={handleConfirmAssemble}
-          confirmText="Rebuild timeline"
+          confirmText={i18n.t("editor:ui.rebuildTimeline", { defaultValue: "Rebuild timeline" })}
           destructive
         >
           <FlexColumn gap={SPACING.xs}>
             <Text>
               {replacedClipCount === null
-                ? "This replaces every clip owned by this storyboard and its linked script, including trims and edits made to those clips."
+                ? i18n.t("storyboard:attrs.thisReplacesEveryClipOwnedByThisStoryboardAndItsLinkedScriptIncludingTrimsAndEditsMadeToThoseClips", { defaultValue: "This replaces every clip owned by this storyboard and its linked script, including trims and edits made to those clips." })
                 : `This replaces ${replacedClipCount} storyboard-owned clip${replacedClipCount === 1 ? "" : "s"}, including trims and edits made to those clips.`}
             </Text>
             <Caption color="secondary">
@@ -1341,8 +1352,8 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
             title="No shots yet"
             description={
               readOnly
-                ? "This storyboard has no shots."
-                : "Write a brief and press Direct to generate a screenplay of shots."
+                ? i18n.t("storyboard:attrs.thisStoryboardHasNoShots", { defaultValue: "This storyboard has no shots." })
+                : i18n.t("storyboard:attrs.writeABriefAndPressDirectToGenerateAScreenplayOfShots", { defaultValue: "Write a brief and press Direct to generate a screenplay of shots." })
             }
           />
         ) : (
@@ -1438,10 +1449,10 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 disabled={!onAssemble || assembling || !hasRenderedShot}
               >
                 {assembling
-                  ? "Assembling…"
+                  ? i18n.t("editor:ui.assembling")
                   : timelineId
-                    ? "Rebuild linked timeline…"
-                    : "Create timeline"}
+                    ? i18n.t("editor:ui.rebuildLinkedTimeline")
+                    : i18n.t("storyboard:attrs.createTimeline", { defaultValue: "Create timeline" })}
               </EditorButton>
             </FlexRow>
             {!hasRenderedShot && (

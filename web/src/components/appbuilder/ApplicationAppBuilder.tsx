@@ -44,6 +44,8 @@ import {
   hasPuckAgentHandler
 } from "./puck/puckAgentBridge";
 import { useDocumentConflicts } from "../../hooks/useDocumentConflicts";
+import { tAttr, tAttrTpl } from "./i18nAttrs";
+import { useTranslation } from "react-i18next";
 
 interface ApplicationAppBuilderProps {
   applicationId: string;
@@ -82,6 +84,7 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
   applicationId,
   onAgentWorkflowIdChange
 }) => {
+  const { t } = useTranslation();
   const { data: application, isLoading, isError, error } =
     useApplication(applicationId);
   const updateApplication = useUpdateApplication();
@@ -492,21 +495,26 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
         setConflict(null);
         revisionRef.current = saved.updatedAt;
         lastSyncedRef.current = JSON.stringify(saved.document);
-        addNotification({ type: "success", content: "App saved" });
+        addNotification({ type: "success", content: tAttr("App saved") });
       } catch (err) {
         if (isConcurrencyConflict(err)) {
           setConflict("save-rejected");
           addNotification({
             type: "error",
             alert: true,
-            content: `"${application.name}" changed elsewhere — your edits were not saved.`
+            content: tAttrTpl(
+              "changedElsewhereNotSaved",
+              '"{{name}}" changed elsewhere — your edits were not saved.',
+              { name: application.name }
+            )
           });
           return;
         }
         addNotification({
           type: "error",
           alert: true,
-          content: err instanceof Error ? err.message : "Failed to save app"
+          content:
+            err instanceof Error ? err.message : tAttr("Failed to save app")
         });
       }
     },
@@ -514,15 +522,23 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
   );
 
   if (isLoading) {
-    return <LoadingSpinner size="large" text="Loading app" />;
+    return (
+      <LoadingSpinner
+        size="large"
+        text={t("ui2:attrs.loadingDocument", {
+          defaultValue: "Loading {{label}}…",
+          label: tAttr("App")
+        })}
+      />
+    );
   }
 
   if (isError || !application || !document) {
     return (
       <EmptyState
         variant="error"
-        title="Could not load app"
-        description={error?.message ?? "The app may have been deleted."}
+        title={tAttr("Could not load app")}
+        description={error?.message ?? tAttr("The app may have been deleted.")}
       />
     );
   }
@@ -543,20 +559,20 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
           <FlexColumn sx={{ px: SPACING.lg, py: SPACING.md }}>
             <AlertBanner
               severity="warning"
-              title="Saved elsewhere"
+              title={tAttr("Saved elsewhere")}
               action={
                 <EditorButton
                   size="small"
                   variant="text"
                   onClick={() => void handleReload()}
                 >
-                  Reload
+                  {tAttr("Reload")}
                 </EditorButton>
               }
             >
-              This app changed since it was opened, so the last save was
-              rejected. Reload to start from the current version — reloading
-              discards what is on this canvas.
+              {tAttr(
+                "This app changed since it was opened, so the last save was rejected. Reload to start from the current version — reloading discards what is on this canvas."
+              )}
             </AlertBanner>
           </FlexColumn>
         ) : (

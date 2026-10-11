@@ -36,8 +36,10 @@ import {
   MOTION,
   SPACING, getSpacingPx
 } from "../ui_primitives";
-import { TYPE_FILTERS, TypeFilterKey } from "../../utils/formatUtils";
+import { TYPE_FILTERS, TypeFilterKey, localizedTypeFilterLabel } from "../../utils/formatUtils";
+import { useAppLanguage } from "../../i18n";
 import isEqual from "../../utils/isEqual";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -101,6 +103,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
   isFullscreenAssets = false,
   hideFolderControls = false
 }) => {
+  const { t } = useTranslation();
   const setSelectedAssetIds = useAssetGridStore(
     (state) => state.setSelectedAssetIds
   );
@@ -145,10 +148,14 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
   );
 
   const theme = useTheme();
+  // Subscribe so localized filter labels re-render on language change.
+  useAppLanguage();
 
   const typeFilterActive = typeFilter !== "all";
-  const typeFilterLabel =
-    TYPE_FILTERS.find((f) => f.key === typeFilter)?.label ?? "All";
+  const typeFilterEntry = TYPE_FILTERS.find((f) => f.key === typeFilter);
+  const typeFilterLabel = typeFilterEntry
+    ? localizedTypeFilterLabel(typeFilterEntry.key, typeFilterEntry.label)
+    : t("common:typeFilters.all", { defaultValue: "All" });
 
   return (
     <Box
@@ -182,7 +189,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         {!isFullscreenAssets && !hideFolderControls && hasFolders && (
           <ToolbarIconButton
             icon={foldersVisible ? <FolderIcon /> : <FolderOffIcon />}
-            tooltip={foldersVisible ? "Hide folders" : "Show folders"}
+            tooltip={foldersVisible ? t("editor:explorer.hideFolders", { defaultValue: "Hide folders" }) : t("editor:explorer.showFolders", { defaultValue: "Show folders" })}
             onClick={toggleFoldersVisible}
             tooltipPlacement="top"
             nodrag={false}
@@ -192,7 +199,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
 
         {/* Filter: asset type (labeled to avoid icon guessing) */}
         <ToolbarIconButton
-          tooltip="Filter by type"
+          tooltip={t("editor:explorer.filterByType", { defaultValue: "Filter by type" })}
           onClick={(e) => setTypeFilterAnchor(e.currentTarget)}
           tooltipPlacement="top"
           nodrag={false}
@@ -219,7 +226,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         {!isFullscreenAssets && (
           <ToolbarIconButton
             icon={<TuneIcon />}
-            tooltip={expanded ? "Hide search & sort" : "Search, sort & resize"}
+            tooltip={expanded ? t("editor:explorer.hideSearchSort", { defaultValue: "Hide search & sort" }) : t("editor:explorer.searchSortResize", { defaultValue: "Search, sort & resize" })}
             onClick={() => setExpanded((prev) => !prev)}
             tooltipPlacement="top"
             nodrag={false}
@@ -237,7 +244,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
           {!hideFolderControls && (
             <ToolbarIconButton
               icon={<CreateNewFolderIcon />}
-              tooltip="Create folder"
+              tooltip={t("editor:explorer.createFolder", { defaultValue: "Create folder" })}
               onClick={() => setCreateFolderDialogOpen(true)}
               tooltipPlacement="top"
               nodrag={false}
@@ -246,7 +253,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
           <UploadButton
             onFileSelect={(files) => onUploadFiles?.(files)}
             iconVariant="file"
-            tooltip="Upload files"
+            tooltip={t("editor:explorer.uploadFiles", { defaultValue: "Upload files" })}
             multiple
           />
         </FlexRow>
@@ -262,7 +269,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         {TYPE_FILTERS.map((filter) => (
           <MenuItemPrimitive
             key={filter.key}
-            label={filter.label}
+            label={localizedTypeFilterLabel(filter.key, filter.label)}
             icon={TYPE_FILTER_ICONS[filter.key]}
             selected={typeFilter === filter.key}
             onClick={() => {
@@ -283,7 +290,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
               : styles(theme)
           }
         >
-          <SearchErrorBoundary fallbackTitle="Search Input Error">
+          <SearchErrorBoundary fallbackTitle={t("editor:explorer.searchError", { defaultValue: "Search Input Error" })}>
             <AssetSearchInput
               onLocalSearchChange={onLocalSearchChange}
               focusOnTyping={false}

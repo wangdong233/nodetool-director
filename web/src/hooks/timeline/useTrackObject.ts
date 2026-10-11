@@ -15,6 +15,8 @@ import {
 } from "../../stores/timeline/TimelineStore";
 import { buildTimelineDocumentPayload } from "./timelineDocumentPayload";
 import { restFetch } from "../../lib/rest-fetch";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface TrackObjectSelection {
   readonly clipId: string;
@@ -94,25 +96,25 @@ export function validateTrackObjectRequest(
   selection: TrackObjectSelection | null,
   model: VideoModel | undefined
 ): { ok: true; request: TrackObjectRequest } | { ok: false; error: string } {
-  if (!sequenceId) return { ok: false, error: "No timeline is open." };
-  if (!clip) return { ok: false, error: "The selected clip is no longer available." };
+  if (!sequenceId) return { ok: false, error: i18n.t("timeline:attrs.noTimelineIsOpen", { defaultValue: "No timeline is open." }) };
+  if (!clip) return { ok: false, error: i18n.t("timeline:attrs.theSelectedClipIsNoLongerAvailable", { defaultValue: "The selected clip is no longer available." }) };
   if (clip.mediaType !== "video") {
     return { ok: false, error: "Subject tracking requires a video clip." };
   }
   if (!clip.currentAssetId) {
-    return { ok: false, error: "The clip has no source video to track." };
+    return { ok: false, error: i18n.t("timeline:attrs.theClipHasNoSourceVideoToTrack", { defaultValue: "The clip has no source video to track." }) };
   }
   if (!selection || selection.clipId !== clip.id) {
     return { ok: false, error: "Select a subject in the preview first." };
   }
   if (selection.sourceAssetId !== clip.currentAssetId) {
-    return { ok: false, error: "The source changed. Select the subject again." };
+    return { ok: false, error: i18n.t("timeline:attrs.theSourceChangedSelectTheSubjectAgain", { defaultValue: "The source changed. Select the subject again." }) };
   }
   if (!Number.isFinite(selection.sourceMs) || !isValidRegion(selection.region)) {
     return { ok: false, error: "Select a valid subject rectangle in the preview." };
   }
   if (!model?.provider || !model.id) {
-    return { ok: false, error: "No executable subject-tracking model is available." };
+    return { ok: false, error: i18n.t("timeline:attrs.noExecutableSubjecttrackingModelIsAvailable", { defaultValue: "No executable subject-tracking model is available." }) };
   }
   const window = trackObjectSourceWindow(clip, selection.sourceMs);
   if (
@@ -123,7 +125,7 @@ export function validateTrackObjectRequest(
     selection.sourceMs < clipSourceMsAt(clip, clip.startMs) ||
     selection.sourceMs >= window.endMs
   ) {
-    return { ok: false, error: "The clip has no valid source tracking window." };
+    return { ok: false, error: i18n.t("timeline:attrs.theClipHasNoValidSourceTrackingWindow", { defaultValue: "The clip has no valid source tracking window." }) };
   }
   return {
     ok: true,
@@ -175,6 +177,7 @@ export function useTrackObject(
   clip: TimelineClip,
   selection: TrackObjectSelection | null
 ): UseTrackObjectResult {
+  const { t } = useTranslation();
   const timeline = useTimelineStoreApi();
   const sequenceId = timeline.getState().sequenceId;
   const { providers, isLoading: providersLoading, error: providersError } =
@@ -272,7 +275,7 @@ export function useTrackObject(
       timeline.getState().setBaseUpdatedAt(sequence.updatedAt, synced);
       if (result.status === "failed") {
         setStatus("failed");
-        setError(result.error ?? "Subject tracking failed.");
+        setError(result.error ?? t("editor:ui.subjectTrackingFailed", { defaultValue: "Subject tracking failed." }));
       } else {
         setStatus("ready");
       }

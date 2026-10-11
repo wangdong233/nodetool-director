@@ -26,13 +26,15 @@ import EngineGuide from "./EngineGuide";
 import OnboardingModelRow from "./OnboardingModelRow";
 import useNodePacksStore from "../../../stores/NodePacksStore";
 import { useNotificationStore } from "../../../stores/NotificationStore";
+import { useTranslation } from "react-i18next";
 import {
   CAPABILITY_LABELS,
   HUGGINGFACE_PACK_REPO_ID,
   ONBOARDING_MODELS,
   sortModelsByFit,
   type OnboardingCapability,
-  type OnboardingModel
+  type OnboardingModel,
+  CAPABILITY_LABEL_KEYS
 } from "./onboardingCatalog";
 
 interface ModelOnboardingProps {
@@ -53,6 +55,7 @@ const CAPABILITY_ORDER: OnboardingCapability[] = [
 ];
 
 const ModelOnboarding: React.FC<ModelOnboardingProps> = ({ onDownload }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const profile = useHardwareProfile();
   const [filter, setFilter] = useState<Filter>("all");
@@ -198,18 +201,18 @@ const ModelOnboarding: React.FC<ModelOnboardingProps> = ({ onDownload }) => {
           exclusive
           segmented
           onChange={(_e, value) => value && setFilter(value as Filter)}
-          aria-label="filter recommended models by capability"
+          aria-label={t("editor:ui.filterRecommendedByCapability", { defaultValue: "filter recommended models by capability" })}
         >
-          <ToggleOption value="all" aria-label="all capabilities">
-            All
+          <ToggleOption value="all" aria-label={t("editor:ui.allCapabilities", { defaultValue: "all capabilities" })}>
+            {t("editor:ui.all", { defaultValue: "All" })}
           </ToggleOption>
           {availableCapabilities.map((capability) => (
             <ToggleOption
               key={capability}
               value={capability}
-              aria-label={CAPABILITY_LABELS[capability]}
+              aria-label={t(CAPABILITY_LABEL_KEYS[capability], { defaultValue: CAPABILITY_LABELS[capability] })}
             >
-              {CAPABILITY_LABELS[capability]}
+              {t(CAPABILITY_LABEL_KEYS[capability], { defaultValue: CAPABILITY_LABELS[capability] })}
             </ToggleOption>
           ))}
         </ToggleGroup>
@@ -221,7 +224,7 @@ const ModelOnboarding: React.FC<ModelOnboardingProps> = ({ onDownload }) => {
             sx={{ mt: SPACING.xs }}
           >
             <Text size="small" weight={600} color="secondary">
-              {CAPABILITY_LABELS[group.capability]}
+              {t(CAPABILITY_LABEL_KEYS[group.capability], { defaultValue: CAPABILITY_LABELS[group.capability] })}
             </Text>
             {group.entries.map((entry) => (
               <OnboardingModelRow

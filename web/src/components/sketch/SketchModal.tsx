@@ -24,7 +24,10 @@ import SaveAltIcon from "@mui/icons-material/SaveAlt";
 import CheckIcon from "@mui/icons-material/Check";
 import KeyboardOutlinedIcon from "@mui/icons-material/KeyboardOutlined";
 import SketchEditor, { SketchEditorHandle } from "./SketchEditor";
-import { SKETCH_KEYBOARD_SHORTCUTS } from "./sketchKeyboardShortcuts";
+import {
+  SKETCH_KEYBOARD_SHORTCUTS,
+  SKETCH_SHORTCUT_DESCRIPTION_KEYS
+} from "./sketchKeyboardShortcuts";
 import { PenPressureSettingsPanel } from "./ToolSettingsPanels";
 import KeyboardShortcutsView from "../content/Help/KeyboardShortcutsView";
 import { ShortcutsSearchableList } from "../content/Help/ShortcutsSearchableList";
@@ -45,6 +48,7 @@ import {
   settingRowChildrenSx
 } from "./sketchStyles";
 import { displayCombo } from "./shortcuts";
+import { i18n } from "../../i18n";
 import {
   Caption,
   Divider,
@@ -65,6 +69,7 @@ import {
   ListItemText,
   Slider
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 function isPressureSketchTool(tool: SketchTool): boolean {
   return tool === "brush" || tool === "pencil" || tool === "eraser";
@@ -119,15 +124,30 @@ interface SketchModalProps {
   onExportMask?: (dataUrl: string | null) => void;
 }
 
+
+/** Resolve shortcut scope descriptions at render so zh lands (module table stays pure data). */
+const localizeSketchShortcuts = () =>
+  SKETCH_KEYBOARD_SHORTCUTS.map((s) =>
+    s.description && SKETCH_SHORTCUT_DESCRIPTION_KEYS[s.description]
+      ? {
+          ...s,
+          description: i18n.t(SKETCH_SHORTCUT_DESCRIPTION_KEYS[s.description], {
+            defaultValue: s.description
+          })
+        }
+      : s
+  );
+
 const SketchModal: React.FC<SketchModalProps> = ({
   open,
-  title = "Image Editor",
+  title = i18n.t("ui2:attrs.imageEditor", { defaultValue: "Image Editor" }),
   initialDocument,
   onClose,
   onDocumentChange,
   onExportImage,
   onExportMask
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const modalStyles = useMemo(() => styles(theme), [theme]);
   const editorRef = useRef<SketchEditorHandle>(null);
@@ -157,14 +177,20 @@ const SketchModal: React.FC<SketchModalProps> = ({
   const headerPenPressureOn = penPressure.pressureSensitivity !== false;
 
   const symmetryLabels = {
-    off: "Off",
-    horizontal: "Horizontal",
-    vertical: "Vertical",
-    dual: "Dual Axis",
-    radial: `Radial (${symmetryRays})`,
-    mandala: `Mandala (${symmetryRays})`
+    off: t("sketch:attrs.symmetryOff", { defaultValue: "Off" }),
+    horizontal: t("sketch:attrs.symmetryHorizontal", { defaultValue: "Horizontal" }),
+    vertical: t("sketch:attrs.symmetryVertical", { defaultValue: "Vertical" }),
+    dual: t("sketch:attrs.symmetryDualAxis", { defaultValue: "Dual Axis" }),
+    radial: t("sketch:attrs.symmetryRadial", {
+      defaultValue: "Radial ({{rays}})",
+      rays: symmetryRays
+    }),
+    mandala: t("sketch:attrs.symmetryMandala", {
+      defaultValue: "Mandala ({{rays}})",
+      rays: symmetryRays
+    })
   } satisfies Record<SymmetryMode, string>;
-  const symmetryLabel = symmetryLabels[symmetryMode] || "Off";
+  const symmetryLabel = symmetryLabels[symmetryMode] || symmetryLabels.off;
   const symmetryActive = symmetryMode !== "off";
 
   useEffect(() => {
@@ -241,8 +267,8 @@ const SketchModal: React.FC<SketchModalProps> = ({
             <Tooltip
               title={
                 headerPenPressureOn
-                  ? "Turn off pen pressure"
-                  : "Turn on pen pressure"
+                  ? t("sketch:attrs.turnOffPenPressure", { defaultValue: "Turn off pen pressure" })
+                  : t("sketch:attrs.turnOnPenPressure", { defaultValue: "Turn on pen pressure" })
               }
               enterDelay={SKETCH_TOOLTIP_DELAY_MS}
               enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -253,7 +279,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                   setPenPressure({ pressureSensitivity: !headerPenPressureOn })
                 }
                 color={headerPenPressureOn ? "primary" : "default"}
-                aria-label="Toggle pen pressure"
+                aria-label={t("sketch:attrs.togglePenPressure", { defaultValue: "Toggle pen pressure" })}
                 aria-expanded={headerPenPressureOn}
                 aria-controls="sketch-modal-pen-pressure-panel"
                 sx={{
@@ -293,24 +319,24 @@ const SketchModal: React.FC<SketchModalProps> = ({
         <FlexRow align="center" sx={{ gap: getSpacingPx(SPACING.micro) }}>
           <Tooltip title={`Undo (${displayCombo("undo")})`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <span style={{ display: 'inline-flex' }}>
-              <IconButton size="small" aria-label="Undo" onClick={() => editorRef.current?.undo()} disabled={!canUndo}>
+              <IconButton size="small" aria-label={t("timeline:shortcuts.undo", { defaultValue: "Undo" })} onClick={() => editorRef.current?.undo()} disabled={!canUndo}>
                 <UndoIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
               </IconButton>
             </span>
           </Tooltip>
           <Tooltip title={`Redo (${displayCombo("redo")})`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <span style={{ display: 'inline-flex' }}>
-              <IconButton size="small" aria-label="Redo" onClick={() => editorRef.current?.redo()} disabled={!canRedo}>
+              <IconButton size="small" aria-label={t("timeline:shortcuts.redo", { defaultValue: "Redo" })} onClick={() => editorRef.current?.redo()} disabled={!canRedo}>
                 <RedoIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
               </IconButton>
             </span>
           </Tooltip>
 
-          <Tooltip title="Keyboard shortcuts" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+          <Tooltip title={t("sketch:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <IconButton
               size="small"
               onClick={() => setShortcutsPaneOpen((open) => !open)}
-              aria-label={shortcutsPaneOpen ? "Hide keyboard shortcuts" : "Show keyboard shortcuts"}
+              aria-label={shortcutsPaneOpen ? t("sketch:attrs.hideKeyboardShortcuts", { defaultValue: "Hide keyboard shortcuts" }) : t("sketch:attrs.showKeyboardShortcuts", { defaultValue: "Show keyboard shortcuts" })}
               aria-expanded={shortcutsPaneOpen}
               color={shortcutsPaneOpen ? "primary" : "default"}
             >
@@ -323,7 +349,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
           <Tooltip title={`Symmetry: ${symmetryLabel}`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <IconButton
               size="small"
-              aria-label="Symmetry menu"
+              aria-label={t("sketch:attrs.symmetryMenu", { defaultValue: "Symmetry menu" })}
               aria-haspopup="true"
               aria-expanded={Boolean(symmetryAnchorEl)}
               onClick={(e) => setSymmetryAnchorEl(e.currentTarget)}
@@ -373,33 +399,31 @@ const SketchModal: React.FC<SketchModalProps> = ({
 
           {confirmDiscard ? (
             <>
-              <Caption sx={{ color: "warning.main", whiteSpace: "nowrap" }}>
-                Discard changes?
-              </Caption>
-              <IconButton size="small" aria-label="Confirm discard" color="error" onClick={() => { editorRef.current?.discardToInitial(); onClose(); }}>
+              <Caption sx={{ color: "warning.main", whiteSpace: "nowrap" }}>{t("sketch:attrs.discardChanges?", { defaultValue: "Discard changes?" })}</Caption>
+              <IconButton size="small" aria-label={t("sketch:attrs.confirmDiscard", { defaultValue: "Confirm discard" })} color="error" onClick={() => { editorRef.current?.discardToInitial(); onClose(); }}>
                 <TrashIcon width={16} height={16} />
               </IconButton>
-              <IconButton size="small" aria-label="Cancel discard" onClick={() => setConfirmDiscard(false)}>
+              <IconButton size="small" aria-label={t("sketch:attrs.cancelDiscard", { defaultValue: "Cancel discard" })} onClick={() => setConfirmDiscard(false)}>
                 <CloseIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
               </IconButton>
             </>
           ) : (
-            <Tooltip title="Discard all changes and close" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
-              <IconButton size="small" aria-label="Discard changes" onClick={() => setConfirmDiscard(true)} sx={{ color: "error.light" }}>
+            <Tooltip title={t("sketch:attrs.discardAllChangesAndClose", { defaultValue: "Discard all changes and close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+              <IconButton size="small" aria-label={t("sketch:attrs.discardChanges", { defaultValue: "Discard changes" })} onClick={() => setConfirmDiscard(true)} sx={{ color: "error.light" }}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
 
-          <Tooltip title="Export Image" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
-            <IconButton size="small" aria-label="Export Image" onClick={() => editorRef.current?.exportPng()}>
+          <Tooltip title={t("sketch:attrs.exportImage", { defaultValue: "Export Image" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+            <IconButton size="small" aria-label={t("sketch:attrs.exportImage", { defaultValue: "Export Image" })} onClick={() => editorRef.current?.exportPng()}>
               <SaveAltIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
             </IconButton>
           </Tooltip>
 
           {!confirmDiscard && (
-            <Tooltip title="Save & Close" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
-              <IconButton size="small" aria-label="Save and close" onClick={handleRequestClose} sx={{ color: "success.light" }}>
+            <Tooltip title={t("sketch:attrs.saveAndClose", { defaultValue: "Save & Close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+              <IconButton size="small" aria-label={t("editor:ui.saveAndClose", { defaultValue: "Save and close" })} onClick={handleRequestClose} sx={{ color: "success.light" }}>
                 <CheckIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -468,14 +492,12 @@ const SketchModal: React.FC<SketchModalProps> = ({
                   flexShrink: 0
                 }}
               >
-                <Text id="sketch-shortcuts-heading" sx={{ fontWeight: 600 }}>
-                  Keyboard shortcuts
-                </Text>
-                <Tooltip title="Close" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+                <Text id="sketch-shortcuts-heading" sx={{ fontWeight: 600 }}>{t("sketch:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}</Text>
+                <Tooltip title={t("sketch:attrs.close", { defaultValue: "Close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
                   <IconButton
                     size="small"
                     onClick={() => setShortcutsPaneOpen(false)}
-                    aria-label="Close keyboard shortcuts"
+                    aria-label={t("sketch:attrs.closeKeyboardShortcuts", { defaultValue: "Close keyboard shortcuts" })}
                   >
                     <CloseIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
                   </IconButton>
@@ -489,10 +511,16 @@ const SketchModal: React.FC<SketchModalProps> = ({
                 }}
               >
                 <TabGroup
-                  aria-label="Image editor shortcuts"
+                  aria-label={t("sketch:attrs.imageEditorShortcuts", { defaultValue: "Image editor shortcuts" })}
                   tabs={[
-                    { value: "shortcuts", label: "Shortcuts" },
-                    { value: "keyboard", label: "Keyboard" }
+                    {
+                      value: "shortcuts",
+                      label: t("sketch:attrs.shortcuts", { defaultValue: "Shortcuts" })
+                    },
+                    {
+                      value: "keyboard",
+                      label: t("sketch:attrs.keyboard", { defaultValue: "Keyboard" })
+                    }
                   ]}
                   value={shortcutsSubTab}
                   onChange={(v) =>
@@ -530,7 +558,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                     }}
                   >
                     <ShortcutsSearchableList
-                      shortcuts={SKETCH_KEYBOARD_SHORTCUTS}
+                      shortcuts={localizeSketchShortcuts()}
                       searchPlaceholder="Search shortcuts"
                       rootSx={{ flex: 1, minHeight: 0 }}
                       scrollSx={{ flex: 1, minHeight: 0 }}
@@ -547,7 +575,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                     }}
                   >
                     <KeyboardShortcutsView
-                      shortcuts={SKETCH_KEYBOARD_SHORTCUTS}
+                      shortcuts={localizeSketchShortcuts()}
                       listenToPhysicalKeyboard
                       imageEditorShortcuts
                     />

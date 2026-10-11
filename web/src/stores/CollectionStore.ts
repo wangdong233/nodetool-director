@@ -5,6 +5,7 @@ import { CollectionList as CollectionListType } from "./ApiTypes";
 import { trpcClient } from "../trpc/client";
 import { queryClient } from "../queryClient";
 import { useNotificationStore } from "./NotificationStore";
+import { i18n } from "../i18n";
 
 interface IndexResponseData {
   path: string;
@@ -98,7 +99,7 @@ export const useCollectionStore = create<CollectionStore>()(
           });
         } catch (err) {
           set({
-            error: err instanceof Error ? err.message : "Error loading collections",
+            error: err instanceof Error ? err.message : i18n.t("editor:ui.errorLoadingCollections", { defaultValue: "Error loading collections" }),
             isLoading: false
           });
         }

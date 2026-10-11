@@ -10,6 +10,7 @@ import { memo } from "react";
 import isEqual from "../../utils/isEqual";
 import { useUpstreamValue } from "../../hooks/nodes/useNodeIO";
 import ImageRefPreview from "../node/ImageRefPreview";
+import { useTranslation } from "react-i18next";
 
 const connectedPreviewStyles = css({
   position: "relative",
@@ -32,6 +33,7 @@ const awaitingStyles = css({
 });
 
 const ConnectedImagePreview = (props: PropertyProps) => {
+  const { t } = useTranslation();
   const upstreamValue = useUpstreamValue(
     props.workflowId ?? "",
     props.nodeId,
@@ -42,7 +44,7 @@ const ConnectedImagePreview = (props: PropertyProps) => {
     <div css={connectedPreviewStyles}>
       <ImageRefPreview
         value={upstreamValue}
-        placeholder={<div css={awaitingStyles}>Awaiting upstream</div>}
+        placeholder={<div css={awaitingStyles}>{t("ui2:attrs.awaitingUpstream", { defaultValue: "Awaiting upstream" })}</div>}
       />
     </div>
   );

@@ -19,6 +19,7 @@ import type { LlamaModelValue } from "../../stores/ApiTypes";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import { EditorMenu, EditorMenuItem } from "../editor_ui";
 import { isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 interface LlamaModelSelectProps {
   onChange: (value: LlamaModelValue) => void;
@@ -26,6 +27,7 @@ interface LlamaModelSelectProps {
 }
 
 const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const open = Boolean(anchorEl);
@@ -119,7 +121,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
         ) : ollamaError ? (
           <div style={{ padding: getSpacingPx(SPACING.md), maxWidth: 300 }}>
             <Text size="small" color="error" sx={{ mb: 1 }}>
-              Could not load Ollama models
+              {t("editor:ui.couldNotLoadOllamaModels")}
             </Text>
             <Caption
               color="secondary"
@@ -127,7 +129,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
             >
               {isString((ollamaError as { detail?: unknown })?.detail)
                 ? (ollamaError as { detail?: string }).detail
-                : "Please check that Ollama is running"}
+                : t("editor:ui.pleaseCheckThatOllamaIsRunning", { defaultValue: "Please check that Ollama is running" })}
             </Caption>
             {isElectron ? (
               <Caption
@@ -145,13 +147,13 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
                 rel="noopener noreferrer"
                 sx={{ color: "primary.main", textDecoration: "underline" }}
               >
-                Download Ollama →
+                {t("editor:ui.downloadOllama")}
               </Caption>
             )}
           </div>
         ) : sortedModels.length === 0 ? (
           <EditorMenuItem disabled>
-            <ListItemText primary="No models available" />
+            <ListItemText primary={t("editor:ui.noModelsAvailable", { defaultValue: "No models available" })} />
           </EditorMenuItem>
         ) : (
           sortedModels.map((model) => (
@@ -172,7 +174,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
             </EditorMenuItem>
           ))
         )}
-        <EditorMenuItem onClick={openSetup}>Add providers</EditorMenuItem>
+        <EditorMenuItem onClick={openSetup}>{t("ui2:attrs.addProviders", { defaultValue: "Add providers" })}</EditorMenuItem>
       </EditorMenu>
     </>
   );

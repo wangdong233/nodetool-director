@@ -8,6 +8,7 @@
  */
 
 import type { RouterOutputs } from "../../trpc/client";
+import { i18n } from "../../i18n";
 
 export type ProjectDetail = RouterOutputs["projects"]["summaries"][number];
 export type ProjectDocument = ProjectDetail["documents"][number];
@@ -44,36 +45,35 @@ export const projectStatusLine = (
   documents: readonly ProjectDocument[],
   options?: { documentsPartial?: boolean }
 ): string => {
-  const partialSuffix = options?.documentsPartial ? " · partial" : "";
+  const partialSuffix = options?.documentsPartial ? i18n.t("editor:ui.partialSuffix") : "";
   if (documents.length === 0) {
-    return `No documents yet${partialSuffix}`;
+    return i18n.t("editor:ui.noDocumentsYet") + partialSuffix;
   }
   const parts: string[] = [];
 
   const board = statusOfKind(documents, "storyboard");
   if (board) {
-    parts.push(`${board.shots} shots`);
+    parts.push(i18n.t("editor:ui.nShots", { n: board.shots }));
     if (board.shots > 0) {
-      parts.push(`stills ${board.stills}/${board.shots}`);
+      parts.push(i18n.t("editor:ui.stillsOfShots", { a: board.stills, b: board.shots }));
     }
   }
 
   const script = statusOfKind(documents, "script");
   if (script) {
-    parts.push(`voiced ${script.voiced}/${script.lines}`);
+    parts.push(i18n.t("editor:ui.voicedOfLines", { a: script.voiced, b: script.lines }));
     if (script.stale > 0) {
-      parts.push(`${script.stale} stale`);
+      parts.push(i18n.t("editor:ui.nStale", { n: script.stale }));
     }
   }
 
   const cut = statusOfKind(documents, "timeline");
   if (cut) {
-    parts.push(`cut ${cut.clips} clips · ${formatDuration(cut.durationMs)}`);
+    parts.push(i18n.t("editor:ui.cutNClips", { n: cut.clips, d: formatDuration(cut.durationMs) }));
   }
 
   if (parts.length === 0) {
-    const label = documents.length === 1 ? "document" : "documents";
-    return `${documents.length} ${label}${partialSuffix}`;
+    return i18n.t(documents.length === 1 ? "editor:ui.oneDocument" : "editor:ui.nDocuments", { n: documents.length }) + partialSuffix;
   }
   return parts.join(" · ") + partialSuffix;
 };
@@ -94,13 +94,13 @@ export const projectProgress = (
   const board = statusOfKind(documents, "storyboard");
   if (board && board.shots > 0) {
     return {
-      label: `clips ${board.clips}/${board.shots}`,
+      label: i18n.t("editor:ui.clipsOfShots", { clips: board.clips, shots: board.shots }),
       done: board.clips === board.shots
     };
   }
   const cut = statusOfKind(documents, "timeline");
   if (cut) {
-    return { label: `cut · ${formatDuration(cut.durationMs)}`, done: false };
+    return { label: i18n.t("editor:ui.cutWithDuration", { d: formatDuration(cut.durationMs) }), done: false };
   }
   return null;
 };
@@ -116,15 +116,11 @@ export const documentStatusLine = (document: ProjectDocument): string => {
   if (!status) return "";
   switch (status.kind) {
     case "storyboard":
-      return `${status.shots} shots · stills ${status.stills}/${status.shots}`;
-    case "script": {
-      const lines = status.lines === 1 ? "line" : "lines";
-      return `${status.lines} ${lines} · ${status.voiced} voiced`;
-    }
-    case "timeline": {
-      const clips = status.clips === 1 ? "clip" : "clips";
-      return `${status.clips} ${clips} · ${formatDuration(status.durationMs)}`;
-    }
+      return i18n.t("editor:ui.nShotsStills", { a: status.shots, b: status.stills, c: status.shots });
+    case "script":
+      return i18n.t("editor:ui.nLinesVoiced", { a: status.lines, unit: i18n.t(status.lines === 1 ? "editor:ui.oneLine" : "editor:ui.nLinesUnit"), b: status.voiced });
+    case "timeline":
+      return i18n.t("editor:ui.nClipsDuration", { a: status.clips, unit: i18n.t(status.clips === 1 ? "editor:ui.oneClip" : "editor:ui.clipsUnit"), d: formatDuration(status.durationMs) });
     default: {
       const exhaustive: never = status;
       return exhaustive;
@@ -209,7 +205,7 @@ export const projectNextStep = (
       return { label: "Render stills", document: board };
     }
     if (boardStatus.clips < boardStatus.shots) {
-      return { label: "Render clips", document: board };
+      return { label: i18n.t("editor:ui.renderClips"), document: board };
     }
   }
 
@@ -230,12 +226,12 @@ export const projectNextStep = (
 
   const cut = documents.find((doc) => doc.status?.kind === "timeline");
   if (cut) {
-    return { label: "Render master", document: cut };
+    return { label: i18n.t("editor:ui.renderMaster", { defaultValue: "Render master" }), document: cut };
   }
   // Reached only when the board rendered everything it set out to: the first
   // block returns while stills or clips are still short.
   if (board && boardStatus && boardStatus.shots > 0) {
-    return { label: "Assemble timeline", document: board };
+    return { label: i18n.t("editor:ui.assembleTimeline", { defaultValue: "Assemble timeline" }), document: board };
   }
   return null;
 };

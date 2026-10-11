@@ -20,12 +20,14 @@ import { useSettingsStore } from "../../stores/SettingsStore";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import SliderBasic from "../inputs/SliderBasic";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
-import { SIZE_FILTERS, SizeFilterKey } from "../../utils/formatUtils";
+import { SIZE_FILTERS, SizeFilterKey, localizedSizeFilterLabel } from "../../utils/formatUtils";
+import { useAppLanguage } from "../../i18n";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { Tooltip, LoadingSpinner, Box } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface AssetActionsProps {
   setSelectedAssetIds: (assetIds: string[]) => void;
@@ -220,7 +222,10 @@ const AssetActions = ({
   handleDeselectAssets,
   maxItemSize = 10
 }: AssetActionsProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
+  // Subscribe so localized filter labels re-render on language change.
+  useAppLanguage();
   const { isLoading } = useAssets();
   const [settings, setAssetItemSize, setAssetsOrder] = useSettingsStore(
     useShallow(
@@ -282,7 +287,7 @@ const AssetActions = ({
       <ButtonGroup className="asset-button-group" size="small" tabIndex={-1}>
         <Tooltip
           delay={TOOLTIP_ENTER_DELAY}
-          title="Select all"
+          title={t("editor:ui.selectAll", { defaultValue: "Select all" })}
           disableInteractive
         >
           <EditorButton onClick={handleSelectAllAssets} tabIndex={-1}>
@@ -291,7 +296,7 @@ const AssetActions = ({
         </Tooltip>
         <Tooltip
           delay={TOOLTIP_ENTER_DELAY}
-          title="Deselect"
+          title={t("editor:ui.deselect", { defaultValue: "Deselect" })}
           disableInteractive
         >
           <EditorButton onClick={handleDeselectAssets} tabIndex={-1}>
@@ -320,7 +325,7 @@ const AssetActions = ({
 
       <Tooltip
         delay={TOOLTIP_ENTER_DELAY}
-        title="Sort assets"
+        title={t("editor:ui.sortAssets", { defaultValue: "Sort assets" })}
         placement="bottom"
         disableInteractive
       >
@@ -333,15 +338,15 @@ const AssetActions = ({
           inputProps={{ "aria-label": "Sort assets" }}
           tabIndex={-1}
         >
-          <MenuItem value="name">Name</MenuItem>
-          <MenuItem value="date">Date</MenuItem>
-          <MenuItem value="size">Size</MenuItem>
+          <MenuItem value="name">{t("editor:asset.info.name", { defaultValue: "Name" })}</MenuItem>
+          <MenuItem value="date">{t("ui2:attrs.date", { defaultValue: "Date" })}</MenuItem>
+          <MenuItem value="size">{t("editor:asset.info.size", { defaultValue: "Size" })}</MenuItem>
         </Select>
       </Tooltip>
 
       <Tooltip
         delay={TOOLTIP_ENTER_DELAY}
-        title="Filter by file size"
+        title={t("editor:ui.filterByFileSize", { defaultValue: "Filter by file size" })}
         placement="bottom"
         disableInteractive
       >
@@ -356,12 +361,12 @@ const AssetActions = ({
           }}
           onChange={handleSizeFilter}
           displayEmpty
-          inputProps={{ "aria-label": "Filter by size" }}
+          inputProps={{ "aria-label": t("editor:ui.filterBySize", { defaultValue: "Filter by size" }) }}
           tabIndex={-1}
         >
           {SIZE_FILTERS.map((filter) => (
             <MenuItem key={filter.key} value={filter.key}>
-              {filter.label}
+              {localizedSizeFilterLabel(filter.key, filter.label)}
             </MenuItem>
           ))}
         </Select>
@@ -372,7 +377,7 @@ const AssetActions = ({
           <SliderBasic
             size="small"
             defaultValue={settings.assetItemSize}
-            aria-label="Small"
+            aria-label={t("editor:ui.small", { defaultValue: "Small" })}
             tooltipText="Item Size"
             tooltipPlacement="bottom"
             valueLabelDisplay="auto"

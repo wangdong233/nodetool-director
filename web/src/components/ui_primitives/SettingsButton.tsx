@@ -19,6 +19,7 @@ import {
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
+import { i18n } from "../../i18n";
 
 export interface SettingsButtonProps {
   /**
@@ -86,7 +87,7 @@ export const SettingsButton = memo(
     (
       {
         onClick,
-        tooltip = "Settings",
+        tooltip = i18n.t("ui:attrs.settings", { defaultValue: "Settings" }),
         tooltipPlacement = "bottom",
         buttonSize = "small",
         iconVariant = "settings",

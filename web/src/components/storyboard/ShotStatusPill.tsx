@@ -22,6 +22,7 @@ import { shotStaleness } from "@nodetool-ai/protocol";
 
 import { StatusPill, type StatusPillTone } from "../ui_primitives";
 import { colorForType } from "../../config/data_types";
+import { i18n } from "../../i18n";
 import {
   useStoryboardGenerationStore,
   type ShotGenerationStatus
@@ -56,8 +57,14 @@ export const shotPill = (
     return lifecycle;
   }
   return lifecycle
-    ? { ...lifecycle, label: `${lifecycle.label} · stale` }
-    : { tone: "neutral", label: "stale" };
+    ? {
+        ...lifecycle,
+        label: `${lifecycle.label} · ${i18n.t("storyboard:attrs.staleLower", { defaultValue: "stale" })}`
+      }
+    : {
+        tone: "neutral",
+        label: i18n.t("storyboard:attrs.staleLower", { defaultValue: "stale" })
+      };
 };
 
 /** The step the shot is on, before staleness is folded in. */
@@ -69,11 +76,14 @@ const lifecyclePill = (
     return {
       tone: "rendering",
       label:
-        shot.status === "clip_generating" ? "rendering clip" : "rendering still"
+        shot.status === "clip_generating" ? i18n.t("storyboard:attrs.renderingClip", { defaultValue: "rendering clip" }) : i18n.t("storyboard:attrs.renderingStillLower", { defaultValue: "rendering still" })
     };
   }
   if (shot.status === "failed") {
-    return { tone: "failed", label: "failed" };
+    return {
+      tone: "failed",
+      label: i18n.t("storyboard:attrs.failed", { defaultValue: "failed" })
+    };
   }
   if (shot.clip) {
     return null;
@@ -81,15 +91,24 @@ const lifecyclePill = (
   // A shot fused into a sibling's generation has its picture but no clip of
   // its own, and a card that says "still" reads as a shot nobody has rendered.
   if (shot.covered_by) {
-    return { tone: "neutral", label: "covered" };
+    return {
+      tone: "neutral",
+      label: i18n.t("storyboard:attrs.covered", { defaultValue: "covered" })
+    };
   }
   if (shot.keyframe) {
     const clipQueued = jobStatus === "queued" || jobStatus === "running";
     return clipQueued
-      ? { tone: "neutral", label: "still · clip queued" }
-      : { tone: "neutral", label: "still" };
+      ? { tone: "neutral", label: i18n.t("storyboard:attrs.stillClipQueued", { defaultValue: "still · clip queued" }) }
+      : {
+          tone: "neutral",
+          label: i18n.t("storyboard:attrs.stillLower", { defaultValue: "still" })
+        };
   }
-  return { tone: "neutral", label: "planned" };
+  return {
+    tone: "neutral",
+    label: i18n.t("storyboard:attrs.planned", { defaultValue: "planned" })
+  };
 };
 
 interface ShotStatusPillProps {

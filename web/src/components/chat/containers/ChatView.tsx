@@ -44,10 +44,12 @@ import {
 } from "../../../lib/chat/uiContext";
 import { CHAT_COLUMN_MAX_WIDTH, type ChatStatus } from "../types/chat.types";
 import { conversationToMarkdown } from "../utils/conversationMarkdown";
+import { i18n } from "../../../i18n";
 import type {
   ChatOutgoingMessage,
   MediaGenerationRequest
 } from "../types/media.types";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -239,6 +241,7 @@ const ChatView = ({
   projectDocumentsSidebar,
   threadId
 }: ChatViewProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -371,7 +374,7 @@ const ChatView = ({
       console.error("Failed to copy the conversation:", error);
       addNotification({
         type: "error",
-        content: "Could not copy the conversation."
+        content: i18n.t("editor:ui.couldNotCopyConversation", { defaultValue: "Could not copy the conversation." })
       });
     }
   }, [messages, writeClipboard, addNotification]);
@@ -450,14 +453,14 @@ const ChatView = ({
             {!isMobile && messages.length > 0 && (
               <ToolbarIconButton
                 onClick={handleCopyConversation}
-                tooltip="Copy conversation as Markdown"
+                tooltip={t("editor:ui.copyConversationAsMarkdown", { defaultValue: "Copy conversation as Markdown" })}
                 icon={<ContentCopyIcon fontSize="small" />}
               />
             )}
             {showNewChatButton && onNewChat && (
               <ToolbarIconButton
                 onClick={onNewChat}
-                tooltip="New chat"
+                tooltip={t("editor:ui.newChat", { defaultValue: "New chat" })}
                 icon={<AddIcon fontSize="small" />}
               />
             )}

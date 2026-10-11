@@ -28,6 +28,8 @@ export type ToolIconComponent = React.ComponentType<SvgIconProps>;
 export interface ToolDefinition {
   tool: SketchTool;
   label: string;
+  /** Full `ns:key` for the label; resolved at render (module tables stay pure data). */
+  labelKey?: string;
   Icon: ToolIconComponent;
   group: "painting" | "shape";
 }

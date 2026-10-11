@@ -7,6 +7,7 @@
 import { memo, useEffect, useState } from "react";
 
 import { Dialog, FlexColumn, SPACING, TextInput } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface SaveToMyNodesDialogProps {
   open: boolean;
@@ -26,6 +27,7 @@ const SaveToMyNodesDialogInner: React.FC<SaveToMyNodesDialogProps> = ({
   onCancel,
   onConfirm
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState(initialName ?? "");
   const [category, setCategory] = useState(initialCategory);
 
@@ -43,8 +45,8 @@ const SaveToMyNodesDialogInner: React.FC<SaveToMyNodesDialogProps> = ({
     <Dialog
       open={open}
       onClose={onCancel}
-      title="Save to My Nodes"
-      confirmText="Save"
+      title={t("editor:ui.saveToMyNodes", { defaultValue: "Save to My Nodes" })}
+      confirmText={t("timeline:topbar.save", { defaultValue: "Save" })}
       isLoading={busy}
       confirmDisabled={!valid}
       onCancel={onCancel}
@@ -55,7 +57,7 @@ const SaveToMyNodesDialogInner: React.FC<SaveToMyNodesDialogProps> = ({
       <FlexColumn gap={SPACING.md}>
         {askName ? (
           <TextInput
-            label="Node name"
+            label={t("editor:ui.nodeName", { defaultValue: "Node name" })}
             size="small"
             autoFocus
             value={name}
@@ -63,12 +65,12 @@ const SaveToMyNodesDialogInner: React.FC<SaveToMyNodesDialogProps> = ({
           />
         ) : null}
         <TextInput
-          label="Category"
+          label={t("editor:ui.category", { defaultValue: "Category" })}
           size="small"
           autoFocus={!askName}
           value={category}
           onChange={(event) => setCategory(event.target.value)}
-          helperText="Where the node appears under My Nodes."
+          helperText={t("editor:ui.whereNodeAppearsUnderMyNodes", { defaultValue: "Where the node appears under My Nodes." })}
         />
       </FlexColumn>
     </Dialog>

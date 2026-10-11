@@ -14,10 +14,12 @@ import {
   BORDER_RADIUS
 } from "../../ui_primitives";
 import useSecretsStore from "../../../stores/SecretsStore";
+import { i18n } from "../../../i18n";
 import type {
   PendingSecretRequest,
   SecretRequestOutcome
 } from "../../../stores/GlobalChatStore";
+import { useTranslation } from "react-i18next";
 
 interface SecretRequestCardProps {
   approvalId: string;
@@ -87,6 +89,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
   request,
   onResolve
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const updateSecret = useSecretsStore((s) => s.updateSecret);
@@ -114,7 +117,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
     } catch (err) {
       // The request stays open: the run is still waiting, and the user can
       // correct a paste and try again rather than losing the turn.
-      setError(err instanceof Error ? err.message : "Could not save the key.");
+      setError(err instanceof Error ? err.message : i18n.t("editor:ui.couldNotSaveTheKey", { defaultValue: "Could not save the key." }));
       setSaving(false);
     }
   }, [approvalId, onResolve, request.key, updateSecret, value]);
@@ -130,7 +133,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
         <KeyRoundedIcon fontSize="small" />
         <FlexColumn gap={0}>
           <Text size="small" weight={500}>
-            Enter a credential
+            {t("editor:ui.enterACredential")}
           </Text>
           <Text size="smaller" color="secondary">
             Saved to your secret store. The agent never sees the value.
@@ -156,7 +159,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
             target="_blank"
             rel="noreferrer noopener"
           >
-            Where to get this key
+            {t("editor:ui.whereToGetThisKey")}
           </a>
         )}
       </div>
@@ -167,7 +170,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
           type="password"
           autoComplete="off"
           label={request.key}
-          placeholder="Paste the key"
+          placeholder={t("editor:ui.pasteTheKey", { defaultValue: "Paste the key" })}
           value={value}
           onChange={handleChange}
           disabled={saving}
@@ -184,7 +187,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
             onClick={handleDecline}
             startIcon={<CloseRoundedIcon />}
           >
-            Not now
+            {t("editor:ui.notNow")}
           </EditorButton>
           <EditorButton
             variant="contained"

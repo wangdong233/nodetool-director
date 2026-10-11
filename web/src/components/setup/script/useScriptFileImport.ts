@@ -25,6 +25,7 @@ import {
   scriptSourcePatch,
   type ImportedScript
 } from "../../../lib/script/importedScript";
+import { i18n } from "../../../i18n";
 
 /** What the text picker offers. TXT and FDX never reach the route. */
 export const SCRIPT_TEXT_ACCEPT = ".txt,.pdf,.docx,.fdx,application/pdf,text/plain";
@@ -32,7 +33,8 @@ export const SCRIPT_TEXT_ACCEPT = ".txt,.pdf,.docx,.fdx,application/pdf,text/pla
 /** What the subtitle picker offers. */
 export const SCRIPT_SUBTITLE_ACCEPT = ".srt,.vtt,text/vtt";
 
-const UNSUPPORTED = "Unsupported file type. Upload a TXT, PDF, DOCX or FDX.";
+const UNSUPPORTED_KEY = "storyboard:attrs.unsupportedFileTypeUploadATXTPDFDOCXOrFDX";
+const UNSUPPORTED_DEFAULT = "Unsupported file type. Upload a TXT, PDF, DOCX or FDX.";
 
 /** Mirrors `EXTRACT_TEXT_MAX_BYTES` on the route, so an oversize file is
  *  refused before it is uploaded. */
@@ -55,7 +57,7 @@ async function extractionError(response: Response): Promise<string> {
   } catch {
     // A body that is not JSON says nothing more than the status does.
   }
-  return `This file could not be read. ${UNSUPPORTED}`;
+  return i18n.t("storyboard:attrs.thisFileCouldNotBeReadUnsupported", { defaultValue: "This file could not be read. {{reason}}", reason: i18n.t(UNSUPPORTED_KEY, { defaultValue: UNSUPPORTED_DEFAULT }) });
 }
 
 export interface ScriptFileImportResult {
@@ -86,7 +88,7 @@ export function useScriptFileImport(scriptId: string): ScriptFileImportResult {
       return false;
     }
     setError(
-      `File is too large. The limit is ${Math.floor(SCRIPT_MAX_BYTES / (1024 * 1024))} MB.`
+      i18n.t("storyboard:attrs.fileIsTooLargeTheLimitIsCountMB", { defaultValue: "File is too large. The limit is {{count}} MB.", count: Math.floor(SCRIPT_MAX_BYTES / (1024 * 1024)) })
     );
     return true;
   }, []);
@@ -119,12 +121,12 @@ export function useScriptFileImport(scriptId: string): ScriptFileImportResult {
             ? (body as { text: string }).text
             : "";
         if (text.trim() === "") {
-          setError(`This file could not be read. ${UNSUPPORTED}`);
+          setError(i18n.t("storyboard:attrs.thisFileCouldNotBeReadUnsupported", { defaultValue: "This file could not be read. {{reason}}", reason: i18n.t(UNSUPPORTED_KEY, { defaultValue: UNSUPPORTED_DEFAULT }) }));
           return;
         }
         apply(importedFromText(text));
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : UNSUPPORTED);
+        setError(cause instanceof Error ? cause.message : i18n.t(UNSUPPORTED_KEY, { defaultValue: UNSUPPORTED_DEFAULT }));
       } finally {
         setImporting(false);
       }
@@ -143,7 +145,7 @@ export function useScriptFileImport(scriptId: string): ScriptFileImportResult {
         setError(
           cause instanceof Error
             ? cause.message
-            : "This subtitle file could not be read."
+            : i18n.t("storyboard:attrs.thisSubtitleFileCouldNotBeRead", { defaultValue: "This subtitle file could not be read." })
         );
       } finally {
         setImporting(false);

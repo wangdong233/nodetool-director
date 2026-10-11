@@ -40,6 +40,8 @@ import {
   type WorkspaceTabType
 } from "../../stores/WorkspaceTabsStore";
 import { newDocumentId } from "../../lib/newDocumentId";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Render a blank white PNG to seed a "New sketch" canvas asset. */
 const createBlankImageFile = (): Promise<File> =>
@@ -89,6 +91,7 @@ const createBlankModelFile = async (): Promise<File> => {
 
 export interface TextFileTemplate {
   label: string;
+  labelKey?: string;
   filename: string;
   mimeType: string;
   content: string;
@@ -96,37 +99,37 @@ export interface TextFileTemplate {
 
 export const TEXT_FILE_TEMPLATES: readonly TextFileTemplate[] = [
   {
-    label: "Markdown (.md)",
+    label: "Markdown (.md)", labelKey: "markdownMd",
     filename: "Untitled.md",
     mimeType: "text/markdown",
     content: "# Untitled\n"
   },
   {
-    label: "JSON (.json)",
+    label: "JSON (.json)", labelKey: "jsonJson",
     filename: "Untitled.json",
     mimeType: "application/json",
     content: "{}\n"
   },
   {
-    label: "YAML (.yaml)",
+    label: "YAML (.yaml)", labelKey: "yamlYaml",
     filename: "Untitled.yaml",
     mimeType: "application/x-yaml",
     content: "---\n"
   },
   {
-    label: "CSV (.csv)",
+    label: "CSV (.csv)", labelKey: "csvCsv",
     filename: "Untitled.csv",
     mimeType: "text/csv",
     content: "Column 1\n"
   },
   {
-    label: "TSV (.tsv)",
+    label: "TSV (.tsv)", labelKey: "tsvTsv",
     filename: "Untitled.tsv",
     mimeType: "text/tab-separated-values",
     content: "Column 1\n"
   },
   {
-    label: "Plain text (.txt)",
+    label: "Plain text (.txt)", labelKey: "plainTextTxt",
     filename: "Untitled.txt",
     mimeType: "text/plain",
     content: ""
@@ -140,6 +143,7 @@ export interface NewDocumentEntry {
   key: string;
   /** The document, named — what the grid shows. */
   label: string;
+  labelKey?: string;
   /** The same as an action — what the menu shows. */
   menuLabel: string;
   /** The tab this opens; the grid draws its glyph and color from the type. */
@@ -177,6 +181,7 @@ export const useNewDocumentCatalog = (
   options: NewDocumentCatalogOptions = {},
   onCreated?: () => void
 ): NewDocumentCatalog => {
+  const { t } = useTranslation();
   const [creating, setCreating] = useState<string | null>(null);
 
   const addNotification = useNotificationStore(
@@ -331,14 +336,14 @@ export const useNewDocumentCatalog = (
     () =>
       runCreate("timeline", async () => {
         const sequence = await createTimeline.mutateAsync({
-          name: "Untitled timeline",
+          name: i18n.t("timeline:attrs.untitledTimeline", { defaultValue: "Untitled timeline" }),
           projectId: targetProject()
         });
         openTab({
           type: "timeline",
           ref: sequence.id,
           mode: "edit",
-          title: sequence.name || "Untitled timeline",
+          title: sequence.name || i18n.t("timeline:attrs.untitledTimeline", { defaultValue: "Untitled timeline" }),
           projectId: sequence.projectId
         });
       }),
@@ -349,7 +354,7 @@ export const useNewDocumentCatalog = (
     () =>
       runCreate("storyboard", async () => {
         const created = await createStoryboard.mutateAsync({
-          name: "Untitled storyboard",
+          name: i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
           projectId: targetProject()
         });
         openTab({
@@ -385,7 +390,7 @@ export const useNewDocumentCatalog = (
     () =>
       runCreate("app", async () => {
         const created = await createApplication.mutateAsync({
-          name: "Untitled app",
+          name: i18n.t("editor:ui.untitledApp", { defaultValue: "Untitled app" }),
           description: "",
           projectId: targetProject()
         });
@@ -404,7 +409,7 @@ export const useNewDocumentCatalog = (
     () =>
       runCreate("script", async () => {
         const created = await createScript.mutateAsync({
-          name: "Untitled script",
+          name: i18n.t("editor:ui.untitledScript", { defaultValue: "Untitled script" }),
           projectId: targetProject()
         });
         openTab({
@@ -420,9 +425,9 @@ export const useNewDocumentCatalog = (
 
   const createJsScriptDocument = useCallback(
     () =>
-      runCreate("JS script", async () => {
+      runCreate(i18n.t("editor:ui.jsScript", { defaultValue: "JS script" }), async () => {
         const created = await createJsScript.mutateAsync({
-          name: "Untitled JS script",
+          name: i18n.t("editor:ui.untitledJsScript", { defaultValue: "Untitled JS script" }),
           projectId: targetProject()
         });
         openTab({
@@ -442,7 +447,7 @@ export const useNewDocumentCatalog = (
         const created = await createSkill.mutateAsync({
           id: newDocumentId(),
           name: `skill-${Date.now().toString(36)}`,
-          description: "A reusable skill for the NodeTool agent.",
+          description: i18n.t("editor:ui.reusableSkillDescription", { defaultValue: "A reusable skill for the NodeTool agent." }),
           content:
             "# New skill\n\nDescribe what this skill does and when the agent should use it."
         });
@@ -458,7 +463,7 @@ export const useNewDocumentCatalog = (
 
   const createModel = useCallback(
     () =>
-      runCreate("3D model", async () => {
+      runCreate(i18n.t("editor:ui.model3d", { defaultValue: "3D model" }), async () => {
         const asset = await createProjectAsset(await createBlankModelFile());
         openCreatedTab({
           type: "model3d",
@@ -473,7 +478,7 @@ export const useNewDocumentCatalog = (
   const entries: NewDocumentEntry[] = [
     {
       key: "workflow",
-      label: "Workflow",
+      label: "Workflow", labelKey: "workflow",
       menuLabel: "New workflow",
       type: "workflow",
       icon: <AddRoundedIcon fontSize="small" />,
@@ -481,7 +486,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "chat",
-      label: "Chat",
+      label: "Chat", labelKey: "chat",
       menuLabel: "New chat",
       type: "chat",
       icon: <ForumOutlinedIcon fontSize="small" />,
@@ -489,15 +494,15 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "text",
-      label: "Text",
-      menuLabel: "New text file…",
+      label: "Text", labelKey: "text",
+      menuLabel: t("editor:ui.newTextFile", { defaultValue: "New text file…" }),
       type: "text",
       icon: <ArticleOutlinedIcon fontSize="small" />,
       submenu: "texts"
     },
     {
       key: "image",
-      label: "Sketch",
+      label: "Sketch", labelKey: "sketch",
       menuLabel: "New sketch",
       type: "image",
       icon: <ImageOutlinedIcon fontSize="small" />,
@@ -505,7 +510,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "svg",
-      label: "SVG",
+      label: "SVG", labelKey: "svg",
       menuLabel: "New SVG",
       type: "svg",
       icon: <CategoryOutlinedIcon fontSize="small" />,
@@ -513,7 +518,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "video",
-      label: "Timeline",
+      label: "Timeline", labelKey: "timeline",
       menuLabel: "New timeline",
       type: "timeline",
       icon: <MovieOutlinedIcon fontSize="small" />,
@@ -521,15 +526,15 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "storyboard",
-      label: "Storyboard",
-      menuLabel: "New storyboard…",
+      label: "Storyboard", labelKey: "storyboard",
+      menuLabel: t("editor:ui.newStoryboard2", { defaultValue: "New storyboard…" }),
       type: "storyboard",
       icon: <DashboardOutlinedIcon fontSize="small" />,
       submenu: "storyboards"
     },
     {
       key: "app",
-      label: "App",
+      label: "App", labelKey: "app",
       menuLabel: "New app",
       type: "application",
       icon: <DashboardCustomizeOutlinedIcon fontSize="small" />,
@@ -537,7 +542,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "script",
-      label: "Script",
+      label: "Script", labelKey: "script",
       menuLabel: "New script",
       type: "script",
       icon: <RecordVoiceOverOutlinedIcon fontSize="small" />,
@@ -545,7 +550,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "jsscript",
-      label: "JS script",
+      label: "JS script", labelKey: "jsScript",
       menuLabel: "New JS script",
       type: "jsscript",
       icon: <DataObjectOutlinedIcon fontSize="small" />,
@@ -553,7 +558,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "skill",
-      label: "Skill",
+      label: "Skill", labelKey: "skill",
       menuLabel: "New skill",
       type: "skill",
       icon: <AutoAwesomeOutlinedIcon fontSize="small" />,
@@ -561,7 +566,7 @@ export const useNewDocumentCatalog = (
     },
     {
       key: "model3d",
-      label: "3D model",
+      label: "3D model", labelKey: "model3d",
       menuLabel: "New 3D model",
       type: "model3d",
       icon: <ViewInArOutlinedIcon fontSize="small" />,

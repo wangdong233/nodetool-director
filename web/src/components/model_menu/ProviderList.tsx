@@ -158,6 +158,7 @@ import skyworkColorIcon from "../../icons/providers/skywork-color.svg";
 import tencentColorIcon from "../../icons/providers/tencent-color.svg";
 import tencentcloudColorIcon from "../../icons/providers/tencentcloud-color.svg";
 import yuanbaoColorIcon from "../../icons/providers/yuanbao-color.svg";
+import { useTranslation } from "react-i18next";
 
 const providerIconMap: Record<string, string> = {
   // OpenAI / GPT
@@ -547,6 +548,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
   iconOnly = false,
   orientation = "vertical"
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const selected = storeHook((s) => s.selectedProvider);
   const setSelected = storeHook((s) => s.setSelectedProvider);
@@ -671,7 +673,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
       )}
       {isError && (
         <div className="model-menu__providers-error is-error" style={{ padding: 8 }}>
-          Error loading providers
+          {t("editor:ui.errorLoadingProviders")}
         </div>
       )}
       <ListItemButton
@@ -691,7 +693,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
         {iconOnly ? (
           <Tooltip
             className="model-menu__all-providers-tooltip"
-            title="All providers"
+            title={t("editor:ui.allProviders", { defaultValue: "All providers" })}
             placement={tooltipPlacement}
           >
             <FlexColumn align="center" gap={0.5} sx={{ py: 0.5 }}>
@@ -715,7 +717,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
         ) : (
           <ListItemText
             className="model-menu__all-providers-text"
-            primary="All providers"
+            primary={t("editor:ui.allProviders", { defaultValue: "All providers" })}
             primaryTypographyProps={{
               sx: { fontSize: (theme) => theme.vars.fontSizeSmall }
             }}
@@ -755,13 +757,13 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
                 {badges.map((b) => {
                   const tooltipTitle =
                     b.label === "HF"
-                      ? "HuggingFace: Models from the Hugging Face Hub."
+                      ? t("editor:ui.huggingfaceModelsFromTheHuggingFaceHub", { defaultValue: "HuggingFace: Models from the Hugging Face Hub." })
                       : b.label === "Local"
-                        ? "Local: Runs locally on your machine."
+                        ? t("editor:ui.localRunsLocallyOnYourMachine", { defaultValue: "Local: Runs locally on your machine." })
                         : b.label === "Server"
-                          ? "Server: Runs on the configured NodeTool server."
+                          ? t("editor:ui.serverRunsOnTheConfiguredNodetoolServer", { defaultValue: "Server: Runs on the configured NodeTool server." })
                           : b.label === "Unavailable"
-                            ? "Unavailable: No ready execution target was reported."
+                            ? t("editor:ui.unavailableNoReadyExecutionTargetWasReported", { defaultValue: "Unavailable: No ready execution target was reported." })
                             : "API: Input is sent to the provider. Provider billing applies.";
                   return (
                     <Tooltip
@@ -958,7 +960,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
                         sx={{ mr: 1 }}
                         onClick={handleStopPropagation}
                       >
-                        <Tooltip className="model-menu__provider-missing-key-tooltip" title="API key required">
+                        <Tooltip className="model-menu__provider-missing-key-tooltip" title={t("editor:ui.apiKeyRequired", { defaultValue: "API key required" })}>
                           <InfoOutlinedIcon
                             className="model-menu__provider-missing-key-icon"
                             sx={{
@@ -967,7 +969,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
                             }}
                           />
                         </Tooltip>
-                        <Tooltip className="model-menu__provider-add-key-tooltip" title="Connect this provider">
+                        <Tooltip className="model-menu__provider-add-key-tooltip" title={t("editor:ui.connectThisProvider", { defaultValue: "Connect this provider" })}>
                           <EditorButton
                             className="model-menu__provider-add-key-button"
                             density="compact"
@@ -980,7 +982,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
                             }}
                             onClick={() => handleAddKey(env)}
                           >
-                            Add key
+                            {t("editor:ui.addKey", { defaultValue: "Add key" })}
                           </EditorButton>
                         </Tooltip>
                       </FlexRow>
@@ -995,7 +997,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
                       {renderBadges()}
                       <Tooltip
                         className="model-menu__provider-toggle-tooltip"
-                        title={enabled ? "Disable provider" : "Enable provider"}
+                        title={enabled ? t("editor:ui.disableProvider", { defaultValue: "Disable provider" }) : t("editor:ui.enableProvider", { defaultValue: "Enable provider" })}
                       >
                         <Box
                           data-provider={p}
@@ -1037,15 +1039,15 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
           disabled={!menuProvider || !getProviderUrl(menuProvider)}
           onClick={handleOpenWebsite}
         >
-          Open provider website
+          {t("editor:ui.openProviderWebsite")}
         </EditorMenuItem>
         <EditorMenuItem
           className="model-menu__provider-context-menu-item model-menu__provider-context-menu-item--toggle"
           onClick={handleToggleProvider}
         >
           {menuProvider && isProviderEnabled(menuProvider)
-            ? "Disable provider"
-            : "Enable provider"}
+            ? t("editor:ui.disableProvider", { defaultValue: "Disable provider" })
+            : t("editor:ui.enableProvider", { defaultValue: "Enable provider" })}
         </EditorMenuItem>
       </EditorMenu>
     </List>

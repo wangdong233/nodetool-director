@@ -15,6 +15,7 @@ import { useDirectGenPendingStore } from "../../../hooks/timeline/directGenPendi
 import { useLineDeliveryRevision } from "../../../hooks/timeline/useLineDeliveryRevision";
 import { useScriptStore, effectiveVoice } from "../../../stores/script/ScriptStore";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
+import { useTranslation } from "react-i18next";
 
 interface LineDeliveryPanelProps {
   clipId: string;
@@ -22,6 +23,7 @@ interface LineDeliveryPanelProps {
 
 /** Revise a Script-linked voiceover without replacing its accepted take. */
 const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
+  const { t } = useTranslation();
   const clip = useTimelineStore((state) => findClipById(state.clips, clipId));
   const sequenceId = useTimelineStore((state) => state.sequenceId);
   const script = useScriptStore((state) =>
@@ -51,14 +53,14 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
   if (!script || !line) {
     return (
       <CollapsibleSection
-        title={<InspectorSectionTitle title="Change line delivery" icon={<AutoAwesomeOutlinedIcon />} />}
+        title={<InspectorSectionTitle title={t("timeline:attrs.changeLineDelivery", { defaultValue: "Change line delivery" })} icon={<AutoAwesomeOutlinedIcon />} />}
         defaultOpen
       >
         <EmptyState
           variant="empty"
           size="small"
-          title="Line context unavailable"
-          description="Reopen the linked Script before revising this voiceover."
+          title={t("timeline:attrs.lineContextUnavailable", { defaultValue: "Line context unavailable" })}
+          description={t("editor:ui.reopenTheLinkedScriptBeforeRevisingThisVoiceover")}
         />
       </CollapsibleSection>
     );
@@ -72,7 +74,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
       instructions: instructions.trim() || undefined
     });
     if (!requestId) {
-      setError("The line delivery could not be submitted. Check the Script voice and connection.");
+      setError(t("timeline:attrs.theLineDeliveryCouldNotBeSubmittedCheckTheScriptVoiceAndConnection", { defaultValue: "The line delivery could not be submitted. Check the Script voice and connection." }));
     } else {
       setInstructions("");
     }
@@ -80,7 +82,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
 
   return (
     <CollapsibleSection
-      title={<InspectorSectionTitle title="Change line delivery" icon={<AutoAwesomeOutlinedIcon />} />}
+      title={<InspectorSectionTitle title={t("timeline:attrs.changeLineDelivery", { defaultValue: "Change line delivery" })} icon={<AutoAwesomeOutlinedIcon />} />}
       defaultOpen
     >
       <FlexColumn gap={SPACING.sm} sx={{ p: SPACING.md }}>
@@ -95,7 +97,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
         <TextInput
           value={instructions}
           onChange={(event) => setInstructions(event.target.value)}
-          placeholder="Optional delivery direction…"
+          placeholder={t("timeline:attrs.optionalDeliveryDirection", { defaultValue: "Optional delivery direction…" })}
           multiline
           minRows={2}
           maxRows={5}
@@ -111,7 +113,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
           onClick={() => void handleSubmit()}
           startIcon={<AutoAwesomeOutlinedIcon />}
         >
-          {pending ? "Generating delivery…" : "Change line delivery"}
+          {pending ? t("timeline:attrs.generatingDelivery", { defaultValue: "Generating delivery…" }) : t("timeline:attrs.changeLineDelivery", { defaultValue: "Change line delivery" })}
         </EditorButton>
         {error && <Caption color="error">{error}</Caption>}
       </FlexColumn>

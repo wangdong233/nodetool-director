@@ -201,6 +201,7 @@ export class SegmentTool implements ToolHandler {
 export const definition: ToolDefinition = {
   tool: "segment",
   label: "Segment",
+  labelKey: "sketch:attrs.segmentTool",
   Icon: AutoAwesomeIcon,
   group: "shape"
 };

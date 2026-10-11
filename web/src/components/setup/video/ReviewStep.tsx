@@ -22,6 +22,7 @@ import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { PlanReview } from "../PlanReview";
 import type { PlanReviewSection } from "../PlanReview";
 import { videoFormatById } from "./formats";
+import { useTranslation } from "react-i18next";
 import {
   productionFields,
   productionPatch,
@@ -76,7 +77,7 @@ export interface ReviewStepProps {
  */
 const PLAIN_CUT = "cut";
 const TRANSITION_OPTIONS = [
-  { value: PLAIN_CUT, label: "Cut" },
+  { value: PLAIN_CUT, label: "Cut", labelKey: "storyboard:attrs.cut" },
   ...KNOWN_TRANSITION_TYPE_LIST.map((type) => ({ value: type, label: type }))
 ] as const;
 
@@ -85,6 +86,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   replanPending,
   onValidationChange
 }) => {
+  const { t } = useTranslation();
   const beats = useTimelineStore((state) => state.setup?.beats);
   const formatId = useTimelineStore((state) => state.setup?.format);
   const updateBeat = useTimelineStore((state) => state.updateBeat);
@@ -133,7 +135,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   }).length;
   const validationReason =
     unusable > 0
-      ? `Correct the length outside ${rangeText}.`
+      ? t("storyboard:attrs.correctTheLengthOutsideRange", { defaultValue: "Correct the length outside {{range}}.", range: rangeText })
       : productionAuthoringBlocker(beats ?? []);
   useEffect(() => {
     onValidationChange?.(validationReason);
@@ -146,18 +148,18 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     header: `${index + 1}. ${formatSeconds(beat.duration_ms)}`,
     // The header is a number and a length, so the remove control names
     // what it drops rather than reading "Remove 1. 3s".
-    removeLabel: `Remove beat ${index + 1}`,
+    removeLabel: t("storyboard:attrs.removeBeatCount", { defaultValue: "Remove beat {{count}}", count: index + 1 }),
     rows: [
       {
         id: `${beat.id}-prompt`,
-        label: "Beat",
+        label: t("timeline:attrs.beat", { defaultValue: "Beat" }),
         value: beat.prompt,
         multiline: true,
         onChange: (value: string) => updateBeat(beat.id, { prompt: value })
       },
       {
         id: `${beat.id}-duration`,
-        label: "Seconds",
+        label: t("timeline:attrs.seconds", { defaultValue: "Seconds" }),
         value: lengths[beat.id] ?? secondsText(beat.duration_ms),
         placeholder: rangeText,
         compact: true,
@@ -166,13 +168,18 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       },
       {
         id: `${beat.id}-transition`,
-        label: "Transition",
+        label: t("timeline:attrs.transition", { defaultValue: "Transition" }),
         value: beat.transition ?? PLAIN_CUT,
         // A closed set the renderer already enumerates, so it is a select:
         // typed free text left the row holding a word the cut has no
         // meaning for, and the list of legal words in a placeholder read
         // as data rather than as help.
-        options: TRANSITION_OPTIONS,
+        options: TRANSITION_OPTIONS.map(({ value, label, ...rest }) => ({
+          value,
+          label: "labelKey" in rest
+            ? t((rest as { labelKey: string }).labelKey, { defaultValue: label })
+            : label
+        })),
         compact: true,
         onChange: (value: string) =>
           updateBeat(beat.id, {
@@ -181,13 +188,13 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       },
       {
         id: `${beat.id}-voiceover`,
-        label: "Voiceover",
+        label: t("storyboard:attrs.voiceover", { defaultValue: "Voiceover" }),
         readOnly:
           !!beat.production?.speech_binding?.script_line_id ||
           !!beat.production?.speech_binding?.audio_asset_id,
         value: beat.voiceover ?? beat.production?.speech_binding?.text ?? "",
         multiline: true,
-        placeholder: "Leave empty for no line over this beat",
+        placeholder: t("timeline:attrs.leaveEmptyForNoLineOverBeat", { defaultValue: "Leave empty for no line over this beat" }),
         onChange: (value: string) => {
           const production =
             beat.production?.speech_binding?.text && value.trim()
@@ -220,9 +227,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   return (
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Review your beats
-        </Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.reviewYourBeats", { defaultValue: "Review your beats" })}</Text>
         <FlexRow gap={GAP.normal} align="baseline">
           <Text size="normal" color={over ? "warning" : "secondary"}>
             {format
@@ -231,12 +236,14 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           </Text>
           {over ? (
             <Text size="small" color="warning" role="status">
-              Longer than the format. Shorten a beat or drop one.
+              {t("storyboard:attrs.longerThanTheFormatShortenABeatOrDropOne", { defaultValue: "Longer than the format. Shorten a beat or drop one." })}
             </Text>
           ) : null}
           {unusable > 0 ? (
             <Text size="small" color="warning" role="status">
-              {`${unusable} length${unusable === 1 ? " is" : "s are"} outside ${rangeText}. The plan keeps the last usable one.`}
+              {unusable === 1
+                ? t("storyboard:attrs.countLengthIsOutsideRange", { defaultValue: "{{count}} length is outside {{range}}. The plan keeps the last usable one.", count: unusable, range: rangeText })
+                : t("storyboard:attrs.countLengthsAreOutsideRange", { defaultValue: "{{count}} lengths are outside {{range}}. The plan keeps the last usable one.", count: unusable, range: rangeText })}
             </Text>
           ) : null}
         </FlexRow>
@@ -248,7 +255,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       ) : null}
       <PlanReview
         sections={sections}
-        replanLabel="Re-plan"
+        replanLabel={t("storyboard:attrs.rePlan", { defaultValue: "Re-plan" })}
         onReplan={handleReplan}
         replanPending={replanPending}
         onRemoveSection={removeBeat}

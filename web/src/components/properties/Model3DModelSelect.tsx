@@ -6,6 +6,7 @@ import { BASE_URL } from "../../stores/BASE_URL";
 import { Model3DModelValue } from "../../stores/ApiTypes";
 import { useQuery } from "@tanstack/react-query";
 import ModelSelectButton from "./shared/ModelSelectButton";
+import { useTranslation } from "react-i18next";
 
 import {
   Caption,
@@ -67,6 +68,7 @@ const Model3DModelSelect: React.FC<Model3DModelSelectProps> = ({
   value,
   task
 }) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const addRecent = useModelPreferencesStore((s) => s.addRecent);
@@ -173,12 +175,12 @@ const Model3DModelSelect: React.FC<Model3DModelSelectProps> = ({
       >
         {isLoading && (
           <EditorMenuItem disabled>
-            <ListItemText primary="Loading models..." />
+            <ListItemText primary={t("editor:ui.loadingModels", { defaultValue: "Loading models..." })} />
           </EditorMenuItem>
         )}
         {!isLoading && filteredModels.length === 0 && (
           <EditorMenuItem disabled>
-            <ListItemText primary="No 3D models available" />
+            <ListItemText primary={t("editor:ui.no3DModelsAvailable", { defaultValue: "No 3D models available" })} />
           </EditorMenuItem>
         )}
         {Object.entries(modelsByProvider).map(([provider, providerModels], index) => (
@@ -199,7 +201,7 @@ const Model3DModelSelect: React.FC<Model3DModelSelectProps> = ({
             ))}
           </React.Fragment>
         ))}
-        <EditorMenuItem onClick={openSetup}>Add providers</EditorMenuItem>
+        <EditorMenuItem onClick={openSetup}>{t("ui2:attrs.addProviders", { defaultValue: "Add providers" })}</EditorMenuItem>
       </EditorMenu>
     </>
   );

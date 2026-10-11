@@ -7,6 +7,7 @@ import { CopyButton, Text, EditorButton, Box, MOTION, BORDER_RADIUS, Z_INDEX, ge
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { openBugReport } from "./stores/BugReportStore";
+import { useTranslation } from "react-i18next";
 
 const errorBoundaryStyles = (theme: Theme) =>
   css({
@@ -172,6 +173,7 @@ const errorBoundaryStyles = (theme: Theme) =>
   });
 
 const ErrorBoundary: React.FC = () => {
+  const { t } = useTranslation();
   const error = useRouteError();
   const theme = useTheme();
   const [showDetails, setShowDetails] = useState(false);
@@ -180,9 +182,9 @@ const ErrorBoundary: React.FC = () => {
   const errorMessage =
     error instanceof Error
       ? error.message
-      : "An unknown error occurred" + JSON.stringify(error);
+      : t("editor:ui.anUnknownErrorOccurred", { defaultValue: "An unknown error occurred" }) + JSON.stringify(error);
   const stackTrace =
-    error instanceof Error ? error.stack : "No stack trace available";
+    error instanceof Error ? error.stack : t("editor:ui.noStackTraceAvailable", { defaultValue: "No stack trace available" });
 
   const fullErrorText = `${errorMessage}\n\n${stackTrace}`;
 
@@ -205,11 +207,10 @@ const ErrorBoundary: React.FC = () => {
   return (
     <Box css={errorBoundaryStyles(theme)}>
       <Box className="hero">
-        <img src="/logo192.png" alt="NodeTool Logo" className="logo" />
-        <Text className="heading">Something went wrong</Text>
+        <img src="/logo192.png" alt={t("editor:ui.nodeToolLogo", { defaultValue: "NodeTool Logo" })} className="logo" />
+        <Text className="heading">{t("editor:ui.somethingWentWrong", { defaultValue: "Something went wrong" })}</Text>
         <Text className="subtext">
-          An unexpected error occurred. You can try reloading the page. If
-          this keeps happening, please reach out so we can fix it.
+          {t("editor:ui.unexpectedErrorSubtext", { defaultValue: "An unexpected error occurred. You can try reloading the page. If this keeps happening, please reach out so we can fix it." })}
         </Text>
       </Box>
 
@@ -221,7 +222,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={() => window.location.reload()}
             className="reload-button"
           >
-            Reload page
+            {t("editor:ui.reloadPage", { defaultValue: "Reload page" })}
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -229,7 +230,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleReport}
             className="copy-error-button"
           >
-            Report a bug
+            {t("common:action.reportBug", { defaultValue: "Report a bug" })}
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -237,7 +238,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleCopy}
             className="copy-error-button"
           >
-            {copied ? "Copied!" : "Copy error"}
+            {copied ? t("editor:ui.copied2") : t("editor:ui.copyError", { defaultValue: "Copy error" })}
           </EditorButton>
         </Box>
         <Box className="contact-row">
@@ -247,10 +248,10 @@ const ErrorBoundary: React.FC = () => {
             target="_blank"
             rel="noreferrer"
           >
-            Join our Discord
+            {t("editor:ui.joinOurDiscord")}
           </a>
           <a href="mailto:hello@nodetool.ai" className="contact-link">
-            Email hello@nodetool.ai
+            {t("editor:ui.emailHello@nodetoolAi")}
           </a>
         </Box>
       </Box>
@@ -261,7 +262,7 @@ const ErrorBoundary: React.FC = () => {
           disableRipple
           onClick={() => setShowDetails((prev) => !prev)}
         >
-          {showDetails ? "Hide details ▲" : "Show details ▼"}
+          {showDetails ? t("editor:ui.hideDetails", { defaultValue: "Hide details ▲" }) : t("editor:ui.showDetails", { defaultValue: "Show details ▼" })}
         </EditorButton>
 
         {showDetails && (

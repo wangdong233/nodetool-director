@@ -27,7 +27,8 @@ import {
   useProjects
 } from "../../hooks/useProjects";
 import { useAuth } from "../../stores/useAuth";
-import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
+import { PROJECT_COLOR, PROJECT_GLYPH, personalDisplayName } from "./projectIdentity";
+import { useTranslation } from "react-i18next";
 
 const selectorStyles = (theme: Theme, inline: boolean) =>
   css({
@@ -92,6 +93,7 @@ interface ProjectSelectorProps {
 }
 
 const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
+  const { t } = useTranslation();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
   const [open, setOpen] = useState(false);
@@ -120,13 +122,17 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
     const tab = state.tabs.find((entry) => entry.id === state.activeTabId);
     return tab?.projectId === activeProjectId ? tab.title : undefined;
   });
+  // Personal default swap lives in projectIdentity.personalDisplayName —
+  // the shared guarded mapping (system default → localized label; a renamed
+  // personal project is the user's data and renders verbatim).
   const name =
-    activeProject?.name ??
-    (activeProjectId === personalProjectId
-      ? "Personal"
-      : activeProjectId
-        ? (activeTabTitle ?? "Project")
-        : "Personal");
+    activeProject
+      ? personalDisplayName(activeProject, t)
+      : activeProjectId === personalProjectId
+        ? t("editor:ui.personal", { defaultValue: "Personal" })
+        : activeProjectId
+          ? (activeTabTitle ?? t("editor:ui.project", { defaultValue: "Project" }))
+          : t("editor:ui.personal", { defaultValue: "Personal" });
   const personalProject = projects?.find((project) => project.isPersonal);
   const resolvedPersonalId =
     personalProject?.id ??
@@ -190,7 +196,9 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
         className="selector-button"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={inline ? `Selected project: ${name}` : "Select project"}
+        aria-label={inline
+          ? t("editor:ui.selectedProjectAria", { defaultValue: "Selected project: {{name}}", name })
+          : t("editor:ui.selectProject", { defaultValue: "Select project" })}
         onClick={() => setOpen((value) => !value)}
       >
         <span className="selector-glyph" aria-hidden>
@@ -226,7 +234,7 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
       >
         {!inline && (
           <MenuItemPrimitive
-            label="New project"
+            label={t("editor:ui.newProject", { defaultValue: "New project" })}
             icon={<AddRoundedIcon />}
             onClick={openNewProject}
             color="primary"
@@ -237,13 +245,13 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Search projects"
-          ariaLabel="Search projects"
+          placeholder={t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
+          ariaLabel={t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
           fullWidth
           sx={{ my: SPACING.xs }}
         />
         <MenuItemPrimitive
-          label="Personal"
+          label={t("editor:ui.personal", { defaultValue: "Personal" })}
           className="project-menu-item"
           dense
           selected={
@@ -275,7 +283,7 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
         ))}
         {!isPending && !error && visibleProjects.length === 0 && (
           <Caption sx={{ px: SPACING.md, py: SPACING.sm }}>
-            {needle ? "No matching projects" : "No named projects yet"}
+            {needle ? t("editor:ui.noMatchingProjects", { defaultValue: "No matching projects" }) : t("editor:ui.noNamedProjectsYet", { defaultValue: "No named projects yet" })}
           </Caption>
         )}
       </ContextMenu>

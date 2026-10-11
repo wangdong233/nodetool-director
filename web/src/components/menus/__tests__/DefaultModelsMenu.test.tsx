@@ -1,8 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { ThemeProvider } from "@mui/material/styles";
 import mockTheme from "../../../__mocks__/themeMock";
 import DefaultModelsMenu from "../DefaultModelsMenu";
 import { useModelPreferencesStore } from "../../../stores/ModelPreferencesStore";
+import { changeAppLanguage, resetI18nForTest } from "../../../i18n";
 
 interface StubSelectProps {
   onChange: (value: unknown) => void;
@@ -85,5 +86,21 @@ describe("DefaultModelsMenu", () => {
     expect(
       row?.querySelector("[data-testid='language-model-select']")
     ).toHaveAttribute("data-require-tool-support", "false");
+  });
+
+  it("localizes the section and model-type labels in zh", async () => {
+    useModelPreferencesStore.setState({ defaults: {} });
+    renderMenu();
+    await act(async () => {
+      await changeAppLanguage("zh-CN");
+    });
+    try {
+      expect(screen.getByText("默认模型")).toBeInTheDocument();
+      expect(screen.getByText("语言模型")).toBeInTheDocument();
+      expect(screen.getByText("语音合成模型")).toBeInTheDocument();
+      expect(screen.getByText("代码生成")).toBeInTheDocument();
+    } finally {
+      await resetI18nForTest();
+    }
   });
 });

@@ -13,6 +13,9 @@ import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { useInspectedNodeStore } from "../../stores/InspectedNodeStore";
 import { useNodes } from "../../contexts/NodeContext";
 import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
+import { useTranslation } from "react-i18next";
+import { nodeDocumentation } from "../../i18n/nodeDocs";
+import { useAppLanguage } from "../../i18n";
 
 const PrettyNamespace = memo<{ namespace: string }>(({ namespace }) => {
   const parts = namespace.split(".");
@@ -206,6 +209,8 @@ const styles = (theme: Theme) =>
  */
 const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
   ({ inspectedNodeId }) => {
+  const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const { getNode, setCenter, flowToScreenPosition } = useReactFlow();
   const { x: viewportX, y: viewportY, zoom } = useViewport();
@@ -310,8 +315,12 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
     if (!nodeInfo?.description) {
       return null;
     }
-    return formatNodeDocumentation(nodeInfo.description);
-  }, [nodeInfo?.description]);
+    // nodeDocumentation overlays the zh doc (parser-shaped, r17) at render
+    // time; languageVersion re-resolves on a language switch.
+    return formatNodeDocumentation(
+      nodeDocumentation(nodeInfo.type, nodeInfo.description)
+    );
+  }, [nodeInfo?.description, nodeInfo?.type, languageVersion]);
 
   const handleClose = useCallback(() => {
     setInspectedNodeId(null);
@@ -374,7 +383,7 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
                 {nodeInfo.namespace}
               </Text>
               <Text component="span" sx={{ display: "block" }}>
-                Click to show in NodeMenu
+                {t("editor:ui.clickToShowInNodeMenu")}
               </Text>
             </span>
           }
@@ -422,7 +431,7 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
             )}
             {parsedDescription.useCases.raw && (
               <div className="node-use-cases">
-                <h5>Use cases</h5>
+                <h5>{t("ui2:attrs.useCases", { defaultValue: "Use cases" })}</h5>
                 <ul>
                   {parsedDescription.useCases.raw.split("\n").map((useCase) => (
                     <li key={useCase}>{useCase}</li>
@@ -445,7 +454,7 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
           startIcon={<OpenInNewIcon fontSize="small" />}
           onClick={handleFocusClick}
         >
-          Focus
+          {t("editor:ui.focus")}
         </EditorButton>
       </Box>
     </Box >

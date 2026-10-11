@@ -65,6 +65,7 @@ import {
   writerSignature,
   writerSignaturePatch
 } from "./scriptWriteSignature";
+import { i18n } from "../../i18n";
 
 /** The length a script is written to when no step wrote one. */
 export const DEFAULT_SCRIPT_SECONDS = 60;
@@ -157,7 +158,7 @@ export const useWriteScript = (): UseWriteScriptResult => {
       const store = useScriptStore.getState();
       const script = store.getScript(scriptId);
       if (!script) {
-        setError("This script is not open.");
+        setError(i18n.t("editor:ui.thisScriptIsNotOpen", { defaultValue: "This script is not open." }));
         return false;
       }
       const setup = script.setup ?? null;
@@ -172,7 +173,7 @@ export const useWriteScript = (): UseWriteScriptResult => {
       );
       const brief = setup?.brief.trim() ?? "";
       if (brief === "" && !imported && lineIdsOf(script).length === 0) {
-        setError("Write a brief before writing the script.");
+        setError(i18n.t("editor:ui.writeABriefBeforeWritingTheScript", { defaultValue: "Write a brief before writing the script." }));
         return false;
       }
 
@@ -190,7 +191,7 @@ export const useWriteScript = (): UseWriteScriptResult => {
         ? chosen
         : useGlobalChatStore.getState().selectedModel;
       if (needsModel && !model?.id) {
-        setError("Pick a model before writing the script.");
+        setError(i18n.t("editor:ui.pickAModelBeforeWritingTheScript", { defaultValue: "Pick a model before writing the script." }));
         return false;
       }
 

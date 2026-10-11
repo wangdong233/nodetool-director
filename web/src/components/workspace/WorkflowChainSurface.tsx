@@ -9,6 +9,7 @@ import type { NodeStore } from "../../stores/NodeStore";
 import { graphNodeToReactFlowNode } from "../../stores/graphNodeToReactFlowNode";
 import { graphEdgeToReactFlowEdge } from "../../stores/graphEdgeToReactFlowEdge";
 import type { Node as GraphNode } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 interface WorkflowChainSurfaceProps {
   workflowId: string;
@@ -147,7 +148,7 @@ const WorkflowChainSurface = ({
         type: "error",
         alert: true,
         content:
-          error instanceof Error ? error.message : "Failed to save workflow"
+          error instanceof Error ? error.message : i18n.t("editor:ui.failedToSaveWorkflow", { defaultValue: "Failed to save workflow" })
       });
     }
   }, [

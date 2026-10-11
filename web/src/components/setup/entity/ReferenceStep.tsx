@@ -23,6 +23,8 @@ import {
   TextInput
 } from "../../ui_primitives";
 import { SETUP_CONTENT_WIDTH, SETUP_MEDIA_WIDTH } from "../layout";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ReferenceStepProps {
   readonly name: string;
@@ -63,6 +65,7 @@ const GenerateReferenceDialog = ({
   onClose,
   onPick
 }: GenerateReferenceDialogProps) => {
+  const { t } = useTranslation();
   const rememberedModel = getRememberedModel("image");
   const [prompt, setPrompt] = useState(() =>
     referencePrompt(name, kind, descriptor)
@@ -98,7 +101,7 @@ const GenerateReferenceDialog = ({
         ? answer.asset_ids.find((id): id is string => typeof id === "string")
         : undefined;
       if (!assetId) {
-        throw new Error("The image model returned no reference image.");
+        throw new Error(t("storyboard:attrs.theImageModelReturnedNoReferenceImage", { defaultValue: "The image model returned no reference image." }));
       }
       useLastModelStore.getState().remember("image", { provider, model });
       onPick(assetId);
@@ -107,32 +110,31 @@ const GenerateReferenceDialog = ({
       setError(
         cause instanceof Error
           ? cause.message
-          : "The reference image could not be generated."
+          : i18n.t("storyboard:attrs.theReferenceImageCouldNotBeGenerated", { defaultValue: "The reference image could not be generated." })
       );
     } finally {
       setGenerating(false);
     }
-  }, [model, onClose, onPick, prompt, provider]);
+  }, [model, onClose, onPick, prompt, provider, t]);
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      title="Generate a reference image"
+      title={t("storyboard:attrs.generateAReferenceImage", { defaultValue: "Generate a reference image" })}
       showActions
       onConfirm={() => void handleGenerate()}
-      confirmText={generating ? "Generating" : "Generate reference"}
+      confirmText={generating ? t("storyboard:attrs.generating", { defaultValue: "Generating" }) : t("storyboard:attrs.generateReference", { defaultValue: "Generate reference" })}
       confirmDisabled={generating || !prompt.trim() || !model || !provider}
       cancelDisabled={generating}
       isLoading={generating}
     >
       <FlexColumn gap={GAP.comfortable} sx={{ minWidth: 360 }}>
         <Caption color="secondary">
-          Start with the entity description, then adjust the prompt if you
-          want a different visual interpretation.
+          {t("storyboard:attrs.startWithTheEntityDescriptionThenAdjustThePrompt", { defaultValue: "Start with the entity description, then adjust the prompt if you want a different visual interpretation." })}
         </Caption>
         <TextInput
-          label="Prompt"
+          label={t("storyboard:attrs.prompt", { defaultValue: "Prompt" })}
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
           multiline
@@ -140,8 +142,8 @@ const GenerateReferenceDialog = ({
           autoFocus
         />
         <FormField
-          label="Image model"
-          helperText="Used to create the reference image."
+          label={t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}
+          helperText={t("storyboard:attrs.usedToCreateReferenceImage", { defaultValue: "Used to create the reference image." })}
         >
           <ImageModelSelect
             value={model}
@@ -153,7 +155,7 @@ const GenerateReferenceDialog = ({
         {generating ? (
           <FlexRow gap={GAP.tight} align="center">
             <LoadingSpinner inline size={14} />
-            <Caption>Creating your reference image…</Caption>
+            <Caption>{t("storyboard:attrs.creatingYourReferenceImage", { defaultValue: "Creating your reference image…" })}</Caption>
           </FlexRow>
         ) : null}
       </FlexColumn>
@@ -174,24 +176,22 @@ export const ReferenceStep = ({
   onClosePicker,
   onPick
 }: ReferenceStepProps) => {
+  const { t } = useTranslation();
   const [generatorOpen, setGeneratorOpen] = useState(false);
 
   return (
     <FlexColumn gap={GAP.spacious} sx={{ maxWidth: SETUP_CONTENT_WIDTH }}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h1">
-          Choose a reference image
-        </Text>
+        <Text size="big" component="h1">{t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" })}</Text>
         <Text color="secondary">
-          Pick the clearest image of the traits you want future generations to
-          preserve, or create one with AI.
+          {t("storyboard:attrs.pickTheClearestImageOfTheTraitsYouWantFutureGenerationsToPreserve", { defaultValue: "Pick the clearest image of the traits you want future generations to preserve, or create one with AI." })}
         </Text>
       </FlexColumn>
 
       {assetId ? (
         <ResponsiveImage
           locator={`asset://${assetId}`}
-          alt="Selected entity reference"
+          alt={t("editor:ui.selectedEntityReference")}
           // Stable hook for the reference slot. The rendered <img> is not one:
           // jsdom fetches a src but has no image codec, so it fires `error` for
           // even a valid data: URI and the error fallback replaces the <img>.
@@ -212,20 +212,18 @@ export const ReferenceStep = ({
           disabled={assetsLoading || assetsError}
         >
           {assetsError
-            ? "Assets unavailable"
+            ? t("storyboard:attrs.assetsUnavailable", { defaultValue: "Assets unavailable" })
             : assetsLoading
-              ? "Loading assets"
+              ? t("editor:explorer.loading", { defaultValue: "Loading assets" })
               : assetId
-                ? "Change reference"
-                : "Choose from assets"}
+                ? t("storyboard:attrs.changeReference", { defaultValue: "Change reference" })
+                : t("storyboard:attrs.chooseFromAssets", { defaultValue: "Choose from assets" })}
         </EditorButton>
         <EditorButton
           variant="outlined"
           startIcon={<AutoAwesomeOutlinedIcon />}
           onClick={() => setGeneratorOpen(true)}
-        >
-          Generate with AI
-        </EditorButton>
+        >{t("storyboard:attrs.generateWithAI", { defaultValue: "Generate with AI" })}</EditorButton>
       </FlexRow>
 
       <EntityAssetPickerDialog

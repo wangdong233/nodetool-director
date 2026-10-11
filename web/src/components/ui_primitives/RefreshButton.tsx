@@ -25,6 +25,7 @@ import {
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { MOTION } from "./tokens";
+import { i18n } from "../../i18n";
 
 export interface RefreshButtonProps
   extends Omit<IconButtonProps, "children"> {
@@ -91,7 +92,7 @@ export const RefreshButton = memo(
   forwardRef<HTMLButtonElement, RefreshButtonProps>(
     (
       {
-        tooltip = "Refresh",
+        tooltip = i18n.t("ui:attrs.refresh", { defaultValue: "Refresh" }),
         isLoading = false,
         iconVariant = "refresh",
         tooltipPlacement = "top",

@@ -15,6 +15,7 @@ import React, { useMemo } from "react";
 import { useTheme } from "@mui/material/styles";
 import { Caption, FlexColumn, Surface, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import { Graph } from "../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 
 // Data structure that has graph - can be WorkflowVersion or Workflow
 interface WorkflowWithGraph {
@@ -192,6 +193,7 @@ export const WorkflowMiniPreview: React.FC<WorkflowMiniPreviewProps> = ({
   width = 200,
   height = 120
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   // Keyed on the graph, not the workflow: a list re-fetch hands every row a
@@ -261,7 +263,7 @@ export const WorkflowMiniPreview: React.FC<WorkflowMiniPreviewProps> = ({
               letterSpacing: "0.08em"
             }}
           >
-            Empty workflow
+            {t("editor:ui.emptyWorkflow")}
           </Caption>
         </FlexColumn>
       </Surface>

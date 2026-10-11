@@ -16,6 +16,7 @@ import type { MidiNote } from "@nodetool-ai/timeline";
 
 import { pickPianoRollColors } from "./pianoRollColors";
 import { noteRect, type PianoRollGeometry } from "./pianoRollGeometry";
+import { useTranslation } from "react-i18next";
 
 /** Height of the velocity lane. */
 export const VELOCITY_LANE_HEIGHT_PX = 56;
@@ -62,6 +63,7 @@ export const PianoRollVelocityLane: React.FC<PianoRollVelocityLaneProps> = memo(
     onVelocityChange,
     onGestureEnd
   }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const { mode, systemMode } = useColorScheme();
     const activeMode = (mode === "system" ? systemMode : mode) ?? "dark";
@@ -168,7 +170,7 @@ export const PianoRollVelocityLane: React.FC<PianoRollVelocityLaneProps> = memo(
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        aria-label="Note velocities"
+        aria-label={t("editor:ui.noteVelocities", { defaultValue: "Note velocities" })}
         role="img"
       />
     );

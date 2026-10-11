@@ -5,6 +5,7 @@ import type { Theme } from "@mui/material/styles";
 import { css } from "@emotion/react";
 import { BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import { isValid, parseISO } from "../../utils/dateFormat";
+import { useTranslation } from "react-i18next";
 
 interface CustomDatePickerProps {
   value: string;
@@ -53,6 +54,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   value,
   onChange
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [inputValue, setInputValue] = useState<string>(() =>
     toLocalInputValue(value)
@@ -93,7 +95,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       onChange={handleInputChange}
       onBlur={commit}
       onKeyDown={handleKeyDown}
-      aria-label="Date and time"
+      aria-label={t("editor:ui.dateAndTime", { defaultValue: "Date and time" })}
     />
   );
 };

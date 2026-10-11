@@ -8,6 +8,7 @@ import React, {
   useCallback,
   memo
 } from "react";
+import { appIntlLocale } from "../../../i18n";
 import {
   TabulatorFull as Tabulator,
   ColumnDefinition,
@@ -291,6 +292,9 @@ const DataTable: React.FC<DataTableProps> = ({
     tabulatorDataRef.current = data;
 
     const tabulatorInstance = new Tabulator(tableRef.current, {
+      // Built-in strings (pagination, filters) follow the in-app language
+      // (director/93 R3-2); en stays the Tabulator default.
+      locale: appIntlLocale() === "zh-CN" ? "zh-cn" : "en",
       height: isModalMode ? "100%" : 200,
       data: data,
       columns: buildColumns(),

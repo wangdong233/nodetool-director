@@ -8,6 +8,7 @@ import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 import { TemporalState } from "../stores/temporal";
 import isEqual from "../utils/isEqual";
+import { useTranslation } from "react-i18next";
 
 declare global {
   interface Window {
@@ -42,9 +43,10 @@ interface NodeProviderProps {
 }
 
 export const NodeProvider = ({ createStore, children }: NodeProviderProps) => {
+  const { t } = useTranslation();
   const store = useMemo(() => createStore(), [createStore]);
   if (!store) {
-    return <div>Loading workflow...</div>;
+    return <div>{t("editor:ui.loadingWorkflow", { defaultValue: "Loading workflow…" })}</div>;
   }
   return <NodeContext.Provider value={store}>{children}</NodeContext.Provider>;
 };

@@ -27,6 +27,7 @@ import {
   LoadingSpinner,
   BORDER_RADIUS
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface TextDocumentEditorProps {
   asset: Asset;
@@ -87,6 +88,7 @@ const styles = (theme: Theme) =>
  * toolbar Save button).
  */
 const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const editorStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -252,7 +254,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
           sx={{ alignItems: "center", justifyContent: "center" }}
         >
           <Caption sx={{ color: "error.main" }}>
-            Failed to load text content
+            {t("editor:ui.failedToLoadTextContent")}
           </Caption>
         </FlexColumn>
       );
@@ -279,7 +281,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
             toolbarEnd={
               <>
                 {isDirty && (
-                  <span className="dirty-dot" aria-label="Unsaved changes" />
+                  <span className="dirty-dot" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
                 )}
                 <EditorButton
                   variant="contained"
@@ -288,7 +290,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
                   disabled={!isDirty || isSaving}
                   onClick={handleSave}
                 >
-                  {isSaving ? "Saving…" : "Save"}
+                  {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : t("editor:ui.save", { defaultValue: "Save" })}
                 </EditorButton>
               </>
             }
@@ -328,7 +330,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
           />
           <FlexRow align="center" gap={0.5} sx={{ px: 1 }}>
             {isDirty && (
-              <span className="dirty-dot" aria-label="Unsaved changes" />
+              <span className="dirty-dot" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
             )}
             <EditorButton
               variant="contained"
@@ -337,7 +339,7 @@ const TextDocumentEditor = ({ asset }: TextDocumentEditorProps) => {
               disabled={!isDirty || isSaving}
               onClick={handleSave}
             >
-              {isSaving ? "Saving…" : "Save"}
+              {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : t("editor:ui.save", { defaultValue: "Save" })}
             </EditorButton>
           </FlexRow>
         </FlexRow>

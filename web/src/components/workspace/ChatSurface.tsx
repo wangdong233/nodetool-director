@@ -19,6 +19,8 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import DocumentLoadStatus from "./DocumentLoadStatus";
 import { buildUiContext } from "../../lib/chat/uiContext";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const whenChatStoreHydrated = (): Promise<void> => {
   const persistApi = useGlobalChatStore.persist;
@@ -49,6 +51,7 @@ const NO_MESSAGES: Message[] = [];
  * the focused tab.
  */
 const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
+  const { t } = useTranslation();
   const runtime = useThreadRuntime(refId);
   // Until the thread's messages are in, an empty cache is indistinguishable
   // from an empty conversation, and the tab greets the user with the welcome
@@ -225,11 +228,11 @@ const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
   const noMessagesPlaceholder = useMemo(
     () =>
       loadingThread ? (
-        <DocumentLoadStatus state="loading" label="conversation" />
+        <DocumentLoadStatus state="loading" label={t("ui2:attrs.docConversation", { defaultValue: "conversation" })} />
       ) : (
         <WelcomePlaceholder onSuggestionClick={handleSuggestionClick} />
       ),
-    [loadingThread, handleSuggestionClick]
+    [t, loadingThread, handleSuggestionClick]
   );
 
   const handleNewChat = useCallback(async () => {
@@ -242,7 +245,7 @@ const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
         type: "chat",
         ref: threadId,
         mode: "view",
-        title: "New chat",
+        title: i18n.t("ui2:attrs.newChat", { defaultValue: "New chat" }),
         projectId
       });
     } catch (error) {

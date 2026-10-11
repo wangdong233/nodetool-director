@@ -59,12 +59,14 @@ export interface LeftPanelTopLevelCategory {
 export interface LeftPanelSection {
   readonly id: string;
   readonly label: string;
+  readonly labelKey?: string;
   readonly categories: readonly LeftPanelTopLevelCategory[];
 }
 
 interface NodeSubcategory {
   id: NodeCategoryId;
   label: string;
+  labelKey?: string;
   icon: ReactNode;
   filter: (m: NodeMetadata) => boolean;
 }
@@ -246,6 +248,7 @@ export const LEFT_PANEL_MORE_GROUPS: readonly LeftPanelSection[] = [
   {
     id: "workflow-tools",
     label: "Workflow tools",
+    labelKey: "editor:ui.workflowTools",
     categories: [
       LEFT_PANEL_CATEGORY_BY_ID.favorites,
       LEFT_PANEL_CATEGORY_BY_ID.history,
@@ -255,11 +258,13 @@ export const LEFT_PANEL_MORE_GROUPS: readonly LeftPanelSection[] = [
   {
     id: "agent-tools",
     label: "Agent tools",
+    labelKey: "editor:ui.agentTools",
     categories: [LEFT_PANEL_CATEGORY_BY_ID.skills]
   },
   {
     id: "workspace",
     label: "Workspace",
+    labelKey: "editor:ui.workspace",
     categories: [LEFT_PANEL_CATEGORY_BY_ID["workspace-files"]]
   }
 ];
@@ -298,6 +303,7 @@ export const NODE_SUBCATEGORIES: readonly NodeSubcategory[] = [
   {
     id: "all",
     label: "All",
+    labelKey: "all",
     icon: <AppsIcon />,
     filter: () => true
   },
@@ -312,36 +318,42 @@ export const NODE_SUBCATEGORIES: readonly NodeSubcategory[] = [
   {
     id: "image",
     label: "Image",
+    labelKey: "image",
     icon: <ImageIcon />,
     filter: (m) => isImageOutput(m) && !isAiNode(m)
   },
   {
     id: "image-ai",
     label: "Image AI",
+    labelKey: "imageAi",
     icon: <AutoAwesomeIcon />,
     filter: (m) => isImageOutput(m) && isAiNode(m)
   },
   {
     id: "video",
     label: "Video",
+    labelKey: "video",
     icon: <MovieIcon />,
     filter: (m) => isVideoOutput(m) && !isAiNode(m)
   },
   {
     id: "video-ai",
     label: "Video AI",
+    labelKey: "videoAi",
     icon: <AutoAwesomeIcon />,
     filter: (m) => isVideoOutput(m) && isAiNode(m)
   },
   {
     id: "audio",
     label: "Audio",
+    labelKey: "audio",
     icon: <AudiotrackIcon />,
     filter: (m) => isAudioOutput(m) && !isAiNode(m)
   },
   {
     id: "audio-ai",
     label: "Audio AI",
+    labelKey: "audioAi",
     icon: <AutoAwesomeIcon />,
     filter: (m) => isAudioOutput(m) && isAiNode(m)
   },
@@ -354,12 +366,14 @@ export const NODE_SUBCATEGORIES: readonly NodeSubcategory[] = [
   {
     id: "agents",
     label: "Agents",
+    labelKey: "agents",
     icon: <SmartToyIcon />,
     filter: (m) => /(^|\.)agents\./.test(m.node_type)
   },
   {
     id: "control-flow",
     label: "Control",
+    labelKey: "controlLabel",
     icon: <CallSplitIcon />,
     filter: (m) => m.node_type.startsWith("nodetool.control.")
   }

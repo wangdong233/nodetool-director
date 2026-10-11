@@ -30,6 +30,7 @@ import {
   Text
 } from "../ui_primitives";
 import { trpcClient } from "../../trpc/client";
+import { useTranslation } from "react-i18next";
 
 /** Providers this card can link. Telegram is the only bridge shipping today. */
 const PROVIDER = "telegram" as const;
@@ -52,6 +53,7 @@ function formatLinkedAt(value: string): string {
 }
 
 const ConnectedAccountsSettings = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [pending, setPending] = useState<PendingCode | null>(null);
   const [confirmingDisconnect, setConfirmingDisconnect] = useState(false);
@@ -115,20 +117,28 @@ const ConnectedAccountsSettings = () => {
         {isLoading && (
           <FlexRow align="center" gap={SPACING.md}>
             <LoadingSpinner />
-            <Caption>Loading connected accounts…</Caption>
+            <Caption>{t("editor:ui.loadingConnectedAccounts", { defaultValue: "Loading connected accounts…" })}</Caption>
           </FlexRow>
         )}
 
         {!isLoading && linked && (
           <FlexColumn gap={SPACING.md}>
             <Text size="small">
-              Connected as Telegram account {linked.external_id}
+              {t("editor:ui.connectedAsTelegram", {
+                defaultValue: "Connected as Telegram account {{id}}",
+                id: linked.external_id
+              })}
             </Text>
-            <Caption>Linked {formatLinkedAt(linked.linked_at)}</Caption>
+            <Caption>
+              {t("editor:ui.linkedOn", {
+                defaultValue: "Linked {{date}}",
+                date: formatLinkedAt(linked.linked_at)
+              })}
+            </Caption>
             {confirmingDisconnect ? (
               <FlexRow align="center" gap={SPACING.md}>
                 <Caption>
-                  Disconnect this account? The bot will stop answering it.
+                  {t("editor:ui.disconnectThisAccountTheBotWillStopAnsweringIt")}
                 </Caption>
                 <EditorButton
                   color="error"
@@ -136,13 +146,13 @@ const ConnectedAccountsSettings = () => {
                   disabled={unlink.isPending}
                   onClick={handleDisconnect}
                 >
-                  Disconnect
+                  {t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
                 </EditorButton>
                 <EditorButton
                   variant="text"
                   onClick={() => setConfirmingDisconnect(false)}
                 >
-                  Keep
+                  {t("editor:ui.keep", { defaultValue: "Keep" })}
                 </EditorButton>
               </FlexRow>
             ) : (
@@ -152,13 +162,13 @@ const ConnectedAccountsSettings = () => {
                   startIcon={<LinkOffIcon />}
                   onClick={() => setConfirmingDisconnect(true)}
                 >
-                  Disconnect
+                  {t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
                 </EditorButton>
               </FlexRow>
             )}
             {unlink.isError && (
               <AlertBanner severity="error">
-                Could not disconnect this account. Try again.
+                {t("editor:ui.couldNotDisconnectThisAccountTryAgain")}
               </AlertBanner>
             )}
           </FlexColumn>
@@ -167,8 +177,7 @@ const ConnectedAccountsSettings = () => {
         {!isLoading && !linked && showPending === null && (
           <FlexColumn gap={SPACING.md}>
             <Caption>
-              Link your Telegram account to chat with your NodeTool agent from
-              Telegram. Your threads, assets, and budget stay yours.
+              {t("editor:ui.linkYourTelegramAccountToChatWithYourNodetoolAgentFromTelegramYourThreadsAssetsAndBudgetStayYours")}
             </Caption>
             <FlexRow>
               <EditorButton
@@ -177,12 +186,12 @@ const ConnectedAccountsSettings = () => {
                 disabled={createCode.isPending}
                 onClick={handleConnect}
               >
-                Connect Telegram
+                {t("editor:ui.connectTelegram")}
               </EditorButton>
             </FlexRow>
             {createCode.isError && (
               <AlertBanner severity="error">
-                Could not start linking. Try again.
+                {t("editor:ui.couldNotStartLinkingTryAgain")}
               </AlertBanner>
             )}
           </FlexColumn>
@@ -192,28 +201,31 @@ const ConnectedAccountsSettings = () => {
           <FlexColumn gap={SPACING.md}>
             {showPending.deepLink ? (
               <ExternalLink href={showPending.deepLink}>
-                Open Telegram and press Start
+                {t("editor:ui.openTelegramAndPressStart")}
               </ExternalLink>
             ) : (
               <Caption>
-                This server does not know its bot&apos;s username, so there is
-                no link to open. Send the bot <code>/start {showPending.code}</code>{" "}
-                yourself.
+                {t("editor:ui.noBotUsernameA", {
+                  defaultValue:
+                    "This server does not know its bot's username, so there is no link to open. Send the bot"
+                })}{" "}
+                <code>/start {showPending.code}</code>{" "}
+                {t("editor:ui.noBotUsernameB", { defaultValue: "yourself." })}
               </Caption>
             )}
             <FlexRow align="center" gap={SPACING.md}>
               <Text size="small" family="secondary">
                 {showPending.code}
               </Text>
-              <CopyButton value={showPending.code} tooltip="Copy the link code" />
+              <CopyButton value={showPending.code} tooltip={t("editor:ui.copyTheLinkCode", { defaultValue: "Copy the link code" })} />
             </FlexRow>
             <FlexRow align="center" gap={SPACING.md}>
               <LoadingSpinner />
-              <Caption>Waiting for Telegram to confirm the link…</Caption>
+              <Caption>{t("editor:ui.waitingForTelegramToConfirmTheLink", { defaultValue: "Waiting for Telegram to confirm the link…" })}</Caption>
             </FlexRow>
             <FlexRow>
               <EditorButton variant="text" onClick={handleCancel}>
-                Cancel
+                {t("common:action.cancel", { defaultValue: "Cancel" })}
               </EditorButton>
             </FlexRow>
           </FlexColumn>

@@ -8,7 +8,7 @@
  * @example
  * <ToolbarIconButton
  *   icon={<SaveIcon />}
- *   tooltip="Save"
+ *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
  *   shortcut={["Ctrl", "S"]}
  *   onClick={handleSave}
  * />

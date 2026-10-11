@@ -22,6 +22,7 @@ import WaveformView, { type Selection } from "./WaveformView";
 import AudioEditorToolbar from "./AudioEditorToolbar";
 import { useEditHistory } from "./useEditHistory";
 import { createPlayheadStore, type PlayheadStore } from "./playheadStore";
+import { i18n } from "../../i18n";
 import {
   applyGain,
   audioBufferToSample,
@@ -35,6 +36,7 @@ import {
   silenceRange,
   type AudioSample
 } from "./audioSample";
+import { useTranslation } from "react-i18next";
 
 interface AudioSampleEditorProps {
   asset: Asset;
@@ -102,6 +104,7 @@ const PlaybackClock = memo(function PlaybackClock({
  * per frame.
  */
 const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
+  const { t } = useTranslation();
   const history = useEditHistory<AudioSample>();
   const sample = history.present;
   const sampleRef = useRef<AudioSample | null>(null);
@@ -252,7 +255,7 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
     setError(null);
     const url = resolveMediaUrl(getUrlRef.current);
     if (!url) {
-      setError("This audio asset has no URL to load.");
+      setError(i18n.t("editor:ui.thisAudioAssetHasNoURLToLoad", { defaultValue: "This audio asset has no URL to load." }));
       setLoading(false);
       return;
     }
@@ -412,9 +415,9 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <EmptyState
           variant="error"
-          title="Could not open audio editor"
-          description={error ?? "Audio could not be decoded."}
-          actionText="Done"
+          title={t("editor:ui.couldNotOpenAudioEditor", { defaultValue: "Could not open audio editor" })}
+          description={error ?? t("editor:ui.audioCouldNotBeDecoded", { defaultValue: "Audio could not be decoded." })}
+          actionText={t("ui2:attrs.done", { defaultValue: "Done" })}
           onAction={onClose}
         />
       </FlexColumn>
@@ -484,7 +487,7 @@ const AudioSampleEditor = ({ asset, onClose }: AudioSampleEditorProps) => {
             ? `Selection ${formatTime(selection.start)} – ${formatTime(
                 selection.end
               )} (${formatTime(selection.end - selection.start)})`
-            : "Drag to select · Click to seek"}
+            : t("editor:ui.dragToSelectClickToSeek", { defaultValue: "Drag to select · Click to seek" })}
         </Caption>
         <PlaybackClock playhead={playhead} duration={duration} />
       </FlexRow>

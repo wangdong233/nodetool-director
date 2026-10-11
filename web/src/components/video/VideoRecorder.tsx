@@ -11,8 +11,10 @@ import {
   useVideoRecorder
 } from "../../hooks/browser/useVideoRecorder";
 import Select from "../inputs/Select";
+import { useTranslation } from "react-i18next";
 
 const VideoRecorder = (props: VideoRecorderProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const {
     error,
@@ -172,7 +174,7 @@ const VideoRecorder = (props: VideoRecorderProps) => {
         onClick={toggleDeviceListVisibility}
         variant="text"
         density="compact"
-        aria-label="Toggle device list"
+        aria-label={t("ui2:attrs.toggleDeviceList", { defaultValue: "Toggle device list" })}
       >
         {isDeviceListVisible ? (
           <SettingsInputComponentIcon className="toggle-on" />
@@ -186,7 +188,7 @@ const VideoRecorder = (props: VideoRecorderProps) => {
         <video
           ref={videoRef}
           className="video-preview"
-          aria-label="Camera preview"
+          aria-label={t("ui2:attrs.cameraPreview", { defaultValue: "Camera preview" })}
           autoPlay
           playsInline
           muted
@@ -212,8 +214,8 @@ const VideoRecorder = (props: VideoRecorderProps) => {
                   options={videoDeviceOptions}
                   value={selectedVideoDeviceId}
                   onChange={handleVideoDeviceChange}
-                  placeholder="System default camera"
-                  label="Camera"
+                  placeholder={t("ui2:attrs.systemDefaultCamera", { defaultValue: "System default camera" })}
+                  label={t("ui2:attrs.camera", { defaultValue: "Camera" })}
                   tabIndex={isRecording || isLoading ? -1 : 0}
                 />
               </div>
@@ -233,7 +235,7 @@ const VideoRecorder = (props: VideoRecorderProps) => {
                 left: "0.5em"
               }}
             >
-              No video input devices found.
+              {t("editor:ui.noVideoInputDevicesFound")}
             </Text>
           )}
 
@@ -254,8 +256,8 @@ const VideoRecorder = (props: VideoRecorderProps) => {
                   options={audioDeviceOptions}
                   value={selectedAudioDeviceId}
                   onChange={handleAudioDeviceChange}
-                  placeholder="System default input"
-                  label="Microphone"
+                  placeholder={t("ui2:attrs.systemDefaultInput", { defaultValue: "System default input" })}
+                  label={t("ui2:attrs.microphone", { defaultValue: "Microphone" })}
                   tabIndex={isRecording || isLoading ? -1 : 0}
                 />
               </div>

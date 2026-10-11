@@ -18,6 +18,7 @@ import useMetadataStore from "../../stores/MetadataStore";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import { NamespaceTree } from "../../hooks/useNamespaceTree";
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
+import { useTranslation } from "react-i18next";
 
 interface NamespaceListProps {
   namespaceTree: NamespaceTree;
@@ -319,6 +320,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
   selectedPathString: string;
   minSearchTermLength: number;
 }) {
+  const { t } = useTranslation();
   const openPacksPanel = useOpenPackageManager();
 
   return (
@@ -328,7 +330,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
           <p>
             {selectedPathString ? (
               <>
-                Nothing found in this namespace for
+                {t("editor:ui.nothingFoundInThisNamespaceFor")}
                 <strong className="highlighted-text">
                   {" "}
                   &quot;{searchTerm}&quot;
@@ -336,7 +338,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
               </>
             ) : (
               <>
-                Nothing found for
+                {t("editor:ui.nothingFoundFor")}
                 <strong className="highlighted-text">
                   {" "}
                   &quot;{searchTerm}&quot;
@@ -347,12 +349,13 @@ const NoSelectionContent = memo(function NoSelectionContent({
           <ul className="no-results">
             {selectedPathString && (
               <li>
-                click on <span className="highlighted">highlighted </span>
-                namespaces to find results.
+                {t("editor:ui.clickOn", { defaultValue: "click on " })}
+                <span className="highlighted">{t("editor:ui.highlightedWord", { defaultValue: "highlighted " })}</span>
+                {t("editor:ui.namespacesToFindResults", { defaultValue: "namespaces to find results." })}
               </li>
             )}
-            <li>just start typing to enter a new search term</li>
-            <li>clear search by clicking the clear button</li>
+            <li>{t("editor:ui.justStartTypingToEnterANewSearchTerm", { defaultValue: "just start typing to enter a new search term" })}</li>
+            <li>{t("editor:ui.clearSearchByClickingTheClearButton", { defaultValue: "clear search by clicking the clear button" })}</li>
           </ul>
         </>
       ) : null}
@@ -370,7 +373,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
             padding: getSpacingPx(SPACING.xl)
           }}
         >
-          Install additional node packs
+          {t("editor:ui.installAdditionalNodePacks")}
         </EditorButton>
       </div>
     </div>

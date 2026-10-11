@@ -48,6 +48,7 @@ import {
   type ShotRequestRecord
 } from "../../stores/storyboard/StoryboardGenerationStore";
 import { useGenerateShot } from "../../hooks/storyboard/useGenerateShot";
+import { useTranslation } from "react-i18next";
 
 export interface StoryboardQueueOverlayProps {
   boardId: string;
@@ -199,11 +200,12 @@ const RequestCard = memo(function RequestCard({
   row: JobRow;
   onStopTracking?: (requestId: string) => void;
 }) {
+  const { t } = useTranslation();
   const statusLabel =
     row.status === "stopped"
-      ? "Stopped tracking; provider may still finish and charge"
+      ? t("storyboard:attrs.stoppedTrackingProviderMayStillFinishAndCharge", { defaultValue: "Stopped tracking; provider may still finish and charge" })
       : row.awaitingReview
-        ? "Completed · awaiting review"
+        ? t("storyboard:attrs.completedAwaitingReview", { defaultValue: "Completed · awaiting review" })
         : row.status;
   return (
     <Box sx={cardSx}>
@@ -216,8 +218,8 @@ const RequestCard = memo(function RequestCard({
         {row.status === "running" && onStopTracking && (
           <ToolbarIconButton
             icon={<CloseIcon sx={{ fontSize: "1em" }} />}
-            tooltip="Stop tracking. The provider request may still finish and charge."
-            ariaLabel="Stop tracking render"
+            tooltip={t("storyboard:attrs.stopTrackingTheProviderRequestMayStillFinishAndCharge", { defaultValue: "Stop tracking. The provider request may still finish and charge." })}
+            ariaLabel={t("storyboard:attrs.stopTrackingRender", { defaultValue: "Stop tracking render" })}
             variant="error"
             onClick={() => onStopTracking(row.jobId)}
           />
@@ -275,6 +277,7 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
   readOnly = false,
   onReviewCompleted
 }: StoryboardQueueOverlayProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
 
@@ -386,8 +389,8 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
             </Text>
             <ToolbarIconButton
               icon={<KeyboardArrowUpIcon sx={{ fontSize: "1em" }} />}
-              tooltip="Expand render queue"
-              ariaLabel="Expand render queue"
+              tooltip={t("storyboard:attrs.expandRenderQueue", { defaultValue: "Expand render queue" })}
+              ariaLabel={t("storyboard:attrs.expandRenderQueue", { defaultValue: "Expand render queue" })}
               onClick={() => setExpanded(true)}
             />
           </FlexRow>
@@ -405,9 +408,7 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
         sx={{ px: SPACING.md, py: SPACING.sm, flex: "0 0 auto" }}
       >
         <TheatersIcon sx={{ fontSize: "1em", color: "text.secondary" }} />
-        <Text size="small" sx={{ flex: 1 }}>
-          Render queue
-        </Text>
+        <Text size="small" sx={{ flex: 1 }}>{t("storyboard:attrs.renderQueue", { defaultValue: "Render queue" })}</Text>
         <HeaderCount
           icon={<PlayArrowOutlinedIcon sx={{ fontSize: "1em" }} />}
           count={counts.running}
@@ -415,16 +416,16 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
         {counts.running > 0 && !readOnly && (
           <ToolbarIconButton
             icon={<CloseIcon sx={{ fontSize: "1em" }} />}
-            tooltip="Stop tracking all. Provider requests may still finish and charge."
-            ariaLabel="Stop tracking all renders"
+            tooltip={t("storyboard:attrs.stopTrackingAllProviderRequestsMayStillFinishAndCharge", { defaultValue: "Stop tracking all. Provider requests may still finish and charge." })}
+            ariaLabel={t("storyboard:attrs.stopTrackingAllRenders", { defaultValue: "Stop tracking all renders" })}
             variant="error"
             onClick={handleStopAll}
           />
         )}
         <ToolbarIconButton
           icon={<RemoveIcon sx={{ fontSize: "1em" }} />}
-          tooltip="Collapse render queue"
-          ariaLabel="Collapse render queue"
+          tooltip={t("storyboard:attrs.collapseRenderQueue", { defaultValue: "Collapse render queue" })}
+          ariaLabel={t("storyboard:attrs.collapseRenderQueue", { defaultValue: "Collapse render queue" })}
           onClick={() => setExpanded(false)}
         />
       </FlexRow>
@@ -454,22 +455,16 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
                   requestId: reviewTarget.jobId
                 })
               }
-            >
-              Review completed takes
-            </EditorButton>
+            >{t("storyboard:attrs.reviewCompletedTakes", { defaultValue: "Review completed takes" })}</EditorButton>
           )}
           {counts.stopped > 0 && !readOnly && (
-            <EditorButton variant="outlined" onClick={handleResumeTracking}>
-              Resume tracking
-            </EditorButton>
+            <EditorButton variant="outlined" onClick={handleResumeTracking}>{t("storyboard:attrs.resumeTracking", { defaultValue: "Resume tracking" })}</EditorButton>
           )}
           {counts.running === 0 && !readOnly && (
             <EditorButton
               variant="outlined"
               onClick={() => dismissBatch(batch.id)}
-            >
-              Dismiss receipt
-            </EditorButton>
+            >{t("storyboard:attrs.dismissReceipt", { defaultValue: "Dismiss receipt" })}</EditorButton>
           )}
         </FlexRow>
       </FlexColumn>

@@ -70,6 +70,22 @@ export const GRID_DIVISION_OPTIONS: readonly {
   }))
 ];
 
+/**
+ * The grid select's options with localized Bar/Beat labels. The quantize
+ * fraction labels (1/4, 1/8T…) are musical notation and render verbatim.
+ * The translator is passed in so this module stays free of i18n imports.
+ */
+export const localizedGridDivisionOptions = (
+  t: (key: string, opts?: Record<string, unknown>) => string
+): { value: TempoGridDivision; label: string }[] =>
+  GRID_DIVISION_OPTIONS.map((option) =>
+    option.value === "bar"
+      ? { ...option, label: t("timeline:tools.gridBar", { defaultValue: "Bar" }) }
+      : option.value === "beat"
+        ? { ...option, label: t("timeline:tools.gridBeat", { defaultValue: "Beat" }) }
+        : option
+  );
+
 /** One line the bars ruler draws. A bar line carries the bar number. */
 export interface BarRulerTick {
   timeMs: number;

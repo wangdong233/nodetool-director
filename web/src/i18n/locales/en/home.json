@@ -1,0 +1,92 @@
+{
+  "checklist": {
+    "aria": "Getting started checklist",
+    "title": "Getting started · {{done}}/{{total}}",
+    "connectProvider": "Connect an AI provider",
+    "startGuidedFlow": "Start a guided flow",
+    "describeIdea": "Describe what you want to make",
+    "openExamples": "Open an example or a blank doc",
+    "dismissAria": "Dismiss getting started checklist"
+  },
+  "surface": {
+    "title": "What do you want to make?",
+    "subtitle": "An agent plans the documents and builds them while you watch. Everything it makes stays editable.",
+    "startGuided": "Start with a guided flow",
+    "orDescribe": "Or describe what you want to make",
+    "guidedFlowsLabel": "Guided creation flows",
+    "creating": "Creating your project…",
+    "creatingMeta": "Creating…",
+    "oneFlowStarting": "One flow is already starting."
+  },
+  "entry": {
+    "entity": {
+      "title": "Entity",
+      "desc": "Create a reusable character, place, style, or prop."
+    },
+    "storyboard": {
+      "title": "Storyboard",
+      "desc": "From a sentence to a rendered board in four steps."
+    },
+    "video": {
+      "title": "Video",
+      "desc": "From a sentence to a cut on the timeline, no board."
+    },
+    "script": {
+      "title": "Script",
+      "desc": "From a topic to voiced lines, ready to place."
+    },
+    "image": {
+      "title": "Image",
+      "desc": "From a description to a picked variation in the editor."
+    },
+    "workflow": {
+      "title": "Workflow",
+      "desc": "From a task to a running graph, with the plan reviewed first."
+    },
+    "game": {
+      "title": "Game",
+      "desc": "From a sentence to a running Godot project, assets checked."
+    }
+  },
+  "composer": {
+    "promptLabel": "Chat prompt",
+    "placeholder": "A 30-second launch spot for our desk lamp — warm, minimal, night-time mood. Type / for a skill, @ for an asset or entity. Ctrl+Enter sends to chat.",
+    "refImages": "Ref images · {{count}}",
+    "refImagesAria": "Reference images",
+    "entitiesNone": "Entities · none",
+    "entitiesList": "Entities · {{list}}",
+    "modelName": "Model · {{name}}",
+    "selectModel": "Select a model",
+    "send": "Send to chat",
+    "skillGroup": "Start from a skill",
+    "showFewer": "Show fewer",
+    "moreCount": "{{count}} more",
+    "removeFile": "Remove {{name}}"
+  },
+  "docs": {
+    "title": "Documents · {{count}}",
+    "titleEmpty": "Documents",
+    "empty": "No documents in this project yet.",
+    "previous": "Previous",
+    "next": "Next",
+    "range": "{{first}}–{{last}} of {{total}}",
+    "sectionAria": "Current project documents"
+  },
+  "apps": {
+    "title": "Start from an app",
+    "countOne": "{{count}} app",
+    "countMany": "{{count}} apps",
+    "workflowCountOne": "{{count}} workflow",
+    "workflowCountMany": "{{count}} workflows",
+    "seeAll": "See all apps",
+    "lede": "One upload, a few choices, one result. Adding an app also adds the workflows it runs, so you can open the graph behind any of them.",
+    "addTitle": "Add {{name}} to your apps",
+    "added": "Added \"{{name}}\" to your apps",
+    "addFailed": "Couldn't add {{name}}: {{error}}"
+  },
+  "notices": {
+    "checkingModels": "Still checking your language models. Try again in a moment.",
+    "needModel": "Almost there — chat needs a model to run.",
+    "noModelSelected": "No model selected. Pick a language model here before opening chat."
+  }
+}

@@ -19,6 +19,7 @@ import {
   SPACING
 } from "../../ui_primitives";
 import { usePersistedFold } from "./usePersistedFold";
+import { useTranslation } from "react-i18next";
 import {
   InspectorDivider,
   InspectorRow,
@@ -35,6 +36,7 @@ interface ClipReframeProps {
 }
 
 const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = usePersistedFold("smartReframe");
   const currentTimeMs = useTimelinePlaybackStore(
     (state) => state.currentTimeMs
@@ -107,7 +109,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
       <CollapsibleSection
         title={
           <InspectorSectionTitle
-            title="Smart Reframe"
+            title={t("timeline:attrs.smartReframe", { defaultValue: "Smart Reframe" })}
             icon={<CenterFocusStrongOutlinedIcon />}
           />
         }
@@ -116,9 +118,9 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
         unmountOnExit
       >
         <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-          <InspectorRow label="Subject">
+          <InspectorRow label={t("timeline:attrs.subject", { defaultValue: "Subject" })}>
             <InspectorSelect
-              label="Reframe subject"
+              label={t("timeline:attrs.reframeSubject", { defaultValue: "Reframe subject" })}
               value={subjectValue}
               options={subjectOptions}
               onChange={handleSubject}
@@ -143,7 +145,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
             </Caption>
           )}
           <InspectorSliderRow
-            label="Focus X"
+            label={t("timeline:attrs.focusX", { defaultValue: "Focus X" })}
             value={focusX}
             display={`${Math.round(focusX * 100)}%`}
             min={0}
@@ -152,7 +154,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
             onChange={setFocusX}
           />
           <InspectorSliderRow
-            label="Focus Y"
+            label={t("timeline:attrs.focusY", { defaultValue: "Focus Y" })}
             value={focusY}
             display={`${Math.round(focusY * 100)}%`}
             min={0}
@@ -161,7 +163,7 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
             onChange={setFocusY}
           />
           <InspectorSliderRow
-            label="Zoom"
+            label={t("editor:ui.zoom", { defaultValue: "Zoom" })}
             value={zoom}
             display={`${zoom.toFixed(2)}×`}
             min={1}
@@ -173,18 +175,14 @@ const ClipReframeInternal: React.FC<ClipReframeProps> = ({ clip }) => {
             fullWidth
             variant="contained"
             onClick={handleAddKeyframe}
-          >
-            Add framing keyframe
-          </EditorButton>
+          >{t("timeline:attrs.addFramingKeyframe", { defaultValue: "Add framing keyframe" })}</EditorButton>
           {reframe && (
             <EditorButton
               fullWidth
               variant="outlined"
               color="error"
               onClick={handleClear}
-            >
-              Clear reframe
-            </EditorButton>
+            >{t("timeline:attrs.clearReframe", { defaultValue: "Clear reframe" })}</EditorButton>
           )}
         </FlexColumn>
       </CollapsibleSection>

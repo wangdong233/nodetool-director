@@ -21,6 +21,7 @@ import { QUICK_ACTION_NODE_TYPES } from "../../config/quickActionNodeTypes";
 export type QuickActionDefinition = {
   key: string;
   label: string;
+  labelKey?: string;
   nodeType: string;
   icon: ReactNode;
   gradient: string;
@@ -79,6 +80,23 @@ export const QUICK_ACTION_BUTTONS: QuickActionDefinition[] = [
   buildQuickAction("replicate-dynamic", "Replicate", QUICK_ACTION_AI_NODE_TYPES[16], <ApiIcon />, rgb(59, 130, 246), rgb(129, 140, 248), "#2563eb")
 ];
 
+export const QUICK_ACTION_LABEL_KEYS: Readonly<Record<string, string>> = {
+  "agent": "editor:ui.agent",
+  "code": "editor:ui.code",
+  "text-to-image": "editor:ui.textToImage",
+  "image-to-image": "editor:ui.imageToImage",
+  "upscale": "editor:ui.upscale",
+  "remove-background": "editor:ui.removeBackground",
+  "relight": "editor:ui.relight",
+  "vectorize": "editor:ui.vectorize",
+  "text-to-video": "editor:ui.textToVideo",
+  "image-to-video": "editor:ui.imageToVideo",
+  "video-to-video": "editor:ui.videoToVideo",
+  "lip-sync": "editor:ui.lipSync",
+  "text-to-speech": "editor:ui.textToSpeech",
+  "speech-to-text": "editor:ui.speechToText"
+};
+
 const hexToRgba = (hex: string, alpha: number) => {
   const cleanHex = hex.replace("#", "");
   if (cleanHex.length !== 6) {
@@ -93,11 +111,13 @@ const hexToRgba = (hex: string, alpha: number) => {
 const buildConstantNode = ({
   key,
   label,
+  labelKey,
   nodeType,
   iconType
 }: {
   key: string;
   label: string;
+  labelKey?: string;
   nodeType: string;
   iconType: string;
 }): QuickActionDefinition => {
@@ -105,6 +125,7 @@ const buildConstantNode = ({
   return {
     key,
     label,
+    labelKey,
     nodeType,
     icon: (
       <IconForType
@@ -134,91 +155,92 @@ const buildConstantNode = ({
 export const CONSTANT_NODES: QuickActionDefinition[] = [
   buildConstantNode({
     key: "constant-bool",
-    label: "Bool",
+    label: "Bool", labelKey: "bool",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[0],
     iconType: "bool"
   }),
   buildConstantNode({
     key: "constant-dataframe",
-    label: "Data Frame",
+    label: "Data Frame", labelKey: "dataFrame",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[1],
     iconType: "dataframe"
   }),
   buildConstantNode({
     key: "constant-date",
-    label: "Date",
+    label: "Date", labelKey: "date",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[2],
     iconType: "date"
   }),
   buildConstantNode({
     key: "constant-datetime",
-    label: "Date Time",
+    label: "Date Time", labelKey: "dateTime",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[3],
     iconType: "datetime"
   }),
   buildConstantNode({
     key: "constant-dict",
-    label: "Dict",
+    label: "Dict", labelKey: "dict",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[4],
     iconType: "dict"
   }),
   buildConstantNode({
     key: "constant-audio",
     label: "Audio",
+    labelKey: "audio",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[5],
     iconType: "audio"
   }),
   buildConstantNode({
     key: "constant-document",
-    label: "Document",
+    label: "Document", labelKey: "document",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[6],
     iconType: "document"
   }),
   buildConstantNode({
     key: "constant-float",
-    label: "Float",
+    label: "Float", labelKey: "float",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[7],
     iconType: "float"
   }),
   buildConstantNode({
     key: "constant-image",
-    label: "Image",
+    label: "Image", labelKey: "image",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[8],
     iconType: "image"
   }),
   buildConstantNode({
     key: "constant-integer",
-    label: "Integer",
+    label: "Integer", labelKey: "integer",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[9],
     iconType: "int"
   }),
   buildConstantNode({
     key: "constant-json",
-    label: "JSON",
+    label: "JSON", labelKey: "json",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[10],
     iconType: "json"
   }),
   buildConstantNode({
     key: "constant-list",
-    label: "List",
+    label: "List", labelKey: "list",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[11],
     iconType: "list"
   }),
   buildConstantNode({
     key: "constant-model-3d",
-    label: "Model 3D",
+    label: "Model 3D", labelKey: "model3D",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[12],
     iconType: "model_3d"
   }),
   buildConstantNode({
     key: "constant-string",
-    label: "String",
+    label: "String", labelKey: "string",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[13],
     iconType: "str"
   }),
   buildConstantNode({
     key: "constant-video",
-    label: "Video",
+    label: "Video", labelKey: "video",
     nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[14],
     iconType: "video"
   })

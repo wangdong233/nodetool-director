@@ -52,6 +52,7 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import CloseIcon from "@mui/icons-material/Close";
 import { cn, reactFlowClasses } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 // Lighting presets (must match drei Environment preset types)
 type LightingPreset =
@@ -66,17 +67,17 @@ type LightingPreset =
   | "night"
   | "park";
 
-const LIGHTING_PRESETS: { value: LightingPreset; label: string }[] = [
-  { value: "studio", label: "Studio" },
-  { value: "dawn", label: "Dawn" },
-  { value: "warehouse", label: "Warehouse" },
-  { value: "city", label: "City" },
-  { value: "sunset", label: "Sunset" },
-  { value: "forest", label: "Forest" },
-  { value: "park", label: "Park" },
-  { value: "apartment", label: "Apartment" },
-  { value: "lobby", label: "Lobby" },
-  { value: "night", label: "Night" }
+const LIGHTING_PRESETS: { value: LightingPreset; label: string; labelKey?: string; }[] = [
+  { value: "studio", label: "Studio", labelKey: "studio" },
+  { value: "dawn", label: "Dawn", labelKey: "dawn" },
+  { value: "warehouse", label: "Warehouse", labelKey: "warehouse" },
+  { value: "city", label: "City", labelKey: "city" },
+  { value: "sunset", label: "Sunset", labelKey: "sunset" },
+  { value: "forest", label: "Forest", labelKey: "forest" },
+  { value: "park", label: "Park", labelKey: "park" },
+  { value: "apartment", label: "Apartment", labelKey: "apartment" },
+  { value: "lobby", label: "Lobby", labelKey: "lobby" },
+  { value: "night", label: "Night", labelKey: "night" }
 ];
 
 type BackgroundColor =
@@ -89,13 +90,14 @@ type BackgroundColor =
 const BACKGROUND_COLORS: {
   value: BackgroundColor;
   label: string;
+  labelKey?: string;
   color: string;
 }[] = [
-  { value: "dark", label: "Dark", color: "#1a1a1a" },
-  { value: "light", label: "Light", color: "#f5f5f5" },
-  { value: "neutral", label: "Neutral", color: "#404040" },
-  { value: "transparent", label: "Transparent", color: "transparent" },
-  { value: "gradient", label: "Gradient", color: "#2a2a3a" }
+  { value: "dark", label: "Dark", labelKey: "dark", color: "#1a1a1a" },
+  { value: "light", label: "Light", labelKey: "light", color: "#f5f5f5" },
+  { value: "neutral", label: "Neutral", labelKey: "neutral", color: "#404040" },
+  { value: "transparent", label: "Transparent", labelKey: "transparent", color: "transparent" },
+  { value: "gradient", label: "Gradient", labelKey: "gradient", color: "#2a2a3a" }
 ];
 
 interface Model3DViewerProps {
@@ -488,6 +490,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
   onClick,
   onDoubleClick
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -638,7 +641,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
         fullWidth
       >
         <Text size="small" color="secondary">
-          No 3D model loaded
+          {t("editor:ui.no3DModelLoaded")}
         </Text>
       </FlexColumn>
     );
@@ -764,7 +767,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
         {isFullscreen && (
           <ToolbarIconButton
             icon={<CloseIcon />}
-            tooltip="Exit Fullscreen (Esc)"
+            tooltip={t("ui2:attrs.exitFullscreenEsc", { defaultValue: "Exit Fullscreen (Esc)" })}
             className="fullscreen-close-button"
             onClick={exitFullscreen}
             size="medium"
@@ -775,7 +778,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
           <FlexRow className="controls-toolbar" gap={SPACING.micro} align="center">
             <ToolbarIconButton
               icon={<GridOnIcon fontSize="small" />}
-              tooltip="Toggle Grid"
+              tooltip={t("ui2:attrs.toggleGrid", { defaultValue: "Toggle Grid" })}
               onClick={handleToggleGrid}
               active={showGrid}
               size="small"
@@ -783,7 +786,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
 
             <ToolbarIconButton
               icon={<ViewInArIcon fontSize="small" />}
-              tooltip="Toggle Axes"
+              tooltip={t("ui2:attrs.toggleAxes", { defaultValue: "Toggle Axes" })}
               onClick={handleToggleAxes}
               active={showAxes}
               size="small"
@@ -799,7 +802,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
                 Solid
               </ToggleOption>
               <ToggleOption value="wireframe" size="small">
-                Wire
+                {t("editor:ui.wire")}
               </ToggleOption>
             </ToggleGroup>
 
@@ -808,12 +811,12 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
                 value={lightingPreset}
                 onChange={handleLightingChange}
                 variant="outlined"
-                aria-label="Lighting preset"
+                aria-label={t("ui2:attrs.lightingPreset", { defaultValue: "Lighting preset" })}
                 IconComponent={LightModeIcon}
               >
                 {LIGHTING_PRESETS.map((preset) => (
                   <MenuItem key={preset.value} value={preset.value}>
-                    {preset.label}
+                    {t(`editor:ui.${"labelKey" in preset ? preset.labelKey : ""}`, { defaultValue: preset.label })}
                   </MenuItem>
                 ))}
               </Select>
@@ -824,11 +827,11 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
                 value={backgroundColor}
                 onChange={handleBackgroundChange}
                 variant="outlined"
-                aria-label="Background color"
+                aria-label={t("ui2:attrs.backgroundColor", { defaultValue: "Background color" })}
               >
                 {BACKGROUND_COLORS.map((bg) => (
                   <MenuItem key={bg.value} value={bg.value}>
-                    {bg.label}
+                    {t(`editor:ui.${"labelKey" in bg ? bg.labelKey : ""}`, { defaultValue: bg.label })}
                   </MenuItem>
                 ))}
               </Select>
@@ -836,14 +839,14 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
 
             <ToolbarIconButton
               icon={<RestartAltIcon fontSize="small" />}
-              tooltip="Reset Camera"
+              tooltip={t("ui2:attrs.resetCamera", { defaultValue: "Reset Camera" })}
               onClick={handleResetCamera}
               size="small"
             />
 
             <ToolbarIconButton
               icon={<CameraAltIcon fontSize="small" />}
-              tooltip="Take Screenshot"
+              tooltip={t("ui2:attrs.takeScreenshot", { defaultValue: "Take Screenshot" })}
               onClick={handleScreenshot}
               size="small"
             />
@@ -856,7 +859,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
                   <FullscreenIcon fontSize="small" />
                 )
               }
-              tooltip={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+              tooltip={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
               onClick={toggleFullscreen}
               size="small"
             />

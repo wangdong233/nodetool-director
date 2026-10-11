@@ -14,6 +14,7 @@ import { globalWebSocketManager } from "./websocket/GlobalWebSocketManager";
 import { watchGeneration } from "./websocket/generationWatch";
 import { lookupGenerations } from "./websocket/lookupGenerations";
 import { randomRequestId } from "./websocket/rpcRequest";
+import { i18n } from "../i18n";
 
 type TimelineHandle = Pick<TimelineStoreApi, "getState" | "setState">;
 type ExtensionInput = Omit<
@@ -122,7 +123,7 @@ export async function submitTimelineExtension(
       if (asset) {
         resolve(asset);
       } else {
-        reject(new Error(error ?? "Extension generation failed."));
+        reject(new Error(error ?? i18n.t("editor:ui.extensionGenerationFailed", { defaultValue: "Extension generation failed." })));
       }
     };
     unsubscribe = globalWebSocketManager.subscribe(

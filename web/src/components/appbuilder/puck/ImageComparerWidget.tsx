@@ -35,6 +35,7 @@ import {
   useBindingValue
 } from "../runtime/AppRuntimeContext";
 import { useWidgetRuntime } from "./useWidgetRuntime";
+import { tAttr } from "../i18nAttrs";
 
 export interface ImageComparerWidgetProps {
   id: string;
@@ -145,8 +146,8 @@ export const ImageComparerWidget: React.FC<ImageComparerWidgetProps> = ({
         <ImageComparer
           imageA={before}
           imageB={after}
-          labelA="Before"
-          labelB="After"
+          labelA={tAttr("Before")}
+          labelB={tAttr("After")}
         />
       </Box>
     );
@@ -171,8 +172,8 @@ export const ImageComparerWidget: React.FC<ImageComparerWidgetProps> = ({
       height={boxHeight}
       text={
         designMode
-          ? "Bind two image outputs to compare them."
-          : (placeholder ?? "Nothing to compare yet")
+          ? tAttr("Bind two image outputs to compare them.")
+          : tAttr(placeholder ?? "Nothing to compare yet")
       }
     />
   );

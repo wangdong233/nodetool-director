@@ -6,6 +6,7 @@ import { useTheme } from "@mui/material/styles";
 import { memo } from "react";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import { MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 import type { Tutorial } from "./tutorialsData";
 
 const styles = (
@@ -159,13 +160,17 @@ const TutorialCardInner: React.FC<TutorialCardProps> = ({
   compact = false,
   onClick
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <button
       type="button"
       css={styles(theme, tutorial.accent, active, compact)}
       onClick={() => onClick(tutorial.id)}
-      aria-label={`Play tutorial: ${tutorial.title}`}
+      aria-label={t("tools:tutorials.playTutorialAria", {
+        defaultValue: "Play tutorial: {{title}}",
+        title: t(`tools:tutorials.${tutorial.id}.title`, { defaultValue: tutorial.title })
+      })}
       aria-pressed={active}
     >
       <span className="thumb">
@@ -179,13 +184,13 @@ const TutorialCardInner: React.FC<TutorialCardProps> = ({
       </span>
       <span className="body">
         <span className="meta">
-          <span className="level">{tutorial.level}</span>
+          <span className="level">{t(`tools:tutorials.level.${tutorial.level}`, { defaultValue: tutorial.level })}</span>
           {compact && (
             <span className="duration-inline">{tutorial.durationLabel}</span>
           )}
         </span>
-        <h3 className="title">{tutorial.title}</h3>
-        <p className="tagline">{tutorial.tagline}</p>
+        <h3 className="title">{t(`tools:tutorials.${tutorial.id}.title`, { defaultValue: tutorial.title })}</h3>
+        <p className="tagline">{t(`tools:tutorials.${tutorial.id}.tagline`, { defaultValue: tutorial.tagline })}</p>
       </span>
     </button>
   );

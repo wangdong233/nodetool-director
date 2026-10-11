@@ -5,6 +5,7 @@ import type { ImageModel, UnifiedModel } from "../../stores/ApiTypes";
 import { useTransformersJsModelMenuStore } from "../../stores/ModelMenuStore";
 import { useTransformersJsModelsByType } from "../../hooks/useModelsByProvider";
 import { trpc } from "../../lib/trpc";
+import { useTranslation } from "react-i18next";
 
 interface TransformersJsModelMenuDialogProps {
   open: boolean;
@@ -21,6 +22,7 @@ function TransformersJsModelMenuDialog({
   modelType,
   anchorEl
 }: TransformersJsModelMenuDialogProps) {
+  const { t } = useTranslation();
   const { models, isLoading, isFetching, error, refetch } =
     useTransformersJsModelsByType({ modelType });
 
@@ -64,7 +66,7 @@ function TransformersJsModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select Transformers.js Model"
+      title={t("editor:ui.selectTransformersjsModel", { defaultValue: "Select Transformers.js Model" })}
       searchPlaceholder="Search Transformers.js models..."
       storeHook={useTransformersJsModelMenuStore}
       recommendedModels={recommendedModels}

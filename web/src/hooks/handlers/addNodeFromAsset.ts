@@ -11,6 +11,7 @@ import useMetadataStore from "../../stores/MetadataStore";
 import { useNodes } from "../../contexts/NodeContext";
 import { shallow } from "zustand/shallow";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
+import { i18n } from "../../i18n";
 export const useAddNodeFromAsset = () => {
   const { addNode, createNode } = useNodes((state) => ({
     addNode: state.addNode,
@@ -73,7 +74,7 @@ export const useAddNodeFromAsset = () => {
         addNotification({
           type: "warning",
           alert: true,
-          content: "Unsupported file type: " + asset.content_type
+          content: i18n.t("editor:ui.unsupportedFileType", { defaultValue: "Unsupported file type: " }) + asset.content_type
         });
         return;
       }

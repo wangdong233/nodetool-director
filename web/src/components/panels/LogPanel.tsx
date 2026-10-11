@@ -25,6 +25,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import PanelToolbar from "./PanelToolbar";
+import { useTranslation } from "react-i18next";
 
 type Row = LogRow & { workflowId: string; workflowName: string; key: string };
 
@@ -58,6 +59,7 @@ const SEVERITY_LABELS = {
 } satisfies Record<Severity, string>;
 
 const LogPanel: React.FC = memo(function LogPanel() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
   const rootStyles = useMemo(() => containerStyles(theme), [theme]);
@@ -194,7 +196,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
       className={isFullscreen ? "fullscreen" : undefined}
     >
       <PanelToolbar
-        title="Logs"
+        title={t("editor:bottom.logs", { defaultValue: "Logs" })}
         count={filteredRows.length}
         actions={
           <ToolbarIconButton
@@ -205,9 +207,9 @@ const LogPanel: React.FC = memo(function LogPanel() {
                 <FullscreenIcon fontSize="small" />
               )
             }
-            tooltip={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+            tooltip={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
             onClick={handleFullscreenToggle}
-            ariaLabel="Toggle fullscreen"
+            ariaLabel={t("editor:ui.toggleFullscreen", { defaultValue: "Toggle fullscreen" })}
           />
         }
       >
@@ -215,7 +217,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
           value={selectedSeverities}
           onChange={handleSeverityChange}
           compact
-          aria-label="Filter by severity"
+          aria-label={t("editor:ui.filterBySeverity", { defaultValue: "Filter by severity" })}
         >
           {SEVERITIES.map((s) => (
             <ToggleOption key={s} value={s} aria-label={s}>

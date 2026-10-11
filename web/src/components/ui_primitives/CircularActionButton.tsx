@@ -10,7 +10,7 @@
  * <CircularActionButton
  *   icon={<PlayArrowIcon />}
  *   onClick={handleRun}
- *   tooltip="Run workflow"
+ *   tooltip={i18n.t("appbuilder:attrs.runWorkflow", { defaultValue: "Run workflow" })}
  * />
  *
  * @example
@@ -18,7 +18,7 @@
  * <CircularActionButton
  *   icon={<SaveIcon />}
  *   onClick={handleSave}
- *   tooltip="Save"
+ *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
  *   isLoading={isSaving}
  * />
  *

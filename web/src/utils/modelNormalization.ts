@@ -9,6 +9,7 @@ import type {
 import type { TypeTag, SizeBucket } from "../stores/ModelFiltersStore";
 import type { ModelExecutionAvailability } from "@nodetool-ai/protocol";
 import { isLocalhost } from "../lib/env";
+import { i18n } from "../i18n";
 
 export type ModelSelectorModel = (
   | LanguageModel
@@ -35,15 +36,25 @@ export function executionForDisplay(
     execution.execution_site !== "nodetool_host" ||
     !nodetoolHostIsLocal
   ) {
-    return execution;
+    // Resolve the fallback label at call time so zh lands (module const stays pure data).
+    return execution === UNKNOWN_MODEL_EXECUTION
+      ? {
+          ...execution,
+          label: i18n.t("appbuilder:attrs.unavailable", {
+            defaultValue: execution.label
+          }) as ModelExecutionAvailability["label"]
+        }
+      : execution;
   }
   return {
     ...execution,
     kind: "local",
-    label: "Local",
+    label: i18n.t("ui2:attrs.local", {
+      defaultValue: "Local"
+    }) as ModelExecutionAvailability["label"],
     reason:
       execution.state === "download_required"
-        ? "Download the model files before using it locally."
+        ? i18n.t("editor:ui.downloadTheModelFilesBeforeUsingItLocally", { defaultValue: "Download the model files before using it locally." })
         : execution.runtime_name
           ? `Runs through ${execution.runtime_name} on this device.`
           : "Runs on this device."

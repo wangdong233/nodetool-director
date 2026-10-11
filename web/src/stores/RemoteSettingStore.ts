@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { trpcClient } from "../trpc/client";
 import { createErrorMessage } from "../utils/errorHandling";
 import type { SettingWithValue } from "./ApiTypes";
+import { i18n } from "../i18n";
 
 export type { SettingWithValue };
 
@@ -50,7 +51,7 @@ const useRemoteSettingsStore = create<RemoteSettingsStore>((set, get) => ({
       return settings;
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
-      const message = createErrorMessage(error, "Failed to load settings");
+      const message = createErrorMessage(error, i18n.t("editor:ui.failedToLoadSettings", { defaultValue: "Failed to load settings" }));
       set({ isLoading: false, error: message.message });
       throw message;
     }

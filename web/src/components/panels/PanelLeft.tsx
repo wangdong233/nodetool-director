@@ -96,6 +96,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CodeIcon from "@mui/icons-material/Code";
 
 import Fullscreen from "@mui/icons-material/Fullscreen";
+import { useTranslation } from "react-i18next";
 
 const HEADER_HEIGHT = 77;
 const HEADER_HEIGHT_MOBILE = 40;
@@ -281,6 +282,7 @@ const VerticalToolbar = memo(function VerticalToolbar({
   /** Projects open as tabs, so the entry only exists in the workspace shell. */
   showProjects?: boolean;
 }) {
+  const { t } = useTranslation();
   const panelVisible = usePanelStore((state) => state.panel.isVisible);
 
   // Sidebar shows the view as "active" only when the panel is open and
@@ -298,10 +300,10 @@ const VerticalToolbar = memo(function VerticalToolbar({
       />
       <Divider className="toolbar-divider" sx={{ mx: SPACING.lg }} />
       <ThemeToggle />
-      <Tooltip title="Toggle Panel" placement="right-start">
+      <Tooltip title={t("editor:ui.togglePanel", { defaultValue: "Toggle Panel" })} placement="right-start">
         <ToolbarIconButton
           tabIndex={-1}
-          ariaLabel="Toggle panel"
+          ariaLabel={t("editor:ui.togglePanel", { defaultValue: "Toggle panel" })}
           onClick={handlePanelToggle}
           icon={<CodeIcon />}
         />
@@ -327,6 +329,7 @@ const PanelContent = memo(function PanelContent({
   readonly hiddenViews: readonly LeftPanelView[];
   readonly isMobile?: boolean;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const path = useLocation().pathname;
   const currentWorkflow = useWorkflowManager((state) =>
@@ -403,7 +406,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Recent Nodes"
+              title={t("editor:ui.recentNodes", { defaultValue: "Recent Nodes" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
             />
@@ -422,7 +425,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Favorite Nodes"
+              title={t("editor:ui.favoriteNodes", { defaultValue: "Favorite Nodes" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
             />
@@ -443,17 +446,17 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Library"
+              title={t("editor:ui.library", { defaultValue: "Library" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={
-                <Tooltip title="Open in full page" placement="right-start">
+                <Tooltip title={t("editor:ui.openInFullPage", { defaultValue: "Open in full page" })} placement="right-start">
                   <ToolbarIconButton
                     className={`${path === "/assets" ? "active" : ""}`}
                     onClick={handleFullscreenClick}
                     tabIndex={-1}
                     icon={<Fullscreen />}
-                    ariaLabel="Open library in full page"
+                    ariaLabel={t("editor:ui.openLibraryInFullPage", { defaultValue: "Open library in full page" })}
                   />
                 </Tooltip>
               }
@@ -487,7 +490,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Workflows"
+              title={t("editor:ui.workflows", { defaultValue: "Workflows" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={<CreateWorkflowButton projectId={projectId} />}
@@ -509,7 +512,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Chats"
+              title={t("nav:tabs.chats", { defaultValue: "Chats" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
             />
@@ -528,7 +531,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Sketches"
+              title={t("editor:ui.sketches", { defaultValue: "Sketches" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={<CreateSketchButton />}
@@ -548,7 +551,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Timelines"
+              title={t("editor:ui.timelines", { defaultValue: "Timelines" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={<CreateTimelineButton />}
@@ -568,7 +571,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Storyboards"
+              title={t("editor:ui.storyboards", { defaultValue: "Storyboards" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={<CreateStoryboardButton />}
@@ -588,17 +591,17 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Entities"
+              title={t("editor:ui.entities", { defaultValue: "Entities" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={
                 <>
-                  <Tooltip title="Open in full page" placement="right-start">
+                  <Tooltip title={t("editor:ui.openInFullPage", { defaultValue: "Open in full page" })} placement="right-start">
                     <ToolbarIconButton
                       onClick={handleEntitiesFullscreenClick}
                       tabIndex={-1}
                       icon={<Fullscreen />}
-                      ariaLabel="Open entities in full page"
+                      ariaLabel={t("editor:ui.openEntitiesInFullPage", { defaultValue: "Open entities in full page" })}
                     />
                   </Tooltip>
                   <CreateEntityButton projectId={projectId} />
@@ -620,7 +623,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Scripts"
+              title={t("editor:ui.scripts", { defaultValue: "Scripts" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={<CreateScriptButton />}
@@ -640,7 +643,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="JS Scripts"
+              title={t("nav:qa.jsscripts.label", { defaultValue: "JS Scripts" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={<CreateJsScriptButton />}
@@ -660,7 +663,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Skills"
+              title={t("editor:ui.skills", { defaultValue: "Skills" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
             />
@@ -679,7 +682,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Apps"
+              title={t("nav:qa.apps.label", { defaultValue: "Apps" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={
@@ -704,7 +707,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeadline
-              title="Workflow Settings"
+              title={t("editor:ui.workflowSettings", { defaultValue: "Workflow Settings" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
             />
@@ -888,6 +891,7 @@ const MobilePanelLeft: React.FC<{
   hideLauncher = false,
   showProjects = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const handleSheetViewChange = useCallback(
@@ -908,7 +912,7 @@ const MobilePanelLeft: React.FC<{
             className={`panel-left-mobile-launcher ${isVisible ? "active" : ""}`}
             css={mobileLauncherStyles(theme)}
             onClick={isVisible ? onClose : onOpen}
-            ariaLabel={isVisible ? "Close panel" : "Open left panel"}
+            ariaLabel={isVisible ? t("editor:ui.closePanel", { defaultValue: "Close panel" }) : t("editor:ui.openLeftPanel", { defaultValue: "Open left panel" })}
             aria-expanded={isVisible}
             tabIndex={-1}
             icon={<MenuIcon />}
@@ -920,7 +924,7 @@ const MobilePanelLeft: React.FC<{
         open={isVisible}
         onClose={onClose}
         title={launcherTitle}
-        ariaLabel="Project navigation panel"
+        ariaLabel={t("editor:ui.projectNavigationPanel", { defaultValue: "Project navigation panel" })}
         headerExtras={
           <div css={mobileHeaderExtrasStyles(theme)}>
             <FlexRow className="mobile-tab-group" gap={SPACING.xs}>
@@ -980,6 +984,7 @@ const MobilePanelLeft: React.FC<{
 MobilePanelLeft.displayName = "MobilePanelLeft";
 
 const PanelLeft: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const location = useLocation();
@@ -1123,7 +1128,7 @@ const PanelLeft: React.FC = () => {
           ref={panelRef}
           className={`drawer-content ${isDragging ? "dragging" : ""}`}
           role="region"
-          aria-label="Left panel"
+          aria-label={t("editor:ui.leftPanel", { defaultValue: "Left panel" })}
           aria-hidden={!isVisible}
           style={{
             width: `${Math.max(
@@ -1156,7 +1161,7 @@ const PanelLeft: React.FC = () => {
             className="panel-resize-handle"
             onMouseDown={handleMouseDown}
             role="slider"
-            aria-label="Resize panel"
+            aria-label={t("editor:ui.resizePanel", { defaultValue: "Resize panel" })}
             aria-valuenow={panelSize}
             aria-valuemin={60}
             aria-valuemax={800}

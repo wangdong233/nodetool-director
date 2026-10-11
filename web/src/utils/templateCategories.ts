@@ -1,6 +1,7 @@
 import { Workflow } from "../stores/ApiTypes";
 
 interface TemplateCategory {
+  labelKey?: string;
   id: string;
   label: string;
   tags: string[];
@@ -12,24 +13,27 @@ interface TemplateCategory {
 // priority order for resolving a single category from a workflow's tags.
 // Each category aggregates the listed raw tags from workflow metadata.
 export const TOP_CATEGORIES: TemplateCategory[] = [
-  { id: "image", label: "Image", tags: ["image", "design"], color: "#8b8ce8" },
-  { id: "video", label: "Video", tags: ["video", "youtube"], color: "#E879F9" },
-  { id: "audio", label: "Audio", tags: ["audio"], color: "#FFB86C" },
+  { id: "image", label: "Image", labelKey: "editor:ui.image", tags: ["image", "design"], color: "#8b8ce8" },
+  { id: "video", label: "Video", labelKey: "editor:ui.video", tags: ["video", "youtube"], color: "#E879F9" },
+  { id: "audio", label: "Audio", labelKey: "editor:ui.audio", tags: ["audio"], color: "#FFB86C" },
   {
     id: "multimodal",
     label: "Multimodal",
+    labelKey: "editor:ui.multimodal",
     tags: ["multimodal"],
     color: "#22D3EE"
   },
   {
     id: "agents",
     label: "Agents",
+    labelKey: "editor:ui.agents",
     tags: ["agent", "agents", "ai", "claude", "huggingface"],
     color: "#3d68a8"
   },
   {
     id: "data-web",
     label: "Data & Web",
+    labelKey: "editor:ui.dataWeb",
     tags: [
       "data",
       "web",

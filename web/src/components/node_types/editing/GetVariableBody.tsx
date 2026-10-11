@@ -30,6 +30,7 @@ import {
 import { ANY_TYPE } from "./variableGraph";
 import { GET_VARIABLE_NODE_TYPE } from "../../../constants/nodeTypes";
 import { isString } from "../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -86,6 +87,7 @@ const GetVariableBodyInner: React.FC<GetVariableBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -162,7 +164,7 @@ const GetVariableBodyInner: React.FC<GetVariableBodyProps> = ({
       {options.length > 0 ? (
         <div className="picker">
           <SelectField
-            label="Variable"
+            label={t("editor:ui.variable", { defaultValue: "Variable" })}
             value={currentName}
             onChange={handleChange}
             options={options}

@@ -24,6 +24,7 @@ import {
 } from "../ui_primitives";
 import MonacoPane from "./MonacoPane";
 import SvgPreview from "./SvgPreview";
+import { useTranslation } from "react-i18next";
 
 const SVG_CONTENT_TYPE = "image/svg+xml";
 
@@ -85,6 +86,7 @@ const styles = (theme: Theme) =>
  * renders to. Saving writes the markup back to the asset.
  */
 const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const surfaceStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -183,7 +185,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <Text size="normal" weight={600}>
-          {error ? "Failed to load SVG" : "SVG not found"}
+          {error ? t("editor:ui.failedToLoadSVG", { defaultValue: "Failed to load SVG" }) : t("editor:ui.svgNotFound", { defaultValue: "SVG not found" })}
         </Text>
       </FlexColumn>
     );
@@ -193,7 +195,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <Caption sx={{ color: "error.main" }}>
-          Failed to load SVG content
+          {t("editor:ui.failedToLoadSVGContent")}
         </Caption>
       </FlexColumn>
     );
@@ -217,7 +219,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
         <Caption>{asset.name}</Caption>
         <FlexRow align="center" gap={0.5}>
           {isDirty && (
-            <span className="dirty-dot" aria-label="Unsaved changes" />
+            <span className="dirty-dot" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
           )}
           <EditorButton
             variant="contained"
@@ -226,7 +228,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
             disabled={!isDirty || isSaving}
             onClick={handleSave}
           >
-            {isSaving ? "Saving…" : "Save"}
+            {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : t("editor:ui.save", { defaultValue: "Save" })}
           </EditorButton>
         </FlexRow>
       </FlexRow>

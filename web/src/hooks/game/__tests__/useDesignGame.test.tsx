@@ -34,6 +34,7 @@ jest.mock("../../../contexts/WorkflowManagerContext", () => ({
 
 import { readGameSetup } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 import { hasPinnedDesign, useDesignGame } from "../useDesignGame";
+import { changeAppLanguage } from "../../../i18n";
 
 const CHIP = GAME_INSPIRATION_CHIPS[0];
 
@@ -166,5 +167,14 @@ describe("hasPinnedDesign", () => {
     expect(hasPinnedDesign(CHIP.brief, CHIP.template)).toBe(true);
     expect(hasPinnedDesign(CHIP.brief, "not-a-template")).toBe(false);
     expect(hasPinnedDesign("a game about nothing", CHIP.template)).toBe(false);
+  });
+
+  it("matches a chip's localized brief (显示即所发: the label is the brief)", async () => {
+    await changeAppLanguage("zh-CN");
+    const zhBrief = "一只小狐狸穿越秋日森林的平台跳跃游戏";
+    expect(zhBrief).not.toBe(CHIP.brief);
+    expect(hasPinnedDesign(zhBrief, CHIP.template)).toBe(true);
+    expect(hasPinnedDesign(zhBrief, "not-a-template")).toBe(false);
+    await changeAppLanguage("en");
   });
 });

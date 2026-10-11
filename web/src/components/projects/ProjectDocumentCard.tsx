@@ -18,7 +18,7 @@ import {
   StatusPill,
   TYPOGRAPHY
 } from "../ui_primitives";
-import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
+import { TYPE_COLOR, TYPE_GLYPH, seededDocDisplayName } from "../workspace/tabTypeIdentity";
 import ProjectDocumentPreview from "./ProjectDocumentPreview";
 import CopyProjectDocumentAction from "./CopyProjectDocumentAction";
 import {
@@ -27,6 +27,7 @@ import {
   formatDocumentSpend,
   type ProjectDocument
 } from "./projectStatus";
+import { useTranslation } from "react-i18next";
 
 interface ProjectDocumentCardProps {
   document: ProjectDocument;
@@ -41,6 +42,11 @@ const ProjectDocumentCard = ({
   onOpen,
   compact = false
 }: ProjectDocumentCardProps) => {
+  // Subscription anchor: the status line comes from module-phase i18n.t
+  // (documentStatusLine), which reads the live language at call time — but
+  // without a subscriber in this component an in-session language switch
+  // never re-renders the card and the caption freezes in the old language.
+  useTranslation();
   const handleOpen = useCallback(() => onOpen(document), [onOpen, document]);
   const progress = documentProgress(document);
 
@@ -74,7 +80,7 @@ const ProjectDocumentCard = ({
             {TYPE_GLYPH[document.type]}
           </Box>
           <Label
-            title={document.name}
+            title={seededDocDisplayName(document.type, document.name)}
             sx={{
               flex: 1,
               minWidth: 0,
@@ -84,7 +90,7 @@ const ProjectDocumentCard = ({
               whiteSpace: "nowrap"
             }}
           >
-            {document.name}
+            {seededDocDisplayName(document.type, document.name)}
           </Label>
           {progress && !compact && (
             <StatusPill

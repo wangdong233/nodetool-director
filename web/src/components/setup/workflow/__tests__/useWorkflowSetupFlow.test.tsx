@@ -19,6 +19,8 @@ const planWorkflow = jest.fn(async (): Promise<string | null> => null);
 let planError: string | null = null;
 let planningStatus: "idle" | "pending" | "canceled" | "error" = "idle";
 jest.mock("../../../../hooks/workflow/usePlanWorkflow", () => ({
+  // hasPinnedPlan delegates to the real matcher, so keep it real here.
+  ...jest.requireActual("../../../../hooks/workflow/usePlanWorkflow"),
   usePlanWorkflow: () => ({
     planWorkflow,
     planning: false,

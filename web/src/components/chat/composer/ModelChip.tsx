@@ -19,6 +19,7 @@ import VideoModelMenuDialog from "../../model_menu/VideoModelMenuDialog";
 import MusicModelMenuDialog from "../../model_menu/MusicModelMenuDialog";
 import TTSModelMenuDialog from "../../model_menu/TTSModelMenuDialog";
 import LanguageModelMenuDialog from "../../model_menu/LanguageModelMenuDialog";
+import { i18n } from "../../../i18n";
 import type {
   ImageModelTask,
   VideoModelTask

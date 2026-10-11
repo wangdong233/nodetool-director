@@ -12,12 +12,14 @@ import React, { memo, useCallback } from "react";
 import { Chip, Tooltip } from "../ui_primitives";
 import { trpc } from "../../trpc/client";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
+import { useTranslation } from "react-i18next";
 
 export interface BoardLineageChipProps {
   boardId: string;
 }
 
 const BoardLineageChipInner: React.FC<BoardLineageChipProps> = ({ boardId }) => {
+  const { t } = useTranslation();
   const { data: board } = trpc.storyboards.get.useQuery(
     { id: boardId },
     { staleTime: 30_000, retry: false }
@@ -46,10 +48,13 @@ const BoardLineageChipInner: React.FC<BoardLineageChipProps> = ({ boardId }) => 
   }
 
   return (
-    <Tooltip title="Open the board this one was recast from">
+    <Tooltip title={t("storyboard:attrs.openTheBoardThisOneWasRecastFrom", { defaultValue: "Open the board this one was recast from" })}>
       <Chip
         compact
-        label={`Recast from ${templateName ?? "template"}`}
+        label={t("storyboard:attrs.recastFrom", {
+          defaultValue: "Recast from {{name}}",
+          name: templateName ?? t("storyboard:attrs.templateLower", { defaultValue: "template" })
+        })}
         onClick={open}
       />
     </Tooltip>

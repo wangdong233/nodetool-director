@@ -19,6 +19,7 @@ import {
   reducedMotion
 } from "../../ui_primitives";
 import type { TodoItem } from "../../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 
 const TODO_SIDEBAR_WIDTH = 280;
 
@@ -101,6 +102,7 @@ const STATUS_ICONS = {
 } as const;
 
 export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const counts = useMemo(() => todos.reduce(
@@ -119,7 +121,7 @@ export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
           weight={600}
           sx={{ letterSpacing: 0.6, textTransform: "uppercase" }}
         >
-          Tasks
+          {t("editor:ui.tasks")}
         </Text>
         {todos.length > 0 && (
           <Text size="smaller" sx={{ opacity: 0.6 }}>
@@ -131,7 +133,7 @@ export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
         {todos.length === 0 ? (
           <div className="empty-state">
             <Text size="small">
-              No tasks yet. The agent will list its plan here as it works.
+              {t("editor:ui.noTasksYetTheAgentWillListItsPlanHereAsItWorks")}
             </Text>
           </div>
         ) : (

@@ -23,6 +23,7 @@ import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
+import { useTranslation } from "react-i18next";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
@@ -122,6 +123,7 @@ const PadBodyInner: React.FC<PadBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -171,7 +173,7 @@ const PadBodyInner: React.FC<PadBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Fill</span>
+        <span className="ctrl-label">{t("ui2:attrs.fill", { defaultValue: "Fill" })}</span>
         <div style={{ gridColumn: "2 / 4" }}>
           <ColorPicker
             color={colorValue}

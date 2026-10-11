@@ -9,6 +9,7 @@ import SearchOffIcon from "@mui/icons-material/SearchOff";
 import FolderOffIcon from "@mui/icons-material/FolderOff";
 import CloudOffIcon from "@mui/icons-material/CloudOff";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme, size: string) =>
   css({
@@ -63,31 +64,47 @@ const defaultContent = {
   empty: {
     icon: <InboxIcon className="empty-icon" />,
     title: "Nothing here yet",
-    description: "Get started by creating your first item."
+    titleKey: "editor:ui.nothingHereYet",
+    description: "Get started by creating your first item.",
+    descriptionKey: "editor:ui.getStartedByCreatingFirstItem"
   },
   "no-results": {
     icon: <SearchOffIcon className="empty-icon" />,
     title: "No results found",
-    description: "Try adjusting your search or filters."
+    titleKey: "editor:ui.noResultsFound",
+    description: "Try adjusting your search or filters.",
+    descriptionKey: "editor:ui.tryAdjustingSearchOrFilters"
   },
   "no-data": {
     icon: <FolderOffIcon className="empty-icon" />,
     title: "No data available",
-    description: "Data will appear here when available."
+    titleKey: "editor:ui.noDataAvailable",
+    description: "Data will appear here when available.",
+    descriptionKey: "editor:ui.dataWillAppearWhenAvailable"
   },
   offline: {
     icon: <CloudOffIcon className="empty-icon" />,
     title: "You're offline",
-    description: "Check your internet connection and try again."
+    titleKey: "editor:ui.youAreOffline",
+    description: "Check your internet connection and try again.",
+    descriptionKey: "editor:ui.checkInternetAndRetry"
   },
   error: {
     icon: <ErrorOutlineIcon className="empty-icon" />,
     title: "Something went wrong",
-    description: "An error occurred. Please try again."
+    titleKey: "editor:ui.somethingWentWrong",
+    description: "An error occurred. Please try again.",
+    descriptionKey: "editor:explorer.errorGeneric"
   }
 } satisfies Record<
   EmptyStateVariant,
-  { icon: React.ReactNode; title: string; description: string }
+  {
+    icon: React.ReactNode;
+    title: string;
+    titleKey?: string;
+    description: string;
+    descriptionKey?: string;
+  }
 >;
 
 export const EmptyState: React.FC<EmptyStateProps> = memo(({
@@ -100,12 +117,23 @@ export const EmptyState: React.FC<EmptyStateProps> = memo(({
   size = "medium",
   className
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const defaults = defaultContent[variant];
 
   const displayIcon = icon || defaults.icon;
-  const displayTitle = title || defaults.title;
-  const displayDescription = description || defaults.description;
+  const displayTitle =
+    title ||
+    ("titleKey" in defaults && defaults.titleKey
+      ? t(defaults.titleKey, { defaultValue: defaults.title })
+      : defaults.title);
+  const displayDescription =
+    description ||
+    ("descriptionKey" in defaults && defaults.descriptionKey
+      ? t(defaults.descriptionKey, {
+          defaultValue: defaults.description
+        })
+      : defaults.description);
 
   const titleVariant = size === "small" ? "body1" : size === "large" ? "h5" : "h6";
   const descriptionVariant = size === "small" ? "caption" : "body2";

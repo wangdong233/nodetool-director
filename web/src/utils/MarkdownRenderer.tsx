@@ -15,6 +15,7 @@ import { TOOLTIP_ENTER_DELAY } from "../config/constants";
 import { getShortcutTooltip } from "../config/shortcuts";
 import "../styles/markdown/github-markdown.css";
 import "../styles/markdown/nodetool-markdown.css";
+import { useTranslation } from "react-i18next";
 
 const REMARK_PLUGINS: Options["remarkPlugins"] = [remarkGfm];
 
@@ -99,6 +100,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   isReadme,
   fillContainer = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedNodeType, setSelectedNodeType] = useState<string | null>(null);
@@ -214,7 +216,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         css={mainStyles}
         ref={containerRef}
         role="region"
-        aria-label="Markdown content"
+        aria-label={t("editor:ui.markdownContent", { defaultValue: "Markdown content" })}
         tabIndex={0}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -229,7 +231,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             <CopyButton value={content ?? ""} buttonSize="small" />
             <ToolbarIconButton
               className="fullscreen-button"
-              tooltip="Enter fullscreen"
+              tooltip={t("editor:ui.enterFullscreen", { defaultValue: "Enter fullscreen" })}
               delay={TOOLTIP_ENTER_DELAY}
               onClick={handleEnterFullscreen}
               size="small"

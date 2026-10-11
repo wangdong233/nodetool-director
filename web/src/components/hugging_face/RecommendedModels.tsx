@@ -13,6 +13,7 @@ import {
 import { isLocalhost } from "../../lib/env";
 import { useHfCacheStatusStore } from "../../stores/HfCacheStatusStore";
 import { useShallow } from "zustand/react/shallow";
+import { useTranslation } from "react-i18next";
 import {
   buildHfCacheRequest,
   canCheckHfCache,
@@ -28,6 +29,7 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
   recommendedModels,
   startDownload
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const { cacheStatuses, cachePending, cacheVersion, ensureStatuses } =
@@ -106,7 +108,7 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
       >
         <SearchInput
           className="search-models-input"
-          placeholder="Search models..."
+          placeholder={t("editor:ui.searchModels", { defaultValue: "Search models..." })}
           size="small"
           value={searchQuery}
           onChange={setSearchQuery}
@@ -181,7 +183,7 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
             onClick={openHuggingfacePath}
           >
             <FolderOutlined sx={{ mr: 0.5, fontSize: "1em" }} />
-            Open HuggingFace folder
+            {t("editor:ui.openHuggingFaceFolder")}
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -189,7 +191,7 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
             onClick={openOllamaPath}
           >
             <FolderOutlined sx={{ mr: 0.5, fontSize: "1em" }} />
-            Open Ollama folder
+            {t("editor:ui.openOllamaFolder")}
           </EditorButton>
         </FlexRow>
       )}

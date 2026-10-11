@@ -6,6 +6,15 @@ import { timelineTrack } from "./timeline.js";
 // free text ("spot", "trailer", "report") rather than an enum: the taxonomy is
 // the user's, not ours.
 
+/**
+ * The stored name of the personal project the backend seeds
+ * (packages/models ensurePersonal). Part of the contract so clients can tell
+ * "still the system default" apart from a user-chosen name: only the default
+ * may be swapped for a localized label at the display layer — a renamed
+ * personal project is the user's data and renders verbatim.
+ */
+export const PERSONAL_PROJECT_NAME = "Personal";
+
 export const projectResponse = z.object({
   id: z.string(),
   name: z.string(),

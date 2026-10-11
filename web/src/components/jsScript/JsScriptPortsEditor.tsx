@@ -21,6 +21,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import type { JsScriptPort } from "../../stores/jsScript/JsScriptStore";
+import { useTranslation } from "react-i18next";
 
 /** The types a script port can carry, as the type system names them. */
 const PORT_TYPES = [
@@ -52,6 +53,7 @@ const JsScriptPortsEditor = ({
   readOnly = false,
   onChange
 }: JsScriptPortsEditorProps) => {
+  const { t } = useTranslation();
   const patch = useCallback(
     (index: number, next: Partial<JsScriptPort>) => {
       onChange(
@@ -88,7 +90,7 @@ const JsScriptPortsEditor = ({
       </FlexRow>
       {ports.length === 0 ? (
         <Text size="small" color="secondary">
-          None declared.
+          {t("editor:ui.noneDeclared")}
         </Text>
       ) : (
         ports.map((port, index) => (

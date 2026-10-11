@@ -41,7 +41,7 @@ import {
   SetupFooterField
 } from "../SetupFooterField";
 import { PresetTileGrid, type PresetTile } from "../PresetTileGrid";
-import { ASPECT_OPTIONS } from "../../storyboard/aspectOptions";
+import { ASPECT_OPTIONS, aspectOptionLabel } from "../../storyboard/aspectOptions";
 import { useInStudio } from "../../../studio/StudioContext";
 import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
 import { useEntities } from "../../../serverState/useEntities";
@@ -51,10 +51,11 @@ import {
 } from "../../../serverState/useStylePresets";
 import { useGenerateShot } from "../../../hooks/storyboard/useGenerateShot";
 import { useRenderBatchCostEstimate } from "../../../hooks/storyboard/useRenderBatchCostEstimate";
-import { STYLE_DESCRIPTIONS } from "../styleDescriptions";
+import { STYLE_DESCRIPTIONS, STYLE_DESCRIPTION_KEYS } from "../styleDescriptions";
 import { AddStyleDialog } from "./AddStyleDialog";
 import { useCustomStyle } from "./useCustomStyle";
 import { setShotlistImport, useShotlistImportSummary } from "./setupChoices";
+import { useTranslation } from "react-i18next";
 
 export interface LookStepProps {
   boardId: string;
@@ -210,6 +211,7 @@ export const LookStep: React.FC<LookStepProps> = ({
   readOnly = false,
   blockedReason
 }) => {
+  const { t } = useTranslation();
   const [addingStyle, setAddingStyle] = useState(false);
   const customStyle = useCustomStyle(boardId);
   const style = useStoryboardStore(
@@ -252,12 +254,14 @@ export const LookStep: React.FC<LookStepProps> = ({
     () =>
       (presets ?? []).map((preset) => ({
         id: preset.entityId,
-        title: preset.name,
-        description:
-          STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim(),
+        title: t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name }),
+        description: t(
+          STYLE_DESCRIPTION_KEYS[preset.presetId] ?? "",
+          { defaultValue: STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim() }
+        ),
         image: preset.thumbnail
       })),
-    [presets]
+    [presets, t]
   );
 
   const selectedId = useMemo(() => {
@@ -325,7 +329,7 @@ export const LookStep: React.FC<LookStepProps> = ({
             : ""
         }`
       : style.trim().length > 0
-        ? `Your Director wrote the look: ${style.trim()}`
+        ? t("storyboard:attrs.yourDirectorWroteTheLook", { defaultValue: "Your Director wrote the look: {{style}}", style: style.trim() })
         : null;
 
   const shotlistImport = useShotlistImportSummary(boardId);
@@ -361,7 +365,7 @@ export const LookStep: React.FC<LookStepProps> = ({
         </Text>
       </FlexColumn>
       {blockedReason && !readOnly ? (
-        <AlertBanner severity="info" title="Before you generate">
+        <AlertBanner severity="info" title={t("editor:ui.beforeYouGenerate", { defaultValue: "Before you generate" })}>
           {blockedReason}
         </AlertBanner>
       ) : null}
@@ -371,16 +375,16 @@ export const LookStep: React.FC<LookStepProps> = ({
         <AlertBanner severity="info" title="Shotlist imported">
           <FlexColumn gap={GAP.tight}>
             <Caption component="span">
-              {`${shotlistImport.shotCount} shot${
-                shotlistImport.shotCount === 1 ? "" : "s"
-              } are on your board.`}
+              {shotlistImport.shotCount === 1
+                ? t("storyboard:attrs.countShotIsOnYourBoard", { defaultValue: "{{count}} shot is on your board.", count: shotlistImport.shotCount })
+                : t("storyboard:attrs.countShotsAreOnYourBoard", { defaultValue: "{{count}} shots are on your board.", count: shotlistImport.shotCount })}
             </Caption>
             {shotlistImport.entries.length > 0 ? (
               <Box component="details">
                 <Caption component="summary">
-                  {`${shotlistImport.entries.length} value${
-                    shotlistImport.entries.length === 1 ? "" : "s"
-                  } did not come with them`}
+                  {shotlistImport.entries.length === 1
+                    ? t("storyboard:attrs.countValueDidNotComeWithThem", { defaultValue: "{{count}} value did not come with them", count: shotlistImport.entries.length })
+                    : t("storyboard:attrs.countValuesDidNotComeWithThem", { defaultValue: "{{count}} values did not come with them", count: shotlistImport.entries.length })}
                 </Caption>
                 <FlexColumn
                   gap={GAP.tight}
@@ -424,7 +428,7 @@ export const LookStep: React.FC<LookStepProps> = ({
           label="Aspect ratio"
           value={aspectRatio}
           onChange={handleAspect}
-          options={ASPECT_OPTIONS}
+          options={ASPECT_OPTIONS.map((option) => ({ value: option.value, label: aspectOptionLabel(option) }))}
           disabled={readOnly}
         />
       </Box>
@@ -449,7 +453,7 @@ export const LookStep: React.FC<LookStepProps> = ({
           selectedId={selectedId}
           onSelect={handleSelect}
           onAddOwn={openAddStyle}
-          addOwnLabel="Add your own style"
+          addOwnLabel={t("storyboard:attrs.addYourOwnStyle", { defaultValue: "Add your own style" })}
           addOwnDisabled={readOnly || customStyle.saving}
         />
       </FlexColumn>

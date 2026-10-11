@@ -25,6 +25,7 @@ import { NODE_EDITOR_SHORTCUTS } from "../../../config/shortcuts";
 import ControlsShortcutsTab from "./ControlsShortcutsTab";
 import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import { Dialog } from "../../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface TabPanelProps {
   children: React.ReactNode;
@@ -198,6 +199,7 @@ const Help = ({
   open: boolean;
   handleClose: () => void;
 }) => {
+  const { t } = useTranslation();
   const helpIndex = useAppHeaderStore((state) => state.helpIndex);
   const setHelpIndex = useAppHeaderStore((state) => state.setHelpIndex);
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -222,12 +224,12 @@ const Help = ({
       onClose={handleClose}
       fullWidth
       maxWidth="lg"
-      aria-label="Help"
+      aria-label={t("nav:rail.help", { defaultValue: "Help" })}
     >
         <div css={helpStyles(theme)}>
           <div className="help">
             <div className="top">
-              <Text size="big" >Help</Text>
+              <Text size="big" >{t("nav:rail.help", { defaultValue: "Help" })}</Text>
               <CloseButton onClick={handleClose} />
             </div>
             <div className="tabs-row">
@@ -235,13 +237,13 @@ const Help = ({
                 className="help-tabs"
                 value={helpIndex}
                 onChange={handleChange}
-                aria-label="help tabs"
+                aria-label={t("editor:ui.helpTabs", { defaultValue: "help tabs" })}
               >
-                <Tab label="Shortcuts" id="help-tab-0" />
-                <Tab label="Keyboard" id="help-tab-1" />
-                <Tab label="DataTypes" id="help-tab-2" />
+                <Tab label={t("ui2:attrs.shortcuts", { defaultValue: "Shortcuts" })} id="help-tab-0" />
+                <Tab label={t("timeline:attrs.keyboard", { defaultValue: "Keyboard" })} id="help-tab-1" />
+                <Tab label={t("editor:ui.datatypes", { defaultValue: "DataTypes" })} id="help-tab-2" />
               </Tabs>
-              <Tooltip title="Open Nodetool Documentation Website" placement="bottom"
+              <Tooltip title={t("editor:ui.openNodetoolDocumentationWebsite", { defaultValue: "Open Nodetool Documentation Website" })} placement="bottom"
                 delay={TOOLTIP_ENTER_DELAY}
               >
                 <a
@@ -252,7 +254,7 @@ const Help = ({
                 >
                   <div className="docs-button-text">
                     <span>Nodetool</span>
-                    <span>Docs</span>
+                    <span>{t("ui2:attrs.docs", { defaultValue: "Docs" })}</span>
                   </div>
                   <OpenInNewIcon />
                 </a>
@@ -267,7 +269,7 @@ const Help = ({
               </TabPanel>
               <TabPanel value={helpIndex} index={2}>
                 <DataTypesList
-                  title="Nodetool Data Types"
+                  title={t("editor:ui.nodetoolDataTypes", { defaultValue: "Nodetool Data Types" })}
                   dataTypes={nodetoolTypes}
                   expanded={expandedNodetool}
                   onChange={handleAccordionChange("nodetool")}

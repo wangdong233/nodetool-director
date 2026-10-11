@@ -10,6 +10,7 @@
 
 import React, { memo } from "react";
 import type { WorkflowSetupRunMode } from "@nodetool-ai/protocol/api-schemas/workflows.js";
+import { i18n } from "../../../i18n";
 
 import {
   AlertBanner,
@@ -25,22 +26,29 @@ import type {
   BuildFromPlanResult,
   WorkflowBuildStatus
 } from "../../../hooks/workflow/useBuildFromPlan";
+import { useTranslation } from "react-i18next";
 
 /** What each run mode leaves to do once the graph runs (PRD § 11.4). */
 const NEXT_STEP: Readonly<
-  Record<WorkflowSetupRunMode, { label: string; detail: string }>
+  Record<WorkflowSetupRunMode, { label: string; labelKey: string; detail: string; detailKey: string }>
 > = {
   manual: {
     label: "Continue on canvas",
-    detail: "Adjust inputs or run the workflow from the canvas."
+    labelKey: "editor:ui.continueOnCanvas",
+    detail: "Adjust inputs or run the workflow from the canvas.",
+    detailKey: "editor:ui.adjustInputsOrRunTheWorkflowFromTheCanvas"
   },
   app: {
     label: "Create Mini App",
-    detail: "Create and open a Mini App backed by this workflow."
+    labelKey: "editor:ui.createMiniApp",
+    detail: "Create and open a Mini App backed by this workflow.",
+    detailKey: "editor:ui.createAndOpenAMiniAppBackedByThisWorkflow"
   },
   trigger: {
     label: "Add a trigger",
-    detail: "Open the trigger-node picker on this canvas."
+    labelKey: "editor:ui.addTrigger",
+    detail: "Open the trigger-node picker on this canvas.",
+    detailKey: "editor:ui.openTheTriggernodePickerOnThisCanvas"
   }
 };
 
@@ -96,10 +104,10 @@ export const buildFailureMessage = (
 
 const outputDetail = (output: unknown): string => {
   if (output === null || output === undefined) {
-    return "Output is ready";
+    return i18n.t("storyboard:attrs.outputIsReady", { defaultValue: "Output is ready" });
   }
   if (typeof output === "string") {
-    return output.length > 0 ? `Output: ${output}` : "Output is ready";
+    return output.length > 0 ? `Output: ${output}` : i18n.t("storyboard:attrs.outputIsReady", { defaultValue: "Output is ready" });
   }
   if (Array.isArray(output)) {
     return `Output is ready (${output.length} value${
@@ -110,7 +118,7 @@ const outputDetail = (output: unknown): string => {
     const keys = Object.keys(output);
     return keys.length > 0
       ? `Output is ready (${keys.join(", ")})`
-      : "Output is ready";
+      : i18n.t("storyboard:attrs.outputIsReady", { defaultValue: "Output is ready" });
   }
   return `Output: ${String(output)}`;
 };
@@ -137,6 +145,7 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
   nextStepPending = false,
   onAskAgent
 }) => {
+  const { t } = useTranslation();
   const validated = result.validationErrors.length === 0;
   const wired = result.issues.length === 0;
   const failure = buildFailureMessage(result);
@@ -146,17 +155,17 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
     <FlexColumn gap={GAP.normal}>
       <Line
         status="built"
-        label="Graph built"
+        label={t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
         detail={`${result.nodeCount} node${result.nodeCount === 1 ? "" : "s"} placed`}
       />
       <Line
         status={validated && wired ? "validated" : "failed"}
-        label="Validated"
+        label={t("storyboard:attrs.validated", { defaultValue: "Validated" })}
         detail={
           validated
             ? wired
-              ? "No problems found"
-              : "Validates, but part of the plan is unwired"
+              ? t("storyboard:attrs.noProblemsFound", { defaultValue: "No problems found" })
+              : t("storyboard:attrs.validatesButPartOfThePlanIsUnwired", { defaultValue: "Validates, but part of the plan is unwired" })
             : `${result.validationErrors.length} error${
                 result.validationErrors.length === 1 ? "" : "s"
               }`
@@ -175,16 +184,16 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
                 ? "running"
                 : result.status
         }
-        label="Test run"
+        label={t("storyboard:attrs.testRun", { defaultValue: "Test run" })}
         detail={
           result.status === "completed-with-output"
             ? outputDetail(result.output ?? result.testRun.output)
             : result.status === "running"
-              ? "Running with your sample inputs"
+              ? t("storyboard:attrs.runningWithYourSampleInputs", { defaultValue: "Running with your sample inputs" })
               : (result.testRun.error ??
                 (validated
-                  ? "Not started — part of the plan is unwired"
-                  : "Not started — the graph did not validate"))
+                  ? t("storyboard:attrs.notStartedPartOfThePlanIsUnwired", { defaultValue: "Not started — part of the plan is unwired" })
+                  : t("storyboard:attrs.notStartedTheGraphDidNotValidate", { defaultValue: "Not started — the graph did not validate" })))
         }
       />
 
@@ -195,17 +204,17 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
             onClick={() => void onNextStep()}
             disabled={nextStepPending}
           >
-            {next.label}
+            {t(next.labelKey, { defaultValue: next.label })}
           </EditorButton>
-          <Caption color="secondary">{next.detail}</Caption>
+          <Caption color="secondary">{t(next.detailKey, { defaultValue: next.detail })}</Caption>
         </FlexRow>
       ) : (
         <AlertBanner
           severity="error"
-          title="This needs a fix before it works"
+          title={t("storyboard:attrs.thisNeedsAFixBeforeItWorks", { defaultValue: "This needs a fix before it works" })}
           action={
             <EditorButton variant="text" onClick={() => onAskAgent(failure)}>
-              Ask the agent
+              {t("editor:ui.askTheAgent", { defaultValue: "Ask the agent" })}
             </EditorButton>
           }
         >

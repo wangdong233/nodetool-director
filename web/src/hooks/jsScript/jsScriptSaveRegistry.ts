@@ -13,6 +13,7 @@
  */
 
 import { getErrorMessage } from "../../utils/errorHandling";
+import { i18n } from "../../i18n";
 
 export type JsScriptSaveResult =
   /** `updatedAt` is null when no server sync is registered for the script. */
@@ -50,7 +51,7 @@ export async function flushJsScriptSave(
   } catch (error) {
     return {
       ok: false,
-      error: getErrorMessage(error, "JS script save failed")
+      error: getErrorMessage(error, i18n.t("editor:ui.JSScriptSaveFailed", { defaultValue: "JS script save failed" }))
     };
   }
 }

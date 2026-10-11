@@ -11,8 +11,10 @@ import {
   useWaveRecorder
 } from "../../hooks/browser/useWaveRecorder";
 import Select from "../inputs/Select";
+import { useTranslation } from "react-i18next";
 
 const WaveRecorder = (props: WaveRecorderProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const {
     error,
@@ -154,8 +156,8 @@ const WaveRecorder = (props: WaveRecorderProps) => {
                   options={deviceOptions}
                   value={selectedInputDeviceId}
                   onChange={handleInputDeviceChange}
-                  placeholder="System default input"
-                  label="Input Device"
+                  placeholder={t("ui2:attrs.systemDefaultInput", { defaultValue: "System default input" })}
+                  label={t("ui2:attrs.inputDevice", { defaultValue: "Input Device" })}
                   tabIndex={isRecording || isLoading ? -1 : 0}
                 />
               </div>
@@ -174,7 +176,7 @@ const WaveRecorder = (props: WaveRecorderProps) => {
                 left: "0.5em"
               }}
             >
-              No audio input devices found.
+              {t("editor:ui.noAudioInputDevicesFound")}
             </Text>
           )}
         </div>

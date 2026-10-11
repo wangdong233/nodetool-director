@@ -8,6 +8,8 @@ import { Caption, FlexColumn, Popover, Text, MOTION, BORDER_RADIUS, SPACING, get
 import MediaControlChip from "./MediaControlChip";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
 import type { PermissionMode } from "../../../stores/ApiTypes";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ModeItem {
   id: PermissionMode;
@@ -17,22 +19,22 @@ interface ModeItem {
   tone: "info" | "warning" | "success";
 }
 
-const MODES: ModeItem[] = [
+const modes = (): ModeItem[] => [
   {
     id: "plan",
-    label: "Plan",
-    description: "Investigate and propose a plan. Nothing runs.",
+    label: i18n.t("editor:ui.plan", { defaultValue: "Plan" }),
+    description: i18n.t("editor:ui.investigateAndProposePlan", { defaultValue: "Investigate and propose a plan. Nothing runs." }),
     tone: "info"
   },
   {
     id: "default",
-    label: "Default",
-    description: "Reads run. Actions ask first.",
+    label: i18n.t("appbuilder:attrs.default", { defaultValue: "Default" }),
+    description: i18n.t("editor:ui.readsRunActionsAskFirst", { defaultValue: "Reads run. Actions ask first." }),
     tone: "warning"
   },
   {
     id: "auto",
-    label: "Auto",
+    label: i18n.t("timeline:history.auto", { defaultValue: "Auto" }),
     description:
       "Routine work runs unattended. A step that deletes, publishes, or spends asks once.",
     tone: "success"
@@ -109,6 +111,7 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
   threadId,
   compact = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -118,7 +121,7 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
   const mode = useGlobalChatStore((s) => s.getPermissionMode(selectedThreadId));
   const setPermissionMode = useGlobalChatStore((s) => s.setPermissionMode);
 
-  const activeMode = MODES.find((m) => m.id === mode) ?? MODES[1];
+  const activeMode = modes().find((m) => m.id === mode) ?? modes()[1];
 
   const handleSelect = useCallback(
     (next: PermissionMode) => {
@@ -155,12 +158,12 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
         <div
           css={menuStyles(theme)}
           role="menu"
-          aria-label="Permission mode"
+          aria-label={t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}
         >
           <Caption className="permission-menu-header" size="small">
-            Permission mode
+            {t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}
           </Caption>
-          {MODES.map((m) => {
+          {modes().map((m) => {
             const selected = m.id === mode;
             return (
               <div

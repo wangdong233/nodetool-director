@@ -31,6 +31,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { HSL_ADJUST_NODE_TYPE } from "../../../constants/nodeTypes";
+import { useTranslation } from "react-i18next";
 
 const COLOR_RANGES = [
   "all",
@@ -157,6 +158,7 @@ const HSLAdjustBodyInner: React.FC<HSLAdjustBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -208,14 +210,14 @@ const HSLAdjustBodyInner: React.FC<HSLAdjustBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Range</span>
+        <span className="ctrl-label">{t("ui2:attrs.range", { defaultValue: "Range" })}</span>
         <Select
           className="range-select nodrag"
           size="small"
           variant="standard"
           value={colorRange}
           onChange={handleRangeChange}
-          aria-label="Color range"
+          aria-label={t("editor:ui.colorRange", { defaultValue: "Color range" })}
           disableUnderline
         >
           {COLOR_RANGES.map((r) => (

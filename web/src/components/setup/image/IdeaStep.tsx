@@ -33,17 +33,30 @@ import { AlternativesColumn } from "../AlternativesColumn";
 import type { AlternativeEntry } from "../AlternativesColumn";
 import type { UploadFirstLayerResult } from "../../../hooks/sketch/useUploadFirstLayer";
 import { readEntityIds, readReferences } from "./setupContext";
+import { useTranslation } from "react-i18next";
 
 /**
  * Three briefs that read like something a person would type. The storyboard
  * flow pulls its chips off the shipped example boards; there is no shipped
  * example-image library to read, so these are written here rather than faked
- * from one.
+ * from one. Each carries a stable slug so the zh-only catalog overlay
+ * (`catalog:imageInspirations.<slug>`) can localize the chip without
+ * reordering risk; the English brief is the defaultValue, so display and
+ * insertion are one string in every locale (显示即所发).
  */
-const INSPIRATIONS: readonly string[] = [
-  "A ceramic pour-over coffee dripper on a sunlit kitchen counter",
-  "A portrait of a violinist backstage, one bare bulb overhead",
-  "Poster art for a documentary about deep-sea cables"
+const INSPIRATIONS: readonly { id: string; brief: string }[] = [
+  {
+    id: "pour-over-dripper",
+    brief: "A ceramic pour-over coffee dripper on a sunlit kitchen counter"
+  },
+  {
+    id: "backstage-violinist",
+    brief: "A portrait of a violinist backstage, one bare bulb overhead"
+  },
+  {
+    id: "deep-sea-cables-poster",
+    brief: "Poster art for a documentary about deep-sea cables"
+  }
 ];
 
 export const IMAGE_ACCEPT = "image/png,image/jpeg,image/webp,image/gif";
@@ -61,6 +74,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   onStartBlank,
   upload
 }) => {
+  const { t } = useTranslation();
   const brief = useSketchStore((state) => state.document.setup?.brief ?? "");
   const setup = useSketchStore((state) => state.document.setup);
   const setSetup = useSketchStore((state) => state.setSetup);
@@ -102,21 +116,21 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "upload",
-        title: "Upload an image to edit",
+        title: t("storyboard:attrs.uploadAnImageToEdit", { defaultValue: "Upload an image to edit" }),
         description:
-          "Opens the editor immediately with your image as the first layer. Skips the guided brief. PNG, JPEG, WebP or GIF.",
+          t("storyboard:attrs.opensTheEditorImmediatelyWithYourImageAsTheFirstLayerSkipsTheGuidedBriefPngJpegWebpOrGif", { defaultValue: "Opens the editor immediately with your image as the first layer. Skips the guided brief. PNG, JPEG, WebP or GIF." }),
         onSelect: () => fileInput.current?.click(),
         disabled: upload.uploading,
-        disabledReason: upload.uploading ? "Reading your file…" : undefined
+        disabledReason: upload.uploading ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "blank",
-        title: "Start with a blank canvas",
-        description: "Skip the brief and paint it yourself",
+        title: t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
+        description: t("editor:ui.skipBriefPaintItYourself", { defaultValue: "Skip the brief and paint it yourself" }),
         onSelect: onStartBlank
       }
     ],
-    [onStartBlank, upload.uploading]
+    [onStartBlank, t, upload.uploading]
   );
 
   return (
@@ -137,8 +151,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
             What image do you want?
           </Text>
           <Text size="normal" color="secondary">
-            Describe it once. We&apos;ll refine the brief and render variations
-            to pick from.
+            {t("storyboard:attrs.describeItOnceWellRefineTheBrief", { defaultValue: "Describe it once. We'll refine the brief and render variations to pick from." })}
           </Text>
         </FlexColumn>
 
@@ -162,7 +175,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         {references.length > 0 || entityNames.length > 0 ? (
           <FlexColumn gap={GAP.normal}>
             <Text size="small" component="h3">
-              Came with your prompt
+              {t("editor:ui.cameWithYourPrompt")}
             </Text>
             {references.length > 0 ? (
               <FlexRow
@@ -199,14 +212,18 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
             ) : null}
             <Caption color="secondary">
               {references.length > 0
-                ? "The refinement reads these when it writes your brief."
-                : "These stay with the document as you set it up."}
+                ? t("storyboard:attrs.theRefinementReadsTheseWhenItWritesYourBrief", { defaultValue: "The refinement reads these when it writes your brief." })
+                : t("storyboard:attrs.theseStayWithTheDocumentAsYouSetItUp", { defaultValue: "These stay with the document as you set it up." })}
             </Caption>
           </FlexColumn>
         ) : null}
 
         <ExampleBriefs
-          examples={INSPIRATIONS}
+          examples={INSPIRATIONS.map((chip) =>
+            t(`catalog:imageInspirations.${chip.id}`, {
+              defaultValue: chip.brief
+            })
+          )}
           brief={brief}
           onSelect={(value) => setSetup({ brief: value })}
         />

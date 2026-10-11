@@ -33,7 +33,8 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
-import { GRID_DIVISION_OPTIONS } from "./Tracks/tempoGrid";
+import { localizedGridDivisionOptions } from "./Tracks/tempoGrid";
+import { useTranslation } from "react-i18next";
 
 /** Custom pointer cursor — monoline, 1.6px stroke. */
 const PointerIcon: React.FC = () => (
@@ -160,6 +161,7 @@ interface ToolToggleProps {
 }
 
 export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) => {
+  const { t } = useTranslation();
   const activeTool = useTimelineUIStore((s) => s.activeTool);
   const setActiveTool = useTimelineUIStore((s) => s.setActiveTool);
   const rippleMode = useTimelineUIStore((s) => s.rippleMode);
@@ -185,7 +187,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       css={compact ? compactRowStyles : undefined}
     >
       <ToolButton
-        label="Select"
+        label={t("timeline:tools.select", { defaultValue: "Select" })}
         shortcut="V"
         active={activeTool === "select"}
         compact={compact}
@@ -194,7 +196,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <PointerIcon />
       </ToolButton>
       <ToolButton
-        label="Cut"
+        label={t("common:action.cut", { defaultValue: "Cut" })}
         shortcut="C"
         active={activeTool === "cut"}
         compact={compact}
@@ -203,7 +205,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <ContentCutOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Ripple"
+        label={t("timeline:tools.ripple", { defaultValue: "Ripple" })}
         shortcut="trims and deletes close the gap"
         active={rippleMode}
         compact={compact}
@@ -213,7 +215,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       </ToolButton>
       <span css={dividerStyles} aria-hidden />
       <ToolButton
-        label="Overwrite"
+        label={t("timeline:tools.overwrite", { defaultValue: "Overwrite" })}
         shortcut="drop replaces what it covers"
         active={dropMode === "overwrite"}
         compact={compact}
@@ -222,7 +224,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <FlipToFrontOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Insert"
+        label={t("timeline:tools.insert", { defaultValue: "Insert" })}
         shortcut="drop pushes later clips right · Ctrl+drag"
         active={dropMode === "insert"}
         compact={compact}
@@ -231,7 +233,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <KeyboardTabOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Overlap"
+        label={t("timeline:tools.overlap", { defaultValue: "Overlap" })}
         shortcut="drop stacks and cross-fades"
         active={dropMode === "overlap"}
         compact={compact}
@@ -241,7 +243,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       </ToolButton>
       <span css={dividerStyles} aria-hidden />
       <ToolButton
-        label="Snap"
+        label={t("ui2:attrs.snap", { defaultValue: "Snap" })}
         shortcut="N · Alt-drag bypasses"
         active={snapEnabled}
         compact={compact}
@@ -250,7 +252,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <GridGoldenratioOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Bars"
+        label={t("editor:ui.bars", { defaultValue: "Bars" })}
         shortcut="the ruler counts bars and beats, not seconds"
         active={rulerMode === "bars"}
         compact={compact}
@@ -259,17 +261,17 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <StraightenOutlinedIcon />
       </ToolButton>
       <SelectField
-        label="Grid division"
+        label={t("timeline:tools.gridDivision", { defaultValue: "Grid division" })}
         hideLabel
         size="small"
         value={gridDivision}
-        options={GRID_DIVISION_OPTIONS}
+        options={localizedGridDivisionOptions(t)}
         onChange={handleGridChange}
         css={gridSelectStyles}
       />
       <span css={dividerStyles} aria-hidden />
       <ToolButton
-        label="Linked"
+        label={t("timeline:tools.linked", { defaultValue: "Linked" })}
         shortcut="video and its audio move together"
         active={linkedSelection}
         compact={compact}

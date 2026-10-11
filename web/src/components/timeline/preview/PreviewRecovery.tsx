@@ -7,6 +7,8 @@ import {
   type ErrorInfo,
   type ReactNode
 } from "react";
+// Class component (D-registry §1 exemption): keeps global `i18n.t` — hooks
+// cannot live in a class body, no HOC conversion per the C merge ruling.
 import { openBugReport } from "../../../stores/BugReportStore";
 import type { BugReportContext } from "../../../utils/bugReportBundle";
 import ReportBugButton from "../../support/ReportBugButton";
@@ -24,6 +26,8 @@ import {
   previewFailureText,
   type PreviewFailureHandler
 } from "./previewFailure";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface PreviewRecoveryProps {
   readonly children: (
@@ -65,6 +69,7 @@ export function PreviewRecovery({
   onPause,
   timelineId
 }: PreviewRecoveryProps): ReactNode {
+  const { t } = useTranslation();
   const [generation, setGeneration] = useState(0);
   const [issue, setIssue] = useState<{
     message: string;
@@ -94,7 +99,7 @@ export function PreviewRecovery({
       const terminal = attempts.current >= MAX_AUTOMATIC_RETRIES;
       const context: BugReportContext = {
         source: "panel-crash",
-        summary: "Timeline preview failed",
+        summary: i18n.t("timeline:attrs.timelinePreviewFailed", { defaultValue: "Timeline preview failed" }),
         errorText: history.current.join("\n\n"),
         nodeDetail: JSON.stringify({
           timelineId,
@@ -168,7 +173,7 @@ export function PreviewRecovery({
             action={
               <FlexRow gap={SPACING.xs}>
                 {issue.terminal && (
-                  <EditorButton onClick={retry}>Retry preview</EditorButton>
+                  <EditorButton onClick={retry}>{t("ui2:attrs.retryPreview", { defaultValue: "Retry preview" })}</EditorButton>
                 )}
                 <ReportBugButton context={issue.context} />
               </FlexRow>
@@ -176,8 +181,8 @@ export function PreviewRecovery({
           >
             {issue.message}{" "}
             {issue.terminal
-              ? "Automatic recovery failed. Your timeline is unchanged."
-              : "Restarting preview…"}
+              ? t("timeline:attrs.automaticRecoveryFailedYourTimelineIsUnchanged", { defaultValue: "Automatic recovery failed. Your timeline is unchanged." })
+              : t("timeline:attrs.restartingPreview", { defaultValue: "Restarting preview…" })}
           </AlertBanner>
         </Box>
       )}

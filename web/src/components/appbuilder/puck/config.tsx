@@ -81,6 +81,7 @@ import {
   CameraCaptureWidget
 } from "./RecorderWidgets";
 import { ChartWidget } from "./ChartWidget";
+import { tAttr } from "../i18nAttrs";
 
 const ACTION_OPTIONS = [
   { label: "Run workflow", value: "run" },
@@ -186,8 +187,13 @@ const eventsField = (
     label: trigger === "click" ? "On click" : "On change",
     arrayFields,
     defaultItemProps,
+    // Array summaries render at edit time, so the action token resolves to
+    // its translated option label here (render-time, never module-scope).
     getItemSummary: (item: Record<string, unknown>) =>
-      String(item.kind ?? "action")
+      tAttr(
+        ACTION_OPTIONS.find((o) => o.value === item.kind)?.label ??
+          String(item.kind ?? "action")
+      )
   };
 };
 

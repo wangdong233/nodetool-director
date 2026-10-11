@@ -1,0 +1,3053 @@
+{
+  "attrs": {},
+  "ui": {},
+  "snippets": {
+    "checkIfAStringIsAValidUUID": "检查字符串是否为有效的 UUID",
+    "endsWith": "以…结尾",
+    "generateAListOfNumbers": "生成数字列表",
+    "dirnameGetDirectory": "目录名 / 获取目录",
+    "extractValuesUsingDotpathWithWildcardSupport": "使用点路径提取值，支持通配符",
+    "extractMarkdownHeadersAsAnOutlineLevelTextIndex": "将 Markdown 标题提取为大纲（级别、文本、索引）",
+    "modulus": "取模",
+    "listLength": "列表长度",
+    "average": "平均值",
+    "extractHeaders": "提取标题",
+    "fetchAndParseJSONFromAURL": "从 URL 获取并解析 JSON",
+    "setUpdate": "设置 / 更新",
+    "gaussianBlurFilter": "高斯模糊滤镜",
+    "logicalAND": "逻辑与",
+    "checkWhetherAValueIsAValidIPv4OrIPv6Address": "检查值是否为有效的 IPv4 或 IPv6 地址",
+    "omitKeys": "排除键",
+    "matchWithGroups": "带捕获组匹配",
+    "extractNumberedLists": "提取有序列表",
+    "reduceAListToASingleValue": "将列表归约为单个值",
+    "mapValues": "映射值",
+    "getText": "GET 文本",
+    "convertTextToUpperOrLowerCase": "将文本转换为大写或小写",
+    "validateUUID": "校验 UUID",
+    "absoluteValue": "绝对值",
+    "findAllMatchesAndExtractASpecificCaptureGroup": "查找全部匹配并提取指定捕获组",
+    "sendSeveralGraphQLOperationsInOneBatchedRequest": "在单次批量请求中发送多个 GraphQL 操作",
+    "regexReplace": "正则替换",
+    "clipPath": "裁剪路径",
+    "clamp": "限幅",
+    "extractLinks": "提取链接",
+    "findAllOccurrencesOfAPattern": "查找模式的所有出现位置",
+    "removeDuplicateValues": "移除重复值",
+    "getTheDayOfTheWeek": "获取星期几",
+    "reduce": "归约",
+    "dayOfWeek": "星期几",
+    "divideAByB": "a 除以 b",
+    "findFiles": "查找文件",
+    "convertAnObjectToAFormattedJSONString": "将对象转换为格式化的 JSON 字符串",
+    "extractAudio": "提取音频",
+    "filterAStreamReturnToDropAnItem": "过滤流——返回 {} 表示丢弃该条目",
+    "removePunctuationCharactersFromText": "移除文本中的标点字符",
+    "trigonometry": "三角函数",
+    "keepTheFileNamesMatchingAUnixWildcardPattern": "保留匹配 Unix 通配符的文件名",
+    "isIn": "是否包含于",
+    "conditionalSwitch": "条件切换",
+    "trim": "去除空白",
+    "getValue": "获取值",
+    "slice": "切片",
+    "transformAllValuesInADictionary": "转换字典中的所有值",
+    "fileInfo": "文件信息",
+    "slugify": "生成 Slug",
+    "joinArrayOfStringsWithASeparator": "用分隔符拼接字符串数组",
+    "moveFile": "移动文件",
+    "sendAPATCHRequestWithAJSONBody": "发送带 JSON 请求体的 PATCH 请求",
+    "truncate": "截断",
+    "replaceAllOccurrencesOfASubstring": "替换子串的所有出现",
+    "sendAPUTRequestWithAJSONBody": "发送带 JSON 请求体的 PUT 请求",
+    "compareText": "比较文本",
+    "findTheMinimumAndMaximumValuesInAList": "找出列表中的最小值和最大值",
+    "fetchTextContentFromAURL": "从 URL 获取文本内容",
+    "applyAGmailLabelToOneMessageById": "按 id 为一封 Gmail 邮件应用标签",
+    "requestWithBearerToken": "带 Bearer 令牌的请求",
+    "filterEntriesByACondition": "按条件过滤条目",
+    "combineTwoLists": "合并两个列表",
+    "union": "并集",
+    "extractAPortionOfTextByStartendIndex": "按起始/结束索引提取文本的一部分",
+    "elementWhoseShapeClipsContent": "用于裁剪 `content` 的形状元素",
+    "convertTheFirstMarkdownTableIntoDataframeRows": "将第一个 Markdown 表格转换为数据帧行",
+    "subtractBFromA": "a 减去 b",
+    "sinCosTanAndTheirInverses": "sin、cos、tan 及其反函数",
+    "countCharactersWordsOrLinesInText": "统计文本的字符数、单词数或行数",
+    "zipKeysValues": "键值配对",
+    "extractAPortionOfAList": "提取列表的一部分",
+    "splitTextIntoWordbasedChunksWithOptionalOverlap": "按单词将文本切分为分块，可选重叠",
+    "pickKeys": "选取键",
+    "sendAPOSTRequestWithAJSONBody": "发送带 JSON 请求体的 POST 请求",
+    "chunkText": "文本分块",
+    "convertTextToAURLsafeSlug": "将文本转换为 URL 安全的 slug",
+    "combineImageGrid": "合并图像网格",
+    "joinPathComponentsIntoOneNormalizedPath": "将多段路径拼接为一条规范化路径",
+    "workspaceDirectory": "工作区目录",
+    "dropShadowFilter": "投影滤镜",
+    "flatten": "展平",
+    "removeAccentMarksKeepingBaseCharacters": "移除重音符号，保留基础字符",
+    "roundToNearestIntegerOrToDecimalPlaces": "四舍五入到最近整数（或指定小数位）",
+    "getTheNumberOfItemsInAList": "获取列表的条目数",
+    "collectAudioAndAudiosourceSourcesFromHTML": "从 HTML 中收集 <audio> 与 <audio><source> 音源",
+    "sendADELETERequestAndReportWhetherItSucceeded": "发送 DELETE 请求并报告是否成功",
+    "readFile": "读取文件",
+    "uniqueDedupe": "去重",
+    "groupItemsByAKey": "按键为条目分组",
+    "extractCaptureGroupsFromTheFirstMatch": "从第一个匹配中提取捕获组",
+    "collectNItemsThenEmitAsABatch": "收集 N 个条目后作为一个批次发出",
+    "extractUnorderedListsFromMarkdownGroupedPerList": "从 Markdown 中提取无序列表，按列表分组",
+    "extractImages": "提取图片",
+    "formatAStringWithVariables": "用变量格式化字符串",
+    "sanitizeString": "净化字符串",
+    "startsWith": "以…开头",
+    "listMinMax": "列表最小 / 最大值",
+    "parseDate": "解析日期",
+    "createDirectory": "创建目录",
+    "duplicateASingleValueIntoAListNTimes": "将单个值重复 N 次生成列表",
+    "logicalANDOfTwoBooleans": "两个布尔值的逻辑与",
+    "combineTwoListsRemovingDuplicates": "合并两个列表并去重",
+    "relativePath": "相对路径",
+    "filterItemsMatchingACondition": "过滤符合条件的条目",
+    "makeDateTime": "构建日期时间",
+    "power": "幂运算",
+    "readBinaryFile": "读取二进制文件",
+    "allComponentsOfAPathInOneDictionary": "用一个字典返回路径的全部组成部分",
+    "collectItems": "收集条目",
+    "streamBatch": "流式批处理",
+    "groupBy": "分组",
+    "removeKey": "移除键",
+    "matchTextAgainstARegularExpression": "用正则表达式匹配文本",
+    "appendTextToAWorkspaceFileCreatingItWhenMissing": "向工作区文件追加文本，文件不存在时自动创建",
+    "repeatEachItem": "重复每个条目",
+    "validateString": "校验字符串",
+    "calculateTheSquareRoot": "计算平方根",
+    "textElement": "文本元素",
+    "negateABooleanValue": "对布尔值取反",
+    "filterFileNames": "过滤文件名",
+    "getAllKeysOrValuesFromADictionary": "获取字典的全部键或值",
+    "convertTextToTitleCaseCapitalizeEachWord": "将文本转换为标题大小写（每个单词首字母大写）",
+    "extractOrderedListsFromMarkdownGroupedPerList": "从 Markdown 中提取有序列表，按列表分组",
+    "capitalize": "首字母大写",
+    "regexValidate": "正则校验",
+    "transformEachItemInAList": "转换列表中的每个条目",
+    "addAnItemToTheEndOfAList": "在列表末尾添加一个元素",
+    "generateARandomNumberInARange": "生成范围内的随机数",
+    "stripAccents": "去除重音",
+    "checkIfAllValuesAreTruthy": "检查是否所有值都为真值",
+    "extractBulletLists": "提取无序列表",
+    "measureLength": "测量长度",
+    "checkIfTextEndsWithASuffix": "检查文本是否以后缀结尾",
+    "indexOf": "查找位置",
+    "removeAKeyFromADictionary": "从字典中移除一个键",
+    "calculateTheAverageOfAList": "计算列表的平均值",
+    "checkWhetherAValueIsASyntacticallyValidEmailAddress": "检查值是否为语法有效的电子邮件地址",
+    "removePunctuation": "移除标点",
+    "multiplyTwoNumbers": "两数相乘",
+    "randomNumber": "随机数",
+    "addDaysHoursOrMinutesToADate": "为日期增加天、小时或分钟",
+    "checkLength": "检查长度",
+    "replaceOnlyTheFirstNOccurrencesOfAPattern": "只替换模式的前 N 处出现",
+    "squareRoot": "平方根",
+    "filterJSONArray": "过滤 JSON 数组",
+    "surroundWrap": "包裹",
+    "splitPath": "切分路径",
+    "listTheEntryNamesOfAWorkspaceDirectory": "列出工作区目录的条目名称",
+    "generateAListOfDatesBetweenStartAndEnd": "生成起止日期之间的日期列表",
+    "serializeADictionaryToJSONString": "将字典序列化为 JSON 字符串",
+    "countTokens": "统计 Token 数",
+    "checkIfTextStartsWithAPrefix": "检查文本是否以前缀开头",
+    "randomlyShuffleAListFisherYates": "随机打乱列表（Fisher-Yates 洗牌）",
+    "extractTable": "提取表格",
+    "findAllMatches": "查找全部匹配",
+    "replaceTextMatchingARegexPattern": "替换匹配正则表达式的文本",
+    "generateUUIDV4": "生成 UUID v4",
+    "writeBase64ContentToAWorkspaceFileAsRawBytes": "将 base64 内容以原始字节写入工作区文件",
+    "contains": "包含",
+    "getJSONPath": "获取 JSON 路径",
+    "svgLineElementBetweenTwoPoints": "连接两点的 SVG 线段元素",
+    "svgPolygonElementFromAListOfVertices": "由顶点列表生成的 SVG 多边形元素",
+    "countLLMTokensInTextWithTiktoken": "用 tiktoken 统计文本中的 LLM token 数",
+    "gmailArchive": "Gmail 归档",
+    "checkIfAValueIsNullOrUndefined": "检查值是否为 null 或 undefined",
+    "svgPathElementFromPathDataCommands": "由路径数据命令生成的 SVG path 元素",
+    "graphqlQuery": "GraphQL 查询",
+    "shuffle": "打乱",
+    "validateEmail": "校验电子邮件",
+    "graphqlQueryWithAuth": "GraphQL 带鉴权查询",
+    "findThePositionOfASubstring": "查找子串的位置",
+    "getAnElementByIndexSupportsNegativeIndexing": "按索引获取元素（支持负数索引）",
+    "padString": "填充字符串",
+    "getBytes": "GET 字节",
+    "removeSpecificKeysFromADictionary": "移除字典中的指定键",
+    "divide": "除法",
+    "compare": "比较",
+    "sum": "求和",
+    "readATextFileFromTheWorkspace": "从工作区读取文本文件",
+    "splitExtension": "切分扩展名",
+    "archiveAGmailMessageByRemovingItFromTheInbox": "将 Gmail 邮件移出收件箱以归档",
+    "intersection": "交集",
+    "keysValues": "键 / 值",
+    "splitAPathIntoDirectoryAndFileName": "将路径切分为目录与文件名",
+    "mapTransform": "映射 / 转换",
+    "checkIfTextContainsASubstringCaseinsensitiveOption": "检查文本是否包含子串（可选忽略大小写）",
+    "extractJSONPath": "提取 JSONPath",
+    "stringifyJSON": "JSON 序列化",
+    "minMax": "最小 / 最大值",
+    "subtract": "减法",
+    "findElementsInAThatAreNotInB": "找出在 a 中但不在 b 中的元素",
+    "mergeTwoOrMoreDictionaries": "合并两个或更多字典",
+    "yieldEachItem": "逐条产出",
+    "getTheDirectoryContainingAPath": "获取路径所在的目录",
+    "fileExists": "文件是否存在",
+    "convertAnyValueToAStringRepresentation": "将任意值转换为字符串表示",
+    "addTwoNumbers": "两数相加",
+    "getTheFileNameFromAPathWithAndWithoutExtension": "从路径获取文件名（含扩展名与不含扩展名）",
+    "chunk": "分块",
+    "capitalizeOnlyTheFirstCharacter": "只将第一个字符大写",
+    "raiseBaseToThePowerOfExponent": "求底数的指数次幂",
+    "runAGraphQLQueryOrMutationAgainstAnyEndpoint": "对任意端点执行 GraphQL 查询或变更",
+    "wrapTextWithAPrefixAndSuffix": "用前缀和后缀包裹文本",
+    "appendToFile": "追加到文件",
+    "gmailSearch": "Gmail 搜索",
+    "regexMatch": "正则匹配",
+    "extractMetadata": "提取元数据",
+    "sortAListAscendingOrCustom": "排序列表（升序或自定义）",
+    "parseADateString": "解析日期字符串",
+    "buildADateObjectFromYearMonthAndDayNumbers": "用年、月、日数字构建日期对象",
+    "findCommonElementsBetweenTwoLists": "找出两个列表的公共元素",
+    "rectangle": "矩形",
+    "extractRegexGroups": "提取正则捕获组",
+    "selectSpecificKeysFromADictionary": "从字典中选取指定键",
+    "pathToString": "路径转字符串",
+    "generateARandomUUIDV4": "生成随机 UUID v4",
+    "fetchAGraphQLEndpointsSchemaViaAnIntrospectionQuery": "通过内省查询获取 GraphQL 端点的 schema",
+    "startEndOfPeriod": "周期起点 / 终点",
+    "svgTextElementWithFontSizeColorAndAnchor": "SVG 文本元素，含字体、字号、颜色与锚点",
+    "extractFencedCodeBlocksAndTheirLanguagesFromMarkdown": "从 Markdown 中提取围栏代码块及其语言",
+    "extractSubstring": "提取子串",
+    "fileNameMatch": "文件名匹配",
+    "checkWhetherAValueIsASyntacticallyValidAbsoluteURL": "检查值是否为语法有效的绝对 URL",
+    "accumulateStreamingItemsIntoAList": "把流式数据逐项累积成列表",
+    "graphqlIntrospection": "GraphQL 内省",
+    "isNone": "是否为空值",
+    "templateString": "模板字符串",
+    "compareTwoValues": "比较两个值（==, !=, >, <, >=, <=）",
+    "circle": "圆形",
+    "filterDictionary": "过滤字典",
+    "matchAFileNameAgainstAUnixWildcardPattern": "将文件名与 Unix 通配符模式匹配",
+    "upperLowerCase": "大写 / 小写转换",
+    "svgRectangleElementWithPositionSizeAndStyling": "SVG 矩形元素，含位置、尺寸与样式",
+    "toString": "转字符串",
+    "reverseTheOrderOfAList": "反转列表顺序",
+    "reverse": "反转",
+    "clampAValueBetweenMinAndMax": "将值限制在最小值与最大值之间",
+    "callAnAPIWithABearerTokenReadFromTheSecretStore": "使用从密钥存储读取的 Bearer 令牌调用 API",
+    "checkIfTextIsEmptyOrOnlyWhitespace": "检查文本是否为空或仅含空白字符",
+    "formatADateIntoAReadableString": "将日期格式化为可读字符串",
+    "dateDifference": "日期差值",
+    "tileList": "平铺列表",
+    "startMiddleEnd": "start、middle 或 end（文本锚点）",
+    "readAWorkspaceFileAsABase64String": "将工作区文件读取为 base64 字符串",
+    "countItemsPassingThroughAStream": "统计流经的数据条数",
+    "replaceRunsOfWhitespaceWithASingleSpace": "将连续空白替换为单个空格",
+    "calculateTheDifferenceBetweenTwoDates": "计算两个日期之间的差值",
+    "checkIfAValueIsInAList": "检查值是否在列表中",
+    "regexSplit": "正则切分",
+    "downloadBinaryDataFromAURLAsAUint8Array": "从 URL 下载二进制数据为 Uint8Array",
+    "joinArray": "拼接数组",
+    "getTheAbsoluteValue": "获取绝对值",
+    "splitTextUsingARegexDelimiter": "用正则分隔符切分文本",
+    "argMax": "最大值键",
+    "svgBlurFilterDefinitionReferencedByFilterurlid": "SVG 模糊滤镜定义，通过 filter=url(#id) 引用",
+    "readThePageTitleAndTheDescriptionKeywordsMetaTags": "读取页面标题以及 description / keywords 元标签",
+    "copyFile": "复制文件",
+    "svgCircleElementWithCenterRadiusAndStyling": "SVG 圆形元素，含圆心、半径与样式",
+    "clipAnSVGElementWithTheShapeOfAnotherElement": "用另一个元素的形状裁剪 SVG 元素",
+    "filterAnArrayOfObjectsByAKeyvalueMatch": "按键值匹配过滤对象数组",
+    "padAStringToAFixedLength": "将字符串填充到固定长度",
+    "sort": "排序",
+    "mergeDictionaries": "合并字典",
+    "some": "任一满足",
+    "getTheRawStringFromAFilePathValue": "从文件路径值获取原始字符串",
+    "parseCSV": "解析 CSV",
+    "validateIPAddress": "校验 IP 地址",
+    "parseCSVTextIntoAnArrayOfObjects": "将 CSV 文本解析为对象数组",
+    "remainderOfADividedByB": "a 除以 b 的余数",
+    "streamCounter": "流式计数器",
+    "absolutePath": "绝对路径",
+    "replaceNTimes": "替换 N 次",
+    "gmailAddLabel": "Gmail 添加标签",
+    "pathInfo": "路径信息",
+    "formatDate": "格式化日期",
+    "parseAJSONStringIntoAnObject": "将 JSON 字符串解析为对象",
+    "parseJSON": "解析 JSON",
+    "logicalOROfTwoBooleans": "两个布尔值的逻辑或",
+    "listFiles": "列出文件",
+    "collapseWhitespace": "折叠空白",
+    "extendMerge": "扩展 / 合并",
+    "extractSchemeHostTheSiteRootFromAFullURL": "从完整 URL 中提取协议加主机（站点根）",
+    "logicalOR": "逻辑或",
+    "graphqlBatchQuery": "GraphQL 批量查询",
+    "writeBinaryFile": "写入二进制文件",
+    "validateURL": "校验 URL",
+    "resolveAPathAgainstABaseDirectory": "基于基准目录解析路径",
+    "checkIfAnyValueIsTruthy": "检查是否有任一值为真值",
+    "isEmpty": "是否为空",
+    "checkIfTextMatchesARegexPattern": "检查文本是否匹配正则表达式",
+    "split": "切分",
+    "getTheCurrentDateOrDatetime": "获取当前日期或日期时间",
+    "flattenNestedArrays": "展平嵌套数组",
+    "makeDate": "构建日期",
+    "truncateTextToAMaxLengthWithOptionalEllipsis": "将文本截断到最大长度，可选省略号",
+    "collapseRedundantSeparatorsAndSegments": "合并冗余分隔符以及 '.' 与 '..' 路径段",
+    "joinPaths": "拼接路径",
+    "sumAllNumbersInAList": "对列表中所有数字求和",
+    "removeWhitespaceFromStartAndEnd": "移除首尾空白字符",
+    "extractInlineLinksAndAutolinksFromMarkdown": "从 Markdown 中提取行内链接与自动链接",
+    "svgEllipseElementWithCenterXyRadiiAndStyling": "SVG 椭圆元素，含圆心、x/y 半径与样式",
+    "basenameFileName": "Basename / 文件名",
+    "setOrUpdateAKeyInADictionary": "设置或更新字典中的键",
+    "writeFile": "写入文件",
+    "returnOneOfTwoValuesBasedOnACondition": "根据条件返回两个值之一",
+    "streamFilter": "流式过滤",
+    "findTheKeyWithTheHighestValue": "找出值最大的键",
+    "normalizePath": "规范化路径",
+    "ellipse": "椭圆",
+    "repeatValue": "重复值",
+    "titleCase": "标题大小写",
+    "extractCodeBlocks": "提取代码块",
+    "splitAStringIntoAnArray": "将字符串切分为数组",
+    "splitAListIntoChunksOfAGivenSize": "将列表按指定大小分块",
+    "addTime": "增加时间",
+    "toJSON": "转 JSON",
+    "compareTwoStringsEqualLessGreater": "比较两个字符串（相等、小于、大于）",
+    "getElement": "获取元素",
+    "extractVideos": "提取视频",
+    "not": "取反",
+    "todayNow": "今天 / 当前时间",
+    "dateRange": "日期范围",
+    "translateRotateAndScaleAnSVGElement": "平移、旋转和缩放 SVG 元素",
+    "createADictionaryFromParallelKeyAndValueArrays": "由平行的键数组与值数组创建字典",
+    "findTheMinimumOrMaximumOfValues": "找出值中的最小值或最大值"
+  },
+  "shortcuts": {
+    "showhideNodeInformationPanel": "显示/隐藏节点信息面板",
+    "zoomTo100": "缩放至 100%",
+    "showOrHideInspectorPanel": "显示或隐藏属性面板",
+    "zoomOut": "缩小",
+    "alignSelectedNodesToTheLeftEdge": "将所选节点对齐到左边缘",
+    "alignSelectedNodesToTheTopEdge": "将所选节点对齐到上边缘",
+    "startANewConversationInTheFocusedChat": "在当前聚焦的对话中开始新会话",
+    "moveFocusToTheNearestNodeToTheLeft": "将焦点移到最近的左侧节点",
+    "navigatePreviousNode": "上一个节点",
+    "showThePreviousAssetInTheAssetViewer": "在素材查看器中显示上一个素材",
+    "moveFocusToTheNearestNodeBelowCurrent": "将焦点移到最近的下方节点",
+    "openKeyboardShortcutsPanel": "打开键盘快捷键面板",
+    "nudgeSelectedNodesUp": "将所选节点向上微调",
+    "alignSelectedNodesToTheirVerticalCenter": "将所选节点对齐到垂直中心",
+    "runWorkflow": "运行工作流",
+    "executeTheCurrentWorkflow": "运行当前工作流",
+    "moveUp": "上移",
+    "putTheCursorInTheFocusedChatsMessageBox": "将光标置于当前聚焦对话的消息输入框",
+    "resetToDefault": "重置为默认值",
+    "focusChatComposer": "聚焦对话输入框",
+    "selectConnectedInputs": "选择相连节点（输入）",
+    "distributeSelectedNodesEvenlyHorizontally": "水平均匀分布所选节点",
+    "exitFullscreen": "退出全屏",
+    "renameAsset": "重命名素材",
+    "selectRange": "选择范围",
+    "pasteNodesFromClipboard": "粘贴剪贴板中的节点",
+    "fitView": "适配视图",
+    "collapseExpandNode": "折叠/展开节点",
+    "showOrHideOperatorPanel": "显示或隐藏操作台面板",
+    "alignSelectedNodesToTheirCenter": "将所选节点对齐到水平中心",
+    "extendSelectionFromTheLastSelectedAsset": "从最后选中的素材扩展选区",
+    "toggleWhetherSelectedNodesAreExcludedFromRuns": "切换所选节点是否在运行中排除",
+    "jumpForward5Assets": "前进 5 个素材",
+    "fitAllSelectedNodesIntoView": "将全部/所选节点适配到视图",
+    "focusNodeLeft": "聚焦左侧节点",
+    "quicklySearchAndAddANewNodeToTheWorkflow": "快速搜索并向工作流添加新节点",
+    "navigateFocusToNextNodeInTheCanvas": "在画布中将焦点移到下一个节点",
+    "nodeInfo": "节点信息",
+    "navigateNextNode": "下一个节点",
+    "jumpBackFiveAssetsInTheAssetViewer": "在素材查看器中后退五个素材",
+    "alignSelectedNodes": "对齐所选节点",
+    "nudgeSelectedNodesLeft": "将所选节点向左微调",
+    "activatePreviousWorkflowTab": "切换到上一个工作流标签页",
+    "duplicateSelectedNodesVertically": "纵向创建所选节点的副本",
+    "resetPropertyToDefaultValue": "将属性重置为默认值",
+    "setZoomTo100": "将缩放设为 100%",
+    "previousAsset": "上一个素材",
+    "zoomTo200": "缩放至 200%",
+    "toggleWorkflowsPanelLeftSidebar": "切换工作流面板（左侧栏）",
+    "redoLastUndoneAction": "重做已撤销的操作",
+    "exitNavigationMode": "退出导航模式",
+    "resetZoom": "重置缩放",
+    "moveFocusToTheNearestNodeToTheRight": "将焦点移到最近的右侧节点",
+    "activateNextWorkflowTab": "切换到下一个工作流标签页",
+    "operator": "操作台",
+    "stopGeneration": "停止生成",
+    "moveDown": "下移",
+    "selectAllNodesThatReceiveOutputFromSelectedNodes": "选择接收所选节点输出的全部节点",
+    "saveWorkflow": "保存工作流",
+    "whileAReplyIsInFlightAndTheComposerHasFocus": "回复进行中且输入框处于焦点时",
+    "clearTheAssetSearchField": "清空素材搜索框",
+    "moveLeft": "左移",
+    "saveCurrentWorkflow": "保存当前工作流",
+    "jumpForwardFiveAssetsInTheAssetViewer": "在素材查看器中前进五个素材",
+    "selectAll": "全选",
+    "cutSelectedNodes": "剪切所选节点",
+    "showKeyboardShortcuts": "显示键盘快捷键",
+    "deleteAllSelectedNodes": "删除所有所选节点",
+    "openNodeMenu": "打开节点菜单",
+    "showTheNextAssetInTheAssetViewer": "在素材查看器中显示下一个素材",
+    "focusNodeAbove": "聚焦上方节点",
+    "selectConnectedAll": "选择相连节点（全部）",
+    "deleteSelected": "删除所选",
+    "stopRunningWorkflow": "停止正在运行的工作流",
+    "nextAsset": "下一个素材",
+    "selectAllNodesThatConnectIntoSelectedNodes": "选择连入所选节点的全部节点",
+    "toggleSelection": "切换选中",
+    "closeWorkflow": "关闭工作流",
+    "previousTab": "上一个标签页",
+    "closeCurrentWorkflowTab": "关闭当前工作流标签页",
+    "moveRight": "右移",
+    "nudgeSelectedNodesDown": "将所选节点向下微调",
+    "alignSelectedNodesToTheBottomEdge": "将所选节点对齐到下边缘",
+    "findAndNavigateToNodesInTheCurrentWorkflow": "查找并跳转到当前工作流中的节点",
+    "selectTheCurrentlyFocusedNode": "选中当前聚焦的节点",
+    "zoomIn": "放大",
+    "clearAssetSearch": "清除素材搜索",
+    "decreaseZoomLevelBy20": "缩小 20%",
+    "zoomTo50": "缩放至 50%",
+    "copySelectedNodes": "复制所选节点",
+    "openSettingsInAWorkspaceTab": "在工作区标签页中打开设置",
+    "moveFocusToTheNearestNodeAboveCurrent": "将焦点移到最近的上方节点",
+    "nextTab": "下一个标签页",
+    "selectConnectedOutputs": "选择相连节点（输出）",
+    "exitFullscreenMode": "退出全屏模式",
+    "nudgeSelectedNodesRight": "将所选节点向右微调",
+    "selectAllNodesConnectedToSelectedNodesInputsAndOutputs": "选择与所选节点相连的全部节点（输入和输出）",
+    "jumpBack5Assets": "后退 5 个素材",
+    "increaseZoomLevelBy20": "放大 20%",
+    "focusNodeBelow": "聚焦下方节点",
+    "showOrHideWorkflowSettingsPanel": "显示或隐藏工作流设置面板",
+    "setZoomTo200": "将缩放设为 200%",
+    "newWorkflow": "新建工作流",
+    "createANewWorkflowTab": "新建工作流标签页",
+    "alignSelectedNodesToTheRightEdge": "将所选节点对齐到右边缘",
+    "toggleAssetsPanelLeftSidebar": "切换素材面板（左侧栏）",
+    "goBackToPreviouslyFocusedNode": "返回之前聚焦的节点",
+    "resetZoomTo50": "将缩放重置为 50%",
+    "newChat": "新建对话",
+    "navigateFocusToPreviousNodeInTheCanvas": "在画布中将焦点移到上一个节点",
+    "openNodeMenuAlsoDoubleclickCanvas": "打开节点菜单——也可双击画布",
+    "selectFocusedNode": "选中聚焦节点",
+    "addOrRemoveAnAssetFromTheSelection": "将素材加入或移出选区",
+    "exitKeyboardNavigationMode": "退出键盘导航模式",
+    "duplicateSelectedNodes": "创建所选节点的副本",
+    "findInWorkflow": "在工作流中查找",
+    "groupSelectedNodes": "编组所选节点",
+    "stopWorkflow": "停止工作流",
+    "alignWithSpacing": "对齐并分配间距",
+    "undoLastAction": "撤销上一步操作",
+    "alignSelectedNodesAndDistributeSpacing": "对齐所选节点并分配间距",
+    "focusNodeRight": "聚焦右侧节点",
+    "goBack": "返回",
+    "setZoomTo50": "将缩放设为 50%",
+    "deleteSelectedNodesBackspaceOrDelete": "删除所选节点（Backspace 或 Delete）",
+    "selectAllNodes": "全选节点"
+  },
+  "dataTypes": {
+    "boolean": "布尔值",
+    "torchTensor": "Torch 张量",
+    "numpyArray": "NumPy 数组",
+    "slotFill": "槽位填充",
+    "datetime": "日期时间",
+    "enumeration": "枚举",
+    "noType": "无类型",
+    "modelReference": "模型引用",
+    "none": "无",
+    "union": "并集",
+    "asrModel": "ASR 模型",
+    "dictionary": "字典",
+    "collection": "知识库",
+    "musicModel": "音乐模型",
+    "noOutputOrTypeNotSpecified": "无输出或未指定类型。",
+    "thread": "会话线程",
+    "tensor": "张量",
+    "gameSlot": "游戏槽位",
+    "calendarDateWithoutATimeComponent": "不含时间部分的日历日期。",
+    "bytes": "字节",
+    "chunk": "分块",
+    "3dPipelineModel": "3D 管线模型",
+    "llamacppModel": "Llama.cpp 模型",
+    "audioToAudioModel": "音频转音频模型",
+    "ttsModel": "TTS 模型",
+    "dataframe": "数据帧",
+    "imageSize": "图像尺寸",
+    "llamaModelHF": "Llama 模型（HF）",
+    "mistralModel": "Mistral 模型",
+    "transformersjsModelTjs": "Transformers.js 模型（tjs.*）",
+    "file": "文件"
+  },
+  "skills": {
+    "beat-sync-editing": {
+      "name": "节奏卡点剪辑",
+      "description": "按音乐剪辑时间线并打磨节奏：检测节拍网格、按乐句落剪点、选择剪切方式、用时间重映射做变速推进，并让整片有起有伏。适合画面要对上音乐、节奏拖沓或零碎、重音需要冲击力、转场显得随意的场景；不负责镜头内容本身。"
+    },
+    "caption-titles": {
+      "name": "字幕标题条",
+      "description": "在画面已定剪的时间线上加一层统一、卡好时的文字：片头标题、人名条、字幕、标注和片尾卡。不用于搭建工作流或渲染视频。"
+    },
+    "color-motion": {
+      "name": "色彩动效",
+      "description": "在时间线上选色并让色彩动起来：克制的配色、图形与文字的渐变填充、片段效果链的调色顺序，以及哪些颜色通道真正可动。适合定调画面风格、把多个镜头调到能剪在一起、做颜色渐变动效，或修复发灰、泛白、有色带的画面；不负责文案与剪辑点。"
+    },
+    "commercial-beat-sheet": {
+      "name": "广告节拍表",
+      "description": "写一份可拍摄、卡准时间的广告节拍表并存成分镜，每个镜头背后都有统一的实体名单。适合需要广告结构（钩子、节拍、时间码、配音）而非成片渲染的场景。"
+    },
+    "elevenlabs-audio-prompting": {
+      "name": "ElevenLabs 音频提示词",
+      "description": "指挥 ElevenLabs 的语音、对白、音效与音乐生成：v3 会响应的方括号音频标签、为什么由声音决定标签是否生效、稳定性参数如何当语气旋钮用、用标点而非 SSML 控节奏、多说话人的逐行对白格式、带 prompt_influence 与循环的音效简报，以及锁定歌曲段落的谱曲方案。凡模型 ID 指向 ElevenLabs 的语音、对白、音效、音乐生成端点即适用；转写、配音替换、隔离等不吃提示词的端点不在此列。"
+    },
+    "explainer-storyboard": {
+      "name": "解说视频分镜",
+      "description": "把已确认的产品或功能简报变成 30–120 秒、可拍摄的解说视频分镜，实体名单全程统一。用于产品解说类视频，不用于工作流、管线或成片渲染。"
+    },
+    "flux-2-klein-prompting": {
+      "name": "FLUX.2 Klein 提示词",
+      "description": "编写 Black Forest Labs FLUX.2 [klein] 的提示词：它按顺序处理的主体／环境／风格／技术层级、guidance 与步数取舍、针对真实失败模式的反向提示词，以及亚秒级延迟让「锁种子、每次只动一个变量」的迭代循环真正可行。凡模型 ID 含 flux-2/klein（含 base、edit、lora、realtime 变体）即适用；FLUX.2 pro、flex、max、dev 不在此列。"
+    },
+    "frame-composition": {
+      "name": "画面构图",
+      "description": "在时间线上经营画面：网格、焦点摆位、各画幅的安全区、纵深层次与视差、镜头运动，以及元素的入场与离场。适合摆标题、人名条、图形或叠加层，布局要同时扛住 16:9 与 9:16，要加推近或视差运镜，或画面显得平、挤的场合；不负责片段说什么、何时剪切。"
+    },
+    "godot-game": {
+      "name": "Godot 游戏开发",
+      "description": "用模板、校验过的素材、导出与验证流程，在 NodeTool 里搭出可玩的 Godot 游戏或完整的游戏素材包。"
+    },
+    "gpt-image-2-prompting": {
+      "name": "GPT Image 2 提示词",
+      "description": "编写 OpenAI GPT Image 2 的提示词：它认的「场景／主体／细节／用途／约束」五段模板、编辑时「改什么—保什么」的结构、多图合成的标注法，以及让图中文字逐字渲染的写法。凡模型 ID 含 gpt-image-2 即适用；GPT Image 1、1-mini、1.5 不在此列。"
+    },
+    "hailuo-prompting": {
+      "name": "海螺视频提示词",
+      "description": "编写 MiniMax 海螺视频系列的提示词：它按时间顺序动画化的节拍写法、导演端点接受的十五个方括号镜头命令与「每括号三条」规则、何时关掉 prompt_optimizer、为什么没有反向提示词可退，以及图生视频只写增量。凡模型 ID 为 Hailuo 或 MiniMax video-01 系即适用；MiniMax H3 另有专册。"
+    },
+    "kling-video-prompting": {
+      "name": "可灵视频提示词",
+      "description": "编写快手可灵 2.5-turbo 及之后版本的提示词：哪个版本才有分镜表、元素标记、原生音频与 CFG 旋钮，multi_prompt 里一条一段而非一整段散文，角色标 @Element1/@Element2 让脸在剪切后保得住，原生音频对口型的标注对白格式，针对可灵真实瑕疵的反向提示词，以及运镜控制真正要的不是提示词。凡模型 ID 为 Kling 2.5-turbo、2.6、v3、O1、O3 即适用；Kling 1.x、2.0、2.1 与可灵图像不在此列。"
+    },
+    "launch-commercial": {
+      "name": "发布广告片",
+      "description": "从一个产品页网址直达成品发布广告：调研、分镜、渲染图与镜头、配音、音乐、装配好的时间线，以可编辑的 NodeTool 项目交付并附真实成本。适合「照这个产品页／官网给我出条广告、发布短片、宣传片」的需求。"
+    },
+    "launch-kit": {
+      "name": "发布物料包",
+      "description": "产出一场 NodeTool 定向广告：共享的产品与角色实体、多张静图与多版视频剪辑。适合需要成套协同物料的场合。"
+    },
+    "logo-reveal": {
+      "name": "Logo 演绎动画",
+      "description": "在时间线上让品牌标识动起来：描边勾画、遮罩擦除、错峰拼合、字标排版、待机循环，并把定格落在声音标识上。适合片头标、收尾标、片尾卡、启动画面或加载循环；不负责设计标识本身。"
+    },
+    "minimax-h3-prompting": {
+      "name": "MiniMax H3 提示词",
+      "description": "编写 MiniMax H3 的提示词：在文生视频、首末帧、参考图三类端点间做选择，给每张参考图、每段素材、每条音频指派明确职责，在提示词里写带时间码的分镜表，艺术指导原生立体声，以及改片段时把「改动＋约束」一起说。凡模型 ID 以 minimax/h3 开头（含 max、turbo、lora 变体）即适用；海螺系列另有专册。"
+    },
+    "motion-background": {
+      "name": "动态背景",
+      "description": "在时间线上搭一块会动却不抢戏的氛围循环底：图形片段做的渐变底、缓慢的循环动画、分层漂移，以及生成的视频底。适合标题卡背景、文字后面的主视觉底、片尾卡、人名条底板，或出镜讲解后面的循环底；不负责前面的内容。"
+    },
+    "motion-curves": {
+      "name": "运动曲线",
+      "description": "手写时间线动画的关键帧曲线，或在沙箱里用一段 JavaScript 一次性烘焙成曲线，做出预设覆盖不到的运动：过冲、衰减弹跳、预备动作、抖动、惯性、弧线、路径描画，以及一切「预设＋缓动」表达不出的轨迹。涵盖代码契约、可动画通道与多曲线的组合方式。"
+    },
+    "motion-direction": {
+      "name": "动效语言设定",
+      "description": "在任何东西动起来之前先定全片的动效语言——一套缓动、一个计时单位、一族转场、一种错峰节奏——再拿它审计整条时间线。适合开始做标题层或整片剪辑时、动画显得闹、廉价或镜头间不一致时，或把品牌与简报翻译成智能体能执行的动效规则时；单个片段的机械细节归 MG 动效管。"
+    },
+    "motion-graphics": {
+      "name": "MG 动效制作",
+      "description": "在时间线上给文字、片段与转场做动效，并逐帧看渲染结果自查。适合标题卡、动态文字、人名条动效、片段出入场、镜头间转场与轨道分层；不负责写文案、剪画面或渲染成片。"
+    },
+    "motion-principles": {
+      "name": "动效原则",
+      "description": "动手之前先决定它该怎么动：时长、缓动曲线、错峰偏移、重量感、预备与跟随，全部给成能直接贴进时间线动画的数字。适合动作发僵、发飘、机械或廉价时，为出入场与转场挑时长或缓动时，或审查一段剪切的动效读不读得懂时；工具契约归 MG 动效管。"
+    },
+    "music-video-treatment": {
+      "name": "音乐视频创意方案",
+      "description": "把已确认的曲目信息变成可拍摄、卡节拍的音乐视频创意方案与 NodeTool 分镜。用于 MV 与音乐宣传片，不用于工作流、管线或成片渲染。"
+    },
+    "nano-banana-pro-prompting": {
+      "name": "Nano Banana Pro 提示词",
+      "description": "编写 Google Nano Banana Pro 图像模型的提示词：它先按美术指导简报做规划，每次编辑都需要的「锁定／改动／幅度／约束」结构，以及排版、示意图、产品样机与分镜的专用写法。凡模型 ID 含 nano-banana-pro 即适用；Nano Banana 2 与初代 Nano Banana 不在此列。"
+    },
+    "nodetool-3d-scene": {
+      "name": "3D 场景构建",
+      "description": "构建、编辑、校验或渲染 NodeTool 3D 模型：glTF 对象、变换、灯光、材质，以及 Blender 无头渲染。"
+    },
+    "nodetool-api-reference": {
+      "name": "API 接入参考",
+      "description": "通过 REST、tRPC、MsgPack WebSocket、MCP 或 OpenAI 兼容的 Chat API 与 NodeTool 集成，覆盖文档面与工作流运行。"
+    },
+    "nodetool-app-builder": {
+      "name": "小程序搭建",
+      "description": "搭建或修理 NodeTool 小程序：操作、微件、绑定、变量、资源。交付物是给人运行的界面而非节点图时用它。"
+    },
+    "nodetool-browser-agent": {
+      "name": "浏览器自动化智能体",
+      "description": "构建 NodeTool 浏览器自动化智能体，处理导航、数据抽取、表单或多步网页任务。"
+    },
+    "nodetool-chat-cli": {
+      "name": "命令行对话",
+      "description": "使用 NodeTool 命令行对话会话：模型服务商选择、工作区工具与全局对话功能。"
+    },
+    "nodetool-custom-node-developer": {
+      "name": "自定义节点开发",
+      "description": "创建或更新 TypeScript 的 NodeTool 节点：装饰器属性、process 方法与节点包。"
+    },
+    "nodetool-deployment": {
+      "name": "部署运维",
+      "description": "用 Docker、SSH、Runpod 或云端部署配置，部署与运维 NodeTool 服务器和工作节点。"
+    },
+    "nodetool-js-scripting": {
+      "name": "JS 脚本编写",
+      "description": "编写运行在 NodeTool QuickJS 沙箱里的 JavaScript：Code 节点代码体、保存的 JS 脚本文档、沙箱包导入，以及在代码里调用节点。"
+    },
+    "nodetool-model-provider-config": {
+      "name": "模型服务商配置",
+      "description": "配置 NodeTool 的模型服务商、凭据与模型选择，包括本地 Ollama 与 Hugging Face 模型。"
+    },
+    "nodetool-rag-indexing": {
+      "name": "RAG 索引构建",
+      "description": "搭建 NodeTool 的文档摄取、向量索引、检索与 RAG 管线。"
+    },
+    "nodetool-sketch": {
+      "name": "图稿编辑",
+      "description": "搭建或编辑 NodeTool 图稿（图像文档）：图层、混合模式、置入图片、生成简报、版本历史。"
+    },
+    "nodetool-skill-author": {
+      "name": "技能编写",
+      "description": "编写或修订 NodeTool 技能：经 create_skill 建的用户技能，或 packages/system-skills 下随产品发布的系统技能。需要指令跨会话留存时用它。"
+    },
+    "nodetool-troubleshooter": {
+      "name": "故障排查",
+      "description": "诊断任何表面上的 NodeTool 运行故障：工作流、小程序、时间线、图稿、剧本、分镜，以及卡住的媒体生成。仓库代码缺陷请用 diagnosing-bugs。"
+    },
+    "nodetool-video-post": {
+      "name": "视频后期修复",
+      "description": "修复或重新生成时间线上已有的画面：抠图、跟踪、扩图、超分、生成音效、重配音、对口型。含这些操作返回结果的候选复核流程。"
+    },
+    "nodetool-workflow-builder": {
+      "name": "工作流搭建",
+      "description": "通过界面、无头工具或指定的工作流文件，创建或编辑 NodeTool 工作流的节点图、连线与属性。"
+    },
+    "product-commercial": {
+      "name": "产品广告片",
+      "description": "在 NodeTool 里执导精制的产品片或品牌广告片。手机实拍的创作者广告请用 UGC 视频创作。"
+    },
+    "qwen-image-prompting": {
+      "name": "Qwen 图像提示词",
+      "description": "编写阿里 Qwen-Image 系列的提示词，发挥它专长的排版工作：逐字引用画面文字让模型不再自己编、先关掉提示词扩写免得字符串被改写、用相对位置与轻重描述版式而非字号、非拉丁文字按字符书写、编辑时按「图 1／图 2／图 3」称呼参考图。凡模型 ID 为 Qwen-Image 系列（文生图与编辑各端点）即适用。"
+    },
+    "script-video": {
+      "name": "文稿配音视频",
+      "description": "执导节奏跟着旁白文稿走的 NodeTool 视频，比如解说片或配音 B-roll。出镜创作者内容请用 UGC 视频创作。"
+    },
+    "seedance-2-prompting": {
+      "name": "Seedance 2 提示词",
+      "description": "编写字节 Seedance 2 视频系列的提示词：主体／运动／环境／画风／镜头／声音公式，双引号对白如何被配声并对口型，写死声音混合而非留空，一次生成里切镜头，撑起整片起伏的 JSON 节拍简报，以及给物理一个要追的后果。凡模型 ID 含 seedance-2（含 fast、mini 变体与文生视频／图生视频／参考图各类形式）即适用；Seedance 1.x 不在此列。"
+    },
+    "seedream-prompting": {
+      "name": "Seedream 提示词",
+      "description": "编写字节 Seedream 4／5 图像系列的提示词：它按顺序读的六层简报、超过字数预算就开始丢句的阈值，画面文字要引用并安排位置、编辑前先钉住不许动的东西、最多十张参考图按内容而非序号称呼，以及迭代尺寸与交付尺寸的取舍。凡模型 ID 为 Seedream 4 或 5 即适用；Seedream 3 不在此列。"
+    },
+    "short-film": {
+      "name": "短片创作",
+      "description": "在 NodeTool 里执导叙事场景、短片或预告片，带角色、对白与配乐。"
+    },
+    "stable-audio-prompting": {
+      "name": "Stable Audio 提示词",
+      "description": "编写 Stability Stable Audio 系列的提示词：训练元数据认的「曲风／乐器／情绪／BPM」顺序，Stable Audio 3 上区分音乐、分轨与音效的 TrackType、VocalType 标签，时长要写到位，guidance_scale 与步数各影响哪些检查点，以及局部重绘、音频外扩、音频转音频变体里周边音频比提示词更说了算的写法。凡模型 ID 为 Stable Audio 系列（generate_music 或音频生成节点）即适用。"
+    },
+    "storyboard-core": {
+      "name": "分镜制作核心",
+      "description": "使用 NodeTool 的分镜、实体选角、渲染与时间线装配工具做视频生产，或调试这些工具的契约。"
+    },
+    "trailer-template": {
+      "name": "预告片模板",
+      "description": "按「声音先行」的八拍结构搭预告片或预热片——钩子、铺垫、触发事件、加码、骤降、高潮、片名、收束——配按片长缩放的时间码网格、事件／反应镜头对、埋了又收的母题，和一条不断的音乐底，最后存成 NodeTool 分镜，每个反复出镜的脸背后都有角色实体。有人要预告片结构、说剪辑没主线没递进、或想知道爆点和片名卡放哪时用它；广告归广告节拍表，音乐视频归音乐视频创意方案。"
+    },
+    "ugc-video": {
+      "name": "UGC 视频创作",
+      "description": "执导手机实拍的创作者视频、UGC 广告、用户证言或 Vlog。精制产品片请用产品广告片。"
+    },
+    "veo-3-prompting": {
+      "name": "Veo 3 提示词",
+      "description": "编写 Google Veo 3 视频系列的提示词：镜头／场景／主体／动作／对白五要素结构、它直接读得懂的摄影词汇、时长与画幅的取舍、enhance-prompt 与 auto-fix 预处理器，以及视觉漂移、时间不一致与音画不匹配的修法。凡模型 ID 含 veo3 或 veo-3（含 fast、lite、图生视频、首末帧、参考图各路线）即适用。"
+    },
+    "video-audio-continuity": {
+      "name": "视频声音连贯",
+      "description": "让生成视频剪出的多场景作品声音不断线：为什么一场景一条片段会在每个切点硬断音频、什么时候该把所有场景写进一次生成、能过服务商版权过滤器的声音设计词汇，以及怎么核返回物的时长、画幅与混音。作品多于一场景且视频模型自带音频（Seedance 2、Veo 3、MiniMax H3、可灵 2.6 及以后），或切点处声音掉线时用它。"
+    },
+    "video-clone": {
+      "name": "视频复刻",
+      "description": "分析一条参考视频，在 NodeTool 里用新产品或新阵容复刻它的镜头结构。"
+    },
+    "video-workflow": {
+      "name": "视频工作流",
+      "description": "搭一条可复用的 NodeTool 视频工作流，应对批量或重复输入。单片成品请用分镜类技能。"
+    },
+    "wan-2-6-prompting": {
+      "name": "Wan 2.6 提示词",
+      "description": "编写阿里 Wan 2.6 三种模式的提示词：文生视频用一句全局风格线加带时间括号的镜头，图生视频只描述随时间变化的部分，参考图生视频把主体标成 @Video1/@Video2/@Video3。涵盖 multi_shots 格式、800 字符提示词预算、反向提示词、运动强度措辞、音频输入规则与提示词扩写。凡模型 ID 含 wan-2.6 或 wan2.6 即适用；Wan 2.5、2.7 不在此列。"
+    }
+  },
+  "apps": {
+    "ad-maker": {
+      "name": "广告创作台",
+      "description": "从一个卖点出发，对比多路文案与标题角度，再用已过审的文案配上视觉简报，执导一支定向广告主片。"
+    },
+    "ai-spokesperson": {
+      "name": "AI 发言人",
+      "description": "TTS 语音合成先给剧本配音，对口型模型再驱动源画面里的口型，让表达对得上。本地化一条素材、救回一条口误，或把一次录制裂变成多个版本。"
+    },
+    "brand-and-social": {
+      "name": "品牌与社媒",
+      "description": "品牌信息填一次——素材套件与缩略图工厂读的都是同一份值。"
+    },
+    "concept-studio": {
+      "name": "概念工作室",
+      "description": "创意迭代循环：把简报扇形展开成概念图，把动物混成新生物，再把选中的图送进免密钥的滤镜链。"
+    },
+    "directed-campaign-kit": {
+      "name": "定向广告执导套件",
+      "description": "上传一张产品照。多模态语言模型补全简报并提出三个方向，你批准一支主片、搭两种规格、再执导一轮修改。"
+    },
+    "dubbing-desk": {
+      "name": "配音台",
+      "description": "「多语言视频配音」链路收进一个界面。转写把文稿写进变量，重配音与回译两步读的都是它，所以配上去的词就是你看得见的词。"
+    },
+    "film-studio": {
+      "name": "影片工作室",
+      "description": "一份简报驱动三样东西：一部有执导感的短片、一条可编辑的粗剪，和一张卖它的海报。"
+    },
+    "model-arena": {
+      "name": "模型竞技场",
+      "description": "三栏三个回答，各自独立流式输出。缺一个服务商密钥只挂一栏，不挂整场。"
+    },
+    "multi-shot-video": {
+      "name": "多镜头视频",
+      "description": "导演模型写出分镜表与风格圣经，每个镜头先渲染成关键帧再动画化，最后剪成一条视频。"
+    },
+    "photo-studio": {
+      "name": "照片工作室",
+      "description": "一个界面后面是实时照片编辑器与批量修图。单张调色是纯 GPU 滤镜，完全不需要 API 密钥。"
+    },
+    "podcast-production-desk": {
+      "name": "播客生产台",
+      "description": "播客工作区：清洗或母带处理一段录音，再从同一素材做出节目笔记、通讯、社媒帖子和金句卡。"
+    },
+    "product-launch-kit": {
+      "name": "产品发布套件",
+      "description": "先把产品照置入生活方式样机，再——想清楚才动手，因为这一步花真钱——把同一张图变成发布视频。"
+    },
+    "product-reshoot": {
+      "name": "产品重拍",
+      "description": "从一张产品照做出三版可直接投产的画面：换一套场景、按季节重打光，或抠出干净图供合成。"
+    },
+    "product-shot-video": {
+      "name": "产品展示视频",
+      "description": "锁定产品参考图，选一个运镜，出一条循环广告或产品页的转台展示片段。"
+    },
+    "scene-builder": {
+      "name": "场景构建",
+      "description": "描述一个场景，审看定稿静帧，再让这一帧动起来，主体、构图与颜色原样带入运动镜头。"
+    },
+    "sku-factory": {
+      "name": "SKU 工厂",
+      "description": "「电商 SKU 视觉工厂」链路收进一个界面。产品照丢一次，抠图、棚拍场景、季节重打光与上架文案读的都是同一张图；动效与印刷分辨率各留独立按钮，因为它们更贵。"
+    },
+    "trailer-room": {
+      "name": "预告片室",
+      "description": "「分镜到预告片」链路收进一个界面。节拍表和分镜表还在文本调用价位时反复改，最后为素材花一次钱，再给剪好的片子铺上配乐。"
+    },
+    "ugc-product-video": {
+      "name": "UGC 产品视频",
+      "description": "选定卖点承诺，生成一条原生配音的证言，再把说出的话变成可审看的字幕、克制的动效和带品牌的收尾。"
+    },
+    "upscale-image": {
+      "name": "图像超分",
+      "description": "一个拖放区后面是两个超分引擎。ESRGAN 重建画面里本就有的细节，照片选它；Clarity 补出可信的细节，源图太小选它。"
+    },
+    "vary-image": {
+      "name": "图像变体",
+      "description": "指定要变的部分：光、背景、姿势、色调、机位。编辑模型只改这一处，构图与主体原样保留——因为它在原地编辑而不是重新生成。"
+    },
+    "vertical-cut": {
+      "name": "竖版剪辑",
+      "description": "把 16:9 片段转成竖版画幅，并在你选的时间点抽一帧当封面。两步都经 ffmpeg 本地运行。"
+    },
+    "video-post-house": {
+      "name": "AI 视频后期工作室",
+      "description": "素材传一次：AI 改写画面风格、给源片调色、剪一条预告、抽一帧封面。片段里有出镜主讲的话，还能配新稿并对口型。"
+    },
+    "video-restyle": {
+      "name": "视频风格化",
+      "description": "上传素材，说清要的风格和必须保住的东西，视频生视频模型上风格，运动不动。"
+    },
+    "viral-ad-engine": {
+      "name": "爆款广告引擎",
+      "description": "「爆款视频广告引擎」链路收进一个界面。卖点同时驱动文案语域与钩子缩略图组，你选的那句文案和你测的那些封面出自同一份简报。"
+    }
+  },
+  "styles": {
+    "Comic": {
+      "name": "漫画",
+      "description": "粗黑墨线勾边平涂赛璐璐上色，中间调本戴圆点网纹，新闻纸奶油底上的品红与青，硬边投影，无渐变。"
+    },
+    "Cinematic": {
+      "name": "电影感",
+      "description": "变形镜头 40mm T2，琥珀主光对青蓝阴影，浅景深椭圆焦外加横向蓝眩光，细腻 35mm 颗粒，黑位略抬。"
+    },
+    "Soft Pencil": {
+      "name": "软铅笔",
+      "description": "粗糙纸面上的 2B 石墨，柔和方向性排线晕进中间调，可塑橡皮提亮，一层淡水彩，边缘留白未完成。"
+    },
+    "Animation 3D": {
+      "name": "三维动画",
+      "description": "风格化三维渲染，圆润微夸张的形体，黏土质感哑光材质，柔和全局光照加皮肤次表面散射，浅环境光遮蔽，饱和的日光色板。"
+    },
+    "Watercolor Paint": {
+      "name": "水彩",
+      "description": "湿画法水彩在冷压纸纹理上晕开，群青与熟赭的透明叠色带颜料沉淀，留白即高光，颜料溢出画线边缘。"
+    },
+    "Photo / Commercial": {
+      "name": "商业摄影",
+      "description": "85mm f/8 影棚摄影，大柔光箱主光加白色反光板补光，无缝背景纸，锐利镜面高光，中性色彩平衡，无颗粒。"
+    },
+    "Charcoal Sketch": {
+      "name": "炭笔速写",
+      "description": "灰色直纹纸上的压缩炭条，大面积抹擦出的色块，丝绒般的深黑衬粉笔白高光，快速写意的轮廓线，可见灰尘与指印。"
+    },
+    "Dark Anime": {
+      "name": "暗黑动漫",
+      "description": "动漫赛璐璐硬双调阴影，低饱和靛蓝配铁锈色调，夜景主光加强边缘光，密集交叉排线，手绘背景板。"
+    },
+    "Flat / Vector": {
+      "name": "扁平矢量",
+      "description": "无描边纯扁平矢量，五色配色板，几何剪影，每个形体一块偏移平影，大量留白，任意缩放下边缘依然锐利。"
+    },
+    "Noir": {
+      "name": "黑色电影",
+      "description": "高对比黑白，单侧硬光把百叶窗条影投满画面，暗部压死，湿漉漉的路面反光，低机位，重卤化银颗粒。"
+    },
+    "Stick Figure": {
+      "name": "火柴人",
+      "description": "白纸上的等粗黑马克笔，圆头火柴人身体，道具三四笔带过，手写字样，无阴影无透视。"
+    },
+    "Graphic Novel": {
+      "name": "图像小说",
+      "description": "笔刷墨线粗细多变，重斑点黑，中间调网点纸质感，灰蓝与赭石的低饱和双色调罩染，低调戏剧化的分格打光。"
+    },
+    "16-bit console": {
+      "name": "16 位主机",
+      "description": "32px 32px 网格的 16 位主机像素画，每材质四阶色阶，纯黑实色轮廓，锈橙、苔绿与灰蓝的暖色板，无抗锯齿，无抖动。"
+    },
+    "8-bit": {
+      "name": "8 位",
+      "description": "1616px 网格的 8 位像素画，每精灵三色，硬黑轮廓，黑底上的红、蓝与奶油主色，粗犷的单像素细节，无抖动，无抗锯齿。"
+    },
+    "Handheld pastel": {
+      "name": "掌机粉彩",
+      "description": "32px 网格的掌机像素画，淡绿、奶白、鼠尾草绿与深橄榄四阶粉彩色阶，柔和的灰绿轮廓而非黑色，无抗锯齿。"
+    },
+    "1-bit": {
+      "name": "1 位",
+      "description": "双色 1 位像素画，近黑底上米白，明暗全靠有序抖动图案，单色粗轮廓，无中间调。"
+    },
+    "Chunky modern pixel": {
+      "name": "现代厚像素",
+      "description": "32px 网格现代像素画，宽饱和色域，轮廓取材质色而非纯黑，顶部冷色边缘光，阴影区少量抖动。"
+    },
+    "Painted 2D": {
+      "name": "手绘二维",
+      "description": "水粉手绘二维游戏美术，可见笔触，软边缘，饱和中间调配柔和阴影，无像素网格无轮廓。"
+    }
+  },
+  "gameInspiration": {
+    "fox-platformer": "一只小狐狸穿越秋日森林的平台跳跃游戏",
+    "slime-dungeon": "一款俯视角地牢探索游戏，有史莱姆和一扇上锁的门",
+    "neon-shmup": "雨夜霓虹城市上空的飞行射击游戏"
+  },
+  "storyboardExamples": {
+    "first-light": {
+      "name": "First Light — 旅行先导片",
+      "logline": "十秒沙漠旅行预告：日出前的沙丘、峡谷里的盘山弯道，还有星空下的营地。"
+    },
+    "lighthouse-keeper": {
+      "name": "Lighthouse Keeper — 开场",
+      "logline": "一部短片的开场：关于海岸灯塔的最后一任守塔人。二十秒，没有对白，让海来说话。"
+    },
+    "sneaker-drop": {
+      "name": "Sneaker Drop — 15 秒广告",
+      "logline": "十五秒跑鞋发布：影棚揭晓、一个材质特写，最后走到天刚亮的街头。"
+    }
+  },
+  "scriptInspirations": {
+    "tide-clock-explainer": "一条六十秒的科普视频，讲潮汐钟是怎么工作的",
+    "failed-products-podcast": "一档聊失败产品播客的开场白",
+    "coffee-subscription-ad": "一段咖啡订阅服务的口播广告"
+  },
+  "imageInspirations": {
+    "pour-over-dripper": "阳光洒落的厨房台面上，一只陶瓷手冲咖啡滤杯",
+    "backstage-violinist": "小提琴手的后台肖像，头顶一盏裸露的灯泡",
+    "deep-sea-cables-poster": "一部深海光缆纪录片的海报设计"
+  },
+  "imageUseCases": {
+    "product": {
+      "title": "产品照",
+      "description": "单一物体，干净背景，可直接投放"
+    },
+    "portrait": {
+      "title": "人像",
+      "description": "人物头像与半身构图"
+    },
+    "key-art": {
+      "title": "主视觉",
+      "description": "留出标题空间的海报画面"
+    },
+    "social": {
+      "title": "社媒帖",
+      "description": "在信息流里立得住的方图"
+    },
+    "logo": {
+      "title": "标志",
+      "description": "纯色底上的扁平标志"
+    },
+    "concept": {
+      "title": "概念设计",
+      "description": "横向铺开的世界观画面"
+    },
+    "texture": {
+      "title": "纹理",
+      "description": "可平铺的材质表面"
+    }
+  },
+  "workflowInspiration": {
+    "summarize-pdf": "总结 PDF 并发送邮件",
+    "product-shots": "从 CSV 批量生成产品照",
+    "url-to-post": "把 YouTube 链接转成一篇博客文章"
+  },
+  "nodes": {
+    "__taskSuffixes": {
+      "Text to Image": "文生图",
+      "Image to Image": "图生图",
+      "Text to Video": "文生视频",
+      "Image to Video": "图生视频",
+      "Video to Video": "视频生视频",
+      "Audio to Video": "音频生视频",
+      "Speech to Video": "语音生视频",
+      "Reference to Video": "参考图生视频",
+      "First Last Frame to Video": "首尾帧生视频",
+      "Start and End Frame to Video": "首尾帧生视频",
+      "Video to Video Reference": "视频生视频（参考）",
+      "Video Reference": "视频参考",
+      "Text to Speech": "TTS 语音合成",
+      "Speech to Text": "语音转文字",
+      "Speech to Speech": "语音转换",
+      "Transcribe": "语音转文字",
+      "Edit": "编辑",
+      "Image Edit": "图像编辑",
+      "Video Edit": "视频编辑",
+      "Video to Video Edit": "视频生视频编辑",
+      "Video to Video Lip Sync": "视频生视频对口型",
+      "Upscale": "超分",
+      "Upscale Image": "图像超分",
+      "Image Upscale": "图像超分",
+      "Upscale Video": "视频超分",
+      "Video Upscale": "视频超分",
+      "Remove Background": "去背景",
+      "Text to 3D": "文生 3D",
+      "Image to 3D": "图生 3D",
+      "Sketch to 3D": "图稿生 3D",
+      "Multiview to 3D": "多视角生 3D",
+      "Multi View to 3D": "多视角生 3D",
+      "Text to Vector": "文生矢量",
+      "Text to Audio": "文生音频",
+      "Video to Audio": "视频生音频",
+      "Audio to Audio": "音频转音频",
+      "Sound Effects": "音效",
+      "Text to Sound Effects": "文生音效",
+      "Video to Sound Effects": "视频生音效",
+      "Video to Video Sound Effects": "视频生视频音效",
+      "Audio Inpainting": "音频补全",
+      "Audio Outpainting": "音频外扩",
+      "Super Resolution": "超分",
+      "Inpainting": "局部重绘",
+      "Inpaint": "局部重绘",
+      "Outpainting": "扩图",
+      "Style Transfer": "风格迁移",
+      "Object Removal": "物体移除",
+      "Text Removal": "文字移除",
+      "Extend Video": "视频延长",
+      "Video Extend": "视频延长",
+      "Lip Sync": "对口型",
+      "Lipsync": "对口型",
+      "Motion Control": "运动控制",
+      "Blend": "混合",
+      "Layer Decomposition": "图层分解",
+      "Virtual Try On": "虚拟试穿",
+      "Try On": "试穿",
+      "Remix": "重混",
+      "Video To Video Remix": "视频生视频重混",
+      "Character Remix": "角色重混",
+      "Reframe": "重新取景",
+      "Restyle": "风格重绘",
+      "Stylize": "风格化",
+      "Upscaler": "超分",
+      "Image Upscaler": "图像超分",
+      "Video Upscaler": "视频超分",
+      "Audio Super Resolution": "音频超分",
+      "Background Removal": "去背景",
+      "Video Remove Background": "视频去背景",
+      "Video Background Removal": "视频去背景",
+      "Effects": "特效",
+      "Photography Effects": "摄影特效",
+      "Sound Effects Generator": "音效生成器",
+      "Video Sound Effects Generator": "视频音效生成器",
+      "Style": "风格",
+      "Plushie Style": "毛绒风格",
+      "Create Style": "创建风格",
+      "Differential Diffusion": "差分扩散",
+      "Split": "分割",
+      "Segment": "分割",
+      "Texture": "纹理",
+      "Part": "部件",
+      "Rigging": "绑骨",
+      "Remesh": "重拓扑",
+      "Retexture": "重贴图",
+      "Multicolor": "多色",
+      "Topology": "拓扑",
+      "Smart Topology": "智能拓扑",
+      "Align": "对齐",
+      "Images To Video": "多图生视频",
+      "Keyframes To Video": "关键帧生视频",
+      "Start End To Video": "首尾帧生视频",
+      "Template To Video": "模板生视频",
+      "Text To Music": "文生音乐",
+      "Video To Music": "视频生音乐",
+      "Video To Video Music": "视频生视频音乐",
+      "Prompt To Audio": "提示词生音频",
+      "I2v": "图生视频",
+      "T2v": "文生视频",
+      "S2v": "主体生视频",
+      "Image To Svg": "图生 SVG",
+      "SVG": "SVG 生成",
+      "Image To World": "图生世界",
+      "Image To Relief": "图生浮雕",
+      "Edit Image": "编辑图像",
+      "Modify": "修改",
+      "Age Modify": "年龄修改",
+      "Age Progression": "年龄渐变",
+      "Expression Change": "表情变换",
+      "Hair Change": "发型变换",
+      "Change Haircut": "换发型",
+      "Haircut": "发型",
+      "Time Of Day": "时段更换",
+      "Day To Night": "日转夜",
+      "Reseason": "换季",
+      "Instant Shave": "一键剃须",
+      "Cross Eyed": "对眼修复",
+      "Makeup Application": "上妆",
+      "Retouch": "精修",
+      "Image Refiner": "图像精修",
+      "Layerize": "图层化",
+      "Layerize Text": "文本图层化",
+      "Layered": "分层编辑",
+      "Ad Delayer": "广告图分层",
+      "Texture Transform": "纹理变换",
+      "Transformation": "变身",
+      "Photo To Anime": "照片转动漫",
+      "Cartoonify": "卡通化",
+      "Ghiblify": "吉卜力化",
+      "Old And Damaged": "做旧破损",
+      "Face To Many": "多风格人脸",
+      "Face To Sticker": "人脸转贴纸",
+      "Sticker Maker": "贴纸制作",
+      "Sketch To Colored Image": "素描上色",
+      "Add Background": "添加背景",
+      "Generate Background": "生成背景",
+      "Replace Background": "换背景",
+      "Background Replace": "换背景",
+      "Background Change": "换背景",
+      "Background Remove": "去背景",
+      "Background": "背景",
+      "Remove Element": "移除元素",
+      "Extract Object": "提取物体",
+      "Video Erase Object": "视频擦除物体",
+      "Eraser": "擦除",
+      "Fill": "局部重绘",
+      "Genfill": "局部重绘",
+      "Expand": "扩图",
+      "Outpaint": "扩图",
+      "Audio Outpaint": "音频外扩",
+      "Inpaint Audio": "音频补全",
+      "Erase Mask": "擦除蒙版",
+      "Eraser Mask": "擦除蒙版",
+      "Object Removal Mask": "物体移除蒙版",
+      "Bbox": "边界框",
+      "Keypoints": "关键点",
+      "Green Screen Despill": "绿幕去溢色",
+      "Green Screen": "绿幕",
+      "Transparent": "透明背景",
+      "Enhance": "画质增强",
+      "Face Enhancement": "人脸增强",
+      "Night Enhancement": "夜景增强",
+      "Vision Enhancer": "视觉增强器",
+      "Photo Restoration": "照片修复",
+      "Face Restoration": "人脸修复",
+      "Lighting Restoration": "光照修复",
+      "Restoration": "修复",
+      "Restore": "修复",
+      "Deblur": "去模糊",
+      "Denoise": "降噪",
+      "Denoise Image": "图像降噪",
+      "Colorization": "上色",
+      "Colorize": "上色",
+      "Color Correction": "色彩校正",
+      "Color Tint": "色调",
+      "Color Matcher": "色彩匹配",
+      "Hdr": "HDR 增强",
+      "Decompression": "去压缩伪影",
+      "Fix Jpeg Compression": "修复压缩伪影",
+      "Sharpen": "锐化",
+      "Blur": "模糊",
+      "Grain": "颗粒",
+      "Vignette": "暗角",
+      "Desaturate": "去饱和",
+      "Dissolve": "溶解",
+      "Solarize": "负感化",
+      "Dodge Burn": "加深减淡",
+      "Chromatic Aberration": "色差",
+      "Post Processing": "后处理",
+      "Increase Resolution": "提升分辨率",
+      "Object Detection": "目标检测",
+      "Subject Detection": "主体检测",
+      "Detection": "检测",
+      "Detect": "检测",
+      "Point": "目标定位",
+      "Visual Query": "视觉问答",
+      "Caption": "图像描述",
+      "Auto Caption": "自动字幕",
+      "Region Proposal": "候选区域",
+      "Region To Category": "区域转类别",
+      "Region To Description": "区域转描述",
+      "Region To Segmentation": "区域转分割",
+      "Referring Expression Segmentation": "指代表达分割",
+      "Caption To Phrase Grounding": "描述转短语定位",
+      "Ocr With Region": "带区域 OCR",
+      "OCR": "OCR 文字识别",
+      "Features": "特征提取",
+      "Human Identification": "人物识别",
+      "Nsfw": "NSFW 检测",
+      "Segment Map": "分割图",
+      "Audio Understanding": "音频理解",
+      "Video Understanding": "视频理解",
+      "Avatar": "数字人",
+      "Avatars": "数字人",
+      "Avatar Multi": "多人",
+      "Portrait": "人像",
+      "Portrait Series": "人像系列",
+      "Face To Full Portrait": "人脸转全身人像",
+      "Character": "角色",
+      "Characters": "角色",
+      "Generate Persona": "生成人设",
+      "Face Swap": "换脸",
+      "Swap": "换脸",
+      "Digital Twin": "数字分身",
+      "Headshot": "职业头像",
+      "Headshot Photo": "职业头像",
+      "Professional Photo": "形象照",
+      "Group Photo": "合照",
+      "Portraits Dialogues": "游戏对话立绘",
+      "Product Photo": "产品照",
+      "Product Packshot": "产品照",
+      "Product Shot": "产品照",
+      "Product Photography": "产品摄影",
+      "Product Holding": "手持产品展示",
+      "Product Cutout": "产品抠图",
+      "Product Dimensions": "产品尺寸图",
+      "Product Shadow": "产品阴影",
+      "Integrate Product": "产品植入",
+      "Embed Product": "产品植入",
+      "Photo Cleanup": "照片清理",
+      "Youtube Thumbnails": "YouTube 缩略图",
+      "Virtual Tryon": "虚拟试穿",
+      "Relight": "重打光",
+      "Adjust Lighting": "调整光照",
+      "Remove Lighting": "去除光照",
+      "Pose Transfer": "姿态迁移",
+      "Motion Transfer": "动作迁移",
+      "Animate Replace": "动作替换",
+      "Move": "移动",
+      "Animate": "动画化",
+      "Animation": "动画",
+      "Multi Animation": "多动画",
+      "Transition": "转场",
+      "First & Last Frame Transition": "首尾帧转场",
+      "Retake": "重拍",
+      "Video Retalking": "视频对口型修复",
+      "Video Translate": "视频翻译",
+      "Video Matting": "视频抠像",
+      "Frame Interpolation": "插帧",
+      "Interpolation": "插帧",
+      "Extract Frame": "抽帧",
+      "Extract Nth Frame": "抽取第 N 帧",
+      "First/Last Frame": "首尾帧",
+      "Video Frame": "视频帧",
+      "Frame Extractor": "抽帧器",
+      "Extend": "视频延长",
+      "Extend Audio": "音频延长",
+      "Video Extension": "视频延长",
+      "Video Agent": "视频智能体",
+      "Foley": "拟音",
+      "Long Exposure For Water": "水面长曝光",
+      "Water Simulation": "水面模拟",
+      "Video Merge": "视频合并",
+      "Video Audio Merge": "音视频合并",
+      "Merge Videos": "合并视频",
+      "Merge Audios": "合并音频",
+      "Merge Img": "合并图像",
+      "motion-control": "运动控制",
+      "Asr": "ASR 语音识别",
+      "Multilingual Asr": "多语言语音识别",
+      "Speaker Diarization": "说话人分离",
+      "Diarization": "说话人分离",
+      "Speaker Transcription": "说话人转写",
+      "Auto Subtitle": "自动字幕",
+      "Subtitles": "字幕",
+      "Voice Clone": "语音克隆",
+      "Voice Cloning": "语音克隆",
+      "Voice Changer": "变声",
+      "Create Voice": "创建音色",
+      "Voice Design": "语音设计",
+      "Dubbing": "译制配音",
+      "Forced Alignment": "强制对齐",
+      "Smart Turn": "轮次检测",
+      "Separate": "音源分离",
+      "Audio Isolation": "人声分离",
+      "audio-isolation": "人声分离",
+      "Audio Compressor": "音频压缩器",
+      "Impulse Response": "脉冲响应",
+      "Add Instrumental to Music": "添加伴奏",
+      "Add Vocals to Music": "添加人声",
+      "Music Generation": "音乐生成",
+      "Sound Effect Generation": "音效生成",
+      "Music Generator": "音乐生成器",
+      "Generate Music Cover": "生成音乐封面",
+      "Music Cover": "音乐封面",
+      "Generate Lyrics": "歌词生成",
+      "Get Timestamped Lyrics": "获取时间戳歌词",
+      "Chord": "和弦",
+      "Looper": "循环",
+      "Remixer": "重混",
+      "Generate sounds": "生成音效",
+      "Waveform": "波形",
+      "Audio To Waveform": "音频转波形",
+      "Convert to WAV Format": "转换为 WAV 格式",
+      "Multi": "多图",
+      "Multi Text": "多文本",
+      "Single Text": "单文本",
+      "Multiple Angles": "多角度",
+      "Multiangle": "多角度",
+      "Multi View": "多视角",
+      "Multi Image List": "多图列表",
+      "Subject Reference": "主体参考",
+      "Image Reference": "图像参考",
+      "Reference": "参考",
+      "Prompt": "提示词",
+      "Video Prompt Generator": "视频提示词生成器",
+      "Structured instruction": "结构化指令",
+      "Add Object By Text": "按文字添加物体",
+      "Erase By Text": "按文字擦除",
+      "Replace Object By Text": "按文字替换物体",
+      "Rewrite Text": "改写文字",
+      "Replace": "替换",
+      "Object Remover": "物体移除",
+      "Filler Word Removal": "语气词移除",
+      "Replace Music Section": "替换音乐段落",
+      "Dark Art": "暗黑画风",
+      "Fantasy Art": "奇幻画风",
+      "Digital Comic Art": "数字漫画",
+      "Iconic Locations": "标志性场景",
+      "Next Scene": "下一场景",
+      "Scene Finder": "场景查找",
+      "Scene Composition": "场景构图",
+      "Apartment Staging": "房屋布置",
+      "City Teleport": "城市穿越",
+      "Weather Effect": "天气特效",
+      "Ballpoint Pen Sketch": "圆珠笔素描",
+      "Sepia Vintage": "复古调色",
+      "Shirt Design": "T 恤设计",
+      "Material Extract": "材质提取",
+      "Material": "材质生成",
+      "Pick Image By Index": "按索引选图",
+      "Find": "查找",
+      "Smart Resize": "智能缩放",
+      "Metadata": "元数据",
+      "Adjust Image": "图像调整",
+      "Pose": "姿态",
+      "Vectorize": "矢量化",
+      "Image 2Pixel": "图像转像素画",
+      "Depth": "深度估计",
+      "Depth Of Field": "景深",
+      "Edit Video": "编辑视频",
+      "Retake Video": "重拍视频",
+      "Interleave Video": "视频交错",
+      "Blend Video": "视频混合",
+      "Reverse Video": "视频倒放",
+      "Scale Video": "视频缩放",
+      "Trim Video": "视频裁剪",
+      "Colorize Video": "视频上色",
+      "Deblur Video": "视频去模糊",
+      "Denoise Video": "视频降噪",
+      "Interpolate Video": "视频插帧",
+      "Enhance Video": "视频画质增强",
+      "Sdr To Hdr Video": "SDR 转 HDR 视频",
+      "Merge Audio Video": "合并音视频",
+      "Create Music Video": "创建音乐视频",
+      "Split Screen Video": "分屏视频",
+      "Modify Video": "编辑视频",
+      "Reframe Video": "重新取景视频",
+      "Reframe Image": "重新取景图像",
+      "image-to-video": "图生视频",
+      "text-to-video": "文生视频",
+      "reference-to-video": "参考图生视频",
+      "video-to-video": "视频生视频",
+      "Restore Image": "图像修复",
+      "Sharpen Image": "图像锐化",
+      "Enhance Image": "图像画质增强",
+      "Matte Image": "图像抠图",
+      "Reference To Image": "参考图生图",
+      "Html To Image": "网页转图像",
+      "Expand Image": "扩图",
+      "Generate MIDI from Audio": "从音频生成 MIDI",
+      "Extend Music": "音乐延长",
+      "Generate Mashup Music": "生成串烧音乐",
+      "Generate Music": "生成音乐",
+      "Preview Query": "视觉问答",
+      "Render To Real": "渲染转实拍",
+      "Make Person Real": "人物写实化",
+      "Realism": "写实化",
+      "Become Image": "人脸融入图像",
+      "Remove Bg": "去背景",
+      "Dewarp": "去扭曲",
+      "Paintbrush": "画笔",
+      "Clean Plate": "干净底版",
+      "Video Utils": "视频工具",
+      "Compose": "合成",
+      "Content Filter": "内容过滤",
+      "Image To Lottie": "图生 Lottie",
+      "Tts": "TTS 语音合成",
+      "Relighting": "重打光",
+      "Vocal & Instrument Stem Separation": "人声伴奏分轨"
+    },
+    "lib.audio.Bitcrush": "比特粉碎",
+    "lib.audio.Compress": "压缩器",
+    "lib.audio.Delay": "延迟",
+    "lib.audio.Distortion": "失真",
+    "lib.audio.Gain": "增益",
+    "lib.audio.HighPassFilter": "高通滤波器",
+    "lib.audio.HighShelfFilter": "高搁架滤波器",
+    "lib.audio.Limiter": "限幅器",
+    "lib.audio.LowPassFilter": "低通滤波器",
+    "lib.audio.LowShelfFilter": "低搁架滤波器",
+    "lib.audio.NoiseGate": "噪声门",
+    "lib.audio.PeakFilter": "峰值滤波器",
+    "lib.audio.Phaser": "移相器",
+    "lib.audio.PitchShift": "音高移位",
+    "lib.audio.Reverb": "混响",
+    "lib.audio.TimeStretch": "时间拉伸",
+    "nodetool.audio.AudioMixer": "音频混音器",
+    "nodetool.audio.ChunkToAudio": "分块转音频",
+    "nodetool.audio.Concat": "拼接音频",
+    "nodetool.audio.ConcatList": "拼接音频列表",
+    "nodetool.audio.CreateSilence": "创建静音",
+    "nodetool.audio.FadeIn": "淡入",
+    "nodetool.audio.FadeOut": "淡出",
+    "nodetool.audio.GetAudioInfo": "获取音频信息",
+    "nodetool.audio.LoadAudioAssets": "加载音频素材",
+    "nodetool.audio.LoadAudioFile": "加载音频文件",
+    "nodetool.audio.LoadAudioFolder": "加载音频文件夹",
+    "nodetool.audio.MonoToStereo": "单声道转立体声",
+    "nodetool.audio.Normalize": "归一化",
+    "nodetool.audio.OverlayAudio": "叠加音频",
+    "nodetool.audio.RemoveSilence": "移除静音",
+    "nodetool.audio.Repeat": "循环",
+    "nodetool.audio.Reverse": "倒放",
+    "nodetool.audio.SaveAudio": "保存音频素材",
+    "nodetool.audio.SaveAudioFile": "保存音频文件",
+    "nodetool.audio.SliceAudio": "截取音频",
+    "nodetool.audio.StereoToMono": "立体声转单声道",
+    "nodetool.audio.TextToMusic": "文生音乐",
+    "nodetool.audio.TextToSpeech": "TTS 语音合成",
+    "nodetool.audio.Trim": "修剪",
+    "nodetool.audio.realtime.AudioOutput": "音频输出",
+    "nodetool.audio.realtime.AudioToChunks": "音频转分块",
+    "nodetool.audio.realtime.ChunksToAudio": "分块转音频",
+    "nodetool.audio.realtime.StreamingGain": "流式增益",
+    "nodetool.audio.realtime.StreamingHighPass": "流式高通滤波",
+    "nodetool.audio.realtime.StreamingLowPass": "流式低通滤波",
+    "nodetool.audio.synth.ADSR": "ADSR 包络",
+    "nodetool.audio.synth.Attenuverter": "衰减偏移器",
+    "nodetool.audio.synth.Gate": "门信号",
+    "nodetool.audio.synth.Mixer": "混音器",
+    "nodetool.audio.synth.Oscillator": "振荡器",
+    "nodetool.audio.synth.SampleHold": "采样保持",
+    "nodetool.image.BatchToList": "批量转列表",
+    "nodetool.image.Blur": "模糊",
+    "nodetool.image.CanvasResize": "调整画布尺寸",
+    "nodetool.image.Channels": "通道",
+    "nodetool.image.Compositor": "合成器",
+    "nodetool.image.Crop": "裁剪",
+    "nodetool.image.Fit": "适配",
+    "nodetool.image.GetMetadata": "获取元数据",
+    "nodetool.image.ImageToImage": "图生图",
+    "nodetool.image.ImagesToList": "图像转列表",
+    "nodetool.image.Levels": "色阶",
+    "nodetool.image.LoadImageAssets": "加载图像素材",
+    "nodetool.image.LoadImageFile": "加载图像文件",
+    "nodetool.image.LoadImageFolder": "加载图像文件夹",
+    "nodetool.image.Painter": "蒙版绘制",
+    "nodetool.image.Paste": "粘贴",
+    "nodetool.image.Relight": "图像重打光",
+    "nodetool.image.RemoveBackground": "去背景",
+    "nodetool.image.Resize": "调整尺寸",
+    "nodetool.image.RotateAndFlip": "旋转与翻转",
+    "nodetool.image.SaveImage": "保存图像素材",
+    "nodetool.image.SaveImageFile": "保存图像文件",
+    "nodetool.image.Scale": "缩放",
+    "nodetool.image.TextToImage": "文生图",
+    "nodetool.image.Upscale": "图像超分",
+    "nodetool.image.Vectorize": "图像矢量化",
+    "lib.image.channel.Merge": "通道合并",
+    "lib.image.channel.Shuffle": "通道重排",
+    "lib.image.color.BrightnessContrast": "亮度 / 对比度",
+    "lib.image.color.ChannelSplit": "通道分离",
+    "lib.image.color.Exposure": "曝光",
+    "lib.image.color.Grade": "调色",
+    "lib.image.color.Invert": "反相",
+    "lib.image.color.Posterize": "色调分离",
+    "lib.image.draw.AngularGradient": "角度渐变",
+    "lib.image.draw.Checkerboard": "棋盘格",
+    "lib.image.draw.DiamondGradient": "菱形渐变",
+    "lib.image.draw.LinearGradient": "线性渐变",
+    "lib.image.draw.RadialGradient": "径向渐变",
+    "lib.image.effects.Add": "相加混合",
+    "lib.image.effects.ColorOverlay": "颜色叠加",
+    "lib.image.effects.DropShadow": "投影",
+    "lib.image.effects.Glow": "辉光",
+    "lib.image.effects.Outline": "描边",
+    "lib.image.filter.GaussianBlur": "高斯模糊",
+    "lib.image.filter.Pixelate": "像素化",
+    "lib.image.filter.Threshold": "阈值",
+    "lib.image.filter.UnsharpMask": "USM 锐化",
+    "lib.image.filter.Vignette": "暗角",
+    "lib.image.keyer.ChromaKey": "色度键控",
+    "lib.image.keyer.LumaKey": "亮度键控",
+    "lib.image.mask.Apply": "应用蒙版",
+    "lib.image.mask.FromImage": "从图像生成蒙版",
+    "lib.image.mask.Invert": "反转蒙版",
+    "lib.image.warp.Affine": "仿射变换",
+    "lib.image.warp.CornerPin": "边角定位",
+    "lib.image.warp.Displace": "置换",
+    "lib.image.warp.Offset": "偏移",
+    "lib.image.warp.Pad": "补边",
+    "lib.image.warp.PolarRemap": "极坐标重映射",
+    "lib.image.warp.Spherize": "球面化",
+    "lib.image.warp.Tile": "平铺",
+    "nodetool.model3d.Boolean3D": "3D 布尔运算",
+    "nodetool.model3d.CenterMesh": "网格居中",
+    "nodetool.model3d.Decimate": "网格减面",
+    "nodetool.model3d.ExtractLargestComponent": "提取最大组件",
+    "nodetool.model3d.FlipNormals": "翻转法线",
+    "nodetool.model3d.FormatConverter": "格式转换器",
+    "nodetool.model3d.GetModel3DMetadata": "获取 3D 模型元数据",
+    "nodetool.model3d.ImageTo3D": "图生 3D",
+    "nodetool.model3d.LoadModel3DFile": "加载 3D 模型文件",
+    "nodetool.model3d.MergeMeshes": "合并网格",
+    "nodetool.model3d.NormalizeModel3D": "规范化 3D 模型",
+    "nodetool.model3d.RecalculateNormals": "重新计算法线",
+    "nodetool.model3d.RenderToImage": "3D 渲染为图像",
+    "nodetool.model3d.RepairMesh": "修复网格",
+    "nodetool.model3d.SaveModel3D": "保存 3D 模型素材",
+    "nodetool.model3d.SaveModel3DFile": "保存 3D 模型文件",
+    "nodetool.model3d.TextTo3D": "文生 3D",
+    "nodetool.model3d.Transform3D": "3D 变换",
+    "lib.svg.Document": "SVG 文档",
+    "lib.svg.SVGToImage": "SVG 转图像",
+    "lib.grid.SliceImageGrid": "图像网格切分",
+    "lib.charts.ChartRenderer": "图表渲染器",
+    "lib.browser.Screenshot": "网页截图",
+    "nodetool.compare.CompareImages": "图像对比",
+    "nodetool.sketch.CreateSketch": "创建图稿",
+    "nodetool.sketch.RenderSketch": "渲染图稿",
+    "nodetool.sketch.SketchLayers": "图稿图层",
+    "nodetool.video.AddAudio": "添加音频",
+    "nodetool.video.AddSubtitles": "添加字幕",
+    "nodetool.video.Blur": "模糊",
+    "nodetool.video.ChromaKey": "色度键控",
+    "nodetool.video.ColorBalance": "色彩平衡",
+    "nodetool.video.Concat": "拼接视频",
+    "nodetool.video.Denoise": "降噪",
+    "nodetool.video.ExtractAudio": "提取音频",
+    "nodetool.video.ExtractFrame": "提取视频帧",
+    "nodetool.video.ForEachFrame": "逐帧提取",
+    "nodetool.video.Fps": "帧率",
+    "nodetool.video.FrameToVideo": "帧序列转视频",
+    "nodetool.video.GetVideoInfo": "获取视频信息",
+    "nodetool.video.ImageToVideo": "图生视频",
+    "nodetool.video.LipSync": "对口型",
+    "nodetool.video.LoadVideoAssets": "加载视频素材",
+    "nodetool.video.LoadVideoFile": "加载视频文件",
+    "nodetool.video.Overlay": "叠加",
+    "nodetool.video.Resize": "调整视频尺寸",
+    "nodetool.video.Reverse": "倒放",
+    "nodetool.video.Rotate": "旋转",
+    "nodetool.video.Saturation": "饱和度",
+    "nodetool.video.SaveVideo": "保存视频素材",
+    "nodetool.video.SaveVideoFile": "保存视频文件",
+    "nodetool.video.SetSpeed": "变速",
+    "nodetool.video.Sharpness": "锐化",
+    "nodetool.video.Stabilize": "防抖",
+    "nodetool.video.TextToVideo": "文生视频",
+    "nodetool.video.Transition": "转场",
+    "nodetool.video.Trim": "裁剪",
+    "nodetool.video.VideoToVideo": "视频生视频",
+    "nodetool.timeline.AddClips": "添加片段到时间线",
+    "nodetool.timeline.RenderTimeline": "渲染时间线",
+    "nodetool.timeline.Transcript": "时间线转写稿",
+    "nodetool.script.LoadScript": "加载剧本",
+    "nodetool.script.ScriptToSubtitles": "剧本转字幕",
+    "nodetool.script.ScriptToTimeline": "剧本转时间线",
+    "nodetool.script.VoiceScript": "剧本配音",
+    "nodetool.document.ListDocuments": "列出文档",
+    "nodetool.document.LoadDocumentFile": "加载文档文件",
+    "nodetool.document.SaveDocumentFile": "保存文档文件",
+    "nodetool.data.ForEachRow": "逐行迭代",
+    "nodetool.data.LoadCSVAssets": "加载 CSV 素材",
+    "lib.pdf.ExtractMarkdown": "PDF 转 Markdown",
+    "lib.pdf.ExtractOcr": "PDF OCR 文本提取",
+    "lib.pdf.ExtractStyledText": "PDF 样式文本提取",
+    "lib.pdf.ExtractTables": "PDF 表格提取",
+    "lib.pdf.ExtractText": "PDF 文本提取",
+    "lib.pdf.Pdftoppm": "PDF 栅格化（pdftoppm）",
+    "lib.pdf.Screenshot": "PDF 页面截图",
+    "lib.video.download.YtDlpDownload": "YouTube 下载器",
+    "lib.sqlite.GetDatabasePath": "获取数据库路径",
+    "lib.comfy.RunWorkflow": "运行 ComfyUI 工作流",
+    "lib.comfy.RunWorkflowOnWorker": "运行 ComfyUI 工作流（工作节点）",
+    "nodetool.code.Code": "代码",
+    "nodetool.output.Output": "输出",
+    "nodetool.workflows.base_node.Preview": "预览",
+    "nodetool.workflows.subgraph.Subgraph": "子图",
+    "nodetool.workflows.workflow_node.Workflow": "子工作流",
+    "nodetool.fake.ColorGrade": "调色（浏览器）",
+    "nodetool.fake.GenerateImage": "模拟图像生成",
+    "nodetool.control.Chunk": "批量",
+    "nodetool.control.Collect": "收集",
+    "nodetool.control.Collection": "素材集合",
+    "nodetool.control.Count": "计数",
+    "nodetool.control.Cross": "笛卡尔积",
+    "nodetool.control.Distinct": "去重",
+    "nodetool.control.Drop": "丢弃",
+    "nodetool.control.DropWhile": "条件丢弃",
+    "nodetool.control.FilterCode": "过滤（表达式）",
+    "nodetool.control.FilterEqual": "相等过滤",
+    "nodetool.control.ForEach": "遍历",
+    "nodetool.control.If": "条件分支",
+    "nodetool.control.Last": "取末项",
+    "nodetool.control.RepeatCount": "重复计数",
+    "nodetool.control.RepeatValue": "重复值",
+    "nodetool.control.Reroute": "转接",
+    "nodetool.control.Switch": "多路分支",
+    "nodetool.control.Take": "保留",
+    "nodetool.control.TakeWhile": "条件保留",
+    "nodetool.control.Tap": "旁路监听",
+    "nodetool.control.TryCatch": "兜底值",
+    "nodetool.control.Zip": "配对合并",
+    "nodetool.constant.ASRModelConstant": "ASR 模型常量",
+    "nodetool.constant.Audio": "音频",
+    "nodetool.constant.AudioList": "音频列表",
+    "nodetool.constant.Bool": "布尔",
+    "nodetool.constant.Constant": "常量",
+    "nodetool.constant.DataFrame": "数据帧",
+    "nodetool.constant.Date": "日期",
+    "nodetool.constant.DateTime": "日期时间",
+    "nodetool.constant.Dict": "字典",
+    "nodetool.constant.Document": "文档",
+    "nodetool.constant.EmbeddingModelConstant": "嵌入模型常量",
+    "nodetool.constant.Float": "浮点数",
+    "nodetool.constant.Image": "图像",
+    "nodetool.constant.ImageList": "图像列表",
+    "nodetool.constant.ImageModelConstant": "图像模型常量",
+    "nodetool.constant.ImageSize": "图像尺寸",
+    "nodetool.constant.Integer": "整数",
+    "nodetool.constant.LanguageModelConstant": "语言模型常量",
+    "nodetool.constant.List": "列表",
+    "nodetool.constant.Model3D": "3D 模型",
+    "nodetool.constant.Script": "剧本",
+    "nodetool.constant.Select": "下拉选择",
+    "nodetool.constant.Sketch": "图稿",
+    "nodetool.constant.String": "字符串",
+    "nodetool.constant.TextList": "文本列表",
+    "nodetool.constant.Timeline": "时间线",
+    "nodetool.constant.TTSModelConstant": "TTS 模型常量",
+    "nodetool.constant.Video": "视频",
+    "nodetool.constant.VideoList": "视频列表",
+    "nodetool.constant.VideoModelConstant": "视频模型常量",
+    "nodetool.input.ASRModelInput": "ASR 模型输入",
+    "nodetool.input.AssetFolderInput": "素材文件夹输入",
+    "nodetool.input.AudioInput": "音频输入",
+    "nodetool.input.AudioListInput": "音频列表输入",
+    "nodetool.input.BooleanInput": "布尔输入",
+    "nodetool.input.ColorInput": "颜色输入",
+    "nodetool.input.DataframeInput": "数据帧输入",
+    "nodetool.input.DocumentFileInput": "文档文件输入",
+    "nodetool.input.DocumentInput": "文档输入",
+    "nodetool.input.EmbeddingModelInput": "嵌入模型输入",
+    "nodetool.input.FilePathInput": "文件路径输入",
+    "nodetool.input.FolderPathInput": "文件夹路径输入",
+    "nodetool.input.FloatInput": "浮点输入",
+    "nodetool.input.HuggingFaceModelInput": "Hugging Face 模型输入",
+    "nodetool.input.ImageInput": "图像输入",
+    "nodetool.input.ImageListInput": "图像列表输入",
+    "nodetool.input.ImageModelInput": "图像模型输入",
+    "nodetool.input.ImageSizeInput": "图像尺寸输入",
+    "nodetool.input.IntegerInput": "整数输入",
+    "nodetool.input.LanguageModelInput": "语言模型输入",
+    "nodetool.input.MessageDeconstructor": "消息解构",
+    "nodetool.input.MessageInput": "消息输入",
+    "nodetool.input.MessageListInput": "消息列表输入",
+    "nodetool.input.Model3DInput": "3D 模型输入",
+    "nodetool.input.RealtimeAudioInput": "实时音频输入",
+    "nodetool.input.SelectInput": "下拉选择输入",
+    "nodetool.input.StringInput": "字符串输入",
+    "nodetool.input.StringListInput": "字符串列表输入",
+    "nodetool.input.TextListInput": "文本列表输入",
+    "nodetool.input.TTSModelInput": "TTS 模型输入",
+    "nodetool.input.VideoInput": "视频输入",
+    "nodetool.input.VideoListInput": "视频列表输入",
+    "nodetool.input.VideoModelInput": "视频模型输入",
+    "nodetool.variable.GetVariable": "获取变量",
+    "nodetool.variable.SetVariable": "设置变量",
+    "nodetool.triggers.FileWatchTrigger": "文件监听触发器",
+    "nodetool.triggers.IntervalTrigger": "定时触发器",
+    "nodetool.triggers.ManualTrigger": "手动触发器",
+    "nodetool.triggers.Wait": "等待",
+    "nodetool.triggers.WebhookTrigger": "Webhook 触发器",
+    "nodetool.text.AutomaticSpeechRecognition": "自动语音识别",
+    "nodetool.text.Collect": "收集文本",
+    "nodetool.text.Concat": "拼接文本",
+    "nodetool.text.CountTokens": "统计 Token 数",
+    "nodetool.text.Embedding": "嵌入",
+    "nodetool.text.FilterRegexString": "正则过滤字符串",
+    "nodetool.text.FilterString": "过滤字符串",
+    "nodetool.text.Join": "分隔连接",
+    "nodetool.text.LoadTextAssets": "加载文本素材",
+    "nodetool.text.LoadTextFolder": "加载文本文件夹",
+    "nodetool.text.Prompt": "提示词",
+    "nodetool.text.SaveText": "保存文本",
+    "nodetool.text.SaveTextFile": "保存文本文件",
+    "nodetool.text.Template": "模板",
+    "nodetool.agents.Agent": "智能体",
+    "nodetool.agents.Classifier": "文本分类器",
+    "nodetool.agents.CreateThread": "创建会话",
+    "nodetool.agents.EnhancePrompt": "提示词优化",
+    "nodetool.agents.Extractor": "结构化提取器",
+    "nodetool.agents.Summarizer": "摘要生成器",
+    "nodetool.generators.ChartGenerator": "图表生成器",
+    "nodetool.generators.DataGenerator": "数据生成器",
+    "nodetool.generators.ListGenerator": "列表生成器",
+    "nodetool.generators.StructuredOutputGenerator": "结构化输出生成器",
+    "nodetool.generators.SVGGenerator": "SVG 生成器",
+    "nodetool.creative.ApplyEntities": "应用实体",
+    "nodetool.creative.Director": "导演",
+    "nodetool.creative.ScreenplayShots": "剧本分镜",
+    "nodetool.creative.ShotBatch": "镜头批次",
+    "nodetool.creative.ShotChain": "镜头链",
+    "huggingface.AudioClassification": "音频分类",
+    "huggingface.AutomaticSpeechRecognition": "自动语音识别",
+    "huggingface.ChatCompletion": "对话补全",
+    "huggingface.FeatureExtraction": "特征提取",
+    "huggingface.FillMask": "掩码填充",
+    "huggingface.ImageClassification": "图像分类",
+    "huggingface.ImageSegmentation": "图像分割",
+    "huggingface.ImageToImage": "图生图",
+    "huggingface.ObjectDetection": "目标检测",
+    "huggingface.QuestionAnswering": "问答",
+    "huggingface.Summarization": "摘要",
+    "huggingface.TableQuestionAnswering": "表格问答",
+    "huggingface.TextClassification": "文本分类",
+    "huggingface.TextGeneration": "文本生成",
+    "huggingface.TextToImage": "文生图",
+    "huggingface.TextToVideo": "文生视频",
+    "huggingface.TokenClassification": "Token 分类",
+    "huggingface.Translation": "翻译",
+    "huggingface.ZeroShotClassification": "零样本分类",
+    "transformers.AudioClassification": "音频分类",
+    "transformers.AutomaticSpeechRecognition": "自动语音识别",
+    "transformers.FeatureExtraction": "特征提取（嵌入）",
+    "transformers.FillMask": "掩码填充",
+    "transformers.ImageClassification": "图像分类",
+    "transformers.ImageToText": "图生文",
+    "transformers.ObjectDetection": "目标检测",
+    "transformers.QuestionAnswering": "问答",
+    "transformers.Summarization": "摘要",
+    "transformers.TextClassification": "文本分类",
+    "transformers.TextGeneration": "文本生成",
+    "transformers.TextToSpeech": "TTS 语音合成",
+    "transformers.TokenClassification": "Token 分类（NER）",
+    "transformers.Translation": "翻译",
+    "transformers.ZeroShotClassification": "零样本分类",
+    "transformers.ZeroShotImageClassification": "零样本图像分类",
+    "openai.agents.RealtimeAgent": "实时智能体",
+    "openai.agents.RealtimeTranscription": "实时转写",
+    "openai.audio.TextToSpeech": "TTS 语音合成",
+    "openai.audio.Transcribe": "转写",
+    "openai.audio.Translate": "翻译",
+    "openai.image.CreateImage": "创建图像",
+    "openai.image.EditImage": "编辑图像",
+    "openai.image.ImageVariation": "图像变体",
+    "openai.text.Embedding": "嵌入",
+    "openai.text.Moderation": "内容审核",
+    "openai.text.WebSearch": "网页搜索",
+    "gemini.audio.TextToSpeech": "TTS 语音合成",
+    "gemini.audio.Transcribe": "转写",
+    "gemini.image.ImageGeneration": "图像生成",
+    "gemini.text.Embedding": "嵌入",
+    "gemini.text.GroundedSearch": "接地搜索",
+    "gemini.video.ImageToVideo": "图生视频",
+    "gemini.video.TextToVideo": "文生视频",
+    "minimax.ImageToVideo": "MiniMax 图生视频",
+    "minimax.MusicGeneration": "MiniMax 音乐生成",
+    "minimax.TextToImage": "MiniMax 文生图",
+    "minimax.TextToSpeech": "MiniMax TTS 语音合成",
+    "minimax.TextToVideo": "MiniMax 文生视频",
+    "minimax.Voice": "MiniMax 语音",
+    "mistral.embeddings.Embedding": "嵌入",
+    "mistral.text.ChatComplete": "对话补全",
+    "mistral.text.CodeComplete": "代码补全",
+    "mistral.vision.ImageToText": "图生文",
+    "xai.image.GenerateImage": "生成图像",
+    "xai.text.ChatComplete": "对话补全",
+    "xai.text.WebSearch": "网页搜索",
+    "xai.vision.ImageToText": "图生文",
+    "elevenlabs.RealtimeSpeechToText": "实时语音转文字",
+    "elevenlabs.RealtimeTextToSpeech": "实时 TTS 语音合成",
+    "elevenlabs.SpeechToText": "语音转文字",
+    "elevenlabs.StandardVoice": "标准音色",
+    "elevenlabs.TextToSpeech": "TTS 语音合成",
+    "reve.CreateImage": "创建图像",
+    "reve.EditImage": "编辑图像",
+    "reve.RemixImage": "重混图像",
+    "fal.dynamic.FalDynamic": "fal 动态节点",
+    "fal.dynamic.FalRaw": "fal 原始节点",
+    "kie.dynamic_schema.KieAI": "Kie AI 动态节点",
+    "vector.Collection": "知识库",
+    "vector.Count": "统计文档数",
+    "vector.GetDocuments": "获取文档",
+    "vector.HybridSearch": "混合搜索",
+    "vector.IndexAggregatedText": "批量索引聚合文本",
+    "vector.IndexEmbedding": "索引嵌入向量",
+    "vector.IndexImage": "索引图像",
+    "vector.IndexString": "索引字符串",
+    "vector.IndexTextChunk": "索引文本分块",
+    "vector.Peek": "预览文档",
+    "vector.QueryImage": "图像查询",
+    "vector.QueryText": "文本查询",
+    "vector.RemoveOverlap": "移除重叠文本",
+    "messaging.discord.DiscordBotTrigger": "Discord 机器人触发器",
+    "messaging.telegram.TelegramBotTrigger": "Telegram 机器人触发器",
+    "lib.comfy.RunWorkflowOnCloud": "运行 ComfyUI 工作流（Comfy Cloud）",
+    "lib.image.Mask": "蒙版",
+    "lib.image.color_grading.CDL": "CDL 调色",
+    "lib.image.color_grading.ColorBalance": "色温与色调",
+    "lib.image.color_grading.Curves": "曲线",
+    "lib.image.color_grading.Exposure": "曝光控制",
+    "lib.image.color_grading.FilmLook": "电影感调色",
+    "lib.image.color_grading.HSLAdjust": "HSL 调整",
+    "lib.image.color_grading.LiftGammaGain": "Lift/Gamma/Gain",
+    "lib.image.color_grading.SaturationVibrance": "饱和度与自然饱和度",
+    "lib.image.color_grading.SplitToning": "分离色调",
+    "lib.image.color_grading.Vignette": "暗角",
+    "lib.image.draw.Background": "背景",
+    "lib.image.draw.GaussianNoise": "高斯噪点",
+    "lib.image.draw.RenderText": "文字绘制",
+    "lib.image.enhance.AdaptiveContrast": "自适应对比度",
+    "lib.image.enhance.AutoContrast": "自动对比度",
+    "lib.image.enhance.Detail": "细节增强",
+    "lib.image.enhance.EdgeEnhance": "边缘增强",
+    "lib.image.enhance.Equalize": "直方图均衡化",
+    "lib.image.enhance.RankFilter": "秩滤波",
+    "lib.image.filter.Canny": "Canny 边缘检测",
+    "lib.image.filter.Contour": "轮廓",
+    "lib.image.filter.ConvertToGrayscale": "转换为灰度",
+    "lib.image.filter.Emboss": "浮雕",
+    "lib.image.filter.Expand": "扩展边框",
+    "lib.image.filter.FindEdges": "查找边缘",
+    "lib.image.filter.Invert": "反相",
+    "lib.image.filter.Posterize": "色调分离",
+    "lib.image.filter.Smooth": "平滑",
+    "lib.image.filter.Solarize": "负感化",
+    "nodetool.agents.Decision": "决策",
+    "nodetool.audio.AudioToAudio": "音频转音频",
+    "nodetool.blender.BakeTimelineClip": "烘焙 3D 时间线片段",
+    "nodetool.blender.ExportModel": "用 Blender 导出 3D 模型",
+    "nodetool.blender.PrepareForEngine": "为引擎准备 3D 模型",
+    "nodetool.blender.RenderAnimation": "用 Blender 渲染 3D 动画",
+    "nodetool.blender.RenderImage": "用 Blender 渲染 3D",
+    "nodetool.blender.RenderPasses": "用 Blender 渲染 3D 通道",
+    "nodetool.constant.Entity": "实体",
+    "nodetool.constant.Storyboard": "分镜",
+    "nodetool.control.Loop": "循环",
+    "nodetool.entity.CreateEntity": "创建实体",
+    "nodetool.entity.ListEntities": "列出实体",
+    "nodetool.entity.LoadEntity": "加载实体",
+    "nodetool.game.ExportGodotProject": "导出 Godot 项目",
+    "nodetool.game.LoadGameTemplate": "加载游戏模板",
+    "nodetool.game.MusicLoop": "游戏音乐循环",
+    "nodetool.game.SeamlessImage": "无缝贴图",
+    "nodetool.game.SlotPrompt": "槽位提示词",
+    "nodetool.game.SoundEffect": "游戏音效",
+    "nodetool.game.SpriteSheet": "精灵图集",
+    "nodetool.game.Tileset": "瓦片集",
+    "nodetool.image.Segment": "分割图像",
+    "nodetool.image.ResizeImage": "调整图像尺寸",
+    "nodetool.script.FillScript": "填充剧本",
+    "nodetool.script.WriteScript": "撰写剧本",
+    "nodetool.storyboard.AssembleTimeline": "组装时间线",
+    "nodetool.storyboard.LoadStoryboard": "加载分镜",
+    "nodetool.storyboard.RecastStoryboard": "分镜换角",
+    "nodetool.storyboard.RenderClips": "渲染镜头片段",
+    "nodetool.storyboard.RenderStills": "渲染静帧",
+    "nodetool.storyboard.StoryboardShots": "分镜镜头",
+    "nodetool.timeline.FillTimelineText": "填充时间线文本",
+    "nodetool.timeline.RetargetTimeline": "时间线重定画幅",
+    "nodetool.video.ReferenceToVideo": "参考图生视频"
+  },
+  "nodeDocs": {
+    "lib.audio.Bitcrush": "对音频文件应用比特粉碎效果，降低位深和/或采样率。\naudio, effect, distortion\n\nUse cases:\n- 制作 lo-fi 或复古风格音频效果\n- 模拟老式数字音频设备\n- 为声音添加数字失真与毛刺",
+    "lib.audio.Compress": "对音频文件应用动态范围压缩。\naudio, effect, dynamics\n\nUse cases:\n- 均衡录音中的音量电平\n- 提升音频的感知响度\n- 控制音频信号的峰值",
+    "lib.audio.Delay": "对音频文件应用延迟效果。\naudio, effect, time-based\n\nUse cases:\n- 制作回声效果\n- 为声音增添空间感\n- 生成节奏型律动",
+    "lib.audio.Distortion": "对音频文件应用失真效果。\naudio, effect, distortion\n\nUse cases:\n- 为乐器增添颗粒感与个性\n- 制作有攻击性的音效\n- 模拟过载音箱",
+    "lib.audio.Gain": "对音频文件应用增益（音量调整）。\naudio, effect, volume\n\nUse cases:\n- 提升或降低音频整体音量\n- 平衡不同音频轨道之间的电平\n- 为后续处理准备音频",
+    "lib.audio.HighPassFilter": "应用高通滤波器，衰减截止点以下的频率。\naudio, effect, equalizer\n\nUse cases:\n- 去除低频隆隆声或噪声\n- 清理混音的低频部分\n- 制作滤波扫频效果",
+    "lib.audio.HighShelfFilter": "应用高搁架滤波器，提升或削减高频。\naudio, effect, equalizer\n\nUse cases:\n- 增强或削弱高音频率\n- 为音频增添明亮感或空气感\n- 驯服刺耳的高频",
+    "lib.audio.Limiter": "对音频文件应用限幅器效果。\naudio, effect, dynamics\n\nUse cases:\n- 防止音频削波\n- 在不失真的前提下提升感知响度\n- 控制音频的动态范围",
+    "lib.audio.LowPassFilter": "应用低通滤波器，衰减截止点以上的频率。\naudio, effect, equalizer\n\nUse cases:\n- 削弱高频的刺耳感\n- 模拟发闷或遥远的声音\n- 制作 dub 风格效果",
+    "lib.audio.LowShelfFilter": "应用低搁架滤波器，提升或削减低频。\naudio, effect, equalizer\n\nUse cases:\n- 增强或削弱低音频率\n- 塑造音频的低频响应\n- 补偿扬声器或房间的先天不足",
+    "lib.audio.NoiseGate": "对音频文件应用噪声门效果。\naudio, effect, dynamics\n\nUse cases:\n- 降低录音中的背景噪声\n- 清理带有不需要的低电平声音的音轨\n- 通过对持续声音做门限处理制作节奏效果",
+    "lib.audio.PeakFilter": "应用峰值滤波器，提升或削减特定频率范围。\naudio, effect, equalizer\n\nUse cases:\n- 分离特定频率范围\n- 制作电话或广播人声效果\n- 在混音中聚焦特定乐器频段",
+    "lib.audio.Phaser": "对音频文件应用移相效果。\naudio, effect, modulation\n\nUse cases:\n- 制作扫掠、嗖嗖的声音\n- 为静态声音增添动感\n- 生成迷幻或太空感效果",
+    "lib.audio.PitchShift": "在不改变时长的前提下移动音频文件的音高。\naudio, effect, pitch\n\nUse cases:\n- 将音频移调到另一个调\n- 制作和声或人声效果\n- 校准乐器音准",
+    "lib.audio.Reverb": "对音频文件应用混响效果。\naudio, effect, reverb\n\nUse cases:\n- 为干声录音增添空间纵深\n- 模拟不同的房间声学\n- 制作氛围音效",
+    "lib.audio.TimeStretch": "在不改变音高的前提下改变音频文件的速率。\naudio, transform, time\n\nUse cases:\n- 调整音频时长以匹配视频长度\n- 制作慢放或快放的音频效果\n- 同步不同长度的音频轨道",
+    "nodetool.audio.AudioMixer": "将多条音频轨道混合在一起。通过“添加音频输入”按钮动态添加轨道；任一轨道需要不同电平时，在其上游串接一个增益节点。\naudio, mix, combine, blend, layer, add, overlay",
+    "nodetool.audio.AudioToAudio": "用音频转音频模型重写既有录音：变换嗓音、隔离或降噪、分离声部、提升采样率。\naudio, audio-to-audio, voice-changer, isolation, denoise, stem-separation, AI",
+    "nodetool.audio.ChunkToAudio": "将输入流的音频分块转换为 AudioRef 对象。\naudio, stream, chunk, convert",
+    "nodetool.audio.Concat": "将多个音频文件拼接在一起。通过“添加音频输入”按钮动态添加输入，或将一组音频接入单个输入。\naudio, edit, join, +",
+    "nodetool.audio.ConcatList": "将多个音频文件按顺序拼接在一起。\naudio, edit, join, multiple, +",
+    "nodetool.audio.CreateSilence": "创建指定时长的静音音频文件。\naudio, silence, empty",
+    "nodetool.audio.FadeIn": "在音频文件开头应用淡入效果。\naudio, edit, transition",
+    "nodetool.audio.FadeOut": "在音频文件结尾应用淡出效果。\naudio, edit, transition",
+    "nodetool.audio.GetAudioInfo": "从音频文件提取元数据：时长、采样率、声道数、格式。\naudio, info, metadata, duration, sample_rate, channels, format",
+    "nodetool.audio.LoadAudioAssets": "从素材文件夹加载音频文件。\nload, audio, file, import",
+    "nodetool.audio.LoadAudioFile": "从磁盘读取音频文件。\naudio, input, load, file",
+    "nodetool.audio.LoadAudioFolder": "从文件夹加载全部音频文件，可选包含子文件夹。\naudio, load, folder, files",
+    "nodetool.audio.MonoToStereo": "将单声道音频信号转换为立体声。\naudio, convert, channels",
+    "nodetool.audio.Normalize": "对音频文件的音量做归一化。\naudio, fix, dynamics, volume",
+    "nodetool.audio.OverlayAudio": "将两个音频文件叠加在一起。\naudio, edit, transform",
+    "nodetool.audio.RemoveSilence": "以平滑过渡移除或缩短音频文件中的静音。\naudio, edit, clean",
+    "nodetool.audio.Repeat": "将音频文件循环指定次数。\naudio, edit, repeat",
+    "nodetool.audio.Reverse": "倒放音频文件。\naudio, edit, transform",
+    "nodetool.audio.SaveAudio": "将音频文件保存到指定素材文件夹。\naudio, folder, name",
+    "nodetool.audio.SaveAudioFile": "将音频文件写入磁盘。\naudio, output, save, file\n\n文件名可包含时间与日期变量：\n%Y - 年，%m - 月，%d - 日\n%H - 时，%M - 分，%S - 秒\n\n支持格式：mp3、wav、ogg、flac、aac、m4a",
+    "nodetool.audio.SliceAudio": "截取音频文件的一个片段。\naudio, edit, trim",
+    "nodetool.audio.StereoToMono": "将立体声音频信号转换为单声道。\naudio, convert, channels",
+    "nodetool.audio.TextToMusic": "用任一支持的音乐服务商（fal、Replicate、Kie/Suno、MiniMax）从文本提示词生成音乐。带人声的模型可选提供歌词。\naudio, generation, AI, text-to-music, music, song",
+    "nodetool.audio.TextToSpeech": "用任一支持的 TTS 服务商从文本生成语音。自动路由到合适的后端（OpenAI、HuggingFace、MLX）。\naudio, generation, AI, text-to-speech, tts, voice",
+    "nodetool.audio.Trim": "将音频文件修剪到指定时长。\naudio, trim, cut",
+    "nodetool.audio.realtime.AudioOutput": "播放实时音频分块流——整个 patch 的扬声器。\naudio, stream, chunk, realtime, output, speaker, monitor\n\n每个分块原样直通；编辑器从直播流中取出分块并随到随播。任何合成器 patch 或流式效果链都在此收尾即可听到声音。\n\nUse cases:\n- 监听实时模块合成器 patch\n- 边渲染边听流式 TTS 或效果的输出\n- 在用分块转音频节点录制之前先试听整条链",
+    "nodetool.audio.realtime.AudioToChunks": "将音频文件切分为固定时长的 PCM16 分块流。\naudio, stream, chunk, realtime\n\nUse cases:\n- 把批量音频喂给实时/流式节点\n- 用一段录音模拟实时音频源\n- 驱动流式效果与转写节点",
+    "nodetool.audio.realtime.ChunksToAudio": "将 PCM16 音频分块流累积为单个音频文件。\naudio, stream, chunk, realtime, accumulate\n\nUse cases:\n- 把流式 TTS 或效果的输出留存为文件\n- 用可播放的结果收尾实时音频链\n- 录制处理过的实时信号",
+    "nodetool.audio.realtime.StreamingGain": "对实时音频流的每个分块应用增益（音量调整）。\naudio, stream, chunk, realtime, effect, volume\n\nUse cases:\n- 调整实时音频源的电平\n- 混音前平衡各路流式信号\n- 衰减或提升流式 TTS 输出",
+    "nodetool.audio.realtime.StreamingHighPass": "对实时音频流应用高通滤波器，滤波状态跨分块保持。\naudio, stream, chunk, realtime, effect, equalizer\n\nUse cases:\n- 去除实时麦克风信号中的隆隆声\n- 清理流式音频的低频\n- 混音前让流式信号变薄",
+    "nodetool.audio.realtime.StreamingLowPass": "对实时音频流应用低通滤波器，滤波状态跨分块保持。\naudio, stream, chunk, realtime, effect, equalizer\n\nUse cases:\n- 柔化实时音频源\n- 去除流式音频中的高频噪声\n- 制作实时 dub 风格效果",
+    "nodetool.audio.synth.ADSR": "由门限 CV 流驱动的 ADSR 包络发生器。\ncv, synthesis, envelope, adsr, modular\n\n门限边沿（阈值 0.5）在分块内的精确采样偏移处检出；起音/衰减/释音按以采样计数的指数单极段运行，因此无需任何时钟即可做到采样级精确。每个门限分块输出一个包络分块（帧数相同）。释音中途重触发会从当前电平继续。\n\nUse cases:\n- 经 VCA cv 做振幅包络\n- 经 VCF cutoff_cv 做滤波器包络\n- 对任意信号做无咔哒声的门控",
+    "nodetool.audio.synth.Attenuverter": "对 CV（或音频）流做缩放与偏移：out = in * scale + offset。\ncv, synthesis, utility, attenuverter, modular\n\n负的 scale 会反相信号。CV 万金油工具——把 LFO 的摆幅适配到音高输入、反转一个包络、叠加直流偏置。\n\nUse cases:\n- 送入音高输入前削减 LFO 深度\n- 反转包络做闪避\n- 叠加直流偏置让调制回到中心",
+    "nodetool.audio.synth.Gate": "生成周期性开/关门限 CV——整个 patch 的主时钟。\ncv, synthesis, gate, trigger, clock, modular\n\n在 on_duration 秒内输出 amplitude，off_duration 秒输出 0，按真实时钟循环直到运行停止。用它驱动 ADSR；下游每个节点天然与其采样对齐、与其同速。\n\nUse cases:\n- 按节奏触发包络\n- 作为带时钟的 LFO 与采样保持的主时钟\n- 充当实时 patch 的心跳",
+    "nodetool.audio.synth.LFO": "输出控制电压流的低频振荡器。\ncv, synthesis, lfo, modulation, modular\n\n输出为 offset + depth * wave(phase)。接入时钟后，每个时钟分块输出一个分块（采样对齐）并在每个时钟上升沿复位相位；否则按真实时钟自由运行直到运行停止。\n\nUse cases:\n- 经振荡器 fm 或 VCA cv 做颤音/震音\n- 经 VCF cutoff_cv 做滤波扫频\n- 生成式 patch 中的缓慢参数漂移",
+    "nodetool.audio.synth.Mixer": "将最多四路音频流求和，各输入带独立电平。\naudio, synthesis, mixer, modular\n\n输出 = Σ level_i * in_i，在每个仍开启的输入都能覆盖所需帧数时立即输出；已结束的输入以静音参与。所有已连接输入都结束后，流随之结束。假定采样率与声道数一致（不做重采样）。\n\nUse cases:\n- 将多个振荡器合为更厚的声部\n- 把干信号与滤波副本混合\n- 对多个合成器声部做编组混音",
+    "nodetool.audio.synth.Oscillator": "压控振荡器，生成正弦、锯齿、方波、三角或噪声音频。\naudio, synthesis, oscillator, vco, modular\n\n音高 CV 为伏特/八度：freq = frequency * 2^cv（cv 以八度计）。接入 pitch_cv 或 fm 后，输出跟随该流的分块节奏（采样对齐）；否则按真实时钟自由运行直到运行停止。朴素波形——锯齿/方波在高频会混叠。\n\nUse cases:\n- 作为模块合成器声部的声源\n- 经 LFO 驱动 fm 输入做 FM/颤音\n- 经音高 CV 流生成旋律序列",
+    "nodetool.audio.synth.SampleHold": "在每个触发上升沿对信号输入采样并保持。\ncv, synthesis, sample-hold, modular\n\n当触发上升沿（≥ 0.5）出现在采样点 k 时，保持值变为 signal[k]；输出在每个采样点都为保持值。信号输入决定分块节奏；触发与其帧对齐并保持末值。\n\nUse cases:\n- 经典随机阶梯 CV（噪声接 signal，时钟接 trigger）\n- 把 LFO 量化为阶梯\n- 按需冻结某个调制值",
+    "nodetool.audio.synth.VCA": "压控放大器：将音频流与 CV 流相乘。\naudio, cv, synthesis, vca, amplifier, modular\n\n每采样输出 = audio * gain * max(0, cv)（负 CV 被钳到 0——VCA 不反相）。音频输入决定分块节奏；CV 滞后或结束时与其帧对齐并保持末值。cv 无接入时即为普通增益。\n\nUse cases:\n- 用 ADSR 包络塑形一个音符\n- 经 LFO 做震音\n- 从任意 CV 源做侧链式闪避",
+    "nodetool.audio.synth.VCF": "压控滤波器：截止频率由 CV 流调制的双二阶滤波器。\naudio, cv, synthesis, vcf, filter, modular\n\n截止频率 = cutoff_hz * 2^(cv * cv_amount)（伏特/八度），每 64 个采样重算一次（控制率）；滤波状态跨分块保持，因此分块输出等于一次性通过。音频输入决定分块节奏；CV 与其帧对齐并保持末值。\n\nUse cases:\n- 经典包络滤波扫频（ADSR 接 cutoff_cv）\n- 经 LFO 做哇音（Wah）/自动滤波\n- cutoff_cv 不接时做静态音色塑形",
+    "lib.image.channel.Merge": "从一张图像取 RGB，从另一张图像取可选通道作为新的 alpha。\nimage, channels, merge, alpha",
+    "lib.image.channel.Shuffle": "重排 RGBA 通道。每个输出通道可任选一个输入通道（0=R、1=G、2=B、3=A）。\nimage, channels, swap, rgba",
+    "lib.image.color_grading.CDL": "ASC CDL（色彩决策表）调色。\ncdl, slope, offset, power, saturation, asc, color decision list\n\nUse cases:\n- 应用行业标准的 CDL 调色\n- 在不同软件之间交换调色结果\n- 施加精确的数学色彩变换\n- 在多个镜头之间建立一致的观感\n\n公式：output = (input * slope + offset) ^ power\n随后进行饱和度调整。",
+    "lib.image.color_grading.ColorBalance": "调整色温与色调，用于白平衡校正。\nwhite balance, temperature, tint, color balance, warm, cool\n\nUse cases:\n- 校正照片与视频的白平衡\n- 让整体画面变暖或变冷\n- 修复混合光源造成的偏色\n- 通过色温偏移营造情绪",
+    "lib.image.color_grading.Curves": "带控制点的 RGB 曲线调整，实现精确的影调控制。\ncurves, rgb, tonal, contrast, levels\n\nUse cases:\n- 制作自定义对比度曲线\n- 精确调整特定影调范围\n- 制作交叉冲洗或风格化观感\n- 模拟胶片的影调特性",
+    "lib.image.color_grading.Exposure": "类似 Lightroom/Camera Raw 的全面影调曝光控制。\nexposure, contrast, highlights, shadows, whites, blacks, tonal\n\nUse cases:\n- 校正过曝或欠曝的图像\n- 找回高光与阴影细节\n- 调整整体对比度与影调范围\n- 微调特定影调区域的亮度",
+    "lib.image.color_grading.FilmLook": "应用预设的电影感调色，强度可调。\nfilm look, cinematic, preset, movie, lut, color grade\n\nUse cases:\n- 快速套用流行的电影感调色\n- 在多张图像之间保持一致的观感\n- 模拟经典胶片特性\n- 作为自定义调色的起点",
+    "lib.image.color_grading.HSLAdjust": "按色彩范围调整色相、饱和度与明度。\nhsl, hue, saturation, luminance, selective color, color range\n\nUse cases:\n- 偏移特定色彩（例如让蓝色偏青）\n- 对个别色彩范围做去饱和或增强\n- 提亮或压暗特定色彩\n- 制作面向特定色彩的风格（青色天空、橙色肤色）",
+    "lib.image.color_grading.LiftGammaGain": "面向阴影、中间调与高光的三路校色器。\nlift, gamma, gain, color wheels, primary correction, shadows, midtones, highlights\n\nUse cases:\n- 应用行业标准的三路校色\n- 在不同影调范围之间平衡色彩\n- 在阴影与高光之间制造色彩对比\n- 匹配来自不同素材源的影片\n\nLift 作用于阴影，Gamma 作用于中间调，Gain 作用于高光。\n每个控件同时调整其影调范围的亮度与色彩。",
+    "lib.image.color_grading.SaturationVibrance": "调整色彩饱和度，附带更温和的自然饱和度副控制。\nsaturation, vibrance, color intensity\n\nUse cases:\n- 增强或降低整体色彩浓度\n- 通过自然饱和度做更轻柔的饱和度微调\n- 制作低饱和或过饱和观感\n- 用两档强度精细控制色彩浓度\n\n自然饱和度是半权重副饱和度控制；它不会保护肤色或已经饱和的色彩。",
+    "lib.image.color_grading.SplitToning": "对阴影与高光分别施加不同的色调。\nsplit toning, shadows, highlights, tint, duotone\n\nUse cases:\n- 制作经典的青橙色调\n- 在阴影与高光之间增添色彩对比\n- 模拟胶片冲洗工艺\n- 制作风格化的调色图像",
+    "lib.image.color_grading.Vignette": "应用电影感暗角效果，压暗或提亮画面边缘。\nvignette, edge, darken, focus, cinematic\n\nUse cases:\n- 将视线引向画面中心\n- 营造经典的电影感\n- 模拟镜头的光量衰减\n- 为照片增添细腻的框式收束",
+    "lib.image.color.BrightnessContrast": "以中灰为基准的加法亮度与乘法对比度。\nimage, color, brightness, contrast, levels",
+    "lib.image.color.ChannelSplit": "提取单个通道（R/G/B/A）为灰度图像并保留 alpha。\nimage, color, channel, split, isolate",
+    "lib.image.color.Exposure": "以档为单位调整曝光（rgb *= 2^stops）。\nimage, color, exposure, stops, ev",
+    "lib.image.color.Grade": "完整调色流程：亮度、对比度、饱和度、色相、色温、色调、阴影、高光。\nimage, color, grade, color correction",
+    "lib.image.color.HSB": "色相旋转（度）与饱和度、亮度倍率。\nimage, color, hue, saturation, brightness, hsb, hsv",
+    "lib.image.color.Invert": "反相 RGB（1 - rgb），保留 alpha。amount 在直通与完全反相之间渐变。\nimage, color, invert, negative",
+    "lib.image.color.Posterize": "将每个通道量化到 N 级。\nimage, color, posterize, quantize, levels",
+    "lib.image.draw.AngularGradient": "围绕画布中心的扫描渐变。\nimage, gradient, angular, conic, draw",
+    "lib.image.draw.Background": "背景节点用于创建空白背景。\nimage, background, blank, base, layer\n\n该节点主要用于为图像处理任务生成底层图层。它按用户指定的宽度、高度和颜色生成一张均匀图像；颜色以十六进制格式给出，未指定时默认为白色。\n\n#### Applications\n- 用作合成图像的底层图层。\n- 作为生成图案或图形的起点。\n- 在可视化任务中需要特定颜色的空白背景时使用。",
+    "lib.image.draw.Checkerboard": "双色棋盘格，单元格大小可配置。\nimage, checkerboard, pattern, draw",
+    "lib.image.draw.DiamondGradient": "由内向外的菱形/方形渐变。\nimage, gradient, diamond, draw",
+    "lib.image.draw.GaussianNoise": "该节点为图像创建并添加高斯噪点。\nimage, noise, gaussian, distortion, artifact\n\n高斯噪点节点用于模拟照片图像中可能出现的真实失真。它基于高斯（正态）分布生成一张噪点图像，噪点强度可通过均值与标准差参数调节。\n\n#### Applications\n- 在合成数据中模拟传感器噪点。\n- 测试图像处理算法的抗噪性。\n- 在图像中制造艺术效果。",
+    "lib.image.draw.LinearGradient": "带角度与中点的双停靠点线性渐变。\nimage, gradient, linear, draw",
+    "lib.image.draw.RadialGradient": "以画布为中心、由内向外的径向渐变。\nimage, gradient, radial, draw",
+    "lib.image.draw.RenderText": "使用系统可用字体族在图像上绘制文字。\ntext, font, label, title, watermark, caption, image, overlay\n\n该节点接收文字、字体族名称、坐标（文字的落点）以及一张目标图像。可用它为图像添加标签或标题、打水印，或直接在图像上放置说明文字。\n\n可以设置字体族名称、字号、颜色与对齐方式（左、中、右），并把文字放到图像任意位置。\n\n### Fonts\n\n只使用字体的 name 字段——作为一个字体族名称，交由渲染端（浏览器中的 Canvas2D、服务器上的 sharp/librsvg）在其可用字体中解析。指定的字体族不可用时，渲染端会退回默认字体。该节点不下载字体，因此字体的 source、url 和 weight 字段会被忽略。\n\n#### Applications\n- 为图库或数据库中的图像加标签。\n- 为图像打水印以保护版权。\n- 为照片添加自定义说明文字。\n- 制作引导视线走向的说明图。",
+    "lib.image.effects.Add": "两张图像的加法合成：out = source + over × gain。\nimage, add, blend, composite",
+    "lib.image.effects.ColorOverlay": "用恒定色彩为图像着色，同时保留源图覆盖范围。\nimage, overlay, tint, layer effect",
+    "lib.image.effects.DropShadow": "在源轮廓后方投射柔和投影。\nimage, drop shadow, layer effect, blur",
+    "lib.image.effects.Glow": "辉光/泛光效果：亮部提取 + 模糊 + 与源图加法合成。\nimage, glow, bloom, layer effect, blur",
+    "lib.image.effects.Outline": "沿源轮廓绘制扁平描边。\nimage, outline, stroke, edge, layer effect",
+    "lib.image.enhance.AdaptiveContrast": "应用自适应技术实现局部对比度增强。\nimage, contrast, enhance\n\nUse cases:\n- 改善光照不均图像的可见度\n- 为计算机视觉准备更利于特征检测的图像",
+    "lib.image.enhance.AutoContrast": "自动调整图像对比度，提升视觉质量。\nimage, contrast, balance\n\nUse cases:\n- 增强图像清晰度，改善视觉感知\n- 为计算机视觉任务预处理图像\n- 在编辑流程中提升照片美感",
+    "lib.image.enhance.Detail": "增强图像中的精细细节。\nimage, detail, enhance\n\nUse cases:\n- 提升照片中纹理元素的清晰度\n- 增强细小特征的可见度以便分析\n- 为高分辨率显示或印刷准备图像",
+    "lib.image.enhance.EdgeEnhance": "通过提高边界处的对比度来增强边缘可见度。\nimage, edge, enhance\n\nUse cases:\n- 改善用于计算机视觉的物体边界检测\n- 突出工程图中的结构元素\n- 为图像分析中的特征提取准备图像",
+    "lib.image.enhance.Equalize": "通过均衡化强度分布增强图像对比度。\nimage, contrast, histogram\n\nUse cases:\n- 改善弱光图像的可见度\n- 增强细节以辅助图像分析\n- 为机器学习归一化图像数据",
+    "lib.image.enhance.RankFilter": "应用基于排序的滤波来增强或平滑图像特征。\nimage, filter, enhance\n\nUse cases:\n- 在保留边缘的同时降低图像噪点\n- 基于局部强度增强特定图像特征\n- 预处理图像以获得更好的分割结果",
+    "lib.image.filter.Canny": "对图像应用 Canny 边缘检测。\nimage, filter, edges\n\n- 突出强度急剧变化的区域\n- 勾勒物体边界与结构\n- 为目标检测与图像分割增强输入",
+    "lib.image.filter.Contour": "应用轮廓滤波以突出图像边缘。\nimage, filter, contour\n\n- 从复杂图像中提取关键特征\n- 辅助模式识别与目标检测\n- 制作风格化的轮廓素描效果",
+    "lib.image.filter.ConvertToGrayscale": "将图像转换为灰度图。\nimage, grayscale\n\n- 简化图像以便做特征与边缘检测\n- 为基于形状的机器学习准备图像\n- 制作复古或单色美学效果",
+    "lib.image.filter.Emboss": "应用浮雕滤镜，产生 3D 浮凸效果。\nimage, filter, emboss\n\n- 为照片增添质感与纵深\n- 制作有视觉趣味的花纹\n- 在数字艺术作品中融入独特效果",
+    "lib.image.filter.Expand": "在图像四周添加边框以扩大尺寸。\nimage, border, expand\n\n- 用彩色边框让图像更醒目\n- 制作装裱照片效果\n- 将图像内容与周围环境分隔开",
+    "lib.image.filter.FindEdges": "检测并突出图像中的边缘。\nimage, filter, edges\n\n- 分析图像中的结构纹理\n- 辅助计算机视觉中的目标检测\n- 检测角点与棱线等关键特征",
+    "lib.image.filter.GaussianBlur": "可分离的两趟高斯模糊（先水平后垂直）。\nimage, blur, gaussian, smooth, filter",
+    "lib.image.filter.Invert": "反转图像的色彩。\nimage, filter, invert\n\n- 制作图像的负片以获得视觉效果\n- 通过显现隐藏细节来分析图像数据\n- 为更适合在反相色彩上进行的操作预处理图像",
+    "lib.image.filter.Pixelate": "将每个 N×N 块平均为单一颜色。\nimage, pixelate, mosaic, filter",
+    "lib.image.filter.Posterize": "减少图像中的色彩数量，制作海报风效果。\nimage, filter, posterize\n\n- 通过简化图像色彩制作图形艺术\n- 为照片施加艺术效果\n- 为广告生成有视觉冲击力的内容",
+    "lib.image.filter.Smooth": "应用平滑处理以降低图像噪点与细节。\nimage, filter, smooth\n\n- 提升图像的视觉美感\n- 通过削减无关细节改善目标检测\n- 通过简化图像辅助人脸识别",
+    "lib.image.filter.Solarize": "应用中途曝光效果，部分反转图像影调。\nimage, filter, solarize\n\n- 制作超现实的艺术照片效果\n- 让某些元素更突出以强化视觉数据\n- 为平面设计赋予独特风格",
+    "lib.image.filter.Threshold": "平滑阶梯的亮度阈值——保留截止值以上的像素，在其附近渐变过渡。\nimage, threshold, brightpass, filter",
+    "lib.image.filter.UnsharpMask": "通过局部对比度提升实现锐化。amount 控制强度，threshold 抑制噪点。\nimage, sharpen, unsharp mask, filter, detail",
+    "lib.image.filter.Vignette": "画面四角的径向压暗。负强度会提亮边缘。\nimage, vignette, filter, lens",
+    "lib.image.keyer.ChromaKey": "抠除接近键控色的像素，可选溢色抑制。\nimage, chroma key, green screen, keying",
+    "lib.image.keyer.LumaKey": "保留亮度落在 [low, high] 区间内的像素，边缘为平滑阶梯。\nimage, luma key, keying, brightness",
+    "lib.image.Mask": "使用蒙版合成两张图像，实现高级合成。\ncomposite, mask, blend, layering\n\nUse cases:\n- 创建复杂的图像合成\n- 应用选择性混合或效果\n- 实现高级照片编辑技法",
+    "lib.image.mask.Apply": "将覆盖蒙版（读取自 mask.a）乘入源图的 alpha。RGB 保持不变。\nimage, mask, apply, alpha",
+    "lib.image.mask.FromImage": "从图像的某一通道派生蒙版。\nimage, mask, alpha, channel\n\n模式：0 alpha / 1 亮度 / 2 R / 3 G / 4 B / 5 最大通道。",
+    "lib.image.mask.Invert": "反转蒙版 alpha（coverage → 1 − coverage）。\nimage, mask, invert, alpha",
+    "lib.image.warp.Affine": "应用逆向 2×3 仿射矩阵。每个输出 UV 映射到源图坐标 (m00·u + m01·v + tx, m10·u + m11·v + ty)。\nimage, affine, transform, matrix, warp",
+    "lib.image.warp.CornerPin": "通过逆向 3×3 单应性矩阵做透视变形（H22 固定为 1）。\nimage, perspective, corner pin, homography, warp",
+    "lib.image.warp.Displace": "由置换贴图（R+G 通道）驱动的逐像素 UV 偏移。适合制作涟漪与玻璃质感。\nimage, displace, warp, ripple, distortion",
+    "lib.image.warp.Offset": "以 (dx, dy) UV 单位平移图像，环绕方式可选。\nimage, offset, translate, shift",
+    "lib.image.warp.Pad": "在四周填充空白/有色区域，输出随之扩大以容纳。\nimage, pad, border, expand, frame",
+    "lib.image.warp.PolarRemap": "在直角与极坐标 UV 空间之间转换。0 直角→极坐标 / 1 极坐标→直角。\nimage, polar, warp, kaleidoscope",
+    "lib.image.warp.Spherize": "以源图为中心的鱼眼镜头畸变。正值向外凸出，负值向内收缩。\nimage, fisheye, spherize, warp, lens",
+    "lib.image.warp.Tile": "将源图在原尺寸画布上平铺 N × M 次。\nimage, tile, repeat, pattern",
+    "nodetool.image.BatchToList": "将图像批量转换为图像引用列表。\nbatch, list, images, processing",
+    "nodetool.image.Blur": "模糊图像——提供 Box（盒式）、高斯或水平运动模糊变体。\nimage, blur, gaussian, box, motion, filter",
+    "nodetool.image.CanvasResize": "在不缩放像素的前提下扩展图像周围的画布。\ncanvas, resize, pad, outpaint, expand, anchor",
+    "nodetool.image.Channels": "从图像中提取单个通道作为灰度预览。\nimage, channel, red, green, blue, alpha, luminance",
+    "nodetool.image.Compositor": "合成多个图像图层，各层带独立不透明度与混合模式。\nimage, compositor, blend, layers, mask",
+    "nodetool.image.Crop": "将图像裁剪到指定坐标。\nimage, crop",
+    "nodetool.image.Fit": "已弃用——请改用「调整图像尺寸」（nodetool.image.ResizeImage）。将图像等比缩放到指定尺寸内并保持宽高比。\nimage, resize, fit",
+    "nodetool.image.GetMetadata": "获取输入图像的元数据。\nmetadata, properties, analysis, information",
+    "nodetool.image.ImagesToList": "将所有动态属性转换为图像引用列表。\nlist, images, processing",
+    "nodetool.image.ImageToImage": "用任一支持的图像服务商以文本提示词变换图像。自动路由到合适的后端（HuggingFace、fal、MLX）。\nimage, transformation, AI, image-to-image, i2i",
+    "nodetool.image.Levels": "按 RGB 通道调整输入黑场、gamma 与白场。\nimage, levels, color, tone, curves",
+    "nodetool.image.LoadImageAssets": "从素材文件夹加载图像。\nload, image, file, import",
+    "nodetool.image.LoadImageFile": "从磁盘读取图像文件。\nimage, input, load, file",
+    "nodetool.image.LoadImageFolder": "从文件夹加载全部图像，可选包含子文件夹。\nimage, load, folder, files",
+    "nodetool.image.Painter": "在图像上绘制 alpha 蒙版并输出该蒙版。\nimage, painter, mask, brush, paint",
+    "nodetool.image.Paste": "将一张图像按指定坐标粘贴到另一张上。\npaste, composite, positioning, overlay",
+    "nodetool.image.Relight": "用任一支持的图像编辑模型按文本提示词为被摄主体重打光。\nimage, relight, lighting, AI, image-to-image",
+    "nodetool.image.RemoveBackground": "去除图像背景，返回带透明度的抠图结果。\nimage, background, remove, matte, cutout, AI",
+    "nodetool.image.Resize": "已弃用——请改用「调整图像尺寸」（nodetool.image.ResizeImage）。将图像尺寸改为指定的宽度与高度。\nimage, resize",
+    "nodetool.image.ResizeImage": "缩放、设定精确尺寸或适配进目标框。尺寸模式下将宽或高设为 0 可保持该轴比例。\nimage, resize, scale, fit, dimensions",
+    "nodetool.image.RotateAndFlip": "一步完成图像的旋转和/或翻转。\nimage, rotate, flip, mirror, orientation, transform",
+    "nodetool.image.SaveImage": "将图像保存到指定素材文件夹，名称格式可自定义。\nsave, image, folder, naming",
+    "nodetool.image.SaveImageFile": "将图像写入磁盘。\nimage, output, save, file",
+    "nodetool.image.Scale": "已弃用——请改用「调整图像尺寸」（nodetool.image.ResizeImage）。按缩放系数放大或缩小图像。\nimage, resize, scale",
+    "nodetool.image.Segment": "在图像中寻找物体并为每个物体返回一张蒙版，使用任一支持的分割服务商。\nimage, segment, mask, sam, cutout, AI",
+    "nodetool.image.TextToImage": "用任一支持的图像服务商从文本提示词生成图像。自动路由到合适的后端（HuggingFace、fal、MLX）。\nimage, generation, AI, text-to-image, t2i",
+    "nodetool.image.Upscale": "用任一支持的超分服务商提升图像的分辨率与细节。\nimage, upscale, super-resolution, enhance, AI",
+    "nodetool.image.Vectorize": "用任一支持的矢量化服务商将光栅图像转换为可缩放矢量（SVG）。\nimage, vector, svg, vectorize, trace, AI",
+    "lib.video.download.YtDlpDownload": "使用 yt-dlp 从 URL 下载媒体。\ndownload, video, audio, youtube, media, yt-dlp, metadata, subtitles\n\nUse cases:\n- 从 YouTube 等平台下载视频\n- 从视频 URL 提取音频\n- 不下载的情况下获取视频/音频元数据\n- 下载字幕与封面",
+    "nodetool.timeline.AddClips": "把媒体作为片段追加到时间线序列（视频与图片进视频轨，音频进音频轨）。未提供时间线时创建新时间线。\ntimeline, clips, append, assemble, storyboard\n\nUse cases:\n- 将生成的镜头组装成可编辑的粗剪\n- 把分镜的图片做成动态分镜（animatic）\n- 在剪辑下方加入生成的配音或配乐",
+    "nodetool.timeline.FillTimelineText": "从值包填充模板剪辑中的 {{key}} 占位符——包括文字片段与字幕——并将结果另存为新时间线。模板本身不会被改写。没有对应值的键会留在画面中并被报告。\ntimeline, template, text, fill, batch\n\nUse cases:\n- 把每个 SKU 的名称与价格压印到已审定的剪辑上\n- 不重新剪辑时间线即可完成叠加层本地化\n- 按数据源的每一行产出一个变体",
+    "nodetool.timeline.RenderTimeline": "把时间线序列渲染为视频，合成效果与时间线编辑器的预览完全一致（轨道、变换、转场、效果、字幕与文字），并按各片段的偏移混入音频。可写出 MP4、WebM、MOV 或打包的 PNG 序列，可选透明背景。\ntimeline, render, video, export, cut, alpha\n\nUse cases:\n- 把在时间线编辑器里完成的剪辑导出为可分享的视频\n- 导出带透明度的标题或字幕条，供别处合成\n- 把粗剪送入字幕、审阅或上传节点\n- 自动导出由其他工作流节点搭建的时间线",
+    "nodetool.timeline.RetargetTimeline": "从已审定的剪辑派生另一宽高比的新时间线，保留每一次修剪、摆位与剪辑点。Cover 将每个镜头缩放填满新画框并报告被裁切的片段；Contain 则改加黑边。文字字号跟随短边。源剪辑本身不会被改写。\ntimeline, aspect ratio, resize, reframe, variant\n\nUse cases:\n- 把 16:9 的影片转成 9:16 与 1:1 版本\n- 从一份审定剪辑产出所有宽高比变体\n- 渲染前先看清哪些镜头会失去两侧画面",
+    "nodetool.timeline.Transcript": "将时间线序列的转写稿提取为文本。\ntimeline, transcript, text, script, voiceover\n\nUse cases:\n- 用 LLM 总结或改写剪辑的旁白\n- 从口播稿生成标题、简介或章节\n- 重新录制 TTS 前先翻译配音稿",
+    "nodetool.video.AddAudio": "为视频添加音频轨道，可替换或混入既有音频。\nvideo, audio, soundtrack, merge",
+    "nodetool.video.AddSubtitles": "为视频添加字幕。\nvideo, subtitles, text, caption",
+    "nodetool.video.Blur": "为视频应用模糊效果。\nvideo, blur, smooth, soften",
+    "nodetool.video.ChromaKey": "对视频应用色度键控（绿幕）效果。MP4 输出没有 alpha 通道，被抠掉的区域会呈现黑色——用叠加节点将其合成到背景上。\nvideo, chroma key, green screen, compositing",
+    "nodetool.video.ColorBalance": "调整视频的色彩平衡。\nvideo, color, balance, adjustment",
+    "nodetool.video.Concat": "将多个视频文件拼接为单个视频，含音频时一并合入。通过“添加视频输入”按钮动态添加输入，或将一组视频接入单个输入。\nvideo, concat, merge, combine, audio, +",
+    "nodetool.video.Denoise": "对视频应用降噪。\nvideo, denoise, clean, enhance",
+    "nodetool.video.ExtractAudio": "从视频文件中分离并提取音频轨道。\nvideo, audio, extract, separate, split",
+    "nodetool.video.ExtractFrame": "在指定时间点从视频提取单帧。\nvideo, frame, extract, screenshot, thumbnail, capture",
+    "nodetool.video.ForEachFrame": "用 ffmpeg 从视频文件提取帧。\nvideo, frames, extract, sequence",
+    "nodetool.video.Fps": "获取视频文件的帧率（FPS）。\nvideo, analysis, frames, fps",
+    "nodetool.video.FrameToVideo": "将一序列帧合成为单个视频文件。\nvideo, frames, combine, sequence",
+    "nodetool.video.GetVideoInfo": "获取视频文件的元数据，包括时长、分辨率、帧率与编码格式。\nvideo, info, metadata, duration, resolution, fps, codec, analysis",
+    "nodetool.video.ImageToVideo": "用任一支持的视频服务商以 AI 运动将静态图像动画化为视频。\nvideo, image-to-video, i2v, animation, ai, generation, sora, veo",
+    "nodetool.video.LipSync": "用任一支持的对口型服务商，让视频中的面孔与音频轨道里的语音对上口型。\nvideo, lip-sync, lipsync, talking-head, dubbing, AI",
+    "nodetool.video.LoadVideoAssets": "从素材文件夹加载视频文件。\nload, video, file, import",
+    "nodetool.video.LoadVideoFile": "从磁盘读取视频文件。\nvideo, input, load, file",
+    "nodetool.video.Overlay": "将一个视频叠加到另一个之上，含音频时一并叠加。\nvideo, overlay, composite, picture-in-picture, audio",
+    "nodetool.video.ReferenceToVideo": "以有序的图像与视频参考生成视频，用于身份、风格、场景、运动或音频条件控制。\nvideo, reference-to-video, r2v, generation, ai",
+    "nodetool.video.Resize": "将视频调整为指定宽度与高度。\nvideo, resize, scale, dimensions",
+    "nodetool.video.Reverse": "倒放视频。\nvideo, reverse, backwards, effect",
+    "nodetool.video.Rotate": "将视频旋转指定角度。\nvideo, rotate, orientation, transform",
+    "nodetool.video.Saturation": "调整视频的色彩饱和度。\nvideo, saturation, color, enhance",
+    "nodetool.video.SaveVideo": "将视频保存到素材文件夹。\nvideo, save, file, output",
+    "nodetool.video.SaveVideoFile": "将视频文件写入磁盘。\nvideo, output, save, file\n\n文件名可包含时间与日期变量：\n%Y - 年，%m - 月，%d - 日\n%H - 时，%M - 分，%S - 秒",
+    "nodetool.video.SetSpeed": "调整视频的播放速度。\nvideo, speed, tempo, time",
+    "nodetool.video.Sharpness": "调整视频的锐度。\nvideo, sharpen, enhance, detail",
+    "nodetool.video.Stabilize": "应用视频防抖，减轻相机抖动与晃动。\nvideo, stabilize, smooth, shake-reduction",
+    "nodetool.video.TextToVideo": "用任一支持的视频服务商从文本提示词生成视频。自动路由到合适的后端（Gemini Veo、HuggingFace）。\nvideo, generation, AI, text-to-video, t2v",
+    "nodetool.video.Transition": "在两个视频之间创建转场效果，含音频时一并转场。\nvideo, transition, effect, merge, audio",
+    "nodetool.video.Trim": "将视频裁剪到指定的起止时间。\nvideo, trim, cut, segment",
+    "nodetool.video.VideoToVideo": "用任一支持的视频服务商以文本提示词对既有视频做重绘或编辑。\nvideo, video-to-video, v2v, restyle, style-transfer, AI",
+    "nodetool.agents.Agent": "与 LLM 对话：发送提示词（可附带图像或音频）、调用工具并流式返回响应。\nagent, llm, chat, text-generation, tools, streaming",
+    "nodetool.agents.Classifier": "用 LLM 将文本归类到预定义或动态生成的类别。\nclassification, nlp, categorization\n\nUse cases:\n- 情感分析\n- 话题分类\n- 意图识别\n- 内容归类",
+    "nodetool.agents.CreateThread": "创建新的会话线程并返回其 ID。\nthreads, chat, conversation, context\n\n用它生成 thread_id，供下游智能体节点在整张图或多次运行中复用，以保持持久历史。",
+    "nodetool.agents.Decision": "让 LLM 对输入做一次是/否判断，再把值路由到匹配的分支。\ndecision, judge, condition, branch, if, evaluate, approve, verify, gate, loop, agent\n\n把问题写在 prompt 里。要路由的值接入 value，其他上下文作为额外输入接入；图像与音频会展示给模型。decision 以布尔值给出答案，reason 解释原因，只有被选中的分支（if_true 或 if_false）会输出 value。\n\nUse cases:\n- 判断草稿或生成图是否达到简报要求\n- 用模型的判断驱动循环节点的条件\n- 按自然语言规则把条目路由到不同分支",
+    "nodetool.agents.EnhancePrompt": "用 LLM 把粗略草稿改写成更清晰、更详细的提示词，输出为流式。\ntext, prompt, prompt-engineering, llm, rewrite, streaming\n\n把简短或含糊的想法变成有效的提示词：\n- 补充具体性、结构与缺失细节\n- 面向目标模型（文本、图像、视频、音频、代码）调校结果\n- 在消除歧义的同时保留原始意图\n- 边生成边流式输出改进后的提示词",
+    "nodetool.agents.Extractor": "用 LLM 服务商从文本内容中提取结构化数据。\ndata-extraction, structured-data, nlp, parsing\n\n专用于提取结构化信息：\n- 把非结构化文本转为结构化数据\n- 识别并提取文档中的特定字段\n- 按预定义 schema 解析文本\n- 从自然语言内容创建结构化记录",
+    "nodetool.agents.Summarizer": "用 LLM 服务商生成文本内容的简洁摘要，输出为流式。\ntext, summarization, nlp, content, streaming\n\n专用于生成高质量摘要，支持实时流式输出：\n- 把长文档浓缩为要点\n- 边输出边生成执行摘要\n- 在生成的同时提取文本主旨\n- 在压缩篇幅的同时保持事实准确",
+    "nodetool.creative.ApplyEntities": "将可复用的实体描述注入提示词，实现跨镜头一致性。\ncreative, entities, consistency, prompt, references\n\nUse cases:\n- 让角色或风格在多个镜头间保持一致\n- 为镜头提示词追加权威描述词\n- 为一次生成调用收集参考图",
+    "nodetool.creative.Director": "用 LLM 把创意简报转成结构化的镜头剧本。\ncreative, director, screenplay, shots, storyboard\n\nUse cases:\n- 从一句话简报规划短片或广告\n- 产出带镜头调度与统一风格的分镜表\n- 用带类型的剧本为分镜/时间线管线播种",
+    "nodetool.creative.ScreenplayShots": "把剧本按镜头展开，每个镜头一条图像生成提示词。\ncreative, screenplay, shots, prompts, storyboard\n\nUse cases:\n- 把导演节点的剧本转成逐镜头提示词\n- 每个镜头驱动一次关键帧生成\n- 在分镜管线中逐镜头迭代",
+    "nodetool.creative.ShotBatch": "把剧本展平为可直接生成的镜头规格（提示词、时长、关键帧）。\ncreative, shots, batch, screenplay, prompts\n\nUse cases:\n- 为批量关键帧/片段生成准备剧本的镜头\n- 以单个列表产出每个镜头的提示词与时长\n- 给镜头链节点喂一份随时可渲染的规格列表",
+    "nodetool.creative.ShotChain": "按顺序把一组镜头规格动画化为片段，并用上一片段的末帧为下一镜头播种首帧，保证连贯。\ncreative, shots, video, continuity, chain\n\nUse cases:\n- 把分镜的镜头串成连贯的动画序列\n- 让运动与构图在生成的片段之间保持一致\n- 把导演出的分镜表渲染成可直接剪辑的一组视频",
+    "nodetool.document.ListDocuments": "列出目录中的文档。\nfiles, list, directory",
+    "nodetool.document.LoadDocumentFile": "从磁盘读取文档。\nfiles, document, read, input, load, file",
+    "nodetool.document.SaveDocumentFile": "将文档写入磁盘。\nfiles, document, write, output, save, file\n\n文件名可包含时间与日期变量：\n%Y - 年，%m - 月，%d - 日\n%H - 时，%M - 分，%S - 秒",
+    "nodetool.entity.CreateEntity": "向实体库添加实体，或更新本图上次创建的那一个。\nentity, library, create, upsert, batch\n\nUse cases:\n- 把产品照变成每个 SKU 可复用的实体\n- 登记生成的角色，让后续镜头保持一致\n- 重跑目录导入而不在库中产生重复",
+    "nodetool.entity.ListEntities": "按类型、标签、名称或项目筛选，列出实体库中的实体。\nentity, library, list, cast, batch\n\nUse cases:\n- 让一张图在一个项目的全部产品上展开\n- 收集一组角色（cast）传给生成器\n- 找出携带某个标签的实体",
+    "nodetool.entity.LoadEntity": "通过选择器或名称从实体库读取一个实体。\nentity, character, location, style, prop, library, load\n\nUse cases:\n- 把角色的描述词喂进提示词\n- 把实体的参考图拉进生成器\n- 在批量流程中按名称查找实体",
+    "nodetool.generators.ChartGenerator": "根据自然语言描述创建 Plotly Express 图表的 LLM 智能体。\nllm, data visualization, charts\n\nUse cases:\n- 从自然语言描述生成交互式图表\n- 以极简配置创建数据可视化\n- 把数据分析需求转换为可视化表达",
+    "nodetool.generators.DataGenerator": "根据用户提示词创建数据帧的 LLM 智能体。\nllm, dataframe creation, data structuring\n\nUse cases:\n- 从自然语言描述生成结构化数据\n- 创建用于测试或演示的样本数据集\n- 把非结构化文本转换为表格形式",
+    "nodetool.generators.ListGenerator": "根据用户提示词创建字符串流的 LLM 智能体。\nllm, text streaming\n\nUse cases:\n- 从自然语言描述生成文本\n- 流式接收 LLM 的响应",
+    "nodetool.generators.StructuredOutputGenerator": "用 LLM 服务商根据指令生成结构化 JSON 对象。\ndata-generation, structured-data, json, synthesis\n\n专用于创建结构化信息：\n- 生成遵循动态 schema 的 JSON\n- 依据需求与指引合成记录\n- 为下游工作流模拟样本数据\n- 为测试产出一致的结构化输出",
+    "nodetool.generators.SVGGenerator": "根据用户提示词创建 SVG 元素的 LLM 智能体。\nsvg, generator, vector, graphics\n\nUse cases:\n- 从文本描述创建矢量图形\n- 生成可缩放的插画\n- 创建自定义图标与示意图",
+    "nodetool.script.FillScript": "从值包填充模板剧本的 {{key}} 占位符，并将结果另存为新剧本。模板本身不会被改写。没有对应值的键会留在文本中并被报告，且每条录音都会保留，因此之后的剧本配音只需为文字变动的行付费。\nscript, template, fill, placeholder, batch\n\nUse cases:\n- 按产品数据源的每一行产出一个剧本\n- 通过替换值完成模板本地化\n- 重跑批量后只给变化的部分重新配音",
+    "nodetool.script.LoadScript": "读取已保存剧本的文本与元数据。\nscript, text, voiceover, narration, load\n\nUse cases:\n- 把剧本文本喂给 LLM 或文本节点\n- 配音前查看行数与角色阵容\n- 依据剧本内容为工作流分支",
+    "nodetool.script.ScriptToSubtitles": "直接用每行当前录音的字级时间戳，把已配音的剧本导出为 SRT 或 WebVTT 字幕——每行一条（或逐字一条），按创作的停顿首尾相接排布。请先为剧本配音；未配音的行会被跳过。\nscript, subtitles, srt, vtt, captions, export\n\nUse cases:\n- 为配好音的旁白生成字幕外挂\n- 从各条录音的时间戳生成逐字定时的字幕\n- 把字幕送入烧录或上传步骤",
+    "nodetool.script.ScriptToTimeline": "把剧本的当前录音组装成配音时间线——每行已配音的台词一个音频片段，按创作的停顿首尾相接，并各自回链到剧本行。剧本已有时间线时会原地更新它。请先为剧本配音。\nscript, timeline, voiceover, assemble, sequence\n\nUse cases:\n- 把配音后的剧本变成可编辑的序列\n- 为视频剪辑搭建旁白轨\n- 把重新配音的行回写进既有时间线",
+    "nodetool.script.VoiceScript": "按每行配置的角色音色，为剧本中所有草稿或过期的行合成语音，并把录音存回剧本。已是最新、无文字或无音色的行会被跳过。\nscript, voiceover, tts, narration, batch\n\nUse cases:\n- 一步为 LLM 写好的剧本配音\n- 只为文字或音色变了的行重新配音\n- 为时间线组装产出旁白素材",
+    "nodetool.script.WriteScript": "依据创意简报撰写新剧本，采用与剧本编辑器和智能体相同的写作规则，并保存为新剧本。角色实体成为说话人，各自带实体链接与音色。\nscript, write, brief, narration, cast\n\nUse cases:\n- 在批量流程中把逐行简报变成剧本\n- 从同一份简报按语言各写一个剧本\n- 不打开编辑器就为分镜撰写旁白",
+    "nodetool.text.AutomaticSpeechRecognition": "使用自动语音识别模型把音频转写为文本。\naudio, speech, recognition, transcription, ASR, whisper",
+    "nodetool.text.Collect": "把流式文本输入收集为单个拼接字符串。\ntext, collect, stream, aggregate",
+    "nodetool.text.Concat": "把多个文本输入拼接为单个输出。通过“添加文本输入”按钮动态添加输入，或将一组字符串接入单个输入。\n+, text, combine, add, concatenate, merge, join, append",
+    "nodetool.text.Embedding": "用任一支持的嵌入服务商（OpenAI、Gemini、Mistral）生成文本的向量表示。\nembeddings, similarity, search, clustering, classification, vectors, semantic\n\nUse cases:\n- 语义搜索与推荐\n- 文本聚类与分类\n- 异常检测\n- 度量文本相似度与多样性",
+    "nodetool.text.FilterRegexString": "使用正则表达式过滤字符串流。\nfilter, regex, pattern, text, stream",
+    "nodetool.text.FilterString": "按多种条件过滤字符串流。\nfilter, strings, text, stream",
+    "nodetool.text.LoadTextAssets": "从素材文件夹加载文本文件。\nload, text, file, import",
+    "nodetool.text.LoadTextFolder": "从文件夹加载全部文本文件，可选包含子文件夹。\ntext, load, folder, files",
+    "nodetool.text.Prompt": "用命名变量组合提示词字符串。通过“添加变量”按钮添加变量；在提示词中以 {{ variable }}（或 {variable}）引用。支持过滤器：{{ var|upper }}、{{ var|lower }}、{{ var|capitalize }}、{{ var|title }}、{{ var|trim }}、{{ var|truncate(n) }}、{{ var|default(val) }}。\nprompt, text, template, variable, llm, agent",
+    "nodetool.text.SaveText": "将输入文本保存为素材文件夹中的文件。\ntext, save, file\n\nUse cases:\n- 持久化处理后的文本结果\n- 为下游节点或外部使用创建文本文件\n- 在工作流中归档文本数据",
+    "nodetool.text.SaveTextFile": "将输入文本写入磁盘。\ntext, save, file",
+    "nodetool.text.Template": "使用模板语法以变量格式化字符串。支持 {{ variable }} 与 {variable} 两种模式。\ntext, template, formatting, format, combine, concatenate, variable, replace\n\nUse cases:\n- 生成个性化消息\n- 创建参数化查询\n- 用变量输入格式化文本",
+    "nodetool.code.Code": "在沙箱环境中执行原生 JavaScript。可用 API：fetch()，workspace.read/write/list/readBytes/writeBytes/stat/mkdir/remove/copy/move/root()，getSecret()，sleep()，progress()，crypto.digest/hmac/randomUUID/getRandomValues，format.number/date/relativeTime/list，media.bytes/text/info 用于读取文档、图像、音频或视频输入，media.toDocument/toImage/toAudio/toVideo 用于返回对应媒体，toBase64/fromBase64/toHex/fromHex，parallelMap，以及由服务端宿主的平台工具支撑的 nodetool 对象模型（workflows、assets、jobs 等）——nodetool.capabilities() 可报告哪些已生效。走工具的调用可能花钱（媒体生成、工作流运行）并会访问网络；每个工具有各自的权限门控。动态输入经由 inputs 对象到达；输出通过 await emit(name, value) 立即流出一个值，或 await output(name, value) 设置某个输出的最终值。返回值本身不携带输出。若代码体调用了 stream(name)、stream.any()、stream.first(name) 或 stream.open(name)，则只运行一次，并在所连输入到达时读取它们，而非每个条目运行一次。\ncode, javascript, script, function, dynamic, custom, logic, parse, transform, convert, format, compute, calculate, filter, map, merge, extract, json, csv, text, string, math, pdf, document, read document, image bytes, audio, video, file, media",
+    "nodetool.compare.CompareImages": "并排比较两张图像，带交互式滑块。\nimage, compare, comparison, diff, before, after, slider\n\n用该节点直观比较：\n- 处理前后的结果\n- 不同模型的输出\n- 原图与编辑后图像\n- 图像变体的 A/B 测试\n\nequal 输出按标识（相同的内联字节、相同 URI 或相同素材 ID）报告两个引用是否为同一张图；它不是视觉/感知相似度度量。",
+    "nodetool.control.Chunk": "每 N 个条目分为一组并以批量发出。流结束时发出末尾的不满一组。\nchunk, batch, group, window, buffer, stream\n\nUse cases:\n- 在不放弃流式的前提下做批量 LLM/API 调用\n- 基于窗口的聚合\n- 为批量插入按行分组",
+    "nodetool.control.Collect": "收集条目直到流结束，并以列表形式返回。\ncollector, aggregate, list, stream\n\nUse cases:\n- 汇聚多个处理步骤的结果\n- 把流式数据收集成批\n- 聚合并行操作的输出",
+    "nodetool.control.Collection": "单一类型素材的精选集合。逐条流出每个条目供下游处理。\ncollection, gallery, assets, curate, pick, winners, iterator, stream, batch\n\nUse cases:\n- 手挑最好的生成结果并送给下一步\n- 汇集从素材面板、文件或生成记录里丢入的素材\n- 用一组固定媒体驱动下游管线",
+    "nodetool.control.Count": "在流结束时发出条目总数。\ncount, length, size, total, fold, stream\n\nUse cases:\n- 报告一条管线产出了多少条目\n- 不缓冲条目就能度量流吞吐\n- 免去只为调用 .length 而做的收集",
+    "nodetool.control.Cross": "在共同父级内发出两个迭代源的笛卡尔积。\ncross, cartesian, product, combine, pairs, matrix, stream, iterate\n\nUse cases:\n- 生成两个输入集合的全部组合\n- 搭建参数组合网格\n- 把一个流的每个条目与另一个流的全部条目配对",
+    "nodetool.control.Distinct": "丢弃流中的重复条目。可选按键表达式分组去重。\ndistinct, unique, dedup, deduplicate, stream, set\n\nUse cases:\n- 对 URL、ID 或记录去重\n- 每个值只保留第一次出现\n- 用键表达式按字段去重",
+    "nodetool.control.Drop": "跳过流的前 N 个条目，其余照常通过。\ndrop, skip, head, stream, slice, offset\n\nUse cases:\n- 跳过流中的表头或预热条目\n- 分页式偏移\n- 丢弃 CSV 类数据流的首条记录",
+    "nodetool.control.DropWhile": "在谓词为真时丢弃条目，之后全部通过。\ndrop, skip, while, predicate, stream, suffix\n\nUse cases:\n- 跳过开头的空白、表头或预热段\n- 等待流进入稳定状态\n- Drop(N) 的谓词版",
+    "nodetool.control.FilterCode": "安全表达式（比较、布尔逻辑、算术、对 item 的属性访问）返回真值时放行条目。\nfilter, predicate, expression, condition, stream, where\n\nUse cases:\n- 保留匹配任意条件的条目（如 item.score > 0.5）\n- 丢弃空的或格式不良的记录\n- 自定义按字段过滤",
+    "nodetool.control.FilterEqual": "仅当条目等于目标值时放行。\nfilter, equal, match, predicate, stream, where\n\nUse cases:\n- 只保留匹配某个状态、标签或类别的条目\n- 从流中剔除哨兵值/null 标记\n- 按精确 ID 选择行",
+    "nodetool.control.ForEach": "遍历列表并逐个发出每个条目。\niterator, loop, list, sequence, repeat, enumerate, stream, collection\n\nUse cases:\n- 按顺序处理集合的每个条目\n- 用单个元素驱动下游节点",
+    "nodetool.control.If": "根据条件二选一执行分支。\ncontrol, flow, condition, logic, else, true, false, switch, toggle, flow-control\n\nUse cases:\n- 按条件为工作流分支\n- 在数据处理中应对不同情形\n- 实现决策逻辑",
+    "nodetool.control.Last": "只发出流的最后一个条目。\nlast, final, tail, fold, stream, reduce\n\nUse cases:\n- 保留智能体 token 流的最终答案\n- 取数据流中最新的一条\n- 轻量折叠为单值",
+    "nodetool.control.Loop": "重复执行工作流的一个区段，把每次结果回喂进去，直到条件变为假。\nloop, repeat, while, until, iterate, retry, refine, feedback, cycle, flow-control\n\n把 value 与 index 接入循环体，再把循环体的结果接回 next、其判断接回 condition。每次迭代运行一遍循环体。当 condition 为假或达到 max_iterations 后，最后一个 next 值从 done 离开。\n\nUse cases:\n- 反复打磨草稿直到裁判节点通过\n- 重试一次生成直到通过检查\n- 固定次数地执行某一步，并把每次结果喂给下一次",
+    "nodetool.control.RepeatCount": "无需输入列表即可发出 N 个连续节拍。\nrepeat, loop, count, times, iterate, batch\n\nUse cases:\n- 把同一下游步骤运行 N 次（例如用一个提示词生成 N 张图）\n- 按计数驱动迭代，而不必先构造区间列表\n- 配合收集节点汇聚 N 个结果",
+    "nodetool.control.RepeatValue": "无需先构造列表即可把同一个值发出 N 次。\nrepeat, loop, duplicate, scalar, batch, stream\n\nUse cases:\n- 用接好线的提示词或参数把下游步骤运行 N 次\n- 让单个图像引用、文本或字典流过整条管线\n- 配合收集节点汇聚 N 个结果",
+    "nodetool.control.Reroute": "原样传递数据，让工作流布局更整洁。\nreroute, passthrough, organize, tidy, flow, connection, redirect\n\nUse cases:\n- 通过重排连线梳理复杂工作流\n- 获得更干净的视觉布局\n- 不加修改地重定向数据流",
+    "nodetool.control.Switch": "多路分支路由：把一个值与各 case 匹配，并路由到对应输出。\ncontrol, switch, match, case, branch, route, multi-branch, flow-control\n\nUse cases:\n- 按字符串/数字匹配路由数据\n- 实现多路分支逻辑\n- 取代一串条件分支节点",
+    "nodetool.control.Take": "放行流的前 N 个条目后停止。\ntake, head, limit, first, stream, slice, sample, truncate\n\nUse cases:\n- 用少量输入试跑一条管线\n- 把昂贵的下游开销封顶在 N 条\n- 在流上实现“前 N 个匹配”语义",
+    "nodetool.control.TakeWhile": "谓词为真时放行条目，首次失败即停止。\ntake, while, predicate, stream, prefix\n\nUse cases:\n- 流式处理直到遇到哨兵/终止符\n- 在置信度阈值保持期间持续处理条目\n- N 事先未知时比计数更省事",
+    "nodetool.control.Tap": "直通节点，把每个条目作为副作用记录到控制台。\ntap, log, debug, inspect, peek, side-effect, stream\n\nUse cases:\n- 不改动地窥探一条流式管线\n- 加轻量的逐条日志\n- 调试工作流的中间阶段",
+    "nodetool.control.TryCatch": "输入为 null 或 undefined 时替换为兜底值。不捕获异常——只检测缺失值并换入兜底。\ncontrol, fallback, default, null, undefined, missing, coalesce, flow-control\n\nUse cases:\n- 上游步骤没有产出时提供默认值\n- 在工作流中检测缺失值\n- 标记是否用到了兜底值",
+    "nodetool.control.Zip": "在共同父级内按匹配的下标配对来自两个独立迭代源的条目。\nzip, pair, combine, merge, join, index, stream, iterate\n\nUse cases:\n- 合并两条并行流中相互对应的条目\n- 按位置配对输入与输出\n- 把两个迭代源合并为元组",
+    "nodetool.input.ASRModelInput": "接收自动语音识别模型作为工作流参数。\ninput, parameter, model, asr, transcription, speech",
+    "nodetool.input.AssetFolderInput": "接收素材文件夹作为工作流参数。\ninput, parameter, folder, path, folderpath, local_folder, filesystem",
+    "nodetool.input.AudioInput": "接收音频素材的引用作为工作流参数，以 'AudioRef' 指定。'AudioRef' 指向音频数据，可供播放、转写、分析或供音频模型处理。\ninput, parameter, audio, sound, voice, speech, asset",
+    "nodetool.input.AudioListInput": "接收音频引用列表作为工作流参数。\ninput, parameter, audio, sound, voice, speech, asset, list",
+    "nodetool.input.BooleanInput": "接收布尔值（true/false）作为工作流参数。用于二元选择、启用或禁用功能，或控制条件逻辑路径。\ninput, parameter, boolean, bool, toggle, switch, flag",
+    "nodetool.input.ColorInput": "接收颜色值作为工作流参数。\ninput, parameter, color, color_picker, color_input",
+    "nodetool.input.DataframeInput": "接收数据帧素材的引用作为工作流参数。\ninput, parameter, dataframe, table, data",
+    "nodetool.input.DocumentFileInput": "接收指向文档的本地文件路径，并将其转换为 'DocumentRef'。\ninput, parameter, document, file, path, local_file, load",
+    "nodetool.input.DocumentInput": "接收文档素材的引用作为工作流参数，以 'DocumentRef' 指定。'DocumentRef' 指向结构化文档（如 PDF、DOCX、TXT），可被处理或分析。当工作流需要把文档作为整体（可能包含其结构与元数据）而非纯文本来操作时使用本节点。\ninput, parameter, document, file, asset, reference\n\nUse cases:\n- 加载指定文档（如 PDF、Word、文本文件）以做内容提取或分析。\n- 把文档交给按特定文档格式设计的模型处理。\n- 在工作流中把文档当作独立素材管理。\n- 手头是本地文件路径、需要转成 'DocumentRef' 时，可考虑使用 'DocumentFileInput'。",
+    "nodetool.input.EmbeddingModelInput": "接收嵌入模型作为工作流参数。\ninput, parameter, model, embedding, vector",
+    "nodetool.input.FilePathInput": "接收本地文件系统路径（文件或目录）作为工作流输入。\ninput, parameter, path, filepath, directory, local_file, filesystem",
+    "nodetool.input.FloatInput": "接收浮点数作为工作流参数，通常受最小值与最大值约束。适合需要小数精度的数值设置，如微调量、评分等。\ninput, parameter, float, number, decimal, range",
+    "nodetool.input.FolderPathInput": "接收文件夹路径作为工作流参数。\ninput, parameter, folder, path, folderpath, local_folder, filesystem",
+    "nodetool.input.HuggingFaceModelInput": "接收 Hugging Face 模型作为工作流参数。\ninput, parameter, model, huggingface, hugging_face, model_name",
+    "nodetool.input.ImageInput": "接收图像素材的引用作为工作流参数，以 'ImageRef' 指定。'ImageRef' 指向图像数据，可供显示、分析或供视觉模型处理。\ninput, parameter, image, picture, graphic, visual, asset",
+    "nodetool.input.ImageListInput": "接收图像引用列表作为工作流参数。\ninput, parameter, image, picture, graphic, visual, asset, list",
+    "nodetool.input.ImageModelInput": "接收图像生成模型作为工作流参数。\ninput, parameter, model, image, generation",
+    "nodetool.input.ImageSizeInput": "接收图像尺寸作为工作流参数。\ninput, parameter, image_size, resolution, width, height, dimensions",
+    "nodetool.input.IntegerInput": "接收整数作为工作流参数，通常受最小值与最大值约束。用于计数、索引或迭代上限等离散数值。\ninput, parameter, integer, number, count, index, whole_number",
+    "nodetool.input.LanguageModelInput": "接收语言模型作为工作流参数。\ninput, parameter, model, language, model_name",
+    "nodetool.input.MessageDeconstructor": "把聊天消息对象解构为各个字段。\nextract, decompose, message, fields, chat\n\nUse cases:\n- 从消息中提取特定字段（如 role、content、thread_id）。\n- 读取消息元数据用于工作流逻辑。\n- 分开处理消息的不同部分。",
+    "nodetool.input.MessageInput": "接收聊天消息对象作为工作流参数。\ninput, parameter, message, chat, conversation",
+    "nodetool.input.MessageListInput": "接收聊天消息对象列表作为工作流参数。\ninput, parameter, messages, chat, conversation, history",
+    "nodetool.input.Model3DInput": "接收 3D 模型素材的引用作为工作流参数，以 'Model3DRef' 指定。'Model3DRef' 指向 3D 模型数据，可供可视化、处理或供 3D 能力节点转换。\ninput, parameter, 3d, model, mesh, obj, glb, stl, ply, asset",
+    "nodetool.input.RealtimeAudioInput": "接收流式音频数据作为工作流参数。\ninput, parameter, audio, sound, voice, speech, asset",
+    "nodetool.input.SelectInput": "接收从预定义选项集中的选择作为工作流参数。\ninput, parameter, select, enum, dropdown, choice, options\n\nUse cases:\n- 在应用模式下让用户从固定值集中选择\n- 为下游节点配置枚举式选项\n- 为工作流参数提供下拉选择\n\n输出是一个字符串，可连接到枚举类型的输入。",
+    "nodetool.input.StringInput": "接收字符串值作为工作流参数。\ninput, parameter, string, text, label, name, value\n\nUse cases:\n- 为实体或流程定义名称。\n- 为组件或输出指定标签。\n- 输入简短的关键词或搜索词。\n- 提供简单的配置值（如 API 密钥、模型名）。\n- 需要输入多行文本或文件内容时，请使用 'DocumentFileInput'。",
+    "nodetool.input.StringListInput": "接收字符串列表作为工作流参数。\ninput, parameter, string, text, label, name, value",
+    "nodetool.input.TextListInput": "接收文本字符串列表作为工作流参数。\ninput, parameter, text, string, list",
+    "nodetool.input.TTSModelInput": "接收 TTS 语音合成模型作为工作流参数。\ninput, parameter, model, tts, speech, voice",
+    "nodetool.input.VideoInput": "接收视频素材的引用作为工作流参数，以 'VideoRef' 指定。'VideoRef' 指向视频数据，可供播放、分析、抽帧或供视频模型处理。\ninput, parameter, video, movie, clip, visual, asset",
+    "nodetool.input.VideoListInput": "接收视频引用列表作为工作流参数。\ninput, parameter, video, movie, clip, visual, asset, list",
+    "nodetool.input.VideoModelInput": "接收视频生成模型作为工作流参数。\ninput, parameter, model, video, generation",
+    "nodetool.output.Output": "任意类型的通用输出节点。\noutput, result, sink, return",
+    "nodetool.triggers.FileWatchTrigger": "监视某个目录或文件，检测到变更即发出事件。\ntrigger, file, watch, filesystem, monitor, change, automation\n\nUse cases:\n- 文件到达目录时即行处理\n- 配置变更时触发工作流\n- 搭建基于文件的自动化管线",
+    "nodetool.triggers.IntervalTrigger": "按固定时间间隔发出事件，类似定时器或调度器。\ntrigger, interval, timer, schedule, cron, periodic, heartbeat\n\nUse cases:\n- 周期性数据采集或轮询\n- 定时的批处理\n- 心跳或基于时间的自动化",
+    "nodetool.triggers.ManualTrigger": "等待经 API 推送的手动事件，驱动交互式工作流。\ntrigger, manual, api, interactive, event, push, chatbot\n\nUse cases:\n- 搭建聊天机器人式工作流\n- 交互式处理管线\n- 手动批处理与测试",
+    "nodetool.triggers.Wait": "暂停工作流一段固定延时，随后原样放行输入。\nwait, delay, sleep, pause, throttle, timer, rate-limit\n\nUse cases:\n- 在步骤之间限流或节流\n- 继续之前等待固定延时\n- 拉开轮询或重试的间隔",
+    "nodetool.triggers.WebhookTrigger": "每当 HTTP 请求到达其 webhook URL 时运行工作流。\ntrigger, webhook, http, api, request, integration\n\nUse cases:\n- 接收外部服务的通知\n- 搭建触发工作流的 API 端点\n- 与第三方 webhook 服务商集成\n\n该节点无需任何配置：激活工作流即会创建注册，由其持有投递 URL 与共享密钥。两者都显示在工作流的触发器面板中；发送密钥时请放在 x-webhook-secret 请求头里。",
+    "nodetool.variable.GetVariable": "按名称读取变量通道并流出其值。\nvariable, get, read, state, context, channel\n\n等待工作流任意位置的设置变量节点发布首个值，随后发出收到的每一个值（流式输出，因此反复发布的设置方会把值依次扇出到这里）。当该名称的全部设置变量节点都已结束，流随之结束；无人设置的名称不会发出任何内容。",
+    "nodetool.variable.SetVariable": "把值发布到工作流共享上下文的命名通道。\nvariable, set, store, state, context, channel\n\n获取变量节点（或引用 {{ name }} 的提示词节点）按名称读取该值，无需显式连线——它会等待值被发布。输入值同时直通到输出，因此该节点可以串接在数据流中。发送多个值（例如来自循环）即可把它们流式送给各读取方。",
+    "nodetool.data.ForEachRow": "遍历数据帧的各行。\niterator, loop, dataframe, sequence, rows\n\nUse cases:\n- 逐行处理数据帧\n- 为数据集中每条记录触发动作",
+    "nodetool.data.LoadCSVAssets": "从素材文件夹加载数据帧。\nload, dataframe, file, import\n\nUse cases:\n- 从文件夹加载多个数据帧\n- 依次处理多个数据集\n- 批量导入数据文件",
+    "nodetool.fake.ColorGrade": "在浏览器中为图像调色——色相、饱和度、亮度。\nimage, color, grade, hue, saturation, brightness, realtime, browser\n\nUse cases:\n- 用滑杆在客户端驱动实时图像调节\n- 不调 API 就能给生成图或输入图调色",
+    "nodetool.fake.GenerateImage": "用模拟服务商仿真图像生成——不发起任何 API 调用。\nfake, placeholder, image, generate, test, demo\n\nUse cases:\n- 无需 API 密钥与成本即可搭建并演示媒体应用\n- 让图像生成图完全在浏览器中运行\n- 接线工作流时先顶替真实服务商",
+    "nodetool.workflows.base_node.Preview": "在工作流图中预览值",
+    "nodetool.workflows.subgraph.Subgraph": "把内联子图作为隔离的工作流执行。输入/输出由内部的输入/输出节点推导。",
+    "nodetool.workflows.workflow_node.Workflow": "执行子工作流。选择一个工作流即可动态填充其输入与输出。",
+    "nodetool.constant.ASRModelConstant": "表示工作流中的自动语音识别模型常量。\nasr, speech, recognition, transcription, model\n\nUse cases:\n- 为转写提供固定的 ASR 模型\n- 为工作流设定默认 ASR 模型\n- 无需用户输入即可配置模型选择",
+    "nodetool.constant.Audio": "表示工作流中的音频文件常量。\naudio, file, mp3, wav\n\nUse cases:\n- 为音频处理节点提供固定音频输入\n- 在工作流中引用指定音频文件\n- 为测试或演示设定默认音频",
+    "nodetool.constant.AudioList": "表示工作流中的音频文件常量列表。\naudios, sounds, audio files, collection\n\nUse cases:\n- 为批量处理提供固定的音频文件列表\n- 在工作流中引用多个音频文件\n- 为测试或演示设定默认音频列表",
+    "nodetool.constant.Bool": "表示工作流中的布尔常量。\nboolean, logic, flag\n\nUse cases:\n- 为条件节点提供流程控制决策\n- 切换工作流中的功能或行为\n- 为配置设定默认布尔值",
+    "nodetool.constant.DataFrame": "表示工作流中的固定数据帧常量。\ntable, data, dataframe, pandas\n\nUse cases:\n- 为分析或处理提供静态数据\n- 定义查找表或参照数据\n- 为测试或演示设定样本数据",
+    "nodetool.constant.Date": "由年、月、日构造日期对象。\ndate, make, create",
+    "nodetool.constant.DateTime": "由年、月、日、时、分、秒构造日期时间对象。\ndatetime, make, create",
+    "nodetool.constant.Dict": "表示工作流中的字典常量。\ndictionary, key-value, mapping\n\nUse cases:\n- 存储配置项\n- 提供结构化数据输入\n- 为其他节点定义参数集",
+    "nodetool.constant.Document": "表示工作流中的文档常量。\ndocument, pdf, word, docx",
+    "nodetool.constant.EmbeddingModelConstant": "表示工作流中的嵌入模型常量。\nembedding, model, vector, semantic\n\nUse cases:\n- 为向量化提供固定的嵌入模型\n- 为工作流设定默认嵌入模型\n- 无需用户输入即可配置模型选择",
+    "nodetool.constant.Entity": "在工作流中引用实体库的实体。\nentity, character, location, style, prop, cast\n\nUse cases:\n- 把角色或产品传给生成器以保持一致性\n- 在画布上从实体库挑选实体\n- 为下游节点提供固定的角色阵容成员",
+    "nodetool.constant.Float": "表示工作流中的浮点数常量。\nnumber, decimal, float\n\nUse cases:\n- 为计算设定数值参数\n- 定义阈值或上限\n- 为处理提供固定数值输入",
+    "nodetool.constant.Image": "表示工作流中的图像文件常量。\npicture, photo, image\n\nUse cases:\n- 为图像处理节点提供固定图像输入\n- 在工作流中引用指定图像文件\n- 为测试或演示设定默认图像",
+    "nodetool.constant.ImageList": "表示工作流中的图像文件常量列表。\npictures, photos, images, collection\n\nUse cases:\n- 为批量处理提供固定的图像列表\n- 在工作流中引用多个图像文件\n- 为测试或演示设定默认图像列表",
+    "nodetool.constant.ImageModelConstant": "表示工作流中的图像生成模型常量。\nimage, model, ai, generation, diffusion\n\nUse cases:\n- 为生成提供固定的图像模型\n- 为工作流设定默认图像模型\n- 无需用户输入即可配置模型选择",
+    "nodetool.constant.ImageSize": "表示工作流中的固定图像尺寸常量。\nconstant, image_size, resolution, width, height, dimensions\n\nUse cases:\n- 为图像生成节点提供固定输出尺寸\n- 在工作流中引用统一分辨率\n- 以独立的整数输出公开宽与高",
+    "nodetool.constant.Integer": "表示工作流中的整数常量。\nnumber, integer, whole\n\nUse cases:\n- 为计算设定数值参数\n- 定义计数、索引或大小\n- 为处理提供固定数值输入",
+    "nodetool.constant.JSON": "表示工作流中的 JSON 常量。\njson, object, dictionary",
+    "nodetool.constant.LanguageModelConstant": "表示工作流中的语言模型常量。\nllm, language, model, ai, chat, gpt\n\nUse cases:\n- 为对话或文本生成提供固定的语言模型\n- 为工作流设定默认语言模型\n- 无需用户输入即可配置模型选择",
+    "nodetool.constant.List": "表示工作流中的列表常量。\narray, sequence, collection\n\nUse cases:\n- 存储同类型的多个值\n- 提供有序数据输入\n- 为其他节点的迭代定义序列",
+    "nodetool.constant.Model3D": "表示工作流中的 3D 模型常量。\n3d, model, mesh, glb, obj, stl\n\nUse cases:\n- 为处理节点提供固定的 3D 模型输入\n- 在工作流中引用指定 3D 模型文件\n- 为测试或演示设定默认 3D 模型",
+    "nodetool.constant.Script": "在工作流中引用剧本。\nscript, voiceover, narration, cast, tts\n\nUse cases:\n- 在节点之间传递剧本以便配音或组装时间线\n- 打开并编辑所引用的剧本（在剧本编辑器中）\n- 为下游节点提供固定剧本输入",
+    "nodetool.constant.Select": "表示工作流中从预定义选项集做出的选择。\nselect, enum, dropdown, choice, options\n\nUse cases:\n- 从固定值集中选择\n- 为下游节点配置选项\n- 为需要特定取值的节点提供枚举兼容输入\n\n输出是一个字符串，可连接到枚举类型的输入。",
+    "nodetool.constant.Sketch": "用于绘制、蒙版与图像合成的分层图稿文档。\nsketch, drawing, canvas, paint, image editor\n\nUse cases:\n- 在节点之间传递图稿文档\n- 直接从工作流画布编辑该图稿\n- 为下游节点公开拍平的图像、蒙版与图层输出",
+    "nodetool.constant.Storyboard": "在工作流中引用分镜。\nstoryboard, shots, screenplay, board, director\n\nUse cases:\n- 在节点之间传递分镜以便换角或渲染\n- 打开并编辑所引用的分镜（在分镜编辑器中）\n- 为下游节点提供固定分镜输入",
+    "nodetool.constant.String": "表示工作流中的字符串常量。\ntext, string, characters\n\nUse cases:\n- 为处理提供固定文本输入\n- 定义标签、标识符或名称\n- 为配置设定默认文本值",
+    "nodetool.constant.TextList": "表示工作流中的文本字符串常量列表。\ntexts, strings, text collection\n\nUse cases:\n- 为批量处理提供固定的文本列表\n- 在工作流中引用多个文本值\n- 为测试或演示设定默认文本列表",
+    "nodetool.constant.Timeline": "在工作流中引用时间线序列。\ntimeline, video editor, sequence, clips, tracks\n\nUse cases:\n- 在节点之间传递时间线以便渲染或剪辑视频\n- 打开并编辑所引用的时间线（在时间线编辑器中）\n- 为下游节点提供固定时间线输入",
+    "nodetool.constant.TTSModelConstant": "表示工作流中的 TTS 语音合成模型常量。\ntts, speech, voice, model, audio\n\nUse cases:\n- 为语音合成提供固定的 TTS 模型\n- 为工作流设定默认 TTS 模型\n- 无需用户输入即可配置模型选择",
+    "nodetool.constant.Video": "表示工作流中的视频文件常量。\nvideo, movie, mp4, file\n\nUse cases:\n- 为视频处理节点提供固定视频输入\n- 在工作流中引用指定视频文件\n- 为测试或演示设定默认视频",
+    "nodetool.constant.VideoList": "表示工作流中的视频文件常量列表。\nvideos, movies, clips, collection\n\nUse cases:\n- 为批量处理提供固定的视频列表\n- 在工作流中引用多个视频文件\n- 为测试或演示设定默认视频列表",
+    "nodetool.constant.VideoModelConstant": "表示工作流中的视频生成模型常量。\nvideo, model, ai, generation\n\nUse cases:\n- 为生成提供固定的视频模型\n- 为工作流设定默认视频模型\n- 无需用户输入即可配置模型选择",
+    "lib.browser.Screenshot": "对网页或指定元素截图。\nbrowser, screenshot, capture, image\n\nUse cases:\n- 抓取网页的可视呈现\n- 记录特定 UI 元素\n- 为网页内容留下可视记录",
+    "lib.charts.ChartRenderer": "使用 seaborn 将图表配置渲染为图像的节点。\nchart, seaborn, plot, visualization, data",
+    "lib.comfy.RunWorkflow": "在 ComfyUI 服务器上运行 ComfyUI 工作流。\ncomfy, comfyui, workflow, image, diffusion\n\nUse cases:\n- 用既有 ComfyUI 工作流生成图像\n- 调用本地或远程 ComfyUI 服务器（RunPod 等）\n- 在 NodeTool 工作流中嵌入 ComfyUI 生成",
+    "lib.comfy.RunWorkflowOnCloud": "通过 Comfy API v2 在 Comfy Cloud 上运行 ComfyUI 工作流。\ncomfy, comfyui, cloud, workflow, image, diffusion\n\nUse cases:\n- 不自建 GPU 也能运行 ComfyUI 工作流\n- 用导出的 API 格式工作流生成图像或视频\n- 在 NodeTool 工作流中嵌入 Comfy Cloud 生成",
+    "lib.comfy.RunWorkflowOnWorker": "经工作节点桥接在 NodeTool 工作节点（nodetool-worker-comfy）上运行 ComfyUI 工作流。\ncomfy, comfyui, workflow, worker, runpod, diffusion\n\nUse cases:\n- 在远程 GPU 工作节点上运行 ComfyUI，无需直接暴露 ComfyUI\n- 从 NodeTool 工作流内驱动 RunPod 的 ComfyUI 工作节点",
+    "lib.grid.SliceImageGrid": "把图像切成网格瓦片。\nimage, grid, slice, tiles\n\nUse cases:\n- 把大图切小便于分块处理\n- 制作图像拼图或马赛克效果\n- 把图像处理任务分发给多个工作节点",
+    "lib.pdf.ExtractMarkdown": "将 PDF 转换为 Markdown，按字号推断标题层级。\npdf, markdown, convert, headings, structure",
+    "lib.pdf.ExtractOcr": "使用 OCR 从 PDF 提取文本，适合扫描件与图像型 PDF。\npdf, ocr, scan, text, extract, image-based",
+    "lib.pdf.ExtractStyledText": "提取带字体名、字号、包围盒与颜色的文本跨度（颜色恒为 null；liteparse 不提供逐跨度颜色）。\npdf, text, style, font, size, formatting, color",
+    "lib.pdf.ExtractTables": "通过分析文本布局检测并提取 PDF 中的表格。\npdf, tables, extract, data, rows, columns",
+    "lib.pdf.ExtractText": "从 PDF 提取纯文本，按版面位置保留换行。\npdf, text, extract, read, content",
+    "lib.pdf.Pdftoppm": "用 poppler 的 pdftoppm 栅格化 PDF 页面。对部分 PDF 比基于 PDFium 的截图节点保真度更高，并支持抗锯齿控制。\npdf, pdftoppm, poppler, rasterize, render, image, pages",
+    "lib.pdf.Screenshot": "将 PDF 页面渲染为 PNG 图像。\npdf, screenshot, render, image, pages, png",
+    "lib.sqlite.GetDatabasePath": "获取 SQLite 数据库文件的完整路径。\nsqlite, database, path, location\n\nUse cases:\n- 引用数据库位置\n- 核验数据库存在\n- 把路径传给外部工具",
+    "lib.svg.Document": "将多个 SVG 元素组合成完整的 SVG 文档。\nsvg, document, combine\n\nUse cases:\n- 把多个 SVG 元素合并为单个文档\n- 设置 viewBox 与尺寸等文档级属性\n- 导出完整的 SVG 文档",
+    "lib.svg.SVGToImage": "一步完成 SVG 文档的创建与光栅化。\nsvg, document, raster, convert\n\nUse cases:\n- 单次操作即创建并光栅化 SVG 文档\n- 从 SVG 元素生成图像文件\n- 以自定义尺寸把矢量图形转换为位图",
+    "nodetool.blender.BakeTimelineClip": "用 Blender 把一个时间线 3D 片段渲染为视频，按片段自身的模型时间与相机逐输出帧出图。\n3d, timeline, bake, blender, render, video",
+    "nodetool.blender.ExportModel": "用 Blender 将 3D 模型（GLB/glTF）导出为 FBX、OBJ 或 USD，并存为持久素材。\n3d, mesh, model, export, fbx, obj, usd, file, blender\n\nUse cases:\n- 把生成的网格以 FBX 交给游戏引擎\n- 为不支持 glTF 的工具导出 OBJ\n- 为基于 USD 的管线导出 USD",
+    "nodetool.blender.PrepareForEngine": "用 Blender 为游戏引擎准备 3D 模型（GLB/glTF）：按面数预算减面、展开 UV、烘焙 AO 与法线贴图，并按面数减半梯度产出各级 LOD。\n3d, mesh, decimate, unwrap, bake, lod, glb, game, engine, blender\n\nUse cases:\n- 把生成的网格收缩到游戏引擎的面数预算\n- 把 AO 与法线贴图烘进材质\n- 随准备好的模型一并产出各级 LOD",
+    "nodetool.blender.RenderAnimation": "用 Blender 将 3D 模型（GLB/glTF）渲染为视频：glTF 动画按其时间线播放，或由环绕相机扫过帧区间。\n3d, render, animation, video, camera, orbit, blender, eevee, cycles\n\nUse cases:\n- 把带动画的 3D 模型变成视频\n- 让环绕相机绕静态场景扫一圈，得到转台片段\n- 为视频模型喂入相机一致的帧",
+    "nodetool.blender.RenderImage": "用 Blender（EEVEE 或 Cycles）将 3D 模型（GLB/glTF）渲染为图像——质量高于预览渲染器，并遵循场景相机与灯光。\n3d, render, image, camera, light, blender, eevee, cycles, snapshot, thumbnail\n\nUse cases:\n- 把生成的 3D 模型变成高质量图像\n- 用场景自带的相机与灯光渲染\n- 把渲染视图喂给图像模型（图生图、超分）",
+    "nodetool.blender.RenderPasses": "用 Blender 将 3D 模型（GLB/glTF）渲染为控制通道：Beauty 颜色、带近/远范围的 16 位或 EXR 深度、相机空间法线，以及二值前景蒙版。\n3d, render, depth, normal, mask, passes, controlnet, blender, camera, light\n\nUse cases:\n- 从同一场景为视频模型提供相机一致的帧与控制通道\n- 读取带已知近/远范围的逐像素深度\n- 为合成抠出前景蒙版",
+    "nodetool.game.ExportGodotProject": "从模板及其填好的素材槽位，把可运行的 Godot 4 项目写入工作区并打包为 zip；安装了无头 Godot 时还会加以验证。\ngame, godot, export, project, slot\n\nUse cases:\n- 把一套已核验的游戏素材变成可直接打开的项目\n- 先导出带占位美术的模板，之后再手工补齐\n- 证明导出的项目可导入且冒烟场景可运行",
+    "nodetool.game.LoadGameTemplate": "读取 Godot 游戏模板的素材清单，并流出其需要填充的槽位。\ngame, godot, template, manifest, slot\n\nUse cases:\n- 让一张图在模板声明的全部素材槽位上展开\n- 经由多路分支按槽位种类各驱动一个生成器\n- 动手生成之前先看清模板要什么",
+    "nodetool.game.MusicLoop": "把音轨适配到游戏模板的音乐槽位：修剪到目标长度，并把结尾交叉淡入开头，实现无爆音循环。\naudio, game, godot, music, loop",
+    "nodetool.game.SeamlessImage": "按游戏槽位描述生成的图像：测量尺寸、比较对边以判定能否平铺，并把槽位填充结果印记到图像上。\ngame, image, seamless, tileable, background, godot, slot\n\nUse cases:\n- 用生成的背景填充游戏模板的图像槽位\n- 在 Godot 滚动之前证明背景可水平平铺\n- 拒绝模板期望平铺却并不平铺的图像",
+    "nodetool.game.SlotPrompt": "把一个游戏素材槽位变成生成任务：调入风格与角色阵容的提示词、要渲染的画布，以及校验器所需的参数包。\ngame, godot, slot, prompt, entity, style\n\nUse cases:\n- 只换一个风格实体就给整套素材包换皮\n- 精灵图集或瓦片集的尺寸按模板来，不必手工设定\n- 校验器要的单元格尺寸与槽位 ID 直接喂入，无需复制数字",
+    "nodetool.game.SoundEffect": "把音频片段适配到游戏模板的音效槽位：修剪到目标长度并带短淡出，同时印记槽位填充结果。\naudio, game, godot, sfx",
+    "nodetool.game.SpriteSheet": "按游戏槽位描述生成的精灵图集：按单元格尺寸推导网格、为每段动画分配行优先的帧区间，并把槽位填充结果印记到图像上。\ngame, sprite, spritesheet, animation, godot, slot\n\nUse cases:\n- 用生成的图集填充游戏模板的精灵图集槽位\n- 无需切图就把帧区域与循环标志交给 Godot\n- 拒绝尺寸与单元格不符或帧数不足的图集",
+    "nodetool.game.Tileset": "按游戏槽位描述生成的瓦片集：按单元格尺寸推导网格，并把槽位填充结果印记到图像上。\ngame, tileset, tiles, tilemap, godot, slot\n\nUse cases:\n- 用生成的图集填充游戏模板的瓦片集槽位\n- 无需切图就把单元格尺寸与瓦片数量交给 Godot\n- 拒绝尺寸与单元格不符或瓦片数不足的图集",
+    "nodetool.model3d.Boolean3D": "对 3D 网格执行布尔运算。\n3d, mesh, model, boolean, union, difference, intersection, combine, subtract\n\n当前限制：\n- 第一版忠实实现仅支持 GLB 三角网格\n- 布尔输出保留几何，不保证完整还原材质/属性\n\nUse cases:\n- 合并多个物体（并集）\n- 在物体上开孔（差集）\n- 求重叠区域（交集）\n- 硬表面建模操作\n- 3D 打印准备",
+    "nodetool.model3d.CenterMesh": "将网格居中到原点。\n3d, mesh, model, center, origin, align\n\nUse cases:\n- 居中模型以获得一致的定位\n- 为旋转做准备\n- 对齐多个模型",
+    "nodetool.model3d.Decimate": "用 meshoptimizer 支撑的简化算法在保持形状的同时降低面数。\n3d, mesh, model, decimate, simplify, reduce, polygon, optimize, LOD\n\n将 target_vertices 设为大于 0 可按精确顶点数而非比例简化。\n\nUse cases:\n- 制作多细节层次（LOD）版本\n- 为实时渲染优化模型\n- 缩小文件体积便于 Web 部署\n- 为移动端/VR 应用准备模型",
+    "nodetool.model3d.ExtractLargestComponent": "只保留 3D 网格中最大的不连通三角组件。\n3d, mesh, model, cleanup, component, connected, floater, islands\n\n当前限制：\n- 第一版忠实实现仅支持 GLB 三角几何\n- 输出会重建三角几何，不保留全部原始属性/材质设置\n\nUse cases:\n- 去除 AI 生成网格上脱落的碎块\n- 从嘈杂几何中保留主体物\n- 在下游处理前清理多岛输出",
+    "nodetool.model3d.FlipNormals": "翻转网格的全部面法线。\n3d, mesh, model, normals, flip, invert, inside_out\n\nUse cases:\n- 修复内外翻转的网格\n- 为特定渲染效果反转法线\n- 修复来自不兼容软件的网格",
+    "nodetool.model3d.FormatConverter": "在支持的格式之间转换 3D 模型。\n3d, mesh, model, convert, format, glb, gltf, export\n\n当前支持的转换：glb → gltf。其余目标尚未实现。\n\nUse cases:\n- 把 GLB 转为文本型 glTF 以便检视\n- 为工具兼容性导出 glTF",
+    "nodetool.model3d.GetModel3DMetadata": "获取 3D 模型的元数据。\n3d, mesh, model, metadata, info, properties\n\nUse cases:\n- 获取顶点数与面数用于处理决策\n- 分析模型属性\n- 为模型编目收集信息",
+    "nodetool.model3d.ImageTo3D": "使用 AI 服务商（Meshy、Rodin）从图像生成 3D 模型。\n3d, generation, AI, image-to-3d, i3d, mesh, reconstruction\n\nUse cases:\n- 把产品照片转成 3D 模型\n- 从概念图创建 3D 素材\n- 从绘画生成 3D 角色\n- 从图像重建物体",
+    "nodetool.model3d.LoadModel3DFile": "从磁盘加载 3D 模型文件。\n3d, mesh, model, input, load, file, obj, glb, stl, ply\n\nUse cases:\n- 加载 3D 模型以供处理\n- 导入 CAD 软件生成的网格\n- 为工作流读取 3D 素材",
+    "nodetool.model3d.MergeMeshes": "将多个网格合并为单个 GLB 场景。\n3d, mesh, model, merge, combine, concatenate\n\n当前限制：\n- 第一版忠实实现仅支持 GLB 输入\n- 本节点做的是场景合并，不是布尔并集\n\nUse cases:\n- 把多个部件合成一个模型\n- 合并导入的组件\n- 为下游处理准备模型",
+    "nodetool.model3d.NormalizeModel3D": "规范化 3D 模型：显式轴向清理、居中、可选统一缩放与落地摆放。\n3d, mesh, model, normalize, center, scale, orient, ground\n\n当前限制：\n- 第一版忠实实现仅支持 GLB 几何清理\n- 轴向规范化是显式的（keep、z_to_y、y_to_z），不做自动检测\n\nUse cases:\n- 统一导入 GLB 的朝向\n- 把网格装进可预期尺寸的盒内\n- 在下游处理前居中模型\n- 把网格摆放到指定地面轴",
+    "nodetool.model3d.RecalculateNormals": "重新计算网格法线以获得正确着色。\n3d, mesh, model, normals, fix, shading, smooth, flat, faces\n\nUse cases:\n- 修复反转或损坏的法线\n- 在平滑与平直着色之间切换\n- 修复法线不良的导入网格\n- 为渲染准备模型",
+    "nodetool.model3d.RenderToImage": "以环绕相机与棚拍灯光将 3D 模型（GLB/glTF）渲染为图像——无网格、坐标轴或控制器。\n3d, render, image, camera, light, snapshot, thumbnail, turntable\n\nUse cases:\n- 把生成的 3D 模型变成可分享的图像\n- 为 3D 素材库制作缩略图\n- 把渲染视图喂给图像模型（图生图、超分）",
+    "nodetool.model3d.RepairMesh": "应用保守的网格清理流程，去除明显损坏的 GLB 三角几何。\n3d, mesh, model, repair, cleanup, weld, degenerate, duplicate\n\n当前限制：\n- 第一版忠实实现仅支持 GLB 三角几何\n- 修复刻意保守：仅做近重复顶点合并加退化面移除\n- 输出会重建三角几何，不保留全部原始属性/材质设置\n\nUse cases:\n- 导出前清理嘈杂的 AI 生成网格\n- 焊合简单几何中的细小重复接缝\n- 移除零面积或塌陷的三角形",
+    "nodetool.model3d.SaveModel3D": "将 3D 模型保存到素材文件夹，名称格式可自定义。\nsave, 3d, mesh, model, folder, naming, asset\n\nUse cases:\n- 带时间戳保存生成的 3D 模型\n- 把输出整理进指定文件夹\n- 为处理过的模型建立备份",
+    "nodetool.model3d.SaveModel3DFile": "将 3D 模型保存到磁盘。\n3d, mesh, model, output, save, file, export\n\nUse cases:\n- 保存处理过的 3D 模型\n- 把网格导出为不同格式\n- 归档 3D 模型成果",
+    "nodetool.model3d.TextTo3D": "使用 AI 服务商（Meshy、Rodin）从文本提示词生成 3D 模型。\n3d, generation, AI, text-to-3d, t3d, mesh, create\n\nUse cases:\n- 从文本描述创建 3D 模型\n- 从提示词生成游戏素材\n- 快速原型化 3D 概念\n- 为 AR/VR 创作 3D 内容",
+    "nodetool.model3d.Transform3D": "对 3D 模型施加平移、旋转与缩放。\n3d, mesh, model, transform, translate, rotate, scale, move\n\nUse cases:\n- 在 3D 空间中摆放模型\n- 把模型缩放到指定尺寸\n- 旋转模型以获得正确朝向",
+    "nodetool.sketch.CreateSketch": "从图像创建新的图稿文档，可直接在图稿编辑器中编辑。\nsketch, create, image, editor, handoff\n\nUse cases:\n- 把生成的图像交给图稿编辑器做手工修饰\n- 从照片或渲染稿开始一张覆盖绘制\n- 闭环往返：生成、手工精修、再喂回工作流",
+    "nodetool.sketch.RenderSketch": "把图稿文档渲染为拍平图像（设有蒙版图层时一并输出蒙版）。\nsketch, render, flatten, image, mask\n\nUse cases:\n- 把手绘图稿用作图像生成输入（图生图、ControlNet 式引导）\n- 产出在图稿编辑器里绘制的局部重绘蒙版\n- 无需手动导出，把编辑器构图变成工作流图像",
+    "nodetool.sketch.SketchLayers": "把图稿文档的每个可见图层提取为独立图像。\nsketch, layers, split, extract\n\nUse cases:\n- 让前景/背景图层走不同管线\n- 对构图的每一层独立做批量重绘\n- 把命名图层喂给合成或动画节点",
+    "nodetool.storyboard.AssembleTimeline": "把分镜渲染好的镜头剪成时间线；分镜是副本时继承模板的剪辑。\nstoryboard, timeline, assemble, cut, edit\n\nUse cases:\n- 把完成的分镜变成可编辑的序列\n- 让每个换角副本都带上审定剪辑、标题与音乐\n- 部分镜头重渲染后重新剪辑分镜",
+    "nodetool.storyboard.LoadStoryboard": "读取已保存分镜的镜头、阵容与设置。\nstoryboard, board, shots, entities, load\n\nUse cases:\n- 把分镜的镜头喂给批量流程\n- 读取分镜执导时用的角色阵容\n- 按分镜的镜头数为工作流分支",
+    "nodetool.storyboard.RecastStoryboard": "把审定分镜复制到新阵容上，提示词未变的每一帧都保持原样。\nstoryboard, recast, variant, batch, entities\n\nUse cases:\n- 为另一产品重跑已审定的分镜\n- 在模板中替换演员或场景\n- 无需重新执导，按 SKU 各产出一个变体",
+    "nodetool.storyboard.RenderClips": "为分镜上每个过期镜头生成动画，并把片段存回分镜。\nstoryboard, clip, video, render, batch\n\nUse cases:\n- 把审定的静帧变成动态镜头\n- 只重渲染换角波及的片段\n- 约束一次运行在视频上的开销",
+    "nodetool.storyboard.RenderStills": "为分镜上每个过期镜头渲染关键帧，并存回分镜。\nstoryboard, keyframe, still, render, batch\n\nUse cases:\n- 在生成片段之前先补齐换角分镜的画面\n- 只重渲染模板改动影响到的镜头\n- 批量止步于静帧，先复盘开销",
+    "nodetool.storyboard.StoryboardShots": "把已保存的分镜按镜头展开，每镜头一条消息，带其渲染静帧与片段。\nstoryboard, shots, iterate, keyframe, clip\n\nUse cases:\n- 用审定分镜驱动逐镜头管线\n- 在下游收集分镜的静帧或片段\n- 无需重新执导即可逐镜头迭代"
+  },
+  "workflowTemplates": {
+    "A Campaign Concept from a Brief.json": {
+      "name": "从简报到广告概念",
+      "description": "一份简报变成一个概念：一句主张、一个视觉创意、三套渠道执行。之所以要求连执行方案一起给，是为了逼出一个经得起媒介计划检验的概念。"
+    },
+    "A Gradient Card as PNG.json": {
+      "name": "渐变卡片导出为 PNG",
+      "description": "认证入门示例，无需素材、服务商或 API 密钥即可直接运行。在 Code 节点里绘制矢量图形，栅格化后检视生成的 800×480 PNG。"
+    },
+    "A Poster in Portrait.json": {
+      "name": "竖版海报",
+      "description": "从一句提示词生成 3:4 竖版海报。改掉主体、配色与风格，做出你自己的版本。"
+    },
+    "A Repeating Texture Tile.json": {
+      "name": "无缝贴图瓦片",
+      "description": "用于背景的无缝平铺瓦片。在提示词里明确写出平铺要求很关键——接缝一旦明显，重复铺开的瞬间就会穿帮。"
+    },
+    "A Run Button for Any Job.json": {
+      "name": "给任意任务加一个运行按钮",
+      "description": "当触发时机不该由外部条件、而该由人来决定时用的触发器。它会等待，你交给它的任何负载都从 `data` 输出，调用方记录在 `source` 里，两个发送方因此可区分。适合做你想手动、从脚本或从另一个工作流触发的管线入口。"
+    },
+    "A Webhook That Answers.json": {
+      "name": "会应答的 Webhook",
+      "description": "一个 HTTP POST 到达，图就以正文回复。触发器把请求体、请求头和方法交给你；这个示例读取请求体并写出一行人能直接行动的摘要。注册工作流即可获得投递 URL，也可以从 CLI 用 `--trigger-event '{\"node_id\":\"hook\",\"payload\":{\"body\":{...}}}'` 驱动它。"
+    },
+    "Action Items from a Meeting Recording.json": {
+      "name": "从会议录音提取行动项",
+      "description": "一段录音变成一张带负责人的待办清单。没有明确负责人的条目会单独列出，而不是甩给模型瞎猜的某个人。"
+    },
+    "Ad Copy in Three Registers.json": {
+      "name": "三种调性的广告文案",
+      "description": "同一个卖点分别写成朴实、俏皮和高级三种调性。调性往往是团队吵得最久的变量，干脆三版都出，让作品说话。"
+    },
+    "Ad Loop from a Product Photo.json": {
+      "name": "从产品照片到循环广告",
+      "description": "把单张产品照片变成一条短循环广告。提示词节点撰写运动简报，Kie 上的 Kling 2.6 让静图动起来，再经一次变速处理压成主视觉循环。需要 KIE_API_KEY；视频步骤按次计费。"
+    },
+    "Add Reverb to a Voice.json": {
+      "name": "给人声加混响",
+      "description": "把干声放进一个空间。湿声电平是发送量，干声电平是原始声——两者都保留，听起来才是一个房间，而不是一盆糊水。"
+    },
+    "AI Spokesperson.json": {
+      "name": "AI 发言人",
+      "description": "把讲稿转成语音，归一化音量、柔化音频首尾，再与出镜片段对口型。"
+    },
+    "Album Art from a Mood.json": {
+      "name": "从情绪到专辑封面",
+      "description": "方形封面图。这里的硬性要求就是 1:1 比例——所有平台都会裁到方形，生成别的比例纯属返工。"
+    },
+    "Assemble a UGC Product Video.json": {
+      "name": "组装 UGC 产品视频",
+      "description": "让创作者全程出镜完成竖屏口播，把产品演示作为无声的画中画「实证时刻」叠在她身上。"
+    },
+    "Audio To Image.json": {
+      "name": "语音生成图像",
+      "description": "动动嘴就能出图，无需键盘。Whisper 转写你的语音，FLUX 按描述渲染成图——整条管线由一条语音备忘录驱动。"
+    },
+    "B-Roll Reel from a Brief.json": {
+      "name": "从简报到 B-roll 合集",
+      "description": "一行导演意图变成两镜头的 B-roll 片段。提示词节点把简报扩成一个全景定场镜头加一个呼应的细节镜头，文生视频分别渲染，交叉淡化接在一起。每次运行含两次付费视频生成。"
+    },
+    "Batch a List.json": {
+      "name": "批量处理列表",
+      "description": "把一条流按固定大小分组。任何限流或按次计费场景的标准形态：批量、发送、再来，而不是逐条请求。"
+    },
+    "Black and White, Hard.json": {
+      "name": "硬边黑白",
+      "description": "先转灰度，再做软边阈值化。直接对彩色做阈值，得到的只是碰巧占主导的那个通道的亮度，通常不是你要的。"
+    },
+    "Blog Post to Social Thread.json": {
+      "name": "博客长文转社交连帖",
+      "description": "一篇长文变成编号连帖。「每条都要独立成立」这个约束，才是阻止模型把摘要切块糊弄过去的关键。"
+    },
+    "Blur a Channel.json": {
+      "name": "模糊单个通道",
+      "description": "抽出某一个色彩通道再模糊它。一条刻意反常规的链路：用来验证单通道输出对下游节点仍是合法图像，而不是悄悄丢了模式。"
+    },
+    "Blur an Image.json": {
+      "name": "模糊图像",
+      "description": "柔化一张图像。适合做文字底板，或在发布前给背景打码。本地像素处理——不占模型、不要密钥、零成本。"
+    },
+    "Boost Saturation.json": {
+      "name": "提升饱和度",
+      "description": "拉高色彩强度。大于 1 增饱和，小于 1 趋向灰度。与 Color Boost 模板不同，这条跑在 ffmpeg 里，不需要 GPU。本地经 ffmpeg 运行——无 API 密钥，无按次成本。"
+    },
+    "Brand a UGC Product Video.json": {
+      "name": "UGC 产品视频品牌化",
+      "description": "把一条连续竖屏创作者素材剪成精致的品牌短片。工作流抽取原生音频、做带词级时间戳的转写、把词语分组成短动画字幕条、用 MORROW 动效搭出可编辑的 NodeTool 时间线，最后渲染成片。"
+    },
+    "Brand Asset Generator.json": {
+      "name": "品牌素材生成器",
+      "description": "输入品牌名和调性，一次运行产出整套社媒素材包。工作流同时扇出两路——一路流式产出四张带文字排版的品牌向社媒图（Instagram、LinkedIn、X、产品发布），另一路产出一页品牌简报（语气、配色、标语备选）。差异点：单次扇出图产出结构化多素材。图像用 fal-ai flux/schnell（付费），文字用 gpt-5-mini。"
+    },
+    "Bring a Still to Life.json": {
+      "name": "让静图动起来",
+      "description": "把一张图变成一个短运动镜头。简报禁止重绘风格，所以模型可以运镜、可以加氛围，但不能重画主体——与产品模板依赖的是同一条约束。"
+    },
+    "Bullet Points to Press Release.json": {
+      "name": "要点到新闻稿",
+      "description": "输入事实要点，输出结构化新闻稿——标题、日期行、正文、公司介绍。要求引语必须挂在具名职位上，防止模型凭空捏造发言人。"
+    },
+    "Chapter Markers for a Long Recording.json": {
+      "name": "长录音章节标记",
+      "description": "没有章节的长音频没法导航。模型给出话题边界建议；你保留与谈话实际走向吻合的那些。"
+    },
+    "Chat With Your Documents.json": {
+      "name": "与你的文档对话",
+      "description": "在你自己的文档上做检索增强问答。把一个小型知识库索引进向量集合，按搜索关键词拉出相关段落，得到一份标注出处、查不到就明说的 Markdown 回答。NodeTool 第一个 RAG 示例。回答步骤用 gpt-5-mini（需 OpenAI 密钥）；集合配置为 Ollama nomic-embed-text 嵌入。"
+    },
+    "Chunk a Transcript for Indexing.json": {
+      "name": "转写文本分块建索引",
+      "description": "像 RAG 摄入那样，把长文切成带重叠的窗口再计数。`length` 和 `overlap` 按「词」计而不是按字符——这里填 90 会把整段吞成一个块。重叠是重点：边界落在句中会丢掉横跨边界的论断，所以相邻块共享一段尾巴。计数前要先过 Collection，因为 Count 消费的是流，直接喂列表会被当成单个条目。"
+    },
+    "Circles and Lines.json": {
+      "name": "圆与线",
+      "description": "三个 SVG 元素——圆、椭圆、直线——写在一个 Code 节点里，数组顺序即绘制顺序。"
+    },
+    "Clean Up a Rough Voice Recording.json": {
+      "name": "修整粗糙的人声录音",
+      "description": "针对真实房间录音的修复链：噪声门压底噪、切掉语音以下的隆隆声、拉平电平，再防削波。每一步都便宜且本地——完全不涉模型。"
+    },
+    "Clip on Kie.json": {
+      "name": "Kie 生成短片",
+      "description": "通过 Kie 的 Kling 2.6 生成一段短片，是「一句话单镜头」的 Kie 对照版——适合在把模板绑定到某家服务商之前，比较同一导演意图在不同家的产出。"
+    },
+    "Cold Outreach Co-Pilot.json": {
+      "name": "冷启动外联副驾",
+      "description": "一个自主 agent 在网上调研潜客并起草个性化冷邮件——开头是一个真实具体的细节——以结构化字段（主题、正文、跟进）而非整段散文输出，可直接投进 CRM 或邮件工具。"
+    },
+    "Color Boost Video.json": {
+      "name": "视频色彩增强",
+      "description": "把视频拆帧，逐帧做曝光/对比与饱和度/自然饱和度调整后重新合成。差异点：带上你自己的素材，一个「调色强度」滑杆实时驱动饱和度通道，无需逐节点调参。"
+    },
+    "Compose Directed Campaign Formats.json": {
+      "name": "组合定向广告的多规格产物",
+      "description": "把一张已采纳的主视觉确定性地组合成 1080×1350 与 1080×1920 的 PNG 和自包含 SVG 规格，再导出一份可携带的版本化定向广告记录。"
+    },
+    "Concept Art Iteration Board.json": {
+      "name": "概念设计迭代板",
+      "description": "把一份创意简报扇出成一面概念设计变体墙。美术指导 agent 把你的简报、风格与情绪扩写成详细方向，列表生成器再写出 N 条互不相同的图像提示词，全部渲染进追加式变体画廊。差异点：一次运行、多张同简报变体，可并排比较、可单独重生成。文字跑 gpt-5-mini；图像跑 fal-ai/flux/schnell。"
+    },
+    "Concept Art, Then a Moving Version.json": {
+      "name": "先概念图，再动画版",
+      "description": "先设计定帧，再让你选中的那张动起来。付费做视频之前先在静图上定稿，是成本最低的工作方式——一个视频镜头的钱够做许多张图。"
+    },
+    "Conditional Logic Engine.json": {
+      "name": "条件逻辑引擎",
+      "description": "控制流教学示例：一个数字驱动两套独立决策结构，全部由 If 节点搭成——NodeTool 没有专门的数值比较或布尔逻辑节点，这里演示的就是真实可用的模式：PadText + Compare + Equals 把数字变成布尔，再由共享同一条件的成对 If 节点（各持有自己的取值、走相反分支）充当三元选择与 OR。无任何 LLM 调用。"
+    },
+    "Count a List.json": {
+      "name": "统计列表",
+      "description": "统计流过的条目数。计数器挂在流上而不是数组上，所以无论条目来自常量、文件夹扫描还是生成器，行为都一致。全进程内运行：无模型、无密钥、零成本。"
+    },
+    "Count to Three with a Loop.json": {
+      "name": "用循环数到三",
+      "description": "从零开始，每循环一次加一。结果达到三时停止，然后返回最终值。全进程内运行：无模型、无密钥、零成本。"
+    },
+    "Crop an Image.json": {
+      "name": "裁剪图像",
+      "description": "按像素边界从图像中裁出矩形。这是把钝刀——想整帧改尺寸时请用 Fit。本地像素处理——无模型、无密钥、零成本。"
+    },
+    "Crop then Fit.json": {
+      "name": "先裁后适配",
+      "description": "两步图像处理组合：先裁出区域，再把该区域缩进缩略图框。按这个顺序，裁剪决定主体，适配只决定尺寸。"
+    },
+    "Crush It to 8 Bits.json": {
+      "name": "压碎成 8 比特",
+      "description": "量化到更低位深并抽稀采样率。两个独立旋钮：位深是纵向分辨率，采样率抽稀是横向。"
+    },
+    "Cut a Landscape Clip for Vertical.json": {
+      "name": "横屏素材改竖屏",
+      "description": "素材来时是 16:9，频道要的是 9:16。把画面适配进竖框，是「有了片子」与「能发出去」之间最不起眼却少不了的一步。"
+    },
+    "Cut a Product Out of Its Background.json": {
+      "name": "产品抠图",
+      "description": "去掉背景并调整边缘柔度，同时不把产品糊掉。边缘柔度设为 0 可保留原始抠图。"
+    },
+    "Cut Out the Subject.json": {
+      "name": "抠出主体",
+      "description": "把图像剥成透明底上的主体，可直接合成到任何背景上。产品抠图或要站在品牌色上的一组角色，通常都从这一步开始。"
+    },
+    "Data Generator.json": {
+      "name": "数据生成器",
+      "description": "把一行主题变成结构化数据集——列结构定义一次，返回的是校验过的行，而不是成段的散文。"
+    },
+    "Denoise Footage.json": {
+      "name": "素材降噪",
+      "description": "削减高 ISO 拍摄的传感器噪点。强度越高越平滑，细节也随之变软。本地经 ffmpeg 运行——无 API 密钥，无按次成本。"
+    },
+    "Direct a Short Film.json": {
+      "name": "执导一部短片",
+      "description": "打一句简报，拿到一部剪好的片。语言模型当导演——写剧本、分镜表和旁白——然后逐镜头拍摄，片段汇成时间线并渲染。用了两个视频模型而不是一个，这是刻意的：镜头 1 无从种起，走文生视频；之后每个镜头都以前一镜头的末帧做种子保证连贯，走图生视频。Kie 把这两种发布成不同模型 ID，所以 Continuation Model 承载第二个；在单 ID 兼做两种的服务商（Gemini/Veo）上可以留空。成本随镜头数增长——三个镜头在 Kling 2.6 上大约一美元视频费加几分钱文字费。"
+    },
+    "Directed Film to Timeline.json": {
+      "name": "执导影片进时间线",
+      "description": "把一行简报变成可编辑的粗剪。Director agent 写出镜头化剧本，每个镜头扇出成关键帧提示词、渲染成静图、再动画成片段，最后全部片段收集、追加进时间线序列并渲染成一条可以继续编辑的视频。"
+    },
+    "Does This Text Mention the Deadline.json": {
+      "name": "文本里提没提截止日期",
+      "description": "一个返回布尔的包含性检查——当工作流要按文档内容分流时，它就是分支条件。"
+    },
+    "Draft Answers for an FAQ.json": {
+      "name": "起草 FAQ 答案",
+      "description": "问题进、答案出，每条都短到能不经编辑直接贴进帮助中心。"
+    },
+    "Draw a Badge in SVG.json": {
+      "name": "用 SVG 画徽章",
+      "description": "用 SVG 元素拼一枚徽章，而不是生成一张。每个形状都是可稍后重排、重上色的元素——不重新生成、不重采样。"
+    },
+    "Drop Duplicates.json": {
+      "name": "去重",
+      "description": "每个不同值只放行一次，重复的被吞掉。把 `key` 设为某字段即可按字段去重而不是按整值。全进程内运行：无模型、无密钥、零成本。"
+    },
+    "Drop the First Few.json": {
+      "name": "丢掉开头几条",
+      "description": "跳过流开头的固定条数——数据源的表头行，或你不想付费处理的热身数据。"
+    },
+    "Edit a Still with Words.json": {
+      "name": "用文字改图",
+      "description": "靠描述改动来修改图像。Nano Banana 是原地编辑而非重生成，构图与主体都会保留——指令应点名要改什么，其余一概不提。"
+    },
+    "Editorial Still from a Line.json": {
+      "name": "一句话到编辑风格静图",
+      "description": "一行主体文字变成一张成片的编辑风格照片。Template 节点锁住整体观感，调用方只提供主体。按图计费，但六步的 FLUX.2 [klein] 是拿到可用画面最便宜的路径之一。"
+    },
+    "Emboss a Still.json": {
+      "name": "浮雕化静图",
+      "description": "把图像变成浮雕。Emboss 读的是梯度而不是颜色，平坦区域变灰，只有边缘留下来。"
+    },
+    "Every Combination.json": {
+      "name": "全组合",
+      "description": "两条流的叉积——左边每项对上右边每项。在付一整批渲染费之前先做这个扫描，付钱前先看清数量。"
+    },
+    "Every Hour, On the Hour.json": {
+      "name": "每小时整点",
+      "description": "一个时钟，加上排程真正需要的两个数：这是第几次滴答、何时触发。设好 `interval_seconds` 触发器就自行发射——无输入、无调用方，它下游的一切都变成定时任务。`max_events` 留 0 永远运行，或设成 N 次后停。"
+    },
+    "Executive Summary of a Long Document.json": {
+      "name": "长文档的高管摘要",
+      "description": "给不会读十二页的人的一页纸。把「需要什么决策」放在最前面，它才是一份简报而不是一份摘要。"
+    },
+    "Explainer Clip from a Paragraph.json": {
+      "name": "一段话到讲解短片",
+      "description": "一段解说词变成旁白加一幅匹配的画面。镜头描述由 agent 撰写，所以画面跟着文字走，而不是另写提示词再各自漂移。"
+    },
+    "Extract the Claims Worth Checking.json": {
+      "name": "提取值得核查的论断",
+      "description": "把事实性论断与观点分开，并给每条标上可核查程度——任何核查工作之前的第一道分诊。"
+    },
+    "Fade Audio In and Out.json": {
+      "name": "音频淡入淡出",
+      "description": "让音轨从无声中缓入，开头不再是一记硬切。会先从视频里抽音轨，所以裸音轨和实拍素材都适用。本地 ffmpeg——无 API 成本。"
+    },
+    "Fade Audio Out.json": {
+      "name": "音频淡出",
+      "description": "让音轨在最后几秒衰减到无声，结尾不再戛然而止。时长设得比直觉更长——听起来是刻意安排的淡出，通常比剪辑时感觉的更慢。"
+    },
+    "Fill a Template.json": {
+      "name": "填充模板",
+      "description": "把值替换进文本模板。这是工作流输入与模型提示词之间的接缝——措辞集中放在一个 Template 节点里，别散落到多个提示词字段。"
+    },
+    "Find and Replace.json": {
+      "name": "查找与替换",
+      "description": "在一段文本里把一个子串换成另一个。查找词与替换词是输入而不是焊死在节点里，所以同一张图不改一行就能从 API 复用。"
+    },
+    "Find Every Number in a Sentence.json": {
+      "name": "找出句中所有数字",
+      "description": "FindAllRegex 返回每个匹配而不是第一个——从报告里抠数字时，你要的正是这个。"
+    },
+    "Find the Edges.json": {
+      "name": "找边缘",
+      "description": "Canny 边缘检测，真正起作用的是两个阈值：低阈值决定什么算弱边缘，高阈值决定什么算确定。"
+    },
+    "Fit an Image.json": {
+      "name": "适配图像",
+      "description": "保持宽高比把图像缩进一个框。缩略图用它，硬缩放会把画面拉变形。本地像素处理——无模型、无密钥、零成本。"
+    },
+    "Five Headlines for a Landing Page.json": {
+      "name": "落地页五标题",
+      "description": "供测试的标题变体。要求每行注明采用的角度，这一组才会真正不同，而不是同一想法的五种改写。"
+    },
+    "Flashcard Generator.json": {
+      "name": "抽认卡生成器",
+      "description": "生成结构化正反面抽认卡对象，再据此计算学习计划：题目不重复、类别交错、每张卡有复习排期。"
+    },
+    "Gate Out the Room Noise.json": {
+      "name": "噪声门压房间底噪",
+      "description": "把阈值以下的一切静音，词与词之间的嘶声消失，语句本身毫发无损。"
+    },
+    "Generate a Native-Audio UGC Testimonial.json": {
+      "name": "生成原生语音 UGC 口播",
+      "description": "用创作者与产品参考图加一小段剧本，生成连续 15 秒、带原生人声与口型的 Seedance 2.5 口播视频。"
+    },
+    "Generate a Silent Bed.json": {
+      "name": "生成无声垫底",
+      "description": "生成固定时长的静音音轨。用作拼接各条之间的间隔，或真配音还没写好时的占位。"
+    },
+    "Generate then Upscale a Poster.json": {
+      "name": "先生成海报再超分",
+      "description": "先小尺寸便宜地生成，只为最终留下的那张付分辨率的价钱。在 1K 上反复迭代、最后一次超分，成本只有每稿都全尺寸生成的一小部分。"
+    },
+    "Hacker News Agent.json": {
+      "name": "Hacker News 代理",
+      "description": "抓取 Hacker News 首页，直接以 Markdown 写出按话题过滤的摘要——无需单独的排版步骤。"
+    },
+    "Hook & Thumbnail Factory.json": {
+      "name": "钩子与封面工厂",
+      "description": "一个视频主题进，一整套封面素材包出：让人停下滑动的钩子文案，配每条钩子一张调色过、可直接发布的封面图。差异点在扇出——一条钩子流一次运行驱动一整面配套图墙。使用 fal-ai/flux/schnell（便宜、快）。"
+    },
+    "How Long Is This Transcript.json": {
+      "name": "这份转写有多长",
+      "description": "转写一段素材并统计 token 数。在把转写喂给按 token 计费或限上下文的模型之前，值得先知道。"
+    },
+    "Image Enhance.json": {
+      "name": "图像增强",
+      "description": "一个实时照片编辑器：五个 GPU 滤镜串成一条管线，各自暴露一个数值属性由应用绑到滑杆上。拖动降噪、亮度、对比度、饱和度、锐化，预览就地更新——滤镜在浏览器内运行，无模型、无 API 密钥、无按次成本。"
+    },
+    "Image To Audio Story.json": {
+      "name": "图像到语音故事",
+      "description": "上传任意一张照片，视觉 agent 为它讲一段口播故事——一图进，一条音频出。"
+    },
+    "Image to Video Animation.json": {
+      "name": "图生视频动画",
+      "description": "先从文本生成一张高质量静图，再动画成一段有电影感的短片。动画步骤使用 Veo 3.1，单次运行成本高于纯图像模板。"
+    },
+    "Inspect a Clip's Audio.json": {
+      "name": "检视素材的音频",
+      "description": "读取素材音轨的采样率、声道数、时长与格式。在跑对口型或转写之前值得先跑——这两个步骤对输入都挑剔。"
+    },
+    "Inspect a Clip.json": {
+      "name": "检视素材",
+      "description": "直接从文件头读素材的时长、尺寸、帧率与编解码。昂贵生成步骤前的廉价预检——先看清手里是什么，再为变换付钱。"
+    },
+    "Invert a Still.json": {
+      "name": "反相静图",
+      "description": "直接负片——每个通道翻转。检验一条滤镜链是否真在你以为的那些像素上工作，这是最便宜的办法。"
+    },
+    "Keep Only the Long Lines.json": {
+      "name": "只留长行",
+      "description": "把列表扇成流，丢掉不满足谓词的项，再把幸存者收回列表。两个节点承载全部要点：Collection 负责扇出——列表直接喂流操作符会被当成单个条目——Collect 负责收回，没有它，流上的输出只显示最后一个通过值。"
+    },
+    "Keep Only the Matches.json": {
+      "name": "只留匹配项",
+      "description": "流上的相等过滤器。`invert` 一开就变拒绝清单，不用第二个节点。"
+    },
+    "Key Out a Green Screen.json": {
+      "name": "绿幕抠像",
+      "description": "色度抠像，真正要调的是两个旋钮：相似度决定多大范围的色相变透明，混合柔化边缘。"
+    },
+    "Last One Wins.json": {
+      "name": "最后一条胜出",
+      "description": "把流折叠成最后一项。一个「提炼」而不是「累积」的循环，自然就该这样收尾。"
+    },
+    "Localise a Product Listing.json": {
+      "name": "商品 Listing 本地化",
+      "description": "货币、单位与地址格式，才是商品在新市场真正翻车的地方——比文案翻译更常出事。"
+    },
+    "Localise a Script and Revoice It.json": {
+      "name": "剧本本地化并重配音",
+      "description": "把剧本译成西班牙语，生成语音，再拉平音量。首尾短淡入淡出柔化处理，时长保持不变。"
+    },
+    "Localized Explainer.json": {
+      "name": "多语言讲解片",
+      "description": "一份简报、一位旁白、一块过审的 B-roll 板，变成你列出的每种语言的讲解片。WriteScript 以旁白为角色写词，VoiceScript 只为文本变了的台词付费，分镜板只读不写——它的静图成为旁白之下的画面。"
+    },
+    "Master a Voice Track.json": {
+      "name": "母带处理人声",
+      "description": "一条人声交付前的三段链：压缩拉平峰值、抬升电平、再限幅防削波。顺序有讲究——先限幅的话，压缩器就没得可压了。"
+    },
+    "Meeting Transcript Summarizer.json": {
+      "name": "会议转写摘要",
+      "description": "从录音或粘贴的转写总结会议——两种输入都行，行动项以结构化行返回，而不是再来一段要人扫读的文字。"
+    },
+    "Model Arena.json": {
+      "name": "模型竞技场",
+      "description": "一份简报、三家前沿模型、并排作答。同一提示词一次扇出到 OpenAI、Anthropic 与 Google，各家以相同结构回答——比的是推理，不是排版。任意赛道换模型，就是你的对阵表。"
+    },
+    "Moodboard Frame from a Theme.json": {
+      "name": "从主题到情绪板单帧",
+      "description": "情绪板的一格，由一段方向描述生成。便宜到可以跑一打再挑——情绪板本来就是这么做出来的。"
+    },
+    "Movie Posters.json": {
+      "name": "电影海报",
+      "description": "把片名、类型与视觉风格变成完成度堪比院线的单张海报。美术指导 agent 先写关键美术简报（定位、配色、字体），再驱动每一张生成——差异点是 agent 主笔的创意策略，不是裸提示词。"
+    },
+    "Movie Trailer Generator.json": {
+      "name": "电影预告片生成器",
+      "description": "输入一句 logline，拿回一段电影感先导预告。Director 节点写分镜——带镜头调度的镜头化剧本加一份风格圣经——Screenplay Shots 把每个镜头转成图像提示词，帧再被渲染、动画、剪接。成本提示：每个镜头都要过一次 Veo 3.1 图生视频，按生成秒数计费，是全管线最贵的一步——六镜头预告片就是六次 Veo 调用。"
+    },
+    "Music Video Visualizer.json": {
+      "name": "MV 视觉化",
+      "description": "把一首歌变成一组 AI 视觉。读歌词、生成匹配场景、把每帧适配到 720p，再按音频对齐整段时间线。"
+    },
+    "Name a File from Its Narration.json": {
+      "name": "按旁白给文件命名",
+      "description": "转写一段素材，把开头几个词变成 URL 安全的 slug。一条小链路，展示语音如何变成文件名而不是文档。"
+    },
+    "Narrate a Script.json": {
+      "name": "为剧本配音",
+      "description": "用 fal 上的 ElevenLabs multilingual v2 把文字稿变成人声轨。配合「为无声素材配乐」即可从纯文字做出一条配音成片。按字符计费。"
+    },
+    "Narration with a Music Bed.json": {
+      "name": "旁白配音乐垫底",
+      "description": "在安静的音乐垫底上为剧本配音。让音乐贴合旁白，首尾做淡化。"
+    },
+    "Normalize a Clip's Audio.json": {
+      "name": "素材音频归一化",
+      "description": "为录得太轻或太猛的音轨拉平响度。会先从视频里抽音轨，所以裸音轨和实拍素材都适用。本地 ffmpeg——无 API 成本。"
+    },
+    "One Tagline, Six Markets.json": {
+      "name": "一句标语，六个市场",
+      "description": "一句标语译成六种语言，每种都带回译——一个字都读不了的人，也能看见实际说了什么。"
+    },
+    "Pad a Canvas.json": {
+      "name": "垫画布",
+      "description": "不缩放地把图像摆上更大的画布——横幅照片装箱进方形帖子而不裁主体的办法。本地像素处理——无模型、无密钥、零成本。"
+    },
+    "Per-SKU Ad Factory.json": {
+      "name": "按 SKU 出广告的工厂",
+      "description": "一块过审的分镜板，变成每个产品一条广告。CreateEntity 按库存码 upsert 该 SKU 的实体，RecastStoryboard 把板复制上去并保留所有提示词未变的帧，渲染节点只为失效帧付费，成片继承模板的标题与音乐，再把贴层换成这个产品的名字与价格。每个 SKU 跑一次——从 CSV 循环、webhook 或手动皆可。"
+    },
+    "Photo Enhancement Suite.json": {
+      "name": "照片精修套件",
+      "description": "把一组照片批量送进固定精修链——自动对比度、调色、锐化加一轮 AI 电影级调色——无需文件夹路径，拖图即跑。"
+    },
+    "Picture in Picture.json": {
+      "name": "画中画",
+      "description": "把一条素材叠进另一条——录屏角上的摄像头小窗，或反应镜头叠在被反应的画面上。默认静音小窗音频，主轨保持干净。"
+    },
+    "Pitch a Voice Up.json": {
+      "name": "升调人声",
+      "description": "以半音为单位移调而时长不变——时间拉伸的对应物。"
+    },
+    "Pixelate a Still.json": {
+      "name": "静图马赛克",
+      "description": "格子大小是唯一的控制量。适合打码，也是唯一「数字越大越保护隐私」而不是「效果越强」的滤镜。"
+    },
+    "Platformer Asset Pack.json": {
+      "name": "平台跳跃游戏素材包",
+      "description": "一次运行填满并检验 Godot 模板的全部素材槽位。LoadGameTemplate 流式给出平台跳跃所需的每个槽位；SlotPrompt 把每个槽位变成提示词、画布与检验器要的道具包，统一撒上一层风格实体——换掉那个实体，整包换皮。每个生成素材都先过 nodetool.game 对应种类的检验器，最后 ExportGodotProject 铺出一个可直接打开的工程。"
+    },
+    "Podcast Episode to Show Notes.json": {
+      "name": "播客单集转节目笔记",
+      "description": "每个播客都要做、没人爱做的活。先转写再写笔记——摘要、带大致时间点的话题、以及提到过的链接。"
+    },
+    "Podcast Repurposing Studio.json": {
+      "name": "播客二创工作室",
+      "description": "丢进一集播客，产出一整套内容包：单集标题与节目笔记、一期通讯、五条社媒帖、以及渲染成方形图片的金句卡。Whisper 转写一次，四条写手分支从转写扇出。"
+    },
+    "Pokemon Maker.json": {
+      "name": "宝可梦生成器",
+      "description": "把任意真实动物组合变成一组原创收藏系生物。风格下拉整批换皮，一次运行产出四款风格统一的变体设计，而不是一张图。"
+    },
+    "Poster on Kie.json": {
+      "name": "Kie 生成海报",
+      "description": "通过 Kie 的 Seedream 4.5 生成海报风格图像。Kie 把多个模型家族收在一个密钥后面，所以这是验证 Kie 凭据是否真能用的最短路径。"
+    },
+    "Posterize to Four Bits.json": {
+      "name": "色调分离到 4 比特",
+      "description": "降低每通道位数，图像塌缩成平涂色带——丝网印观感，也让你在色带咬人之前先看见它。"
+    },
+    "Private Assistant.json": {
+      "name": "私人助理",
+      "description": "在你自己的笔记与文档上问答——完全本地，无任何 API 密钥。端到端跑本地 Ollama 模型，文字永不离开你的机器。需要 Ollama 已拉取模型在跑（默认 llama3.2——执行 `ollama pull llama3.2`）。"
+    },
+    "Product Mockup Generator.json": {
+      "name": "产品样机生成器",
+      "description": "一张产品照变成一整套精致场景样机。LLM 美术指导从产品描述设计一份多变机位清单，每个场景用 FLUX 渲染，再做亮度/对比收尾。差异点：场景由模型构思，单一输入扇出成一套协调的样机——不是一个提示词一张图。"
+    },
+    "Product Spot from Text.json": {
+      "name": "从文字到产品广告片",
+      "description": "把产品描述直接变成一支短广告片——不需要照片。一个提示词节点拼出影棚主视觉简报，FLUX.2 [klein] 渲染静图，LTX-2.3 只按运镜注记把这一帧动起来。成本提示：动画步骤按输出秒数计费，单次成本高于纯图像模板。"
+    },
+    "Product Video Generator.json": {
+      "name": "产品视频生成器",
+      "description": "把广告简报、受众、卖点与一张产品照变成一条写实的 16:9 发布视频——agent 写运动提示词，Veo 把镜头动起来。成本提示：Veo 是按秒付费的视频模型，本次运行成本明显高于纯图像模板。"
+    },
+    "Prompt Template.json": {
+      "name": "提示词模板",
+      "description": "几乎所有 NodeTool 工作流背后的起手式：类型化输入填进可复用的提示词模板，LLM 作答，输出渲染出来。面向任意受众讲解一个话题——换掉提示词即可把这套模式复用到任何事上。"
+    },
+    "Propose Three Campaign Directions.json": {
+      "name": "提案三个广告方向",
+      "description": "校验一份产品简报与可选的角色标注参考，然后在任何图像生成之前，先准确提案三个成文的广告方向。"
+    },
+    "Pull a Field out of JSON Text.json": {
+      "name": "从 JSON 文本里取字段",
+      "description": "用点路径从 JSON 文本读值。本例取出名字 Ada。"
+    },
+    "Pull a Still from a Clip.json": {
+      "name": "从素材抽一帧",
+      "description": "在指定时间戳抓单帧——从手里已有的素材快速取封面或参考静图的最短路。本地经 ffmpeg 运行。"
+    },
+    "Pull the Quotable Lines Out of an Interview.json": {
+      "name": "从访谈里抠出可引金句",
+      "description": "五句逐字引语，入选标准是能独立成立。坚持逐字才有可用性——一句转述的引语比没有更糟。"
+    },
+    "Put a Product on a Studio Backdrop.json": {
+      "name": "把产品放进影棚背景",
+      "description": "去背景、柔化抠图边缘，再把产品放进全新的影棚场景。"
+    },
+    "Put a Voice Over a Music Bed.json": {
+      "name": "人声压上音乐垫底",
+      "description": "在安静的音乐垫底上为剧本配音。让音乐贴合旁白，首尾做淡化。"
+    },
+    "Re-delimit a List.json": {
+      "name": "改换列表分隔符",
+      "description": "按一个分隔符切开、按另一个接回——逗号列表变竖线列表，或 CSV 风格文本变逐行记录。纯字符串处理：无模型、无密钥、零成本。"
+    },
+    "Read a Clip's Frame Rate.json": {
+      "name": "读素材帧率",
+      "description": "Fps 不解码视频、直接从文件头读帧率。便宜到可以先跑再决定素材是否需要规格化。"
+    },
+    "Redact and Tidy a Log Line.json": {
+      "name": "日志行脱敏与规整",
+      "description": "两轮正则加一次空白折叠，顺序要紧：先脱敏再规整，否则你要匹配的模式可能已经被改形了。"
+    },
+    "Redact Email Addresses.json": {
+      "name": "邮箱地址脱敏",
+      "description": "一次正则替换，代指日常的清理步骤——在文本到达模型或日志之前剥掉个人信息。"
+    },
+    "Relight a Product for a Seasonal Campaign.json": {
+      "name": "为季节性广告重打产品光",
+      "description": "同一件产品、不同季节、无需重拍。重打光保留几何与材质，只改变光从哪来。"
+    },
+    "Render a Directed Campaign Hero.json": {
+      "name": "渲染定向广告主视觉",
+      "description": "确定性地选定一个已捕获方向，把产品参考图编进 16:9 主视觉，并且只在图像成功之后才产出它的创意契约。"
+    },
+    "Reopen a Directed Campaign.json": {
+      "name": "重开一场定向广告",
+      "description": "校验一份可携带的 schema 版本 1 定向广告记录，不经任何模型调用即恢复其已采纳原图与可选修订版。"
+    },
+    "Research Agent.json": {
+      "name": "调研代理",
+      "description": "给它一个话题和一个受众；agent 执行真实的网络搜索、打开最好的信源，流式回传一份带引用的 Markdown 简报。差异点：真正的多步工具使用（搜索加浏览）配行内引用——不是一次提示词调用。"
+    },
+    "Restyle a Photo as an Illustration.json": {
+      "name": "照片转插画风格",
+      "description": "构图不变，媒介更换。强度是那只旋钮：低保留照片感，高则重绘成新东西。"
+    },
+    "Reverse a Clip.json": {
+      "name": "倒放素材",
+      "description": "倒着播放一段素材。适合「去程回程」式转场——回程就是同一素材倒放。本地经 ffmpeg 运行——无 API 密钥，无按次成本。"
+    },
+    "Reverse Audio.json": {
+      "name": "倒放音频",
+      "description": "倒着播放一条音轨——reverse 镲片上扬与预回声效果的基础。会先从视频里抽音轨，所以裸音轨和实拍素材都适用。本地 ffmpeg——无 API 成本。"
+    },
+    "Revise an Accepted Campaign Hero.json": {
+      "name": "修订已采纳的广告主视觉",
+      "description": "对已采纳主视觉施加一次有边界的修订，同时记录确切改动、保留指令、允许的响应与父契约。"
+    },
+    "Rewrite This So a Customer Understands It.json": {
+      "name": "改写到顾客能懂",
+      "description": "术语进、大白话出，并标明阅读等级。天下最常见也最值得流程化的改写活。"
+    },
+    "Rotate Footage.json": {
+      "name": "旋转素材",
+      "description": "按固定角度旋转素材——专治手机竖拍横存的片子。本地经 ffmpeg 运行——无 API 密钥，无按次成本。"
+    },
+    "Score a Clip from Its Own Mood.json": {
+      "name": "按情绪为素材配乐",
+      "description": "agent 什么都没看——它读你写的情绪描述，再写音乐提示词。这样拆开，你就能用文字调情绪，而不必重新描述音乐本身。"
+    },
+    "Score a Silent Clip.json": {
+      "name": "为无声素材配乐",
+      "description": "生成一条配你的素材的原声。把音乐裁到视频长度、归一化音量，混音前加轻淡化。"
+    },
+    "Script to Narrated Clip.json": {
+      "name": "剧本到旁白成片",
+      "description": "最小完整视频管线：一行文字变成人声，一段场景描述变成画面，然后两者成婚。人声与画面分开生成，正是为了让你可以只重录其一而不为另一个付钱。"
+    },
+    "Script to Screen.json": {
+      "name": "从剧本到银幕",
+      "description": "完整生产主干：Director agent 把你的简报变成导演文档（角色、风格圣经、分镜表、旁白、音乐）。一张风格帧锚定所有关键帧保证一致性，关键帧构成一张付费生成视频之前就能过审的廉价分镜板，之后逐镜头动画、剪接，混入旁白与音乐。"
+    },
+    "SEO Content Engine.json": {
+      "name": "SEO 内容引擎",
+      "description": "一个话题进，一批关键词导向的文章出——每篇以类型化字段落地（标题、meta 描述、关键词、正文）而不是一个 Markdown 大团，可直接贴进 CMS。策略 agent 规划话题簇，列表生成器展开成简报，每份简报再变成带编辑风格头图的完整文章。"
+    },
+    "SEO Title and Meta Description.json": {
+      "name": "SEO 标题与 Meta 描述",
+      "description": "每个 CMS 都点名要的两个字段，按真实上限——60 与 155 字符——写就，结果页里不再被截断。"
+    },
+    "Sharpen Footage.json": {
+      "name": "素材锐化",
+      "description": "在降噪或缩尺寸之后把「看起来更多细节」加回来。亮度通道承担绝大部分锐度感；色度保持低档避免色边。本地经 ffmpeg 运行——无 API 密钥，无按次成本。"
+    },
+    "Shot List from a Synopsis.json": {
+      "name": "从梗概到分镜表",
+      "description": "一份梗概变成带景别与时长、逐条编号的镜头——生成管线可以逐条迭代的那份文档，散文不行。"
+    },
+    "Single Shot from a Line.json": {
+      "name": "一句话单镜头",
+      "description": "最小可能的文生视频图：一行导演意图、一个补上整体观感的模板、一次渲染。适合在跑「每次运行烧好几次付费生成」的模板之前，先给视频凭据做冒烟测试。"
+    },
+    "Slice Text.json": {
+      "name": "切片文本",
+      "description": "按索引从字符串截取固定区间，可带步长。把字幕硬截到长度上限的钝办法，或每隔 n 个字符取样。"
+    },
+    "Slow a Clip Without Dropping Pitch.json": {
+      "name": "降速素材不降调",
+      "description": "时间拉伸改时长、不动音高——这正是全部意义所在。若改播放速度，音高会一起掉下去。"
+    },
+    "Soften a Plate.json": {
+      "name": "柔化底板",
+      "description": "给素材加模糊，让它可以垫在标题或画中画下面而不抢戏。本地经 ffmpeg 运行——无 API 密钥，无按次成本。"
+    },
+    "Solarize a Still.json": {
+      "name": "负感化静图",
+      "description": "只反转阈值以上的影调——暗房事故变成的一种风格。"
+    },
+    "Speak a Line, Then Trim the Silence.json": {
+      "name": "说一句话，再剪掉静音",
+      "description": "合成语音并剥掉两端的死空气。TTS 常留 padding；RemoveSilence 给你能直接落进时间线的紧实片段。"
+    },
+    "Spin a Packshot into a Turntable Clip.json": {
+      "name": "产品照变转台视频",
+      "description": "静图变成产品页的运动画面。图生视频让产品分毫不变、只加运镜——文生视频模型做不到这一点。"
+    },
+    "Split a Channel.json": {
+      "name": "拆出单通道",
+      "description": "把一个色彩通道抽成独立图像。快速定位瑕疵藏在哪个通道，或用单通道做遮罩。本地像素处理——无模型、无密钥、零成本。"
+    },
+    "Split a Log into Records.json": {
+      "name": "日志拆记录",
+      "description": "正则切分把一整坨变成列表。模式就是记录边界，往往比固定分隔符更可靠。"
+    },
+    "Stabilize Handheld.json": {
+      "name": "手持防抖",
+      "description": "抹平手持机震。防抖会移动画面，所以 `crop_black` 裁掉露出的空边。本地经 ffmpeg 运行——无 API 密钥，无按次成本。"
+    },
+    "Still on Replicate.json": {
+      "name": "Replicate 生成静图",
+      "description": "通过 Replicate 而不是 fal 生成图像。与 fal 版、Kie 版同图同形——换服务商只是改一个模型字段、不是重写，这正是要演示的点。"
+    },
+    "Subject Lines Worth Testing.json": {
+      "name": "值得一测的邮件主题行",
+      "description": "八条邮件主题行，好奇心与直给各半——这两种策略行为差异大到值得 A/B，而同一句式的八种变体不值得。"
+    },
+    "Subtitle Text from a Recording.json": {
+      "name": "从录音生成字幕文本",
+      "description": "先转写，再折成字幕长度的行。行长规则是字幕文件与一坨文字的分界线。"
+    },
+    "Summarise a Recorded Call.json": {
+      "name": "总结一通录音通话",
+      "description": "写给「不想再听一遍的人」的摘要：定了什么、还悬着什么、接下来做什么。"
+    },
+    "Swirl and Echo.json": {
+      "name": "旋涡与回声",
+      "description": "镶边扫频垫在反馈延迟下面。两者都是混合式效果，干信号在底下活着，而不是被替换掉。"
+    },
+    "Take a Product Shot to Print Resolution.json": {
+      "name": "产品照超分到印刷分辨率",
+      "description": "把已过审的产品照超分，再用一道可调的轻收尾锐化细节。锐度设 0 即关闭。"
+    },
+    "Take the First Few Seconds of a Bed.json": {
+      "name": "取垫底的前几秒",
+      "description": "生成一段音乐再切出其中一小节。只要一段 sting 而非整条垫底时，这比重新生成便宜。"
+    },
+    "Take the First Few.json": {
+      "name": "只取前几条",
+      "description": "流过 n 条后即停。迭代工作流时给昂贵下游封顶的便宜办法——调试时取 3 条，上线时移除。全进程内运行：无模型、无密钥、零成本。"
+    },
+    "Take While the Numbers Are Small.json": {
+      "name": "趁数字还小一直取",
+      "description": "TakeWhile 在第一个不满足谓词的条目处停下，不像 filter 会继续测完剩下的。这个差别正是选它的理由：它给工作量封顶，而不是从中挑选。表达式把每个条目绑定为 `item`。"
+    },
+    "Telephone Voice.json": {
+      "name": "电话音",
+      "description": "限带成窄中频再推过载。两头都切掉才像——光靠失真只是响。"
+    },
+    "Themes Across Customer Feedback.json": {
+      "name": "客户反馈的主题聚合",
+      "description": "原始反馈变成具名主题，带计数与各自一条代表性原话。正是那条原话，让主题「可辩驳」而不是「被断言」。"
+    },
+    "Three Ratios.json": {
+      "name": "三种画幅",
+      "description": "一次过审的成片，三份交付物。RetargetTimeline 按每个宽高比推导新序列且从不写源，人工签过字的剪切与摆位原样带过去——动的只有画框。`cropped` 点名 9:16 裁切会切进哪些镜头，那里可能需要单独补一块板。"
+    },
+    "Tidy Up Messy Text.json": {
+      "name": "规整脏文本",
+      "description": "三连清理——折叠连续空白、剥标点、再转小写。顺序要紧，这正是把它展示成链而不是单节点的意义。"
+    },
+    "Trailer Beats from a Premise.json": {
+      "name": "从前提到预告片节拍",
+      "description": "预告片需要的节拍结构——钩子、升级、反转、片名卡——在为任何画面付钱之前先写好。"
+    },
+    "Transcribe a Clip.json": {
+      "name": "转写素材",
+      "description": "把一段视频里的话抠出来。音频本地抽取后再转写。注意服务商选择：fal 和 Replicate 的清单里都列有语音转文字模型，但两家都没实现转写能力，那些条目跑不起来。OpenAI、Gemini、HuggingFace、MiniMax 与 Together 实现了。"
+    },
+    "Transcribe Audio.json": {
+      "name": "转写音频",
+      "description": "即时 Whisper 转写：丢进一段音频，拿回干净的文字转写——一步完成，上传即跑。"
+    },
+    "Translate Marketing Copy to German.json": {
+      "name": "营销文案译德语",
+      "description": "以效果为先而非逐字翻译的营销文案翻译，并标明敬语与熟语体的选择。正是那个决定，最常让一份翻译被打回。"
+    },
+    "Trim a Blurb to Length.json": {
+      "name": "把简介截到限长",
+      "description": "用省略号把文本压进字符预算。卡片或预览不许溢出时的日常修法。"
+    },
+    "Trim a Clip.json": {
+      "name": "裁剪素材",
+      "description": "按入点出点裁短素材。`accurate` 会重编码，让剪切落在精确帧上而不是最近的关键帧。本地经 ffmpeg 运行——无 API 密钥，无按次成本。"
+    },
+    "Trim Audio to a Range.json": {
+      "name": "修剪音频区间",
+      "description": "把音轨修剪到起止点。需要先知道时长再决定剪哪里时，配「检视素材的音频」使用。"
+    },
+    "Turn a Changelog into Release Notes.json": {
+      "name": "更新日志变发布说明",
+      "description": "commit message 是写给工程师的；发布说明是给客户读的。按「对用户改了什么」分组，就是这整场翻译。"
+    },
+    "Turn a Logo into Print-Ready Vector.json": {
+      "name": "Logo 转印刷级矢量",
+      "description": "位图 logo 上不了广告牌、绣不了花。描摹成 SVG 路径，得到一个供应商要多大就能放多大的标。"
+    },
+    "Turn a Support Thread into a Bug Report.json": {
+      "name": "客服对话转缺陷报告",
+      "description": "一串火气冲天的对话变成工程师能上手的东西：复现步骤、期望、实际、环境——缺失的部分如实标注为缺失。"
+    },
+    "Turn a Talk into a Blog Post.json": {
+      "name": "演讲变博客文章",
+      "description": "口头表达与书面文章是两种语体。「重组而不是转写」这条指令，才拦得住输出读起来像分了段的转写稿。"
+    },
+    "Turn Research Notes into a Comparison Table.json": {
+      "name": "调研笔记变对比表",
+      "description": "乱糟糟的笔记变成每选项一行的 Markdown 表。未知单元格标为未知而不是硬填——这整个练习的价值全在这里。"
+    },
+    "Turn Specs into Product Copy.json": {
+      "name": "规格表变产品文案",
+      "description": "贴一份规格表，拿回文案。系统提示词禁止编造输入里没有的东西——这正是可用的产品文案与法律风险之间的差别。"
+    },
+    "Upscale a Still.json": {
+      "name": "静图超分",
+      "description": "超分图像而不带普通缩放的糊感。fal 上的 ESRGAN 是重建细节而不是插值，4 倍超分才经得起印刷。按图计费。"
+    },
+    "Vectorize a Generated Logo.json": {
+      "name": "生成 Logo 矢量化",
+      "description": "先生成一个扁平标，再描摹成真矢量。位图生成器产不出干净矢量，所以分两步：FLUX 画形状，Recraft 转成不经重采样即可任意缩放的 SVG 路径。"
+    },
+    "Video Restyle Studio.json": {
+      "name": "视频风格重绘工作室",
+      "description": "在运动保持不动的前提下，把现有素材重绘成新视觉风格。提示词节点把一句风格短注扩成完整重绘简报，再由视频生视频模型施加。强度是那只旋钮：低保留原来的观感，高全面拥抱新风格。"
+    },
+    "Vignette a Portrait.json": {
+      "name": "人像加暗角",
+      "description": "压暗四角把视线往中间引。半径决定衰减从哪开始，柔度决定它来得有多陡。"
+    },
+    "Voice a Script in Two Voices.json": {
+      "name": "双人声配音",
+      "description": "一出对手戏要两条嗓子。分开合成每个角色再拼接，才能只重录一句而不重渲染整段对白。"
+    },
+    "Warm Up a Cold Clip.json": {
+      "name": "给冷调素材加暖",
+      "description": "逐通道色彩平衡——抬红压蓝。一条不用 GPU 也能上的调色，因为它走 ffmpeg 而不是着色器。"
+    },
+    "Watch a Folder, Act on What Lands.json": {
+      "name": "监视文件夹，落地即处理",
+      "description": "把投递文件夹当界面用。`path` 指向一个目录，`patterns` 收窄范围，一旦有匹配文件出现或变化图就醒来——你拿到事件类型与完整路径。这里的 agent 只报个到；把它换成你真正要对文件做的活。`debounce_seconds` 存在是因为编辑器写文件不止写一次。"
+    },
+    "Widen a Mono Voice.json": {
+      "name": "加宽单声道人声",
+      "description": "合成一条单声道人声再摆进声场。多数 TTS 返回单声道；任何按立体声混音的场合都需要两个声道。"
+    },
+    "Workflow As A Tool.json": {
+      "name": "工作流即工具",
+      "description": "组合示范：一个编排 agent 通过控制边把两个专职子 agent 接成可调用工具——Research（Gemini）收集事实，Copy Editor（Claude）打磨文稿，管理者（GPT-5 mini）决定何时调用谁。演示一个自足的工作单元如何在同一张图里变成另一个 agent 可调用的工具。"
+    },
+    "Write a Listing from the Product Photo.json": {
+      "name": "照着产品照写 Listing",
+      "description": "把照片直接交给模型，而不是它的描述。从真实图片写出的电商文案能抓住规格表漏掉的细节——做工、比例、它旁边摆着什么。"
+    },
+    "Write the Prompt, Then Make the Image.json": {
+      "name": "先写提示词，再生成图像",
+      "description": "模型从一段平实描述自己写图像提示词。适合有想法的人不想学提示词工程——中间产物提示词保持可见，可以被纠正而不是靠猜。"
+    }
+  },
+  "hfTask": {
+    "any-to-any": "任意到任意",
+    "audio-classification": "音频分类",
+    "audio-text-to-text": "音频转文本",
+    "audio-to-audio": "音频到音频",
+    "automatic-speech-recognition": "语音识别",
+    "depth-estimation": "深度估计",
+    "document-question-answering": "文档问答",
+    "feature-extraction": "特征提取",
+    "fill-mask": "填空掩码",
+    "image-classification": "图像分类",
+    "image-segmentation": "图像分割",
+    "image-text-to-text": "图文生文",
+    "image-to-image": "图生图",
+    "image-to-text": "图生文",
+    "image-to-video": "图生视频",
+    "mask-generation": "掩码生成",
+    "object-detection": "目标检测",
+    "question-answering": "问答",
+    "sentence-similarity": "句子相似度",
+    "summarization": "摘要",
+    "text2text-generation": "文本到文本生成",
+    "text-classification": "文本分类",
+    "text-generation": "文本生成",
+    "text-to-audio": "文本转音频",
+    "text-to-image": "文生图",
+    "text-to-speech": "文本转语音",
+    "text-to-video": "文生视频",
+    "token-classification": "词元分类",
+    "translation": "翻译",
+    "video-text-to-text": "视频转文本",
+    "visual-question-answering": "视觉问答",
+    "zero-shot-classification": "零样本分类",
+    "zero-shot-image-classification": "零样本图像分类"
+  }
+}

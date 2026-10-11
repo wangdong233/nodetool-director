@@ -1,0 +1,388 @@
+{
+  "general": {
+    "language": "Language",
+    "languageEnglish": "English",
+    "languageChinese": "简体中文",
+    "catWorkspace": "Workspace",
+    "catWorkflow": "Workflow",
+    "catHistory": "History",
+    "secEditor": "Editor",
+    "secUpdates": "Updates",
+    "secVaults": "Vaults",
+    "secAppearance": "Appearance",
+    "secExecution": "Execution",
+    "secCanvas": "Canvas",
+    "secDefaultModels": "Default Models",
+    "secAutosave": "Autosave",
+    "selectNodesOnDrag": "Select Nodes On Drag",
+    "updateChannel": "Update Channel",
+    "onCloseBehavior": "On Close Behavior",
+    "secCanvasNav": "Canvas & Navigation",
+    "secAutosaveHistory": "Autosave & Version History",
+    "secFolders": "Folders",
+    "secAccounts": "Connected Accounts",
+    "secMcp": "MCP Integration",
+    "descSound": "Play a system beep sound when workflows complete, exports finish, or other important events occur.",
+    "descUpdates": "Check for and download desktop app updates from the selected release channel.",
+    "descTimeFormat": "Display time in 12h or 24h format.",
+    "descConfirmManyNodes": "Running a workflow executes every node at once. Show a confirmation when a run would launch many model/provider nodes that could overload an API.",
+    "descManyNodesThreshold": "Warn when a run would execute more than this many model/provider nodes (LLM, image, audio, API, etc.).",
+    "descAudioBuffer": "Playback buffer for realtime audio (modular synth patches). Lower values reduce knob-to-ear latency; higher values prevent dropouts when the editor is busy.",
+    "descMaxParallelRuns": "Maximum number of workflow runs you can execute at once. Additional runs queue and start automatically as running ones finish.",
+    "descMaxRunsPerWorkflow": "How many runs of the same workflow may run at once before further runs queue. Applies to concurrent generation (timeline, sketch); canvas runs always stay sequential.",
+    "descSnapToGrid": "Align nodes to the canvas grid while dragging. Also in the View menu of the desktop app.",
+    "descGridSize": "Grid size used when Snap to Grid is on. The canvas grid is drawn every 25 units.",
+    "descSnapDistance": "Snap distance for connecting nodes.",
+    "descAutosave": "Automatically save your workflow at regular intervals.",
+    "descAutosaveInterval": "How often to automatically save your workflow.",
+    "descCheckpoint": "Create a checkpoint version before executing workflow.",
+    "descAutosaveOnClose": "Automatically save when closing the tab or window.",
+    "lblSoundNotifications": "Sound Notifications",
+    "lblAutomaticUpdates": "Automatic Updates",
+    "lblTimeFormat": "Time Format",
+    "lblWarnLargeRuns": "Warn Before Large Runs",
+    "lblLargeRunThreshold": "Large-Run Threshold",
+    "lblAudioBuffer": "Audio Buffer (ms)",
+    "lblMaxConcurrentRuns": "Max Concurrent Runs",
+    "lblMaxRunsPerWorkflow": "Max Concurrent Runs per Workflow",
+    "lblLeftClickDrag": "Left-Click Drag",
+    "lblSelectionMode": "Node Selection Mode",
+    "lblSnapToGrid": "Snap to Grid",
+    "lblGridSnapPrecision": "Grid Snap Precision",
+    "lblSnapRange": "Connection Snap Range",
+    "lblEnableAutosave": "Enable Autosave",
+    "lblAutosaveInterval": "Autosave Interval (minutes)",
+    "lblSaveBeforeRunning": "Save Before Running",
+    "lblSaveOnClose": "Save on Window Close",
+    "opts": {
+      "latest": "Stable",
+      "nightly": "Nightly",
+      "ask": "Ask Every Time",
+      "quit": "Quit Application",
+      "background": "Keep Running in Background",
+      "LMB": "Pan canvas",
+      "RMB": "Select nodes (box)",
+      "full": "Full",
+      "partial": "Partial",
+      "1": "1 minute",
+      "5": "5 minutes",
+      "10": "10 minutes",
+      "15": "15 minutes",
+      "30": "30 minutes",
+      "60": "60 minutes"
+    },
+    "descSelectDrag1": "Mark nodes as selected after changing a node's position.",
+    "descSelectDrag2": "If disabled, nodes can still be selected by clicking on them.",
+    "descUpdateChannel": "Stable follows full releases. Nightly follows prerelease nightly builds. Nightly builds default to the Nightly channel.",
+    "descOnCloseIntro": "Choose what happens when you close the main window.",
+    "descOnCloseAsk": "Shows a dialog with options.",
+    "descOnCloseQuit": "Closes the application completely.",
+    "descOnCloseBackground": "Keeps the app running in the system tray.",
+    "descPanIntro": "What dragging with the left mouse button does on empty canvas.",
+    "descPanPan": "left-drag moves the view.",
+    "descPanSelect": "left-drag draws a selection box; pan with the right or middle mouse button (and two-finger scroll on a trackpad).",
+    "descSelIntro": "When drawing a selection box for node selections:",
+    "descSelFull": "nodes have to be fully enclosed.",
+    "descSelPartial": "intersecting nodes will be selected.",
+    "apiTokenTitle": "Nodetool API Token",
+    "descApiToken": "This token is used to authenticate your account with the Nodetool API.",
+    "apiTokenSecret": "Keep this token secure and do not share it publicly",
+    "optAskShort": "Ask Every Time",
+    "optQuitShort": "Quit",
+    "optBackgroundShort": "Background",
+    "optSelectNodesShort": "Select nodes",
+    "apiIntTitle": "Nodetool API",
+    "apiIntDesc": "Use the Nodetool API to execute workflows programmatically.",
+    "apiIntDocs": "API documentation on GitHub",
+    "apiIntCopyTooltip": "Copy to clipboard",
+    "apiIntCopyToken": "Copy Token"
+  },
+  "search": {
+    "placeholder": "Search settings…",
+    "noMatchesIn": "No matches in {{label}}.",
+    "alsoIn": "Also in",
+    "see": "See",
+    "tabsLabel": "settings tabs"
+  },
+  "defModels": {
+    "title": "Default Models",
+    "desc": "Set default models for each type. These will auto-fill when you create new nodes.",
+    "mLanguage": "Language Model",
+    "mImage": "Image Model",
+    "mEmbedding": "Embedding Model",
+    "mTts": "Text-to-Speech Model",
+    "mAsr": "Speech Recognition Model",
+    "mVideo": "Video Model",
+    "mCode": "Code Generation",
+    "useChatPlaceholder": "Use chat model",
+    "codeHint": "Writes Code Node code. Falls back to the chat model when unset."
+  },
+  "vaults": {
+    "desc": "A vault is a separate, isolated data store with its own database, assets, and RAG collections. Switch vaults to keep different sets of workflows and data apart. Switching restarts the backend and reloads the app.",
+    "activeSuffix": " — active",
+    "newName": "New vault name",
+    "confirmBody": "Remove the vault \"{{name}}\" from the list?\n\nIts database files are left on disk and can be re-added or deleted manually.",
+    "renamePromptTitle": "Rename vault"
+  },
+  "storage": {
+    "loading": "Loading history status…",
+    "loadError": "Could not load database history settings.",
+    "lblAutosavesPer": "Autosaves per workflow",
+    "descAutosavesPer": "Maximum recent autosaves kept for each workflow. Manual versions do not count toward this limit.",
+    "lblKeepDays": "Keep autosaves (days)",
+    "descKeepDays": "Autosaves older than this are removed even when the workflow is below its count limit.",
+    "lblKeepManual": "Keep manual versions (days)",
+    "descKeepManual": "Manual workflow snapshots older than this are removed. Checkpoints are always preserved.",
+    "lblKeepRuns": "Keep completed runs (days)",
+    "descKeepRuns": "Completed, failed, and cancelled run records older than this are removed. Active runs are preserved.",
+    "lblKeepRunLogs": "Keep run event logs (days)",
+    "descKeepRunLogs": "Per-node event logs from a run are removed after this many days. The run record itself follows the limit above.",
+    "lblKeepGen": "Keep generation details (days)",
+    "descKeepGen": "After this many days, prompts, parameters, and logs are cleared from generation records. The billing record — model, provider, tokens, cost, and date — is kept.",
+    "lblAutoClean": "Automatic history cleanup",
+    "descAutoClean": "Apply these limits in the background once per day. Database compaction remains manual.",
+    "dbLine": "Database: {{size}} · {{versions}} workflow versions · {{runs}} runs · {{events}} run events",
+    "pendingLine": "{{count}} records exceed the current limits. Deleted SQLite pages currently use {{size}} and are returned to disk only after compaction.",
+    "redactedLine": "{{count}} of {{total}} generation records still holding prompts and parameters are past the limit. Cleaning clears that text and keeps the billing record.",
+    "cleanNow": "Clean now ({{count}})",
+    "cleaning": "Cleaning…",
+    "compact": "Compact database",
+    "compacting": "Compacting…",
+    "confirmCompactTitle": "Compact database?",
+    "confirmCompactBody": "Compaction returns unused SQLite pages to disk. It can pause database writes while it rebuilds a large local database.",
+    "confirmCleanTitle": "Clean old history?",
+    "confirmCleanBody": "Remove {{clean}} old workflow-history, completed-run, and run-event records, and clear prompts and parameters from {{redact}} generation records? The billing record for each generation is kept. Current workflows, assets, checkpoints, and active runs are not changed.",
+    "confirmCompact": "Compact",
+    "confirmClean": "Clean",
+    "bytesNA": "Not available",
+    "notifCleanSome": "Removed {{total}} old history records and cleared prompt data from {{redact}} generation records.",
+    "notifCleanAll": "Removed {{total}} old history records.",
+    "notifCompactDone": "Database compaction completed.",
+    "notifUpdateFail": "Could not update history limits: {{error}}",
+    "notifCleanFail": "History cleanup failed: {{error}}",
+    "notifCompactFail": "Database compaction failed: {{error}}"
+  },
+  "sidebar": {
+    "aboutCatApplication": "Application",
+    "aboutCatResources": "Resources",
+    "aboutApplication": "Application",
+    "aboutOperatingSystem": "Operating System",
+    "aboutFeaturesVersions": "Features & Versions",
+    "aboutInstallationPaths": "Installation Paths",
+    "aboutLinks": "Links",
+    "intCatConfiguration": "Configuration",
+    "intCatAccounts": "Accounts",
+    "intCatServers": "Servers",
+    "intCatCredentials": "Credentials",
+    "folders": "Folders",
+    "connectedAccounts": "Connected Accounts",
+    "nodetoolApiToken": "Nodetool API Token",
+    "localModelServers": "Local Model Servers",
+    "providerOptions": "Provider Options",
+    "observability": "Observability",
+    "dataStorage": "Data & Storage",
+    "other": "Other"
+  },
+  "remote": {
+    "FONT_PATH": {
+      "label": "Font Path",
+      "description": "Location of font folder used by image processing nodes like RenderText. If not specified, the system will use default fonts."
+    },
+    "BLENDER_PATH": {
+      "label": "Blender Path",
+      "description": "Path to the Blender executable used by the nodetool.blender nodes. If not specified, the nodes look for blender on PATH and in the well-known install locations."
+    },
+    "VECTORSTORE_DB_PATH": {
+      "label": "Vectorstore DB Path",
+      "description": "Location of the sqlite-vec vector database file. Used to store and retrieve embeddings for semantic search and RAG applications."
+    },
+    "USERS_FILE": {
+      "label": "Users File",
+      "description": "Path to users.yaml file for multi-user bearer token authentication. Defaults to ~/.config/nodetool/users.yaml for local deployments."
+    },
+    "TRANSFORMERS_JS_CACHE_DIR": {
+      "label": "Transformers JS Cache Dir",
+      "description": "Cache directory for Transformers.js (@huggingface/transformers) model downloads. Defaults to <data-dir>/transformers-js-cache. This is separate from the Python HuggingFace Hub cache because the on-disk layout differs."
+    },
+    "AUTOSAVE_ENABLED": {
+      "label": "Autosave Enabled",
+      "description": "Enable automatic saving of workflow versions (default: true)"
+    },
+    "AUTOSAVE_INTERVAL_MINUTES": {
+      "label": "Autosave Interval Minutes",
+      "description": "Interval in minutes between automatic workflow autosaves (default: 5, range: 1-60)"
+    },
+    "AUTOSAVE_MIN_INTERVAL_SECONDS": {
+      "label": "Autosave Min Interval Seconds",
+      "description": "Minimum interval in seconds between autosaves to prevent duplicates (default: 30)"
+    },
+    "AUTOSAVE_MAX_VERSIONS_PER_WORKFLOW": {
+      "label": "Autosave Max Versions Per Workflow",
+      "description": "Maximum number of autosave versions to keep per workflow (default: 20)"
+    },
+    "AUTOSAVE_KEEP_DAYS": {
+      "label": "Autosave Keep Days",
+      "description": "Number of days to keep autosave versions before cleanup (default: 7)"
+    },
+    "MAX_CONCURRENT_JOBS": {
+      "label": "Max Concurrent Jobs",
+      "description": "Maximum number of workflow runs a single client can execute at once (default: 4). Additional runs are queued and start automatically as running ones finish, preventing provider/API overload."
+    },
+    "MAX_CONCURRENT_RUNS_PER_WORKFLOW": {
+      "label": "Max Concurrent Runs Per Workflow",
+      "description": "Maximum number of concurrent runs of the same workflow before additional runs queue (default: 4). Only applies to runs that opt into concurrency (e.g. timeline/sketch generation); canvas runs always stay sequential per workflow. Also bounded by MAX_CONCURRENT_JOBS."
+    },
+    "NODETOOL_AGENT_TURN_COST_CAP_USD": {
+      "label": "Nodetool Agent Turn Cost Cap Usd",
+      "description": "Ceiling on provider spend for one agent run, in US dollars (default: 5.00). The whole run shares it: sub-agents, background subtasks, and agent nodes reserve against the same cap rather than opening their own. A turn whose worst case would cross it is refused before the call, and the run stops with a message naming the cap. Set it to 0 for no cap at all, which is what a local-only install wants — clearing the value restores the default instead, because an empty setting is indistinguishable from an unset one."
+    },
+    "NODETOOL_AGENT_TURN_DEADLINE_MS": {
+      "label": "Nodetool Agent Turn Deadline Ms",
+      "description": "Wall-clock bound on one agent run, in milliseconds (default: 1800000, i.e. 30 minutes). Checked before every model turn and every tool call, so a run that stalls on a slow provider ends instead of hanging."
+    },
+    "NODETOOL_AGENT_MAX_CONCURRENCY": {
+      "label": "Nodetool Agent Max Concurrency",
+      "description": "Maximum provider conversations an agent run may have open at once (default: 8). Shared by the whole run, so a fan-out of sub-agents inside a fan-out of steps cannot multiply into hundreds of simultaneous calls."
+    },
+    "NODETOOL_AGENT_MAX_TURNS": {
+      "label": "Nodetool Agent Max Turns",
+      "description": "Maximum model turns an agent run may make in total (default: 200), counted across every loop it starts. This is the bound that still holds for a local model with no price, where the dollar cap cannot apply."
+    },
+    "NODETOOL_AGENT_UNPRICED_TOKEN_CEILING": {
+      "label": "Nodetool Agent Unpriced Token Ceiling",
+      "description": "Prompt-token ceiling for a turn on a model the price catalog does not cover (default: 400000). An unpriced model has no worst-case cost to reserve, so admitting it freely would make the dollar cap advisory; this bounds it by size instead. Such turns are counted as unpriced rather than as free spend."
+    },
+    "NODETOOL_CHAT_COMPACTION_TOKENS": {
+      "label": "Nodetool Chat Compaction Tokens",
+      "description": "Estimated prompt size, in tokens, at which a chat turn summarizes the earlier part of its thread before calling the model (default: 120000). The estimate tokenizes the message text and tool calls and scores each attached image, audio, video or document at a fixed per-modality figure. It misses the tool definitions the same turn sends, so leave room under the model's context window rather than setting it close. A provider that holds the conversation itself (a resumed session, the Claude Agent SDK) is not measured this way; it compacts when it reports that the transcript no longer fits."
+    },
+    "NODETOOL_CHAT_COMPACTION_KEEP_TURNS": {
+      "label": "Nodetool Chat Compaction Keep Turns",
+      "description": "How many of the most recent user turns a compaction leaves verbatim (default: 4). Everything before them becomes the summary. The cut always lands on a user message, so a tool call is never separated from its result."
+    },
+    "NODETOOL_COMPACTION_MODEL": {
+      "label": "Nodetool Compaction Model",
+      "description": "Model that writes the compaction summary, as `provider/model` or a bare model id on the turn's own provider. Unset, the turn summarizes with the model it is already running. A summarizer that fails leaves the thread uncompacted and the turn runs against the full history."
+    },
+    "VLLM_BASE_URL": {
+      "label": "vLLM Base URL",
+      "description": "Base URL for the vLLM OpenAI-compatible server (e.g., http://localhost:7777)"
+    },
+    "OLLAMA_CONTEXT_LENGTH": {
+      "label": "Ollama Context Length",
+      "description": "Context window size (in tokens) for Ollama models. If not set, the provider will query the model for its default context length."
+    },
+    "LLAMA_CPP_URL": {
+      "label": "Llama Cpp URL",
+      "description": "Base URL for the llama.cpp server (e.g., http://127.0.0.1:8080)."
+    },
+    "LLAMA_CPP_CONTEXT_LENGTH": {
+      "label": "Llama Cpp Context Length",
+      "description": "Context window size (in tokens) for llama.cpp models. Defaults to 128000."
+    },
+    "NODE_LLAMA_CPP_MODELS_DIR": {
+      "label": "Node Llama Cpp Models Dir",
+      "description": "Directory containing local GGUF model files for in-process llama.cpp inference. Defaults to the platform llama.cpp cache directory."
+    },
+    "NODE_LLAMA_CPP_GPU_BACKEND": {
+      "label": "Node Llama Cpp Gpu Backend",
+      "description": "GPU backend for in-process llama.cpp inference. 'auto' lets node-llama-cpp detect the best backend."
+    },
+    "LMSTUDIO_API_URL": {
+      "label": "Lmstudio API URL",
+      "description": "Base URL for the LM Studio OpenAI-compatible server (e.g., http://localhost:1234)"
+    },
+    "NODE_SUPABASE_URL": {
+      "label": "Node Supabase URL",
+      "description": "Supabase project URL used by user-provided nodes (separate from core SUPABASE_URL)"
+    },
+    "NODE_SUPABASE_SCHEMA": {
+      "label": "Node Supabase Schema",
+      "description": "Optional schema for user/node Supabase tables (defaults to public when unset)"
+    },
+    "NODE_SUPABASE_TABLE_PREFIX": {
+      "label": "Node Supabase Table Prefix",
+      "description": "Optional prefix applied to user/node Supabase tables to avoid clashes with core tables"
+    },
+    "TRACELOOP_ENABLED": {
+      "label": "Traceloop Enabled",
+      "description": "Enable Traceloop OpenLLMetry tracing"
+    },
+    "TRACELOOP_APP_NAME": {
+      "label": "Traceloop App Name",
+      "description": "Override the OpenLLMetry application name (defaults to service name)"
+    },
+    "TRACELOOP_BASE_URL": {
+      "label": "Traceloop Base URL",
+      "description": "Override the Traceloop OTLP base URL"
+    },
+    "TRACELOOP_DISABLE_BATCH": {
+      "label": "Traceloop Disable Batch",
+      "description": "Disable Traceloop batch span processing for local development"
+    },
+    "SERP_PROVIDER": {
+      "label": "SERP Provider",
+      "description": "Select which search provider to use for web search operations."
+    },
+    "ZAI_USE_CODING_PLAN": {
+      "label": "Zai Use Coding Plan",
+      "description": "Use Z.AI coding plan endpoint instead of normal endpoint"
+    },
+    "DASHSCOPE_BASE_URL": {
+      "label": "Dashscope Base URL",
+      "description": "Base URL for Alibaba Cloud Model Studio's OpenAI-compatible endpoint. Model Studio keys are region-scoped; set this to your region's endpoint (default: https://dashscope-intl.aliyuncs.com/compatible-mode/v1, the international/Singapore region)"
+    },
+    "KIE_TIMEOUT_SECONDS": {
+      "label": "Kie Timeout Seconds",
+      "description": "Global timeout in seconds for Kie.ai API calls (0 = use default per-model timeout)"
+    },
+    "OPENAI_API_KEY": {
+      "get": "Go to OpenAI API key page"
+    },
+    "ANTHROPIC_API_KEY": {
+      "get": "Go to Anthropic console"
+    },
+    "GEMINI_API_KEY": {
+      "get": "Go to Google AI Studio to get your API key"
+    },
+    "OPENROUTER_API_KEY": {
+      "get": "Go to OpenRouter keys page"
+    },
+    "HF_TOKEN": {
+      "get": "Go to Hugging Face tokens page"
+    },
+    "REPLICATE_API_TOKEN": {
+      "get": "Go to Replicate API tokens page"
+    },
+    "GOOGLE_APP_PASSWORD": {
+      "get": "Go to Google account app passwords page"
+    },
+    "ELEVENLABS_API_KEY": {
+      "get": "Go to ElevenLabs subscription page"
+    },
+    "FAL_API_KEY": {
+      "get": "Go to Fal.ai dashboard"
+    },
+    "SERPAPI_API_KEY": {
+      "get": "Go to SerpAPI key management page"
+    },
+    "DATA_FOR_SEO_LOGIN": {
+      "get": "Go to DataForSEO dashboard"
+    },
+    "BRAVE_API_KEY": {
+      "get": "Go to Brave Search API dashboard"
+    },
+    "APIFY_API_TOKEN": {
+      "get": "Go to Apify console integrations page"
+    },
+    "KIMI_API_KEY": {
+      "get": "Go to Moonshot (Kimi) platform API keys page"
+    },
+    "DASHSCOPE_API_KEY": {
+      "get": "Go to Alibaba Cloud Model Studio API keys page"
+    },
+    "AKI_API_KEY": {
+      "get": "Go to AKI.IO to sign up and get your API key"
+    }
+  }
+}

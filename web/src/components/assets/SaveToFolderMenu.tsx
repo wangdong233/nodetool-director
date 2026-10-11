@@ -21,6 +21,7 @@ import {
 import { useFolderTree } from "../../serverState/useFolderTree";
 import { useAssetStore, type AssetTreeNode } from "../../stores/AssetStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { useTranslation } from "react-i18next";
 
 interface SaveToFolderMenuProps {
   anchorEl: HTMLElement | null;
@@ -87,6 +88,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
   onClose,
   onSelectFolder
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const { data: folderTree = {} } = useFolderTree("name");
@@ -122,13 +124,14 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
       useNotificationStore.getState().addNotification({
         type: "error",
         alert: true,
-        content: `Could not create folder: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        content: t("editor:ui.couldNotCreateFolderError", {
+          defaultValue: "Could not create folder: {{error}}",
+          error: error instanceof Error ? error.message : String(error)
+        })
       });
       setBusy(false);
     }
-  }, [newName, busy, createFolder, resetCreate, select]);
+  }, [newName, busy, createFolder, resetCreate, select, t]);
 
   const roots = useMemo(
     () => Object.values(folderTree).filter((node) => node?.id),
@@ -200,7 +203,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
     >
       <div css={cssStyles} role="menu">
         <Caption className="folder-menu-header" size="small">
-          Save to folder
+          {t("editor:ui.saveToFolder", { defaultValue: "Save to folder" })}
         </Caption>
         <div className="folder-menu-scroll">
           {renderRow(
@@ -224,7 +227,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
                 fullWidth
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Folder name…"
+                placeholder={t("editor:ui.folderName")}
                 disabled={busy}
                 inputProps={{ "aria-label": "New folder name" }}
                 onKeyDown={(e) => {
@@ -257,7 +260,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
                 <CreateNewFolderOutlinedIcon fontSize="small" />
               </span>
               <Text size="normal" weight={500} sx={{ color: "inherit" }}>
-                New folder…
+                {t("editor:ui.newFolder")}
               </Text>
             </div>
           )}

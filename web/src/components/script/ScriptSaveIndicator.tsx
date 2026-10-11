@@ -10,6 +10,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import { useScriptSaveStatus } from "../../stores/script/ScriptStore";
+import { useTranslation } from "react-i18next";
 
 interface ScriptSaveIndicatorProps {
   scriptId: string;
@@ -22,15 +23,16 @@ interface ScriptSaveIndicatorProps {
  * knows whether their changes are safe.
  */
 const ScriptSaveIndicator = ({ scriptId }: ScriptSaveIndicatorProps) => {
+  const { t } = useTranslation();
   const status = useScriptSaveStatus(scriptId);
 
   if (status === "unsaved") {
     return (
-      <Tooltip title="Unsaved changes — saving shortly">
+      <Tooltip title={t("editor:ui.unsavedChangesSavingShortly", { defaultValue: "Unsaved changes — saving shortly" })}>
         <FlexRow align="center" gap={SPACING.xs}>
           <CircleIcon sx={{ fontSize: 10, color: "text.disabled" }} />
           <Text size="smaller" sx={{ color: "text.secondary" }}>
-            Unsaved changes
+            {t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })}
           </Text>
         </FlexRow>
       </Tooltip>
@@ -42,7 +44,7 @@ const ScriptSaveIndicator = ({ scriptId }: ScriptSaveIndicatorProps) => {
       <FlexRow align="center" gap={SPACING.xs} aria-live="polite">
         <LoadingSpinner inline size={14} />
         <Text size="smaller" sx={{ color: "text.secondary" }}>
-          Saving…
+          {t("editor:ui.saving", { defaultValue: "Saving…" })}
         </Text>
       </FlexRow>
     );
@@ -50,11 +52,11 @@ const ScriptSaveIndicator = ({ scriptId }: ScriptSaveIndicatorProps) => {
 
   if (status === "error") {
     return (
-      <Tooltip title="Couldn't sync with the server. Your changes are kept locally.">
+      <Tooltip title={t("editor:ui.couldntSyncWithTheServerYourChangesAreKeptLocally", { defaultValue: "Couldn't sync with the server. Your changes are kept locally." })}>
         <FlexRow align="center" gap={SPACING.xs} aria-live="polite">
           <SyncProblemIcon color="warning" sx={{ fontSize: 16 }} />
           <Text size="smaller" color="warning">
-            Save failed
+            {t("editor:ui.saveFailed", { defaultValue: "Save failed" })}
           </Text>
         </FlexRow>
       </Tooltip>
@@ -63,11 +65,11 @@ const ScriptSaveIndicator = ({ scriptId }: ScriptSaveIndicatorProps) => {
 
   if (status === "reloaded") {
     return (
-      <Tooltip title="This script was edited elsewhere, so the newer server version was loaded.">
+      <Tooltip title={t("editor:ui.thisScriptWasEditedElsewhereSoTheNewerServerVersionWasLoaded")}>
         <FlexRow align="center" gap={SPACING.xs} aria-live="polite">
           <HistoryIcon color="warning" sx={{ fontSize: 16 }} />
           <Text size="smaller" color="warning">
-            Reloaded newer version
+            {t("editor:ui.reloadedNewerVersion", { defaultValue: "Reloaded newer version" })}
           </Text>
         </FlexRow>
       </Tooltip>
@@ -75,13 +77,13 @@ const ScriptSaveIndicator = ({ scriptId }: ScriptSaveIndicatorProps) => {
   }
 
   return (
-    <Tooltip title="All changes saved">
+    <Tooltip title={t("editor:ui.allChangesSaved", { defaultValue: "All changes saved" })}>
       <FlexRow align="center" gap={SPACING.xs} aria-live="polite">
         <CloudDoneOutlinedIcon
           sx={{ fontSize: 16, color: "text.disabled" }}
         />
         <Text size="smaller" sx={{ color: "text.secondary" }}>
-          Saved
+          {t("ui2:attrs.saved", { defaultValue: "Saved" })}
         </Text>
       </FlexRow>
     </Tooltip>

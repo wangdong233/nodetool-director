@@ -7,9 +7,12 @@ import {
   deterministicFingerprint
 } from "../../../hooks/storyboard/productionContext";
 import type { PlanReviewField } from "../PlanReview";
+import { i18n } from "../../../i18n";
 
 export const REVIEW_REQUIRED =
   "Production context changed. Return to the plan, review it, and continue to Look.";
+export const REVIEW_REQUIRED_KEY =
+  "storyboard:attrs.productionContextChangedReturnToThePlan";
 
 export function productionReviewFingerprint(context: unknown): string {
   return deterministicFingerprint(context);
@@ -96,16 +99,16 @@ export function productionFields({
   // read-only field of its own, which read as a filled-in value and put the
   // explanation a row below the select it explains.
   const bindingHint = !canBind
-    ? "Add voiceover or dialogue before choosing a speech mode."
+    ? i18n.t("timeline:attrs.addVoiceoverOrDialogueBeforeChoosingASpeechMode", { defaultValue: "Add voiceover or dialogue before choosing a speech mode." })
     : binding?.script_line_id
-      ? "Bound to a Script line. Edit the words and the voice in Script."
+      ? i18n.t("timeline:attrs.boundToAScriptLineEditTheWordsAndTheVoiceInScript", { defaultValue: "Bound to a Script line. Edit the words and the voice in Script." })
       : binding?.audio_asset_id
-        ? "Bound to a recorded audio take."
+        ? i18n.t("timeline:attrs.boundToARecordedAudioTake", { defaultValue: "Bound to a recorded audio take." })
         : binding?.text
-          ? "Uses local speech. Production voice and audio resolution are unavailable in this setup."
+          ? i18n.t("storyboard:attrs.usesLocalSpeechProductionVoiceAndAudioResolutionAreUnavailableInThisSetup", { defaultValue: "Uses local speech. Production voice and audio resolution are unavailable in this setup." })
           : undefined;
   const availabilityHint =
-    "On-camera speech is unavailable in this guided flow. Choose Off-camera or None.";
+    i18n.t("timeline:attrs.onCameraSpeechIsUnavailableInThisGuidedFlowChooseOffCameraOrNone", { defaultValue: "On-camera speech is unavailable in this guided flow. Choose Off-camera or None." });
   const speechHint = [bindingHint, availabilityHint]
     .filter((part): part is string => part !== undefined)
     .join(" ");
@@ -114,17 +117,17 @@ export function productionFields({
   return [
     {
       id: `${id}:purpose`,
-      label: "Editorial purpose",
+      label: i18n.t("timeline:attrs.editorialPurpose", { defaultValue: "Editorial purpose" }),
       compact: true,
       value: current?.editorial_purpose ?? "",
       options: [
-        { value: "", label: "Unspecified" },
-        { value: "hook", label: "Hook" },
-        { value: "problem", label: "Problem" },
-        { value: "demonstration", label: "Demonstration" },
-        { value: "proof", label: "Proof" },
-        { value: "cta", label: "Call to action" },
-        { value: "story", label: "Story" }
+        { value: "", label: i18n.t("timeline:attrs.unspecified", { defaultValue: "Unspecified" }) },
+        { value: "hook", label: i18n.t("timeline:attrs.hook", { defaultValue: "Hook" }) },
+        { value: "problem", label: i18n.t("timeline:attrs.problem", { defaultValue: "Problem" }) },
+        { value: "demonstration", label: i18n.t("timeline:attrs.demonstration", { defaultValue: "Demonstration" }) },
+        { value: "proof", label: i18n.t("timeline:attrs.proof", { defaultValue: "Proof" }) },
+        { value: "cta", label: i18n.t("storyboard:attrs.callToAction", { defaultValue: "Call to action" }) },
+        { value: "story", label: i18n.t("editor:ui.story", { defaultValue: "Story" }) }
       ],
       onChange: (editorial_purpose) => {
         onChange(
@@ -137,15 +140,15 @@ export function productionFields({
     },
     {
       id: `${id}:treatment`,
-      label: "Visual treatment",
+      label: i18n.t("timeline:attrs.visualTreatment", { defaultValue: "Visual treatment" }),
       compact: true,
       value: current?.visual_treatment ?? "",
       options: [
-        { value: "", label: "Unspecified" },
-        { value: "actor_to_camera", label: "Actor to camera" },
-        { value: "product_close_up", label: "Product close-up" },
-        { value: "lifestyle_b_roll", label: "Lifestyle B-roll" },
-        { value: "generated_scene", label: "Generated scene" }
+        { value: "", label: i18n.t("timeline:attrs.unspecified", { defaultValue: "Unspecified" }) },
+        { value: "actor_to_camera", label: i18n.t("timeline:attrs.actorToCamera", { defaultValue: "Actor to camera" }) },
+        { value: "product_close_up", label: i18n.t("storyboard:attrs.productCloseup", { defaultValue: "Product close-up" }) },
+        { value: "lifestyle_b_roll", label: i18n.t("timeline:attrs.lifestyleBRoll", { defaultValue: "Lifestyle B-roll" }) },
+        { value: "generated_scene", label: i18n.t("timeline:attrs.generatedScene", { defaultValue: "Generated scene" }) }
       ],
       onChange: (visual_treatment) => {
         onChange(
@@ -158,7 +161,7 @@ export function productionFields({
     },
     {
       id: `${id}:takes`,
-      label: "Requested takes",
+      label: i18n.t("timeline:attrs.requestedTakes", { defaultValue: "Requested takes" }),
       compact: true,
       value: String(current?.requested_take_count ?? 1),
       options: [1, 2, 3].map((count) => ({
@@ -169,16 +172,16 @@ export function productionFields({
     },
     {
       id: `${id}:speech`,
-      label: "Speech mode",
+      label: i18n.t("timeline:attrs.speechMode", { defaultValue: "Speech mode" }),
       value: current?.speech_mode ?? "none",
       readOnly: !canBind,
       hint: speechHint,
       options: [
-        { value: "none", label: "None" },
-        { value: "off_camera", label: "Off-camera" },
+        { value: "none", label: i18n.t("storyboard:attrs.none", { defaultValue: "None" }) },
+        { value: "off_camera", label: i18n.t("storyboard:attrs.offCamera", { defaultValue: "Off-camera" }) },
         {
           value: "on_camera",
-          label: "On-camera (unavailable in guided flow)",
+          label: i18n.t("timeline:attrs.onCameraUnavailableInGuidedFlow", { defaultValue: "On-camera (unavailable in guided flow)" }),
           disabled: true
         }
       ],
@@ -202,7 +205,7 @@ export function productionFields({
       ? [
           {
             id: `${id}:line`,
-            label: "Script line",
+            label: i18n.t("timeline:attrs.scriptLine", { defaultValue: "Script line" }),
             value: binding?.script_line_id ?? "",
             options: linkedLineIds.map((lineId) => ({
               value: lineId,
@@ -215,10 +218,10 @@ export function productionFields({
       : []),
     {
       id: `${id}:direction`,
-      label: "Production direction",
+      label: i18n.t("timeline:attrs.productionDirection", { defaultValue: "Production direction" }),
       value: current?.local_direction ?? "",
       multiline: true,
-      placeholder: "Optional performance or camera direction",
+      placeholder: i18n.t("timeline:attrs.optionalPerformanceOrCameraDirection", { defaultValue: "Optional performance or camera direction" }),
       onChange: (local_direction) =>
         change({
           local_direction: local_direction.trim() ? local_direction : undefined
@@ -242,7 +245,7 @@ export function productionAuthoringBlocker(
     // Validate canonical data before a tolerant reader can normalize invalid counts.
     const parsed = productionRequirement.safeParse(item.production);
     if (!parsed.success) {
-      return "Complete production requirements: speech needs a binding and takes must be 1–3.";
+      return i18n.t("storyboard:attrs.completeProductionRequirementsSpeechNeedsABindingAndTakesMustBe13", { defaultValue: "Complete production requirements: speech needs a binding and takes must be 1–3." });
     }
     if (
       parsed.data.speech_binding?.text &&
@@ -255,7 +258,7 @@ export function productionAuthoringBlocker(
             ? item.dialogue
             : undefined;
       if (typeof text === "string" && !text.trim()) {
-        return "Add the local speech line, or choose Speech mode None. The last saved binding is retained.";
+        return i18n.t("storyboard:attrs.addTheLocalSpeechLineOrChooseSpeechModeNone", { defaultValue: "Add the local speech line, or choose Speech mode None. The last saved binding is retained." });
       }
     }
   }
@@ -285,10 +288,10 @@ export function productionGenerationBlocker(
     }
     const parsed = productionRequirement.safeParse(production);
     if (!parsed.success) {
-      return "Complete the production requirements: speech needs a line or audio binding, and takes must be 1–3.";
+      return i18n.t("storyboard:attrs.completeTheProductionRequirementsSpeechNeedsALineOrAudioBinding", { defaultValue: "Complete the production requirements: speech needs a line or audio binding, and takes must be 1–3." });
     }
     if (production.speech_mode === "on_camera") {
-      return "On-camera speech is unavailable in this guided flow. Choose Off-camera or None.";
+      return i18n.t("storyboard:attrs.onCameraSpeechIsUnavailableInThisGuidedFlow", { defaultValue: "On-camera speech is unavailable in this guided flow. Choose Off-camera or None." });
     }
   }
   return undefined;

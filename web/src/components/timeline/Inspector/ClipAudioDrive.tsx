@@ -51,6 +51,8 @@ import {
 } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 import { BakedCurvePreview, type BakedCurvePoint } from "./BakedCurvePreview";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** The capability's own defaults, so an untouched form bakes what it would. */
 const DEFAULT_ATTACK_MS = 20;
@@ -58,6 +60,8 @@ const DEFAULT_RELEASE_MS = 150;
 
 interface PropertyPreset {
   label: string;
+  /** Full `ns:key` for the label; resolved at render. */
+  labelKey?: string;
   /** Where the curve rests and where it peaks, in the property's own units. */
   low: number;
   high: number;
@@ -76,6 +80,7 @@ const PROPERTY_PRESETS: Record<AudioDriveProperty, PropertyPreset> = {
   opacity: { label: "Opacity", low: 0.6, high: 1, scrub: { step: 0.01 } },
   offsetX: {
     label: "Position X",
+    labelKey: "timeline:attrs.positionX",
     low: -20,
     high: 20,
     unit: "px",
@@ -83,6 +88,7 @@ const PROPERTY_PRESETS: Record<AudioDriveProperty, PropertyPreset> = {
   },
   offsetY: {
     label: "Position Y",
+    labelKey: "timeline:attrs.positionY",
     low: -20,
     high: 20,
     unit: "px",
@@ -90,9 +96,17 @@ const PROPERTY_PRESETS: Record<AudioDriveProperty, PropertyPreset> = {
   }
 };
 
+/** Resolve a preset's label at render so zh lands (module table stays pure data). */
+const presetLabel = (property: AudioDriveProperty): string => {
+  const preset = PROPERTY_PRESETS[property];
+  return preset.labelKey
+    ? i18n.t(preset.labelKey, { defaultValue: preset.label })
+    : preset.label;
+};
+
 const PROPERTY_OPTIONS = AUDIO_DRIVE_PROPERTIES.map((property) => ({
   value: property,
-  label: PROPERTY_PRESETS[property].label
+  label: property
 }));
 
 const SCRUB_SENSITIVITY = { step: 0.05, min: 0.25, max: 4 };
@@ -178,6 +192,7 @@ interface ClipAudioDriveProps {
 }
 
 export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = usePersistedFold("audioDrive");
   const clips = useTimelineStore((s) => s.clips);
   const bakeAudioAnimation = useTimelineStore((s) => s.bakeAudioAnimation);
@@ -367,7 +382,7 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
       <CollapsibleSection
         title={
           <InspectorSectionTitle
-            title="Audio drive"
+            title={t("timeline:attrs.audioDrive", { defaultValue: "Audio drive" })}
             icon={<GraphicEqOutlinedIcon />}
           />
         }
@@ -382,9 +397,9 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
             </Caption>
           ) : (
             <>
-              <InspectorRow label="Audio">
+              <InspectorRow label={t("timeline:attrs.audio", { defaultValue: "Audio" })}>
                 <InspectorSelect
-                  label="Audio clip to measure"
+                  label={t("timeline:attrs.audioClipToMeasure", { defaultValue: "Audio clip to measure" })}
                   value={audioClipId}
                   options={audioOptions}
                   onChange={handleAudioClip}
@@ -392,17 +407,20 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                   grow
                 />
               </InspectorRow>
-              <InspectorRow label="Property">
+              <InspectorRow label={t("timeline:attrs.property", { defaultValue: "Property" })}>
                 <InspectorSelect
-                  label="Property to drive"
+                  label={t("timeline:attrs.propertyToDrive", { defaultValue: "Property to drive" })}
                   value={property}
-                  options={PROPERTY_OPTIONS}
+                  options={PROPERTY_OPTIONS.map((o) => ({
+                    ...o,
+                    label: presetLabel(o.value as AudioDriveProperty)
+                  }))}
                   onChange={handleProperty}
                   disabled={pending}
                   grow
                 />
               </InspectorRow>
-              <InspectorRow label="Shape">
+              <InspectorRow label={t("timeline:attrs.shape", { defaultValue: "Shape" })}>
                 <ToggleGroup
                   size="small"
                   segmented
@@ -410,13 +428,13 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                   value={mode}
                   onChange={handleMode}
                   disabled={pending}
-                  aria-label="Curve shape"
+                  aria-label={t("timeline:attrs.curveShape", { defaultValue: "Curve shape" })}
                 >
-                  <ToggleOption value="envelope">Envelope</ToggleOption>
-                  <ToggleOption value="beats">Beats</ToggleOption>
+                  <ToggleOption value="envelope">{t("timeline:attrs.envelope", { defaultValue: "Envelope" })}</ToggleOption>
+                  <ToggleOption value="beats">{t("timeline:attrs.beats", { defaultValue: "Beats" })}</ToggleOption>
                 </ToggleGroup>
               </InspectorRow>
-              <InspectorRow label="Range">
+              <InspectorRow label={t("timeline:attrs.range", { defaultValue: "Range" })}>
                 <InspectorPillInput
                   value={String(low)}
                   onCommit={handleLow}
@@ -424,7 +442,7 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                   disabled={pending}
                   minWidth={52}
                   scrub={preset.scrub}
-                  ariaLabel="Range quiet value"
+                  ariaLabel={t("timeline:attrs.rangeQuietValue", { defaultValue: "Range quiet value" })}
                 />
                 <InspectorPillInput
                   value={String(high)}
@@ -433,11 +451,11 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                   disabled={pending}
                   minWidth={52}
                   scrub={preset.scrub}
-                  ariaLabel="Range loud value"
+                  ariaLabel={t("timeline:attrs.rangeLoudValue", { defaultValue: "Range loud value" })}
                 />
               </InspectorRow>
               <InspectorSliderRow
-                label="Sensitivity"
+                label={t("timeline:attrs.sensitivity", { defaultValue: "Sensitivity" })}
                 value={sensitivity}
                 display={sensitivity.toFixed(2)}
                 min={SCRUB_SENSITIVITY.min}
@@ -447,34 +465,34 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                 onChange={handleSensitivity}
                 origin={1}
               />
-              <InspectorRow label="Attack">
+              <InspectorRow label={t("timeline:attrs.attack", { defaultValue: "Attack" })}>
                 <InspectorPillInput
                   value={String(attackMs)}
                   onCommit={handleAttack}
                   unit="ms"
                   disabled={pending}
                   scrub={SCRUB_MS}
-                  ariaLabel="Attack"
+                  ariaLabel={t("timeline:attrs.attack", { defaultValue: "Attack" })}
                 />
               </InspectorRow>
-              <InspectorRow label="Release">
+              <InspectorRow label={t("timeline:attrs.release", { defaultValue: "Release" })}>
                 <InspectorPillInput
                   value={String(releaseMs)}
                   onCommit={handleRelease}
                   unit="ms"
                   disabled={pending}
                   scrub={SCRUB_MS}
-                  ariaLabel="Release"
+                  ariaLabel={t("timeline:attrs.release", { defaultValue: "Release" })}
                 />
               </InspectorRow>
-              <InspectorRow label="Offset">
+              <InspectorRow label={t("timeline:attrs.offset", { defaultValue: "Offset" })}>
                 <InspectorPillInput
                   value={String(offsetMs)}
                   onCommit={handleOffset}
                   unit="ms"
                   disabled={pending}
                   scrub={SCRUB_OFFSET_MS}
-                  ariaLabel="Offset"
+                  ariaLabel={t("timeline:attrs.offset", { defaultValue: "Offset" })}
                 />
               </InspectorRow>
               <FlexRow align="center" gap={SPACING.sm}>
@@ -500,7 +518,7 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
               {previewPoints.length > 0 && (
                 <BakedCurvePreview
                   points={previewPoints}
-                  label={`${preset.label} from audio`}
+                  label={`${presetLabel(property)} from audio`}
                 />
               )}
             </>

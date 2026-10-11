@@ -5,6 +5,7 @@ import { useTheme } from "@mui/material/styles";
 import { memo, useCallback, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { i18n, useAppLanguage } from "../../i18n";
 import {
   creationProjectId,
   useWorkspaceTabsStore
@@ -26,6 +27,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useSectionWrap, SectionHeader } from "./dashboardChrome";
+import { useTranslation } from "react-i18next";
 
 /** Query key for the shipped example apps, shared with any invalidation. */
 export const EXAMPLE_APPS_QUERY_KEY = ["applications", "examples"] as const;
@@ -158,14 +160,18 @@ const ExampleAppCard = memo(function ExampleAppCard({
   installing,
   onInstall
 }: ExampleAppCardProps) {
+  const { t } = useTranslation();
   const [thumbFailed, setThumbFailed] = useState(false);
   const src = thumbSrc(app.thumbnailUrl);
   const workflows = app.workflows.length;
+  // The card body shows the localized name; the title must interpolate the
+  // same localized name, or zh tooltips read as mixed sentences (F-39).
+  const localName = t(`catalog:apps.${app.slug}.name`, { defaultValue: app.name });
   return (
     <button
       type="button"
       className={installing ? "app-card installing" : "app-card"}
-      title={`Add ${app.name} to your apps`}
+      title={t("home:apps.addTitle", { defaultValue: "Add {{name}} to your apps", name: localName })}
       aria-busy={installing}
       onClick={() => onInstall(app)}
     >
@@ -184,10 +190,22 @@ const ExampleAppCard = memo(function ExampleAppCard({
         )}
       </span>
       <span className="app-body">
-        <span className="app-name">{app.name}</span>
-        <span className="app-desc">{app.description}</span>
+        <span className="app-name">
+          {t(`catalog:apps.${app.slug}.name`, { defaultValue: app.name })}
+        </span>
+        <span className="app-desc">
+          {t(`catalog:apps.${app.slug}.description`, { defaultValue: app.description })}
+        </span>
         <span className="app-meta">
-          {workflows} workflow{workflows === 1 ? "" : "s"}
+          {t(
+            workflows === 1
+              ? "home:apps.workflowCountOne"
+              : "home:apps.workflowCountMany",
+            {
+              defaultValue: `${workflows} workflow${workflows === 1 ? "" : "s"}`,
+              count: String(workflows)
+            }
+          )}
         </span>
       </span>
     </button>
@@ -208,6 +226,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
   compact = false,
   onBrowseAll
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const queryClient = useQueryClient();
@@ -216,6 +235,8 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
     (state) => state.addNotification
   );
 
+  // Subscribe so catalog reads re-render on language change.
+  useAppLanguage();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: EXAMPLE_APPS_QUERY_KEY,
     queryFn: listExampleApps,
@@ -240,14 +261,14 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
       addNotification({
         type: "success",
         alert: true,
-        content: `Added "${created.name}" to your apps`
+        content: t("home:apps.added", { defaultValue: "Added \"{{name}}\" to your apps", name: created.name })
       });
     },
     onError: (error: unknown, app) => {
       addNotification({
         type: "error",
         alert: true,
-        content: `Couldn't add ${app.name}: ${error instanceof Error ? error.message : "Unknown error"}`
+        content: t("home:apps.addFailed", { defaultValue: "Couldn't add {{name}}: {{error}}", name: t(`catalog:apps.${app.slug}.name`, { defaultValue: app.name }), error: error instanceof Error ? error.message : t("editor:ui.unknownError", { defaultValue: "Unknown error" }) })
       });
     }
   });
@@ -262,34 +283,36 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
 
   const apps = data ?? [];
   const installingSlug = install.isPending ? install.variables?.slug : null;
-  const countLabel = `${apps.length} app${apps.length === 1 ? "" : "s"}`;
+  const countLabel = t(
+    apps.length === 1 ? "home:apps.countOne" : "home:apps.countMany",
+    { defaultValue: `${apps.length} app${apps.length === 1 ? "" : "s"}`, count: String(apps.length) }
+  );
   const visibleApps = compact ? apps.slice(0, 4) : apps;
 
   return (
     <section css={styles(theme, compact)} aria-labelledby="dashboard-example-apps-title">
       <div css={compact ? css({ maxWidth: "none", padding: 0 }) : sectionWrap}>
-        <SectionHeader title="Start from an app" count={countLabel}>
+        <SectionHeader title={t("home:apps.title", { defaultValue: "Start from an app" })} count={countLabel}>
           {compact && onBrowseAll && apps.length > visibleApps.length && (
             <EditorButton variant="text" density="compact" onClick={onBrowseAll}>
-              See all apps
+              {t("home:apps.seeAll", { defaultValue: "See all apps" })}
             </EditorButton>
           )}
         </SectionHeader>
         <p className="apps-lede">
-          One upload, a few choices, one result. Adding an app also adds the
-          workflows it runs, so you can open the graph behind any of them.
+          {t("home:apps.lede", { defaultValue: "One upload, a few choices, one result. Adding an app also adds the workflows it runs, so you can open the graph behind any of them." })}
         </p>
         {isLoading ? (
           <div className="apps-loading">
-            <LoadingSpinner size="medium" text="Loading apps" />
+            <LoadingSpinner size="medium" text={t("editor:ui.loadingApps")} />
           </div>
         ) : isError ? (
           <div className="apps-empty">
             <EmptyState
               variant="error"
-              title="Couldn't load apps"
-              description="Try again in a moment."
-              actionText="Retry"
+              title={t("editor:ui.couldntLoadApps", { defaultValue: "Couldn't load apps" })}
+              description={t("editor:ui.tryAgainInAMoment")}
+              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </div>
@@ -297,8 +320,8 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
           <div className="apps-empty">
             <EmptyState
               variant="no-data"
-              title="No apps available"
-              description="Example apps will appear here when the server ships them."
+              title={t("editor:ui.noAppsAvailable", { defaultValue: "No apps available" })}
+              description={t("editor:ui.exampleAppsWillAppearHereWhenTheServerShipsThem")}
             />
           </div>
         ) : (

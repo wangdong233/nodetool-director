@@ -25,6 +25,7 @@ import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
+import { useTranslation } from "react-i18next";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
@@ -35,10 +36,10 @@ import {
 export const DROP_SHADOW_NODE_TYPE = "lib.image.effects.DropShadow";
 
 const SLIDERS: ReadonlyArray<SliderSpec> = [
-  { name: "offset_x",    label: "Offset X",    min: -0.5, max: 0.5, step: 0.01, default: 0.02, bipolar: true },
-  { name: "offset_y",    label: "Offset Y",    min: -0.5, max: 0.5, step: 0.01, default: 0.02, bipolar: true },
-  { name: "blur_radius", label: "Radius (px)", min: 0,    max: 40,  step: 0.5,  default: 8,    bipolar: false },
-  { name: "intensity",   label: "Intensity",   min: 0,    max: 4,   step: 0.05, default: 0.6,  bipolar: false }
+  { name: "offset_x",    label: "Offset X",    labelKey: "timeline:attrs.offsetX", min: -0.5, max: 0.5, step: 0.01, default: 0.02, bipolar: true },
+  { name: "offset_y",    label: "Offset Y",    labelKey: "timeline:attrs.offsetY", min: -0.5, max: 0.5, step: 0.01, default: 0.02, bipolar: true },
+  { name: "blur_radius", label: "Radius (px)", labelKey: "editor:ui.radiusPx", min: 0,    max: 40,  step: 0.5,  default: 8,    bipolar: false },
+  { name: "intensity",   label: "Intensity",   labelKey: "editor:ui.intensity", min: 0,    max: 4,   step: 0.05, default: 0.6,  bipolar: false }
 ];
 
 const styles = (theme: Theme) =>
@@ -130,6 +131,7 @@ const DropShadowBodyInner: React.FC<DropShadowBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -177,7 +179,7 @@ const DropShadowBodyInner: React.FC<DropShadowBodyProps> = ({
       </div>
 
       <FlexRow className="color-row" align="center" justify="space-between">
-        <span className="color-label">Shadow Color</span>
+        <span className="color-label">{t("ui2:attrs.shadowColor", { defaultValue: "Shadow Color" })}</span>
         <ColorPicker
           color={shadowColor}
           onColorChange={handleColorChange}

@@ -16,6 +16,7 @@ import { useRecentAssetsStore } from "../../../stores/RecentAssetsStore";
 import { AssetMentionMenu } from "../../node_types/editing/promptComposer/AssetMentionMenu";
 import { useAssetMentionSearch } from "../../node_types/editing/promptComposer/useAssetMentionSearch";
 import { entityToUri } from "../../node_types/editing/promptComposer/promptTokens";
+import { i18n } from "../../../i18n";
 
 /** An active `@`-mention span in a textarea's value. */
 interface MentionTrigger {

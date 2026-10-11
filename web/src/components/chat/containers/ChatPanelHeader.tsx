@@ -22,6 +22,8 @@ import ThreadList from "../thread/ThreadList";
 import type { ThreadInfo } from "../types/thread.types";
 import { threadPreview } from "../utils/threadUtils";
 import { useWorkspaceTabsStore } from "../../../stores/WorkspaceTabsStore";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ChatPanelHeaderProps {
   /** Start a fresh chat. Panel-specific (the app builder re-binds its workflow). */
@@ -51,9 +53,10 @@ const ChatPanelHeader: React.FC<ChatPanelHeaderProps> = ({
   threadId,
   title,
   docsTopic = "agents",
-  docsLabel = "Chat & agents",
+  docsLabel = i18n.t("editor:chat.docsLabel", { defaultValue: "Chat & agents" }),
   projectId
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const threadsAnchorRef = useRef<HTMLButtonElement>(null);
@@ -78,7 +81,7 @@ const ChatPanelHeader: React.FC<ChatPanelHeaderProps> = ({
     (threadId: string) =>
       threads?.[threadId]
         ? threadPreview(threads[threadId].title, messageCache[threadId])
-        : "Empty conversation",
+        : t("editor:chat.emptyConversation", { defaultValue: "Empty conversation" }),
     [threads, messageCache]
   );
 
@@ -117,7 +120,7 @@ const ChatPanelHeader: React.FC<ChatPanelHeaderProps> = ({
         console.error("Failed to delete thread:", error);
         addNotification({
           type: "error",
-          content: "Could not delete the conversation. Please try again."
+          content: i18n.t("editor:chat.deleteFailed", { defaultValue: "Could not delete the conversation. Please try again." })
         });
       });
     },
@@ -158,18 +161,18 @@ const ChatPanelHeader: React.FC<ChatPanelHeaderProps> = ({
       <FlexRow align="center" gap={SPACING.micro}>
         <ToolbarIconButton
           onClick={onNewChat}
-          tooltip="New chat"
+          tooltip={t("editor:chat.newChat", { defaultValue: "New chat" })}
           icon={<AddIcon fontSize="small" />}
         />
         <ToolbarIconButton
           ref={threadsAnchorRef}
           onClick={() => setThreadsOpen(true)}
-          tooltip="Conversations"
+          tooltip={t("editor:chat.conversations", { defaultValue: "Conversations" })}
           icon={<ForumOutlinedIcon fontSize="small" />}
         />
         <ToolbarIconButton
           onClick={handleOpenAsTab}
-          tooltip="Open in a workspace tab"
+          tooltip={t("editor:chat.openInTab", { defaultValue: "Open in a workspace tab" })}
           icon={<OpenInNewIcon fontSize="small" />}
         />
         <DocsHelpLink topic={docsTopic} label={docsLabel} />

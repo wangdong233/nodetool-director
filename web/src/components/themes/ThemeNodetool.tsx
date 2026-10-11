@@ -1,3 +1,4 @@
+import { zhCN } from "@mui/material/locale";
 import { createTheme } from "@mui/material/styles";
 import type {} from "@mui/material/themeCssVarsAugmentation";
 import { paletteDark } from "./paletteDark";
@@ -24,7 +25,8 @@ import "@fontsource/jetbrains-mono/latin-600.css";
 
 // Theme augmentation moved to a single global file `theme.d.ts` to avoid duplication
 
-const ThemeNodetool = createTheme({
+const buildTheme = (locale?: typeof zhCN, fontFamilyOverride?: string) => {
+  const options: Parameters<typeof createTheme>[0] = {
   cssVariables: {
     cssVarPrefix: "",
     colorSchemeSelector: "class"
@@ -91,7 +93,9 @@ const ThemeNodetool = createTheme({
     }
   },
   typography: {
-    fontFamily: "'Inter', sans-serif",
+    // fontFamilyOverride carries the CJK fallback chain in the zh variant:
+    // Inter has no CJK glyphs — an implicit OS pick drifts the weights.
+    fontFamily: fontFamilyOverride ?? "'Inter', sans-serif",
     fontSize: 15
   },
   spacing: 4,
@@ -395,6 +399,21 @@ const ThemeNodetool = createTheme({
     },
     ...editorControlsComponents
   }
-});
+  };
+  // createTheme's locale overload needs a concrete object — split the calls.
+  return locale ? createTheme(options, locale) : createTheme(options);
+};
+
+
+// i18n (director/93): the zh-CN locale reuses the SAME option literal via the
+// builder — every custom field (rounded/editor/virtualScroll/…) carries over;
+// only MUI's zhCN component strings and the CJK font chain differ.
+const CJK_FONT_CHAIN =
+  "'Inter', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', Arial, sans-serif";
+
+export const ThemeNodetool = buildTheme();
+
+export const ThemeNodetoolZhCN = buildTheme(zhCN, CJK_FONT_CHAIN);
 
 export default ThemeNodetool;
+

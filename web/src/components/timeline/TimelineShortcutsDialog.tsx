@@ -27,6 +27,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useSettingsStore } from "../../stores/SettingsStore";
+import { i18n } from "../../i18n";
 import {
   bindingKeys,
   TIMELINE_KEYBOARD_PRESET_LABELS,
@@ -35,6 +36,7 @@ import {
   type TimelineAction,
   type TimelineKeyboardPreset
 } from "./timelineKeymap";
+import { useTranslation } from "react-i18next";
 
 interface Row {
   /** The action whose bindings fill the key column, or fixed keys for a
@@ -146,6 +148,83 @@ const GROUPS: Group[] = [
   }
 ];
 
+// Labels live in a module-level table (frozen English); resolve per call
+// so the zh bundle lands (r21 F-1 pattern). Unknown labels pass through.
+const scLabel = (label: string): string => {
+  const map: Record<string, string> = SHORTCUT_SLUGS;
+  const slug = map[label];
+  return slug ? i18n.t(`timeline:shortcuts.${slug}`, { defaultValue: label }) : label;
+};
+const SHORTCUT_SLUGS: Record<string, string> = {
+  "Tools": "tools",
+  "Editing": "editing",
+  "Clipboard": "clipboard",
+  "Move": "move",
+  "Playback": "playback",
+  "Tracks": "tracks",
+  "View": "view",
+  "Select": "select",
+  "Help": "help",
+  "Panels": "panels",
+  "Keyframes & source": "keyframesSource",
+  "Zoom & view": "zoomView",
+  "History": "history",
+  "Select tool": "selectTool",
+  "Cut (blade) tool": "cutBladeTool",
+  "Toggle snapping": "toggleSnapping",
+  "Clear selection · back to Select": "clearSelectionBackToSelect",
+  "Split selected clips at playhead": "splitSelectedClipsAtPlayhead",
+  "Cut all tracks at playhead": "cutAllTracksAtPlayhead",
+  "Delete selected clips": "deleteSelectedClips",
+  "Ripple delete (close the gap)": "rippleDeleteCloseTheGap",
+  "Roll the cut with its neighbour": "rollTheCutWithItsNeighbour",
+  "Select the edit point": "selectTheEditPoint",
+  "Extend the edit point to the playhead": "extendTheEditPointToThePlayhead",
+  "Trim edit point one frame back": "trimEditPointOneFrameBack",
+  "Trim edit point one frame on": "trimEditPointOneFrameOn",
+  "Trim edit point ten frames back": "trimEditPointTenFramesBack",
+  "Trim edit point ten frames on": "trimEditPointTenFramesOn",
+  "Duplicate (after each source)": "duplicateAfterEachSource",
+  "Duplicate with a 1 s gap": "duplicateWithA1SGap",
+  "Cross-fade into selected clips": "cross-fadeIntoSelectedClips",
+  "Fade selected clips in and out": "fadeSelectedClipsInAndOut",
+  "Select all clips": "selectAllClips",
+  "Copy selected clips": "copySelectedClips",
+  "Cut selected clips": "cutSelectedClips",
+  "Paste at playhead": "pasteAtPlayhead",
+  "Nudge one frame back": "nudgeOneFrameBack",
+  "Nudge one frame on": "nudgeOneFrameOn",
+  "Nudge one second back": "nudgeOneSecondBack",
+  "Nudge one second on": "nudgeOneSecondOn",
+  "Disable snapping while moving or trimming": "disableSnappingWhileMovingOrTrimming",
+  "Insert on drop (push later clips right)": "insertOnDropPushLaterClipsRight",
+  "Play / pause": "playPause",
+  "Step back one frame": "stepBackOneFrame",
+  "Step forward one frame": "stepForwardOneFrame",
+  "Shuttle backwards (again: faster)": "shuttleBackwardsAgain:Faster",
+  "Stop shuttle": "stopShuttle",
+  "Shuttle forwards (again: faster)": "shuttleForwardsAgain:Faster",
+  "Mark in": "markIn",
+  "Mark out": "markOut",
+  "Clear in and out": "clearInAndOut",
+  "Previous cut": "previousCut",
+  "Next cut": "nextCut",
+  "Add marker at playhead": "addMarkerAtPlayhead",
+  "Append source range to the end": "appendSourceRangeToTheEnd",
+  "Insert source range at playhead": "insertSourceRangeAtPlayhead",
+  "Overwrite with source range at playhead": "overwriteWithSourceRangeAtPlayhead",
+  "Keyframe the selected clip at the playhead": "keyframeTheSelectedClipAtThePlayhead",
+  "Next keyframe": "nextKeyframe",
+  "Previous keyframe": "previousKeyframe",
+  "Next marker": "nextMarker",
+  "Previous marker": "previousMarker",
+  "Redo": "redo",
+  "Undo": "undo",
+  "Zoom in": "zoomIn",
+  "Zoom out": "zoomOut",
+  "Zoom to fit content": "zoomToFitContent",
+};
+
 const groupStyles = css({
   minWidth: 0
 });
@@ -188,7 +267,7 @@ const ShortcutRow: React.FC<{ row: Row; preset: TimelineKeyboardPreset }> = ({
   return (
     <div css={rowStyles(theme)}>
       <Text size="small" sx={{ minWidth: 0 }}>
-        {row.label}
+        {scLabel(row.label)}
       </Text>
       <div css={keysCellStyles}>
         {combos.map((keys, i) => (
@@ -210,6 +289,7 @@ interface TimelineShortcutsDialogProps {
 /** Two-column masonry of grouped shortcut rows inside a standard Dialog. */
 export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
   memo(({ open, onClose }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const preset = useSettingsStore(
       (s) => s.settings.timelineKeyboardPreset
@@ -229,17 +309,17 @@ export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
       <Dialog
         open={open}
         onClose={onClose}
-        title="Keyboard shortcuts"
+        title={t("timeline:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
         minWidth="min(680px, 100vw - 32px)"
       >
         <FlexRow align="center" gap={1} sx={{ pb: 1 }}>
-          <Caption sx={groupTitleSx}>Layout</Caption>
+          <Caption sx={groupTitleSx}>{t("timeline:attrs.layout", { defaultValue: "Layout" })}</Caption>
           <ToggleGroup
             value={preset}
             exclusive
             onChange={handlePreset}
             compact
-            aria-label="Keyboard layout"
+            aria-label={t("timeline:attrs.keyboardLayout", { defaultValue: "Keyboard layout" })}
           >
             {TIMELINE_KEYBOARD_PRESETS.map((p) => (
               <ToggleOption key={p} value={p}>
@@ -259,7 +339,7 @@ export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
         >
           {GROUPS.map((group) => (
             <FlexColumn key={group.title} gap={0.5} css={groupStyles}>
-              <Caption sx={groupTitleSx}>{group.title}</Caption>
+              <Caption sx={groupTitleSx}>{scLabel(group.title)}</Caption>
               {group.rows.map((row) => (
                 <ShortcutRow key={row.label} row={row} preset={preset} />
               ))}
@@ -272,7 +352,7 @@ export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
           gap={0.5}
           sx={{ pt: 2, mt: 1, borderTop: `1px solid ${theme.vars.palette.divider}` }}
         >
-          <Caption sx={{ opacity: 0.7 }}>Press</Caption>
+          <Caption sx={{ opacity: 0.7 }}>{t("ui2:attrs.press", { defaultValue: "Press" })}</Caption>
           <ShortcutHint shortcut={["?"]} />
           <Caption sx={{ opacity: 0.7 }}>
             any time to toggle this panel · Ctrl also responds to ⌘ on macOS

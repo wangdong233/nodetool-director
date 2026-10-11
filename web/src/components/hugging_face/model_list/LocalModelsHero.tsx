@@ -17,6 +17,7 @@ import {
 import type { UnifiedModel } from "../../../stores/ApiTypes";
 import { formatBytes } from "../../../utils/modelFormatting";
 import { ModelStat } from "../ModelStat";
+import { useTranslation } from "react-i18next";
 
 const DOCS_URL = "https://docs.nodetool.ai/models-and-providers";
 
@@ -26,6 +27,7 @@ interface LocalModelsHeroProps {
 
 /** What this machine currently holds: how many models, and how much disk. */
 const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const stats = useMemo(() => {
@@ -65,18 +67,18 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
             <ComputerIcon sx={{ fontSize: 20 }} />
           </FlexRow>
           <Text size="normal" weight={600}>
-            Local Models
+            {t("editor:ui.localModelsTitle", { defaultValue: "Local Models" })}
           </Text>
         </FlexRow>
 
         <Caption sx={{ opacity: 0.7, lineHeight: 1.5 }}>
-          Run models locally for privacy, speed, and offline access.
+          {t("editor:ui.runModelsLocallyForPrivacySpeedAndOfflineAccess", { defaultValue: "Run models locally for privacy, speed, and offline access." })}
         </Caption>
 
         <FlexRow gap={SPACING.xl} align="flex-start">
           <ModelStat
             value={String(stats.count)}
-            label="Installed"
+            label={t("editor:ui.installed", { defaultValue: "Installed" })}
             icon={
               <CheckCircleOutlineIcon
                 sx={{ fontSize: 14, color: theme.vars.palette.success.main }}
@@ -85,7 +87,7 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
           />
           <ModelStat
             value={stats.size}
-            label="On disk"
+            label={t("editor:ui.onDisk", { defaultValue: "On disk" })}
             icon={
               <StorageOutlinedIcon
                 sx={{ fontSize: 14, color: theme.vars.palette.text.secondary }}
@@ -102,7 +104,7 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
           endIcon={<OpenInNewIcon sx={{ fontSize: 14 }} />}
           onClick={() => window.open(DOCS_URL, "_blank", "noopener,noreferrer")}
         >
-          Learn more
+          {t("editor:ui.learnMore", { defaultValue: "Learn more" })}
         </EditorButton>
       </FlexColumn>
     </Card>

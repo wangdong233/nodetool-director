@@ -19,6 +19,7 @@ import {
 import { useNotificationStore } from "../stores/NotificationStore";
 import { assetToClip } from "../components/timeline/dnd/assetToClipAdapter";
 import { newDocumentId } from "../lib/newDocumentId";
+import { i18n } from "../i18n";
 
 export const useEditVideoAsset = (
   projectId?: string
@@ -67,7 +68,7 @@ export const useEditVideoAsset = (
         console.error("Failed to open video in timeline editor", error);
         addNotification({
           type: "error",
-          content: "Failed to open video in the timeline editor",
+          content: i18n.t("editor:ui.failedToOpenVideoInTimelineEditor", { defaultValue: "Failed to open video in the timeline editor" }),
           alert: true
         });
       }

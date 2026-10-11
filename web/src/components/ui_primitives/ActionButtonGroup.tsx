@@ -8,8 +8,8 @@
  * @example
  * // Simple horizontal group
  * <ActionButtonGroup>
- *   <StateIconButton icon={<SaveIcon />} onClick={handleSave} tooltip="Save" />
- *   <StateIconButton icon={<DeleteIcon />} onClick={handleDelete} tooltip="Delete" />
+ *   <StateIconButton icon={<SaveIcon />} onClick={handleSave} tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })} />
+ *   <StateIconButton icon={<DeleteIcon />} onClick={handleDelete} tooltip={i18n.t("common:action.delete", { defaultValue: "Delete" })} />
  * </ActionButtonGroup>
  *
  * @example

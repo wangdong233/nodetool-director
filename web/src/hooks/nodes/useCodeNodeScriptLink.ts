@@ -28,6 +28,7 @@ import type {
   NodeData
 } from "../../stores/NodeData";
 import { isNumber, isObjectLike, isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 type JsScriptPort = jsScripts.JsScriptPort;
 
@@ -98,6 +99,7 @@ export function useCodeNodeScriptLink(
   nodeId: string,
   data: NodeData
 ): CodeNodeScriptLinkState {
+  const { t } = useTranslation();
   const { findNode, updateNodeData } = useNodes(
     (state) => ({
       findNode: state.findNode,
@@ -145,7 +147,7 @@ export function useCodeNodeScriptLink(
       }
       const created = await createVersion.mutateAsync({
         id: scriptId,
-        name: "Linked from a Code node"
+        name: t("editor:ui.linkedFromCodeNode", { defaultValue: "Linked from a Code node" })
       });
       return created.version;
     },

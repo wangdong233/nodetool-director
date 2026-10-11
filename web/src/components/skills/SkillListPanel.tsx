@@ -19,14 +19,17 @@ import { newDocumentId } from "../../lib/newDocumentId";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import type { SkillListItem } from "@nodetool-ai/protocol/api-schemas/skills.js";
 import ReportBugButton from "../support/ReportBugButton";
+import { i18n } from "../../i18n";
 import {
   DocumentListPanel,
   ListPanelItem,
   ToolbarIconButton,
   Tooltip
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 export const CreateSkillButton = () => {
+  const { t } = useTranslation();
   const createSkill = useCreateSkill();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -38,7 +41,7 @@ export const CreateSkillButton = () => {
       const created = await createSkill.mutateAsync({
         id: newDocumentId(),
         name: `skill-${Date.now().toString(36)}`,
-        description: "A reusable skill for the NodeTool agent.",
+        description: i18n.t("editor:ui.reusableSkillDescription", { defaultValue: "A reusable skill for the NodeTool agent." }),
         content: "# New skill\n\nDescribe what this skill does and when the agent should use it."
       });
       openTab({
@@ -60,9 +63,9 @@ export const CreateSkillButton = () => {
   }, [handleCreate]);
 
   return (
-    <Tooltip title="New skill" placement="right-start">
+    <Tooltip title={t("editor:ui.newSkill", { defaultValue: "New skill" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New skill"
+        ariaLabel={t("editor:ui.newSkill", { defaultValue: "New skill" })}
         onClick={handleCreateClick}
         disabled={createSkill.isPending}
         tabIndex={-1}
@@ -83,6 +86,8 @@ const isSystemSkill = (id: string): boolean =>
   id.startsWith(SYSTEM_SKILL_ID_PREFIX);
 
 const SkillListPanel = () => {
+  // Language anchor: the panel chrome (nouns, empty copy) renders through `t`.
+  const { t } = useTranslation();
   // Shipped skills are listed beside the user's own. They read the same in the
   // agent's catalog, so hiding them here made the panel disagree with what the
   // agent could actually load.
@@ -107,14 +112,21 @@ const SkillListPanel = () => {
         // A shipped skill opens as a read: the editor's save and autosave would
         // fail against a document with no row behind it.
         mode: isSystemSkill(id) ? "view" : "edit",
-        title: name || "Untitled skill"
+        // The stored title keeps the raw slug for shipped skills: the tab bar
+        // resolves the zh overlay from the `system:<name>` ref at render time
+        // (tabDisplayTitle), so the stored snapshot stays language-neutral.
+        title: isSystemSkill(id)
+          ? id.slice(SYSTEM_SKILL_ID_PREFIX.length)
+          : name || "Untitled skill"
       });
       if (!location.pathname.startsWith("/workspace")) {
         navigate("/workspace");
       }
-      setVisibility(false);
+      // The list stays open on open (user ruling 2026-10-11): browsing
+      // several skills in a row needs the list visible; the active row
+      // highlights via activeSkillId. Only Create collapses the panel.
     },
-    [location.pathname, navigate, openTab, setVisibility]
+    [location.pathname, navigate, openTab]
   );
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -196,17 +208,44 @@ const SkillListPanel = () => {
   }, [itemToDelete, deleteSkill]);
   const handleCancelDelete = useCallback(() => setItemToDelete(null), []);
   const handleCancelRename = useCallback(() => setEditingId(null), []);
+
+  // Bilingual sidebar search (nodeSearchAlias precedent): the English slug
+  // keeps its original index weight, and the zh display name joins as an
+  // alias so 节奏 finds beat-sync-editing while "beat" still does. Only
+  // shipped skills own an overlay entry; a user skill that happens to share
+  // a slug is the user's data and searches on its own name only. Resolved at
+  // call time — DocumentListPanel re-runs the filter on languageVersion.
+  const getSkillSearchAlias = useCallback((skill: SkillListItem): string => {
+    if (!skill.system) {
+      return "";
+    }
+    const localized = i18n.t(`catalog:skills.${skill.name}.name`, {
+      defaultValue: ""
+    });
+    return localized && localized !== skill.name ? localized : "";
+  }, []);
+
   const renderSkill = useCallback(
     (skill: SkillListItem) => (
       <ListPanelItem
         id={skill.id}
-        name={skill.name}
-        fallbackName="Untitled skill"
-        renameLabel="Skill name"
+        // Display-layer localization (r31a): a shipped skill's name resolves
+        // through the zh catalog overlay; the row still opens and renames by
+        // the raw slug underneath. A user skill that happens to share a slug
+        // is the user's data and renders verbatim.
+        name={
+          skill.system
+            ? i18n.t(`catalog:skills.${skill.name}.name`, {
+                defaultValue: skill.name
+              })
+            : skill.name
+        }
+        fallbackName={i18n.t("editor:ui.untitledSkill", { defaultValue: "Untitled skill" })}
+        renameLabel={i18n.t("editor:ui.skillName", { defaultValue: "Skill name" })}
         // A lock, and "Built in" under the name: enough to tell the two apart
         // at a glance without a second list or a heading.
         icon={skill.system ? LockOutlinedIcon : AutoAwesomeIcon}
-        secondary={skill.system ? "Built in" : undefined}
+        secondary={skill.system ? i18n.t("editor:ui.builtIn", { defaultValue: "Built in" }) : undefined}
         active={skill.id === activeSkillId}
         editing={!skill.system && skill.id === editingId}
         onOpen={handleOpen}
@@ -227,8 +266,8 @@ const SkillListPanel = () => {
 
   return (
     <DocumentListPanel
-      singular="skill"
-      plural="skills"
+      singular={t("editor:ui.skillNoun", { defaultValue: "skill" })}
+      plural={t("editor:ui.skillsNoun", { defaultValue: "skills" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
@@ -243,7 +282,8 @@ const SkillListPanel = () => {
           }}
         />
       }
-      emptyDescription="Create a skill from the workspace New menu."
+      emptyDescription={t("editor:ui.createASkillFromTheWorkspaceNewMenu", { defaultValue: "Create a skill from the workspace New menu." })}
+      getSearchAlias={getSkillSearchAlias}
       deleteTarget={itemToDelete}
       onCancelDelete={handleCancelDelete}
       onConfirmDelete={handleConfirmDelete}

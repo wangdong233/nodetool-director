@@ -26,6 +26,7 @@ import {
 import useModelCalloutStore from "../../stores/ModelCalloutStore";
 import { isModelEmpty } from "../../utils/findMissingModelNodes";
 import ModelSetupCallout from "./ModelSetupCallout";
+import { useTranslation } from "react-i18next";
 
 const highlightBlink = keyframes({
   "0%, 100%": {
@@ -97,6 +98,7 @@ const PropertyField: React.FC<PropertyFieldProps> = ({
   conditionalUnavailable = false,
   onValueChange
 }) => {
+  const { t } = useTranslation();
   const { connectType, connectDirection, connectNodeId } = useConnectionStore(
     useShallow((state) => ({
       connectType: state.connectType,
@@ -235,7 +237,7 @@ const PropertyField: React.FC<PropertyFieldProps> = ({
             handleTooltipPosition="left"
           />
           <Caption size="smaller" color="muted">
-            Unavailable for the selected model; disconnect to hide.
+            {t("editor:ui.unavailableForTheSelectedModelDisconnectToHide")}
           </Caption>
         </div>
       ) : showFields ? (

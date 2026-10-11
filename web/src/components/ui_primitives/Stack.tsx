@@ -52,7 +52,7 @@ const elementTypeName = (type: React.ReactElement["type"]): string => {
  * @example
  * // Full width with padding
  * <Stack spacing={2} padding={3} fullWidth>
- *   <TextField label="Name" />
+ *   <TextField label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })} />
  *   <TextField label="Email" />
  * </Stack>
  */

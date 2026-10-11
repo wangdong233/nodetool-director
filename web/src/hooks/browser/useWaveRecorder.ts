@@ -3,6 +3,7 @@ import WaveSurfer from "wavesurfer.js";
 import RecordPlugin from "wavesurfer.js/dist/plugins/record";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { Asset } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 export type WaveRecorderProps = {
   onChange: (asset: Asset) => void;
@@ -53,7 +54,7 @@ export function useWaveRecorder({
 
   const fetchAudioDeviceNames = useCallback(() => {
     if (!navigator.mediaDevices) {
-      setError("No media devices available");
+      setError(i18n.t("editor:ui.noMediaDevicesAvailable", { defaultValue: "No media devices available" }));
       return;
     }
     console.info("Fetching audio devices");
@@ -73,7 +74,7 @@ export function useWaveRecorder({
       })
       .then((devices) => {
         if (!devices) {
-          setError("No devices found");
+          setError(i18n.t("editor:ui.noDevicesFound", { defaultValue: "No devices found" }));
           return;
         }
         const audioInputs = devices.filter(
@@ -128,7 +129,7 @@ export function useWaveRecorder({
         });
         if (audioInputs.length === 0) {
           setTimeout(() => {
-            setError("No audio input devices found");
+            setError(i18n.t("editor:ui.noAudioInputDevicesFound", { defaultValue: "No audio input devices found" }));
           }, 2000);
         }
       })

@@ -14,6 +14,7 @@ import { useTimelineStoreApi } from "../../stores/timeline/TimelineStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 interface ProjectSettingsPatch {
   fps?: number;
@@ -58,7 +59,7 @@ export function useTimelineProjectSettings(): UseTimelineProjectSettingsResult {
       } catch (error) {
         console.error("Timeline project settings save failed:", error);
         useNotificationStore.getState().addNotification({
-          content: "Could not update project settings — please try again.",
+          content: i18n.t("timeline:attrs.couldNotUpdateProjectSettings", { defaultValue: "Could not update project settings — please try again." }),
           type: "error",
           alert: true,
           dedupeKey: "timeline-settings-failed",

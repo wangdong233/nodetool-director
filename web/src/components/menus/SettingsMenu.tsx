@@ -23,6 +23,8 @@ import {
   SPACING,
   DocsHelpLink, getSpacingPx
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
+import { LanguageSetting } from "../settings/LanguageSetting";
 import type { DocsTopic } from "../../config/docsLinks";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { isLocalhost, isElectron } from "../../lib/env";
@@ -58,18 +60,22 @@ import { isFunction } from "../../utils/typePredicates";
 import { NumberSetting } from "./NumberSetting";
 import StorageHistorySettings from "../settings/StorageHistorySettings";
 import {
-  SETTINGS_TAB_ITEMS,
+  settingsTabItems,
   matchesSearch,
   otherMatchingTabs,
   settingsTabLabel,
   tabHasMatches
 } from "./settingsSearch";
+import { useTranslation } from "react-i18next";
 
 const settingsDocsTopic = (section: SettingsSection): DocsTopic =>
   section === "providers" ? "providers" : "configuration";
 
 const settingsDocsLabel = (section: SettingsSection): string =>
-  section === "providers" ? "Models & providers" : "Configuration";
+  i18n.t(
+    section === "providers" ? "nav:settings.docsProviders" : "nav:settings.docsConfig",
+    { defaultValue: section === "providers" ? "Models & providers" : "Configuration" }
+  );
 
 const UPDATE_CHANNEL_OPTIONS = [
   { value: "latest", label: "Stable" },
@@ -162,6 +168,7 @@ const SearchItem = React.memo(function SearchItem({
 });
 
 function SettingsPage() {
+  const { t } = useTranslation();
   const section = useSettingsPageStore((state) => state.section);
   const setSection = useSettingsPageStore((state) => state.setSection);
   const session = useAuth((state) => state.session);
@@ -283,7 +290,7 @@ function SettingsPage() {
       addNotification({
         type: "error",
         alert: true,
-        content: "Failed to save automatic update preference."
+        content: i18n.t("editor:notify.saveUpdatePrefFailed", { defaultValue: "Failed to save automatic update preference." })
       });
     });
   }, [addNotification, autoUpdatesEnabled, desktopUpdateSettingsApi, supportsDesktopUpdateSettings]);
@@ -303,7 +310,7 @@ function SettingsPage() {
         addNotification({
           type: "error",
           alert: true,
-          content: "Failed to save update channel preference."
+          content: i18n.t("editor:notify.saveChannelFailed", { defaultValue: "Failed to save update channel preference." })
         });
       });
   }, [addNotification, desktopUpdateSettingsApi, supportsDesktopUpdateSettings, updateChannel]);
@@ -392,14 +399,14 @@ function SettingsPage() {
         addNotification({
           type: "info",
           alert: true,
-          content: "Nodetool API Token copied to Clipboard!"
+          content: t("editor:notify.tokenCopied", { defaultValue: "Nodetool API Token copied to Clipboard!" })
         });
       } catch (error) {
         console.error("Failed to copy to clipboard:", error);
         addNotification({
           type: "error",
           alert: true,
-          content: "Failed to copy token to clipboard"
+          content: t("editor:notify.tokenCopyFailed", { defaultValue: "Failed to copy token to clipboard" })
         });
       }
     }
@@ -440,27 +447,46 @@ function SettingsPage() {
     });
   };
 
+  const t18 = (key: string, fallback: string) =>
+    t(`settings:general.${key}`, { defaultValue: fallback });
+  // Option enum labels localize through the shared opts.* namespace keyed by
+  // the option value; TIME_FORMAT (12h/24h) has no catalog entries and falls
+  // back to its constant label.
+  // OWNERSHIP: the shared value-keyed namespace is reserved for the five
+  // enums below whose value sets are disjoint (including the bare numeric
+  // autosave intervals). A new Select enum whose values could collide with
+  // an existing one (e.g. another plain number) must NOT join this namespace —
+  // give it a per-field sub-object (opts.<fieldName>.<value>) instead.
+  const localizedOptions = <T extends string | number>(
+    options: readonly { value: T; label: string }[]
+  ): { value: T; label: string }[] =>
+    options.map((o) => ({
+      value: o.value,
+      label: t(`settings:general.opts.${String(o.value)}`, {
+        defaultValue: o.label
+      })
+    }));
   const generalSidebarSections = [
     {
-      category: "Workspace",
+      category: t18("catWorkspace", "Workspace"),
       items: [
-        { id: "editor", label: "Editor" },
-        ...(isElectron ? [{ id: "updates", label: "Updates" }] : []),
-        ...(isElectron ? [{ id: "vaults", label: "Vaults" }] : []),
-        { id: "appearance", label: "Appearance" }
+        { id: "editor", label: t18("secEditor", "Editor") },
+        ...(isElectron ? [{ id: "updates", label: t18("secUpdates", "Updates") }] : []),
+        ...(isElectron ? [{ id: "vaults", label: t18("secVaults", "Vaults") }] : []),
+        { id: "appearance", label: t18("secAppearance", "Appearance") }
       ]
     },
     {
-      category: "Workflow",
+      category: t18("catWorkflow", "Workflow"),
       items: [
-        { id: "execution", label: "Execution" },
-        { id: "canvas-navigation", label: "Canvas" },
-        { id: "default-models", label: "Default Models" }
+        { id: "execution", label: t18("secExecution", "Execution") },
+        { id: "canvas-navigation", label: t18("secCanvas", "Canvas") },
+        { id: "default-models", label: t18("secDefaultModels", "Default Models") }
       ]
     },
     {
-      category: "History",
-      items: [{ id: "autosave", label: "Autosave" }]
+      category: t18("catHistory", "History"),
+      items: [{ id: "autosave", label: t18("secAutosave", "Autosave") }]
     }
   ];
 
@@ -477,21 +503,23 @@ function SettingsPage() {
   const integrationsSidebarSections = useMemo(() => {
     const configItems = [
       ...getDisplayedSettingGroups(remoteSettings ?? []),
-      { id: "folders", label: "Folders" }
+      { id: "folders", label: "Folders", labelKey: "folders" }
     ];
     return [
-      { category: "Configuration", items: configItems },
+      { category: "Configuration", categoryKey: "intCatConfiguration", items: configItems },
       {
         category: "Accounts",
-        items: [{ id: "connected-accounts", label: "Connected Accounts" }]
+        categoryKey: "intCatAccounts",
+        items: [{ id: "connected-accounts", label: "Connected Accounts", labelKey: "connectedAccounts" }]
       },
       ...(isLocalhost
         ? [
             {
               category: "Servers",
+              categoryKey: "intCatServers",
               items: [
-                { id: "mcp-integration", label: "MCP Servers" },
-                { id: "browser-extension", label: "Browser Extension" }
+                { id: "mcp-integration", label: t("editor:ui.mcpServers", { defaultValue: "MCP Servers" }) },
+                { id: "browser-extension", label: t("editor:ui.browserExtension", { defaultValue: "Browser Extension" }) }
               ]
             }
           ]
@@ -500,14 +528,15 @@ function SettingsPage() {
         ? [
             {
               category: "Credentials",
+              categoryKey: "intCatCredentials",
               items: [
-                { id: "nodetool-api-token", label: "Nodetool API Token" }
+                { id: "nodetool-api-token", label: "Nodetool API Token", labelKey: "nodetoolApiToken" }
               ]
             }
           ]
         : [])
     ];
-  }, [remoteSettings, session?.access_token]);
+  }, [t, remoteSettings, session?.access_token]);
 
   const sidebarSections =
     section === "general"
@@ -581,7 +610,7 @@ function SettingsPage() {
         <header className="settings-page-header">
           <div className="settings-page-header__titles">
             <div className="settings-page-header__heading">
-              <h1 className="settings-page-header__title">Settings</h1>
+              <h1 className="settings-page-header__title">{t("nav:settings.title")}</h1>
               <DocsHelpLink
                 topic={settingsDocsTopic(section)}
                 label={settingsDocsLabel(section)}
@@ -590,13 +619,13 @@ function SettingsPage() {
           </div>
           <div className="settings-page-header__search">
             <SearchInput
-              placeholder="Search settings..."
+              placeholder={t("settings:search.placeholder")}
               value={searchTerm}
               onChange={setSearchTerm}
               size="medium"
               fullWidth
               showClear
-              ariaLabel="Search settings"
+              ariaLabel={t("settings:search.placeholder")}
             />
           </div>
         </header>
@@ -605,8 +634,8 @@ function SettingsPage() {
             <div className="sticky-header">
               <TabGroup
                 className="settings-tabs"
-                aria-label="settings tabs"
-                tabs={[...SETTINGS_TAB_ITEMS]}
+                aria-label={t("settings:search.tabsLabel")}
+                tabs={[...settingsTabItems()]}
                 value={section}
                 onChange={handleSectionChange}
                 variant={isMobile ? "scrollable" : "standard"}
@@ -633,13 +662,13 @@ function SettingsPage() {
                   <div className="settings-search-alts">
                     {!currentTabHasMatches && (
                       <Caption>
-                        No matches in {settingsTabLabel(section)}.
+                        {t("settings:search.noMatchesIn", { label: settingsTabLabel(section) })}
                       </Caption>
                     )}
                     {matchingOtherTabs.length > 0 && (
                       <>
                         <Caption>
-                          {currentTabHasMatches ? "Also in" : "See"}
+                          {currentTabHasMatches ? t("settings:search.alsoIn") : t("settings:search.see")}
                         </Caption>
                         {matchingOtherTabs.map((tab) => (
                           <TextLink
@@ -658,24 +687,40 @@ function SettingsPage() {
                 <TabPanel section="general" current={section}>
                   <div className="general-settings">
                     <div className="settings-section">
+                      {/* SearchItem is load-bearing visibility: the section
+                          collapse rule hides any .settings-section without a
+                          .settings-item descendant — without this wrapper the
+                          language picker renders display:none. */}
+                      <SearchItem
+                        search={search}
+                        keywords="language english chinese locale interface 简体中文"
+                      >
+                        <LanguageSetting />
+                      </SearchItem>
+                    </div>
+                    <div className="settings-section">
                       <Text size="big" id="editor" className="settings-heading">
-                        Editor
+                        {t18("secEditor", "Editor")}
                       </Text>
                       <SearchItem
                         search={search}
                         keywords="editor workspace select nodes on drag selection"
                       >
                         <LabeledSwitch
-                          label="Select Nodes On Drag"
+                          label={t18("selectNodesOnDrag", "Select Nodes On Drag")}
                           checked={!!settings.selectNodesOnDrag}
                           onChange={handleSelectNodesOnDragChange}
                         />
                         <Text className="description">
-                          Mark nodes as selected after changing a node&apos;s
-                          position.
+                          {t18(
+                            "descSelectDrag1",
+                            "Mark nodes as selected after changing a node's position."
+                          )}
                           <br />
-                          If disabled, nodes can still be selected by clicking on
-                          them.
+                          {t18(
+                            "descSelectDrag2",
+                            "If disabled, nodes can still be selected by clicking on them."
+                          )}
                         </Text>
                       </SearchItem>
 
@@ -685,10 +730,10 @@ function SettingsPage() {
                           keywords="editor workspace sound notifications beep"
                         >
                           <LabeledSwitch
-                            label="Sound Notifications"
+                            label={t18("lblSoundNotifications", "Sound Notifications")}
                             checked={!!settings.soundNotifications}
                             onChange={handleSoundNotificationsChange}
-                            description="Play a system beep sound when workflows complete, exports finish, or other important events occur."
+                            description={t18("descSound", "Play a system beep sound when workflows complete, exports finish, or other important events occur.")}
                           />
                         </SearchItem>
                       )}
@@ -698,7 +743,7 @@ function SettingsPage() {
                     {isElectron && (
                       <div className="settings-section">
                         <Text size="big" id="updates" className="settings-heading">
-                          Updates
+                          {t18("secUpdates", "Updates")}
                         </Text>
                         {supportsDesktopUpdateSettings && (
                           <SearchItem
@@ -706,10 +751,10 @@ function SettingsPage() {
                             keywords="editor workspace updates automatic desktop"
                           >
                             <LabeledSwitch
-                              label="Automatic Updates"
+                              label={t18("lblAutomaticUpdates", "Automatic Updates")}
                               checked={autoUpdatesEnabled}
                               onChange={handleAutoUpdatesChange}
-                              description="Check for and download desktop app updates from the selected release channel."
+                              description={t18("descUpdates", "Check for and download desktop app updates from the selected release channel.")}
                             />
                           </SearchItem>
                         )}
@@ -719,14 +764,16 @@ function SettingsPage() {
                             keywords="editor workspace update channel stable nightly"
                           >
                             <SelectField
-                              label="Update Channel"
+                              label={t18("updateChannel", "Update Channel")}
                               value={updateChannel}
                               onChange={handleUpdateChannelChange}
-                              options={UPDATE_CHANNEL_OPTIONS}
+                              options={localizedOptions(UPDATE_CHANNEL_OPTIONS)}
                             />
                             <Text className="description">
-                              Stable follows full releases. Nightly follows prerelease nightly builds.
-                              Nightly builds default to the Nightly channel.
+                              {t18(
+                                "descUpdateChannel",
+                                "Stable follows full releases. Nightly follows prerelease nightly builds. Nightly builds default to the Nightly channel."
+                              )}
                             </Text>
                           </SearchItem>
                         )}
@@ -735,24 +782,35 @@ function SettingsPage() {
                           keywords="editor workspace on close behavior quit background tray"
                         >
                           <SelectField
-                            label="On Close Behavior"
+                            label={t18("onCloseBehavior", "On Close Behavior")}
                             value={closeBehavior}
                             onChange={(v) =>
                               handleCloseBehaviorChange(
                                 v as "ask" | "quit" | "background"
                               )
                             }
-                            options={CLOSE_BEHAVIOR_OPTIONS}
+                            options={localizedOptions(CLOSE_BEHAVIOR_OPTIONS)}
                           />
                           <Text className="description">
-                            Choose what happens when you close the main window.
+                            {t18(
+                              "descOnCloseIntro",
+                              "Choose what happens when you close the main window."
+                            )}
                             <br />
-                            <b>Ask Every Time:</b> Shows a dialog with options.
+                            <b>{t18("optAskShort", "Ask Every Time")}:</b>{" "}
+                            {t18("descOnCloseAsk", "Shows a dialog with options.")}
                             <br />
-                            <b>Quit:</b> Closes the application completely.
+                            <b>{t18("optQuitShort", "Quit")}:</b>{" "}
+                            {t18(
+                              "descOnCloseQuit",
+                              "Closes the application completely."
+                            )}
                             <br />
-                            <b>Background:</b> Keeps the app running in the system
-                            tray.
+                            <b>{t18("optBackgroundShort", "Background")}:</b>{" "}
+                            {t18(
+                              "descOnCloseBackground",
+                              "Keeps the app running in the system tray."
+                            )}
                           </Text>
                         </SearchItem>
                       </div>
@@ -769,18 +827,18 @@ function SettingsPage() {
                         id="appearance"
                         className="settings-heading"
                       >
-                        Appearance
+                        {t18("secAppearance", "Appearance")}
                       </Text>
                       <SearchItem
                         search={search}
                         keywords="appearance time format 12h 24h"
                       >
                         <SelectField
-                          label="Time Format"
+                          label={t18("lblTimeFormat", "Time Format")}
                           value={settings.timeFormat}
                           onChange={handleTimeFormatChange}
                           options={TIME_FORMAT_OPTIONS}
-                          description="Display time in 12h or 24h format."
+                          description={t18("descTimeFormat", "Display time in 12h or 24h format.")}
                         />
                       </SearchItem>
                     </div>
@@ -791,19 +849,19 @@ function SettingsPage() {
                         id="execution"
                         className="settings-heading"
                       >
-                        Execution
+                        {t18("secExecution", "Execution")}
                       </Text>
                       <SearchItem
                         search={search}
                         keywords="execution warn before large runs confirmation"
                       >
                         <LabeledSwitch
-                          label="Warn Before Large Runs"
+                          label={t18("lblWarnLargeRuns", "Warn Before Large Runs")}
                           checked={settings.confirmLargeRun ?? true}
                           onChange={(checked) =>
                             updateSettings({ confirmLargeRun: checked })
                           }
-                          description="Running a workflow executes every node at once. Show a confirmation when a run would launch many model/provider nodes that could overload an API."
+                          description={t18("descConfirmManyNodes", "Running a workflow executes every node at once. Show a confirmation when a run would launch many model/provider nodes that could overload an API.")}
                         />
                       </SearchItem>
 
@@ -813,14 +871,14 @@ function SettingsPage() {
                       >
                         <NumberSetting
                           id="large-run-threshold-input"
-                          label="Large-Run Threshold"
+                          label={t18("lblLargeRunThreshold", "Large-Run Threshold")}
                           value={settings.largeRunThreshold ?? 5}
                           onCommit={handleLargeRunThresholdChange}
                           min={1}
                           max={100}
                           fallback={5}
                           disabled={!(settings.confirmLargeRun ?? true)}
-                          description="Warn when a run would execute more than this many model/provider nodes (LLM, image, audio, API, etc.)."
+                          description={t18("descManyNodesThreshold", "Warn when a run would execute more than this many model/provider nodes (LLM, image, audio, API, etc.).")}
                         />
                       </SearchItem>
 
@@ -830,14 +888,14 @@ function SettingsPage() {
                       >
                         <NumberSetting
                           id="audio-buffer-ms-input"
-                          label="Audio Buffer (ms)"
+                          label={t18("lblAudioBuffer", "Audio Buffer (ms)")}
                           value={settings.audioBufferMs ?? 100}
                           onCommit={handleAudioBufferMsChange}
                           min={20}
                           max={1000}
                           step={10}
                           fallback={100}
-                          description="Playback buffer for realtime audio (modular synth patches). Lower values reduce knob-to-ear latency; higher values prevent dropouts when the editor is busy."
+                          description={t18("descAudioBuffer", "Playback buffer for realtime audio (modular synth patches). Lower values reduce knob-to-ear latency; higher values prevent dropouts when the editor is busy.")}
                         />
                       </SearchItem>
 
@@ -847,11 +905,11 @@ function SettingsPage() {
                       >
                         <ServerNumberSetting
                           envVar="MAX_CONCURRENT_JOBS"
-                          label="Max Concurrent Runs"
+                          label={t18("lblMaxConcurrentRuns", "Max Concurrent Runs")}
                           defaultValue={4}
                           min={1}
                           max={64}
-                          description="Maximum number of workflow runs you can execute at once. Additional runs queue and start automatically as running ones finish."
+                          description={t18("descMaxParallelRuns", "Maximum number of workflow runs you can execute at once. Additional runs queue and start automatically as running ones finish.")}
                         />
                       </SearchItem>
 
@@ -861,11 +919,11 @@ function SettingsPage() {
                       >
                         <ServerNumberSetting
                           envVar="MAX_CONCURRENT_RUNS_PER_WORKFLOW"
-                          label="Max Concurrent Runs per Workflow"
+                          label={t18("lblMaxRunsPerWorkflow", "Max Concurrent Runs per Workflow")}
                           defaultValue={4}
                           min={1}
                           max={64}
-                          description="How many runs of the same workflow may run at once before further runs queue. Applies to concurrent generation (timeline, sketch); canvas runs always stay sequential."
+                          description={t18("descMaxRunsPerWorkflow", "How many runs of the same workflow may run at once before further runs queue. Applies to concurrent generation (timeline, sketch); canvas runs always stay sequential.")}
                         />
                       </SearchItem>
                     </div>
@@ -876,29 +934,34 @@ function SettingsPage() {
                         id="canvas-navigation"
                         className="settings-heading"
                       >
-                        Canvas & Navigation
+                        {t18("secCanvasNav", "Canvas & Navigation")}
                       </Text>
                       <SearchItem
                         search={search}
                         keywords="canvas navigation pan controls mouse select left click drag"
                       >
                         <SelectField
-                          label="Left-Click Drag"
+                          label={t18("lblLeftClickDrag", "Left-Click Drag")}
                           value={settings.panControls}
                           onChange={handlePanControlsChange}
-                          options={PAN_CONTROLS_OPTIONS}
+                          options={localizedOptions(PAN_CONTROLS_OPTIONS)}
                         />
                         <div className="description">
                           <Text>
-                            What dragging with the left mouse button does on
-                            empty canvas.
+                            {t18(
+                              "descPanIntro",
+                              "What dragging with the left mouse button does on empty canvas."
+                            )}
                           </Text>
                           <Text>
-                            <b>Pan canvas:</b> left-drag moves the view.
+                            <b>{t18("opts.LMB", "Pan canvas")}:</b>{" "}
+                            {t18("descPanPan", "left-drag moves the view.")}
                             <br />
-                            <b>Select nodes:</b> left-drag draws a selection box;
-                            pan with the right or middle mouse button (and
-                            two-finger scroll on a trackpad).
+                            <b>{t18("optSelectNodesShort", "Select nodes")}:</b>{" "}
+                            {t18(
+                              "descPanSelect",
+                              "left-drag draws a selection box; pan with the right or middle mouse button (and two-finger scroll on a trackpad)."
+                            )}
                           </Text>
                         </div>
                       </SearchItem>
@@ -908,17 +971,25 @@ function SettingsPage() {
                         keywords="canvas navigation node selection mode full partial"
                       >
                         <SelectField
-                          label="Node Selection Mode"
+                          label={t18("lblSelectionMode", "Node Selection Mode")}
                           value={settings.selectionMode}
                           onChange={handleSelectionModeChange}
-                          options={SELECTION_MODE_OPTIONS}
+                          options={localizedOptions(SELECTION_MODE_OPTIONS)}
                         />
                         <Text className="description">
-                          When drawing a selection box for node selections:
+                          {t18(
+                            "descSelIntro",
+                            "When drawing a selection box for node selections:"
+                          )}
                           <br />
-                          <b>Full:</b> nodes have to be fully enclosed.
+                          <b>{t18("opts.full", "Full")}:</b>{" "}
+                          {t18("descSelFull", "nodes have to be fully enclosed.")}
                           <br />
-                          <b>Partial:</b> intersecting nodes will be selected.
+                          <b>{t18("opts.partial", "Partial")}:</b>{" "}
+                          {t18(
+                            "descSelPartial",
+                            "intersecting nodes will be selected."
+                          )}
                         </Text>
                       </SearchItem>
 
@@ -927,10 +998,10 @@ function SettingsPage() {
                         keywords="canvas navigation grid snap align nodes"
                       >
                         <LabeledSwitch
-                          label="Snap to Grid"
+                          label={t18("lblSnapToGrid", "Snap to Grid")}
                           checked={!!settings.snapToGrid}
                           onChange={handleSnapToGridChange}
-                          description="Align nodes to the canvas grid while dragging. Also in the View menu of the desktop app."
+                          description={t18("descSnapToGrid", "Align nodes to the canvas grid while dragging. Also in the View menu of the desktop app.")}
                         />
                       </SearchItem>
 
@@ -940,14 +1011,14 @@ function SettingsPage() {
                       >
                         <NumberSetting
                           id="grid-snap-input"
-                          label="Grid Snap Precision"
+                          label={t18("lblGridSnapPrecision", "Grid Snap Precision")}
                           value={settings.gridSnap}
                           onCommit={setGridSnap}
                           min={1}
                           max={100}
                           fallback={25}
                           disabled={!settings.snapToGrid}
-                          description="Grid size used when Snap to Grid is on. The canvas grid is drawn every 25 units."
+                          description={t18("descGridSize", "Grid size used when Snap to Grid is on. The canvas grid is drawn every 25 units.")}
                         />
                       </SearchItem>
 
@@ -957,13 +1028,13 @@ function SettingsPage() {
                       >
                         <NumberSetting
                           id="connection-snap-input"
-                          label="Connection Snap Range"
+                          label={t18("lblSnapRange", "Connection Snap Range")}
                           value={settings.connectionSnap}
                           onCommit={setConnectionSnap}
                           min={5}
                           max={30}
                           fallback={20}
-                          description="Snap distance for connecting nodes."
+                          description={t18("descSnapDistance", "Snap distance for connecting nodes.")}
                         />
                       </SearchItem>
                     </div>
@@ -978,19 +1049,19 @@ function SettingsPage() {
                         id="autosave"
                         className="settings-heading"
                       >
-                        Autosave & Version History
+                        {t18("secAutosaveHistory", "Autosave & Version History")}
                       </Text>
                       <SearchItem
                         search={search}
                         keywords="autosave version history enable"
                       >
                         <LabeledSwitch
-                          label="Enable Autosave"
+                          label={t18("lblEnableAutosave", "Enable Autosave")}
                           checked={settings.autosave?.enabled ?? true}
                           onChange={(checked) =>
                             updateAutosaveSettings({ enabled: checked })
                           }
-                          description="Automatically save your workflow at regular intervals."
+                          description={t18("descAutosave", "Automatically save your workflow at regular intervals.")}
                         />
                       </SearchItem>
 
@@ -999,16 +1070,16 @@ function SettingsPage() {
                         keywords="autosave version history interval minutes"
                       >
                         <SelectField
-                          label="Autosave Interval (minutes)"
+                          label={t18("lblAutosaveInterval", "Autosave Interval (minutes)")}
                           value={settings.autosave?.intervalMinutes ?? 10}
                           onChange={(v) =>
                             updateAutosaveSettings({
                               intervalMinutes: Number(v)
                             })
                           }
-                          options={AUTOSAVE_INTERVAL_OPTIONS}
+                          options={localizedOptions(AUTOSAVE_INTERVAL_OPTIONS)}
                           disabled={!settings.autosave?.enabled}
-                          description="How often to automatically save your workflow."
+                          description={t18("descAutosaveInterval", "How often to automatically save your workflow.")}
                         />
                       </SearchItem>
 
@@ -1017,14 +1088,14 @@ function SettingsPage() {
                         keywords="autosave version history save before running checkpoint"
                       >
                         <LabeledSwitch
-                          label="Save Before Running"
+                          label={t18("lblSaveBeforeRunning", "Save Before Running")}
                           checked={settings.autosave?.saveBeforeRun ?? true}
                           onChange={(checked) =>
                             updateAutosaveSettings({
                               saveBeforeRun: checked
                             })
                           }
-                          description="Create a checkpoint version before executing workflow."
+                          description={t18("descCheckpoint", "Create a checkpoint version before executing workflow.")}
                         />
                       </SearchItem>
 
@@ -1033,14 +1104,14 @@ function SettingsPage() {
                         keywords="autosave version history save on window close"
                       >
                         <LabeledSwitch
-                          label="Save on Window Close"
+                          label={t18("lblSaveOnClose", "Save on Window Close")}
                           checked={settings.autosave?.saveOnClose ?? true}
                           onChange={(checked) =>
                             updateAutosaveSettings({
                               saveOnClose: checked
                             })
                           }
-                          description="Automatically save when closing the tab or window."
+                          description={t18("descAutosaveOnClose", "Automatically save when closing the tab or window.")}
                         />
                       </SearchItem>
 
@@ -1068,7 +1139,7 @@ function SettingsPage() {
                   ) && (
                     <>
                       <Text size="big" id="folders" className="settings-heading">
-                        Folders
+                        {t18("secFolders", "Folders")}
                       </Text>
                       <FoldersSettings />
                     </>
@@ -1084,7 +1155,7 @@ function SettingsPage() {
                         id="connected-accounts"
                         className="settings-heading"
                       >
-                        Connected Accounts
+                        {t18("secAccounts", "Connected Accounts")}
                       </Text>
                       <ConnectedAccountsSettings />
                     </>
@@ -1101,7 +1172,7 @@ function SettingsPage() {
                         id="mcp-integration"
                         className="settings-heading"
                       >
-                        MCP Integration
+                        {t18("secMcp", "MCP Integration")}
                       </Text>
                       <MCPSettingsMenu />
                     </>
@@ -1118,7 +1189,7 @@ function SettingsPage() {
                         id="browser-extension"
                         className="settings-heading"
                       >
-                        Browser Extension
+                        {t("editor:ui.browserExtension")}
                       </Text>
                       <BrowserExtensionSettingsMenu />
                     </>
@@ -1133,14 +1204,16 @@ function SettingsPage() {
                         id="nodetool-api-token"
                         className="settings-heading"
                       >
-                        Nodetool API
+                        {t18("apiIntTitle", "Nodetool API")}
                       </Text>
                       <Text
                         className="explanation"
                         sx={{ margin: `0 0 ${getSpacingPx(SPACING.xl)} 0` }}
                       >
-                        Use the Nodetool API to execute workflows
-                        programmatically.
+                        {t18(
+                          "apiIntDesc",
+                          "Use the Nodetool API to execute workflows programmatically."
+                        )}
                         <br />
                         <br />
                         <a
@@ -1148,7 +1221,8 @@ function SettingsPage() {
                           rel="noopener noreferrer"
                           href="https://github.com/nodetool-ai/nodetool#using-the-workflow-api-"
                         >
-                          API documentation on GitHub <br />
+                          {t18("apiIntDocs", "API documentation on GitHub")}{" "}
+                          <br />
                         </a>
                       </Text>
                       <div
@@ -1166,12 +1240,14 @@ function SettingsPage() {
                             color: theme.palette.text.primary
                           }}
                         >
-                          Nodetool API Token
+                          {t18("apiTokenTitle", "Nodetool API Token")}
                         </Text>
                         <div className="description">
                           <Text>
-                            This token is used to authenticate your account
-                            with the Nodetool API.
+                            {t18(
+                              "descApiToken",
+                              "This token is used to authenticate your account with the Nodetool API."
+                            )}
                           </Text>
                           <div className="secrets">
                             <WarningIcon
@@ -1181,12 +1257,14 @@ function SettingsPage() {
                               }}
                             />
                             <Text component="span">
-                              Keep this token secure and do not share it
-                              publicly
+                              {t18(
+                                "apiTokenSecret",
+                                "Keep this token secure and do not share it publicly"
+                              )}
                             </Text>
                           </div>
                         </div>
-                        <Tooltip title="Copy to clipboard">
+                        <Tooltip title={t18("apiIntCopyTooltip", "Copy to clipboard")}>
                           <EditorButton
                             style={{ margin: `${getSpacingPx(SPACING.md)} 0` }}
                             size="small"
@@ -1194,7 +1272,7 @@ function SettingsPage() {
                             startIcon={<ContentCopyIcon />}
                             onClick={copyAuthToken}
                           >
-                            Copy Token
+                            {t18("apiIntCopyToken", "Copy Token")}
                           </EditorButton>
                         </Tooltip>
                       </div>

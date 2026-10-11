@@ -20,6 +20,7 @@ import { LoadingSpinner } from "./LoadingSpinner";
 import DialogActions from "@mui/material/DialogActions";
 import { useTheme } from "@mui/material/styles";
 import { MOTION } from "./tokens";
+import { i18n } from "../../i18n";
 
 export interface DialogActionButtonsProps {
   /**
@@ -84,8 +85,8 @@ export const DialogActionButtons = memo(
       {
         onConfirm,
         onCancel,
-        confirmText = "Confirm",
-        cancelText = "Cancel",
+        confirmText = i18n.t("editor:ui.confirm", { defaultValue: "Confirm" }),
+        cancelText = i18n.t("common:action.cancel", { defaultValue: "Cancel" }),
         isLoading = false,
         confirmDisabled = false,
         cancelDisabled = false,

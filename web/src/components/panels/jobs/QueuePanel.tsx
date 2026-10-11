@@ -3,6 +3,7 @@ import { useMemo, memo } from "react";
 import { useRunningJobs } from "../../../hooks/useRunningJobs";
 import { Job } from "../../../stores/ApiTypes";
 import JobItem from "./JobItem";
+import { useTranslation } from "react-i18next";
 import {
   LoadingSpinner,
   Text,
@@ -81,6 +82,7 @@ JobColumn.displayName = "JobColumn";
  * scan faster than a single status-mixed list.
  */
 const QueuePanel = memo(function QueuePanel() {
+  const { t } = useTranslation();
   const { data: jobs, isLoading, error } = useRunningJobs();
 
   const { running, queued, cancelled, completed } = useMemo(() => {
@@ -122,7 +124,7 @@ const QueuePanel = memo(function QueuePanel() {
     return (
       <Box sx={{ p: 2 }}>
         <Text size="small" color="error">
-          Error loading jobs
+          {t("editor:ui.errorLoadingJobs")}
         </Text>
       </Box>
     );
@@ -130,17 +132,17 @@ const QueuePanel = memo(function QueuePanel() {
 
   return (
     <FlexRow sx={{ flex: 1, minHeight: 0, height: "100%" }}>
-      <JobColumn title="Running" jobs={running} emptyText="Nothing running" />
-      <JobColumn title="Queued" jobs={queued} emptyText="Queue is empty" />
+      <JobColumn title={t("editor:ui.running", { defaultValue: "Running" })} jobs={running} emptyText={t("editor:ui.nothingRunning")} />
+      <JobColumn title={t("editor:ui.queued", { defaultValue: "Queued" })} jobs={queued} emptyText={t("editor:ui.queueIsEmpty")} />
       <JobColumn
-        title="Completed"
+        title={t("editor:ui.completed", { defaultValue: "Completed" })}
         jobs={completed}
-        emptyText="No completed jobs"
+        emptyText={t("editor:ui.noCompletedJobs")}
       />
       <JobColumn
-        title="Cancelled"
+        title={t("editor:ui.cancelled", { defaultValue: "Cancelled" })}
         jobs={cancelled}
-        emptyText="Nothing cancelled"
+        emptyText={t("editor:ui.nothingCancelled")}
         last
       />
     </FlexRow>

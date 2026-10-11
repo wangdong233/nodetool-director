@@ -1,32 +1,67 @@
 import { PROVIDER_META } from "./providerCatalog";
 import type { SettingsSection } from "../../stores/SettingsPageStore";
+import { i18n } from "../../i18n";
 
-export const SETTINGS_TAB_ITEMS: ReadonlyArray<{
-  value: SettingsSection;
-  label: string;
-}> = [
-  { value: "general", label: "General" },
-  { value: "providers", label: "Models & Providers" },
-  { value: "integrations", label: "Integrations" },
-  { value: "about", label: "About" }
-];
 
-const TAB_LABEL: Record<SettingsSection, string> = {
+const EN_LABEL: Record<SettingsSection, string> = {
   general: "General",
   providers: "Models & Providers",
   integrations: "Integrations",
   about: "About"
 };
 
-export const settingsTabLabel = (section: SettingsSection): string =>
-  TAB_LABEL[section];
+// Labels resolve through i18n at CALL time (not import time) so a language
+// switch re-renders without remounting the search index. English values are
+// the catalog source of truth (director/93: default English).
+const I18N_KEY: Record<SettingsSection, string> = {
+  general: "nav:settings.general",
+  providers: "nav:settings.providers",
+  integrations: "nav:settings.integrations",
+  about: "nav:settings.about"
+};
 
-export function matchesSearch(keywords: string, search: string): boolean {
+export const settingsTabLabel = (section: SettingsSection): string =>
+  i18n.t(I18N_KEY[section], { defaultValue: EN_LABEL[section] });
+
+const SETTINGS_SECTIONS: readonly SettingsSection[] = [
+  "general",
+  "providers",
+  "integrations",
+  "about"
+];
+
+/**
+ * Tab items resolved FRESH per call: labels must re-resolve on a language
+ * switch, so consumers render this instead of a module-frozen array
+ * (director/93 copy-polish R5 finding 1).
+ */
+export function settingsTabItems(): ReadonlyArray<{
+  value: SettingsSection;
+  label: string;
+}> {
+  return SETTINGS_SECTIONS.map((value) => ({
+    value,
+    label: settingsTabLabel(value)
+  }));
+}
+
+/**
+ * Keyword match with optional localized-label matching: with `section`,
+ * a query also matches the tab's own (possibly Chinese) label, so 通用 or
+ * 语言 finds the General tab without maintaining a parallel zh keyword
+ * list (director/93, copy-polish R3 finding 11).
+ */
+export function matchesSearch(
+  keywords: string,
+  search: string,
+  section?: SettingsSection
+): boolean {
   const query = search.trim().toLowerCase();
   if (!query) {
     return true;
   }
-  return keywords.toLowerCase().includes(query);
+  if (keywords.toLowerCase().includes(query)) return true;
+  return section !== undefined && settingsTabLabel(section).toLowerCase().includes(query);
 }
 
 const GENERAL_KEYWORDS = [
@@ -80,6 +115,8 @@ export function tabHasMatches(tab: SettingsSection, search: string): boolean {
   if (!query) {
     return true;
   }
+  // The tab's own localized label matches too (通用/语言 hit General).
+  if (settingsTabLabel(tab).toLowerCase().includes(query)) return true;
   switch (tab) {
     case "general":
       return GENERAL_KEYWORDS.some((keywords) => keywords.includes(query));
@@ -104,7 +141,7 @@ export function otherMatchingTabs(
   if (!search.trim()) {
     return [];
   }
-  return SETTINGS_TAB_ITEMS.map((tab) => tab.value).filter(
+  return SETTINGS_SECTIONS.filter(
     (tab) => tab !== current && tabHasMatches(tab, search)
   );
 }

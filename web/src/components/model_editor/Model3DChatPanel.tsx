@@ -1,5 +1,6 @@
 import { memo } from "react";
 import ViewInArIcon from "@mui/icons-material/ViewInAr";
+import { useTranslation } from "react-i18next";
 
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
 
@@ -9,12 +10,14 @@ import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
  * document id for those tools.
  */
 const Model3DChatPanel = () => {
+  // Language anchor for a memo'd panel (F-26).
+  const { t } = useTranslation();
   return (
     <AssistantChatPanel
       chatSource="model3d_assistant"
       WelcomeIcon={ViewInArIcon}
-      welcomeTitle="3D Assistant"
-      welcomeBody='Ask me to build and edit the scene — e.g. "add a red box and a sphere above it", "make the floor blue", or "list everything in the scene".'
+      welcomeTitle={t("editor:ui.threeDAssistant", { defaultValue: "3D Assistant" })}
+      welcomeBody={t("editor:ui.threeDAssistantWelcome", { defaultValue: 'Ask me to build and edit the scene — e.g. "add a red box and a sphere above it", "make the floor blue", or "list everything in the scene".' })}
     />
   );
 };

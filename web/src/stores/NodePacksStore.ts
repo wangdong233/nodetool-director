@@ -20,6 +20,7 @@ import {
   type PackageConsoleSlice,
   type PackageOpState
 } from "./packageStorePlumbing";
+import { i18n } from "../i18n";
 
 /** A pack offered by the registry (may or may not be installed). */
 export interface PackageInfo {
@@ -97,7 +98,7 @@ const useNodePacksStore = create<NodePacksStore>((set, get) => ({
     } catch (err: unknown) {
       set({
         isLoading: false,
-        error: createErrorMessage(err, "Failed to load node packs").message
+        error: createErrorMessage(err, i18n.t("editor:ui.failedToLoadNodePacks", { defaultValue: "Failed to load node packs" })).message
       });
     }
   },

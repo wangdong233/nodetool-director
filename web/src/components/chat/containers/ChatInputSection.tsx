@@ -7,6 +7,7 @@ import MediaChatComposer from "../composer/MediaChatComposer";
 import { LanguageModel, MessageContent } from "../../../stores/ApiTypes";
 import { CHAT_COLUMN_MAX_WIDTH, type ChatStatus } from "../types/chat.types";
 import type { MediaGenerationRequest } from "../types/media.types";
+import { i18n } from "../../../i18n";
 
 const styles = (_theme: Theme) =>
   css({

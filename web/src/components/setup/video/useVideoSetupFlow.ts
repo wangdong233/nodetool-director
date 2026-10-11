@@ -38,9 +38,11 @@ import {
   productionAuthoringBlocker,
   productionGenerationBlocker,
   productionReviewFingerprint,
-  REVIEW_REQUIRED
+  REVIEW_REQUIRED,
+  REVIEW_REQUIRED_KEY
 } from "./productionAuthoring";
 import { assetIdFromLocator } from "../../../utils/mediaRef";
+import { useTranslation } from "react-i18next";
 
 /**
  * A sequence's stage, with the field's absence read as `done` — an old
@@ -131,7 +133,7 @@ export const newVideoSetupDocument = (
 };
 
 /** The flow's name, above the stepper. Each step body carries its own heading. */
-const FLOW_LABELS = { title: "Video" } as const;
+const FLOW_LABELS = { title: "Video", titleKey: "home:entry.video.title" } as const;
 
 /**
  * What a plan was drafted from. Two runs of the Director over the same brief
@@ -153,6 +155,7 @@ export const useVideoSetupFlow = ({
   onFinish,
   onStartFromScript
 }: VideoSetupFlowOptions = {}): SetupFlowConfig<TimelineSetupStage> => {
+  const { t } = useTranslation();
   const stage = useVideoSetupStage();
   const [reviewError, setReviewError] = useState<string>();
   const [contextError, setContextError] = useState<string>();
@@ -223,7 +226,7 @@ export const useVideoSetupFlow = ({
     (beats ?? []).some((beat) => beat.production !== undefined);
   const productionBlocker =
     hasProductionContext && reviewedProduction !== reviewKey
-      ? REVIEW_REQUIRED
+      ? t(REVIEW_REQUIRED_KEY, { defaultValue: REVIEW_REQUIRED })
       : productionGenerationBlocker(
           beats ?? [],
           (creativeContext?.reference_bindings?.length ?? 0) > 0
@@ -312,11 +315,11 @@ export const useVideoSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: "Idea",
-        primaryLabel: "Continue",
+        label: t("editor:ui.idea", { defaultValue: "Idea" }),
+        primaryLabel: t("storyboard:attrs.continue", { defaultValue: "Continue" }),
         canAdvance: brief.trim().length > 0 && !contextError,
         blockedReason:
-          contextError ?? "Describe the video, or bring your own media",
+          contextError ?? t("storyboard:attrs.describeTheVideoOrBringYourOwnMedia", { defaultValue: "Describe the video, or bring your own media" }),
         render: () =>
           createElement(IdeaStep, {
             // The blank escape hatch and the last step land in the same place:
@@ -330,28 +333,31 @@ export const useVideoSetupFlow = ({
         // Format and review are both step 2, so they collapse to one stepper
         // entry (PRD § 6.2).
         stage: "format",
-        label: "Beats",
+        label: t("timeline:attrs.beats", { defaultValue: "Beats" }),
         // A plan that still answers the brief and format on the document is
         // the plan the creator edited, so coming back here and pressing on
         // returns them to it rather than replacing it (F15).
         primaryLabel: planIsCurrent
-          ? "Continue to the beats"
+          ? t("storyboard:attrs.continueToTheBeats", { defaultValue: "Continue to the beats" })
           : hasPlan
-            ? "Re-plan the beats"
-            : "Plan the beats",
+            ? t("storyboard:attrs.rePlanTheBeats", { defaultValue: "Re-plan the beats" })
+            : t("storyboard:attrs.planTheBeats", { defaultValue: "Plan the beats" }),
         canAdvance:
           videoFormatById(formatId) !== null && director.model !== null,
         blockedReason:
           videoFormatById(formatId) === null
-            ? "Pick a video template"
-            : "Pick a model to draft the beats",
+            ? t("storyboard:attrs.pickAVideoTemplate", { defaultValue: "Pick a video template" })
+            : t("storyboard:attrs.pickAModelToDraftTheBeats", { defaultValue: "Pick a model to draft the beats" }),
         generation: planIsCurrent
           ? undefined
           : {
-              result: `Draft ${videoFormatById(formatId)?.beatCount ?? "the"} beats`,
+              result: t("storyboard:attrs.draftCountBeats", {
+                defaultValue: "Draft {{count}} beats",
+                count: videoFormatById(formatId)?.beatCount ?? "the"
+              }),
               next: hasPlan
-                ? "The brief or template changed. Your edited plan will guide the new beats."
-                : "Review the beats and timing. Media comes later in Look.",
+                ? t("storyboard:attrs.theBriefOrTemplateChangedYourEditedPlanWillGuideTheNewBeats", { defaultValue: "The brief or template changed. Your edited plan will guide the new beats." })
+                : t("storyboard:attrs.reviewTheBeatsAndTimingMediaComesLaterInLook", { defaultValue: "Review the beats and timing. Media comes later in Look." }),
               model: director.model
                 ? toLanguageModelValue(director.model)
                 : null,
@@ -363,7 +369,7 @@ export const useVideoSetupFlow = ({
         footerControls: (context) =>
           createElement(DirectorModelPicker, { readOnly: context.readOnly }),
         pending: planning,
-        pendingLabel: "Planning the beats",
+        pendingLabel: t("storyboard:attrs.planningTheBeats", { defaultValue: "Planning the beats" }),
         render: () => createElement(FormatStep),
         // The Director runs here and writes text only — no clip, no job (D4,
         // criterion 3). A refused run leaves the creator on the format step
@@ -372,8 +378,8 @@ export const useVideoSetupFlow = ({
       },
       {
         stage: "review",
-        label: "Beats",
-        primaryLabel: "Continue to look",
+        label: t("timeline:attrs.beats", { defaultValue: "Beats" }),
+        primaryLabel: t("storyboard:attrs.continueToLook", { defaultValue: "Continue to look" }),
         canAdvance:
           hasPlan &&
           emptyBeats === 0 &&
@@ -383,13 +389,17 @@ export const useVideoSetupFlow = ({
           reviewError ??
           productionAuthoringBlocker(beats ?? []) ??
           (hasPlan
-            ? `Fill in ${emptyBeats} beat${emptyBeats === 1 ? "" : "s"}: every beat needs a description and a length`
-            : "Plan the beats first — there is nothing to review yet"),
+            ? t("storyboard:attrs.fillInTheBeatsEveryBeatNeedsADescriptionAndALength", {
+                defaultValue: "Fill in {{count}} beat{{plural}}: every beat needs a description and a length",
+                count: emptyBeats,
+                plural: emptyBeats === 1 ? "" : "s"
+              })
+            : t("storyboard:attrs.planTheBeatsFirstThereIsNothingToReviewYet", { defaultValue: "Plan the beats first — there is nothing to review yet" })),
         // `Re-plan` runs outside the shell's primary button, so the shell has
         // to read its wait: the creator cannot leave the plan while the plan
         // is being rewritten under them (F2).
         pending: planning,
-        pendingLabel: "Re-planning the beats",
+        pendingLabel: t("storyboard:attrs.rePlanningTheBeats", { defaultValue: "Re-planning the beats" }),
         onCancel: cancelPlan,
         render: () =>
           createElement(ReviewStep, {
@@ -403,8 +413,8 @@ export const useVideoSetupFlow = ({
       },
       {
         stage: "look",
-        label: "Look",
-        primaryLabel: "Generate your video",
+        label: t("editor:ui.look", { defaultValue: "Look" }),
+        primaryLabel: t("storyboard:attrs.generateYourVideo", { defaultValue: "Generate your video" }),
         canAdvance: !productionBlocker && look.canAdvance,
         blockedReason: productionBlocker ?? look.blockedReason,
         primaryDetail: look.primaryDetail,

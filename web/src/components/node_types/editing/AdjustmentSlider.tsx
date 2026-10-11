@@ -19,6 +19,7 @@ import { css } from "@emotion/react";
 import type { Theme } from "@mui/material/styles";
 
 import { NodeSlider, BORDER_RADIUS, FONT_WEIGHT, SPACING, Z_INDEX } from "../../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const TRACK_HEIGHT = 4;
 const THUMB_SIZE = 12;
@@ -26,6 +27,8 @@ const THUMB_SIZE = 12;
 export interface SliderSpec {
   name: string;
   label: string;
+  /** i18n key; when present the row label resolves through i18n.t at render. */
+  labelKey?: string;
   min: number;
   max: number;
   step: number;
@@ -150,6 +153,7 @@ export const AdjustmentSlider: React.FC<AdjustmentSliderProps> = memo(({
   onCommit,
   labelClassName
 }) => {
+  const { t } = useTranslation();
   const handleChange = useCallback(
     (_: Event, v: number | number[]) => {
       const next = Array.isArray(v) ? v[0] : v;
@@ -162,6 +166,11 @@ export const AdjustmentSlider: React.FC<AdjustmentSliderProps> = memo(({
   // Centre fill geometry (bipolar only): from the neutral point (where 0 sits)
   // out to the thumb. Slider padding is 0, so rail spans 0–100% and these
   // percentages line up with the thumb.
+  // Module-scope tables stay English; resolve the label here at render.
+  const label = spec.labelKey
+    ? t(spec.labelKey, { defaultValue: spec.label })
+    : spec.label;
+
   const centreFrac = clamp(fraction(spec, 0), 0, 1);
   const valueFrac = clamp(fraction(spec, value), 0, 1);
   const fillLeft = Math.min(centreFrac, valueFrac) * 100;
@@ -170,7 +179,7 @@ export const AdjustmentSlider: React.FC<AdjustmentSliderProps> = memo(({
   return (
     <>
       <span className={`ctrl-label${labelClassName ? ` ${labelClassName}` : ""}`}>
-        {spec.label}
+        {label}
       </span>
       <span className={`slider-wrap${spec.bipolar ? " is-bipolar" : ""}`}>
         {spec.bipolar && (
@@ -192,7 +201,7 @@ export const AdjustmentSlider: React.FC<AdjustmentSliderProps> = memo(({
           track={spec.bipolar ? false : "normal"}
           onChange={handleChange}
           onChangeCommitted={onCommit}
-          aria-label={`${spec.label} adjustment`}
+          aria-label={`${label} adjustment`}
         />
       </span>
       <span className="ctrl-value">{formatSliderValue(spec, value)}</span>

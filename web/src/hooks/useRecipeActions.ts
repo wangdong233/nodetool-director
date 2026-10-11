@@ -7,6 +7,7 @@ import useOnboardingStore from "../stores/OnboardingStore";
 import { queryClient } from "../queryClient";
 import { installExampleApp } from "../utils/exampleApps";
 import { useOpenApplication } from "./useOpenApplication";
+import { i18n } from "../i18n";
 
 type Recipe = recipes.ExampleRecipeSummary;
 
@@ -96,7 +97,7 @@ export const useRecipeActions = (): RecipeActions => {
         useNotificationStore.getState().addNotification({
           type: "error",
           alert: true,
-          content: `Couldn't add the app: ${error instanceof Error ? error.message : "Unknown error"}`
+          content: `Couldn't add the app: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`
         });
       } finally {
         setInstallingApp(null);

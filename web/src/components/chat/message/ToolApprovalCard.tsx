@@ -14,6 +14,7 @@ import {
 } from "../../ui_primitives";
 import { isString } from "../../../utils/typePredicates";
 import type { ApprovalDecision } from "../../../stores/GlobalChatStore";
+import { useTranslation } from "react-i18next";
 
 interface ToolApprovalCardProps {
   approvalId: string;
@@ -30,6 +31,11 @@ interface ToolApprovalCardProps {
 }
 
 /** The question the card asks, by what the call is about to do. */
+const QUESTION_KEYS: Record<string, string> = {
+  execute: "editor:ui.runThisAction",
+  write: "editor:ui.makeThisChange",
+  external: "editor:ui.allowThisAction"
+};
 const QUESTIONS: Record<string, string> = {
   execute: "Run this action?",
   write: "Make this change?",
@@ -90,10 +96,11 @@ const ToolApprovalCard: React.FC<ToolApprovalCardProps> = ({
   args,
   onResolve
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
-  const question = QUESTIONS[category] ?? "Allow this action?";
+  const question = t(QUESTION_KEYS[category] ?? "editor:ui.allowThisAction", { defaultValue: QUESTIONS[category] ?? "Allow this action?" });
   const summary = description?.trim() || message;
 
   const code = useMemo(() => {

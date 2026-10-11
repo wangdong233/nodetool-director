@@ -58,6 +58,13 @@ export const TIER_LABELS = {
   workstation: "Workstation — the largest local models"
 } satisfies Record<HardwareTier, string>;
 
+export const TIER_LABEL_KEYS: Record<HardwareTier, string> = {
+  entry: "editor:ui.entrySmallModelsRunGreat",
+  mid: "editor:ui.midrange714BModelsAreComfortable",
+  high: "editor:ui.highendUpTo24BAndImageModels",
+  workstation: "editor:ui.workstationTheLargestLocalModels"
+};
+
 /**
  * Read hardware from the live system stats and combine it with the manual
  * override into a single budget the onboarding UI recommends against.

@@ -24,6 +24,7 @@ import { parseResourceUri, type ResourceKind, type ResourceUri } from "@nodetool
 import { BORDER_RADIUS, Chip, SPACING, TYPOGRAPHY, getSpacingPx } from "../../ui_primitives";
 import { useResolvedThumbnailUri } from "../../../hooks/useResolvedMediaUri";
 import { canOpenResource, openResource } from "../../../lib/chat/openResource";
+import { i18n } from "../../../i18n";
 
 interface ResourceChipProps {
   uri: string;

@@ -17,9 +17,11 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import usePendingNodeCreateStore from "../../stores/PendingNodeCreateStore";
 import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
+import { useTranslation } from "react-i18next";
 import {
   QUICK_ACTION_BUTTONS,
   CONSTANT_NODES,
+  QUICK_ACTION_LABEL_KEYS,
   type QuickActionDefinition
 } from "./QuickActionTiles.constants";
 
@@ -156,6 +158,7 @@ const tileStyles = (theme: Theme) =>
   });
 
 const QuickActionTiles = memo(function QuickActionTiles() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => tileStyles(theme), [theme]);
 
@@ -284,13 +287,12 @@ const QuickActionTiles = memo(function QuickActionTiles() {
   return (
     <div css={memoizedStyles}>
       <div className="tiles-header">
-        <Text size="normal" weight={600}>AI Nodes</Text>
+        <Text size="normal" weight={600}>{t("editor:ui.aiNodes", { defaultValue: "AI Nodes" })}</Text>
       </div>
       <div className="tiles-container">
         {QUICK_ACTION_BUTTONS.map((definition) => {
           const {
             key,
-            label,
             nodeType,
             icon,
             gradient,
@@ -299,6 +301,9 @@ const QuickActionTiles = memo(function QuickActionTiles() {
             hoverShadow = shadow,
             iconColor
           } = definition;
+          const label = QUICK_ACTION_LABEL_KEYS[key]
+            ? t(QUICK_ACTION_LABEL_KEYS[key], { defaultValue: definition.label })
+            : definition.label;
           return (
             <Tooltip
               key={key}
@@ -306,7 +311,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
                 <div>
                   <div>{label}</div>
                   <div style={tooltipSubtitleStyle}>
-                    Click to place · Shift-click to auto add
+                    {t("editor:ui.clickToPlaceShiftClickToAutoAdd")}
                   </div>
                 </div>
               }
@@ -353,13 +358,12 @@ const QuickActionTiles = memo(function QuickActionTiles() {
         })}
       </div>
       <div className="tiles-header" style={constantsHeaderStyle}>
-        <Text size="normal" weight={600}>Constants</Text>
+        <Text size="normal" weight={600}>{t("ui2:attrs.constants", { defaultValue: "Constants" })}</Text>
       </div>
       <div className="constants-container">
         {CONSTANT_NODES.map((definition) => {
           const {
             key,
-            label,
             nodeType,
             icon,
             gradient,
@@ -368,6 +372,9 @@ const QuickActionTiles = memo(function QuickActionTiles() {
             hoverShadow = shadow,
             iconColor
           } = definition;
+          const label = QUICK_ACTION_LABEL_KEYS[key]
+            ? t(QUICK_ACTION_LABEL_KEYS[key], { defaultValue: definition.label })
+            : definition.label;
           return (
             <Tooltip
               key={key}
@@ -375,7 +382,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
                 <div>
                   <div>{label} Constant</div>
                   <div style={tooltipSubtitleStyle}>
-                    Click to place
+                    {t("editor:ui.clickToPlace")}
                   </div>
                 </div>
               }

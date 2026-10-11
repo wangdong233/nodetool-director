@@ -3,6 +3,7 @@ import type * as monaco from "monaco-editor";
 
 import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
 import { Caption, FlexColumn, LoadingSpinner } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface MonacoPaneProps {
   value: string;
@@ -33,6 +34,7 @@ const MonacoPane = ({
   onSave,
   onEditorMount
 }: MonacoPaneProps) => {
+  const { t } = useTranslation();
   const {
     MonacoEditor,
     monacoLoadError,
@@ -107,7 +109,7 @@ const MonacoPane = ({
         sx={{ alignItems: "center", justifyContent: "center" }}
       >
         <LoadingSpinner />
-        {isMonacoLoading && <Caption>Loading editor…</Caption>}
+        {isMonacoLoading && <Caption>{t("editor:ui.loadingEditor", { defaultValue: "Loading editor…" })}</Caption>}
       </FlexColumn>
     );
   }

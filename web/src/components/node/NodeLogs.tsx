@@ -29,6 +29,7 @@ import {
 } from "../ui_primitives";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import LogsTable, { LogRow, Severity } from "../common/LogsTable";
+import { useTranslation } from "react-i18next";
 
 type NodeLogsProps = {
   id: string;
@@ -63,6 +64,7 @@ const styles = (theme: Theme) =>
 
 export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
   ({ id, workflowId, open, onClose }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const titleId = useId();
     const logsRef = useRef<HTMLDivElement>(null);
@@ -168,12 +170,12 @@ export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
         <DialogTitle className="dialog-title" id={titleId}>
           <FlexRow gap={1} align="center">
             <Text size="normal" weight={600} component="h6">
-              Node Logs
+              {t("editor:ui.nodeLogs")}
             </Text>
             <Chip size="small" label={`${count}`} />
             <CopyButton
               value={logText}
-              tooltip="Copy logs"
+              tooltip={t("editor:ui.copyLogs", { defaultValue: "Copy logs" })}
               nodrag={false}
             />
           </FlexRow>
@@ -234,7 +236,7 @@ export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
           </div>
         </DialogContent>
         <DialogActions>
-          <EditorButton onClick={onClose}>Close</EditorButton>
+          <EditorButton onClick={onClose}>{t("ui2:attrs.close", { defaultValue: "Close" })}</EditorButton>
         </DialogActions>
       </Dialog>
     );
@@ -245,6 +247,7 @@ export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
 NodeLogsDialog.displayName = "NodeLogsDialog";
 
 const NodeLogsImpl: React.FC<NodeLogsProps> = ({ id, workflowId }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => styles(theme), [theme]);
   // O(1) lookup via pre-keyed map instead of filtering the full logs array.
@@ -277,7 +280,7 @@ const NodeLogsImpl: React.FC<NodeLogsProps> = ({ id, workflowId }) => {
           onClick={handleOpen}
           startIcon={<ListAltIcon />}
         >
-          <span>Logs</span>
+          <span>{t("editor:bottom.logs", { defaultValue: "Logs" })}</span>
           <Chip size="small" label={count} sx={{ ml: 1 }} />
         </EditorButton>
       </div>

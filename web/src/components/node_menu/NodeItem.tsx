@@ -27,6 +27,11 @@ import {
 } from "../../config/constants";
 import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
 import { findSnippetByNodeType } from "../../config/snippetMetadata";
+import { i18n } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
+import { nodeDocumentation } from "../../i18n/nodeDocs";
+import { useTranslation } from "react-i18next";
 
 interface NodeItemProps {
   node: NodeMetadata;
@@ -56,6 +61,8 @@ const NodeItem = memo(function NodeItem({
   showDescriptionTooltip = false,
   ref
 }: NodeItemProps) {
+  const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   // Rows re-render on every keystroke in the node search; a fresh slotProps
   // object per row would defeat the memo on Tooltip and re-serialize its sx.
@@ -110,12 +117,16 @@ const NodeItem = memo(function NodeItem({
     if (!node.description) {
       return null;
     }
-    return formatNodeDocumentation(node.description);
-  }, [node.description]);
+    // nodeDocumentation overlays the zh doc (parser-shaped, r17) at render
+    // time; languageVersion re-resolves it when the language switches.
+    return formatNodeDocumentation(
+      nodeDocumentation(node.node_type, node.description)
+    );
+  }, [node.description, node.node_type, languageVersion]);
 
   const tooltipContent = useMemo(() => {
     if (!parsedDescription) {
-      return node.title;
+      return nodeMenuTitle(node.node_type, node.title);
     }
     return (
       <Box sx={{ maxWidth: 300 }}>
@@ -151,7 +162,7 @@ const NodeItem = memo(function NodeItem({
               weight={FONT_WEIGHT.semibold}
               sx={{ color: "grey.400", textTransform: "uppercase", mb: 0.5 }}
             >
-              Use cases
+              {t("ui2:attrs.useCases", { defaultValue: "Use cases" })}
             </Text>
             <Box
               component="ul"
@@ -172,7 +183,7 @@ const NodeItem = memo(function NodeItem({
         )}
       </Box>
     );
-  }, [parsedDescription, node.title]);
+  }, [parsedDescription, node.title, node.node_type, languageVersion]);
 
   const onMouseEnter = useCallback(() => {
     setHoveredNode(node);
@@ -198,7 +209,7 @@ const NodeItem = memo(function NodeItem({
       addNotification({
         type: "info",
         content: wasAdded
-          ? "Node added to favorites"
+          ? i18n.t("editor:ui.nodeAddedToFavorites", { defaultValue: "Node added to favorites" })
           : "Node removed from favorites",
         timeout: NOTIFICATION_TIMEOUT_SHORT
       });
@@ -311,7 +322,7 @@ const NodeItem = memo(function NodeItem({
         }}
       >
         <HighlightText
-          text={node.title}
+          text={nodeMenuTitle(node.node_type, node.title)}
           query={searchTerm}
           matchStyle="primary"
         />
@@ -427,15 +438,15 @@ const NodeItem = memo(function NodeItem({
                 <StarBorderIcon fontSize="small" />
               )
             }
-            tooltip={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            tooltip={isFavorite ? t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : t("editor:workflow.addFav", { defaultValue: "Add to favorites" })}
             tooltipPlacement="top"
             size="small"
             onClick={handleFavoriteClick}
             sx={favoriteButtonSx}
             aria-label={
               isFavorite
-                ? `Remove ${node.title} from favorites`
-                : `Add ${node.title} to favorites`
+                ? t("editor:node.removeNodeFromFavorites", { defaultValue: "Remove {{title}} from favorites", title: nodeMenuTitle(node.node_type, node.title) })
+                : t("editor:node.addNodeToFavorites", { defaultValue: "Add {{title}} to favorites", title: nodeMenuTitle(node.node_type, node.title) })
             }
           />
         )}

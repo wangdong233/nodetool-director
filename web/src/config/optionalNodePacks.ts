@@ -23,8 +23,12 @@ interface OptionalNodePack {
   id: string;
   /** Display name shown in the node menu. */
   label: string;
+  /** Full `ns:key` for the label; resolved at render. */
+  labelKey?: string;
   /** One-line description of what the pack adds. */
   description: string;
+  /** Full `ns:key` for the description; resolved at render. */
+  descriptionKey?: string;
   /**
    * Namespace prefixes this pack owns. A node namespace belongs to the pack
    * when it equals a prefix or nests under it (e.g. `lib.image` owns
@@ -42,12 +46,15 @@ export const OPTIONAL_NODE_PACKS: readonly OptionalNodePack[] = [
   {
     id: "documents",
     label: "Documents",
+    labelKey: "nav:qa.documents.label",
     description: "Rasterize a PDF.",
+    descriptionKey: "editor:ui.rasterizeAPdf",
     namespaces: ["lib.pdf"]
   },
   {
     id: "imaging",
     label: "Image & Graphics",
+    labelKey: "editor:ui.imageGraphics",
     description:
       "Pixel-level image processing — filters, effects, masks, warps — plus SVG and charts.",
     namespaces: ["lib.image", "lib.svg", "lib.charts"]
@@ -55,37 +62,49 @@ export const OPTIONAL_NODE_PACKS: readonly OptionalNodePack[] = [
   {
     id: "audio_dsp",
     label: "Audio Processing",
+    labelKey: "editor:ui.audioProcessing",
     description: "Low-level audio analysis and signal-processing utilities.",
+    descriptionKey: "editor:ui.lowLevelAudioAnalysisUtilities",
     namespaces: ["lib.audio"]
   },
   {
     id: "web",
     label: "Web & Scraping",
+    labelKey: "editor:ui.webScraping",
     description: "Headless browser and media download.",
+    descriptionKey: "editor:ui.headlessBrowserMediaDownload",
     namespaces: ["lib.browser", "lib.video.download"]
   },
   {
     id: "data_stores",
     label: "Files, Cloud & Databases",
+    labelKey: "editor:ui.filesCloudDatabases",
     description: "Local filesystem and SQLite.",
+    descriptionKey: "editor:ui.localFilesystemAndSqlite",
     namespaces: ["lib.os", "lib.sqlite"]
   },
   {
     id: "integrations",
     label: "Integrations & Messaging",
+    labelKey: "editor:ui.integrationsMessaging",
     description: "Discord / Telegram message triggers.",
+    descriptionKey: "editor:ui.discordTelegramTriggers",
     namespaces: ["messaging"]
   },
   {
     id: "text_data",
     label: "Text & Data Utilities",
+    labelKey: "editor:ui.textDataUtilities",
     description: "Image grid slicing.",
+    descriptionKey: "editor:ui.imageGridSlicing",
     namespaces: ["lib.grid"]
   },
   {
     id: "developer",
     label: "Developer Tools",
+    labelKey: "editor:ui.developerTools",
     description: "Run code, ComfyUI, and internal test nodes.",
+    descriptionKey: "editor:ui.runCodeComfyUiTestNodes",
     namespaces: ["nodetool.code", "lib.comfy", "nodetool.test"]
   }
 ];

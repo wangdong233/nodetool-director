@@ -9,6 +9,8 @@ import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import { useProviders } from "../../hooks/useProviders";
 import { openProviderOnboarding } from "../../stores/ProviderOnboardingStore";
 import { Text, EditorButton, ToolbarIconButton, MOTION } from "../ui_primitives";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const enter = keyframes({
   from: { opacity: 0, transform: "translateY(-4px)" },
@@ -70,6 +72,7 @@ interface ModelSetupCalloutProps {
  * - A provider exists → tell the user to pick a model in the selector above.
  */
 const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const { providers, isLoading, error } = useProviders();
@@ -79,7 +82,7 @@ const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
   const handleAddKeys = useCallback(() => {
     onDismiss();
     openProviderOnboarding({
-      reason: "This node needs an AI model. Connect a provider to run it."
+      reason: i18n.t("editor:ui.thisNodeNeedsAnAIModelConnectAProviderToRunIt", { defaultValue: "This node needs an AI model. Connect a provider to run it." })
     });
   }, [onDismiss]);
 
@@ -88,8 +91,8 @@ const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
       <ToolbarIconButton
         className="callout-close"
         size="small"
-        aria-label="Dismiss"
-        tooltip="Dismiss"
+        aria-label={t("editor:ui.dismiss", { defaultValue: "Dismiss" })}
+        tooltip={t("editor:ui.dismiss", { defaultValue: "Dismiss" })}
         onClick={onDismiss}
         icon={<CloseRoundedIcon sx={{ fontSize: 14 }} />}
       />
@@ -101,8 +104,8 @@ const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
         )}
         <Text size="small" sx={{ pr: 2 }}>
           {noProvider
-            ? "Connect an AI provider to use models — add an API key to get started."
-            : "Pick a model here before running this workflow."}
+            ? t("editor:ui.connectAnAIProviderToUseModelsAddAnAPIKeyToGetStarted", { defaultValue: "Connect an AI provider to use models — add an API key to get started." })
+            : t("editor:ui.pickAModelHereBeforeRunningThisWorkflow", { defaultValue: "Pick a model here before running this workflow." })}
         </Text>
       </div>
       {noProvider && (

@@ -16,6 +16,7 @@ import { useStoryboardAgentBridge } from "../../../hooks/storyboard/useStoryboar
 import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
 import { SetupFlow } from "../SetupFlow";
 import { useStoryboardSetupFlow } from "./useStoryboardSetupFlow";
+import { i18n } from "../../../i18n";
 
 export interface StoryboardSetupHostProps {
   boardId: string;
@@ -58,7 +59,12 @@ const StoryboardSetupHost = ({
   // The store seeds an empty board on mount, and an empty board's stage reads
   // `done` — rendering before the server copy lands would show no flow at all.
   if (loadState !== "ready") {
-    return <DocumentLoadStatus state={loadState} label="storyboard" />;
+    return (
+      <DocumentLoadStatus
+        state={loadState}
+        label={i18n.t("ui2:attrs.docStoryboard", { defaultValue: "storyboard" })}
+      />
+    );
   }
 
   return (

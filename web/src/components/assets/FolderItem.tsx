@@ -9,6 +9,7 @@ import { useAssetActions } from "./useAssetActions";
 import { DeleteButton, Text, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

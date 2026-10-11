@@ -33,6 +33,8 @@ import {
 import { BriefModelFooterField } from "./BriefModelSelect";
 import { ReviewStep } from "./ReviewStep";
 import { UseCaseStep } from "./UseCaseStep";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** A document's stage, with the field's absence read as `done` (PRD § 6.4). */
 export const useImageSetupStage = (): SketchSetupStage =>
@@ -61,6 +63,7 @@ export const useImageSetupFlow = ({
   onGenerated,
   onFinish
 }: ImageSetupFlowOptions): ImageSetupFlow => {
+  const { t } = useTranslation();
   const stage = useImageSetupStage();
   const setSetup = useSketchStore((state) => state.setSetup);
   const brief = useSketchStore((state) => state.document.setup?.brief ?? "");
@@ -100,7 +103,7 @@ export const useImageSetupFlow = ({
     const refinedOk = await expandBrief();
     if (!refinedOk) {
       throw new Error(
-        refineErrorRef.current ?? "The model did not return a brief."
+        refineErrorRef.current ?? i18n.t("storyboard:attrs.theModelDidNotReturnABrief", { defaultValue: "The model did not return a brief." })
       );
     }
   }, [expandBrief]);
@@ -143,7 +146,7 @@ export const useImageSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: "Idea",
+        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
         canAdvance: brief.trim().length > 0,
         blockedReason: "Describe the image, or upload one to edit",
@@ -156,14 +159,14 @@ export const useImageSetupFlow = ({
         // Use case and review are both step 2, so they collapse into one
         // stepper entry (PRD § 6.2).
         stage: "useCase",
-        label: "Brief",
+        label: i18n.t("storyboard:attrs.brief", { defaultValue: "Brief" }),
         primaryLabel: briefIsCurrent
           ? "Continue to the brief"
-          : "Refine the brief",
+          : t("storyboard:attrs.refineTheBrief", { defaultValue: "Refine the brief" }),
         canAdvance: (useCase ?? "").length > 0,
         blockedReason: "Pick an image use case",
         pending: refining,
-        pendingLabel: "Refining the brief",
+        pendingLabel: i18n.t("storyboard:attrs.refiningTheBrief", { defaultValue: "Refining the brief" }),
         generation: briefIsCurrent ? undefined : refineSummary,
         footerControls: (context) =>
           createElement(BriefModelFooterField, { readOnly: context.readOnly }),
@@ -174,7 +177,7 @@ export const useImageSetupFlow = ({
       },
       {
         stage: "review",
-        label: "Brief",
+        label: i18n.t("storyboard:attrs.brief", { defaultValue: "Brief" }),
         primaryLabel: "Continue to look",
         canAdvance: promptIsWritable,
         blockedReason: "Write what the image shows before choosing the look",
@@ -182,7 +185,7 @@ export const useImageSetupFlow = ({
         // The shell reads it too, so nothing moves the creator on while the
         // brief they are reading is being replaced (F2).
         pending: refining,
-        pendingLabel: "Refining the brief",
+        pendingLabel: i18n.t("storyboard:attrs.refiningTheBrief", { defaultValue: "Refining the brief" }),
         render: () =>
           createElement(ReviewStep, {
             onReRefine: reRefine,
@@ -195,8 +198,8 @@ export const useImageSetupFlow = ({
       },
       {
         stage: "look",
-        label: "Look",
-        primaryLabel: "Generate your image",
+        label: i18n.t("editor:ui.look", { defaultValue: "Look" }),
+        primaryLabel: i18n.t("storyboard:attrs.generateYourImage", { defaultValue: "Generate your image" }),
         canAdvance: look.canAdvance,
         blockedReason: look.blockedReason,
         primaryDetail: look.primaryDetail,
@@ -219,6 +222,7 @@ export const useImageSetupFlow = ({
       look,
       onGenerated,
       promptIsWritable,
+      t,
       reRefine,
       refine,
       refineError,

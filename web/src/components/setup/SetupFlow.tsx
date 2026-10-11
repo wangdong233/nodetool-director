@@ -40,6 +40,7 @@ import {
   ThinkingIndicator
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
+import { i18n } from "../../i18n";
 import type {
   SetupFlowConfig,
   SetupOperationContext,
@@ -380,7 +381,7 @@ export function SetupFlow<Stage extends string>({
   // Why the button is off comes first, and replaces the detail: a cost
   // estimate beside a dead button answers a question nobody asked.
   const status = pending ? (
-    <ThinkingIndicator label={step.pendingLabel ?? "Working"} announce />
+    <ThinkingIndicator label={step.pendingLabel ?? i18n.t("storyboard:attrs.working", { defaultValue: "Working" })} announce />
   ) : canceled ? (
     <Caption color="secondary">Canceled</Caption>
   ) : blocked && step.blockedReason ? (
@@ -505,8 +506,7 @@ export function SetupFlow<Stage extends string>({
 
       {readOnly ? (
         <AlertBanner severity="info" title="View only">
-          This setup can be reviewed here, but it cannot be changed in view
-          mode.
+          {i18n.t("storyboard:attrs.thisSetupCanBeReviewedHereButItCannotBeChangedInViewMode", { defaultValue: "This setup can be reviewed here, but it cannot be changed in view mode." })}
         </AlertBanner>
       ) : null}
 
@@ -534,8 +534,8 @@ export function SetupFlow<Stage extends string>({
               </AlertBanner>
               <Text size="normal" color="secondary">
                 {canceling
-                  ? "Stopping the canceled request before retry is available."
-                  : "Retry when you are ready. A new request will be started deliberately and the canceled request cannot replace this draft."}
+                  ? i18n.t("storyboard:attrs.stoppingTheCanceledRequestBeforeRetryIsAvailable", { defaultValue: "Stopping the canceled request before retry is available." })
+                  : i18n.t("storyboard:attrs.retryWhenYouAreReadyANewRequestWillBeStartedDeliberatelyAndTheCanceledRequestCannotReplaceThisDraft", { defaultValue: "Retry when you are ready. A new request will be started deliberately and the canceled request cannot replace this draft." })}
               </Text>
             </FlexColumn>
           ) : error ? (
@@ -547,8 +547,7 @@ export function SetupFlow<Stage extends string>({
                 {error}
               </AlertBanner>
               <Text size="normal" color="secondary">
-                Your setup is still here. Try again below, go back to change it,
-                or report the failure with its diagnostics.
+                {i18n.t("storyboard:attrs.yourSetupIsStillHereTryAgainBelowGoBackToChangeItOrReportTheFailureWithItsDiagnostics", { defaultValue: "Your setup is still here. Try again below, go back to change it, or report the failure with its diagnostics." })}
               </Text>
               <FlexRow gap={GAP.normal} align="center" wrap>
                 <ReportBugButton
@@ -557,7 +556,7 @@ export function SetupFlow<Stage extends string>({
                   size="medium"
                   context={{
                     source: "manual",
-                    summary: `${labels.title} setup failed at ${step.label}`,
+                    summary: i18n.t("editor:ui.flowSetupFailedAtStep", { defaultValue: "{{title}} setup failed at {{step}}", title: labels.title, step: step.label }),
                     errorText: error
                   }}
                 />
@@ -637,7 +636,7 @@ export function SetupFlow<Stage extends string>({
                   disabled={pending}
                   sx={{ fontSize: FONT_SIZE_SANS.body }}
                 >
-                  {step.skipLabel ?? "Skip"}
+                  {step.skipLabel ?? i18n.t("storyboard:attrs.skip", { defaultValue: "Skip" })}
                 </EditorButton>
               ) : null}
             </FlexRow>
@@ -672,7 +671,7 @@ export function SetupFlow<Stage extends string>({
                     blocked && step.blockedReason ? blockedReasonId : undefined
                   }
                   aria-keyshortcuts="Meta+Enter Control+Enter"
-                  title={`${canceled ? "Retry" : error ? "Try again" : step.primaryLabel} (\u2318\u21A9 or Ctrl+\u21A9)`}
+                  title={`${canceled ? i18n.t("storyboard:attrs.retry", { defaultValue: "Retry" }) : error ? i18n.t("storyboard:attrs.tryAgain", { defaultValue: "Try again" }) : step.primaryLabel} (${i18n.t("storyboard:attrs.cmdEnterOrCtrlEnter", { defaultValue: "\u2318\u21A9 or Ctrl+\u2318\u21A9" })})`}
                   sx={{
                     fontSize: FONT_SIZE_SANS.body,
                     paddingX: narrow ? SPACING.xl : SPACING.xxl,
@@ -693,14 +692,14 @@ export function SetupFlow<Stage extends string>({
         title="Change flow?"
         showActions
         destructive
-        confirmText="Discard and choose"
-        cancelText="Keep this draft"
+        confirmText={i18n.t("editor:ui.discardAndChoose", { defaultValue: "Discard and choose" })}
+        cancelText={i18n.t("editor:ui.keepThisDraft", { defaultValue: "Keep this draft" })}
         onConfirm={() => void handleChangeFlow()}
         onCancel={() => setConfirmingChange(false)}
         maxWidth="xs"
       >
         <Text size="normal">
-          {`What you have typed comes with you to the flow you pick next. This ${labels.title.toLowerCase()} draft is discarded — nothing has been generated for it yet.`}
+          {i18n.t("editor:ui.whatYouTypedComesWithYouThisFlowDraftIsDiscarded", { defaultValue: "What you have typed comes with you to the flow you pick next. This {{title}} draft is discarded — nothing has been generated for it yet.", title: labels.title.toLowerCase() })}
         </Text>
       </Dialog>
     </FlexColumn>

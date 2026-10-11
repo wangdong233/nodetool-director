@@ -1,8 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import mockTheme from "../../../__mocks__/themeMock";
 import { useSettingsPageStore } from "../../../stores/SettingsPageStore";
+import { changeAppLanguage, resetI18nForTest } from "../../../i18n";
 
 jest.mock("../../../lib/env", () => ({
   isLocalhost: true,
@@ -104,7 +105,7 @@ describe("SettingsPage", () => {
   it("puts one search field in the header", () => {
     renderSettings();
     expect(
-      screen.getByRole("textbox", { name: "Search settings" })
+      screen.getByRole("textbox", { name: "Search settings…" })
     ).toBeInTheDocument();
     expect(
       screen.queryByPlaceholderText("Search providers...")
@@ -114,7 +115,7 @@ describe("SettingsPage", () => {
   it("keeps the query when switching tabs", async () => {
     const user = userEvent.setup();
     renderSettings();
-    const search = screen.getByRole("textbox", { name: "Search settings" });
+    const search = screen.getByRole("textbox", { name: "Search settings…" });
     await user.type(search, "openai");
     await user.click(screen.getByRole("tab", { name: "Models & Providers" }));
     expect(search).toHaveValue("openai");
@@ -125,12 +126,28 @@ describe("SettingsPage", () => {
     const user = userEvent.setup();
     renderSettings();
     await user.type(
-      screen.getByRole("textbox", { name: "Search settings" }),
+      screen.getByRole("textbox", { name: "Search settings…" }),
       "openai"
     );
     expect(screen.getByText("No matches in General.")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Models & Providers" })
     ).toBeInTheDocument();
+  });
+
+  it("localizes general section descriptions in zh", async () => {
+    renderSettings();
+    await act(async () => {
+      await changeAppLanguage("zh-CN");
+    });
+    try {
+      // A catalog-backed description flips with the language switcher that
+      // lives inside this same page.
+      expect(
+        screen.getByText("按固定间隔自动保存工作流。")
+      ).toBeInTheDocument();
+    } finally {
+      await resetI18nForTest();
+    }
   });
 });

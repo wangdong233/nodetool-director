@@ -15,6 +15,7 @@ import { CloseButton } from "./CloseButton";
 import { Text } from "./Text";
 import { FlexRow } from "./FlexRow";
 import { BORDER_RADIUS } from "./tokens";
+import { useTranslation } from "react-i18next";
 
 export interface MobileBottomSheetProps {
   /** Whether the sheet is open */
@@ -97,6 +98,7 @@ const MobileBottomSheetInternal: React.FC<MobileBottomSheetProps> = ({
   showClose = true,
   ariaLabel
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const handleOpen = React.useCallback(() => {
@@ -129,7 +131,7 @@ const MobileBottomSheetInternal: React.FC<MobileBottomSheetProps> = ({
             {title}
           </Text>
           {showClose && (
-            <CloseButton onClick={onClose} buttonSize="small" tooltip="Close" />
+            <CloseButton onClick={onClose} buttonSize="small" tooltip={t("ui:attrs.close", { defaultValue: "Close" })} />
           )}
         </FlexRow>
       )}

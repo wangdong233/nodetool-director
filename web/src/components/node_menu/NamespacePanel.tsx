@@ -10,6 +10,7 @@ import { useShallow } from "zustand/react/shallow";
 import { NamespaceTree } from "../../hooks/useNamespaceTree";
 import { HomeNamespaceIcon } from "./NamespaceIcon";
 import OptionalPacksSection from "./OptionalPacksSection";
+import { useTranslation } from "react-i18next";
 
 interface NamespacePanelProps {
   namespaceTree: NamespaceTree;
@@ -176,6 +177,7 @@ const namespacePanelStyles = (theme: Theme) =>
   });
 
 const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const panelStyles = useMemo(() => namespacePanelStyles(theme), [theme]);
   const { searchTerm, selectedPath, setSelectedPath } = useNodeMenuStore(
@@ -261,23 +263,23 @@ const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
             tabIndex={0}
             title={
               searchTerm.length > minSearchTermLength
-                ? "Show all results"
-                : "Home"
+                ? t("editor:ui.showAllResults", { defaultValue: "Show all results" })
+                : t("editor:ui.home", { defaultValue: "Home" })
             }
           >
             <div className="namespace-item">
               <HomeNamespaceIcon />
               <span className="namespace-label">
                 {searchTerm.length > minSearchTermLength
-                  ? "All results"
-                  : "Home"}
+                  ? t("editor:ui.allResults", { defaultValue: "All results" })
+                  : t("editor:ui.home", { defaultValue: "Home" })}
               </span>
             </div>
           </div>
         </div>
         {Object.keys(localTree).length > 0 && (
           <>
-            <Text className="namespace-section-title">Local</Text>
+            <Text className="namespace-section-title">{t("ui2:attrs.local", { defaultValue: "Local" })}</Text>
             <div className="namespace-list-local">
               <RenderNamespaces tree={localTree} />
             </div>
@@ -286,7 +288,7 @@ const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
         {Object.keys(providerTree).length > 0 && (
           <>
             <Text className="namespace-section-title providers">
-              Providers
+              {t("editor:ui.nodeProviders", { defaultValue: "Providers" })}
             </Text>
             <div className="namespace-list-providers">
               <RenderNamespaces tree={providerTree} />

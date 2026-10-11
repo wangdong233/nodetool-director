@@ -29,6 +29,7 @@ import NodeProgress from "../../node/NodeProgress";
 
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
+import { useTranslation } from "react-i18next";
 import {
   useNodeOutput,
   useUpstreamValue
@@ -160,6 +161,7 @@ const SimpleFilterBodyInner: React.FC<SimpleFilterBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -199,13 +201,13 @@ const SimpleFilterBodyInner: React.FC<SimpleFilterBodyProps> = ({
           <ImagePreview
             tab="before"
             value={beforeValue}
-            placeholder="Connect an image"
+            placeholder={t("editor:ui.connectAnImage", { defaultValue: "Connect an image" })}
           />
         ) : (
           <ImagePreview
             tab="after"
             value={afterValue}
-            placeholder="Run the node to see the result"
+            placeholder={t("editor:ui.runTheNodeToSeeTheResult", { defaultValue: "Run the node to see the result" })}
           />
         )}
       </div>
@@ -219,19 +221,19 @@ const SimpleFilterBodyInner: React.FC<SimpleFilterBodyProps> = ({
             value={tab}
             exclusive
             onChange={handleTabChange}
-            aria-label="Preview tab"
+            aria-label={t("editor:ui.previewTab", { defaultValue: "Preview tab" })}
           >
             <ToggleOption
               className="tab-option tab-option-before"
               value="before"
-              aria-label="Before"
+              aria-label={t("editor:ui.before", { defaultValue: "Before" })}
             >
               Before
             </ToggleOption>
             <ToggleOption
               className="tab-option tab-option-after"
               value="after"
-              aria-label="After"
+              aria-label={t("appbuilder:attrs.after", { defaultValue: "After" })}
             >
               After
             </ToggleOption>

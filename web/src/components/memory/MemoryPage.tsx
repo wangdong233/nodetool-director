@@ -26,6 +26,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import useGlobalChatStore from "../../stores/GlobalChatStore";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import MemoryCard, { type Memory } from "./MemoryCard";
+import { useTranslation } from "react-i18next";
 
 /** Every kind present, so the filter offers what the data actually holds. */
 function kindsOf(memories: readonly Memory[]): string[] {
@@ -33,6 +34,7 @@ function kindsOf(memories: readonly Memory[]): string[] {
 }
 
 const MemoryPage: React.FC = () => {
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -101,12 +103,12 @@ const MemoryPage: React.FC = () => {
         <EmptyState
           variant={searching || kind ? "no-results" : "empty"}
           title={
-            searching || kind ? "No memory matches" : "Nothing remembered yet"
+            searching || kind ? t("editor:ui.noMemoryMatches", { defaultValue: "No memory matches" }) : t("editor:ui.nothingRememberedYet", { defaultValue: "Nothing remembered yet" })
           }
           description={
             searching || kind
-              ? "No memory contains all of those words."
-              : "The agent records project notes and the assets it creates as it works. They show up here."
+              ? t("editor:ui.noMemoryContainsAllOfThoseWords", { defaultValue: "No memory contains all of those words." })
+              : t("editor:ui.theAgentRecordsProjectNotesAndTheAssetsItCreatesAsItWorksTheyShowUpHere", { defaultValue: "The agent records project notes and the assets it creates as it works. They show up here." })
           }
         />
       );
@@ -129,28 +131,28 @@ const MemoryPage: React.FC = () => {
   return (
     <ManagerPageLayout
       icon={<PsychologyOutlinedIcon sx={{ fontSize: 22 }} />}
-      title="Memory"
-      subtitle="What the agent remembers across every conversation — project notes and the resources they refer to."
+      title={t("editor:ui.memory", { defaultValue: "Memory" })}
+      subtitle={t("editor:ui.whatTheAgentRemembers", { defaultValue: "What the agent remembers across every conversation — project notes and the resources they refer to." })}
     >
       <FlexColumn gap={SPACING.md} sx={{ width: "100%" }}>
         <FlexRow align="center" justify="space-between" gap={SPACING.md}>
           <SearchInput
             value={query}
             onChange={setQuery}
-            placeholder="Search memories"
-            ariaLabel="Search memories by keyword"
+            placeholder={t("editor:ui.searchMemories", { defaultValue: "Search memories" })}
+            ariaLabel={t("editor:ui.searchMemoriesByKeyword", { defaultValue: "Search memories by keyword" })}
             size="small"
             debounceMs={250}
             sx={{ maxWidth: 360, width: "100%" }}
           />
           <Text size="small" sx={{ opacity: 0.6, flexShrink: 0 }}>
-            {visible.length === 1 ? "1 memory" : `${visible.length} memories`}
+            {visible.length === 1 ? t("editor:ui.oneMemory", { defaultValue: "1 memory" }) : t("editor:ui.nMemories", { defaultValue: "{{n}} memories", n: visible.length })}
           </Text>
         </FlexRow>
         {kinds.length > 1 && (
           <FlexRow gap={SPACING.sm} sx={{ flexWrap: "wrap" }}>
             <Chip
-              label="All"
+              label={t("common:typeFilters.all", { defaultValue: "All" })}
               compact
               variant="outlined"
               active={kind === null}
@@ -178,10 +180,10 @@ const MemoryPage: React.FC = () => {
             deleteMemory.mutate({ id: memoryToDelete });
           }
         }}
-        title="Delete memory"
-        content="Delete this memory? This cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t("editor:ui.deleteMemory", { defaultValue: "Delete memory" })}
+        content={t("editor:ui.deleteThisMemoryThisCannotBeUndone")}
+        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       />
     </ManagerPageLayout>
   );

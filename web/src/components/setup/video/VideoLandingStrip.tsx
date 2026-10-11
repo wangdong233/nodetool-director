@@ -32,6 +32,7 @@ import {
   useDirectGenPendingStore
 } from "../../../hooks/timeline/directGenPending";
 import { formatSeconds } from "./ReviewStep";
+import { useTranslation } from "react-i18next";
 
 export interface VideoLandingStripProps {
   /** Renders the finished cut. The editor already owns the action. */
@@ -62,6 +63,7 @@ export function remainingMs(
 const VideoLandingStripInternal: React.FC<VideoLandingStripProps> = ({
   onExport
 }) => {
+  const { t } = useTranslation();
   const stage = useTimelineStore((state) => state.setup?.stage);
   const clips = useTimelineStore((state) => state.clips);
   const setScriptEnabled = useTimelineStore((state) => state.setScriptEnabled);
@@ -102,14 +104,20 @@ const VideoLandingStripInternal: React.FC<VideoLandingStripProps> = ({
       align="center"
       padding={PADDING.compact}
       role="region"
-      aria-label="Video next steps"
+      aria-label={t("storyboard:attrs.videoNextSteps", { defaultValue: "Video next steps" })}
     >
       {rendering.length > 0 ? (
         <Text size="small" color="secondary" role="status">
-          {`Rendering ${rendering.length} clip${rendering.length === 1 ? "" : "s"}`}
-          {remaining === null
-            ? ""
-            : ` · typical duration ${formatSeconds(remaining)}`}
+          {[
+            rendering.length === 1
+              ? t("storyboard:attrs.renderingCountClip", { defaultValue: "Rendering {{count}} clip", count: rendering.length })
+              : t("storyboard:attrs.renderingCountClips", { defaultValue: "Rendering {{count}} clips", count: rendering.length }),
+            remaining === null
+              ? null
+              : t("storyboard:attrs.typicalDurationLength", { defaultValue: "typical duration {{length}}", length: formatSeconds(remaining) })
+          ]
+            .filter((part) => part !== null)
+            .join(" · ")}
         </Text>
       ) : null}
       {failedClipIds.length > 0 ? (
@@ -119,12 +127,10 @@ const VideoLandingStripInternal: React.FC<VideoLandingStripProps> = ({
       ) : null}
       {done ? (
         <>
-          <Caption color="secondary">Next:</Caption>
-          <EditorButton variant="text" onClick={onExport} disabled={!onExport}>
-            Export
-          </EditorButton>
+          <Caption color="secondary">{t("storyboard:attrs.next", { defaultValue: "Next:" })}</Caption>
+          <EditorButton variant="text" onClick={onExport} disabled={!onExport}>{t("storyboard:attrs.export", { defaultValue: "Export" })}</EditorButton>
           <EditorButton variant="text" onClick={handleCaptions}>
-            Add captions
+            {t("storyboard:attrs.addCaptions", { defaultValue: "Add captions" })}
           </EditorButton>
         </>
       ) : null}

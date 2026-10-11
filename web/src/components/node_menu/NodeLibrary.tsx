@@ -36,6 +36,7 @@ import {
 } from "../../config/quickAccessCategories";
 import type { NodeCategoryId } from "../../stores/PanelStore";
 import type { NodeMetadata } from "../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 
 const ROW_HEIGHT = 36;
 
@@ -312,6 +313,7 @@ interface NodeLibraryProps {
  */
 const NodeLibrary = memo<NodeLibraryProps>(
   ({ activeSubcategory, onSubcategoryChange, isMobile = false }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const cssStyles = useMemo(() => styles(theme, isMobile), [theme, isMobile]);
     const [query, setQuery] = useState("");
@@ -425,7 +427,7 @@ const NodeLibrary = memo<NodeLibraryProps>(
       <div css={cssStyles} className="nl-root">
         <div className="nl-header">
           <PanelHeadline
-            title="Nodes"
+            title={t("nav:settings.docsTopics.nodes", { defaultValue: "Nodes" })}
             docsTopic="nodes"
             description={getTopLevelCategory("nodes").description}
             actions={<span className="nl-count">{nodes.length}</span>}
@@ -439,15 +441,15 @@ const NodeLibrary = memo<NodeLibraryProps>(
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search nodes…"
-            aria-label="Search nodes"
+            placeholder={t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
+            aria-label={t("editor:ui.searchNodes", { defaultValue: "Search nodes" })}
           />
           {query && (
             <button
               type="button"
               className="nl-search-clear"
               onClick={() => setQuery("")}
-              aria-label="Clear search"
+              aria-label={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
             >
               <ClearIcon />
             </button>
@@ -459,7 +461,7 @@ const NodeLibrary = memo<NodeLibraryProps>(
             <nav
               className="nl-rail"
               role="tablist"
-              aria-label="Node categories"
+              aria-label={t("editor:ui.nodeCategories", { defaultValue: "Node categories" })}
             >
               {NODE_SUBCATEGORIES.map((sub) => (
                 <button
@@ -471,7 +473,13 @@ const NodeLibrary = memo<NodeLibraryProps>(
                   onClick={() => onSubcategoryChange(sub.id)}
                 >
                   <span className="nl-cat-icon">{sub.icon}</span>
-                  <span className="nl-cat-label">{sub.label}</span>
+                  <span className="nl-cat-label">
+                    {"labelKey" in sub && sub.labelKey
+                      ? t(`editor:ui.${sub.labelKey}`, {
+                          defaultValue: sub.label
+                        })
+                      : sub.label}
+                  </span>
                   <span className="nl-cat-count">{counts[sub.id] ?? 0}</span>
                 </button>
               ))}
@@ -479,7 +487,7 @@ const NodeLibrary = memo<NodeLibraryProps>(
 
             {nodes.length === 0 ? (
               <div className="nl-list">
-                <div className="nl-empty">No matching nodes</div>
+                <div className="nl-empty">{t("ui2:attrs.noMatchingNodes", { defaultValue: "No matching nodes" })}</div>
               </div>
             ) : (
               <div
@@ -526,7 +534,7 @@ const NodeLibrary = memo<NodeLibraryProps>(
             ) : (
               <div className="nl-info-empty">
                 <Text component="span" size="small" color="secondary">
-                  Drag a node onto the canvas. Hover for details.
+                  {t("editor:ui.dragANodeOntoTheCanvasHoverForDetails")}
                 </Text>
               </div>
             )}

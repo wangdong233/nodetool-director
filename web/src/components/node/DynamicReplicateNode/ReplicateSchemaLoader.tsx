@@ -8,6 +8,8 @@ import { resolveReplicateSchemaClient } from "../../../utils/replicateDynamicSch
 import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
 import { NodeData } from "../../../stores/NodeData";
 import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export { DYNAMIC_REPLICATE_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -22,6 +24,7 @@ interface ReplicateSchemaLoaderProps {
  */
 export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
   ({ nodeId, data }) => {
+    const { t } = useTranslation();
     const updateNodeData = useNodes((state) => state.updateNodeData);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -40,7 +43,7 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
 
     const handleLoad = useCallback(async (force = false) => {
       if (!modelInfo) {
-        setError("Paste a Replicate model identifier first.");
+        setError(i18n.t("editor:ui.pasteAReplicateModelIdentifierFirst", { defaultValue: "Paste a Replicate model identifier first." }));
         return;
       }
       setError(null);
@@ -111,7 +114,7 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
         });
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load schema"
+          err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadSchema", { defaultValue: "Failed to load schema" })
         );
       } finally {
         setLoading(false);
@@ -147,9 +150,9 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
 
     return (
       <Box sx={{ display: "inline-flex", alignItems: "center" }}>
-        <Tooltip title="Reload Schema" arrow delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })} arrow delay={TOOLTIP_ENTER_DELAY}>
           <ToolbarIconButton
-            title="Reload Schema"
+            title={t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })}
             size="small"
             disabled={loading}
             onClick={() => void handleLoad(true)}

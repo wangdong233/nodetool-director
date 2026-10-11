@@ -9,6 +9,7 @@ import { PropertyProps } from "../node/PropertyInput";
 import PropertyDropzone from "./PropertyDropzone";
 import isEqual from "../../utils/isEqual";
 import { memo, useMemo } from "react";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

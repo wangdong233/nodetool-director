@@ -57,6 +57,8 @@ import { takeWorkflowMedia } from "./scriptWorkflowMedia";
 import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
 import ScriptShotChip from "./ScriptShotChip";
 import type { ScriptLineShotLink } from "../../hooks/script/useScriptShotLinks";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * A keyboard intent bubbled up from a line's text field. The pane owns the
@@ -115,10 +117,10 @@ const DRAG_RAIL = 20;
 export const TEXT_INSET = DRAG_RAIL + SPACING.xl * 4 + GUTTER + SPACING.xl * 4;
 
 const PAUSE_AFTER_MS = [
-  { ms: 0, label: "No pause after" },
-  { ms: 500, label: "0.5s pause" },
-  { ms: 1000, label: "1s pause" },
-  { ms: 2000, label: "2s pause" }
+  { ms: 0, label: "No pause after", labelKey: "editor:ui.noPauseAfter" },
+  { ms: 500, label: "0.5s pause", labelKey: "editor:ui.05sPause" },
+  { ms: 1000, label: "1s pause", labelKey: "editor:ui.1sPause" },
+  { ms: 2000, label: "2s pause", labelKey: "editor:ui.2sPause" }
 ] as const;
 
 let speakerCounter = 0;
@@ -178,6 +180,7 @@ const SpeakerPicker = ({
   readOnly: boolean;
   mobile: boolean;
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const inStudio = useInStudio();
   const patchLine = useScriptStore((s) => s.patchLine);
@@ -223,7 +226,9 @@ const SpeakerPicker = ({
     close
   ]);
 
-  const label = speaker?.name ?? "no speaker";
+  // The gutter fallback reuses the picker's "No speaker" entry — the gutter
+  // CSS uppercases the label either way.
+  const label = speaker?.name ?? t("editor:ui.noSpeaker", { defaultValue: "No speaker" });
   const canOpen = !readOnly;
 
   return (
@@ -233,8 +238,8 @@ const SpeakerPicker = ({
           readOnly
             ? label
             : cast.length
-              ? "Change speaker"
-              : "Add a speaker"
+              ? t("editor:ui.changeSpeaker", { defaultValue: "Change speaker" })
+              : t("editor:ui.addASpeaker", { defaultValue: "Add a speaker" })
         }
       >
         <Box
@@ -253,7 +258,12 @@ const SpeakerPicker = ({
             aria-haspopup="menu"
             aria-expanded={!!anchor}
             aria-label={
-              speaker ? `${speaker.name}, change speaker` : "Assign speaker"
+              speaker
+                ? t("ui2:attrs.speakerChangeSpeaker", {
+                    defaultValue: "{{name}}, change speaker",
+                    name: speaker.name
+                  })
+                : t("ui2:attrs.assignSpeaker", { defaultValue: "Assign speaker" })
             }
             onClick={
               canOpen
@@ -302,7 +312,7 @@ const SpeakerPicker = ({
       >
         <MenuItemPrimitive
           compact
-          label="No speaker"
+          label={t("editor:ui.noSpeaker", { defaultValue: "No speaker" })}
           selected={!speaker}
           onClick={() => assign(null)}
         />
@@ -320,7 +330,7 @@ const SpeakerPicker = ({
           <MenuItemPrimitive
             compact
             dividerBefore
-            label="Add speaker"
+            label={t("editor:ui.addSpeaker", { defaultValue: "Add speaker" })}
             icon={<PersonAddIcon fontSize="small" />}
             onClick={addAndAssign}
           />
@@ -346,6 +356,7 @@ const ScriptLineRow = ({
   onDragOver,
   onDrop
 }: ScriptLineRowProps) => {
+  const { t } = useTranslation();
   const patchLine = useScriptStore((s) => s.patchLine);
   const removeLine = useScriptStore((s) => s.removeLine);
   const duplicateLine = useScriptStore((s) => s.duplicateLine);
@@ -411,7 +422,7 @@ const ScriptLineRow = ({
     try {
       await voiceLine(scriptId, line.id);
     } catch (error) {
-      setVoiceError(getErrorMessage(error, "Voicing failed"));
+      setVoiceError(getErrorMessage(error, i18n.t("editor:ui.voicingFailed", { defaultValue: "Voicing failed" })));
     }
   }, [scriptId, line.id]);
 
@@ -492,9 +503,9 @@ const ScriptLineRow = ({
           <ScriptShotChip shot={shotLink.shot} onOpen={shotLink.open} />
         )}
         {orphaned && (
-          <Tooltip title="No storyboard shot covers this line">
+          <Tooltip title={t("editor:ui.noStoryboardShotCoversThisLine", { defaultValue: "No storyboard shot covers this line" })}>
             <Text size="smaller" color="warning">
-              No shot
+              {t("editor:ui.noShot")}
             </Text>
           </Tooltip>
         )}
@@ -520,10 +531,10 @@ const ScriptLineRow = ({
         value={line.text}
         onChange={onTextChange}
         onKeyDown={onTextKeyDown}
-        placeholder="Write a line…"
+        placeholder={t("editor:ui.writeALine", { defaultValue: "Write a line…" })}
         multiline
         hideLabel
-        label="Line text"
+        label={t("editor:ui.lineText", { defaultValue: "Line text" })}
         compact
         fullWidth
         disabled={readOnly}
@@ -538,9 +549,9 @@ const ScriptLineRow = ({
           autoFocus={!hasDirection}
           value={line.direction ?? ""}
           onChange={onDirectionChange}
-          placeholder="Direction (e.g. whispering, tired)…"
+          placeholder={t("editor:ui.directionEgWhisperingTired", { defaultValue: "Direction (e.g. whispering, tired)…" })}
           hideLabel
-          label="Direction"
+          label={t("editor:ui.direction", { defaultValue: "Direction" })}
           compact
           fullWidth
           disabled={readOnly}
@@ -569,10 +580,10 @@ const ScriptLineRow = ({
   const statusIndicator =
     status === "stale" ? (
       <Text size="smaller" color="warning">
-        Stale
+        {t("storyboard:attrs.stale", { defaultValue: "Stale" })}
       </Text>
     ) : (
-      <Tooltip title={status === "voiced" ? "Voiced" : "Not voiced yet"}>
+      <Tooltip title={status === "voiced" ? t("storyboard:attrs.voiced", { defaultValue: "Voiced" }) : t("editor:ui.notVoicedYet", { defaultValue: "Not voiced yet" })}>
         <Box
           sx={{
             width: 6,
@@ -588,8 +599,8 @@ const ScriptLineRow = ({
   const moreMenu = !readOnly && (
     <>
       <ToolbarIconButton
-        tooltip="More line actions"
-        ariaLabel="More line actions"
+        tooltip={t("editor:ui.moreLineActions", { defaultValue: "More line actions" })}
+        ariaLabel={t("editor:ui.moreLineActions", { defaultValue: "More line actions" })}
         onClick={(e: MouseEvent<HTMLElement>) => setMoreAnchor(e.currentTarget)}
         icon={<MoreVertIcon fontSize="small" />}
       />
@@ -604,7 +615,7 @@ const ScriptLineRow = ({
           <MenuItemPrimitive
             key={option.ms}
             compact
-            label={option.label}
+            label={t(option.labelKey, { defaultValue: option.label })}
             selected={pauseMs === option.ms}
             onClick={() => setPause(option.ms)}
           />
@@ -612,7 +623,7 @@ const ScriptLineRow = ({
         <MenuItemPrimitive
           compact
           dividerBefore
-          label="Duplicate line"
+          label={t("editor:ui.duplicateLine", { defaultValue: "Duplicate line" })}
           icon={<ContentCopyIcon fontSize="small" />}
           onClick={() => {
             duplicateLine(scriptId, line.id);
@@ -622,7 +633,7 @@ const ScriptLineRow = ({
         <MenuItemPrimitive
           compact
           color="error"
-          label="Delete line"
+          label={t("editor:ui.deleteLine", { defaultValue: "Delete line" })}
           icon={<DeleteOutlineIcon fontSize="small" />}
           onClick={() => {
             removeLine(scriptId, line.id);
@@ -648,15 +659,15 @@ const ScriptLineRow = ({
           title={
             voice
               ? status === "stale"
-                ? "Re-voice line"
-                : "Voice line"
-              : "Assign a voice to this speaker first"
+                ? t("editor:ui.reVoiceLine", { defaultValue: "Re-voice line" })
+                : t("editor:ui.voiceLine", { defaultValue: "Voice line" })
+              : t("editor:ui.assignAVoiceToThisSpeakerFirst", { defaultValue: "Assign a voice to this speaker first" })
           }
         >
           <span>
             <ToolbarIconButton
               tooltip=""
-              ariaLabel="Voice line"
+              ariaLabel={t("editor:ui.voiceLine", { defaultValue: "Voice line" })}
               disabled={readOnly || !voice}
               onClick={() => void onVoice()}
               icon={<GraphicEqIcon fontSize="small" />}
@@ -666,14 +677,14 @@ const ScriptLineRow = ({
       )}
       {!readOnly && (
         <ToolbarIconButton
-          tooltip={showDirection ? "Remove direction" : "Add direction"}
+          tooltip={showDirection ? t("editor:ui.removeDirection", { defaultValue: "Remove direction" }) : t("editor:ui.addDirection", { defaultValue: "Add direction" })}
           onClick={toggleDirection}
           icon={<TheaterComedyIcon fontSize="small" />}
           sx={showDirection ? { color: "primary.main" } : undefined}
         />
       )}
       <ToolbarIconButton
-        tooltip="Play current take"
+        tooltip={t("editor:ui.playCurrentTake", { defaultValue: "Play current take" })}
         disabled={!hasCurrentTake}
         onClick={() => void playCurrent()}
         icon={<PlayArrowIcon fontSize="small" />}
@@ -774,13 +785,13 @@ const ScriptLineRow = ({
       }}
     >
       {draggable ? (
-        <Tooltip title="Drag to reorder">
+        <Tooltip title={t("editor:ui.dragToReorder", { defaultValue: "Drag to reorder" })}>
           <Box
             className="script-line-drag"
             draggable
             onDragStart={handleDragStart}
             onDragEnd={onDragEnd}
-            aria-label="Drag to reorder line"
+            aria-label={t("editor:ui.dragToReorderLine", { defaultValue: "Drag to reorder line" })}
             sx={{
               flexShrink: 0,
               width: DRAG_RAIL,

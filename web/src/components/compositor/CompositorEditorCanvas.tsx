@@ -27,6 +27,7 @@ import {
 import { EmptyState } from "../ui_primitives";
 import { useWebGPUPreview, type PreviewLayer } from "./useWebGPUPreview";
 import type { BitmapMap } from "./useLayerBitmaps";
+import { useTranslation } from "react-i18next";
 import {
   applyMove,
   applyRotate,
@@ -141,6 +142,7 @@ const CompositorEditorCanvasInner: React.FC<CompositorEditorCanvasProps> = ({
   onTransformPreview,
   onTransformCommit
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -217,10 +219,10 @@ const CompositorEditorCanvasInner: React.FC<CompositorEditorCanvasProps> = ({
 
   // ── Gizmo geometry in canvas space ──────────────────────────────
   const gizmo = useMemo(() => {
-    const t = selectedId ? transformForSelected() : null;
-    if (!selectedId || !t) return null;
+    const tf = selectedId ? transformForSelected() : null;
+    if (!selectedId || !tf) return null;
     const { width, height } = dimsFor(selectedId);
-    const [tl, tr, br, bl] = layerCorners(t, width, height);
+    const [tl, tr, br, bl] = layerCorners(tf, width, height);
     const corners: Record<string, Vec2> = { tl, tr, br, bl };
     const edges: Record<string, Vec2> = {
       t: midpoint(tl, tr),
@@ -228,7 +230,7 @@ const CompositorEditorCanvasInner: React.FC<CompositorEditorCanvasProps> = ({
       b: midpoint(br, bl),
       l: midpoint(bl, tl)
     };
-    const center = { x: t.x, y: t.y };
+    const center = { x: tf.x, y: tf.y };
     const topMid = edges.t;
     const dx = topMid.x - center.x;
     const dy = topMid.y - center.y;
@@ -295,12 +297,12 @@ const CompositorEditorCanvasInner: React.FC<CompositorEditorCanvasProps> = ({
       // 2) Inside the selected layer → move it.
       if (selectedId) {
         const { width, height } = dimsFor(selectedId);
-        const t = transformForSelected();
-        if (t && pointInLayer(t, width, height, p)) {
+        const tf = transformForSelected();
+        if (tf && pointInLayer(tf, width, height, p)) {
           dragRef.current = {
             handle: "move",
             layerId: selectedId,
-            start: t,
+            start: tf,
             startPointer: p,
             startAngle: 0
           };
@@ -314,15 +316,15 @@ const CompositorEditorCanvasInner: React.FC<CompositorEditorCanvasProps> = ({
         const layer = layers[i];
         if (!layer.visible) continue;
         const { width, height } = dimsFor(layer.id);
-        const t =
+        const tf =
           layer.transform ??
           defaultLayerTransform(width, height, canvasWidth, canvasHeight);
-        if (pointInLayer(t, width, height, p)) {
+        if (pointInLayer(tf, width, height, p)) {
           onSelect(layer.id);
           dragRef.current = {
             handle: "move",
             layerId: layer.id,
-            start: t,
+            start: tf,
             startPointer: p,
             startAngle: 0
           };
@@ -450,8 +452,8 @@ const CompositorEditorCanvasInner: React.FC<CompositorEditorCanvasProps> = ({
       {status === "unavailable" && (
         <div className="unavailable">
           <EmptyState
-            title="WebGPU unavailable"
-            description="This browser can't render the compositor preview. The node still composites server-side."
+            title={t("editor:ui.webgpuUnavailable", { defaultValue: "WebGPU unavailable" })}
+            description={t("editor:ui.browserCantRenderCompositorPreview", { defaultValue: "This browser can't render the compositor preview. The node still composites server-side." })}
           />
         </div>
       )}

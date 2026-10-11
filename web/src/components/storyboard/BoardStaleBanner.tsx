@@ -29,6 +29,7 @@ import { useBoard } from "../../stores/storyboard/StoryboardStore";
 import { useEntities } from "../../serverState/useEntities";
 import { useGenerateShot } from "../../hooks/storyboard/useGenerateShot";
 import { AlertBanner, EditorButton, FlexRow, SPACING } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 export type StaleInputReason =
   | "action or prompt"
@@ -121,6 +122,7 @@ const BoardStaleBannerImpl = ({
   boardId,
   disabled = false
 }: BoardStaleBannerProps) => {
+  const { t } = useTranslation();
   const board = useBoard(boardId);
   const { data: allEntities } = useEntities();
   const { generateKeyframe, generateClip } = useGenerateShot();
@@ -197,18 +199,14 @@ const BoardStaleBannerImpl = ({
             variant="outlined"
             onClick={handleRerenderStills}
             disabled={disabled}
-          >
-            Regenerate stale stills
-          </EditorButton>
+          >{t("storyboard:attrs.regenerateStaleStills", { defaultValue: "Regenerate stale stills" })}</EditorButton>
           )}
           {staleClips.length > 0 && (
             <EditorButton
               variant="outlined"
               onClick={handleRerenderClips}
               disabled={disabled}
-            >
-              Regenerate stale clips
-            </EditorButton>
+            >{t("storyboard:attrs.regenerateStaleClips", { defaultValue: "Regenerate stale clips" })}</EditorButton>
           )}
         </FlexRow>
       }

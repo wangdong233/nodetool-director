@@ -23,6 +23,8 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import useMetadataStore from "../../stores/MetadataStore";
 import useNodeMenuStore from "../../stores/NodeMenuStore";
 import { useShallow } from "zustand/react/shallow";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface TypeFilterChipsProps {
   selectedInputType: string;
@@ -44,17 +46,26 @@ const TYPE_CHIP_ICON_CONTAINER_STYLE = { width: 16, height: 16 } as const;
 type TypeOption = {
   value: string;
   label: string;
+  labelKey?: string;
 };
 
 const ALL_INPUT_OPTION: TypeOption = {
   value: "",
-  label: "All input types"
+  label: "All input types",
+  labelKey: "editor:ui.allInputTypes"
 };
 
 const ALL_OUTPUT_OPTION: TypeOption = {
   value: "",
-  label: "All output types"
+  label: "All output types",
+  labelKey: "editor:ui.allOutputTypes"
 };
+
+/** Resolve a type option's label at render so zh lands (module consts stay pure data). */
+const typeOptionLabel = (option: TypeOption): string =>
+  option.labelKey
+    ? i18n.t(option.labelKey, { defaultValue: option.label })
+    : option.label;
 
 const typeFilterChipsStyles = (theme: Theme) =>
   css({
@@ -234,6 +245,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
     selectedOutputType,
     setSelectedOutputType
   }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const chipsStyles = useMemo(() => typeFilterChipsStyles(theme), [theme]);
     const { selectedProviderType, setSelectedProviderType } = useNodeMenuStore(
@@ -302,7 +314,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
           return options;
         }
         return options.filter((option) =>
-          `${option.label} ${option.value}`
+          `${typeOptionLabel(option)} ${option.value}`
             .toLowerCase()
             .includes(normalizedQuery)
         );
@@ -363,7 +375,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
             <Chip
               className={`provider-quick-chip ${selectedProviderType === "local" ? "selected" : ""}`}
               size="small"
-              label="Local"
+              label={t("ui2:attrs.local", { defaultValue: "Local" })}
               onClick={handleLocalProviderClick}
             />
             <Chip
@@ -373,7 +385,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
               onClick={handleApiProviderClick}
             />
           </Box>
-          <span className="quick-label">Output:</span>
+          <span className="quick-label">{t("editor:ui.output", { defaultValue: "Output:" })}</span>
           <Box className="type-chips filter-section">
             {TYPE_CATEGORIES.map((type) => (
               <Tooltip
@@ -411,7 +423,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
             startIcon={<FilterListIcon fontSize="small" />}
             onClick={handleOpenMenu}
           >
-            Filters
+            {t("editor:ui.filters")}
           </EditorButton>
           <span className="node-count">
             {totalNodeCount} {totalNodeCount === 1 ? "node" : "nodes"}
@@ -446,7 +458,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                   marginBottom: getSpacingPx(SPACING.xl)
                 }}
               >
-                Filter nodes by input and output data types
+                {t("editor:ui.filterNodesByInputAndOutputDataTypes")}
               </Text>
             </Box>
 
@@ -455,7 +467,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 marginBottom: getSpacingPx(SPACING.xs)
               }}
             >
-              Input Type
+              {t("editor:ui.inputType")}
             </Text>
             <Autocomplete<TypeOption, false, false, false>
               className="filter-select"
@@ -465,7 +477,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
               isOptionEqualToValue={(option, value) =>
                 option.value === value.value
               }
-              getOptionLabel={(option) => option.label}
+              getOptionLabel={(option) => typeOptionLabel(option)}
               filterOptions={(options, state) =>
                 filterTypeOptions(options, state.inputValue)
               }
@@ -476,7 +488,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 <TextField
                   {...params}
                   size="small"
-                  placeholder="Search input type..."
+                  placeholder={t("editor:ui.searchInputType", { defaultValue: "Search input type..." })}
                   inputProps={{
                     ...params.inputProps,
                     "aria-label": "Search input type"
@@ -506,7 +518,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 marginBottom: getSpacingPx(SPACING.xs)
               }}
             >
-              Output Type
+              {t("editor:ui.outputType")}
             </Text>
             <Autocomplete<TypeOption, false, false, false>
               className="filter-select"
@@ -516,7 +528,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
               isOptionEqualToValue={(option, value) =>
                 option.value === value.value
               }
-              getOptionLabel={(option) => option.label}
+              getOptionLabel={(option) => typeOptionLabel(option)}
               filterOptions={(options, state) =>
                 filterTypeOptions(options, state.inputValue)
               }
@@ -527,7 +539,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 <TextField
                   {...params}
                   size="small"
-                  placeholder="Search output type..."
+                  placeholder={t("editor:ui.searchOutputType", { defaultValue: "Search output type..." })}
                   inputProps={{
                     ...params.inputProps,
                     "aria-label": "Search output type"

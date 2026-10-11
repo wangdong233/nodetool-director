@@ -13,6 +13,8 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import CategorySearchBar from "../node_menu/CategorySearchBar";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 import {
   EmptyState,
   FlexColumn,
@@ -29,6 +31,7 @@ import {
 const DEFAULT_NAME = "Untitled JS script";
 
 export const CreateJsScriptButton = memo(function CreateJsScriptButton() {
+  const { t } = useTranslation();
   const createJsScript = useCreateJsScript();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -38,7 +41,7 @@ export const CreateJsScriptButton = memo(function CreateJsScriptButton() {
   const handleCreate = useCallback(async () => {
     try {
       const created = await createJsScript.mutateAsync({
-        name: DEFAULT_NAME,
+        name: i18n.t("editor:ui.untitledJsScript", { defaultValue: DEFAULT_NAME }),
         projectId: creationProjectId()
       });
       openTab({
@@ -58,9 +61,9 @@ export const CreateJsScriptButton = memo(function CreateJsScriptButton() {
   }, [createJsScript, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title="New JS script" placement="right-start">
+    <Tooltip title={t("editor:ui.newJSScript", { defaultValue: "New JS script" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New JS script"
+        ariaLabel={t("editor:ui.newJSScript", { defaultValue: "New JS script" })}
         onClick={() => void handleCreate()}
         disabled={createJsScript.isPending}
         tabIndex={-1}
@@ -80,6 +83,7 @@ interface JsScriptListPanelProps {
 }
 
 const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [filterValue, setFilterValue] = useState("");
   const { data, isLoading, isError, error } = useJsScripts(projectId);
@@ -131,13 +135,13 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
         <CategorySearchBar
           value={filterValue}
           onChange={setFilterValue}
-          placeholder="Search JS scripts..."
+          placeholder={t("editor:ui.searchJSScripts", { defaultValue: "Search JS scripts..." })}
         />
       </div>
 
       {isLoading ? (
         <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1 }}>
-          <LoadingSpinner size="large" text="Loading JS scripts" />
+          <LoadingSpinner size="large" text={t("editor:ui.loadingJSScripts", { defaultValue: "Loading JS scripts" })} />
         </FlexColumn>
       ) : isError ? (
         <FlexColumn
@@ -148,8 +152,8 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
         >
           <EmptyState
             variant="error"
-            title="Could not load JS scripts"
-            description={error?.message ?? "Try again later."}
+            title={t("editor:ui.couldNotLoadJSScripts", { defaultValue: "Could not load JS scripts" })}
+            description={error?.message ?? t("common:list.tryAgainLater", { defaultValue: "Try again later." })}
           />
         </FlexColumn>
       ) : scripts.length === 0 ? (
@@ -160,11 +164,11 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
           sx={{ flex: 1, px: 2 }}
         >
           <EmptyState
-            title={filterValue ? "No matching JS scripts" : "No JS scripts yet"}
+            title={filterValue ? t("editor:ui.noMatchingJSScripts", { defaultValue: "No matching JS scripts" }) : t("editor:ui.noJSScriptsYet", { defaultValue: "No JS scripts yet" })}
             description={
               filterValue
-                ? "Try a different search term."
-                : "Create a new JS script with the + button above."
+                ? t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })
+                : t("editor:ui.createANewJSScriptWithThe+ButtonAbove", { defaultValue: "Create a new JS script with the + button above." })
             }
           />
         </FlexColumn>
@@ -187,7 +191,7 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
                     component="span"
                     sx={{ fontSize: "var(--fontSizeSmall)", fontWeight: 600 }}
                   >
-                    {script.name || DEFAULT_NAME}
+                    {script.name || t("editor:ui.untitledJsScript", { defaultValue: DEFAULT_NAME })}
                   </TruncatedText>
                   {script.description && (
                     <Text size="small" color="secondary" truncate>

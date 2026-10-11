@@ -12,6 +12,7 @@ import { getSharedSettingsStyles } from "./settingsMenuStyles";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
 import { BASE_URL } from "../../stores/BASE_URL";
+import { useTranslation } from "react-i18next";
 
 const CHROME_EXTENSIONS_URL = "chrome://extensions";
 
@@ -27,6 +28,14 @@ async function copyText(text: string): Promise<void> {
   await navigator.clipboard.writeText(text);
 }
 
+const STEP_KEYS: readonly string[] = [
+  "browserExtensionStep1",
+  "browserExtensionStep2",
+  "browserExtensionStep3",
+  "browserExtensionStep4",
+  "browserExtensionStep5"
+];
+
 const STEPS: readonly string[] = [
   "Download the extension (or use the build folder below).",
   "Open chrome://extensions in the Chrome you use for the target sites.",
@@ -36,6 +45,7 @@ const STEPS: readonly string[] = [
 ];
 
 const BrowserExtensionSettingsMenu = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -67,17 +77,23 @@ const BrowserExtensionSettingsMenu = () => {
         addNotification({
           type: "success",
           alert: true,
-          content: `Copied ${what}`
+          content: t("editor:ui.copiedNotification", {
+            defaultValue: "Copied {{what}}",
+            what
+          })
         });
       } catch {
         addNotification({
           type: "error",
           alert: true,
-          content: `Could not copy ${what}`
+          content: t("editor:ui.couldNotCopyNotification", {
+            defaultValue: "Could not copy {{what}}",
+            what
+          })
         });
       }
     },
-    [addNotification]
+    [addNotification, t]
   );
 
   return (
@@ -87,11 +103,11 @@ const BrowserExtensionSettingsMenu = () => {
     >
       <div className="settings-main-content">
         <Text className="description" sx={{ mb: 1 }}>
-          The <strong>Nodetool browser extension</strong> lets the{" "}
-          <strong>Live Browser Agent</strong> drive your own logged-in Chrome —
-          automating media-generation sites, saving results as assets, and
-          uploading assets into pages. Chrome can’t install it for you, so load
-          it unpacked once with the steps below.
+          {t("editor:ui.browserExtensionIntroLead", { defaultValue: "The " })}
+          <strong>{t("ui2:attrs.nodetoolBrowserExtension", { defaultValue: "Nodetool browser extension" })}</strong>
+          {t("editor:ui.browserExtensionIntroMid", { defaultValue: " lets the " })}
+          <strong>{t("ui2:attrs.liveBrowserAgent", { defaultValue: "Live Browser Agent" })}</strong>
+          {t("editor:ui.browserExtensionIntroTail", { defaultValue: " drive your own logged-in Chrome — automating media-generation sites, saving results as assets, and uploading assets into pages. Chrome can’t install it for you, so load it unpacked once with the steps below." })}
         </Text>
 
         <FlexRow gap={1} sx={{ alignItems: "center", mb: 1 }}>
@@ -105,16 +121,16 @@ const BrowserExtensionSettingsMenu = () => {
             }
             label={
               isLoading
-                ? "Checking…"
+                ? t("editor:ui.checking", { defaultValue: "Checking…" })
                 : connected
-                  ? "Extension connected"
-                  : "Not connected"
+                  ? t("editor:ui.extensionConnected", { defaultValue: "Extension connected" })
+                  : t("editor:ui.notConnected", { defaultValue: "Not connected" })
             }
             color={connected ? "success" : "default"}
           />
           {!connected && !isLoading && (
             <Text size="small" sx={{ opacity: 0.7 }}>
-              Install and attach the extension to see it here.
+              {t("editor:ui.installAndAttachTheExtensionToSeeItHere")}
             </Text>
           )}
         </FlexRow>
@@ -122,7 +138,7 @@ const BrowserExtensionSettingsMenu = () => {
         <FlexColumn gap={0.5} sx={{ mb: 1.5 }}>
           {STEPS.map((step, i) => (
             <Text key={i} size="small">
-              {i + 1}. {step}
+              {i + 1}. {t(`editor:ui.${STEP_KEYS[i]}`, { defaultValue: step })}
             </Text>
           ))}
         </FlexColumn>
@@ -130,7 +146,7 @@ const BrowserExtensionSettingsMenu = () => {
         <FlexRow gap={1} sx={{ flexWrap: "wrap" }}>
           <NavButton
             icon={<DownloadIcon />}
-            label="Download extension"
+            label={t("editor:ui.downloadExtension", { defaultValue: "Download extension" })}
             color="primary"
             onClick={() => window.open(downloadUrl, "_blank")}
             navSize="small"
@@ -139,7 +155,7 @@ const BrowserExtensionSettingsMenu = () => {
           {canReveal ? (
             <NavButton
               icon={<FolderOpenIcon />}
-              label="Reveal build folder"
+              label={t("editor:ui.revealBuildFolder", { defaultValue: "Reveal build folder" })}
               onClick={handleReveal}
               navSize="small"
               sx={{ padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`, minWidth: "unset" }}
@@ -148,8 +164,8 @@ const BrowserExtensionSettingsMenu = () => {
             distExists && (
               <NavButton
                 icon={<ContentCopyIcon />}
-                label="Copy build path"
-                onClick={() => handleCopy(distPath, "build path")}
+                label={t("editor:ui.copyBuildPath", { defaultValue: "Copy build path" })}
+                onClick={() => handleCopy(distPath, t("editor:ui.buildPathWhat", { defaultValue: "build path" }))}
                 navSize="small"
                 sx={{ padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`, minWidth: "unset" }}
               />
@@ -157,7 +173,7 @@ const BrowserExtensionSettingsMenu = () => {
           )}
           <NavButton
             icon={<ContentCopyIcon />}
-            label="Copy chrome://extensions"
+            label={t("editor:ui.copyChromeExtensions", { defaultValue: "Copy chrome://extensions" })}
             onClick={() => handleCopy(CHROME_EXTENSIONS_URL, CHROME_EXTENSIONS_URL)}
             navSize="small"
             sx={{ padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`, minWidth: "unset" }}

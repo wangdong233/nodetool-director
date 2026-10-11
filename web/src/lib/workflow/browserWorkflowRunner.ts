@@ -42,6 +42,7 @@ import {
   type LoadedModules
 } from "./browserRunnerCore";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export { collectNodeClasses };
 export type { BrowserGraphJobOptions, BrowserGraphJobResult };
@@ -443,7 +444,7 @@ async function runBrowserGraphJobLocal(
       if (next.done) {
         const result = next.value;
         if (result.status === "failed") {
-          const error = result.error ?? nodeError ?? "Workflow failed";
+          const error = result.error ?? nodeError ?? i18n.t("editor:ui.workflowFailed", { defaultValue: "Workflow failed" });
           console.error(
             `[browserRunner] ✖ failed in ${elapsed()} (job ${jobId}): ${error}`
           );

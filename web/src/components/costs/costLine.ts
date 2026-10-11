@@ -12,6 +12,7 @@ import { formatUsd } from "@nodetool-ai/model-pricing";
 import type { WorkflowCostEstimateDetail } from "@nodetool-ai/node-sdk/cost-estimate";
 import type { GenerationCostEstimate } from "../../utils/generationCostEstimate";
 import type { CostLineDetail } from "./CostEstimateLine";
+import { i18n } from "../../i18n";
 
 /** One direct generation as a cost line. */
 export function generationCostLine(
@@ -22,7 +23,7 @@ export function generationCostLine(
   }
   const perOutput =
     estimate.quantity > 1
-      ? `${estimate.quantity} outputs × ${estimate.breakdown ?? "list price"}`
+      ? i18n.t("editor:ui.nOutputsXBreakdown", { defaultValue: "{{n}} outputs × {{breakdown}}", n: estimate.quantity, breakdown: estimate.breakdown ?? i18n.t("editor:ui.listPrice", { defaultValue: "list price" }) })
       : estimate.breakdown;
   return {
     label: estimate.label,

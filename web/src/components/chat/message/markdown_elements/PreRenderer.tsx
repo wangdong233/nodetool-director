@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 import { CodeBlock, type CodeBlockProps } from "./CodeBlock";
+import { i18n } from "../../../../i18n";
 
 interface PreRendererProps extends React.ComponentPropsWithoutRef<"pre"> {
   node?: unknown;

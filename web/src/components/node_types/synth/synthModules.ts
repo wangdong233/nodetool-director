@@ -11,6 +11,8 @@ export type KnobUnit = "hz" | "s" | "ms" | "db" | "x" | "";
 export interface KnobSpec {
   name: string;
   label: string;
+  /** Full `ns:key` for the label; resolved at render. */
+  labelKey?: string;
   min: number;
   max: number;
   default: number;
@@ -79,6 +81,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "frequency",
           label: "Freq",
+          labelKey: "timeline:attrs.freq",
           min: 0.1,
           max: 20000,
           default: 220,
@@ -109,6 +112,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "rate_hz",
           label: "Rate",
+          labelKey: "timeline:attrs.rate",
           min: 0.01,
           max: 100,
           default: 2,
@@ -119,6 +123,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "offset",
           label: "Offset",
+          labelKey: "timeline:attrs.offset",
           min: -10,
           max: 10,
           default: 0,
@@ -155,6 +160,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "off_duration",
           label: "Off",
+          labelKey: "appbuilder:attrs.off",
           min: 0.001,
           max: 60,
           default: 0.25,
@@ -168,7 +174,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
       label: "VCA",
       accent: "primary",
       inputs: ["audio", "cv"],
-      knobs: [{ name: "gain", label: "Gain", min: 0, max: 10, default: 1 }]
+      knobs: [{ name: "gain", label: "Gain", labelKey: "editor:ui.gain", min: 0, max: 10, default: 1 }]
     },
     "nodetool.audio.synth.VCF": {
       label: "VCF",
@@ -186,6 +192,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "cutoff_hz",
           label: "Cutoff",
+          labelKey: "timeline:attrs.cutoff",
           min: 20,
           max: 20000,
           default: 1000,
@@ -204,6 +211,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "scale",
           label: "Scale",
+          labelKey: "timeline:attrs.scale",
           min: -10,
           max: 10,
           default: 1,
@@ -212,6 +220,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "offset",
           label: "Offset",
+          labelKey: "timeline:attrs.offset",
           min: -10,
           max: 10,
           default: 0,
@@ -244,6 +253,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "gain_db",
           label: "Gain",
+          labelKey: "editor:ui.gain",
           min: -60,
           max: 24,
           default: 0,
@@ -260,6 +270,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "cutoff_frequency_hz",
           label: "Cutoff",
+          labelKey: "timeline:attrs.cutoff",
           min: 500,
           max: 20000,
           default: 5000,
@@ -277,6 +288,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "cutoff_frequency_hz",
           label: "Cutoff",
+          labelKey: "timeline:attrs.cutoff",
           min: 20,
           max: 5000,
           default: 80,

@@ -7,6 +7,7 @@ import type { PropertyProps } from "../node/PropertyInput.types";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { NodeSelect, NodeMenuItem } from "../editor_ui";
 import { FlexRow, ToolbarIconButton } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface DocumentSummary {
   id: string;

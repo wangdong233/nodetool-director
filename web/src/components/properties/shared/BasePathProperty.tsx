@@ -9,6 +9,7 @@ import { Text, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../../ui_pri
 import type { Theme } from "@mui/material/styles";
 import FileBrowserDialog from "../../dialogs/FileBrowserDialog";
 import { isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 export type PathType = "file_path" | "folder_path";
 

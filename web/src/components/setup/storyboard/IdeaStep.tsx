@@ -53,6 +53,7 @@ import {
   SHOTLIST_TEMPLATE_URL,
   useShotlistImport
 } from "./useShotlistImport";
+import { useTranslation } from "react-i18next";
 
 /** How many example loglines are offered as inspiration (PRD § 7.1). */
 const INSPIRATION_COUNT = 3;
@@ -72,6 +73,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   onOpenTutorial,
   onValidationChange
 }) => {
+  const { t } = useTranslation();
   const brief = useStoryboardStore(
     (state) => state.boards[boardId]?.brief ?? ""
   );
@@ -119,48 +121,56 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   );
 
   // The shipped boards' own briefs: what someone typed to get a board that
-  // exists, which is a better start than an invented example.
+  // exists, which is a better start than an invented example. Each logline is
+  // looked up in the zh-only catalog overlay by its stable board slug
+  // (显示即所发: the localized chip text is the brief it inserts, one string
+  // for both), so the filter that drops the current brief compares the same
+  // string the creator sees.
   const inspirations = useMemo(
     () =>
       (examples ?? [])
-        .map((example) => example.logline.trim())
+        .map((example) =>
+          t(`catalog:storyboardExamples.${example.slug}.logline`, {
+            defaultValue: example.logline.trim()
+          })
+        )
         .filter((logline) => logline.length > 0 && logline !== brief.trim())
         .slice(0, INSPIRATION_COUNT),
-    [brief, examples]
+    [brief, examples, t]
   );
 
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
       {
         id: "upload",
-        title: "Upload your file",
+        title: t("storyboard:attrs.uploadYourFile", { defaultValue: "Upload your file" }),
         description: "PDF, DOCX, FDX",
         onSelect: () => scriptInput.current?.click(),
         disabled: script.importing,
-        disabledReason: script.importing ? "Reading your file…" : undefined
+        disabledReason: script.importing ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "shotlist",
-        title: "Import your shotlist",
-        description: "CSV, one row per shot",
+        title: t("storyboard:attrs.importYourShotlist", { defaultValue: "Import your shotlist" }),
+        description: t("storyboard:attrs.csvOneRowPerShot", { defaultValue: "CSV, one row per shot" }),
         onSelect: () => shotlistInput.current?.click(),
         disabled: shotlist.importing,
-        disabledReason: shotlist.importing ? "Reading your file…" : undefined
+        disabledReason: shotlist.importing ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "blank",
-        title: "Start with a blank storyboard",
-        description: "Skip the story and go straight to the board",
+        title: t("storyboard:attrs.startWithBlankStoryboard", { defaultValue: "Start with a blank storyboard" }),
+        description: t("storyboard:attrs.skipStoryGoStraightToBoard", { defaultValue: "Skip the story and go straight to the board" }),
         onSelect: onStartBlank
       },
       {
         id: "tutorial",
-        title: "Take the tutorial",
-        description: "Walk one board end to end, with the steps explained",
+        title: t("storyboard:attrs.takeTheTutorial", { defaultValue: "Take the tutorial" }),
+        description: t("storyboard:attrs.walkOneBoardEndToEnd", { defaultValue: "Walk one board end to end, with the steps explained" }),
         onSelect: onOpenTutorial
       }
     ],
-    [onOpenTutorial, onStartBlank, script.importing, shotlist.importing]
+    [t, onOpenTutorial, onStartBlank, script.importing, shotlist.importing]
   );
 
   return (
@@ -178,10 +188,10 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            What&apos;s your story?
+            {t("editor:ui.whatSYourStory")}
           </Text>
           <Text size="normal" color="secondary">
-            We&apos;ll turn it into a screenplay and storyboard.
+            {t("editor:ui.weLlTurnItIntoAScreenplayAndStoryboard")}
           </Text>
         </FlexColumn>
 
@@ -194,38 +204,32 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         {source ? (
           <AlertBanner
             severity="info"
-            title={`Imported from ${source.fileName}`}
+            title={t("storyboard:attrs.importedFromName", { defaultValue: "Imported from {{name}}", name: source.fileName })}
           >
             <FlexColumn gap={GAP.tight}>
               <Caption component="span">
                 {locked
-                  ? "Your scenes and dialogue are used as written. The Director only adds camera, motion and timing."
-                  : "The Director structures this text into scenes and shots."}
+                  ? t("storyboard:attrs.yourScenesAndDialogueAreUsedAsWrittenTheDirectorOnlyAddsCameraMotionAndTiming", { defaultValue: "Your scenes and dialogue are used as written. The Director only adds camera, motion and timing." })
+                  : t("storyboard:attrs.theDirectorStructuresThisTextIntoScenesAndShots", { defaultValue: "The Director structures this text into scenes and shots." })}
               </Caption>
               <FlexRow gap={GAP.normal} wrap>
                 <EditorButton
                   variant="outlined"
                   size="small"
                   onClick={replaceSource}
-                >
-                  Replace file
-                </EditorButton>
+                >{t("storyboard:attrs.replaceFile", { defaultValue: "Replace file" })}</EditorButton>
                 {locked ? (
                   <EditorButton
                     variant="text"
                     size="small"
                     onClick={editAsText}
-                  >
-                    Edit as text
-                  </EditorButton>
+                  >{t("storyboard:attrs.editAsText", { defaultValue: "Edit as text" })}</EditorButton>
                 ) : (
                   <EditorButton
                     variant="text"
                     size="small"
                     onClick={removeSource}
-                  >
-                    Remove the file
-                  </EditorButton>
+                  >{t("storyboard:attrs.removeTheFile", { defaultValue: "Remove the file" })}</EditorButton>
                 )}
               </FlexRow>
             </FlexColumn>
@@ -237,14 +241,14 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           autoFocus={!locked}
           multiline
           rows={5}
-          label="Your story"
+          label={t("storyboard:attrs.yourStory", { defaultValue: "Your story" })}
           hideLabel
-          placeholder="One sentence is enough, or paste a full script."
+          placeholder={t("storyboard:attrs.oneSentenceIsEnoughOrPasteAFullScript", { defaultValue: "One sentence is enough, or paste a full script." })}
           onChange={handleChange}
           slotProps={{ input: { readOnly: locked } }}
           helperText={
             locked
-              ? "Held while your file is the script. Edit as text to change the words here."
+              ? t("storyboard:attrs.heldWhileYourFileIsTheScriptEditAsTextToChangeTheWordsHere", { defaultValue: "Held while your file is the script. Edit as text to change the words here." })
               : undefined
           }
         />
@@ -272,13 +276,11 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           under the rail, next to the card that needs it. */}
       <FlexColumn gap={GAP.normal}>
         <AlternativesColumn
-          label="Other ways to start"
+          label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
           alternatives={alternatives}
         />
         <Caption color="secondary" component="p">
-          <a href={SHOTLIST_TEMPLATE_URL} download>
-            Download the CSV template
-          </a>
+          <a href={SHOTLIST_TEMPLATE_URL} download>{t("storyboard:attrs.downloadTheCSVTemplate", { defaultValue: "Download the CSV template" })}</a>
         </Caption>
       </FlexColumn>
 
@@ -288,7 +290,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={scriptInput}
         accept={SCRIPT_ACCEPT}
-        aria-label="Upload your file"
+        aria-label={t("storyboard:attrs.uploadYourFile", { defaultValue: "Upload your file" })}
         onChange={handlePicked(script.importFile)}
       />
       <input
@@ -296,7 +298,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={shotlistInput}
         accept={SHOTLIST_ACCEPT}
-        aria-label="Import your shotlist"
+        aria-label={t("storyboard:attrs.importYourShotlist", { defaultValue: "Import your shotlist" })}
         onChange={handlePicked(shotlist.importFile)}
       />
 

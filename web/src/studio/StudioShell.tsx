@@ -23,20 +23,22 @@ import {
 import { useStudioCredits } from "./useStudioCredits";
 import { useStudioAssistantModel } from "./useStudioAssistantModel";
 import { StudioProvider } from "./StudioContext";
+import { useTranslation } from "react-i18next";
 
 const CreditsChip = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { status, remaining, loading, unavailable } = useStudioCredits();
   const title = unavailable
-    ? "Couldn't load the credit balance. Click to retry from the account page."
+    ? t("editor:studio.creditLoadFailed", { defaultValue: "Couldn't load the credit balance. Click to retry from the account page." })
     : status
-      ? `${status.plan.name} plan — ${status.spentCredits} of ${status.grantedCredits} credits used. 1 credit = 1¢ of generation. Click to manage.`
-      : "Plan & credits";
+      ? t("editor:studio.creditTooltip", { defaultValue: "{{plan}} plan — {{spent}} of {{granted}} credits used. 1 credit = 1¢ of generation. Click to manage.", plan: status.plan.name, spent: String(status.spentCredits), granted: String(status.grantedCredits) })
+      : t("editor:studio.planCredits", { defaultValue: "Plan & credits" })
   const label = loading
-    ? "credits…"
+    ? t("editor:studio.creditsLoading", { defaultValue: "credits…" })
     : unavailable
-      ? "credits unavailable"
-      : `${remaining} credits`;
+      ? t("editor:studio.creditsUnavailable", { defaultValue: "credits unavailable" })
+      : t("editor:studio.creditsRemaining", { defaultValue: "{{n}} credits", n: String(remaining) })
   return (
     <Tooltip title={title}>
       <span>
@@ -71,6 +73,7 @@ const StudioShell = ({
   actions,
   children
 }: StudioShellProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
   useStudioAssistantModel();
@@ -93,7 +96,7 @@ const StudioShell = ({
               startIcon={<ArrowBackRoundedIcon fontSize="small" />}
               onClick={() => navigate("/studio")}
             >
-              Studio
+              {t("editor:studio.studioBack", { defaultValue: "Studio" })}
             </EditorButton>
           )}
           {!showBack && (

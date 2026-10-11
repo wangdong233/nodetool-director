@@ -37,6 +37,7 @@ import {
   COMMENT_NODE_METADATA
 } from "../../utils/nodeUtils";
 import { shallow } from "zustand/shallow";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -87,6 +88,7 @@ interface MobilePaneMenuProps {
 }
 
 const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { handlePaste } = useCopyPaste();
   const reactFlowInstance = useReactFlow();
@@ -180,12 +182,12 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
     <MobileBottomSheet
       open={open}
       onClose={onClose}
-      title="Canvas Menu"
-      ariaLabel="Canvas actions and node insertion"
+      title={t("editor:ui.canvasMenu", { defaultValue: "Canvas Menu" })}
+      ariaLabel={t("editor:ui.canvasActionsAndNodeInsertion", { defaultValue: "Canvas actions and node insertion" })}
     >
       <div className="menu-content" css={styles(theme)}>
         <List dense>
-          <div className="menu-section-title">Actions</div>
+          <div className="menu-section-title">{t("ui2:attrs.actions", { defaultValue: "Actions" })}</div>
           <ListItem className={`menu-item ${!isClipboardValid ? "disabled" : ""}`}>
             <ListItemButton onClick={handlePasteAction} disabled={!isClipboardValid}>
               <ListItemIcon className="menu-item-icon">
@@ -194,7 +196,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary="Paste" 
-                secondary={!isClipboardValid ? "No valid nodes in clipboard" : "Paste copied nodes"}
+                secondary={!isClipboardValid ? t("editor:ui.noValidNodesInClipboard", { defaultValue: "No valid nodes in clipboard" }) : t("editor:ui.pasteCopiedNodes", { defaultValue: "Paste copied nodes" })}
               />
             </ListItemButton>
           </ListItem>
@@ -207,14 +209,14 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary="Fit Screen" 
-                secondary="Center all nodes in view"
+                secondary={t("tools:menus.centerAllNodesInView", { defaultValue: "Center all nodes in view" })}
               />
             </ListItemButton>
           </ListItem>
 
           <Divider sx={dividerSx} />
 
-          <div className="menu-section-title">AI Nodes</div>
+          <div className="menu-section-title">{t("editor:ui.aiNodes", { defaultValue: "AI Nodes" })}</div>
           <ListItem className="menu-item">
             <ListItemButton onClick={addAgentNode}>
               <ListItemIcon className="menu-item-icon">
@@ -222,15 +224,15 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText 
                 className="menu-item-text"
-                primary="Add Agent" 
-                secondary="AI agent for processing"
+                primary={t("editor:ui.addAgent", { defaultValue: "Add Agent" })} 
+                secondary={t("tools:menus.aiAgentForProcessing", { defaultValue: "AI agent for processing" })}
               />
             </ListItemButton>
           </ListItem>
 
           <Divider sx={dividerSx} />
 
-          <div className="menu-section-title">Input Nodes</div>
+          <div className="menu-section-title">{t("ui2:attrs.inputNodes", { defaultValue: "Input Nodes" })}</div>
           <ListItem className="menu-item">
             <ListItemButton onClick={addInputNode} data-node-type="StringInput">
               <ListItemIcon className="menu-item-icon">
@@ -238,8 +240,8 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary="String Input"
-                secondary="Text input field"
+                primary={t("editor:ui.stringInput", { defaultValue: "String Input" })}
+                secondary={t("tools:menus.textInputField", { defaultValue: "Text input field" })}
               />
             </ListItemButton>
           </ListItem>
@@ -251,8 +253,8 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary="Integer Input"
-                secondary="Whole number input"
+                primary={t("editor:ui.integerInput", { defaultValue: "Integer Input" })}
+                secondary={t("tools:menus.wholeNumberInput", { defaultValue: "Whole number input" })}
               />
             </ListItemButton>
           </ListItem>
@@ -264,8 +266,8 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary="Float Input"
-                secondary="Decimal number input"
+                primary={t("editor:ui.floatInput", { defaultValue: "Float Input" })}
+                secondary={t("tools:menus.decimalNumberInput", { defaultValue: "Decimal number input" })}
               />
             </ListItemButton>
           </ListItem>
@@ -277,8 +279,8 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary="Chat Input"
-                secondary="Chat message input"
+                primary={t("editor:ui.chatInput", { defaultValue: "Chat Input" })}
+                secondary={t("tools:menus.chatMessageInput", { defaultValue: "Chat message input" })}
               />
             </ListItemButton>
           </ListItem>
@@ -291,14 +293,14 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText
                 className="menu-item-text"
                 primary="Image Input"
-                secondary="Image file input"
+                secondary={t("tools:menus.imageFileInput", { defaultValue: "Image file input" })}
               />
             </ListItemButton>
           </ListItem>
 
           <Divider sx={dividerSx} />
 
-          <div className="menu-section-title">Organization</div>
+          <div className="menu-section-title">{t("ui2:attrs.organization", { defaultValue: "Organization" })}</div>
           <ListItem className="menu-item">
             <ListItemButton onClick={addComment}>
               <ListItemIcon className="menu-item-icon">
@@ -307,7 +309,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary="Add Comment" 
-                secondary="Text comment note"
+                secondary={t("tools:menus.textCommentNote", { defaultValue: "Text comment note" })}
               />
             </ListItemButton>
           </ListItem>
@@ -320,7 +322,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText
                 className="menu-item-text"
                 primary="Add Group"
-                secondary="Group container for nodes"
+                secondary={t("tools:menus.groupContainerForNodes", { defaultValue: "Group container for nodes" })}
               />
             </ListItemButton>
           </ListItem>

@@ -22,6 +22,13 @@ export const CLIP_FADE_SHAPE_HINTS: Record<ClipFadeShape, string> = {
   minus3dB: "Quieter through the middle — the soft part of the fade lasts longer."
 };
 
+export const CLIP_FADE_SHAPE_HINT_KEYS: Record<ClipFadeShape, string> = {
+  linear: "timeline:attrs.aStraightRampInLevel",
+  sCurve: "timeline:attrs.easedAtBothEndsStraightThroughTheMiddle",
+  plus3dB: "timeline:attrs.louderThroughTheMiddleHoldsTheLevelAcrossACrossingFade",
+  minus3dB: "timeline:attrs.quieterThroughTheMiddleTheSoftPartOfTheFadeLastsLonger"
+};
+
 export const CLIP_FADE_SHAPE_OPTIONS: ReadonlyArray<{
   value: ClipFadeShape;
   label: string;

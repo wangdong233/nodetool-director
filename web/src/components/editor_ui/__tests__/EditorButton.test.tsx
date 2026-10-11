@@ -119,6 +119,82 @@ describe("EditorButton", () => {
     expect(screen.getByRole("button")).toBeInTheDocument();
   });
 
+  describe("height-aware line box (F-38, r20)", () => {
+    /**
+     * Extracts the emotion rule text emitted for the rendered button's sx
+     * class, so the box contract can be asserted in jsdom (no layout engine):
+     * CONTROL height as a minHeight floor + a single-line token lineHeight
+     * whose line box fits the floor's content area at the token font size.
+     */
+    const readSxRules = (button: HTMLElement): string => {
+      const cls = Array.from(button.classList).find((c) => c.startsWith("css-"));
+      if (!cls) return "";
+      let text = "";
+      for (const sheet of Array.from(document.styleSheets)) {
+        try {
+          for (const rule of Array.from(sheet.cssRules)) {
+            if (rule.cssText.includes(cls)) text += rule.cssText;
+          }
+        } catch {
+          // cross-origin sheet — not used in tests
+        }
+      }
+      return text;
+    };
+
+    const TOKEN_FONT = { node: 11, inspector: 13 } as const;
+    // CONTROL.height rows reachable through density/size props (xl has no mapping)
+    const FLOORS = [24, 28, 32, 36] as const;
+    const PAD_Y = 4; // CONTROL.paddingY
+
+    it.each(FLOORS.map((floor) => [{ floor }]))(
+      "line box fits the content area at floor $floor in both scopes",
+      ({ floor }) => {
+        for (const scope of ["node", "inspector"] as const) {
+          const props: React.ComponentProps<typeof EditorButton> = {};
+          // pick density/size that yields this floor
+          if (floor === 24) props.density = "compact";
+          else if (floor === 28) props.density = "normal";
+          else props.size = floor === 32 ? "medium" : "large";
+
+          const { unmount } = renderWithThemeProvider(
+            <EditorButton {...props}>标签</EditorButton>,
+            scope
+          );
+          const button = screen.getByRole("button");
+          const rules = readSxRules(button);
+          expect(rules).toMatch(new RegExp(`min-height:\\s*${floor}px`));
+          expect(rules).not.toMatch(/(^|[^-])height:\s*\d+px/); // no fixed height
+          expect(rules).toMatch(/white-space:\s*nowrap/);
+          expect(rules).toMatch(/flex-shrink:\s*0/);
+          const lhMatch = rules.match(/line-height:\s*([\d.]+)/);
+          expect(lhMatch).not.toBeNull();
+          const lineHeight = parseFloat(lhMatch![1]);
+          // the token tier: caption 1.4 (node), label 1.35 (inspector) —
+          // single-line range; MUI's default 1.75 must never come back.
+          expect(lineHeight).toBeLessThanOrEqual(1.4);
+          expect(lineHeight).toBeGreaterThanOrEqual(1);
+          // The line box may exceed the floor's padding-only content area in
+          // the densest combo (xs floor + 13px inspector text: 1.35 × 13 =
+          // 17.55 > 16) — that is the doctrine working, not a bug: with
+          // minHeight the box grows ~2px instead of clipping. What must NEVER
+          // hold is a line box taller than the whole floor.
+          const lineBox = lineHeight * TOKEN_FONT[scope];
+          expect(lineBox).toBeLessThanOrEqual(floor);
+          unmount();
+        }
+      }
+    );
+
+    it("keeps the label on one line and the box adaptive (no fixed height)", () => {
+      renderWithThemeProvider(<EditorButton variant="outlined">添加端点</EditorButton>);
+      const button = screen.getByRole("button");
+      const rules = readSxRules(button);
+      expect(rules).toMatch(/white-space:\s*nowrap/);
+      expect(rules).toMatch(/min-height:\s*24px/);
+    });
+  });
+
   describe("density prop", () => {
     it("renders with compact density by default", () => {
       renderWithThemeProvider(<EditorButton>Click me</EditorButton>);

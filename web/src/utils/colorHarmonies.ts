@@ -127,37 +127,55 @@ function getSquare(hex: string): string[] {
   ];
 }
 
-export function getHarmonyInfo(): Array<{ type: HarmonyType; name: string; description: string }> {
+export function getHarmonyInfo(): Array<{
+  type: HarmonyType;
+  name: string;
+  nameKey: string;
+  description: string;
+  descriptionKey: string;
+}> {
   return [
     {
       type: "complementary",
       name: "Complementary",
-      description: "Opposite colors on the color wheel, creating high contrast"
+      nameKey: "editor:ui.complementary",
+      description: "Opposite colors on the color wheel, creating high contrast",
+      descriptionKey: "editor:ui.oppositeColorsHighContrast"
     },
     {
       type: "analogous",
       name: "Analogous",
-      description: "Adjacent colors that create a harmonious, natural look"
+      nameKey: "editor:ui.analogous",
+      description: "Adjacent colors that create a harmonious, natural look",
+      descriptionKey: "editor:ui.adjacentColorsHarmoniousNaturalLook"
     },
     {
       type: "triadic",
       name: "Triadic",
-      description: "Three colors equally spaced (120°) for vibrant combinations"
+      nameKey: "editor:ui.triadic",
+      description: "Three colors equally spaced (120°) for vibrant combinations",
+      descriptionKey: "editor:ui.threeColorsEquallySpacedVibrant"
     },
     {
       type: "split-complementary",
       name: "Split Complementary",
-      description: "Base color with two adjacent to its complement"
+      nameKey: "editor:ui.splitComplementary",
+      description: "Base color with two adjacent to its complement",
+      descriptionKey: "editor:ui.baseColorWithTwoAdjacentToComplement"
     },
     {
       type: "tetradic",
       name: "Tetradic",
-      description: "Four colors forming a rectangle on the color wheel"
+      nameKey: "editor:ui.tetradic",
+      description: "Four colors forming a rectangle on the color wheel",
+      descriptionKey: "editor:ui.fourColorsFormingRectangle"
     },
     {
       type: "square",
       name: "Square",
-      description: "Four colors evenly spaced (90°) for bold combinations"
+      nameKey: "editor:ui.squareHarmony",
+      description: "Four colors evenly spaced (90°) for bold combinations",
+      descriptionKey: "editor:ui.fourColorsEvenlySpacedBold"
     }
   ];
 }

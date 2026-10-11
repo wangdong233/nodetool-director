@@ -52,12 +52,27 @@ import {
   SCRIPT_TEXT_ACCEPT,
   useScriptFileImport
 } from "./useScriptFileImport";
+import { useTranslation } from "react-i18next";
 
-/** The § 9.1 inspiration chips. */
-const INSPIRATIONS = [
-  "A 60-second explainer about how tide clocks work",
-  "A podcast intro for a show about failed products",
-  "An ad read for a coffee subscription"
+/**
+ * The § 9.1 inspiration chips. Each carries a stable slug so the zh-only
+ * catalog overlay (`catalog:scriptInspirations.<slug>`) can localize the chip
+ * without reordering risk; the English brief is the defaultValue, so display
+ * and insertion are one string in every locale (显示即所发).
+ */
+const INSPIRATIONS: readonly { id: string; brief: string }[] = [
+  {
+    id: "tide-clock-explainer",
+    brief: "A 60-second explainer about how tide clocks work"
+  },
+  {
+    id: "failed-products-podcast",
+    brief: "A podcast intro for a show about failed products"
+  },
+  {
+    id: "coffee-subscription-ad",
+    brief: "An ad read for a coffee subscription"
+  }
 ];
 
 export interface IdeaStepProps {
@@ -98,50 +113,49 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
   source,
   onReplace,
   onRemove
-}) => (
-  <FlexColumn
-    gap={GAP.normal}
-    padding={PADDING.comfortable}
-    component="section"
-    aria-label="Imported script"
-    sx={{
-      border: "1px solid",
-      borderColor: "divider",
-      borderRadius: BORDER_RADIUS.md
-    }}
-  >
-    <FlexColumn gap={GAP.micro}>
-      <Label>Your script, kept word for word</Label>
-      <Caption color="secondary" component="p">
-        {sourceSummary(source)}
-      </Caption>
-    </FlexColumn>
+}) => {
+  const { t } = useTranslation();
+  return (
     <FlexColumn
-      gap={GAP.micro}
-      component="ul"
-      sx={{ margin: 0, paddingLeft: 0, listStyle: "none", "& li": { listStyle: "none" } }}
+      gap={GAP.normal}
+      padding={PADDING.comfortable}
+      component="section"
+      aria-label={t("storyboard:attrs.importedScript", { defaultValue: "Imported script" })}
+      sx={{
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: BORDER_RADIUS.md
+      }}
     >
-      {source.lines.slice(0, PREVIEW_LINES).map((line, index) => (
-        <Caption key={`${index}-${line.text}`} component="li">
-          {line.speakerName === "" ? line.text : `${line.speakerName}: ${line.text}`}
+      <FlexColumn gap={GAP.micro}>
+        <Label>{t("storyboard:attrs.yourScriptKeptWordForWord", { defaultValue: "Your script, kept word for word" })}</Label>
+        <Caption color="secondary" component="p">
+          {sourceSummary(source)}
         </Caption>
-      ))}
-      {source.lines.length > PREVIEW_LINES ? (
-        <Caption color="secondary" component="li">
-          {`and ${source.lines.length - PREVIEW_LINES} more`}
-        </Caption>
-      ) : null}
+      </FlexColumn>
+      <FlexColumn
+        gap={GAP.micro}
+        component="ul"
+        sx={{ margin: 0, paddingLeft: 0, listStyle: "none", "& li": { listStyle: "none" } }}
+      >
+        {source.lines.slice(0, PREVIEW_LINES).map((line, index) => (
+          <Caption key={`${index}-${line.text}`} component="li">
+            {line.speakerName === "" ? line.text : `${line.speakerName}: ${line.text}`}
+          </Caption>
+        ))}
+        {source.lines.length > PREVIEW_LINES ? (
+          <Caption color="secondary" component="li">
+            {`and ${source.lines.length - PREVIEW_LINES} more`}
+          </Caption>
+        ) : null}
+      </FlexColumn>
+      <FlexRow gap={GAP.normal} wrap>
+        <EditorButton variant="outlined" size="small" onClick={onReplace}>{t("storyboard:attrs.replaceTheseWords", { defaultValue: "Replace these words" })}</EditorButton>
+        <EditorButton variant="text" size="small" onClick={onRemove}>{t("storyboard:attrs.removeThem", { defaultValue: "Remove them" })}</EditorButton>
+      </FlexRow>
     </FlexColumn>
-    <FlexRow gap={GAP.normal} wrap>
-      <EditorButton variant="outlined" size="small" onClick={onReplace}>
-        Replace these words
-      </EditorButton>
-      <EditorButton variant="text" size="small" onClick={onRemove}>
-        Remove them
-      </EditorButton>
-    </FlexRow>
-  </FlexColumn>
-);
+  );
+};
 
 /**
  * What the project composer sent along (F4). It is shown rather than used: the
@@ -151,46 +165,54 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
 const CarriedContext: React.FC<{
   attachments: readonly ScriptSetupAttachment[];
   entityCount: number;
-}> = ({ attachments, entityCount }) => (
-  <FlexColumn
-    gap={GAP.micro}
-    component="section"
-    aria-label="Brought from your project"
-  >
-    <Label>Brought from your project</Label>
-    <Caption color="secondary" component="p">
-      {[
-        attachments.length > 0
-          ? `${attachments.length} ${attachments.length === 1 ? "reference" : "references"}`
-          : null,
-        entityCount > 0
-          ? `${entityCount} ${entityCount === 1 ? "entity" : "entities"}`
-          : null
-      ]
-        .filter((part) => part !== null)
-        .join(" · ")}
-      {" — kept on the script for the editor and the agent."}
-    </Caption>
-    {attachments.length > 0 ? (
-      <FlexColumn
-        gap={GAP.micro}
-        component="ul"
-        sx={{ margin: 0, paddingLeft: 0, listStyle: "none", "& li": { listStyle: "none" } }}
-      >
-        {attachments.map((attachment) => (
-          <Caption key={attachment.uri} component="li">
-            {attachment.name}
-          </Caption>
-        ))}
-      </FlexColumn>
-    ) : null}
-  </FlexColumn>
-);
+}> = ({ attachments, entityCount }) => {
+  const { t } = useTranslation();
+  return (
+    <FlexColumn
+      gap={GAP.micro}
+      component="section"
+      aria-label={t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })}
+    >
+      <Label>{t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })}</Label>
+      <Caption color="secondary" component="p">
+        {[
+          attachments.length === 1
+            ? t("storyboard:attrs.countReference", { defaultValue: "{{count}} reference", count: attachments.length })
+            : attachments.length > 1
+              ? t("storyboard:attrs.countReferences", { defaultValue: "{{count}} references", count: attachments.length })
+              : null,
+          entityCount === 1
+            ? t("storyboard:attrs.countEntity", { defaultValue: "{{count}} entity", count: entityCount })
+            : entityCount > 1
+              ? t("storyboard:attrs.countEntities", { defaultValue: "{{count}} entities", count: entityCount })
+              : null
+        ]
+          .filter((part) => part !== null)
+          .join(" · ")}
+        {t("storyboard:attrs.keptOnTheScriptForTheEditorAndTheAgent", { defaultValue: " — kept on the script for the editor and the agent." })}
+      </Caption>
+      {attachments.length > 0 ? (
+        <FlexColumn
+          gap={GAP.micro}
+          component="ul"
+          sx={{ margin: 0, paddingLeft: 0, listStyle: "none", "& li": { listStyle: "none" } }}
+        >
+          {attachments.map((attachment) => (
+            <Caption key={attachment.uri} component="li">
+              {attachment.name}
+            </Caption>
+          ))}
+        </FlexColumn>
+      ) : null}
+    </FlexColumn>
+  );
+};
 
 const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   scriptId,
   onStartBlank
 }) => {
+  const { t } = useTranslation();
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
   const creativeContext = useScriptStore(
@@ -247,8 +269,8 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "paste",
-        title: source ? "Paste different words" : "Paste your script",
-        description: "Words you already have, kept exactly as you wrote them",
+        title: source ? t("storyboard:attrs.pasteDifferentWords", { defaultValue: "Paste different words" }) : t("storyboard:attrs.pasteYourScript", { defaultValue: "Paste your script" }),
+        description: t("editor:ui.wordsKeptExactlyAsWritten", { defaultValue: "Words you already have, kept exactly as you wrote them" }),
         onSelect: () => {
           setPasted("");
           setPasting(true);
@@ -256,28 +278,28 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       },
       {
         id: "upload",
-        title: "Upload a file",
-        description: "TXT, PDF, DOCX or Final Draft",
+        title: t("storyboard:attrs.uploadAFile", { defaultValue: "Upload a file" }),
+        description: t("editor:ui.txtPdfDocxFinalDraft", { defaultValue: "TXT, PDF, DOCX or Final Draft" }),
         onSelect: () => textInput.current?.click(),
         disabled: imports.importing,
-        disabledReason: imports.importing ? "Reading your file…" : undefined
+        disabledReason: imports.importing ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "subtitles",
-        title: "Import subtitles",
-        description: "SRT or VTT — each cue becomes a timed line",
+        title: t("storyboard:attrs.importSubtitles", { defaultValue: "Import subtitles" }),
+        description: t("editor:ui.srtOrVttEachCueTimedLine", { defaultValue: "SRT or VTT — each cue becomes a timed line" }),
         onSelect: () => subtitleInput.current?.click(),
         disabled: imports.importing,
-        disabledReason: imports.importing ? "Reading your file…" : undefined
+        disabledReason: imports.importing ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "blank",
-        title: "Start with a blank script",
-        description: "Skip the questions and write it yourself",
+        title: t("editor:ui.startWithBlankScript", { defaultValue: "Start with a blank script" }),
+        description: t("editor:ui.skipQuestionsWriteYourself", { defaultValue: "Skip the questions and write it yourself" }),
         onSelect: onStartBlank
       }
     ],
-    [imports.importing, onStartBlank, source]
+    [t, imports.importing, onStartBlank, source]
   );
 
   return (
@@ -295,10 +317,10 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            What&apos;s the script about?
+            {t("editor:ui.whatSTheScriptAbout")}
           </Text>
           <Text size="normal" color="secondary">
-            We&apos;ll write it in lines you can voice.
+            {t("editor:ui.weLlWriteItInLinesYouCanVoice")}
           </Text>
         </FlexColumn>
 
@@ -323,17 +345,17 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           autoFocus
           multiline
           rows={5}
-          label={source ? "Notes for the writer" : "Your script"}
+          label={source ? t("storyboard:attrs.notesForTheWriter", { defaultValue: "Notes for the writer" }) : t("storyboard:attrs.yourScript", { defaultValue: "Your script" })}
           hideLabel
           placeholder={
             source
-              ? "Optional: say who reads what, or how to split the lines."
-              : "Describe the topic, audience and message for a new script."
+              ? t("storyboard:attrs.optionalSayWhoReadsWhatOrHowToSplitTheLines", { defaultValue: "Optional: say who reads what, or how to split the lines." })
+              : t("storyboard:attrs.describeTheTopicAudienceAndMessageForANewScript", { defaultValue: "Describe the topic, audience and message for a new script." })
           }
           helperText={
             source
-              ? "Your imported words are kept as written. Anything here only guides how they are split and who reads them."
-              : "Text entered here is a writing brief and may be rewritten. Use Paste your script or Upload a file to preserve existing words."
+              ? t("storyboard:attrs.yourImportedWordsAreKeptAsWrittenAnythingHereOnlyGuidesHowTheyAreSplitAndWhoReadsThem", { defaultValue: "Your imported words are kept as written. Anything here only guides how they are split and who reads them." })
+              : t("storyboard:attrs.textEnteredHereIsAWritingBriefAndMayBeRewritten", { defaultValue: "Text entered here is a writing brief and may be rewritten. Use Paste your script or Upload a file to preserve existing words." })
           }
           onChange={handleChange}
         />
@@ -350,7 +372,11 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         ) : null}
 
         <ExampleBriefs
-          examples={INSPIRATIONS}
+          examples={INSPIRATIONS.map((chip) =>
+            t(`catalog:scriptInspirations.${chip.id}`, {
+              defaultValue: chip.brief
+            })
+          )}
           brief={brief}
           briefRef={briefField}
           onSelect={(value) => setSetup(scriptId, { brief: value })}
@@ -358,7 +384,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label="Other ways to start"
+        label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
 
@@ -368,7 +394,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={textInput}
         accept={SCRIPT_TEXT_ACCEPT}
-        aria-label="Upload a file"
+        aria-label={t("storyboard:attrs.uploadAFile", { defaultValue: "Upload a file" })}
         onChange={handlePicked(imports.importText)}
       />
       <input
@@ -376,16 +402,16 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={subtitleInput}
         accept={SCRIPT_SUBTITLE_ACCEPT}
-        aria-label="Import subtitles"
+        aria-label={t("storyboard:attrs.importSubtitles", { defaultValue: "Import subtitles" })}
         onChange={handlePicked(imports.importSubtitles)}
       />
 
       <Dialog
         open={pasting}
         onClose={() => setPasting(false)}
-        title={source ? "Replace your script" : "Paste your script"}
+        title={source ? t("storyboard:attrs.replaceYourScript", { defaultValue: "Replace your script" }) : t("storyboard:attrs.pasteYourScript", { defaultValue: "Paste your script" })}
         showActions
-        confirmText="Use this text"
+        confirmText={t("editor:ui.useThisText", { defaultValue: "Use this text" })}
         onConfirm={usePasted}
         onCancel={() => setPasting(false)}
         fullWidth
@@ -396,9 +422,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           autoFocus
           multiline
           rows={12}
-          label="Your script"
+          label={t("storyboard:attrs.yourScript", { defaultValue: "Your script" })}
           hideLabel
-          placeholder="Paste it here. We'll split it into lines and leave the words alone."
+          placeholder={t("storyboard:attrs.pasteItHereWe'llSplitItIntoLinesAndLeaveTheWordsAlone", { defaultValue: "Paste it here. We'll split it into lines and leave the words alone." })}
           onChange={(event) => setPasted(event.target.value)}
         />
       </Dialog>

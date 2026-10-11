@@ -22,6 +22,7 @@ import {
   type UseQueryResult
 } from "@tanstack/react-query";
 import type { Entity, EntityKind } from "@nodetool-ai/protocol";
+import { isSystemEntityMetadata } from "@nodetool-ai/protocol";
 import type { Asset } from "../stores/ApiTypes";
 import { mediaRefFromAsset } from "../utils/mediaRef";
 import { trpcClient } from "../trpc/client";
@@ -101,6 +102,58 @@ export function readEntityMarker(
 }
 
 /**
+ * A shipped system entity's tile art. The seeder writes marker rows with no
+ * stored bytes, so the `asset://` ref `assetToEntity` would otherwise
+ * synthesize resolves to a `get_url` that 404s — a broken image, not the
+ * "No image" placeholder. The marker carries the `package://` thumbnail the
+ * setup flow's preset tiles already render, and that URI resolves statically
+ * (`resolveStaticMediaUri`), the same ref shape `mergeStylePresetEntities`
+ * builds. Undefined for every ordinary entity and for a system entity whose
+ * picture was swapped to a real asset.
+ */
+function systemEntityThumbnail(
+  metadata: Record<string, unknown> | null | undefined,
+  marker: EntityMarker
+): string | undefined {
+  if (marker.reference_asset_id || !isSystemEntityMetadata(metadata)) {
+    return undefined;
+  }
+  const raw = metadata?.[ENTITY_METADATA_KEY];
+  if (!isObjectLike(raw)) {
+    return undefined;
+  }
+  const thumbnail = (raw as Record<string, unknown>).thumbnail;
+  return isString(thumbnail) && thumbnail.trim() !== "" ? thumbnail : undefined;
+}
+
+/**
+ * The shipped preset identity of a raw asset row, for surfaces that render
+ * assets directly (the library grid, the list view, search results) instead
+ * of through {@link useEntities}. Null for every ordinary asset. `name` is
+ * the seeded marker name (resolve it through the `catalog:styles` overlay);
+ * `thumbnail` is the `package://` tile art, undefined once the user swaps the
+ * picture to a real asset — same condition `assetToEntity` applies.
+ */
+export interface SystemPresetAssetInfo {
+  name: string;
+  thumbnail: string | undefined;
+}
+
+/** Read {@link SystemPresetAssetInfo} off an asset row, or null. */
+export function systemPresetAssetInfo(asset: {
+  metadata?: Record<string, unknown> | null;
+}): SystemPresetAssetInfo | null {
+  const marker = readEntityMarker(asset.metadata);
+  if (!marker || !isSystemEntityMetadata(asset.metadata)) {
+    return null;
+  }
+  return {
+    name: marker.name,
+    thumbnail: systemEntityThumbnail(asset.metadata, marker)
+  };
+}
+
+/**
  * Map a marked asset to an {@link Entity}, using the marker's swapped reference
  * image when it names one and the asset's own bytes otherwise.
  */
@@ -109,6 +162,7 @@ export function assetToEntity(asset: Asset): Entity | null {
   if (!marker) {
     return null;
   }
+  const systemThumbnail = systemEntityThumbnail(asset.metadata, marker);
   return {
     type: "entity",
     id: asset.id,
@@ -122,7 +176,12 @@ export function assetToEntity(asset: Asset): Entity | null {
     lora: marker.lora ?? null,
     palette: marker.palette ?? null,
     reference_images: [
-      mediaRefFromAsset({ id: marker.reference_asset_id ?? asset.id }, "image")
+      systemThumbnail !== undefined
+        ? { type: "image" as const, uri: systemThumbnail }
+        : mediaRefFromAsset(
+            { id: marker.reference_asset_id ?? asset.id },
+            "image"
+          )
     ],
     created_at: asset.created_at
   };

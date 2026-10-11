@@ -12,6 +12,7 @@ import {
   getSpacingPx
 } from "../../ui_primitives";
 import type { AspectRatioOption } from "../../../stores/MediaGenerationStore";
+import { useTranslation } from "react-i18next";
 
 interface MediaAspectRatioMenuProps {
   anchorEl: HTMLElement | null;
@@ -136,6 +137,7 @@ const MediaAspectRatioMenu: React.FC<MediaAspectRatioMenuProps> = ({
   options,
   onChange
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   return (
@@ -151,9 +153,9 @@ const MediaAspectRatioMenu: React.FC<MediaAspectRatioMenuProps> = ({
         boxShadow: `0 12px 40px ${theme.vars.palette.c_scrim}`
       }}
     >
-      <div css={cssStyles} role="dialog" aria-label="Aspect ratio">
+      <div css={cssStyles} role="dialog" aria-label={t("editor:ui.aspectRatio", { defaultValue: "Aspect ratio" })}>
         <Caption className="aspect-header" size="small">
-          Aspect Ratio
+          {t("editor:ui.aspectRatio", { defaultValue: "Aspect ratio" })}
         </Caption>
         <div className="aspect-grid">
           {options.map((opt) => {

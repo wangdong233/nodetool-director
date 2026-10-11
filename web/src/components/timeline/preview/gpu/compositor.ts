@@ -23,6 +23,7 @@ import {
   logPreviewFailure,
   type PreviewFailureHandler
 } from "../previewFailure";
+import { i18n } from "../../../../i18n";
 
 interface SourceTexture extends GpuSourceTexture {
   source: CompositeSource;
@@ -103,13 +104,13 @@ export class WebGPUCompositor implements TimelineCompositor {
 
   async init(canvas: HTMLCanvasElement): Promise<CompositorInitResult> {
     if (typeof navigator === "undefined" || !navigator.gpu) {
-      return { ok: false, reason: "WebGPU not supported in this browser" };
+      return { ok: false, reason: i18n.t("timeline:attrs.webgpuNotSupportedInThisBrowser", { defaultValue: "WebGPU not supported in this browser" }) };
     }
     const adapter = await navigator.gpu.requestAdapter({
       powerPreference: "high-performance"
     });
     if (!adapter) {
-      return { ok: false, reason: "No WebGPU adapter available" };
+      return { ok: false, reason: i18n.t("timeline:attrs.noWebGPUAdapterAvailable", { defaultValue: "No WebGPU adapter available" }) };
     }
     const device = await adapter.requestDevice();
     this.device = device;
@@ -133,7 +134,7 @@ export class WebGPUCompositor implements TimelineCompositor {
     });
     const context = canvas.getContext("webgpu");
     if (!context) {
-      return { ok: false, reason: "Failed to get WebGPU canvas context" };
+      return { ok: false, reason: i18n.t("timeline:attrs.failedToGetWebGPUCanvasContext", { defaultValue: "Failed to get WebGPU canvas context" }) };
     }
 
     this.context = context;

@@ -283,6 +283,14 @@ export const CONTROL = {
     compact: 8,
     normal: 12,
   },
+  /**
+   * Vertical padding inside controls, px — the single value every control
+   * pairs with its CONTROL.height row. Height floors are minHeight values:
+   * a control's own height is `paddingY*2 + line box`, so at token font
+   * sizes the box lands exactly on the grid floor and only grows when the
+   * label genuinely needs more room (F-38, r20).
+   */
+  paddingY: 4,
   /** the single field/control radius (6px — matches buttons and editor controls) */
   radius: BORDER_RADIUS.md,
 } as const;

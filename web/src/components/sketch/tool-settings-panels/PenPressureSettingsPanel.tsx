@@ -11,6 +11,7 @@ import {
 } from "../../ui_primitives";
 import { sketchSliderSx } from "../sketchStyles";
 import { SketchModeToggle, SketchModeOption } from "./SketchModeToggle";
+import { useTranslation } from "react-i18next";
 import {
   DEFAULT_PRESSURE_CURVE,
   DEFAULT_PRESSURE_MIN_SCALE,
@@ -40,6 +41,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
   omitSensitivitySwitch = false,
   inlineRow = false
 }: PenPressureSettingsPanelProps) {
+  const { t } = useTranslation();
   const affectsGroup = (
     <SketchModeToggle
       value={settings.pressureAffects || "both"}
@@ -51,9 +53,9 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
         }
       }}
     >
-      <SketchModeOption value="size">Size</SketchModeOption>
-      <SketchModeOption value="opacity">Opacity</SketchModeOption>
-      <SketchModeOption value="both">Both</SketchModeOption>
+      <SketchModeOption value="size">{t("ui2:attrs.size", { defaultValue: "Size" })}</SketchModeOption>
+      <SketchModeOption value="opacity">{t("sketch:attrs.opacity", { defaultValue: "Opacity" })}</SketchModeOption>
+      <SketchModeOption value="both">{t("ui2:attrs.both", { defaultValue: "Both" })}</SketchModeOption>
     </SketchModeToggle>
   );
 
@@ -66,7 +68,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
     <Box className="setting-row">
       <Text
         className="setting-label"
-        title="Size/opacity at minimum pressure. Slider uses eased mapping so the upper range is easier to dial in."
+        title={t("sketch:attrs.sizeOpacityAtMinimumPressure", { defaultValue: "Size/opacity at minimum pressure. Slider uses eased mapping so the upper range is easier to dial in." })}
       >
         Light end
       </Text>
@@ -95,9 +97,9 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
     <Box className="setting-row">
       <Text
         className="setting-label"
-        title="Pressure exponent before mapping: 1 = linear; higher = need firmer pressure for full size"
+        title={t("editor:ui.pressureExponentBeforeMapping1=LinearHigher=NeedFirmerPressureForFullSize")}
       >
-        Curve
+        {t("editor:ui.curve")}
       </Text>
       <Slider
         sx={sketchSliderSx}
@@ -142,7 +144,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
     <>
       {!omitSensitivitySwitch ? (
         <Box className="setting-row" sx={{ alignItems: "center" }}>
-          <Text className="setting-label">Pressure</Text>
+          <Text className="setting-label">{t("ui2:attrs.pressure", { defaultValue: "Pressure" })}</Text>
           <Switch
             size="small"
             checked={settings.pressureSensitivity ?? true}

@@ -52,6 +52,7 @@ import {
   useRovingRadioGroup
 } from "./SetupCardButton";
 import type { RovingRadioItemProps } from "./SetupCardButton";
+import { useTranslation } from "react-i18next";
 
 export interface PresetTile {
   id: string;
@@ -170,6 +171,7 @@ const VoiceSample: React.FC<{ preset: PresetTile; autoPlay: boolean }> = ({
   preset,
   autoPlay
 }) => {
+  const { t } = useTranslation();
   const holder = useRef<HTMLDivElement>(null);
   const handlePlay = useCallback(() => {
     preset.onPlaySample?.();
@@ -187,7 +189,7 @@ const VoiceSample: React.FC<{ preset: PresetTile; autoPlay: boolean }> = ({
       <Box ref={holder} sx={{ width: "100%", padding: PADDING.compact }}>
         <AudioPlayback
           locator={preset.audio}
-          label={`${preset.title} sample`}
+          label={t("storyboard:attrs.nameSample", { defaultValue: "{{name}} sample", name: preset.title })}
           autoPlay={autoPlay}
         />
       </Box>
@@ -201,8 +203,8 @@ const VoiceSample: React.FC<{ preset: PresetTile; autoPlay: boolean }> = ({
         disabled={preset.samplePending === true || preset.disabled === true}
       >
         {preset.samplePending === true
-          ? "Generating sample…"
-          : `Hear ${preset.title}`}
+          ? t("storyboard:attrs.generatingSample2", { defaultValue: "Generating sample…" })
+          : t("storyboard:attrs.hearName", { defaultValue: "Hear {{name}}", name: preset.title })}
       </EditorButton>
     </Box>
   );
@@ -293,6 +295,7 @@ const FramedTile: React.FC<{
   auditioning
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <FlexColumn
       gap={GAP.none}
@@ -317,7 +320,7 @@ const FramedTile: React.FC<{
         {kind === "clip" && preset.video !== undefined ? (
           <VideoPlayer
             locator={preset.video}
-            label={`${preset.title} sample`}
+            label={t("storyboard:attrs.nameSample", { defaultValue: "{{name}} sample", name: preset.title })}
           />
         ) : null}
         {kind === "audition" ? (
@@ -342,7 +345,7 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
   selectedId,
   onSelect,
   onAddOwn,
-  addOwnLabel = "Add your own",
+  addOwnLabel,
   addOwnDisabled,
   addOwnDisabledReason,
   addOwnOptionId,
@@ -353,6 +356,8 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
 }) => {
   // The stills whose art did not load. They hold no picture, so they must not
   // keep the grid in picture shape on their own.
+  const { t } = useTranslation();
+  const resolvedAddOwnLabel = addOwnLabel ?? t("storyboard:attrs.addYourOwn", { defaultValue: "Add your own" });
   const [brokenIds, setBrokenIds] = useState<ReadonlySet<string>>(new Set());
   const handleSampleFailed = useCallback(
     (id: string) =>
@@ -386,7 +391,7 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
   if (addOwnOptionId !== undefined) {
     // Each field stays absent rather than present-and-undefined: `preset.audio
     // !== undefined` and its siblings decide what the tile draws.
-    addOption = { id: addOwnOptionId, title: addOwnLabel };
+    addOption = { id: addOwnOptionId, title: resolvedAddOwnLabel };
     if (addOwnDescription !== undefined) {
       addOption.description = addOwnDescription;
     }
@@ -485,7 +490,7 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
                 <AddIcon aria-hidden />
               </Box>
               <Text size="small" component="span">
-                {addOwnLabel}
+                {resolvedAddOwnLabel}
               </Text>
             </FlexColumn>
           ) : (
@@ -494,7 +499,7 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
             <FlexRow gap={GAP.tight} align="center">
               <AddIcon aria-hidden fontSize="small" />
               <Text size="small" component="span">
-                {addOwnLabel}
+                {resolvedAddOwnLabel}
               </Text>
             </FlexRow>
           )}

@@ -10,6 +10,7 @@
 
 import React, { memo } from "react";
 import type { Layer } from "../types";
+import { useTranslation } from "react-i18next";
 import {
   Caption,
   CollapsibleSection,
@@ -32,6 +33,7 @@ function describeKind(layer: Layer): string {
 
 export const PaintedLayerPanel: React.FC<PaintedLayerPanelProps> = memo(
   ({ layer }) => {
+    const { t } = useTranslation();
     return (
       <Panel
         background="default"
@@ -48,7 +50,7 @@ export const PaintedLayerPanel: React.FC<PaintedLayerPanelProps> = memo(
             <Caption color="secondary">{describeKind(layer)}</Caption>
           </FlexColumn>
 
-          <CollapsibleSection title="Layer" defaultOpen>
+          <CollapsibleSection title={t("ui2:attrs.layer", { defaultValue: "Layer" })} defaultOpen>
             <FlexColumn gap={0.5}>
               <Text size="small">
                 Opacity: {Math.round(layer.opacity * 100)}%

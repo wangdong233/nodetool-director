@@ -1,0 +1,180 @@
+{
+  "rail": {
+    "tutorials": "教程",
+    "examples": "示例",
+    "costs": "成本",
+    "models": "模型管理器",
+    "packages": "包管理器",
+    "assets": "素材库",
+    "collections": "知识库",
+    "workspaces": "工作区",
+    "memory": "记忆",
+    "settings": "设置",
+    "help": "帮助",
+    "downloads": "下载",
+    "entities": "实体库"
+  },
+  "settings": {
+    "title": "设置",
+    "general": "通用",
+    "providers": "模型与服务商",
+    "integrations": "集成",
+    "about": "关于",
+    "docsProviders": "模型与服务商",
+    "docsConfig": "配置",
+    "docsTitle": "{{label}}文档",
+    "docsTopics": {
+      "gettingStarted": "快速上手",
+      "keyConcepts": "核心概念",
+      "userInterface": "用户界面",
+      "editorPanels": "编辑器面板",
+      "workflows": "工作流",
+      "nodes": "节点",
+      "nodePacks": "节点包",
+      "packages": "包",
+      "debugging": "调试",
+      "graphView": "图视图",
+      "chainEditor": "链式编辑器",
+      "templates": "模板",
+      "examples": "示例",
+      "chat": "对话",
+      "agents": "智能体",
+      "sketches": "图稿",
+      "timelines": "时间线",
+      "storyboards": "分镜",
+      "scripts": "剧本",
+      "apps": "小程序",
+      "appBuilder": "小程序构建器",
+      "assets": "素材",
+      "collections": "知识库",
+      "workspaces": "工作区",
+      "models": "模型",
+      "modelsManager": "模型管理器",
+      "providers": "模型与服务商",
+      "configuration": "配置",
+      "troubleshooting": "故障排查"
+    }
+  },
+  "tabs": {
+    "closeTab": "关闭标签页",
+    "closeOthers": "关闭其他标签页",
+    "closeAll": "关闭所有标签页",
+    "home": "首页",
+    "tabName": "标签页名称",
+    "unsaved": "未保存更改",
+    "openDocument": "打开文档：{{title}}",
+    "openDocuments": "打开文档",
+    "noDocumentOpen": "未打开文档",
+    "switchDocs": "在打开的文档间切换",
+    "emptyDocs": "未打开任何文档——点 + 打开或新建。",
+    "closeNamed": "关闭{{title}}",
+    "closeAllDocs": "关闭全部文档",
+    "typeNames": {
+      "workflow": "工作流",
+      "image": "图像",
+      "svg": "SVG",
+      "sketch": "图稿",
+      "timeline": "时间线",
+      "storyboard": "分镜",
+      "script": "剧本",
+      "jsscript": "JS 脚本",
+      "skill": "技能",
+      "model3d": "3D 模型",
+      "audio": "音频",
+      "text": "文本",
+      "workspace-file": "文件",
+      "chat": "对话",
+      "application": "小程序",
+      "page": "页面",
+      "project-list": "项目列表",
+      "project": "项目",
+      "project-new": "新项目",
+      "guided-flow": "引导流程"
+    },
+    "projects": "项目",
+    "documents": "文档",
+    "chats": "对话",
+    "library": "资源库",
+    "more": "更多",
+    "openOrCreate": "打开或新建标签页",
+    "new": "新建"
+  },
+  "qa": {
+    "documents": {
+      "label": "文档",
+      "description": "浏览当前项目的全部文档。"
+    },
+    "nodes": {
+      "label": "节点",
+      "description": "浏览、搜索并向当前工作流添加节点。"
+    },
+    "favorites": {
+      "label": "收藏节点",
+      "description": "找到你收藏的节点。"
+    },
+    "history": {
+      "label": "最近使用",
+      "description": "复用最近添加过的节点。"
+    },
+    "settings": {
+      "label": "工作流设置",
+      "description": "编辑当前工作流的设置。"
+    },
+    "workflows": {
+      "label": "工作流",
+      "description": "打开、创建和管理工作流。"
+    },
+    "apps": {
+      "label": "小程序",
+      "description": "用工作流构建并打开面向用户的小程序。"
+    },
+    "chats": {
+      "label": "对话",
+      "description": "打开和创建保存的 AI 对话。"
+    },
+    "sketches": {
+      "label": "图稿",
+      "description": "创建和编辑图像。"
+    },
+    "scripts": {
+      "label": "剧本",
+      "description": "创建和管理叙事或制片剧本。"
+    },
+    "storyboards": {
+      "label": "分镜",
+      "description": "以有序的视觉场景规划序列。"
+    },
+    "entities": {
+      "label": "实体",
+      "description": "供提示词和镜头复用的角色、地点、风格与道具。"
+    },
+    "timelines": {
+      "label": "时间线",
+      "description": "随时间编排媒体与事件。"
+    },
+    "jsscripts": {
+      "label": "JS 脚本",
+      "description": "创建和管理可复用的 JavaScript 代码。"
+    },
+    "skills": {
+      "label": "技能",
+      "description": "智能体技能——按目标匹配的 Markdown 指令。"
+    },
+    "assets": {
+      "label": "素材",
+      "description": "浏览当前上下文可用的素材。"
+    },
+    "workspace-files": {
+      "label": "工作区文件",
+      "description": "浏览所选工作区文件夹中的文件。"
+    },
+    "library": {
+      "label": "资源库",
+      "description": "浏览当前项目的素材。"
+    },
+    "more": {
+      "label": "更多",
+      "description": "打开更多工作流、编辑器、开发者与工作区面板。"
+    }
+  }
+}

@@ -18,6 +18,7 @@ import {
   type NewDocumentSubmenu
 } from "./newDocumentCatalog";
 import { useGuidedFlowStarters } from "./useGuidedFlowStarters";
+import { useTranslation } from "react-i18next";
 
 interface OpenMenuProps {
   anchorEl: HTMLElement | null;
@@ -41,6 +42,7 @@ const MenuSectionLabel = ({ children }: { children: string }) => (
  * Starting a project lives on the project selector to the left of New.
  */
 const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
+  const { t } = useTranslation();
   const [view, setView] = useState<MenuView>("root");
 
   const close = useCallback(() => {
@@ -83,24 +85,31 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
       >
         {view === "root" && (
           <>
-            <MenuSectionLabel>Guided flows</MenuSectionLabel>
+            <MenuSectionLabel>{t("ui2:attrs.guidedFlows", { defaultValue: "Guided flows" })}</MenuSectionLabel>
             {starters.map((starter) => (
               <MenuItemPrimitive
                 key={starter.id}
-                label={starter.title}
+                label={t(`editor:ui.menuFlowTitle.${starter.id}`, { defaultValue: starter.title })}
                 icon={starter.icon}
-                secondary={starter.description}
+                secondary={
+                  // descriptionKey is already fully qualified
+                  // ("editor:ui.…") — prefixing it again misses the key and
+                  // silently falls back to the raw English description.
+                  starter.descriptionKey
+                    ? t(starter.descriptionKey, { defaultValue: starter.description })
+                    : starter.description
+                }
                 onClick={() => void starter.start()}
                 disabled={busy}
               />
             ))}
 
             <Divider sx={{ my: 1 }} />
-            <MenuSectionLabel>Blank documents</MenuSectionLabel>
+            <MenuSectionLabel>{t("ui2:attrs.blankDocuments", { defaultValue: "Blank documents" })}</MenuSectionLabel>
             {entries.map((entry) => (
               <MenuItemPrimitive
                 key={entry.key}
-                label={entry.menuLabel}
+                label={t(`editor:ui.menuLabel.${entry.key}`, { defaultValue: entry.menuLabel })}
                 icon={entry.icon}
                 hasSubmenu={entry.submenu !== undefined}
                 onClick={() =>
@@ -117,7 +126,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
         {view === "texts" && (
           <>
             <MenuItemPrimitive
-              label="Back"
+              label={t("timeline:addClip.back", { defaultValue: "Back" })}
               icon={<ArrowBackRoundedIcon fontSize="small" />}
               onClick={() => setView("root")}
               dividerAfter
@@ -125,7 +134,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
             {TEXT_FILE_TEMPLATES.map((template) => (
               <MenuItemPrimitive
                 key={template.filename}
-                label={template.label}
+                label={t(`editor:ui.${"labelKey" in template ? template.labelKey : ""}`, { defaultValue: template.label })}
                 onClick={() => void createTextFile(template)}
                 disabled={busy}
               />
@@ -136,13 +145,13 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
         {view === "storyboards" && (
           <>
             <MenuItemPrimitive
-              label="Back"
+              label={t("timeline:addClip.back", { defaultValue: "Back" })}
               icon={<ArrowBackRoundedIcon fontSize="small" />}
               onClick={() => setView("root")}
               dividerAfter
             />
             <MenuItemPrimitive
-              label="Blank storyboard"
+              label={t("ui2:attrs.blankStoryboard", { defaultValue: "Blank storyboard" })}
               icon={<AddRoundedIcon fontSize="small" />}
               onClick={() => void createBlankStoryboard()}
               disabled={busy}
@@ -155,16 +164,14 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
             )}
             {!examplesLoading && exampleStoryboards.length === 0 && (
               <Caption color="secondary" sx={{ px: 2, py: 1.5 }}>
-                No example storyboards are available.
+                {t("editor:ui.noExampleStoryboardsAreInstalled")}
               </Caption>
             )}
             {exampleStoryboards.map((example) => (
               <MenuItemPrimitive
                 key={example.slug}
-                label={example.name}
-                secondary={`${example.shotCount} shot${
-                  example.shotCount === 1 ? "" : "s"
-                }, stills included`}
+                label={t(`catalog:storyboardExamples.${example.slug}.name`, { defaultValue: example.name })}
+                secondary={t("storyboard:attrs.shotsAlreadyRendered", { defaultValue: "{{count}} shots, already rendered", count: example.shotCount })}
                 onClick={() =>
                   void installStoryboardExample(example.slug, example.name)
                 }

@@ -22,6 +22,7 @@ import {
 } from "./codeBlockColors";
 import isEqual from "../../../../utils/isEqual";
 import { isString } from "../../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 export interface CodeBlockProps
   extends React.ComponentPropsWithoutRef<"code"> {
@@ -243,6 +244,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = memo(({
   onInsert,
   ...props
 }) => {
+  const { t } = useTranslation();
   const codeContent = String(children).trimEnd();
   const match = /language-(\w+)/.exec(className || "");
   const isDarkMode = useIsDarkMode();
@@ -308,7 +310,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = memo(({
                 type="button"
                 className="button"
                 onClick={handleInsert}
-                title="Insert into editor"
+                title={t("editor:ui.insertIntoEditor", { defaultValue: "Insert into editor" })}
                 style={{
                   padding: `${getSpacingPx(SPACING.lg)} ${getSpacingPx(SPACING.xxl)}`,
                   fontSize: FONT_SIZE_SANS.caption,

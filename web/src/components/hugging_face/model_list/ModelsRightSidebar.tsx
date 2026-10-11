@@ -4,6 +4,7 @@ import type { UnifiedModel } from "../../../stores/ApiTypes";
 import type { HardwareProfile } from "../onboarding/useHardwareProfile";
 import HardwareCard from "../onboarding/HardwareCard";
 import LocalModelsHero from "./LocalModelsHero";
+import { i18n } from "../../../i18n";
 
 /** Width of the info rail. */
 const RAIL_WIDTH = 280;

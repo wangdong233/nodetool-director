@@ -61,6 +61,7 @@ import type {
   PlanReviewGroup,
   PlanReviewSection
 } from "../PlanReview";
+import { useTranslation } from "react-i18next";
 
 // The estimate pulls in the provider price tables, which nothing on this step
 // needs until it is on screen — the shell lazy-loads it the same way.
@@ -103,6 +104,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   maxOutputTokens,
   onValidationChange
 }) => {
+  const { t } = useTranslation();
   const shots = useStoryboardStore(
     (state) => state.boards[boardId]?.shots ?? NO_SHOTS
   );
@@ -130,7 +132,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     );
   });
   const validationReason = invalidDuration
-    ? "Enter a positive duration in seconds, or clear it to leave timing unspecified."
+    ? t("storyboard:attrs.enterAPositiveDurationInSecondsOrClearItToLeaveTimingUnspecified", { defaultValue: "Enter a positive duration in seconds, or clear it to leave timing unspecified." })
     : productionAuthoringBlocker(shots);
   useEffect(() => {
     onValidationChange?.(validationReason);
@@ -170,7 +172,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       const rest = named.length - NAMED_SHOT_LIMIT;
       return {
         severity: "warning" as const,
-        title: "Your script was kept as written",
+        title: t("storyboard:attrs.scriptKeptAsWritten", { defaultValue: "Your script was kept as written" }),
         body: `The Director changed the words or the order of ${listed}${
           rest > 0 ? ` and ${rest} more` : ""
         }. The imported text was put back.`
@@ -181,10 +183,10 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     }
     return {
       severity: "info" as const,
-      title: "Some lines are not in any shot",
+      title: t("storyboard:attrs.someLinesNotInAnyShot", { defaultValue: "Some lines are not in any shot" }),
       body: notice.missingLines.join(" · ")
     };
-  }, [notice, shotNumbers]);
+  }, [t, notice, shotNumbers]);
 
   // What the creator is looking at, in one line: a screenplay is long, and
   // the scroll gives no sense of its size while reading it.
@@ -217,11 +219,11 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     const groups = sceneOrder(shots, scenes);
     const screenplaySection: PlanReviewSection = {
       id: "screenplay",
-      header: "Title",
+      header: t("storyboard:attrs.title", { defaultValue: "Title" }),
       rows: [
         {
           id: "title",
-          label: "Title",
+          label: t("storyboard:attrs.title", { defaultValue: "Title" }),
           hideLabel: true,
           value: title,
           onChange: (value: string) => setTitle(boardId, value)
@@ -246,7 +248,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 // STUDIO — I` says nothing about where it is set.
                 {
                   id: `${sceneId}:slugline`,
-                  label: "Slugline",
+                  label: t("storyboard:attrs.slugline", { defaultValue: "Slugline" }),
                   hideLabel: true,
                   multiline: true,
                   value: group.scene?.slugline ?? "",
@@ -256,11 +258,11 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 },
                 {
                   id: `${sceneId}:lighting`,
-                  label: "Lighting",
+                  label: t("storyboard:attrs.lighting", { defaultValue: "Lighting" }),
                   hideLabel: true,
                   multiline: true,
                   value: group.scene?.lighting ?? "",
-                  placeholder: "How the scene is lit",
+                  placeholder: t("storyboard:attrs.howTheSceneIsLit", { defaultValue: "How the scene is lit" }),
                   onChange: (value: string) =>
                     updateScene(boardId, sceneId, { lighting: value })
                 }
@@ -309,8 +311,8 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                   productionRequirementsFrom(shot)?.speech_binding?.text ??
                   "",
                 multiline: true,
-                placeholder: "Dialogue",
-                addLabel: "Add dialogue",
+                placeholder: t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" }),
+                addLabel: t("storyboard:attrs.addDialogue", { defaultValue: "Add dialogue" }),
                 onChange: (value: string) => {
                   const current = productionRequirementsFrom(shot);
                   const production =
@@ -339,7 +341,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 // shot too: the block's heading says which shot they are on,
                 // and `Shot 1 · Seconds` wrapped to two lines in the narrow
                 // column while its neighbours took one.
-                label: "Seconds",
+                label: t("storyboard:attrs.seconds", { defaultValue: "Seconds" }),
                 compact: true,
                 value:
                   lengths[shot.id] ??
@@ -408,6 +410,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       })
     ];
   }, [
+    t,
     boardId,
     lengths,
     scenes,
@@ -424,11 +427,9 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       sx={{ width: "100%", maxWidth: REVIEW_WIDE_WIDTH }}
     >
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Your screenplay
-        </Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.yourScreenplay", { defaultValue: "Your screenplay" })}</Text>
         <Text size="normal" color="secondary">
-          Edit anything here. It is the text your storyboard is drawn from.
+          {t("editor:ui.editAnythingHereItIsTheTextYourStoryboardIsDrawnFrom")}
         </Text>
       </FlexColumn>
       {importNotice ? (
@@ -443,7 +444,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           believing it is wastes the edit. It is named, and the creator decides
           whether to keep it (F9). */}
       {usedFallback ? (
-        <AlertBanner severity="warning" title="Written here, not by your model">
+        <AlertBanner severity="warning" title={t("storyboard:attrs.writtenHereNotByYourModel", { defaultValue: "Written here, not by your model" })}>
           <FlexColumn gap={GAP.tight}>
             <Caption component="span">
               Your model returned nothing usable, so this outline was built from
@@ -455,17 +456,13 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 size="small"
                 disabled={rewriting}
                 onClick={onRewrite}
-              >
-                Run the Director again
-              </EditorButton>
+              >{t("storyboard:attrs.runTheDirectorAgain", { defaultValue: "Run the Director again" })}</EditorButton>
               {onKeepFallback ? (
                 <EditorButton
                   variant="text"
                   size="small"
                   onClick={onKeepFallback}
-                >
-                  Keep this outline
-                </EditorButton>
+                >{t("storyboard:attrs.keepThisOutline", { defaultValue: "Keep this outline" })}</EditorButton>
               ) : null}
             </FlexRow>
           </FlexColumn>
@@ -475,19 +472,15 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           edited. Putting it back is one press for as long as the tab is
           open (F15). */}
       {replaced ? (
-        <AlertBanner severity="info" title="Rewritten from your brief">
+        <AlertBanner severity="info" title={t("storyboard:attrs.rewrittenFromYourBrief", { defaultValue: "Rewritten from your brief" })}>
           <FlexRow gap={GAP.normal} align="center" wrap>
-            <Caption component="span">
-              The previous screenplay is still here.
-            </Caption>
+            <Caption component="span">{t("storyboard:attrs.thePreviousScreenplayIsStillHere", { defaultValue: "The previous screenplay is still here." })}</Caption>
             <EditorButton
               variant="outlined"
               size="small"
               disabled={rewriting}
               onClick={handleRestore}
-            >
-              Restore the previous screenplay
-            </EditorButton>
+            >{t("storyboard:attrs.restoreThePreviousScreenplay", { defaultValue: "Restore the previous screenplay" })}</EditorButton>
           </FlexRow>
         </AlertBanner>
       ) : null}
@@ -504,15 +497,15 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
             disabled={rewriting}
             onClick={onRewrite}
           >
-            {rewriting ? "Rewriting screenplay…" : "Rewrite from brief"}
+            {rewriting ? t("storyboard:attrs.rewritingScreenplay", { defaultValue: "Rewriting screenplay…" }) : t("storyboard:attrs.rewriteFromBrief", { defaultValue: "Rewrite from brief" })}
           </EditorButton>
         </FlexRow>
         <Suspense
-          fallback={<Caption color="secondary">Loading estimate…</Caption>}
+          fallback={<Caption color="secondary">{t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}</Caption>}
         >
           <GenerationSummary
-            result="Rewrite the screenplay from your brief"
-            next="Retained shots keep their stills. No images are generated."
+            result={t("storyboard:attrs.rewriteTheScreenplayFromYourBrief", { defaultValue: "Rewrite the screenplay from your brief" })}
+            next={t("storyboard:attrs.retainedShotsKeepTheirStillsNoImagesAreGenerated", { defaultValue: "Retained shots keep their stills. No images are generated." })}
             model={model}
             brief={brief}
             maxOutputTokens={maxOutputTokens}

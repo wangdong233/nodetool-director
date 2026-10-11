@@ -19,6 +19,7 @@ import { useDynamicOutput } from "../../hooks/nodes/useDynamicOutput";
 import { TypeMetadata } from "../../stores/ApiTypes";
 import { validateIdentifierName } from "../../utils/identifierValidation";
 import AddDynamicOutputDialog from "./AddDynamicOutputDialog";
+import { useTranslation } from "react-i18next";
 
 interface NodePropertyFormProps {
   id: string;
@@ -37,6 +38,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
   onAddProperty,
   nodeType: _nodeType
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { handleAddOutput } = useDynamicOutput(id, dynamicOutputs);
   const inputDialogTitleId = useId();
@@ -99,7 +101,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
             startIcon={<Add fontSize="small" />}
             onClick={handleShowInputDialog}
           >
-            Add input
+            {t("editor:ui.addInput", { defaultValue: "Add input" })}
           </EditorButton>
         </FlexRow>
       )}
@@ -122,7 +124,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
               startIcon={<Add fontSize="small" />}
               onClick={handleShowOutputDialog}
             >
-              Add output
+              {t("editor:ui.addOutput", { defaultValue: "Add output" })}
             </EditorButton>
           </FlexRow>
 
@@ -147,12 +149,12 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
           }
         }}
       >
-        <DialogTitle id={inputDialogTitleId}>Add Input</DialogTitle>
+        <DialogTitle id={inputDialogTitleId}>{t("ui2:attrs.addInput", { defaultValue: "Add Input" })}</DialogTitle>
         <DialogContent>
           <FlexRow css={css({ gap: 8, marginTop: 8 })}>
             <TextField
               autoFocus
-              label="Name"
+              label={t("editor:asset.info.name", { defaultValue: "Name" })}
               size="small"
               value={newInputName}
               onChange={(e) => {
@@ -178,7 +180,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
                 }
               }}
               error={!!inputNameError}
-              helperText={inputNameError || "Cannot start with a number"}
+              helperText={inputNameError || t("editor:inspector.nameNoNumber", { defaultValue: "Cannot start with a number" })}
               sx={{ flex: 1 }}
             />
           </FlexRow>
@@ -189,14 +191,14 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
             variant="text"
             size="small"
           >
-            Cancel
+            {t("common:action.cancel", { defaultValue: "Cancel" })}
           </EditorButton>
           <EditorButton
             onClick={handleAddInputProperty}
             variant="contained"
             size="small"
           >
-            Add
+            {t("common:action.add", { defaultValue: "Add" })}
           </EditorButton>
         </DialogActions>
       </Dialog>

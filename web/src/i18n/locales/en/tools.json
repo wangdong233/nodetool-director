@@ -1,0 +1,461 @@
+{
+  "attrs": {},
+  "ui": {},
+  "ctx": {
+    "audioList": "Audio List",
+    "imageList": "Image List",
+    "textList": "Text List",
+    "videoList": "Video List"
+  },
+  "menus": {
+    "addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider": "Add a base URL and an API key to use any OpenAI-compatible provider.",
+    "addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage": "Add a command or a URL. Its tools join the agent's toolbelt on the next message.",
+    "aiAgentForProcessing": "AI agent for processing",
+    "allFieldsAreRequired": "All fields are required",
+    "apiDocumentation": "API Documentation",
+    "apiKey": "API Key",
+    "apiKey2": "API key",
+    "centerAllNodesInView": "Center all nodes in view",
+    "chatMessageInput": "Chat message input",
+    "clientDisconnected": "Client disconnected",
+    "commaSeparatedModelIdsForEndpointsWithNoModelsRoute": "Comma-separated model ids, for endpoints with no /models route.",
+    "commonIssuesFixes": "Common issues & fixes",
+    "copiedToClipboard": "Copied to clipboard!",
+    "copiedWorkflowJsonToClipboard": "Copied workflow JSON to Clipboard!",
+    "dataStorage": "Data & Storage",
+    "decimalNumberInput": "Decimal number input",
+    "detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations": "Detected from the model list. Add ids that Test misses. Calls go to /images/generations.",
+    "detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos": "Detected from the model list. Add ids that Test misses. Calls go to /videos.",
+    "failedToCopySystemInformationToClipboard": "Failed to copy system information to clipboard",
+    "failedToDisconnectGoogleWorkspace": "Failed to disconnect Google Workspace",
+    "failedToImportWorkflowInvalidJsonFile": "Failed to import workflow — invalid JSON file",
+    "couldNotSaveSettings": "Could not save settings: {{message}}",
+    "couldNotSaveFolderSettings": "Could not save folder settings: {{message}}",
+    "visitProviderForCredentials": "Visit {{label}} to get your credentials",
+    "folderSettingsHaveBeenSavedSuccessfully": "Folder settings have been saved successfully",
+    "groupContainerForNodes": "Group container for nodes",
+    "imageFileInput": "Image file input",
+    "includeTheVersionPathTheEndpointServesUsuallyV1": "Include the version path the endpoint serves, usually /v1.",
+    "localModelServers": "Local Model Servers",
+    "npmPackages": "NPM Packages",
+    "observability": "Observability",
+    "oneArgumentPerLineSoAPathWithASpaceStaysOneArgument": "One argument per line, so a path with a space stays one argument.",
+    "oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "One Header=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys.",
+    "oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "One KEY=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys.",
+    "packageSpecPlaceholder": "@scope/package or package@version",
+    "providerGuidesLinks": "Provider guides & links",
+    "providerOptions": "Provider Options",
+    "providerRemoved": "Provider removed",
+    "providerSavedAs": "{{name}} saved as {{id}}",
+    "disconnectedGoogleWorkspace": "Disconnected Google Workspace. Use Connect to restore access.",
+    "customProviderEncryptionNote": "The URL and key are encrypted and stored per account. The same values can come from the environment instead, as {{baseUrlEnv}} and {{apiKeyEnv}}.",
+    "providers": {
+      "AKI_API_KEY": {
+        "description": "AKI.IO AI Model Hub."
+      },
+      "ANTHROPIC_API_KEY": {
+        "description": "Claude models for advanced reasoning."
+      },
+      "APIFY_API_TOKEN": {
+        "description": "Web search via Apify Google Search Scraper."
+      },
+      "ATLASCLOUD_API_KEY": {
+        "description": "Chat, image, and video models behind one key."
+      },
+      "BRAVE_API_KEY": {
+        "description": "Brave Search web API."
+      },
+      "CEREBRAS_API_KEY": {
+        "description": "Fast LLM inference on Cerebras hardware."
+      },
+      "CLAUDE_SUBSCRIPTION": {
+        "description": "Use a Claude Pro or Max subscription instead of API credits.",
+        "note": "Shares the credentials used by Claude Code."
+      },
+      "CODEX_SUBSCRIPTION": {
+        "description": "Use Codex models through your ChatGPT subscription.",
+        "note": "Signs in with your ChatGPT account."
+      },
+      "COHERE_API_KEY": {
+        "description": "Embed v4 text embeddings and reranking."
+      },
+      "DASHSCOPE_API_KEY": {
+        "description": "Qwen models via Alibaba Cloud Model Studio."
+      },
+      "DATA_FOR_SEO_LOGIN": {
+        "description": "Web search via DataForSEO."
+      },
+      "DEEPSEEK_API_KEY": {
+        "description": "State-of-the-art open models."
+      },
+      "ELEVENLABS_API_KEY": {
+        "description": "High-quality text-to-speech services."
+      },
+      "EVOLINK_API_KEY": {
+        "description": "GPT, Claude, Gemini, DeepSeek and more through one gateway."
+      },
+      "FAL_API_KEY": {
+        "description": "Serverless AI image and video generation.",
+        "note": "For exact cost tracking, use an admin key (fal.ai dashboard → Keys → scope \"Admin\"). NodeTool reads each request's actual billing from FAL; a standard key only yields estimates."
+      },
+      "GEMINI_API_KEY": {
+        "description": "Google Gemini AI models and services."
+      },
+      "GITHUB_CLIENT_ID": {
+        "description": "OAuth App credentials for GitHub PKCE flow."
+      },
+      "GMI_API_KEY": {
+        "description": "Open-weight LLMs through GMI's OpenAI-compatible API."
+      },
+      "GOOGLE_MAIL_USER": {
+        "description": "Email address and app password for Google mail integration."
+      },
+      "GROQ_API_KEY": {
+        "description": "Ultra-fast LLM inference on LPU hardware."
+      },
+      "HF_TOKEN": {
+        "description": "Inference providers and model hub access."
+      },
+      "HIGGSFIELD_API_KEY_ID": {
+        "credentialLabel": "API key",
+        "credentialPlaceholder": "Paste key-id:secret",
+        "description": "Curated image and video generation models."
+      },
+      "JINA_API_KEY": {
+        "description": "Jina embeddings and reranker models."
+      },
+      "KIE_API_KEY": {
+        "description": "Kie.ai unified model access."
+      },
+      "KIMI_API_KEY": {
+        "description": "Moonshot AI models via Kimi API."
+      },
+      "LLAMA_API_KEY": {
+        "description": "Bearer auth for a local llama-server instance."
+      },
+      "MESHY_API_KEY": {
+        "description": "3D model generation."
+      },
+      "META_API_KEY": {
+        "description": "Meta's Muse Spark models for agentic and coding work."
+      },
+      "MINIMAX_API_KEY": {
+        "description": "MiniMax AI models."
+      },
+      "MISTRAL_API_KEY": {
+        "description": "Mistral AI models and embeddings."
+      },
+      "NODE_SUPABASE_KEY": {
+        "description": "Supabase service key for user-provided nodes."
+      },
+      "OPENAI_API_KEY": {
+        "description": "GPT models, images, embeddings, and more."
+      },
+      "OPENROUTER_API_KEY": {
+        "description": "Access multiple AI models through one API."
+      },
+      "REPLICATE_API_TOKEN": {
+        "description": "Run models on Replicate's cloud infrastructure."
+      },
+      "REVE_API_KEY": {
+        "description": "Image creation, editing, and remix with strong prompt adherence."
+      },
+      "RODIN_API_KEY": {
+        "description": "Rodin AI 3D model generation."
+      },
+      "RUNPOD_API_KEY": {
+        "description": "Rent GPU pods to run NodeTool workers."
+      },
+      "SERPAPI_API_KEY": {
+        "description": "Web search via SerpAPI."
+      },
+      "SERVER_AUTH_TOKEN": {
+        "description": "Bearer token to secure NodeTool server endpoints.",
+        "name": "Server Auth Token"
+      },
+      "TOGETHER_API_KEY": {
+        "description": "Open-source models through Together API."
+      },
+      "TOPAZ_API_KEY": {
+        "description": "Topaz Labs image and video enhancement."
+      },
+      "TRACELOOP_API_KEY": {
+        "description": "OpenLLMetry trace export to Traceloop."
+      },
+      "VAST_API_KEY": {
+        "description": "Rent marketplace GPUs to run NodeTool workers."
+      },
+      "VOYAGE_API_KEY": {
+        "description": "High-quality text and multimodal embeddings."
+      },
+      "XAI_API_KEY": {
+        "description": "Grok models via xAI's API."
+      },
+      "ZHIPU_API_KEY": {
+        "description": "GLM models via Z.AI's OpenAI-compatible API."
+      },
+      "COMFY_API_KEY": {
+        "description": "Run ComfyUI workflows on Comfy's hosted GPUs with your own key.",
+        "note": "Run ComfyUI workflows on Comfy's hosted GPUs with your own key."
+      }
+    },
+    "searchProviders": {
+      "apify": {
+        "description": "Reliable Google search scraping via Apify actors.",
+        "get": "Get Apify API Token"
+      },
+      "brave": {
+        "description": "Privacy-focused search with a free tier — a good default.",
+        "get": "Get a free Brave API key"
+      },
+      "dataforseo": {
+        "description": "Professional SEO and search intelligence platform.",
+        "get": "Get DataForSEO Credentials"
+      },
+      "openai": {
+        "description": "Reuses your OpenAI key. Answers in prose and cites the pages it read.",
+        "get": "Get OpenAI API Key"
+      },
+      "gemini": {
+        "description": "Reuses your Gemini key. Answers in prose and cites the pages it read.",
+        "get": "Get Gemini API Key"
+      },
+      "serpapi": {
+        "description": "Fast and reliable search API with Google, Bing, and other engines.",
+        "get": "Get SerpAPI Key"
+      }
+    },
+    "secretValueIsRequired": "Secret value is required",
+    "seeModelsByProvider": "See models by provider",
+    "streamableHTTPWithSSEAsTheFallback": "Streamable HTTP, with SSE as the fallback.",
+    "supportedModels": "Supported Models",
+    "systemInformationCopiedToClipboard": "System information copied to clipboard!",
+    "textCommentNote": "Text comment note",
+    "textInputField": "Text input field",
+    "wholeNumberInput": "Whole number input",
+    "yourSettingsHaveBeenSavedSuccessfully": "Your settings have been saved successfully",
+    "sections": {
+      "popular": "Popular",
+      "language": "Language Models",
+      "media": "Media Generation",
+      "gateways": "Gateways & Hubs",
+      "search": "Web Search",
+      "compute": "Compute & Local",
+      "advanced": "Services & Advanced"
+    },
+    "languageModels": "Language Models",
+    "mediaGeneration": "Media Generation",
+    "gatewaysAndHubs": "Gateways & Hubs",
+    "webSearch": "Web Search",
+    "computeAndLocal": "Compute & Local",
+    "servicesAndAdvanced": "Services & Advanced",
+    "nameApiKeyUpdated": "{{name}} API key updated",
+    "failedToUpdateSecret": "Failed to update secret: {{error}}",
+    "nameApiKeyDeleted": "{{name}} API key deleted",
+    "failedToDeleteSecret": "Failed to delete secret: {{error}}",
+    "tags": {
+      "Popular": "Popular"
+    },
+    "other": "Other"
+  },
+  "misc": {
+    "onboardingPacks": {
+      "ollama": "Chat and embedding nodes backed by your local Ollama models."
+    }
+  },
+  "tutorials": {
+    "subtitle": "Short, beginner-friendly walkthroughs of NodeTool",
+    "countOne": "{{count}} tutorial",
+    "countMany": "{{count}} tutorials",
+    "startBuilding": "Start building",
+    "browseExamples": "Browse examples",
+    "backToWorkspace": "Workspace",
+    "playVideoAria": "Play video: {{title}}",
+    "playTutorialAria": "Play tutorial: {{title}}",
+    "level": {
+      "Beginner": "Beginner",
+      "Intermediate": "Intermediate"
+    },
+    "app-assistant": {
+      "title": "Build a mini app",
+      "result": "The app displays a completed answer and its input/output widgets remain bound.",
+      "startingState": "The Examples page with the mini-app gallery ready to browse.",
+      "tagline": "App builder · operation, setting, widgets",
+      "task": "Open a mini app, provide its input, and run it once from the app surface.",
+      "description": "Describe an app in a sentence — an input, a button, an answer — and the assistant binds the workflow as an operation and places each widget against something the app declares.",
+      "learn_0": "Turning a workflow into an app anyone can run",
+      "learn_1": "Saving a value as a setting that persists between sessions",
+      "learn_2": "Binding widgets to inputs, outputs, and variables"
+    },
+    "ask-ai": {
+      "title": "Ask the AI",
+      "result": "The answer streams into the output and remains available to the next node.",
+      "startingState": "A new workflow canvas with an empty input and output path.",
+      "tagline": "A question in, a streamed answer out",
+      "task": "Connect a question input to an LLM node, ask for a short API explanation, and run it.",
+      "description": "The simplest chat-style graph: type a question, send it to an LLM node, and watch the answer stream in phrase by phrase before it lands in a Preview.",
+      "learn_0": "Feeding a question into an LLM node",
+      "learn_1": "Watching an answer stream as it generates",
+      "learn_2": "Reusing the answer downstream"
+    },
+    "chat-agent-qa": {
+      "title": "Ask the chat agent",
+      "result": "The chat shows a web-search tool call followed by a streamed answer.",
+      "startingState": "A new Global Chat conversation with an empty composer.",
+      "tagline": "Global Chat · tool calls, streamed live",
+      "task": "Ask a current-facts question that requires a web search.",
+      "description": "A question goes straight to Global Chat: the agent calls a web-search tool in the open, then streams its answer back token by token.",
+      "learn_0": "Sending a message from Global Chat",
+      "learn_1": "Watching a tool call run in the open",
+      "learn_2": "Reading a streamed answer as it arrives"
+    },
+    "combine-inputs": {
+      "title": "Combine two inputs",
+      "result": "Preview shows the completed template with both input values substituted.",
+      "startingState": "A new workflow canvas with two text inputs ready to connect.",
+      "tagline": "Merge values with a template",
+      "task": "Connect name and topic inputs to a template prompt, fill both values, and run it.",
+      "description": "The first graph that branches in: two text inputs flow into one Prompt node that fills a template, composing a single result from reusable parts.",
+      "learn_0": "Wiring several inputs into one node",
+      "learn_1": "Composing text with {{ placeholders }}",
+      "learn_2": "Building prompts from reusable parts"
+    },
+    "connect-run": {
+      "title": "Connect & run",
+      "result": "Preview shows HELLO NODETOOL and each connected node reports completion.",
+      "startingState": "A new workflow canvas ready for a small connected graph.",
+      "tagline": "Follow a connected graph from input to output",
+      "task": "Connect a text input to Uppercase and then to Preview, run it with hello nodetool, and inspect the output.",
+      "description": "Trace the existing connections from a text input through Uppercase, watch the nodes execute, and read HELLO NODETOOL in Preview.",
+      "learn_0": "Inputs, outputs, and how handles connect",
+      "learn_1": "Running a graph and watching nodes complete",
+      "learn_2": "Finding a node's result in a Preview"
+    },
+    "describe-image": {
+      "title": "Describe an image",
+      "result": "The vision response describes the image and is available in the downstream output.",
+      "startingState": "A new workflow canvas with an image input ready to fill.",
+      "tagline": "Show the AI a picture, get words back",
+      "task": "Add an image, connect it to an Agent, and run the graph to describe what is visible.",
+      "description": "The first multimodal graph: drop a picture into an Image Input, wire it into an Agent, and watch the model look at the image and describe it in words.",
+      "learn_0": "Bringing an image into a graph",
+      "learn_1": "Sending a picture to a vision model",
+      "learn_2": "Reusing the streamed description downstream"
+    },
+    "first-workflow": {
+      "title": "Build your first workflow",
+      "result": "The graph completes and the generated image appears on the canvas.",
+      "startingState": "A new workflow in the guided workflow setup.",
+      "tagline": "Text → enhance → image, end to end",
+      "task": "Build a text-to-image graph with a text input, an enhancement step, and an image generator, then run it.",
+      "description": "Watch a complete AI pipeline run on the canvas: a prompt is enhanced by an LLM, then turned into an image — all from connected nodes, no code.",
+      "learn_0": "How nodes pass data through their handles",
+      "learn_1": "Reading live status: running rings, streaming text, progress",
+      "learn_2": "Where generated outputs appear on the canvas"
+    },
+    "jsscript-assistant": {
+      "title": "Write a JS script",
+      "tagline": "JS scripts · ports, body, saved test",
+      "description": "Say what goes in and what should come out. The assistant declares the ports first, writes the body, and saves a test case that grades it in the sandbox.",
+      "learn_0": "Declaring ports as the script's contract",
+      "learn_1": "Reading a body that runs sandboxed — no filesystem access",
+      "learn_2": "Keeping a saved case that catches the next breaking edit"
+    },
+    "jsscript-repair": {
+      "title": "A test catches it",
+      "tagline": "JS scripts · red, then the repair, then green",
+      "description": "Name the edge case you do not trust. The assistant saves it as a test, runs it red with the reason in the open, repairs the body, and runs the same cases green.",
+      "learn_0": "Asking for the check before asking for the fix",
+      "learn_1": "Reading a failing run instead of a summary of one",
+      "learn_2": "Keeping the case saved so the next edit fails here first"
+    },
+    "list-generator": {
+      "title": "Generate a list",
+      "result": "The output contains multiple list items that can be passed to a downstream node.",
+      "startingState": "A new workflow canvas with no nodes connected.",
+      "tagline": "One prompt, many results",
+      "task": "Connect a topic input to a list-generating LLM node and run it for weekend trip ideas.",
+      "description": "Turn a single topic into a structured list with one LLM node, then feed it downstream. The pattern behind batching, looping, and bulk generation.",
+      "learn_0": "Driving an LLM node from an input",
+      "learn_1": "Streaming multi-item output as it arrives",
+      "learn_2": "Passing a list into the rest of a workflow"
+    },
+    "script-assistant": {
+      "title": "Write and voice a script",
+      "result": "The script contains cast speakers, written lines, and an audio take for each speaker.",
+      "startingState": "A new script with no cast or dialogue.",
+      "tagline": "Script editor · cast, lines, takes",
+      "task": "Ask the assistant for a short two-speaker script, then have it voice the lines.",
+      "description": "From a blank page to voiced audio in one ask: the assistant casts the speakers, writes their lines, then synthesizes a take for each one.",
+      "learn_0": "Describing a script by length, voices, and tone",
+      "learn_1": "How speakers are cast before any line is written",
+      "learn_2": "Voicing lines into takes you can swap or re-record"
+    },
+    "sketch-assistant": {
+      "title": "Edit a sketch by asking",
+      "result": "The wash layer appears in the layer panel with the requested blend mode and opacity.",
+      "startingState": "A new sketch with a blank layer stack.",
+      "tagline": "Sketch editor · the assistant paints the layer",
+      "task": "Ask the assistant to add a soft wash layer and set its blend mode and opacity.",
+      "description": "Say what you want changed and the assistant works the real layer tools: it adds the layer, sets the blend mode, and dials in opacity while you watch the panel update.",
+      "learn_0": "Asking for an edit against the layer stack you already have",
+      "learn_1": "Watching layers appear in the panel as the assistant works",
+      "learn_2": "Taking over by hand — every edit stays yours to change"
+    },
+    "sketch-correction": {
+      "title": "Correct it without starting over",
+      "result": "The existing layer is amended in place and the layer count stays unchanged.",
+      "startingState": "A new sketch ready for an assistant-led edit.",
+      "tagline": "Sketch editor · the second ask amends the first",
+      "task": "Make one assistant edit, then ask it to reduce the effect without creating another layer.",
+      "description": "The wash comes back too strong. Saying so in the next message edits the layer that is already there — the stack stays the same size and nothing is regenerated.",
+      "learn_0": "Correcting a result instead of starting the ask again",
+      "learn_1": "Reading which tool call the correction actually ran",
+      "learn_2": "Taking the last step yourself with the panel controls"
+    },
+    "storyboard-ask": {
+      "title": "It asks before it spends",
+      "result": "The assistant waits before spending, then creates the clarified shot list after your answer.",
+      "startingState": "A new storyboard with no shots and no render started.",
+      "tagline": "Storyboard · a question, not a guess",
+      "task": "Give the assistant an incomplete brief, answer its follow-up question, and approve the board.",
+      "description": "An under-specified brief gets a question back. The board stays empty and nothing renders while you decide, then your answer picks the format and the shot count.",
+      "learn_0": "Why an ambiguous brief comes back as a question",
+      "learn_1": "What the assistant does while it waits on you: nothing",
+      "learn_2": "Approving the spend once the shots read right"
+    },
+    "storyboard-assistant": {
+      "title": "Board a shot list",
+      "result": "The board contains an approved shot list with a rendered still for each shot.",
+      "startingState": "A new storyboard with an empty shot list.",
+      "tagline": "Storyboard · direction, then stills",
+      "task": "Describe a short piece, review the generated shot list, and approve it for rendering.",
+      "description": "Describe the piece and the assistant writes the shots — camera and all — before spending a frame. Approve the board, then the stills render shot by shot.",
+      "learn_0": "Getting a shot list before any image is generated",
+      "learn_1": "Revising a shot while it is still free to change",
+      "learn_2": "Rendering stills across the board in one call"
+    },
+    "summarize-text": {
+      "title": "Summarize a document",
+      "result": "Preview contains a shorter set of key points while the source remains available for comparison.",
+      "startingState": "A new workflow canvas with an empty text path.",
+      "tagline": "Long text in, key points out",
+      "task": "Feed a long passage into a Summarizer node, run it, and send the summary to Preview.",
+      "description": "Condense an article, transcript, or any block of text into a short summary with a single Summarizer node, streaming it as it writes.",
+      "learn_0": "Feeding a long passage into a Summarizer node",
+      "learn_1": "Watching the summary stream as it generates",
+      "learn_2": "Passing the result into the rest of a workflow"
+    },
+    "timeline-trim-arrange": {
+      "title": "Cut a scene together",
+      "result": "The timeline plays the arranged cut with the caption aligned to the dialogue.",
+      "startingState": "A new timeline with empty tracks and no clips.",
+      "tagline": "Timeline editor · trim, arrange, caption",
+      "task": "Place two clips, trim their cut, add a caption, and preview the finished sequence.",
+      "description": "Watch the opening clip shorten, the next shot meet its edge, and a caption appear on its track. Then preview the finished cut.",
+      "learn_0": "Trimming and arranging clips on tracks",
+      "learn_1": "Adding a caption synced word-by-word",
+      "learn_2": "Scrubbing and previewing the cut live"
+    }
+  }
+}

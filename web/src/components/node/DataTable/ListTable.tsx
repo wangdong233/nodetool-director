@@ -17,6 +17,7 @@ import TableActions from "./TableActions";
 import { useTheme } from "@mui/material/styles";
 import isEqual from "../../../utils/isEqual";
 import type { TableData } from "./TableActions";
+import { useTranslation } from "react-i18next";
 
 export type ListDataType = "int" | "string" | "datetime" | "float";
 
@@ -67,6 +68,7 @@ const ListTable: React.FC<ListTableProps> = ({
   data_type,
   onDataChange
 }) => {
+  const { t } = useTranslation();
   const tableRef = useRef<HTMLDivElement>(null);
   const [tabulator, setTabulator] = useState<Tabulator>();
 
@@ -97,7 +99,7 @@ const ListTable: React.FC<ListTableProps> = ({
           ]
         : []),
       {
-        title: "Index",
+        title: t("editor:ui.indexLabel", { defaultValue: "Index" }),
         field: "rownum",
         formatter: "rownum" as Formatter,
         hozAlign: "left" as ColumnDefinitionAlign,
@@ -109,7 +111,7 @@ const ListTable: React.FC<ListTableProps> = ({
         cssClass: "row-numbers"
       },
       {
-        title: "Value",
+        title: t("appbuilder:attrs.value", { defaultValue: "Value" }),
         field: "value",
         editable: editable,
         frozen: !editable,
@@ -133,7 +135,7 @@ const ListTable: React.FC<ListTableProps> = ({
             : undefined
       }
     ],
-    [data_type, editable, showSelect]
+    [t, data_type, editable, showSelect]
   );
 
   const tabulatorData = useMemo(

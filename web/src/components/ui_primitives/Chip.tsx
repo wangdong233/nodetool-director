@@ -8,7 +8,7 @@
 import React from "react";
 import { Chip as MuiChip, ChipProps as MuiChipProps } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { CONTROL } from "./tokens";
+import { CONTROL, TYPOGRAPHY } from "./tokens";
 
 export interface ChipProps extends Omit<MuiChipProps, 'color'> {
   /** Semantic color variant */
@@ -24,7 +24,7 @@ export interface ChipProps extends Omit<MuiChipProps, 'color'> {
  *
  * @example
  * // Basic chip
- * <Chip label="Category" />
+ * <Chip label={i18n.t("editor:ui.category", { defaultValue: "Category" })} />
  *
  * @example
  * // Deletable chip
@@ -40,7 +40,7 @@ export interface ChipProps extends Omit<MuiChipProps, 'color'> {
  *
  * @example
  * // With icon
- * <Chip label="Status" color="success" icon={<CheckIcon />} />
+ * <Chip label={i18n.t("editor:ui.status", { defaultValue: "Status" })} color="success" icon={<CheckIcon />} />
  */
 export const Chip: React.FC<ChipProps> = ({
   color = "default",
@@ -62,10 +62,15 @@ export const Chip: React.FC<ChipProps> = ({
       sx={{
         fontWeight: active ? 600 : 400,
         ...(compact && {
-          height: `${CONTROL.height.xs}px`,
+          // F-38 (r20): minHeight floor + token caption lineHeight (not a
+          // fixed 24px box) — a chip label under font inflation (browser
+          // minimum font size) grows the chip instead of spilling out of it.
+          minHeight: `${CONTROL.height.xs}px`,
           fontSize: theme.fontSizeSmaller,
+          lineHeight: TYPOGRAPHY.sans.caption.lineHeight,
           "& .MuiChip-label": {
             px: 1,
+            whiteSpace: "nowrap",
           },
         }),
         ...sx,

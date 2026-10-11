@@ -1,4 +1,5 @@
 import { isString } from "./typePredicates";
+import { i18n } from "../i18n";
 const differenceInSeconds = (later: Date, earlier: Date): number =>
   Math.trunc((later.getTime() - earlier.getTime()) / 1000);
 
@@ -86,8 +87,20 @@ export function secondsToHMS(seconds: number): string {
   return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`;
 }
 
-function agoLabel(count: number, singular: string, plural: string): string {
-  return count === 1 ? `1 ${singular} ago` : `${count} ${plural} ago`;
+// Render-phase util: the global instance reads the live language at each
+// call (same convention as the D-registry module helpers). i18next's count
+// plural picks _one/_other automatically; zh carries a single form.
+// Render-phase util: the global instance reads the live language at each
+// call (same convention as the D-registry module helpers). The leaf base
+// (e.g. "yearAgo") is passed whole so the source carries it as a literal —
+// i18next's count plural then picks _one/_other per locale (zh: one form).
+function agoLabel(count: number, leaf: string): string {
+  // A NaN count (invalid date reached this far) renders as "" rather than
+  // "NaN 秒前" — callers treat an empty label as "no relative time to show".
+  if (Number.isNaN(count)) {
+    return "";
+  }
+  return i18n.t(`common:relTime.${leaf}`, { count });
 }
 
 export function relativeTime(date: Date | string): string {
@@ -96,39 +109,39 @@ export function relativeTime(date: Date | string): string {
 
   const seconds = differenceInSeconds(now, past);
   if (seconds < 1) {
-    return "just now";
+    return i18n.t("common:relTime.justNow");
   }
 
   // Months and years are calendar-aware rather than fixed 30/365-day
   // windows, so e.g. a date in a 31-day month is not rounded up early.
   const years = differenceInYears(now, past);
   if (years >= 1) {
-    return agoLabel(years, "year", "years");
+    return agoLabel(years, "yearAgo");
   }
 
   const months = differenceInMonths(now, past);
   if (months >= 1) {
-    return agoLabel(months, "month", "months");
+    return agoLabel(months, "monthAgo");
   }
 
   const days = differenceInDays(now, past);
   const weeks = Math.floor(days / 7);
   if (weeks >= 1) {
-    return agoLabel(weeks, "week", "weeks");
+    return agoLabel(weeks, "weekAgo");
   }
   if (days >= 1) {
-    return agoLabel(days, "day", "days");
+    return agoLabel(days, "dayAgo");
   }
 
   const hours = differenceInHours(now, past);
   if (hours >= 1) {
-    return agoLabel(hours, "hour", "hours");
+    return agoLabel(hours, "hourAgo");
   }
 
   const minutes = differenceInMinutes(now, past);
   if (minutes >= 1) {
-    return agoLabel(minutes, "min", "min");
+    return agoLabel(minutes, "minuteAgo");
   }
 
-  return agoLabel(seconds, "sec", "sec");
+  return agoLabel(seconds, "secondAgo");
 }

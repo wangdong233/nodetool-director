@@ -1,9 +1,10 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import { DocsHelpLink } from "../DocsHelpLink";
 import { DOCS_BASE_URL, DOCS_PATHS } from "../../../config/docsLinks";
+import { changeAppLanguage, resetI18nForTest } from "../../../i18n";
 import mockTheme from "../../../__mocks__/themeMock";
 
 const renderWithTheme = (component: React.ReactElement) =>
@@ -59,5 +60,20 @@ describe("DocsHelpLink", () => {
     expect(
       screen.getByRole("link", { name: "Assets documentation" })
     ).toHaveFocus();
+  });
+
+  it("resolves the topic name from the catalog so zh never shows a mixed-language label", async () => {
+    renderWithTheme(<DocsHelpLink topic="chat" label="Chat & agents" />);
+    await act(async () => {
+      await changeAppLanguage("zh-CN");
+    });
+
+    try {
+      // Topic name comes from nav:settings.docsTopics.chat, not the
+      // English label prop the caller passed.
+      expect(screen.getByRole("link", { name: "对话文档" })).toBeInTheDocument();
+    } finally {
+      await resetI18nForTest();
+    }
   });
 });

@@ -33,6 +33,7 @@ import {
 } from "../../utils/fileExplorer";
 import { isLocalhost, isProduction } from "../../lib/env";
 import { isElectron } from "../../utils/browser";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -61,6 +62,7 @@ const styles = (theme: Theme) =>
   });
 
 const DownloadManagerDialog: React.FC = () => {
+  const { t } = useTranslation();
   const { isDialogOpen, closeDialog, downloads } = useModelDownloadStore(
     useShallow((state) => ({
       isDialogOpen: state.isDialogOpen,
@@ -79,11 +81,11 @@ const DownloadManagerDialog: React.FC = () => {
   ) : (
     <FlexColumn gap={1}>
       <span>
-        Download models using the <strong>Recommended Models</strong> button
+        Download models using the <strong>{t("ui2:attrs.recommendedModels", { defaultValue: "Recommended Models" })}</strong> button
         inside nodes.
       </span>
       <span>
-        The <strong>Model Manager</strong> in the top right panel shows all
+        The <strong>{t("ui2:attrs.modelManager", { defaultValue: "Model Manager" })}</strong> in the top right panel shows all
         available models.
       </span>
     </FlexColumn>
@@ -99,7 +101,7 @@ const DownloadManagerDialog: React.FC = () => {
       fullWidth
     >
       <DialogTitle sx={{ color: "inherit", position: "relative" }}>
-        {hasActiveDownloads ? "Download Progress" : "Model Downloads"}
+        {hasActiveDownloads ? t("editor:ui.downloadProgress", { defaultValue: "Download Progress" }) : t("editor:ui.modelDownloads", { defaultValue: "Model Downloads" })}
         <CloseButton
           onClick={closeDialog}
           className="title-close"
@@ -121,7 +123,7 @@ const DownloadManagerDialog: React.FC = () => {
               }}
             >
               <DownloadingIcon sx={{ opacity: 0.8 }} />
-              <Text size="normal" weight={600}>No active downloads</Text>
+              <Text size="normal" weight={600}>{t("ui2:attrs.noActiveDownloads", { defaultValue: "No active downloads" })}</Text>
               <Text
                 size="small"
                 sx={{ opacity: 0.8, textAlign: "center" }}
@@ -144,14 +146,14 @@ const DownloadManagerDialog: React.FC = () => {
                   startIcon={<FolderOutlined />}
                   onClick={openHuggingfacePath}
                 >
-                  Open HuggingFace folder
+                  {t("editor:ui.openHuggingFaceFolder")}
                 </EditorButton>
                 <EditorButton
                   variant="outlined"
                   startIcon={<FolderOutlined />}
                   onClick={openOllamaPath}
                 >
-                  Open Ollama folder
+                  {t("editor:ui.openOllamaFolder")}
                 </EditorButton>
               </Box>
             </>
@@ -176,7 +178,7 @@ const DownloadManagerDialog: React.FC = () => {
           {infoMessage}
         </Text>
         <EditorButton onClick={closeDialog} variant="contained">
-          Close
+          {t("common:action.close", { defaultValue: "Close" })}
         </EditorButton>
       </DialogActions>
     </Dialog>

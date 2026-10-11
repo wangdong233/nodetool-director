@@ -22,6 +22,7 @@ import { Asset } from "../../stores/ApiTypes";
 import { IconForType } from "../../config/IconForType";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore
@@ -48,6 +49,7 @@ const AssetTree: React.FC<AssetTreeProps> = ({
   onTotalAssetsCalculated,
   onLoading
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [assetTree, setAssetTree] = useState<AssetTreeNode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -283,7 +285,7 @@ const AssetTree: React.FC<AssetTreeProps> = ({
       {renderAssetTree(assetTree)}
     </Box>
   ) : (
-    <Text>No assets found</Text>
+    <Text>{t("ui2:attrs.noAssetsFound", { defaultValue: "No assets found" })}</Text>
   );
 };
 

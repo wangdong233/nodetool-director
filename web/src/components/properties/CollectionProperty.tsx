@@ -8,6 +8,7 @@ import { useNodes } from "../../contexts/NodeContext";
 import Select from "../inputs/Select";
 import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import ConnectedBadge from "./ConnectedBadge";
+import { useTranslation } from "react-i18next";
 
 interface CollectionValue {
   type: "collection";
@@ -15,6 +16,7 @@ interface CollectionValue {
 }
 
 const CollectionProperty = (props: PropertyProps<CollectionValue | null>) => {
+  const { t } = useTranslation();
   const id = `collection-${props.property.name}-${props.propertyIndex}`;
   const isConnectedSelector = useIsConnectedSelector(
     props.nodeId,
@@ -66,7 +68,7 @@ const CollectionProperty = (props: PropertyProps<CollectionValue | null>) => {
         onChange={(newValue) =>
           props.onChange({ type: "collection", name: newValue })
         }
-        placeholder="Select collection..."
+        placeholder={t("editor:ui.selectCollection", { defaultValue: "Select collection..." })}
         label={props.property.name}
       />
     </>

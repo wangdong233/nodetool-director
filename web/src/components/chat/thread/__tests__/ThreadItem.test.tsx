@@ -27,6 +27,7 @@ const renderItem = (props: Partial<React.ComponentProps<typeof ThreadItem>> = {}
           onSelect={onSelect}
           onRequestDelete={onRequestDelete}
           previewText="Fixing the encoder"
+          languageVersion={0}
           {...props}
         />
       </ul>

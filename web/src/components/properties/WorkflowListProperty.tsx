@@ -9,11 +9,13 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { workflowListQueryKey } from "../../serverState/workflowQueryKeys";
 import { NodeSelect, NodeMenuItem } from "../editor_ui";
 import type { WorkflowValue } from "./WorkflowProperty";
+import { useTranslation } from "react-i18next";
 
 import {
   OutlinedInput
 } from "../ui_primitives";
 const WorkflowListProperty = (props: PropertyProps<WorkflowValue[] | null>) => {
+  const { t } = useTranslation();
   const id = `workflow-list-${props.property.name}-${props.propertyIndex}`;
   const workflowIds: string[] = props.value?.map((workflow) => workflow.id) || [];
   const load = useWorkflowManager((state) => state.load);
@@ -57,7 +59,7 @@ const WorkflowListProperty = (props: PropertyProps<WorkflowValue[] | null>) => {
         multiple
         value={workflowIds}
         onChange={handleChange}
-        input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
+        input={<OutlinedInput id="select-multiple-chip" label={t("editor:ui.chip", { defaultValue: "Chip" })} />}
         renderValue={renderSelectedValue}
       >
         {isLoading && <NodeMenuItem disabled>Loading…</NodeMenuItem>}

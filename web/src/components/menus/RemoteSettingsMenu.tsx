@@ -29,6 +29,8 @@ import { formatSettingLabel } from "./settingsLabel";
 import ExternalLink from "../common/ExternalLink";
 import SearchProviderSection from "./SearchProviderSection";
 import { matchesSearch } from "./settingsSearch";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * Groups surfaced elsewhere (General tab, Folders panel) or via
@@ -60,29 +62,35 @@ const SEARCH_RELATED_SETTINGS = new Set([
 const META_SECTION_GROUPS: ReadonlyArray<{
   key: string;
   label: string;
+  /** i18n leaf key under `tools:menus.` for this section heading. */
+  labelKey?: string;
   groups: ReadonlyArray<string>;
 }> = [
   {
     key: "local-model-servers",
     label: "Local Model Servers",
+    labelKey: "localModelServers",
     groups: ["vLLM", "Ollama", "LlamaCpp", "NodeLlamaCpp", "LMStudio", "TransformersJs"]
   },
   {
     key: "provider-options",
     label: "Provider Options",
+    labelKey: "providerOptions",
     groups: ["ZAI", "KIE"]
   },
   {
     key: "observability",
     label: "Observability",
+    labelKey: "observability",
     groups: ["Observability", "Traceloop"]
   },
   {
     key: "data-and-storage",
     label: "Data & Storage",
+    labelKey: "dataStorage",
     groups: ["NodeSupabase", "Supabase"]
   },
-  { key: "other", label: "Other", groups: [] }
+  { key: "other", label: "Other", labelKey: "other", groups: [] }
 ];
 
 /** Inverted, lowercased lookup: registry group (lowercase) → meta-section key. */
@@ -105,11 +113,13 @@ interface MetaSection {
   key: string;
   label: string;
   entries: MetaSectionEntry[];
+  labelKey?: string;
 }
 
 interface DisplayedGroup {
   id: string;
   label: string;
+  labelKey?: string;
 }
 
 /**
@@ -140,7 +150,7 @@ const partitionByMetaSection = (
       }
     }
     if (entries.length > 0) {
-      sections.push({ key: section.key, label: section.label, entries });
+      sections.push({ key: section.key, label: section.label, labelKey: section.labelKey, entries });
     }
   }
   return sections;
@@ -178,12 +188,12 @@ export const getDisplayedSettingGroups = (
   const result: DisplayedGroup[] = [];
   for (const section of META_SECTION_GROUPS) {
     if (presentKeys.has(section.key)) {
-      result.push({ id: section.key, label: section.label });
+      result.push({ id: section.key, label: section.label, labelKey: section.labelKey });
     }
     // SearchProviderSection always renders alongside the registry list, so
     // the sidebar always lists it at this slot (after Local Model Servers).
     if (section.key === "local-model-servers") {
-      result.push({ id: "search-provider", label: "Search Provider" });
+      result.push({ id: "search-provider", label: i18n.t("editor:ui.searchProvider", { defaultValue: "Search provider" }) });
     }
   }
   return result;
@@ -258,6 +268,7 @@ const SettingItem = memo(function SettingItem({
   value,
   onChange
 }: SettingItemProps) {
+  const { t } = useTranslation();
   const handleChange = useCallback(
     (
       e:
@@ -280,7 +291,7 @@ const SettingItem = memo(function SettingItem({
           <InputLabel
             id={`${setting.env_var.toLowerCase()}-label`}
           >
-            {formatSettingLabel(setting.env_var)}
+            {t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })}
           </InputLabel>
           <Select
             labelId={`${setting.env_var.toLowerCase()}-label`}
@@ -301,7 +312,7 @@ const SettingItem = memo(function SettingItem({
           type={setting.is_secret ? "password" : "text"}
           autoComplete="off"
           id={`${setting.env_var.toLowerCase()}-input`}
-          label={formatSettingLabel(setting.env_var)}
+          label={t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })}
           value={value || ""}
           onChange={handleChange}
           variant="standard"
@@ -311,7 +322,7 @@ const SettingItem = memo(function SettingItem({
       )}
       {setting.description && (
         <Text className="description">
-          {setting.description}
+          {t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description })}
         </Text>
       )}
       {SETTING_LINKS[setting.env_var] && (
@@ -322,8 +333,7 @@ const SettingItem = memo(function SettingItem({
               SETTING_TOOLTIPS[setting.env_var] || ""
             }
           >
-            {SETTING_BUTTON_TITLES[setting.env_var] ||
-              "GET YOUR API KEY"}
+            {t(`settings:remote.${setting.env_var}.get`, { defaultValue: SETTING_BUTTON_TITLES[setting.env_var] || "GET YOUR API KEY" })}
           </ExternalLink>
         </div>
       )}
@@ -339,11 +349,12 @@ interface RemoteSettingsProps {
 
 const settingMatches = (setting: SettingWithValue, search: string): boolean =>
   matchesSearch(
-    `${formatSettingLabel(setting.env_var)} ${setting.env_var} ${setting.description ?? ""}`,
+    `${i18n.t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })} ${setting.env_var} ${i18n.t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description ?? "" })}`,
     search
   );
 
 const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const updateSettings = useRemoteSettingsStore((state) => state.updateSettings);
   const fetchSettings = useRemoteSettingsStore((state) => state.fetchSettings);
@@ -464,7 +475,10 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
     },
     onError: (error: Error) => {
       addNotification({
-        content: `Could not save settings: ${error.message}`,
+        content: i18n.t("tools:menus.couldNotSaveSettings", {
+          defaultValue: "Could not save settings: {{message}}",
+          message: error.message
+        }),
         type: "error",
         alert: true
       });
@@ -497,7 +511,9 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
       {
         onSuccess: () => {
           addNotification({
-            content: "Your settings have been saved successfully",
+            content: i18n.t("tools:menus.yourSettingsHaveBeenSavedSuccessfully", {
+              defaultValue: "Your settings have been saved successfully"
+            }),
             type: "success",
             alert: true
           });
@@ -512,7 +528,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
     <>
       {isLoading && (
         <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-          Loading settings…
+          {t("editor:ui.loadingSettings", { defaultValue: "Loading settings…" })}
         </Text>
       )}
       {isSuccess && hasVisibleSettings && (
@@ -546,7 +562,11 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                         id={sec.key}
                         className="settings-heading"
                       >
-                        {sec.label}
+                        {section.labelKey
+                          ? t(`tools:menus.${section.labelKey}`, {
+                              defaultValue: sec.label
+                            })
+                          : sec.label}
                       </Text>
                       {visibleSettings.map((setting) => (
                         <SettingItem
@@ -579,7 +599,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                   startIcon={<SaveIcon />}
                   disabled={updateSettingsMutation.isPending}
                 >
-                  SAVE SETTINGS
+                  {t("editor:ui.saveSettings", { defaultValue: "SAVE SETTINGS" })}
                 </EditorButton>
               </div>
             )}
@@ -588,7 +608,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
       )}
       {isSuccess && !hasVisibleSettings && (
         <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-          No settings available
+          {t("editor:ui.noSettingsAvailable")}
         </Text>
       )}
     </>

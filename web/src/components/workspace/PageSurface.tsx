@@ -1,7 +1,8 @@
 import React, { Suspense } from "react";
 
 import { LoadingSpinner } from "../ui_primitives";
-import { PAGE_TAB_TITLES, type PageTabKey } from "./pageTabs";
+import { pageTitle, type PageTabKey } from "./pageTabs";
+import { useAppLanguage } from "../../i18n";
 
 const AssetExplorer = React.lazy(() => import("../assets/AssetExplorer"));
 const TutorialsPage = React.lazy(() => import("../tutorials/TutorialsPage"));
@@ -67,12 +68,13 @@ interface PageSurfaceProps {
  * lazily loaded so it only costs bundle weight once its tab is opened.
  */
 const PageSurface = ({ pageKey }: PageSurfaceProps) => {
+  useAppLanguage(); // re-render on language change: aria title (R6-6)
   const Component = PAGE_COMPONENTS[pageKey];
   const style = SELF_SCROLLING_PAGES.has(pageKey)
     ? surfaceStyle
     : SCROLLING_SURFACE_STYLE;
   return (
-    <div style={style} aria-label={PAGE_TAB_TITLES[pageKey]}>
+    <div style={style} aria-label={pageTitle(pageKey)}>
       <Suspense fallback={<LoadingSpinner />}>
         <Component />
       </Suspense>

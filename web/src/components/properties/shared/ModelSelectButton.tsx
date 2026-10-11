@@ -3,6 +3,7 @@ import type { SxProps, Theme } from "@mui/material";
 import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useEditorScope } from "../../editor_ui";
+import { i18n } from "../../../i18n";
 import {
   FlexColumn,
   FlexRow,

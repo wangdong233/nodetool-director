@@ -13,6 +13,7 @@ import { EditorButton, NodeTextField, MOTION, SPACING, BORDER_RADIUS, getSpacing
 import { useNodes } from "../../contexts/NodeContext";
 import AudioVisualizer from "../common/AudioVisualizer";
 import { useRealtimeAudioStream } from "../../hooks/useRealtimeAudioStream";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -68,6 +69,7 @@ const styles = (theme: Theme) =>
   });
 
 const AudioProperty = (props: PropertyProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const id = `audio-${props.property.name}-${props.propertyIndex}`;
@@ -92,7 +94,7 @@ const AudioProperty = (props: PropertyProps) => {
           {isStreaming ? (
             <div
               className="realtime-visualizer"
-              aria-label="Realtime audio visualizer"
+              aria-label={t("editor:ui.realtimeAudioVisualizer", { defaultValue: "Realtime audio visualizer" })}
             >
               <AudioVisualizer
                 stream={stream}
@@ -108,7 +110,7 @@ const AudioProperty = (props: PropertyProps) => {
               onClick={toggle}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } }}
             >
-              Click to start microphone
+              {t("editor:ui.clickToStartMicrophone")}
             </div>
           )}
           <div className="controls-row">

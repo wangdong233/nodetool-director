@@ -25,6 +25,7 @@ import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import TerminalRoundedIcon from "@mui/icons-material/TerminalRounded";
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
+import { useTranslation } from "react-i18next";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(8px); }
@@ -130,6 +131,7 @@ const NodeList: React.FC<{
   label: string;
   isRecommended?: boolean;
 }> = ({ items, label, isRecommended }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   if (items.length === 0) {
     return (
@@ -155,7 +157,7 @@ const NodeList: React.FC<{
                 </Text>
                 {isRecommended && (
                   <Chip
-                    label="Best Match"
+                    label={t("editor:ui.bestMatch", { defaultValue: "Best Match" })}
                     size="small"
                     color="primary"
                     variant="outlined"
@@ -192,7 +194,7 @@ const NodeList: React.FC<{
             <div className="copy-button">
               <CopyButton
                 value={node.nodeType}
-                tooltip="Copy node type"
+                tooltip={t("editor:ui.copyNodeType", { defaultValue: "Copy node type" })}
                 tooltipPlacement="left"
               />
             </div>
@@ -216,6 +218,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
   model,
   compatibility
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   return (
@@ -230,7 +233,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
             <FlexRow gap={1} align="center">
               <AutoAwesomeRoundedIcon sx={{ color: "primary.main", fontSize: 20 }} />
               <Text size="normal" weight={600} component="span" sx={{ letterSpacing: -0.2 }}>
-                Node Compatibility
+                {t("editor:ui.nodeCompatibility")}
               </Text>
             </FlexRow>
             <Caption
@@ -274,7 +277,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
               <FlexRow gap={1} align="center">
                 <VerifiedRoundedIcon sx={{ color: "primary.main", fontSize: 18 }} />
                 <Text size="small" weight={600} sx={{ color: "primary.main" }}>
-                  Recommended Nodes
+                  {t("editor:ui.recommendedNodes", { defaultValue: "Recommended Nodes" })}
                 </Text>
               </FlexRow>
               <Caption sx={{ color: "text.disabled", fontWeight: 500 }}>
@@ -289,7 +292,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
               <FlexRow gap={1} align="center">
                 <CheckCircleOutlineRoundedIcon sx={{ color: "text.secondary", fontSize: 18 }} />
                 <Text size="small" weight={600}>
-                  Compatible Nodes
+                  {t("editor:ui.compatibleNodes")}
                 </Text>
               </FlexRow>
               <Caption sx={{ color: "text.disabled", fontWeight: 500 }}>
@@ -301,7 +304,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
 
           <FlexRow justify="flex-end" sx={{ pt: 1.5, borderTop: `1px solid ${theme.vars.palette.grey[900]}` }}>
             <EditorButton onClick={onClose} variant="contained" density="compact" sx={{ borderRadius: BORDER_RADIUS.sm, fontWeight: 600, px: 3 }}>
-              Got it
+              {t("editor:ui.gotIt", { defaultValue: "Got it" })}
             </EditorButton>
           </FlexRow>
         </FlexColumn>

@@ -47,6 +47,8 @@ import ArticleIcon from "@mui/icons-material/Article";
 import HistoryIcon from "@mui/icons-material/History";
 import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay";
 import MemoryIcon from "@mui/icons-material/Memory";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const HEADER_HEIGHT = 32;
 
@@ -111,17 +113,29 @@ const useGraphCounts = (
 
 interface ViewSpec {
   id: BottomPanelView;
-  label: string;
   icon: React.ReactNode;
 }
 
 const VIEW_SPECS = {
-  logs: { id: "logs", label: "Logs", icon: <ArticleIcon /> },
-  queue: { id: "queue", label: "Queue", icon: <PlaylistPlayIcon /> },
-  workers: { id: "workers", label: "Workers", icon: <MemoryIcon /> },
-  versions: { id: "versions", label: "Versions", icon: <HistoryIcon /> },
-  trace: { id: "trace", label: "Trace", icon: <TimelineIcon /> }
+  logs: { id: "logs", icon: <ArticleIcon /> },
+  queue: { id: "queue", icon: <PlaylistPlayIcon /> },
+  workers: { id: "workers", icon: <MemoryIcon /> },
+  versions: { id: "versions", icon: <HistoryIcon /> },
+  trace: { id: "trace", icon: <TimelineIcon /> }
 } satisfies Record<BottomPanelView, ViewSpec>;
+
+// Resolved per call — a module-level i18n.t would freeze at module init,
+// before the async zh bundle lands, leaving zh boots stuck on English.
+const viewLabel = (view: BottomPanelView): string => {
+  const defaults: Record<BottomPanelView, string> = {
+    logs: "Logs",
+    queue: "Queue",
+    workers: "Workers",
+    versions: "Versions",
+    trace: "Trace"
+  };
+  return i18n.t(`editor:bottom.${view}`, { defaultValue: defaults[view] });
+};
 
 const PANEL_VIEWS = BOTTOM_PANEL_GROUPS.flatMap((g) => g.views);
 
@@ -341,7 +355,7 @@ const TabButton = memo(function TabButton({
   onClick
 }: TabButtonProps) {
   return (
-    <Tooltip title={spec.label} placement="top" delay={TOOLTIP_ENTER_DELAY}>
+    <Tooltip title={viewLabel(spec.id)} placement="top" delay={TOOLTIP_ENTER_DELAY}>
       <button
         type="button"
         role="tab"
@@ -350,7 +364,7 @@ const TabButton = memo(function TabButton({
         onClick={onClick}
       >
         {spec.icon}
-        <span>{spec.label}</span>
+        <span>{viewLabel(spec.id)}</span>
         {count !== undefined && count > 0 && (
           <span className="tab-count">{count}</span>
         )}
@@ -416,7 +430,7 @@ const PanelBodyContent = memo(function PanelBodyContent({
             padding: `0 ${getSpacingPx(SPACING.xl)}`
           }}
         >
-          <PanelHeadline title="Queue" docsTopic="debugging" />
+          <PanelHeadline title={viewLabel("queue")} docsTopic="debugging" />
           <QueuePanel />
         </FlexColumn>
       );
@@ -438,6 +452,7 @@ const PanelBodyContent = memo(function PanelBodyContent({
 });
 
 const PanelBottom: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const path = useLocation().pathname;
@@ -527,7 +542,7 @@ const PanelBottom: React.FC = () => {
             onMouseDown={handleMouseDown}
             style={{ cursor: "ns-resize" }}
             role="slider"
-            aria-label="Resize panel"
+            aria-label={t("editor:bottom.resizeAria", { defaultValue: "Resize panel" })}
             aria-valuenow={panelSize}
             aria-valuemin={40}
             aria-valuemax={600}
@@ -539,13 +554,20 @@ const PanelBottom: React.FC = () => {
             <div
               className="status-cluster"
               role="status"
-              aria-label={`Worker ${isConnected ? "connected" : "disconnected"}`}
+              aria-label={
+                t("editor:bottom.workerConnected", {
+                  defaultValue: "Worker {{state}}",
+                  state: isConnected
+                    ? t("editor:bottom.stateConnected", { defaultValue: "connected" })
+                    : t("editor:bottom.stateDisconnected", { defaultValue: "disconnected" })
+                })
+              }
             >
               <span
                 className={`status-dot ${isConnected ? "" : "disconnected"}`}
                 aria-hidden
               />
-              <span>{isConnected ? "connected" : "offline"}</span>
+              <span>{isConnected ? t("editor:bottom.stateConnected") : t("editor:bottom.stateOffline")}</span>
               <span className="sep" aria-hidden>·</span>
               <span>{workerLabel}</span>
               <WorkerStatusIndicator />
@@ -561,14 +583,14 @@ const PanelBottom: React.FC = () => {
                 />
               ))}
             </div>
-            <div className="meta-cluster" aria-label="Workflow stats">
+            <div className="meta-cluster" aria-label={t("editor:ui.workflowStats", { defaultValue: "Workflow stats" })}>
               {currentWorkflowId && (
                 <span className="meta-pair">
                   <span className="meta-value">{nodeCount}</span>
-                  <span className="meta-key">nodes</span>
+                  <span className="meta-key">{t("editor:bottom.nodesLabel", { defaultValue: "nodes" })}</span>
                   <span className="sep" aria-hidden>·</span>
                   <span className="meta-value">{edgeCount}</span>
-                  <span className="meta-key">edges</span>
+                  <span className="meta-key">{t("editor:bottom.edgesLabel", { defaultValue: "edges" })}</span>
                 </span>
               )}
               {systemStats && (

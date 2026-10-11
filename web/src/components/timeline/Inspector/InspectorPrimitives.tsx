@@ -40,6 +40,7 @@ import {
 } from "../../ui_primitives";
 import { useBatchedGesture } from "../../../hooks/timeline/useBatchedGesture";
 import { isFunction } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 /**
  * Square box for the inline delete buttons that sit at the right edge of a

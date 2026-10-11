@@ -44,6 +44,8 @@ import { FormatStep, WriterModelFooterField } from "./FormatStep";
 import { IdeaStep } from "./IdeaStep";
 import { ReviewStep } from "./ReviewStep";
 import { VoicesStep } from "./VoicesStep";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 /**
  * A script's stage, with the field's absence read as `done` (PRD § 6.4).
@@ -124,6 +126,7 @@ export const useScriptSetupFlow = ({
   scriptId,
   onFinish
 }: ScriptSetupFlowOptions): SetupFlowConfig<ScriptSetupStage> => {
+  const { t } = useTranslation();
   const stage = useScriptSetupStage(scriptId);
   const chatModel = useGlobalChatStore((state) => state.selectedModel);
   const setup = useScriptSetup(scriptId);
@@ -190,7 +193,7 @@ export const useScriptSetupFlow = ({
       const written = await write(scriptId, { rewrite });
       if (!written) {
         throw new Error(
-          writeErrorRef.current ?? "The writer did not return a script."
+          writeErrorRef.current ?? i18n.t("editor:ui.theWriterDidNotReturnAScript")
         );
       }
     },
@@ -208,9 +211,9 @@ export const useScriptSetupFlow = ({
         ? {
             generation: {
               result: imported
-                ? `Prepare ${imported.lines.length} existing lines, keeping your words`
-                : `Write a text script for about ${setup?.length_seconds ?? 60} seconds of speech`,
-              next: "Review and edit the lines next. Choose voices and generate audio separately in Voices.",
+                ? t("storyboard:attrs.prepareCountExistingLinesKeepingYourWords", { defaultValue: "Prepare {{count}} existing lines, keeping your words", count: imported.lines.length })
+                : t("storyboard:attrs.writeATextScriptForAboutCountSecondsOfSpeech", { defaultValue: "Write a text script for about {{count}} seconds of speech", count: setup?.length_seconds ?? 60 }),
+              next: t("storyboard:attrs.reviewAndEditTheLinesNextChooseVoicesAndGenerateAudioSeparatelyInVoices", { defaultValue: "Review and edit the lines next. Choose voices and generate audio separately in Voices." }),
               model: writerModel,
               brief: setup?.brief ?? "",
               maxOutputTokens: 8192,
@@ -218,14 +221,14 @@ export const useScriptSetupFlow = ({
             }
           }
         : {},
-    [imported, needsWrite, setup?.brief, setup?.length_seconds, writerModel]
+    [imported, needsWrite, setup?.brief, setup?.length_seconds, t, writerModel]
   );
 
   const steps = useMemo<SetupStep<ScriptSetupStage>[]>(
     () => [
       {
         stage: "idea",
-        label: "Idea",
+        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
         // Imported words are enough on their own: they say what the script is,
         // and the brief beside them is a note for the attribution pass (F3).
@@ -243,7 +246,7 @@ export const useScriptSetupFlow = ({
         // Format and review are both step 2, so they collapse to one stepper
         // entry (PRD § 6.2).
         stage: "format",
-        label: "Format",
+        label: i18n.t("editor:ui.format", { defaultValue: "Format" }),
         primaryLabel: needsWrite
           ? hasLines
             ? "Rewrite"
@@ -276,19 +279,19 @@ export const useScriptSetupFlow = ({
       },
       {
         stage: "review",
-        label: "Format",
+        label: i18n.t("editor:ui.format", { defaultValue: "Format" }),
         primaryLabel: "Continue to voices",
         // Empty lines produce no take and no audio, so they are caught before
         // the creator pays for the rest of the script (F20).
         canAdvance: hasLines && !hasEmptyLine,
         blockedReason: hasLines
           ? "Every line needs words, or remove it"
-          : "Add at least one script line",
+          : t("storyboard:attrs.addAtLeastOneScriptLine", { defaultValue: "Add at least one script line" }),
         // `Rewrite` runs outside the shell's primary button, so the shell has
         // to read its wait: the creator cannot move on to voices while the
         // lines they are reading are being replaced (F2).
         pending: writing,
-        pendingLabel: "Rewriting your script",
+        pendingLabel: t("storyboard:attrs.rewritingYourScript", { defaultValue: "Rewriting your script" }),
         render: () =>
           createElement(ReviewStep, {
             scriptId,
@@ -299,12 +302,12 @@ export const useScriptSetupFlow = ({
       },
       {
         stage: "voices",
-        label: "Voices",
+        label: i18n.t("editor:ui.voices", { defaultValue: "Voices" }),
         primaryLabel: "Voice your script",
         canAdvance: castNeedingVoice === 0 && hasLines,
         blockedReason: hasLines
           ? "Choose a voice for every speaker"
-          : "Add at least one script line",
+          : t("storyboard:attrs.addAtLeastOneScriptLine", { defaultValue: "Add at least one script line" }),
         primaryDetail: formatCost(cost.cost, cost.lineCount),
         render: () => createElement(VoicesStep, { scriptId }),
         // Stage `done` is written before the takes are asked for, so a tab
@@ -350,7 +353,8 @@ export const useScriptSetupFlow = ({
       needsModel,
       needsWrite,
       hasEmptyLine,
-      setup?.length_seconds
+      setup?.length_seconds,
+      t
     ]
   );
 

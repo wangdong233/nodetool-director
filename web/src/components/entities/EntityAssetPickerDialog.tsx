@@ -20,6 +20,7 @@ import {
 import type { Asset } from "../../stores/ApiTypes";
 import { trpcClient } from "../../trpc/client";
 import ImageRefPreview from "../node/ImageRefPreview";
+import { i18n } from "../../i18n";
 import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore
@@ -49,11 +50,15 @@ const EntityAssetPickerDialogInternal: React.FC<
   onClose,
   onPick,
   projectId,
-  title = "Pick a reference image",
+  title = i18n.t("editor:ui.pickAReferenceImage", {
+    defaultValue: "Pick a reference image"
+  }),
   assetIds,
   excludedAssetIds,
-  emptyTitle = "No images",
-  emptyDescription = "Generate or upload an image first."
+  emptyTitle = i18n.t("editor:ui.noImages", { defaultValue: "No images" }),
+  emptyDescription = i18n.t("editor:ui.generateOrUploadAnImageFirst", {
+    defaultValue: "Generate or upload an image first."
+  })
 }) => {
   const theme = useTheme();
   const activeProjectId =

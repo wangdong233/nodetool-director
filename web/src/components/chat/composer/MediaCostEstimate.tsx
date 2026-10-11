@@ -11,6 +11,7 @@ import React, { memo } from "react";
 import { Caption, FlexColumn, Text, Tooltip } from "../../ui_primitives";
 import type { MediaMode } from "../../../stores/MediaGenerationStore";
 import { useMediaCostEstimate } from "./useMediaCostEstimate";
+import { useTranslation } from "react-i18next";
 
 interface MediaCostEstimateProps {
   mode: MediaMode;
@@ -19,6 +20,7 @@ interface MediaCostEstimateProps {
 const MediaCostEstimateInternal: React.FC<MediaCostEstimateProps> = ({
   mode
 }) => {
+  const { t } = useTranslation();
   const estimate = useMediaCostEstimate(mode);
 
   if (!estimate) {
@@ -27,12 +29,12 @@ const MediaCostEstimateInternal: React.FC<MediaCostEstimateProps> = ({
 
   const perOutput =
     estimate.quantity > 1
-      ? `${estimate.quantity} outputs × ${estimate.breakdown ?? "list price"}`
+      ? t("editor:ui.nOutputsXBreakdown", { defaultValue: "{{n}} outputs × {{breakdown}}", n: estimate.quantity, breakdown: estimate.breakdown ?? t("editor:ui.listPrice", { defaultValue: "list price" }) })
       : estimate.breakdown;
 
   const detail = (
     <FlexColumn gap={0.5}>
-      <Text size="small">Estimated cost of this generation</Text>
+      <Text size="small">{t("ui2:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}</Text>
       {perOutput && (
         <Caption color="secondary">{perOutput}</Caption>
       )}

@@ -17,14 +17,17 @@ import { useSidebarDocumentMenu } from "../../hooks/useSidebarDocumentMenu";
 import { trpc } from "../../trpc/client";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import { downgradeScriptsLinkedToBoard } from "../../lib/scriptStoryboardDowngrade";
+import { i18n } from "../../i18n";
 import {
   DocumentListPanel,
   ListPanelItem,
   ToolbarIconButton,
   Tooltip
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 export const CreateStoryboardButton = memo(function CreateStoryboardButton() {
+  const { t } = useTranslation();
   const createStoryboard = useCreateStoryboard();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -34,14 +37,14 @@ export const CreateStoryboardButton = memo(function CreateStoryboardButton() {
   const handleCreate = useCallback(async () => {
     try {
       const created = await createStoryboard.mutateAsync({
-        name: "Untitled storyboard",
+        name: i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
         projectId: creationProjectId()
       });
       openTab({
         type: "storyboard",
         ref: created.id,
         mode: "edit",
-        title: created.name || "Untitled storyboard",
+        title: created.name || i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
         projectId: created.projectId
       });
       if (!location.pathname.startsWith("/workspace")) {
@@ -54,9 +57,9 @@ export const CreateStoryboardButton = memo(function CreateStoryboardButton() {
   }, [createStoryboard, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title="New storyboard" placement="right-start">
+    <Tooltip title={t("storyboard:attrs.newStoryboard", { defaultValue: "New storyboard" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New storyboard"
+        ariaLabel={t("storyboard:attrs.newStoryboard", { defaultValue: "New storyboard" })}
         onClick={() => void handleCreate()}
         disabled={createStoryboard.isPending}
         tabIndex={-1}
@@ -71,6 +74,7 @@ interface StoryboardListPanelProps {
 }
 
 const StoryboardListPanel = ({ projectId }: StoryboardListPanelProps) => {
+  const { t } = useTranslation();
   const { data, isLoading, isError, error } = useStoryboards(projectId);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const activeTabId = useWorkspaceTabsStore((state) => state.activeTabId);
@@ -88,7 +92,7 @@ const StoryboardListPanel = ({ projectId }: StoryboardListPanelProps) => {
         type: "storyboard",
         ref: id,
         mode: "edit",
-        title: name || "Untitled storyboard",
+        title: name || i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
         projectId
       });
       if (!location.pathname.startsWith("/workspace")) {
@@ -178,13 +182,13 @@ const StoryboardListPanel = ({ projectId }: StoryboardListPanelProps) => {
 
   return (
     <DocumentListPanel
-      singular="storyboard"
-      plural="storyboards"
+      singular={t("editor:ui.storyboardNoun", { defaultValue: "storyboard" })}
+      plural={t("editor:ui.storyboardsNoun", { defaultValue: "storyboards" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create a new storyboard with the + button above."
+      emptyDescription={t("editor:ui.createANewStoryboardWithThe+ButtonAbove", { defaultValue: "Create a new storyboard with the + button above." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}
@@ -192,8 +196,8 @@ const StoryboardListPanel = ({ projectId }: StoryboardListPanelProps) => {
         <ListPanelItem
           id={board.id}
           name={board.name}
-          fallbackName="Untitled storyboard"
-          renameLabel="Storyboard name"
+          fallbackName={t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" })}
+          renameLabel={t("editor:ui.storyboardName", { defaultValue: "Storyboard name" })}
           icon={DashboardOutlinedIcon}
           active={board.id === activeStoryboardId}
           editing={board.id === editingId}

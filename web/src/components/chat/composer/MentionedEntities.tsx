@@ -14,6 +14,7 @@ import {
   getEntityKindChipSx
 } from "../../entities/entityKind";
 import { useEntities } from "../../../serverState/useEntities";
+import { i18n } from "../../../i18n";
 import {
   entityIdsInPrompt,
   removeEntityMentions

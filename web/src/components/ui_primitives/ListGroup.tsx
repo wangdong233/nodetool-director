@@ -93,7 +93,7 @@ export interface ListItemRowProps extends Omit<ListItemProps, "button"> {
  * // Clickable item with icon
  * <ListItemRow
  *   icon={<FolderIcon />}
- *   primary="Documents"
+ *   primary={i18n.t("editor:ui.documents", { defaultValue: "Documents" })}
  *   secondary="12 files"
  *   onClick={handleOpen}
  *   selected={isSelected}

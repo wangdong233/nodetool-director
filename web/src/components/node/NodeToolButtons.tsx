@@ -28,17 +28,19 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useDuplicateNodes } from "../../hooks/useDuplicate";
 import { useNodes } from "../../contexts/NodeContext";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
-import { getShortcutTooltip } from "../../config/shortcuts";
+import { getShortcutTooltip, shortcutComboText } from "../../config/shortcuts";
 import { useNodeContextMenu } from "../../hooks/nodes/useNodeContextMenu";
 import { useRemoveFromGroup } from "../../hooks/nodes/useRemoveFromGroup";
 import { useRunFromHere } from "../../hooks/nodes/useRunFromHere";
 import { NodeData } from "../../stores/NodeData";
+import { useTranslation } from "react-i18next";
 
 interface NodeToolbarProps {
   nodeId: string | null;
 }
 
 const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
+  const { t } = useTranslation();
   const { getNode } = useReactFlow();
   const navigate = useNavigate();
   const { deleteNode, updateNodeData, selectNodesByType, toggleBypass } = useNodes(
@@ -140,7 +142,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         </ToolbarIconButton>
 
         <ToolbarIconButton
-          title={`${isBypassed ? "Enable Node" : "Disable Node"} ${getShortcutTooltip("bypassNode", undefined, "combo")}`}
+          title={`${isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable Node" }) : t("editor:node.disableNode", { defaultValue: "Disable Node" })} ${shortcutComboText("bypassNode")}`}
           delay={TOOLTIP_ENTER_DELAY}
           className="nodrag"
           onClick={handleToggleBypass}
@@ -152,7 +154,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         </ToolbarIconButton>
 
         <ToolbarIconButton
-          title={`Duplicate ${getShortcutTooltip("duplicate", undefined, "combo")}`}
+          title={`Duplicate ${shortcutComboText("duplicate")}`}
           delay={TOOLTIP_ENTER_DELAY}
           className="nodrag"
           onClick={handleDuplicateNodes}
@@ -163,7 +165,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         </ToolbarIconButton>
 
         <ToolbarIconButton
-          title="More Actions"
+          title={t("editor:ui.moreActions", { defaultValue: "More Actions" })}
           delay={TOOLTIP_ENTER_DELAY}
           className="nodrag"
           onClick={handleOpenDropdown}
@@ -196,7 +198,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
             <ListItemIcon>
               <GroupRemoveIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Remove from Group</ListItemText>
+            <ListItemText>{t("ui2:attrs.removeFromGroup", { defaultValue: "Remove from Group" })}</ListItemText>
           </EditorMenuItem>
         )}
 
@@ -205,7 +207,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
             <ListItemIcon>
               <SwapHorizIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Convert to Input</ListItemText>
+            <ListItemText>{t("ui2:attrs.convertToInput", { defaultValue: "Convert to Input" })}</ListItemText>
           </EditorMenuItem>
         )}
 
@@ -214,7 +216,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
             <ListItemIcon>
               <SwapHorizIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Convert to Constant</ListItemText>
+            <ListItemText>{t("ui2:attrs.convertToConstant", { defaultValue: "Convert to Constant" })}</ListItemText>
           </EditorMenuItem>
         )}
 
@@ -223,7 +225,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
             <EditIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>
-            {hasCommentTitle ? "Remove Comment" : "Add Comment"}
+            {hasCommentTitle ? t("editor:node.removeComment", { defaultValue: "Remove Comment" }) : t("editor:node.addComment", { defaultValue: "Add Comment" })}
           </ListItemText>
         </EditorMenuItem>
 
@@ -231,21 +233,21 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
           <ListItemIcon>
             <SearchIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Show Templates</ListItemText>
+          <ListItemText>{t("ui2:attrs.showTemplates", { defaultValue: "Show Templates" })}</ListItemText>
         </EditorMenuItem>
 
         <EditorMenuItem onClick={handleSelectAllSameType}>
           <ListItemIcon>
             <FilterListIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Select All Same Type</ListItemText>
+          <ListItemText>{t("ui2:attrs.selectAllSameType", { defaultValue: "Select All Same Type" })}</ListItemText>
         </EditorMenuItem>
 
         <EditorMenuItem onClick={handlers.handleCopyMetadataToClipboard}>
           <ListItemIcon>
             <DataArrayIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Copy Node as JSON</ListItemText>
+          <ListItemText>{t("ui2:attrs.copyNodeAsJSON", { defaultValue: "Copy Node as JSON" })}</ListItemText>
         </EditorMenuItem>
 
         <Divider />

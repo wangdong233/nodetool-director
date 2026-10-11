@@ -1,6 +1,7 @@
 import React from "react";
 import { Text, FlexColumn, SPACING } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
+import { i18n } from "../../i18n";
 
 interface PanelErrorBoundaryProps {
   fallback?: React.ReactNode;
@@ -54,7 +55,7 @@ export default class PanelErrorBoundary extends React.Component<
             </Text>
             <ReportBugButton
               variant="outlined"
-              label="Report a bug"
+              label={i18n.t("common:action.reportBug", { defaultValue: "Report a bug" })}
               context={{
                 source: "panel-crash",
                 summary: `${panel} failed to render`,

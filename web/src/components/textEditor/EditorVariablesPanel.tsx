@@ -13,6 +13,7 @@ import {
   BORDER_RADIUS, getSpacingPx, SPACING
 } from "../ui_primitives";
 import type { TemplateVariable, VariableSyntax } from "./templateVariables";
+import { useTranslation } from "react-i18next";
 
 interface EditorVariablesPanelProps {
   variables: TemplateVariable[];
@@ -180,6 +181,7 @@ const EditorVariablesPanel = ({
   addSignal,
   readOnly = false
 }: EditorVariablesPanelProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const panelStyles = useMemo(() => styles(theme), [theme]);
   const [editingName, setEditingName] = useState<string | null>(null);
@@ -243,13 +245,13 @@ const EditorVariablesPanel = ({
       <div className="variables-head">
         <div className="variables-title">
           <DataObjectIcon />
-          <span>Variables</span>
+          <span>{t("ui2:attrs.variables", { defaultValue: "Variables" })}</span>
           <span className="count">{variables.length}</span>
           {unboundCount > 0 && (
-            <span className="unbound">{unboundCount} unbound</span>
+            <span className="unbound">{t("ui2:attrs.countUnbound", { defaultValue: "{{count}} unbound", count: unboundCount })}</span>
           )}
         </div>
-        <span className="variables-hint">⌘ + click to insert</span>
+        <span className="variables-hint">{t("ui2:attrs.cmdClickToInsert", { defaultValue: "⌘ + click to insert" })}</span>
       </div>
       <div className="variables-chips">
         {variables.map((variable) => {
@@ -278,7 +280,7 @@ const EditorVariablesPanel = ({
                   allowEmpty
                   unstyled
                   selectOnFocus={false}
-                  placeholder="value"
+                  placeholder={t("editor:ui.valueLabel", { defaultValue: "value" })}
                   ariaLabel={`Value for ${variable.name}`}
                   onEditingChange={stopEditing}
                   onCommit={(next) => onSetValue(variable.name, next)}
@@ -297,8 +299,8 @@ const EditorVariablesPanel = ({
                 value=""
                 editing
                 unstyled
-                placeholder="variable name"
-                ariaLabel="New variable name"
+                placeholder={t("editor:ui.variableName", { defaultValue: "variable name" })}
+                ariaLabel={t("editor:ui.newVariableName", { defaultValue: "New variable name" })}
                 sanitize={sanitizeVariableName}
                 onEditingChange={closeAdd}
                 onCommit={commitAdd}

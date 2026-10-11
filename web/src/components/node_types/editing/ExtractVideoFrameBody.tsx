@@ -54,6 +54,7 @@ import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropert
 import { useUpstreamValue } from "../../../hooks/nodes/useNodeIO";
 import { useMediaSrc } from "../../../hooks/nodes/useMediaSrc";
 import { isFunction } from "../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 export { EXTRACT_VIDEO_FRAME_NODE_TYPE } from "./bespokeNodeTypes";
 
@@ -240,6 +241,7 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -490,7 +492,7 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
             crossOrigin="anonymous"
             muted={muted}
             playsInline
-            aria-label="Video frame preview"
+            aria-label={t("editor:ui.videoFramePreview", { defaultValue: "Video frame preview" })}
             onLoadedMetadata={handleLoadedMetadata}
             onTimeUpdate={handleTimeUpdate}
             onPlay={handlePlay}
@@ -515,7 +517,7 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
         onChange={handleScrub}
         onPointerUp={commitCurrent}
         disabled={!videoSrc}
-        aria-label="Seek video"
+        aria-label={t("editor:ui.seekVideo", { defaultValue: "Seek video" })}
       />
 
       <div className="transport">
@@ -525,8 +527,8 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
         <div className="transport-buttons">
           <ToolbarIconButton
             icon={<SkipPreviousIcon />}
-            tooltip="Previous frame"
-            ariaLabel="Previous frame"
+            tooltip={t("editor:ui.previousFrame", { defaultValue: "Previous frame" })}
+            ariaLabel={t("editor:ui.previousFrame", { defaultValue: "Previous frame" })}
             disabled={!videoSrc}
             onClick={() => stepFrame(-1)}
           />
@@ -539,8 +541,8 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
           />
           <ToolbarIconButton
             icon={<SkipNextIcon />}
-            tooltip="Next frame"
-            ariaLabel="Next frame"
+            tooltip={t("editor:ui.nextFrame", { defaultValue: "Next frame" })}
+            ariaLabel={t("editor:ui.nextFrame", { defaultValue: "Next frame" })}
             disabled={!videoSrc}
             onClick={() => stepFrame(1)}
           />
@@ -555,8 +557,8 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
           />
           <ToolbarIconButton
             icon={<DownloadIcon />}
-            tooltip="Download frame"
-            ariaLabel="Download frame"
+            tooltip={t("editor:ui.downloadFrame", { defaultValue: "Download frame" })}
+            ariaLabel={t("editor:ui.downloadFrame", { defaultValue: "Download frame" })}
             disabled={!videoSrc}
             onClick={handleDownloadFrame}
           />
@@ -565,13 +567,13 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
 
       <div className="footer">
         <div className="field">
-          <span className="field-label">Frame</span>
+          <span className="field-label">{t("ui2:attrs.frame", { defaultValue: "Frame" })}</span>
           <div className="frame-field">
             <NumberInput
               id={`extract-frame-${id}`}
               nodeId={id}
               name="frame"
-              description="Frame to extract"
+              description={t("editor:ui.frameToExtract")}
               value={frame}
               onChange={(_, v) => handleFrameChange(Math.round(v))}
               onChangeComplete={commitCurrent}
@@ -584,7 +586,7 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
           </div>
         </div>
         <div className="field">
-          <span className="field-label">Timecode</span>
+          <span className="field-label">{t("ui2:attrs.timecode", { defaultValue: "Timecode" })}</span>
           <span className="timecode-readout">
             {formatTimecode(currentTime, fps)}
           </span>

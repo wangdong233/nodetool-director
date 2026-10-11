@@ -30,6 +30,7 @@ import {
 } from "../../stores/script/ScriptStore";
 import { useEntities } from "../../serverState/useEntities";
 import ImageRefPreview from "../node/ImageRefPreview";
+import { useTranslation } from "react-i18next";
 
 interface ScriptCastPanelProps {
   scriptId: string;
@@ -66,6 +67,7 @@ const SpeakerRow = ({
   speaker: ScriptSpeaker;
   readOnly: boolean;
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const updateSpeaker = useScriptStore((s) => s.updateSpeaker);
   const removeSpeaker = useScriptStore((s) => s.removeSpeaker);
@@ -93,7 +95,7 @@ const SpeakerRow = ({
   const isDangling =
     !!speaker.entityId && !!entities && !linkedEntity;
   const entityOptions = [
-    { value: "", label: "No entity" },
+    { value: "", label: t("editor:ui.noEntity", { defaultValue: "No entity" }) },
     ...(entities ?? []).map((e) => ({
       value: e.id,
       label: `${e.name} · ${e.kind}`
@@ -119,14 +121,14 @@ const SpeakerRow = ({
             updateSpeaker(scriptId, speaker.id, { name: e.target.value })
           }
           hideLabel
-          label="Speaker name"
+          label={t("editor:ui.speakerName", { defaultValue: "Speaker name" })}
           compact
           fullWidth
           disabled={readOnly}
         />
         {!readOnly && (
           <ToolbarIconButton
-            tooltip="Remove speaker"
+            tooltip={t("editor:ui.removeSpeaker", { defaultValue: "Remove speaker" })}
             onClick={() => removeSpeaker(scriptId, speaker.id)}
             icon={<DeleteOutlineIcon fontSize="small" />}
           />
@@ -146,7 +148,7 @@ const SpeakerRow = ({
       {!readOnly ? (
         <FlexColumn gap={SPACING.xs} fullWidth>
           <SelectField
-            label="Linked entity"
+            label={t("editor:ui.linkedEntity", { defaultValue: "Linked entity" })}
             value={speaker.entityId ?? ""}
             onChange={onEntityChange}
             options={entityOptions}
@@ -178,7 +180,7 @@ const SpeakerRow = ({
           )}
           {isDangling && (
             <Caption color="warning">
-              Linked entity not found — it was removed. Pick another or clear it.
+              {t("editor:ui.linkedEntityNotFoundItWasRemovedPickAnotherOrClearIt", { defaultValue: "Linked entity not found — it was removed. Pick another or clear it." })}
             </Caption>
           )}
         </FlexColumn>
@@ -203,7 +205,7 @@ const SpeakerRow = ({
           />
         </FlexRow>
       ) : speaker.entityId ? (
-        <Caption color="warning">Linked entity missing</Caption>
+        <Caption color="warning">{t("ui2:attrs.linkedEntityMissing", { defaultValue: "Linked entity missing" })}</Caption>
       ) : null}
     </FlexColumn>
   );
@@ -214,6 +216,7 @@ const ScriptCastPanel = ({
   cast,
   readOnly
 }: ScriptCastPanelProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const addSpeaker = useScriptStore((s) => s.addSpeaker);
   // Studio hands a new speaker a curated voice, so the beginner shell never
@@ -251,7 +254,7 @@ const ScriptCastPanel = ({
     >
       <FlexRow align="center" justify="space-between" fullWidth>
         <Text size="normal" weight={600}>
-          Cast
+          {t("editor:ui.cast", { defaultValue: "Cast" })}
         </Text>
         {!readOnly && (
           <EditorButton
@@ -260,16 +263,20 @@ const ScriptCastPanel = ({
             startIcon={<PersonAddIcon fontSize="small" />}
             onClick={onAdd}
           >
-            Add
+            {t("ui2:attrs.add", { defaultValue: "Add" })}
           </EditorButton>
         )}
       </FlexRow>
       <Divider />
       {cast.length === 0 ? (
         <EmptyState
-          title="No speakers"
-          description="Add a speaker, pick a voice, then click a line's name to assign it."
-          actionText={readOnly ? undefined : "Add speaker"}
+          title={t("editor:ui.noSpeakers", { defaultValue: "No speakers" })}
+          description={t("editor:ui.addSpeakerPickVoiceAssign", { defaultValue: "Add a speaker, pick a voice, then click a line's name to assign it." })}
+          actionText={
+            readOnly
+              ? undefined
+              : t("editor:ui.addSpeaker", { defaultValue: "Add speaker" })
+          }
           onAction={readOnly ? undefined : onAdd}
         />
       ) : (

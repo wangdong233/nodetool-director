@@ -9,7 +9,7 @@
  * // Simple toggle button
  * <StateIconButton
  *   icon={<PlayIcon />}
- *   tooltip="Run workflow"
+ *   tooltip={i18n.t("appbuilder:attrs.runWorkflow", { defaultValue: "Run workflow" })}
  *   onClick={handleRun}
  * />
  *
@@ -17,7 +17,7 @@
  * // With loading state
  * <StateIconButton
  *   icon={<SaveIcon />}
- *   tooltip="Save"
+ *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
  *   onClick={handleSave}
  *   isLoading={isSaving}
  * />

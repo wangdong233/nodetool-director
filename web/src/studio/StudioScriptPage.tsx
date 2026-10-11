@@ -37,10 +37,12 @@ import {
   useScriptSetupStage
 } from "../components/setup/script/useScriptSetupFlow";
 import StudioShell from "./StudioShell";
+import { useTranslation } from "react-i18next";
 
 type DockTab = "cast" | "assistant";
 
 const StudioScriptPage = () => {
+  const { t } = useTranslation();
   const { scriptId = "" } = useParams<{ scriptId: string }>();
   const theme = useTheme();
   const navigate = useNavigate();
@@ -76,17 +78,19 @@ const StudioScriptPage = () => {
 
   const dockTabs = useMemo(
     () => [
-      { value: "cast", label: "Cast", icon: <GroupsIcon /> },
-      { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
+      { value: "cast", label: t("editor:ui.cast", { defaultValue: "Cast" }), icon: <GroupsIcon /> },
+      { value: "assistant", label: t("editor:ui.assistant", { defaultValue: "Assistant" }), icon: <AutoAwesomeIcon /> }
     ],
-    []
+    // Re-resolve when the language changes (including the async zh bundle
+    // landing at boot) — an empty dep array freezes English for the session.
+    [t]
   );
 
   const createVideo = (
     <Tooltip
       title={
         assembleError ??
-        "Lay the voiced lines onto a timeline and open the video editor."
+        t("editor:studio.layVoicedLines", { defaultValue: "Lay the voiced lines onto a timeline and open the video editor." })
       }
     >
       <span>
@@ -105,7 +109,7 @@ const StudioScriptPage = () => {
               });
           }}
         >
-          {assembling ? "Assembling…" : "Create video"}
+          {assembling ? t("editor:ui.assembling") : t("editor:ui.createVideo", { defaultValue: "Create video" })}
         </EditorButton>
       </span>
     </Tooltip>

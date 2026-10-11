@@ -1241,6 +1241,7 @@ function peekAutoSelectPick(ctx: ToolContext, docPoint: Point): Layer | null {
 export const definition: ToolDefinition = {
   tool: "transform",
   label: "Transform",
+  labelKey: "timeline:attrs.transform",
   Icon: AspectRatioIcon,
   group: "painting"
 };

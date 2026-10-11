@@ -15,6 +15,7 @@ import { useSketchSessionStore } from "../../stores/sketch/SketchSessionStore";
 import { useSketchCanvasRefStore } from "../../stores/sketch/SketchCanvasRefStore";
 import { useAssetStore } from "../../stores/AssetStore";
 import { selectionToMaskDataUrl } from "../../lib/sketch/selectionMaskImage";
+import { useTranslation } from "react-i18next";
 
 export type SelectionGenMode = "inpaint" | "edit";
 
@@ -43,6 +44,7 @@ async function dataUrlToFile(dataUrl: string, name: string): Promise<File> {
 }
 
 export function useInpaintHere(): UseInpaintHereResult {
+  const { t } = useTranslation();
   const [isBusy, setIsBusy] = useState(false);
   const busyRef = useRef(false);
 
@@ -155,7 +157,7 @@ export function useInpaintHere(): UseInpaintHereResult {
         return {
           ok: false,
           reason: "error",
-          message: err instanceof Error ? err.message : "Inpaint setup failed"
+          message: err instanceof Error ? err.message : t("sketch:attrs.inpaintSetupFailed", { defaultValue: "Inpaint setup failed" })
         };
       } finally {
         busyRef.current = false;

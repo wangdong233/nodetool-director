@@ -53,6 +53,12 @@ export interface ActionMeta {
   readonly displayGroup: DisplayGroup;
 }
 
+export const ACTION_LABEL_KEYS: Readonly<Record<string, string>> = {
+  "fill-background": "sketch:attrs.fillWithBackgroundColor",
+  "fill-foreground": "sketch:attrs.fillWithForegroundColor",
+  "zoom-fit": "sketch:attrs.fitToScreen"
+};
+
 export const ACTION_REGISTRY: readonly ActionMeta[] = [
   { id: "undo", label: "Undo", displayGroup: "Edit" },
   { id: "redo", label: "Redo", displayGroup: "Edit" },

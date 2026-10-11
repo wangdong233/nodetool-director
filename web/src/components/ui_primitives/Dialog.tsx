@@ -51,6 +51,7 @@ import { CloseButton } from "./CloseButton";
 import PanelHeadline from "../ui/PanelHeadline";
 import { isString } from "../../utils/typePredicates";
 import { OverlayLayerProvider, useOverlayLayer } from "./OverlayLayer";
+import { useTranslation } from "react-i18next";
 
 export interface DialogProps extends Omit<MuiDialogProps, "title" | "content"> {
   /**
@@ -161,6 +162,7 @@ export const Dialog = memo(
       },
       ref
     ) => {
+      const { t } = useTranslation();
       const theme = useTheme();
       const titleId = useId();
       // A dialog opened from inside a popover has to clear that popover's
@@ -187,7 +189,7 @@ export const Dialog = memo(
         shouldShowCloseButton && onClose ? (
           <CloseButton
             onClick={() => onClose({}, "escapeKeyDown")}
-            tooltip="Close"
+            tooltip={t("ui:attrs.close", { defaultValue: "Close" })}
           />
         ) : null;
       const headerActions =

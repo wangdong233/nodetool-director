@@ -27,7 +27,7 @@ export interface AlertBannerProps extends Omit<MuiAlertProps, 'variant'> {
  *
  * @example
  * // Error alert with title
- * <AlertBanner severity="error" title="Error">
+ * <AlertBanner severity="error" title={i18n.t("ui2:attrs.error", { defaultValue: "Error" })}>
  *   Something went wrong
  * </AlertBanner>
  *

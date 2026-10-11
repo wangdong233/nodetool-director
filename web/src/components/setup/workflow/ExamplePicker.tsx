@@ -29,8 +29,14 @@ import {
 } from "../../ui_primitives";
 import { useWorkflowManager } from "../../../contexts/WorkflowManagerContext";
 import type { Workflow, WorkflowList } from "../../../stores/ApiTypes";
+import { useAppLanguage } from "../../../i18n";
+import {
+  workflowTemplateCopy,
+  workflowTemplateSearchAlias
+} from "../../../i18n/workflowTemplateCopy";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
+import { useTranslation } from "react-i18next";
 
 export interface WorkflowExamplePickerProps {
   /** Copies the picked example. The host owns where the copy lands. */
@@ -49,6 +55,9 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
   error = null,
   onCancel
 }) => {
+  const { t } = useTranslation();
+  // Re-render anchor + memo dep for the zh overlay below (F-26).
+  const { version: languageVersion } = useAppLanguage();
   const loadTemplates = useWorkflowManager((state) => state.loadTemplates);
   const [query, setQuery] = useState("");
   const { data, isLoading, isError, refetch } = useQuery<WorkflowList>({
@@ -63,38 +72,48 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
     if (needle === "") {
       return examples;
     }
-    return examples.filter((example) =>
-      [example.name, example.description, ...(example.tags ?? [])]
+    return examples.filter((example) => {
+      // Bilingual search: English fields stay intact, zh copy joins as an
+      // alias field (F-32 rule ③).
+      const haystack = [
+        example.name,
+        example.description,
+        ...(example.tags ?? [])
+      ]
         .filter((part): part is string => typeof part === "string")
         .join(" ")
-        .toLowerCase()
-        .includes(needle)
-    );
-  }, [examples, query]);
+        .toLowerCase();
+      const alias = workflowTemplateSearchAlias(example.id).toLowerCase();
+      return `${haystack} ${alias}`.includes(needle);
+    });
+  }, [examples, query, languageVersion]);
 
   const options = useMemo<OptionCardItem[]>(
     () =>
-      matches.map((example) => ({
-        id: example.id,
-        title: example.name,
-        description: example.description ?? undefined,
-        // One copy at a time: a second press while the first is in flight
-        // makes a second workflow nobody asked for.
-        disabled: pickingId !== null,
-        disabledReason:
-          pickingId === example.id ? "Copying this one" : "Copying an example"
-      })),
-    [matches, pickingId]
+      matches.map((example) => {
+        // Render-time zh overlay (r28): English and zh-missing ids render the
+        // backend values unchanged.
+        const copy = workflowTemplateCopy(example);
+        return {
+          id: example.id,
+          title: copy.name,
+          description: copy.description || undefined,
+          // One copy at a time: a second press while the first is in flight
+          // makes a second workflow nobody asked for.
+          disabled: pickingId !== null,
+          disabledReason:
+            pickingId === example.id ? t("storyboard:attrs.copyingThisOne", { defaultValue: "Copying this one" }) : t("storyboard:attrs.copyingAnExample", { defaultValue: "Copying an example" })
+        };
+      }),
+    [matches, pickingId, languageVersion, t]
   );
 
   return (
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Start from an example
-        </Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" })}</Text>
         <Text size="normal" color="secondary">
-          Pick one and we copy it onto your canvas. Nothing runs.
+          {t("editor:ui.pickOneAndWeCopyItOntoYourCanvasNothingRuns")}
         </Text>
       </FlexColumn>
 
@@ -104,20 +123,18 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
         <SearchInput
           value={query}
           onChange={setQuery}
-          placeholder="Search examples"
+          placeholder={t("storyboard:attrs.searchExamples", { defaultValue: "Search examples" })}
           showClear
         />
         <EditorButton variant="text" onClick={onCancel}>
-          Back to your idea
+          {t("editor:ui.backToYourIdea", { defaultValue: "Back to your idea" })}
         </EditorButton>
       </FlexRow>
 
       {isLoading ? (
         <FlexRow gap={GAP.normal} align="center">
           <LoadingSpinner size="small" />
-          <Caption color="secondary" component="span">
-            Reading the examples this install ships…
-          </Caption>
+          <Caption color="secondary" component="span">{t("storyboard:attrs.readingTheExamplesThisInstallShips", { defaultValue: "Reading the examples this install ships…" })}</Caption>
         </FlexRow>
       ) : isError ? (
         <AlertBanner
@@ -128,29 +145,27 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
               onClick={() => {
                 void refetch();
               }}
-            >
-              Try again
-            </EditorButton>
+            >{t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
           }
         >
-          <Caption component="span">Could not read the examples.</Caption>
+          <Caption component="span">{t("storyboard:attrs.couldNotReadTheExamples", { defaultValue: "Could not read the examples." })}</Caption>
         </AlertBanner>
       ) : matches.length === 0 ? (
         <EmptyState
           title={
             examples.length === 0
-              ? "This install ships no examples"
-              : "No example matches that"
+              ? t("storyboard:attrs.thisInstallShipsNoExamples", { defaultValue: "This install ships no examples" })
+              : t("storyboard:attrs.noExampleMatchesThat", { defaultValue: "No example matches that" })
           }
           description={
             examples.length === 0
-              ? "Describe the task instead, or start with a blank canvas."
-              : "Try another word, or describe the task instead."
+              ? t("storyboard:attrs.describeTheTaskInsteadOrStartWithABlankCanvas", { defaultValue: "Describe the task instead, or start with a blank canvas." })
+              : t("storyboard:attrs.tryAnotherWordOrDescribeTheTaskInstead", { defaultValue: "Try another word, or describe the task instead." })
           }
         />
       ) : (
         <OptionCardGrid
-          label="Example workflows"
+          label={t("storyboard:attrs.exampleWorkflows", { defaultValue: "Example workflows" })}
           options={options}
           onSelect={(id) => {
             const example = matches.find((entry) => entry.id === id);
@@ -165,9 +180,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
       {pickingId !== null ? (
         <FlexRow gap={GAP.normal} align="center">
           <LoadingSpinner size="small" />
-          <Caption color="secondary" component="span">
-            Copying the example…
-          </Caption>
+          <Caption color="secondary" component="span">{t("storyboard:attrs.copyingTheExample", { defaultValue: "Copying the example…" })}</Caption>
         </FlexRow>
       ) : null}
     </FlexColumn>

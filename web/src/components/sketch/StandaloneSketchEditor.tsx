@@ -56,6 +56,7 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import { useSaveSketchDocument } from "../../hooks/sketch/useSaveSketchDocument";
 import { useSaveSketchAsAsset } from "../../hooks/sketch/useSaveSketchAsAsset";
+import { useTranslation } from "react-i18next";
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -115,6 +116,7 @@ const ConflictBannerHost: React.FC<{ documentId: string }> = ({ documentId }) =>
 
 const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
   function StandaloneSketchEditorBody({ documentId, headerActions, overlay }) {
+    const { t } = useTranslation();
     const theme = useTheme();
     const styles = useMemo(() => containerStyles(theme), [theme]);
     const editorRef = useRef<SketchEditorHandle | null>(null);
@@ -207,7 +209,11 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
         <ListItemIcon>
           <SaveOutlinedIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>{saving ? "Saving…" : "Save"}</ListItemText>
+        <ListItemText>
+          {saving
+            ? t("editor:ui.saving", { defaultValue: "Saving…" })
+            : t("editor:ui.save", { defaultValue: "Save" })}
+        </ListItemText>
       </EditorMenuItem>,
       <EditorMenuItem
         key="save-as-asset"
@@ -222,7 +228,9 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
           <AddPhotoAlternateOutlinedIcon fontSize="small" />
         </ListItemIcon>
         <ListItemText>
-          {savingAsAsset ? "Saving…" : "Save as Asset"}
+          {savingAsAsset
+            ? t("editor:ui.saving", { defaultValue: "Saving…" })
+            : t("editor:ui.saveAsAsset", { defaultValue: "Save as Asset" })}
         </ListItemText>
       </EditorMenuItem>,
       <EditorMenuItem
@@ -236,7 +244,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
         <ListItemIcon>
           <FileDownloadOutlinedIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>Export PNG</ListItemText>
+        <ListItemText>{t("sketch:attrs.exportPNG", { defaultValue: "Export PNG" })}</ListItemText>
       </EditorMenuItem>
     ];
 
@@ -249,8 +257,8 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
           <FlexColumn align="center" justify="center" sx={centered}>
             <EmptyState
               variant="error"
-              title="Sketch document not found"
-              description="The image document you requested does not exist or you do not have access to it."
+              title={t("sketch:attrs.sketchDocumentNotFound", { defaultValue: "Sketch document not found" })}
+              description={t("editor:ui.theImageDocumentYouRequestedDoesNotExistOrYouDoNotHaveAccessToIt")}
             />
           </FlexColumn>
         );

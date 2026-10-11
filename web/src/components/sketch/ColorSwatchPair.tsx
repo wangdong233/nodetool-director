@@ -27,6 +27,7 @@ import {
   colorSwatchSx
 } from "./sketchStyles";
 import ColorPickerPopover from "./ColorPickerPopover";
+import { useTranslation } from "react-i18next";
 
 /** Square edge (px) — matches colorSwatchSx. */
 const SWATCH = 24;
@@ -52,6 +53,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
   onSwapColors,
   onResetColors
 }) => {
+  const { t } = useTranslation();
   const [fgAnchor, setFgAnchor] = useState<HTMLElement | null>(null);
   const [bgAnchor, setBgAnchor] = useState<HTMLElement | null>(null);
   const [fgInitialColor, setFgInitialColor] = useState(foregroundColor);
@@ -91,7 +93,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
         }}
       >
         <Tooltip
-          title="Background Color"
+          title={t("sketch:attrs.backgroundColor", { defaultValue: "Background Color" })}
           placement="right"
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -100,7 +102,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
             className="color-swatch-pair__bg"
             padding="none"
             onClick={handleBgClick}
-            aria-label="Background color"
+            aria-label={t("timeline:attrs.backgroundColor", { defaultValue: "Background color" })}
             sx={{
               ...colorSwatchSx,
               position: "absolute",
@@ -117,7 +119,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
         </Tooltip>
 
         <Tooltip
-          title="Foreground Color"
+          title={t("sketch:attrs.foregroundColor", { defaultValue: "Foreground Color" })}
           placement="right"
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -126,7 +128,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
             className="color-swatch-pair__fg"
             padding="none"
             onClick={handleFgClick}
-            aria-label="Foreground color"
+            aria-label={t("editor:ui.foregroundColor", { defaultValue: "Foreground color" })}
             sx={{
               ...colorSwatchSx,
               position: "absolute",
@@ -152,7 +154,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
         sx={{ width: `${STACK}px` }}
       >
         <Tooltip
-          title="Swap Colors (X)"
+          title={t("sketch:attrs.swapColors", { defaultValue: "Swap Colors (X)" })}
           placement="right"
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -160,14 +162,14 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
           <EditorButton
             density="compact"
             onClick={onSwapColors}
-            aria-label="Swap Colors (X)"
+            aria-label={t("sketch:attrs.swapColors", { defaultValue: "Swap Colors (X)" })}
             sx={{ flex: 1, minWidth: 0, padding: 0, borderRadius: BORDER_RADIUS.sm }}
           >
             <SwapHorizIcon sx={{ fontSize: "var(--fontSizeSmall)" }} />
           </EditorButton>
         </Tooltip>
         <Tooltip
-          title="Reset to B/W (D)"
+          title={t("sketch:attrs.resetToBlackAndWhite", { defaultValue: "Reset to B/W (D)" })}
           placement="right"
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -175,7 +177,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
           <EditorButton
             density="compact"
             onClick={onResetColors}
-            aria-label="Reset to black and white (D)"
+            aria-label={t("sketch:attrs.resetToBlackAndWhite", { defaultValue: "Reset to black and white (D)" })}
             sx={{ flex: 1, minWidth: 0, padding: 0, borderRadius: BORDER_RADIUS.sm }}
           >
             <Text

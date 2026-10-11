@@ -3,8 +3,10 @@ import { useColorScheme } from "@mui/material/styles";
 import LightMode from "@mui/icons-material/LightMode";
 import DarkMode from "@mui/icons-material/DarkMode";
 import { memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 export const ThemeToggle = memo(function ThemeToggle() {
+  const { t } = useTranslation();
   const { mode, setMode } = useColorScheme();
 
   const toggleTheme = useCallback(() => {
@@ -20,7 +22,11 @@ export const ThemeToggle = memo(function ThemeToggle() {
     <ToolbarIconButton
       className="theme-toggle"
       icon={mode === "dark" ? <LightMode /> : <DarkMode />}
-      tooltip={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
+      tooltip={
+        mode === "dark"
+          ? t("editor:ui.switchToLightMode", { defaultValue: "Switch to light mode" })
+          : t("editor:ui.switchToDarkMode", { defaultValue: "Switch to dark mode" })
+      }
       tooltipPlacement="right-start"
       onClick={toggleTheme}
       size="small"

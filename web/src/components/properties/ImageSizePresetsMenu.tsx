@@ -13,6 +13,7 @@ import {
 import Search from "@mui/icons-material/Search";
 import { IMAGE_SIZE_PRESETS, PresetOption } from "../../config/constants";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
+import { useTranslation } from "react-i18next";
 
 interface ImageSizePresetsMenuProps {
   anchorEl: null | HTMLElement;
@@ -31,6 +32,7 @@ export const ImageSizePresetsMenu: React.FC<ImageSizePresetsMenuProps> = ({
   currentWidth,
   currentHeight
 }) => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   // Skipped on touch, where the virtual keyboard would cover the preset list.
   const autoFocusEnabled = useAutoFocusEnabled();
@@ -116,7 +118,7 @@ export const ImageSizePresetsMenu: React.FC<ImageSizePresetsMenuProps> = ({
         <NodeTextField
           className="presets-search-field"
           fullWidth
-          placeholder="Search presets..."
+          placeholder={t("editor:ui.searchPresets", { defaultValue: "Search presets..." })}
           value={searchQuery}
           onChange={handleSearchChange}
           onKeyDown={handleSearchKeyDown}
@@ -139,7 +141,7 @@ export const ImageSizePresetsMenu: React.FC<ImageSizePresetsMenuProps> = ({
       </FlexRow>
 
       {Object.entries(filteredGroupedPresets).length === 0 ? (
-        <EditorMenuItem disabled sx={{ fontSize: 'var(--fontSizeSmall)' }}>No presets found</EditorMenuItem>
+        <EditorMenuItem disabled sx={{ fontSize: 'var(--fontSizeSmall)' }}>{t("ui2:attrs.noPresetsFound", { defaultValue: "No presets found" })}</EditorMenuItem>
       ) : (
         Object.entries(filteredGroupedPresets).map(([category, items]) => [
           <ListSubheader key={category} className="presets-category-header">{category}</ListSubheader>,

@@ -17,6 +17,7 @@ import {
 } from "../../config/constants";
 import { ExpandCollapseButton } from "../ui_primitives";
 import { assetTypeLabel } from "./assetTypeLabels";
+import { useTranslation } from "react-i18next";
 
 interface AssetGridRowProps {
   index: number;
@@ -37,6 +38,10 @@ interface AssetGridRowProps {
 }
 
 const AssetGridRow: React.FC<AssetGridRowProps> = ({ index, style, data }) => {
+  // Own anchor (F-26): the row is memoised and its parents' memoised item
+  // data carries no language dep, so without this hook the divider labels
+  // and tooltips stay stale after a language switch.
+  const { t } = useTranslation();
   const {
     getItemsForRow,
     gridDimensions,
@@ -117,10 +122,13 @@ const AssetGridRow: React.FC<AssetGridRowProps> = ({ index, style, data }) => {
     const isExpanded = expandedTypes.has(divider.type);
 
     const typeLabel = assetTypeLabel(divider.type);
+    const tooltip = isExpanded
+      ? t("editor:ui.collapseType", { defaultValue: "Collapse {{type}}", type: typeLabel.toLowerCase() })
+      : t("editor:ui.expandType", { defaultValue: "Expand {{type}}", type: typeLabel.toLowerCase() });
 
     return (
       <Tooltip
-        title={`${isExpanded ? "Collapse" : "Expand"} ${typeLabel.toLowerCase()}`}
+        title={tooltip}
         placement="bottom"
         delay={TOOLTIP_ENTER_DELAY * 2}
         nextDelay={TOOLTIP_ENTER_NEXT_DELAY * 2}

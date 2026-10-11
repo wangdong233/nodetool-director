@@ -11,8 +11,11 @@ import { ChainEditor } from "./ChainEditor";
 import { useChainEditorStore } from "./useChainEditorStore";
 import { trpcClient } from "../../trpc/client";
 import type { Workflow } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const ChainEditorPage: React.FC = () => {
+  const { t } = useTranslation();
   const { workflowId } = useParams<{ workflowId?: string }>();
   const [loading, setLoading] = useState(!!workflowId);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +29,7 @@ const ChainEditorPage: React.FC = () => {
         if (workflowId) {
           const data = await trpcClient.workflows.get.query({ id: workflowId });
           if (!data) {
-            setError("Workflow not found");
+            setError(i18n.t("editor:ui.workflowNotFound", { defaultValue: "Workflow not found" }));
             return;
           }
           loadWorkflow(data as Workflow);
@@ -34,7 +37,7 @@ const ChainEditorPage: React.FC = () => {
           newWorkflow();
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load workflow");
+        setError(err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadWorkflow", { defaultValue: "Failed to load workflow" }));
       } finally {
         setLoading(false);
       }
@@ -46,7 +49,7 @@ const ChainEditorPage: React.FC = () => {
     return (
       <FlexColumn align="center" justify="center" fullHeight fullWidth gap={2}>
         <LoadingSpinner size="large" />
-        <Text color="secondary">Loading workflow…</Text>
+        <Text color="secondary">{t("editor:ui.loadingWorkflow", { defaultValue: "Loading workflow…" })}</Text>
       </FlexColumn>
     );
   }

@@ -1,0 +1,461 @@
+{
+  "attrs": {},
+  "ui": {},
+  "ctx": {
+    "audioList": "音频列表",
+    "imageList": "图像列表",
+    "textList": "文本列表",
+    "videoList": "视频列表"
+  },
+  "menus": {
+    "addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider": "添加 Base URL 和 API 密钥，即可使用任何 OpenAI 兼容的服务商。",
+    "addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage": "添加一条命令或一个 URL。其工具会在下一条消息加入智能体的工具箱。",
+    "aiAgentForProcessing": "用于处理的 AI 智能体",
+    "allFieldsAreRequired": "所有字段均为必填",
+    "apiDocumentation": "API 文档",
+    "apiKey": "API 密钥",
+    "apiKey2": "API 密钥",
+    "centerAllNodesInView": "将所有节点在视图中居中",
+    "chatMessageInput": "对话消息输入",
+    "clientDisconnected": "客户端已断开连接",
+    "commaSeparatedModelIdsForEndpointsWithNoModelsRoute": "以逗号分隔的模型 id，用于没有 /models 路由的端点。",
+    "commonIssuesFixes": "常见问题与修复",
+    "copiedToClipboard": "已复制到剪贴板！",
+    "copiedWorkflowJsonToClipboard": "已复制工作流 JSON 到剪贴板！",
+    "dataStorage": "数据与存储",
+    "decimalNumberInput": "小数输入",
+    "detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations": "从模型列表检测得出。可补上 Test 漏掉的 id。调用会发往 /images/generations。",
+    "detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos": "从模型列表检测得出。可补上 Test 漏掉的 id。调用会发往 /videos。",
+    "failedToCopySystemInformationToClipboard": "复制系统信息到剪贴板失败",
+    "failedToDisconnectGoogleWorkspace": "断开 Google Workspace 失败",
+    "failedToImportWorkflowInvalidJsonFile": "导入工作流失败——无效的 JSON 文件",
+    "couldNotSaveSettings": "无法保存设置：{{message}}",
+    "couldNotSaveFolderSettings": "无法保存文件夹设置：{{message}}",
+    "visitProviderForCredentials": "访问 {{label}} 获取你的凭据",
+    "folderSettingsHaveBeenSavedSuccessfully": "文件夹设置已成功保存",
+    "groupContainerForNodes": "节点分组容器",
+    "imageFileInput": "图像文件输入",
+    "includeTheVersionPathTheEndpointServesUsuallyV1": "填入端点所提供的版本路径，通常是 /v1。",
+    "localModelServers": "本地模型服务器",
+    "npmPackages": "NPM 包",
+    "observability": "可观测性",
+    "oneArgumentPerLineSoAPathWithASpaceStaysOneArgument": "每行一个参数，这样含空格的路径仍会被视为一个参数。",
+    "oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "每行一条 Header=value。字面值会被加密存储；${NAME} 表示从你的 API 密钥库读取名为 NAME 的密钥。",
+    "oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "每行一条 KEY=value。字面值会被加密存储；${NAME} 表示从你的 API 密钥库读取名为 NAME 的密钥。",
+    "packageSpecPlaceholder": "@scope/package 或 package@version",
+    "providerGuidesLinks": "服务商指南与链接",
+    "providerOptions": "服务商选项",
+    "providerRemoved": "已移除服务商",
+    "providerSavedAs": "{{name}} 已保存为 {{id}}",
+    "disconnectedGoogleWorkspace": "已断开 Google Workspace。重新连接即可恢复访问。",
+    "customProviderEncryptionNote": "URL 和密钥会按账户加密存储。这些值也可以改由环境变量提供，即 {{baseUrlEnv}} 和 {{apiKeyEnv}}。",
+    "providers": {
+      "AKI_API_KEY": {
+        "description": "AKI.IO AI 模型中心。"
+      },
+      "ANTHROPIC_API_KEY": {
+        "description": "面向高级推理的 Claude 模型。"
+      },
+      "APIFY_API_TOKEN": {
+        "description": "通过 Apify Google Search Scraper 进行网络搜索。"
+      },
+      "ATLASCLOUD_API_KEY": {
+        "description": "一个密钥即可使用对话、图像与视频模型。"
+      },
+      "BRAVE_API_KEY": {
+        "description": "Brave Search 网络 API。"
+      },
+      "CEREBRAS_API_KEY": {
+        "description": "Cerebras 硬件上的快速 LLM 推理。"
+      },
+      "CLAUDE_SUBSCRIPTION": {
+        "description": "使用 Claude Pro 或 Max 订阅，无需 API 额度。",
+        "note": "共享 Claude Code 所用的凭据。"
+      },
+      "CODEX_SUBSCRIPTION": {
+        "description": "通过你的 ChatGPT 订阅使用 Codex 模型。",
+        "note": "使用你的 ChatGPT 账号登录。"
+      },
+      "COHERE_API_KEY": {
+        "description": "Embed v4 文本嵌入与重排。"
+      },
+      "DASHSCOPE_API_KEY": {
+        "description": "通过阿里云 Model Studio 使用 Qwen 模型。"
+      },
+      "DATA_FOR_SEO_LOGIN": {
+        "description": "通过 DataForSEO 进行网络搜索。"
+      },
+      "DEEPSEEK_API_KEY": {
+        "description": "最先进的开放模型。"
+      },
+      "ELEVENLABS_API_KEY": {
+        "description": "高质量 TTS 语音合成服务。"
+      },
+      "EVOLINK_API_KEY": {
+        "description": "通过一个网关使用 GPT、Claude、Gemini、DeepSeek 等。"
+      },
+      "FAL_API_KEY": {
+        "description": "无服务器 AI 图像与视频生成。",
+        "note": "精确计费需使用管理员密钥（fal.ai 控制台 → Keys → 权限选 \"Admin\"）。NodeTool 读取 FAL 每次请求的实际账单；普通密钥只能得到估算值。"
+      },
+      "GEMINI_API_KEY": {
+        "description": "Google Gemini AI 模型与服务。"
+      },
+      "GITHUB_CLIENT_ID": {
+        "description": "GitHub PKCE 流程的 OAuth App 凭据。"
+      },
+      "GMI_API_KEY": {
+        "description": "通过 GMI 的 OpenAI 兼容 API 使用开放权重 LLM。"
+      },
+      "GOOGLE_MAIL_USER": {
+        "description": "用于 Google 邮件集成的电子邮件地址与应用专用密码。"
+      },
+      "GROQ_API_KEY": {
+        "description": "LPU 硬件上的超快 LLM 推理。"
+      },
+      "HF_TOKEN": {
+        "description": "推理服务商与模型中心访问。"
+      },
+      "HIGGSFIELD_API_KEY_ID": {
+        "credentialLabel": "API 密钥",
+        "credentialPlaceholder": "粘贴 key-id:secret",
+        "description": "精选的图像与视频生成模型。"
+      },
+      "JINA_API_KEY": {
+        "description": "Jina 嵌入与重排模型。"
+      },
+      "KIE_API_KEY": {
+        "description": "Kie.ai 统一模型访问。"
+      },
+      "KIMI_API_KEY": {
+        "description": "通过 Kimi API 使用 Moonshot AI 模型。"
+      },
+      "LLAMA_API_KEY": {
+        "description": "本地 llama-server 实例的 Bearer 认证。"
+      },
+      "MESHY_API_KEY": {
+        "description": "3D 模型生成。"
+      },
+      "META_API_KEY": {
+        "description": "Meta 的 Muse Spark 模型，面向智能体与编程工作。"
+      },
+      "MINIMAX_API_KEY": {
+        "description": "MiniMax AI 模型。"
+      },
+      "MISTRAL_API_KEY": {
+        "description": "Mistral AI 模型与嵌入。"
+      },
+      "NODE_SUPABASE_KEY": {
+        "description": "供用户自带节点使用的 Supabase 服务密钥。"
+      },
+      "OPENAI_API_KEY": {
+        "description": "GPT 模型、图像、嵌入等。"
+      },
+      "OPENROUTER_API_KEY": {
+        "description": "通过一个 API 访问多种 AI 模型。"
+      },
+      "REPLICATE_API_TOKEN": {
+        "description": "在 Replicate 的云基础设施上运行模型。"
+      },
+      "REVE_API_KEY": {
+        "description": "图像创作、编辑与重混，提示词贴合度高。"
+      },
+      "RODIN_API_KEY": {
+        "description": "Rodin AI 3D 模型生成。"
+      },
+      "RUNPOD_API_KEY": {
+        "description": "租用 GPU pod 运行 NodeTool 工作节点。"
+      },
+      "SERPAPI_API_KEY": {
+        "description": "通过 SerpAPI 进行网络搜索。"
+      },
+      "SERVER_AUTH_TOKEN": {
+        "description": "用于保护 NodeTool 服务器端点的 Bearer 令牌。",
+        "name": "服务器认证令牌"
+      },
+      "TOGETHER_API_KEY": {
+        "description": "通过 Together API 使用开源模型。"
+      },
+      "TOPAZ_API_KEY": {
+        "description": "Topaz Labs 图像与视频增强。"
+      },
+      "TRACELOOP_API_KEY": {
+        "description": "将 OpenLLMetry 链路追踪导出到 Traceloop。"
+      },
+      "VAST_API_KEY": {
+        "description": "租用市场 GPU 运行 NodeTool 工作节点。"
+      },
+      "VOYAGE_API_KEY": {
+        "description": "高质量文本与多模态嵌入。"
+      },
+      "XAI_API_KEY": {
+        "description": "通过 xAI 的 API 使用 Grok 模型。"
+      },
+      "ZHIPU_API_KEY": {
+        "description": "通过 Z.AI 的 OpenAI 兼容 API 使用 GLM 模型。"
+      },
+      "COMFY_API_KEY": {
+        "description": "用你自己的密钥在 Comfy 的云端 GPU 上运行 ComfyUI 工作流。",
+        "note": "用你自己的密钥在 Comfy 的云端 GPU 上运行 ComfyUI 工作流。"
+      }
+    },
+    "searchProviders": {
+      "apify": {
+        "description": "通过 Apify Actor 实现可靠的 Google 搜索抓取。",
+        "get": "获取 Apify API 令牌"
+      },
+      "brave": {
+        "description": "注重隐私的搜索，带免费额度——是不错的默认选择。",
+        "get": "获取免费 Brave API 密钥"
+      },
+      "dataforseo": {
+        "description": "专业的 SEO 与搜索情报平台。",
+        "get": "获取 DataForSEO 凭据"
+      },
+      "openai": {
+        "description": "复用你的 OpenAI 密钥。以行文作答，并引用所读页面。",
+        "get": "获取 OpenAI API 密钥"
+      },
+      "gemini": {
+        "description": "复用你的 Gemini 密钥。以行文作答，并引用所读页面。",
+        "get": "获取 Gemini API 密钥"
+      },
+      "serpapi": {
+        "description": "快速可靠的网页搜索 API，覆盖 Google、Bing 等引擎。",
+        "get": "获取 SerpAPI 密钥"
+      }
+    },
+    "secretValueIsRequired": "密钥值不能为空",
+    "seeModelsByProvider": "按服务商查看模型",
+    "streamableHTTPWithSSEAsTheFallback": "Streamable HTTP，以 SSE 作为回退。",
+    "supportedModels": "支持的模型",
+    "systemInformationCopiedToClipboard": "系统信息已复制到剪贴板！",
+    "textCommentNote": "文本注释便签",
+    "textInputField": "文本输入字段",
+    "wholeNumberInput": "整数输入",
+    "yourSettingsHaveBeenSavedSuccessfully": "你的设置已成功保存",
+    "sections": {
+      "popular": "热门",
+      "language": "语言模型",
+      "media": "媒体生成",
+      "gateways": "网关与聚合",
+      "search": "网页搜索",
+      "compute": "算力与本地",
+      "advanced": "服务与高级"
+    },
+    "languageModels": "语言模型",
+    "mediaGeneration": "媒体生成",
+    "gatewaysAndHubs": "网关与枢纽",
+    "webSearch": "网页搜索",
+    "computeAndLocal": "算力与本地",
+    "servicesAndAdvanced": "服务与高级",
+    "nameApiKeyUpdated": "已更新 {{name}} API 密钥",
+    "failedToUpdateSecret": "更新密钥失败：{{error}}",
+    "nameApiKeyDeleted": "已删除 {{name}} API 密钥",
+    "failedToDeleteSecret": "删除密钥失败：{{error}}",
+    "tags": {
+      "Popular": "热门"
+    },
+    "other": "其他"
+  },
+  "misc": {
+    "onboardingPacks": {
+      "ollama": "由本地 Ollama 模型支持的对话与嵌入节点。"
+    }
+  },
+  "tutorials": {
+    "subtitle": "简短易懂的 NodeTool 上手演示",
+    "countOne": "{{count}} 个教程",
+    "countMany": "{{count}} 个教程",
+    "startBuilding": "开始搭建",
+    "browseExamples": "浏览示例",
+    "backToWorkspace": "工作区",
+    "playVideoAria": "播放视频：{{title}}",
+    "playTutorialAria": "播放教程：{{title}}",
+    "level": {
+      "Beginner": "入门",
+      "Intermediate": "进阶"
+    },
+    "app-assistant": {
+      "title": "搭建一个小程序",
+      "result": "小程序显示完整回答，输入/输出控件保持绑定。",
+      "startingState": "示例页，小程序画廊可随时浏览。",
+      "tagline": "小程序构建器 · 操作、设置、控件",
+      "task": "打开一个小程序，填好输入，在小程序界面上运行一次。",
+      "description": "一句话描述一个小程序——一个输入、一个按钮、一个回答——助手就把工作流绑定为操作，把控件逐个挂到应用声明的目标上。",
+      "learn_0": "把工作流变成人人都能运行的小程序",
+      "learn_1": "把值存成设置，跨会话保留",
+      "learn_2": "把控件绑定到输入、输出和变量"
+    },
+    "ask-ai": {
+      "title": "问问 AI",
+      "result": "回答流入输出，后续节点仍可使用。",
+      "startingState": "一块新的工作流画布，输入输出通路为空。",
+      "tagline": "问题进，流式回答出",
+      "task": "把问题输入接到 LLM 节点，让它简要解释一个 API，然后运行。",
+      "description": "最简单的对话式图：输入一个问题，发给 LLM 节点，看着回答一段一段流式生成，最后落进 Preview。",
+      "learn_0": "把问题喂给 LLM 节点",
+      "learn_1": "看着回答边生成边流出",
+      "learn_2": "在下游复用这条回答"
+    },
+    "chat-agent-qa": {
+      "title": "询问对话智能体",
+      "result": "对话先展示网页搜索调用，随后流式给出回答。",
+      "startingState": "一个新的全局对话，输入框为空。",
+      "tagline": "全局对话 · 工具调用实时可见",
+      "task": "问一个需要联网搜索的时事问题。",
+      "description": "问题直接进全局对话：智能体公开调用网页搜索工具，再把回答逐字流式送回来。",
+      "learn_0": "在全局对话里发送一条消息",
+      "learn_1": "看着一次工具调用全程公开执行",
+      "learn_2": "边到边读流式返回的回答"
+    },
+    "combine-inputs": {
+      "title": "合并两个输入",
+      "result": "预览显示填好两个输入值的完整模板。",
+      "startingState": "一块新的工作流画布，两个文本输入待连接。",
+      "tagline": "用模板合并多个值",
+      "task": "把名称与主题输入接到模板提示词，填入两个值并运行。",
+      "description": "第一张带分支的图：两个文本输入流入同一个提示词节点填充模板，由可复用的部件组合出单一结果。",
+      "learn_0": "把多个输入接进同一个节点",
+      "learn_1": "用 {{ placeholders }} 占位符组合文本",
+      "learn_2": "用可复用的部件搭建提示词"
+    },
+    "connect-run": {
+      "title": "连线并运行",
+      "result": "预览显示 HELLO NODETOOL，每个连通节点汇报完成。",
+      "startingState": "一块新的工作流画布，准备连接一个小图。",
+      "tagline": "沿着连通的图从输入看到输出",
+      "task": "把文本输入接到 Uppercase 再接到 Preview，用 hello nodetool 运行，查看输出。",
+      "description": "沿着既有连线，从文本输入一路走到 Uppercase，看各节点依次执行，最后在 Preview 里读到 HELLO NODETOOL。",
+      "learn_0": "输入、输出，以及锚点之间如何连线",
+      "learn_1": "运行一张图，看着节点逐个完成",
+      "learn_2": "在 Preview 里找到一个节点的结果"
+    },
+    "describe-image": {
+      "title": "描述一张图像",
+      "result": "视觉模型回答了对图像的描述，可在下游输出中使用。",
+      "startingState": "一块新的工作流画布，图像输入待填。",
+      "tagline": "给 AI 看图，换回文字",
+      "task": "添加一张图片，连到 Agent 节点，运行整张图来描述画面内容。",
+      "description": "第一张多模态图：把图片放进图像输入，连到一个 Agent 节点，看模型查看图像并用文字描述出来。",
+      "learn_0": "把一张图片带进图里",
+      "learn_1": "把图片发给视觉模型",
+      "learn_2": "在下游复用流式生成的描述"
+    },
+    "first-workflow": {
+      "title": "搭建你的第一个工作流",
+      "result": "图运行完成，生成的图像出现在画布上。",
+      "startingState": "引导式工作流搭建中的一个新工作流。",
+      "tagline": "文本 → 润色 → 图像，一步到位",
+      "task": "搭一个文生图的图：文本输入、润色步骤、图像生成器，然后运行它。",
+      "description": "看一条完整的 AI 流水线在画布上运行：提示词先经 LLM 润色，再变成一张图像——全靠连线节点，一行代码不用写。",
+      "learn_0": "节点如何通过锚点传递数据",
+      "learn_1": "读懂实时状态：运行圆环、流式文本、进度",
+      "learn_2": "生成的输出出现在画布上的哪个位置"
+    },
+    "jsscript-assistant": {
+      "title": "编写 JS 脚本",
+      "tagline": "JS 脚本 · 端口、主体、已存测试",
+      "description": "说清输入什么、该输出什么。助手先声明端口，再写主体，并存下一个在沙箱里给它打分的测试用例。",
+      "learn_0": "把端口声明当作脚本的契约",
+      "learn_1": "读懂沙箱里运行的主体——不碰文件系统",
+      "learn_2": "留一个已存用例，拦住下一次改坏的编辑"
+    },
+    "jsscript-repair": {
+      "title": "让测试拦住问题",
+      "tagline": "JS 脚本 · 先红，修复后转绿",
+      "description": "说出你不放心的边界情况。助手把它存成测试，先跑出红灯并亮明原因，修好主体后，再把同样的用例跑成绿灯。",
+      "learn_0": "先要检查，再要修复",
+      "learn_1": "读懂一次真实失败的运行，而不是它的摘要",
+      "learn_2": "把用例存下来，下一次改坏会先在这里暴露"
+    },
+    "list-generator": {
+      "title": "生成一个列表",
+      "result": "输出包含多个列表项，可传给下游节点。",
+      "startingState": "一块新的工作流画布，尚未连接任何节点。",
+      "tagline": "一条提示词，多个结果",
+      "task": "把主题输入接到可生成列表的 LLM 节点，运行它获取周末出行点子。",
+      "description": "用一个 LLM 节点把单个主题变成结构化列表，再喂给下游。这是批量处理、循环与大规模生成背后的通用模式。",
+      "learn_0": "用输入驱动一个 LLM 节点",
+      "learn_1": "多条目输出边生成边流出",
+      "learn_2": "把列表传给工作流的其余部分"
+    },
+    "script-assistant": {
+      "title": "撰写剧本并配音",
+      "result": "剧本包含阵容说话人、写好的台词，以及每个说话人的录音条。",
+      "startingState": "一个新剧本，还没有阵容和对白。",
+      "tagline": "剧本编辑器 · 阵容、台词、条",
+      "task": "向助手要一份双说话人短剧本，然后让它为台词配音。",
+      "description": "一次要求，从空白页到配好音的成品：助手先定阵容说话人，再写台词，然后为每条台词合成一条录音。",
+      "learn_0": "按长度、声音和语气来描述一份剧本",
+      "learn_1": "为什么先定说话人阵容，再动笔写台词",
+      "learn_2": "把台词配成可替换、可重录的录音条"
+    },
+    "sketch-assistant": {
+      "title": "通过对话编辑图稿",
+      "result": "罩色图层出现在图层面板中，带所设混合模式与不透明度。",
+      "startingState": "一张新建图稿，图层栈为空。",
+      "tagline": "图稿编辑器 · 助手来画这一层",
+      "task": "让助手加一个柔和罩色图层，并设定混合模式与不透明度。",
+      "description": "说出想改的地方，助手就会驱动真实的图层工具：加图层、设混合模式、调不透明度，你看着面板一步步更新。",
+      "learn_0": "针对手头已有的图层栈直接提修改",
+      "learn_1": "看着图层随助手操作逐个出现在面板里",
+      "learn_2": "随时接手亲手调整——每一次编辑都留给你改"
+    },
+    "sketch-correction": {
+      "title": "中途修正，无需推倒重来",
+      "result": "既有图层原位修改，图层数保持不变。",
+      "startingState": "一张新图稿，等着助手来编辑。",
+      "tagline": "图稿编辑器 · 第二次要求会修改第一次",
+      "task": "做一次助手编辑，再让它减弱效果且不新建图层。",
+      "description": "罩色回来得太重。在下一条消息里直说，就能修改既有图层——图层栈规模不变，也不重新生成任何东西。",
+      "learn_0": "直接修正结果，而不是重新提一遍要求",
+      "learn_1": "看清修正实际执行的是哪次工具调用",
+      "learn_2": "用面板控件亲手完成最后一步"
+    },
+    "storyboard-ask": {
+      "title": "生成消耗前先询问",
+      "result": "助手先等待再花费，得到你的回答后生成明确的分镜表。",
+      "startingState": "一个新分镜，没有镜头，也未开始渲染。",
+      "tagline": "分镜 · 先问清，不瞎猜",
+      "task": "给助手一份不完整的简报，回答它的追问，然后批准分镜板。",
+      "description": "简报信息不足时，得到的是一句反问。你斟酌期间分镜板保持空白、什么也不渲染；你的回答定下格式与镜头数。",
+      "learn_0": "为什么含糊的简报换来的是一句反问",
+      "learn_1": "等你拿主意时助手在做什么：什么也不做",
+      "learn_2": "镜头看着对了，再批准这次消耗"
+    },
+    "storyboard-assistant": {
+      "title": "编排分镜表",
+      "result": "分镜板包含已批准的分镜表，每镜都有渲染好的静帧。",
+      "startingState": "一个新分镜，分镜表为空。",
+      "tagline": "分镜 · 先导演，后静帧",
+      "task": "描述一个短片，检查生成的分镜表，批准后开始渲染。",
+      "description": "描述这个作品，助手先写出镜头——运镜也一并定好——再渲染任何一帧。批准分镜板后，静帧逐镜渲染出来。",
+      "learn_0": "先拿到分镜表，再生成任何图像",
+      "learn_1": "趁还没产生渲染消耗，先把镜头改好",
+      "learn_2": "一次调用渲染整块分镜板的静帧"
+    },
+    "summarize-text": {
+      "title": "总结一篇文档",
+      "result": "预览包含更短的要点，原文仍可对照查看。",
+      "startingState": "一块新的工作流画布，文本通路为空。",
+      "tagline": "长文进，要点出",
+      "task": "把长文喂给 Summarizer 节点，运行后把摘要送到 Preview。",
+      "description": "用一个 Summarizer 节点把文章、访谈记录或任何一段长文本压缩成简短摘要，并看着它边写边流出来。",
+      "learn_0": "把长文本喂给 Summarizer 节点",
+      "learn_1": "看着摘要边生成边流出",
+      "learn_2": "把结果传给工作流的其余部分"
+    },
+    "timeline-trim-arrange": {
+      "title": "剪出一场戏",
+      "result": "时间线播放排好的剪辑，字幕与对白对齐。",
+      "startingState": "一条新时间线，轨道为空，没有片段。",
+      "tagline": "时间线编辑器 · 修剪、编排、字幕",
+      "task": "放两个片段，修剪剪辑点，加字幕，预览成品序列。",
+      "description": "看开场片段变短、下一镜贴上剪辑点、字幕落到自己的轨道上，然后预览剪好的成片。",
+      "learn_0": "在轨道上修剪和编排片段",
+      "learn_1": "添加逐字对齐的字幕",
+      "learn_2": "拖动播放头，实时预览剪辑"
+    }
+  }
+}

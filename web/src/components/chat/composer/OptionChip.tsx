@@ -12,6 +12,7 @@ import MediaControlChip from "./MediaControlChip";
 import MediaOptionMenu, { type MediaOption } from "./MediaOptionMenu";
 import MediaAspectRatioMenu from "./MediaAspectRatioMenu";
 import type { AspectRatioOption } from "../../../stores/MediaGenerationStore";
+import { i18n } from "../../../i18n";
 
 interface OptionChipCommonProps {
   icon?: React.ReactNode;

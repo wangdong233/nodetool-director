@@ -5,6 +5,7 @@ import { useTheme } from "@mui/material/styles";
 import { memo, type ReactNode, type Ref } from "react";
 import type { SerializedStyles } from "@emotion/react";
 import { MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 /** Shared horizontal rhythm for the Examples page: a centered column that
  *  section borders bleed past, while content stays aligned. */
@@ -156,6 +157,7 @@ export const DashboardSearchBox = memo(function DashboardSearchBox({
   "aria-label": ariaLabel,
   ref
 }: DashboardSearchBoxProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const hasValue = value.length > 0;
   return (
@@ -188,7 +190,7 @@ export const DashboardSearchBox = memo(function DashboardSearchBox({
         <button
           type="button"
           className="search-clear"
-          aria-label="Clear search"
+          aria-label={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
           // Keep focus in the input so typing can continue immediately.
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => onChange("")}

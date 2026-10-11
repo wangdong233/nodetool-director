@@ -4,7 +4,7 @@
  * A standardized upload button with file input handling.
  *
  * @example
- * <UploadButton onFileSelect={handleFiles} tooltip="Upload files" />
+ * <UploadButton onFileSelect={handleFiles} tooltip={i18n.t("editor:explorer.uploadFiles", { defaultValue: "Upload files" })} />
  */
 
 import React, { memo, forwardRef, useCallback, useRef } from "react";
@@ -18,6 +18,7 @@ import {
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
+import { i18n } from "../../i18n";
 
 export interface UploadButtonProps {
   /**
@@ -98,7 +99,7 @@ export const UploadButton = memo(
     (
       {
         onFileSelect,
-        tooltip = "Upload",
+        tooltip = i18n.t("ui:attrs.upload", { defaultValue: "Upload" }),
         label,
         tooltipPlacement = "bottom",
         buttonSize = "small",

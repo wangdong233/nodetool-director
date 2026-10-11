@@ -12,6 +12,7 @@ import {
   rgbToHex,
   simulateColorBlindness
 } from "../../utils/colorConversion";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -119,6 +120,7 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
   foregroundColor,
   backgroundColor
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const foregroundRgb = useMemo(() => hexToRgb(foregroundColor), [foregroundColor]);
@@ -134,17 +136,23 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
       {
         type: "protanopia" as const,
         label: "Protanopia",
-        description: "Red-blind"
+        labelKey: "editor:ui.protanopia",
+        description: "Red-blind",
+        descriptionKey: "editor:ui.redBlind"
       },
       {
         type: "deuteranopia" as const,
         label: "Deuteranopia",
-        description: "Green-blind"
+        labelKey: "editor:ui.deuteranopia",
+        description: "Green-blind",
+        descriptionKey: "editor:ui.greenBlind"
       },
       {
         type: "tritanopia" as const,
         label: "Tritanopia",
-        description: "Blue-blind"
+        labelKey: "editor:ui.tritanopia",
+        description: "Blue-blind",
+        descriptionKey: "editor:ui.blueBlind"
       }
     ],
     []
@@ -172,18 +180,18 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
           className="preview-box"
           style={{ backgroundColor: backgroundColor, color: foregroundColor }}
         >
-          <span className="preview-label">Preview on Background</span>
-          <span className="preview-text">Normal text sample</span>
-          <span className="preview-text-large">Large text sample</span>
+          <span className="preview-label">{t("ui2:attrs.previewOnBackground", { defaultValue: "Preview on Background" })}</span>
+          <span className="preview-text">{t("ui2:attrs.normalTextSample", { defaultValue: "Normal text sample" })}</span>
+          <span className="preview-text-large">{t("ui2:attrs.largeTextSample", { defaultValue: "Large text sample" })}</span>
         </div>
 
         <div
           className="preview-box"
           style={{ backgroundColor: foregroundColor, color: backgroundColor }}
         >
-          <span className="preview-label">Inverse Preview</span>
-          <span className="preview-text">Normal text sample</span>
-          <span className="preview-text-large">Large text sample</span>
+          <span className="preview-label">{t("ui2:attrs.inversePreview", { defaultValue: "Inverse Preview" })}</span>
+          <span className="preview-text">{t("ui2:attrs.normalTextSample", { defaultValue: "Normal text sample" })}</span>
+          <span className="preview-text-large">{t("ui2:attrs.largeTextSample", { defaultValue: "Large text sample" })}</span>
         </div>
       </div>
 
@@ -204,7 +212,7 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
         <Caption
           sx={{ textAlign: "center", display: "block", color: "grey.500" }}
         >
-          Contrast Ratio
+          {t("editor:ui.contrastRatio")}
         </Caption>
       </div>
 
@@ -229,12 +237,12 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
 
       <div className="color-blindness-section">
         <Text className="color-blindness-title">
-          Color Blindness Preview
+          {t("editor:ui.colorBlindnessPreview")}
         </Text>
         <div className="color-blindness-grid">
           {colorBlindnessSimulations.map((sim) => (
             <div key={sim.type} className="color-blindness-preview">
-              <span className="cb-label">{sim.label}</span>
+              <span className="cb-label">{t(sim.labelKey, { defaultValue: sim.label })}</span>
               <div className="cb-colors">
                 <div
                   className="cb-swatch"
@@ -247,7 +255,7 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
                   title={`Background: ${sim.background}`}
                 />
               </div>
-              <span className="cb-label">{sim.description}</span>
+              <span className="cb-label">{t(sim.descriptionKey, { defaultValue: sim.description })}</span>
             </div>
           ))}
         </div>

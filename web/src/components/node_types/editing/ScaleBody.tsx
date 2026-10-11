@@ -24,6 +24,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { SCALE_NODE_TYPE } from "../../../constants/nodeTypes";
+import { useTranslation } from "react-i18next";
 import {
   isNumber,
   isObjectLike,
@@ -150,6 +151,7 @@ const ScaleBodyInner: React.FC<ScaleBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -199,7 +201,7 @@ const ScaleBodyInner: React.FC<ScaleBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Scale</span>
+        <span className="ctrl-label">{t("timeline:attrs.scale", { defaultValue: "Scale" })}</span>
         <NodeSlider
           min={SCALE_MIN}
           max={SCALE_MAX}
@@ -207,7 +209,7 @@ const ScaleBodyInner: React.FC<ScaleBodyProps> = ({
           value={scale}
           onChange={handleScaleChange}
           onChangeCommitted={handleScaleCommitted}
-          aria-label="Scale factor"
+          aria-label={t("editor:ui.scaleFactor", { defaultValue: "Scale factor" })}
         />
         <span className="ctrl-value">{scale.toFixed(2)}×</span>
       </div>

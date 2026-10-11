@@ -1,4 +1,5 @@
 import { UnifiedModel } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 export interface ModelComponentProps {
   model: UnifiedModel;

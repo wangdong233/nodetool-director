@@ -31,6 +31,7 @@ import {
 import { CONTROL_HANDLE_ID } from "../../stores/graphEdgeToReactFlowEdge";
 import { shallow } from "zustand/shallow";
 import { isFunction } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 const PREVIEW_VALUE_HANDLE = "value";
 const REROUTE_INPUT_HANDLE = "input_value";
@@ -147,7 +148,7 @@ export default function useConnectionHandlers() {
           addNotification({
             type: "warning",
             alert: true,
-            content: "Cannot create a cyclic connection"
+            content: i18n.t("editor:ui.cannotCreateCyclicConnection", { defaultValue: "Cannot create a cyclic connection" })
           });
           return;
         }
@@ -215,7 +216,7 @@ export default function useConnectionHandlers() {
           addNotification({
             type: "warning",
             alert: true,
-            content: "Cannot create a cyclic connection"
+            content: i18n.t("editor:ui.cannotCreateCyclicConnection", { defaultValue: "Cannot create a cyclic connection" })
           });
           return;
         }
@@ -229,7 +230,7 @@ export default function useConnectionHandlers() {
         addNotification({
           type: "warning",
           alert: true,
-          content: "Cannot connect these types"
+          content: i18n.t("editor:ui.cannotConnectTheseTypes", { defaultValue: "Cannot connect these types" })
         });
       }
     },

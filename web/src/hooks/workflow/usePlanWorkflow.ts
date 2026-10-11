@@ -44,6 +44,8 @@ import type { NodeMetadata } from "../../stores/ApiTypes";
 import { computeSearchResults } from "../../utils/nodeSearch";
 import { useWorkflowSetupWriter } from "./useWorkflowSetup";
 import { workflowCategory } from "../../components/setup/workflow/categories";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /** How many candidate node types the planner prompt carries. */
 const CANDIDATE_LIMIT = 48;
@@ -220,13 +222,27 @@ export const resolvePlanNodeTypes = (
  * A creator who presses a chip and has no provider connected still gets a plan
  * to review, and it is the same plan the harness builds and grades (criterion
  * 5) — so what they see on screen is what was checked.
+ *
+ * The chip may have written its localized brief (显示即所发: the example's
+ * display text is the brief it inserts), so a brief matches on either the
+ * shipped English brief or its catalog label.
  */
 export const pinnedChipPlan = (brief: string): WorkflowSetupPlan | null =>
-  WORKFLOW_INSPIRATION_CHIPS.find(
-    (chip) => chip.brief.toLowerCase() === brief.trim().toLowerCase()
-  )?.plan ?? null;
+  WORKFLOW_INSPIRATION_CHIPS.find((chip) => {
+    const normalized = brief.trim().toLowerCase();
+    return (
+      chip.brief.toLowerCase() === normalized ||
+      i18n
+        .t(`catalog:workflowInspiration.${chip.id}`, {
+          defaultValue: chip.brief
+        })
+        .trim()
+        .toLowerCase() === normalized
+    );
+  })?.plan ?? null;
 
 export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
+  const { t } = useTranslation();
   const [planning, setPlanning] = useState(false);
   const [planningStatus, setPlanningStatus] = useState<
     "idle" | "pending" | "canceled" | "error"
@@ -333,8 +349,8 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
         }
         if (!resolved) {
           const reason = input.model?.id
-            ? "The planner did not return a plan. Try again, or edit the steps by hand."
-            : "Connect a provider to plan this, or start from one of the examples.";
+            ? t("editor:ui.thePlannerDidNotReturnAPlanTryAgainOrEditTheStepsByHand", { defaultValue: "The planner did not return a plan. Try again, or edit the steps by hand." })
+            : t("editor:ui.connectAProviderToPlanThisOrStartFromOneOfTheExamples", { defaultValue: "Connect a provider to plan this, or start from one of the examples." });
           setError(reason);
           setPlanningStatus("error");
           return reason;

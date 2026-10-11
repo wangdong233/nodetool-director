@@ -25,6 +25,7 @@ import LabelOutlinedIcon from "@mui/icons-material/LabelOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { getShortcutTooltip } from "../../config/shortcuts";
+import { useTranslation } from "react-i18next";
 
 interface ViewportStatusIndicatorProps {
   visible?: boolean;
@@ -40,6 +41,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
   showPortLabels = false,
   onTogglePortLabels
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const zoom = useStore((s) => s.transform[2]);
   const { zoomTo, fitView, getNodes } = useReactFlow();
@@ -190,7 +192,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
             <Box>
               <Box>{getShortcutTooltip("resetZoom")}</Box>
               <Box sx={{ mt: 0.5, fontSize: "var(--fontSizeSmaller)", opacity: 0.8 }}>
-                Click for zoom presets
+                {t("editor:ui.clickForZoomPresets")}
               </Box>
             </Box>
           }
@@ -225,7 +227,16 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
 
         <ToolbarIconButton
           icon={<CenterFocusStrongIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-          tooltip={`Fit all · ${getShortcutTooltip("fitView")}`}
+          // getShortcutTooltip returns a ReactElement — interpolating it into
+          // a template literal rendered "[object Object]". Compose nodes
+          // instead, and name the button explicitly now the tooltip is not a
+          // plain string.
+          tooltip={
+            <>
+              {t("editor:ui.fitAll", { defaultValue: "Fit all" })} · {getShortcutTooltip("fitView", undefined, "combo")}
+            </>
+          }
+          ariaLabel={t("editor:ui.fitAll", { defaultValue: "Fit all" })}
           tooltipPlacement="top"
           onClick={handleFitView}
           size="small"
@@ -234,7 +245,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
 
         <ToolbarIconButton
           icon={<FilterCenterFocusIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-          tooltip="Fit selection"
+          tooltip={t("editor:ui.fitSelection", { defaultValue: "Fit selection" })}
           tooltipPlacement="top"
           onClick={handleFitSelection}
           size="small"
@@ -244,10 +255,10 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
         {onTogglePortLabels ? (
           <ToolbarIconButton
             icon={<LabelOutlinedIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-            tooltip={showPortLabels ? "Hide port labels" : "Show port labels"}
+            tooltip={showPortLabels ? t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
             tooltipPlacement="top"
             onClick={onTogglePortLabels}
-            ariaLabel={showPortLabels ? "Hide port labels" : "Show port labels"}
+            ariaLabel={showPortLabels ? t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
             aria-pressed={showPortLabels}
             size="small"
             sx={zoomButtonSx}

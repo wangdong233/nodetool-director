@@ -31,6 +31,7 @@ import {
 import { displayCombo } from "./shortcuts";
 import ColorSwatchPair from "./ColorSwatchPair";
 import { SKETCH_SPACING, SKETCH_TOOLTIP_DELAY_MS } from "./sketchStyles";
+import { i18n } from "../../i18n";
 
 const BTN = 32; // button size px
 
@@ -92,7 +93,10 @@ const styles = (theme: Theme) =>
   });
 
 function renderToolButton(def: ToolDefinition, selectMode: SelectToolMode) {
-  const { tool, label, Icon } = def;
+  const { tool, Icon } = def;
+  const label = def.labelKey
+    ? i18n.t(def.labelKey, { defaultValue: def.label })
+    : def.label;
   const actionId = getToolShortcutActionId(tool, selectMode);
   const shortcut = actionId ? displayCombo(actionId) : "";
   const tooltipText = shortcut ? `${label} (${shortcut})` : label;

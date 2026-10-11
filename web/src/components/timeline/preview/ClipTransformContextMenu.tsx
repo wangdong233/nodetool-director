@@ -14,6 +14,7 @@ import RotateRightIcon from "@mui/icons-material/RotateRight";
 import Rotate90DegreesCwIcon from "@mui/icons-material/Rotate90DegreesCw";
 import FlipIcon from "@mui/icons-material/Flip";
 import TransformIcon from "@mui/icons-material/Transform";
+import { useTranslation } from "react-i18next";
 
 import {
   ContextMenu,
@@ -45,6 +46,7 @@ const ClipTransformContextMenu: React.FC<ClipTransformContextMenuProps> = ({
   onFlipHorizontal,
   onFlipVertical
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   useEffect(() => {
@@ -99,7 +101,7 @@ const ClipTransformContextMenu: React.FC<ClipTransformContextMenuProps> = ({
       <Divider sx={{ mx: 1, borderColor: theme.vars.palette.grey[800] }} />
 
       <MenuItemPrimitive
-        label="Reset"
+        label={t("timeline:attrs.reset", { defaultValue: "Reset" })}
         icon={<RestartAltIcon sx={{ fontSize: 16 }} />}
         shortcut="."
         compact
@@ -109,19 +111,19 @@ const ClipTransformContextMenu: React.FC<ClipTransformContextMenuProps> = ({
       <Divider sx={{ mx: 1, my: 0.5, borderColor: theme.vars.palette.grey[800] }} />
 
       <MenuItemPrimitive
-        label="Rotate 180°"
+        label={t("ui2:attrs.rotate180", { defaultValue: "Rotate 180°" })}
         icon={<Rotate90DegreesCwIcon sx={{ fontSize: 16 }} />}
         compact
         onClick={run(onRotate180)}
       />
       <MenuItemPrimitive
-        label="Rotate 90° CW"
+        label={t("ui2:attrs.rotate90CW", { defaultValue: "Rotate 90° CW" })}
         icon={<RotateRightIcon sx={{ fontSize: 16 }} />}
         compact
         onClick={run(onRotate90CW)}
       />
       <MenuItemPrimitive
-        label="Rotate 90° CCW"
+        label={t("ui2:attrs.rotate90CCW", { defaultValue: "Rotate 90° CCW" })}
         icon={<RotateLeftIcon sx={{ fontSize: 16 }} />}
         compact
         onClick={run(onRotate90CCW)}
@@ -130,13 +132,13 @@ const ClipTransformContextMenu: React.FC<ClipTransformContextMenuProps> = ({
       <Divider sx={{ mx: 1, my: 0.5, borderColor: theme.vars.palette.grey[800] }} />
 
       <MenuItemPrimitive
-        label="Flip Horizontal"
+        label={t("ui2:attrs.flipHorizontal", { defaultValue: "Flip Horizontal" })}
         icon={<FlipIcon sx={{ fontSize: 16 }} />}
         compact
         onClick={run(onFlipHorizontal)}
       />
       <MenuItemPrimitive
-        label="Flip Vertical"
+        label={t("ui2:attrs.flipVertical", { defaultValue: "Flip Vertical" })}
         icon={<FlipIcon sx={{ fontSize: 16, transform: "rotate(90deg)" }} />}
         compact
         onClick={run(onFlipVertical)}

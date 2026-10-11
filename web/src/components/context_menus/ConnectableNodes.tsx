@@ -40,6 +40,7 @@ import type {
   ConnectionMatchMenuPayload,
   ConnectionMatchOption
 } from "./ConnectionMatchMenu";
+import { useTranslation } from "react-i18next";
 
 const NODE_ROW_HEIGHT = 34;
 
@@ -189,6 +190,7 @@ export const getCompatibleConnectableOutputs = (
 };
 
 const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const reactFlowInstance = useReactFlow();
@@ -489,14 +491,14 @@ const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
             className="connectable-nodes-search"
             size="small"
             fullWidth
-            placeholder="Search nodes..."
+            placeholder={t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
             value={searchTerm}
             onChange={handleSearchChange}
             onClick={(e) => e.stopPropagation()}
             onKeyDown={handleSearchKeyDown}
             autoFocus={isVisible && autoFocusEnabled}
             inputRef={searchInputRef}
-            aria-label="Search nodes"
+            aria-label={t("editor:io.searchNodesAria", { defaultValue: "Search nodes" })}
             sx={{
                 "& .MuiOutlinedInput-root": {
                     backgroundColor: "action.disabledBackground",
@@ -519,7 +521,7 @@ const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
                 endAdornment: searchTerm ? (
                   <InputAdornment position="end">
                     <ToolbarIconButton
-                      aria-label="clear search"
+                      aria-label={t("editor:io.clearSearch", { defaultValue: "clear search" })}
                       onClick={handleClearSearch}
                       size="small"
                       icon={<ClearIcon sx={{ fontSize: 16 }} />}
@@ -554,7 +556,7 @@ const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
           overscan={theme.virtualScroll.overscan.normal}
           getItemKey={(node, index) => node?.node_type ?? index}
           getItemProps={itemProps}
-          ariaLabel="Connectable nodes"
+          ariaLabel={t("editor:io.connectableNodes", { defaultValue: "Connectable nodes" })}
           renderItem={renderNode}
         />
       )}

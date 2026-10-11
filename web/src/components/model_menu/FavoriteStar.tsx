@@ -3,6 +3,7 @@ import { css } from "@emotion/react";
 import React, { useCallback, memo } from "react";
 import { FavoriteButton, MOTION } from "../ui_primitives";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
+import { i18n } from "../../i18n";
 
 interface FavoriteStarProps {
   provider?: string;
@@ -52,8 +53,8 @@ const FavoriteStar: React.FC<FavoriteStarProps> = memo(function FavoriteStar({
         onToggle={handleToggle}
         variant="star"
         buttonSize={size}
-        addTooltip="Favorite"
-        removeTooltip="Unfavorite"
+        addTooltip={i18n.t("editor:ui.favorite", { defaultValue: "Favorite" })}
+        removeTooltip={i18n.t("editor:ui.unfavorite", { defaultValue: "Unfavorite" })}
         stopPropagation={stopPropagation}
       />
     </span>

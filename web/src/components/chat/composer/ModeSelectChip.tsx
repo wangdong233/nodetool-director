@@ -17,6 +17,7 @@ import VideocamIcon from "@mui/icons-material/Videocam";
 import MediaControlChip from "./MediaControlChip";
 import MediaModeMenu from "./MediaModeMenu";
 import type { MediaMode } from "../../../stores/MediaGenerationStore";
+import { i18n } from "../../../i18n";
 
 export function modeIconFor(mode: MediaMode): React.ReactNode {
   if (mode === "music") return <AudiotrackIcon fontSize="small" />;
@@ -44,39 +45,39 @@ export function modeIconFor(mode: MediaMode): React.ReactNode {
   return <AutoAwesomeIcon fontSize="small" />;
 }
 
+/**
+ * The chip's label for a media mode, resolved at render time through the
+ * catalog (unknown modes fall back to the shipped English word). The menu
+ * items read their own keys — the chip's shorter labels ("Refs→Video") are
+ * deliberately distinct strings.
+ */
 export function modeLabelFor(mode: MediaMode): string {
-  if (mode === "music") return "Music";
-  if (mode === "image") {
-    return "Image";
+  switch (mode) {
+    case "music":
+      return i18n.t("editor:ui.music", { defaultValue: "Music" });
+    case "image":
+      return i18n.t("editor:ui.image", { defaultValue: "Image" });
+    case "image_edit":
+      return i18n.t("editor:ui.imageEdit", { defaultValue: "Image Edit" });
+    case "video":
+      return i18n.t("editor:ui.video", { defaultValue: "Video" });
+    case "image_to_video":
+      return i18n.t("editor:ui.imageToVideoShort", { defaultValue: "Image→Video" });
+    case "reference_to_video":
+      return i18n.t("editor:ui.refsToVideo", { defaultValue: "Refs→Video" });
+    case "audio":
+      return i18n.t("editor:ui.speech", { defaultValue: "Speech" });
+    case "chat":
+      return i18n.t("editor:ui.chat", { defaultValue: "Chat" });
+    case "audio_to_video":
+      return i18n.t("editor:ui.audioToVideoShort", { defaultValue: "Audio→Video" });
+    case "retake":
+      return i18n.t("editor:ui.retake", { defaultValue: "Retake" });
+    case "extend":
+      return i18n.t("editor:ui.extend", { defaultValue: "Extend" });
+    default:
+      return i18n.t("editor:ui.motion", { defaultValue: "Motion" });
   }
-  if (mode === "image_edit") {
-    return "Image Edit";
-  }
-  if (mode === "video") {
-    return "Video";
-  }
-  if (mode === "image_to_video") {
-    return "Image→Video";
-  }
-  if (mode === "reference_to_video") {
-    return "Refs→Video";
-  }
-  if (mode === "audio") {
-    return "Speech";
-  }
-  if (mode === "chat") {
-    return "Chat";
-  }
-  if (mode === "audio_to_video") {
-    return "Audio→Video";
-  }
-  if (mode === "retake") {
-    return "Retake";
-  }
-  if (mode === "extend") {
-    return "Extend";
-  }
-  return "Motion";
 }
 
 interface ModeSelectChipProps {

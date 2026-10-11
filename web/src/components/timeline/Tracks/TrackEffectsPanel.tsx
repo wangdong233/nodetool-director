@@ -65,6 +65,7 @@ import {
   FONT_SIZE_SANS
 } from "../../ui_primitives";
 import { FX_PANEL_HEIGHT_PX } from "./trackHeight";
+import { useTranslation } from "react-i18next";
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -752,6 +753,7 @@ const Eq3Editor: React.FC<EffectEditorProps<TrackEq3Effect>> = ({
   onPatch,
   disabled
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Dragging a band re-renders this per frame; the row style alone was
   // serialized seven times each render.
@@ -774,21 +776,21 @@ const Eq3Editor: React.FC<EffectEditorProps<TrackEq3Effect>> = ({
       <FlexRow gap={0.5}>
         <div css={lowCss}>
           <div css={rowCss}>
-            <span>Low shelf</span>
+            <span>{t("timeline:attrs.lowShelf", { defaultValue: "Low shelf" })}</span>
             <b>{effect.lowGainDb >= 0 ? "+" : ""}{effect.lowGainDb.toFixed(1)} dB</b>
           </div>
           <div css={rowCss}>
-            <span>Freq</span>
+            <span>{t("timeline:attrs.freq", { defaultValue: "Freq" })}</span>
             <b>{formatHz(effect.lowFreq)}</b>
           </div>
         </div>
         <div css={midCss}>
           <div css={rowCss}>
-            <span>Mid peak</span>
+            <span>{t("timeline:attrs.midPeak", { defaultValue: "Mid peak" })}</span>
             <b>{effect.midGainDb >= 0 ? "+" : ""}{effect.midGainDb.toFixed(1)} dB</b>
           </div>
           <div css={rowCss}>
-            <span>Freq</span>
+            <span>{t("timeline:attrs.freq", { defaultValue: "Freq" })}</span>
             <b>{formatHz(effect.midFreq)}</b>
           </div>
           <div css={rowCss}>
@@ -798,19 +800,17 @@ const Eq3Editor: React.FC<EffectEditorProps<TrackEq3Effect>> = ({
         </div>
         <div css={highCss}>
           <div css={rowCss}>
-            <span>High shelf</span>
+            <span>{t("timeline:attrs.highShelf", { defaultValue: "High shelf" })}</span>
             <b>{effect.highGainDb >= 0 ? "+" : ""}{effect.highGainDb.toFixed(1)} dB</b>
           </div>
           <div css={rowCss}>
-            <span>Freq</span>
+            <span>{t("timeline:attrs.freq", { defaultValue: "Freq" })}</span>
             <b>{formatHz(effect.highFreq)}</b>
           </div>
         </div>
       </FlexRow>
-      <Tooltip title="Drag handles to set frequency & gain. Scroll on the mid handle to change Q.">
-        <Text size="smaller" color="secondary">
-          Drag bands · scroll mid for Q
-        </Text>
+      <Tooltip title={t("timeline:attrs.dragHandlesToSetFrequencyAndGainScrollOnTheMidHandleToChangeQ", { defaultValue: "Drag handles to set frequency & gain. Scroll on the mid handle to change Q." })}>
+        <Text size="smaller" color="secondary">{t("timeline:attrs.dragBands·ScrollMidForQ", { defaultValue: "Drag bands · scroll mid for Q" })}</Text>
       </Tooltip>
     </FlexColumn>
   );
@@ -820,30 +820,31 @@ const FilterEditor: React.FC<EffectEditorProps<TrackFilterEffect>> = ({
   effect,
   onPatch,
   disabled
-}) => (
-  <FlexColumn gap={0.5}>
-    <SelectField
-      label="Mode"
-      value={effect.mode}
-      onChange={(v) =>
-        onPatch({ mode: v as TrackFilterEffect["mode"] })
-      }
-      options={[
-        { value: "lowpass", label: "Low-pass" },
-        { value: "highpass", label: "High-pass" },
-        { value: "bandpass", label: "Band-pass" }
-      ]}
-      size="small"
-      disabled={disabled}
-    />
-    <KnobList
-      effect={effect}
-      knobs={KNOBS.filter}
-      onPatch={onPatch}
-      disabled={disabled}
-    />
-  </FlexColumn>
-);
+}) => {
+  const { t } = useTranslation();
+  return (
+    <FlexColumn gap={0.5}>
+      <SelectField
+        label={t("ui2:attrs.mode", { defaultValue: "Mode" })}
+        value={effect.mode}
+        onChange={(v) => onPatch({ mode: v as TrackFilterEffect["mode"] })}
+        options={[
+          { value: "lowpass", label: "Low-pass" },
+          { value: "highpass", label: "High-pass" },
+          { value: "bandpass", label: "Band-pass" }
+        ]}
+        size="small"
+        disabled={disabled}
+      />
+      <KnobList
+        effect={effect}
+        knobs={KNOBS.filter}
+        onPatch={onPatch}
+        disabled={disabled}
+      />
+    </FlexColumn>
+  );
+};
 
 // Compressor visualizer (Logic-style transfer curve)
 const COMP_DB_MIN = -60;
@@ -1249,6 +1250,7 @@ const CompressorEditor: React.FC<EffectEditorProps<TrackCompressorEffect>> = ({
   onPatch,
   disabled
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Dragging the transfer curve re-renders this per frame; the four tiles cost
   // thirteen serializations each time.
@@ -1274,25 +1276,25 @@ const CompressorEditor: React.FC<EffectEditorProps<TrackCompressorEffect>> = ({
         />
         <div css={gridCss}>
           <div css={threshTileCss}>
-            <span css={tileLabelCss}>Threshold</span>
+            <span css={tileLabelCss}>{t("timeline:attrs.threshold", { defaultValue: "Threshold" })}</span>
             <span css={tileValueCss}>
               {effect.thresholdDb.toFixed(1)} dB
             </span>
           </div>
           <div css={accentTileCss}>
-            <span css={tileLabelCss}>Ratio</span>
+            <span css={tileLabelCss}>{t("timeline:attrs.ratio", { defaultValue: "Ratio" })}</span>
             <span css={tileValueCss}>
               {effect.ratio.toFixed(1)}:1
             </span>
           </div>
           <div css={plainTileCss}>
-            <span css={tileLabelCss}>Knee</span>
+            <span css={tileLabelCss}>{t("timeline:attrs.knee", { defaultValue: "Knee" })}</span>
             <span css={tileValueCss}>
               {effect.kneeDb.toFixed(1)} dB
             </span>
           </div>
           <div css={plainTileCss}>
-            <span css={tileLabelCss}>Attack</span>
+            <span css={tileLabelCss}>{t("timeline:attrs.attack", { defaultValue: "Attack" })}</span>
             <span css={tileValueCss}>
               {formatMs(effect.attackMs)}
             </span>
@@ -1307,9 +1309,9 @@ const CompressorEditor: React.FC<EffectEditorProps<TrackCompressorEffect>> = ({
           disabled={disabled}
         />
       </FlexColumn>
-      <Tooltip title="Drag T to set threshold, R to set ratio. Scroll on T to change knee width.">
+      <Tooltip title={t("timeline:attrs.dragTToSetThresholdRToSetRatioScrollOnTToChangeKneeWidth", { defaultValue: "Drag T to set threshold, R to set ratio. Scroll on T to change knee width." })}>
         <Text size="smaller" color="secondary">
-          Drag T = threshold · R = ratio · scroll T = knee
+          {t("editor:ui.dragT=ThresholdR=RatioScrollT=Knee")}
         </Text>
       </Tooltip>
     </FlexColumn>
@@ -1424,6 +1426,7 @@ const swatchStyles = (theme: Theme) =>
 const ChromaKeyEditor: React.FC<
   EffectEditorProps<TrackChromaKeyEffect>
 > = ({ effect, onPatch, disabled }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <FlexColumn gap={0.5}>
@@ -1434,16 +1437,14 @@ const ChromaKeyEditor: React.FC<
             color: theme.vars.palette.text.secondary,
             width: 70
           }}
-        >
-          Key color
-        </span>
+        >{t("timeline:attrs.keyColor", { defaultValue: "Key color" })}</span>
         <input
           type="color"
           css={swatchStyles(theme)}
           value={effect.keyColor}
           disabled={disabled}
           onChange={(e) => onPatch({ keyColor: e.target.value })}
-          aria-label="Chroma key color"
+          aria-label={t("timeline:attrs.chromaKeyColor", { defaultValue: "Chroma key color" })}
         />
         <span
           css={{
@@ -1475,6 +1476,7 @@ const DRAG_MIME = "application/x-nodetool-effect-index";
 
 const EffectCard: React.FC<EffectCardProps> = memo(
   ({ trackId, effect, index }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const updateTrackEffect = useTimelineStore((s) => s.updateTrackEffect);
     const removeTrackEffect = useTimelineStore((s) => s.removeTrackEffect);
@@ -1572,13 +1574,13 @@ const EffectCard: React.FC<EffectCardProps> = memo(
       >
         <FlexRow css={effectHeaderStyles} sx={{ mb: 0.5 }}>
           <FlexRow gap={0.5} align="center">
-            <Tooltip title="Drag to reorder">
+            <Tooltip title={t("timeline:attrs.dragToReorder", { defaultValue: "Drag to reorder" })}>
               <div
                 css={gripCss}
                 draggable
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                aria-label="Drag to reorder effect"
+                aria-label={t("timeline:attrs.dragToReorderEffect", { defaultValue: "Drag to reorder effect" })}
                 role="button"
                 tabIndex={0}
               >
@@ -1593,12 +1595,12 @@ const EffectCard: React.FC<EffectCardProps> = memo(
             />
           </FlexRow>
           <FlexRow gap={0.5}>
-            <Tooltip title="Remove effect">
+            <Tooltip title={t("timeline:attrs.removeEffect", { defaultValue: "Remove effect" })}>
               <button
                 type="button"
                 css={removeButtonCss}
                 onClick={handleRemove}
-                aria-label="Remove effect"
+                aria-label={t("timeline:attrs.removeEffect", { defaultValue: "Remove effect" })}
               >
                 <DeleteOutlineIcon />
               </button>
@@ -1677,9 +1679,10 @@ interface TrackEffectsPanelProps {
 
 export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
   ({ trackId }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const track = useTimelineStore((s) =>
-      s.tracks.find((t) => t.id === trackId)
+      s.tracks.find((tr) => tr.id === trackId)
     );
     const addTrackEffect = useTimelineStore((s) => s.addTrackEffect);
 
@@ -1711,7 +1714,7 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
     const availableTypes = isVideo
       ? VIDEO_EFFECT_TYPES
       : AUDIO_EFFECT_TYPES;
-    const chainLabel = isVideo ? "FX Chain" : "DSP Chain";
+    const chainLabel = isVideo ? t("timeline:attrs.fxChain", { defaultValue: "FX Chain" }) : t("timeline:attrs.dspChain", { defaultValue: "DSP Chain" });
 
     return (
       <div css={containerStyles(theme)} data-testid="track-effects-panel">
@@ -1724,7 +1727,7 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
           </Text>
           <button type="button" css={addButtonStyles(theme)} onClick={handleOpenAdd}>
             <AddIcon />
-            Add
+            {t("ui2:attrs.add", { defaultValue: "Add" })}
           </button>
           <EditorMenu
             anchorEl={addAnchor}
@@ -1733,9 +1736,9 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
-            {availableTypes.map((t) => (
-              <NodeMenuItem key={t} onClick={() => handleAdd(t)}>
-                {EFFECT_LABELS[t]}
+            {availableTypes.map((type) => (
+              <NodeMenuItem key={type} onClick={() => handleAdd(type)}>
+                {EFFECT_LABELS[type]}
               </NodeMenuItem>
             ))}
           </EditorMenu>
@@ -1743,7 +1746,7 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
 
         {effects.length === 0 ? (
           <Text size="small" color="secondary">
-            No effects. Click <strong>Add</strong> to insert one.
+            No effects. Click <strong>{t("ui2:attrs.add", { defaultValue: "Add" })}</strong> to insert one.
           </Text>
         ) : (
           <div css={deviceRackStyles(theme)}>

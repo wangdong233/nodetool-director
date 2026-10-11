@@ -9,6 +9,7 @@ import type { PropertyProps } from "../node/PropertyInput";
 import PropertyLabel from "../node/PropertyLabel";
 import MediaControlChip from "../chat/composer/MediaControlChip";
 import MediaAspectRatioMenu from "../chat/composer/MediaAspectRatioMenu";
+import { useTranslation } from "react-i18next";
 import MediaOptionMenu, {
   type MediaOption
 } from "../chat/composer/MediaOptionMenu";
@@ -191,6 +192,7 @@ function OptionPicker<T extends string | number>({
 }
 
 export const MediaResolutionImageProperty = memo<PropertyProps>((props) => {
+  const { t } = useTranslation();
   const { resolutions } = useNodeImageModelConstraints(props.nodeId);
   const options = useMemo<MediaOption<string>[]>(
     () =>
@@ -205,7 +207,7 @@ export const MediaResolutionImageProperty = memo<PropertyProps>((props) => {
     <OptionPicker<string>
       {...props}
       options={options}
-      header="Image Resolution"
+      header={t("editor:ui.imageResolution", { defaultValue: "Image Resolution" })}
       icon={<DisplaySettingsIcon fontSize="small" />}
       defaultValue="1K"
     />
@@ -214,6 +216,7 @@ export const MediaResolutionImageProperty = memo<PropertyProps>((props) => {
 MediaResolutionImageProperty.displayName = "MediaResolutionImageProperty";
 
 export const MediaResolutionVideoProperty = memo<PropertyProps>((props) => {
+  const { t } = useTranslation();
   const { resolutions } = useNodeVideoModelConstraints(props.nodeId);
   const options = useMemo<MediaOption<string>[]>(
     () =>
@@ -228,7 +231,7 @@ export const MediaResolutionVideoProperty = memo<PropertyProps>((props) => {
     <OptionPicker<string>
       {...props}
       options={options}
-      header="Video Resolution"
+      header={t("editor:ui.videoResolution", { defaultValue: "Video Resolution" })}
       icon={<DisplaySettingsIcon fontSize="small" />}
       defaultValue="1080p"
     />
@@ -237,6 +240,7 @@ export const MediaResolutionVideoProperty = memo<PropertyProps>((props) => {
 MediaResolutionVideoProperty.displayName = "MediaResolutionVideoProperty";
 
 export const MediaDurationProperty = memo<PropertyProps>((props) => {
+  const { t } = useTranslation();
   const { durations } = useNodeVideoModelConstraints(props.nodeId);
   // Durations are not narrowed to the node's static list the way resolutions
   // are: the property is a plain integer of seconds, so every length the model
@@ -257,7 +261,7 @@ export const MediaDurationProperty = memo<PropertyProps>((props) => {
     <OptionPicker<number>
       {...props}
       options={options}
-      header="Duration"
+      header={t("timeline:attrs.duration", { defaultValue: "Duration" })}
       icon={<AccessTimeIcon fontSize="small" />}
       defaultValue={4}
       formatLabel={(v) => `${v} Sec`}
@@ -270,6 +274,7 @@ const strengthDescription = (s: number): string =>
   s <= 0.35 ? "subtle" : s >= 0.85 ? "strong" : "balanced";
 
 export const MediaStrengthProperty = memo<PropertyProps>((props) => {
+  const { t } = useTranslation();
   const options = useMemo<MediaOption<number>[]>(
     () =>
       IMAGE_EDIT_STRENGTHS.map((s) => ({
@@ -284,7 +289,7 @@ export const MediaStrengthProperty = memo<PropertyProps>((props) => {
     <OptionPicker<number>
       {...props}
       options={options}
-      header="Strength"
+      header={t("timeline:attrs.strength", { defaultValue: "Strength" })}
       icon={<TuneIcon fontSize="small" />}
       defaultValue={0.65}
       formatLabel={(v) => `${v.toFixed(2)} · ${strengthDescription(v)}`}

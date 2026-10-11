@@ -38,6 +38,7 @@ import DynamicSlotTypePicker from "./DynamicSlotTypePicker";
 import { normalizeDynamicSlot, slotType } from "../../utils/dynamicSlots";
 import { isSchemaDrivenDynamicNode } from "../../utils/dynamicSlotTypes";
 import { isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 export type { PropertyProps } from "./PropertyInput.types";
 
@@ -213,6 +214,7 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
   isConnected,
   onValueChange
 }: PropertyInputProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const containerCss = useMemo(
     () => propertyInputContainerStyles(theme),
@@ -450,7 +452,7 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
       inputField = (
         <form onSubmit={handleNameSubmit} className="property-input-form">
           <input
-            aria-label="Property name"
+            aria-label={t("editor:ui.propertyName", { defaultValue: "Property name" })}
             value={editedName}
             onChange={handleNameChange}
             onBlur={handleNameSubmit}
@@ -462,7 +464,7 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
       inputField = createElement(componentType, propertyProps);
     }
   } else {
-    inputField = <div>Unsupported property type</div>;
+    inputField = <div>{t("ui2:attrs.unsupportedPropertyType", { defaultValue: "Unsupported property type" })}</div>;
   }
   const handleDoubleClick = React.useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -522,7 +524,7 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
   const canvasResetButton =
     !isInspector && hasResetDefault ? (
       <Tooltip
-        title="Reset to default"
+        title={t("editor:ui.resetToDefault", { defaultValue: "Reset to default" })}
         placement="top"
         disableInteractive
         disabled={!isChanged}
@@ -530,8 +532,8 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
         <span className="property-reset-anchor">
           <ToolbarIconButton
             className={`reset-button${isChanged ? " is-active" : ""}`}
-            tooltip="Reset to default"
-            ariaLabel="Reset to default"
+            tooltip={t("editor:ui.resetToDefault", { defaultValue: "Reset to default" })}
+            ariaLabel={t("editor:ui.resetToDefault", { defaultValue: "Reset to default" })}
             tabIndex={isChanged ? 0 : -1}
             disabled={!isChanged}
             onClick={handleResetToDefault}
@@ -557,11 +559,11 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
 
   const inspectorResetButton =
     isInspector && hasResetDefault ? (
-      <Tooltip title="Reset to default" placement="top" disableInteractive>
+      <Tooltip title={t("editor:ui.resetToDefault", { defaultValue: "Reset to default" })} placement="top" disableInteractive>
         <span className="inspector-reset-tooltip" style={INLINE_FLEX_STYLE}>
           <ToolbarIconButton
             className={`inspector-reset-button${isChanged ? " is-changed" : ""}`}
-            ariaLabel="Reset to default"
+            ariaLabel={t("editor:ui.resetToDefault", { defaultValue: "Reset to default" })}
             onClick={handleResetToDefault}
             disabled={!isChanged}
             size="small"
@@ -586,7 +588,7 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
         {isConnected && !isImageInputType(property) ? (
           <div
             className="property-connected-disabled"
-            title="Driven by a connected input — disconnect the edge to edit"
+            title={t("editor:ui.drivenByAConnectedInputDisconnectTheEdgeToEdit", { defaultValue: "Driven by a connected input — disconnect the edge to edit" })}
           >
             <div inert>{inputField}</div>
           </div>
@@ -607,15 +609,15 @@ const PropertyInput: React.FC<PropertyInputProps> = ({
           )}
           <ToolbarIconButton
             className="action-icon"
-            tooltip={`Rename ${property.name}`}
-            ariaLabel={`Rename ${property.name}`}
+            tooltip={t("editor:ui.renameProperty", { defaultValue: "Rename {{name}}", name: property.name })}
+            ariaLabel={t("editor:ui.renameProperty", { defaultValue: "Rename {{name}}", name: property.name })}
             onClick={handleEditNameClick}
             icon={<Edit />}
           />
           <ToolbarIconButton
             className="action-icon close"
-            tooltip={`Delete ${property.name}`}
-            ariaLabel={`Delete ${property.name}`}
+            tooltip={t("editor:ui.deleteProperty", { defaultValue: "Delete {{name}}", name: property.name })}
+            ariaLabel={t("editor:ui.deleteProperty", { defaultValue: "Delete {{name}}", name: property.name })}
             onClick={handleDeleteClick}
             icon={<Close />}
           />

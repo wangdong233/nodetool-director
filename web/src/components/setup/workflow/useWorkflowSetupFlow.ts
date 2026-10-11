@@ -16,10 +16,7 @@
  */
 
 import { createElement, useCallback, useMemo, useState } from "react";
-import {
-  resolveWorkflowPlan,
-  WORKFLOW_INSPIRATION_CHIPS
-} from "@nodetool-ai/protocol";
+import { resolveWorkflowPlan } from "@nodetool-ai/protocol";
 import type {
   WorkflowSetupPlan,
   WorkflowSetupRunMode,
@@ -33,7 +30,7 @@ import {
   useWorkflowSetupStage,
   useWorkflowSetupWriter
 } from "../../../hooks/workflow/useWorkflowSetup";
-import { usePlanWorkflow } from "../../../hooks/workflow/usePlanWorkflow";
+import { usePlanWorkflow, pinnedChipPlan } from "../../../hooks/workflow/usePlanWorkflow";
 import {
   useBuildFromPlan,
   type BuildFromPlanResult
@@ -54,6 +51,8 @@ import { WorkflowIdeaStep } from "./IdeaStep";
 import { WorkflowReviewStep } from "./ReviewStep";
 import { WorkflowSetupStep } from "./SetupStep";
 import type { ModelRoleAvailability, ModelRoleChoices } from "./SetupStep";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const FLOW_LABELS = { title: "Workflow" } as const;
 
@@ -104,6 +103,7 @@ export const useWorkflowSetupFlow = ({
   onImport,
   onFinish
 }: WorkflowSetupFlowOptions): WorkflowSetupFlowResult => {
+  const { t } = useTranslation();
   const stage = useWorkflowSetupStage(workflowId);
   const setup = useWorkflowSetupDocument(workflowId);
   const { setSetup } = useWorkflowSetupWriter(workflowId);
@@ -131,9 +131,9 @@ export const useWorkflowSetupFlow = ({
 
   const brief = setup?.brief ?? "";
   const category = setup?.category;
-  const hasPinnedPlan = WORKFLOW_INSPIRATION_CHIPS.some(
-    (chip) => chip.brief.toLowerCase() === brief.trim().toLowerCase()
-  );
+  // One matcher for both sites: a chip writes its localized brief
+  // (显示即所发), so the pinned-plan match accepts either form.
+  const hasPinnedPlan = pinnedChipPlan(brief) !== null;
   const plan = setup?.plan ?? EMPTY_PLAN;
   const runMode: WorkflowSetupRunMode =
     setup?.run_mode ?? defaultRunModeFor(category);
@@ -267,7 +267,7 @@ export const useWorkflowSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: "Idea",
+        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
         canAdvance: !browsingExamples && brief.trim().length > 0,
         blockedReason: browsingExamples
@@ -301,7 +301,7 @@ export const useWorkflowSetupFlow = ({
         // Category and review are both step 2, so they collapse into one
         // stepper entry (PRD § 6.2).
         stage: "category",
-        label: "Plan",
+        label: i18n.t("editor:ui.plan", { defaultValue: "Plan" }),
         // Coming back to this step with the plan it produced still answering
         // the brief and category on screen, the button continues to that plan
         // instead of throwing it away and calling the model again (F15).
@@ -320,7 +320,7 @@ export const useWorkflowSetupFlow = ({
           ? undefined
           : {
               result: "Draft a plan of inputs, processing steps and outputs",
-              next: "Review the proposed nodes and required models next. Build places the nodes later; this click does not run the workflow.",
+              next: t("storyboard:attrs.reviewTheProposedNodesAndRequiredModelsNextBuildPlacesTheNodesLaterThisClickDoesNotRunTheWorkflow", { defaultValue: "Review the proposed nodes and required models next. Build places the nodes later; this click does not run the workflow." }),
               model: plannerModel,
               brief,
               maxOutputTokens: 4096,
@@ -374,7 +374,7 @@ export const useWorkflowSetupFlow = ({
       },
       {
         stage: "review",
-        label: "Plan",
+        label: i18n.t("editor:ui.plan", { defaultValue: "Plan" }),
         primaryLabel: "Continue to setup",
         // Criterion 4 and D23, plus the content gate: a step with no title, or
         // an output with no name, builds a node nobody can read afterwards, so
@@ -393,7 +393,7 @@ export const useWorkflowSetupFlow = ({
         // to read its wait: the creator cannot continue to setup while the
         // plan they are reading is being replaced (F2).
         pending: planning,
-        pendingLabel: "Re-planning the steps",
+        pendingLabel: t("storyboard:attrs.rePlanningTheSteps", { defaultValue: "Re-planning the steps" }),
         render: () =>
           createElement(WorkflowReviewStep, {
             plan,
@@ -428,15 +428,15 @@ export const useWorkflowSetupFlow = ({
       },
       {
         stage: "setup",
-        label: "Build",
-        primaryLabel: "Build your workflow",
+        label: i18n.t("editor:ui.build", { defaultValue: "Build" }),
+        primaryLabel: t("storyboard:attrs.buildYourWorkflow", { defaultValue: "Build your workflow" }),
         // The label the PRD fixes (Appendix A) names the build, and § 11.3
         // makes the run part of it. The line beside the button says so before
         // the click; the step's own "Before you build" block carries the
         // models and the sample inputs that run will use (F1).
-        primaryDetail: "Builds, checks, then runs it once",
+        primaryDetail: t("storyboard:attrs.buildsChecksThenRunsItOnce", { defaultValue: "Builds, checks, then runs it once" }),
         pending: building,
-        pendingLabel: "Building the graph, then running it once",
+        pendingLabel: t("storyboard:attrs.buildingTheGraphThenRunningItOnce", { defaultValue: "Building the graph, then running it once" }),
         render: () =>
           createElement(WorkflowSetupStep, {
             plan,
@@ -487,6 +487,7 @@ export const useWorkflowSetupFlow = ({
       exampleError,
       handlePickExample,
       hasPinnedPlan,
+      t,
       pickingExampleId,
       buildFromPlan,
       cancelBuild,

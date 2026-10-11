@@ -20,8 +20,10 @@ import {
   formatFileSize
 } from "../../utils/formatUtils";
 import { secondsToHMS } from "../../utils/formatDateAndTime";
+import { useAppLanguage } from "../../i18n";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
+import { useTranslation } from "react-i18next";
 
 /** Metadata keys rendered by their own section, not by the raw dump. */
 const RENDERED_METADATA_KEYS = new Set(["prompt", "generation"]);
@@ -106,7 +108,10 @@ function settingLabel(key: string) {
 }
 
 const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({ asset }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
+  // Subscribe so formatContentType/date reads re-render on language change.
+  useAppLanguage();
   const currentFolder = useAssetGridStore((state) => state.currentFolder);
   const getWorkflow = useWorkflowManager((state) => state.getWorkflow);
 
@@ -153,23 +158,23 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({ asset }) => {
         <img className="info-thumb" src={thumbSrc} alt="" loading="eager" />
       )}
 
-      <InfoRow label="Name" value={asset.name} />
+      <InfoRow label={t("editor:asset.info.name", { defaultValue: "Name" })} value={asset.name} />
       <InfoRow
-        label="Type"
+        label={t("editor:asset.info.type", { defaultValue: "Type" })}
         value={asset.content_type ? formatContentType(asset.content_type) : null}
       />
       {asset.size != null && asset.size > 0 && (
-        <InfoRow label="Size" value={formatFileSize(asset.size)} />
+        <InfoRow label={t("editor:asset.info.size", { defaultValue: "Size" })} value={formatFileSize(asset.size)} />
       )}
       {asset.duration != null && asset.duration > 0 && (
-        <InfoRow label="Duration" value={secondsToHMS(asset.duration)} />
+        <InfoRow label={t("editor:asset.info.duration", { defaultValue: "Duration" })} value={secondsToHMS(asset.duration)} />
       )}
-      <InfoRow label="Created" value={formatDateTime(asset.created_at)} />
+      <InfoRow label={t("editor:asset.info.created", { defaultValue: "Created" })} value={formatDateTime(asset.created_at)} />
 
       {(folderName || workflowName) && (
         <div className="info-section">
-          {folderName && <InfoRow label="Folder" value={folderName} />}
-          {workflowName && <InfoRow label="Workflow" value={workflowName} />}
+          {folderName && <InfoRow label={t("editor:asset.info.folder", { defaultValue: "Folder" })} value={folderName} />}
+          {workflowName && <InfoRow label={t("editor:asset.info.workflow", { defaultValue: "Workflow" })} value={workflowName} />}
         </div>
       )}
 
@@ -177,9 +182,9 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({ asset }) => {
         <div className="info-section">
           <FlexRow align="center" justify="space-between">
             <Text className="info-section-title" component="span">
-              Prompt
+              {t("editor:asset.info.prompt", { defaultValue: "Prompt" })}
             </Text>
-            <CopyButton value={prompt} tooltip="Copy prompt" buttonSize="small" />
+            <CopyButton value={prompt} tooltip={t("editor:asset.info.copyPrompt", { defaultValue: "Copy prompt" })} buttonSize="small" />
           </FlexRow>
           <Text className="info-prompt" component="p">
             {prompt}
@@ -189,10 +194,10 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({ asset }) => {
 
       {generation && (
         <div className="info-section">
-          <InfoRow label="Model" value={generation.model_name ?? generation.model} />
-          <InfoRow label="Provider" value={generation.provider} />
-          <InfoRow label="Node" value={generation.node_type} />
-          <InfoRow label="Task" value={generation.capability} />
+          <InfoRow label={t("editor:asset.info.model", { defaultValue: "Model" })} value={generation.model_name ?? generation.model} />
+          <InfoRow label={t("editor:asset.info.provider", { defaultValue: "Provider" })} value={generation.provider} />
+          <InfoRow label={t("editor:asset.info.node", { defaultValue: "Node" })} value={generation.node_type} />
+          <InfoRow label={t("editor:asset.info.task", { defaultValue: "Task" })} value={generation.capability} />
           {settings &&
             Object.entries(settings).map(([key, value]) => (
               <InfoRow

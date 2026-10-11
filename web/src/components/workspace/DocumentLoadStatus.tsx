@@ -1,5 +1,6 @@
 import type { DocumentLoadState } from "../../stores/documentSync";
 import { EmptyState, FlexColumn, LoadingSpinner } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface DocumentLoadStatusProps {
   state: Exclude<DocumentLoadState, "ready">;
@@ -16,7 +17,9 @@ interface DocumentLoadStatusProps {
  * straight away shows an empty document — indistinguishable from a document
  * that really is empty. This shows the load instead.
  */
-const DocumentLoadStatus = ({ state, label }: DocumentLoadStatusProps) => (
+const DocumentLoadStatus = ({ state, label }: DocumentLoadStatusProps) => {
+  const { t } = useTranslation();
+  return (
   <FlexColumn
     fullWidth
     fullHeight
@@ -25,15 +28,27 @@ const DocumentLoadStatus = ({ state, label }: DocumentLoadStatusProps) => (
     sx={{ minHeight: 0 }}
   >
     {state === "loading" ? (
-      <LoadingSpinner text={`Loading ${label}…`} />
+      <LoadingSpinner
+        text={t("ui2:attrs.loadingDocument", {
+          defaultValue: "Loading {{label}}…",
+          label
+        })}
+      />
     ) : (
       <EmptyState
         variant="error"
-        title={`Could not load this ${label}`}
-        description="The server did not answer. Close the tab and open it again to retry."
+        title={t("ui2:attrs.couldNotLoadDocument", {
+          defaultValue: "Could not load this {{label}}",
+          label
+        })}
+        description={t("ui2:attrs.loadFailedRetry", {
+          defaultValue:
+            "The server did not answer. Close the tab and open it again to retry."
+        })}
       />
     )}
   </FlexColumn>
-);
+)
+  };
 
 export default DocumentLoadStatus;

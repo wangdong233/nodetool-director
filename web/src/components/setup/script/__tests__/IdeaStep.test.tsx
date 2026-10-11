@@ -22,6 +22,7 @@ import {
 } from "../../../../lib/script/importedScript";
 import { scriptSetupContextPatch } from "../scriptSetupContext";
 import { useScriptStore } from "../../../../stores/script/ScriptStore";
+import { changeAppLanguage } from "../../../../i18n";
 import { IdeaStep } from "../IdeaStep";
 
 const SCRIPT_ID = "s-idea";
@@ -266,5 +267,28 @@ describe("script IdeaStep", () => {
     );
 
     expect(onStartBlank).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("script IdeaStep examples (zh)", () => {
+  // 显示即所发: the chip's display text IS the brief it writes, so the
+  // localized label and the inserted text cannot diverge.
+  afterEach(async () => {
+    await changeAppLanguage("en");
+  });
+
+  it("inserts the same localized text a chip shows", async () => {
+    await changeAppLanguage("zh-CN");
+    const user = userEvent.setup();
+    renderStep();
+
+    const chip = await screen.findByText(
+      "一条六十秒的科普视频，讲潮汐钟是怎么工作的"
+    );
+    await user.click(chip);
+
+    expect(setupNow()?.brief).toBe(
+      "一条六十秒的科普视频，讲潮汐钟是怎么工作的"
+    );
   });
 });

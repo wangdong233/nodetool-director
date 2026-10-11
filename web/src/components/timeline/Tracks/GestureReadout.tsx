@@ -22,6 +22,7 @@ import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import type { GestureReadout as GestureReadoutValue } from "../../../stores/timeline/TimelineUIStore";
 import { formatTimecode } from "../Inspector/InspectorPrimitives.helpers";
+import { i18n } from "../../../i18n";
 import {
   BORDER_RADIUS,
   FONT_SIZE_MONO,

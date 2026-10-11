@@ -25,6 +25,8 @@ import {
   Tooltip,
   ToolbarIconButton
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 /** Opens a thread as a chat tab, leaving the rest of the workspace in place. */
 const useOpenThreadTab = () => {
@@ -38,7 +40,7 @@ const useOpenThreadTab = () => {
         type: "chat",
         ref: threadId,
         mode: "view",
-        title: title || "New chat",
+        title: title || i18n.t("editor:chat.newChat", { defaultValue: "New chat" }),
         projectId
       });
       if (!location.pathname.startsWith("/workspace")) {
@@ -56,6 +58,7 @@ interface CreateChatButtonProps {
 export const CreateChatButton = memo(function CreateChatButton({
   projectId
 }: CreateChatButtonProps) {
+  const { t } = useTranslation();
   const createNewThread = useGlobalChatStore((state) => state.createNewThread);
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -73,15 +76,15 @@ export const CreateChatButton = memo(function CreateChatButton({
       console.error("Failed to create new chat thread:", error);
       addNotification({
         type: "error",
-        content: "Could not start a new conversation. Please try again."
+        content: i18n.t("editor:chat.startFailed", { defaultValue: "Could not start a new conversation. Please try again." })
       });
     }
   }, [createNewThread, openThreadTab, addNotification, projectId]);
 
   return (
-    <Tooltip title="New chat" placement="right-start">
+    <Tooltip title={t("editor:chat.newChat", { defaultValue: "New chat" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New chat"
+        ariaLabel={t("editor:chat.newChat", { defaultValue: "New chat" })}
         onClick={() => void handleCreate()}
         tabIndex={-1}
         icon={<AddIcon />}
@@ -100,6 +103,7 @@ interface ChatListPanelProps {
 }
 
 const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
+  const { t } = useTranslation();
   const [filterValue, setFilterValue] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const autoFocusEnabled = useAutoFocusEnabled();
@@ -135,7 +139,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
     (threadId: string) =>
       threads[threadId]
         ? threadPreview(threads[threadId].title, messageCache[threadId])
-        : "Empty conversation",
+        : t("editor:chat.emptyConversation", { defaultValue: "Empty conversation" }),
     [threads, messageCache]
   );
 
@@ -178,7 +182,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
         console.error("Failed to delete thread:", error);
         addNotification({
           type: "error",
-          content: "Could not delete the conversation. Please try again."
+          content: i18n.t("editor:chat.deleteFailed", { defaultValue: "Could not delete the conversation. Please try again." })
         });
       });
     },
@@ -206,7 +210,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
           ref={searchRef}
           value={filterValue}
           onChange={setFilterValue}
-          placeholder="Search conversations..."
+          placeholder={t("editor:chat.searchConversations", { defaultValue: "Search conversations…" })}
         />
       </FlexColumn>
 
@@ -218,7 +222,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
             role="status"
             aria-live="polite"
           >
-            <ShimmerText>Loading conversations…</ShimmerText>
+            <ShimmerText>{t("editor:ui.loadingConversations", { defaultValue: "Loading conversations…" })}</ShimmerText>
           </Text>
         </FlexColumn>
       ) : threadsError ? (
@@ -230,7 +234,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
         >
           <EmptyState
             variant="error"
-            title="Could not load conversations"
+            title={t("editor:chat.loadFailed", { defaultValue: "Could not load conversations" })}
             description={threadsError}
           />
         </FlexColumn>
@@ -242,8 +246,8 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
           sx={{ flex: 1, px: 2 }}
         >
           <EmptyState
-            title="No conversations yet"
-            description="Start a chat from the workspace New menu."
+            title={t("editor:chat.noneYet", { defaultValue: "No conversations yet" })}
+            description={t("editor:chat.noneYetDesc", { defaultValue: "Start a chat from the workspace New menu." })}
           />
         </FlexColumn>
       ) : (

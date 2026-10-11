@@ -55,6 +55,7 @@ import {
   isObjectLike,
   isString
 } from "./utils/typePredicates";
+import { i18n } from "./i18n";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, enabled: false } }
@@ -284,7 +285,7 @@ export default function App() {
         const params = new URLSearchParams(window.location.search);
         const dataParam = params.get("data");
         if (!dataParam) {
-          setError("No ?data= param. Pass base64-encoded workflow JSON.");
+          setError(i18n.t("editor:ui.noData=ParamPassBase64encodedWorkflowJSON", { defaultValue: "No ?data= param. Pass base64-encoded workflow JSON." }));
           return;
         }
 

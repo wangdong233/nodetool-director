@@ -2,6 +2,7 @@
 import { memo, useMemo } from "react";
 
 import { BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 interface GhostNodeProps {
   position: { x: number; y: number };
   label: string | null;
@@ -24,6 +25,7 @@ const GhostNode = memo(function GhostNode({
   nodeType,
   theme
 }: GhostNodeProps) {
+  const { t } = useTranslation();
   const styles = useMemo(
     () => ({
       container: {
@@ -80,7 +82,7 @@ const GhostNode = memo(function GhostNode({
       <div style={styles.labelContainer}>
         {label ?? nodeType.split(".").pop()}
       </div>
-      <div style={styles.hint}>Click to place · Esc to cancel</div>
+      <div style={styles.hint}>{t("editor:ui.clickToPlaceEscToCancel", { defaultValue: "Click to place · Esc to cancel" })}</div>
     </div>
   );
 });

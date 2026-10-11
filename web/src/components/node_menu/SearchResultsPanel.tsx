@@ -9,6 +9,7 @@ import usePendingNodeCreateStore from "../../stores/PendingNodeCreateStore";
 import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
 import { EmptyState } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface SearchResultsPanelProps {
   searchNodes: NodeMetadata[];
@@ -26,6 +27,7 @@ const SearchResultsPanel: React.FC<SearchResultsPanelProps> = ({
   searchNodes,
   compact = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Route click-to-add via PendingNodeCreateStore (safe outside the editor's
   // ReactFlowProvider, e.g. inside the left-panel Search view).
@@ -77,8 +79,8 @@ const SearchResultsPanel: React.FC<SearchResultsPanelProps> = ({
     return (
       <EmptyState
         variant="no-results"
-        title="No matching nodes"
-        description="Try a different search term or adjust your filters."
+        title={t("editor:ui.noMatchingNodes", { defaultValue: "No matching nodes" })}
+        description={t("editor:ui.tryADifferentSearchTermOrAdjustYourFilters")}
         size="small"
       />
     );

@@ -14,6 +14,7 @@
 
 import React, { memo, useCallback, useRef } from "react";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import { useTranslation } from "react-i18next";
 import {
   ANIMATED_PROPERTIES,
   parseEasing,
@@ -201,6 +202,7 @@ const CurveEditor: React.FC<CurveEditorProps> = memo(
     onPatchKeyframe,
     onRemoveKeyframe
   }) => {
+    const { t } = useTranslation();
     const curveLabel = `${labelPrefix} curve ${curveIndex + 1}`;
     const handleRemove = useCallback(
       () => onRemoveCurve(curveIndex),
@@ -230,7 +232,7 @@ const CurveEditor: React.FC<CurveEditorProps> = memo(
             sx={CURVE_DELETE_SX}
           />
         </FlexRow>
-        <InspectorRow label="Property">
+        <InspectorRow label={t("timeline:attrs.property", { defaultValue: "Property" })}>
           <InspectorSelect
             label={`${curveLabel} property`}
             value={curve.property}
@@ -281,6 +283,7 @@ interface ClipCustomCurvesProps {
 
 export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
   ({ custom, labelPrefix, sourceAnchored, onChange }) => {
+    const { t } = useTranslation();
     const curves = custom?.curves ?? [];
     const bakedFromCode = custom?.code !== undefined;
     const bakedFrom = custom?.bakedFrom;
@@ -376,7 +379,7 @@ export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
       <FlexColumn gap={SPACING.md}>
         {sourceAnchored && (
           <Caption color="muted">
-            Keyframes are placed on the media clock (source ms)
+            {t("editor:ui.keyframesArePlacedOnTheMediaClockSourceMs")}
           </Caption>
         )}
         {bakedFrom && (
@@ -398,8 +401,8 @@ export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
         ))}
         <Caption color="muted">
           {sourceAnchored
-            ? "Columns are source time (ms, read-only), value, and easing: "
-            : "Columns are time (0..1 across the animation), value, and easing: "}
+            ? t("timeline:attrs.columnsAreSourceTimeMsReadonlyValueAndEasing", { defaultValue: "Columns are source time (ms, read-only), value, and easing: " })
+            : t("timeline:attrs.columnsAreTime01AcrossTheAnimationValueAndEasing", { defaultValue: "Columns are time (0..1 across the animation), value, and easing: " })}
           {EASING_HINT}
         </Caption>
         <Button
@@ -407,9 +410,7 @@ export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
           variant="outlined"
           startIcon={<AddOutlinedIcon />}
           onClick={addCurve}
-        >
-          Add curve
-        </Button>
+        >{t("timeline:attrs.addCurve", { defaultValue: "Add curve" })}</Button>
       </FlexColumn>
     );
   }

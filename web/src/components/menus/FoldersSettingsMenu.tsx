@@ -23,6 +23,8 @@ import { isElectron } from "../../utils/browser";
 import { isLocalhost } from "../../lib/env";
 import { NavButton, NodeTextField, ToolbarIconButton } from "../ui_primitives";
 import { SettingWithValue } from "../../stores/RemoteSettingStore";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface FolderButtonProps {
   label: string;
@@ -48,6 +50,7 @@ interface OpenFolderButtonProps {
 }
 
 const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
+  const { t } = useTranslation();
   const handleClick = useCallback(() => {
     if (settingValue) {
       openInExplorer(settingValue);
@@ -61,7 +64,7 @@ const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
   return (
     <ToolbarIconButton
       icon={<FolderOutlinedIcon fontSize="small" />}
-      tooltip="Open folder in file explorer"
+      tooltip={t("editor:ui.openFolderInFileExplorer", { defaultValue: "Open folder in file explorer" })}
       onClick={handleClick}
       sx={{ ml: 1 }}
     />
@@ -71,6 +74,7 @@ const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
 OpenFolderButton.displayName = "OpenFolderButton";
 
 const FoldersSettings = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const updateSettings = useRemoteSettingsStore((state) => state.updateSettings);
   const fetchSettings = useRemoteSettingsStore((state) => state.fetchSettings);
@@ -133,7 +137,10 @@ const FoldersSettings = () => {
     },
     onError: (error: Error) => {
       addNotification({
-        content: `Could not save folder settings: ${error.message}`,
+        content: i18n.t("tools:menus.couldNotSaveFolderSettings", {
+          defaultValue: "Could not save folder settings: {{message}}",
+          message: error.message
+        }),
         type: "error",
         alert: true
       });
@@ -168,7 +175,9 @@ const FoldersSettings = () => {
       {
         onSuccess: () => {
           addNotification({
-            content: "Folder settings have been saved successfully",
+            content: i18n.t("tools:menus.folderSettingsHaveBeenSavedSuccessfully", {
+              defaultValue: "Folder settings have been saved successfully"
+            }),
             type: "success",
             alert: true
           });
@@ -186,7 +195,7 @@ const FoldersSettings = () => {
     <>
       {isLoading && (
         <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-          Loading folder settings…
+          {t("editor:ui.loadingFolderSettings", { defaultValue: "Loading folder settings…" })}
         </Text>
       )}
       <div
@@ -194,27 +203,27 @@ const FoldersSettings = () => {
         css={getSharedSettingsStyles(theme)}
       >
         <div className="settings-main-content">
-          <Text size="giant">Folder Settings</Text>
+          <Text size="giant">{t("ui2:attrs.folderSettings", { defaultValue: "Folder Settings" })}</Text>
 
           {canOpenSystemFolders && (
             <div className="settings-section">
               <Text size="big" id="system-folders">
-                System Folders
+                {t("editor:ui.systemFolders", { defaultValue: "System Folders" })}
               </Text>
               <Text className="description" sx={{ mb: 2 }}>
-                Open important Nodetool directories in your file explorer.
+                {t("editor:ui.openImportantNodetoolDirectoriesInYourFileExplorer")}
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton
-                  label="Nodetool Installation"
+                  label={t("editor:ui.nodetoolInstallation", { defaultValue: "Nodetool Installation" })}
                   onClick={openInstallationPath}
                 />
                 <FolderButton
-                  label="Nodetool Logs"
+                  label={t("editor:ui.nodetoolLogs", { defaultValue: "Nodetool Logs" })}
                   onClick={openLogsPath}
                 />
                 <FolderButton
-                  label="Assets Storage"
+                  label={t("editor:ui.assetsStorage", { defaultValue: "Assets Storage" })}
                   onClick={openAssetsPath}
                 />
               </FlexColumn>
@@ -224,18 +233,18 @@ const FoldersSettings = () => {
           {canOpenFolders && (
             <div className="settings-section">
               <Text size="big" id="model-folders">
-                Model Folders
+                {t("editor:ui.modelFolders")}
               </Text>
               <Text className="description" sx={{ mb: 2 }}>
-                Open model cache directories in your file explorer.
+                {t("editor:ui.openModelCacheDirectoriesInYourFileExplorer")}
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton
-                  label="HuggingFace Models"
+                  label={t("editor:ui.huggingfaceModels", { defaultValue: "HuggingFace Models" })}
                   onClick={openHuggingfacePath}
                 />
                 <FolderButton
-                  label="Ollama Models"
+                  label={t("editor:ui.ollamaModels", { defaultValue: "Ollama Models" })}
                   onClick={openOllamaPath}
                 />
               </FlexColumn>
@@ -248,7 +257,10 @@ const FoldersSettings = () => {
                 ([groupName, groupSettings]) => {
                   // "Custom" prefix disambiguates from the system/model folder sections above.
                   const showCustomPrefix = canOpenFolders || canOpenSystemFolders;
-                  const sectionTitle = showCustomPrefix ? `Custom ${groupName}` : groupName;
+                  const localizedGroupName = t("editor:ui.foldersSectionTitle", { defaultValue: groupName });
+                  const sectionTitle = showCustomPrefix
+                    ? t("editor:ui.customFoldersSection", { defaultValue: "Custom {{group}}", group: localizedGroupName })
+                    : localizedGroupName;
                   
                   return (
                     <div key={groupName} className="settings-section">
@@ -260,7 +272,7 @@ const FoldersSettings = () => {
                               type="text"
                               autoComplete="off"
                               id={`${setting.env_var.toLowerCase()}-input`}
-                              label={setting.env_var.replace(/_/g, " ")}
+                              label={t(`settings:remote.${setting.env_var}.label`, { defaultValue: setting.env_var.replace(/_/g, " ") })}
                               value={settingValues[setting.env_var] || ""}
                               onChange={(e) =>
                                 handleChange(setting.env_var, e.target.value)
@@ -272,7 +284,7 @@ const FoldersSettings = () => {
                           </FlexRow>
                           {setting.description && (
                             <Text className="description">
-                              {setting.description}
+                              {t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description })}
                             </Text>
                           )}
                         </div>
@@ -285,7 +297,7 @@ const FoldersSettings = () => {
               <div className="save-button-container">
                 <NavButton
                   icon={<SaveIcon />}
-                  label="SAVE FOLDER SETTINGS"
+                  label={t("editor:ui.saveFolderSettings", { defaultValue: "SAVE FOLDER SETTINGS" })}
                   onClick={handleSave}
                   color="primary"
                   className="save-button"
@@ -302,8 +314,10 @@ const FoldersSettings = () => {
             
             return showNoSettingsMessage ? (
               <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-                No folder settings available or defined in the &apos;Folders&apos;
-                group.
+                {t("editor:ui.noFolderSettingsAvailable", {
+                  defaultValue:
+                    "No folder settings available or defined in the 'Folders' group."
+                })}
               </Text>
             ) : null;
           })()}

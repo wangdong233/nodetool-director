@@ -33,6 +33,8 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { newDocumentId } from "../../lib/newDocumentId";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DRAG_IMAGE_Z_INDEX = 9999;
@@ -78,7 +80,7 @@ function createTimelineDragImage(name: string): HTMLElement {
   container.appendChild(icon);
 
   const label = document.createElement("div");
-  label.textContent = name || "Untitled video";
+  label.textContent = name || i18n.t("timeline:list.untitled", { defaultValue: "Untitled video" });
   label.style.cssText = `
     min-width: 0;
     overflow: hidden;
@@ -115,6 +117,9 @@ const TimelineListItem = memo(function TimelineListItem({
   onCommitRename,
   onCancelRename
 }: TimelineListItemProps) {
+  // Language anchor for the memo'd row (F-26): the fallback name and the
+  // rename field label render through `t`.
+  const { t } = useTranslation();
   const setActiveDrag = useDragDropStore((state) => state.setActiveDrag);
   const clearDrag = useDragDropStore((state) => state.clearDrag);
   const handleDragStart = useCallback(
@@ -149,8 +154,8 @@ const TimelineListItem = memo(function TimelineListItem({
     <ListPanelItem
       id={id}
       name={name}
-      fallbackName="Untitled video"
-      renameLabel="Timeline name"
+      fallbackName={t("timeline:list.untitled", { defaultValue: "Untitled video" })}
+      renameLabel={t("editor:ui.timelineName", { defaultValue: "Timeline name" })}
       icon={MovieOutlinedIcon}
       active={active}
       editing={editing}
@@ -166,6 +171,7 @@ const TimelineListItem = memo(function TimelineListItem({
 });
 
 export const CreateTimelineButton = memo(function CreateTimelineButton() {
+  const { t } = useTranslation();
   const createTimeline = useCreateTimeline();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -176,7 +182,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
     try {
       const timeline = await createTimeline.mutateAsync({
         id: newDocumentId(),
-        name: "Untitled video",
+        name: i18n.t("timeline:list.untitled", { defaultValue: "Untitled video" }),
         projectId: creationProjectId()
       });
       if (location.pathname.startsWith("/workspace")) {
@@ -234,7 +240,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
         addNotification({
           type: "success",
           alert: true,
-          content: `Imported ${timeline.name || "Untitled video"}`
+          content: i18n.t("timeline:list.imported", { defaultValue: "Imported {{name}}", name: timeline.name || i18n.t("timeline:list.untitled", { defaultValue: "Untitled video" }) })
         });
         if (result.missing.length > 0) {
           addNotification({
@@ -254,18 +260,18 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
 
   return (
     <FlexRow align="center" gap={SPACING.xs}>
-      <Tooltip title="New timeline" placement="right-start">
+      <Tooltip title={t("timeline:list.newTimeline", { defaultValue: "New timeline" })} placement="right-start">
         <ToolbarIconButton
-          ariaLabel="New timeline"
+          ariaLabel={t("timeline:list.newTimeline", { defaultValue: "New timeline" })}
           onClick={() => void handleCreate()}
           disabled={createTimeline.isPending}
           tabIndex={-1}
           icon={<AddIcon />}
         />
       </Tooltip>
-      <Tooltip title="Import timeline (.zip)" placement="right-start">
+      <Tooltip title={t("timeline:list.importArchive", { defaultValue: "Import timeline (.zip)" })} placement="right-start">
         <ToolbarIconButton
-          ariaLabel="Import timeline (.zip)"
+          ariaLabel={t("timeline:list.importArchive", { defaultValue: "Import timeline (.zip)" })}
           onClick={handleImportClick}
           disabled={isImporting}
           tabIndex={-1}
@@ -276,7 +282,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
         ref={fileInputRef}
         type="file"
         accept=".zip,application/zip"
-        aria-label="Import timeline archive"
+        aria-label={t("timeline:list.importTooltip", { defaultValue: "Import timeline archive" })}
         style={{ display: "none" }}
         onChange={(event) => void handleImportFile(event)}
       />
@@ -289,6 +295,8 @@ interface TimelineListPanelProps {
 }
 
 const TimelineListPanel = ({ projectId }: TimelineListPanelProps) => {
+  // Language anchor: the panel chrome (nouns, empty copy) renders through `t`.
+  const { t } = useTranslation();
   const { data, isLoading, isError, error } = useTimelines(projectId);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const activeTabId = useWorkspaceTabsStore((state) => state.activeTabId);
@@ -402,13 +410,13 @@ const TimelineListPanel = ({ projectId }: TimelineListPanelProps) => {
 
   return (
     <DocumentListPanel
-      singular="timeline"
-      plural="timelines"
+      singular={t("editor:ui.timelineNoun", { defaultValue: "timeline" })}
+      plural={t("editor:ui.timelinesNoun", { defaultValue: "timelines" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create a new video timeline with the + button above."
+      emptyDescription={t("editor:ui.createANewVideoTimelineWithThe+ButtonAbove", { defaultValue: "Create a new video timeline with the + button above." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}

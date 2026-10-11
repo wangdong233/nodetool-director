@@ -1,4 +1,20 @@
 /** Display copy stays separate from the complete generation descriptor. */
+export const STYLE_DESCRIPTION_KEYS: Readonly<Record<string, string>> = {
+  comic: "storyboard:attrs.styleComic",
+  cinematic: "storyboard:attrs.styleCinematic",
+  "soft-pencil": "storyboard:attrs.styleSoftPencil",
+  "animation-3d": "storyboard:attrs.styleAnimation3d",
+  "watercolor-paint": "storyboard:attrs.styleWatercolorPaint",
+  "photo-commercial": "storyboard:attrs.stylePhotoCommercial",
+  "charcoal-sketch": "storyboard:attrs.styleCharcoalSketch",
+  "dark-anime": "storyboard:attrs.styleDarkAnime",
+  "flat-vector": "storyboard:attrs.styleFlatVector",
+  noir: "storyboard:attrs.styleNoir",
+  "stick-figure": "storyboard:attrs.styleStickFigure",
+  "graphic-novel": "storyboard:attrs.styleGraphicNovel"
+};
+
+/** Display copy stays separate from the complete generation descriptor. */
 export const STYLE_DESCRIPTIONS: Readonly<Record<string, string>> = {
   comic: "Bold ink outlines, flat bright colours and printed halftone dots.",
   cinematic:

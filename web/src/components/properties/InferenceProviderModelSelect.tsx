@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import isEqual from "../../utils/isEqual";
 import Select from "../inputs/Select";
 import type { PropertyProps } from "../node/PropertyInput";
+import { useTranslation } from "react-i18next";
 
 interface HuggingFaceModel {
   id: string;
@@ -32,23 +33,23 @@ const fetchModelsForProvider = async (provider: InferenceProvider, pipelineTag: 
 };
 
 const providerOptions = [
-    { label: "Cerebras", value: "cerebras" },
-    { label: "Cohere", value: "cohere" },
-    { label: "Fal AI", value: "fal-ai" },
-    { label: "Featherless AI", value: "featherless-ai" },
-    { label: "Fireworks AI", value: "fireworks-ai" },
-    { label: "Groq", value: "groq" },
-    { label: "HF Inference", value: "hf-inference" },
-    { label: "Hyperbolic", value: "hyperbolic" },
-    { label: "Nebius", value: "nebius" },
-    { label: "Novita", value: "novita" },
-    { label: "Nscale", value: "nscale" },
-    { label: "OpenAI", value: "openai" },
-    { label: "Replicate", value: "replicate" },
-    { label: "Sambanova", value: "sambanova" },
-    { label: "Together", value: "together" },
-    { label: "Z.AI", value: "zai-org" },
-    { label: "Add providers…", value: "__add_providers" }
+    { label: "Cerebras", labelKey: "cerebras", value: "cerebras" },
+    { label: "Cohere", labelKey: "cohere", value: "cohere" },
+    { label: "Fal AI", labelKey: "falAI", value: "fal-ai" },
+    { label: "Featherless AI", labelKey: "featherlessAI", value: "featherless-ai" },
+    { label: "Fireworks AI", labelKey: "fireworksAI", value: "fireworks-ai" },
+    { label: "Groq", labelKey: "groq", value: "groq" },
+    { label: "HF Inference", labelKey: "hfInference", value: "hf-inference" },
+    { label: "Hyperbolic", labelKey: "hyperbolic", value: "hyperbolic" },
+    { label: "Nebius", labelKey: "nebius", value: "nebius" },
+    { label: "Novita", labelKey: "novita", value: "novita" },
+    { label: "Nscale", labelKey: "nscale", value: "nscale" },
+    { label: "OpenAI", labelKey: "openai", value: "openai" },
+    { label: "Replicate", labelKey: "replicate", value: "replicate" },
+    { label: "Sambanova", labelKey: "sambanova", value: "sambanova" },
+    { label: "Together", labelKey: "together", value: "together" },
+    { label: "Z.AI", labelKey: "zAI", value: "zai-org" },
+    { label: "Add providers…", labelKey: "addProviders", value: "__add_providers" }
 ];
 
 const InferenceProviderModelSelect = ({
@@ -56,6 +57,7 @@ const InferenceProviderModelSelect = ({
   onChange,
   value: rawValue
 }: PropertyProps) => {
+    const { t } = useTranslation();
     const [providerOpen, setProviderOpen] = useState(false);
     const [modelOpen, setModelOpen] = useState(false);
     const closeSelect = useSelect((s) => s.close);
@@ -146,7 +148,7 @@ const InferenceProviderModelSelect = ({
                     options={providerOptions}
                     value={value.provider}
                     onChange={handleChangeProvider}
-                    placeholder="Select an inference provider"
+                    placeholder={t("editor:ui.selectAnInferenceProvider", { defaultValue: "Select an inference provider" })}
                 />
             </div>
 
@@ -157,16 +159,15 @@ const InferenceProviderModelSelect = ({
                     </Text>
                     <Select
                         onOpenChange={setModelOpen}
-                        options={[...modelOptions, { value: "__add_providers", label: "Add providers…" }]}
+                        options={[...modelOptions, { value: "__add_providers", label: t("editor:ui.addProviders", { defaultValue: "Add providers…" }) }]}
                         value={value.model_id}
                         onChange={handleChangeModel}
                         placeholder={
                             isLoadingModels
-                                ? "Loading models..."
+                                ? t("editor:ui.loadingModels", { defaultValue: "Loading models..." })
                                 : modelsError
-                                    ? "Error loading models"
-                                    : "Select a model"
-                        }
+                                    ? t("editor:ui.errorLoadingModels", { defaultValue: "Error loading models" })
+                                    : t("editor:ui.selectAModel", { defaultValue: "Select a model" })}
                     />
                 </div>
             )}

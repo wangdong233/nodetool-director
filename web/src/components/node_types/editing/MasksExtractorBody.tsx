@@ -39,6 +39,7 @@ import {
   useUpstreamValue
 } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
+import { useTranslation } from "react-i18next";
 
 // Node types bound to this bespoke body — the Bria + 851-labs
 // background-removal variants.
@@ -140,6 +141,7 @@ const MasksExtractorBodyInner: React.FC<MasksExtractorBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -188,12 +190,12 @@ const MasksExtractorBodyInner: React.FC<MasksExtractorBodyProps> = ({
         {tab === "image" ? (
           <ImagePreview
             value={imageTabValue}
-            placeholder="Connect an image"
+            placeholder={t("editor:ui.connectAnImage", { defaultValue: "Connect an image" })}
           />
         ) : (
           <ImagePreview
             value={maskTabValue}
-            placeholder="Run the node to extract a mask"
+            placeholder={t("editor:ui.runTheNodeToExtractAMask", { defaultValue: "Run the node to extract a mask" })}
           />
         )}
       </div>
@@ -207,19 +209,19 @@ const MasksExtractorBodyInner: React.FC<MasksExtractorBodyProps> = ({
             value={tab}
             exclusive
             onChange={handleTabChange}
-            aria-label="Preview tab"
+            aria-label={t("editor:ui.previewTab", { defaultValue: "Preview tab" })}
           >
-            <ToggleOption value="image" aria-label="Image">
+            <ToggleOption value="image" aria-label={t("home:entry.image.title", { defaultValue: "Image" })}>
               Image
             </ToggleOption>
-            <ToggleOption value="mask" aria-label="Mask">
+            <ToggleOption value="mask" aria-label={t("editor:ui.mask", { defaultValue: "Mask" })}>
               Mask
             </ToggleOption>
           </ToggleGroup>
         </FlexRow>
         <div className="action-row">
           <RunModelButton
-            label="Recalculate Mask"
+            label={t("editor:ui.recalculateMask", { defaultValue: "Recalculate Mask" })}
             isRunning={isRunning}
             onClick={runSingleNode}
           />

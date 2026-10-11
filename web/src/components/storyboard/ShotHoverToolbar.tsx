@@ -20,6 +20,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { useTranslation } from "react-i18next";
 
 import { useInStudio } from "../../studio/StudioContext";
 import { SendToWorkflowMenu } from "../workflows/SendToWorkflowMenu";
@@ -117,6 +118,7 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
   const hasMenu = Boolean(
     hasRender || onDownload || sendItems || onDuplicate || onDelete
   );
+  const { t } = useTranslation();
   // A row with nothing in it would still catch the eye as a scrim on hover.
   if (!showDragHandle && !onFullscreen && !hasMenu) {
     return null;
@@ -146,7 +148,7 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
       {onFullscreen && (
         <ToolbarIconButton
           icon={<FullscreenIcon sx={iconSx} />}
-          tooltip="View fullscreen (double-click)"
+          tooltip={t("storyboard:attrs.viewFullscreenDoubleclick", { defaultValue: "View fullscreen (double-click)" })}
           ariaLabel={fullscreenLabel}
           onClick={onFullscreen}
         />
@@ -192,7 +194,13 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
           <MenuItemPrimitive
             compact
             dividerBefore={hasRender}
-            label={`Download ${what}`}
+            label={t("storyboard:attrs.downloadThis", {
+              defaultValue: "Download this {{kind}}",
+              kind:
+                downloadLabel === "clip"
+                  ? t("storyboard:attrs.clip", { defaultValue: "clip" })
+                  : t("storyboard:attrs.stillLower", { defaultValue: "still" })
+            })}
             icon={<DownloadIcon fontSize="small" />}
             onClick={runAndClose(onDownload)}
           />
@@ -210,7 +218,7 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
           <MenuItemPrimitive
             compact
             dividerBefore={hasRender && !onDownload && !sendItems}
-            label="Duplicate shot"
+            label={t("storyboard:attrs.duplicateShot", { defaultValue: "Duplicate shot" })}
             icon={<ContentCopyIcon fontSize="small" />}
             onClick={runAndClose(onDuplicate)}
           />
@@ -222,7 +230,7 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
             dividerBefore={Boolean(
               hasRender || onDownload || sendItems || onDuplicate
             )}
-            label="Delete shot"
+            label={t("storyboard:attrs.deleteShot", { defaultValue: "Delete shot" })}
             icon={<DeleteOutlineIcon fontSize="small" />}
             onClick={runAndClose(onDelete)}
           />

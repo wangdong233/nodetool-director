@@ -23,6 +23,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "gain_db",
           label: "Gain",
+          labelKey: "editor:ui.gain",
           min: -60,
           max: 24,
           default: 0,
@@ -39,13 +40,14 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "delay_seconds",
           label: "Time",
+          labelKey: "ui2:attrs.time",
           min: 0.01,
           max: 5,
           default: 0.5,
           scale: "log",
           unit: "s"
         },
-        { name: "feedback", label: "Fdbk", min: 0, max: 0.99, default: 0.3 },
+        { name: "feedback", label: "Fdbk", labelKey: "timeline:attrs.fdbk", min: 0, max: 0.99, default: 0.3 },
         { name: "mix", label: "Mix", min: 0, max: 1, default: 0.5 }
       ]
     },
@@ -57,6 +59,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "cutoff_frequency_hz",
           label: "Cutoff",
+          labelKey: "timeline:attrs.cutoff",
           min: 20,
           max: 5000,
           default: 80,
@@ -73,6 +76,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "cutoff_frequency_hz",
           label: "Cutoff",
+          labelKey: "timeline:attrs.cutoff",
           min: 500,
           max: 20000,
           default: 5000,
@@ -89,6 +93,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "cutoff_frequency_hz",
           label: "Freq",
+          labelKey: "timeline:attrs.freq",
           min: 1000,
           max: 20000,
           default: 5000,
@@ -98,6 +103,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "gain_db",
           label: "Gain",
+          labelKey: "editor:ui.gain",
           min: -24,
           max: 24,
           default: 0,
@@ -114,6 +120,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "cutoff_frequency_hz",
           label: "Freq",
+          labelKey: "timeline:attrs.freq",
           min: 20,
           max: 1000,
           default: 200,
@@ -123,6 +130,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "gain_db",
           label: "Gain",
+          labelKey: "editor:ui.gain",
           min: -24,
           max: 24,
           default: 0,
@@ -139,6 +147,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "cutoff_frequency_hz",
           label: "Freq",
+          labelKey: "timeline:attrs.freq",
           min: 20,
           max: 20000,
           default: 1000,
@@ -149,6 +158,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "gain_db",
           label: "Gain",
+          labelKey: "editor:ui.gain",
           min: -24,
           max: 24,
           default: 0,
@@ -165,6 +175,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "bit_depth",
           label: "Bits",
+          labelKey: "timeline:attrs.bits",
           min: 1,
           max: 16,
           default: 8,
@@ -173,6 +184,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "sample_rate_reduction",
           label: "Rate",
+          labelKey: "timeline:attrs.rate",
           min: 1,
           max: 100,
           default: 1,
@@ -189,6 +201,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "threshold",
           label: "Thresh",
+          labelKey: "timeline:attrs.thresh",
           min: -60,
           max: 0,
           default: -20,
@@ -198,6 +211,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "attack",
           label: "Attack",
+          labelKey: "timeline:attrs.attack",
           min: 0.1,
           max: 100,
           default: 5,
@@ -207,6 +221,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "release",
           label: "Release",
+          labelKey: "editor:ui.release",
           min: 5,
           max: 1000,
           default: 50,
@@ -223,6 +238,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "drive_db",
           label: "Drive",
+          labelKey: "timeline:attrs.drive",
           min: 0,
           max: 100,
           default: 25,
@@ -239,6 +255,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "threshold_db",
           label: "Ceil",
+          labelKey: "timeline:attrs.ceil",
           min: -60,
           max: 0,
           default: -2,
@@ -247,6 +264,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "release_ms",
           label: "Release",
+          labelKey: "editor:ui.release",
           min: 1,
           max: 1000,
           default: 250,
@@ -274,6 +292,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "semitones",
           label: "Semis",
+          labelKey: "timeline:attrs.semis",
           min: -12,
           max: 12,
           default: 0,
@@ -286,7 +305,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
       accent: "success",
       inputs: ["audio"],
       knobs: [
-        { name: "rate", label: "Rate", min: 0.5, max: 2, default: 1, unit: "x" }
+        { name: "rate", label: "Rate", labelKey: "timeline:attrs.rate", min: 0.5, max: 2, default: 1, unit: "x" }
       ]
     },
     "lib.audio.NoiseGate": {
@@ -297,6 +316,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "threshold_db",
           label: "Thresh",
+          labelKey: "timeline:attrs.thresh",
           min: -90,
           max: 0,
           default: -50,
@@ -305,6 +325,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "attack_ms",
           label: "Attack",
+          labelKey: "timeline:attrs.attack",
           min: 0.1,
           max: 100,
           default: 1,
@@ -314,6 +335,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "release_ms",
           label: "Release",
+          labelKey: "editor:ui.release",
           min: 5,
           max: 1000,
           default: 100,
@@ -330,6 +352,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "rate_hz",
           label: "Rate",
+          labelKey: "timeline:attrs.rate",
           min: 0.1,
           max: 10,
           default: 1,
@@ -340,6 +363,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "centre_frequency_hz",
           label: "Freq",
+          labelKey: "timeline:attrs.freq",
           min: 100,
           max: 5000,
           default: 1300,
@@ -349,6 +373,7 @@ export const AUDIO_EFFECT_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         {
           name: "feedback",
           label: "Fdbk",
+          labelKey: "timeline:attrs.fdbk",
           min: -1,
           max: 1,
           default: 0,

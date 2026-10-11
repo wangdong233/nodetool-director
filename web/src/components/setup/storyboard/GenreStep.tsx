@@ -25,12 +25,14 @@ import type { LanguageModelValue } from "../../../stores/ApiTypes";
 import { SetupFooterField } from "../SetupFooterField";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   STORYBOARD_GENRES,
   genreByLabel,
   genreStill,
   type StoryboardGenre
-} from "./genres";
+, GENRE_TITLE_KEYS, GENRE_DESCRIPTION_KEYS } from "./genres";
 
 export interface GenreStepProps {
   boardId: string;
@@ -49,10 +51,7 @@ export interface GenreStepProps {
  * board's own Direct control starts on; the ends are what a teaser and a full
  * scene need.
  */
-const SHOT_OPTIONS = [3, 4, 6, 8, 10, 12].map((count) => ({
-  value: String(count),
-  label: `${count} shots`
-}));
+const SHOT_COUNTS = [3, 4, 6, 8, 10, 12];
 
 // The card carries its line before it is picked, the way every other option
 // grid in the flow does: fourteen one-word titles say far less about the
@@ -60,7 +59,9 @@ const SHOT_OPTIONS = [3, 4, 6, 8, 10, 12].map((count) => ({
 const toOption = (item: StoryboardGenre): OptionCardItem => ({
   id: item.id,
   title: item.label,
+  titleKey: GENRE_TITLE_KEYS[item.id],
   description: item.description,
+  descriptionKey: GENRE_DESCRIPTION_KEYS[item.id],
   image: genreStill(item)
 });
 
@@ -117,7 +118,21 @@ export const GenreFooterControls: React.FC<GenreFooterControlsProps> = ({
   shotCount,
   onShotCountChange
 }) => {
+  const { t } = useTranslation();
   const inStudio = useInStudio();
+  // The option labels carry a plural, so they resolve here at render time —
+  // a module constant would freeze the English snapshot (F-32).
+  const shotOptions = useMemo(
+    () =>
+      SHOT_COUNTS.map((count) => ({
+        value: String(count),
+        label: t("storyboard:attrs.shotsCount", {
+          defaultValue: "{{count}} shots",
+          count
+        })
+      })),
+    [t]
+  );
   const handleShotCount = useCallback(
     (value: string) => {
       if (!readOnly) {
@@ -133,7 +148,7 @@ export const GenreFooterControls: React.FC<GenreFooterControlsProps> = ({
         hideLabel
         size="small"
         value={String(shotCount)}
-        options={SHOT_OPTIONS}
+        options={shotOptions}
         onChange={handleShotCount}
         disabled={readOnly}
       />
@@ -150,6 +165,7 @@ const GenreStepInternal: React.FC<GenreStepProps> = ({
   directing = false,
   upToDate = false
 }) => {
+  const { t } = useTranslation();
   const genre = useStoryboardStore(
     (state) => state.boards[boardId]?.genre ?? ""
   );
@@ -182,7 +198,7 @@ const GenreStepInternal: React.FC<GenreStepProps> = ({
           Choose your genre
         </Text>
         <Text size="normal" color="secondary">
-          Tone, pacing and framing follow your choice. You can change it later.
+          {i18n.t("editor:ui.tonePacingAndFramingFollowYourChoiceYouCanChangeItLater")}
         </Text>
       </FlexColumn>
       <OptionCardGrid

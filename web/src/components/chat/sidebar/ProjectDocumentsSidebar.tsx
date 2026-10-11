@@ -14,15 +14,33 @@ import {
 } from "../../ui_primitives";
 import { trpc } from "../../../trpc/client";
 import { useWorkspaceTabsStore } from "../../../stores/WorkspaceTabsStore";
-import { TYPE_COLOR, TYPE_GLYPH } from "../../workspace/tabTypeIdentity";
+import {
+  TYPE_COLOR,
+  TYPE_GLYPH,
+  seededDocDisplayName
+} from "../../workspace/tabTypeIdentity";
+import { personalDisplayName } from "../../projects/projectIdentity";
 import { documentStatusLine, type ProjectDocument } from "../../projects/projectStatus";
+import { useTranslation } from "react-i18next";
 
 interface ProjectDocumentsSidebarProps {
   projectId: string | null;
   active: boolean;
 }
 
+/**
+ * A document row's name. Stored titles that equal a creation-time seeded
+ * default (New script, New storyboard, …) resolve through the catalog at
+ * render time — the same map the tab bar reads. User renames render
+ * verbatim. (Entity docs cannot appear in this list: the router's document
+ * type carries no `entity` variant, unlike the documents tree.)
+ */
+const sidebarDocName = (
+  document: Pick<ProjectDocument, "type" | "name">
+): string => seededDocDisplayName(document.type, document.name);
+
 const ProjectDocumentsSidebar = ({ projectId, active }: ProjectDocumentsSidebarProps) => {
+  const { t } = useTranslation();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const { data, isPending, error } = trpc.projects.get.useQuery(
     { id: projectId ?? "" },
@@ -45,7 +63,7 @@ const ProjectDocumentsSidebar = ({ projectId, active }: ProjectDocumentsSidebarP
   return (
     <FlexColumn
       component="aside"
-      aria-label="Project documents"
+      aria-label={t("editor:ui.projectDocuments", { defaultValue: "Project documents" })}
       fullHeight
       sx={{
         width: { xs: "100%", md: "280px" },
@@ -57,18 +75,26 @@ const ProjectDocumentsSidebar = ({ projectId, active }: ProjectDocumentsSidebarP
       }}
     >
       <FlexColumn gap={SPACING.xs} sx={{ p: SPACING.lg, borderBottom: "1px solid", borderColor: "divider" }}>
-        <Text size="small">{data?.project.id === projectId ? data.project.name : "Current project"}</Text>
-        <Caption color="muted">Documents · {documents.length}</Caption>
+        <Text size="small">
+          {data?.project.id === projectId
+            ? personalDisplayName(data.project, t)
+            : t("editor:ui.currentProject", { defaultValue: "Current project" })}
+        </Text>
+        <Caption color="muted">
+          {documents.length > 0
+            ? t("home:docs.title", { defaultValue: "Documents · {{count}}", count: String(documents.length) })
+            : t("home:docs.titleEmpty", { defaultValue: "Documents" })}
+        </Caption>
       </FlexColumn>
       <ScrollArea sx={{ flex: 1, minHeight: 0, p: SPACING.sm }}>
         {!projectId ? (
-          <Caption color="muted">No project selected.</Caption>
+          <Caption color="muted">{t("ui2:attrs.noProjectSelected", { defaultValue: "No project selected." })}</Caption>
         ) : isPending ? (
           <LoadingSpinner />
         ) : error ? (
           <Caption color="error">{error.message}</Caption>
         ) : documents.length === 0 ? (
-          <Caption color="muted">No documents in this project yet.</Caption>
+          <Caption color="muted">{t("ui2:attrs.noDocumentsInThisProjectYet", { defaultValue: "No documents in this project yet." })}</Caption>
         ) : (
           <FlexColumn gap={SPACING.xs}>
             {documents.map((document) => (
@@ -77,7 +103,7 @@ const ProjectDocumentsSidebar = ({ projectId, active }: ProjectDocumentsSidebarP
                 variant="outlined"
                 padding="compact"
                 clickable
-                aria-label={document.name}
+                aria-label={sidebarDocName(document)}
                 onClick={() => openDocument(document)}
                 sx={{ minWidth: 0 }}
               >
@@ -87,10 +113,10 @@ const ProjectDocumentsSidebar = ({ projectId, active }: ProjectDocumentsSidebarP
                   </Box>
                   <FlexColumn sx={{ minWidth: 0, flex: 1 }}>
                     <Label
-                      title={document.name}
+                      title={sidebarDocName(document)}
                       sx={{ mb: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                     >
-                      {document.name}
+                      {sidebarDocName(document)}
                     </Label>
                     <Caption
                       color="secondary"

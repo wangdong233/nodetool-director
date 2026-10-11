@@ -13,6 +13,7 @@ import { Tooltip, MOTION, BORDER_RADIUS, reducedMotion, getSpacingPx, SPACING } 
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { isNumber } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 
 const styles = (theme: Theme) =>
@@ -161,6 +162,7 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
   debounceTime = 500,
   width
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const rootStyles = useMemo(() => styles(theme), [theme]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -372,8 +374,8 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
   }, [focusOnTyping, debouncedSetSearchTerm]);
 
   const effectivePlaceholder = isGlobalSearchMode
-    ? "Search all assets..."
-    : "Search current folder...";
+    ? t("editor:ui.searchAllAssets", { defaultValue: "Search all assets..." })
+    : t("editor:ui.searchCurrentFolder", { defaultValue: "Search current folder..." });
 
   return (
     <div
@@ -392,8 +394,8 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
       <Tooltip
         title={
           isGlobalSearchMode
-            ? "Switch to local search"
-            : "Switch to global search"
+            ? t("editor:ui.switchToLocalSearch", { defaultValue: "Switch to local search" })
+            : t("editor:ui.switchToGlobalSearch", { defaultValue: "Switch to global search" })
         }
       >
         <button
@@ -411,7 +413,7 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
 
       <input
         id="asset-search-input"
-        aria-label={isGlobalSearchMode ? "Search all assets" : "Search current folder"}
+        aria-label={isGlobalSearchMode ? t("editor:ui.searchAllAssets2", { defaultValue: "Search all assets" }) : t("editor:ui.searchCurrentFolder2", { defaultValue: "Search current folder" })}
         className="search-input"
         ref={inputRef}
         type="text"

@@ -14,6 +14,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useAuth } from "./useAuth";
+import { i18n } from "../i18n";
 
 export type WorkspaceTabType =
   | "workflow"
@@ -338,6 +339,27 @@ export const nextActiveAfterClose = (
 const clampIndex = (index: number, length: number): number =>
   Math.max(0, Math.min(index, length - 1));
 
+/**
+ * The scope a desynced rehydration falls back to. `activeProjectId` is
+ * persisted and can be null while project tabs survive — the scope filter
+ * then hides every one of them and none can ever be activated again. When
+ * the Personal project is known and any document tab still belongs to a
+ * project, restoring the Personal scope puts the session back on screen.
+ */
+const revivePersonalScope = (
+  tabs: WorkspaceTab[],
+  personalProjectId: string | null
+): string | null =>
+  personalProjectId &&
+  tabs.some(
+    (tab) =>
+      !isGlobalWorkspaceTab(tab) &&
+      tab.projectId !== undefined &&
+      tab.projectId !== LOOSE_PROJECT_ID
+  )
+    ? personalProjectId
+    : null;
+
 // -----------------------------------------------------------------
 // Legacy seeding — adopt workflows the user already had open so the
 // upgrade to the workspace shell never drops their tabs.
@@ -368,7 +390,7 @@ export const seedTabsFromLegacy = (): Pick<
     type: "workflow",
     ref,
     mode: "edit",
-    title: "Loading…"
+    title: i18n.t("common:status.loading", { defaultValue: "Loading…" })
   }));
 
   let activeTabId: string | null = tabs.length > 0 ? tabs[0].id : null;
@@ -430,8 +452,14 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
                 })
               );
             }
+            // Opening (or focusing) a project's tab adopts that project as the
+            // scope — the same switch clicking the tab performs in
+            // setActiveTab. Without it a null or stale scope keeps the newly
+            // opened tab filtered out of the bar, unreachable.
+            const activeProjectId = project ?? state.activeProjectId;
             return {
               activeTabId: id,
+              activeProjectId,
               projectSessions,
               tabs: gatherProjectTabs(
                 state.tabs.map((t) =>
@@ -446,7 +474,7 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
                       }
                     : t
                 ),
-                state.activeProjectId
+                activeProjectId
               )
             };
           });
@@ -466,8 +494,15 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
           tab.setupTarget = setupTarget;
         }
         set((state) => ({
-          tabs: gatherProjectTabs([...state.tabs, tab], state.activeProjectId),
+          // Same adoption as the existing-tab branch above: a project's tab
+          // opened into a null or mismatched scope takes that scope over,
+          // mirroring setActiveTab.
+          tabs: gatherProjectTabs(
+            [...state.tabs, tab],
+            project ?? state.activeProjectId
+          ),
           activeTabId: id,
+          activeProjectId: project ?? state.activeProjectId,
           projectSessions: updateSession(
             state.projectSessions,
             project,
@@ -608,7 +643,7 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
         set((state) => ({
           tabs: state.tabs.map((tab) =>
             tab.type === "guided-flow" && tab.ref === ref
-              ? { ...tab, setupTarget: target, title: target?.name ?? "New flow" }
+              ? { ...tab, setupTarget: target, title: target?.name ?? i18n.t("editor:ui.newFlow", { defaultValue: "New flow" }) }
               : tab
           )
         })),
@@ -675,7 +710,16 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
 
       resolvePersonalProject: (projectId) =>
         set((state) => {
-          if (state.personalProjectId === projectId) return state;
+          // Re-resolution with the same id is a no-op only while some scope is
+          // on screen. With a null scope the recalibration below must still
+          // run, or a desynced session (null scope, surviving project tabs)
+          // never heals even after the server confirms the Personal project.
+          if (
+            state.personalProjectId === projectId &&
+            state.activeProjectId !== null
+          ) {
+            return state;
+          }
           const looseSession = sessionFor(state.projectSessions, undefined);
           const existingSession = sessionFor(state.projectSessions, projectId);
           const migratedTabs = state.tabs.map((tab) =>
@@ -864,13 +908,20 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
         // is closed, so a new document still belongs to that project.
         const persistedProjectId = merged.activeProjectId ?? null;
         const activeProjectId =
-          persistedProjectId &&
+          (persistedProjectId &&
           Object.prototype.hasOwnProperty.call(
             projectSessions,
             persistedProjectId
           )
             ? persistedProjectId
-            : stillOpen(merged.tabs ?? [], persistedProjectId);
+            : stillOpen(merged.tabs ?? [], persistedProjectId)) ??
+          // Startup recalibration: a persisted null scope with a known
+          // Personal project and surviving project tabs is a desync — the
+          // scope filter hides those tabs and the session cannot be used.
+          revivePersonalScope(
+            merged.tabs ?? [],
+            merged.personalProjectId ?? null
+          );
         return {
           ...merged,
           projectSessions,

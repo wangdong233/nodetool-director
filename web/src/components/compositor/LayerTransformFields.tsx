@@ -15,6 +15,7 @@ import type { Theme } from "@mui/material/styles";
 import { Caption, FlexColumn, FlexRow } from "../ui_primitives";
 import NumberInput from "../inputs/NumberInput";
 import type { LayerTransform2D } from "./types";
+import { useTranslation } from "react-i18next";
 
 const DEG = 180 / Math.PI;
 
@@ -47,6 +48,7 @@ const LayerTransformFieldsInner: React.FC<LayerTransformFieldsProps> = ({
   transform,
   onChange
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -86,7 +88,7 @@ const LayerTransformFieldsInner: React.FC<LayerTransformFieldsProps> = ({
 
   return (
     <FlexColumn css={cssStyles} className="transform-fields">
-      <Caption>Transform</Caption>
+      <Caption>{t("timeline:attrs.transform", { defaultValue: "Transform" })}</Caption>
       <FlexRow gap={0.5}>
         {field("X", "x", Math.round(transform.x), (v) => ({ x: v }))}
         {field("Y", "y", Math.round(transform.y), (v) => ({ y: v }))}

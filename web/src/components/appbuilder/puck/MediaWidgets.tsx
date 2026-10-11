@@ -30,6 +30,7 @@ import {
 } from "../runtime/AppRuntimeContext";
 import { useWidgetRuntime } from "./useWidgetRuntime";
 import { resolveImageSrc } from "./widgets";
+import { tAttr } from "../i18nAttrs";
 
 interface ReadWidgetProps {
   id: string;
@@ -80,7 +81,7 @@ export const Model3DWidget: React.FC<
   const height = props.height ?? 320;
   if (!src) {
     return (
-      <Empty height={height} text={props.placeholder ?? "No 3D model yet"} />
+      <Empty height={height} text={tAttr(props.placeholder ?? "No 3D model yet")} />
     );
   }
   return (
@@ -104,7 +105,7 @@ export const PDFWidget: React.FC<ReadWidgetProps & { height?: number }> = (
   const src = lastSrc(value);
   const height = props.height ?? 480;
   if (!src) {
-    return <Empty height={height} text={props.placeholder ?? "No document yet"} />;
+    return <Empty height={height} text={tAttr(props.placeholder ?? "No document yet")} />;
   }
   return (
     <Box
@@ -275,7 +276,7 @@ export const GalleryWidget: React.FC<
   if (entries.length === 0) {
     return (
       <Caption color="secondary">
-        {props.placeholder ?? "Nothing to show yet"}
+        {tAttr(props.placeholder ?? "Nothing to show yet")}
       </Caption>
     );
   }

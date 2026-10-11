@@ -17,6 +17,7 @@ import type { ReactNode } from "react";
 
 import { Box, Caption, FlexColumn, FlexRow, GAP, Text } from "../ui_primitives";
 import { SetupCardButton } from "./SetupCardButton";
+import { i18n } from "../../i18n";
 
 export interface AlternativeEntry {
   id: string;

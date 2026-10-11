@@ -53,6 +53,8 @@ import { watchGeneration } from "../../lib/websocket/generationWatch";
 import { useAssetStore } from "../../stores/AssetStore";
 import { getAssetUrl } from "../../utils/assetHelpers";
 import { probeMediaDurationMs } from "../../utils/probeMediaDuration";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface DirectGenRpcResponse extends WebSocketMessage {
   type: "rpc_response";
@@ -422,7 +424,7 @@ export function landProductionDirectGen(
   if (sequenceId) {
     const failedMessage =
       status === "failed"
-        ? "Production generation failed before producing a candidate."
+        ? i18n.t("timeline:attrs.productionGenerationFailedBeforeProducingACandidate", { defaultValue: "Production generation failed before producing a candidate." })
         : undefined;
     const claimed = useDirectGenPendingStore.getState().settleProduction({
       sequenceId,
@@ -988,6 +990,7 @@ const productionAttempt = (
 };
 
 export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
+  const { t } = useTranslation();
   // Capture the surrounding instance's document store once; all reads and
   // writes in the async flow below go through this same handle so a focus
   // switch to another timeline instance mid-generation can't redirect them.
@@ -1058,7 +1061,7 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
       const recipeResult =
         kind === "text-to-video"
           ? captureVideoGenerationRecipe(clip)
-          : { ok: false as const, reason: "Not a text-to-video clip." };
+          : { ok: false as const, reason: t("timeline:attrs.notATexttovideoClip", { defaultValue: "Not a text-to-video clip." }) };
       const generationRecipe = recipeResult.ok
         ? recipeResult.recipe
         : undefined;
@@ -1173,7 +1176,7 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
               production,
               status: "failed",
               assetIds: [],
-              errorMessage: "The production request could not be submitted."
+              errorMessage: t("timeline:attrs.theProductionRequestCouldNotBeSubmitted", { defaultValue: "The production request could not be submitted." })
             });
           } else {
             useDirectGenPendingStore

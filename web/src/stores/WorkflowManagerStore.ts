@@ -56,6 +56,7 @@ import { graphEdgeToReactFlowEdge } from "./graphEdgeToReactFlowEdge";
 import { reportDocumentConflicts } from "./documentConflictReporter";
 import type { Node, Edge } from "@xyflow/react";
 import type { NodeData } from "./NodeData";
+import { i18n } from "../i18n";
 
 /**
  * Merge one external graph write into a dirty canvas: run the engine against
@@ -431,7 +432,7 @@ export const createWorkflowManagerStore = (queryClient: QueryClient) => {
           useCurrentWorkspaceStore.getState().lastUsedWorkspaceId;
         const data: Workflow = {
           id: crypto.randomUUID(),
-          name: "New Workflow",
+          name: i18n.t("editor:ui.newWorkflow2", { defaultValue: "New Workflow" }),
           description: "",
           access: "private",
           thumbnail: "",

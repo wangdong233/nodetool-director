@@ -23,8 +23,10 @@ import { GeneratedLayerPanel } from "./GeneratedLayerPanel";
 import { ImportedLayerPanel } from "./ImportedLayerPanel";
 import { PaintedLayerPanel } from "./PaintedLayerPanel";
 import { DirectGenLayerPanel } from "./DirectGenLayerPanel";
+import { useTranslation } from "react-i18next";
 
 const SketchInspectorInner: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const panelsHidden = useSketchStore((s) => s.panelsHidden);
   const activeLayerId = useSketchStore((s) => s.document.activeLayerId);
@@ -45,7 +47,7 @@ const SketchInspectorInner: React.FC = () => {
         variant="empty"
         size="small"
         title={`${selectedLayerIds.length} layers selected`}
-        description="Select a single layer to inspect."
+        description={t("editor:ui.selectASingleLayerToInspect")}
       />
     );
   } else if (!layer) {
@@ -53,8 +55,8 @@ const SketchInspectorInner: React.FC = () => {
       <EmptyState
         variant="empty"
         size="small"
-        title="Inspector"
-        description="Select a layer to inspect."
+        title={t("editor:ui.inspector", { defaultValue: "Inspector" })}
+        description={t("editor:ui.selectALayerToInspect")}
       />
     );
   } else if (

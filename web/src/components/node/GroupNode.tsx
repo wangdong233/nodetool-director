@@ -46,6 +46,7 @@ import RunGroupButton from "./RunGroupButton";
 import BypassGroupButton from "./BypassGroupButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Tooltip, ToolbarIconButton, Popover, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const MIN_WIDTH = 200;
 const MIN_HEIGHT = 200;
@@ -228,6 +229,7 @@ const styles = (theme: Theme, minWidth: number, minHeight: number) =>
   });
 
 const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme, MIN_WIDTH, MIN_HEIGHT), [theme]);
   const controlKeyPressed = useKeyPressed((state) =>
@@ -577,11 +579,11 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         nextDelay={TOOLTIP_ENTER_DELAY * 5}
         title={
           <span>
-            <b>SELECT GROUP NODE:</b> <br />
-            Hold CTRL or ⌘ key + click <br />
+            <b>{t("editor:ui.selectGroupNode", { defaultValue: "SELECT GROUP NODE:" })}</b> <br />
+            {t("editor:ui.holdCtrlOrCmdKeyClick", { defaultValue: "Hold CTRL or ⌘ key + click" })} <br />
             <br />
-            <b>EDIT GROUP TITLE:</b> <br />
-            Double click the label
+            <b>{t("editor:ui.editGroupTitleLabel", { defaultValue: "EDIT GROUP TITLE:" })}</b> <br />
+            {t("editor:ui.doubleClickTheLabel")}
           </span>
         }
       >
@@ -595,10 +597,10 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
             spellCheck={false}
             className="nodrag"
             type="text"
-            aria-label="Group headline"
+            aria-label={t("editor:ui.groupHeadline", { defaultValue: "Group headline" })}
             value={headline}
             onChange={handleHeadlineChange}
-            placeholder="Group"
+            placeholder={t("timeline:attrs.group", { defaultValue: "Group" })}
             style={inputStyle}
           />
           <span
@@ -615,7 +617,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         className="group-actions nodrag"
         style={actionsStyle}
       >
-        <Tooltip title="Group options" delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={t("editor:ui.groupOptions", { defaultValue: "Group options" })} delay={TOOLTIP_ENTER_DELAY}>
           <ToolbarIconButton
             ref={menuButtonRef}
             title=""
@@ -644,7 +646,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           {hasChildren && (
             <div style={POPOVER_ROW_STYLE}>
               <span style={menuTextStyle}>
-                {someChildrenBypassed ? "Enable all nodes" : "Disable all nodes"}
+                {someChildrenBypassed ? t("editor:ui.enableAllNodes", { defaultValue: "Enable all nodes" }) : t("editor:ui.disableAllNodes", { defaultValue: "Disable all nodes" })}
               </span>
               <BypassGroupButton
                 isBypassed={someChildrenBypassed}
@@ -654,7 +656,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           )}
           <div style={POPOVER_ROW_STYLE}>
             <span style={menuTextStyle}>
-              Group color
+              {t("editor:ui.groupColor", { defaultValue: "Group color" })}
             </span>
             <ColorPicker
               buttonSize={24}
@@ -670,11 +672,11 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           nodes hovering over it, not every group on the canvas. */}
       <div className={`help-text ${nodeHovered ? "visible" : "none"}`}>
         <div>
-          <b>REMOVE NODES FROM GROUP</b>
+          <b>{t("editor:ui.removeNodesFromGroup", { defaultValue: "REMOVE NODES FROM GROUP" })}</b>
         </div>
         <ul>
-          <li>Drag out while holding CTRL | ⌘ key</li>
-          <li>Shake rapidly, then drag out</li>
+          <li>{t("editor:ui.dragOutWhileHoldingCTRLKey", { defaultValue: "Drag out while holding CTRL | ⌘ key" })}</li>
+          <li>{t("ui2:attrs.shakeRapidlyThenDragOut", { defaultValue: "Shake rapidly, then drag out" })}</li>
         </ul>
       </div>
 

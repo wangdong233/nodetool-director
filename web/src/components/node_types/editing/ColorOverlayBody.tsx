@@ -23,6 +23,7 @@ import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
+import { useTranslation } from "react-i18next";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
@@ -125,6 +126,7 @@ const ColorOverlayBodyInner: React.FC<ColorOverlayBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -171,7 +173,7 @@ const ColorOverlayBodyInner: React.FC<ColorOverlayBodyProps> = ({
       </div>
 
       <div className="color-row">
-        <span className="color-row-label">Color</span>
+        <span className="color-row-label">{t("timeline:attrs.color", { defaultValue: "Color" })}</span>
         <ColorPicker
           color={colorHex}
           onColorChange={handleColorChange}

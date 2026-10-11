@@ -27,6 +27,7 @@ import {
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { MOTION } from "./tokens";
+import { useTranslation } from "react-i18next";
 
 export interface SelectionControlsProps {
   /**
@@ -109,6 +110,7 @@ export const SelectionControls = memo(
       },
       ref
     ) => {
+      const { t } = useTranslation();
       const theme = useTheme();
 
       const isAllSelected = selectedCount === totalCount && totalCount > 0;
@@ -156,7 +158,7 @@ export const SelectionControls = memo(
               className
             )}
             role="group"
-            aria-label="Selection controls"
+            aria-label={t("ui:attrs.selectionControls", { defaultValue: "Selection controls" })}
             sx={{
               display: "flex",
               alignItems: "center",
@@ -202,7 +204,7 @@ export const SelectionControls = memo(
             className
           )}
           role="group"
-          aria-label="Selection controls"
+          aria-label={t("ui:attrs.selectionControls", { defaultValue: "Selection controls" })}
           sx={{
             display: "flex",
             alignItems: "center",

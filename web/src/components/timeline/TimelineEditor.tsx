@@ -116,6 +116,8 @@ import { useWorkspaceHeaderActions } from "../workspace/WorkspaceHeaderActionsCo
 // the server rasterizer registers (D8). Imported by the editor rather than
 // globally so a session that never opens a timeline never fetches them.
 import "./fonts.css";
+import { i18n, useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const HANDLE_HEIGHT_PX = 6;
 /** Phone drag handle — 6px is under any reasonable touch target. */
@@ -244,6 +246,7 @@ const PreviewRegion: React.FC<{
   createSequenceErrorMessage,
   fullWidth = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Canvas size + fps come from the store — the single source of truth the
   // compositor and the export already read — so Project settings changes show
@@ -262,7 +265,7 @@ const PreviewRegion: React.FC<{
       }
     >
       {isLoading ? (
-        <LoadingSpinner text="Loading sequence…" />
+        <LoadingSpinner text={t("editor:ui.loadingSequence")} />
       ) : sequenceUnavailable ? (
         <FlexColumn
           align="center"
@@ -272,8 +275,8 @@ const PreviewRegion: React.FC<{
         >
           <EmptyState
             variant="error"
-            title="Sequence not found"
-            description="The timeline sequence you requested does not exist or you do not have access to it."
+            title={t("timeline:editor.seqNotFound", { defaultValue: "Sequence not found" })}
+            description={t("editor:ui.theTimelineSequenceYouRequestedDoesNotExistOrYouDoNotHaveAccessToIt")}
           />
           <FlexRow gap={1} align="center" justify="center" sx={{ flexWrap: "wrap" }}>
             {onRetryFetch ? (
@@ -282,10 +285,8 @@ const PreviewRegion: React.FC<{
                 size="small"
                 onClick={onRetryFetch}
                 disabled={createSequencePending}
-                aria-label="Retry loading sequence"
-              >
-                Retry
-              </EditorButton>
+                aria-label={t("timeline:editor.retryLoad", { defaultValue: "Retry loading sequence" })}
+              >{t("timeline:attrs.retry", { defaultValue: "Retry" })}</EditorButton>
             ) : null}
             {onCreateNewSequence ? (
               <EditorButton
@@ -293,9 +294,9 @@ const PreviewRegion: React.FC<{
                 size="small"
                 onClick={onCreateNewSequence}
                 disabled={createSequencePending}
-                aria-label="Create new sequence"
+                aria-label={t("timeline:editor.createNew", { defaultValue: "Create new sequence" })}
               >
-                {createSequencePending ? "Creating…" : "New sequence"}
+                {createSequencePending ? t("home:surface.creatingMeta", { defaultValue: "Creating…" }) : t("timeline:attrs.newSequence", { defaultValue: "New sequence" })}
               </EditorButton>
             ) : null}
           </FlexRow>
@@ -319,24 +320,34 @@ PreviewRegion.displayName = "PreviewRegion";
 
 type InspectorTab = "inspector" | "source" | "instrument" | "agent" | "history" | "script";
 
-const INSPECTOR_TABS = [
-  { value: "inspector", label: "Inspector", icon: <TuneOutlinedIcon fontSize="small" /> },
-  { value: "instrument", label: "Instruments", icon: <TuneOutlinedIcon fontSize="small" /> },
-  { value: "source", label: "Source", icon: <MovieFilterOutlinedIcon fontSize="small" /> },
-  { value: "agent", label: "Assistant", icon: <AutoAwesomeIcon fontSize="small" /> },
-  { value: "history", label: "History", icon: <HistoryOutlinedIcon fontSize="small" /> }
+type InspectorTabDef = {
+  value: InspectorTab;
+  label?: string;
+  labelKey?: string;
+  labelDefault?: string;
+  icon: React.ReactElement;
+};
+
+const INSPECTOR_TABS: InspectorTabDef[] = [
+  { value: "inspector", labelKey: "timeline:editor.inspector", labelDefault: "Inspector", icon: <TuneOutlinedIcon fontSize="small" /> },
+  { value: "instrument", labelKey: "timeline:editor.instruments", labelDefault: "Instruments", icon: <TuneOutlinedIcon fontSize="small" /> },
+  { value: "source", labelKey: "timeline:editor.source", labelDefault: "Source", icon: <MovieFilterOutlinedIcon fontSize="small" /> },
+  { value: "agent", labelKey: "timeline:editor.assistant", labelDefault: "Assistant", icon: <AutoAwesomeIcon fontSize="small" /> },
+  { value: "history", labelKey: "timeline:editor.history", labelDefault: "History", icon: <HistoryOutlinedIcon fontSize="small" /> }
 ];
 
-const SCRIPT_TAB = {
+const SCRIPT_TAB: InspectorTabDef = {
   value: "script",
   label: "Script",
+  labelKey: "editor:ui.script",
+  labelDefault: "Script",
   icon: <SubtitlesOutlinedIcon fontSize="small" />
 };
 
 const useAvailableInspectorTabs = (
   tab: InspectorTab,
   hasScript = false
-): { tabs: TabItem[]; activeTab: InspectorTab } => {
+): { tabs: InspectorTabDef[]; activeTab: InspectorTab } => {
   const hasMidiTrack = useTimelineStore((s) => s.tracks.some((track) => track.type === "midi"));
   const activeExplorer = usePanelStore((s) => s.panel.activeView);
   const assetsAsset = useAssetsSelectedAsset();
@@ -355,20 +366,30 @@ const useAvailableInspectorTabs = (
 
 const InspectorRegion: React.FC<{ sequenceId: string | undefined }> = memo(
   ({ sequenceId }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const tab = useTimelineUIStore(s => s.panelTab);
   const setTab = useTimelineUIStore(s => s.setPanelTab);
 
-  const { tabs, activeTab } = useAvailableInspectorTabs(tab);
+  const { tabs: availableTabs, activeTab } = useAvailableInspectorTabs(tab);
   useEffect(() => {
     if (activeTab !== tab) setTab(activeTab);
   }, [activeTab, tab, setTab]);
+  // Resolve labels per render — module-level i18n.t freezes before the
+  // async zh bundle lands (r21 F-1).
+  const tabs: TabItem[] = availableTabs.map((t) => ({
+    value: t.value,
+    label: t.labelKey
+      ? i18n.t(t.labelKey, { defaultValue: t.labelDefault ?? t.label })
+      : (t.label ?? ""),
+    icon: t.icon
+  }));
 
   return (
     <ResizableSideDock
       storageKey="timeline_assistant"
       defaultWidth={360}
-      ariaLabel="Resize timeline side panel"
+      ariaLabel={t("timeline:editor.resizeSide", { defaultValue: "Resize timeline side panel" })}
     >
       <FlexColumn css={inspectorRegionStyles(theme)} fullHeight sx={{ minHeight: 0 }}>
         <TabGroup
@@ -435,11 +456,24 @@ const MobilePanelSheet: React.FC<{
   tab: InspectorTab;
   onTabChange: (tab: InspectorTab) => void;
 }> = memo(({ open, onClose, sequenceId, tab, onTabChange }) => {
+  const { t } = useTranslation();
   const hasScript = useHasScript();
-  const { tabs, activeTab } = useAvailableInspectorTabs(tab, hasScript);
+  const { tabs: availableTabs, activeTab } = useAvailableInspectorTabs(tab, hasScript);
   useEffect(() => {
     if (activeTab !== tab) onTabChange(activeTab);
   }, [activeTab, tab, onTabChange]);
+  const { version: languageVersion } = useAppLanguage();
+  const tabs: TabItem[] = useMemo(
+    () =>
+      availableTabs.map((t) => ({
+        value: t.value,
+        label: t.labelKey
+          ? i18n.t(t.labelKey, { defaultValue: t.labelDefault ?? t.label })
+          : (t.label ?? ""),
+        icon: t.icon
+      })),
+    [availableTabs, languageVersion]
+  );
 
   const tabRail = (
     <TabGroup
@@ -460,7 +494,7 @@ const MobilePanelSheet: React.FC<{
       maxHeight="62vh"
       showDragHandle
       showClose={false}
-      ariaLabel="Timeline panels"
+      ariaLabel={t("timeline:attrs.timelinePanels", { defaultValue: "Timeline panels" })}
     >
       <FlexColumn fullWidth sx={{ height: "52vh", minHeight: 0 }}>
         {activeTab === "inspector" ? (
@@ -540,6 +574,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
   sequenceId: sequenceIdProp,
   active = true
 }) => {
+  const { t } = useTranslation();
   const { sequenceId: sequenceIdParam } = useParams<{ sequenceId: string }>();
   const sequenceId = sequenceIdProp ?? sequenceIdParam;
   const [searchParams] = useSearchParams();
@@ -642,7 +677,10 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
       const saveResult = await flushAutosave();
       if (!saveResult.ok) {
         throw new Error(
-          `Could not save the current timeline. ${saveResult.error}`
+          t("timeline:attrs.couldNotSaveTheCurrentTimeline", {
+            defaultValue: "Could not save the current timeline. {{error}}",
+            error: saveResult.error
+          })
         );
       }
       await exportTimelineZip(sequenceId, sequence?.name || "timeline");
@@ -651,14 +689,15 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
         type: "error",
         alert: true,
         dismissable: true,
-        content: `Project download failed. ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        content: t("timeline:attrs.projectDownloadFailed", {
+          defaultValue: "Project download failed. {{error}}",
+          error: error instanceof Error ? error.message : String(error)
+        })
       });
     } finally {
       setIsExportingBundle(false);
     }
-  }, [flushAutosave, sequenceId, sequence?.name]);
+  }, [flushAutosave, sequenceId, sequence?.name, t]);
 
   // "Save as Asset" — anchor the folder chooser to the TopBar button, then
   // render the timeline into a new asset in the chosen folder.
@@ -835,7 +874,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
   const handleCreateNewSequence = useCallback(() => {
     createTimeline.reset();
     createTimeline.mutate(
-      { name: "Untitled sequence", projectId: projectIdForNewSequence },
+      { name: i18n.t("timeline:attrs.untitledSequence", { defaultValue: "Untitled sequence" }), projectId: projectIdForNewSequence },
       {
         onSuccess: (created) => {
           const next = new URLSearchParams(searchParams);
@@ -997,7 +1036,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
           ref={handleRef}
           role="separator"
           aria-orientation="horizontal"
-          aria-label="Resize tracks panel"
+          aria-label={t("timeline:editor.resizeTracks", { defaultValue: "Resize tracks panel" })}
           aria-valuenow={tracksHeight}
           aria-valuemin={MIN_TRACKS_HEIGHT_PX}
           aria-valuemax={MAX_TRACKS_HEIGHT_PX}
@@ -1025,8 +1064,8 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
           isMobile ? (
             <ToolbarIconButton
               onClick={openPanelSheet}
-              tooltip="Panels"
-              aria-label="Open panels"
+              tooltip={t("timeline:editor.panels", { defaultValue: "Panels" })}
+              aria-label={t("timeline:editor.openPanels", { defaultValue: "Open panels" })}
               // Tinted while a clip is selected: that's when the Inspector has
               // something to show, and it's the only hint on a phone that
               // tapping a clip led somewhere.
@@ -1072,7 +1111,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
       <Dialog
         open={isExporting || hasExportError}
         onClose={isExporting ? undefined : clearExportError}
-        title={hasExportError ? "Export failed" : "Exporting video"}
+        title={hasExportError ? t("timeline:attrs.exportFailed", { defaultValue: "Export failed" }) : t("timeline:attrs.exportingVideo", { defaultValue: "Exporting video" })}
         actions={exportDialogActions}
       >
         {exportError != null ? (

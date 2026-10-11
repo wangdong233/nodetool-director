@@ -38,6 +38,7 @@ import JsScriptRunConsole from "../jsScript/JsScriptRunConsole";
 import type { JsScriptRunRequest } from "../jsScript/JsScriptRunDialog";
 import ResizableSideDock from "../chat/assistant/ResizableSideDock";
 import DocumentLoadStatus from "./DocumentLoadStatus";
+import { useTranslation } from "react-i18next";
 
 interface JsScriptSurfaceProps {
   refId: string;
@@ -56,10 +57,12 @@ const CONSOLE_HEIGHT = 220;
 const DEFAULT_NAME = "Untitled JS script";
 
 const MOBILE_TABS = [
-  { value: "code", label: "Code", icon: <CodeIcon /> },
-  { value: "console", label: "Run", icon: <TerminalIcon /> },
-  { value: "settings", label: "Script", icon: <TuneIcon /> },
-  { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
+  // `labelKey`/`label` resolve per render in the component (see mobileTabs) —
+  // a module-level i18n.t would freeze before the lazy zh bundle lands (r12).
+  { value: "code", labelKey: "editor:ui.code", label: "Code", icon: <CodeIcon /> },
+  { value: "console", labelKey: "ui2:attrs.run", label: "Run", icon: <TerminalIcon /> },
+  { value: "settings", labelKey: "editor:ui.jsScript", label: "JS script", icon: <TuneIcon /> },
+  { value: "assistant", labelKey: "editor:ui.assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
 ];
 
 const MOBILE_PANES: readonly MobilePane[] = [
@@ -86,6 +89,7 @@ const isMobilePane = (value: string): value is MobilePane =>
  * the console output, and the assistant thread survive a switch.
  */
 const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const ensureScript = useJsScriptStore((state) => state.ensureScript);
@@ -154,18 +158,37 @@ const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
       });
   }, [refId]);
 
+  // Labels resolve per render (dep `t`) so a language switch re-renders the
+  // dock tabs immediately (F-26 discipline for label arrays).
   const dockTabs = useMemo(
     () => [
-      { value: "settings", label: "Script", icon: <TuneIcon /> },
-      { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
+      {
+        value: "settings",
+        label: t("editor:ui.jsScript", { defaultValue: "JS script" }),
+        icon: <TuneIcon />
+      },
+      {
+        value: "assistant",
+        label: t("editor:ui.assistant", { defaultValue: "Assistant" }),
+        icon: <AutoAwesomeIcon />
+      }
     ],
-    []
+    [t]
+  );
+
+  const mobileTabs = useMemo(
+    () =>
+      MOBILE_TABS.map(({ labelKey, label, ...rest }) => ({
+        ...rest,
+        label: t(labelKey, { defaultValue: label })
+      })),
+    [t]
   );
 
   // The store seeds an empty script on mount, so rendering before the server
   // copy lands looks like a script with an empty body.
   if (loadState !== "ready") {
-    return <DocumentLoadStatus state={loadState} label="JS script" />;
+    return <DocumentLoadStatus state={loadState} label={t("ui2:attrs.jsScript", { defaultValue: "JS script" })} />;
   }
 
   const editor = <JsScriptEditorPane scriptId={refId} readOnly={readOnly} />;
@@ -186,7 +209,7 @@ const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
     return (
       <FlexColumn fullHeight sx={{ minHeight: 0 }}>
         <TabGroup
-          tabs={MOBILE_TABS}
+          tabs={mobileTabs}
           value={mobilePane}
           onChange={(value) => {
             if (isMobilePane(value)) {
@@ -256,7 +279,7 @@ const JsScriptSurface = ({ refId, mode, active }: JsScriptSurfaceProps) => {
       <ResizableSideDock
         storageKey="jsscript_assistant"
         defaultWidth={DOCK_WIDTH}
-        ariaLabel="Resize JS script assistant"
+        ariaLabel={t("ui2:attrs.resizeJSScriptAssistant", { defaultValue: "Resize JS script assistant" })}
       >
         <TabGroup
           tabs={dockTabs}

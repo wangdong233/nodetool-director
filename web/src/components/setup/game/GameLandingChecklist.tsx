@@ -30,7 +30,23 @@ import {
   Text
 } from "../../ui_primitives";
 import type { BuildGameResult } from "../../../hooks/game/useBuildGame";
-import type { GameRunSummary, GameVerificationState } from "./gameRunSummary";
+import type {
+  GameRunSummary,
+  GameVerificationState,
+  GameVerificationStatus
+} from "./gameRunSummary";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
+
+/** One i18n key per verification status, so the pill reads in the UI language. */
+const VERIFICATION_STATE_KEYS: Record<GameVerificationStatus, string> = {
+  queued: "storyboard:attrs.verificationState.queued",
+  running: "storyboard:attrs.verificationState.running",
+  passed: "storyboard:attrs.verificationState.passed",
+  failed: "storyboard:attrs.verificationState.failed",
+  unavailable: "storyboard:attrs.verificationState.unavailable",
+  interrupted: "storyboard:attrs.verificationState.interrupted"
+};
 
 export interface GameLandingChecklistProps {
   result: BuildGameResult;
@@ -97,6 +113,7 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
   onPlayTest,
   onRegenerate
 }) => {
+  const { t } = useTranslation();
   const exported = run.directory !== null;
   const failure = gameFailureMessage(result, run);
   const verification = verificationLine(run.verification, godot);
@@ -104,24 +121,29 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
     <FlexColumn gap={GAP.normal}>
       <Line
         done
-        label="Graph built"
-        detail={`${result.nodeCount} node${
-          result.nodeCount === 1 ? "" : "s"
-        } placed`}
+        label={t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
+        detail={t("storyboard:attrs.nodesPlaced", {
+          count: result.nodeCount,
+          defaultValue: "{{count}} nodes placed"
+        })}
       />
       <Line
         done={run.total > 0 && run.checked === run.total}
-        label="Assets checked"
+        label={t("editor:ui.assetsChecked", { defaultValue: "Assets checked" })}
         detail={
           run.total === 0
-            ? "This project keeps the template's own art"
-            : `${run.checked} of ${run.total}`
+            ? t("storyboard:attrs.thisProjectKeepsTheTemplatesOwnArt", { defaultValue: "This project keeps the template's own art" })
+            : t("storyboard:attrs.checkedOfTotal", {
+                checked: run.checked,
+                total: run.total,
+                defaultValue: "{{checked}} of {{total}}"
+              })
         }
       />
       <Line
         done={exported}
-        label="Exported"
-        detail={run.directory ?? "Waiting for the export node"}
+        label={t("storyboard:attrs.exported", { defaultValue: "Exported" })}
+        detail={run.directory ?? t("storyboard:attrs.waitingForTheExportNode", { defaultValue: "Waiting for the export node" })}
       />
       <VerificationLine
         state={run.verification.status}
@@ -144,35 +166,27 @@ const ChecklistInternal: React.FC<GameLandingChecklistProps> = ({
             variant="contained"
             onClick={onOpenFolder}
             disabled={!exported}
-          >
-            Open project folder
-          </EditorButton>
+          >{t("storyboard:attrs.openProjectFolder", { defaultValue: "Open project folder" })}</EditorButton>
           <EditorButton
             variant="outlined"
             onClick={onDownload}
             disabled={run.archive === null}
-          >
-            Download project
-          </EditorButton>
+          >{t("storyboard:attrs.downloadProject", { defaultValue: "Download project" })}</EditorButton>
           <EditorButton
             variant="outlined"
             onClick={onPlayTest}
             disabled={!exported}
           >
-            Play-test with the agent
+            {t("editor:ui.playTestWithTheAgent")}
           </EditorButton>
-          <EditorButton variant="text" onClick={onRegenerate}>
-            Regenerate
-          </EditorButton>
+          <EditorButton variant="text" onClick={onRegenerate}>{t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
         </FlexRow>
       ) : (
         <AlertBanner
           severity="error"
-          title="This needs a fix before it plays"
+          title={t("storyboard:attrs.thisNeedsAFixBeforeItPlays", { defaultValue: "This needs a fix before it plays" })}
           action={
-            <EditorButton variant="text" onClick={onRegenerate}>
-              Regenerate
-            </EditorButton>
+            <EditorButton variant="text" onClick={onRegenerate}>{t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
           }
         >
           <Caption component="span">{failure.split("\n")[0]}</Caption>
@@ -188,17 +202,22 @@ interface LineProps {
   detail: string;
 }
 
-const Line: React.FC<LineProps> = ({ done, label, detail }) => (
-  <FlexRow gap={GAP.normal} align="center">
-    <StatusPill tone={done ? "done" : "failed"}>
-      {done ? "done" : "todo"}
-    </StatusPill>
-    <Text size="small" component="span">
-      {label}
-    </Text>
-    <Caption color="secondary">{detail}</Caption>
-  </FlexRow>
-);
+const Line: React.FC<LineProps> = ({ done, label, detail }) => {
+  const { t } = useTranslation();
+  return (
+    <FlexRow gap={GAP.normal} align="center">
+      <StatusPill tone={done ? "done" : "failed"}>
+        {done
+          ? t("storyboard:attrs.statusDone", { defaultValue: "done" })
+          : t("storyboard:attrs.statusTodo", { defaultValue: "todo" })}
+      </StatusPill>
+      <Text size="small" component="span">
+        {label}
+      </Text>
+      <Caption color="secondary">{detail}</Caption>
+    </FlexRow>
+  );
+};
 
 const missingGodot = (reason: string | undefined): boolean => {
   const normalized = reason?.toLowerCase() ?? "";
@@ -217,38 +236,38 @@ const verificationLine = (
   switch (verification.status) {
     case "passed":
       return {
-        label: `Verified with Godot ${godot}`,
-        detail: "The project opened and ran headlessly"
+        label: i18n.t("storyboard:attrs.verifiedWithGodot", { defaultValue: "Verified with Godot {{version}}", version: godot }),
+        detail: i18n.t("storyboard:attrs.theProjectOpenedAndRanHeadlessly", { defaultValue: "The project opened and ran headlessly" })
       };
     case "running":
       return {
-        label: "Verification running",
-        detail: "Godot checks are in progress"
+        label: i18n.t("editor:ui.verificationRunning", { defaultValue: "Verification running" }),
+        detail: i18n.t("storyboard:attrs.godotChecksAreInProgress", { defaultValue: "Godot checks are in progress" })
       };
     case "failed":
       return {
-        label: "Verification failed",
-        detail: verification.reason ?? "Godot rejected the exported project"
+        label: i18n.t("editor:ui.verificationFailed", { defaultValue: "Verification failed" }),
+        detail: verification.reason ?? i18n.t("storyboard:attrs.godotRejectedTheExportedProject", { defaultValue: "Godot rejected the exported project" })
       };
     case "unavailable":
       return missingGodot(verification.reason)
         ? {
-            label: `Godot not found on this server — open the folder in Godot ${godot} to verify`,
-            detail: verification.reason ?? "Godot verification is unavailable"
+            label: i18n.t("storyboard:attrs.godotNotFoundOnThisServerOpenTheFolderInGodotToVerify", { defaultValue: "Godot not found on this server — open the folder in Godot {{version}} to verify", version: godot }),
+            detail: verification.reason ?? i18n.t("storyboard:attrs.godotVerificationIsUnavailable", { defaultValue: "Godot verification is unavailable" })
           }
         : {
-            label: "Verification unavailable",
-            detail: verification.reason ?? "Godot verification could not run"
+            label: i18n.t("editor:ui.verificationUnavailable", { defaultValue: "Verification unavailable" }),
+            detail: verification.reason ?? i18n.t("storyboard:attrs.godotVerificationCouldNotRun", { defaultValue: "Godot verification could not run" })
           };
     case "interrupted":
       return {
-        label: "Verification interrupted",
-        detail: verification.reason ?? "The run was cancelled"
+        label: i18n.t("editor:ui.verificationInterrupted", { defaultValue: "Verification interrupted" }),
+        detail: verification.reason ?? i18n.t("storyboard:attrs.theRunWasCancelled", { defaultValue: "The run was cancelled" })
       };
     default:
       return {
-        label: "Verification queued",
-        detail: "Waiting for the export node"
+        label: i18n.t("editor:ui.verificationQueued", { defaultValue: "Verification queued" }),
+        detail: i18n.t("storyboard:attrs.waitingForTheExportNode", { defaultValue: "Waiting for the export node" })
       };
   }
 };
@@ -264,6 +283,7 @@ const VerificationLine: React.FC<VerificationLineProps> = ({
   label,
   detail
 }) => {
+  const { t } = useTranslation();
   const tone =
     state === "passed"
       ? "done"
@@ -276,7 +296,9 @@ const VerificationLine: React.FC<VerificationLineProps> = ({
             : "warning";
   return (
     <FlexRow gap={GAP.normal} align="center">
-      <StatusPill tone={tone}>{state}</StatusPill>
+      <StatusPill tone={tone}>
+        {t(VERIFICATION_STATE_KEYS[state], { defaultValue: state })}
+      </StatusPill>
       <Text size="small" component="span">
         {label}
       </Text>

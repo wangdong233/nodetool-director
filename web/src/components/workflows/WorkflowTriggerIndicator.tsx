@@ -3,6 +3,7 @@ import BoltIcon from "@mui/icons-material/Bolt";
 import { Box, Tooltip } from "../ui_primitives";
 import { useRunningTriggers } from "../../serverState/useTriggers";
 import { describeTriggerDisabledReason } from "@nodetool-ai/protocol";
+import { useTranslation } from "react-i18next";
 
 interface WorkflowTriggerIndicatorProps {
   workflowId: string;
@@ -20,6 +21,7 @@ interface WorkflowTriggerIndicatorProps {
 const WorkflowTriggerIndicatorInternal: React.FC<
   WorkflowTriggerIndicatorProps
 > = ({ workflowId, className }) => {
+  const { t } = useTranslation();
   const { data } = useRunningTriggers();
   const triggers = useMemo(
     () => (data ?? []).filter((r) => r.workflow_id === workflowId),
@@ -39,7 +41,7 @@ const WorkflowTriggerIndicatorInternal: React.FC<
     : failing
       ? `Trigger armed — last run failed: ${armed.find((r) => r.last_error)?.last_error}`
       : armed.length === 1
-        ? "Trigger armed"
+        ? t("editor:ui.triggerArmed", { defaultValue: "Trigger armed" })
         : `${armed.length} triggers armed`;
 
   return (

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { Entity } from "@nodetool-ai/protocol";
 
 import { trpc } from "../trpc/client";
+import { useTranslation } from "react-i18next";
 
 export type DocumentTreeLeafType =
   | "workflow"
@@ -25,6 +26,7 @@ export interface DocumentTreeLeaf {
 export interface DocumentTreeGroup {
   readonly id: "workflows" | "apps" | "creative" | "agents";
   readonly label: string;
+  readonly labelKey?: string;
   readonly children: readonly DocumentTreeLeaf[];
 }
 
@@ -49,15 +51,26 @@ const UNTITLED: Record<DocumentTreeLeafType, string> = {
   jsscript: "Untitled JS script"
 };
 
-const TYPE_LABELS: Record<DocumentTreeLeafType, string> = {
-  workflow: "Workflow",
-  application: "App",
-  sketch: "Sketch",
-  script: "Script",
-  storyboard: "Storyboard",
-  timeline: "Timeline",
-  entity: "Entity",
-  jsscript: "JS script"
+const UNTITLED_KEYS: Record<DocumentTreeLeafType, string> = {
+  workflow: "editor:ui.untitledWorkflow",
+  application: "editor:ui.untitledApp",
+  sketch: "editor:ui.untitledSketch",
+  script: "editor:ui.untitledScript",
+  storyboard: "storyboard:attrs.untitledStoryboard",
+  timeline: "timeline:list.untitled",
+  entity: "storyboard:attrs.untitledEntity",
+  jsscript: "editor:ui.untitledJsScript"
+};
+
+const TYPE_LABEL_KEYS: Record<DocumentTreeLeafType, string> = {
+  workflow: "editor:ui.workflow",
+  application: "editor:ui.app",
+  sketch: "editor:ui.sketch",
+  script: "editor:ui.script",
+  storyboard: "editor:ui.storyboard",
+  timeline: "editor:ui.timeline",
+  entity: "editor:ui.entity",
+  jsscript: "editor:ui.jsScriptTypeLabel"
 };
 
 /**
@@ -68,16 +81,18 @@ const TYPE_LABELS: Record<DocumentTreeLeafType, string> = {
 const GROUPS: readonly {
   readonly id: DocumentTreeGroup["id"];
   readonly label: string;
+  readonly labelKey?: string;
   readonly types: readonly DocumentTreeLeafType[];
 }[] = [
-  { id: "workflows", label: "Workflows", types: ["workflow"] },
-  { id: "apps", label: "Apps", types: ["application"] },
+  { id: "workflows", label: "Workflows", labelKey: "nav:qa.workflows.label", types: ["workflow"] },
+  { id: "apps", label: "Apps", labelKey: "nav:qa.apps.label", types: ["application"] },
   {
     id: "creative",
     label: "Creative documents",
+    labelKey: "editor:ui.creativeDocuments",
     types: ["sketch", "script", "storyboard", "timeline", "entity"]
   },
-  { id: "agents", label: "Agents & code", types: ["jsscript"] }
+  { id: "agents", label: "Agents & code", labelKey: "editor:ui.agentsAndCode", types: ["jsscript"] }
 ];
 
 /**
@@ -93,6 +108,7 @@ const GROUPS: readonly {
 export const useDocumentTreeData = (
   projectId: string
 ): UseDocumentTreeDataResult => {
+  const { t } = useTranslation();
   const indexQuery = trpc.documents.index.useQuery(
     { projectId },
     { staleTime: INDEX_STALE_TIME, retry: false }
@@ -105,9 +121,9 @@ export const useDocumentTreeData = (
       const leaves = byType.get(type) ?? [];
       leaves.push({
         id: document.id,
-        name: document.name || UNTITLED[type],
+        name: document.name || t(UNTITLED_KEYS[type], { defaultValue: UNTITLED[type] }),
         type,
-        typeLabel: TYPE_LABELS[type],
+        typeLabel: t(TYPE_LABEL_KEYS[type]),
         projectId,
         entity: document.entity
       });
@@ -116,9 +132,10 @@ export const useDocumentTreeData = (
     return GROUPS.map((group) => ({
       id: group.id,
       label: group.label,
+      labelKey: group.labelKey,
       children: group.types.flatMap((type) => byType.get(type) ?? [])
     })).filter((group) => group.children.length > 0);
-  }, [indexQuery.data, projectId]);
+  }, [indexQuery.data, projectId, t]);
 
   const error = indexQuery.error instanceof Error ? indexQuery.error : null;
 

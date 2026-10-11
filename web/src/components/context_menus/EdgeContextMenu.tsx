@@ -10,12 +10,14 @@ import { useReactFlow } from "@xyflow/react";
 import useMetadataStore from "../../stores/MetadataStore";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RouteIcon from "@mui/icons-material/Route";
+import { useTranslation } from "react-i18next";
 
 interface EdgeContextMenuProps {
   edgeId?: string;
 }
 
 const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
+  const { t } = useTranslation();
   const menuPosition = useContextMenuStore((state) => state.menuPosition);
   const closeContextMenu = useContextMenuStore(
     (state) => state.closeContextMenu
@@ -118,13 +120,13 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
       <ContextMenuItem
         onClick={handleInsertReroute}
         IconComponent={<RouteIcon />}
-        label="Insert Reroute"
-        tooltip="Insert a reroute node at this position"
+        label={t("editor:edge.insertReroute", { defaultValue: "Insert Reroute" })}
+        tooltip={t("editor:edge.insertRerouteTip", { defaultValue: "Insert a reroute node at this position" })}
       />
       <ContextMenuItem
         onClick={handleDeleteEdge}
         IconComponent={<DeleteIcon />}
-        label="Delete Edge"
+        label={t("editor:edge.deleteEdge", { defaultValue: "Delete Edge" })}
         tooltip={
           <span
             style={{
@@ -133,11 +135,9 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
               alignItems: "center"
             }}
           >
-            <span>Delete this connection</span>
+            <span>{t("editor:edge.deleteTip1", { defaultValue: "Delete this connection" })}</span>
             <span style={{ textAlign: "center" }}>
-              <kbd>Middle Mouse Button</kbd> or select the edge and press{" "}
-              <kbd>Delete</kbd> or <kbd>Backspace</kbd>. Select many edges by
-              holding <kbd>CTRL</kbd> or <kbd>Meta</kbd> while clicking.
+              {t("editor:edge.deleteTip2", { defaultValue: "Middle Mouse Button or select the edge and press Delete or Backspace. Select many edges by holding CTRL or Meta while clicking." })}
             </span>
           </span>
         }

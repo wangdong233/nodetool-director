@@ -96,6 +96,8 @@ import { textMeasurer } from "./textMeasure";
 import { PreviewRecovery } from "./PreviewRecovery";
 import { watchVideoHealth } from "./videoHealth";
 import { type PreviewFailureHandler } from "./previewFailure";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface PlaceholderLayer {
   clipId: string;
@@ -256,6 +258,7 @@ export const PreviewCompositor: React.FC = () => {
 };
 
 const PreviewSurface = memo((props: PreviewSurfaceProps) => {
+  const { t } = useTranslation();
   const { onFailure: reportFailure, onReady } = props;
   const theme = useTheme();
   const alive = useRef(true);
@@ -526,7 +529,7 @@ const PreviewSurface = memo((props: PreviewSurfaceProps) => {
           onFailure({
             stage: "renderer-init",
             error: new Error(
-              init.reason ?? "Preview renderer could not initialize"
+              init.reason ?? i18n.t("timeline:attrs.previewRendererCouldNotInitialize", { defaultValue: "Preview renderer could not initialize" })
             )
           });
           compositor.dispose();
@@ -1916,7 +1919,7 @@ const PreviewSurface = memo((props: PreviewSurfaceProps) => {
             }}
           >
             <span style={{ fontSize: theme.fontSizeSmall }}>
-              Preview rendering unavailable
+              {t("editor:ui.previewRenderingUnavailable")}
             </span>
           </div>
         )}
@@ -1930,7 +1933,7 @@ const PreviewSurface = memo((props: PreviewSurfaceProps) => {
               ▶
             </span>
             <span style={{ fontSize: theme.fontSizeSmall, opacity: 0.25 }}>
-              No media at {Math.round(currentTimeMs / 1000)}s
+              {t("editor:ui.noMediaAt", { n: Math.round(currentTimeMs / 1000) })}
             </span>
           </div>
         )}

@@ -23,6 +23,7 @@ import CostEstimateLine, {
 } from "../costs/CostEstimateLine";
 import CloudIcon from "@mui/icons-material/Cloud";
 import ComputerIcon from "@mui/icons-material/Computer";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -91,10 +92,11 @@ export const BottomStatusBar: React.FC<BottomStatusBarProps> = memo(
     actionSlot,
     readoutSlot
   }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
 
     const modeStatus: StatusType = mode === "cloud" ? "success" : "info";
-    const modeLabel = mode === "cloud" ? "Cloud" : "Local";
+    const modeLabel = mode === "cloud" ? t("editor:ui.cloud2") : t("editor:ui.execLocal");
     const ModeIcon = mode === "cloud" ? CloudIcon : ComputerIcon;
 
     return (
@@ -132,8 +134,8 @@ export const BottomStatusBar: React.FC<BottomStatusBarProps> = memo(
 
           <CostEstimateLine
             estimate={costEstimate}
-            title="Estimated cost of generating every clip in this sequence"
-            ariaPrefix="Estimated sequence cost"
+            title={t("timeline:status.costTip", { defaultValue: "Estimated cost of generating every clip in this sequence" })}
+            ariaPrefix={t("timeline:status.costPrefix", { defaultValue: "Estimated sequence cost" })}
           />
         </FlexRow>
 

@@ -375,6 +375,7 @@ export class ShapeTool implements ToolHandler {
 export const definition: ToolDefinition = {
   tool: "shape",
   label: "Shape",
+  labelKey: "timeline:attrs.shape",
   Icon: CategoryIcon,
   group: "shape"
 };

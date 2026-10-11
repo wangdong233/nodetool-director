@@ -30,6 +30,7 @@ import type { ScriptSetup } from "@nodetool-ai/protocol/api-schemas/scripts.js";
 
 import { parseFdx, type FdxImport } from "../storyboard/parseFdx";
 import { parseSrt, type SubtitleImport } from "./parseSrt";
+import { i18n } from "../../i18n";
 
 /** One imported line, before it is given an id and put on the document. */
 export interface ImportedLine {
@@ -109,7 +110,7 @@ export function importedFromFdx(parsed: FdxImport): ImportedScript {
     speakers: dedupe(lines.map((line) => line.speakerName)),
     attributed: true,
     text: lines.map((line) => line.text).join("\n"),
-    label: "Final Draft screenplay"
+    label: i18n.t("editor:ui.finalDraftScreenplay", { defaultValue: "Final Draft screenplay" })
   };
 }
 
@@ -126,7 +127,7 @@ export function importedFromSubtitles(parsed: SubtitleImport): ImportedScript {
     speakers: [parsed.speakerName],
     attributed: true,
     text: parsed.text,
-    label: "Subtitles, with their cue timings"
+    label: i18n.t("editor:ui.subtitlesWithCueTimings", { defaultValue: "Subtitles, with their cue timings" })
   };
 }
 
@@ -144,7 +145,7 @@ export function importedFromText(text: string): ImportedScript {
     speakers: [],
     attributed: false,
     text: split.join("\n"),
-    label: "Your own text"
+    label: i18n.t("editor:ui.yourOwnText", { defaultValue: "Your own text" })
   };
 }
 
@@ -235,7 +236,9 @@ export function readScriptSource(
       typeof raw.text === "string"
         ? raw.text
         : lines.map((line) => line.text).join("\n"),
-    label: asString(raw.label) || "Your own text"
+    label:
+      asString(raw.label) ||
+      i18n.t("editor:ui.yourOwnText", { defaultValue: "Your own text" })
   };
 }
 

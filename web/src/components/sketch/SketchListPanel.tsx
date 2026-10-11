@@ -28,6 +28,8 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { newDocumentId } from "../../lib/newDocumentId";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DRAG_IMAGE_Z_INDEX = 9999;
@@ -73,7 +75,7 @@ function createSketchDragImage(name: string): HTMLElement {
   container.appendChild(icon);
 
   const label = document.createElement("div");
-  label.textContent = name || "Untitled sketch";
+  label.textContent = name || i18n.t("editor:ui.untitledSketch", { defaultValue: "Untitled sketch" });
   label.style.cssText = `
     min-width: 0;
     overflow: hidden;
@@ -110,6 +112,8 @@ const SketchListItem = memo(function SketchListItem({
   onCommitRename,
   onCancelRename
 }: SketchListItemProps) {
+  // Language anchor for the memo'd row (F-26).
+  const { t } = useTranslation();
   const setActiveDrag = useDragDropStore((state) => state.setActiveDrag);
   const clearDrag = useDragDropStore((state) => state.clearDrag);
   const handleDragStart = useCallback(
@@ -144,8 +148,8 @@ const SketchListItem = memo(function SketchListItem({
     <ListPanelItem
       id={id}
       name={name}
-      fallbackName="Untitled sketch"
-      renameLabel="Sketch name"
+      fallbackName={t("editor:ui.untitledSketch", { defaultValue: "Untitled sketch" })}
+      renameLabel={t("editor:ui.sketchName", { defaultValue: "Sketch name" })}
       icon={BrushOutlinedIcon}
       active={active}
       editing={editing}
@@ -161,6 +165,7 @@ const SketchListItem = memo(function SketchListItem({
 });
 
 export const CreateSketchButton = memo(function CreateSketchButton() {
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
   const createSketch = trpc.sketch.create.useMutation({
     onSuccess: () => {
@@ -176,7 +181,7 @@ export const CreateSketchButton = memo(function CreateSketchButton() {
     try {
       const sketch = await createSketch.mutateAsync({
         id: newDocumentId(),
-        name: "Untitled sketch",
+        name: i18n.t("editor:ui.untitledSketch", { defaultValue: "Untitled sketch" }),
         projectId: creationProjectId()
       });
       if (location.pathname.startsWith("/workspace")) {
@@ -197,9 +202,9 @@ export const CreateSketchButton = memo(function CreateSketchButton() {
   }, [createSketch, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title="New sketch" placement="right-start">
+    <Tooltip title={t("sketch:attrs.newSketch", { defaultValue: "New sketch" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New sketch"
+        ariaLabel={t("sketch:attrs.newSketch", { defaultValue: "New sketch" })}
         onClick={() => void handleCreate()}
         disabled={createSketch.isPending}
         tabIndex={-1}
@@ -214,6 +219,8 @@ interface SketchListPanelProps {
 }
 
 const SketchListPanel = ({ projectId }: SketchListPanelProps) => {
+  // Language anchor: the panel chrome (nouns, empty copy) renders through `t`.
+  const { t } = useTranslation();
   const { data, isLoading, isError, error } = trpc.sketch.list.useQuery(
     { projectId },
     { staleTime: 30_000, retry: false }
@@ -326,13 +333,13 @@ const SketchListPanel = ({ projectId }: SketchListPanelProps) => {
 
   return (
     <DocumentListPanel
-      singular="sketch"
-      plural="sketches"
+      singular={t("editor:ui.sketchNoun", { defaultValue: "sketch" })}
+      plural={t("editor:ui.sketchesNoun", { defaultValue: "sketches" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create a new sketch with the + button above."
+      emptyDescription={t("editor:ui.createANewSketchWithThe+ButtonAbove", { defaultValue: "Create a new sketch with the + button above." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}

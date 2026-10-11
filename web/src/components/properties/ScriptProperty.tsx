@@ -5,6 +5,7 @@ import isEqual from "../../utils/isEqual";
 import type { PropertyProps } from "../node/PropertyInput.types";
 import { useScripts } from "../../hooks/script/useScripts";
 import DocumentPickerProperty from "./DocumentPickerProperty";
+import { i18n } from "../../i18n";
 
 /** Property editor for the `script` type. Scripts live only in the workspace. */
 const ScriptProperty = (props: PropertyProps) => (

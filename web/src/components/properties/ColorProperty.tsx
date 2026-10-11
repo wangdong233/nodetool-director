@@ -6,6 +6,7 @@ import ColorPicker from "../inputs/ColorPicker";
 import isEqual from "../../utils/isEqual";
 import { useTheme } from "@mui/material/styles";
 import { FlexRow } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const ColorProperty: React.FC<PropertyProps> = ({
   property,

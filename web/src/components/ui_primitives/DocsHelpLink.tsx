@@ -2,6 +2,7 @@
 import React, { memo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
+import { useAppLanguage } from "../../i18n";
 import type { Theme } from "@mui/material/styles";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -9,6 +10,7 @@ import { IconButton, Tooltip } from "@mui/material";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { docsLink, type DocsTopic } from "../../config/docsLinks";
 import { MOTION, reducedMotion } from "./tokens";
+import { useTranslation } from "react-i18next";
 
 export interface DocsHelpLinkProps {
   /** Documentation page this surface maps to. */
@@ -64,8 +66,16 @@ const DocsHelpLinkInternal: React.FC<DocsHelpLinkProps> = ({
   tooltipPlacement = "bottom",
   className
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
-  const title = `${label} documentation`;
+  // Kept through the useTranslation migration: the hook above carries the
+  // language subscription; the version counter retires in P2 (B-R4).
+  useAppLanguage();
+  // The topic is a closed enum — resolve its display name from the catalog so
+  // callers never ship mixed-language tooltips (the label prop is the English
+  // fallback for topics the catalog does not name yet).
+  const docLabel = t(`nav:settings.docsTopics.${topic}`, { defaultValue: label });
+  const title = t("nav:settings.docsTitle", { label: docLabel });
 
   const commonProps = {
     href: docsLink(topic),

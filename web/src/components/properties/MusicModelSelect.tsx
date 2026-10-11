@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 interface MusicModelSelectProps {
   onChange: (value: MusicModelValue) => void;

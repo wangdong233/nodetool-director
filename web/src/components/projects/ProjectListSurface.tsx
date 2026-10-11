@@ -34,8 +34,9 @@ import {
 } from "../../hooks/useProjects";
 import ProjectCard from "./ProjectCard";
 import ProjectLifecycleActions from "./ProjectLifecycleActions";
-import { PROJECT_COLOR } from "./projectIdentity";
+import { PROJECT_COLOR, personalDisplayName } from "./projectIdentity";
 import type { ProjectDetail } from "./projectStatus";
+import { useTranslation } from "react-i18next";
 
 /**
  * How many loose documents the strip lists. Every document a user has ever
@@ -84,6 +85,7 @@ const parseDragPayload = (payload: string): LooseDocument | null => {
  * that belong to none. Dragging one of those onto a card moves it in.
  */
 const ProjectListSurface = () => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
 
   const summaries = useProjectSummaries();
@@ -156,23 +158,23 @@ const ProjectListSurface = () => {
         gap={SPACING.xl}
         sx={{ px: SPACING.xxl, pt: SPACING.xxl, pb: SPACING.md }}
       >
-        <Text size="big">Projects</Text>
+        <Text size="big">{t("nav:tabs.projects", { defaultValue: "Projects" })}</Text>
         <Caption color="secondary">
-          One piece of work — the documents an agent built for it, what it
-          cost, where it stands.
+          {t("editor:ui.onePieceOfWorkTheDocumentsAnAgentBuiltForIt", { defaultValue: "One piece of work — the documents an agent built for it, what it cost, where it stands." })}
         </Caption>
         <Box sx={{ flex: 1 }} />
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Search projects"
+          placeholder={t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
         />
         <EditorButton
           variant="contained"
           color="primary"
           onClick={openNewProject}
         >
-          + New project
+          {"+ "}
+          {t("editor:ui.newProject", { defaultValue: "New project" })}
         </EditorButton>
       </FlexRow>
 
@@ -180,7 +182,7 @@ const ProjectListSurface = () => {
         {summaries.isPending ? (
           <LoadingSpinner />
         ) : summaries.error ? (
-          <Caption color="error">Could not load projects</Caption>
+          <Caption color="error">{t("ui2:attrs.couldNotLoadProjects", { defaultValue: "Could not load projects" })}</Caption>
         ) : (
           <Box
             sx={{
@@ -222,9 +224,9 @@ const ProjectListSurface = () => {
               <Box sx={{ color: PROJECT_COLOR, fontSize: "var(--fontSizeBig)" }}>
                 +
               </Box>
-              <Label>Start a project</Label>
+              <Label>{t("ui2:attrs.startAProject", { defaultValue: "Start a project" })}</Label>
               <Caption color="muted">
-                Say what you want made, and an agent builds its documents
+                {t("editor:ui.sayWhatYouWantMadeAndAnAgentBuildsItsDocuments", { defaultValue: "Say what you want made, and an agent builds its documents" })}
               </Caption>
             </Box>
           </Box>
@@ -243,15 +245,15 @@ const ProjectListSurface = () => {
               color="muted"
               sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}
             >
-              Not in a project
+              {t("editor:ui.notInAProject")}
             </Caption>
             {looseTotal > loose.length && (
               <Caption color="muted">
-                {`${loose.length} most recent of ${looseTotal}`}
+                {t("editor:ui.mostRecentOf", { shown: String(loose.length), total: String(looseTotal) })}
               </Caption>
             )}
             <Box sx={{ flex: 1 }} />
-            <Caption color="muted">Drag onto a project card to move it in</Caption>
+            <Caption color="muted">{t("editor:ui.dragOntoAProjectCardToMoveItIn", { defaultValue: "Drag onto a project card to move it in" })}</Caption>
           </FlexRow>
           <FlexRow gap={SPACING.lg} wrap>
             {loose.map((document) => (
@@ -300,11 +302,11 @@ const ProjectListSurface = () => {
         <FlexColumn gap={SPACING.md} sx={{ px: SPACING.xxl, pb: SPACING.xl }}>
           <Divider />
           <Caption color="muted" sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Archived projects
+            {t("editor:ui.archivedProjects")}
           </Caption>
           {archived.data?.map((project) => (
             <FlexRow key={project.id} align="center" gap={SPACING.md}>
-              <Label sx={{ flex: 1 }}>{project.name}</Label>
+              <Label sx={{ flex: 1 }}>{personalDisplayName(project, t)}</Label>
               <ProjectLifecycleActions project={project} />
             </FlexRow>
           ))}

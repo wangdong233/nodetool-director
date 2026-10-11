@@ -49,6 +49,7 @@ import MediaCostEstimate from "./MediaCostEstimate";
 import PermissionSelector from "./PermissionSelector";
 import { useAutoFocusEnabled } from "../../../hooks/useAutoFocusEnabled";
 import { useFirstRunLanguageModel } from "../../../hooks/useFirstRunLanguageModel";
+import { useTranslation } from "react-i18next";
 
 /** Textarea growth caps. The mobile one matches the composer stylesheet — on a
  *  phone the keyboard already owns most of the screen. */
@@ -135,6 +136,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
   hideModelPicker = false,
   threadId
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const styles = useMemo(() => createMediaComposerStyles(theme), [theme]);
@@ -456,28 +458,28 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     }
     if (mode === "image") {
       return isMobile
-        ? "Describe an image…"
-        : "Describe the image you want to generate…";
+        ? t("editor:ui.describeAnImage", { defaultValue: "Describe an image…" })
+        : t("editor:ui.describeTheImageYouWantToGenerate", { defaultValue: "Describe the image you want to generate…" });
     }
     if (mode === "image_edit") {
       return isMobile
-        ? "Describe the edits…"
-        : "Describe the edits to apply to the dropped image…";
+        ? t("editor:ui.describeTheEdits", { defaultValue: "Describe the edits…" })
+        : t("editor:ui.describeTheEditsToApplyToTheDroppedImage", { defaultValue: "Describe the edits to apply to the dropped image…" });
     }
     if (mode === "video") {
       return isMobile
-        ? "Describe a video…"
-        : "Describe your video… like a man drinking a cup of coffee…";
+        ? t("editor:ui.describeAVideo", { defaultValue: "Describe a video…" })
+        : t("editor:ui.describeYourVideoLikeAManDrinkingACupOfCoffee", { defaultValue: "Describe your video… like a man drinking a cup of coffee…" });
     }
     if (mode === "image_to_video") {
       return isMobile
-        ? "Describe the animation…"
-        : "Describe how the dropped image should animate…";
+        ? t("editor:ui.describeTheAnimation", { defaultValue: "Describe the animation…" })
+        : t("editor:ui.describeHowTheDroppedImageShouldAnimate", { defaultValue: "Describe how the dropped image should animate…" });
     }
     if (mode === "reference_to_video") {
       return isMobile
-        ? "Describe the shot…"
-        : "Describe the shot — the attached images and videos are the references…";
+        ? t("editor:ui.describeTheShot", { defaultValue: "Describe the shot…" })
+        : t("editor:ui.describeTheShotTheAttachedImagesAndVideosAreTheReferences", { defaultValue: "Describe the shot — the attached images and videos are the references…" });
     }
     if (mode === "audio") {
       return "Type the text you want spoken…";
@@ -497,13 +499,13 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     }
     if (mode === "chat" && permissionMode === "plan") {
       return isMobile
-        ? "Describe the work to plan…"
-        : "Describe the work. The agent will propose a plan, not run it.";
+        ? t("editor:ui.describeTheWorkToPlan", { defaultValue: "Describe the work to plan…" })
+        : t("editor:ui.describeTheWorkTheAgentWillProposeAPlanNotRunIt", { defaultValue: "Describe the work. The agent will propose a plan, not run it." });
     }
     return isMobile
-      ? "Message… or @ to add an asset"
-      : "Continue the thread — or type @ to add an asset…";
-  }, [mode, isMobile, placeholderOverride, permissionMode]);
+      ? t("editor:ui.messageOr@ToAddAnAsset", { defaultValue: "Message… or @ to add an asset" })
+      : t("editor:ui.continueTheThreadOrType@ToAddAnAsset", { defaultValue: "Continue the thread — or type @ to add an asset…" });
+  }, [t, mode, isMobile, placeholderOverride, permissionMode]);
 
   const isMediaMode =
     mode === "image" ||
@@ -521,32 +523,56 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
     label: string;
   } | null => {
     if (mode === "chat") {
-      return { model: chatModel, label: "language" };
+      return {
+        model: chatModel,
+        label: t("editor:ui.languageModelKind", { defaultValue: "language" })
+      };
     }
     if (mode === "image") {
-      return { model: imageParams.model, label: "image" };
+      return {
+        model: imageParams.model,
+        label: t("editor:ui.imageModelKind", { defaultValue: "image" })
+      };
     }
     if (mode === "image_edit") {
-      return { model: imageEditParams.model, label: "image edit" };
+      return {
+        model: imageEditParams.model,
+        label: t("editor:ui.imageEditModelKind", { defaultValue: "image edit" })
+      };
     }
     if (mode === "video") {
-      return { model: videoParams.model, label: "video" };
+      return {
+        model: videoParams.model,
+        label: t("editor:ui.videoModelKind", { defaultValue: "video" })
+      };
     }
     if (mode === "image_to_video") {
-      return { model: imageToVideoParams.model, label: "image to video" };
+      return {
+        model: imageToVideoParams.model,
+        label: t("editor:ui.imageToVideoModelKind", { defaultValue: "image to video" })
+      };
     }
     if (mode === "reference_to_video") {
       return {
         model: referenceToVideoParams.model,
-        label: "reference to video"
+        label: t("editor:ui.referenceToVideoModelKind", { defaultValue: "reference to video" })
       };
     }
     if (mode === "audio") {
-      return { model: audioParams.model, label: "speech" };
+      return {
+        model: audioParams.model,
+        label: t("editor:ui.speechModelKind", { defaultValue: "speech" })
+      };
     }
-    if (mode === "music") return { model: musicParams.model, label: "music" };
+    if (mode === "music") {
+      return {
+        model: musicParams.model,
+        label: t("editor:ui.musicModelKind", { defaultValue: "music" })
+      };
+    }
     return null;
   }, [
+    t,
     mode,
     chatModel,
     imageParams.model,
@@ -700,9 +726,9 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
   );
 
   const chatProviderLabel = useMemo(() => {
-    if (!isModelSelected(chatModel)) return "Select model";
+    if (!isModelSelected(chatModel)) return t("editor:ui.selectModelLower");
     return chatModel.name || chatModel.id;
-  }, [chatModel]);
+  }, [t, chatModel]);
 
   const isDisabled = disabled || isBusy;
 
@@ -737,7 +763,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
         <textarea
           ref={textareaRef}
           className="media-compose-input"
-          aria-label="Message prompt"
+          aria-label={t("editor:ui.messagePrompt", { defaultValue: "Message prompt" })}
           aria-expanded={isSkillMenuOpen}
           aria-controls={isSkillMenuOpen ? skillMenuId : undefined}
           value={prompt}
@@ -765,9 +791,17 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
 
         {!providerSetup.needsSetup && needsModel && modelGate && (
           <SelectModelBanner
-            reason={`Pick a ${modelGate.label} model to ${
-              isMediaMode ? "generate" : "send"
-            }.`}
+            reason={
+              isMediaMode
+                ? t("editor:ui.pickModelToGenerate", {
+                    defaultValue: "Pick a {{kind}} model to generate.",
+                    kind: modelGate.label
+                  })
+                : t("editor:ui.pickModelToSend", {
+                    defaultValue: "Pick a {{kind}} model to send.",
+                    kind: modelGate.label
+                  })
+            }
             onSelect={openModelPicker}
           />
         )}
@@ -779,7 +813,10 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
             sx={{ px: 1, color: "text.secondary" }}
           >
             <Text size="small" color="secondary">
-              Message queued - {queuedMessage.prompt.slice(0, 60)}
+              {t("editor:ui.messageQueued", {
+                defaultValue: "Message queued - {{prompt}}",
+                prompt: queuedMessage.prompt.slice(0, 60)
+              })}
             </Text>
             {onStop && (
               <Text
@@ -843,7 +880,11 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
                   <AddIcon fontSize="small" />
                 )
               }
-              title={isUploading ? "Uploading…" : "Attach files"}
+              title={
+                isUploading
+                  ? t("editor:chat.uploadingFiles", { defaultValue: "Uploading…" })
+                  : t("editor:chat.attachFiles", { defaultValue: "Attach files" })
+              }
               onClick={openAttachPicker}
               disabled={disabled}
               showChevron={false}
@@ -901,7 +942,7 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
                 className="media-generate-btn"
                 onClick={handleSend}
                 disabled={isDisabled || !canGenerate}
-                aria-label="Generate"
+                aria-label={t("editor:ui.generate", { defaultValue: "Generate" })}
               >
                 Generate
               </button>

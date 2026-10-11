@@ -9,6 +9,7 @@ import RestoreIcon from "@mui/icons-material/Restore";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 import type { LayerVersion } from "@nodetool-ai/image-editor";
+import { useTranslation } from "react-i18next";
 import {
   FlexRow,
   FlexColumn,
@@ -85,6 +86,7 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
     isFavoriting = false,
     isDeleting = false
   }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -149,18 +151,18 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
             {canRestore && (
               <ToolbarIconButton
                 icon={<RestoreIcon fontSize="small" />}
-                tooltip="Restore this version"
+                tooltip={t("editor:ui.restoreThisVersion", { defaultValue: "Restore this version" })}
                 onClick={handleRestoreClick}
                 disabled={isRestoring}
-                aria-label="Restore version"
+                aria-label={t("editor:ui.restoreVersion", { defaultValue: "Restore version" })}
               />
             )}
             <ToolbarIconButton
               icon={<DeleteIcon fontSize="small" />}
-              tooltip="Delete version"
+              tooltip={t("editor:ui.deleteVersion", { defaultValue: "Delete version" })}
               onClick={handleDeleteClick}
               disabled={isDeleting}
-              aria-label="Delete version"
+              aria-label={t("editor:ui.deleteVersion", { defaultValue: "Delete version" })}
             />
           </FlexRow>
         </FlexRow>
@@ -168,10 +170,10 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
         <Dialog
           open={deleteDialogOpen}
           onClose={handleDeleteCancel}
-          title="Delete version?"
+          title={t("editor:ui.deleteVersion")}
           onConfirm={handleDeleteConfirm}
-          confirmText="Delete"
-          cancelText="Cancel"
+          confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+          cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
           destructive
         >
           This version will be permanently removed. The underlying job and asset

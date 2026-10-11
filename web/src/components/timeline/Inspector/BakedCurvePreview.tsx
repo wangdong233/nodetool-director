@@ -16,6 +16,7 @@ import React, { memo } from "react";
 import { css } from "@emotion/react";
 
 import { BORDER_RADIUS, FONT_SIZE_MONO, SPACING, getSpacingPx } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 /** One point of the curve: where it sits, and what it is worth there. */
 export interface BakedCurvePoint {

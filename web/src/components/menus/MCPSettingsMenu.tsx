@@ -13,6 +13,8 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import AgentAccessSection from "./AgentAccessSection";
 import ExternalMcpServersSection from "./ExternalMcpServersSection";
 import { trpcClient } from "../../trpc/client";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface TargetStatus {
   target: string;
@@ -50,6 +52,7 @@ async function uninstallMcp(
 }
 
 const MCPSettingsMenu = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const addNotification = useNotificationStore(
@@ -75,7 +78,10 @@ const MCPSettingsMenu = () => {
         addNotification({
           type: "success",
           alert: true,
-          content: `MCP installed for ${ok.map((r) => r.label).join(", ")}`
+          content: t("editor:notify.mcpInstalledFor", {
+            defaultValue: "MCP installed for {{targets}}",
+            targets: ok.map((r) => r.label).join(", ")
+          })
         });
       }
     },
@@ -83,7 +89,10 @@ const MCPSettingsMenu = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: `MCP install failed: ${err}`
+        content: t("editor:notify.mcpInstallFailed", {
+          defaultValue: "MCP install failed: {{error}}",
+          error: String(err)
+        })
       });
     }
   });
@@ -97,7 +106,10 @@ const MCPSettingsMenu = () => {
         addNotification({
           type: "info",
           alert: true,
-          content: `MCP removed from ${ok.map((r) => r.label).join(", ")}`
+          content: t("editor:notify.mcpRemovedFrom", {
+            defaultValue: "MCP removed from {{targets}}",
+            targets: ok.map((r) => r.label).join(", ")
+          })
         });
       }
     }
@@ -105,7 +117,7 @@ const MCPSettingsMenu = () => {
 
   const handleInstallAll = useCallback(() => {
     const notInstalled =
-      data?.targets.filter((t) => !t.installed).map((t) => t.target) ?? [];
+      data?.targets.filter((target) => !target.installed).map((target) => target.target) ?? [];
     if (notInstalled.length > 0) {
       installMutation.mutate(notInstalled);
     }
@@ -125,7 +137,7 @@ const MCPSettingsMenu = () => {
     [uninstallMutation]
   );
 
-  const allInstalled = data?.targets.every((t) => t.installed) ?? false;
+  const allInstalled = data?.targets.every((target) => target.installed) ?? false;
   const busy = installMutation.isPending || uninstallMutation.isPending;
 
   // Claude Desktop installs the bundled `.mcpb` extension, which only the
@@ -143,33 +155,40 @@ const MCPSettingsMenu = () => {
           type: "error",
           alert: true,
           content:
-            result.error ?? "Could not find the NodeTool extension bundle."
+            result.error ?? i18n.t("editor:ui.couldNotFindTheNodeToolExtensionBundle", { defaultValue: "Could not find the NodeTool extension bundle." })
         });
       } else if (result.opened) {
         addNotification({
           type: "success",
           alert: true,
-          content:
-            "Opening the NodeTool extension in Claude Desktop — confirm the install there."
+          content: t("editor:notify.openingExtensionInClaudeDesktop", {
+            defaultValue:
+              "Opening the NodeTool extension in Claude Desktop — confirm the install there."
+          })
         });
       } else {
         addNotification({
           type: "info",
           alert: true,
-          content:
-            "Revealed nodetool.mcpb — drag it into Claude Desktop → Settings → Extensions."
+          content: t("editor:notify.revealedMcpb", {
+            defaultValue:
+              "Revealed nodetool.mcpb — drag it into Claude Desktop → Settings → Extensions."
+          })
         });
       }
     } catch (err) {
       addNotification({
         type: "error",
         alert: true,
-        content: `Extension install failed: ${err}`
+        content: t("editor:notify.extensionInstallFailed", {
+          defaultValue: "Extension install failed: {{error}}",
+          error: String(err)
+        })
       });
     } finally {
       setBundleBusy(false);
     }
-  }, [installBundle, addNotification]);
+  }, [installBundle, addNotification, t]);
 
   return (
     <div
@@ -178,19 +197,18 @@ const MCPSettingsMenu = () => {
     >
       <div className="settings-main-content">
         <Text className="description" sx={{ mb: 1 }}>
-          Connect AI coding assistants to NodeTool via the{" "}
-          <strong>Model Context Protocol</strong>. When installed, Claude Code,
-          Codex, and OpenCode can use NodeTool workflows, assets, nodes, and
-          collections as tools.
+          {t("editor:ui.mcpIntroLead", { defaultValue: "Connect AI coding assistants to NodeTool via the " })}
+          <strong>{t("editor:ui.modelContextProtocol", { defaultValue: "Model Context Protocol" })}</strong>
+          {t("editor:ui.mcpIntroTail", { defaultValue: ". When installed, Claude Code, Codex, and OpenCode can use NodeTool workflows, assets, nodes, and collections as tools." })}
         </Text>
 
-        {isLoading && <Text sx={{ padding: getSpacingPx(SPACING.xl) }}>Loading…</Text>}
+        {isLoading && <Text sx={{ padding: getSpacingPx(SPACING.xl) }}>{t("common:status.loading", { defaultValue: "Loading…" })}</Text>}
 
         {data && (
           <>
             <div className="settings-section">
               <Text sx={{ fontWeight: 500, mb: 0.5 }}>
-                Install on this machine
+                {t("editor:ui.installOnThisMachine")}
               </Text>
               {data.defaultUrl && (
                 <Text
@@ -200,11 +218,11 @@ const MCPSettingsMenu = () => {
                   {data.defaultUrl}
                 </Text>
               )}
-              {data.targets.map((t) => (
-                <div key={t.target} className="settings-item">
+              {data.targets.map((target) => (
+                <div key={target.target} className="settings-item">
                   <FlexRow align="center" justify="space-between" fullWidth>
                     <FlexRow align="center" gap={1}>
-                      {t.installed ? (
+                      {target.installed ? (
                         <CheckCircleIcon
                           sx={{
                             color: theme.palette.success.main,
@@ -220,24 +238,24 @@ const MCPSettingsMenu = () => {
                         />
                       )}
                       <FlexColumn gap={0}>
-                        <Text sx={{ fontWeight: 500 }}>{t.label}</Text>
-                        {t.installed && t.url && (
+                        <Text sx={{ fontWeight: 500 }}>{target.label}</Text>
+                        {target.installed && target.url && (
                           <Text
                             className="description"
                             sx={{ fontSize: "var(--fontSizeSmall) !important" }}
                           >
-                            {t.url}
+                            {target.url}
                           </Text>
                         )}
                       </FlexColumn>
                     </FlexRow>
                     <FlexRow gap={1}>
-                      {t.installed ? (
+                      {target.installed ? (
                         <NavButton
                           icon={<RemoveCircleOutlineIcon />}
-                          label="Remove"
+                          label={t("editor:ui.remove", { defaultValue: "Remove" })}
                           disabled={busy}
-                          onClick={() => handleUninstall(t.target)}
+                          onClick={() => handleUninstall(target.target)}
                           navSize="small"
                           sx={{
                             padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`,
@@ -248,10 +266,10 @@ const MCPSettingsMenu = () => {
                       ) : (
                         <NavButton
                           icon={<AddCircleOutlineIcon />}
-                          label="Install"
+                          label={t("editor:ui.install", { defaultValue: "Install" })}
                           color="primary"
                           disabled={busy}
-                          onClick={() => handleInstall(t.target)}
+                          onClick={() => handleInstall(target.target)}
                           navSize="small"
                           sx={{
                             padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`,
@@ -270,7 +288,7 @@ const MCPSettingsMenu = () => {
               <FlexRow justify="flex-start" sx={{ mt: 1 }}>
                 <NavButton
                   icon={<InstallDesktopIcon />}
-                  label="Install All"
+                  label={t("editor:ui.installAll", { defaultValue: "Install All" })}
                   color="primary"
                   disabled={busy}
                   onClick={handleInstallAll}
@@ -285,13 +303,15 @@ const MCPSettingsMenu = () => {
           <div className="settings-section" style={{ marginTop: getSpacingPx(SPACING.xxl) }}>
             <Text sx={{ fontWeight: 500, mb: 0.5 }}>Claude Desktop</Text>
             <Text className="description" sx={{ mb: 1 }}>
-              Install the NodeTool extension bundled with this app. Claude
-              Desktop opens its install dialog; confirm it there.
+              {t("editor:ui.claudeDesktopBundleDesc", {
+                defaultValue:
+                  "Install the NodeTool extension bundled with this app. Claude Desktop opens its install dialog; confirm it there."
+              })}
             </Text>
             <FlexRow justify="flex-start">
               <NavButton
                 icon={<InstallDesktopIcon />}
-                label="Install Extension"
+                label={t("editor:ui.installExtension", { defaultValue: "Install Extension" })}
                 color="primary"
                 disabled={bundleBusy}
                 onClick={handleInstallBundle}

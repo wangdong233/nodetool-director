@@ -21,6 +21,7 @@ import {
   useRunSelectedNodes
 } from "../../hooks/nodes/useRunSelectedNodes";
 import { useSettingsStore } from "../../stores/SettingsStore";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -99,6 +100,7 @@ const styles = (theme: Theme) =>
   });
 
 const RunSelectedNodesSectionInternal: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { runSelectedNodes, isWorkflowRunning, runProgress } =
     useRunSelectedNodes();
@@ -130,12 +132,12 @@ const RunSelectedNodesSectionInternal: React.FC = () => {
         fullWidth
         className="runs-row"
       >
-        <span className="runs-label">Runs</span>
+        <span className="runs-label">{t("ui2:attrs.runs", { defaultValue: "Runs" })}</span>
         <FlexRow gap={0} align="center" className="stepper-control">
           <EditorButton
             onClick={decrement}
             disabled={runs <= MIN_RUNS || isWorkflowRunning}
-            aria-label="Decrease runs"
+            aria-label={t("editor:ui.decreaseRuns", { defaultValue: "Decrease runs" })}
           >
             <RemoveIcon fontSize="small" />
           </EditorButton>
@@ -145,7 +147,7 @@ const RunSelectedNodesSectionInternal: React.FC = () => {
           <EditorButton
             onClick={increment}
             disabled={runs >= MAX_RUNS || isWorkflowRunning}
-            aria-label="Increase runs"
+            aria-label={t("editor:ui.increaseRuns", { defaultValue: "Increase runs" })}
           >
             <AddIcon fontSize="small" />
           </EditorButton>
@@ -156,7 +158,7 @@ const RunSelectedNodesSectionInternal: React.FC = () => {
           placement="top"
           title={
             <FlexRow gap={1} align="center">
-              <span>Run selected nodes</span>
+              <span>{t("ui2:attrs.runSelectedNodes", { defaultValue: "Run selected nodes" })}</span>
               <ShortcutHint shortcut={["⌘", "Enter"]} />
             </FlexRow>
           }
@@ -166,10 +168,10 @@ const RunSelectedNodesSectionInternal: React.FC = () => {
             density="normal"
             onClick={handleRun}
             disabled={buttonDisabled}
-            aria-label="Run selected nodes"
+            aria-label={t("ui2:attrs.runSelectedNodes", { defaultValue: "Run selected nodes" })}
           >
             <PlayArrowIcon className="play-icon" />
-            <span className="run-label">Run selected</span>
+            <span className="run-label">{t("ui2:attrs.runSelected", { defaultValue: "Run selected" })}</span>
           </EditorButton>
         </Tooltip>
         {inSequence && runProgress !== null ? (

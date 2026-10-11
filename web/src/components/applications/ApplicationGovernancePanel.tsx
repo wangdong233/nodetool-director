@@ -36,14 +36,15 @@ import {
   SPACING
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
+import { useTranslation } from "react-i18next";
 
 type Version = RouterOutputs["applications"]["versions"][number];
 type BudgetPeriod = RouterOutputs["applications"]["setBudget"]["period"];
 
 const PERIOD_OPTIONS = [
-  { value: "day", label: "Per day" },
-  { value: "month", label: "Per month" },
-  { value: "total", label: "Lifetime" }
+  { value: "day", label: "Per day", labelKey: "editor:ui.perDay" },
+  { value: "month", label: "Per month", labelKey: "editor:ui.perMonth" },
+  { value: "total", label: "Lifetime", labelKey: "editor:ui.lifetime" }
 ] as const;
 
 const isBudgetPeriod = (value: string): value is BudgetPeriod =>
@@ -90,6 +91,7 @@ const VersionRow = memo(function VersionRow({
   onRelease,
   releasing
 }: VersionRowProps) {
+  const { t } = useTranslation();
   const handleRelease = useCallback(
     () => onRelease(version.version),
     [onRelease, version.version]
@@ -104,7 +106,7 @@ const VersionRow = memo(function VersionRow({
       <FlexColumn gap={SPACING.micro} sx={{ minWidth: 0 }}>
         <FlexRow align="center" gap={SPACING.xs}>
           <Text weight={600}>{`Version ${version.version}`}</Text>
-          {version.released && <Chip label="Released" size="small" />}
+          {version.released && <Chip label={t("editor:ui.released", { defaultValue: "Released" })} size="small" />}
         </FlexRow>
         <Caption>{capabilitySummary(version)}</Caption>
         <Caption>{formatDate(version.createdAt)}</Caption>
@@ -130,6 +132,7 @@ interface BudgetSectionProps {
 const BudgetSection = memo(function BudgetSection({
   applicationId
 }: BudgetSectionProps) {
+  const { t } = useTranslation();
   const {
     data: budget,
     isLoading,
@@ -173,32 +176,32 @@ const BudgetSection = memo(function BudgetSection({
     });
   }, [applicationId, maxInvocations, maxUsd, period, setBudget]);
 
-  if (isLoading) return <LoadingSpinner text="Loading budget" />;
+  if (isLoading) return <LoadingSpinner text={t("editor:ui.loadingBudget")} />;
 
   if (isError) {
     return (
       <AlertBanner severity="error">
-        {`Could not load the budget: ${error?.message ?? "try again later."}`}
+        {t("editor:ui.couldNotLoadTheBudget", { defaultValue: "Could not load the budget: {{message}}", message: error?.message ?? t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." }) })}
       </AlertBanner>
     );
   }
 
   return (
     <FlexColumn gap={SPACING.md} fullWidth>
-      <SectionHeader title="Spend budget" />
+      <SectionHeader title={t("editor:ui.spendBudget", { defaultValue: "Spend budget" })} />
       <Caption>
         Runs of the released app are checked against this ceiling before they
         reach a provider. An empty field means no limit.
       </Caption>
       <SelectField
-        label="Period"
+        label={t("editor:ui.period", { defaultValue: "Period" })}
         value={period}
         onChange={handlePeriodChange}
-        options={PERIOD_OPTIONS}
+        options={PERIOD_OPTIONS.map((o) => ({ ...o, label: t(o.labelKey, { defaultValue: o.label }) }))}
         size="small"
       />
       <TextInput
-        label="Max spend (USD)"
+        label={t("editor:ui.maxSpendUSD", { defaultValue: "Max spend (USD)" })}
         size="small"
         inputMode="decimal"
         value={maxUsd}
@@ -206,7 +209,7 @@ const BudgetSection = memo(function BudgetSection({
         onChange={(event) => setMaxUsd(event.target.value)}
       />
       <TextInput
-        label="Max invocations"
+        label={t("editor:ui.maxInvocations", { defaultValue: "Max invocations" })}
         size="small"
         inputMode="numeric"
         value={maxInvocations}
@@ -254,6 +257,7 @@ interface DeploySectionProps {
 const DeploySection = memo(function DeploySection({
   applicationId
 }: DeploySectionProps) {
+  const { t } = useTranslation();
   const { data: deployment, isLoading, isError, error } =
     useApplicationDeployment(applicationId);
   const deploy = useDeployApplication();
@@ -272,11 +276,11 @@ const DeploySection = memo(function DeploySection({
     ? `${window.location.origin}${appDeploymentPath(deployment.token)}`
     : null;
 
-  if (isLoading) return <LoadingSpinner text="Loading link" />;
+  if (isLoading) return <LoadingSpinner text={t("editor:ui.loadingLink")} />;
 
   return (
     <FlexColumn gap={SPACING.md} fullWidth>
-      <SectionHeader title="Public link" />
+      <SectionHeader title={t("editor:ui.publicLink", { defaultValue: "Public link" })} />
       {isError && isProductionOnlyDeploymentError(error) ? (
         <Caption>
           Public links are available on nodetool.ai. This server does not serve
@@ -285,13 +289,13 @@ const DeploySection = memo(function DeploySection({
       ) : isError ? (
         <FlexColumn gap={SPACING.xs}>
           <AlertBanner severity="error">
-            {`Could not load the public link: ${error?.message ?? "try again later."}`}
+            {t("editor:ui.couldNotLoadThePublicLink", { defaultValue: "Could not load the public link: {{message}}", message: error?.message ?? t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." }) })}
           </AlertBanner>
           <ReportBugButton
-            label="Report deployment issue"
+            label={t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
             context={{
               source: "panel-crash",
-              summary: "Public link status failed to load",
+              summary: t("editor:ui.publicLinkStatusFailedToLoad", { defaultValue: "Public link status failed to load" }),
               errorText: error?.message,
               stackTrace: error instanceof Error ? error.stack : undefined
             }}
@@ -307,13 +311,13 @@ const DeploySection = memo(function DeploySection({
           {url && (
             <FlexRow align="center" gap={SPACING.md} fullWidth>
               <TextInput
-                label="Link"
+                label={t("editor:ui.link", { defaultValue: "Link" })}
                 size="small"
                 value={url}
                 slotProps={{ htmlInput: { readOnly: true } }}
                 fullWidth
               />
-              <CopyButton value={url} tooltip="Copy the link" />
+              <CopyButton value={url} tooltip={t("editor:ui.copyTheLink", { defaultValue: "Copy the link" })} />
             </FlexRow>
           )}
           {deployment?.blockedReason && (
@@ -329,7 +333,7 @@ const DeploySection = memo(function DeploySection({
                 disabled={undeploy.isPending}
                 onClick={handleUndeploy}
               >
-                Withdraw link
+                {t("editor:ui.withdrawLink")}
               </Button>
             ) : (
               <Button
@@ -338,7 +342,7 @@ const DeploySection = memo(function DeploySection({
                 disabled={deploy.isPending}
                 onClick={handleDeploy}
               >
-                Create public link
+                {t("editor:ui.createPublicLink")}
               </Button>
             )}
           </FlexRow>
@@ -348,10 +352,10 @@ const DeploySection = memo(function DeploySection({
                 {`Could not create the link: ${deploy.error.message}`}
               </AlertBanner>
               <ReportBugButton
-                label="Report deployment issue"
+                label={t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
                 context={{
                   source: "panel-crash",
-                  summary: "Public link creation failed",
+                  summary: t("editor:ui.publicLinkCreationFailed", { defaultValue: "Public link creation failed" }),
                   errorText: deploy.error.message,
                   stackTrace:
                     deploy.error instanceof Error ? deploy.error.stack : undefined
@@ -365,10 +369,10 @@ const DeploySection = memo(function DeploySection({
                 {`Could not withdraw the link: ${undeploy.error.message}`}
               </AlertBanner>
               <ReportBugButton
-                label="Report deployment issue"
+                label={t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
                 context={{
                   source: "panel-crash",
-                  summary: "Public link withdrawal failed",
+                  summary: t("editor:ui.publicLinkWithdrawalFailed", { defaultValue: "Public link withdrawal failed" }),
                   errorText: undeploy.error.message,
                   stackTrace:
                     undeploy.error instanceof Error
@@ -391,15 +395,16 @@ interface InvocationsSectionProps {
 const InvocationsSection = memo(function InvocationsSection({
   applicationId
 }: InvocationsSectionProps) {
+  const { t } = useTranslation();
   const { data, isLoading, isError, error } =
     useApplicationInvocations(applicationId);
 
-  if (isLoading) return <LoadingSpinner text="Loading invocations" />;
+  if (isLoading) return <LoadingSpinner text={t("editor:ui.loadingInvocations")} />;
 
   if (isError) {
     return (
       <AlertBanner severity="error">
-        {`Could not load invocations: ${error?.message ?? "try again later."}`}
+        {t("editor:ui.couldNotLoadInvocations", { defaultValue: "Could not load invocations: {{message}}", message: error?.message ?? t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." }) })}
       </AlertBanner>
     );
   }
@@ -408,11 +413,11 @@ const InvocationsSection = memo(function InvocationsSection({
 
   return (
     <FlexColumn gap={SPACING.md} fullWidth>
-      <SectionHeader title="Recent invocations" />
+      <SectionHeader title={t("editor:ui.recentInvocations", { defaultValue: "Recent invocations" })} />
       {invocations.length === 0 ? (
         <EmptyState
-          title="No invocations yet"
-          description="Runs of the released app show up here with their cost."
+          title={t("editor:ui.noInvocationsYet", { defaultValue: "No invocations yet" })}
+          description={t("editor:ui.runsOfTheReleasedAppShowUpHereWithTheirCost")}
         />
       ) : (
         <FlexColumn gap={SPACING.sm} fullWidth>
@@ -456,6 +461,7 @@ interface ApplicationGovernancePanelProps {
 const ApplicationGovernancePanel = ({
   applicationId
 }: ApplicationGovernancePanelProps) => {
+  const { t } = useTranslation();
   const {
     data: versions,
     isLoading,
@@ -491,13 +497,13 @@ const ApplicationGovernancePanel = ({
         fullWidth
       >
         <FlexColumn gap={SPACING.micro}>
-          <SectionHeader title="Release" />
+          <SectionHeader title={t("editor:ui.release", { defaultValue: "Release" })} />
           <Caption>
             {released
               ? `Serving version ${released.version} — ${capabilitySummary(
                   released
                 )}`
-              : "Nothing released yet."}
+              : t("editor:ui.nothingReleasedYet", { defaultValue: "Nothing released yet." })}
           </Caption>
         </FlexColumn>
         <Button
@@ -506,7 +512,7 @@ const ApplicationGovernancePanel = ({
           disabled={publish.isPending}
           onClick={handlePublish}
         >
-          Publish new version
+          {t("editor:ui.publishNewVersion")}
         </Button>
       </FlexRow>
       {publish.isError && (
@@ -523,17 +529,17 @@ const ApplicationGovernancePanel = ({
       <Divider />
 
       <FlexColumn gap={SPACING.md} fullWidth>
-        <SectionHeader title="Versions" />
+        <SectionHeader title={t("editor:ui.versions", { defaultValue: "Versions" })} />
         {isLoading ? (
-          <LoadingSpinner text="Loading versions" />
+          <LoadingSpinner text={t("editor:ui.loadingVersions")} />
         ) : isError ? (
           <AlertBanner severity="error">
-            {`Could not load versions: ${error?.message ?? "try again later."}`}
+            {t("editor:ui.couldNotLoadVersions", { defaultValue: "Could not load versions: {{message}}", message: error?.message ?? t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." }) })}
           </AlertBanner>
         ) : sortedVersions.length === 0 ? (
           <EmptyState
-            title="No versions yet"
-            description="Publish the app to cut its first version."
+            title={t("editor:ui.noVersionsYet", { defaultValue: "No versions yet" })}
+            description={t("editor:ui.publishTheAppToCutItsFirstVersion")}
           />
         ) : (
           <FlexColumn gap={SPACING.md} fullWidth>

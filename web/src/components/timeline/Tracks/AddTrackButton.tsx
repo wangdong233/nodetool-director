@@ -22,6 +22,7 @@ import PianoOutlinedIcon from "@mui/icons-material/PianoOutlined";
 import type { TimelineTrack } from "@nodetool-ai/timeline";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { Popover, MenuItemPrimitive, MOTION, BORDER_RADIUS } from "../../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const buttonStyles = (theme: Theme, compact: boolean) =>
   css({
@@ -53,6 +54,7 @@ const buttonStyles = (theme: Theme, compact: boolean) =>
   });
 
 interface TrackTypeOption {
+  labelKey?: string;
   type: TimelineTrack["type"];
   label: string;
   icon: React.ReactNode;
@@ -62,21 +64,25 @@ const TRACK_TYPES: TrackTypeOption[] = [
   {
     type: "video",
     label: "Video",
+    labelKey: "editor:ui.video",
     icon: <VideocamOutlinedIcon fontSize="small" />
   },
   {
     type: "audio",
     label: "Audio",
+    labelKey: "timeline:attrs.audio",
     icon: <AudiotrackOutlinedIcon fontSize="small" />
   },
   {
     type: "overlay",
     label: "Overlay",
+    labelKey: "sketch:attrs.overlay",
     icon: <LayersOutlinedIcon fontSize="small" />
   },
   {
     type: "subtitle",
     label: "Subtitle",
+    labelKey: "timeline:attrs.subtitle",
     icon: <SubtitlesOutlinedIcon fontSize="small" />
   },
   {
@@ -92,6 +98,7 @@ interface AddTrackButtonProps {
 }
 
 export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = false }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const addTrack = useTimelineStore((s) => s.addTrack);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -118,13 +125,13 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
         type="button"
         css={buttonStyles(theme, compact)}
         onClick={handleOpen}
-        aria-label="Add track"
-        title="Add track"
+        aria-label={t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
+        title={t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
         aria-haspopup="menu"
         data-testid="add-track-button"
       >
         <AddIcon />
-        {!compact && <span>Track</span>}
+        {!compact && <span>{t("timeline:attrs.track", { defaultValue: "Track" })}</span>}
       </button>
       <Popover
         open={Boolean(anchorEl)}
@@ -135,7 +142,11 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
         {TRACK_TYPES.map((opt) => (
           <MenuItemPrimitive
             key={opt.type}
-            label={opt.label}
+            label={
+              opt.labelKey
+                ? t(opt.labelKey, { defaultValue: opt.label })
+                : opt.label
+            }
             icon={opt.icon}
             onClick={() => handleSelect(opt.type)}
           />

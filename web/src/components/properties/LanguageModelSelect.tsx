@@ -9,6 +9,7 @@ import type {
 import { useLanguageModelsByProvider } from "../../hooks/useModelsByProvider";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
+import { i18n } from "../../i18n";
 
 interface LanguageModelSelectProps {
   onChange: (value: LanguageModelValue) => void;
@@ -34,7 +35,7 @@ const LanguageModelSelect: React.FC<LanguageModelSelectProps> = ({
   provider,
   allowedProviders,
   requireToolSupport,
-  placeholder = "Select Model",
+  placeholder = i18n.t("editor:ui.selectModel", { defaultValue: "Select Model" }),
   recommendedModels,
   modelPacks,
   disabled

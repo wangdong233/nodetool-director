@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { ToggleGroup, ToggleOption, Tooltip } from "../../ui_primitives";
 import type { ModelScope } from "../../../stores/ModelManagerStore";
+import { useTranslation } from "react-i18next";
 
 interface ScopeToggleProps {
   scope: ModelScope;
@@ -25,6 +26,7 @@ const ScopeToggleInternal: React.FC<ScopeToggleProps> = ({
   workerName,
   supported
 }) => {
+  const { t } = useTranslation();
   const handleChange = useCallback(
     (_e: React.MouseEvent<HTMLElement>, value: ModelScope | null) => {
       if (value) {
@@ -44,10 +46,10 @@ const ScopeToggleInternal: React.FC<ScopeToggleProps> = ({
       exclusive
       segmented
       onChange={handleChange}
-      aria-label="model scope"
+      aria-label={t("editor:ui.modelScope", { defaultValue: "model scope" })}
     >
-      <ToggleOption value="local" aria-label="local models">
-        Local
+      <ToggleOption value="local" aria-label={t("editor:ui.localModels", { defaultValue: "local models" })}>
+        {t("ui2:attrs.local", { defaultValue: "Local" })}
       </ToggleOption>
       <Tooltip title={OLD_IMAGE_TOOLTIP} disabled={supported}>
         <span>

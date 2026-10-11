@@ -47,8 +47,10 @@ import {
   productionGenerationBlocker,
   productionReviewFingerprint,
   reviewFingerprintOf,
-  REVIEW_REQUIRED
+  REVIEW_REQUIRED,
+  REVIEW_REQUIRED_KEY
 } from "../video/productionAuthoring";
+import { useTranslation } from "react-i18next";
 
 /**
  * A board's stage, with the field's absence read as `done` — an old board has
@@ -85,7 +87,7 @@ export const newStoryboardSetupDocument = (
  * The flow's name, above the stepper. Each step body carries its own heading
  * and subline (PRD § 7.1–7.3), so this says what is being made and no more.
  */
-const FLOW_LABELS = { title: "Storyboard" } as const;
+const FLOW_LABELS = { title: "Storyboard", titleKey: "home:entry.storyboard.title" } as const;
 
 /** What the Director is allowed to answer with, for the cost estimate. */
 const DIRECTOR_MAX_OUTPUT_TOKENS = 8192;
@@ -114,6 +116,7 @@ export const useStoryboardSetupFlow = ({
   onFinish,
   onReviewed
 }: StoryboardSetupFlowOptions): SetupFlowConfig<StoryboardSetupStage> => {
+  const { t } = useTranslation();
   const stage = useStoryboardSetupStage(boardId);
   const [reviewError, setReviewError] = useState<string>();
   const [contextError, setContextError] = useState<string>();
@@ -227,7 +230,7 @@ export const useStoryboardSetupFlow = ({
     storyboardProductionOf(shots ?? []).length > 0;
   const productionBlocker =
     hasProductionContext && reviewFingerprintOf(screenplay) !== reviewKey
-      ? REVIEW_REQUIRED
+      ? t(REVIEW_REQUIRED_KEY, { defaultValue: REVIEW_REQUIRED })
       : productionGenerationBlocker(
           shots ?? [],
           (creativeContext?.reference_bindings?.length ?? 0) > 0,
@@ -269,24 +272,26 @@ export const useStoryboardSetupFlow = ({
     reviewError ??
     productionAuthoringBlocker(shots ?? []) ??
     (!hasScreenplay
-      ? "Write at least one shot"
+      ? t("storyboard:attrs.writeAtLeastOneShot", { defaultValue: "Write at least one shot" })
       : emptyShots > 0
-        ? `Describe ${emptyShots === 1 ? "the shot" : `the ${emptyShots} shots`} with an empty action line`
+        ? emptyShots === 1
+          ? t("storyboard:attrs.describeTheShotWithAnEmptyActionLine", { defaultValue: "Describe the shot with an empty action line" })
+          : t("storyboard:attrs.describeTheCountShotsWithAnEmptyActionLine", { defaultValue: "Describe the {{count}} shots with an empty action line", count: emptyShots })
         : undefined);
 
   const steps = useMemo<SetupStep<StoryboardSetupStage>[]>(
     () => [
       {
         stage: "idea",
-        label: "Idea",
-        primaryLabel: "Continue",
+        label: t("editor:ui.idea", { defaultValue: "Idea" }),
+        primaryLabel: t("storyboard:attrs.continue", { defaultValue: "Continue" }),
         // An imported script that is kept verbatim is the story, so the brief
         // beside it is optional (F3).
         canAdvance:
           !contextError &&
           (brief.trim().length > 0 || imported?.preserveWords === true),
         blockedReason:
-          contextError ?? "Write a sentence, or bring your own script",
+          contextError ?? t("storyboard:attrs.writeASentenceOrBringYourOwnScript", { defaultValue: "Write a sentence, or bring your own script" }),
         render: () =>
           createElement(IdeaStep, {
             boardId,
@@ -301,16 +306,16 @@ export const useStoryboardSetupFlow = ({
         // Genre and review are both step 2, so they collapse to one stepper
         // entry (PRD § 6.2).
         stage: "genre",
-        label: "Story",
+        label: t("editor:ui.story", { defaultValue: "Story" }),
         primaryLabel: upToDate
-          ? "Continue to your screenplay"
+          ? t("storyboard:attrs.continueToYourScreenplay", { defaultValue: "Continue to your screenplay" })
           : hasScreenplay
-            ? "Re-direct your screenplay"
-            : "Generate screenplay",
+            ? t("storyboard:attrs.reDirectYourScreenplay", { defaultValue: "Re-direct your screenplay" })
+            : t("storyboard:attrs.generateScreenplay", { defaultValue: "Generate screenplay" }),
         canAdvance: genre.length > 0,
-        blockedReason: "Pick a genre",
+        blockedReason: t("storyboard:attrs.pickAGenre", { defaultValue: "Pick a genre" }),
         pending: directing,
-        pendingLabel: `Writing ${shotCount} shots`,
+        pendingLabel: t("storyboard:attrs.writingCountShots", { defaultValue: "Writing {{count}} shots", count: shotCount }),
         // What the run costs, in the same shape every other flow shows before
         // its planning call (F23). A run that is not going to happen — the
         // screenplay already matches these inputs — shows nothing, because it
@@ -318,8 +323,8 @@ export const useStoryboardSetupFlow = ({
         generation: upToDate
           ? undefined
           : {
-              result: `Write a ${shotCount}-shot screenplay you can edit as text`,
-              next: "Review and edit the scenes and shots next. No stills are rendered until the Look step.",
+              result: t("storyboard:attrs.writeACountShotScreenplayYouCanEditAsText", { defaultValue: "Write a {{count}}-shot screenplay you can edit as text", count: shotCount }),
+              next: t("storyboard:attrs.reviewAndEditTheScenesAndShotsNextNoStillsAreRenderedUntilTheLookStep", { defaultValue: "Review and edit the scenes and shots next. No stills are rendered until the Look step." }),
               model: directorModel,
               brief,
               maxOutputTokens: DIRECTOR_MAX_OUTPUT_TOKENS,
@@ -351,22 +356,22 @@ export const useStoryboardSetupFlow = ({
               if (!directed) {
                 throw new Error(
                   directErrorRef.current ??
-                    "The Director did not return a screenplay."
+                    t("storyboard:attrs.theDirectorDidNotReturnAScreenplay", { defaultValue: "The Director did not return a screenplay." })
                 );
               }
             }
       },
       {
         stage: "review",
-        label: "Story",
-        primaryLabel: "Set up entities",
+        label: t("editor:ui.story", { defaultValue: "Story" }),
+        primaryLabel: t("storyboard:attrs.setUpEntities", { defaultValue: "Set up entities" }),
         canAdvance: reviewBlockedReason === undefined,
         blockedReason: reviewBlockedReason,
         // `Rewrite from brief` runs outside the shell's primary button, so the
         // shell has to read its wait: nothing may move the creator on while
         // the screenplay they are reading is being replaced (F2).
         pending: directing,
-        pendingLabel: `Rewriting ${shotCount} shots`,
+        pendingLabel: t("storyboard:attrs.rewritingCountShots", { defaultValue: "Rewriting {{count}} shots", count: shotCount }),
         render: () =>
           createElement(ReviewStep, {
             boardId,
@@ -386,11 +391,11 @@ export const useStoryboardSetupFlow = ({
       },
       {
         stage: "entities",
-        label: "Entities",
-        primaryLabel: "Choose the look",
+        label: t("storyboard:attrs.entities", { defaultValue: "Entities" }),
+        primaryLabel: t("storyboard:attrs.chooseTheLook", { defaultValue: "Choose the look" }),
         canAdvance: entityIds.length > 0,
-        blockedReason: "Select or create an entity, or skip this step",
-        skipLabel: "Skip entities",
+        blockedReason: t("storyboard:attrs.selectOrCreateAnEntityOrSkipThisStep", { defaultValue: "Select or create an entity, or skip this step" }),
+        skipLabel: t("storyboard:attrs.skipEntities", { defaultValue: "Skip entities" }),
         onSkip: () => undefined,
         render: (context) =>
           createElement(EntitiesStep, {
@@ -400,10 +405,10 @@ export const useStoryboardSetupFlow = ({
       },
       {
         stage: "look",
-        label: "Look",
+        label: t("editor:ui.look", { defaultValue: "Look" }),
         // The price sits beside the button, not inside its name: a label that
         // grows a dollar amount is a label nobody can scan (F23).
-        primaryLabel: "Generate your storyboard",
+        primaryLabel: t("storyboard:attrs.generateYourStoryboard", { defaultValue: "Generate your storyboard" }),
         primaryDetail: look.primaryDetail,
         footerControls: (context) =>
           createElement(LookFooterControls, {

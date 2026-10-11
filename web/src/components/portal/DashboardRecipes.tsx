@@ -16,6 +16,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useSectionWrap, SectionHeader } from "./dashboardChrome";
+import { useTranslation } from "react-i18next";
 
 type Recipe = recipeSchemas.ExampleRecipeSummary;
 type RecipeStep = recipeSchemas.ExampleRecipeStep;
@@ -234,6 +235,7 @@ const RecipeStepRow = memo(function RecipeStepRow({
   copyingStep,
   onOpen
 }: RecipeStepRowProps) {
+  const { t } = useTranslation();
   const loading = copyingStep === `${slug}:${step.example}`;
   return (
     <button
@@ -265,7 +267,7 @@ const RecipeStepRow = memo(function RecipeStepRow({
               </span>
             ))
           ) : (
-            <span className="rcp-model">Runs locally — no key needed</span>
+            <span className="rcp-model">{t("editor:ui.runsLocallyNoKeyNeeded", { defaultValue: "Runs locally — no key needed" })}</span>
           )}
         </span>
       </span>
@@ -284,6 +286,7 @@ const RecipeAppRow = memo(function RecipeAppRow({
   installingApp,
   onInstall
 }: RecipeAppRowProps) {
+  const { t } = useTranslation();
   const installing = installingApp === app.slug;
   return (
     <div className="rcp-app">
@@ -306,7 +309,7 @@ const RecipeAppRow = memo(function RecipeAppRow({
         disabled={installing}
         onClick={() => onInstall(app.slug)}
       >
-        {installing ? "Installing…" : "Install app"}
+        {installing ? t("editor:ui.installing", { defaultValue: "Installing…" }) : t("editor:ui.installApp", { defaultValue: "Install app" })}
       </button>
     </div>
   );
@@ -323,6 +326,7 @@ const RecipeCard = memo(function RecipeCard({
   expanded,
   onToggle
 }: RecipeCardProps) {
+  const { t } = useTranslation();
   const { copyingStep, addingSlug, installingApp, openStep, installApp, addRecipe } =
     useRecipeActions();
   const thumb = thumbSrc(recipe.thumbnailUrl);
@@ -349,8 +353,7 @@ const RecipeCard = memo(function RecipeCard({
             <span className="rcp-outcome">{recipe.outcome}</span>
           </span>
           <span className="rcp-meta">
-            {recipe.apps.length} {recipe.apps.length === 1 ? "app" : "apps"} ·{" "}
-            {recipe.steps.length} workflows · {recipe.nodeCount} nodes
+                        {t("editor:ui.nWorkflowsNodes", { apps: t(recipe.apps.length === 1 ? "editor:ui.oneApp" : "editor:ui.nApps", { n: recipe.apps.length }), steps: recipe.steps.length, nodes: recipe.nodeCount })}
           </span>
         </button>
         {primaryApp && (
@@ -402,7 +405,7 @@ const RecipeCard = memo(function RecipeCard({
           >
             {adding
               ? "Adding…"
-              : `Add all ${recipe.steps.length} as workflows`}
+              : t("editor:ui.addAllNAsWorkflows", { n: recipe.steps.length })}
           </button>
           {recipe.caveats.map((caveat) => (
             <p key={caveat} className="rcp-caveat">
@@ -422,6 +425,7 @@ const RecipeCard = memo(function RecipeCard({
  * the workflows behind them, each openable as a graph.
  */
 const DashboardRecipes: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -438,22 +442,22 @@ const DashboardRecipes: React.FC = () => {
   return (
     <section css={styles(theme)}>
       <div css={sectionWrap}>
-        <SectionHeader title="Recipes" count={`${recipes.length}`} />
+        <SectionHeader title={t("editor:ui.recipes", { defaultValue: "Recipes" })} count={`${recipes.length}`} />
         <p className="rcp-lede">
           Each one installs as an app that runs the whole chain, with the
           example workflows behind it in your library to edit.
         </p>
         {isLoading ? (
           <div className="rcp-loading">
-            <LoadingSpinner size="medium" text="Loading recipes" />
+            <LoadingSpinner size="medium" text={t("editor:ui.loadingRecipes")} />
           </div>
         ) : isError ? (
           <div className="rcp-empty">
             <EmptyState
               variant="error"
-              title="Couldn't load recipes"
-              description="Try again in a moment."
-              actionText="Retry"
+              title={t("editor:ui.couldntLoadRecipes", { defaultValue: "Couldn't load recipes" })}
+              description={t("editor:ui.tryAgainInAMoment")}
+              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </div>

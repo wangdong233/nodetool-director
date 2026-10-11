@@ -13,6 +13,7 @@ import { Chunk } from "../../../stores/ApiTypes";
 import AudioVisualizer from "../../common/AudioVisualizer";
 import { useWebsocketRunner } from "../../../stores/WorkflowRunner";
 import { useRealtimeAudioPlayback } from "../../../hooks/browser/useRealtimeAudioPlayback";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   /**
@@ -52,6 +53,7 @@ const RealtimeAudioOutput: React.FC<Props> = ({
   nodeId,
   live = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const workflowState = useWebsocketRunner((s) => s.state);
@@ -87,7 +89,7 @@ const RealtimeAudioOutput: React.FC<Props> = ({
           <EditorButton onClick={isPlaying ? stop : start}>
             {isPlaying ? "Stop" : "Start"}
           </EditorButton>
-          <EditorButton onClick={restart}>Restart</EditorButton>
+          <EditorButton onClick={restart}>{t("ui2:attrs.restart", { defaultValue: "Restart" })}</EditorButton>
         </ButtonGroup>
         {isQueued && queuePosition !== null && (
           <div className="time">Queue position: {queuePosition}</div>

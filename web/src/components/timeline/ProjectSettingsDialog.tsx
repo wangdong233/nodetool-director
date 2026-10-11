@@ -28,6 +28,7 @@ import {
 import type { SelectOption } from "../ui_primitives";
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import { useTimelineProjectSettings } from "../../hooks/timeline/useTimelineProjectSettings";
+import { useTranslation } from "react-i18next";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -107,6 +108,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
   open,
   onClose
 }) => {
+  const { t } = useTranslation();
   const { fps, width, height } = useTimelineStore(
     useShallow((s) => ({ fps: s.fps, width: s.width, height: s.height }))
   );
@@ -217,11 +219,11 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
     <Dialog
       open={open}
       onClose={() => onClose()}
-      title="Project settings"
+      title={t("timeline:project.title", { defaultValue: "Project settings" })}
       onConfirm={() => void handleApply()}
       onCancel={onClose}
-      confirmText="Apply"
-      cancelText="Cancel"
+      confirmText={t("timeline:project.apply", { defaultValue: "Apply" })}
+      cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       isLoading={isSaving}
       confirmDisabled={!allValid || !dirty || isSaving}
       minWidth="min(440px, 100vw - 32px)"
@@ -229,23 +231,30 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
       <FlexColumn gap={4} sx={{ py: 1 }}>
         {/* ── Canvas size ─────────────────────────────────────────── */}
         <FlexColumn gap={1.5}>
-          <Text size="small" weight={600} sx={{ mb: 1.5 }}>
-            Canvas size
-          </Text>
+          <Text size="small" weight={600} sx={{ mb: 1.5 }}>{t("timeline:attrs.canvasSize", { defaultValue: "Canvas size" })}</Text>
           {/* Label hidden — the section header names it; an outlined variant
               keeps it consistent with the Width/Height fields below. */}
           <SelectField
-            label="Canvas preset"
+            label={t("timeline:project.canvasPreset", { defaultValue: "Canvas preset" })}
             hideLabel
             variant="outlined"
             value={resolutionPreset}
             onChange={handleResolutionPreset}
-            options={RESOLUTION_OPTIONS}
+            options={RESOLUTION_OPTIONS.map((o) =>
+              o.value === CUSTOM
+                ? {
+                    ...o,
+                    label: t("timeline:project.custom", {
+                      defaultValue: o.label
+                    })
+                  }
+                : o
+            )}
             size="small"
           />
           <FlexRow gap={1.5} align="flex-start" sx={{ mt: 2 }}>
             <TextInput
-              label="Width"
+              label={t("timeline:project.width", { defaultValue: "Width" })}
               type="number"
               size="small"
               value={widthText}
@@ -259,7 +268,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
               sx={{ flex: 1 }}
             />
             <TextInput
-              label="Height"
+              label={t("timeline:project.height", { defaultValue: "Height" })}
               type="number"
               size="small"
               value={heightText}
@@ -277,23 +286,30 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
 
         {/* ── Frame rate ──────────────────────────────────────────── */}
         <FlexColumn gap={1.5}>
-          <Text size="small" weight={600} sx={{ mb: 1.5 }}>
-            Frame rate
-          </Text>
+          <Text size="small" weight={600} sx={{ mb: 1.5 }}>{t("timeline:attrs.frameRate", { defaultValue: "Frame rate" })}</Text>
           <FlexRow gap={1.5} align="flex-start">
             <FlexColumn sx={{ flex: 1 }}>
               <SelectField
-                label="Frame rate preset"
+                label={t("timeline:project.frameRate", { defaultValue: "Frame rate preset" })}
                 hideLabel
                 variant="outlined"
                 value={fpsPreset}
                 onChange={handleFpsPreset}
-                options={FPS_OPTIONS}
+                options={FPS_OPTIONS.map((o) =>
+                  o.value === CUSTOM
+                    ? {
+                        ...o,
+                        label: t("timeline:project.custom", {
+                          defaultValue: o.label
+                        })
+                      }
+                    : o
+                )}
                 size="small"
               />
             </FlexColumn>
             <TextInput
-              label="fps"
+              label={t("timeline:attrs.fps", { defaultValue: "fps" })}
               type="number"
               size="small"
               value={fpsText}
@@ -311,9 +327,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
 
         {/* ── Tempo ───────────────────────────────────────────────── */}
         <FlexColumn gap={1.5}>
-          <Text size="small" weight={600} sx={{ mb: 1.5 }}>
-            Tempo
-          </Text>
+          <Text size="small" weight={600} sx={{ mb: 1.5 }}>{t("timeline:attrs.tempo", { defaultValue: "Tempo" })}</Text>
           <FlexRow gap={1.5} align="flex-start">
             <TextInput
               label="BPM"
@@ -328,7 +342,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
               sx={{ flex: 1 }}
             />
             <TextInput
-              label="Beats per bar"
+              label={t("timeline:project.beatsPerBar", { defaultValue: "Beats per bar" })}
               type="number"
               size="small"
               value={beatsPerBarText}
@@ -347,7 +361,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
             />
             <FlexColumn sx={{ flex: 1 }}>
               <SelectField
-                label="Beat unit"
+                label={t("timeline:project.beatUnit", { defaultValue: "Beat unit" })}
                 variant="outlined"
                 value={beatUnit}
                 onChange={setBeatUnit}
@@ -357,13 +371,13 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
             </FlexColumn>
           </FlexRow>
           <TextInput
-            label="Beat one at"
+            label={t("timeline:attrs.beatOneAt", { defaultValue: "Beat one at" })}
             type="number"
             size="small"
             value={offsetText}
             onChange={(e) => setOffsetText(e.target.value)}
             errorMessage={
-              offsetText !== "" && !offsetValid ? "0 or more" : undefined
+              offsetText !== "" && !offsetValid ? t("timeline:attrs.zeroOrMore", { defaultValue: "0 or more" }) : undefined
             }
             inputProps={{ min: 0, step: 1 }}
             sx={{ mt: 2, width: 160 }}

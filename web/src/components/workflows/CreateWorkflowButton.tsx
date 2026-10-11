@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Tooltip, ToolbarIconButton } from "../ui_primitives";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
+import { useTranslation } from "react-i18next";
 import {
   creationProjectId,
   useWorkspaceTabsStore
@@ -14,6 +15,7 @@ interface CreateWorkflowButtonProps {
 }
 
 const CreateWorkflowButton = ({ projectId }: CreateWorkflowButtonProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createNewWorkflow = useWorkflowManager((state) => state.createNew);
@@ -34,9 +36,9 @@ const CreateWorkflowButton = ({ projectId }: CreateWorkflowButtonProps) => {
   }, [navigate, createNewWorkflow, openTab, projectId, queryClient]);
 
   return (
-    <Tooltip title="New workflow" placement="right-start">
+    <Tooltip title={t("editor:ui.newWorkflow", { defaultValue: "New workflow" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New workflow"
+        ariaLabel={t("editor:ui.newWorkflow", { defaultValue: "New workflow" })}
         onClick={() => void handleCreate()}
         tabIndex={-1}
         icon={<AddIcon />}

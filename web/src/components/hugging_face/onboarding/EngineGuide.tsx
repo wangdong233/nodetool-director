@@ -21,19 +21,22 @@ import {
 import useNodePacksStore from "../../../stores/NodePacksStore";
 import { useShallow } from "zustand/react/shallow";
 import { useOpenPackageManagerInNewTab } from "../../../hooks/useOpenPackageManager";
+import { useTranslation } from "react-i18next";
 import {
   ONBOARDING_ENGINES,
   ONBOARDING_NODE_PACKS,
   type OnboardingEngine,
-  type OnboardingNodePack
+  type OnboardingNodePack,
+  ENGINE_TAGLINE_KEYS
 } from "./onboardingCatalog";
 
 const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const statusChip = engine.bundled ? (
-    <Chip label="Bundled" compact color="success" variant="outlined" />
+    <Chip label={t("editor:ui.bundled", { defaultValue: "Bundled" })} compact color="success" variant="outlined" />
   ) : engine.runtimeId ? (
-    <Chip label="Runtime" compact variant="outlined" />
+    <Chip label={t("editor:ui.runtime", { defaultValue: "Runtime" })} compact variant="outlined" />
   ) : null;
 
   return (
@@ -55,7 +58,7 @@ const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
           {statusChip}
         </FlexRow>
         <Caption sx={{ color: theme.vars.palette.primary.main }}>
-          {engine.tagline}
+          {t(ENGINE_TAGLINE_KEYS[engine.id] ?? "", { defaultValue: engine.tagline })}
         </Caption>
         <Caption sx={{ opacity: 0.7, lineHeight: 1.5, flex: 1 }}>
           {engine.description}
@@ -76,7 +79,7 @@ const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
           external
           sx={{ mt: SPACING.micro, fontSize: "var(--fontSizeSmall)" }}
         >
-          Learn more <OpenInNewIcon sx={{ fontSize: 12, ml: SPACING.micro }} />
+          {t("editor:ui.learnMore", { defaultValue: "Learn more" })} <OpenInNewIcon sx={{ fontSize: 12, ml: SPACING.micro }} />
         </TextLink>
       </FlexColumn>
     </Card>
@@ -84,6 +87,7 @@ const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
 };
 
 const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Select primitives only — deriving a new array inside the selector would
   // change the snapshot on every render and loop useSyncExternalStore.
@@ -120,7 +124,7 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
           {pack.name}
         </Text>
         <Caption sx={{ opacity: 0.7, lineHeight: 1.4 }}>
-          {pack.description}
+          {pack.descriptionKey ? t(pack.descriptionKey, { defaultValue: pack.description }) : pack.description}
         </Caption>
       </FlexColumn>
       {isInstalled ? (
@@ -128,7 +132,7 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
           <CheckCircleIcon
             sx={{ fontSize: 16, color: theme.vars.palette.success.main }}
           />
-          <Caption color="secondary">Installed</Caption>
+          <Caption color="secondary">{t("ui2:attrs.installed", { defaultValue: "Installed" })}</Caption>
         </FlexRow>
       ) : (
         <EditorButton
@@ -154,6 +158,7 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
 };
 
 const EngineGuide: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { available, refresh } = useNodePacksStore(
     useShallow((state) => ({
@@ -200,12 +205,12 @@ const EngineGuide: React.FC = () => {
         <FlexRow gap={SPACING.xs} align="center" justify="space-between">
           <FlexColumn gap={SPACING.micro}>
             <Text size="big" weight={600}>
-              Node packs
+              {t("editor:ui.nodePacks")}
             </Text>
             <Caption sx={{ opacity: 0.7 }}>
               {available
-                ? "Install the packs that add the nodes you want to use."
-                : "Node packs install from the desktop app's Package Manager."}
+                ? t("editor:ui.installThePacksThatAddTheNodesYouWantToUse", { defaultValue: "Install the packs that add the nodes you want to use." })
+                : t("editor:ui.nodePacksInstallFromTheDesktopAppsPackageManager", { defaultValue: "Node packs install from the desktop app's Package Manager." })}
             </Caption>
           </FlexColumn>
           <EditorButton

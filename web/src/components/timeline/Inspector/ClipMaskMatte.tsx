@@ -50,6 +50,7 @@ import {
   InspectorToggleRow
 } from "./InspectorPrimitives";
 import { TextCommitField } from "./InspectorMotionFields";
+import { useTranslation } from "react-i18next";
 
 const MASK_KINDS = [
   { value: "rect", label: "Rectangle" },
@@ -61,6 +62,18 @@ const MATTE_MODES = [
   { value: "alpha", label: "Alpha" },
   { value: "luma", label: "Luma" }
 ] as const;
+
+// labelKey pattern (registry §5): module tables keep their English labels as
+// defaultValue anchors; consumers resolve per-language at render time.
+const MASK_KIND_LABEL_KEYS: Record<(typeof MASK_KINDS)[number]["value"], string> = {
+  rect: "catalog:snippets.rectangle",
+  ellipse: "catalog:snippets.ellipse",
+  path: "editor:ui.path"
+};
+const MATTE_MODE_LABEL_KEYS: Record<(typeof MATTE_MODES)[number]["value"], string> = {
+  alpha: "timeline:attrs.alpha",
+  luma: "timeline:attrs.luma"
+};
 
 const DEFAULT_MASK: ClipMask = {
   kind: "rect",
@@ -95,6 +108,7 @@ interface ClipMaskMatteProps {
 
 export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
   ({ clip, hideMatte = false }) => {
+    const { t } = useTranslation();
     const patchClip = useTimelineStore((s) => s.patchClip);
     const [maskOpen, setMaskOpen] = usePersistedFold("mask");
     const [matteOpen, setMatteOpen] = usePersistedFold("matte");
@@ -209,13 +223,13 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
 
     const sourceOptions = useMemo(
       () => [
-        { value: NO_MATTE, label: "None" },
+        { value: NO_MATTE, label: t("catalog:dataTypes.none", { defaultValue: "None" }) },
         ...clipNames.map((candidate) => ({
           value: candidate.id,
           label: candidate.name || candidate.id
         }))
       ],
-      [clipNames]
+        [clipNames, t]
     );
 
     const mask = clip.mask;
@@ -227,7 +241,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Mask"
+              title={t("editor:ui.mask", { defaultValue: "Mask" })}
               icon={<CropFreeOutlinedIcon />}
               checked={mask !== undefined}
               onCheckedChange={handleMaskEnabled}
@@ -240,80 +254,82 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
             {mask === undefined ? (
               <Caption color="muted">
-                Enable the mask to cut this clip to a rectangle, an ellipse or
-                an SVG path.
+{t("timeline:attrs.enableTheMaskToCutThisClip", { defaultValue: "Enable the mask to cut this clip to a rectangle, an ellipse or an SVG path." })}
               </Caption>
             ) : (
               <>
-                <InspectorRow label="Shape">
+                <InspectorRow label={t("timeline:attrs.shape", { defaultValue: "Shape" })}>
                   <InspectorSelect
-                    label="Mask shape"
+                    label={t("timeline:attrs.maskShape", { defaultValue: "Mask shape" })}
                     value={mask.kind}
-                    options={MASK_KINDS}
+                    options={MASK_KINDS.map((kind) => ({
+                      value: kind.value,
+                      label: t(MASK_KIND_LABEL_KEYS[kind.value], { defaultValue: kind.label })
+                    }))}
                     onChange={handleMaskKindChange}
                   />
                 </InspectorRow>
                 {mask.kind === "path" ? (
                   <>
-                    <InspectorRow label="Path">
+                    <InspectorRow label={t("editor:ui.path", { defaultValue: "Path" })}>
                       <TextCommitField
                         value={mask.d ?? ""}
-                        ariaLabel="Mask path data"
+                        ariaLabel={t("timeline:attrs.maskPathData", { defaultValue: "Mask path data" })}
                         placeholder="M 0 0 L 1 0 L 1 1 Z"
                         onCommit={handleMaskPathCommit}
                       />
                     </InspectorRow>
                     <Caption color="muted">
-                      SVG path data in normalized 0..1 space. M, L, C, Q and Z.
+{t("timeline:attrs.svgPathDataInNormalizedSpace", { defaultValue: "SVG path data in normalized 0..1 space. M, L, C, Q and Z." })}
                     </Caption>
                   </>
                 ) : (
                   <>
-                    <InspectorRow label="Position">
+                    <InspectorRow label={t("timeline:attrs.position", { defaultValue: "Position" })}>
                       <InspectorPillInput
                         value={(mask.x ?? 0).toFixed(2)}
                         minWidth={64}
                         scrub={SCRUB_UNIT}
                         onCommit={handleMaskXCommit}
-                        ariaLabel="Mask X"
+                        ariaLabel={t("timeline:attrs.maskX", { defaultValue: "Mask X" })}
                       />
                       <InspectorPillInput
                         value={(mask.y ?? 0).toFixed(2)}
                         minWidth={64}
                         scrub={SCRUB_UNIT}
                         onCommit={handleMaskYCommit}
-                        ariaLabel="Mask Y"
+                        ariaLabel={t("timeline:attrs.maskY", { defaultValue: "Mask Y" })}
                       />
                     </InspectorRow>
-                    <InspectorRow label="Size">
+                    <InspectorRow label={t("editor:asset.info.size", { defaultValue: "Size" })}>
                       <InspectorPillInput
                         value={(mask.width ?? 1).toFixed(2)}
                         minWidth={64}
                         scrub={SCRUB_UNIT}
                         onCommit={handleMaskWidthCommit}
-                        ariaLabel="Mask width"
+                        ariaLabel={t("timeline:attrs.maskWidth", { defaultValue: "Mask width" })}
                       />
                       <InspectorPillInput
                         value={(mask.height ?? 1).toFixed(2)}
                         minWidth={64}
                         scrub={SCRUB_UNIT}
                         onCommit={handleMaskHeightCommit}
-                        ariaLabel="Mask height"
+                        ariaLabel={t("timeline:attrs.maskHeight", { defaultValue: "Mask height" })}
                       />
                     </InspectorRow>
                   </>
                 )}
-                <InspectorRow label="Feather">
+                <InspectorRow label={t("timeline:attrs.feather", { defaultValue: "Feather" })}>
                   <InspectorPillInput
                     value={String(mask.featherPx ?? 0)}
                     unit="px"
                     scrub={SCRUB_PX}
                     onCommit={handleMaskFeatherCommit}
-                    ariaLabel="Mask feather"
+                    ariaLabel={t("timeline:attrs.maskFeather", { defaultValue: "Mask feather" })}
                   />
                 </InspectorRow>
                 <InspectorToggleRow
-                  label="Invert"
+                  label={t("timeline:attrs.invert", { defaultValue: "Invert" })}
                   checked={mask.invert === true}
                   onChange={handleMaskInvertChange}
                 />
@@ -328,7 +344,7 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
             <CollapsibleSection
               title={
                 <InspectorSectionTitle
-                  title="Matte"
+                  title={t("timeline:attrs.matte", { defaultValue: "Matte" })}
                   icon={<FilterOutlinedIcon />}
                 />
               }
@@ -337,9 +353,9 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
               unmountOnExit
             >
               <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-                <InspectorRow label="Source">
+                <InspectorRow label={t("timeline:attrs.source", { defaultValue: "Source" })}>
                   <InspectorSelect
-                    label="Matte source clip"
+                    label={t("timeline:attrs.matteSourceClip", { defaultValue: "Matte source clip" })}
                     value={matte?.sourceClipId ?? NO_MATTE}
                     options={sourceOptions}
                     onChange={handleMatteSourceChange}
@@ -348,24 +364,26 @@ export const ClipMaskMatte: React.FC<ClipMaskMatteProps> = memo(
                 </InspectorRow>
                 {matte && (
                   <>
-                    <InspectorRow label="Mode">
+                    <InspectorRow label={t("ui2:attrs.mode", { defaultValue: "Mode" })}>
                       <InspectorSelect
-                        label="Matte mode"
+                        label={t("timeline:attrs.matteMode", { defaultValue: "Matte mode" })}
                         value={matte.mode}
-                        options={MATTE_MODES}
+                        options={MATTE_MODES.map((mode) => ({
+                          value: mode.value,
+                          label: t(MATTE_MODE_LABEL_KEYS[mode.value], { defaultValue: mode.label })
+                        }))}
                         onChange={handleMatteModeChange}
                       />
                     </InspectorRow>
                     <InspectorToggleRow
-                      label="Invert"
+                      label={t("timeline:attrs.invert", { defaultValue: "Invert" })}
                       checked={matte.invert === true}
                       onChange={handleMatteInvertChange}
                     />
                   </>
                 )}
                 <Caption color="muted">
-                  The source clip drives this layer&apos;s alpha and stops
-                  drawing itself.
+{t("timeline:attrs.theSourceClipDrivesThisLayersAlpha", { defaultValue: "The source clip drives this layer's alpha and stops drawing itself." })}
                 </Caption>
               </FlexColumn>
             </CollapsibleSection>
@@ -399,6 +417,7 @@ function versionLabel(createdAt: string): string {
  */
 const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
   ({ clip }) => {
+    const { t } = useTranslation();
     const [open, setOpen] = usePersistedFold("subjectMatte");
     const isolateSubject = useTimelineStore((s) => s.isolateSubject);
     const setKnobs = useTimelineStore((s) => s.setGeneratedMatteKnobs);
@@ -478,13 +497,13 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
         b.createdAt.localeCompare(a.createdAt)
       );
       return [
-        { value: result.assetId, label: "Current" },
+        { value: result.assetId, label: t("editor:ui.current", { defaultValue: "Current" }) },
         ...stored.map((version) => ({
           value: version.assetId,
           label: versionLabel(version.createdAt)
         }))
       ];
-    }, [result]);
+    }, [result, t]);
 
     return (
       <>
@@ -492,7 +511,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Subject matte"
+              title={t("timeline:attrs.subjectMatte", { defaultValue: "Subject matte" })}
               icon={<PersonOutlineOutlinedIcon />}
             />
           }
@@ -501,9 +520,9 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
           unmountOnExit
         >
           <FlexColumn gap={SPACING.xs} sx={{ py: SPACING.xs }}>
-            <InspectorRow label="Model">
+            <InspectorRow label={t("timeline:attrs.model", { defaultValue: "Model" })}>
               <InspectorSelect
-                label="Subject matte model"
+                label={t("timeline:attrs.subjectMatteModel", { defaultValue: "Subject matte model" })}
                 value={model}
                 options={SUBJECT_MODEL_OPTIONS}
                 onChange={handleModelChange}
@@ -515,7 +534,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
             {generating && (
               <FlexRow gap={SPACING.sm} align="center" sx={{ px: SPACING.xs }}>
                 <LoadingSpinner size="small" />
-                <Caption color="muted">Cutting the subject out…</Caption>
+                <Caption color="muted">{t("timeline:attrs.cuttingTheSubjectOut", { defaultValue: "Cutting the subject out…" })}</Caption>
               </FlexRow>
             )}
 
@@ -523,7 +542,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
               <>
                 {status === "failed" && (
                   <Caption color="error">
-                    The last run failed. Nothing was cut — try again.
+                    {t("editor:ui.theLastRunFailedNothingWasCutTryAgain")}
                   </Caption>
                 )}
                 <EditorButton
@@ -533,12 +552,9 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                   startIcon={<AutoAwesomeOutlinedIcon />}
                   onClick={handleIsolate}
                   data-testid="isolate-subject"
-                >
-                  Isolate subject
-                </EditorButton>
+                >{t("timeline:attrs.isolateSubject", { defaultValue: "Isolate subject" })}</EditorButton>
                 <Caption color="muted">
-                  Cuts a mask from this clip&apos;s own source, so it stays
-                  aligned through every trim and split.
+{t("timeline:attrs.cutsAMaskFromThisClipsOwnSource", { defaultValue: "Cuts a mask from this clip's own source, so it stays aligned through every trim and split." })}
                 </Caption>
               </>
             )}
@@ -546,13 +562,13 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
             {result && (
               <>
                 <InspectorToggleRow
-                  label="Invert"
+                  label={t("timeline:attrs.invert", { defaultValue: "Invert" })}
                   checked={result.invert === true}
                   onChange={handleInvert}
                   disabled={generating}
                 />
                 <InspectorSliderRow
-                  label="Strength"
+                  label={t("timeline:attrs.strength", { defaultValue: "Strength" })}
                   value={result.strength ?? 1}
                   display={(result.strength ?? 1).toFixed(2)}
                   min={0}
@@ -561,19 +577,19 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                   disabled={generating}
                   onChange={handleStrength}
                 />
-                <InspectorRow label="Feather">
+                <InspectorRow label={t("timeline:attrs.feather", { defaultValue: "Feather" })}>
                   <InspectorPillInput
                     value={String(result.featherPx ?? 0)}
                     unit="px"
                     scrub={SCRUB_PX}
                     disabled={generating}
                     onCommit={handleFeather}
-                    ariaLabel="Subject matte feather"
+                    ariaLabel={t("timeline:attrs.subjectMatteFeather", { defaultValue: "Subject matte feather" })}
                   />
                 </InspectorRow>
-                <InspectorRow label="Version">
+                <InspectorRow label={t("timeline:attrs.version", { defaultValue: "Version" })}>
                   <InspectorSelect
-                    label="Subject matte version"
+                    label={t("timeline:attrs.subjectMatteVersion", { defaultValue: "Subject matte version" })}
                     value={result.assetId}
                     options={versionOptions}
                     onChange={handleVersion}
@@ -584,13 +600,12 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
 
                 {status === "failed" && (
                   <Caption color="error">
-                    The last run failed. The result before it is still in use.
+                    {t("editor:ui.theLastRunFailedTheResultBeforeItIsStillInUse")}
                   </Caption>
                 )}
                 {stale && status !== "failed" && (
                   <Caption color="warning">
-                    The clip has moved past what this matte covers. Regenerate
-                    to cut it again.
+{t("timeline:attrs.theClipHasMovedPastWhatThisMatteCovers", { defaultValue: "The clip has moved past what this matte covers. Regenerate to cut it again." })}
                   </Caption>
                 )}
 
@@ -602,9 +617,7 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                     disabled={generating}
                     onClick={handleRegenerate}
                     data-testid="regenerate-subject-matte"
-                  >
-                    Regenerate
-                  </EditorButton>
+                  >{t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })}</EditorButton>
                   <EditorButton
                     fullWidth
                     variant="outlined"
@@ -613,13 +626,10 @@ const SubjectMatteSection: React.FC<{ clip: TimelineClip }> = memo(
                     disabled={generating}
                     onClick={handleRemove}
                     data-testid="remove-subject-matte"
-                  >
-                    Remove
-                  </EditorButton>
+                  >{t("timeline:attrs.remove", { defaultValue: "Remove" })}</EditorButton>
                 </FlexRow>
                 <Caption color="muted">
-                  Regenerate runs the model again and keeps this result as a
-                  version.
+{t("timeline:attrs.regenerateRunsTheModelAgain", { defaultValue: "Regenerate runs the model again and keeps this result as a version." })}
                 </Caption>
               </>
             )}

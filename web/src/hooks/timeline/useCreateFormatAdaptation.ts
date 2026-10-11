@@ -12,6 +12,7 @@ import {
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { trpcClient } from "../../trpc/client";
 import { invalidateTimelineGetQuery } from "../../stores/storyboard/timelineSync";
+import { useTranslation } from "react-i18next";
 
 export type AdaptFormatStrategy = "center" | "smart" | "track";
 
@@ -123,6 +124,7 @@ export async function persistFormatAdaptations(
 export function useCreateFormatAdaptation(
   source: TimelineSequence | undefined
 ): UseCreateFormatAdaptationResult {
+  const { t } = useTranslation();
   const store = useTimelineStoreApi();
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -142,7 +144,7 @@ export function useCreateFormatAdaptation(
         const message =
           cause instanceof Error
             ? cause.message
-            : "Could not create adaptation.";
+            : t("timeline:attrs.couldNotCreateAdaptation", { defaultValue: "Could not create adaptation." });
         setError(message);
         return [];
       } finally {

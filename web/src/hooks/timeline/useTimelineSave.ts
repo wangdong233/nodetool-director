@@ -20,6 +20,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
 import { buildTimelineDocumentPayload } from "./timelineDocumentPayload";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 interface UseTimelineSaveResult {
   /** PATCH the current document immediately. Resolves when the save settles. */
@@ -79,7 +80,7 @@ export function useTimelineSave(): UseTimelineSaveResult {
     } catch (error) {
       console.error("Timeline save failed:", error);
       useNotificationStore.getState().addNotification({
-        content: "Could not save the timeline — please try again.",
+        content: i18n.t("timeline:attrs.couldNotSaveTimeline", { defaultValue: "Could not save the timeline — please try again." }),
         type: "error",
         alert: true,
         dedupeKey: "timeline-save-failed",

@@ -27,6 +27,7 @@ import {
 import { isString } from "../../../utils/typePredicates";
 import { resolveInlineMediaSource } from "../../../utils/resolveMediaUri";
 import type { ResolvedMediaUrl } from "../../../utils/resolveMediaUri";
+import { useTranslation } from "react-i18next";
 
 interface MessageContentRendererProps {
   content: MessageContent;
@@ -71,6 +72,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = Rea
   renderTextContent,
   index
 }) => {
+  const { t } = useTranslation();
   const objectUrlRef = useRef<string | null>(null);
   const { isCanvasAvailable, addBlocksToCanvas } = useAddMediaToCanvas();
 
@@ -155,7 +157,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = Rea
   const addButton = isCanvasAvailable ? (
     <ToolbarIconButton
       className="add-to-canvas-button"
-      tooltip="Add to canvas"
+      tooltip={t("editor:ui.addToCanvas", { defaultValue: "Add to canvas" })}
       size="small"
       onClick={handleAddToCanvas}
     >
@@ -203,7 +205,7 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = Rea
       } else if (content.image?.uri || content.image?.asset_id) {
         imageSource = resolvedImageUri;
       } else {
-        return <div>Error: No image source available</div>;
+        return <div>{t("editor:ui.errorNoImageSourceAvailable", { defaultValue: "Error: No image source available" })}</div>;
       }
 
       return (
@@ -236,14 +238,14 @@ export const MessageContentRenderer: React.FC<MessageContentRendererProps> = Rea
             preload="metadata"
             style={videoStyle}
             src={videoObjectUrl}
-            aria-label="Video content"
+            aria-label={t("editor:ui.videoContent", { defaultValue: "Video content" })}
           />
           {addButton}
         </div>
       );
     }
     case "document":
-      return <div>Document</div>;
+      return <div>{t("ui2:attrs.document", { defaultValue: "Document" })}</div>;
     default:
       return null;
   }

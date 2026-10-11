@@ -17,6 +17,7 @@ import { $patchStyleText } from "@lexical/selection";
 import { BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
 import { copyAsMarkdown } from "./exportMarkdown";
 import { INSERT_HORIZONTAL_RULE_COMMAND } from "./horizontalRuleCommand";
+import { useTranslation } from "react-i18next";
 
 const toolbarStyles = css`
   display: flex;
@@ -45,6 +46,7 @@ const toolbarStyles = css`
 `;
 
 const ToolbarPlugin = () => {
+  const { t } = useTranslation();
   const [editor] = useLexicalComposerContext();
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
@@ -183,8 +185,8 @@ const ToolbarPlugin = () => {
         type="button"
         onClick={handleFormatBold}
         className={isBold ? "active" : ""}
-        aria-label="Format Bold"
-        title="Bold (Ctrl+B / ⌘+B)"
+        aria-label={t("editor:ui.formatBold", { defaultValue: "Format Bold" })}
+        title={t("editor:ui.boldCtrl+B⌘+B", { defaultValue: "Bold (Ctrl+B / ⌘+B)" })}
       >
         <b>B</b>
       </button>
@@ -192,8 +194,8 @@ const ToolbarPlugin = () => {
         type="button"
         onClick={handleFormatItalic}
         className={isItalic ? "active" : ""}
-        aria-label="Format Italic"
-        title="Italic (Ctrl+I / ⌘+I)"
+        aria-label={t("editor:ui.formatItalic", { defaultValue: "Format Italic" })}
+        title={t("editor:ui.italicCtrl+I⌘+I", { defaultValue: "Italic (Ctrl+I / ⌘+I)" })}
       >
         <i>I</i>
       </button>
@@ -201,16 +203,16 @@ const ToolbarPlugin = () => {
         type="button"
         onClick={toggleFontSize}
         className={isLargeFont ? "active" : ""}
-        aria-label="Toggle Large Font Size"
-        title="Toggle Large Font Size"
+        aria-label={t("editor:ui.toggleLargeFontSize", { defaultValue: "Toggle Large Font Size" })}
+        title={t("editor:ui.toggleLargeFontSize", { defaultValue: "Toggle Large Font Size" })}
       >
         <FormatSizeIcon sx={{ fontSize: "1em" }} />
       </button>
       <button
         type="button"
         onClick={handleInsertHR}
-        aria-label="Insert Horizontal Rule"
-        title="Insert Horizontal Rule"
+        aria-label={t("editor:ui.insertHorizontalRule", { defaultValue: "Insert Horizontal Rule" })}
+        title={t("editor:ui.insertHorizontalRule", { defaultValue: "Insert Horizontal Rule" })}
         style={{ fontSize: "var(--fontSizeNormal)", fontWeight: 600 }}
       >
         ─
@@ -218,8 +220,8 @@ const ToolbarPlugin = () => {
       <button
         type="button"
         onClick={handleCopyAsMarkdown}
-        aria-label="Copy as Markdown"
-        title="Copy as Markdown"
+        aria-label={t("editor:ui.copyAsMarkdown", { defaultValue: "Copy as Markdown" })}
+        title={t("editor:ui.copyAsMarkdown", { defaultValue: "Copy as Markdown" })}
         className={copied ? "active" : ""}
       >
         <ContentCopyIcon sx={{ fontSize: "1em" }} />

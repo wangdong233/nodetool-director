@@ -9,7 +9,6 @@ import { colorForType, descriptionForType } from "../../config/data_types";
 import { hexToRgba } from "../../utils/ColorUtils";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import useNodeMenuStore from "../../stores/NodeMenuStore";
-import { titleizeString } from "../../utils/titleizeString";
 import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
 import { HighlightText } from "../ui_primitives";
 import {
@@ -25,6 +24,10 @@ import {
   isKieVagueBillingSummary,
 } from "../../utils/formatKieUnitPricing";
 import isEqual from "../../utils/isEqual";
+import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
+import { nodeDocumentation } from "../../i18n/nodeDocs";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface NodeInfoProps {
   nodeMetadata: NodeMetadata;
@@ -184,17 +187,24 @@ const NodeInfo: React.FC<NodeInfoProps> = ({
   menuWidth = 300,
   showConnections = true
 }) => {
+  const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const searchTerm = useNodeMenuStore((state) => state.searchTerm);
   const setSearchTerm = useNodeMenuStore((state) => state.setSearchTerm);
 
   const description = useMemo(
     () =>
       formatNodeDocumentation(
-        nodeMetadata?.description || "",
+        // nodeDocumentation overlays the zh doc (parser-shaped, r17) at
+        // render time; languageVersion re-resolves on a language switch.
+        nodeDocumentation(
+          nodeMetadata?.node_type ?? "",
+          nodeMetadata?.description || ""
+        ),
         searchTerm,
         nodeMetadata.searchInfo
       ),
-    [nodeMetadata, searchTerm]
+    [nodeMetadata, searchTerm, languageVersion]
   );
 
   const handleTagClick = useCallback(
@@ -233,7 +243,7 @@ const NodeInfo: React.FC<NodeInfoProps> = ({
     <div css={nodeInfoStyles(theme)} style={{ width: menuWidth }}>
       <div className="title-container">
         <Text className="node-title">
-          {titleizeString(nodeMetadata.title)}
+          {nodeMenuTitle(nodeMetadata.node_type, nodeMetadata.title)}
         </Text>
       </div>
       <div className="node-description">
@@ -318,7 +328,7 @@ const NodeInfo: React.FC<NodeInfoProps> = ({
       {showConnections && (
         <div className="inputs-outputs">
           <div className="inputs">
-            <Text size="big">Inputs</Text>
+            <Text size="big">{t("editor:ui.inputs", { defaultValue: "Inputs" })}</Text>
             {nodeMetadata.properties.map((property) => (
               <div key={property.name} className="item">
                 <Tooltip
@@ -352,7 +362,7 @@ const NodeInfo: React.FC<NodeInfoProps> = ({
             ))}
           </div>
           <div className="outputs">
-            <Text size="big">Outputs</Text>
+            <Text size="big">{t("editor:ui.outputs", { defaultValue: "Outputs" })}</Text>
             {nodeMetadata.outputs.map((property) => (
               <div key={property.name} className="item">
                 <Text className="property">{property.name}</Text>

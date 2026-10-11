@@ -17,6 +17,7 @@ import {
   TextInput
 } from "../../ui_primitives";
 import { SETUP_FIELD_WIDTH } from "../layout";
+import { useTranslation } from "react-i18next";
 
 interface CreativeContextFieldsProps {
   readonly value: CreativeContext | undefined;
@@ -25,11 +26,11 @@ interface CreativeContextFieldsProps {
 }
 
 const TEXT_FIELDS = [
-  ["product_name", "Product name"],
-  ["product_description", "Product description"],
-  ["audience", "Audience"],
-  ["objective", "Objective"],
-  ["tone", "Tone"]
+  ["product_name", "Product name", "storyboard:attrs.productName"],
+  ["product_description", "Product description", "storyboard:attrs.productDescription"],
+  ["audience", "Audience", "storyboard:attrs.audience"],
+  ["objective", "Objective", "storyboard:attrs.objective"],
+  ["tone", "Tone", "storyboard:attrs.tone"]
 ] as const;
 
 interface ContextTextProps {
@@ -63,13 +64,14 @@ export default function CreativeContextFields({
   onChange,
   onValidationChange
 }: CreativeContextFieldsProps) {
+  const { t } = useTranslation();
   const [pickerKind, setPickerKind] = useState<ProductionReferenceKind | null>(
     null
   );
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const error =
     invalidFields.length > 0
-      ? "Context was not saved. Use at most 64 claims per list and 32 references."
+      ? t("storyboard:attrs.contextWasNotSavedUseAtMost64ClaimsPerListAnd32References", { defaultValue: "Context was not saved. Use at most 64 claims per list and 32 references." })
       : undefined;
   useEffect(() => {
     onValidationChange?.(error);
@@ -89,7 +91,7 @@ export default function CreativeContextFields({
   };
   return (
     <CollapsibleSection
-      title="Creative context (optional)"
+      title={t("storyboard:attrs.creativeContextOptional", { defaultValue: "Creative context (optional)" })}
       defaultOpen={false}
       unmountOnExit
     >
@@ -98,10 +100,10 @@ export default function CreativeContextFields({
           Leave fields blank when they do not apply. Claims use one line per
           claim.
         </Caption>
-        {TEXT_FIELDS.map(([key, label]) => (
+        {TEXT_FIELDS.map(([key, label, labelKey]) => (
           <ContextText
             key={`${key}:${value?.[key] ?? ""}`}
-            label={label}
+            label={t(labelKey, { defaultValue: label })}
             value={value?.[key] ?? ""}
             multiline={key === "product_description"}
             onCommit={(text) => update({ [key]: text.trim() || undefined })}
@@ -113,8 +115,8 @@ export default function CreativeContextFields({
             multiline
             label={
               key === "approved_claims"
-                ? "Approved claims"
-                : "Prohibited claims"
+                ? t("storyboard:attrs.approvedClaims", { defaultValue: "Approved claims" })
+                : t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })
             }
             value={value?.[key]?.join("\n") ?? ""}
             onCommit={(text) =>
@@ -182,7 +184,7 @@ export default function CreativeContextFields({
           </FlexColumn>
         ))}
         <Caption>
-          Reference assets are included in reviewed production requests.
+          {t("editor:ui.referenceAssetsAreIncludedInReviewedProductionRequests", { defaultValue: "Reference assets are included in reviewed production requests." })}
         </Caption>
         {error ? (
           <Caption role="alert" color="error">

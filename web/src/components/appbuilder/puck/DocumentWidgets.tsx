@@ -30,6 +30,8 @@ import {
 } from "../../node/outputValueResolvers";
 import SketchRenderer from "../../sketch/SketchRenderer";
 import { useWidgetRuntime } from "./useWidgetRuntime";
+import { tAttr } from "../i18nAttrs";
+import { useTranslation } from "react-i18next";
 
 const LazyTimelineRenderer = React.lazy(async () => ({
   default: (await import("../../timeline/TimelineRenderer")).default
@@ -67,6 +69,7 @@ const frame = (height?: number): React.CSSProperties => ({
 export const SketchWidget: React.FC<
   DocumentWidgetProps & { showDimensions?: boolean }
 > = (props) => {
+  const { t } = useTranslation();
   const { value, designMode } = useReadBinding(props);
   const bound = firstItem(value);
 
@@ -91,20 +94,20 @@ export const SketchWidget: React.FC<
       <Box sx={frame(props.height)}>
         <SketchRenderer
           document={document}
-          ariaLabel="Sketch"
+          ariaLabel={t("editor:ui.sketch", { defaultValue: "Sketch" })}
           showDimensions={props.showDimensions ?? false}
         />
       </Box>
     );
   }
   if (shouldLoad && query.isLoading) {
-    return <LoadingSpinner size="small" text="Loading sketch" />;
+    return <LoadingSpinner size="small" text={tAttr("Loading sketch")} />;
   }
   if (query.isError) {
     return (
       <EmptyState
         variant="error"
-        title="Could not load sketch"
+        title={tAttr("Could not load sketch")}
         description={query.error.message}
       />
     );
@@ -112,18 +115,19 @@ export const SketchWidget: React.FC<
   if (designMode) {
     return (
       <Caption color="secondary">
-        Bind this to a sketch output to preview it.
+        {tAttr("Bind this to a sketch output to preview it.")}
       </Caption>
     );
   }
   return (
-    <Caption color="secondary">{props.placeholder ?? "No sketch yet"}</Caption>
+    <Caption color="secondary">{tAttr(props.placeholder ?? "No sketch yet")}</Caption>
   );
 };
 
 export const TimelineWidget: React.FC<
   DocumentWidgetProps & { showMetadata?: boolean }
 > = (props) => {
+  const { t } = useTranslation();
   const { value, designMode } = useReadBinding(props);
   const bound = firstItem(value);
 
@@ -147,11 +151,11 @@ export const TimelineWidget: React.FC<
     return (
       <Box sx={frame(props.height)}>
         <React.Suspense
-          fallback={<LoadingSpinner size="small" text="Loading preview" />}
+          fallback={<LoadingSpinner size="small" text={tAttr("Loading preview")} />}
         >
           <LazyTimelineRenderer
             sequence={sequence}
-            ariaLabel="Timeline"
+            ariaLabel={t("editor:ui.timeline", { defaultValue: "Timeline" })}
             showMetadata={props.showMetadata ?? true}
           />
         </React.Suspense>
@@ -159,13 +163,13 @@ export const TimelineWidget: React.FC<
     );
   }
   if (shouldLoad && query.isLoading) {
-    return <LoadingSpinner size="small" text="Loading timeline" />;
+    return <LoadingSpinner size="small" text={tAttr("Loading timeline")} />;
   }
   if (query.isError) {
     return (
       <EmptyState
         variant="error"
-        title="Could not load timeline"
+        title={tAttr("Could not load timeline")}
         description={query.error.message}
       />
     );
@@ -173,13 +177,13 @@ export const TimelineWidget: React.FC<
   if (designMode) {
     return (
       <Caption color="secondary">
-        Bind this to a timeline output to preview it.
+        {tAttr("Bind this to a timeline output to preview it.")}
       </Caption>
     );
   }
   return (
     <Caption color="secondary">
-      {props.placeholder ?? "No timeline yet"}
+      {tAttr(props.placeholder ?? "No timeline yet")}
     </Caption>
   );
 };

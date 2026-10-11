@@ -14,6 +14,8 @@ import {
 } from "../../config/quickAccessCategories";
 import type { LeftPanelTopLevelCategory } from "../../config/quickAccessCategories";
 import type { LeftPanelView } from "../../stores/PanelStore";
+import { useAppLanguage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface QuickAccessSidebarProps {
   readonly activeCategory: LeftPanelView | "";
@@ -32,6 +34,12 @@ const QuickAccessButton = ({
   active,
   onCategoryClick
 }: QuickAccessButtonProps) => {
+  const { t } = useTranslation();
+  // Subscribe so catalog reads re-render on language change.
+  useAppLanguage();
+  const label = t(`nav:qa.${category.id}.label`, {
+    defaultValue: category.label
+  });
   const handleClick = useCallback(
     () => onCategoryClick(category.id),
     [category.id, onCategoryClick]
@@ -39,13 +47,13 @@ const QuickAccessButton = ({
 
   return (
     <Tooltip
-      title={category.label}
+      title={label}
       placement="right-start"
       delay={TOOLTIP_ENTER_DELAY}
     >
       <ToolbarIconButton
         tabIndex={-1}
-        ariaLabel={category.label}
+        ariaLabel={label}
         aria-pressed={active}
         active={active}
         onClick={handleClick}

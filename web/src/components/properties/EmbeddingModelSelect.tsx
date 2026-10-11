@@ -5,6 +5,7 @@ import type { ModelPack, UnifiedModel } from "../../stores/ApiTypes";
 import { useEmbeddingModelsByProvider } from "../../hooks/useEmbeddingModels";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
+import { useTranslation } from "react-i18next";
 
 interface EmbeddingModelSelection {
   type: "embedding_model";
@@ -28,6 +29,7 @@ const EmbeddingModelSelect: React.FC<EmbeddingModelSelectProps> = ({
   recommendedModels,
   modelPacks
 }) => {
+  const { t } = useTranslation();
   const { anchorEl, buttonRef, handleClick, handleClose, handleSelect } =
     useModelSelectMenu("embedding_model", onChange);
 
@@ -45,9 +47,9 @@ const EmbeddingModelSelect: React.FC<EmbeddingModelSelectProps> = ({
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || "Select Model"}
+        label={currentSelectedModelDetails?.name || value || t("editor:ui.selectModel")}
         secondaryLabel={currentSelectedModelDetails?.provider}
-        subLabel="Select Embedding Model"
+        subLabel={t("editor:ui.selectEmbeddingModel")}
         onClick={handleClick}
       />
       <EmbeddingModelMenuDialog

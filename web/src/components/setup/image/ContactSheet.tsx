@@ -40,6 +40,8 @@ import {
   useDirectGenJob
 } from "../../../hooks/sketch/useDirectGenJob";
 import { resolveMediaUri } from "../../../utils/resolveMediaUri";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface ContactSheetProps {
   /** The batch, in the order it was enqueued. */
@@ -90,11 +92,21 @@ const STATUS_TEXT: Record<string, string> = {
   failed: "This one failed"
 };
 
+const STATUS_TEXT_KEYS: Record<string, string> = {
+  draft: "storyboard:attrs.waitingToStart",
+  queued: "editor:ui.queued",
+  generating: "storyboard:attrs.rendering",
+  failed: "storyboard:attrs.thisOneFailed"
+};
+
 /** Statuses that mean the request has not settled yet. */
 const PENDING = new Set(["draft", "queued", "generating"]);
 
 /** What a failure says when the take recorded no reason of its own. */
 const UNRECORDED_REASON = "This one did not render, and gave no reason.";
+const UNRECORDED_REASON_KEY = "storyboard:attrs.thisOneDidNotRenderAndGaveNoReason";
+const unrecordedReason = (): string =>
+  i18n.t(UNRECORDED_REASON_KEY, { defaultValue: UNRECORDED_REASON });
 
 /** Where saving a variation to the library has got to. */
 type SaveState = "idle" | "saving" | "saved" | "failed";
@@ -110,6 +122,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
   onSaveToLibrary,
   onOpenCanvas
 }) => {
+  const { t } = useTranslation();
   const bindings = useSketchSessionStore((state) => state.bindings);
   const { start } = useDirectGenJob();
   const [actions, setActions] = useState<
@@ -124,7 +137,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
         const failure = status === "failed" ? directGenFailure(layerId) : null;
         return {
           layerId,
-          label: `Variation ${index + 1}`,
+          label: t("storyboard:attrs.variationCount", { defaultValue: "Variation {{count}}", count: index + 1 }),
           assetId: binding?.currentAssetId,
           status,
           pending: PENDING.has(status),
@@ -136,10 +149,10 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
               ? null
               : failure
                 ? describeDirectGenFailure(failure)
-                : UNRECORDED_REASON
+                : unrecordedReason()
         };
       }),
-    [bindings, layerIds]
+    [bindings, layerIds, t]
   );
 
   const landed = tiles.filter((tile) => tile.assetId !== undefined).length;
@@ -150,7 +163,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
   // A batch usually fails for one reason — a key, a quota, a prompt — so the
   // sheet says it once above the grid instead of on every tile.
   const reasons = Array.from(
-    new Set(failedTiles.map((tile) => tile.reason ?? UNRECORDED_REASON))
+    new Set(failedTiles.map((tile) => tile.reason ?? unrecordedReason()))
   );
   const sharedReason = failed > 1 && reasons.length === 1 ? reasons[0] : null;
 
@@ -175,7 +188,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
     async (layerId: string, destination: "entity" | "canvas" | "video") => {
       setActions((current) => ({
         ...current,
-        [layerId]: { state: "saving", message: "Opening destination…" }
+        [layerId]: { state: "saving", message: i18n.t("storyboard:attrs.openingDestination", { defaultValue: "Opening destination…" }) }
       }));
       try {
         if (destination === "entity") {
@@ -189,8 +202,8 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
             state: "saved",
             message:
               destination === "entity"
-                ? "Saved to entities."
-                : "Opened in a new node canvas."
+                ? i18n.t("storyboard:attrs.savedToEntities", { defaultValue: "Saved to entities." })
+                : i18n.t("storyboard:attrs.openedInANewNodeCanvas", { defaultValue: "Opened in a new node canvas." })
           }
         }));
       } catch {
@@ -198,7 +211,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
           ...current,
           [layerId]: {
             state: "failed",
-            message: "Could not open that destination. Try again."
+            message: i18n.t("storyboard:attrs.couldNotOpenThatDestinationTryAgain", { defaultValue: "Could not open that destination. Try again." })
           }
         }));
       }
@@ -209,9 +222,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Pick your image
-        </Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.pickYourImage", { defaultValue: "Pick your image" })}</Text>
         <Text size="normal" color="secondary">
           Every variation stays on the document, so nothing you rendered is
           lost.
@@ -219,9 +230,13 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
         {/* What the batch did, said once and out loud, so a reader who cannot
             see the grid still learns that three landed and one did not. */}
         <Text size="small" color="secondary" role="status" aria-live="polite">
-          {`${landed} of ${tiles.length} rendered` +
-            (failed > 0 ? ` · ${failed} failed` : "") +
-            (pending > 0 ? ` · ${pending} still running` : "")}
+          {[
+            t("storyboard:attrs.countOfTotalRendered", { defaultValue: "{{landed}} of {{total}} rendered", landed, total: tiles.length }),
+            failed > 0 ? t("storyboard:attrs.countFailed", { defaultValue: "{{count}} failed", count: failed }) : null,
+            pending > 0 ? t("storyboard:attrs.countStillRunning", { defaultValue: "{{count}} still running", count: pending }) : null
+          ]
+            .filter((part) => part !== null)
+            .join(" · ")}
         </Text>
       </FlexColumn>
 
@@ -229,9 +244,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
         <AlertBanner severity="error">
           <FlexColumn gap={GAP.tight}>
             <Text size="small">
-              Nothing rendered. Try a variation again, change the model or size
-              under the generation settings, or open the editor and work from
-              the canvas.
+              {t("storyboard:attrs.nothingRenderedTryAVariationAgain", { defaultValue: "Nothing rendered. Try a variation again, change the model or size under the generation settings, or open the editor and work from the canvas." })}
             </Text>
             {reasons.map((reason) => (
               <Text key={reason} size="small">
@@ -252,7 +265,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
 
       <Box
         role="group"
-        aria-label="Variations"
+        aria-label={t("storyboard:attrs.variations", { defaultValue: "Variations" })}
         sx={{
           display: "grid",
           gridTemplateColumns:
@@ -294,7 +307,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                   }}
                 >
                   <Caption color="secondary">
-                    {STATUS_TEXT[tile.status] ?? "Rendering"}
+                    {t(STATUS_TEXT_KEYS[tile.status] ?? "storyboard:attrs.rendering", { defaultValue: STATUS_TEXT[tile.status] ?? "Rendering" })}
                   </Caption>
                 </Box>
               )}
@@ -315,14 +328,12 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                 variant="contained"
                 disabled={!tile.assetId}
                 onClick={() => pick(tile.layerId)}
-              >
-                Sketch editor
-              </EditorButton>
+              >{t("storyboard:attrs.sketchEditor", { defaultValue: "Sketch editor" })}</EditorButton>
               {(
                 [
-                  ["entity", "Save to entities"],
-                  ["canvas", "New node canvas"],
-                  ["video", "Image to video"]
+                  ["entity", t("storyboard:attrs.saveToEntities", { defaultValue: "Save to entities" })],
+                  ["canvas", t("storyboard:attrs.newNodeCanvas", { defaultValue: "New node canvas" })],
+                  ["video", t("storyboard:attrs.imageToVideo", { defaultValue: "Image to video" })]
                 ] as const
               ).map(([destination, label]) => (
                 <EditorButton
@@ -341,7 +352,9 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                 disabled={tile.pending}
                 onClick={() => void start(tile.layerId)}
               >
-                {tile.failed ? `Try ${tile.label} again` : "Regenerate"}
+                {tile.failed
+                  ? t("storyboard:attrs.tryNameAgain", { defaultValue: "Try {{name}} again", name: tile.label })
+                  : t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}
               </EditorButton>
               <EditorButton
                 variant="text"
@@ -351,9 +364,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                     void downloadVariation(tile.assetId, tile.label);
                   }
                 }}
-              >
-                Download
-              </EditorButton>
+              >{t("storyboard:attrs.download", { defaultValue: "Download" })}</EditorButton>
             </FlexRow>
             {actions[tile.layerId] ? (
               <Text
@@ -375,14 +386,12 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
           disabled={makeMorePending}
           onClick={onMakeMore}
         >
-          {makeMorePending ? "Making more…" : "Make more variations"}
+          {makeMorePending ? t("storyboard:attrs.makingMore", { defaultValue: "Making more…" }) : t("storyboard:attrs.makeMoreVariations", { defaultValue: "Make more variations" })}
         </EditorButton>
         <EditorButton variant="text" onClick={onBackToSettings}>
-          Back to generation settings
+          {t("editor:ui.backToGenerationSettings", { defaultValue: "Back to generation settings" })}
         </EditorButton>
-        <EditorButton variant="text" onClick={onOpenEditor}>
-          Open editor
-        </EditorButton>
+        <EditorButton variant="text" onClick={onOpenEditor}>{t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}</EditorButton>
       </FlexRow>
     </FlexColumn>
   );

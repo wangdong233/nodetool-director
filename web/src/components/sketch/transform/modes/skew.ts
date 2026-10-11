@@ -26,6 +26,7 @@ const VISIBLE_HANDLES: readonly TransformHandle[] = [
 export const SkewMode: TransformModeHandler = {
   id: "skew",
   label: "Skew",
+  labelKey: "sketch:attrs.skew",
   // Internal-only: produced by Ctrl/Cmd+edge promotion from scale mode.
   // Not exposed as its own toolbar mode (Affinity parity).
   visibleInToolbar: false,

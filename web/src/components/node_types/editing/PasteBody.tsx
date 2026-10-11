@@ -30,6 +30,7 @@ import {
 } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
 import { PASTE_NODE_TYPE } from "../../../constants/nodeTypes";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -128,6 +129,7 @@ const PasteBodyInner: React.FC<PasteBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -211,7 +213,7 @@ const PasteBodyInner: React.FC<PasteBodyProps> = ({
       <div className="preview-area">
         <PreviewImage
           value={previewValue ?? baseValue}
-          placeholder="Connect Image and Paste, then run"
+          placeholder={t("editor:ui.connectImageAndPasteThenRun", { defaultValue: "Connect Image and Paste, then run" })}
         />
         {overlayRect && (
           <div
@@ -257,7 +259,7 @@ const PasteBodyInner: React.FC<PasteBodyProps> = ({
               id={`paste-top-${id}`}
               nodeId={id}
               name="top"
-              description={topProperty.description ?? "Top offset"}
+              description={topProperty.description ?? t("editor:ui.topOffset", { defaultValue: "Top offset" })}
               value={top}
               min={topProperty.min ?? 0}
               max={topProperty.max ?? 4096}

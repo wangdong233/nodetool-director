@@ -129,6 +129,7 @@ import {
 } from "./merge";
 import { reportDocumentConflicts } from "../documentConflictReporter";
 import type { DocumentOp } from "@nodetool-ai/protocol";
+import { i18n } from "../../i18n";
 
 // ── Snap threshold ─────────────────────────────────────────────────────────
 
@@ -1732,7 +1733,7 @@ export const createTimelineStore = (
             if (!audioTrack) {
               audioTrack = makeTrack({
                 type: "audio",
-                name: "Voiceover",
+                name: i18n.t("storyboard:attrs.voiceover", { defaultValue: "Voiceover" }),
                 index: tracks.length
               });
               tracks = [...tracks, audioTrack];
@@ -1996,7 +1997,7 @@ export const createTimelineStore = (
 
           const track = makeTrack({
             type: "audio",
-            name: "Audio",
+            name: i18n.t("timeline:attrs.audio", { defaultValue: "Audio" }),
             index: get().tracks.length
           });
           set((state) => ({ tracks: [...state.tracks, track] }));
@@ -3314,7 +3315,7 @@ export const createTimelineStore = (
               content:
                 error instanceof Error
                   ? `Isolate subject failed: ${error.message}`
-                  : "Isolate subject failed."
+                  : i18n.t("timeline:attrs.isolateSubjectFailed", { defaultValue: "Isolate subject failed." })
             });
             return null;
           }

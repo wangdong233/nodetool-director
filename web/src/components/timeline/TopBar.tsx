@@ -17,6 +17,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import TuneIcon from "@mui/icons-material/Tune";
 import AspectRatioOutlinedIcon from "@mui/icons-material/AspectRatioOutlined";
 import VideoLibraryOutlinedIcon from "@mui/icons-material/VideoLibraryOutlined";
+import { useTranslation } from "react-i18next";
 
 interface TopBarProps {
   onExportVideo?: () => void;
@@ -44,6 +45,7 @@ export const TopBar: React.FC<TopBarProps> = memo(
     onAdaptFormat,
     activitySlot
   }) => {
+    const { t } = useTranslation();
     const overflowButtonRef = useRef<HTMLButtonElement>(null);
     const [overflowAnchor, setOverflowAnchor] = useState<HTMLElement | null>(
       null
@@ -69,8 +71,8 @@ export const TopBar: React.FC<TopBarProps> = memo(
           <ToolbarIconButton
             onClick={onSave}
             disabled={isSaving}
-            tooltip={isSaving ? "Saving…" : "Save"}
-            aria-label={isSaving ? "Saving…" : "Save"}
+            tooltip={isSaving ? t("timeline:topbar.saving", { defaultValue: "Saving…" }) : t("timeline:topbar.save", { defaultValue: "Save" })}
+            aria-label={isSaving ? t("timeline:topbar.saving", { defaultValue: "Saving…" }) : t("timeline:topbar.save", { defaultValue: "Save" })}
           >
             <SaveIcon fontSize="small" />
           </ToolbarIconButton>
@@ -79,8 +81,8 @@ export const TopBar: React.FC<TopBarProps> = memo(
           <ToolbarIconButton
             onClick={onExportVideo}
             disabled={isExporting}
-            tooltip={isExporting ? "Exporting…" : "Export video"}
-            aria-label={isExporting ? "Exporting…" : "Export video"}
+            tooltip={isExporting ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : t("timeline:topbar.exportVideo", { defaultValue: "Export video" })}
+            aria-label={isExporting ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : t("timeline:topbar.exportVideo", { defaultValue: "Export video" })}
           >
             <FileDownloadIcon fontSize="small" />
           </ToolbarIconButton>
@@ -90,8 +92,8 @@ export const TopBar: React.FC<TopBarProps> = memo(
             <ToolbarIconButton
               ref={overflowButtonRef}
               onClick={(event) => setOverflowAnchor(event.currentTarget)}
-              tooltip="More timeline actions"
-              aria-label="More timeline actions"
+              tooltip={t("timeline:topbar.moreActions", { defaultValue: "More timeline actions" })}
+              aria-label={t("timeline:topbar.moreActions", { defaultValue: "More timeline actions" })}
               aria-haspopup="menu"
               aria-expanded={!!overflowAnchor}
             >
@@ -105,21 +107,21 @@ export const TopBar: React.FC<TopBarProps> = memo(
               {onOpenSettings && (
                 <MenuItemPrimitive
                   icon={<TuneIcon fontSize="small" />}
-                  label="Project settings"
+                  label={t("timeline:topbar.projectSettings", { defaultValue: "Project settings" })}
                   onClick={runFromMenu(onOpenSettings)}
                 />
               )}
               {onAdaptFormat && (
                 <MenuItemPrimitive
                   icon={<AspectRatioOutlinedIcon fontSize="small" />}
-                  label="Adapt format"
+                  label={t("timeline:topbar.adaptFormat", { defaultValue: "Adapt format" })}
                   onClick={runFromMenu(onAdaptFormat)}
                 />
               )}
               {onSaveToAssets && (
                 <MenuItemPrimitive
                   icon={<VideoLibraryOutlinedIcon fontSize="small" />}
-                  label="Save as Asset"
+                  label={t("timeline:topbar.saveAsAsset", { defaultValue: "Save as Asset" })}
                   disabled={isExporting}
                   onClick={runFromMenu(() => {
                     const anchor = overflowButtonRef.current;
@@ -131,7 +133,7 @@ export const TopBar: React.FC<TopBarProps> = memo(
                 <MenuItemPrimitive
                   icon={<FolderZipOutlinedIcon fontSize="small" />}
                   label={
-                    isExportingBundle ? "Exporting…" : "Export project (.zip)"
+                    isExportingBundle ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : t("timeline:attrs.exportProjectZip", { defaultValue: "Export project (.zip)" })
                   }
                   disabled={isExportingBundle}
                   onClick={runFromMenu(onExportBundle)}

@@ -27,6 +27,7 @@ import {
   parseShotlistCsv,
   type ShotlistReportEntry
 } from "../../../lib/storyboard/parseShotlistCsv";
+import { i18n } from "../../../i18n";
 
 /** What the file picker offers. */
 export const SHOTLIST_ACCEPT = ".csv,text/csv";
@@ -64,7 +65,7 @@ export function useShotlistImport(boardId: string): ShotlistImportResult {
           return;
         }
         if (parsed.result.shots.length === 0) {
-          setError("This CSV holds no shots to import.");
+          setError(i18n.t("storyboard:attrs.thisCSVHoldsNoShotsToImport", { defaultValue: "This CSV holds no shots to import." }));
           return;
         }
         const screenplay: Screenplay = {
@@ -93,7 +94,7 @@ export function useShotlistImport(boardId: string): ShotlistImportResult {
         setReport(parsed.result.report);
       } catch (cause) {
         setError(
-          cause instanceof Error ? cause.message : "This CSV could not be read."
+          cause instanceof Error ? cause.message : i18n.t("storyboard:attrs.thisCSVCouldNotBeRead", { defaultValue: "This CSV could not be read." })
         );
       } finally {
         setImporting(false);

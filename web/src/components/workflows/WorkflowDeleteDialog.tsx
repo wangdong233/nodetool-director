@@ -5,6 +5,7 @@ import { WorkflowAttributes } from "../../stores/ApiTypes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 interface WorkflowDeleteDialogProps {
   open: boolean;
@@ -17,6 +18,7 @@ const WorkflowDeleteDialog: FC<WorkflowDeleteDialogProps> = ({
   onClose,
   workflowsToDelete
 }) => {
+  const { t } = useTranslation();
   const { removeWorkflow, openWorkflows } = useWorkflowManager(
     useShallow((state) => ({
       removeWorkflow: state.removeWorkflow,
@@ -73,14 +75,14 @@ const WorkflowDeleteDialog: FC<WorkflowDeleteDialogProps> = ({
       open={open}
       onClose={onClose}
       onConfirm={handleDelete}
-      confirmText="Delete"
-      cancelText="Cancel"
-      title="Delete Workflows"
-      notificationMessage="Workflows deleted"
+      confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+      cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+      title={t("editor:ui.deleteWorkflows", { defaultValue: "Delete Workflows" })}
+      notificationMessage={t("editor:ui.workflowsDeleted", { defaultValue: "Workflows deleted" })}
       notificationType="success"
       content={
         <>
-          <p>Are you sure you want to delete the following workflows?</p>
+          <p>{t("editor:ui.areYouSureYouWantToDeleteTheFollowingWorkflows", { defaultValue: "Are you sure you want to delete the following workflows?" })}</p>
           <ul className="asset-names">
             {workflowsToDelete.map((workflow) => (
               <li key={workflow.id}>{workflow.name}</li>

@@ -18,6 +18,7 @@ import useNodePacksStore, {
 import useOptionalNodePacksStore from "../../stores/OptionalNodePacksStore";
 import { OPTIONAL_NODE_PACKS } from "../../config/optionalNodePacks";
 import { getRequiredKeyForBuiltinPack } from "../../utils/providerPacks";
+import { useTranslation } from "react-i18next";
 
 export type PMTab = "software" | "packs";
 
@@ -39,6 +40,16 @@ const runtimeGroup = (id: string) => RUNTIME_GROUP[id] ?? "media";
  *  distinct from builtin pack ids. */
 const OPTIONAL_PREFIX = "optional:";
 
+const TITLE_KEYS: Record<string, string> = {
+  all: "editor:ui.allRuntimes",
+  language: "editor:ui.languages",
+  media: "editor:ui.mediaDocs",
+  ai: "editor:ui.aiRuntimes",
+  thirdparty: "editor:ui.thirdParty",
+  included: "editor:ui.includedPacks",
+  python: "editor:ui.registryPacks"
+};
+
 const TITLES: Record<string, string> = {
   all: "All runtimes",
   language: "Languages",
@@ -47,6 +58,14 @@ const TITLES: Record<string, string> = {
   included: "Included packs",
   python: "Registry packs",
   thirdparty: "Third-party packs"
+};
+
+/** Catalog keys for the pane subtitles (render-time resolution). */
+const SUBTITLE_KEYS: Record<string, string> = {
+  software: "editor:ui.pmSubtitleSoftware",
+  included: "editor:ui.pmSubtitleIncluded",
+  python: "editor:ui.pmSubtitleRegistry",
+  thirdparty: "editor:ui.pmSubtitleThirdParty"
 };
 
 const SUBTITLES: Record<string, string> = {
@@ -149,6 +168,7 @@ export function usePackageManager(params: {
   q: string;
   filter: string;
 }): PackageManagerModel {
+  const { t } = useTranslation();
   const { tab, cat, q, filter } = params;
 
   const {
@@ -320,30 +340,30 @@ export function usePackageManager(params: {
 
     const categories: PMCount[] = isSoftware
       ? [
-          { id: "all", label: "All runtimes", count: statuses.length },
+          { id: "all", label: t("editor:ui.allRuntimes", { defaultValue: "All runtimes" }), count: statuses.length },
           {
             id: "language",
-            label: "Languages",
+            label: t("editor:ui.languages", { defaultValue: "Languages" }),
             count: statuses.filter((p) => runtimeGroup(p.id) === "language")
               .length
           },
           {
             id: "media",
-            label: "Media & docs",
+            label: t("editor:ui.mediaDocs", { defaultValue: "Media & docs" }),
             count: statuses.filter((p) => runtimeGroup(p.id) === "media").length
           },
           {
             id: "ai",
-            label: "AI runtimes",
+            label: t("editor:ui.aiRuntimes", { defaultValue: "AI runtimes" }),
             count: statuses.filter((p) => runtimeGroup(p.id) === "ai").length
           }
         ]
       : [
-          { id: "included", label: "Included", count: includedItems.length },
-          { id: "python", label: "Registry", count: pythonPacks.length },
+          { id: "included", label: t("editor:ui.included", { defaultValue: "Included" }), count: includedItems.length },
+          { id: "python", label: t("editor:ui.registry", { defaultValue: "Registry" }), count: pythonPacks.length },
           {
             id: "thirdparty",
-            label: "Third-party",
+            label: t("editor:ui.thirdParty", { defaultValue: "Third-party" }),
             count: thirdPartyPacks.length
           }
         ];
@@ -398,9 +418,9 @@ export function usePackageManager(params: {
           )
         : inCat;
       const filtered = applyChips(searched, [
-        { id: "all", label: "All", pred: () => true },
-        { id: "installed", label: "Installed", pred: (p) => p.installed },
-        { id: "available", label: "Not installed", pred: (p) => !p.installed }
+        { id: "all", label: t("editor:ui.catAll", { defaultValue: "All" }), pred: () => true },
+        { id: "installed", label: t("editor:ui.installed", { defaultValue: "Installed" }), pred: (p) => p.installed },
+        { id: "available", label: t("editor:ui.notInstalled", { defaultValue: "Not installed" }), pred: (p) => !p.installed }
       ]);
       rows = filtered.map((rt) => {
         const busy = rtBusy.includes(rt.id) || rt.installing;
@@ -433,9 +453,9 @@ export function usePackageManager(params: {
           )
         : includedItems;
       const filtered = applyChips(searched, [
-        { id: "all", label: "All", pred: () => true },
-        { id: "enabled", label: "Enabled", pred: (p) => p.enabled },
-        { id: "disabled", label: "Disabled", pred: (p) => !p.enabled }
+        { id: "all", label: t("editor:ui.catAll", { defaultValue: "All" }), pred: () => true },
+        { id: "enabled", label: t("editor:ui.enabled", { defaultValue: "Enabled" }), pred: (p) => p.enabled },
+        { id: "disabled", label: t("editor:ui.disabled", { defaultValue: "Disabled" }), pred: (p) => !p.enabled }
       ]);
       rows = filtered.map((item) => ({
         key: item.id,
@@ -444,7 +464,9 @@ export function usePackageManager(params: {
         badge: item.required ? "alwaysOn" : null,
         toggle: {
           enabled: item.enabled,
-          label: item.enabled ? "Enabled" : "Disabled",
+          label: item.enabled
+            ? t("editor:ui.enabled", { defaultValue: "Enabled" })
+            : t("editor:ui.disabled", { defaultValue: "Disabled" }),
           disabled: item.required,
           onChange: item.onToggle
         }
@@ -457,15 +479,15 @@ export function usePackageManager(params: {
           )
         : pythonPacks;
       const filtered = applyChips(searched, [
-        { id: "all", label: "All", pred: () => true },
+        { id: "all", label: t("editor:ui.catAll", { defaultValue: "All" }), pred: () => true },
         {
           id: "installed",
-          label: "Installed",
+          label: t("editor:ui.installed", { defaultValue: "Installed" }),
           pred: (p) => !!p.installed && !p.installed.hasUpdate
         },
         {
           id: "updates",
-          label: "Updates",
+          label: t("settings:general.secUpdates", { defaultValue: "Updates" }),
           pred: (p) => !!p.installed?.hasUpdate
         },
         { id: "available", label: "Available", pred: (p) => !p.installed }
@@ -502,9 +524,9 @@ export function usePackageManager(params: {
 
     const notice =
       isSoftware && !rtAvailable
-        ? "Software installation runs in the NodeTool desktop app. Open the desktop app to install Python, FFmpeg, and other runtimes."
+        ? t("editor:ui.softwareInstallationRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallPythonFfmpegAndOtherRuntimes", { defaultValue: "Software installation runs in the NodeTool desktop app. Open the desktop app to install Python, FFmpeg, and other runtimes." })
         : cat === "python" && !pyAvailable
-          ? "Installing node packs runs in the NodeTool desktop app. Open the desktop app to install, update, and remove Python node packs."
+          ? t("editor:ui.installingNodePacksRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallUpdateAndRemovePythonNodePacks", { defaultValue: "Installing node packs runs in the NodeTool desktop app. Open the desktop app to install, update, and remove Python node packs." })
           : null;
 
     const consoleModel = isSoftware
@@ -538,8 +560,16 @@ export function usePackageManager(params: {
       isSoftware,
       isThirdParty,
       categories,
-      title: TITLES[cat] ?? "Packages",
-      subtitle: isSoftware ? SUBTITLES.software : (SUBTITLES[cat] ?? ""),
+      title: TITLE_KEYS[cat]
+        ? t(TITLE_KEYS[cat], { defaultValue: TITLES[cat] ?? "Packages" })
+        : (TITLES[cat] ?? "Packages"),
+      subtitle: (() => {
+        const key = SUBTITLE_KEYS[isSoftware ? "software" : cat];
+        const fallback = isSoftware
+          ? SUBTITLES.software
+          : (SUBTITLES[cat] ?? "");
+        return key ? t(key, { defaultValue: fallback }) : fallback;
+      })(),
       count: baseCount,
       chips: notice ? [] : chips,
       rows,
@@ -581,6 +611,6 @@ export function usePackageManager(params: {
     pyUninstall,
     selectInstallLocation,
     rtClear,
-    pyClear
+    pyClear, t
   ]);
 }

@@ -23,10 +23,12 @@ import {
 import { trpc } from "../trpc/client";
 import { useStudioCredits } from "./useStudioCredits";
 import StudioShell from "./StudioShell";
+import { useTranslation } from "react-i18next";
 
 const TOPUP_CREDITS = 1_000;
 
 const StudioAccountPage = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { status, loading, unavailable, refetch } = useStudioCredits();
   const utils = trpc.useUtils();
@@ -43,7 +45,7 @@ const StudioAccountPage = () => {
   const topup = trpc.credits.topup.useMutation(onSettled);
 
   return (
-    <StudioShell title="Plan & credits">
+    <StudioShell title={t("editor:ui.planCredits", { defaultValue: "Plan & credits" })}>
       <FlexColumn
         align="center"
         gap={SPACING.xl}
@@ -102,7 +104,7 @@ const StudioAccountPage = () => {
 
             <FlexColumn gap={SPACING.sm} sx={{ width: "100%", maxWidth: 880 }}>
               <Text size="small" weight={600} color="secondary">
-                Plans
+                {t("editor:ui.plans")}
               </Text>
               <FlexRow gap={SPACING.lg} wrap>
                 {status.plans.map((plan) => {
@@ -130,7 +132,7 @@ const StudioAccountPage = () => {
                           <Text size="big" weight={600}>
                             {plan.name}
                           </Text>
-                          {current && <Chip compact label="Current" />}
+                          {current && <Chip compact label={t("editor:ui.current", { defaultValue: "Current" })} />}
                         </FlexRow>
                         <Text size="normal">
                           {plan.monthlyCredits.toLocaleString()} credits / month
@@ -148,7 +150,9 @@ const StudioAccountPage = () => {
                           disabled={current || setPlan.isPending}
                           onClick={() => setPlan.mutate({ planId: plan.id })}
                         >
-                          {current ? "Selected" : "Switch to " + plan.name}
+                          {current
+                            ? t("editor:studio.selected", { defaultValue: "Selected" })
+                            : t("editor:studio.switchTo", { defaultValue: "Switch to {{plan}}", plan: plan.name })}
                         </EditorButton>
                       </FlexColumn>
                     </Card>

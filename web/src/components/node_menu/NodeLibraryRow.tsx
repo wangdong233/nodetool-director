@@ -11,6 +11,8 @@ import { colorForType } from "../../config/data_types";
 import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
 import type { NodeMetadata } from "../../stores/ApiTypes";
 import { nodeTypeDisplayName } from "../../constants/nodeTypes";
+import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
+import { useTranslation } from "react-i18next";
 
 const rowStyles = (theme: Theme) =>
   css({
@@ -81,6 +83,7 @@ interface NodeLibraryRowProps {
  */
 const NodeLibraryRow = memo<NodeLibraryRowProps>(
   ({ node, onDragStart, onDragEnd, onClick, onHover }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const outputType =
       node.outputs.length > 0 ? node.outputs[0].type.type : "";
@@ -121,7 +124,7 @@ const NodeLibraryRow = memo<NodeLibraryRowProps>(
       : `1px solid ${theme.vars.palette.divider}`;
 
     const replacementTitle = node.replaced_by
-      ? nodeTypeDisplayName(node.replaced_by)
+      ? nodeMenuTitle(node.replaced_by, nodeTypeDisplayName(node.replaced_by))
       : null;
 
     const cssStyles = useMemo(() => rowStyles(theme), [theme]);
@@ -161,8 +164,8 @@ const NodeLibraryRow = memo<NodeLibraryRowProps>(
         onKeyDown={handleKeyDown}
         title={
           node.deprecated
-            ? `${node.title}${replacementTitle ? ` — use ${replacementTitle}` : ""}`
-            : node.title
+            ? `${nodeMenuTitle(node.node_type, node.title)}${replacementTitle ? ` — use ${replacementTitle}` : ""}`
+            : nodeMenuTitle(node.node_type, node.title)
         }
       >
         <IconForType
@@ -173,10 +176,10 @@ const NodeLibraryRow = memo<NodeLibraryRowProps>(
           svgProps={NODE_ROW_SVG_PROPS}
         />
         <Text className="nl-row-title" component="div">
-          {node.title}
+          {nodeMenuTitle(node.node_type, node.title)}
           {node.deprecated && (
             <Caption component="span" sx={{ marginLeft: getSpacingPx(SPACING.sm), color: "warning.main" }}>
-              Deprecated
+              {t("editor:ui.deprecated")}
             </Caption>
           )}
         </Text>

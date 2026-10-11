@@ -31,6 +31,7 @@ import {
 } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
+import { useTranslation } from "react-i18next";
 
 type Connection = agentAccess.McpConnectionOutput;
 type TokenSummary = agentAccess.AccessTokenSummary;
@@ -39,10 +40,10 @@ type OauthGrant = agentAccess.OauthGrantSummary;
 /** Lifetimes the UI offers. "Never" is the default: a token in a config file
  * that silently stops working months later is a bad afternoon. */
 const EXPIRY_OPTIONS = [
-  { value: "never", label: "No expiry" },
-  { value: "30", label: "30 days" },
-  { value: "90", label: "90 days" },
-  { value: "365", label: "1 year" }
+  { value: "never", label: "No expiry", labelKey: "editor:ui.noExpiry" },
+  { value: "30", label: "30 days", labelKey: "editor:ui.30Days" },
+  { value: "90", label: "90 days", labelKey: "editor:ui.90Days" },
+  { value: "365", label: "1 year", labelKey: "editor:ui.1Year" }
 ] as const;
 
 /**
@@ -71,14 +72,15 @@ function configSnippets(url: string, token: string | null) {
   return { cli, json };
 }
 
-function formatStamp(value: string | null): string {
-  if (!value) return "never";
+function formatStamp(value: string | null, neverLabel = "never"): string {
+  if (!value) return neverLabel;
   const parsed = Date.parse(value);
   if (!Number.isFinite(parsed)) return value;
   return new Date(parsed).toLocaleDateString();
 }
 
 const AgentAccessSection = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const addNotification = useNotificationStore(
@@ -117,7 +119,10 @@ const AgentAccessSection = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not create the token: ${err}`
+        content: t("editor:notify.couldNotCreateToken", {
+          defaultValue: "Could not create the token: {{error}}",
+          error: String(err)
+        })
       });
     }
   });
@@ -127,7 +132,7 @@ const AgentAccessSection = () => {
       trpcClient.agentAccess.revokeToken.mutate({ id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["access-tokens"] });
-      addNotification({ type: "info", alert: true, content: "Token revoked" });
+      addNotification({ type: "info", alert: true, content: t("editor:ui.tokenRevoked", { defaultValue: "Token revoked" }) });
     }
   });
 
@@ -145,14 +150,19 @@ const AgentAccessSection = () => {
       addNotification({
         type: "info",
         alert: true,
-        content: "Client disconnected"
+        content: t("tools:menus.clientDisconnected", {
+          defaultValue: "Client disconnected"
+        })
       });
     },
     onError: (err) => {
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not disconnect the client: ${err}`
+        content: t("editor:notify.couldNotDisconnectClient", {
+          defaultValue: "Could not disconnect the client: {{error}}",
+          error: String(err)
+        })
       });
     },
     onSettled: () => setGrantToRevoke(null)
@@ -189,56 +199,55 @@ const AgentAccessSection = () => {
 
   return (
     <div className="settings-section" style={{ marginTop: getSpacingPx(SPACING.xxl) }}>
-      <Text sx={{ fontWeight: 500, mb: 0.5 }}>Connect an agent remotely</Text>
+      <Text sx={{ fontWeight: 500, mb: 0.5 }}>{t("ui2:attrs.connectAnAgentRemotely", { defaultValue: "Connect an agent remotely" })}</Text>
       <Text className="description" sx={{ mb: 1 }}>
-        Point Claude Code, Claude Desktop, or any MCP client at this server over
-        HTTP. Create a token below and paste the configuration it produces.
+        {t("editor:ui.pointClaudeCodeClaudeDesktopOrAnyMcpClientAtThisServerOverHttp")}
       </Text>
 
       {connection && !connection.enabled && (
         <AlertBanner severity="warning" sx={{ mb: 1 }}>
-          This server does not serve <code>/mcp</code>. Set{" "}
-          <code>{connection.enable_flag}=1</code> in its environment and restart
-          it.
+          {t("editor:ui.mcpNotServedA", { defaultValue: "This server does not serve" })}{" "}
+          <code>/mcp</code>
+          {t("editor:ui.mcpNotServedB", { defaultValue: ". Set" })}{" "}
+          <code>{connection.enable_flag}=1</code>
+          {t("editor:ui.mcpNotServedC", { defaultValue: " in its environment and restart it." })}
         </AlertBanner>
       )}
 
       {connection?.auth_mode === "none" && (
         <AlertBanner severity="info" sx={{ mb: 1 }}>
-          This server checks no credential — it trusts its own network. A token
-          still works and is the safer choice if you reach it from anywhere but
-          this machine.
+          {t("editor:ui.thisServerChecksNoCredentialItTrustsItsOwnNetwork")}
         </AlertBanner>
       )}
 
       <FlexColumn gap={1} sx={{ mb: 2 }}>
-        <Caption>Server URL</Caption>
+        <Caption>{t("ui2:attrs.serverURL", { defaultValue: "Server URL" })}</Caption>
         <FlexRow align="center" gap={1}>
           <div css={codeBox} style={{ flex: 1 }}>
             {url}
           </div>
-          <CopyButton value={url} tooltip="Copy the server URL" />
+          <CopyButton value={url} tooltip={t("editor:ui.copyTheServerURL", { defaultValue: "Copy the server URL" })} />
         </FlexRow>
       </FlexColumn>
 
       <FlexRow align="flex-end" gap={1} sx={{ mb: 1 }}>
         <TextInput
-          label="Token name"
-          placeholder="Claude Code on my laptop"
+          label={t("editor:ui.tokenName", { defaultValue: "Token name" })}
+          placeholder={t("editor:ui.claudeCodeOnMyLaptop", { defaultValue: "Claude Code on my laptop" })}
           value={name}
           size="small"
           onChange={(event) => setName(event.target.value)}
         />
         <SelectField
-          label="Expires"
+          label={t("editor:ui.expires", { defaultValue: "Expires" })}
           value={expiry}
-          options={EXPIRY_OPTIONS}
+          options={EXPIRY_OPTIONS.map((o) => ({ ...o, label: t(o.labelKey, { defaultValue: o.label }) }))}
           size="small"
           onChange={setExpiry}
         />
         <NavButton
           icon={<AddCircleOutlineIcon />}
-          label="Create token"
+          label={t("editor:ui.createToken", { defaultValue: "Create token" })}
           color="primary"
           disabled={!name.trim() || createToken.isPending}
           onClick={handleCreate}
@@ -249,41 +258,41 @@ const AgentAccessSection = () => {
       {freshToken && (
         <FlexColumn gap={1} sx={{ mb: 2 }}>
           <AlertBanner severity="success">
-            Copy this now — it is shown once and cannot be retrieved again.
+            {t("editor:ui.copyThisNowItIsShownOnceAndCannotBeRetrievedAgain")}
           </AlertBanner>
           <FlexRow align="center" gap={1}>
             <div css={codeBox} style={{ flex: 1 }}>
               {freshToken}
             </div>
-            <CopyButton value={freshToken} tooltip="Copy the token" />
+            <CopyButton value={freshToken} tooltip={t("editor:ui.copyTheToken", { defaultValue: "Copy the token" })} />
           </FlexRow>
 
-          <Caption>Claude Code — run this</Caption>
+          <Caption>{t("editor:ui.claudeCodeRunThis", { defaultValue: "Claude Code — run this" })}</Caption>
           <FlexRow align="center" gap={1}>
             <div css={codeBox} style={{ flex: 1 }}>
               {snippets.cli}
             </div>
-            <CopyButton value={snippets.cli} tooltip="Copy the command" />
+            <CopyButton value={snippets.cli} tooltip={t("editor:ui.copyTheCommand", { defaultValue: "Copy the command" })} />
           </FlexRow>
 
-          <Caption>Or paste into an MCP client config file</Caption>
+          <Caption>{t("editor:ui.orPasteIntoAnMCPClientConfigFile", { defaultValue: "Or paste into an MCP client config file" })}</Caption>
           <FlexRow align="flex-start" gap={1}>
             <div css={codeBox} style={{ flex: 1 }}>
               {snippets.json}
             </div>
             <CopyButton
               value={snippets.json}
-              tooltip="Copy the configuration"
+              tooltip={t("editor:ui.copyTheConfiguration", { defaultValue: "Copy the configuration" })}
             />
           </FlexRow>
         </FlexColumn>
       )}
 
-      {tokensLoading && <Text sx={{ padding: `${SPACING.md}px` }}>Loading tokens…</Text>}
+      {tokensLoading && <Text sx={{ padding: `${SPACING.md}px` }}>{t("editor:ui.loadingTokens", { defaultValue: "Loading tokens…" })}</Text>}
 
       {tokens.length > 0 && (
         <FlexColumn gap={0}>
-          <Caption sx={{ mb: 0.5 }}>Your tokens</Caption>
+          <Caption sx={{ mb: 0.5 }}>{t("ui2:attrs.yourTokens", { defaultValue: "Your tokens" })}</Caption>
           {tokens.map((token: TokenSummary) => (
             <div key={token.id} className="settings-item">
               <FlexRow align="center" justify="space-between" fullWidth>
@@ -293,16 +302,19 @@ const AgentAccessSection = () => {
                     className="description"
                     sx={{ fontSize: "var(--fontSizeSmall) !important" }}
                   >
-                    Created {formatStamp(token.created_at)} · Last used{" "}
-                    {formatStamp(token.last_used_at)} ·{" "}
+                    {t("editor:ui.tokenMetaCreated", { defaultValue: "Created {{date}}", date: formatStamp(token.created_at) })} ·{" "}
+                    {t("editor:ui.tokenMetaLastUsed", {
+                      defaultValue: "Last used {{date}}",
+                      date: formatStamp(token.last_used_at, t("editor:ui.never", { defaultValue: "never" }))
+                    })} ·{" "}
                     {token.expires_at
-                      ? `Expires ${formatStamp(token.expires_at)}`
-                      : "No expiry"}
+                      ? t("editor:ui.tokenMetaExpires", { defaultValue: "Expires {{date}}", date: formatStamp(token.expires_at) })
+                      : t("editor:ui.noExpiry", { defaultValue: "No expiry" })}
                   </Text>
                 </FlexColumn>
                 <NavButton
                   icon={<RemoveCircleOutlineIcon />}
-                  label="Revoke"
+                  label={t("editor:ui.revoke", { defaultValue: "Revoke" })}
                   disabled={revokeToken.isPending}
                   onClick={() => revokeToken.mutate(token.id)}
                   navSize="small"
@@ -319,10 +331,10 @@ const AgentAccessSection = () => {
       )}
 
       <FlexColumn gap={0} sx={{ mt: 2 }}>
-        <Caption sx={{ mb: 0.5 }}>Connected MCP clients</Caption>
-        {grantsLoading && <Text sx={{ padding: `${SPACING.md}px` }}>Loading…</Text>}
+        <Caption sx={{ mb: 0.5 }}>{t("ui2:attrs.connectedMCPClients", { defaultValue: "Connected MCP clients" })}</Caption>
+        {grantsLoading && <Text sx={{ padding: `${SPACING.md}px` }}>{t("common:status.loading", { defaultValue: "Loading…" })}</Text>}
         {!grantsLoading && grants.length === 0 && (
-          <Text className="description">No MCP client has connected yet.</Text>
+          <Text className="description">{t("ui2:attrs.noMCPClientHasConnectedYet", { defaultValue: "No MCP client has connected yet." })}</Text>
         )}
         {grants.map((grant: OauthGrant) => (
           <div key={grant.id} className="settings-item">
@@ -333,12 +345,12 @@ const AgentAccessSection = () => {
                   className="description"
                   sx={{ fontSize: "var(--fontSizeSmall) !important" }}
                 >
-                  Connected {formatStamp(grant.created_at)} · {grant.client_id}
+                  {t("editor:ui.connectedOn", { defaultValue: "Connected {{date}}", date: formatStamp(grant.created_at) })} · {grant.client_id}
                 </Text>
               </FlexColumn>
               <NavButton
                 icon={<RemoveCircleOutlineIcon />}
-                label="Revoke"
+                label={t("editor:ui.revoke", { defaultValue: "Revoke" })}
                 disabled={revokeGrant.isPending}
                 onClick={() => setGrantToRevoke(grant)}
                 navSize="small"
@@ -356,10 +368,10 @@ const AgentAccessSection = () => {
       <Dialog
         open={grantToRevoke !== null}
         onClose={() => setGrantToRevoke(null)}
-        title="Disconnect this client?"
+        title={t("editor:ui.disconnectThisClient", { defaultValue: "Disconnect this client?" })}
         showActions
-        confirmText="Disconnect"
-        cancelText="Cancel"
+        confirmText={t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         isLoading={revokeGrant.isPending}
         onCancel={() => setGrantToRevoke(null)}
         onConfirm={() => {
@@ -367,8 +379,11 @@ const AgentAccessSection = () => {
         }}
       >
         <Text>
-          {grantToRevoke?.client_name} will no longer be able to reach this
-          server. It will need to reconnect and be approved again.
+          {t("editor:ui.disconnectClientBody", {
+            defaultValue:
+              "{{name}} will no longer be able to reach this server. It will need to reconnect and be approved again.",
+            name: grantToRevoke?.client_name ?? ""
+          })}
         </Text>
       </Dialog>
     </div>

@@ -74,3 +74,11 @@ if (
 // either way. Answer "no sample" here, deterministically; a suite that needs a
 // sample installs its own probe with `setModelSampleProbe`.
 setModelSampleProbe(noModelSamples);
+
+// mig-B0: give every test the initialized i18n instance. Migrated components
+// no longer side-effect-import ../../i18n, so test files that never import it
+// fall back to react-i18next's uninitialized global (notReadyT → defaultValue,
+// or raw key when absent). Importing the app instance here registers it via
+// initReactI18next's setI18n for ALL tests. Runs afterEnv so jsdom exists —
+// the module reads window.localStorage at init.
+import "./i18n";

@@ -24,6 +24,7 @@ import SubtitlesOutlinedIcon from "@mui/icons-material/SubtitlesOutlined";
 import { useHasScript } from "../../../hooks/timeline/useHasScript";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { MOTION, BORDER_RADIUS } from "../../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const buttonStyles = (theme: Theme, compact: boolean) =>
   css({
@@ -60,6 +61,7 @@ interface ScriptToggleButtonProps {
 }
 
 export const ScriptToggleButton: React.FC<ScriptToggleButtonProps> = memo(({ compact = false }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const hasScript = useHasScript();
   const setScriptEnabled = useTimelineStore((s) => s.setScriptEnabled);
@@ -68,7 +70,7 @@ export const ScriptToggleButton: React.FC<ScriptToggleButtonProps> = memo(({ com
     setScriptEnabled(!hasScript);
   }, [setScriptEnabled, hasScript]);
 
-  const label = hasScript ? "Remove script" : "Add script";
+  const label = hasScript ? t("timeline:attrs.removeScript", { defaultValue: "Remove script" }) : t("timeline:attrs.addScript", { defaultValue: "Add script" });
 
   return (
     <button

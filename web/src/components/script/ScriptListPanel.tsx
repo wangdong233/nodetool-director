@@ -14,14 +14,17 @@ import { useSidebarDocumentMenu } from "../../hooks/useSidebarDocumentMenu";
 import { trpc } from "../../trpc/client";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import { downgradeBoardsLinkedToScript } from "../../lib/scriptStoryboardDowngrade";
+import { i18n } from "../../i18n";
 import {
   DocumentListPanel,
   ListPanelItem,
   ToolbarIconButton,
   Tooltip
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 export const CreateScriptButton = memo(function CreateScriptButton() {
+  const { t } = useTranslation();
   const createScript = useCreateScript();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -31,7 +34,7 @@ export const CreateScriptButton = memo(function CreateScriptButton() {
   const handleCreate = useCallback(async () => {
     try {
       const created = await createScript.mutateAsync({
-        name: "Untitled script",
+        name: i18n.t("editor:ui.untitledScript", { defaultValue: "Untitled script" }),
         projectId: creationProjectId()
       });
       openTab({
@@ -51,9 +54,9 @@ export const CreateScriptButton = memo(function CreateScriptButton() {
   }, [createScript, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title="New script" placement="right-start">
+    <Tooltip title={t("editor:ui.newScript", { defaultValue: "New script" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel="New script"
+        ariaLabel={t("editor:ui.newScript", { defaultValue: "New script" })}
         onClick={() => void handleCreate()}
         disabled={createScript.isPending}
         tabIndex={-1}
@@ -68,6 +71,8 @@ interface ScriptListPanelProps {
 }
 
 const ScriptListPanel = ({ projectId }: ScriptListPanelProps) => {
+  // Language anchor: the panel chrome (nouns, empty copy) renders through `t`.
+  const { t } = useTranslation();
   const { data, isLoading, isError, error } = useScripts(projectId);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const activeTabId = useWorkspaceTabsStore((state) => state.activeTabId);
@@ -175,13 +180,13 @@ const ScriptListPanel = ({ projectId }: ScriptListPanelProps) => {
 
   return (
     <DocumentListPanel
-      singular="script"
-      plural="scripts"
+      singular={t("editor:ui.scriptNoun", { defaultValue: "script" })}
+      plural={t("editor:ui.scriptsNoun", { defaultValue: "scripts" })}
       documents={data}
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create a new script with the + button above."
+      emptyDescription={t("editor:ui.createANewScriptWithThe+ButtonAbove", { defaultValue: "Create a new script with the + button above." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}
@@ -189,8 +194,8 @@ const ScriptListPanel = ({ projectId }: ScriptListPanelProps) => {
         <ListPanelItem
           id={script.id}
           name={script.name}
-          fallbackName="Untitled script"
-          renameLabel="Script name"
+          fallbackName={t("editor:ui.untitledScript", { defaultValue: "Untitled script" })}
+          renameLabel={t("editor:ui.scriptName", { defaultValue: "Script name" })}
           icon={RecordVoiceOverOutlinedIcon}
           active={script.id === activeScriptId}
           editing={script.id === editingId}

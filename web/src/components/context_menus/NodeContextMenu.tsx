@@ -24,8 +24,10 @@ import { NodeData } from "../../stores/NodeData";
 import { useRemoveFromGroup } from "../../hooks/nodes/useRemoveFromGroup";
 import { useGroupIntoSubgraph } from "../../hooks/nodes/useGroupIntoSubgraph";
 import { useNodes } from "../../contexts/NodeContext";
+import { useTranslation } from "react-i18next";
 
 const NodeContextMenu: React.FC = () => {
+  const { t } = useTranslation();
   const {
     menuPosition,
     closeContextMenu,
@@ -58,19 +60,19 @@ const NodeContextMenu: React.FC = () => {
       <ContextMenuItem
         key="remove-from-group"
         onClick={handleRemoveFromGroup}
-        label="Remove from Group"
+        label={t("editor:node.removeFromGroup", { defaultValue: "Remove from Group" })}
         IconComponent={<GroupRemoveIcon />}
-        tooltip="Remove this node from the group"
+        tooltip={t("editor:node.removeFromGroupTip", { defaultValue: "Remove this node from the group" })}
       />
     ),
     <ContextMenuItem
       key="copy"
       onClick={handlers.handleCopy}
-      label="Copy"
+      label={t("common:action.copy", { defaultValue: "Copy" })}
       IconComponent={<ContentCopyIcon />}
       tooltip={
         <div className="tooltip-span">
-          <div className="tooltip-title">Copy</div>
+          <div className="tooltip-title">{t("common:action.copy", { defaultValue: "Copy" })}</div>
           <div className="tooltip-key">
             <kbd>CTRL</kbd>+<kbd>C</kbd> / <kbd>⌘</kbd>+<kbd>C</kbd>
           </div>
@@ -80,11 +82,11 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="cut"
       onClick={handlers.handleCut}
-      label="Cut"
+      label={t("common:action.cut", { defaultValue: "Cut" })}
       IconComponent={<ContentCutIcon />}
       tooltip={
         <div className="tooltip-span">
-          <div className="tooltip-title">Cut</div>
+          <div className="tooltip-title">{t("common:action.cut", { defaultValue: "Cut" })}</div>
           <div className="tooltip-key">
             <kbd>CTRL</kbd>+<kbd>X</kbd> / <kbd>⌘</kbd>+<kbd>X</kbd>
           </div>
@@ -94,18 +96,18 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="copy-nodedata"
       onClick={handlers.handleCopyMetadataToClipboard}
-      label="Copy Node as JSON"
+      label={t("editor:node.copyJson", { defaultValue: "Copy Node as JSON" })}
       IconComponent={<DataArrayIcon />}
-      tooltip="Copy this node's data as JSON to the clipboard"
+      tooltip={t("editor:node.copyJsonTip", { defaultValue: "Copy this node's data as JSON to the clipboard" })}
     />,
     <ContextMenuItem
       key="duplicate"
       onClick={handlers.handleDuplicate}
-      label="Duplicate"
+      label={t("common:action.duplicate", { defaultValue: "Duplicate" })}
       IconComponent={<QueueIcon />}
       tooltip={
         <div className="tooltip-span">
-          <div className="tooltip-title">Duplicate</div>
+          <div className="tooltip-title">{t("common:action.duplicate", { defaultValue: "Duplicate" })}</div>
           <div className="tooltip-key">
             <kbd>CTRL</kbd>+<kbd>D</kbd> / <kbd>⌘</kbd>+<kbd>D</kbd>
           </div>
@@ -115,11 +117,11 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="duplicate-vertical"
       onClick={handlers.handleDuplicateVertical}
-      label="Duplicate Vertical"
+      label={t("editor:node.duplicateVertical", { defaultValue: "Duplicate Vertical" })}
       IconComponent={<SouthIcon />}
       tooltip={
         <div className="tooltip-span">
-          <div className="tooltip-title">Duplicate Vertical</div>
+          <div className="tooltip-title">{t("editor:node.duplicateVertical", { defaultValue: "Duplicate Vertical" })}</div>
           <div className="tooltip-key">
             <kbd>CTRL</kbd>+<kbd>SHIFT</kbd>+<kbd>D</kbd> / <kbd>⌘</kbd>+<kbd>SHIFT</kbd>+<kbd>D</kbd>
           </div>
@@ -129,20 +131,20 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="run-from-here"
       onClick={handlers.handleRunFromHere}
-      label={conditions.isWorkflowRunning ? "Running..." : "Run Node"}
+      label={conditions.isWorkflowRunning ? t("editor:node.running", { defaultValue: "Running…" }) : t("editor:node.runNode", { defaultValue: "Run Node" })}
       IconComponent={<PlayArrowIcon />}
-      tooltip="Run this node as its own job, using previous results as inputs"
+      tooltip={t("editor:node.runNodeTip", { defaultValue: "Run this node as its own job, using previous results as inputs" })}
       addButtonClassName={conditions.isWorkflowRunning ? "disabled" : ""}
     />,
     <ContextMenuItem
       key="toggle-bypass"
       onClick={handlers.handleToggleBypass}
-      label={conditions.isBypassed ? "Enable Node" : "Disable Node"}
+      label={conditions.isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable Node" }) : t("editor:node.disableNode", { defaultValue: "Disable Node" })}
       IconComponent={conditions.isBypassed ? <PowerSettingsNewIcon /> : <BlockIcon />}
       tooltip={
         <div className="tooltip-span">
           <div className="tooltip-title">
-            {conditions.isBypassed ? "Enable Node" : "Disable Node"}
+            {conditions.isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable Node" }) : t("editor:node.disableNode", { defaultValue: "Disable Node" })}
           </div>
           <div className="tooltip-key">
             <kbd>B</kbd>
@@ -153,14 +155,14 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="toggle-collapsed"
       onClick={handlers.handleToggleCollapsed}
-      label={conditions.isCollapsed ? "Expand Node" : "Collapse Node"}
+      label={conditions.isCollapsed ? t("editor:node.expandNode", { defaultValue: "Expand Node" }) : t("editor:node.collapseNode", { defaultValue: "Collapse Node" })}
       IconComponent={
         conditions.isCollapsed ? <UnfoldMoreIcon /> : <UnfoldLessIcon />
       }
       tooltip={
         <div className="tooltip-span">
           <div className="tooltip-title">
-            {conditions.isCollapsed ? "Expand Node" : "Collapse Node"}
+            {conditions.isCollapsed ? t("editor:node.expandNode", { defaultValue: "Expand Node" }) : t("editor:node.collapseNode", { defaultValue: "Collapse Node" })}
           </div>
           <div className="tooltip-key">
             <kbd>C</kbd>
@@ -171,64 +173,64 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="toggle-comment"
       onClick={handlers.handleToggleComment}
-      label={conditions.hasCommentTitle ? "Remove Comment" : "Add Comment"}
+      label={conditions.hasCommentTitle ? t("editor:node.removeComment", { defaultValue: "Remove Comment" }) : t("editor:node.addComment", { defaultValue: "Add Comment" })}
       IconComponent={<EditIcon />}
       tooltip={
         conditions.hasCommentTitle
-          ? "Remove the comment from this node"
-          : "Add a comment to this node"
+          ? t("editor:node.removeCommentTip", { defaultValue: "Remove the comment from this node" })
+          : t("editor:node.addCommentTip", { defaultValue: "Add a comment to this node" })
       }
     />,
     <ContextMenuItem
       key="group-into-subgraph"
       onClick={handleGroupIntoSubgraph}
-      label="Group into Subgraph"
+      label={t("editor:node.groupIntoSubgraph", { defaultValue: "Group into Subgraph" })}
       IconComponent={<AccountTreeIcon />}
-      tooltip="Move the selected nodes into a new subgraph node"
+      tooltip={t("editor:node.groupIntoSubgraphTip", { defaultValue: "Move the selected nodes into a new subgraph node" })}
     />,
     conditions.canConvertToInput && (
       <ContextMenuItem
         key="convert-to-input"
         onClick={handlers.handleConvertToInput}
-        label="Convert to Input Node"
+        label={t("editor:node.toInputNode", { defaultValue: "Convert to Input Node" })}
         IconComponent={<SwapHorizIcon />}
-        tooltip="Convert this constant node to an input node"
+        tooltip={t("editor:node.toInputNodeTip", { defaultValue: "Convert this constant node to an input node" })}
       />
     ),
     conditions.canConvertToConstant && (
       <ContextMenuItem
         key="convert-to-constant"
         onClick={handlers.handleConvertToConstant}
-        label="Convert to Constant Node"
+        label={t("editor:node.toConstantNode", { defaultValue: "Convert to Constant Node" })}
         IconComponent={<SwapHorizIcon />}
-        tooltip="Convert this input node to a constant node"
+        tooltip={t("editor:node.toConstantNodeTip", { defaultValue: "Convert this input node to a constant node" })}
       />
     ),
     <ContextMenuItem
       key="show-templates"
       onClick={handlers.handleFindTemplates}
-      label="Show Templates"
+      label={t("editor:node.showTemplates", { defaultValue: "Show Templates" })}
       IconComponent={<SearchIcon />}
-      tooltip="Find Templates using this node"
+      tooltip={t("editor:node.showTemplatesTip", { defaultValue: "Find Templates using this node" })}
     />,
     <ContextMenuItem
       key="select-all"
       onClick={handlers.handleSelectAllSameType}
       label={
         node?.type
-          ? `Select all ${node.type.split(".").pop()} nodes`
-          : "Select all nodes of this type"
+          ? t("editor:node.selectAllOfTypeTyped", { defaultValue: "Select all {{type}} nodes", type: node.type.split(".").pop() || "" })
+          : t("editor:node.selectAllOfType", { defaultValue: "Select all nodes of this type" })
       }
       IconComponent={<FilterListIcon />}
-      tooltip="Select all nodes of the same type"
+      tooltip={t("editor:node.selectAllOfTypeTip", { defaultValue: "Select all nodes of the same type" })}
     />,
     <Divider key="divider-before-delete" />,
     <ContextMenuItem
       key="delete-node"
       onClick={handlers.handleDeleteNode}
-      label="Delete Node"
+      label={t("editor:node.deleteNode", { defaultValue: "Delete Node" })}
       IconComponent={<DeleteIcon />}
-      tooltip="Delete this node"
+      tooltip={t("editor:node.deleteNodeTip", { defaultValue: "Delete this node" })}
     />
   ];
 

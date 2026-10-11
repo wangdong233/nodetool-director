@@ -1,4 +1,6 @@
 /** @jsxImportSource @emotion/react */
+// Class component (D-registry §1 exemption): keeps global `i18n.t` — hooks
+// cannot live in a class body, no HOC conversion per the C merge ruling.
 import { css } from "@emotion/react";
 import { Component } from "react";
 import type { ReactNode, ErrorInfo } from "react";
@@ -6,6 +8,7 @@ import { EditorButton, Text, Box, BORDER_RADIUS, getSpacingPx, SPACING } from ".
 import ReportBugButton from "./support/ReportBugButton";
 import { ThemeContext } from "@emotion/react";
 import type { Theme } from "@mui/material/styles";
+import { i18n } from "../i18n";
 
 
 const searchErrorBoundaryStyles = (theme: Theme) =>
@@ -103,10 +106,10 @@ class SearchErrorBoundary extends Component<
             className="retry-button"
             density="normal"
           >
-            Try Again
+            {i18n.t("editor:ui.tryAgain")}
           </EditorButton>
           <ReportBugButton
-            label="Report a bug"
+            label={i18n.t("common:action.reportBug", { defaultValue: "Report a bug" })}
             context={{
               source: "panel-crash",
               summary: this.props.fallbackTitle || "Search error",

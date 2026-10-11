@@ -11,6 +11,7 @@
 import { strToU8, zipSync } from "fflate";
 import { SECRET_KEY_RE } from "./bugReport";
 import { isObjectLike, isString } from "./typePredicates";
+import { i18n } from "../i18n";
 
 const REDACTED = "«redacted»";
 
@@ -108,7 +109,10 @@ const SOURCE_LABELS: Record<BugReportSource, string> = {
 };
 
 export function sourceLabel(source: BugReportSource): string {
-  return SOURCE_LABELS[source];
+  // Resolve at call time so zh lands (module map stays pure data).
+  return i18n.t(`editor:ui.bugSource.${source}`, {
+    defaultValue: SOURCE_LABELS[source]
+  });
 }
 
 /** What the surface that opened the dialog knows about the failure. */
@@ -188,8 +192,8 @@ export function buildBundleSections(input: BundleInput): BundleSection[] {
   if (context.errorText || context.stackTrace) {
     sections.push({
       id: "error",
-      label: "Error and stack trace",
-      description: "The message and stack trace of the failure.",
+      label: i18n.t("editor:ui.errorAndStackTrace", { defaultValue: "Error and stack trace" }),
+      description: i18n.t("editor:ui.messageAndStackTraceOfFailure", { defaultValue: "The message and stack trace of the failure." }),
       fileName: "error.txt",
       content: errorSectionContent(context),
       defaultIncluded: true
@@ -199,7 +203,7 @@ export function buildBundleSections(input: BundleInput): BundleSection[] {
   if (input.nodeDetail) {
     sections.push({
       id: "node",
-      label: "Node configuration",
+      label: i18n.t("editor:ui.nodeConfiguration", { defaultValue: "Node configuration" }),
       description:
         "The failing node's settings and the nodes wired into it. API keys are removed.",
       fileName: "node.txt",
@@ -211,7 +215,7 @@ export function buildBundleSections(input: BundleInput): BundleSection[] {
   if (input.providerCallDetail) {
     sections.push({
       id: "provider-call",
-      label: "Failed provider call",
+      label: i18n.t("editor:ui.failedProviderCall", { defaultValue: "Failed provider call" }),
       description:
         "Provider, model, HTTP status, the provider's request id, how long the call ran, and the request that was sent. API keys are removed.",
       fileName: "provider-call.txt",
@@ -223,7 +227,7 @@ export function buildBundleSections(input: BundleInput): BundleSection[] {
   if (input.workflow !== undefined) {
     sections.push({
       id: "workflow",
-      label: "Workflow graph",
+      label: i18n.t("editor:ui.workflowGraph", { defaultValue: "Workflow graph" }),
       description:
         "The whole open workflow: node types, settings and connections. Prompts are part of this.",
       fileName: "workflow.json",
@@ -235,8 +239,8 @@ export function buildBundleSections(input: BundleInput): BundleSection[] {
   if (input.logText) {
     sections.push({
       id: "logs",
-      label: "Workflow logs",
-      description: "The log lines the run produced.",
+      label: i18n.t("editor:ui.workflowLogs", { defaultValue: "Workflow logs" }),
+      description: i18n.t("editor:ui.logLinesTheRunProduced", { defaultValue: "The log lines the run produced." }),
       fileName: "logs.txt",
       content: redactSecretsInText(input.logText),
       defaultIncluded: true
@@ -246,7 +250,7 @@ export function buildBundleSections(input: BundleInput): BundleSection[] {
   if (input.consoleText) {
     sections.push({
       id: "console",
-      label: "Console output",
+      label: i18n.t("editor:ui.consoleOutput", { defaultValue: "Console output" }),
       description:
         "Browser console messages and uncaught errors from this session.",
       fileName: "console.txt",
@@ -258,8 +262,8 @@ export function buildBundleSections(input: BundleInput): BundleSection[] {
   if (input.notificationText) {
     sections.push({
       id: "notifications",
-      label: "Recent notifications",
-      description: "The in-app messages shown before the failure.",
+      label: i18n.t("editor:ui.recentNotifications", { defaultValue: "Recent notifications" }),
+      description: i18n.t("editor:ui.inAppMessagesBeforeFailure", { defaultValue: "The in-app messages shown before the failure." }),
       fileName: "notifications.txt",
       content: redactSecretsInText(input.notificationText),
       defaultIncluded: false

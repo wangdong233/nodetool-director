@@ -135,6 +135,74 @@ describe("AssetItem", () => {
     expect(container.querySelector(".asset-item")?.className).toContain("svg");
   });
 
+  describe("seeded style-preset rows", () => {
+    // The seeder writes marker rows with no bytes: get_url 404s, so the tile
+    // must paint the marker's package:// tile art instead (F-27, library path).
+    const presetAsset: Asset = {
+      ...baseImageAsset,
+      id: "cfcb1c08e67e95a530e2c137e9052d31",
+      name: "Painted 2D",
+      get_url: "/api/storage/404-path.jpg",
+      thumb_url: null,
+      metadata: {
+        nodetool_entity: {
+          kind: "style",
+          name: "Painted 2D",
+          descriptor: "Hand-painted 2D game art.",
+          system: true,
+          preset_id: "painted-2d",
+          thumbnail: "package://nodetool-base/styles/game-painted-2d.png"
+        }
+      }
+    };
+
+    it("paints the package thumbnail, not the dangling get_url", () => {
+      const { container } = renderWithTheme(
+        <AssetItem asset={presetAsset} isSelected={false} showDeleteButton={false} />
+      );
+      const tile = container.querySelector(".asset .image") as HTMLElement;
+      expect(tile).toBeTruthy();
+      expect(tile.style.backgroundImage).toContain(
+        "/api/assets/packages/nodetool-base/styles/game-painted-2d.png"
+      );
+      expect(tile.style.backgroundImage).not.toContain("404-path");
+    });
+
+    it("resolves the tile name through the catalog:styles overlay", async () => {
+      const { i18n, ensureLanguageLoaded, resetI18nForTest } = require("../../../i18n");
+      await i18n.changeLanguage("zh-CN");
+      await ensureLanguageLoaded("zh-CN");
+      try {
+        renderWithTheme(
+          <AssetItem asset={presetAsset} isSelected={false} showDeleteButton={false} />
+        );
+        expect(screen.getByText("手绘二维")).toBeInTheDocument();
+      } finally {
+        await resetI18nForTest();
+      }
+    });
+
+    it("keeps the stored name for a swapped system entity", () => {
+      const swapped: Asset = {
+        ...presetAsset,
+        metadata: {
+          nodetool_entity: {
+            ...((presetAsset.metadata as Record<string, unknown>)
+              .nodetool_entity as Record<string, unknown>),
+            reference_asset_id: "a8472a47faa84c989e45089b5789d9df"
+          }
+        }
+      };
+      const { container } = renderWithTheme(
+        <AssetItem asset={swapped} isSelected={false} showDeleteButton={false} />
+      );
+      const tile = container.querySelector(".asset .image") as HTMLElement;
+      expect(tile).toBeTruthy();
+      // No preset thumb: falls back to the asset's own (swapped) ref.
+      expect(tile.style.backgroundImage).not.toContain("/api/assets/packages/");
+    });
+  });
+
   it("calls onDoubleClick with asset on double click", () => {
     const onDoubleClick = jest.fn();
     renderWithTheme(

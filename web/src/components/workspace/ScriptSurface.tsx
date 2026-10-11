@@ -37,6 +37,7 @@ import {
   useScriptSetupFlow,
   useScriptSetupStage
 } from "../setup/script/useScriptSetupFlow";
+import { useTranslation } from "react-i18next";
 
 interface ScriptSurfaceProps {
   refId: string;
@@ -57,6 +58,7 @@ type DockTab = "cast" | "assistant";
  * assistant (ElevenLabs-Studio style).
  */
 const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const ensureScript = useScriptStore((state) => state.ensureScript);
@@ -122,12 +124,23 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
     />
   );
 
+  // Labels resolve per render (dep `t`) so a language switch re-renders the
+  // dock tabs immediately — module-level label arrays freeze before the lazy
+  // zh bundle lands (r12, same class as tabTypeIdentity's render-time titles).
   const dockTabs = useMemo(
     () => [
-      { value: "cast", label: "Cast", icon: <GroupsIcon /> },
-      { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
+      {
+        value: "cast",
+        label: t("editor:ui.cast", { defaultValue: "Cast" }),
+        icon: <GroupsIcon />
+      },
+      {
+        value: "assistant",
+        label: t("editor:ui.assistant", { defaultValue: "Assistant" }),
+        icon: <AutoAwesomeIcon />
+      }
     ],
-    []
+    [t]
   );
 
   const dockTabGroup = (
@@ -154,7 +167,7 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
   // The store seeds an empty script on mount, so rendering before the server
   // copy lands looks like a script with no lines.
   if (loadState !== "ready") {
-    return <DocumentLoadStatus state={loadState} label="script" />;
+    return <DocumentLoadStatus state={loadState} label={t("ui2:attrs.docScript", { defaultValue: "script" })} />;
   }
 
   if (setupStage !== "done") {
@@ -186,7 +199,7 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
                 startIcon={<GroupsIcon fontSize="small" />}
                 onClick={() => openSheet("cast")}
               >
-                Cast
+                {t("editor:ui.cast", { defaultValue: "Cast" })}
               </EditorButton>
               <EditorButton
                 size="small"
@@ -194,16 +207,20 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
                 startIcon={<AutoAwesomeIcon fontSize="small" />}
                 onClick={() => openSheet("assistant")}
               >
-                Assistant
+                {t("editor:ui.assistant", { defaultValue: "Assistant" })}
               </EditorButton>
             </FlexRow>
             <MobileBottomSheet
               open={sheetOpen}
               onClose={() => setSheetOpen(false)}
               maxHeight="85dvh"
-              title={dockTab === "cast" ? "Cast" : "Assistant"}
+              title={
+                dockTab === "cast"
+                  ? t("editor:ui.cast", { defaultValue: "Cast" })
+                  : t("editor:ui.assistant", { defaultValue: "Assistant" })
+              }
               headerExtras={dockTabGroup}
-              ariaLabel="Script cast and assistant"
+              ariaLabel={t("ui2:attrs.scriptCastAndAssistant", { defaultValue: "Script cast and assistant" })}
             >
               <FlexColumn
                 fullWidth
@@ -225,7 +242,7 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
       {!readOnly && (
         <ResizableSideDock
           storageKey="script_assistant"
-          ariaLabel="Resize script assistant"
+          ariaLabel={t("ui2:attrs.resizeScriptAssistant", { defaultValue: "Resize script assistant" })}
         >
           {dockTabGroup}
           <FlexColumn

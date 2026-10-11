@@ -34,6 +34,7 @@ import { getSelectionBounds } from "../selection";
 import { displayCombo } from "../shortcuts";
 import { colorToHex6 } from "../types";
 import { SKETCH_FONT } from "../sketchStyles";
+import { useTranslation } from "react-i18next";
 
 /** OS-aware combo for the fit-to-screen action ("⌘0" on Mac, "Ctrl+0" elsewhere). */
 const FIT_LABEL = `Fit to screen (${displayCombo("zoom-fit")})`;
@@ -51,6 +52,7 @@ const zoomButtonSx = {
 } as const;
 
 const ConnectedStatusBarInner: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const documentId = useSketchSessionStore((s) => s.documentId);
   const panelsHidden = useSketchStore((s) => s.panelsHidden);
@@ -165,7 +167,7 @@ const ConnectedStatusBarInner: React.FC = () => {
       <FlexRow align="center" gap={1.5} sx={{ marginLeft: "auto" }}>
         <CostEstimateLine
           estimate={costEstimate}
-          title="Estimated cost of regenerating every generated layer"
+          title={t("editor:ui.estimatedCostOfRegeneratingEveryGeneratedLayer", { defaultValue: "Estimated cost of regenerating every generated layer" })}
           ariaPrefix="Estimated document cost"
         />
         <span>

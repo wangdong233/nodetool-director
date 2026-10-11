@@ -32,6 +32,7 @@ import type { NodeMetadata, Property } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
+import { i18n } from "../../../i18n";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,

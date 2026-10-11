@@ -42,6 +42,8 @@ import {
 } from "../../../hooks/nodes/useNodeResultHistory";
 import { useNodes } from "../../../contexts/NodeContext";
 import { isObjectLike } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css([
@@ -228,6 +230,7 @@ interface PreviewNodeProps extends NodeProps {
 }
 
 const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const addNotification = useNotificationStore(
@@ -356,7 +359,7 @@ const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
       console.error("Error in handleAddToAssets:", error);
       addNotification({
         type: "error",
-        content: "Failed to add preview to assets"
+        content: i18n.t("editor:ui.failedToAddPreviewToAssets", { defaultValue: "Failed to add preview to assets" })
       });
     }
   }, [previewOutput, props.id, createAsset, addNotification]);
@@ -370,13 +373,13 @@ const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
       });
       addNotification({
         type: "success",
-        content: "Download started successfully"
+        content: i18n.t("editor:ui.downloadStartedSuccessfully", { defaultValue: "Download started successfully" })
       });
     } catch (error) {
       console.error("Error in handleDownload:", error);
       addNotification({
         type: "error",
-        content: "Failed to start download"
+        content: i18n.t("editor:ui.failedToStartDownload", { defaultValue: "Failed to start download" })
       });
     }
   }, [previewOutput, displayResult, props.id, addNotification]);
@@ -472,7 +475,7 @@ const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
           />
           {!displayResult && (
             <Text className="hint">
-              Displays any data from connected nodes
+              {t("editor:ui.displaysAnyDataFromConnectedNodes")}
             </Text>
           )}
           <PreviewActions
@@ -492,7 +495,7 @@ const PreviewNode: React.FC<PreviewNodeProps> = (props) => {
             isScrollable ? "scrollable nowheel" : "noscroll"
           } nodrag`}
           role="region"
-          aria-label="Preview output"
+          aria-label={t("editor:ui.previewOutput", { defaultValue: "Preview output" })}
           style={{ width: "100%", height: "100%" }}
           tabIndex={0}
           onFocus={handleContentFocus}

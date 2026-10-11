@@ -19,6 +19,7 @@ import {
   normalizeAssetList
 } from "../utils/normalizeAsset";
 import { isFunction, isNumber, isObjectLike } from "../utils/typePredicates";
+import { i18n } from "../i18n";
 
 type AssetCreatePayload = {
   workflow_id?: string;
@@ -166,7 +167,7 @@ const uploadAsset = async (
       error instanceof DOMException && error.name === "AbortError"
         ? createErrorMessage(error, "Asset upload was cancelled")
         : error instanceof TypeError
-          ? createErrorMessage(error, "Network error while creating asset")
+          ? createErrorMessage(error, i18n.t("editor:ui.networkErrorWhileCreatingAsset", { defaultValue: "Network error while creating asset" }))
           : statusCode === 408
             ? createErrorMessage(error, "Asset upload timed out")
             : createErrorMessage(error, errorMessage);

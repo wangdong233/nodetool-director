@@ -33,6 +33,7 @@ import { useSketchStore, SKETCH_ZOOM_MIN, SKETCH_ZOOM_MAX } from "../state";
 import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
 import { useSketchCanvasRefStore } from "../../../stores/sketch/SketchCanvasRefStore";
 import { ConnectedGeneratePopover } from "./ConnectedGeneratePopover";
+import { useTranslation } from "react-i18next";
 
 export interface ConnectedEditorActionsProps {
   /** Compact buttons rendered inline before the menu (e.g. the asset tab's
@@ -74,6 +75,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
   inlineActions,
   menuItems
 }: ConnectedEditorActionsProps) {
+  const { t } = useTranslation();
   const assistantPanelOpen = useSketchStore((s) => s.assistantPanelOpen);
   const toggleAssistantPanel = useSketchStore((s) => s.toggleAssistantPanel);
   const togglePanelsHidden = useSketchStore((s) => s.togglePanelsHidden);
@@ -121,7 +123,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
 
       {documentId && (
         <>
-          <Tooltip title="Generate an image from a prompt">
+          <Tooltip title={t("editor:ui.generateAnImageFromAPrompt", { defaultValue: "Generate an image from a prompt" })}>
             <span>
               <EditorButton
                 ref={generateAnchorRef}
@@ -132,7 +134,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
                   setGenerateOpen(true);
                 }}
                 startIcon={<AutoAwesomeIcon fontSize="small" />}
-                aria-label="Generate an image"
+                aria-label={t("editor:ui.generateAnImage", { defaultValue: "Generate an image" })}
                 sx={{
                   "@container sketch-workspace (max-width: 400px)": {
                     minWidth: 44,
@@ -142,7 +144,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
                 }}
                 data-testid="sketch-open-generate"
               >
-                <span className="sketch-generate-label">Generate</span>
+                <span className="sketch-generate-label">{t("ui2:attrs.generate", { defaultValue: "Generate" })}</span>
               </EditorButton>
             </span>
           </Tooltip>
@@ -156,11 +158,11 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         </>
       )}
 
-      <Tooltip title={assistantPanelOpen ? "Hide Assistant" : "Show Assistant"}>
+      <Tooltip title={assistantPanelOpen ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })}>
         <IconButton
           size="small"
           onClick={handleAssistant}
-          aria-label={assistantPanelOpen ? "Hide Assistant" : "Show Assistant"}
+          aria-label={assistantPanelOpen ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })}
           aria-pressed={assistantPanelOpen}
           data-testid="sketch-assistant-toggle"
         >
@@ -168,11 +170,11 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         </IconButton>
       </Tooltip>
 
-      <Tooltip title="Editor actions">
+      <Tooltip title={t("editor:ui.editorActions", { defaultValue: "Editor actions" })}>
         <IconButton
           size="small"
           onClick={(e) => setMenuAnchor(e.currentTarget)}
-          aria-label="Editor actions"
+          aria-label={t("editor:ui.editorActions", { defaultValue: "Editor actions" })}
           aria-haspopup="menu"
           data-testid="sketch-editor-menu"
         >
@@ -192,7 +194,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
           <ListItemIcon>
             <FitScreenIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Fit to viewport</ListItemText>
+          <ListItemText>{t("ui2:attrs.fitToViewport", { defaultValue: "Fit to viewport" })}</ListItemText>
         </EditorMenuItem>
 
         <EditorMenuItem
@@ -202,7 +204,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
           <ListItemIcon>
             <ViewSidebarOutlinedIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Hide panels</ListItemText>
+          <ListItemText>{t("ui2:attrs.hidePanels", { defaultValue: "Hide panels" })}</ListItemText>
         </EditorMenuItem>
 
         {menuItems ? <Divider key="host-divider" /> : null}

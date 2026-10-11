@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import KeyRoundedIcon from "@mui/icons-material/KeyRounded";
 import { AlertBanner, EditorButton } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 interface ModeProviderSetupBannerProps {
   reason: string;

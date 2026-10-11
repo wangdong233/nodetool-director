@@ -177,7 +177,7 @@ function VirtualListInner<T>(
  *   items={rows}
  *   estimateSize={36}
  *   getItemKey={(row) => row.id}
- *   ariaLabel="Log messages"
+ *   ariaLabel={i18n.t("editor:ui.logMessages", { defaultValue: "Log messages" })}
  *   renderItem={(row) => <LogRow row={row} />}
  * />
  */

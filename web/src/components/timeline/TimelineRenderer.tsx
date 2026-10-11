@@ -18,6 +18,8 @@ import {
   TimelineProvider
 } from "../../stores/timeline/TimelineInstance";
 import { PreviewArea } from "./preview/PreviewArea";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const rendererStyles = (theme: Theme) =>
   css({
@@ -61,9 +63,10 @@ const firstPreviewTime = (sequence: TimelineSequence): number => {
 const TimelineRendererContent: React.FC<TimelineRendererProps> = ({
   sequence,
   className,
-  ariaLabel = "Timeline preview",
+  ariaLabel = i18n.t("editor:ui.timelinePreview", { defaultValue: "Timeline preview" }),
   showMetadata = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const styles = useMemo(() => rendererStyles(theme), [theme]);
 
@@ -89,7 +92,7 @@ const TimelineRendererContent: React.FC<TimelineRendererProps> = ({
       {showMetadata && (
         <FlexColumn className="timeline-renderer__meta" padding={PADDING.micro}>
           <Caption>
-            {sequence.width} × {sequence.height} · {sequence.clips.length} clips
+            {sequence.width} × {sequence.height} · {t("editor:ui.nClips2", { n: sequence.clips.length })}
           </Caption>
         </FlexColumn>
       )}

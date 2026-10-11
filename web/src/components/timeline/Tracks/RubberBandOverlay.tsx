@@ -14,6 +14,7 @@ import type { Theme } from "@mui/material/styles";
 
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { Z_INDEX } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 const rubberBandStyles = (theme: Theme) =>
   css({

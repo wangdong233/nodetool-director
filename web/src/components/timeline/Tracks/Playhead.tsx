@@ -41,6 +41,7 @@ import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { formatTimecode } from "../Inspector/InspectorPrimitives.helpers";
 import { MOTION, Z_INDEX, SPACING, getSpacingPx } from "../../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const LINE_WIDTH_PX = 1.5;
 const HIT_AREA_WIDTH_PX = 16;
@@ -122,6 +123,7 @@ interface PlayheadProps {
 
 export const Playhead: React.FC<PlayheadProps> = memo(
   ({ trackAreaOffsetPx = 0, heightPx }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
 
     // Geometry inputs that DO change reactively (zoom/scroll). We keep them in
@@ -284,7 +286,7 @@ export const Playhead: React.FC<PlayheadProps> = memo(
         data-testid="playhead"
         role="slider"
         tabIndex={0}
-        aria-label="Playhead"
+        aria-label={t("timeline:attrs.playhead", { defaultValue: "Playhead" })}
         aria-valuemin={0}
         aria-valuemax={Math.round(durationMs)}
         onPointerEnter={() => setHovered(true)}

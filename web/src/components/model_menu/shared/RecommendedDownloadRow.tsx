@@ -14,6 +14,7 @@ import type { UnifiedModel } from "../../../stores/ApiTypes";
 import { useModelDownloadStore } from "../../../stores/ModelDownloadStore";
 import { DownloadProgress } from "../../hugging_face/DownloadProgress";
 import { formatBytes } from "../../../utils/modelFormatting";
+import { useTranslation } from "react-i18next";
 
 interface RecommendedDownloadRowProps {
   model: UnifiedModel;
@@ -41,6 +42,7 @@ const RecommendedDownloadRow: React.FC<RecommendedDownloadRowProps> = ({
   targetLabel,
   style
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const downloadId = useMemo(() => {
@@ -149,11 +151,11 @@ const RecommendedDownloadRow: React.FC<RecommendedDownloadRowProps> = ({
           <Box sx={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 0.5, color: "text.secondary" }}>
             <LoadingSpinner inline size={12} thickness={5} color="inherit" />
             <Text sx={{ fontSize: theme.vars.fontSizeSmall, color: "text.secondary" }}>
-              Checking…
+              {t("editor:ui.checking")}
             </Text>
           </Box>
         ) : downloaded ? (
-          <Tooltip title="Use this model">
+          <Tooltip title={t("editor:ui.useThisModel", { defaultValue: "Use this model" })}>
             <EditorButton
               variant="contained"
               onClick={(e) => {
@@ -163,15 +165,15 @@ const RecommendedDownloadRow: React.FC<RecommendedDownloadRowProps> = ({
               startIcon={<Check sx={{ fontSize: "1.1em" }} />}
               sx={{ flexShrink: 0 }}
             >
-              Use
+              {t("editor:ui.use")}
             </EditorButton>
           </Tooltip>
         ) : (
           <Tooltip
             title={
               model.size_on_disk
-                ? `Download ${formatBytes(model.size_on_disk)} to ${targetLabel ?? "this computer"}`
-                : `Downloads to ${targetLabel ?? "this computer"}`
+                ? t("editor:ui.downloadNToTarget", { defaultValue: "Download {{size}} to {{target}}", size: formatBytes(model.size_on_disk), target: targetLabel ?? t("editor:ui.thisComputer", { defaultValue: "this computer" }) })
+                : t("editor:ui.downloadsToTarget", { defaultValue: "Downloads to {{target}}", target: targetLabel ?? t("editor:ui.thisComputer", { defaultValue: "this computer" }) })
             }
           >
             <EditorButton

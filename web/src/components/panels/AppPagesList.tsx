@@ -8,6 +8,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useAppHeaderStore } from "../../stores/AppHeaderStore";
 import Help from "../content/Help/Help";
 import { useAppMenuActions } from "./useAppMenuActions";
+import { useTranslation } from "react-i18next";
 import {
   Caption,
   CONTROL,
@@ -67,6 +68,7 @@ const AppPagesList: React.FC<AppPagesListProps> = ({
   showEmptyState = false,
   scope = "sidebar"
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const listStyles = useMemo(() => styles(theme), [theme]);
   const actions = useAppMenuActions(onAction);
@@ -90,7 +92,7 @@ const AppPagesList: React.FC<AppPagesListProps> = ({
   return (
     <div css={listStyles}>
       {showSectionTitle && filteredActions.length > 0 && (
-        <SectionHeader title="Application" size="small" />
+        <SectionHeader title={t("editor:ui.application", { defaultValue: "Application" })} size="small" />
       )}
       <List dense disablePadding>
         {filteredActions.map((action) => (
@@ -113,8 +115,8 @@ const AppPagesList: React.FC<AppPagesListProps> = ({
       {filteredActions.length === 0 && showEmptyState && (
         <EmptyState
           variant="no-results"
-          title="No panels found"
-          description="No panels match your search."
+          title={t("editor:ui.noPanelsFound", { defaultValue: "No panels found" })}
+          description={t("editor:ui.noPanelsMatchYourSearch")}
           size="small"
         />
       )}

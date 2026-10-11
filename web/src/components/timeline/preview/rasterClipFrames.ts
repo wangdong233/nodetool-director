@@ -15,6 +15,7 @@ import {
   drawModel3DClipFrames,
   model3dSourceTimeSec
 } from "../Tracks/model3dClipFrames";
+import { i18n } from "../../../i18n";
 
 interface RasterClipFrame {
   width: number;
@@ -54,7 +55,7 @@ export async function renderRasterClipFrames(
   const init = await compositor.init(canvas);
   if (!init.ok) {
     throw new Error(
-      init.reason ?? "Could not initialize raster frame renderer."
+      init.reason ?? i18n.t("timeline:attrs.couldNotInitializeRasterFrameRenderer", { defaultValue: "Could not initialize raster frame renderer." })
     );
   }
   compositor.resize(outputWidth, outputHeight);

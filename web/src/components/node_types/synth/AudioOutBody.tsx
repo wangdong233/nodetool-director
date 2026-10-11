@@ -22,6 +22,7 @@ import type { Chunk, NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import useResultsStore from "../../../stores/ResultsStore";
 import useWorkflowRunsStore from "../../../stores/WorkflowRunsStore";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -115,6 +116,7 @@ const AudioOutBodyInner: React.FC<AudioOutBodyProps> = ({
   workflowId,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -152,7 +154,7 @@ const AudioOutBodyInner: React.FC<AudioOutBodyProps> = ({
   return (
     <div css={cssStyles} className="audio-out-body" data-bespoke-body="AudioOut">
       <HandleColumn id={id} properties={chunkProperty} />
-      <span className="module-label">Out</span>
+      <span className="module-label">{t("ui2:attrs.out", { defaultValue: "Out" })}</span>
 
       {chunks.length > 0 ? (
         <div className="player nodrag">
@@ -166,7 +168,7 @@ const AudioOutBodyInner: React.FC<AudioOutBodyProps> = ({
           />
         </div>
       ) : (
-        <div className="idle-hint">Run the patch to hear it</div>
+        <div className="idle-hint">{t("ui2:attrs.runThePatchToHearIt", { defaultValue: "Run the patch to hear it" })}</div>
       )}
 
       {!isOutputNode && (

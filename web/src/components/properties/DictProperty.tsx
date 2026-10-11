@@ -6,6 +6,7 @@ import PropertyLabel from "../node/PropertyLabel";
 import { SPACING, getSpacingPx } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { isNumber, isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const detectTypeFromDict = (dict: unknown): DictDataType => {
   if (!Array.isArray(dict) || dict.length === 0) {
@@ -26,6 +27,7 @@ const detectTypeFromDict = (dict: unknown): DictDataType => {
 };
 
 const DictProperty = (props: PropertyProps<Record<string, DictCellValue>>) => {
+  const { t } = useTranslation();
   const id = `list-${props.property.name}-${props.propertyIndex}`;
   const dataTypes = useMemo(() => ["int", "string", "datetime", "float"], []);
 
@@ -66,13 +68,13 @@ const DictProperty = (props: PropertyProps<Record<string, DictCellValue>>) => {
   return (
     <>
       <div style={containerStyle}>
-        <PropertyLabel name="Data Type" id={id} />
+        <PropertyLabel name={t("editor:ui.dataType", { defaultValue: "Data Type" })} id={id} />
         <Select
           value={dataType}
           onChange={handleDataTypeChange}
           options={options}
-          label="Data Type"
-          placeholder="Select type..."
+          label={t("editor:ui.dataType", { defaultValue: "Data Type" })}
+          placeholder={t("editor:ui.selectType", { defaultValue: "Select type..." })}
         />
       </div>
       <DictTable

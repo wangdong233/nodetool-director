@@ -632,6 +632,102 @@ describe("rehydration", () => {
       activeTabId: "text:project-doc"
     });
   });
+
+  it("restores the Personal scope when a persisted null scope hides project tabs", async () => {
+    // The desynced-session shape: the scope was persisted as null while
+    // project tabs (and the Personal project id) survived. Without
+    // recalibration the scope filter hides every project tab and none of
+    // them can be activated again.
+    localStorage.setItem(
+      "workspace-tabs-storage",
+      JSON.stringify({
+        state: {
+          tabs: [
+            { ...tab("storyboard", "script-1"), projectId: "personal:u1" },
+            tab("workflow", "loose")
+          ],
+          activeTabId: "storyboard:script-1",
+          activeProjectId: null,
+          personalProjectId: "personal:u1",
+          projectSessions: {
+            "personal:u1": {
+              tabIds: ["storyboard:script-1"],
+              activeTabId: "storyboard:script-1",
+              selectedChatThreadId: null
+            }
+          }
+        },
+        version: 3
+      })
+    );
+
+    await useWorkspaceTabsStore.persist.rehydrate();
+
+    const state = useWorkspaceTabsStore.getState();
+    expect(state.activeProjectId).toBe("personal:u1");
+    expect(state.activeTabId).toBe("storyboard:script-1");
+    expect(
+      state.tabs.filter((t) => isTabInScope(t, state.activeProjectId)).map(
+        (t) => t.id
+      )
+    ).toContain("storyboard:script-1");
+  });
+
+  it("keeps a null scope when rehydration has no project tabs to revive", async () => {
+    localStorage.setItem(
+      "workspace-tabs-storage",
+      JSON.stringify({
+        state: {
+          tabs: [tab("workflow", "loose")],
+          activeTabId: "workflow:loose",
+          activeProjectId: null,
+          personalProjectId: "personal:u1"
+        },
+        version: 3
+      })
+    );
+
+    await useWorkspaceTabsStore.persist.rehydrate();
+
+    expect(useWorkspaceTabsStore.getState().activeProjectId).toBeNull();
+  });
+});
+
+describe("resolvePersonalProject scope recovery", () => {
+  it("re-resolution heals a null scope even when the id is unchanged", () => {
+    reset(
+      [{ ...tab("storyboard", "b1"), projectId: "personal:u1" }],
+      "storyboard:b1"
+    );
+    useWorkspaceTabsStore.setState({
+      personalProjectId: "personal:u1",
+      activeProjectId: null
+    });
+
+    // The old early return (same personal id) left the null scope frozen.
+    useWorkspaceTabsStore.getState().resolvePersonalProject("personal:u1");
+
+    expect(useWorkspaceTabsStore.getState().activeProjectId).toBe(
+      "personal:u1"
+    );
+  });
+
+  it("still short-circuits a re-resolution while a scope is on screen", () => {
+    reset(
+      [{ ...tab("storyboard", "b1"), projectId: "p1" }],
+      "storyboard:b1"
+    );
+    useWorkspaceTabsStore.setState({
+      personalProjectId: "personal:u1",
+      activeProjectId: "p1"
+    });
+    const before = useWorkspaceTabsStore.getState();
+
+    useWorkspaceTabsStore.getState().resolvePersonalProject("personal:u1");
+
+    // Same state object reference: the update was skipped entirely.
+    expect(useWorkspaceTabsStore.getState()).toBe(before);
+  });
 });
 
 describe("closeProject", () => {
@@ -679,6 +775,56 @@ describe("openTab with a project", () => {
       .openTab({ type: "storyboard", ref: "b1", projectId: "p1" });
     useWorkspaceTabsStore.getState().openTab({ type: "storyboard", ref: "b1" });
     expect(useWorkspaceTabsStore.getState().tabs[0].projectId).toBe("p1");
+  });
+
+  it("adopts the opened tab's project when the scope is null", () => {
+    reset([{ ...tab("storyboard", "b1"), projectId: "p1" }], "storyboard:b1");
+
+    useWorkspaceTabsStore.getState().openTab({ type: "storyboard", ref: "b1" });
+
+    // Without the adoption a null scope filters the tab out of the bar, so
+    // it can be neither seen nor activated.
+    const state = useWorkspaceTabsStore.getState();
+    expect(state.activeProjectId).toBe("p1");
+    expect(state.activeTabId).toBe("storyboard:b1");
+    expect(isTabInScope(state.tabs[0], state.activeProjectId)).toBe(true);
+  });
+
+  it("adopts the opened tab's project when the scope points elsewhere", () => {
+    reset(
+      [
+        { ...tab("storyboard", "b1"), projectId: "p1" },
+        { ...tab("timeline", "t2"), projectId: "p2" }
+      ],
+      "storyboard:b1"
+    );
+    useWorkspaceTabsStore.setState({ activeProjectId: "p1" });
+
+    useWorkspaceTabsStore.getState().openTab({ type: "timeline", ref: "t2" });
+
+    expect(useWorkspaceTabsStore.getState().activeProjectId).toBe("p2");
+  });
+
+  it("opens a new project tab into an adopted scope from a null one", () => {
+    useWorkspaceTabsStore.getState().openTab({
+      type: "text",
+      ref: "doc1",
+      projectId: "p1"
+    });
+
+    const state = useWorkspaceTabsStore.getState();
+    expect(state.activeProjectId).toBe("p1");
+    expect(state.tabs[0].projectId).toBe("p1");
+    expect(isTabInScope(state.tabs[0], state.activeProjectId)).toBe(true);
+  });
+
+  it("leaves the scope alone when a loose tab opens", () => {
+    reset([{ ...tab("storyboard", "b1"), projectId: "p1" }], "storyboard:b1");
+    useWorkspaceTabsStore.setState({ activeProjectId: "p1" });
+
+    useWorkspaceTabsStore.getState().openTab({ type: "workflow", ref: "loose" });
+
+    expect(useWorkspaceTabsStore.getState().activeProjectId).toBe("p1");
   });
 });
 

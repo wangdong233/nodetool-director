@@ -3,6 +3,7 @@ import ModelMenuDialogBase from "./shared/ModelMenuDialogBase";
 import type { LanguageModel, ModelPack, UnifiedModel } from "../../stores/ApiTypes";
 import { useLanguageModelMenuStore } from "../../stores/ModelMenuStore";
 import { useLanguageModelsByProvider } from "../../hooks/useModelsByProvider";
+import { useTranslation } from "react-i18next";
 
 interface LanguageModelMenuDialogProps {
   open: boolean;
@@ -30,6 +31,7 @@ function LanguageModelMenuDialog({
   recommendedModels,
   modelPacks
 }: LanguageModelMenuDialogProps) {
+  const { t } = useTranslation();
   const modelData = useLanguageModelsByProvider({
     allowedProviders,
     requireToolSupport
@@ -41,7 +43,7 @@ function LanguageModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select Language Model"
+      title={t("editor:ui.selectLanguageModel", { defaultValue: "Select Language Model" })}
       searchPlaceholder="Search language models..."
       storeHook={useLanguageModelMenuStore}
       modelType="language_model"

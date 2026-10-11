@@ -47,6 +47,7 @@ import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { computeHistogramAsync } from "../../../utils/histogram/histogramAsync";
 import type { ImageHistogram } from "../../../utils/histogram/computeHistogram";
 import { LEVELS_NODE_TYPE } from "../../../constants/nodeTypes";
+import { useTranslation } from "react-i18next";
 import {
   isNumber,
   isObjectLike,
@@ -278,6 +279,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -488,7 +490,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
           value={histView}
           exclusive
           onChange={handleHistViewChange}
-          aria-label="Histogram channel"
+          aria-label={t("editor:ui.histogramChannel", { defaultValue: "Histogram channel" })}
         >
           {HIST_VIEW_OPTIONS.map((o) => (
             <ToggleOption key={o.value} value={o.value} aria-label={o.label}>
@@ -507,7 +509,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
             value={channel}
             exclusive
             onChange={handleChannelChange}
-            aria-label="Channel"
+            aria-label={t("editor:ui.channel", { defaultValue: "Channel" })}
           >
             {CHANNEL_OPTIONS.map((o) => (
               <ToggleOption key={o.value} value={o.value} aria-label={o.label}>
@@ -518,7 +520,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
         </FlexRow>
 
         <FlexRow className="slider-row" align="center" gap={0.5}>
-          <span className="slider-label">Black</span>
+          <span className="slider-label">{t("ui2:attrs.black", { defaultValue: "Black" })}</span>
           <NodeSlider
             min={0}
             max={255}
@@ -526,12 +528,12 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
             value={channelProps.black}
             onChange={handleBlackChange}
             onChangeCommitted={commit}
-            aria-label="Black point"
+            aria-label={t("editor:ui.blackPoint", { defaultValue: "Black point" })}
           />
           <span className="slider-readout">{channelProps.black}</span>
         </FlexRow>
         <FlexRow className="slider-row" align="center" gap={0.5}>
-          <span className="slider-label">Gamma</span>
+          <span className="slider-label">{t("ui2:attrs.gamma", { defaultValue: "Gamma" })}</span>
           <NodeSlider
             min={0.1}
             max={10}
@@ -539,12 +541,12 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
             value={channelProps.gamma}
             onChange={handleGammaChange}
             onChangeCommitted={commit}
-            aria-label="Gamma"
+            aria-label={t("timeline:attrs.gamma", { defaultValue: "Gamma" })}
           />
           <span className="slider-readout">{channelProps.gamma.toFixed(2)}</span>
         </FlexRow>
         <FlexRow className="slider-row" align="center" gap={0.5}>
-          <span className="slider-label">White</span>
+          <span className="slider-label">{t("ui2:attrs.white", { defaultValue: "White" })}</span>
           <NodeSlider
             min={0}
             max={255}
@@ -552,7 +554,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
             value={channelProps.white}
             onChange={handleWhiteChange}
             onChangeCommitted={commit}
-            aria-label="White point"
+            aria-label={t("editor:ui.whitePoint", { defaultValue: "White point" })}
           />
           <span className="slider-readout">{channelProps.white}</span>
         </FlexRow>
@@ -561,8 +563,8 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
           <StateIconButton
             size="small"
             icon={<RestartAltIcon fontSize="small" />}
-            tooltip="Reset levels"
-            ariaLabel="Reset levels"
+            tooltip={t("editor:ui.resetLevels", { defaultValue: "Reset levels" })}
+            ariaLabel={t("editor:ui.resetLevels", { defaultValue: "Reset levels" })}
             onClick={handleReset}
           />
         </div>

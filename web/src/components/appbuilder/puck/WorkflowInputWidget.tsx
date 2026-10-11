@@ -51,6 +51,7 @@ import {
 import { WorkflowInputIO, WorkflowModelTask } from "../workflowIO";
 import { useWidgetRuntime } from "./useWidgetRuntime";
 import { isString } from "../../../utils/typePredicates";
+import { tAttr, tAttrTpl } from "../i18nAttrs";
 import type {
   ImageModelTask,
   VideoModelTask
@@ -211,7 +212,7 @@ export const WorkflowInputControl: React.FC<{
         {maxLength > 0 && (
           <Caption color={exceeds ? "warning" : "secondary"}>
             {draft.length}/{maxLength}
-            {exceeds ? " — extra characters will not be sent" : ""}
+            {exceeds ? tAttr(" — extra characters will not be sent") : ""}
           </Caption>
         )}
       </FlexColumn>
@@ -289,8 +290,12 @@ export const WorkflowInputWidget: React.FC<WorkflowInputWidgetProps> = (
       <Placeholder
         text={
           props.binding
-            ? `Unknown workflow input "${props.binding}"`
-            : "Bind to a workflow input"
+            ? tAttrTpl(
+                "unknownWorkflowInput",
+                'Unknown workflow input "{{binding}}"',
+                { binding: props.binding }
+              )
+            : tAttr("Bind to a workflow input")
         }
       />
     );
@@ -367,7 +372,7 @@ export const ModelSelectWidget: React.FC<ModelSelectWidgetProps> = (props) => {
       nodeId: props.id,
       nodeType: MODEL_KIND_NODE_TYPE[kind],
       name: props.label || "Model",
-      label: props.label || "Model",
+      label: props.label || tAttr("Model"),
       kind,
       task: props.task
     }),

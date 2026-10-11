@@ -30,6 +30,7 @@ import PackageRail from "./PackageRail";
 import PackageRow from "./PackageRow";
 import ConsolePanel from "./ConsolePanel";
 import PackagesMenu from "../menus/PackagesMenu";
+import { useTranslation } from "react-i18next";
 import {
   usePackageManager,
   type PMTab,
@@ -74,6 +75,7 @@ const saveLocation = (tab: PMTab, cat: string) => {
  * "Installed"). "Always on" / "Not installed" stay neutral.
  */
 const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   if (!badge) return null;
   const styles: Record<
@@ -81,22 +83,22 @@ const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
     { label: string; bg: string; fg: string }
   > = {
     alwaysOn: {
-      label: "Always on",
+      label: t("editor:ui.alwaysOn", { defaultValue: "Always on" }),
       bg: theme.vars.palette.action.selected,
       fg: theme.vars.palette.text.secondary
     },
     installed: {
-      label: "Installed",
+      label: t("editor:ui.installed", { defaultValue: "Installed" }),
       bg: `rgba(${theme.vars.palette.success.mainChannel} / 0.14)`,
       fg: theme.vars.palette.success.main
     },
     update: {
-      label: "Update available",
+      label: t("editor:ui.updateAvailable", { defaultValue: "Update available" }),
       bg: `rgba(${theme.vars.palette.warning.mainChannel} / 0.16)`,
       fg: theme.vars.palette.warning.main
     },
     notInstalled: {
-      label: "Not installed",
+      label: t("editor:ui.notInstalled", { defaultValue: "Not installed" }),
       bg: theme.vars.palette.action.hover,
       fg: theme.vars.palette.text.secondary
     }
@@ -113,6 +115,7 @@ const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
 };
 
 const RowActions = ({ row }: { row: PMRow }) => {
+  const { t } = useTranslation();
   if (row.toggle) {
     return (
       <LabeledSwitch
@@ -135,7 +138,9 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUpdate}
         >
-          {busy ? "Working…" : "Update"}
+          {busy
+            ? t("editor:ui.working", { defaultValue: "Working…" })
+            : t("editor:ui.update", { defaultValue: "Update" })}
         </EditorButton>
       )}
       {install && (
@@ -145,7 +150,9 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onInstall}
         >
-          {busy ? "Installing…" : "Install"}
+          {busy
+            ? t("editor:ui.installing", { defaultValue: "Installing…" })
+            : t("editor:ui.install", { defaultValue: "Install" })}
         </EditorButton>
       )}
       {uninstall && (
@@ -155,7 +162,9 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUninstall}
         >
-          {busy ? "Working…" : "Uninstall"}
+          {busy
+            ? t("editor:ui.working", { defaultValue: "Working…" })
+            : t("editor:ui.uninstall", { defaultValue: "Uninstall" })}
         </EditorButton>
       )}
     </>
@@ -183,6 +192,7 @@ const PackageRowItem = memo(function PackageRowItem({ row }: { row: PMRow }) {
 });
 
 function PackageManager() {
+  const { t } = useTranslation();
   const [{ tab, cat }, setLocation] = useState(loadLocation);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
@@ -259,7 +269,7 @@ function PackageManager() {
                 weight={600}
                 sx={{ textTransform: "uppercase", letterSpacing: "0.09em" }}
               >
-                Install location
+                {t("editor:ui.installLocation")}
               </Text>
               <Text size="small" family="secondary" truncate>
                 {model.installLocation || "Default conda environment"}
@@ -270,7 +280,7 @@ function PackageManager() {
                   density="compact"
                   onClick={model.onChangeLocation}
                 >
-                  Change…
+                  {t("editor:ui.change")}
                 </EditorButton>
               </Box>
             </FlexRow>
@@ -320,7 +330,7 @@ function PackageManager() {
                     ref={searchRef}
                     value={q}
                     onChange={setQ}
-                    placeholder="Search…  (press /)"
+                    placeholder={t("editor:ui.searchPress", { defaultValue: "Search…  (press /)" })}
                     showClear
                   />
                 </Box>
@@ -394,7 +404,7 @@ function PackageManager() {
                 <SearchOutlinedIcon sx={{ fontSize: 20 }} />
               </FlexRow>
               <Text size="normal" weight={600} color="secondary">
-                No packs match
+                {t("editor:ui.noPacksMatch")}
               </Text>
               <Text size="small" color="secondary" sx={{ maxWidth: "40ch" }}>
                 Try a different search term or switch the status filter back to

@@ -30,7 +30,8 @@ import {
 import ErrorBoundary from "./ErrorBoundary";
 
 import { LoadingSpinner, ThemeRoot } from "./components/ui_primitives";
-import ThemeNodetool from "./components/themes/ThemeNodetool";
+import { I18nextProvider, i18n, useAppLanguage } from "./i18n";
+import { ThemeNodetool, ThemeNodetoolZhCN } from "./components/themes/ThemeNodetool";
 
 import "@xyflow/react/dist/style.css";
 import "@xyflow/react/dist/base.css";
@@ -653,13 +654,16 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
       });
   }, [authState, configLoaded, isPublicAppRoute]);
 
+  const { language } = useAppLanguage(); // re-render on language change: theme + i18n renders (R5-2)
+
   const shouldRenderRouter =
     isDevTestRoute || status === "success" || status === "logged_out";
 
   return (
     <React.StrictMode>
       <TRPCProvider>
-        <ThemeRoot theme={ThemeNodetool}>
+        <I18nextProvider i18n={i18n}>
+        <ThemeRoot theme={language === "zh-CN" ? ThemeNodetoolZhCN : ThemeNodetool}>
           <MobileClassProvider>
             <MenuProvider>
               <MenuNavigationBridge />
@@ -669,7 +673,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                   {status === "pending" && !isDevTestRoute && (
                     <div
                       role="status"
-                      aria-label="Loading NodeTool"
+                      aria-label={i18n.t("common:boot.loading")}
                       style={{
                         display: "flex",
                         flexDirection: "column",
@@ -686,7 +690,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                           fontSize: "var(--fontSizeNormal)"
                         }}
                       >
-                        Loading NodeTool…
+                        {i18n.t("common:boot.loading")}
                       </span>
                     </div>
                   )}
@@ -708,7 +712,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                           fontSize: "var(--fontSizeNormal)"
                         }}
                       >
-                        Error loading application metadata.
+                        {i18n.t("common:boot.errorDetail")}
                       </span>
                       <button
                         type="button"
@@ -723,14 +727,14 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                           fontSize: "var(--fontSizeNormal)"
                         }}
                       >
-                        Refresh Page
+                        {i18n.t("common:boot.refresh")}
                       </button>
                       <ReportBugButton
                         variant="outlined"
-                        label="Report a bug"
+                        label={i18n.t("common:action.reportBug")}
                         context={{
                           source: "app-crash",
-                          summary: "Error loading application metadata",
+                          summary: i18n.t("editor:ui.errorLoadingApplicationMetadata", { defaultValue: "Error loading application metadata" }),
                           errorText: metadataError
                         }}
                       />
@@ -743,7 +747,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                         fallback={
                           <div
                             role="status"
-                            aria-label="Loading"
+                            aria-label={i18n.t("common:status.loading")}
                             style={{
                               display: "flex",
                               flexDirection: "column",
@@ -761,7 +765,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                                 fontSize: "var(--fontSizeNormal)"
                               }}
                             >
-                              Preparing workspace…
+                              {i18n.t("common:boot.preparing")}
                             </span>
                           </div>
                         }
@@ -783,6 +787,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
             </MenuProvider>
           </MobileClassProvider>
         </ThemeRoot>
+        </I18nextProvider>
       </TRPCProvider>
     </React.StrictMode>
   );

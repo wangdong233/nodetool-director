@@ -141,6 +141,7 @@ import {
   keyframeValueAt
 } from "@nodetool-ai/timeline";
 import { useSettingsStore } from "../../../stores/SettingsStore";
+import { useTranslation } from "react-i18next";
 
 const ZOOM_SENSITIVITY = 0.001;
 /** Extra gap (ms) inserted after the source clip when using Ctrl+Shift+D. */
@@ -256,6 +257,7 @@ interface TracksRegionProps {
 
 export const TracksRegion: React.FC<TracksRegionProps> = memo(
   ({ heightPx }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const isMobile = useTimelineIsMobile();
     const isActive = useTimelineIsActive();
@@ -1406,7 +1408,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
           } as React.CSSProperties
         }
         data-testid="tracks-region"
-        aria-label="Tracks region"
+        aria-label={t("timeline:attrs.tracksRegion", { defaultValue: "Tracks region" })}
       >
         {/* ── Tool toolbar (above the ruler) ──────────────────────────── */}
         <FlexRow
@@ -1426,7 +1428,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             <HelpButton
               onClick={() => setShortcutsOpen(true)}
               iconVariant="helpOutline"
-              tooltip="Keyboard shortcuts (?)"
+              tooltip={t("timeline:attrs.keyboardShortcuts(?)", { defaultValue: "Keyboard shortcuts (?)" })}
             />
           )}
           <TimelineViewControls compact={toolbarCompact} />
@@ -1435,7 +1437,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
         {/* ── Sub-header: TRACKS label + ruler ────────────────────────── */}
         <FlexRow align="stretch" fullWidth>
           <div css={tracksSectionHeaderStyles(theme, isMobile)}>
-            <span>Tracks</span>
+            <span>{t("timeline:attrs.tracks", { defaultValue: "Tracks" })}</span>
             <span
               css={trackCountChipStyles(theme)}
               aria-label={`${tracks.length} tracks`}
@@ -1455,7 +1457,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             min={MIN_TRACK_HEADER_WIDTH_PX}
             max={headerResizeMaxPx}
             onResize={handleHeaderResize}
-            ariaLabel="Resize track headers"
+            ariaLabel={t("timeline:attrs.resizeTrackHeaders", { defaultValue: "Resize track headers" })}
             sx={{
               position: "absolute",
               top: TOOLBAR_HEIGHT_PX,

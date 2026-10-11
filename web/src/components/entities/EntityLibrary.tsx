@@ -30,8 +30,10 @@ import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
+import { useTranslation } from "react-i18next";
 
 const EntityLibraryInternal: React.FC = () => {
+  const { t } = useTranslation();
   const projectId =
     useWorkspaceTabsStore((state) => state.activeProjectId) ?? LOOSE_PROJECT_ID;
   const { data: entities, isLoading } = useEntities();
@@ -71,9 +73,9 @@ const EntityLibraryInternal: React.FC = () => {
       return (
         <EmptyState
           variant="empty"
-          title="No entities yet"
-          description="Tag an image as a character, location, style, or prop to reuse it across shots."
-          actionText="Add entity"
+          title={t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
+          description={t("editor:ui.tagAnImageAsACharacterLocationStyleOrPropToReuseItAcrossShots")}
+          actionText={t("editor:ui.addEntity", { defaultValue: "Add entity" })}
           onAction={handleAdd}
         />
       );
@@ -90,7 +92,7 @@ const EntityLibraryInternal: React.FC = () => {
         ))}
       </AutoGrid>
     );
-  }, [isLoading, entities, handleAdd, handleEdit, handleRemove]);
+  }, [t, isLoading, entities, handleAdd, handleEdit, handleRemove]);
 
   if (creating) {
     return (
@@ -101,7 +103,7 @@ const EntityLibraryInternal: React.FC = () => {
           onClick={() => setCreating(false)}
           sx={{ alignSelf: "flex-start", ml: SPACING.xl, mt: SPACING.md }}
         >
-          Back to entities
+          {t("editor:ui.backToEntities", { defaultValue: "Back to entities" })}
         </EditorButton>
         <EntitySetupHost onFinish={() => setCreating(false)} />
       </FlexColumn>
@@ -112,15 +114,15 @@ const EntityLibraryInternal: React.FC = () => {
     <FlexColumn gap={SPACING.md} sx={{ p: 2, width: "100%" }}>
       <FlexRow align="center" justify="space-between">
         <FlexColumn gap={0}>
-          <Text size="big">Entities</Text>
-          <Caption>Reusable characters, locations, styles, and props</Caption>
+          <Text size="big">{t("nav:rail.entities", { defaultValue: "Entities" })}</Text>
+          <Caption>{t("nav:qa.entities.description", { defaultValue: "Reusable characters, locations, styles, and props" })}</Caption>
         </FlexColumn>
         <EditorButton
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleAdd}
         >
-          Add entity
+          {t("editor:ui.addEntity", { defaultValue: "Add entity" })}
         </EditorButton>
       </FlexRow>
 

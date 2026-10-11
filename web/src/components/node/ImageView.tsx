@@ -15,6 +15,7 @@ import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { useMediaOverlay } from "./MediaOverlayContext";
 import { isString } from "../../utils/typePredicates";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
+import { useTranslation } from "react-i18next";
 
 const hoverStyles = css({
   ".image-dimensions": {
@@ -54,6 +55,7 @@ interface ImageViewProps {
 }
 
 const ImageView: React.FC<ImageViewProps> = ({ source, bitmap }) => {
+  const { t } = useTranslation();
   const [openViewer, setOpenViewer] = React.useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
   const [imgNaturalDimensions, setImgNaturalDimensions] = useState<{ width: number; height: number } | null>(null);
@@ -332,7 +334,7 @@ const ImageView: React.FC<ImageViewProps> = ({ source, bitmap }) => {
   }, []);
 
   if (!imageUrl && !bitmap) {
-    return <Text>No Image found</Text>;
+    return <Text>{t("ui2:attrs.noImageFound", { defaultValue: "No Image found" })}</Text>;
   }
 
   return (
@@ -359,7 +361,7 @@ const ImageView: React.FC<ImageViewProps> = ({ source, bitmap }) => {
             url={imageUrl}
           />
           <ToolbarIconButton
-            title="Download"
+            title={t("editor:ui.download", { defaultValue: "Download" })}
             size="small"
             onClick={handleDownload}
             sx={iconButtonStyle}
@@ -367,7 +369,7 @@ const ImageView: React.FC<ImageViewProps> = ({ source, bitmap }) => {
             <DownloadIcon />
           </ToolbarIconButton>
           <ToolbarIconButton
-            title="Open in Viewer (double-click)"
+            title={t("editor:ui.openInViewerDoubleclick", { defaultValue: "Open in Viewer (double-click)" })}
             size="small"
             onClick={handleOpenInViewer}
             sx={iconButtonStyle}
@@ -379,7 +381,7 @@ const ImageView: React.FC<ImageViewProps> = ({ source, bitmap }) => {
       {bitmap ? (
         <BitmapCanvas
           bitmap={bitmap}
-          aria-label="Generated image output"
+          aria-label={t("editor:ui.generatedImageOutput", { defaultValue: "Generated image output" })}
           style={imageStyle}
           onDoubleClick={handleDoubleClick}
         />
@@ -387,7 +389,7 @@ const ImageView: React.FC<ImageViewProps> = ({ source, bitmap }) => {
         <img
           ref={imageRef}
           src={imageUrl}
-          alt="Generated image output"
+          alt={t("editor:ui.generatedImageOutput", { defaultValue: "Generated image output" })}
           onLoad={handleImageLoad}
           style={imageStyle}
           onDoubleClick={handleDoubleClick}

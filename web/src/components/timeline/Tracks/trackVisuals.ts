@@ -15,6 +15,7 @@ import LayersOutlinedIcon from "@mui/icons-material/LayersOutlined";
 import SubtitlesOutlinedIcon from "@mui/icons-material/SubtitlesOutlined";
 import PianoOutlinedIcon from "@mui/icons-material/PianoOutlined";
 import type { SvgIconComponent } from "@mui/icons-material";
+import { i18n } from "../../../i18n";
 
 export type TrackTypeKey = TimelineTrack["type"];
 type ClipMediaKey = TimelineClip["mediaType"];
@@ -37,6 +38,16 @@ const TRACK_TYPES = {
 
 export function trackTypeMeta(type: TrackTypeKey): TrackTypeMeta {
   return TRACK_TYPES[type] ?? TRACK_TYPES.video;
+}
+
+/**
+ * Localized long-form track-type label, resolved through the catalog at
+ * render time (the stored TRACK_TYPES label is the English default). The
+ * one-letter prefixes (V1/A1/T1/O1) are compact identifiers and stay Latin.
+ */
+export function trackTypeLabel(type: TrackTypeKey): string {
+  const meta = trackTypeMeta(type);
+  return i18n.t(`timeline:trackTypes.${type}`, { defaultValue: meta.label });
 }
 
 /** The dot/border/text accent for a track row. */

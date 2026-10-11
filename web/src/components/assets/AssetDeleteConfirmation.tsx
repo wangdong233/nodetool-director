@@ -20,6 +20,7 @@ import {
   Text, getSpacingPx, SPACING
 } from "../ui_primitives";
 import { isObjectLike } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const styles = css({
   ".asset-delete-confirmation-content": {
@@ -37,6 +38,7 @@ interface AssetDeleteConfirmationProps {
 const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
   assets
 }) => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [totalAssets, setTotalAssets] = useState(0);
   const [folderCount, setFolderCount] = useState(0);
@@ -126,22 +128,28 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
       await refetchAssetsAndFolders();
       const parts = [
         folderCount > 0
-          ? `${folderCount} folder${folderCount !== 1 ? "s" : ""}`
+          ? t("editor:ui.folderCount", { defaultValue: "{{count}} folders", count: folderCount })
           : null,
-        fileCount > 0 ? `${fileCount} file${fileCount !== 1 ? "s" : ""}` : null
+        fileCount > 0
+          ? t("editor:ui.fileCount", { defaultValue: "{{count}} files", count: fileCount })
+          : null
       ].filter((part): part is string => part !== null);
       addNotification({
         type: "success",
         alert: true,
-        content: `Deleted ${parts.join(" and ") || "selection"}`
+        content: t("editor:ui.deletedSelection", {
+          defaultValue: "Deleted {{parts}}",
+          parts: parts.join(t("common:action.and", { defaultValue: " and " })) || t("editor:ui.theSelection", { defaultValue: "selection" })
+        })
       });
     } catch (error) {
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not delete: ${
-          error instanceof Error ? error.message : "unknown error"
-        }`
+        content: t("editor:ui.couldNotDeleteError", {
+          defaultValue: "Could not delete: {{error}}",
+          error: error instanceof Error ? error.message : "unknown error"
+        })
       });
     } finally {
       setIsLoading(false);
@@ -154,26 +162,34 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
     queryClient,
     addNotification,
     folderCount,
-    fileCount
+    fileCount,
+    t
   ]);
 
   const getDialogTitle = () => {
     if (isAssetTreeLoading && folderCount > 0) {
-      return "Preparing to delete...";
+      return t("editor:ui.preparingToDelete", { defaultValue: "Preparing to delete..." });
     } else if (showRootFolderWarning) {
-      return "Warning: The root folder cannot be deleted.";
+      return t("editor:ui.warningTheRootFolderCannotBeDeleted", { defaultValue: "Warning: The root folder cannot be deleted." });
     } else if (folderCount === 1 && fileCount === 0) {
-      return `Delete folder containing ${totalAssets - 1} file${
-        totalAssets - 1 !== 1 ? "s" : ""
-      }?`;
+      return t("editor:ui.deleteFolderContainingFiles", {
+        defaultValue: "Delete folder containing {{count}} files?",
+        count: totalAssets - 1
+      });
     } else if (folderCount > 0) {
-      return `Delete ${folderCount} folder${
-        folderCount !== 1 ? "s" : ""
-      } and ${fileCount} file${
-        fileCount !== 1 ? "s" : ""
-      } containing ${totalAssets} item${totalAssets !== 1 ? "s" : ""}?`;
+      // Three independent counts: pluralize each noun with its own key, then
+      // compose — i18next resolves plural categories from ONE `count` only.
+      return t("editor:ui.deleteFoldersAndFilesContainingItems", {
+        defaultValue: "Delete {{foldersPhrase}} and {{filesPhrase}} containing {{itemsPhrase}}?",
+        foldersPhrase: t("editor:ui.folderCount", { defaultValue: "{{count}} folders", count: folderCount }),
+        filesPhrase: t("editor:ui.fileCount", { defaultValue: "{{count}} files", count: fileCount }),
+        itemsPhrase: t("editor:ui.itemCount", { defaultValue: "{{count}} items", count: totalAssets })
+      });
     } else {
-      return `Delete ${fileCount} file${fileCount !== 1 ? "s" : ""}?`;
+      return t("editor:ui.deleteFiles", {
+        defaultValue: "Delete {{count}} files?",
+        count: fileCount
+      });
     }
   };
 
@@ -191,7 +207,7 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
           color="secondary"
           style={{ marginBottom: getSpacingPx(SPACING.xl) }}
         >
-          You can right click selected assets and download them before deleting.
+          {t("editor:ui.youCanRightClickSelectedAssetsAndDownloadThemBeforeDeleting")}
         </Text>
         {isPreparingDelete ? (
           <LoadingSpinner size="small" />
@@ -227,8 +243,8 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
       <DialogActionButtons
         onConfirm={executeDeletion}
         onCancel={handleClose}
-        confirmText="Delete"
-        cancelText="Cancel"
+        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         isLoading={isLoading}
         confirmDisabled={isAssetTreeLoading || showRootFolderWarning}
         destructive={true}

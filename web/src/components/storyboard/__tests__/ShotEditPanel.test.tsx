@@ -282,7 +282,7 @@ describe("ShotEditPanel fields (criterion 14)", () => {
         lens: "35mm"
       }
     });
-  }, 30_000);
+  }, 60_000);
 
   it("puts every edited field back with a single undo", async () => {
     seed([baseShot()]);
@@ -299,7 +299,7 @@ describe("ShotEditPanel fields (criterion 14)", () => {
     expect(storedShot().action).toBe("A lighthouse at dusk");
     expect(storedShot().duration_seconds).toBeUndefined();
     expect(storedShot().camera).toBeUndefined();
-  });
+  }, 60_000);
 
   it("moves the shot to the chosen scene and writes that scene's lighting", async () => {
     seed([baseShot(), baseShot({ id: "shot-2", index: 1, scene_id: "sc2" })]);

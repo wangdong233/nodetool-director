@@ -61,6 +61,7 @@ import {
   writeWorkflowSetup
 } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 import { WORKFLOW_INSPIRATION_CHIPS } from "@nodetool-ai/protocol";
+import { changeAppLanguage } from "../../../i18n";
 import {
   usePlanWorkflow,
   pinnedChipPlan,
@@ -364,6 +365,18 @@ describe("pinnedChipPlan", () => {
 
   it("returns null for a brief no chip ships", () => {
     expect(pinnedChipPlan("write me a haiku")).toBeNull();
+  });
+
+  it("matches a chip's localized brief (显示即所发: the label is the brief)", async () => {
+    await changeAppLanguage("zh-CN");
+    const zhBrief = "总结 PDF 并发邮件";
+    try {
+      expect(zhBrief).not.toBe(WORKFLOW_INSPIRATION_CHIPS[0].brief);
+      expect(pinnedChipPlan(zhBrief)).toEqual(WORKFLOW_INSPIRATION_CHIPS[0].plan);
+      expect(pinnedChipPlan("随便写个俳句")).toBeNull();
+    } finally {
+      await changeAppLanguage("en");
+    }
   });
 });
 

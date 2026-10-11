@@ -16,8 +16,10 @@ import { useLayerBinding } from "../../../stores/sketch/SketchSessionStore";
 import { SKETCH_FONT } from "../sketchStyles";
 import { SketchAIToolbar } from "./SketchAIToolbar";
 import { SketchInspector } from "./SketchInspector";
+import { useTranslation } from "react-i18next";
 
 const ConnectedGeneratedLayerSectionInner: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const activeLayerId = useSketchStore((s) => s.document.activeLayerId);
   const binding = useLayerBinding(activeLayerId);
@@ -30,7 +32,7 @@ const ConnectedGeneratedLayerSectionInner: React.FC = () => {
   // Direct-gen layers (text-to-image / image-to-image) share the "Prompt"
   // section, matching the timeline inspector; workflow-bound layers keep
   // their own label.
-  const titleText = isWorkflowBound ? "Generated Layer" : "Prompt";
+  const titleText = isWorkflowBound ? t("sketch:attrs.generatedLayer", { defaultValue: "Generated Layer" }) : t("sketch:attrs.prompt", { defaultValue: "Prompt" });
 
   return (
     <CollapsibleSection

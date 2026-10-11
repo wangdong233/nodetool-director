@@ -28,9 +28,10 @@ import useContextMenuStore from "../../stores/ContextMenuStore";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
+import { useTranslation } from "react-i18next";
 import AssetListView from "./AssetListView";
 import { EmptyState, LoadingSpinner, getSpacingPx, SPACING } from "../ui_primitives";
-
+import { i18n } from "../../i18n";
 const styles = (theme: Theme) =>
   css({
     "&": {
@@ -89,6 +90,7 @@ const AssetGridContent: React.FC<AssetGridContentProps> = memo(({
   isHorizontal,
   onDoubleClick
 }) => {
+  const { t } = useTranslation();
   const { folderFilesFiltered, isLoading, error, refetchAssets } = useAssets();
   const assetItemSize = useSettingsStore(
     (state) => state.settings.assetItemSize
@@ -372,9 +374,9 @@ const AssetGridContent: React.FC<AssetGridContentProps> = memo(({
         ) : error ? (
           <EmptyState
             variant="error"
-            title="Could not load assets"
+            title={t("editor:ui.couldNotLoadAssets", { defaultValue: "Could not load assets" })}
             description={error.message || "An error occurred. Please try again."}
-            actionText="Retry"
+            actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
             onAction={refetchAssets}
             size="small"
           />
@@ -383,13 +385,13 @@ const AssetGridContent: React.FC<AssetGridContentProps> = memo(({
             variant="no-data"
             title={
               workflowFilter
-                ? "No outputs from this workflow yet"
-                : "This folder is empty"
+                ? t("editor:ui.noOutputsFromThisWorkflowYet", { defaultValue: "No outputs from this workflow yet" })
+                : t("editor:ui.thisFolderIsEmpty", { defaultValue: "This folder is empty" })
             }
             description={
               workflowFilter
-                ? "Run the workflow to generate assets, or drop files here to add inputs."
-                : "Drop files here or use the upload button to add assets"
+                ? t("editor:ui.runTheWorkflowToGenerateAssetsOrDropFilesHereToAddInputs", { defaultValue: "Run the workflow to generate assets, or drop files here to add inputs." })
+                : t("editor:ui.dropFilesHereOrUseTheUploadButtonToAddAssets", { defaultValue: "Drop files here or use the upload button to add assets" })
             }
             size="small"
           />

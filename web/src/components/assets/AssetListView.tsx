@@ -15,8 +15,11 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { ExpandCollapseButton, EmptyState, Text, Box, MOTION, BORDER_RADIUS, Z_INDEX, getSpacingPx, SPACING } from "../ui_primitives";
 import { useSettingsStore } from "../../stores/SettingsStore";
+import { systemPresetAssetInfo } from "../../serverState/useEntities";
+import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
 import { isCoarsePointer } from "../../utils/isCoarsePointer";
 import { useVideoThumbnail } from "../../hooks/useVideoThumbnail";
+import { useTranslation } from "react-i18next";
 
 interface AssetListViewProps {
   assets: Asset[];
@@ -257,6 +260,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
   containerWidth = 1200,
   isHorizontal = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const listStyles = useMemo(() => styles(theme), [theme]);
   const assetsOrder = useSettingsStore((state) => state.settings.assetsOrder);
@@ -445,16 +449,24 @@ const AssetListView: React.FC<AssetListViewProps> = ({
     const isSvg =
       asset.content_type === "image/svg+xml" ||
       (asset.name ?? "").toLowerCase().endsWith(".svg");
+    // Seeded style presets carry no bytes (get_url 404s); their package://
+    // tile art resolves statically. Names read through catalog:styles.
+    const preset = systemPresetAssetInfo(asset);
+    const presetImageUrl = preset?.thumbnail
+      ? resolveStaticMediaUri(preset.thumbnail)
+      : null;
     const hasVisualContent =
       (asset.content_type?.startsWith("image/") ||
         asset.content_type?.startsWith("video/") ||
         isSvg) &&
-      asset.get_url &&
-      asset.get_url !== "/images/placeholder.png";
+      (presetImageUrl !== null ||
+        (asset.get_url && asset.get_url !== "/images/placeholder.png"));
     const isVideo = asset.content_type?.startsWith("video/") ?? false;
     // No browser paints an MP4 as a background image, so a video with a
     // missing server thumbnail gets a poster decoded in the browser instead.
-    const previewUrl = isSvg
+    const previewUrl = presetImageUrl
+      ? presetImageUrl
+      : isSvg
       ? asset.get_url
       : isVideo
         ? asset.thumb_url
@@ -467,7 +479,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
         style={style}
         role="button"
         tabIndex={0}
-        aria-label={asset.name}
+        aria-label={preset ? t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name }) : asset.name}
         onClick={(e) => {
           e.stopPropagation();
           handleSelectAsset(asset.id);
@@ -509,7 +521,9 @@ const AssetListView: React.FC<AssetListViewProps> = ({
         <div
           className={`asset-item-name ${isFolder ? "folder" : ""}`}
         >
-          {asset.name}
+          {preset
+            ? t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name })
+            : asset.name}
           {asset.duration && (
             <span className="asset-item-duration">
               {secondsToHMS(asset.duration)}
@@ -528,8 +542,8 @@ const AssetListView: React.FC<AssetListViewProps> = ({
         {showType && (
           <div className="asset-item-type">
             {isFolder
-              ? "Folder"
-              : asset.content_type?.split("/")[1] || "Unknown"}
+              ? t("editor:ui.folder", { defaultValue: "Folder" })
+              : asset.content_type?.split("/")[1] || t("editor:ui.unknown", { defaultValue: "Unknown" })}
           </div>
         )}
 
@@ -540,14 +554,14 @@ const AssetListView: React.FC<AssetListViewProps> = ({
         )}
       </div>
     );
-  }, [virtualListItems, handleSelectAsset, onDoubleClick, handleContextMenu, toggleExpanded, showSize, showType, showDate, emptyCallback, formatDate]);
+  }, [virtualListItems, handleSelectAsset, onDoubleClick, handleContextMenu, toggleExpanded, showSize, showType, showDate, emptyCallback, formatDate, t]);
 
   if (assets.length === 0) {
     return (
       <Box css={listStyles} className="asset-list-view">
         <EmptyState
           variant="no-data"
-          title="No assets to display"
+          title={t("editor:ui.noAssetsToDisplay", { defaultValue: "No assets to display" })}
           size="small"
         />
       </Box>
@@ -559,10 +573,10 @@ const AssetListView: React.FC<AssetListViewProps> = ({
       <div className="asset-list-container">
         <div className="asset-list-header">
           <div className="asset-header-icon-space"></div>
-          <div className="asset-header-name">Name</div>
-          {showSize && <div className="asset-header-size">Size</div>}
-          {showType && <div className="asset-header-type">Type</div>}
-          {showDate && <div className="asset-header-date">Modified</div>}
+          <div className="asset-header-name">{t("editor:asset.info.name", { defaultValue: "Name" })}</div>
+          {showSize && <div className="asset-header-size">{t("ui2:attrs.size", { defaultValue: "Size" })}</div>}
+          {showType && <div className="asset-header-type">{t("editor:asset.info.type", { defaultValue: "Type" })}</div>}
+          {showDate && <div className="asset-header-date">{t("ui2:attrs.modified", { defaultValue: "Modified" })}</div>}
         </div>
 
         <div

@@ -11,7 +11,8 @@ import NotesIcon from "@mui/icons-material/Notes";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { MOTION, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
-
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 interface QuickStart {
   icon: React.ReactNode;
   label: string;
@@ -28,22 +29,22 @@ const buildQuickStarts = (propertyName: string): QuickStart[] => {
   return [
     {
       icon: <AutoFixHighIcon />,
-      label: "Draft a prompt from scratch",
+      label: i18n.t("editor:ui.draftPromptFromScratch", { defaultValue: "Draft a prompt from scratch" }),
       prompt: `Draft ${target} from scratch. Ask me about the goal and audience if you need to, then write a clear, well-structured prompt.`
     },
     {
       icon: <DataObjectIcon />,
-      label: "Add input variables",
+      label: i18n.t("editor:ui.addInputVariables", { defaultValue: "Add input variables" }),
       prompt: `Rewrite ${target} to use {{ variable }} placeholders for the key inputs so it works as a reusable template.`
     },
     {
       icon: <NotesIcon />,
-      label: "Make it more concise",
+      label: i18n.t("editor:ui.makeItMoreConcise", { defaultValue: "Make it more concise" }),
       prompt: `Make ${target} more concise without losing any important instructions or constraints.`
     },
     {
       icon: <ArticleOutlinedIcon />,
-      label: "Add a system role & sections",
+      label: i18n.t("editor:ui.addSystemRoleAndSections", { defaultValue: "Add a system role & sections" }),
       prompt: `Restructure ${target} with a clear system role and labeled sections (context, task, constraints, output format).`
     }
   ];
@@ -140,6 +141,7 @@ const AssistantQuickStarts = ({
   propertyName,
   onQuickStart
 }: AssistantQuickStartsProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const quickStarts = buildQuickStarts(propertyName);
 
@@ -149,13 +151,13 @@ const AssistantQuickStarts = ({
         <div className="hero-badge">
           <AutoAwesomeIcon />
         </div>
-        <h3 className="hero-title">Write this prompt with AI</h3>
+        <h3 className="hero-title">{t("ui2:attrs.writeThisPromptWithAI", { defaultValue: "Write this prompt with AI" })}</h3>
         <p className="hero-text">
           Describe what you want, or start from one of these. Drafts drop
           straight into the editor.
         </p>
       </div>
-      <span className="quick-label">Quick starts</span>
+      <span className="quick-label">{t("ui2:attrs.quickStarts", { defaultValue: "Quick starts" })}</span>
       <div className="quick-list">
         {quickStarts.map((item) => (
           <button

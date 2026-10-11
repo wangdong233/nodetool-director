@@ -32,7 +32,7 @@ import useContextMenuStore from "../../stores/ContextMenuStore";
 import { Edge, useReactFlow } from "@xyflow/react";
 import useMetadataStore from "../../stores/MetadataStore";
 import { NodeMetadata, TypeMetadata } from "../../stores/ApiTypes";
-import { labelForType } from "../../config/data_types";
+import { displayLabelForType, labelForType } from "../../config/data_types";
 import { isCollectType, isConnectable, Slugify } from "../../utils/TypeHandler";
 import { CODE_NODE_TYPE } from "../../constants/nodeTypes";
 import { useNodes } from "../../contexts/NodeContext";
@@ -43,6 +43,7 @@ import NodeItem from "../node_menu/NodeItem";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { useCodeGenFromHandle } from "../../hooks/useCodeGenFromHandle";
 import { isNumber } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const NODE_ROW_HEIGHT = 28;
 
@@ -140,41 +141,47 @@ const getNodePathsForType = (
  */
 const LIST_CONSTANT_PATHS: Record<
   string,
-  { constantPath: string; inputPath: string; label: string }
+  { constantPath: string; inputPath: string; label: string; labelKey: string }
 > = {
   image: {
     constantPath: "nodetool.constant.ImageList",
     inputPath: "nodetool.input.ImageListInput",
-    label: "Image List"
+    label: "Image List",
+    labelKey: "imageList"
   },
   video: {
     constantPath: "nodetool.constant.VideoList",
     inputPath: "nodetool.input.VideoListInput",
-    label: "Video List"
+    label: "Video List",
+    labelKey: "videoList"
   },
   audio: {
     constantPath: "nodetool.constant.AudioList",
     inputPath: "nodetool.input.AudioListInput",
-    label: "Audio List"
+    label: "Audio List",
+    labelKey: "audioList"
   },
   text: {
     constantPath: "nodetool.constant.TextList",
     inputPath: "nodetool.input.TextListInput",
-    label: "Text List"
+    label: "Text List",
+    labelKey: "textList"
   },
   str: {
     constantPath: "nodetool.constant.TextList",
     inputPath: "nodetool.input.StringListInput",
-    label: "Text List"
+    label: "Text List",
+    labelKey: "textList"
   }
 };
 
 const getListConstantPathForElementType = (
   elementTypeName: string
-): { constantPath: string; inputPath: string; label: string } | null =>
+): { constantPath: string; inputPath: string; label: string; labelKey: string } | null =>
   LIST_CONSTANT_PATHS[elementTypeName] ?? null;
 
 const InputContextMenu: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const getMetadata = useMetadataStore((state) => state.getMetadata);
   const allMetadata = useMetadataStore((state) => state.metadata);
@@ -238,7 +245,11 @@ const InputContextMenu: React.FC = () => {
   const promptNodeMetadata =
     type?.type === "str" ? getMetadata("nodetool.text.Prompt") : null;
 
-  const specializedListLabel = specializedListPaths?.label;
+  const specializedListLabel = specializedListPaths
+    ? t(`tools:ctx.${specializedListPaths.labelKey}`, {
+        defaultValue: specializedListPaths.label
+      })
+    : undefined;
 
   const isEnumType = type?.type === "enum";
 
@@ -933,12 +944,12 @@ const InputContextMenu: React.FC = () => {
           inputRef={searchInputRef}
           size="small"
           fullWidth
-          placeholder="Search nodes..."
+          placeholder={t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
           value={searchTerm}
           onChange={handleSearchChange}
           onClick={(event) => event.stopPropagation()}
           onKeyDown={handleSearchKeyDown}
-          aria-label="Search connectable nodes"
+          aria-label={t("editor:io.searchConnectable", { defaultValue: "Search connectable nodes" })}
           sx={{
             "& .MuiOutlinedInput-root": {
               backgroundColor: "action.disabledBackground",
@@ -972,7 +983,7 @@ const InputContextMenu: React.FC = () => {
               endAdornment: searchTerm ? (
                 <InputAdornment position="end">
                   <ToolbarIconButton
-                    aria-label="clear search"
+                    aria-label={t("editor:io.clearSearch", { defaultValue: "clear search" })}
                     onClick={handleClearSearch}
                     size="small"
                     icon={<ClearIcon sx={{ fontSize: 16 }} />}
@@ -998,7 +1009,7 @@ const InputContextMenu: React.FC = () => {
                 <PushPinIcon />
               </span>
               <Text size="small">
-                {`Create ${labelForType(collectElementType?.type || "")} Constant`}
+                {`Create ${displayLabelForType(collectElementType?.type || "")} Constant`}
               </Text>
             </Box>
           )}
@@ -1014,7 +1025,7 @@ const InputContextMenu: React.FC = () => {
                 <InputIcon />
               </span>
               <Text size="small">
-                {`Create ${labelForType(collectElementType?.type || "")} Input`}
+                {`Create ${displayLabelForType(collectElementType?.type || "")} Input`}
               </Text>
             </Box>
           )}
@@ -1057,7 +1068,7 @@ const InputContextMenu: React.FC = () => {
               <span className="icon-bg">
                 <EditNoteIcon />
               </span>
-              <Text size="small">Prompt</Text>
+              <Text size="small">{t("editor:asset.info.prompt", { defaultValue: "Prompt" })}</Text>
             </Box>
           )}
           {type != null && handleId != null && (
@@ -1071,7 +1082,7 @@ const InputContextMenu: React.FC = () => {
               <span className="icon-bg">
                 <AutoAwesomeIcon />
               </span>
-              <Text size="small">Create value with AI…</Text>
+              <Text size="small">{t("editor:ui.createValueWithAI", { defaultValue: "Create value with AI…" })}</Text>
             </Box>
           )}
         </Box>

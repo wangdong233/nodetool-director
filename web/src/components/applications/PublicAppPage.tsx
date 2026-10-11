@@ -31,6 +31,7 @@ import {
 } from "../ui_primitives";
 import { parseApplicationDocument, type AppDocument } from "../appbuilder/appData";
 import AppRuntimeView from "../appbuilder/AppRuntimeView";
+import { useTranslation } from "react-i18next";
 import {
   createPublicAppSession,
   fetchPublicApplication
@@ -70,7 +71,9 @@ const pinnedWorkflow = (
   updated_at: ""
 });
 
-const Unavailable: React.FC = () => (
+const Unavailable: React.FC = () => {
+  const { t } = useTranslation();
+  return (
   <FlexColumn
     align="center"
     justify="center"
@@ -79,14 +82,17 @@ const Unavailable: React.FC = () => (
   >
     <EmptyState
       variant="error"
-      title="This app is not available"
-      description="The link may have been withdrawn, or the app may not be published."
+      title={t("editor:ui.thisAppIsNotAvailable", { defaultValue: "This app is not available" })}
+      description={t("editor:ui.theLinkMayHaveBeenWithdrawnOrTheAppMayNotBePublished")}
     />
   </FlexColumn>
-);
+)
+  };
 
 /** The owner published while this page was open; a reload picks it up. */
-const Updated: React.FC = () => (
+const Updated: React.FC = () => {
+  const { t } = useTranslation();
+  return (
   <FlexColumn
     align="center"
     justify="center"
@@ -95,13 +101,15 @@ const Updated: React.FC = () => (
   >
     <EmptyState
       variant="empty"
-      title="This app has been updated"
-      description="Reload the page to run the version the owner just published."
+      title={t("editor:ui.thisAppHasBeenUpdated", { defaultValue: "This app has been updated" })}
+      description={t("editor:ui.reloadThePageToRunTheVersionTheOwnerJustPublished")}
     />
   </FlexColumn>
-);
+)
+  };
 
 const PublicAppPage: React.FC = () => {
+  const { t } = useTranslation();
   const { token = "" } = useParams<{ token?: string }>();
   const [sessionReady, setSessionReady] = useState(false);
 
@@ -200,7 +208,7 @@ const PublicAppPage: React.FC = () => {
   if (isLoading) {
     return (
       <FlexColumn align="center" justify="center" sx={{ height: "100vh" }}>
-        <LoadingSpinner size="large" text="Loading app" />
+        <LoadingSpinner size="large" text={t("editor:ui.loadingApp", { defaultValue: "Loading app" })} />
       </FlexColumn>
     );
   }
@@ -221,8 +229,8 @@ const PublicAppPage: React.FC = () => {
       >
         <EmptyState
           variant="empty"
-          title="Nothing to show"
-          description="This app was published without any widgets."
+          title={t("editor:ui.nothingToShow", { defaultValue: "Nothing to show" })}
+          description={t("editor:ui.thisAppWasPublishedWithoutAnyWidgets")}
         />
       </FlexColumn>
     );

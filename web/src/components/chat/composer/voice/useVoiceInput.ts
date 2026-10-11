@@ -6,6 +6,7 @@ import { useNotificationStore } from "../../../../stores/NotificationStore";
 import { rpcRequest } from "../../../../lib/websocket/rpcRequest";
 import { isString } from "../../../../utils/typePredicates";
 import { useMicrophoneRecorder } from "../../../../hooks/browser/useMicrophoneRecorder";
+import { i18n } from "../../../../i18n";
 
 /** The `defaults` key holding the speech-to-text model (Settings → Default Models). */
 export const ASR_MODEL_PREFERENCE = "asr_model";
@@ -105,7 +106,7 @@ export function useVoiceInput({
         });
         const text = isString(result.text) ? result.text.trim() : "";
         if (text.length === 0) {
-          reportError("Nothing was transcribed from that recording.");
+          reportError(i18n.t("editor:ui.nothingWasTranscribedFromThatRecording", { defaultValue: "Nothing was transcribed from that recording." }));
           return;
         }
         onTranscript(text);

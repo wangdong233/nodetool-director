@@ -37,8 +37,10 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { useAssetStore } from "../../stores/AssetStore";
 import { useExtractScript } from "../../hooks/script/useExtractScript";
 import { TranscriptEditor } from "./transcript/TranscriptEditor";
+import { useTranslation } from "react-i18next";
 
 export const TranscriptPanel: React.FC = memo(() => {
+  const { t } = useTranslation();
   // Only the transcript/caption-bearing subset — untouched clips (B-roll,
   // music) keep their identity across store publishes, so `useShallow`
   // returns the SAME array reference for those publishes and the memo below
@@ -159,8 +161,8 @@ export const TranscriptPanel: React.FC = memo(() => {
                   <UploadFileIcon fontSize="small" />
                 )
               }
-              tooltip="Import audio or video to transcribe"
-              aria-label="Import audio or video"
+              tooltip={t("timeline:transcript.importTip", { defaultValue: "Import audio or video to transcribe" })}
+              aria-label={t("timeline:transcript.importAria", { defaultValue: "Import audio or video" })}
               disabled={importing}
               onClick={() => fileInputRef.current?.click()}
             />
@@ -173,8 +175,8 @@ export const TranscriptPanel: React.FC = memo(() => {
                     <EditNoteIcon fontSize="small" />
                   )
                 }
-                tooltip="Extract this transcript as an editable script"
-                aria-label="Extract as script"
+                tooltip={t("timeline:transcript.extractTip", { defaultValue: "Extract this transcript as an editable script" })}
+                aria-label={t("timeline:transcript.extract", { defaultValue: "Extract as script" })}
                 disabled={extracting}
                 onClick={() => void onExtractScript()}
               />

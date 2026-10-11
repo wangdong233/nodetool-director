@@ -48,6 +48,8 @@ import {
   BORDER_RADIUS,
   SPACING
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
+import { tAttr, tAttrOptions, tAttrTpl } from "./i18nAttrs";
 
 interface AppDataPanelProps {
   meta: AppDocMeta;
@@ -205,24 +207,26 @@ const OperationRow: React.FC<{
       title={operation.name || operation.id}
       subtitle={`id: ${operation.id}`}
       onDelete={onRemove}
-      deleteLabel={`Remove operation ${operation.name || operation.id}`}
+      deleteLabel={tAttrTpl("removeOperation", "Remove operation {{name}}", {
+        name: operation.name || operation.id
+      })}
     >
       <TextInput
-        label="Name"
+        label={tAttr("Name")}
         value={operation.name}
         size="small"
         fullWidth
         onChange={(e) => onPatch({ name: e.target.value })}
       />
       <SelectField
-        label="Runs"
+        label={tAttr("Runs")}
         value={target.kind}
-        options={TARGET_KIND_OPTIONS}
+        options={tAttrOptions(TARGET_KIND_OPTIONS)}
         onChange={setKind}
       />
       {target.kind === "script" ? (
         <SelectField
-          label="Script"
+          label={tAttr("Script")}
           value={target.scriptId}
           options={withPinned(scriptOptions, target.scriptId)}
           onChange={(value) =>
@@ -236,20 +240,20 @@ const OperationRow: React.FC<{
         />
       ) : (
         <SelectField
-          label="Workflow"
+          label={tAttr("Workflow")}
           value={operation.workflowId}
           options={withPinned(workflowOptions, operation.workflowId)}
           onChange={(value) => onPatch({ workflowId: value })}
         />
       )}
       <SelectField
-        label="While one is running"
+        label={tAttr("While one is running")}
         value={operation.policy}
-        options={POLICY_OPTIONS}
+        options={tAttrOptions(POLICY_OPTIONS)}
         onChange={(value) => onPatch({ policy: value as OperationPolicy })}
       />
       <TextInput
-        label="Timeout (ms)"
+        label={tAttr("Timeout (ms)")}
         type="number"
         value={operation.timeoutMs == null ? "" : String(operation.timeoutMs)}
         size="small"
@@ -273,25 +277,29 @@ export const parseVariableDefault = (
   try {
     const parsed: unknown = JSON.parse(raw);
     if (type === "bool" && typeof parsed !== "boolean") {
-      return { error: "Enter true or false." };
+      return { error: tAttr("Enter true or false.") };
     }
     if ((type === "int" || type === "float") && typeof parsed !== "number") {
-      return { error: "Enter a JSON number." };
+      return { error: tAttr("Enter a JSON number.") };
     }
     if (type === "int" && !Number.isInteger(parsed)) {
-      return { error: "Enter a whole number." };
+      return { error: tAttr("Enter a whole number.") };
     }
     if (type === "list" && !Array.isArray(parsed)) {
-      return { error: "Enter a JSON array, for example [1, 2]." };
+      return { error: tAttr("Enter a JSON array, for example [1, 2].") };
     }
     if (type === "dict" && (typeof parsed !== "object" || parsed === null || Array.isArray(parsed))) {
-      return { error: "Enter a JSON object, for example {\"key\": \"value\"}." };
+      return { error: tAttr("Enter a JSON object, for example {\"key\": \"value\"}.") };
     }
     return { value: parsed };
   } catch {
-    return { error: `Enter valid JSON for ${type}.` };
-  }
-};
+    // Called from render and input handlers, never module scope.
+    return {
+      error: tAttrTpl("enterValidJsonFor", "Enter valid JSON for {{type}}.", {
+        type: type ?? ""
+      })
+    };
+  }};
 
 const formatVariableDefault = (value: unknown, type: string | undefined): string => {
   if (value == null) return "";
@@ -309,6 +317,7 @@ const VariableRow: React.FC<{
   onPatch: (patch: Partial<VariableDeclaration>) => void;
   onRemove: () => void;
 }> = ({ variable, onPatch, onRemove }) => {
+  const { t } = useTranslation();
   const type = variable.type?.type;
   const error = variableDefaultError(variable.default, type);
   return (
@@ -316,26 +325,32 @@ const VariableRow: React.FC<{
     title={variable.name || variable.id}
     subtitle={`var:${variable.id}`}
     onDelete={onRemove}
-    deleteLabel={`Remove variable ${variable.name || variable.id}`}
+    deleteLabel={tAttrTpl("removeVariable", "Remove variable {{name}}", {
+      name: variable.name || variable.id
+    })}
   >
     <TextInput
-      label="Name"
+      label={tAttr("Name")}
       value={variable.name}
       size="small"
       fullWidth
       onChange={(e) => onPatch({ name: e.target.value })}
     />
     <SelectField
-      label="Type"
+      label={tAttr("Type")}
       value={variable.type?.type ?? ""}
-      options={TYPE_OPTIONS}
+      options={tAttrOptions(TYPE_OPTIONS)}
       onChange={(value) => onPatch({ type: value ? { type: value } : null })}
     />
     <TextInput
-      label="Default"
+      label={tAttr("Default")}
       value={formatVariableDefault(variable.default, type)}
       errorMessage={error}
-      helperText={type && type !== "str" ? "Use JSON for typed values." : undefined}
+      helperText={
+        type && type !== "str"
+          ? tAttr("Use JSON for typed values.")
+          : undefined
+      }
       size="small"
       fullWidth
       onChange={(e) => {
@@ -344,15 +359,15 @@ const VariableRow: React.FC<{
       }}
     />
     <SelectField
-      label="Scope"
+      label={tAttr("Scope")}
       value={variable.scope}
-      options={SCOPE_OPTIONS}
+      options={tAttrOptions(SCOPE_OPTIONS)}
       onChange={(value) => onPatch({ scope: value as "instance" | "user" })}
     />
     <LabeledSwitch
       // The label associates through `htmlFor`, so the control needs an id.
       id={`persist-${variable.id}`}
-      label="Remember between visits"
+      label={tAttr("Remember between visits")}
       checked={variable.persist}
       // doc-ops downgrades persist on an instance-scoped variable, so the
       // control says why it will not stick rather than letting it flip back.
@@ -360,7 +375,7 @@ const VariableRow: React.FC<{
       onChange={(checked) => onPatch({ persist: checked })}
     />
     {variable.scope !== "user" ? (
-      <Caption color="secondary">Only per-user variables can be remembered.</Caption>
+      <Caption color="secondary">{t("ui2:attrs.onlyPerUserVariablesCanBeRemembered", { defaultValue: "Only per-user variables can be remembered." })}</Caption>
     ) : null}
   </EntryCard>
   );
@@ -374,14 +389,20 @@ const ResourceRow: React.FC<{
     title={resource.name || resource.id}
     subtitle={
       resource.scope.fixedId
-        ? RESOURCE_KIND_LABEL[resource.kind]
-        : `All ${RESOURCE_KIND_PLURAL[resource.kind]}`
+        ? tAttr(RESOURCE_KIND_LABEL[resource.kind])
+        : tAttrTpl("allOfKind", "All {{kind}}", {
+            kind: tAttr(RESOURCE_KIND_PLURAL[resource.kind])
+          })
     }
     onDelete={onRemove}
-    deleteLabel={`Remove resource ${resource.name || resource.id}`}
+    deleteLabel={tAttrTpl("removeResource", "Remove resource {{name}}", {
+      name: resource.name || resource.id
+    })}
   >
     <Caption color="secondary">
-      Allows: {resource.operations.join(", ")}
+      {tAttrTpl("allowsOperations", "Allows: {{operations}}", {
+        operations: resource.operations.join(", ")
+      })}
     </Caption>
   </EntryCard>
 );
@@ -426,7 +447,9 @@ const AddResourceForm: React.FC<{
     return [
       {
         value: ALL_OF_KIND,
-        label: `All ${RESOURCE_KIND_PLURAL[kind]}`
+        label: tAttrTpl("allOfKind", "All {{kind}}", {
+          kind: tAttr(RESOURCE_KIND_PLURAL[kind])
+        })
       },
       ...listed
     ];
@@ -459,27 +482,31 @@ const AddResourceForm: React.FC<{
   return (
     <FlexColumn gap={SPACING.sm} fullWidth>
       <TextInput
-        label="Name"
+        label={tAttr("Name")}
         value={name}
         size="small"
         fullWidth
         onChange={(e) => setName(e.target.value)}
       />
       <SelectField
-        label="Kind"
+        label={tAttr("Kind")}
         value={kind}
-        options={RESOURCE_KIND_OPTIONS}
+        options={tAttrOptions(RESOURCE_KIND_OPTIONS)}
         onChange={setKindAndReset}
       />
       <SelectField
-        label={RESOURCE_KIND_LABEL[kind]}
+        label={tAttr(RESOURCE_KIND_LABEL[kind])}
         value={selectedId}
         options={documentOptions}
         onChange={setSelectedId}
       />
       {isFetched && (items ?? []).length === 0 ? (
         <Caption color="secondary">
-          No {RESOURCE_KIND_PLURAL[kind]} yet. You can still bind all of them.
+          {tAttrTpl(
+            "noKindYetBindAll",
+            "No {{kind}} yet. You can still bind all of them.",
+            { kind: tAttr(RESOURCE_KIND_PLURAL[kind]) }
+          )}
         </Caption>
       ) : null}
       <EditorButton
@@ -488,7 +515,7 @@ const AddResourceForm: React.FC<{
         startIcon={<AddIcon sx={{ fontSize: 16 }} />}
         onClick={submit}
       >
-        Add resource
+        {tAttr("Add resource")}
       </EditorButton>
     </FlexColumn>
   );
@@ -568,11 +595,12 @@ const AppDataPanel: React.FC<AppDataPanelProps> = ({
   return (
     <ScrollArea fullHeight>
       <FlexColumn gap={SPACING.lg} padding={SPACING.lg} fullWidth>
-        <CollapsibleSection title="Operations" defaultOpen compact>
+        <CollapsibleSection title={tAttr("Operations")} defaultOpen compact>
           <FlexColumn gap={SPACING.md} fullWidth>
             <Caption color="secondary">
-              The workflows and scripts this app runs. A Run action names one of
-              these.
+              {tAttr(
+                "The workflows and scripts this app runs. A Run action names one of these."
+              )}
             </Caption>
             {meta.operations.map((operation) => (
               <OperationRow
@@ -596,15 +624,17 @@ const AppDataPanel: React.FC<AppDataPanelProps> = ({
               disabled={!workflowId}
               onClick={addOp}
             >
-              Add operation
+              {tAttr("Add operation")}
             </EditorButton>
           </FlexColumn>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Variables" defaultOpen compact>
+        <CollapsibleSection title={tAttr("Variables")} defaultOpen compact>
           <FlexColumn gap={SPACING.md} fullWidth>
             <Caption color="secondary">
-              App state widgets read and write, and operation outputs can land in.
+              {tAttr(
+                "App state widgets read and write, and operation outputs can land in."
+              )}
             </Caption>
             {meta.variables.map((variable) => (
               <VariableRow
@@ -622,7 +652,7 @@ const AppDataPanel: React.FC<AppDataPanelProps> = ({
               startIcon={<AddIcon sx={{ fontSize: 16 }} />}
               onClick={addVar}
             >
-              Add variable
+              {tAttr("Add variable")}
             </EditorButton>
           </FlexColumn>
         </CollapsibleSection>
@@ -631,11 +661,12 @@ const AppDataPanel: React.FC<AppDataPanelProps> = ({
           CollapsibleSection defaults to open, so a section that starts closed
           has to say so — omitting the prop made the header click collapse it.
         */}
-        <CollapsibleSection title="Resources" defaultOpen={false} compact>
+        <CollapsibleSection title={tAttr("Resources")} defaultOpen={false} compact>
           <FlexColumn gap={SPACING.md} fullWidth>
             <Caption color="secondary">
-              An asset, timeline, storyboard, or sketch a picker or gallery can
-              browse — or all of that kind in this project.
+              {tAttr(
+                "An asset, timeline, storyboard, or sketch a picker or gallery can browse — or all of that kind in this project."
+              )}
             </Caption>
             {meta.resources.map((resource) => (
               <ResourceRow

@@ -14,6 +14,7 @@ import {
   useRestoreProject
 } from "../../hooks/useProjects";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { useTranslation } from "react-i18next";
 
 interface ErrorWithMessage {
   readonly message: string;
@@ -30,6 +31,7 @@ interface ProjectLifecycleActionsProps {
 
 /** Archive or permanently delete a named project from its management surface. */
 const ProjectLifecycleActions = ({ project }: ProjectLifecycleActionsProps) => {
+  const { t } = useTranslation();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const archive = useArchiveProject();
   const restore = useRestoreProject();
@@ -84,15 +86,15 @@ const ProjectLifecycleActions = ({ project }: ProjectLifecycleActionsProps) => {
       <FlexRow gap={SPACING.sm}>
         {project.archivedAt ? (
           <EditorButton density="compact" variant="text" onClick={handleRestore}>
-            Restore
+            {t("timeline:attrs.restore", { defaultValue: "Restore" })}
           </EditorButton>
         ) : (
           <EditorButton density="compact" variant="text" onClick={handleArchive}>
-            Archive
+            {t("editor:ui.archive", { defaultValue: "Archive" })}
           </EditorButton>
         )}
         <EditorButton density="compact" color="error" variant="text" onClick={requestDelete}>
-          Delete
+          {t("common:action.delete", { defaultValue: "Delete" })}
         </EditorButton>
       </FlexRow>
       <Dialog
@@ -100,8 +102,8 @@ const ProjectLifecycleActions = ({ project }: ProjectLifecycleActionsProps) => {
         onClose={() => !remove.isPending && setConfirmingDelete(false)}
         title={`Delete ${project.name}?`}
         onConfirm={confirmDelete}
-        confirmText="Delete project"
-        cancelText="Cancel"
+        confirmText={t("editor:ui.deleteProject", { defaultValue: "Delete project" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         destructive
         isLoading={remove.isPending}
       >
@@ -110,7 +112,7 @@ const ProjectLifecycleActions = ({ project }: ProjectLifecycleActionsProps) => {
             Delete {project.name} and all of its documents, conversations,
             generated outputs, assets, jobs, and project files.
           </Caption>
-          <Caption color="error">This cannot be undone.</Caption>
+          <Caption color="error">{t("ui2:attrs.thisCannotBeUndone", { defaultValue: "This cannot be undone." })}</Caption>
         </FlexColumn>
       </Dialog>
     </>

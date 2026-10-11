@@ -31,6 +31,8 @@ import { EntityEditorDialog } from "../entities/EntityEditorDialog";
 import ReportBugButton from "../support/ReportBugButton";
 import PanelHeadline from "../ui/PanelHeadline";
 import { TYPE_COLOR } from "../workspace/tabTypeIdentity";
+import { useTranslation } from "react-i18next";
+import { seededDocDisplayName } from "../workspace/tabTypeIdentity";
 import {
   BORDER_RADIUS,
   Box,
@@ -97,6 +99,10 @@ interface DocumentTreeRowProps {
 }
 
 const DocumentTreeRow = ({ leaf, active, onOpen }: DocumentTreeRowProps) => {
+  // Own subscription: this memo'd row must re-render on language change for
+  // the entity-overlay name lookup below (a parent-only hook would leave
+  // stale-language rows whenever the leaf props stay referentially equal).
+  const { t } = useTranslation();
   const Icon = LEAF_ICONS[leaf.type];
   const handleClick = useCallback(() => onOpen(leaf), [leaf, onOpen]);
 
@@ -154,7 +160,11 @@ const DocumentTreeRow = ({ leaf, active, onOpen }: DocumentTreeRowProps) => {
           })}
         />
         <TruncatedText component="span" showTooltip sx={{ minWidth: 0, flex: 1 }}>
-          {leaf.name}
+          {/* Entity leaves carry seeded style-preset names — resolve through
+              the catalog overlay (unknown names fall back verbatim). */}
+          {leaf.type === "entity"
+            ? t(`catalog:styles.${leaf.name}.name`, { defaultValue: seededDocDisplayName(leaf.type, leaf.name) })
+            : seededDocDisplayName(leaf.type, leaf.name)}
         </TruncatedText>
         <Text size="smaller" color="secondary" sx={{ flexShrink: 0 }}>
           {leaf.typeLabel}
@@ -179,6 +189,7 @@ const DocumentTreeGroupRow = ({
   activeTabId,
   onOpen
 }: DocumentTreeGroupRowProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const Icon = GROUP_ICONS[group.id];
   const handleKeyDown = useCallback(
@@ -237,12 +248,22 @@ const DocumentTreeGroupRow = ({
           expanded={expanded}
           iconVariant="chevron"
           onClick={handleDisclosureClick}
-          aria-label={`${expanded ? "Collapse" : "Expand"} ${group.label}`}
+          aria-label={`${
+            expanded
+              ? t("editor:ui.collapse", { defaultValue: "Collapse" })
+              : t("editor:ui.expand", { defaultValue: "Expand" })
+          } ${
+        group.labelKey
+          ? t(group.labelKey, { defaultValue: group.label })
+          : group.label
+      }`}
           tabIndex={-1}
         />
         <Icon aria-hidden="true" sx={{ fontSize: "var(--fontSizeBig)" }} />
         <Text size="small" truncate>
-          {group.label}
+          {group.labelKey
+            ? t(group.labelKey, { defaultValue: group.label })
+            : group.label}
         </Text>
         <Text size="smaller" color="secondary" sx={{ marginLeft: "auto" }}>
           {group.children.length}
@@ -265,6 +286,7 @@ const DocumentTreeGroupRow = ({
 };
 
 const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const openApplication = useOpenApplication();
@@ -280,7 +302,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
   const errorContext = useMemo<BugReportContext>(
     () => ({
       source: "panel-crash",
-      summary: "Project documents failed to load",
+      summary: t("editor:ui.projectDocumentsFailedToLoad", { defaultValue: "Project documents failed to load" }),
       errorText: error?.message,
       stackTrace: error?.stack
     }),
@@ -355,22 +377,22 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
     <FlexColumn fullHeight fullWidth gap={0}>
       {!isMobile && (
         <PanelHeadline
-          title="Documents"
-          description="Open documents in the current project."
+          title={t("editor:ui.documents", { defaultValue: "Documents" })}
+          description={t("editor:ui.openDocumentsInTheCurrentProject")}
         />
       )}
       <FlexColumn sx={{ py: SPACING.md }}>
         <SearchInput
           value={query}
           onChange={setQuery}
-          ariaLabel="Search documents"
-          placeholder="Search documents"
+          ariaLabel={t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
+          placeholder={t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
           fullWidth
         />
       </FlexColumn>
       {isLoading ? (
         <FlexColumn fullHeight align="center" justify="center">
-          <LoadingSpinner text="Loading documents" />
+          <LoadingSpinner text={t("editor:ui.loadingDocuments")} />
         </FlexColumn>
       ) : isError ? (
         <FlexColumn
@@ -381,7 +403,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         >
           <EmptyState
             variant="error"
-            title="Could not load documents"
+            title={t("editor:ui.couldNotLoadDocuments", { defaultValue: "Could not load documents" })}
             description={
               <FlexColumn align="center" gap={SPACING.sm}>
                 <Text size="small">
@@ -401,17 +423,17 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         >
           <EmptyState
             variant={query.trim() ? "no-results" : "empty"}
-            title={query.trim() ? "No matching documents" : "No documents yet"}
+            title={query.trim() ? t("editor:ui.noMatchingDocuments", { defaultValue: "No matching documents" }) : t("editor:ui.noDocumentsYet", { defaultValue: "No documents yet" })}
             description={
               query.trim()
-                ? "Try a different search term."
-                : "Documents created in this project will appear here."
+                ? t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })
+                : t("editor:ui.documentsCreatedInThisProjectWillAppearHere", { defaultValue: "Documents created in this project will appear here." })
             }
           />
         </FlexColumn>
       ) : (
-        <ScrollArea fullHeight thin sx={{ flex: 1, minHeight: 0 }}>
-          <FlexColumn role="tree" aria-label="Project documents" gap={SPACING.xs}>
+        <ScrollArea fullHeight thin sx={{ flex: 1, minHeight: 0, px: SPACING.sm }}>
+          <FlexColumn role="tree" aria-label={t("editor:ui.projectDocuments", { defaultValue: "Project documents" })} gap={SPACING.xs}>
             {filteredGroups.map((group) => (
               <DocumentTreeGroupRow
                 key={group.id}

@@ -30,6 +30,7 @@ import {
 import { PlanReview } from "../PlanReview";
 import type { PlanReviewSection } from "../PlanReview";
 import { REVIEW_CONTENT_WIDTH } from "../reviewStyles";
+import { useTranslation } from "react-i18next";
 
 export interface GameReviewStepProps {
   design: GameDesign;
@@ -63,6 +64,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
   filled = [],
   error = null
 }) => {
+  const { t } = useTranslation();
   const patch = useMemo(
     () => (fields: Partial<GameDesign>) =>
       onDesignChange({ ...design, ...fields }),
@@ -113,33 +115,33 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
     return [
       {
         id: "design",
-        header: "Your game",
+        header: t("editor:ui.yourGame", { defaultValue: "Your game" }),
         rows: [
           {
             id: "title",
-            label: "Title",
+            label: t("storyboard:attrs.title", { defaultValue: "Title" }),
             value: design.title,
             onChange: (value: string) => patch({ title: value })
           },
           {
             id: "premise",
-            label: "Premise",
+            label: t("editor:ui.premise", { defaultValue: "Premise" }),
             value: design.premise,
             multiline: true,
             onChange: (value: string) => patch({ premise: value })
           },
           {
             id: "core_loop",
-            label: "Core loop",
+            label: t("editor:ui.coreLoop", { defaultValue: "Core loop" }),
             value: design.core_loop,
             multiline: true,
             onChange: (value: string) => patch({ core_loop: value })
           },
           {
             id: "player_verbs",
-            label: "Player verbs",
+            label: t("editor:ui.playerVerbs", { defaultValue: "Player verbs" }),
             value: design.player_verbs.join(", "),
-            placeholder: "move, jump, shoot",
+            placeholder: t("editor:ui.moveJumpShoot", { defaultValue: "move, jump, shoot" }),
             onChange: (value: string) =>
               patch({
                 player_verbs: value
@@ -150,20 +152,20 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
           },
           {
             id: "level",
-            label: "Level",
+            label: t("editor:ui.gameLevel", { defaultValue: "Level" }),
             value: design.level,
             multiline: true,
             onChange: (value: string) => patch({ level: value })
           },
           {
             id: "win",
-            label: "Win",
+            label: t("editor:ui.winCondition", { defaultValue: "Win" }),
             value: design.win,
             onChange: (value: string) => patch({ win: value })
           },
           {
             id: "lose",
-            label: "Lose",
+            label: t("editor:ui.loseCondition", { defaultValue: "Lose" }),
             value: design.lose,
             onChange: (value: string) => patch({ lose: value })
           }
@@ -173,8 +175,8 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
         ? [
             {
               id: "enemies",
-              header: "Enemies",
-              subheader: "What each one does in the loop.",
+              header: t("editor:ui.enemies", { defaultValue: "Enemies" }),
+              subheader: t("storyboard:attrs.whatEachOneDoesInTheLoop", { defaultValue: "What each one does in the loop." }),
               rows: [],
               groups: design.enemies.map((enemy) => ({
                 id: `enemy-${enemy.slot_id}`,
@@ -183,14 +185,14 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
                 rows: [
                   {
                     id: `enemy-${enemy.slot_id}-name`,
-                    label: "Name",
+                    label: t("editor:asset.info.name", { defaultValue: "Name" }),
                     value: enemy.name,
                     onChange: (value: string) =>
                       patchEnemy(enemy.slot_id, { name: value })
                   },
                   {
                     id: `enemy-${enemy.slot_id}-behaviour`,
-                    label: "Behaviour",
+                    label: t("editor:ui.behaviour", { defaultValue: "Behaviour" }),
                     value: enemy.behaviour,
                     multiline: true,
                     onChange: (value: string) =>
@@ -203,9 +205,8 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
         : []),
       {
         id: "cast",
-        header: "Cast",
-        subheader:
-          "Silhouette, colours and proportions — no pose. Every frame of this character's sheet carries it.",
+        header: t("editor:ui.cast", { defaultValue: "Cast" }),
+        subheader: t("storyboard:attrs.silhouetteColoursAndProportionsNoPose", { defaultValue: "Silhouette, colours and proportions — no pose. Every frame of this character's sheet carries it." }),
         rows: [],
         groups: design.cast.map((member) => ({
           id: `cast-${member.slot_id}`,
@@ -214,14 +215,14 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
           rows: [
             {
               id: `cast-${member.slot_id}-name`,
-              label: "Name",
+              label: t("editor:asset.info.name", { defaultValue: "Name" }),
               value: member.name,
               onChange: (value: string) =>
                 patchCast(member.slot_id, { name: value })
             },
             {
               id: `cast-${member.slot_id}-descriptor`,
-              label: "Descriptor",
+              label: t("editor:ui.descriptor", { defaultValue: "Descriptor" }),
               value: member.descriptor,
               multiline: true,
               onChange: (value: string) =>
@@ -232,9 +233,8 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
       },
       {
         id: "slots",
-        header: "Asset prompts",
-        subheader:
-          "The subject of each asset. The style, the pixel size and the sheet layout are added when it is generated.",
+        header: t("editor:ui.assetPrompts", { defaultValue: "Asset prompts" }),
+        subheader: t("storyboard:attrs.theSubjectOfEachAsset", { defaultValue: "The subject of each asset. The style, the pixel size and the sheet layout are added when it is generated." }),
         rows: [],
         groups: slots.map((slot) => ({
           id: `slot-${slot.id}`,
@@ -243,18 +243,18 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
           rows: [
             {
               id: `slot-${slot.id}-prompt`,
-              label: `${slot.id} prompt`,
+              label: t("storyboard:attrs.slotIdPrompt", { defaultValue: "{{id}} prompt", id: slot.id }),
               hideLabel: true,
               value: promptOf(slot.id),
               multiline: true,
-              placeholder: "What this asset shows",
+              placeholder: t("editor:ui.whatThisAssetShows", { defaultValue: "What this asset shows" }),
               onChange: (value: string) => patchPrompt(slot.id, value)
             }
           ]
         }))
       }
     ];
-  }, [design, patch, patchCast, patchEnemy, patchPrompt, slots]);
+  }, [design, patch, patchCast, patchEnemy, patchPrompt, slots, t]);
 
   return (
     <FlexColumn
@@ -262,12 +262,9 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
       sx={{ width: "100%", maxWidth: REVIEW_CONTENT_WIDTH }}
     >
       <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          Your design
-        </Text>
+        <Text size="big" component="h2">{t("storyboard:attrs.yourDesign", { defaultValue: "Your design" })}</Text>
         <Text size="normal" color="secondary">
-          Read it, change anything, then choose the look. Nothing is generated
-          yet.
+          {t("storyboard:attrs.readItChangeAnythingThenChooseTheLook", { defaultValue: "Read it, change anything, then choose the look. Nothing is generated yet." })}
         </Text>
       </FlexColumn>
 
@@ -279,15 +276,15 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
 
       {filled.length > 0 ? (
         <Caption color="secondary" component="p">
-          {`The designer skipped ${filled.length} field${
-            filled.length === 1 ? "" : "s"
-          }, filled from the template: ${filled.join(", ")}. Rewrite them in your own words.`}
+          {filled.length === 1
+            ? t("storyboard:attrs.theDesignerSkippedCountField", { defaultValue: "The designer skipped {{count}} field, filled from the template: {{fields}}. Rewrite them in your own words.", count: filled.length, fields: filled.join(", ") })
+            : t("storyboard:attrs.theDesignerSkippedCountFields", { defaultValue: "The designer skipped {{count}} fields, filled from the template: {{fields}}. Rewrite them in your own words.", count: filled.length, fields: filled.join(", ") })}
         </Caption>
       ) : null}
 
       <PlanReview
         sections={sections}
-        replanLabel="Re-design"
+        replanLabel={t("storyboard:attrs.reDesign", { defaultValue: "Re-design" })}
         onReplan={onRedesign}
         replanPending={redesignPending}
       />

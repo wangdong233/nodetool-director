@@ -40,7 +40,7 @@ import {
   Toast,
   SPACING
 } from "../ui_primitives";
-import ModeSelectChip from "../chat/composer/ModeSelectChip";
+import ModeSelectChip, { modeLabelFor } from "../chat/composer/ModeSelectChip";
 import OptionChip from "../chat/composer/OptionChip";
 import { audioModelPatch } from "../chat/composer/modelSelection";
 import TTSModelMenuDialog from "../model_menu/TTSModelMenuDialog";
@@ -59,12 +59,14 @@ import type {
 } from "../../stores/MediaGenerationStore";
 import type { MusicModel, TTSModel, VideoModel } from "../../stores/ApiTypes";
 import { useInStudio } from "../../studio/StudioContext";
+import { i18n } from "../../i18n";
 import {
   forTasks,
   STUDIO_CLIP_MODELS,
   STUDIO_VOICES,
   STUDIO_VOICE
 } from "../../studio/curatedModels";
+import { useTranslation } from "react-i18next";
 
 const GENERATION_MODES = ["video", "audio", "music"] as const;
 type GenerationMode = (typeof GENERATION_MODES)[number];
@@ -80,6 +82,7 @@ interface TopBarPromptProps {
 }
 
 export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const inStudio = useInStudio();
   const timeline = useTimelineStoreApi();
@@ -215,7 +218,9 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       .tracks.find((track) => track.type === mediaType && !track.locked)?.id;
     if (!trackId) {
       setError(
-        `Unlock ${mediaType === "audio" ? "an audio" : "a video"} track first.`
+        mediaType === "audio"
+          ? i18n.t("timeline:attrs.unlockAnAudioTrackFirst", { defaultValue: "Unlock an audio track first." })
+          : i18n.t("timeline:attrs.unlockAVideoTrackFirst", { defaultValue: "Unlock a video track first." })
       );
       return;
     }
@@ -243,7 +248,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       await directGen.start(clipId);
       setPrompt("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate");
+      setError(err instanceof Error ? err.message : i18n.t("timeline:attrs.failedToGenerate", { defaultValue: "Failed to generate" }));
     } finally {
       setBusy(false);
     }
@@ -310,12 +315,12 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       onKeyDown={handleKeyDown}
       placeholder={
         mode === "music"
-          ? "Describe the music you want to generate…"
+          ? t("timeline:attrs.describeTheMusicYouWantToGenerate", { defaultValue: "Describe the music you want to generate…" })
           : mode === "audio"
-            ? "Enter text to speak…"
+            ? t("timeline:attrs.enterTextToSpeak", { defaultValue: "Enter text to speak…" })
             : compact
-              ? "Generate a video…"
-              : "Generate a video at the playhead…"
+              ? t("timeline:attrs.generateAVideo", { defaultValue: "Generate a video…" })
+              : t("timeline:attrs.generateAVideoAtThePlayhead", { defaultValue: "Generate a video at the playhead…" })
       }
       compact
       fullWidth
@@ -365,7 +370,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
   const costLine = (
     <CostEstimateLine
       estimate={generationCostLine(costEstimate)}
-      title="Estimated cost of this generation"
+      title={t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
     />
   );
 
@@ -385,10 +390,10 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       data-testid="topbar-generate"
       // Icon-only on phones: the label costs ~70px the prompt needs, and the
       // sparkle plus the field's placeholder already say what it does.
-      aria-label={`Generate ${mode}`}
+      aria-label={t("timeline:attrs.generateModeAria", { mode: modeLabelFor(mode), defaultValue: "Generate {{mode}}" })}
       // Native tooltip still fires on a disabled button: say why it is off.
       title={
-        canSubmit ? undefined : "Type a prompt and pick a model to generate"
+        canSubmit ? undefined : t("timeline:attrs.typeAPromptAndPickAModelToGenerate", { defaultValue: "Type a prompt and pick a model to generate" })
       }
       sx={{
         flexShrink: 0,
@@ -402,7 +407,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
           : null)
       }}
     >
-      {compact ? null : "Generate"}
+      {compact ? null : t("editor:ui.generate")}
     </EditorButton>
   );
 
@@ -411,7 +416,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
       <MediaControlChip
         ref={videoModelAnchorRef}
         icon={<MovieIcon fontSize="small" />}
-        label={selectedModel?.name || "Select Model"}
+        label={selectedModel?.name || t("timeline:attrs.selectModel", { defaultValue: "Select Model" })}
         active={videoModelOpen}
         onClick={() => setVideoModelOpen(true)}
         truncate
@@ -423,7 +428,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
             anchorEl={videoModelAnchorRef.current}
             open
             onClose={() => setVideoModelOpen(false)}
-            header="Video model"
+            header={t("editor:ui.videoModel", { defaultValue: "Video model" })}
             value={selectedModel?.id ?? ""}
             options={curatedClipOptions}
             onChange={(id) => {
@@ -444,7 +449,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
 
       <MediaControlChip
         icon={<AccessTimeIcon fontSize="small" />}
-        label={`${duration} Sec`}
+        label={t("editor:ui.nSec", { n: duration })}
         active={!!durationAnchor}
         onClick={(e) => setDurationAnchor(e.currentTarget)}
         showChevron={false}
@@ -453,7 +458,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
         anchorEl={durationAnchor}
         open={!!durationAnchor}
         onClose={() => setDurationAnchor(null)}
-        header="Duration"
+        header={t("timeline:attrs.duration", { defaultValue: "Duration" })}
         value={duration}
         options={durationOptions}
         onChange={(d) => setDuration(d)}
@@ -470,7 +475,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
         anchorEl={resolutionAnchor}
         open={!!resolutionAnchor}
         onClose={() => setResolutionAnchor(null)}
-        header="Video Resolution"
+        header={t("editor:ui.videoResolution", { defaultValue: "Video Resolution" })}
         value={resolution}
         options={resolutionOptions}
         onChange={(r) => setResolution(r)}
@@ -509,8 +514,9 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
         label={
           inStudio
             ? (STUDIO_VOICES.find((option) => option.id === audio?.voice)
-                ?.label ?? "Voice")
-            : audio?.model.name || "Select TTS Model"
+                ?.label ?? t("storyboard:attrs.voice", { defaultValue: "Voice" }))
+            : audio?.model.name ||
+              t("timeline:attrs.selectTTSModel", { defaultValue: "Select TTS Model" })
         }
         active={audioModelOpen}
         onClick={openAudioModel}
@@ -522,7 +528,7 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
             anchorEl={audioModelAnchorRef.current}
             open
             onClose={closeAudioModel}
-            header="Voice"
+            header={t("storyboard:attrs.voice", { defaultValue: "Voice" })}
             value={audio?.voice ?? ""}
             options={STUDIO_VOICES.map((option) => ({
               id: option.id,
@@ -547,8 +553,8 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
         <OptionChip
           menu="option"
           icon={<RecordVoiceOverIcon fontSize="small" />}
-          label={audio.voice || "Voice"}
-          header="Voice"
+          label={audio.voice || t("storyboard:attrs.voice", { defaultValue: "Voice" })}
+          header={t("storyboard:attrs.voice", { defaultValue: "Voice" })}
           value={audio.voice}
           options={voiceOptions}
           onChange={(voice) => setAudioSelection({ ...audio, voice })}
@@ -561,17 +567,17 @@ export const TopBarPrompt: React.FC<TopBarPromptProps> = memo(({ compact = false
     <>
       <ModelChip
         icon={<AudiotrackIcon fontSize="small" />}
-        label={musicModel?.name || "Select Music Model"}
+        label={musicModel?.name || t("timeline:attrs.selectMusicModel", { defaultValue: "Select Music Model" })}
         picker={{ kind: "music", onPick: setMusicSelection }}
       />
       <OptionChip
         menu="option"
         icon={<AccessTimeIcon fontSize="small" />}
-        label={`${musicDuration} Sec`}
-        header="Target Duration"
-        title={`Target duration: ${musicDuration} seconds. The model may adjust or ignore this.`}
+        label={t("editor:ui.nSec", { n: musicDuration })}
+        header={t("editor:ui.targetDuration", { defaultValue: "Target Duration" })}
+        title={t("timeline:attrs.musicTargetDurationNote", { n: musicDuration, defaultValue: "Target duration: {{n}} seconds. The model may adjust or ignore this." })}
         value={musicDuration}
-        options={MUSIC_DURATIONS.map((id) => ({ id, label: `${id} Sec` }))}
+        options={MUSIC_DURATIONS.map((id) => ({ id, label: t("editor:ui.nSec", { n: id }) }))}
         onChange={setMusicDuration}
       />
     </>

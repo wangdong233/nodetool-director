@@ -57,7 +57,10 @@ const TEMPLATES = [
   template("t3", "Web researcher", ["research"])
 ];
 
-const renderTemplates = (templates: Workflow[] = TEMPLATES) => {
+const renderTemplates = (
+  templates: Workflow[] = TEMPLATES,
+  props: { fullPage?: boolean } = {}
+) => {
   loadTemplates.mockResolvedValue({ workflows: templates, next: null });
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } }
@@ -65,7 +68,7 @@ const renderTemplates = (templates: Workflow[] = TEMPLATES) => {
   return render(
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={mockTheme}>
-        <DashboardTemplates />
+        <DashboardTemplates {...props} />
       </ThemeProvider>
     </QueryClientProvider>
   );
@@ -186,5 +189,68 @@ describe("DashboardTemplates", () => {
     expect(
       screen.queryByRole("button", { name: /image upscaler/i })
     ).not.toBeInTheDocument();
+  });
+
+  // r28 sticky header: the fullPage band (title + search + category pills)
+  // pins, while the dashboard variant never receives sticky geometry — the
+  // .tpl-head wrapper stays an inert plain div there. jsdom does not resolve
+  // the cascade for `position`, and emotion inserts via the CSSOM
+  // (insertRule), so the assertions read the compiled rule text from
+  // document.styleSheets — the same rules the browser compiles.
+  const emotionCssText = (): string => {
+    const out: string[] = [];
+    for (const sheet of Array.from(document.styleSheets)) {
+      let rules: CSSRuleList;
+      try {
+        rules = sheet.cssRules;
+      } catch {
+        continue;
+      }
+      for (const rule of Array.from(rules)) {
+        out.push(rule.cssText);
+      }
+    }
+    return out.join("\n");
+  };
+
+  it("pins the header band only in fullPage mode", async () => {
+    renderTemplates(TEMPLATES, { fullPage: true });
+    const heading = await screen.findByRole("heading", {
+      name: /start from a template/i
+    });
+    const band = heading.closest(".tpl-head");
+    expect(band).not.toBeNull();
+    // All three control rows travel inside the band.
+    expect(band).toContainElement(
+      screen.getByRole("textbox", { name: /search templates/i })
+    );
+    expect(band).toContainElement(screen.getByRole("group"));
+
+    // Normalize whitespace: jsdom and the browser serialize rules differently.
+    const cssText = emotionCssText().replace(/\s+/g, "");
+    expect(cssText).toContain(".tpl-head{position:sticky;");
+    // The pin eats the scroll container's top padding via the spacing token
+    // (a literal negative top is dropped by stylis — see component comment).
+    expect(cssText).toContain("top:calc(-1*var(--spacing-lg))");
+    expect(cssText).toMatch(/\.tpl-head\{[^}]*z-index:20/);
+  });
+
+  it("keeps the header band inert in dashboard mode", async () => {
+    // Emotion's insertion cache is document-global and survives RTL cleanup,
+    // so the assertion is a before/after diff: the dashboard render must not
+    // insert ANY .tpl-head rule (fullPageStyles is never even evaluated).
+    const before = emotionCssText();
+    renderTemplates();
+    const heading = await screen.findByRole("heading", {
+      name: /start from a template/i
+    });
+    const band = heading.closest(".tpl-head");
+    expect(band).not.toBeNull();
+    // All three control rows still travel inside the (inert) band.
+    expect(band).toContainElement(
+      screen.getByRole("textbox", { name: /search templates/i })
+    );
+    expect(band).toContainElement(screen.getByRole("group"));
+    expect(emotionCssText()).toBe(before);
   });
 });

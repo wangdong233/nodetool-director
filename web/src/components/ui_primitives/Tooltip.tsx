@@ -30,13 +30,13 @@ export interface TooltipProps extends Omit<MuiTooltipProps, "enterDelay" | "ente
  *
  * @example
  * // Basic usage
- * <Tooltip title="Copy to clipboard">
+ * <Tooltip title={i18n.t("settings:general.apiIntCopyTooltip", { defaultValue: "Copy to clipboard" })}>
  *   <IconButton><CopyIcon /></IconButton>
  * </Tooltip>
  *
  * @example
  * // With arrow and custom delay
- * <Tooltip title="Settings" arrow delay={200} placement="bottom">
+ * <Tooltip title={i18n.t("nav:rail.settings", { defaultValue: "Settings" })} arrow delay={200} placement="bottom">
  *   <SettingsIcon />
  * </Tooltip>
  *

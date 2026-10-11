@@ -45,6 +45,7 @@ import { registerCodeAssistantHandler } from "./codeAssistantBridge";
 import CodeAssistantChatPanel from "./CodeAssistantChatPanel";
 import ResizableSideDock from "../../chat/assistant/ResizableSideDock";
 import { isString } from "../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const CHAT_PANEL_WIDTH = 360;
 
@@ -87,6 +88,7 @@ const CodeAssistantDialogInner = ({
   inputs,
   expectedOutput
 }: CodeAssistantDialogProps) => {
+  const { t } = useTranslation();
   const { findNode, updateNodeData } = useNodes(
     (state) => ({
       findNode: state.findNode,
@@ -241,13 +243,13 @@ const CodeAssistantDialogInner = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Code assistant"
+      title={t("editor:ui.codeAssistant", { defaultValue: "Code assistant" })}
       minWidth="min(1100px, 100vw - 32px)"
       actions={
         <FlexRow gap={SPACING.md}>
-          <EditorButton onClick={onClose}>Cancel</EditorButton>
+          <EditorButton onClick={onClose}>{t("common:action.cancel", { defaultValue: "Cancel" })}</EditorButton>
           <EditorButton variant="contained" onClick={handleApply}>
-            Apply
+            {t("common:action.apply", { defaultValue: "Apply" })}
           </EditorButton>
         </FlexRow>
       }
@@ -259,8 +261,8 @@ const CodeAssistantDialogInner = ({
         <FlexColumn gap={SPACING.sm} sx={{ flex: 1, minWidth: 0 }}>
           <FlexRow gap={SPACING.md} align="center" sx={{ flexWrap: "wrap" }}>
             <Text weight={600}>{nodeTitle}</Text>
-            <PortChips label="Inputs" ports={draftInputs} />
-            <PortChips label="Outputs" ports={draftOutputs} />
+            <PortChips label={t("editor:ui.inputs", { defaultValue: "Inputs" })} ports={draftInputs} />
+            <PortChips label={t("editor:ui.outputs", { defaultValue: "Outputs" })} ports={draftOutputs} />
           </FlexRow>
           <Box
             sx={{
@@ -290,7 +292,7 @@ const CodeAssistantDialogInner = ({
             ) : (
               <Box
                 component="pre"
-                aria-label="Code draft"
+                aria-label={t("editor:ui.codeDraft", { defaultValue: "Code draft" })}
                 sx={{
                   ...TYPOGRAPHY.mono.code,
                   margin: 0,
@@ -307,7 +309,7 @@ const CodeAssistantDialogInner = ({
         <ResizableSideDock
           storageKey="code_assistant"
           defaultWidth={CHAT_PANEL_WIDTH}
-          ariaLabel="Resize code assistant"
+          ariaLabel={t("editor:ui.resizeCodeAssistant", { defaultValue: "Resize code assistant" })}
         >
           <CodeAssistantChatPanel nodeId={nodeId} workflowId={workflowId} />
         </ResizableSideDock>

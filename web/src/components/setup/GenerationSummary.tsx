@@ -9,6 +9,7 @@ import {
   Text
 } from "../ui_primitives";
 import { generationEstimate, type GenerationModel } from "./generationEstimate";
+import { i18n } from "../../i18n";
 
 export interface GenerationSummaryProps {
   result: string;
@@ -103,7 +104,7 @@ export default function GenerationSummary({
     <FlexColumn
       gap={GAP.tight}
       role="region"
-      aria-label={compact ? result : "Before you generate"}
+      aria-label={compact ? result : i18n.t("storyboard:attrs.beforeYouGenerate", { defaultValue: "Before you generate" })}
     >
       {!compact ? <Label>{result}</Label> : null}
       <Text size="small" color="secondary">
@@ -113,7 +114,7 @@ export default function GenerationSummary({
         <Text size="small">
           {noModelCall
             ? "Uses the existing text or preset"
-            : `Model: ${model?.name ?? model?.id ?? "Not selected"}${model ? ` (${model.provider})` : ""}`}
+            : i18n.t("storyboard:attrs.modelNameProvider", { defaultValue: "Model: {{name}}{{provider}}", name: model?.name ?? model?.id ?? i18n.t("storyboard:attrs.notSelected", { defaultValue: "Not selected" }), provider: model ? ` (${model.provider})` : "" })}
         </Text>
         <Text size="small">{cost}</Text>
         <Text size="small">
@@ -127,8 +128,8 @@ export default function GenerationSummary({
       {estimate && estimate.high > 0 && !hideTokenEstimate ? (
         <Caption color="secondary">
           {concise
-            ? `Estimate: ~${estimate.inputTokens.toLocaleString()} input tokens and 1,000–${maxOutputTokens.toLocaleString()} output tokens. Actual usage may cost more.`
-            : `Assumes about ${estimate.inputTokens.toLocaleString()} input tokens and 1,000–${maxOutputTokens.toLocaleString()} output tokens. Actual usage, including reasoning, may cost more.`}
+            ? i18n.t("storyboard:attrs.estimateInputOutputTokensConcise", { defaultValue: "Estimate: ~{{input}} input tokens and 1,000–{{output}} output tokens. Actual usage may cost more.", input: estimate.inputTokens.toLocaleString(), output: maxOutputTokens.toLocaleString() })
+            : i18n.t("storyboard:attrs.assumesAboutInputOutputTokens", { defaultValue: "Assumes about {{input}} input tokens and 1,000–{{output}} output tokens. Actual usage, including reasoning, may cost more.", input: estimate.inputTokens.toLocaleString(), output: maxOutputTokens.toLocaleString() })}
         </Caption>
       ) : null}
     </FlexColumn>

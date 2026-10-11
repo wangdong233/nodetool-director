@@ -8,6 +8,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 
 import { ToolbarIconButton, MOTION, BORDER_RADIUS } from "../ui_primitives";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -61,9 +63,10 @@ interface CategorySearchBarProps {
 const CategorySearchBar = memo(function CategorySearchBar({
   value,
   onChange,
-  placeholder = "Filter...",
+  placeholder = i18n.t("editor:ui.filterDots", { defaultValue: "Filter..." }),
   ref
 }: CategorySearchBarProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const inputRef = useRef<HTMLInputElement>(null);
   useImperativeHandle(ref, () => inputRef.current as HTMLInputElement, []);
@@ -94,13 +97,13 @@ const CategorySearchBar = memo(function CategorySearchBar({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        aria-label="Filter category"
+        aria-label={t("editor:ui.filterCategory", { defaultValue: "Filter category" })}
       />
       {value && (
         <ToolbarIconButton
           tabIndex={-1}
-          tooltip="Clear filter"
-          ariaLabel="Clear filter"
+          tooltip={t("editor:ui.clearFilter", { defaultValue: "Clear filter" })}
+          ariaLabel={t("editor:ui.clearFilter", { defaultValue: "Clear filter" })}
           onClick={handleClear}
           icon={<ClearIcon />}
         />

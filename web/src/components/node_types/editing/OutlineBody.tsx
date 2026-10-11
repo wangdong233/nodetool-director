@@ -24,6 +24,7 @@ import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
+import { useTranslation } from "react-i18next";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
@@ -34,8 +35,8 @@ import {
 export const OUTLINE_NODE_TYPE = "lib.image.effects.Outline";
 
 const SLIDERS: ReadonlyArray<SliderSpec> = [
-  { name: "width",     label: "Width (px)",     min: 0, max: 32, step: 0.5,  default: 2,   bipolar: false },
-  { name: "threshold", label: "Alpha threshold", min: 0, max: 1,  step: 0.01, default: 0.5, bipolar: false }
+  { name: "width",     label: "Width (px)",     labelKey: "editor:ui.widthPx", min: 0, max: 32, step: 0.5,  default: 2,   bipolar: false },
+  { name: "threshold", label: "Alpha threshold", labelKey: "editor:ui.alphaThreshold", min: 0, max: 1,  step: 0.01, default: 0.5, bipolar: false }
 ];
 
 const styles = (theme: Theme) =>
@@ -127,6 +128,7 @@ const OutlineBodyInner: React.FC<OutlineBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -173,7 +175,7 @@ const OutlineBodyInner: React.FC<OutlineBodyProps> = ({
       </div>
 
       <div className="color-row">
-        <span className="color-row-label">Color</span>
+        <span className="color-row-label">{t("timeline:attrs.color", { defaultValue: "Color" })}</span>
         <ColorPicker
           color={colorHex}
           onColorChange={handleColorChange}

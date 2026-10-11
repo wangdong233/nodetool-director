@@ -27,6 +27,7 @@ import GenerationSummary, {
 import { PlanReview, type PlanReviewSection } from "../PlanReview";
 import { SetupCardButton, useRovingRadioGroup } from "../SetupCardButton";
 import BriefModelSelect from "./BriefModelSelect";
+import { useTranslation } from "react-i18next";
 
 /** The counts the flow offers (PRD § 10.2). */
 export const VARIATION_COUNTS: readonly number[] = [1, 2, 4];
@@ -37,12 +38,12 @@ const COUNT_CARD_WIDTH = SPACING_PX.xxxl * 2;
 /** The counts as the radio group reads them: an id per option. */
 const COUNT_OPTIONS = VARIATION_COUNTS.map((count) => ({ id: String(count) }));
 
-const FIELD_LABELS: ReadonlyArray<[keyof SketchRefinedBrief, string]> = [
-  ["subject", "Subject"],
-  ["composition", "Composition"],
-  ["lighting", "Lighting"],
-  ["style_words", "Style words"],
-  ["negative", "Leave out"]
+const FIELD_LABELS: ReadonlyArray<[keyof SketchRefinedBrief, string, string]> = [
+  ["subject", "Subject", "storyboard:attrs.subject"],
+  ["composition", "Composition", "storyboard:attrs.composition"],
+  ["lighting", "Lighting", "storyboard:attrs.lighting"],
+  ["style_words", "Style words", "storyboard:attrs.styleWords"],
+  ["negative", "Leave out", "storyboard:attrs.leaveOut"]
 ];
 
 const EMPTY: SketchRefinedBrief = {
@@ -68,6 +69,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   error = null,
   generation
 }) => {
+  const { t } = useTranslation();
   const refined = useSketchStore(
     (state) => state.document.setup?.refined ?? EMPTY
   );
@@ -98,18 +100,18 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     () => [
       {
         id: "brief",
-        header: "Your brief",
-        subheader: "Edit anything here before it is rendered.",
-        rows: FIELD_LABELS.map(([field, label]) => ({
+        header: t("editor:ui.yourBrief", { defaultValue: "Your brief" }),
+        subheader: t("storyboard:attrs.editAnythingHereBeforeItIsRendered", { defaultValue: "Edit anything here before it is rendered." }),
+        rows: FIELD_LABELS.map(([field, label, labelKey]) => ({
           id: field,
-          label,
+          label: t(labelKey, { defaultValue: label }),
           value: refined[field],
           multiline: true,
           onChange: (value: string) => setField(field, value)
         }))
       }
     ],
-    [refined, setField]
+    [refined, setField, t]
   );
 
   return (
@@ -117,7 +119,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       <BriefModelSelect />
       <PlanReview
         sections={sections}
-        replanLabel="Re-refine"
+        replanLabel={t("storyboard:attrs.reRefine", { defaultValue: "Re-refine" })}
         onReplan={onReRefine}
         replanPending={refining}
       />
@@ -136,22 +138,18 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
               variant="text"
               onClick={onReRefine}
               disabled={refining}
-            >
-              Try again
-            </EditorButton>
+            >{t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}</EditorButton>
           }
         >
           {error}
         </AlertBanner>
       ) : null}
       <FlexColumn gap={GAP.normal}>
-        <Text size="small" component="h3">
-          How many variations?
-        </Text>
+        <Text size="small" component="h3">{t("storyboard:attrs.howManyVariations", { defaultValue: "How many variations?" })}</Text>
         {/* One count out of three, so the cards are radios in a named radio
             group: three chips announcing themselves as independent toggles
             described the wrong control (F26). */}
-        <FlexRow role="radiogroup" aria-label="Variations" gap={GAP.normal} wrap>
+        <FlexRow role="radiogroup" aria-label={t("storyboard:attrs.variations", { defaultValue: "Variations" })} gap={GAP.normal} wrap>
           {COUNT_OPTIONS.map((option) => (
             <Box key={option.id} sx={{ width: COUNT_CARD_WIDTH }}>
               <SetupCardButton

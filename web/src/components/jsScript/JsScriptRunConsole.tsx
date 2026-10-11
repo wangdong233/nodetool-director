@@ -39,6 +39,7 @@ import {
 import JsScriptRunDialog, {
   type JsScriptRunRequest
 } from "./JsScriptRunDialog";
+import { useTranslation } from "react-i18next";
 
 interface JsScriptRunConsoleProps {
   scriptId: string;
@@ -104,6 +105,7 @@ const JsScriptRunConsole = ({
   onRun,
   onTest
 }: JsScriptRunConsoleProps) => {
+  const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { inputs } = useJsScriptPorts(scriptId);
   const code = useJsScriptCode(scriptId);
@@ -139,7 +141,7 @@ const JsScriptRunConsole = ({
           disabled={running || readOnly || tests.length === 0}
           onClick={onTest}
         >
-          {tests.length === 0 ? "No tests" : `Test (${tests.length})`}
+          {tests.length === 0 ? t("editor:ui.noTests", { defaultValue: "No tests" }) : `Test (${tests.length})`}
         </EditorButton>
         {running && (
           <Text size="small" color="secondary">
@@ -159,7 +161,7 @@ const JsScriptRunConsole = ({
             <FlexRow gap={SPACING.lg} align="flex-start">
               {readOnly && tests.length > 0 && (
                 <FlexColumn gap={SPACING.sm} sx={{ flex: 1, minWidth: 0 }}>
-                  <Label>Saved cases</Label>
+                  <Label>{t("ui2:attrs.savedCases", { defaultValue: "Saved cases" })}</Label>
                   {tests.map((test) => (
                     <FlexColumn key={test.name} gap={SPACING.xs}>
                       <Text size="small" weight={600}>
@@ -173,7 +175,7 @@ const JsScriptRunConsole = ({
               {lastTest && (
                 <FlexColumn gap={SPACING.sm} sx={{ flex: 1, minWidth: 0 }}>
                   <FlexRow gap={SPACING.sm} align="center">
-                    <Label>Tests</Label>
+                    <Label>{t("ui2:attrs.tests", { defaultValue: "Tests" })}</Label>
                     <Chip
                       compact
                       color={lastTest.failed === 0 ? "success" : "error"}
@@ -191,7 +193,7 @@ const JsScriptRunConsole = ({
           {lastRun && (
             <FlexColumn gap={SPACING.sm}>
               <FlexRow gap={SPACING.sm} align="center">
-                <Label>Last run</Label>
+                <Label>{t("ui2:attrs.lastRun", { defaultValue: "Last run" })}</Label>
                 <Chip
                   compact
                   color={lastRun.ok ? "success" : "error"}
@@ -208,19 +210,19 @@ const JsScriptRunConsole = ({
               )}
               {lastRun.logs.length > 0 && (
                 <>
-                  <Label>Logs</Label>
+                  <Label>{t("editor:bottom.logs", { defaultValue: "Logs" })}</Label>
                   <Mono>{lastRun.logs.join("\n")}</Mono>
                 </>
               )}
               {lastRun.streamed && lastRun.streamed.length > 0 && (
                 <>
-                  <Label>Streamed</Label>
+                  <Label>{t("ui2:attrs.streamed", { defaultValue: "Streamed" })}</Label>
                   <Mono>{json(lastRun.streamed)}</Mono>
                 </>
               )}
               {lastRun.outputs && (
                 <>
-                  <Label>Outputs</Label>
+                  <Label>{t("editor:ui.outputs", { defaultValue: "Outputs" })}</Label>
                   <Mono>{json(lastRun.outputs)}</Mono>
                 </>
               )}

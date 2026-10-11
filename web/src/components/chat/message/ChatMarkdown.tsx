@@ -23,6 +23,7 @@ import { remarkEntityMentions } from "./remarkEntityMentions";
 import { remarkResourceMentions } from "./remarkResourceMentions";
 import { isNumber, isString } from "../../../utils/typePredicates";
 import "../../../styles/markdown/github-markdown.css";
+import { useTranslation } from "react-i18next";
 
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif"];
 const VIDEO_EXTENSIONS = [".mp4", ".webm", ".mov", ".mkv", ".m4v", ".ogv"];
@@ -280,18 +281,21 @@ const ChatMarkdownMedia: React.FC<{
 const UnresolvedMedia: React.FC<{ href: string; label: string }> = ({
   href,
   label
-}) => (
-  <FlexColumn
-    gap={SPACING.xs}
-    align="flex-start"
-    data-testid="unresolved-media"
-  >
-    {isResourceUri(href) ? (
-      <ResourceChip uri={href} label={label || href} />
-    ) : null}
-    <Caption color="secondary">This media could not be loaded.</Caption>
-  </FlexColumn>
-);
+}) => {
+  const { t } = useTranslation();
+  return (
+    <FlexColumn
+      gap={SPACING.xs}
+      align="flex-start"
+      data-testid="unresolved-media"
+    >
+      {isResourceUri(href) ? (
+        <ResourceChip uri={href} label={label || href} />
+      ) : null}
+      <Caption color="secondary">{t("ui2:attrs.thisMediaCouldNotBeLoaded", { defaultValue: "This media could not be loaded." })}</Caption>
+    </FlexColumn>
+  );
+};
 
 const ChatMarkdownImg: React.FC<React.ComponentPropsWithoutRef<"img">> = ({
   src,
@@ -351,6 +355,7 @@ const ChatMarkdown: React.FC<ChatMarkdownProps> = React.memo(({
   content,
   onInsertCode
 }) => {
+  const { t } = useTranslation();
   const components = useMemo(
     () => ({
       code: (props: React.ComponentPropsWithoutRef<"code">) => <CodeBlock {...props} onInsert={onInsertCode} />,
@@ -398,7 +403,7 @@ const ChatMarkdown: React.FC<ChatMarkdownProps> = React.memo(({
         if (href && isAudioHref(href)) {
           return (
             <span css={audioSpanCss}>
-              <audio controls src={href} css={audioCss} aria-label="Audio content" />
+              <audio controls src={href} css={audioCss} aria-label={t("editor:ui.audioContent", { defaultValue: "Audio content" })} />
               <a {...props} target="_blank" rel="noopener noreferrer">
                 {children}
               </a>
@@ -408,7 +413,7 @@ const ChatMarkdown: React.FC<ChatMarkdownProps> = React.memo(({
         return <a {...props} target="_blank" rel="noopener noreferrer" />;
       }
     }),
-    [onInsertCode]
+    [t, onInsertCode]
   );
 
   return (

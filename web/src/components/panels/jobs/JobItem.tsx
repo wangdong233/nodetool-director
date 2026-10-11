@@ -28,6 +28,7 @@ import isEqual from "../../../utils/isEqual";
 import { notifyMutationError } from "../../../utils/notifyMutationError";
 import { formatClockTime } from "../../../utils/formatUtils";
 import ReportBugButton from "../../support/ReportBugButton";
+import { useTranslation } from "react-i18next";
 
 const formatDuration = (ms: number): string => {
   if (ms < 0) {
@@ -162,6 +163,7 @@ const StatusTile = memo(function StatusTile({
  * everything else as a small type tile. Clicking opens the asset.
  */
 const AssetThumb = memo(function AssetThumb({ asset }: { asset: Asset }) {
+  const { t } = useTranslation();
   const isVisual =
     asset.content_type?.startsWith("image/") ||
     asset.content_type?.startsWith("video/");
@@ -196,7 +198,7 @@ const AssetThumb = memo(function AssetThumb({ asset }: { asset: Asset }) {
       <FlexRow
         role="button"
         tabIndex={0}
-        aria-label="Open job output"
+        aria-label={t("editor:ui.openJobOutput", { defaultValue: "Open job output" })}
         onClick={handleOpen}
         onKeyDown={handleKeyDown}
         align="center"
@@ -230,6 +232,7 @@ const AssetThumb = memo(function AssetThumb({ asset }: { asset: Asset }) {
 });
 
 const JobItem = ({ job }: { job: Job }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: workflow } = useWorkflow(job.workflow_id);
@@ -331,7 +334,7 @@ const JobItem = ({ job }: { job: Job }) => {
     job.status === "scheduled" ||
     job.status === "starting"
   ) {
-    metaText = ["In queue", clockLabel(job.started_at)].filter(Boolean).join(
+    metaText = [t("editor:ui.inQueue", { defaultValue: "In queue" }), clockLabel(job.started_at)].filter(Boolean).join(
       " · "
     );
   } else if (job.status === "cancelled") {
@@ -403,8 +406,8 @@ const JobItem = ({ job }: { job: Job }) => {
           size="small"
           onClick={handleStop}
           disabled={cancelling}
-          ariaLabel="Stop job"
-          tooltip="Stop job"
+          ariaLabel={t("editor:ui.stopJob", { defaultValue: "Stop job" })}
+          tooltip={t("editor:ui.stopJob", { defaultValue: "Stop job" })}
           icon={
             cancelling ? (
               <LoadingSpinner size="small" />

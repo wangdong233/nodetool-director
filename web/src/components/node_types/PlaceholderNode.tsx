@@ -37,6 +37,7 @@ import {
   isObjectLike,
   isString
 } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const humanizeType = (type: string) => {
   return type.replace(/([A-Z])/g, " $1").trim();
@@ -154,6 +155,7 @@ const typeForValue = (value: unknown) => {
 };
 
 const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const placeholderStyles = useMemo(() => styles(theme), [theme]);
   const nodeType = props.type;
@@ -272,7 +274,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
   const mockMetadata: NodeMetadata = useMemo(
     () => ({
       title: computedHeaderTitle || nodeTitle || "Missing Node",
-      description: "This node is missing",
+      description: t("editor:ui.thisNodeIsMissing", { defaultValue: "This node is missing" }),
       namespace: resolvedNamespace,
       node_type: resolvedType || "unknown",
       layout: "default",
@@ -283,7 +285,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
         {
           name: "output",
           type: { type: "any", optional: true, type_args: [] },
-          description: "Default output",
+          description: t("editor:ui.defaultOutput", { defaultValue: "Default output" }),
           stream: false
         }
       ],
@@ -295,6 +297,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
       required_settings: []
     }),
     [
+      t,
       computedHeaderTitle,
       nodeTitle,
       resolvedNamespace,
@@ -326,9 +329,9 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
         selected={props.selected}
         workflowId={nodeData?.workflow_id}
       />
-      <Tooltip title="This node type is missing. Search the node menu for a replacement or install the package that provides it.">
+      <Tooltip title={t("editor:ui.thisNodeTypeIsMissingSearchTheNodeMenuForAReplacementOrInstallThePackageThatProvidesIt", { defaultValue: "This node type is missing. Search the node menu for a replacement or install the package that provides it." })}>
         <Text size="big" className="missing-node-text">
-          Missing Node
+          {t("editor:ui.missingNode")}
         </Text>
       </Tooltip>
 

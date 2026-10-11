@@ -32,6 +32,7 @@ import {
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import { clipsById } from "../../stores/timeline/clipLookup";
 import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
+import { useTranslation } from "react-i18next";
 
 const badgeButtonStyles = (theme: Theme) =>
   css({
@@ -84,6 +85,7 @@ const AFFECTED_ENTRY_SEP = "\u0000";
 
 const ClipListPopover: React.FC<ClipListPopoverProps> = memo(
   ({ clipIds, title, anchorEl, onClose }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const selectClip = useTimelineUIStore((s) => s.selectClip);
 
@@ -133,7 +135,7 @@ const ClipListPopover: React.FC<ClipListPopoverProps> = memo(
           </Caption>
 
           {affectedClips.length === 0 ? (
-            <Caption color="secondary">No clips</Caption>
+            <Caption color="secondary">{t("timeline:list.noClips", { defaultValue: "No clips" })}</Caption>
           ) : (
             affectedClips.map((clip) => (
               <FlexRow

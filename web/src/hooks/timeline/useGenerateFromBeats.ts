@@ -41,6 +41,7 @@ import { aspectOf } from "../../components/storyboard/aspectOptions";
 import { deterministicFingerprint } from "../storyboard/productionContext";
 import { useTimelineDirectGenJob } from "./useTimelineDirectGenJob";
 import { persistTimelineDocument } from "./useTimelineSave";
+import { i18n } from "../../i18n";
 
 /** How long a beat runs when its plan row has no usable length. */
 const FALLBACK_BEAT_MS = 4000;
@@ -528,7 +529,7 @@ export async function generateFromBeats(
         prompt: musicPrompt(setup?.brief ?? ""),
         provider: options.musicProvider,
         model: options.musicModel,
-        name: "Music"
+        name: i18n.t("storyboard:attrs.music", { defaultValue: "Music" })
       });
       queued.push({
         clipId: musicClipId,

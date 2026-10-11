@@ -11,8 +11,10 @@ import {
   getSpacingPx,
   activateOnKey
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const CollectionHeader = () => {
+  const { t } = useTranslation();
   const [formatInfoAnchor, setFormatInfoAnchor] = useState<HTMLElement | null>(
     null
   );
@@ -37,7 +39,7 @@ const CollectionHeader = () => {
       >
         <InfoIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
         <Text size="small" weight={600}>
-          What are collections?
+          {t("editor:ui.whatAreCollections")}
         </Text>
       </FlexRow>
       <Popover
@@ -48,8 +50,7 @@ const CollectionHeader = () => {
       >
         <FlexColumn gap={1} sx={{ p: 2, maxWidth: 400 }}>
           <Caption color="secondary">
-            Collections are used to store and search documents. Following file
-            formats are supported:
+            {t("ui2:attrs.collectionsAreUsedToStoreAndSearchDocuments", { defaultValue: "Collections are used to store and search documents. Following file formats are supported:" })}
           </Caption>
           <ul
             style={{
@@ -58,9 +59,9 @@ const CollectionHeader = () => {
               listStyle: "disc"
             }}
           >
-            <li>PDFs, PowerPoint, Word, Excel</li>
-            <li>Text files, Markdown, HTML</li>
-            <li>Images (text extraction with OCR)</li>
+            <li>{t("ui2:attrs.pdfsPowerPointWordExcel", { defaultValue: "PDFs, PowerPoint, Word, Excel" })}</li>
+            <li>{t("ui2:attrs.textFilesMarkdownHTML", { defaultValue: "Text files, Markdown, HTML" })}</li>
+            <li>{t("ui2:attrs.imagesTextExtractionWithOCR", { defaultValue: "Images (text extraction with OCR)" })}</li>
           </ul>
         </FlexColumn>
       </Popover>

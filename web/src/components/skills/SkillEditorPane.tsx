@@ -37,6 +37,7 @@ import {
   preserveEditAfterSubmit,
   shouldApplyServerSkill
 } from "./skillEditorState";
+import { useTranslation } from "react-i18next";
 
 interface SkillEditorPaneProps {
   skillId: string;
@@ -74,9 +75,15 @@ const styles = (theme: Theme) =>
   });
 
 const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const editorStyles = styles(theme);
   const setTabTitle = useWorkspaceTabsStore((state) => state.setTitle);
+  // A shipped skill reaches this pane read-only (the tab bar can flip any tab
+  // to Edit); its header fields then mirror the viewer's zh overlay while the
+  // name state — the thing saves and dirty-checks compare — stays the raw
+  // slug. User skills render and edit their stored values verbatim.
+  const isSystemSkill = skillId.startsWith("system:");
 
   const { data: skill, isLoading, error } = useSkill(skillId);
   const utils = trpc.useUtils();
@@ -409,7 +416,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
         fullHeight
         sx={{ alignItems: "center", justifyContent: "center" }}
       >
-        <Caption sx={{ color: "error.main" }}>Failed to load skill</Caption>
+        <Caption sx={{ color: "error.main" }}>{t("ui2:attrs.failedToLoadSkill", { defaultValue: "Failed to load skill" })}</Caption>
         <ReportBugButton
           context={{
             source: "panel-crash",
@@ -446,7 +453,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
         />
         <FlexRow align="center" gap={SPACING.micro} sx={{ px: SPACING.xs }}>
           {isDirty && (
-            <span className="dirty-dot" aria-label="Unsaved changes" />
+            <span className="dirty-dot" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
           )}
           {updateMutation.error && (
             <ReportBugButton
@@ -464,15 +471,21 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
             disabled={!isDirty || updateMutation.isPending || readOnly}
             onClick={handleManualSave}
           >
-            {updateMutation.isPending ? "Saving…" : "Save"}
+            {updateMutation.isPending
+              ? t("editor:ui.saving", { defaultValue: "Saving…" })
+              : t("editor:ui.save", { defaultValue: "Save" })}
           </EditorButton>
         </FlexRow>
       </FlexRow>
 
       <FlexColumn className="meta-row">
-        <FormField label="Name" required>
+        <FormField label={t("editor:asset.info.name", { defaultValue: "Name" })} required>
           <TextInput
-            value={name}
+            value={
+              isSystemSkill
+                ? t(`catalog:skills.${name}.name`, { defaultValue: name })
+                : name
+            }
             onChange={handleNameChange}
             placeholder="my-skill"
             disabled={readOnly}
@@ -480,13 +493,19 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
           />
         </FormField>
         <FormField
-          label="Description"
-          helperText="Matched against the agent objective (words >=4 chars)"
+          label={t("editor:ui.description", { defaultValue: "Description" })}
+          helperText={t("editor:ui.matchedAgainstAgentObjective", { defaultValue: "Matched against the agent objective (words >=4 chars)" })}
         >
           <TextInput
-            value={description}
+            value={
+              isSystemSkill
+                ? t(`catalog:skills.${name}.description`, {
+                    defaultValue: description
+                  })
+                : description
+            }
             onChange={handleDescriptionChange}
-            placeholder="When to use this skill"
+            placeholder={t("editor:ui.whenToUseThisSkill", { defaultValue: "When to use this skill" })}
             disabled={readOnly}
             fullWidth
           />

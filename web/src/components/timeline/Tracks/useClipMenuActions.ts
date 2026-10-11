@@ -22,6 +22,7 @@ import {
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { useTimelinePlaybackStoreApi } from "../../../stores/timeline/TimelinePlaybackStore";
 import { findClipById } from "../../../stores/timeline/clipLookup";
+import { i18n } from "../../../i18n";
 
 export interface ClipMenuActions {
   /** Generated clips can be re-rolled into a sibling take. */
@@ -78,7 +79,7 @@ export function useClipMenuActions(
     if (at > current.startMs && at < current.startMs + current.durationMs) {
       splitClipAtTime(clipId, at);
     } else {
-      onError("Move the playhead inside the clip to split it.");
+      onError(i18n.t("timeline:attrs.moveThePlayheadInsideTheClipToSplitIt", { defaultValue: "Move the playhead inside the clip to split it." }));
     }
   }, [clipId, onError, playbackApi, splitClipAtTime, timelineApi]);
 
@@ -87,7 +88,7 @@ export function useClipMenuActions(
       .then((newClipId) => selectClip(newClipId))
       .catch((err: unknown) =>
         onError(
-          err instanceof Error ? err.message : "Failed to duplicate clip"
+          err instanceof Error ? err.message : i18n.t("timeline:attrs.failedToDuplicateClip", { defaultValue: "Failed to duplicate clip" })
         )
       );
   }, [clipId, duplicateClip, onError, selectClip]);
@@ -96,7 +97,7 @@ export function useClipMenuActions(
     try {
       selectClip(regenerateAsCopyAction(clipId, 0));
     } catch (err) {
-      onError(err instanceof Error ? err.message : "Failed to create copy");
+      onError(err instanceof Error ? err.message : i18n.t("timeline:attrs.failedToCreateCopy", { defaultValue: "Failed to create copy" }));
     }
   }, [clipId, onError, regenerateAsCopyAction, selectClip]);
 

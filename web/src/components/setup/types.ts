@@ -14,6 +14,12 @@ import type { GenerationSummaryProps } from "./GenerationSummary";
 /** Flow heading and subline, shown above the stepper. */
 export interface SetupFlowLabels {
   title: string;
+  /**
+   * Full `ns:key` resolving the localized {@link title}; the English
+   * {@link title} is the fallback when omitted. Entry-card title keys
+   * (`home:entry.<id>.title`) fit every guided flow.
+   */
+  titleKey?: string;
   /** One line under the title. Omit when the title says enough. */
   subline?: string;
 }

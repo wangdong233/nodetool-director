@@ -4,6 +4,7 @@ import {
   logPreviewFailure,
   type PreviewFailureHandler
 } from "../previewFailure";
+import { i18n } from "../../../../i18n";
 
 export type CompositorBackend = "webgpu" | "canvas2d";
 
@@ -44,7 +45,7 @@ export async function createCompositor(
       }
       logPreviewFailure({
         stage: "gpu-init",
-        error: new Error(gpuInit.reason ?? "WebGPU initialization failed")
+        error: new Error(gpuInit.reason ?? i18n.t("timeline:attrs.webgpuInitializationFailed", { defaultValue: "WebGPU initialization failed" }))
       });
       gpu.dispose();
     } catch (error) {

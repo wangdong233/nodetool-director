@@ -14,6 +14,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import { ActionButtonGroup } from "../ui_primitives";
 import type { Theme } from "@mui/material/styles";
 import { getAudioDownloadFilename } from "../../utils/audioFormat";
+import { useTranslation } from "react-i18next";
 
 interface AudioControlsProps {
   fontSize?: "normal" | "small" | "tiny" | undefined;
@@ -185,6 +186,7 @@ const AudioControls: React.FC<AudioControlsProps> = memo(({
   onPlayPause,
   onZoomChange
 }): ReactElement => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const handleSliderChange = useCallback(
@@ -228,7 +230,7 @@ const AudioControls: React.FC<AudioControlsProps> = memo(({
           <ActionButtonGroup
             className="buttons"
             spacing={0}
-            aria-label="Playback controls"
+            aria-label={t("ui2:attrs.playbackControls", { defaultValue: "Playback controls" })}
           >
             <PlaybackButton
               state={isPlaying ? "playing" : "stopped"}
@@ -240,7 +242,7 @@ const AudioControls: React.FC<AudioControlsProps> = memo(({
               className="play-button"
             />
             <ToolbarIconButton
-              tooltip="Loop"
+              tooltip={t("ui2:attrs.loop", { defaultValue: "Loop" })}
               delay={TOOLTIP_ENTER_DELAY}
               className={`loop-button${loop ? "" : " disabled"}`}
               size="small"
@@ -249,7 +251,7 @@ const AudioControls: React.FC<AudioControlsProps> = memo(({
               nodrag={false}
             />
             <ToolbarIconButton
-              tooltip="Mute"
+              tooltip={t("ui2:attrs.mute", { defaultValue: "Mute" })}
               delay={TOOLTIP_ENTER_DELAY}
               className={`mute-button${mute ? "" : " disabled"}`}
               size="small"
@@ -258,7 +260,7 @@ const AudioControls: React.FC<AudioControlsProps> = memo(({
               nodrag={false}
             />
             <ToolbarIconButton
-              tooltip="Download"
+              tooltip={t("editor:ui.download", { defaultValue: "Download" })}
               delay={TOOLTIP_ENTER_DELAY}
               className={`download-audio-button${filename !== "" ? "" : " disabled"}`}
               size="small"

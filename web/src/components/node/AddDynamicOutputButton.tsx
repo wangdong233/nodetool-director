@@ -3,6 +3,7 @@ import { DynamicInputButton } from "../ui_primitives";
 import { useDynamicOutput } from "../../hooks/nodes/useDynamicOutput";
 import { TypeMetadata } from "../../stores/ApiTypes";
 import AddDynamicOutputDialog from "./AddDynamicOutputDialog";
+import { useTranslation } from "react-i18next";
 
 interface AddDynamicOutputButtonProps {
   id: string;
@@ -20,6 +21,7 @@ const AddDynamicOutputButton: React.FC<AddDynamicOutputButtonProps> = ({
   id,
   dynamicOutputs
 }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { handleAddOutput } = useDynamicOutput(id, dynamicOutputs);
 
@@ -28,7 +30,7 @@ const AddDynamicOutputButton: React.FC<AddDynamicOutputButtonProps> = ({
 
   return (
     <>
-      <DynamicInputButton label="Add output" onAdd={handleOpen} />
+      <DynamicInputButton label={t("editor:ui.addOutput", { defaultValue: "Add output" })} onAdd={handleOpen} />
       <AddDynamicOutputDialog
         open={open}
         onClose={handleClose}

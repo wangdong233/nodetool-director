@@ -48,6 +48,8 @@ import { linkedScriptId } from "../../lib/scriptStoryboardLink";
 import { useLinkedScript } from "../../hooks/storyboard/useLinkedScript";
 import { useReprojectShots } from "../../hooks/storyboard/useReprojectShots";
 import { shotDialogueDrifted } from "@nodetool-ai/protocol";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ShotScriptPanelProps {
   boardId: string;
@@ -59,6 +61,12 @@ const STATUS_META: Record<LineStatus, { status: StatusType; label: string }> = {
   draft: { status: "default", label: "Not voiced" },
   stale: { status: "warning", label: "Stale" },
   voiced: { status: "success", label: "Voiced" }
+};
+
+const STATUS_LABEL_KEYS: Record<LineStatus, string> = {
+  draft: "storyboard:attrs.notVoiced",
+  stale: "storyboard:attrs.stale",
+  voiced: "storyboard:attrs.voiced"
 };
 
 const ScriptLineEntry = ({
@@ -74,6 +82,7 @@ const ScriptLineEntry = ({
   canVoice: boolean;
   onError: (message: string | null) => void;
 }) => {
+  const { t } = useTranslation();
   const voicing = useLineVoicing(line.id);
   const voice = effectiveVoice(line, cast);
   const status = lineStatus(line, voice);
@@ -86,7 +95,7 @@ const ScriptLineEntry = ({
     try {
       await voiceLine(scriptId, line.id);
     } catch (error) {
-      onError(getErrorMessage(error, "Voicing failed"));
+      onError(getErrorMessage(error, i18n.t("storyboard:attrs.voicingFailed", { defaultValue: "Voicing failed" })));
     }
   }, [scriptId, line.id, onError]);
 
@@ -102,19 +111,19 @@ const ScriptLineEntry = ({
         {line.text}
       </Text>
       <FlexRow align="center" gap={SPACING.micro} sx={{ flexShrink: 0 }}>
-        <StatusIndicator status={meta.status} label={meta.label} />
+        <StatusIndicator status={meta.status} label={t(STATUS_LABEL_KEYS[status], { defaultValue: meta.label })} />
         {voicing ? (
           <LoadingSpinner size={20} />
         ) : (
           <Tooltip
             title={
               !canVoice
-                ? "Open the script to voice this line"
+                ? t("storyboard:attrs.openTheScriptToVoiceThisLine", { defaultValue: "Open the script to voice this line" })
                 : voice
                   ? status === "stale"
-                    ? "Re-voice line"
-                    : "Voice line"
-                  : "Assign a voice to this speaker first"
+                    ? t("storyboard:attrs.reVoiceLine", { defaultValue: "Re-voice line" })
+                    : t("editor:ui.voiceLine", { defaultValue: "Voice line" })
+                  : t("storyboard:attrs.assignAVoiceToThisSpeakerFirst", { defaultValue: "Assign a voice to this speaker first" })
             }
           >
             <span>
@@ -129,7 +138,7 @@ const ScriptLineEntry = ({
           </Tooltip>
         )}
         <ToolbarIconButton
-          tooltip="Play current take"
+          tooltip={t("storyboard:attrs.playCurrentTake", { defaultValue: "Play current take" })}
           ariaLabel={`Play take: ${line.text}`}
           disabled={!take}
           onClick={() => void (take && playTake(take.assetId))}
@@ -149,6 +158,7 @@ const LinkedScriptSection: React.FC<ShotScriptPanelProps> = ({
   shot,
   readOnly
 }) => {
+  const { t } = useTranslation();
   const { scriptId, source, draftLoaded } = useLinkedScript(boardId);
   const { reproject, reprojecting } = useReprojectShots();
   const [error, setError] = useState<string | null>(null);
@@ -184,13 +194,13 @@ const LinkedScriptSection: React.FC<ShotScriptPanelProps> = ({
       }}
     >
       <FlexRow align="center" justify="space-between" gap={SPACING.xs} wrap>
-        <Caption color="secondary">Script</Caption>
+        <Caption color="secondary">{t("storyboard:attrs.script", { defaultValue: "Script" })}</Caption>
         {drifted && (
           <FlexRow align="center" gap={SPACING.xs}>
             <StatusIndicator
               status="warning"
-              label="Script changed"
-              tooltip="The linked lines read differently from this shot's text"
+              label={t("storyboard:attrs.scriptChanged", { defaultValue: "Script changed" })}
+              tooltip={t("storyboard:attrs.theLinkedLinesReadDifferentlyFromThisShotText", { defaultValue: "The linked lines read differently from this shot's text" })}
             />
             {!readOnly && (
               <EditorButton onClick={() => void onReproject()} disabled={reprojecting}>

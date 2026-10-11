@@ -37,6 +37,7 @@ import {
 } from "../ui_primitives";
 import { EditorButton } from "../editor_ui";
 import type { NodeMetadata } from "../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 import {
   formatFalUnitPricingShort,
   formatFalUnitPricingTooltip,
@@ -77,6 +78,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
   variant = "nodeFooter",
   popoverResetDep
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [creditsLoading, setCreditsLoading] = useState(false);
@@ -202,7 +204,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
         {pricing.source === "live" && (
           <span
             style={{ marginRight: 3, fontSize: "var(--fontSizeSmaller)", opacity: 0.85 }}
-            aria-label="live price"
+            aria-label={t("editor:ui.livePrice", { defaultValue: "live price" })}
           >
             ●
           </span>
@@ -229,7 +231,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
               letterSpacing: "0.05em"
             }}
           >
-            FAL pricing
+            {t("editor:ui.falPricing")}
           </Caption>
           <Text
             sx={{
@@ -281,7 +283,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
               letterSpacing: "0.05em"
             }}
           >
-            Account credits
+            {t("editor:ui.accountCredits", { defaultValue: "Account credits" })}
           </Caption>
           {creditsLoading ? (
             <FlexRow gap={1} align="center" sx={{ mt: 0.5 }}>
@@ -303,7 +305,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
                 mt: 0.5
               }}
             >
-              {creditsData === "error" ? "Could not load credits" : "—"}
+              {creditsData === "error" ? t("editor:ui.couldNotLoadCredits", { defaultValue: "Could not load credits" }) : "—"}
             </Text>
           ) : creditsData.unavailable ? (
             <FlexColumn gap={0.5} sx={{ mt: 0.5 }}>
@@ -315,7 +317,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
                   wordBreak: "break-word"
                 }}
               >
-                {creditsData.detail ?? "Credits unavailable"}
+                {creditsData.detail ?? t("editor:ui.creditsUnavailable", { defaultValue: "Credits unavailable" })}
               </Text>
               {falCreditsDetailSuggestsKeysLink(creditsData.detail) && (
                 <ExternalLink
@@ -323,7 +325,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
                   iconVariant="launch"
                   size="small"
                 >
-                  fal.ai API keys
+                  {t("editor:ui.falAiApiKeys", { defaultValue: "fal.ai API keys" })}
                 </ExternalLink>
               )}
             </FlexColumn>
@@ -344,7 +346,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
         <Divider />
 
         <MenuItemPrimitive
-          label="View on fal.ai"
+          label={t("editor:ui.viewOnFalai", { defaultValue: "View on fal.ai" })}
           icon={<LaunchIcon sx={{ fontSize: 14 }} />}
           compact
           onClick={() => {

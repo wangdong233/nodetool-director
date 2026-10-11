@@ -20,6 +20,7 @@ import { useTimelineAgentBridge } from "../../../hooks/timeline/useTimelineAgent
 import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
 import { SetupFlow } from "../SetupFlow";
 import { useVideoSetupFlow } from "./useVideoSetupFlow";
+import { i18n } from "../../../i18n";
 
 export interface VideoSetupHostProps {
   sequenceId: string;
@@ -60,10 +61,20 @@ const VideoSetupBody = ({
   );
 
   if (query.isError) {
-    return <DocumentLoadStatus state="error" label="video" />;
+    return (
+      <DocumentLoadStatus
+        state="error"
+        label={i18n.t("ui2:attrs.docVideo", { defaultValue: "video" })}
+      />
+    );
   }
   if (!loaded) {
-    return <DocumentLoadStatus state="loading" label="video" />;
+    return (
+      <DocumentLoadStatus
+        state="loading"
+        label={i18n.t("ui2:attrs.docVideo", { defaultValue: "video" })}
+      />
+    );
   }
   return (
     <SetupFlow

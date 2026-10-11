@@ -47,7 +47,7 @@ const PADDING_VARIANTS = {
  * 
  * @example
  * // Basic panel with title
- * <Panel title="Settings">
+ * <Panel title={i18n.t("nav:rail.settings", { defaultValue: "Settings" })}>
  *   <Typography>Panel content</Typography>
  * </Panel>
  * 

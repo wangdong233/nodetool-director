@@ -9,6 +9,7 @@
 import { memo, useCallback, useState, type MouseEvent } from "react";
 
 import { useLinkedWorkflows, type LinkedWorkflow } from "../../hooks/useApplications";
+import { useTranslation } from "react-i18next";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import {
   Button,
@@ -37,6 +38,7 @@ const LinkedWorkflowsMenu = ({
   applicationId,
   active = true
 }: LinkedWorkflowsMenuProps) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const { links } = useLinkedWorkflows(applicationId, active);
@@ -81,7 +83,7 @@ const LinkedWorkflowsMenu = ({
         {links.length === 0 && (
           <MenuItem disabled>
             <Caption color="secondary">
-              This app binds no workflow yet.
+              {t("editor:ui.thisAppBindsNoWorkflowYet")}
             </Caption>
           </MenuItem>
         )}
@@ -96,7 +98,7 @@ const LinkedWorkflowsMenu = ({
               <FlexColumn gap={SPACING.xs} sx={{ minWidth: 0 }}>
                 <FlexRow align="center" gap={SPACING.xs}>
                   <Text size="small" truncate>
-                    {broken ? "Workflow unavailable" : link.name}
+                    {broken ? t("editor:ui.workflowUnavailable", { defaultValue: "Workflow unavailable" }) : link.name}
                   </Text>
                   {link.isPinned && (
                     <Chip
@@ -104,15 +106,15 @@ const LinkedWorkflowsMenu = ({
                       color="info"
                       label={
                         link.pinnedVersion === null
-                          ? "Pinned"
-                          : `Pinned v${link.pinnedVersion}`
+                          ? t("editor:ui.pinned", { defaultValue: "Pinned" })
+                          : t("editor:ui.pinnedVersion", { defaultValue: "Pinned v{{version}}", version: link.pinnedVersion })
                       }
                     />
                   )}
                 </FlexRow>
                 <Caption color={broken ? "error" : "secondary"}>
                   {broken
-                    ? `${link.workflowId} — ${link.error?.message ?? "could not be loaded"}`
+                    ? `${link.workflowId} — ${link.error?.message ?? t("editor:ui.couldNotBeLoaded", { defaultValue: "could not be loaded" })}`
                     : usedBy(link)}
                 </Caption>
               </FlexColumn>

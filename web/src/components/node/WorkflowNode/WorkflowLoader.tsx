@@ -14,6 +14,8 @@ import { useWorkflowManager } from "../../../contexts/WorkflowManagerContext";
 import { Workflow } from "../../../stores/ApiTypes";
 import { NodeData } from "../../../stores/NodeData";
 import { extractDynamicIO } from "./WorkflowLoader.helpers";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export { WORKFLOW_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -29,6 +31,7 @@ interface WorkflowLoaderProps {
 
 export const WorkflowLoader: React.FC<WorkflowLoaderProps> = memo(
   ({ nodeId, data }) => {
+    const { t } = useTranslation();
     const selectedWorkflowId = useMemo(
       () =>
         (data.properties?.workflow_id as string | undefined) ??
@@ -147,7 +150,7 @@ export const WorkflowLoader: React.FC<WorkflowLoaderProps> = memo(
           applyWorkflowSelection(workflow);
         } catch (err) {
           setError(
-            err instanceof Error ? err.message : "Failed to load workflow"
+            err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadWorkflow", { defaultValue: "Failed to load workflow" })
           );
         } finally {
           setLoading(false);
@@ -221,7 +224,7 @@ export const WorkflowLoader: React.FC<WorkflowLoaderProps> = memo(
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Select Workflow"
+              label={t("editor:ui.selectWorkflow", { defaultValue: "Select Workflow" })}
               variant="outlined"
               size="small"
               slotProps={{

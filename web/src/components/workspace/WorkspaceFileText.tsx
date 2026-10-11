@@ -28,6 +28,7 @@ import {
   ScrollArea,
   Text, getSpacingPx, SPACING
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface WorkspaceFileTextProps {
   workspaceId: string;
@@ -85,6 +86,7 @@ const styles = (theme: Theme) =>
   });
 
 const CsvTableView = ({ text, name }: { text: string; name: string }) => {
+  const { t } = useTranslation();
   const { columns, rows, truncated } = useMemo(() => {
     const df = parseCsvToDataframe(text, csvDelimiterFor(name));
     const cols = (df.columns ?? []).map((c, i) => ({
@@ -109,7 +111,7 @@ const CsvTableView = ({ text, name }: { text: string; name: string }) => {
   if (columns.length === 0) {
     return (
       <FlexColumn className="status">
-        <Caption>Empty table</Caption>
+        <Caption>{t("ui2:attrs.emptyTable", { defaultValue: "Empty table" })}</Caption>
       </FlexColumn>
     );
   }
@@ -142,6 +144,7 @@ const WorkspaceFileText = ({
   kind,
   mode
 }: WorkspaceFileTextProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const paneStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -296,7 +299,7 @@ const WorkspaceFileText = ({
           {mode === "edit" && (
             <>
               {isDirty && (
-                <span className="dirty-dot" aria-label="Unsaved changes" />
+                <span className="dirty-dot" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
               )}
               <EditorButton
                 variant="contained"

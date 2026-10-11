@@ -36,6 +36,7 @@ import {
 } from "../ui_primitives";
 import { formatDuration } from "../../utils/formatUtils";
 import { useInStudio } from "../../studio/StudioContext";
+import { i18n } from "../../i18n";
 import {
   useScript,
   useScriptCast,
@@ -70,6 +71,7 @@ import StoryboardLinkControl from "./StoryboardLinkControl";
 import ScriptSaveIndicator from "./ScriptSaveIndicator";
 import { scriptWorkflowMedia } from "./scriptWorkflowMedia";
 import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
+import { useTranslation } from "react-i18next";
 
 interface ScriptDocumentPaneProps {
   scriptId: string;
@@ -109,7 +111,9 @@ const InsertLineGap = ({
   onDrop: (e: DragEvent<HTMLElement>) => void;
   active: boolean;
   inset: number;
-}) => (
+}) => {
+  const { t } = useTranslation();
+  return (
   <Box
     onDragOver={onDragOver}
     onDrop={onDrop}
@@ -130,7 +134,7 @@ const InsertLineGap = ({
       component="button"
       type="button"
       onClick={onInsert}
-      aria-label="Insert line here"
+      aria-label={t("editor:ui.insertLineHere", { defaultValue: "Insert line here" })}
       className="insert-line-rule"
       sx={{
         display: "flex",
@@ -155,7 +159,8 @@ const InsertLineGap = ({
       />
     </Box>
   </Box>
-);
+)
+  };
 
 /**
  * One line: the insert/drop gap above it plus the row itself. Owns the per-line
@@ -296,6 +301,7 @@ const SectionBlockInner = ({
   dnd: LineDnd;
   onKeyNav: (lineId: string, nav: LineKeyNav) => void;
 }) => {
+  const { t } = useTranslation();
   const cast = useScriptCast(scriptId);
   const setSectionTitle = useScriptStore((s) => s.setSectionTitle);
   const addLine = useScriptStore((s) => s.addLine);
@@ -363,9 +369,9 @@ const SectionBlockInner = ({
           onChange={(e) =>
             setSectionTitle(scriptId, section.id, e.target.value)
           }
-          placeholder="Untitled section"
+          placeholder={t("editor:ui.untitledSection", { defaultValue: "Untitled section" })}
           hideLabel
-          label="Section title"
+          label={t("editor:ui.sectionTitle", { defaultValue: "Section title" })}
           compact
           fullWidth
           disabled={readOnly}
@@ -382,7 +388,7 @@ const SectionBlockInner = ({
         {!readOnly && (
           <Box className="section-remove">
             <ToolbarIconButton
-              tooltip="Remove section"
+              tooltip={t("editor:ui.removeSection", { defaultValue: "Remove section" })}
               onClick={() => removeSection(scriptId, section.id)}
               icon={<CloseIcon fontSize="small" />}
             />
@@ -457,6 +463,7 @@ const VoiceAllButton = ({
   estimate: VoiceCostEstimate;
   onClick: () => void;
 }) => {
+  const { t } = useTranslation();
   const { lineCount, characters, cost, pricedLineCount, breakdowns, reasons, notes } =
     estimate;
   const priced = pricedLineCount > 0 && cost > 0;
@@ -469,14 +476,21 @@ const VoiceAllButton = ({
         <FlexColumn gap={SPACING.micro}>
           <Text size="small">
             {lineCount === 0
-              ? "Every line is already voiced."
-              : `${lineCount} line${lineCount === 1 ? "" : "s"} · ${characters} characters${
-                  priced ? ` · about ${formatUsd(cost)}` : ""
-                }${
-                  partial
-                    ? ` (${pricedLineCount} of ${lineCount} lines priced)`
-                    : ""
-                }`}
+              ? t("editor:ui.everyLineIsAlreadyVoiced", { defaultValue: "Every line is already voiced." })
+              : t("editor:ui.voiceCostSummary", {
+                  count: lineCount,
+                  lineCount,
+                  characters,
+                  price: priced ? ` · ${t("editor:ui.about", { defaultValue: "about" })} ${formatUsd(cost)}` : "",
+                  partial:
+                    partial
+                      ? t("editor:ui.linesPricedParenthetical", {
+                          defaultValue: " ({{priced}} of {{total}} lines priced)",
+                          priced: pricedLineCount,
+                          total: lineCount
+                        })
+                      : ""
+                })}
           </Text>
           {breakdowns.map((breakdown) => (
             <Caption key={breakdown} color="secondary">
@@ -496,8 +510,7 @@ const VoiceAllButton = ({
             ))}
           {priced && (
             <Caption color="secondary">
-              List price from the provider catalog. Voicing is billed by the
-              provider at its own rates.
+              {t("editor:ui.listPriceFromTheProviderCatalog", { defaultValue: "List price from the provider catalog. Voicing is billed by the provider at its own rates." })}
             </Caption>
           )}
         </FlexColumn>
@@ -509,17 +522,20 @@ const VoiceAllButton = ({
         startIcon={<GraphicEqIcon fontSize="small" />}
         onClick={onClick}
       >
-        {priced ? `Voice all · ~${formatUsd(cost)}` : "Voice all"}
+        {priced ? `Voice all · ~${formatUsd(cost)}` : t("editor:ui.voiceAll", { defaultValue: "Voice all" })}
       </EditorButton>
     </Tooltip>
   );
 };
 
-/** The first words of a line, for naming it in the failure list. */
+/** The first words of a line, for naming it in the failure list. Resolves
+ * through the shared i18n instance — a module-level function has no hook, and
+ * the caller (VoicingStrip) re-renders on language change via its own
+ * useTranslation anchor, so the label resolves fresh each render (r12). */
 const lineLabel = (text: string): string => {
   const trimmed = text.trim();
   if (trimmed === "") {
-    return "an empty line";
+    return i18n.t("editor:ui.anEmptyLine", { defaultValue: "an empty line" });
   }
   return trimmed.length > 60 ? `${trimmed.slice(0, 60)}…` : `“${trimmed}”`;
 };
@@ -544,6 +560,9 @@ const VoicingStrip = ({
   scriptId: string;
   readOnly?: boolean;
 }) => {
+  // Language anchor: every string below renders through `t`, so the strip
+  // re-renders on a language switch (memo-safe, F-26).
+  const { t } = useTranslation();
   const setup = useScriptSetup(scriptId);
   const lineText = useScriptStore(
     useShallow((state) => {
@@ -575,7 +594,10 @@ const VoicingStrip = ({
   if (run.status === "queued") {
     return (
       <AlertBanner severity="info" compact sx={{ marginX: SPACING.md }}>
-        {`Voicing queued for ${run.total} ${run.total === 1 ? "line" : "lines"}.`}
+        {t("editor:ui.voicingQueuedFor", {
+          count: run.total,
+          defaultValue: "Voicing queued for {{count}} lines."
+        })}
       </AlertBanner>
     );
   }
@@ -586,9 +608,20 @@ const VoicingStrip = ({
         <FlexRow align="center" gap={SPACING.xs}>
           <LoadingSpinner size={16} />
           <Text size="smaller">
-            {`Voicing ${run.voiced + run.failed.length} of ${run.total} ${
-              run.total === 1 ? "line" : "lines"
-            }${run.failed.length > 0 ? ` · ${run.failed.length} failed so far` : ""}`}
+            {t("editor:ui.voicingProgress", {
+              count: run.total,
+              defaultValue:
+                "Voicing {{done}} of {{total}} lines{{failedNote}}",
+              done: run.voiced + run.failed.length,
+              total: run.total,
+              failedNote:
+                run.failed.length > 0
+                  ? t("editor:ui.failedSoFar", {
+                      count: run.failed.length,
+                      defaultValue: " · {{count}} failed so far"
+                    })
+                  : ""
+            })}
           </Text>
         </FlexRow>
       </AlertBanner>
@@ -605,7 +638,10 @@ const VoicingStrip = ({
         onClose={readOnly ? undefined : () => dismissVoicingRun(scriptId)}
         sx={{ marginX: SPACING.md }}
       >
-        {`Voiced ${run.voiced} ${run.voiced === 1 ? "line" : "lines"}.`}
+        {t("editor:ui.voicedCount", {
+          count: run.voiced,
+          defaultValue: "Voiced {{count}} lines."
+        })}
       </AlertBanner>
     );
   }
@@ -619,9 +655,16 @@ const VoicingStrip = ({
     >
       <FlexColumn gap={SPACING.xs}>
         <Text size="smaller">
-          {`Voiced ${run.voiced} of ${run.total} lines. ${run.failed.length} ${
-            run.failed.length === 1 ? "line" : "lines"
-          } could not be voiced.`}
+          {t("editor:ui.voicedOfTotal", {
+            count: run.total,
+            defaultValue: "Voiced {{voiced}} of {{total}} lines.",
+            voiced: run.voiced,
+            total: run.total
+          })}{" "}
+          {t("editor:ui.couldNotBeVoiced", {
+            count: run.failed.length,
+            defaultValue: "{{count}} lines could not be voiced."
+          })}
         </Text>
         <FlexColumn
           gap={SPACING.xs}
@@ -646,7 +689,7 @@ const VoicingStrip = ({
                   disabled={busy}
                   onClick={() => retry([failure.lineId])}
                 >
-                  Retry
+                  {t("editor:explorer.retry", { defaultValue: "Retry" })}
                 </EditorButton>
               )}
             </FlexRow>
@@ -660,7 +703,12 @@ const VoicingStrip = ({
               disabled={busy}
               onClick={() => retry(run.failed.map((failure) => failure.lineId))}
             >
-              {busy ? "Retrying…" : `Retry all ${run.failed.length}`}
+              {busy
+                ? t("editor:ui.retrying", { defaultValue: "Retrying…" })
+                : t("editor:ui.retryAll", {
+                    count: run.failed.length,
+                    defaultValue: "Retry all {{count}}"
+                  })}
             </EditorButton>
           </FlexRow>
         )}
@@ -673,6 +721,7 @@ const ScriptDocumentPane = ({
   scriptId,
   readOnly
 }: ScriptDocumentPaneProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const inStudio = useInStudio();
@@ -895,15 +944,15 @@ const ScriptDocumentPane = ({
             canRedo={canRedo}
             onUndo={onUndo}
             onRedo={onRedo}
-            undoTooltip="Undo (⌘Z)"
-            redoTooltip="Redo (⌘⇧Z)"
+            undoTooltip={t("storyboard:attrs.undoCmdZ", { defaultValue: "Undo (⌘Z)" })}
+            redoTooltip={t("storyboard:attrs.redoCmdZ", { defaultValue: "Redo (⌘⇧Z)" })}
           />
         )}
         {!readOnly &&
           (voicingAll ? (
             <FlexRow align="center" gap={SPACING.xs}>
               <LoadingSpinner size={18} />
-              <Text size="smaller">Voicing…</Text>
+              <Text size="smaller">{t("editor:ui.voicing", { defaultValue: "Voicing…" })}</Text>
             </FlexRow>
           ) : (
             <VoiceAllButton
@@ -918,14 +967,14 @@ const ScriptDocumentPane = ({
             startIcon={<StopIcon fontSize="small" />}
             onClick={stop}
           >
-            Stop
+            {t("ui2:attrs.stop", { defaultValue: "Stop" })}
           </EditorButton>
         ) : (
           <Tooltip
             title={
               hasVoicedLine
-                ? "Play current takes in order"
-                : "Voice at least one line to play"
+                ? t("editor:ui.playCurrentTakesInOrder", { defaultValue: "Play current takes in order" })
+                : t("editor:ui.voiceAtLeastOneLineToPlay", { defaultValue: "Voice at least one line to play" })
             }
           >
             <span>
@@ -936,7 +985,7 @@ const ScriptDocumentPane = ({
                 onClick={play}
                 disabled={!hasVoicedLine}
               >
-                Play through
+                {t("editor:ui.playThrough")}
               </EditorButton>
             </span>
           </Tooltip>
@@ -944,8 +993,14 @@ const ScriptDocumentPane = ({
         <Box sx={{ flex: 1 }} />
         {!isEmpty && (
           <Text size="smaller" sx={{ color: "text.secondary" }}>
-            {lineCount} {lineCount === 1 ? "line" : "lines"} · {wordCount}{" "}
-            {wordCount === 1 ? "word" : "words"}
+            {t("editor:ui.lineCount", {
+              count: lineCount,
+              defaultValue: "{{count}} line"
+            })}{" · "}
+            {t("editor:ui.wordCount", {
+              count: wordCount,
+              defaultValue: "{{count}} word"
+            })}
             {durationLabel ? ` · ${durationLabel}` : ""}
           </Text>
         )}
@@ -960,18 +1015,18 @@ const ScriptDocumentPane = ({
             title={
               hasVoicedLine
                 ? storyboardId
-                  ? "Cut the linked storyboard's shots and these takes into one timeline"
+                  ? t("editor:ui.cutTheLinkedStoryboardsShotsAndTheseTakesIntoOneTimeline", { defaultValue: "Cut the linked storyboard's shots and these takes into one timeline" })
                   : undefined
-                : "Voice at least one line to send it to a timeline"
+                : t("editor:ui.voiceAtLeastOneLineToSendItToATimeline", { defaultValue: "Voice at least one line to send it to a timeline" })
             }
           >
             {assembling
-              ? "Assembling…"
+              ? t("editor:ui.assembling")
               : storyboardId
-                ? "Assemble video"
+                ? t("editor:ui.assembleVideo")
                 : timelineId
-                  ? "Update timeline"
-                  : "Send to timeline"}
+                  ? t("editor:ui.updateTimeline", { defaultValue: "Update timeline" })
+                  : t("editor:ui.sendToTimeline")}
           </EditorButton>
         )}
         {hasVoicedLine && (
@@ -984,8 +1039,8 @@ const ScriptDocumentPane = ({
         {!readOnly && (
           <>
             <ToolbarIconButton
-              tooltip="More actions"
-              ariaLabel="More actions"
+              tooltip={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
+              ariaLabel={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
               onClick={(e) => setMoreAnchor(e.currentTarget)}
               icon={<MoreVertIcon fontSize="small" />}
             />
@@ -997,12 +1052,12 @@ const ScriptDocumentPane = ({
               <MenuItemPrimitive
                 compact
                 icon={<SubtitlesIcon fontSize="small" />}
-                label="Export SRT"
+                label={t("editor:ui.exportSRT", { defaultValue: "Export SRT" })}
                 disabled={!hasVoicedLine}
                 tooltip={
                   hasVoicedLine
                     ? undefined
-                    : "Voice at least one line to export subtitles"
+                    : t("editor:ui.voiceAtLeastOneLineToExportSubtitles", { defaultValue: "Voice at least one line to export subtitles" })
                 }
                 onClick={() => {
                   setMoreAnchor(null);
@@ -1036,9 +1091,13 @@ const ScriptDocumentPane = ({
       >
         {isEmpty && (
           <EmptyState
-            title="Empty script"
-            description="Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them."
-            actionText={readOnly ? undefined : "Add first line"}
+            title={t("editor:ui.emptyScript", { defaultValue: "Empty script" })}
+            description={t("editor:ui.addLineToStartWriting", { defaultValue: "Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them." })}
+            actionText={
+              readOnly
+                ? undefined
+                : t("editor:ui.addFirstLine", { defaultValue: "Add first line" })
+            }
             onAction={readOnly ? undefined : () => addLine(scriptId)}
           />
         )}
@@ -1067,7 +1126,7 @@ const ScriptDocumentPane = ({
               startIcon={<AddIcon fontSize="small" />}
               onClick={() => addSection(scriptId)}
             >
-              Add section
+              {t("editor:ui.addSection", { defaultValue: "Add section" })}
             </EditorButton>
           </FlexRow>
         )}

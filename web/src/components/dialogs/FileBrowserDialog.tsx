@@ -21,6 +21,7 @@ import { TreeViewBaseItem } from "@mui/x-tree-view/models";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { trpcClient } from "../../trpc/client";
 import type { FileInfo } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 import {
   Breadcrumbs,
@@ -43,6 +44,7 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 export type SelectionMode = "file" | "directory";
 
@@ -142,10 +144,11 @@ function FileBrowserDialog({
   open,
   onClose,
   onConfirm,
-  title = "Select File",
+  title = i18n.t("editor:ui.selectFile", { defaultValue: "Select File" }),
   initialPath = "~",
   selectionMode = "file"
 }: FileBrowserDialogProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const [currentPath, setCurrentPath] = useState(initialPath);
@@ -540,7 +543,7 @@ function FileBrowserDialog({
       handleNavigate(created);
     } catch (err) {
       setNewFolderError(
-        err instanceof Error ? err.message : "Could not create the folder"
+        err instanceof Error ? err.message : i18n.t("editor:ui.couldNotCreateTheFolder", { defaultValue: "Could not create the folder" })
       );
     }
   }, [newFolderName, currentPath, handleNavigate]);
@@ -705,7 +708,7 @@ function FileBrowserDialog({
         >
           <ToolbarIconButton
             icon={<ArrowUpwardIcon fontSize="small" />}
-            tooltip="Up one level"
+            tooltip={t("editor:ui.upOneLevel", { defaultValue: "Up one level" })}
             onClick={handleUp}
             disabled={currentPath === "~" || currentPath === "/"}
             size="small"
@@ -748,14 +751,14 @@ function FileBrowserDialog({
             <SearchInput
               value={searchQuery}
               onChange={handleSearchQueryChange}
-              placeholder="Search in current folder..."
+              placeholder={t("editor:ui.searchInCurrentFolder", { defaultValue: "Search in current folder..." })}
               fullWidth
             />
           </div>
 
           <ToolbarIconButton
             icon={<CreateNewFolderIcon fontSize="small" />}
-            tooltip="New folder here"
+            tooltip={t("editor:ui.newFolderHere", { defaultValue: "New folder here" })}
             onClick={handleStartNewFolder}
             size="small"
           />
@@ -763,9 +766,9 @@ function FileBrowserDialog({
           <RefreshButton
             onClick={handleRefresh}
             buttonSize="small"
-            tooltip="Refresh"
+            tooltip={t("ui:attrs.refresh", { defaultValue: "Refresh" })}
           />
-          <CloseButton onClick={onClose} buttonSize="small" tooltip="Close" />
+          <CloseButton onClick={onClose} buttonSize="small" tooltip={t("sketch:attrs.close", { defaultValue: "Close" })} />
         </FlexRow>
 
         {newFolderName !== null && (
@@ -784,7 +787,7 @@ function FileBrowserDialog({
                 size="small"
                 autoFocus
                 value={newFolderName}
-                placeholder="New folder name"
+                placeholder={t("editor:ui.newFolderName", { defaultValue: "New folder name" })}
                 onChange={handleNewFolderChange}
                 onKeyDown={handleNewFolderKeyDown}
                 sx={{ flex: 1 }}
@@ -795,18 +798,18 @@ function FileBrowserDialog({
                 density="compact"
                 disabled={!newFolderName.trim()}
               >
-                Create
+                {t("common:action.create", { defaultValue: "Create" })}
               </EditorButton>
               <EditorButton
                 onClick={handleCancelNewFolder}
                 variant="text"
                 density="compact"
               >
-                Cancel
+                {t("common:action.cancel", { defaultValue: "Cancel" })}
               </EditorButton>
             </FlexRow>
             <Caption color={newFolderError ? "error" : "secondary"}>
-              {newFolderError || `Creates a folder in ${currentPath}`}
+              {newFolderError || t("editor:ui.createsAFolderIn", { defaultValue: "Creates a folder in {{path}}", path: currentPath })}
             </Caption>
           </FlexColumn>
         )}
@@ -936,12 +939,12 @@ function FileBrowserDialog({
           {selectedPath && (
             <CopyButton
               value={selectedPath}
-              tooltip="Copy path"
+              tooltip={t("editor:ui.copyPath", { defaultValue: "Copy path" })}
               buttonSize="small"
             />
           )}
           <EditorButton onClick={onClose} variant="text" density="compact">
-            Cancel
+            {t("common:action.cancel", { defaultValue: "Cancel" })}
           </EditorButton>
           <EditorButton
             onClick={handleConfirmClick}
@@ -949,7 +952,7 @@ function FileBrowserDialog({
             density="compact"
             disabled={!selectedPath}
           >
-            Select
+            {t("common:action.select", { defaultValue: "Select" })}
           </EditorButton>
         </FlexRow>
       </FlexColumn>

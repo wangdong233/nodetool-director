@@ -4,6 +4,7 @@ import isEqual from "../../utils/isEqual";
 import Select from "../inputs/Select";
 import PropertyLabel from "../node/PropertyLabel";
 import { useNodes } from "../../contexts/NodeContext";
+import { useTranslation } from "react-i18next";
 
 /**
  * SelectProperty renders a dropdown for Select/SelectInput nodes.
@@ -19,6 +20,7 @@ const SelectProperty: React.FC<PropertyProps<string>> = ({
   tabIndex,
   changed
 }) => {
+  const { t } = useTranslation();
   const id = useMemo(
     () => `select-${property.name}-${propertyIndex}`,
     [property.name, propertyIndex]
@@ -53,7 +55,7 @@ const SelectProperty: React.FC<PropertyProps<string>> = ({
         onChange={onChange}
         options={selectOptions}
         label={property.name}
-        placeholder="Select…"
+        placeholder={t("editor:ui.select", { defaultValue: "Select…" })}
         tabIndex={tabIndex}
         changed={changed}
       />

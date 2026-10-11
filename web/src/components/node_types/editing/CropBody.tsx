@@ -47,6 +47,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
 import { useNodeOutput, useUpstreamValue } from "../../../hooks/nodes/useNodeIO";
 import { CROP_NODE_TYPE } from "../../../constants/nodeTypes";
+import { useTranslation } from "react-i18next";
 import {
   isNumber,
   isObjectLike,
@@ -55,8 +56,8 @@ import {
 
 /** Aspect-ratio dropdown options. `free` means no constraint. */
 const ASPECT_OPTIONS = [
-  { value: "free", label: "Free" },
-  { value: "1:1", label: "1:1 Square" },
+  { value: "free", label: "Free", labelKey: "editor:ui.free" },
+  { value: "1:1", label: "1:1 Square", labelKey: "editor:ui.oneToOneSquare" },
   { value: "4:3", label: "4:3" },
   { value: "3:2", label: "3:2" },
   { value: "16:9", label: "16:9" },
@@ -292,6 +293,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -701,31 +703,31 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Aspect</span>
+        <span className="ctrl-label">{t("ui2:attrs.aspect", { defaultValue: "Aspect" })}</span>
         <Select
           className="aspect-select nodrag"
           size="small"
           variant="standard"
           value={aspect}
           onChange={handleAspectChange}
-          aria-label="Aspect ratio"
+          aria-label={t("editor:ui.aspectRatio", { defaultValue: "Aspect ratio" })}
           disableUnderline
         >
           {ASPECT_OPTIONS.map((o) => (
             <MenuItem key={o.value} value={o.value} dense>
-              {o.label}
+              {"labelKey" in o && o.labelKey ? t(o.labelKey, { defaultValue: o.label }) : o.label}
             </MenuItem>
           ))}
         </Select>
 
-        <span className="ctrl-label">Size</span>
+        <span className="ctrl-label">{t("ui2:attrs.size", { defaultValue: "Size" })}</span>
         <div className="dims-cluster">
           <div className="dim-field">
             <NumberInput
               id={`crop-width-${id}`}
               nodeId={id}
               name="width"
-              description={widthProperty?.description ?? "Crop width"}
+              description={widthProperty?.description ?? t("editor:ui.cropWidth", { defaultValue: "Crop width" })}
               value={cropW}
               min={1}
               max={imgDims?.w ?? 8192}
@@ -744,7 +746,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
               id={`crop-height-${id}`}
               nodeId={id}
               name="height"
-              description={heightProperty?.description ?? "Crop height"}
+              description={heightProperty?.description ?? t("editor:ui.cropHeight", { defaultValue: "Crop height" })}
               value={cropH}
               min={1}
               max={imgDims?.h ?? 8192}
@@ -762,8 +764,8 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
           type="button"
           className="reset-btn"
           onClick={handleReset}
-          aria-label="Reset crop"
-          title="Reset crop"
+          aria-label={t("editor:ui.resetCrop", { defaultValue: "Reset crop" })}
+          title={t("editor:ui.resetCrop", { defaultValue: "Reset crop" })}
         >
           <RestartAltIcon fontSize="small" />
         </button>

@@ -47,6 +47,7 @@ import { watchGeneration } from "../../lib/websocket/generationWatch";
 import { useNotificationStore } from "../NotificationStore";
 import { useStoryboardStore } from "./StoryboardStore";
 import { isNumber } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -1216,7 +1217,7 @@ const settleDirectShotJob = (
   const assetId = outcome.assetIds[0];
   const errorMessage =
     outcome.errorMessage.trim() ||
-    (assetId ? "" : "Direct generation returned no asset.");
+    (assetId ? "" : i18n.t("storyboard:attrs.directGenerationReturnedNoAsset", { defaultValue: "Direct generation returned no asset." }));
   if (!assetId || errorMessage) {
     // Keep the row so the card can read the reason; drop only the subscription.
     generationStore.updateJobStatus(requestId, "failed", {

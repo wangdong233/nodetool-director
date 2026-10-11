@@ -21,6 +21,7 @@ import LanguageModelSelect from "../../properties/LanguageModelSelect";
 import { OptionCardGrid } from "../OptionCardGrid";
 import { SetupFooterField } from "../SetupFooterField";
 import { WORKFLOW_CATEGORIES, workflowCategory } from "./categories";
+import { useTranslation } from "react-i18next";
 
 export interface WorkflowCategoryStepProps {
   selectedId: string | null;
@@ -55,6 +56,7 @@ const CategoryStepInternal: React.FC<WorkflowCategoryStepProps> = ({
   selectedId,
   onSelect
 }) => {
+  const { t } = useTranslation();
   const chosen = workflowCategory(selectedId ?? undefined);
   return (
     <FlexColumn gap={GAP.comfortable}>
@@ -63,8 +65,7 @@ const CategoryStepInternal: React.FC<WorkflowCategoryStepProps> = ({
           What kind of workflow?
         </Text>
         <Text size="normal" color="secondary">
-          This decides which nodes the plan reaches for, and how it runs once it
-          is built.
+          {t("storyboard:attrs.thisDecidesWhichNodesThePlanReachesFor", { defaultValue: "This decides which nodes the plan reaches for, and how it runs once it is built." })}
         </Text>
       </FlexColumn>
       <OptionCardGrid
@@ -75,7 +76,7 @@ const CategoryStepInternal: React.FC<WorkflowCategoryStepProps> = ({
       />
       {chosen ? (
         <Caption color="secondary" component="p">
-          {`Built to run: ${RUN_MODE_LABEL[chosen.defaultRunMode]}. You can change that in the next step.`}
+          {t("storyboard:attrs.builtToRunModeYouCanChangeThatInTheNextStep", { defaultValue: "Built to run: {{mode}}. You can change that in the next step.", mode: t(RUN_MODE_LABEL_KEYS[chosen.defaultRunMode], { defaultValue: RUN_MODE_LABEL[chosen.defaultRunMode] }) })}
         </Caption>
       ) : null}
     </FlexColumn>
@@ -88,6 +89,13 @@ export const RUN_MODE_LABEL = {
   app: "as an app with a form",
   trigger: "on a trigger"
 } as const;
+
+/** zh for each run mode's in-sentence phrase. */
+export const RUN_MODE_LABEL_KEYS: Readonly<Record<string, string>> = {
+  manual: "editor:ui.runModeByHand",
+  app: "editor:ui.runModeAsAnAppWithAForm",
+  trigger: "editor:ui.runModeOnATrigger"
+};
 
 export const WorkflowCategoryStep = memo(CategoryStepInternal);
 WorkflowCategoryStep.displayName = "WorkflowCategoryStep";
