@@ -19,8 +19,17 @@ jest.mock("../../../contexts/NodeContext", () => ({
   useNodes: jest.fn()
 }));
 
+// Real getShortcutTooltip returns a ReactElement (kbd combo) whenever the
+// slug resolves — the mock must do the same or it hides the exact
+// stringification regression this suite guards.
 jest.mock("../../../config/shortcuts", () => ({
-  getShortcutTooltip: jest.fn(() => "Reset Zoom")
+  getShortcutTooltip: jest.fn(() =>
+    React.createElement(
+      "span",
+      { className: "shortcut-combo" },
+      React.createElement("kbd", null, "F")
+    )
+  )
 }));
 
 import { useNodes } from "../../../contexts/NodeContext";
@@ -160,6 +169,23 @@ describe("ViewportStatusIndicator", () => {
     const fitViewButton = screen.getByTestId("CenterFocusStrongIcon");
     await user.click(fitViewButton.closest("button") as HTMLElement);
     expect(mockFitView).toHaveBeenCalledWith({ padding: 0.2, duration: 200 });
+  });
+
+  it("composes the fit-all tooltip without stringifying the shortcut element", async () => {
+    const user = userEvent.setup();
+    renderWithTheme(<ViewportStatusIndicator />);
+
+    // The button stays named for screen readers now its tooltip is a node.
+    expect(screen.getByRole("button", { name: "Fit all" })).toBeInTheDocument();
+
+    await user.hover(screen.getByTestId("CenterFocusStrongIcon"));
+    await waitFor(
+      () => {
+        expect(document.body.textContent).toContain("Fit all · F");
+      },
+      { timeout: 4000 }
+    );
+    expect(document.body.textContent).not.toContain("[object Object]");
   });
 
   it("fits selected nodes from the persistent recovery controls", async () => {

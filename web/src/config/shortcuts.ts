@@ -212,6 +212,78 @@ export const getShortcutTooltip = (
   return getShortcutTooltipFromShortcut(sc, os, mode, showDescription);
 };
 
+/** Mac modifier glyphs attach straight to the key they modify ("⌘F"), while
+ * every other combo joins with "+" ("Ctrl+F"). */
+const MAC_COMBO_GLYPHS = new Set(["⌘", "⌥", "⇧", "⌃"]);
+
+const humanizeKeyForText = (key: string, mac: boolean): string => {
+  switch (key.toLowerCase()) {
+    case "meta":
+      return "⌘";
+    case "control":
+      return mac ? "⌃" : "Ctrl";
+    case "alt":
+    case "option":
+      return mac ? "⌥" : "Alt";
+    case "shift":
+      return mac ? "⇧" : "Shift";
+    case " ":
+    case "space":
+      return "Space";
+    case "arrowup":
+      return "↑";
+    case "arrowdown":
+      return "↓";
+    case "arrowleft":
+      return "←";
+    case "arrowright":
+      return "→";
+    case "escape":
+    case "esc":
+      return "Esc";
+    default:
+      return key.length === 1 ? key.toUpperCase() : key;
+  }
+};
+
+/**
+ * A shortcut's key combo as plain text — "⌘F" on macOS, "Ctrl+F" elsewhere.
+ *
+ * For string-typed surfaces (native `title=`, template-literal labels) that
+ * cannot render the {@link getShortcutTooltip} element: interpolating that
+ * element into a template literal stringifies it into "[object Object]".
+ * Returns an empty string when the slug is unknown, so a label composes
+ * cleanly instead of leaking an internal slug.
+ */
+export const shortcutComboText = (
+  slug: string,
+  os: "mac" | "win" = typeof navigator !== "undefined" &&
+  navigator.userAgent.includes("Mac")
+    ? "mac"
+    : "win",
+  catalog?: readonly Shortcut[]
+): string => {
+  const resolvedCatalog = catalog ?? NODE_EDITOR_SHORTCUTS;
+  const sc = resolvedCatalog.find((s) => s.slug === slug);
+  if (!sc) {
+    return "";
+  }
+  const combo =
+    os === "mac"
+      ? sc.keyComboMac ?? sc.keyCombo.map(mapKeyForMac)
+      : sc.keyCombo;
+  let text = "";
+  for (const part of combo) {
+    const humanized = humanizeKeyForText(part, os === "mac");
+    const attach =
+      text === "" ||
+      MAC_COMBO_GLYPHS.has(humanized) ||
+      MAC_COMBO_GLYPHS.has(text[text.length - 1]);
+    text += attach ? humanized : `+${humanized}`;
+  }
+  return text;
+};
+
 /**
  * The master list of all keyboard shortcuts available in the node editor and surrounding UI.
  */

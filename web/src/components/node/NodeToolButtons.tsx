@@ -28,7 +28,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useDuplicateNodes } from "../../hooks/useDuplicate";
 import { useNodes } from "../../contexts/NodeContext";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
-import { getShortcutTooltip } from "../../config/shortcuts";
+import { getShortcutTooltip, shortcutComboText } from "../../config/shortcuts";
 import { useNodeContextMenu } from "../../hooks/nodes/useNodeContextMenu";
 import { useRemoveFromGroup } from "../../hooks/nodes/useRemoveFromGroup";
 import { useRunFromHere } from "../../hooks/nodes/useRunFromHere";
@@ -142,7 +142,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         </ToolbarIconButton>
 
         <ToolbarIconButton
-          title={`${isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable Node" }) : t("editor:node.disableNode", { defaultValue: "Disable Node" })} ${getShortcutTooltip("bypassNode", undefined, "combo")}`}
+          title={`${isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable Node" }) : t("editor:node.disableNode", { defaultValue: "Disable Node" })} ${shortcutComboText("bypassNode")}`}
           delay={TOOLTIP_ENTER_DELAY}
           className="nodrag"
           onClick={handleToggleBypass}
@@ -154,7 +154,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         </ToolbarIconButton>
 
         <ToolbarIconButton
-          title={`Duplicate ${getShortcutTooltip("duplicate", undefined, "combo")}`}
+          title={`Duplicate ${shortcutComboText("duplicate")}`}
           delay={TOOLTIP_ENTER_DELAY}
           className="nodrag"
           onClick={handleDuplicateNodes}

@@ -227,7 +227,16 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
 
         <ToolbarIconButton
           icon={<CenterFocusStrongIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-          tooltip={`${t("editor:ui.fitAll", { defaultValue: "Fit all" })} · ${getShortcutTooltip("fitView")}`}
+          // getShortcutTooltip returns a ReactElement — interpolating it into
+          // a template literal rendered "[object Object]". Compose nodes
+          // instead, and name the button explicitly now the tooltip is not a
+          // plain string.
+          tooltip={
+            <>
+              {t("editor:ui.fitAll", { defaultValue: "Fit all" })} · {getShortcutTooltip("fitView", undefined, "combo")}
+            </>
+          }
+          ariaLabel={t("editor:ui.fitAll", { defaultValue: "Fit all" })}
           tooltipPlacement="top"
           onClick={handleFitView}
           size="small"

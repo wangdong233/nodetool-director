@@ -579,7 +579,14 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
           ? t("editor:ui.runningNQueuedClickToQueueAnother", { defaultValue: "Running — {{n}} queued (click to queue another)", n: pendingRunCount })
         : isWorkflowActive
           ? `${runControlLabel}${t("editor:ui.clickToQueueAnotherEntireWorkflowRun", { defaultValue: " (click to queue another entire workflow run)" })}`
-          : `${getShortcutTooltip("runWorkflow")} — ${t("editor:ui.runsTheEntireWorkflow", { defaultValue: "runs the entire workflow" })}`;
+          : // The shortcut tooltip is a ReactElement — render it as a node, not
+            // through a template literal, which stringifies it to
+            // "[object Object]".
+            (
+              <>
+                {getShortcutTooltip("runWorkflow", undefined, "combo")} — {t("editor:ui.runsTheEntireWorkflow", { defaultValue: "runs the entire workflow" })}
+              </>
+            );
 
   const runAriaLabel = isStopping
     ? t("editor:ui.stoppingWorkflow", { defaultValue: "Stopping workflow" })
