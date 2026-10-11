@@ -78,8 +78,9 @@ Is it a patterned long tail (provider catalogs, generated names)?
 - Proper nouns, model/brand names, version/tier suffixes (v2/Pro/Turbo/
   LoRA), telemetry (cpu/mem/worker), F-23 technical terms (SVG/JSON/API/
   TTS…), and prompt example text inside translated docs.
-- Package-manager catalog rows (backend long tail) — ruling pending;
-  ask before translating.
+- Package-manager catalog rows (backend long tail): treat as data class
+  until an explicit ruling says otherwise — record the decision request in
+  terminology.json notes rather than translating unilaterally.
 
 Recording rule: reversal or new rulings go into terminology.json notes
 and the commit message. In-case rulings are never overturned by silent
