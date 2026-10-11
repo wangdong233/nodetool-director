@@ -38,6 +38,7 @@ import { registerTopazNodes } from "@nodetool-ai/topaz-nodes";
 import { registerReveNodes } from "@nodetool-ai/reve-nodes";
 import { registerAtlasCloudNodes } from "@nodetool-ai/atlascloud-nodes";
 import { registerHiggsfieldNodes } from "@nodetool-ai/higgsfield-nodes";
+import { registerMediagenNodes } from "@nodetool-ai/mediagen-nodes";
 import { registerTogetherNodes } from "@nodetool-ai/together-nodes";
 import { registerReplicateNodes } from "@nodetool-ai/replicate-nodes";
 import { registerHuggingFaceNodes } from "@nodetool-ai/huggingface-nodes";
@@ -105,6 +106,7 @@ const BUILTIN_PACK_REGISTRARS: Record<
   reve: registerReveNodes,
   atlascloud: registerAtlasCloudNodes,
   higgsfield: registerHiggsfieldNodes,
+  mediagen: registerMediagenNodes,
   together: registerTogetherNodes,
   replicate: registerReplicateNodes,
   huggingface: registerHuggingFaceNodes

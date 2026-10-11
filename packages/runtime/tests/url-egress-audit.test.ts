@@ -268,3 +268,55 @@ describe("url egress inventory", () => {
     expect(undocumented).toEqual([]);
   });
 });
+
+describe("non-https template-literal fetches", () => {
+  /**
+   * `fetch(\`https://…\`)` is a constant host by construction, but
+   * `fetch(\`http://…\`)` is a scheme downgrade whose host and port are
+   * interpolated — the CDP loopback transport is the sanctioned example. The
+   * plain-fetch scan cannot see either shape (its regex needs an identifier
+   * first argument), so a plaintext template fetch used to escape the ratchet
+   * entirely. This closes that hole: every non-https template-literal fetch
+   * must be classified by the inventory.
+   *
+   * Known limit: both scans are line-based and scheme-literal — a scheme
+   * read from a variable, or a line-wrapped `fetch(`, escapes them. They
+   * guard accidental drift, not deliberate evasion.
+   */
+  const NON_HTTPS_TEMPLATE_FETCH = /(?<![.\w$])fetch\(\s*`http(?!s)/;
+
+  function scanNonHttpsTemplateFetches(): Set<string> {
+    const found = new Set<string>();
+    for (const file of sourceFiles()) {
+      for (const line of readFileSync(file, "utf8").split("\n")) {
+        const trimmed = line.trimStart();
+        if (
+          trimmed.startsWith("*") ||
+          trimmed.startsWith("//") ||
+          trimmed.startsWith("/*")
+        ) {
+          continue;
+        }
+        const quotes = (line.match(/(?<!\\)`/g) ?? []).length;
+        if (quotes === 0) continue;
+        if (NON_HTTPS_TEMPLATE_FETCH.test(line)) {
+          found.add(relative(file));
+        }
+      }
+    }
+    return found;
+  }
+
+  it("finds the sanctioned plaintext-template fetches in the repo", () => {
+    const found = scanNonHttpsTemplateFetches();
+    expect(found.size).toBeGreaterThanOrEqual(1);
+    expect(found).toContain("packages/mediagen-nodes/src/channels/gemini/transport.ts");
+  });
+
+  it("classifies every file with a non-https template-literal fetch", () => {
+    const unclassified = [...scanNonHttpsTemplateFetches()].filter(
+      (file) => !entriesByFile.has(file)
+    );
+    expect(unclassified).toEqual([]);
+  });
+});

@@ -312,6 +312,12 @@ export const URL_EGRESS_INVENTORY: EgressEntry[] = [
     "image_urls out of the generation response."
   ),
   guardedSafeFetch(
+    "packages/mediagen-nodes/src/mediagen-base.ts",
+    "MediaGen channel result downloads",
+    "provider-response",
+    "safeDownload routes every provider-returned URL (zhipu video_result, siliconflow images[].url and video results, hfspaces temp files) through safeFetch; channel submit/poll endpoints are fixed-host templates reached via ctx.fetchFn."
+  ),
+  guardedSafeFetch(
     "packages/runtime/src/providers/fal-provider.ts",
     "FAL provider result download",
     "provider-response",
@@ -453,6 +459,18 @@ export const URL_EGRESS_INVENTORY: EgressEntry[] = [
   },
 
   // ------------------------------------------------- deliberately private hosts
+  {
+    file: "packages/mediagen-nodes/src/channels/gemini/transport.ts",
+    owner: "Gemini web channel CDP transport",
+    inputSource: "operator",
+    schemes: ["http"],
+    authScope: "none on the wire; the channel Chrome's profile holds the Google session",
+    redirects: "runtime-follows",
+    dnsRebinding: "n/a",
+    policy: "private-integration",
+    guardedBy: [],
+    note: "The only in-process fetches are DevTools discovery (GET /json/list, PUT /json/new) against the literal loopback host 127.0.0.1 on the operator-set GEMINI_CDP_PORT — reaching the operator's own channel Chrome is the feature. The other fetch the scan sees is source text of a page-side expression (exprFetchB64) that runs inside that Chrome's page context, not in this process."
+  },
   {
     file: "packages/runtime/src/comfy-executor.ts",
     owner: "ComfyUI executor",
