@@ -27,6 +27,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { RESIZE_NODE_TYPE } from "../../../constants/nodeTypes";
+import { useTranslation } from "react-i18next";
 import {
   isNumber,
   isObjectLike,
@@ -137,6 +138,7 @@ const ResizeBodyInner: React.FC<ResizeBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -233,7 +235,7 @@ const ResizeBodyInner: React.FC<ResizeBodyProps> = ({
               id={`resize-width-${id}`}
               nodeId={id}
               name="width"
-              description={widthProperty.description ?? "Target width"}
+              description={widthProperty.description ?? t("editor:ui.targetWidth", { defaultValue: "Target width" })}
               value={widthValue}
               min={widthProperty.min ?? 1}
               max={widthProperty.max ?? 8192}
@@ -251,8 +253,8 @@ const ResizeBodyInner: React.FC<ResizeBodyProps> = ({
           isActive={chainLocked}
           icon={<LinkOffIcon fontSize="small" />}
           activeIcon={<LinkIcon fontSize="small" />}
-          tooltip={chainLocked ? "Unlock aspect ratio" : "Lock aspect ratio"}
-          ariaLabel={chainLocked ? "Unlock aspect ratio" : "Lock aspect ratio"}
+          tooltip={chainLocked ? t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : t("editor:ui.lockAspectRatio2", { defaultValue: "Lock aspect ratio" })}
+          ariaLabel={chainLocked ? t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : t("editor:ui.lockAspectRatio2", { defaultValue: "Lock aspect ratio" })}
           onClick={() => setChainLocked((v) => !v)}
         />
         <div className="dim-field">
@@ -261,7 +263,7 @@ const ResizeBodyInner: React.FC<ResizeBodyProps> = ({
               id={`resize-height-${id}`}
               nodeId={id}
               name="height"
-              description={heightProperty.description ?? "Target height"}
+              description={heightProperty.description ?? t("editor:ui.targetHeight", { defaultValue: "Target height" })}
               value={heightValue}
               min={heightProperty.min ?? 1}
               max={heightProperty.max ?? 8192}

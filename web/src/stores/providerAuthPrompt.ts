@@ -1,7 +1,5 @@
 import type { NodeErrorDetail } from "@nodetool-ai/protocol";
 
-import { i18n } from "../i18n";
-
 import { openProviderOnboarding } from "./ProviderOnboardingStore";
 import { openProviderSignIn } from "./ProviderSignInStore";
 
@@ -29,12 +27,9 @@ export const promptForProviderAuth = (
   if (detail.provider && openProviderSignIn(detail.provider)) {
     return;
   }
-  const provider = detail.provider ?? i18n.t("editor:ui.theProvider", { defaultValue: "the provider" });
+  const provider = detail.provider ?? "the provider";
   const onboarding: Parameters<typeof openProviderOnboarding>[0] = {
-    reason: i18n.t("editor:ui.theRunStoppedBecause", {
-      defaultValue: "The run stopped because {{provider}} rejected the credentials. Reconnect it to continue.",
-      provider
-    })
+    reason: `The run stopped because ${provider} rejected the credentials. Reconnect it to continue.`
   };
   if (detail.secret_key) {
     onboarding.highlightSecretKey = detail.secret_key;

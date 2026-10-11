@@ -6,7 +6,6 @@
  * flex-column CSS (see StoryboardBoard's header fields).
  */
 
-import { i18n } from "../../i18n";
 import React, { forwardRef } from "react";
 import { Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";

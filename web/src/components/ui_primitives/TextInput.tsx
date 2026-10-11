@@ -6,7 +6,6 @@
  * above the control via the shared Label primitive — no floating labels.
  */
 
-import { i18n } from "../../i18n";
 import { memo, forwardRef, useId } from "react";
 import {
   Box,

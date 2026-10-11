@@ -287,7 +287,6 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
       mountedRef.current = false;
       if (debounceRef.current) clearTimeout(debounceRef.current);
       const flush = async (): Promise<void> => {
-  const { t } = useTranslation();
         let baseline: Pick<
           SkillResponse,
           "name" | "description" | "content" | "updatedAt"

@@ -5,7 +5,6 @@
  * Provides consistent tooltip behavior across the application.
  */
 
-import { i18n } from "../../i18n";
 import React, { memo } from "react";
 import MuiTooltip, {
   TooltipProps as MuiTooltipProps

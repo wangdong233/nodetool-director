@@ -8,7 +8,6 @@
  * the flow is up (PRD § 6.5).
  */
 
-import { useTranslation } from "react-i18next";
 import { useCallback, useEffect } from "react";
 
 import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
@@ -19,6 +18,7 @@ import { FlexColumn, PADDING, ThinkingIndicator } from "../../ui_primitives";
 import { SetupFlow } from "../SetupFlow";
 import { useFinishIfLoadedDone } from "../useFinishIfLoadedDone";
 import { useStoryboardSetupFlow } from "./useStoryboardSetupFlow";
+import { i18n } from "../../../i18n";
 
 export interface StoryboardSetupHostProps {
   boardId: string;
@@ -41,7 +41,6 @@ const StoryboardSetupHost = ({
   onFinish,
   onChangeFlow
 }: StoryboardSetupHostProps) => {
-  const { t } = useTranslation();
   const ensureBoard = useStoryboardStore((state) => state.ensureBoard);
   useEffect(() => {
     ensureBoard(boardId);
@@ -63,7 +62,12 @@ const StoryboardSetupHost = ({
   // The store seeds an empty board on mount, and an empty board's stage reads
   // `done` — rendering before the server copy lands would show no flow at all.
   if (loadState !== "ready") {
-    return <DocumentLoadStatus state={loadState} label={t("ui2:attrs.docStoryboard", { defaultValue: "storyboard" })} />;
+    return (
+      <DocumentLoadStatus
+        state={loadState}
+        label={i18n.t("ui2:attrs.docStoryboard", { defaultValue: "storyboard" })}
+      />
+    );
   }
 
   // The look step writes `done` before it sends the stills (D3) and the host

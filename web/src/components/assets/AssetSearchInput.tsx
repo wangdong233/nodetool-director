@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, memo } from "
 import BackspaceIcon from "@mui/icons-material/Backspace";
 import Public from "@mui/icons-material/Public";
 import Folder from "@mui/icons-material/Folder";
-import { useTranslation } from "react-i18next";
 import { registerTypeToFocus } from "../../stores/KeyPressedStore";
 import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
@@ -14,6 +13,7 @@ import { Tooltip, FlexRow, LoadingSpinner, MOTION, BORDER_RADIUS, reducedMotion,
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { isNumber } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 
 const styles = (theme: Theme) =>
@@ -363,8 +363,8 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
   }, [focusOnTyping, debouncedSetSearchTerm]);
 
   const effectivePlaceholder = isGlobalSearchMode
-    ? t("editor:ui.searchAllAssets")
-    : t("editor:ui.searchCurrentFolder");
+    ? t("editor:ui.searchAllAssets", { defaultValue: "Search all assets..." })
+    : t("editor:ui.searchCurrentFolder", { defaultValue: "Search current folder..." });
 
   return (
     <FlexRow
@@ -384,8 +384,8 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
       <Tooltip
         title={
           isGlobalSearchMode
-            ? t("editor:ui.switchToLocalSearch")
-            : t("editor:ui.switchToGlobalSearch")
+            ? t("editor:ui.switchToLocalSearch", { defaultValue: "Switch to local search" })
+            : t("editor:ui.switchToGlobalSearch", { defaultValue: "Switch to global search" })
         }
       >
         <button
@@ -395,7 +395,7 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
           }`}
           onClick={toggleSearchMode}
           data-testid="asset-search-mode-toggle"
-          aria-label={isGlobalSearchMode ? t("editor:ui.switchToLocalSearch") : t("editor:ui.switchToGlobalSearch")}
+          aria-label={isGlobalSearchMode ? "Switch to local search" : "Switch to global search"}
         >
           {isGlobalSearchMode ? <Public /> : <Folder />}
         </button>
@@ -403,7 +403,7 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
 
       <input
         id="asset-search-input"
-        aria-label={isGlobalSearchMode ? t("editor:ui.searchAllAssets2") : t("editor:ui.searchCurrentFolder2")}
+        aria-label={isGlobalSearchMode ? t("editor:ui.searchAllAssets2", { defaultValue: "Search all assets" }) : t("editor:ui.searchCurrentFolder2", { defaultValue: "Search current folder" })}
         className="search-input"
         ref={inputRef}
         type="text"
@@ -430,7 +430,7 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
             localSearchTerm.trim() === "" ? "disabled" : ""
           }`}
           disabled={localSearchTerm.trim() === ""}
-          aria-label={t("editor:ui.clearSearch")}
+          aria-label="Clear search"
           onClick={clearSearch}
           data-testid="asset-search-clear-btn"
         >

@@ -1185,10 +1185,13 @@ const TextEditorModal = ({
   const typeLabel = propertyType
     ? TYPE_LABELS[propertyType] ?? propertyType
     : null;
-  // Resolve at render so zh lands (module map stays pure data).
+  // Resolve at render so zh lands (module map stays pure data). English
+  // matches the map key verbatim, so only "Plain Text" carries a key for now.
   const languageLabel =
     language === "plaintext" || language === "text" || language === ""
-      ? t("editor:ui.plainText", { defaultValue: "Plain Text" })
+      ? t("editor:ui.plainText", {
+          defaultValue: LANGUAGE_LABELS[language] ?? language
+        })
       : (LANGUAGE_LABELS[language] ?? language);
   const showVariablesPanel = variablesVisible && !focusMode;
   const showAssistant = assistantVisible && !focusMode;
@@ -1277,14 +1280,14 @@ const TextEditorModal = ({
               </Tooltip>
               <Tooltip
                 delay={TOOLTIP_ENTER_DELAY}
-                title={assistantVisible ? "Hide Assistant" : "Show Assistant"}
+                title={assistantVisible ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })}
               >
                 <button
                   type="button"
                   className={`button ${assistantVisible ? "active" : ""}`}
                   onClick={toggleAssistantVisible}
                   aria-label={
-                    assistantVisible ? "Hide Assistant" : "Show Assistant"
+                    assistantVisible ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })
                   }
                 >
                   {assistantVisible ? (
@@ -1296,31 +1299,31 @@ const TextEditorModal = ({
               </Tooltip>
               <Tooltip
                 delay={TOOLTIP_ENTER_DELAY}
-                title={focusMode ? "Exit focus mode" : "Focus mode (hide panels)"}
+                title={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : t("editor:ui.focusModeHidePanels", { defaultValue: "Focus mode (hide panels)" })}
               >
                 <button
                   type="button"
                   className={`button ${focusMode ? "active" : ""}`}
                   onClick={() => setFocusMode((v) => !v)}
-                  aria-label={focusMode ? "Exit focus mode" : "Focus mode"}
+                  aria-label={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : t("editor:ui.focusMode", { defaultValue: "Focus mode" })}
                 >
                   {focusMode ? <OpenInFullIcon /> : <CloseFullscreenIcon />}
                 </button>
               </Tooltip>
               <Tooltip
                 delay={TOOLTIP_ENTER_DELAY}
-                title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                title={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
               >
                 <button
                   type="button"
                   className="button"
                   onClick={toggleFullscreen}
-                  aria-label={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                  aria-label={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
                 >
                   {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
                 </button>
               </Tooltip>
-              <Tooltip delay={TOOLTIP_ENTER_DELAY} title="Close Editor | Esc">
+              <Tooltip delay={TOOLTIP_ENTER_DELAY} title={t("editor:ui.closeEditorEsc", { defaultValue: "Close Editor | Esc" })}>
                 <button
                   type="button"
                   className="button button-close"
@@ -1341,8 +1344,8 @@ const TextEditorModal = ({
                     delay={TOOLTIP_ENTER_DELAY}
                     title={
                       isCodeEditor
-                        ? "Switch to Rich Text"
-                        : "Switch to Code Editor"
+                        ? t("editor:ui.switchToRichText", { defaultValue: "Switch to Rich Text" })
+                        : t("editor:ui.switchToCodeEditor", { defaultValue: "Switch to Code Editor" })
                     }
                   >
                     <button
@@ -1351,8 +1354,8 @@ const TextEditorModal = ({
                       onClick={handleToggleEditorMode}
                       aria-label={
                         isCodeEditor
-                          ? "Switch to Rich Text"
-                          : "Switch to Code Editor"
+                          ? t("editor:ui.switchToRichText", { defaultValue: "Switch to Rich Text" })
+                          : t("editor:ui.switchToCodeEditor", { defaultValue: "Switch to Code Editor" })
                       }
                     >
                       {isCodeEditor ? <TextFieldsIcon /> : <CodeIcon />}
@@ -1378,7 +1381,7 @@ const TextEditorModal = ({
                   onClick={handleFindClick}
                 >
                   <SearchIcon />
-                  Find
+                  {t("editor:ui.find")}
                 </button>
                 {!readOnly && (
                   <button
@@ -1414,7 +1417,7 @@ const TextEditorModal = ({
                     onClick={handleInsertVarClick}
                   >
                     <AddIcon />
-                    Insert var
+                    {t("editor:ui.insertVar")}
                   </button>
                 )}
               </div>
@@ -1587,7 +1590,7 @@ const TextEditorModal = ({
                           <AutoAwesomeIcon />
                         </span>
                         <div className="assistant-meta">
-                          <span className="assistant-name">Assistant</span>
+                          <span className="assistant-name">{t("timeline:editor.assistant", { defaultValue: "Assistant" })}</span>
                           <span className="assistant-sub">
                             writes &amp; edits this prompt
                           </span>

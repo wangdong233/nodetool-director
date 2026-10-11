@@ -13,7 +13,7 @@
  * useAppLanguage anchor (F-26) and list `languageVersion` in memo deps when
  * they fold the name inside a useMemo.
  */
-import { i18n } from "../i18n";
+import { i18n } from "./index";
 import { findSnippetByNodeType } from "../config/snippetMetadata";
 
 // ---------------------------------------------------------------------------

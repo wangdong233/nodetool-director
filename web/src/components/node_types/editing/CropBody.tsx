@@ -438,7 +438,6 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent<SVGElement>) => {
-  const { t } = useTranslation();
       const d = dragRef.current;
       if (!d || !imgDims) return;
       const dx = (e.clientX - d.startPointerX) / d.scale;

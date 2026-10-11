@@ -5,7 +5,6 @@
  * for common search/select patterns.
  */
 
-import { i18n } from "../../i18n";
 import { memo, useId } from "react";
 import {
   Autocomplete as MuiAutocomplete,
@@ -54,7 +53,7 @@ export interface AutocompleteProps<
  * // Basic usage with options
  * <Autocomplete
  *   options={[{ label: "Option 1", value: "1" }, { label: "Option 2", value: "2" }]}
- *   placeholder={i18n.t("ui:attrs.search", { defaultValue: "Search..." })
+ *   placeholder={i18n.t("ui:attrs.search", { defaultValue: "Search..." })}
  *   onChange={(e, value) => setValue(value)}
  * />
  *
@@ -63,7 +62,7 @@ export interface AutocompleteProps<
  * <Autocomplete
  *   freeSolo
  *   options={suggestions}
- *   label={i18n.t("editor:ui.tags", { defaultValue: "Tags" })
+ *   label={i18n.t("editor:ui.tags", { defaultValue: "Tags" })}
  *   placeholder="Add tag..."
  * />
  *

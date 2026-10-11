@@ -363,7 +363,6 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
   }, [ensureStatuses, downloadCandidates, cacheVersion]);
 
   const downloadModels = useMemo<DownloadableModel[]>(() => {
-  const { t } = useTranslation();
     return downloadCandidates.map((m) => {
       const key = getHfCacheKey(m);
       // With a worker attached, its cache is where the model is needed; a

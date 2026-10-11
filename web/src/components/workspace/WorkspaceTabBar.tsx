@@ -1,5 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import React, {
   Fragment,
@@ -54,6 +53,7 @@ import { ActivityIndicator } from "../timeline/ActivityIndicator";
 import { PROJECT_COLOR } from "../projects/projectIdentity";
 import { TYPE_COLOR, TYPE_GLYPH } from "./tabTypeIdentity";
 import { useOpenNewProjectTab, useProjects } from "../../hooks/useProjects";
+import { i18n, useAppLanguage } from "../../i18n";
 import { useWorkspaceHeaderActions } from "./WorkspaceHeaderActionsContext";
 
 /** Whether a document type supports both View and Edit (vs view-only). */
@@ -386,7 +386,8 @@ const styles = (theme: Theme) =>
   });
 
 const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
-  const { t } = useTranslation();
+  // Subscribe so catalog reads re-render on language change.
+  useAppLanguage();
   const theme = useTheme();
   const tabBarStyles = useMemo(() => styles(theme), [theme]);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -811,7 +812,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
         ref={newTabButtonRef}
         type="button"
         className="new-tab"
-        aria-label={t("nav:tabs.openOrCreate", { defaultValue: "Open or create a tab" })}
+        aria-label={i18n.t("nav:tabs.openOrCreate", { defaultValue: "Open or create a tab" })}
         aria-haspopup="menu"
         aria-expanded={menuOpen}
         onClick={() => setMenuOpen((v) => !v)}
@@ -819,7 +820,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
         <span className="new-tab-plus" aria-hidden>
           +
         </span>
-        <span className="new-tab-label">New</span>
+        <span className="new-tab-label">{i18n.t("nav:tabs.new", { defaultValue: "New" })}</span>
         <span className="new-tab-caret" aria-hidden>
           ▾
         </span>
@@ -878,7 +879,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
               aria-pressed={activeTab.mode === "view"}
               onClick={() => setMode(activeTab.id, "view")}
             >
-              View
+              {i18n.t("editor:ui.view", { defaultValue: "View" })}
             </button>
             <button
               type="button"
@@ -886,7 +887,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
               aria-pressed={activeTab.mode === "edit"}
               onClick={() => setMode(activeTab.id, "edit")}
             >
-              Edit
+              {i18n.t("editor:ui.edit", { defaultValue: "Edit" })}
             </button>
           </div>
         )}

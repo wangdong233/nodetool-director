@@ -10,7 +10,7 @@
  * <CircularActionButton
  *   icon={<PlayArrowIcon />}
  *   onClick={handleRun}
- *   tooltip={i18n.t("appbuilder:attrs.runWorkflow", { defaultValue: "Run workflow" })
+ *   tooltip={i18n.t("appbuilder:attrs.runWorkflow", { defaultValue: "Run workflow" })}
  * />
  *
  * @example
@@ -18,7 +18,7 @@
  * <CircularActionButton
  *   icon={<SaveIcon />}
  *   onClick={handleSave}
- *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })
+ *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
  *   isLoading={isSaving}
  * />
  *
@@ -34,7 +34,6 @@
  * />
  */
 
-import { i18n } from "../../i18n";
 import React, { memo, forwardRef, useCallback } from "react";
 import { IconButton, Tooltip } from "@mui/material";
 import { LoadingSpinner } from "./LoadingSpinner";

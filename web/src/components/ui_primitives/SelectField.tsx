@@ -6,7 +6,6 @@
  * The label renders above the control via the shared Label primitive.
  */
 
-import { i18n } from "../../i18n";
 import React, {
   createContext,
   memo,
@@ -77,7 +76,7 @@ export interface SelectFieldProps {
  * @example
  * // Basic select
  * <SelectField
- *   label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })
+ *   label={i18n.t("timeline:attrs.color", { defaultValue: "Color" })}
  *   value={color}
  *   onChange={setColor}
  *   options={[
@@ -89,7 +88,7 @@ export interface SelectFieldProps {
  * @example
  * // With description
  * <SelectField
- *   label={i18n.t("appbuilder:attrs.theme", { defaultValue: "Theme" })
+ *   label={i18n.t("appbuilder:attrs.theme", { defaultValue: "Theme" })}
  *   value={theme}
  *   onChange={setTheme}
  *   options={[
@@ -102,7 +101,7 @@ export interface SelectFieldProps {
  * @example
  * // Small standard variant
  * <SelectField
- *   label={i18n.t("editor:asset.info.size", { defaultValue: "Size" })
+ *   label={i18n.t("editor:asset.info.size", { defaultValue: "Size" })}
  *   value={size}
  *   onChange={setSize}
  *   options={[{ value: "s", label: "Small" }, { value: "m", label: "Medium" }]}

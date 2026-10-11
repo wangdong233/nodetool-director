@@ -21,7 +21,7 @@
  * this inside a useMemo must keep their useAppLanguage anchor (F-26) and list
  * `languageVersion` in that memo's deps.
  */
-import { i18n } from "../i18n";
+import { i18n } from "./index";
 
 /** Catalog block path inside the `catalog` namespace. */
 const DOCS_BLOCK = "nodeDocs";

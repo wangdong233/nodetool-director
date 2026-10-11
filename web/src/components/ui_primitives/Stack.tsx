@@ -5,7 +5,6 @@
  * Similar to MUI Stack but with simplified API optimized for vertical layouts.
  */
 
-import { i18n } from "../../i18n";
 import React, { forwardRef } from "react";
 import { Box, BoxProps } from "@mui/material";
 import { useTheme } from "@mui/material/styles";

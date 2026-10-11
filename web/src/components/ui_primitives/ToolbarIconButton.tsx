@@ -8,13 +8,12 @@
  * @example
  * <ToolbarIconButton
  *   icon={<SaveIcon />}
- *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })
+ *   tooltip={i18n.t("timeline:topbar.save", { defaultValue: "Save" })}
  *   shortcut={["Ctrl", "S"]}
  *   onClick={handleSave}
  * />
  */
 
-import { i18n } from "../../i18n";
 import React, { forwardRef, memo, useMemo } from "react";
 import { IconButton, IconButtonProps, Tooltip, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";

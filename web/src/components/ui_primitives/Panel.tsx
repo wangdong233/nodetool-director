@@ -5,7 +5,6 @@
  * Useful for creating sections within a page or dialog.
  */
 
-import { i18n } from "../../i18n";
 import React, { useCallback, useRef } from "react";
 import { Box, BoxProps, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";

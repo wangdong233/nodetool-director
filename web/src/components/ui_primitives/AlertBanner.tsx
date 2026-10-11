@@ -6,7 +6,6 @@
  * Used in 8+ files that directly import MUI Alert.
  */
 
-import { i18n } from "../../i18n";
 import { forwardRef } from "react";
 import { Alert, AlertTitle, AlertProps as MuiAlertProps } from "@mui/material";
 

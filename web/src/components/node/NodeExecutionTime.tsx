@@ -11,6 +11,7 @@ import {
 } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { useNodeExecutionDuration } from "../../hooks/nodes/useNodeExecState";
+import { useTranslation } from "react-i18next";
 
 interface NodeExecutionTimeProps {
   nodeId: string;
@@ -64,6 +65,7 @@ const NodeExecutionTime: React.FC<NodeExecutionTimeProps> = ({
   workflowId,
   status
 }) => {
+  const { t } = useTranslation();
   const duration = useNodeExecutionDuration(workflowId, nodeId);
 
   const shouldShow = status === "completed" || status === "error";
@@ -86,7 +88,7 @@ const NodeExecutionTime: React.FC<NodeExecutionTimeProps> = ({
         weight={500}
         sx={isError ? TEXT_SX_ERROR : TEXT_SX_SUCCESS}
       >
-        {isError ? "Failed in" : "Completed in"}
+        {isError ? t("editor:ui.failedIn", { defaultValue: "Failed in" }) : t("editor:ui.completedIn", { defaultValue: "Completed in" })}
         <Box
           component="span"
           sx={DURATION_SPAN_SX}
