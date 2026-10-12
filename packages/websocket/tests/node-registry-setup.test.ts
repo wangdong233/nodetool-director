@@ -348,6 +348,7 @@ describe("shared built-in host policy", () => {
       "elevenlabs",
       "fal",
       "huggingface",
+      "mediagen",
       "minimax",
       "replicate",
       "reve",
