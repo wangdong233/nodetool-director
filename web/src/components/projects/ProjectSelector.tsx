@@ -206,7 +206,9 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
         <span className="selector-glyph" aria-hidden>
           {PROJECT_GLYPH}
         </span>
-        <span className="selector-name">{inline ? name : "Project"}</span>
+        <span className="selector-name">
+          {inline ? name : t("editor:ui.project", { defaultValue: "Project" })}
+        </span>
         <span className="selector-caret" aria-hidden>
           ▾
         </span>

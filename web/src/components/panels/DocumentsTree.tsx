@@ -242,6 +242,12 @@ const DocumentTreeGroupRow = ({
     [onToggle]
   );
 
+  // Groups carry a stable labelKey when the label is translated (the raw label
+  // doubles as the English default); user-named groups render verbatim.
+  const groupLabel = group.labelKey
+    ? i18n.t(group.labelKey, { defaultValue: group.label })
+    : group.label;
+
   return (
     <FlexColumn
       className="documents-tree-branch"
@@ -278,12 +284,12 @@ const DocumentTreeGroupRow = ({
           expanded={expanded}
           iconVariant="chevron"
           onClick={handleDisclosureClick}
-          aria-label={`${expanded ? i18n.t("editor:ui.collapse", { defaultValue: "Collapse" }) : i18n.t("editor:ui.expand", { defaultValue: "Expand" })} ${group.label}`}
+          aria-label={`${expanded ? i18n.t("editor:ui.collapse", { defaultValue: "Collapse" }) : i18n.t("editor:ui.expand", { defaultValue: "Expand" })} ${groupLabel}`}
           tabIndex={-1}
         />
         <Icon aria-hidden="true" sx={{ fontSize: "var(--fontSizeBig)" }} />
         <Text size="small" truncate>
-          {group.label}
+          {groupLabel}
         </Text>
         <Text size="smaller" color="secondary" sx={{ marginLeft: "auto" }}>
           {group.children.length}

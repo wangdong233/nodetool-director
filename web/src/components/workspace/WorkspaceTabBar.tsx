@@ -28,6 +28,7 @@ import { getActiveSketchInstance } from "../../stores/sketch/SketchInstance";
 import { renameSketchDocument } from "../../stores/sketch/SketchSessionStore";
 import { readSketchDocumentId } from "../../hooks/sketch/ensureSketchDocumentForAsset";
 import { tabCanRename, renameStrategy } from "./tabRename";
+import { personalDisplayName } from "../projects/projectIdentity";
 import { renameTitledDocument } from "./renameTitledDocument";
 import { useWorkspaceDocumentClose } from "../../hooks/useWorkspaceDocumentClose";
 import { useNotificationStore } from "../../stores/NotificationStore";
@@ -422,8 +423,14 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
   const activeProject = projects?.find(
     (project) => project.id === activeProjectId
   );
-  const homeTitle =
-    activeProject?.name ?? (activeProjectId ? "Project" : "Home");
+  // The home tab's title is the project's name — the personal default swaps
+  // for a localized label (projectIdentity guard), a renamed project is user
+  // data and renders verbatim.
+  const homeTitle = activeProject
+    ? personalDisplayName(activeProject, i18n.t)
+    : activeProjectId
+      ? i18n.t("editor:ui.project", { defaultValue: "Project" })
+      : i18n.t("editor:ui.home", { defaultValue: "Home" });
   const visibleTabs = useMemo(
     () =>
       tabs.filter(

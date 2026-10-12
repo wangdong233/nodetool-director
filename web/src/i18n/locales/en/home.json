@@ -12,11 +12,35 @@
     "title": "What do you want to make?",
     "subtitle": "An agent plans the documents and builds them while you watch. Everything it makes stays editable.",
     "startGuided": "Start with a guided flow",
-    "orDescribe": "Or describe what you want to make",
+    "orDescribe": "Pick a skill to start from, or just describe what you want.",
     "guidedFlowsLabel": "Guided creation flows",
     "creating": "Creating your project…",
     "creatingMeta": "Creating…",
-    "oneFlowStarting": "One flow is already starting."
+    "oneFlowStarting": "One flow is already starting.",
+    "guidedLede": "A few short steps, each ending in a document you keep editing.",
+    "gameStartsAs": "Game card starts as",
+    "gameDimension": "Game dimension",
+    "game2d": "2D game",
+    "game3d": "3D exploration",
+    "fewerFormats": "Fewer formats",
+    "moreFormats": "More formats",
+    "waitingUploads": "Waiting for your reference images to upload.",
+    "creatingDraft": "Creating your draft…"
+  },
+  "flowError": {
+    "title": "Could not open it yet",
+    "report": "Report this failure",
+    "open": "Open your {{kind}}",
+    "notOpened": "Your {{kind}} is ready, but its project did not open.",
+    "openedWithFailures": "Opened your {{kind}}, but {{failures}}",
+    "kind": {
+      "entity": "entity",
+      "storyboard": "storyboard",
+      "video": "video",
+      "script": "script",
+      "workflow": "workflow",
+      "game": "game"
+    }
   },
   "entry": {
     "entity": {
@@ -45,7 +69,8 @@
     },
     "game": {
       "title": "Game",
-      "desc": "From a sentence to a running Godot project, assets checked."
+      "desc": "From a sentence to a running Godot project, assets checked.",
+      "desc3d": "Start with a playable 3D exploration scene in the built-in engine."
     }
   },
   "composer": {
@@ -61,7 +86,8 @@
     "skillGroup": "Start from a skill",
     "showFewer": "Show fewer",
     "moreCount": "{{count}} more",
-    "removeFile": "Remove {{name}}"
+    "removeFile": "Remove {{name}}",
+    "estimate": "est. ${{min}}–${{max}} · from {{count}} past projects · provider rates, no markup"
   },
   "docs": {
     "title": "Documents · {{count}}",
@@ -87,6 +113,14 @@
   "notices": {
     "checkingModels": "Still checking your language models. Try again in a moment.",
     "needModel": "Almost there — chat needs a model to run.",
-    "noModelSelected": "No model selected. Pick a language model here before opening chat."
+    "noModelSelected": "No model selected. Pick a language model here before opening chat.",
+    "pickModel": "Pick a language model and the chat starts."
+  },
+  "entitiesPickerTitle": "Entities for this project",
+  "blank": {
+    "title": "Blank document",
+    "lede": "— opens as a loose tab, outside any project",
+    "browseExamples": "Browse examples",
+    "tutorials": "Tutorials"
   }
 }
