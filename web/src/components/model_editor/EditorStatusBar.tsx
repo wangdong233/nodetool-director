@@ -1,5 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "@mui/material/styles";
 
 import { Caption, Divider, FlexRow, SPACING } from "../ui_primitives";
@@ -23,6 +24,7 @@ interface EditorStatusBarProps {
 
 /** Bottom bar: what is selected, what the mouse does now, and scene totals. */
 const EditorStatusBar = ({ selection, hint, stats }: EditorStatusBarProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <FlexRow
@@ -42,14 +44,24 @@ const EditorStatusBar = ({ selection, hint, stats }: EditorStatusBarProps) => {
       }}
     >
       <Caption sx={{ color: "text.primary", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>
-        {selection ? `${selection.name} · ${selection.type}` : "No selection"}
+        {selection
+          ? `${selection.name} · ${selection.type}`
+          : t("editor:ui.nothingSelectedStatus", { defaultValue: "No selection" })}
       </Caption>
       <Divider orientation="vertical" flexItem />
       <Caption sx={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>
         {hint}
       </Caption>
-      <Caption aria-label="Scene statistics">
-        {`Objects ${stats.objects}  ·  Meshes ${stats.meshes}  ·  Lights ${stats.lights}  ·  Verts ${compact(stats.vertices)}  ·  Tris ${compact(stats.triangles)}`}
+      <Caption aria-label={t("editor:ui.sceneStatistics", { defaultValue: "Scene statistics" })}>
+        {t("editor:ui.sceneStats", {
+          defaultValue:
+            "Objects {{objects}}  ·  Meshes {{meshes}}  ·  Lights {{lights}}  ·  Verts {{verts}}  ·  Tris {{tris}}",
+          objects: stats.objects,
+          meshes: stats.meshes,
+          lights: stats.lights,
+          verts: compact(stats.vertices),
+          tris: compact(stats.triangles)
+        })}
       </Caption>
     </FlexRow>
   );

@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
 import FitScreenIcon from "@mui/icons-material/FitScreen";
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
@@ -19,6 +20,15 @@ const VIEW_LABELS: Record<ViewPreset, string> = {
   left: "Left",
   top: "Top",
   bottom: "Bottom"
+};
+
+const VIEW_LABEL_KEYS: Record<ViewPreset, string> = {
+  front: "editor:ui.viewFront",
+  back: "editor:ui.viewBack",
+  right: "editor:ui.viewRight",
+  left: "editor:ui.viewLeft",
+  top: "editor:ui.viewTop",
+  bottom: "editor:ui.viewBottom"
 };
 
 const VIEW_ACTIONS: Record<ViewPreset, EditorAction> = {
@@ -52,14 +62,20 @@ const ViewportHud = ({
   onFrameAll,
   onFocus,
   onTogglePref
-}: ViewportHudProps) => (
+}: ViewportHudProps) => {
+  const { t } = useTranslation();
+  return (
     <FlexRow className={className}>
-      <MenuButton label="View" icon={<VideocamOutlinedIcon />} tooltip="Camera views">
+      <MenuButton
+        label={t("editor:ui.view", { defaultValue: "View" })}
+        icon={<VideocamOutlinedIcon />}
+        tooltip={t("editor:ui.cameraViews", { defaultValue: "Camera views" })}
+      >
         {(close) => [
           ...(Object.keys(VIEW_LABELS) as ViewPreset[]).map((view) => (
             <MenuItemPrimitive
               key={view}
-              label={VIEW_LABELS[view]}
+              label={t(VIEW_LABEL_KEYS[view], { defaultValue: VIEW_LABELS[view] })}
               shortcut={shortcutLabel(VIEW_ACTIONS[view])}
               onClick={() => {
                 onView(view);
@@ -69,7 +85,7 @@ const ViewportHud = ({
           )),
           <MenuItemPrimitive
             key="frame"
-            label="Frame all"
+            label={t("editor:ui.frameAll", { defaultValue: "Frame all" })}
             dividerBefore
             shortcut={shortcutLabel("frameAll")}
             onClick={() => {
@@ -81,14 +97,14 @@ const ViewportHud = ({
       </MenuButton>
       <ToolbarIconButton
         icon={<FitScreenIcon fontSize="small" />}
-        tooltip="Frame all"
+        tooltip={t("editor:ui.frameAll", { defaultValue: "Frame all" })}
         shortcut={shortcutKeys("frameAll")}
         onClick={onFrameAll}
         size="small"
       />
       <ToolbarIconButton
         icon={<CenterFocusStrongIcon fontSize="small" />}
-        tooltip="Focus selection"
+        tooltip={t("editor:ui.focusSelection", { defaultValue: "Focus selection" })}
         shortcut={shortcutKeys("focusSelection")}
         onClick={onFocus}
         disabled={!canFocus}
@@ -97,7 +113,7 @@ const ViewportHud = ({
       <Divider orientation="vertical" flexItem />
       <ToolbarIconButton
         icon={<GridOnIcon fontSize="small" />}
-        tooltip="Grid"
+        tooltip={t("editor:ui.grid", { defaultValue: "Grid" })}
         shortcut={shortcutKeys("toggleGrid")}
         onClick={() => onTogglePref("grid")}
         active={prefs.grid}
@@ -105,7 +121,7 @@ const ViewportHud = ({
       />
       <ToolbarIconButton
         icon={<ViewInArOutlinedIcon fontSize="small" />}
-        tooltip="Wireframe overlay"
+        tooltip={t("editor:ui.wireframeOverlay", { defaultValue: "Wireframe overlay" })}
         shortcut={shortcutKeys("toggleWireframe")}
         onClick={() => onTogglePref("wireframe")}
         active={prefs.wireframe}
@@ -113,12 +129,13 @@ const ViewportHud = ({
       />
       <ToolbarIconButton
         icon={<LightbulbOutlinedIcon fontSize="small" />}
-        tooltip="Light icons"
+        tooltip={t("editor:ui.lightIcons", { defaultValue: "Light icons" })}
         onClick={() => onTogglePref("lightIcons")}
         active={prefs.lightIcons}
         size="small"
       />
     </FlexRow>
-);
+  );
+};
 
 export default memo(ViewportHud);

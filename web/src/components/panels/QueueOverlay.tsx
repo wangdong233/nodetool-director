@@ -510,9 +510,12 @@ const QueueOverlay = memo(function QueueOverlay() {
               {single ? (
                 <SingleName job={single} />
               ) : running.length ? (
-                `${running.length} jobs running`
+                t("editor:ui.jobsRunning", {
+                  defaultValue: "{{count}} jobs running",
+                  count: running.length
+                })
               ) : (
-                "Queue"
+                t("editor:bottom.queue", { defaultValue: "Queue" })
               )}
             </Text>
             {single && (
@@ -528,7 +531,10 @@ const QueueOverlay = memo(function QueueOverlay() {
           {queued.length > 0 && (
             <FlexRow align="center" gap={0.5} sx={{ color: "text.secondary" }}>
               <ScheduleIcon sx={{ fontSize: 13 }} />
-              <Text size="smaller" color="secondary">{queued.length} queued
+              <Text size="smaller" color="secondary">{t("editor:ui.queuedCount", {
+                defaultValue: "{{count}} queued",
+                count: queued.length
+              })}
                             </Text>
             </FlexRow>
           )}
@@ -540,7 +546,7 @@ const QueueOverlay = memo(function QueueOverlay() {
   return (
     <Box css={[overlayStyles(theme), mobileOverlayStyles(theme)]} data-state={hasJobs ? "open" : "closed"}>
       <PanelHeader
-        title="Queue"
+        title={t("editor:bottom.queue", { defaultValue: "Queue" })}
         icon={<LayersIcon />}
         actions={
           <ToolbarIconButton

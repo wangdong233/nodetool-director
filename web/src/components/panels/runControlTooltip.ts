@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { i18n } from "../../i18n";
 import { getShortcutTooltip } from "../../config/shortcuts";
 
 export interface RunControlTooltipState {
@@ -24,19 +25,39 @@ export const runControlTooltip = ({
   pendingRunCount
 }: RunControlTooltipState): ReactNode => {
   if (isStopping) {
-    return "Stopping workflow";
+    return i18n.t("editor:ui.stoppingWorkflow", { defaultValue: "Stopping workflow" });
   }
   if (runControlLabel.startsWith("Error")) {
-    return `${runControlDetail ?? "Workflow failed to start"}. Click to retry the entire workflow.`;
+    // Suffix composition keeps the existing dictionary keys byte-aligned.
+    const detail =
+      runControlDetail ??
+      i18n.t("editor:ui.workflowFailedToStart", { defaultValue: "Workflow failed to start" });
+    return (
+      detail +
+      i18n.t("editor:ui.clickToRetryTheEntireWorkflow", {
+        defaultValue: ". Click to retry the entire workflow."
+      })
+    );
   }
   if (queuePosition != null) {
-    return `Queued (#${queuePosition})`;
+    return i18n.t("editor:ui.queuedAtPosition", {
+      defaultValue: "Queued (#{{position}})",
+      position: queuePosition
+    });
   }
   if (pendingRunCount > 0) {
-    return `Running — ${pendingRunCount} queued (click to queue another)`;
+    return i18n.t("editor:ui.runningQueuedClickToQueue", {
+      defaultValue: "Running — {{count}} queued (click to queue another)",
+      count: pendingRunCount
+    });
   }
   if (isWorkflowActive) {
-    return `${runControlLabel} (click to queue another entire workflow run)`;
+    return (
+      runControlLabel +
+      i18n.t("editor:ui.clickToQueueAnotherEntireWorkflowRun", {
+        defaultValue: " (click to queue another entire workflow run)"
+      })
+    );
   }
   return getShortcutTooltip("runWorkflow", undefined, "full", true);
 };

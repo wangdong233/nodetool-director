@@ -72,10 +72,10 @@ const LogPanel: React.FC = memo(function LogPanel() {
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setActiveTab = useWorkspaceTabsStore((state) => state.setActiveTab);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const { t } = useTranslation();
 
   // Map workflow id -> name for quick lookup
   const wfName = useMemo(() => {
-  const { t } = useTranslation();
     const map: Record<string, string> = {};
     openWorkflows.forEach((w) => (map[w.id] = w.name));
     return map;
@@ -157,7 +157,6 @@ const LogPanel: React.FC = memo(function LogPanel() {
 
   const handleRevealNode = useCallback(
     (workflowId: string, nodeId: string) => {
-  const { t } = useTranslation();
       const workflowTab: {
         type: "workflow";
         ref: string;
@@ -198,7 +197,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
       className={isFullscreen ? "fullscreen" : undefined}
     >
       <PanelHeader
-        title="Logs"
+        title={t("editor:bottom.logs", { defaultValue: "Logs" })}
         count={filteredRows.length}
         actions={
           <ToolbarIconButton
