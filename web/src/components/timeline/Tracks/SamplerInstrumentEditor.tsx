@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createTimeOrderedUuid,
@@ -35,6 +36,7 @@ export default function SamplerInstrumentEditor({
   instrument,
   onChange
 }: SamplerInstrumentEditorProps): React.JSX.Element {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState("");
   const [mapping, setMapping] = useState("drum");
   const [uploading, setUploading] = useState(false);
@@ -110,30 +112,28 @@ export default function SamplerInstrumentEditor({
   };
   return (
     <FlexColumn gap={SPACING.lg}>
-      <Label>Sampler</Label>
+      <Label>{t("timeline:sampler.title", { defaultValue: "Sampler" })}</Label>
       <Caption color="muted">
-        Load recordings up to 60 seconds. Drum mappings play on one key. Pitched
-        mappings transpose from the root note. Overlapping ranges layer samples.
-        Stereo recordings are mixed to mono.
+        {t("timeline:sampler.description", { defaultValue: "Load recordings up to 60 seconds. Drum mappings play on one key. Pitched mappings transpose from the root note. Overlapping ranges layer samples. Stereo recordings are mixed to mono." })}
       </Caption>
       <SelectField
-        label="New sample mapping"
+        label={t("timeline:sampler.newMapping", { defaultValue: "New sample mapping" })}
         value={mapping}
         options={[
-          { value: "drum", label: "Drum · one key" },
-          { value: "pitched", label: "Pitched · full keyboard" }
+          { value: "drum", label: t("timeline:sampler.drumOneKey", { defaultValue: "Drum · one key" }) },
+          { value: "pitched", label: t("timeline:sampler.pitchedFullKeyboard", { defaultValue: "Pitched · full keyboard" }) }
         ]}
         onChange={setMapping}
       />
       <SelectField
-        label="Audio sample"
+        label={t("timeline:sampler.audioSample", { defaultValue: "Audio sample" })}
         value={selected}
         options={[
           {
             value: "",
             label: assets.isLoading
-              ? "Loading samples…"
-              : "Choose an audio asset"
+              ? t("timeline:sampler.loadingSamples", { defaultValue: "Loading samples…" })
+              : t("timeline:sampler.chooseAnAudioAsset", { defaultValue: "Choose an audio asset" })
           },
           ...(assets.data ?? []).map((asset) => ({
             value: asset.id,
@@ -150,20 +150,22 @@ export default function SamplerInstrumentEditor({
             if (asset) add(asset.id, asset.name);
           }}
         >
-          Add sample
+          {t("timeline:sampler.addSample", { defaultValue: "Add sample" })}
         </Button>
         <Button
           disabled={uploading || instrument.zones.length >= 32}
           onClick={() => fileInput.current?.click()}
         >
-          {uploading ? "Uploading…" : "Upload audio"}
+          {uploading
+            ? t("timeline:sampler.uploading", { defaultValue: "Uploading…" })
+            : t("timeline:sampler.uploadAudio", { defaultValue: "Upload audio" })}
         </Button>
         <input
           ref={fileInput}
           type="file"
           accept="audio/*,.wav,.flac,.mp3,.ogg,.m4a"
           hidden
-          aria-label="Upload sampler audio"
+          aria-label={t("timeline:sampler.uploadSamplerAudio", { defaultValue: "Upload sampler audio" })}
           onChange={(event) => {
             const file = event.target.files?.[0];
             event.target.value = "";
@@ -192,24 +194,24 @@ export default function SamplerInstrumentEditor({
       </FlexRow>
       {(error || assets.error) && (
         <Caption role="alert">
-          {error || "Could not load audio assets."}
+          {error || t("timeline:sampler.couldNotLoadAudioAssets", { defaultValue: "Could not load audio assets." })}
         </Caption>
       )}
       <SelectField
-        label="Playback"
+        label={t("timeline:sampler.playback", { defaultValue: "Playback" })}
         value={instrument.oneShot ? "one-shot" : "gated"}
         options={[
-          { value: "one-shot", label: "One-shot · play full sample" },
-          { value: "gated", label: "Gated · release at note-off" }
+          { value: "one-shot", label: t("timeline:sampler.oneShot", { defaultValue: "One-shot · play full sample" }) },
+          { value: "gated", label: t("timeline:sampler.gated", { defaultValue: "Gated · release at note-off" }) }
         ]}
         onChange={(value) =>
           onChange({ ...instrument, oneShot: value === "one-shot" })
         }
       />
       <FlexRow gap={SPACING.md}>
-        <FormField label="Attack (ms)" compact sx={{ flex: 1, minWidth: 0 }}>
+        <FormField label={t("timeline:sampler.attackMs", { defaultValue: "Attack (ms)" })} compact sx={{ flex: 1, minWidth: 0 }}>
           <NumericField
-            label="Attack (ms)"
+            label={t("timeline:sampler.attackMs", { defaultValue: "Attack (ms)" })}
             value={instrument.attackMs}
             min={0}
             max={10000}
@@ -221,9 +223,9 @@ export default function SamplerInstrumentEditor({
             }
           />
         </FormField>
-        <FormField label="Release (ms)" compact sx={{ flex: 1, minWidth: 0 }}>
+        <FormField label={t("timeline:sampler.releaseMs", { defaultValue: "Release (ms)" })} compact sx={{ flex: 1, minWidth: 0 }}>
           <NumericField
-            label="Release (ms)"
+            label={t("timeline:sampler.releaseMs", { defaultValue: "Release (ms)" })}
             value={instrument.releaseMs}
             min={0}
             max={30000}
@@ -235,9 +237,9 @@ export default function SamplerInstrumentEditor({
             }
           />
         </FormField>
-        <FormField label="Gain (dB)" compact sx={{ flex: 1, minWidth: 0 }}>
+        <FormField label={t("timeline:sampler.gainDb", { defaultValue: "Gain (dB)" })} compact sx={{ flex: 1, minWidth: 0 }}>
           <NumericField
-            label="Gain (dB)"
+            label={t("timeline:sampler.gainDb", { defaultValue: "Gain (dB)" })}
             value={instrument.gainDb}
             min={-60}
             max={12}
@@ -254,9 +256,9 @@ export default function SamplerInstrumentEditor({
         <FlexColumn key={zone.id} gap={SPACING.md}>
           <Label>{zone.name}</Label>
           <FlexRow gap={SPACING.md}>
-            <FormField label="Root note" compact sx={{ flex: 1, minWidth: 0 }}>
+            <FormField label={t("timeline:sampler.rootNote", { defaultValue: "Root note" })} compact sx={{ flex: 1, minWidth: 0 }}>
               <NumericField
-                label={`${zone.name} root note`}
+                label={t("timeline:sampler.zoneRootNote", { defaultValue: "{{name}} root note", name: zone.name })}
                 value={zone.rootNote}
                 min={0}
                 max={127}
@@ -272,9 +274,9 @@ export default function SamplerInstrumentEditor({
                 }}
               />
             </FormField>
-            <FormField label="Lowest key" compact sx={{ flex: 1, minWidth: 0 }}>
+            <FormField label={t("timeline:sampler.lowestKey", { defaultValue: "Lowest key" })} compact sx={{ flex: 1, minWidth: 0 }}>
               <NumericField
-                label={`${zone.name} lowest key`}
+                label={t("timeline:sampler.zoneLowestKey", { defaultValue: "{{name}} lowest key", name: zone.name })}
                 value={zone.lowNote}
                 min={0}
                 max={zone.highNote}
@@ -287,12 +289,12 @@ export default function SamplerInstrumentEditor({
               />
             </FormField>
             <FormField
-              label="Highest key"
+              label={t("timeline:sampler.highestKey", { defaultValue: "Highest key" })}
               compact
               sx={{ flex: 1, minWidth: 0 }}
             >
               <NumericField
-                label={`${zone.name} highest key`}
+                label={t("timeline:sampler.zoneHighestKey", { defaultValue: "{{name}} highest key", name: zone.name })}
                 value={zone.highNote}
                 min={zone.lowNote}
                 max={127}
@@ -305,9 +307,9 @@ export default function SamplerInstrumentEditor({
               />
             </FormField>
           </FlexRow>
-          <FormField label="Gain (dB)" compact sx={{ flex: 1, minWidth: 0 }}>
+          <FormField label={t("timeline:sampler.gainDb", { defaultValue: "Gain (dB)" })} compact sx={{ flex: 1, minWidth: 0 }}>
             <NumericField
-              label={`${zone.name} gain (dB)`}
+              label={t("timeline:sampler.zoneGainDb", { defaultValue: "{{name}} gain (dB)", name: zone.name })}
               value={zone.gainDb}
               min={-60}
               max={12}

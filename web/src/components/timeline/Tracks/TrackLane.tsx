@@ -145,8 +145,9 @@ interface TrackLaneProps {
 
 const CLIP_OVERSCAN_PX = 320;
 
+export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClips = false, collapsedFolderIds }) => {
   const { t } = useTranslation();
-export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClips = false, collapsedFolderIds }) => {  const theme = useTheme();
+  const theme = useTheme();
   const timelineStore = useTimelineStoreApi();
   const msPerPx = useTimelineUIStore((s) => s.msPerPx);
   const verticalZoom = useTimelineUIStore((s) => s.verticalZoom);

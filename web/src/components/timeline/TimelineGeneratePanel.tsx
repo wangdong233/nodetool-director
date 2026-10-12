@@ -11,6 +11,7 @@ import React, {
   useRef,
   useState
 } from "react";
+import { useTranslation } from "react-i18next";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import AudiotrackIcon from "@mui/icons-material/Audiotrack";
 import ModelChip from "../chat/composer/ModelChip";
@@ -87,6 +88,7 @@ interface TimelineGeneratePanelProps {
 }
 
 export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(({ onGenerated }) => {
+  const { t } = useTranslation();
   const inStudio = useInStudio();
   const timeline = useTimelineStoreApi();
   const playback = useTimelinePlaybackStoreApi();
@@ -241,7 +243,9 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
       .tracks.find((track) => track.type === mediaType && !track.locked)?.id;
     if (!trackId) {
       setError(
-        `Unlock ${mediaType === "audio" ? "an audio" : "a video"} track first.`
+        mediaType === "audio"
+          ? t("timeline:attrs.unlockAnAudioTrackFirst", { defaultValue: "Unlock an audio track first." })
+          : t("timeline:attrs.unlockAVideoTrackFirst", { defaultValue: "Unlock a video track first." })
       );
       return;
     }
@@ -274,7 +278,9 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
       setPrompt("");
       onGenerated?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate");
+      setError(err instanceof Error
+        ? err.message
+        : t("timeline:attrs.failedToGenerate", { defaultValue: "Failed to generate" }));
     } finally {
       setBusy(false);
     }
@@ -339,10 +345,10 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
       onKeyDown={handleKeyDown}
       placeholder={
         mode === "music"
-          ? "Describe the music you want to generate…"
+          ? t("timeline:attrs.describeTheMusicYouWantToGenerate", { defaultValue: "Describe the music you want to generate…" })
           : mode === "audio"
-            ? "Enter text to speak…"
-            : "Describe the shot: subject, action, camera, light…"
+            ? t("timeline:attrs.enterTextToSpeak", { defaultValue: "Enter text to speak…" })
+            : t("timeline:attrs.describeTheShot", { defaultValue: "Describe the shot: subject, action, camera, light…" })
       }
       multiline
       minRows={4}
@@ -351,7 +357,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
       autoFocus
       disabled={busy}
       inputProps={{
-        "aria-label": `Quick ${bindingKind} prompt`,
+        "aria-label": t("timeline:attrs.quickPromptAria", { defaultValue: "Quick {{kind}} prompt", kind: bindingKind }),
         "data-testid": "topbar-prompt-input"
       }}
     />
@@ -370,7 +376,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
   const costLine = (
     <CostEstimateLine
       estimate={generationCostLine(costEstimate)}
-      title="Estimated cost of this generation"
+      title={t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
     />
   );
 
@@ -387,14 +393,16 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
         )
       }
       data-testid="topbar-generate"
-      aria-label={`Generate ${mode}`}
+      aria-label={`${t("ui2:attrs.generate", { defaultValue: "Generate" })} ${mode}`}
       // Native tooltip still fires on a disabled button: say why it is off.
       title={
-        canSubmit ? undefined : "Type a prompt and pick a model to generate"
+        canSubmit
+          ? undefined
+          : t("timeline:attrs.typeAPromptAndPickAModelToGenerate", { defaultValue: "Type a prompt and pick a model to generate" })
       }
       sx={{ flexShrink: 0 }}
     >
-      Generate
+      {t("ui2:attrs.generate", { defaultValue: "Generate" })}
     </EditorButton>
   );
 
@@ -403,7 +411,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
       <MediaControlChip
         ref={videoModelAnchorRef}
         icon={<MovieIcon fontSize="small" />}
-        label={selectedModel?.name || "Select model"}
+        label={selectedModel?.name || t("editor:ui.selectModelLower", { defaultValue: "Select model" })}
         active={videoModelOpen}
         onClick={() => setVideoModelOpen(true)}
         truncate
@@ -415,7 +423,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
             anchorEl={videoModelAnchorRef.current}
             open
             onClose={() => setVideoModelOpen(false)}
-            header="Video model"
+            header={t("editor:ui.videoModel", { defaultValue: "Video model" })}
             value={selectedModel?.id ?? ""}
             options={curatedClipOptions}
             onChange={(id) => {
@@ -436,7 +444,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
 
       <MediaControlChip
         icon={<AccessTimeIcon fontSize="small" />}
-        label={`${duration} Sec`}
+        label={`${duration} ${t("timeline:attrs.secUnit", { defaultValue: "Sec" })}`}
         active={!!durationAnchor}
         onClick={(e) => setDurationAnchor(e.currentTarget)}
         showChevron={false}
@@ -445,7 +453,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
         anchorEl={durationAnchor}
         open={!!durationAnchor}
         onClose={() => setDurationAnchor(null)}
-        header="Duration"
+        header={t("timeline:attrs.duration", { defaultValue: "Duration" })}
         value={duration}
         options={durationOptions}
         onChange={(d) => setDuration(d)}
@@ -462,7 +470,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
         anchorEl={resolutionAnchor}
         open={!!resolutionAnchor}
         onClose={() => setResolutionAnchor(null)}
-        header="Video resolution"
+        header={t("timeline:attrs.videoResolution", { defaultValue: "Video resolution" })}
         value={resolution}
         options={resolutionOptions}
         onChange={(r) => setResolution(r)}
@@ -501,8 +509,8 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
         label={
           inStudio
             ? (STUDIO_VOICES.find((option) => option.id === audio?.voice)
-                ?.label ?? "Voice")
-            : audio?.model.name || "Select TTS Model"
+                ?.label ?? t("storyboard:attrs.voice", { defaultValue: "Voice" }))
+            : audio?.model.name || t("editor:ui.selectTTSModel", { defaultValue: "Select TTS Model" })
         }
         active={audioModelOpen}
         onClick={openAudioModel}
@@ -514,7 +522,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
             anchorEl={audioModelAnchorRef.current}
             open
             onClose={closeAudioModel}
-            header="Voice"
+            header={t("storyboard:attrs.voice", { defaultValue: "Voice" })}
             value={audio?.voice ?? ""}
             options={STUDIO_VOICES.map((option) => ({
               id: option.id,
@@ -539,8 +547,8 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
         <OptionChip
           menu="option"
           icon={<RecordVoiceOverIcon fontSize="small" />}
-          label={audio.voice || "Voice"}
-          header="Voice"
+          label={audio.voice || t("storyboard:attrs.voice", { defaultValue: "Voice" })}
+          header={t("storyboard:attrs.voice", { defaultValue: "Voice" })}
           value={audio.voice}
           options={voiceOptions}
           onChange={(voice) => setAudioSelection({ ...audio, voice })}
@@ -553,17 +561,23 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
     <>
       <ModelChip
         icon={<AudiotrackIcon fontSize="small" />}
-        label={musicModel?.name || "Select Music Model"}
+        label={musicModel?.name || t("editor:ui.selectMusicModel", { defaultValue: "Select Music Model" })}
         picker={{ kind: "music", onPick: setMusicSelection }}
       />
       <OptionChip
         menu="option"
         icon={<AccessTimeIcon fontSize="small" />}
-        label={`${musicDuration} Sec`}
-        header="Target duration"
-        title={`Target duration: ${musicDuration} seconds. The model may adjust or ignore this.`}
+        label={`${musicDuration} ${t("timeline:attrs.secUnit", { defaultValue: "Sec" })}`}
+        header={t("timeline:attrs.targetDuration", { defaultValue: "Target duration" })}
+        title={t("timeline:attrs.targetDurationTitle", {
+          defaultValue: "Target duration: {{n}} seconds. The model may adjust or ignore this.",
+          n: musicDuration
+        })}
         value={musicDuration}
-        options={MUSIC_DURATIONS.map((id) => ({ id, label: `${id} Sec` }))}
+        options={MUSIC_DURATIONS.map((id) => ({
+          id,
+          label: `${id} ${t("timeline:attrs.secUnit", { defaultValue: "Sec" })}`
+        }))}
         onChange={setMusicDuration}
       />
     </>

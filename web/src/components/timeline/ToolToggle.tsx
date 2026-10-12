@@ -271,7 +271,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       </ToolButton>
       <ToolButton
         label={t("timeline:tools.ripple", { defaultValue: "Ripple" })}
-        description="Trims and deletes close the gap"        active={rippleMode}
+        description={t("timeline:tools.rippleDesc", { defaultValue: "Trims and deletes close the gap" })}        active={rippleMode}
         compact={compact}
         onClick={toggleRippleMode}
       >
@@ -282,14 +282,14 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         gap={0.5}
         align="center"
         role="radiogroup"
-        aria-label="Drop mode"
+        aria-label={t("timeline:tools.dropMode", { defaultValue: "Drop mode" })}
         onKeyDown={handleDropModeKeyDown}
         css={compact ? compactGroupStyles : undefined}
       >
       <ToolButton
         label={t("timeline:tools.overwrite", { defaultValue: "Overwrite" })}
         role="radio"
-        description="A drop replaces what it covers"        active={dropMode === "overwrite"}
+        description={t("timeline:tools.overwriteDesc", { defaultValue: "A drop replaces what it covers" })}        active={dropMode === "overwrite"}
         compact={compact}
         onClick={() => setDropMode("overwrite")}
       >
@@ -298,7 +298,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       <ToolButton
         label={t("timeline:tools.insert", { defaultValue: "Insert" })}
         role="radio"
-        description="A drop pushes later clips right (or Ctrl+drag in any mode)"        active={dropMode === "insert"}
+        description={t("timeline:tools.insertDesc", { defaultValue: "A drop pushes later clips right (or Ctrl+drag in any mode)" })}        active={dropMode === "insert"}
         compact={compact}
         onClick={() => setDropMode("insert")}
       >
@@ -307,7 +307,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       <ToolButton
         label={t("timeline:tools.overlap", { defaultValue: "Overlap" })}
         role="radio"
-        description="A drop stacks and cross-fades"        active={dropMode === "overlap"}
+        description={t("timeline:tools.overlapDesc", { defaultValue: "A drop stacks and cross-fades" })}        active={dropMode === "overlap"}
         compact={compact}
         onClick={() => setDropMode("overlap")}
       >
@@ -318,7 +318,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       <ToolButton
         label={t("ui2:attrs.snap", { defaultValue: "Snap" })}
         shortcut={formatActionShortcut(preset, "toggleSnap")}
-        description="Hold Alt while dragging to bypass"        active={snapEnabled}
+        description={t("timeline:tools.snapDesc", { defaultValue: "Hold Alt while dragging to bypass" })}        active={snapEnabled}
         compact={compact}
         onClick={toggleSnap}
       >
@@ -326,7 +326,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       </ToolButton>
       <ToolButton
         label={t("editor:ui.bars", { defaultValue: "Bars" })}
-        description="The ruler counts bars and beats, not seconds"        active={rulerMode === "bars"}
+        description={t("timeline:tools.barsDesc", { defaultValue: "The ruler counts bars and beats, not seconds" })}        active={rulerMode === "bars"}
         compact={compact}
         onClick={toggleRulerMode}
       >
@@ -344,7 +344,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       <span css={dividerStyles} aria-hidden />
       <ToolButton
         label={t("timeline:tools.linked", { defaultValue: "Linked" })}
-        description="Video and its audio move together"        active={linkedSelection}
+        description={t("timeline:tools.linkedDesc", { defaultValue: "Video and its audio move together" })}        active={linkedSelection}
         compact={compact}
         onClick={() => setLinkedSelection(!linkedSelection)}
       >

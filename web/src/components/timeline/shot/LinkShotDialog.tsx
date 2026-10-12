@@ -7,6 +7,7 @@
  */
 
 import React, { memo, useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Shot } from "@nodetool-ai/protocol";
 
 import {
@@ -33,6 +34,7 @@ const shotLabel = (shot: Shot): string =>
   }`;
 
 const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
+  const { t } = useTranslation();
   const timeline = useTimelineStoreApi();
   const history = useTimelineHistoryBatch();
   const { data: boards, isLoading: boardsLoading } = useStoryboards();
@@ -49,17 +51,17 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
       {
         value: "",
         label: boardsLoading
-          ? "Loading storyboards…"
+          ? t("timeline:shot.loadingStoryboards", { defaultValue: "Loading storyboards…" })
           : (boards?.length ?? 0) === 0
-            ? "No storyboards yet"
-            : "Choose a storyboard"
+            ? t("timeline:shot.noStoryboardsYet", { defaultValue: "No storyboards yet" })
+            : t("timeline:shot.chooseAStoryboard", { defaultValue: "Choose a storyboard" })
       },
       ...(boards ?? []).map((item) => ({
         value: item.id,
-        label: item.name || "Untitled storyboard"
+        label: item.name || t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" })
       }))
     ],
-    [boards, boardsLoading]
+    [boards, boardsLoading, t]
   );
   const shotOptions = useMemo(() => {
     // SAFETY: the wire document's `shots` is the passthrough zod mirror of
@@ -68,13 +70,15 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
     return [
       {
         value: "",
-        label: boardId ? "Choose a shot" : "Choose a storyboard first"
+        label: boardId
+          ? t("timeline:shot.chooseAShot", { defaultValue: "Choose a shot" })
+          : t("timeline:shot.chooseAStoryboardFirst", { defaultValue: "Choose a storyboard first" })
       },
       ...[...shots]
         .sort((a, b) => a.index - b.index)
         .map((shot) => ({ value: shot.id, label: shotLabel(shot) }))
     ];
-  }, [board, boardId]);
+  }, [board, boardId, t]);
 
   const handleBoardChange = useCallback((value: string) => {
     setBoardId(value);
@@ -118,19 +122,18 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
     <Dialog
       open
       onClose={onClose}
-      title="Link to a storyboard shot"
+      title={t("timeline:shot.linkToAStoryboardShot", { defaultValue: "Link to a storyboard shot" })}
       onConfirm={handleConfirm}
-      confirmText="Link"
+      confirmText={t("editor:ui.link", { defaultValue: "Link" })}
       confirmDisabled={!boardId || !shotId}
     >
       <FlexColumn gap={SPACING.md}>
         <Caption color="secondary">
-          The clip keeps its footage. When the shot&apos;s selected take
-          changes, the clip plays the new one.
+          {t("timeline:shot.theClipKeepsItsFootage", { defaultValue: "The clip keeps its footage. When the shot's selected take changes, the clip plays the new one." })}
         </Caption>
-        <FormField label="Storyboard">
+        <FormField label={t("editor:ui.storyboard", { defaultValue: "Storyboard" })}>
           <SelectField
-            label="Storyboard"
+            label={t("editor:ui.storyboard", { defaultValue: "Storyboard" })}
             hideLabel
             value={boardId}
             onChange={handleBoardChange}
@@ -138,9 +141,9 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
             disabled={boardsLoading}
           />
         </FormField>
-        <FormField label="Shot">
+        <FormField label={t("editor:ui.shot", { defaultValue: "Shot" })}>
           <SelectField
-            label="Shot"
+            label={t("editor:ui.shot", { defaultValue: "Shot" })}
             hideLabel
             value={shotId}
             onChange={setShotId}

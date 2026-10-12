@@ -178,7 +178,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
             <Radio value="center" label={t("timeline:adapt.center", { defaultValue: "Center" })} size="small" />
             <Radio
               value="smart"
-              label="Smart reframe"
+              label={t("timeline:attrs.smartReframe", { defaultValue: "Smart reframe" })}
               size="small"
               disabled={smartUnavailable}
             />
@@ -230,8 +230,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
 
         {error && <Caption color="error">{error}</Caption>}
         <Caption color="muted">
-          New sequences share the source media. The original edit is not resized
-          or changed.
+          {t("timeline:adapt.newSequencesShareMedia", { defaultValue: "New sequences share the source media. The original edit is not resized or changed." })}
         </Caption>
       </FlexColumn>
     </Dialog>

@@ -1,5 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import React, { memo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -166,6 +167,7 @@ interface TimelineViewControlsProps {
 export const TimelineViewControls: React.FC<TimelineViewControlsProps> = memo(
   ({ compact, onZoomToFit }) => {
     const theme = useTheme();
+    const { t } = useTranslation();
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const msPerPx = useTimelineUIStore((state) => state.msPerPx);
     const verticalZoom = useTimelineUIStore((state) => state.verticalZoom);
@@ -179,14 +181,14 @@ export const TimelineViewControls: React.FC<TimelineViewControlsProps> = memo(
           type="button"
           css={triggerStyles(theme, compact, open)}
           onClick={(event) => setAnchorEl(open ? null : event.currentTarget)}
-          aria-label="Timeline view"
+          aria-label={t("timeline:view.timelineView", { defaultValue: "Timeline view" })}
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={open ? "timeline-view-controls" : undefined}
-          title="Timeline view"
+          title={t("timeline:view.timelineView", { defaultValue: "Timeline view" })}
         >
           <ViewTimelineOutlinedIcon fontSize="small" />
-          {!compact && <span>View</span>}
+          {!compact && <span>{t("timeline:shortcuts.view", { defaultValue: "View" })}</span>}
         </button>
         <Popover
           open={open}
@@ -202,12 +204,12 @@ export const TimelineViewControls: React.FC<TimelineViewControlsProps> = memo(
           <div
             id="timeline-view-controls"
             role="dialog"
-            aria-label="Timeline view"
+            aria-label={t("timeline:view.timelineView", { defaultValue: "Timeline view" })}
             css={panelStyles(theme)}
           >
             <div css={rowStyles}>
               <div css={labelStyles(theme)}>
-                <span>Timeline zoom</span>
+                <span>{t("timeline:view.timelineZoom", { defaultValue: "Timeline zoom" })}</span>
                 <span css={valueStyles(theme)}>
                   {Math.round((DEFAULT_MS_PER_PX / msPerPx) * 100)}%
                 </span>
@@ -217,7 +219,7 @@ export const TimelineViewControls: React.FC<TimelineViewControlsProps> = memo(
                   type="button"
                   css={stepButtonStyles(theme)}
                   onClick={() => setZoom(msPerPx * 1.25)}
-                  aria-label="Zoom out timeline"
+                  aria-label={t("timeline:view.zoomOutTimeline", { defaultValue: "Zoom out timeline" })}
                   disabled={msPerPx >= MAX_MS_PER_PX}
                 >
                   <RemoveIcon />
@@ -238,24 +240,24 @@ export const TimelineViewControls: React.FC<TimelineViewControlsProps> = memo(
                         Math.exp((-Number(value) / 100) * TIME_ZOOM_RANGE)
                     )
                   }
-                  aria-label="Horizontal zoom"
+                  aria-label={t("timeline:view.horizontalZoom", { defaultValue: "Horizontal zoom" })}
                 />
                 <button
                   type="button"
                   css={stepButtonStyles(theme)}
                   onClick={() => setZoom(msPerPx * 0.8)}
-                  aria-label="Zoom in timeline"
+                  aria-label={t("timeline:view.zoomInTimeline", { defaultValue: "Zoom in timeline" })}
                   disabled={msPerPx <= MIN_MS_PER_PX}
                 >
                   <AddIcon />
                 </button>
                 {onZoomToFit && (
-                  <Tooltip title="Zoom to fit (Shift+Z)">
+                  <Tooltip title={t("timeline:view.zoomToFitShiftZ", { defaultValue: "Zoom to fit (Shift+Z)" })}>
                     <button
                       type="button"
                       css={stepButtonStyles(theme)}
                       onClick={onZoomToFit}
-                      aria-label="Zoom to fit"
+                      aria-label={t("timeline:view.zoomToFit", { defaultValue: "Zoom to fit" })}
                     >
                       <FitScreenIcon />
                     </button>
@@ -265,7 +267,7 @@ export const TimelineViewControls: React.FC<TimelineViewControlsProps> = memo(
             </div>
             <div css={rowStyles}>
               <div css={labelStyles(theme)}>
-                <span>Track height</span>
+                <span>{t("timeline:view.trackHeight", { defaultValue: "Track height" })}</span>
                 <span css={valueStyles(theme)}>
                   {Math.round(verticalZoom * 100)}%
                 </span>
@@ -275,7 +277,7 @@ export const TimelineViewControls: React.FC<TimelineViewControlsProps> = memo(
                   type="button"
                   css={stepButtonStyles(theme)}
                   onClick={() => setVerticalZoom(verticalZoom - 0.1)}
-                  aria-label="Decrease track height"
+                  aria-label={t("timeline:view.decreaseTrackHeight", { defaultValue: "Decrease track height" })}
                   disabled={verticalZoom <= MIN_VERTICAL_ZOOM}
                 >
                   <RemoveIcon />
@@ -288,13 +290,13 @@ export const TimelineViewControls: React.FC<TimelineViewControlsProps> = memo(
                   step={0.05}
                   value={verticalZoom}
                   onChange={(_, value) => setVerticalZoom(Number(value))}
-                  aria-label="Vertical zoom"
+                  aria-label={t("timeline:view.verticalZoom", { defaultValue: "Vertical zoom" })}
                 />
                 <button
                   type="button"
                   css={stepButtonStyles(theme)}
                   onClick={() => setVerticalZoom(verticalZoom + 0.1)}
-                  aria-label="Increase track height"
+                  aria-label={t("timeline:view.increaseTrackHeight", { defaultValue: "Increase track height" })}
                   disabled={verticalZoom >= MAX_VERTICAL_ZOOM}
                 >
                   <AddIcon />

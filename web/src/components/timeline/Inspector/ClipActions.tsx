@@ -130,7 +130,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
               panel; this toolbar is for clip operations only. */}
           <ToolbarIconButton
             icon={<ContentCopyIcon fontSize="small" />}
-            tooltip="Duplicate — copies overrides; tweak params for a variation"
+            tooltip={t("timeline:attrs.duplicateCopiesOverrides;TweakParamsForAVariation", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
             onClick={() => void handleDuplicate()}
             disabled={duplicateBusy}
             aria-label={t("timeline:attrs.duplicateClip", { defaultValue: "Duplicate clip" })}
@@ -157,12 +157,14 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
             }
             tooltip={
               clip.locked
-                ? "Locked: timing is frozen and successful generations do not replace the current output"
-                : "Unlocked: lock to freeze timing and keep successful generations from replacing the current output"
+                ? t("timeline:attrs.lockedTimingFrozen", { defaultValue: "Locked: timing is frozen and successful generations do not replace the current output" })
+                : t("timeline:attrs.unlockedTimingTip", { defaultValue: "Unlocked: lock to freeze timing and keep successful generations from replacing the current output" })
             }
             active={clip.locked}
             onClick={handleToggleLock}
-            aria-label={clip.locked ? "Unlock clip" : "Lock clip"}
+            aria-label={clip.locked
+              ? t("timeline:attrs.unlockClip", { defaultValue: "Unlock clip" })
+              : t("timeline:attrs.lockClip", { defaultValue: "Lock clip" })}
             data-testid="clip-action-lock"
           />
 

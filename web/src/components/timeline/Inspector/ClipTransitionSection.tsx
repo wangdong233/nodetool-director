@@ -296,7 +296,17 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
                 <InspectorSelect
                   label={t("timeline:attrs.transitionDirection", { defaultValue: "Transition direction" })}
                   value={readString(transition, "direction") ?? "left"}
-                  options={DIRECTION_OPTIONS}
+                  options={DIRECTION_OPTIONS.map((option) => ({
+                    ...option,
+                    label:
+                      option.value === "left"
+                        ? t("timeline:attrs.directionLeft", { defaultValue: "Left" })
+                        : option.value === "right"
+                          ? t("timeline:attrs.directionRight", { defaultValue: "Right" })
+                          : option.value === "up"
+                            ? t("timeline:attrs.directionUp", { defaultValue: "Up" })
+                            : t("timeline:attrs.directionDown", { defaultValue: "Down" })
+                  }))}
                   onChange={(direction) => patchField({ direction })}
                   disabled={locked}
                 />
@@ -321,6 +331,7 @@ export const ClipTransitionSection: React.FC<ClipTransitionSectionProps> = memo(
               <EasingField
                 value={transition?.easing}
                 ariaLabel={t("timeline:attrs.transitionEasing", { defaultValue: "Transition easing" })}
+                label={t("timeline:attrs.easing", { defaultValue: "Easing" })}
                 onChange={handleEasingChange}
               />
             )}

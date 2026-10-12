@@ -385,9 +385,11 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
         ? i18n.t("timeline:attrs.describeTheMusic", { defaultValue: "Describe the music…" })
         : kind === "audio"
           ? i18n.t("timeline:attrs.typeTextToSpeak", { defaultValue: "Type text to speak…" })
-          : "Describe the image…";
+          : i18n.t("timeline:attrs.describeTheImage", { defaultValue: "Describe the image…" });
 
-  const generateLabel = clip.currentAssetId ? "Regenerate" : "Generate";
+  const generateLabel = clip.currentAssetId
+    ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })
+    : t("ui2:attrs.generate", { defaultValue: "Generate" });
 
   return (
     <Panel background="default" bordered={false} sx={panelSx}>
@@ -489,7 +491,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               compact
               fullWidth
               inputProps={{
-                "aria-label": "Prompt",
+                "aria-label": t("timeline:attrs.prompt", { defaultValue: "Prompt" }),
                 "data-testid": "direct-gen-prompt"
               }}
             />
@@ -499,7 +501,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                 <EmptyState
                   variant="empty"
                   size="small"
-                  description="No source clips with a rendered asset are available."
+                  description={t("timeline:attrs.noSourceClipsWithRenderedAsset", { defaultValue: "No source clips with a rendered asset are available." })}
                 />
               ) : (
                 <SelectField
@@ -605,11 +607,11 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               onClick={handleGenerateClick}
               data-testid="direct-gen-generate"
             >
-              {isActive ? "Cancel" : generateLabel}
+              {isActive ? t("timeline:attrs.cancel", { defaultValue: "Cancel" }) : generateLabel}
             </EditorButton>
             {isFailed && (
               <Caption color="error" sx={{ textAlign: "center" }}>
-                Generation failed.
+                {t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}
               </Caption>
             )}
           </FlexColumn>

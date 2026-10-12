@@ -278,7 +278,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
                     ariaLabel={t("timeline:attrs.lineStartY", { defaultValue: "Line start Y" })}
                   />
                 </InspectorRow>
-                <InspectorRow label="End">
+                <InspectorRow label={t("ui2:attrs.end", { defaultValue: "End" })}>
                   <InspectorPillInput
                     value={(shapeStyle.x2 ?? 0).toFixed(2)}
                     minWidth={64}
@@ -385,7 +385,7 @@ export const ClipShapeSection: React.FC<ClipShapeSectionProps> = memo(
                 onCommit={handleDashCommit}
               />
             </InspectorRow>
-            <InspectorRow label="Cap">
+            <InspectorRow label={t("timeline:attrs.lineCap", { defaultValue: "Cap" })}>
               <InspectorSelect
                 label={t("timeline:attrs.shapeLineCap", { defaultValue: "Shape line cap" })}
                 value={shapeStyle.lineCap ?? "butt"}

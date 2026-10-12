@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import type { Theme } from "@mui/material/styles";
 import { useShallow } from "zustand/react/shallow";
+import type { TFunction } from "i18next";
 import AnimationOutlinedIcon from "@mui/icons-material/AnimationOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import {
@@ -64,6 +65,12 @@ const EMPTY_ANIMATIONS: ClipAnimation[] = [];
  */
 const CUSTOM_PRESET = "custom";
 const CUSTOM_OPTION = { value: CUSTOM_PRESET, label: "custom (keyframes)" };
+
+/** Localized label for the trailing "custom (keyframes)" preset option. */
+const customOptionFor = (t: TFunction) => ({
+  ...CUSTOM_OPTION,
+  label: t("timeline:attrs.customKeyframesOption", { defaultValue: "custom (keyframes)" })
+});
 const CUSTOM_DEFAULT_DURATION_MS = 800;
 
 const ROLE_LABELS: Record<AnimationRole, string> = {
@@ -81,6 +88,17 @@ const ROLE_OPTIONS = ROLES.map((role) => ({
   value: role,
   label: ROLE_LABELS[role]
 }));
+
+/** Resolve a role's display label through the i18n catalog (en keeps the
+ *  ROLE_LABELS wording byte-identical; zh uses 入场/出场/强调/循环). */
+const roleLabel = (t: TFunction, role: AnimationRole): string =>
+  role === "in"
+    ? t("timeline:attrs.roleIn", { defaultValue: "In" })
+    : role === "out"
+      ? t("timeline:attrs.roleOut", { defaultValue: "Out" })
+      : role === "emphasis"
+        ? t("timeline:attrs.roleEmphasis", { defaultValue: "Emphasis" })
+        : t("timeline:attrs.roleLoop", { defaultValue: "Loop" });
 
 /** The catalog is static, so both the per-role split and the select's option
  *  list are built once instead of re-filtered and re-mapped on every render. */
@@ -581,11 +599,11 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
   return (
     <FlexColumn gap={SPACING.md} sx={EDITOR_SX}>
       <FlexRow align="center" justify="space-between" gap={SPACING.md}>
-        <Text size="small">{ROLE_LABELS[animation.role]}</Text>
+        <Text size="small">{roleLabel(t, animation.role)}</Text>
         <DeleteButton
           onClick={handleDelete}
-          tooltip={`Remove ${ROLE_LABELS[animation.role]} animation`}
-          ariaLabel={`Remove ${ROLE_LABELS[animation.role]} animation`}
+          tooltip={t("timeline:attrs.removeRoleAnimation", { defaultValue: "Remove {{role}} animation", role: roleLabel(t, animation.role) })}
+          ariaLabel={t("timeline:attrs.removeRoleAnimation", { defaultValue: "Remove {{role}} animation", role: roleLabel(t, animation.role) })}
           iconVariant="clear"
           sx={INSPECTOR_ROW_BUTTON_SX}
         />
@@ -599,9 +617,11 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
 
       <InspectorRow label={t("timeline:attrs.preset", { defaultValue: "Preset" })}>
         <InspectorSelect
-          label={`${animation.role} animation preset`}
+          label={t("timeline:attrs.animationPresetAria", { defaultValue: "{{role}} animation preset", role: animation.role })}
           value={animation.preset}
-          options={PRESET_OPTIONS_BY_ROLE[animation.role]}
+          options={PRESET_OPTIONS_BY_ROLE[animation.role].map((option) =>
+            option.value === CUSTOM_PRESET ? customOptionFor(t) : option
+          )}
           onChange={handlePresetChange}
         />
       </InspectorRow>
@@ -611,13 +631,15 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
       {!preset?.fullClip && !isKeyframeAnimation(animation) && (
         <>
           <InspectorRow
-            label={animation.role === "loop" ? "Period" : "Duration"}
+            label={animation.role === "loop"
+              ? t("editor:ui.period", { defaultValue: "Period" })
+              : t("timeline:attrs.duration", { defaultValue: "Duration" })}
           >
             <InspectorPillInput
               value={String(animation.durationMs)}
               unit="ms"
               onCommit={handleDurationCommit}
-              ariaLabel={`${animation.role} animation duration`}
+              ariaLabel={t("timeline:attrs.animationDurationAria", { defaultValue: "{{role}} animation duration", role: animation.role })}
             />
           </InspectorRow>
           <InspectorRow label={t("timeline:attrs.delay", { defaultValue: "Delay" })}>
@@ -636,13 +658,14 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
         // select can enumerate, so it is typed rather than picked.
         <EasingField
           value={animation.easing}
-          ariaLabel={`${animation.role} animation easing`}
+          ariaLabel={t("timeline:attrs.animationEasingAria", { defaultValue: "{{role}} animation easing", role: animation.role })}
+          label={t("timeline:attrs.easing", { defaultValue: "Easing" })}
           onChange={handleEasingChange}
         />
       ) : (
         <InspectorRow label={t("timeline:attrs.easing", { defaultValue: "Easing" })}>
           <InspectorSelect
-            label={`${animation.role} animation easing`}
+            label={t("timeline:attrs.animationEasingAria", { defaultValue: "{{role}} animation easing", role: animation.role })}
             value={animation.easing ?? preset?.defaultEasing ?? "linear"}
             options={EASING_OPTIONS}
             onChange={handleEasingChange}
@@ -661,17 +684,33 @@ const ClipAnimationEditor: React.FC<ClipAnimationEditorProps> = memo(({
             <>
               <InspectorRow label={t("editor:ui.unit", { defaultValue: "Unit" })}>
                 <InspectorSelect
-                  label={`${animation.role} animation stagger unit`}
+                  label={t("timeline:attrs.staggerUnitAria", { defaultValue: "{{role}} animation stagger unit", role: animation.role })}
                   value={stagger.unit}
-                  options={STAGGER_UNIT_OPTIONS}
+                  options={STAGGER_UNIT_OPTIONS.map((option) => ({
+                    ...option,
+                    label:
+                      option.value === "word"
+                        ? t("timeline:attrs.wordUnit", { defaultValue: "Word" })
+                        : option.value === "character"
+                          ? t("timeline:attrs.characterUnit", { defaultValue: "Character" })
+                          : t("timeline:attrs.lineUnit", { defaultValue: "Line" })
+                  }))}
                   onChange={handleStaggerUnitChange}
                 />
               </InspectorRow>
               <InspectorRow label={t("editor:ui.from", { defaultValue: "From" })}>
                 <InspectorSelect
-                  label={`${animation.role} animation stagger from`}
+                  label={t("timeline:attrs.staggerFromAria", { defaultValue: "{{role}} animation stagger from", role: animation.role })}
                   value={stagger.from ?? "start"}
-                  options={STAGGER_FROM_OPTIONS}
+                  options={STAGGER_FROM_OPTIONS.map((option) => ({
+                    ...option,
+                    label:
+                      option.value === "start"
+                        ? t("timeline:attrs.start", { defaultValue: "Start" })
+                        : option.value === "end"
+                          ? t("ui2:attrs.end", { defaultValue: "End" })
+                          : t("timeline:adapt.center", { defaultValue: "Center" })
+                  }))}
                   onChange={handleStaggerFromChange}
                 />
               </InspectorRow>
@@ -816,14 +855,19 @@ export const ClipAnimations: React.FC<ClipAnimationsProps> = ({ clip }) => {
             <InspectorSelect
               label={t("timeline:attrs.newAnimationRole", { defaultValue: "New animation role" })}
               value={newRole}
-              options={ROLE_OPTIONS}
+              options={ROLE_OPTIONS.map((option) => ({
+                ...option,
+                label: roleLabel(t, option.value)
+              }))}
               onChange={handleRoleChange}
               grow
             />
             <InspectorSelect
               label={t("timeline:attrs.newAnimationPreset", { defaultValue: "New animation preset" })}
               value={newPreset}
-              options={PRESET_OPTIONS_BY_ROLE[newRole]}
+              options={PRESET_OPTIONS_BY_ROLE[newRole].map((option) =>
+                option.value === CUSTOM_PRESET ? customOptionFor(t) : option
+              )}
               onChange={setNewPreset}
               grow
             />
@@ -833,18 +877,23 @@ export const ClipAnimations: React.FC<ClipAnimationsProps> = ({ clip }) => {
               startIcon={<AddOutlinedIcon />}
               onClick={handleAdd}
             >
-              Add
+              {t("common:action.add", { defaultValue: "Add" })}
             </Button>
           </FlexRow>
 
           {inOutOverruns && (
             <Caption color="warning">
-              {`In and out together run ${inOutSpan}ms, past the clip's ${clip.durationMs}ms. They overlap in the middle.`}
+              {t("timeline:attrs.inOutOverrunWarning", {
+                defaultValue:
+                  "In and out together run {{inOut}}ms, past the clip's {{duration}}ms. They overlap in the middle.",
+                inOut: inOutSpan,
+                duration: clip.durationMs
+              })}
             </Caption>
           )}
           {animations.length === 0 ? (
             <Caption color="muted">
-              Add an entrance, exit, emphasis, or loop preset.
+              {t("timeline:attrs.addAnimationPresetHint", { defaultValue: "Add an entrance, exit, emphasis, or loop preset." })}
             </Caption>
           ) : (
             groupedAnimations.map((animation) => (

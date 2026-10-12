@@ -80,9 +80,8 @@ TextCommitField.displayName = "TextCommitField";
  * Shown under an easing field whose value `parseEasing` cannot compile. The
  * document keeps the string — a newer build may read it (I2) — and this build
  * eases linearly, so the caption says that rather than refusing the edit.
+ * Rendered through `timeline:attrs.unparseableEasingHint`.
  */
-export const UNPARSEABLE_EASING_HINT =
-  "Not an easing this build reads; plays linear";
 
 export const EASING_HINT =
   "linear, easeIn, easeOut, easeInOut, easeOutBack, easeOutElastic, easeOutBounce, cubic-bezier(x1,y1,x2,y2) or spring(stiffness,damping,mass)";
@@ -107,6 +106,7 @@ interface EasingFieldProps {
 
 export const EasingField: React.FC<EasingFieldProps> = memo(
   ({ value, ariaLabel, onChange, hint = true, label = "Easing" }) => {
+    const { t } = useTranslation();
     const handleCommit = useCallback(
       (raw: string) => {
         const trimmed = raw.trim();
@@ -131,7 +131,7 @@ export const EasingField: React.FC<EasingFieldProps> = memo(
           />
         </InspectorRow>
         {unparseable && (
-          <Caption color="muted">{UNPARSEABLE_EASING_HINT}</Caption>
+          <Caption color="muted">{t("timeline:attrs.unparseableEasingHint", { defaultValue: "Not an easing this build reads; plays linear" })}</Caption>
         )}
         {hint && <Caption color="muted">{EASING_HINT}</Caption>}
       </>

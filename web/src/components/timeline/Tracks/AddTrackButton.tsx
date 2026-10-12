@@ -168,7 +168,7 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
           />
         ))}
         <MenuItemPrimitive
-          label="New track folder"
+          label={t("timeline:attrs.newTrackFolder", { defaultValue: "New track folder" })}
           icon={<CreateNewFolderOutlinedIcon fontSize="small" />}
           onClick={() => {
             addTrackFolder();

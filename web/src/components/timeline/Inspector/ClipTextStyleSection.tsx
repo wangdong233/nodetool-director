@@ -402,7 +402,7 @@ export const ClipTextStyleSection: React.FC<ClipTextStyleSectionProps> = memo(
             </InspectorRow>
 
             <InspectorToggleRow
-              label="Strikethrough"
+              label={t("timeline:attrs.strikethrough", { defaultValue: "Strikethrough" })}
               checked={textStyle.strikethrough === true}
               onChange={handleStrikethroughToggle}
             />

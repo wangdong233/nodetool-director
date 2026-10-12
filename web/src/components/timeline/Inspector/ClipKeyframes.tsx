@@ -8,6 +8,8 @@
  * The clip shows its keyframes as diamonds along its bottom edge.
  */
 import React, { memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import DiamondOutlinedIcon from "@mui/icons-material/DiamondOutlined";
 import DiamondIcon from "@mui/icons-material/Diamond";
 import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
@@ -59,6 +61,31 @@ const PROPERTY_LABELS: Record<KeyframeProperty, { label: string; unit?: string; 
   cameraFov: { label: "Camera FOV", unit: "°", step: 1 }
 };
 
+/** Resolve a property's display label through the i18n catalog — the label
+ *  table above is the byte-identical English fallback. */
+const propertyLabel = (t: TFunction, property: KeyframeProperty): string => {
+  switch (property) {
+    case "opacity":
+      return t("timeline:attrs.opacity", { defaultValue: "Opacity" });
+    case "scale":
+      return t("timeline:attrs.scale", { defaultValue: "Scale" });
+    case "offsetX":
+      return t("timeline:attrs.positionX", { defaultValue: "Position X" });
+    case "offsetY":
+      return t("timeline:attrs.positionY", { defaultValue: "Position Y" });
+    case "rotation":
+      return t("timeline:attrs.rotation", { defaultValue: "Rotation" });
+    case "cameraAzimuth":
+      return t("timeline:attrs.cameraAzimuth", { defaultValue: "Camera azimuth" });
+    case "cameraElevation":
+      return t("timeline:attrs.cameraElevation", { defaultValue: "Camera elevation" });
+    case "cameraZoom":
+      return t("timeline:attrs.cameraZoom", { defaultValue: "Camera zoom" });
+    case "cameraFov":
+      return t("timeline:attrs.cameraFov", { defaultValue: "Camera FOV" });
+  }
+};
+
 interface ClipKeyframesProps {
   clip: TimelineClip;
 }
@@ -70,6 +97,7 @@ const KeyframeRow: React.FC<{
   /** False while the playhead is outside the clip: nothing is written then. */
   inside: boolean;
 }> = memo(({ clip, property, atMs, inside }) => {
+  const { t } = useTranslation();
   const setClipKeyframe = useTimelineStore((s) => s.setClipKeyframe);
   const removeClipKeyframe = useTimelineStore((s) => s.removeClipKeyframe);
   const keyframeProperty = useTimelineUIStore((s) => s.keyframeProperty);
@@ -119,12 +147,16 @@ const KeyframeRow: React.FC<{
             activeIcon={<DiamondIcon fontSize="inherit" />}
             tooltip={
               keyed
-                ? "Remove keyframe at playhead"
-                : `Add keyframe at playhead${armed ? " (Alt+K)" : ""}`
+                ? t("timeline:attrs.removeKeyframeAtPlayhead", { defaultValue: "Remove keyframe at playhead" })
+                : `${t("timeline:attrs.addKeyframeAtPlayhead", { defaultValue: "Add keyframe at playhead" })}${
+                    armed ? t("timeline:attrs.altKSuffix", { defaultValue: " (Alt+K)" }) : ""
+                  }`
             }
-            ariaLabel={`${keyed ? "Remove" : "Add"} ${meta.label} keyframe`}
+            ariaLabel={keyed
+              ? t("timeline:attrs.removeKeyframeAria", { defaultValue: "Remove {{property}} keyframe", property: propertyLabel(t, property) })
+              : t("timeline:attrs.addKeyframeAria", { defaultValue: "Add {{property}} keyframe", property: propertyLabel(t, property) })}
           />
-          <span>{meta.label}</span>
+          <span>{propertyLabel(t, property)}</span>
         </FlexRow>
       }
     >
@@ -132,7 +164,7 @@ const KeyframeRow: React.FC<{
         value={String(Math.round(value * displayScale * 100) / 100)}
         onCommit={commit}
         unit={meta.unit}
-        ariaLabel={`${meta.label} at playhead`}
+        ariaLabel={t("timeline:attrs.propertyAtPlayheadAria", { defaultValue: "{{property}} at playhead", property: propertyLabel(t, property) })}
         disabled={!inside}
         scrub={{ step: meta.step }}
       />
@@ -142,6 +174,7 @@ const KeyframeRow: React.FC<{
 KeyframeRow.displayName = "KeyframeRow";
 
 export const ClipKeyframes: React.FC<ClipKeyframesProps> = memo(({ clip }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = usePersistedFold("keyframes");
   const currentTimeMs = useTimelinePlaybackStore((s) => s.currentTimeMs);
   const atMs = Math.max(
@@ -157,7 +190,9 @@ export const ClipKeyframes: React.FC<ClipKeyframesProps> = memo(({ clip }) => {
       <CollapsibleSection
         title={
           <InspectorSectionTitle
-            title={count > 0 ? `Keyframes (${count})` : "Keyframes"}
+            title={count > 0
+              ? t("timeline:attrs.keyframesCount", { defaultValue: "Keyframes ({{count}})", count })
+              : t("timeline:attrs.keyframes", { defaultValue: "Keyframes" })}
             icon={<TimelineOutlinedIcon />}
           />
         }

@@ -102,13 +102,17 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
             <InstrumentKeyboard start={instrument.type === "sampler" ? Math.min(103, auditionPitch(instrument)) : instrument.type === "drum" ? instrument.baseNote : instrument.type === "bass" ? 36 : 48}
               onPlay={pitch => commit(instrument, pitch)} />
           </div>}
-          {instrument.type === "sampler" ? <SamplerInstrumentEditor key={trackId} instrument={instrument} onChange={commit} /> : instrument.type === "subtractive" ? <Caption color="muted">Choose a sampler, WT-1, BL-1, or DR-1 preset to edit this track’s instrument.</Caption> : (
+          {instrument.type === "sampler" ? <SamplerInstrumentEditor key={trackId} instrument={instrument} onChange={commit} /> : instrument.type === "subtractive" ? <Caption color="muted">{t("timeline:attrs.chooseAWT1BL1OrDR1PresetToEditThisTracksInstrument", { defaultValue: "Choose a sampler, WT-1, BL-1, or DR-1 preset to edit this track’s instrument." })}</Caption> : (
             <FableSynthInstrumentEditor key={trackId} instrument={instrument} onChange={commit} />
           )}
           {auditionError && <Caption role="alert">{auditionError}</Caption>}
           <Caption color="muted">
-            Every clip on this track plays this voice. Changes are auditioned on{" "}
-            {instrument.type === "drum" ? "the selected pad" : instrument.type === "sampler" ? "the mapped sample key" : "middle C"}.
+            {t("timeline:attrs.everyClipOnThisTrackPlaysThisVoiceChangesAreAuditionedOn", { defaultValue: "Every clip on this track plays this voice. Changes are auditioned on " })}
+            {instrument.type === "drum"
+              ? t("timeline:attrs.theSelectedPad", { defaultValue: "the selected pad" })
+              : instrument.type === "sampler"
+                ? t("timeline:attrs.theMappedSampleKey", { defaultValue: "the mapped sample key" })
+                : t("timeline:attrs.middleC", { defaultValue: "middle C" })}.
           </Caption>
         </FlexColumn>
       </div>

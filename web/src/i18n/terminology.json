@@ -7,6 +7,7 @@
     "单串改词流程: 先查 glossary.md → 再查本表; 修正执行以本表为准绳 (30b)。",
     "r32 增量: 英文动作按钮清查轮新增 12 锚(小节/拍/注册表/内置/文档/浏览/展开折叠/自定义/收藏/附加文件/播放暂停/今天昨天),分域 note 已标边界。",
     "r33 增量(覆盖扩展轮·game 命名空间): 新增 game 域 12 锚(play session=运行族/tick 保留拉丁/prefab 预制体/construction 构造/rebuild 重建/staged 暂存/collision layer 碰撞层+hierarchy 层级/scene tree 场景树/nudge 微调/frame selection 聚焦所选/dock 停靠),详见各条目;游戏运行会话 Play=运行 与媒体 Play=播放(ui:attrs.play)分域分立。",
+    "r34 增量(覆盖扩展轮·timeline 组件第二批): 244 裸串清至 46(全部裁定类);新锚 11 组(采样器/Fable 面板拉丁裁定/衍生镜头/轨道文件夹/mute·solo/relink·media offline/rebake/stagger 单位/动画角色/BPM/混合 aria 复合键族);en 词典 5 处死键值漂移修正(smartReframe/aiEdit/saveAsAsset/chooseAWT1BL1/middleC 对齐源码字节);死键清理 18 组(无渲染站点删除+本批接线复活约 40 键)。",
     "微件规范 (动词不加请/全角标点/加载中…) 与 F-23 拉丁保留清单的 SSOT 仍是 glossary.md; 本表 keep_latin 为其快照片段。"
   ],
   "keep_latin": [
@@ -1074,6 +1075,16 @@
     "nudge": { "zh": "微调", "domain": "game", "grade": "clean", "note": "r33 新锚:键盘箭头微调实体位置=微调(向左微调所选/微调 2.5 个单位);units=单位。", "variants_seen": ["微调"] },
     "frame selection (viewport)": { "zh": "聚焦所选", "domain": "game", "grade": "clean", "note": "r33 新锚:F 键聚焦选中物体=聚焦所选(engine 惯例);与 frame(帧)分立。", "variants_seen": ["聚焦所选"] },
     "dock (panel)": { "zh": "停靠", "domain": "game", "grade": "clean", "note": "r33 新锚:面板停靠布局=停靠(停靠到左侧/新停靠组目标);dock region=左侧/右侧/底部/视口。", "variants_seen": ["停靠"] },
-    "player (game runtime surface)": { "zh": "播放器", "domain": "game", "grade": "clean", "note": "r33:Loading 3D player=正在加载 3D 播放器(引擎 Player 运行时惯例,Unity Player=Unity 播放器);动作动词仍走 运行 族(见 play session 条)。", "variants_seen": ["播放器"] }
+    "player (game runtime surface)": { "zh": "播放器", "domain": "game", "grade": "clean", "note": "r33:Loading 3D player=正在加载 3D 播放器(引擎 Player 运行时惯例,Unity Player=Unity 播放器);动作动词仍走 运行 族(见 play session 条)。", "variants_seen": ["播放器"] },
+    "sampler (instrument)": { "zh": "采样器", "domain": "timeline-music", "grade": "clean", "note": "r34 新锚:SamplerInstrumentEditor 全面板;root note=根音、sample mapping=采样映射、one-shot=单次触发、gated=门限(松键即停)、attack/release(ms)沿 起音/释音、gain(dB)=增益。", "variants_seen": ["采样器", "根音", "采样映射", "单次触发", "门限"] },
+    "fable synth module labels": { "zh": "保留拉丁", "domain": "timeline-music", "grade": "clean", "note": "r34 裁定:Fable 合成器(WT-1/BL-1/DR-1)硬件拟态面板的模块缩写(OSC/ENV/AMP ENV/MOD ENV/PITCH ENV/SUB/SUB OCT/PADS/KEYS/TABLE/TYPE/SHAPE/OCT/OUTPUT/ACCENT · SLIDE/NOISE + RING/OSC A·B)整类保留拉丁——合成器社区惯例+等宽紧凑面板+与 DSP 链/FX 链保留先例一致;可由用户显式翻案。", "variants_seen": ["OSC", "ENV", "AMP ENV", "SUB OCT", "PADS", "TABLE"] },
+    "derived shot": { "zh": "衍生镜头", "domain": "film", "grade": "clean", "note": "r34 新锚:从既有片段抽参考帧生成新镜头;reference frames=参考帧(与参考图分立)、render from=渲染来源(静帧生成动画/按提示词/按参考图)、render still=渲染静帧。", "variants_seen": ["衍生镜头", "参考帧", "渲染来源"] },
+    "track folder": { "zh": "轨道文件夹", "domain": "editing", "grade": "clean", "note": "r34 新锚:时间线轨道编组容器;new folder with this track=新建文件夹并放入此轨道、ungroup tracks=取消编组轨道、move to=移动到。", "variants_seen": ["轨道文件夹", "取消编组轨道"] },
+    "mute / solo (track)": { "zh": "静音 / 独奏", "domain": "editing", "grade": "clean", "note": "r34 新锚:音频行话;unmute=取消静音、unsolo=取消独奏。", "variants_seen": ["静音", "独奏", "取消静音", "取消独奏"] },
+    "relink / media offline": { "zh": "重新链接 / 素材离线", "domain": "editing", "grade": "clean", "note": "r34 新锚:离线素材徽标与重链接动作(文件级)。", "variants_seen": ["重新链接", "素材离线"] },
+    "rebake (timeline code)": { "zh": "重新烘焙", "domain": "editing", "grade": "clean", "note": "r34 新锚:Code 面板把时间线 JS 场景代码重新烘焙进文档;bake=烘焙、overwrite with code=用代码覆盖、detach=分离。", "variants_seen": ["重新烘焙"] },
+    "stagger unit": { "zh": "词 / 字符 / 行", "domain": "editing", "grade": "clean", "note": "r34 新锚:文字动画交错单位 word/character/line=词/字符/行(character 沿术语表字符);stagger from start/end/center=起点/终点/居中。", "variants_seen": ["词", "字符", "行"] },
+    "animation role (in/out/emphasis/loop)": { "zh": "入场 / 出场 / 强调 / 循环", "domain": "editing", "grade": "clean", "note": "r34 新锚:与 attrs.openEntrance/ExitAnimationControls(打开入场/出场动画控制)一致;loop=循环 与 loop 播放开关同词。", "variants_seen": ["入场", "出场", "强调", "循环"] },
+    "BPM": { "zh": "BPM", "domain": "timeline-music", "grade": "clean", "note": "r34 裁定:项目设置 BPM 保留拉丁(中文音乐工具惯例,与 MIDI 同类);tempo 语境中文 速度 已有键。", "variants_seen": ["BPM"] }
   }
 }

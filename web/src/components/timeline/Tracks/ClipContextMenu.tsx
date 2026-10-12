@@ -157,7 +157,9 @@ export function ClipContextMenu({
         />
       )}
       <MenuItemPrimitive
-        label={actions.locked ? "Unlock" : "Lock"}
+        label={actions.locked
+          ? t("timeline:attrs.unlock", { defaultValue: "Unlock" })
+          : t("ui2:attrs.lock", { defaultValue: "Lock" })}
         icon={
           actions.locked ? (
             <LockIcon fontSize="small" />
@@ -180,8 +182,11 @@ export function ClipContextMenu({
         <MenuItemPrimitive
           label={
             workflowMedia.length === 1
-              ? "Send to workflow…"
-              : `Send ${workflowMedia.length} clips to workflow…`
+              ? t("timeline:attrs.sendToWorkflow", { defaultValue: "Send to workflow…" })
+              : t("timeline:attrs.sendNClipsToWorkflow", {
+                  defaultValue: "Send {{count}} clips to workflow…",
+                  count: workflowMedia.length
+                })
           }
           icon={<AccountTreeOutlinedIcon fontSize="small" />}
           compact

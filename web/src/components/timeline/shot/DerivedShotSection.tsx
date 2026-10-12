@@ -9,6 +9,7 @@
  */
 
 import React, { memo, useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MAX_DERIVED_FRAMES } from "@nodetool-ai/timeline";
 
 import {
@@ -28,19 +29,23 @@ import {
 } from "../../../hooks/timeline/useDeriveShotFromClip";
 import { getErrorMessage } from "../../../utils/errorHandling";
 
-const FRAME_COUNT_OPTIONS = Array.from(
-  { length: MAX_DERIVED_FRAMES },
-  (_, i) => ({
+const FRAME_COUNT_OPTIONS = (
+  t: ReturnType<typeof useTranslation>["t"]
+) =>
+  Array.from({ length: MAX_DERIVED_FRAMES }, (_, i) => ({
     value: String(i + 1),
-    label: i === 0 ? "1 frame" : `${i + 1} frames`
-  })
-);
+    label: t("timeline:shot.frameCount", {
+      defaultValue: "{{count}} frames",
+      count: i + 1
+    })
+  }));
 
 interface DerivedShotSectionProps {
   clipId: string;
 }
 
 const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
+  const { t } = useTranslation();
   const { derive } = useDeriveShotFromClip();
   const selectClip = useTimelineUIStore((state) => state.selectClip);
   const [frameCount, setFrameCount] = useState("3");
@@ -58,7 +63,7 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
       );
       setAction("");
     } catch (failure) {
-      setError(getErrorMessage(failure, "The derived shot could not be made."));
+      setError(getErrorMessage(failure, t("timeline:shot.derivedShotCouldNotBeMade", { defaultValue: "The derived shot could not be made." })));
     } finally {
       setWorking(false);
     }
@@ -74,25 +79,24 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
   return (
     <FlexColumn gap={SPACING.sm} data-testid="derived-shot-section">
       <Caption color="secondary">
-        Frames from this clip become the references for a new shot. Its clip
-        goes on a new track above this one.
+        {t("timeline:shot.framesBecomeReferences", { defaultValue: "Frames from this clip become the references for a new shot. Its clip goes on a new track above this one." })}
       </Caption>
-      <FormField label="Reference frames">
+      <FormField label={t("timeline:shot.referenceFrames", { defaultValue: "Reference frames" })}>
         <SelectField
           size="small"
-          label="Reference frames"
+          label={t("timeline:shot.referenceFrames", { defaultValue: "Reference frames" })}
           hideLabel
           value={frameCount}
           onChange={setFrameCount}
-          options={FRAME_COUNT_OPTIONS}
+          options={FRAME_COUNT_OPTIONS(t)}
           disabled={working}
         />
       </FormField>
       <TextInput
-        label="Description"
+        label={t("storyboard:attrs.description", { defaultValue: "Description" })}
         value={action}
         onChange={(event) => setAction(event.target.value)}
-        placeholder="What the new shot shows (defaults to this shot's)"
+        placeholder={t("timeline:shot.whatTheNewShotShows", { defaultValue: "What the new shot shows (defaults to this shot's)" })}
         multiline
         maxRows={6}
         compact
@@ -106,7 +110,9 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
         disabled={working}
         data-testid="derived-shot-create"
       >
-        {working ? "Taking frames…" : "Create derived shot"}
+        {working
+          ? t("timeline:shot.takingFrames", { defaultValue: "Taking frames…" })
+          : t("timeline:shot.createDerivedShot", { defaultValue: "Create derived shot" })}
       </EditorButton>
       {error && (
         <Caption color="error" sx={{ textAlign: "center" }}>

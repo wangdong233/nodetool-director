@@ -169,9 +169,9 @@ const TimelineInspectorContent: React.FC = memo(() => {
   const sourceDurationMs = useClipSourceDuration(clip ?? undefined);
   const timingLocked = !!clip?.locked || !!track?.locked;
   const timingLockHint = clip?.locked
-    ? "Unlock the clip to edit timing"
+    ? t("timeline:attrs.unlockTheClipToEditTiming", { defaultValue: "Unlock the clip to edit timing" })
     : track?.locked
-      ? "Unlock the track to edit timing"
+      ? t("timeline:attrs.unlockTheTrackToEditTiming", { defaultValue: "Unlock the track to edit timing" })
       : undefined;
 
   /** Wrap the editable part of the selection in a group clip (D4). */

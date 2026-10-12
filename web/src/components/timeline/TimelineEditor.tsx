@@ -29,6 +29,7 @@ import { useShallow } from "zustand/react/shallow";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import type { TFunction } from "i18next";
 
 import {
   Caption,
@@ -323,7 +324,7 @@ const PreviewRegion: React.FC<{
           <EmptyState
             variant="error"
             title={t("timeline:editor.seqNotFound", { defaultValue: "Sequence not found" })}
-            description="The timeline sequence you requested does not exist or you do not have access to it."
+            description={t("timeline:editor.seqNotFoundDesc", { defaultValue: "The timeline sequence you requested does not exist or you do not have access to it." })}
           />
           <FlexRow gap={1} align="center" justify="center" sx={{ flexWrap: "wrap" }}>
             {onRetryFetch ? (
@@ -345,7 +346,9 @@ const PreviewRegion: React.FC<{
                 disabled={createSequencePending}
                 aria-label={t("timeline:editor.createNew", { defaultValue: "Create new sequence" })}
               >
-                {createSequencePending ? "Creating…" : "New sequence"}
+                {createSequencePending
+                  ? t("editor:ui.creating", { defaultValue: "Creating…" })
+                  : t("timeline:attrs.newSequence", { defaultValue: "New sequence" })}
               </EditorButton>
             ) : null}
           </FlexRow>
@@ -369,7 +372,13 @@ PreviewRegion.displayName = "PreviewRegion";
 
 type InspectorTab = "inspector" | "shot" | "source" | "instrument" | "agent" | "history" | "script" | "code";
 
-const INSPECTOR_TABS = [
+/** One inspector tab entry; value is the InspectorTab union (TabItem widens
+ *  it to string, so the arrays below carry the narrower type). */
+interface InspectorTabItem extends TabItem {
+  value: InspectorTab;
+}
+
+const INSPECTOR_TABS: readonly InspectorTabItem[] = [
   { value: "inspector", label: "Inspector", icon: <TuneOutlinedIcon fontSize="small" /> },
   { value: "instrument", label: "Instruments", icon: <PianoOutlinedIcon fontSize="small" /> },
   { value: "source", label: "Source", icon: <MovieFilterOutlinedIcon fontSize="small" /> },
@@ -377,19 +386,42 @@ const INSPECTOR_TABS = [
   { value: "history", label: "History", icon: <HistoryOutlinedIcon fontSize="small" /> }
 ];
 
-const SCRIPT_TAB = {
+/** Resolve a tab's label through the i18n catalog (module tables above are
+ *  the byte-identical English fallbacks). */
+const tabLabel = (t: TFunction, tab: InspectorTab): string => {
+  switch (tab) {
+    case "inspector":
+      return t("timeline:editor.inspector", { defaultValue: "Inspector" });
+    case "instrument":
+      return t("timeline:editor.instruments", { defaultValue: "Instruments" });
+    case "source":
+      return t("timeline:editor.source", { defaultValue: "Source" });
+    case "agent":
+      return t("timeline:editor.assistant", { defaultValue: "Assistant" });
+    case "history":
+      return t("timeline:editor.history", { defaultValue: "History" });
+    case "shot":
+      return t("editor:ui.shot", { defaultValue: "Shot" });
+    case "script":
+      return t("editor:ui.script", { defaultValue: "Script" });
+    case "code":
+      return t("ui2:attrs.code", { defaultValue: "Code" });
+  }
+};
+
+const SCRIPT_TAB: InspectorTabItem = {
   value: "script",
   label: "Script",
   icon: <SubtitlesOutlinedIcon fontSize="small" />
 };
 
-const SHOT_TAB = {
+const SHOT_TAB: InspectorTabItem = {
   value: "shot",
   label: "Shot",
   icon: <MovieCreationOutlinedIcon fontSize="small" />
 };
 
-const CODE_TAB = {
+const CODE_TAB: InspectorTabItem = {
   value: "code",
   label: "Code",
   icon: <CodeIcon fontSize="small" />
@@ -399,7 +431,7 @@ const useAvailableInspectorTabs = (
   tab: InspectorTab,
   hasScript = false,
   hasCode = false
-): { tabs: TabItem[]; activeTab: InspectorTab } => {
+): { tabs: InspectorTabItem[]; activeTab: InspectorTab } => {
   const hasMidiTrack = useTimelineStore((s) => s.tracks.some((track) => track.type === "midi"));
   const activeExplorer = usePanelStore((s) => s.panel.activeView);
   const assetsAsset = useAssetsSelectedAsset();
@@ -430,6 +462,10 @@ const InspectorRegion: React.FC<{
 
   const { t } = useTranslation();
   const { tabs, activeTab } = useAvailableInspectorTabs(tab, false, hasCode);
+  const localizedTabs = tabs.map((item) => ({
+    ...item,
+    label: tabLabel(t, item.value)
+  }));
   useEffect(() => {
     if (activeTab !== tab) setTab(activeTab);
   }, [activeTab, tab, setTab]);
@@ -442,7 +478,7 @@ const InspectorRegion: React.FC<{
     >
       <FlexColumn css={inspectorRegionStyles(theme)} fullHeight sx={{ minHeight: 0 }}>
         <TabGroup
-          tabs={tabs}
+          tabs={localizedTabs}
           value={activeTab}
           onChange={(value) => setTab(value as InspectorTab)}
           size="small"
@@ -1056,10 +1092,12 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
         size="small"
         onClick={isExporting ? cancelExport : clearExportError}
       >
-        {isExporting ? "Cancel" : "Close"}
+        {isExporting
+          ? t("timeline:attrs.cancel", { defaultValue: "Cancel" })
+          : t("common:action.close", { defaultValue: "Close" })}
       </EditorButton>
     ),
-    [isExporting, cancelExport, clearExportError]
+    [isExporting, cancelExport, clearExportError, t]
   );
 
   // External writes that the dirty draft refused — offered per merge unit.
@@ -1219,7 +1257,9 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
       <Dialog
         open={isExporting || hasExportError}
         onClose={isExporting ? undefined : clearExportError}
-        title={hasExportError ? "Export failed" : "Exporting video"}
+        title={hasExportError
+          ? t("timeline:attrs.exportFailed", { defaultValue: "Export failed" })
+          : t("timeline:attrs.exportingVideo", { defaultValue: "Exporting video" })}
         actions={exportDialogActions}
       >
         {exportError != null ? (

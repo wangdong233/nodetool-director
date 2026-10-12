@@ -14,8 +14,11 @@ import type { Theme } from "@mui/material/styles";
 import { useShallow } from "zustand/react/shallow";
 import {
   DEFAULT_MIDI_INSTRUMENT,
+  effectiveAssetId,
   midiRenderKey,
-  resolveTempo
+  previewTake,
+  resolveTempo,
+  videoClipsWithOwnAudio
 } from "@nodetool-ai/timeline";
 import type {
   MidiInstrument,
@@ -38,6 +41,7 @@ import {
   Text,
   Caption,
   Slider,
+  SelectField,
   ToolbarIconButton,
   SPACING,
   TYPOGRAPHY,
@@ -53,19 +57,42 @@ import {
   useTimelineStoreApi
 } from "../../../stores/timeline/TimelineStore";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
+import type { TimelineAudition } from "../../../stores/timeline/TimelineUIStore";
 import { useAssetStore } from "../../../stores/AssetStore";
 import { PlaybackClock } from "./PlaybackClock";
 import { AudioGraph } from "./AudioGraph";
 import type { ScheduledAudioClip } from "./AudioGraph";
 import { getMidiClipBuffer } from "./midiRender";
 import { PreviewCompositor } from "./PreviewCompositor";
-import { getAssetUrl } from "../../../utils/assetHelpers";
+import { getAssetMediaUrl } from "../../../utils/assetHelpers";
 import { useCombo } from "../../../stores/KeyPressedStore";
 import { formatTimecode } from "../Inspector/InspectorPrimitives.helpers";
+import { previewQualityScale } from "./previewQuality";
+import type { PreviewQuality } from "./previewQuality";
+import { resolvePlayStartMs } from "./playbackSync";
+import { useSettingsStore } from "../../../stores/SettingsStore";
+import { formatBinding, withActionShortcut } from "../timelineKeymap";
 import { useTranslation } from "react-i18next";
+
+/** Space is bound by the preview itself (useCombo below), not the keymap. */
+const PLAY_PAUSE_KEY = formatBinding({ key: " " });
 
 function frameDeltaMs(fps: number): number {
   return 1000 / Math.max(1, fps);
+}
+
+/** The media URL of an asset already in the query cache, or null. A relinked
+ *  file keeps its asset id but changes URL, so the schedule key carries it. */
+function cachedAssetUrl(assetId: string | undefined): string | null {
+  if (!assetId) return null;
+  try {
+    const asset = useAssetStore
+      .getState()
+      .queryClient?.getQueryData(["asset", assetId]);
+    return asset ? getAssetMediaUrl(asset) : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Schedule/top-up audio clips whose start falls within this horizon of the
@@ -83,24 +110,37 @@ const AUDIO_TOPUP_INTERVAL_MS = 5_000;
 const SEEK_RESTART_DEBOUNCE_MS = 120;
 
 /**
+ * Ids of the video clips that sound their own audio (no extracted-audio
+ * partner, unmuted, not silenced by a solo). The video elements stay muted;
+ * these clips are played through the audio graph like an audio clip.
+ */
+function ownAudioClipIds(
+  clips: readonly TimelineClip[],
+  tracks: readonly TimelineTrack[]
+): Set<string> {
+  return new Set(videoClipsWithOwnAudio(clips, tracks).map((clip) => clip.id));
+}
+
+/**
  * True if `clip` is a schedulable sounding clip that hasn't finished by `atMs`.
  *
  * A midi clip has no asset and no generation to wait for — its notes are the
  * content — so it needs neither `currentAssetId` nor a status; an empty note
- * list would render silence, so it is skipped instead.
+ * list would render silence, so it is skipped instead. An audio clip sounds
+ * under the status rule its picture would be drawn under, and a video clip
+ * only when it is in `ownAudio`.
  */
-function isPendingAudioClip(clip: TimelineClip, atMs: number): boolean {
+function isPendingAudioClip(
+  clip: TimelineClip,
+  atMs: number,
+  ownAudio: ReadonlySet<string>
+): boolean {
   if (clip.muted || clip.startMs + clip.durationMs <= atMs) return false;
   if (clip.mediaType === "midi") {
     return (clip.notes?.length ?? 0) > 0;
   }
-  return (
-    clip.mediaType === "audio" &&
-    !!clip.currentAssetId &&
-    (clip.status === "generated" ||
-      clip.status === "stale" ||
-      clip.status === "locked")
-  );
+  if (clip.mediaType === "video") return ownAudio.has(clip.id);
+  return clip.mediaType === "audio" && effectiveAssetId(clip) !== undefined;
 }
 
 /** The voice a midi clip on this track plays. */
@@ -161,6 +201,10 @@ const controlBarStyles = (theme: Theme) =>
     ".toolbar-icon-button": {
       flexShrink: 0
     },
+    ".timeline-preview__quality": {
+      width: theme.spacing(SPACING.xxxl + SPACING.xl),
+      flexShrink: 0
+    },
     "@container timelinePreviewControls (max-width: 560px)": {
       ".timeline-preview__secondary-control, .timeline-preview__fps": {
         display: "none"
@@ -190,7 +234,7 @@ const timecodeStyles = (theme: Theme) =>
 const fpsStyles = (theme: Theme) =>
   css({
     ...TYPOGRAPHY.mono.caption,
-    color: theme.vars.palette.text.disabled,
+    color: theme.vars.palette.text.secondary,
     flexShrink: 0,
     userSelect: "none"
   });
@@ -230,8 +274,80 @@ interface PreviewAreaProps {
   showFps?: boolean;
 }
 
+interface PlaybackScrubberProps {
+  max: number;
+  /** The paused position, or the drag position while scrubbing. */
+  value: number;
+  isPlaying: boolean;
+  subscribeTime: (cb: (timeMs: number) => void) => () => void;
+  step: number;
+  onChange: (event: Event, value: number | number[]) => void;
+  onChangeCommitted: (
+    event: Event | React.SyntheticEvent,
+    value: number | number[]
+  ) => void;
+}
+
+/**
+ * The scrub bar. While playing it follows the live playhead itself, so the
+ * position moves without a render of the whole preview on every frame.
+ */
+const PlaybackScrubber: React.FC<PlaybackScrubberProps> = memo(
+  ({ max, value, isPlaying, subscribeTime, step, onChange, onChangeCommitted }) => {
+    const { t } = useTranslation();
+    const [liveMs, setLiveMs] = useState<number | null>(null);
+    useEffect(() => {
+      if (!isPlaying) {
+        setLiveMs(null);
+        return;
+      }
+      // One step of the bar is one frame: finer updates move nothing.
+      return subscribeTime((ms) =>
+        setLiveMs(Math.round(ms / step) * step)
+      );
+    }, [isPlaying, subscribeTime, step]);
+
+    return (
+      <Slider
+        aria-label={t("timeline:editor.scrubTimeline", { defaultValue: "Scrub timeline" })}
+        min={0}
+        max={max}
+        step={step}
+        value={Math.min(max, liveMs ?? value)}
+        onChange={onChange}
+        onChangeCommitted={onChangeCommitted}
+        density="compact"
+      />
+    );
+  }
+);
+PlaybackScrubber.displayName = "PlaybackScrubber";
+
+/**
+ * The clips as the audio graph should hear them. Auditioning a take swaps its
+ * media into the clip for preview only, the same projection the picture uses
+ * in `PreviewCompositor`, so a Preview Candidate on an audio take is heard.
+ */
+function auditionedClips(
+  clips: TimelineClip[],
+  audition: TimelineAudition | null
+): TimelineClip[] {
+  if (!audition) return clips;
+  const target = clips.find((clip) => clip.id === audition.clipId);
+  const preview = target && previewTake(target, audition.takeId);
+  if (!target || !preview) return clips;
+  return clips.map((clip) => (clip.id === target.id ? preview : clip));
+}
+
 export const PreviewArea: React.FC<PreviewAreaProps> = memo(
-  ({ fps = 30, showTimecode = true, showDuration = true, showFps = true }) => {
+  ({
+    fps = 30,
+    sequenceWidth = 1920,
+    sequenceHeight = 1080,
+    showTimecode = true,
+    showDuration = true,
+    showFps = true
+  }) => {
     const { t } = useTranslation();
     const theme = useTheme();
 
@@ -435,8 +551,16 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
         }
         try {
           const asset = await getAsset(clip.currentAssetId!);
-          const url = getAssetUrl(asset);
-          return url ? { clip, assetUrl: url } : null;
+          const url = getAssetMediaUrl(asset);
+          // Size and duration pick decoded or streamed playback in the graph.
+          return url
+            ? {
+                clip,
+                assetUrl: url,
+                assetSize: asset.size,
+                assetDurationSec: asset.duration
+              }
+            : null;
         } catch {
           return null;
         }
@@ -446,10 +570,18 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
 
     /** The key `clip`'s scheduled sound answers to, or null when it has no
      * schedulable sound. Track routing is part of the key because a source is
-     * connected to its track chain when it is scheduled. */
+     * connected to its track chain when it is scheduled. A video clip has a
+     * key only while it sounds its own audio, so muting its track, soloing a
+     * sound track or adding an audio partner stops it. */
     const audioScheduleKeyOf = useCallback(
-      (clip: TimelineClip): string | null => {
-        if (clip.mediaType !== "audio" && clip.mediaType !== "midi") {
+      (clip: TimelineClip, ownAudio: ReadonlySet<string>): string | null => {
+        const ownVideoAudio =
+          clip.mediaType === "video" && ownAudio.has(clip.id);
+        if (
+          clip.mediaType !== "audio" &&
+          clip.mediaType !== "midi" &&
+          !ownVideoAudio
+        ) {
           return null;
         }
         const midiKey = (() => {
@@ -465,6 +597,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
         return JSON.stringify({
           mediaType: clip.mediaType,
           assetId: clip.currentAssetId ?? null,
+          assetUrl: cachedAssetUrl(clip.currentAssetId),
           midiKey,
           trackId: clip.trackId,
           startMs: clip.startMs,
@@ -479,7 +612,11 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
           fadeInMs: clip.fadeInMs ?? 0,
           fadeOutMs: clip.fadeOutMs ?? 0,
           fadeInShape: clip.fadeInShape ?? "linear",
-          fadeOutShape: clip.fadeOutShape ?? "linear"
+          fadeOutShape: clip.fadeOutShape ?? "linear",
+          auditionTakeId: (() => {
+            const audition = useTimelineUIStore.getState().audition;
+            return audition?.clipId === clip.id ? audition.takeId : null;
+          })()
         });
       },
       [timelineApi]
@@ -501,8 +638,15 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
         const graph = graphRef.current;
         const liveMs = getTimeMs();
         const windowEndMs = liveMs + AUDIO_LOOKAHEAD_MS;
-        const clipsNow = timelineApi.getState().clips;
+        const clipsNow = auditionedClips(
+          timelineApi.getState().clips,
+          useTimelineUIStore.getState().audition
+        );
         const clipIdsNow = new Set(clipsNow.map((c) => c.id));
+        const ownAudio = ownAudioClipIds(
+          clipsNow,
+          timelineApi.getState().tracks
+        );
 
         const removedClipIds = [...scheduledClipIdsRef.current].filter(
           (id) => !clipIdsNow.has(id)
@@ -517,7 +661,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
 
         const newlyEnteredClips = clipsNow.filter(
           (c) =>
-            isPendingAudioClip(c, liveMs) &&
+            isPendingAudioClip(c, liveMs, ownAudio) &&
             c.startMs < windowEndMs &&
             !scheduledClipIdsRef.current.has(c.id)
         );
@@ -528,14 +672,15 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
         const changedAudioClips = clipsNow.filter((c) => {
           if (!scheduledClipIdsRef.current.has(c.id)) return false;
           return (
-            audioScheduleKeyOf(c) !== scheduledAudioKeysRef.current.get(c.id)
+            audioScheduleKeyOf(c, ownAudio) !==
+            scheduledAudioKeysRef.current.get(c.id)
           );
         });
         if (changedAudioClips.length > 0) {
           graph.stopClips(changedAudioClips.map((c) => c.id));
         }
         const restaleAudioClips = changedAudioClips.filter((c) =>
-          isPendingAudioClip(c, liveMs)
+          isPendingAudioClip(c, liveMs, ownAudio)
         );
         const restaleAudioIds = new Set(restaleAudioClips.map((c) => c.id));
         for (const c of changedAudioClips) {
@@ -551,7 +696,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
         // the 5 s interval) can't attempt the same clip twice.
         for (const c of pending) {
           scheduledClipIdsRef.current.add(c.id);
-          const key = audioScheduleKeyOf(c);
+          const key = audioScheduleKeyOf(c, ownAudio);
           if (key !== null) scheduledAudioKeysRef.current.set(c.id, key);
         }
 
@@ -566,10 +711,20 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
         // `addClips` reuses scheduleClips' decode+schedule internals but
         // skips its "stop sources not in this list" prune, so sources
         // already playing from the initial window are left untouched.
+        // A clip that becomes audible mid-playback may find the context
+        // suspended (play began with nothing to hear, or it was suspended).
+        const ctx = graph.getContext();
+        if (ctx instanceof AudioContext && ctx.state === "suspended") {
+          await ctx.resume();
+          if (isStale()) return;
+        }
+
+        // Pass the clock reader: addClips awaits fetch and decode, and the
+        // playhead keeps moving meanwhile.
         await graph.addClips(
           validClips,
           timelineApi.getState().tracks,
-          getTimeMs(),
+          getTimeMs,
           isStale,
           playbackApi.getState().rate
         );
@@ -624,6 +779,26 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
       [queueTopUpAudio, timelineApi]
     );
 
+    // Starting, switching or ending an audition changes what a clip sounds
+    // like without touching the document, so it reconciles the same way.
+    useEffect(
+      () =>
+        useTimelineUIStore.subscribe((state, previous) => {
+          if (state.audition === previous.audition) return;
+          if (!audioSessionActiveRef.current) return;
+          const generation = playGenRef.current;
+          queueTopUpAudio(
+            () =>
+              playGenRef.current !== generation ||
+              !audioSessionActiveRef.current
+          );
+        }),
+      [queueTopUpAudio]
+    );
+
+    /** Set by the loop wrap so the seek-restart effect skips its debounce. */
+    const loopWrapRef = useRef(false);
+
     /** The rate the running clock was started with; the rate-change restart
      *  effect compares against it so a same-rate re-render is not a restart. */
     const startedRateRef = useRef(1);
@@ -654,35 +829,58 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
       const endMs = rangeOut ?? contentEndMs;
       // Pressing Play while parked at the end restarts from the top (or the
       // in point).
-      if (endMs > 0 && startMs >= endMs - frameDeltaMs(fps)) {
-        startMs = loopStartMs;
-        setCurrentTimeMs(loopStartMs);
-      }
-
-      play();
-
       // Global playback speed, read fresh so a rate set before pressing play
       // (and the live rate-change restart below) takes effect. Feeds both the
       // clock and audio scheduling so the visual clock and audio stay locked.
       const globalRate = playbackApi.getState().rate;
+      // The restart rule follows the rate's sign: reverse playback parked at
+      // the end runs backwards from there instead of jumping to the top.
+      const resolvedStartMs = resolvePlayStartMs({
+        startMs,
+        rate: globalRate,
+        loopStartMs,
+        endMs,
+        frameMs: frameDeltaMs(fps)
+      });
+      if (resolvedStartMs !== startMs) {
+        startMs = resolvedStartMs;
+        setCurrentTimeMs(startMs);
+      }
+
+      play();
+
       startedRateRef.current = globalRate;
       const clockOptions = {
         floorMs: loopStartMs,
         // Only a marked out point loops; the content end still parks.
         onReachEnd:
-          rangeOut !== null ? () => playbackApi.getState().seek(loopStartMs) : undefined
+          rangeOut !== null
+            ? () => {
+                // A loop wrap restarts at once: there is no scrub burst to
+                // wait out, and the debounce would stall picture and audio.
+                loopWrapRef.current = true;
+                playbackApi.getState().seek(loopStartMs);
+              }
+            : undefined
       };
 
       // Read fresh rather than closing over the reactive `clips` value so
       // this component never needs to subscribe to (and re-render on) the
       // clips array itself.
-      const clipsNow = timelineApi.getState().clips;
+      const clipsNow = auditionedClips(
+        timelineApi.getState().clips,
+        useTimelineUIStore.getState().audition
+      );
       // Backwards playback (J) is picture only: the audio graph schedules
       // forward from a source position.
+      const ownAudio = ownAudioClipIds(
+        clipsNow,
+        timelineApi.getState().tracks
+      );
       const remainingAudioClips =
         globalRate < 0
           ? []
-          : clipsNow.filter((c) => isPendingAudioClip(c, startMs));
+          : clipsNow.filter((c) => isPendingAudioClip(c, startMs, ownAudio));
 
       if (remainingAudioClips.length === 0) {
         // Nothing left to play — e.g. a seek landed past the last audio
@@ -725,7 +923,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
 
       for (const { clip } of validClips) {
         scheduledClipIdsRef.current.add(clip.id);
-        const key = audioScheduleKeyOf(clip);
+        const key = audioScheduleKeyOf(clip, ownAudio);
         if (key !== null) scheduledAudioKeysRef.current.set(clip.id, key);
       }
 
@@ -795,6 +993,12 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
       clockRef.current.stop();
       graphRef.current.stopAll();
       stopAudioSession();
+
+      if (loopWrapRef.current) {
+        loopWrapRef.current = false;
+        void handlePlay();
+        return;
+      }
 
       seekDebounceRef.current = setTimeout(() => {
         seekDebounceRef.current = null;
@@ -888,6 +1092,13 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
     const containerRef = useRef<HTMLDivElement>(null);
     const [isNativeFullscreen, setIsNativeFullscreen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [previewQuality, setPreviewQuality] = useState<PreviewQuality>("auto");
+    const autoQualityLabel = previewQualityScale(
+      "auto",
+      sequenceWidth,
+      sequenceHeight,
+      isPlaying
+    ) === 1 ? "Full" : "Half";
     const isFullscreen = isNativeFullscreen || isExpanded;
     const [scrubMs, setScrubMs] = useState<number | null>(null);
 
@@ -1042,6 +1253,12 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
       ]
     );
 
+    // Transport tooltips name the keys of the active keyboard layout, the same
+    // table the tracks window handler resolves against.
+    const keyboardPreset = useSettingsStore(
+      (s) => s.settings.timelineKeyboardPreset
+    );
+
     const timecode = formatTimecode(currentTimeMs, fps);
     const durationTimecode = formatTimecode(contentEndMs, fps);
 
@@ -1060,66 +1277,66 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
         css={containerCss}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        aria-label={t("ui2:attrs.previewArea", { defaultValue: "Preview area" })}
+        aria-label={t("timeline:editor.previewArea", { defaultValue: "Preview area" })}
         data-testid="preview-area"
         data-expanded={isExpanded}
       >
         <div css={viewportStyles}>
-          <PreviewCompositor />
+          <PreviewCompositor quality={previewQuality} />
         </div>
 
         <div css={controlBarCss}>
           <ToolbarIconButton
             icon={<SkipPreviousIcon />}
-            tooltip={t("ui2:attrs.previousClipBoundaryShift", { defaultValue: "Previous clip boundary (Shift+←)" })}
+            tooltip={withActionShortcut(t("timeline:editor.prevClipBoundary", { defaultValue: "Previous clip boundary" }), keyboardPreset, "prevCut")}
             onClick={jumpToPrevBoundary}
-            aria-label={t("ui2:attrs.previousClipBoundary", { defaultValue: "Previous clip boundary" })}
+            aria-label={t("timeline:editor.prevClipBoundary", { defaultValue: "Previous clip boundary" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
 
           <ToolbarIconButton
             icon={<NavigateBeforeIcon />}
-            tooltip={t("ui2:attrs.stepBackOneFrame", { defaultValue: "Step back one frame (←)" })}
+            tooltip={withActionShortcut(t("timeline:editor.stepBackOneFrame", { defaultValue: "Step back one frame" }), keyboardPreset, "stepFrameBack")}
             onClick={stepBack}
             disabled={isPlaying}
-            aria-label={t("ui2:attrs.stepBackOneFrame", { defaultValue: "Step back one frame" })}
+            aria-label={t("timeline:editor.stepBackOneFrame", { defaultValue: "Step back one frame" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
 
           <ToolbarIconButton
             icon={isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-            tooltip={isPlaying ? t("timeline:attrs.pauseSpace", { defaultValue: "Pause (Space)" }) : t("timeline:attrs.playSpace", { defaultValue: "Play (Space)" })}
+            tooltip={`${isPlaying ? "Pause" : "Play"} (${PLAY_PAUSE_KEY})`}
             onClick={handlePlayPauseToggle}
-            aria-label={isPlaying ? t("timeline:attrs.pause2", { defaultValue: "Pause" }) : t("timeline:attrs.play2", { defaultValue: "Play" })}
+            aria-label={isPlaying ? "Pause" : "Play"}
             variant="primary"
             size="small"
           />
 
           <ToolbarIconButton
             icon={<StopIcon />}
-            tooltip={t("ui2:attrs.stopAndReturnToStart", { defaultValue: "Stop and return to start" })}
+            tooltip={t("timeline:editor.stopReturnToStart", { defaultValue: "Stop and return to start" })}
             onClick={handleStop}
-            aria-label={t("ui2:attrs.stop", { defaultValue: "Stop" })}
+            aria-label="Stop"
             size="small"
           />
 
           <ToolbarIconButton
             icon={<NavigateNextIcon />}
-            tooltip={t("ui2:attrs.stepForwardOneFrame", { defaultValue: "Step forward one frame (→)" })}
+            tooltip={withActionShortcut(t("timeline:editor.stepForwardOneFrame", { defaultValue: "Step forward one frame" }), keyboardPreset, "stepFrameForward")}
             onClick={stepForward}
             disabled={isPlaying}
-            aria-label={t("ui2:attrs.stepForwardOneFrame", { defaultValue: "Step forward one frame" })}
+            aria-label={t("timeline:editor.stepForwardOneFrame", { defaultValue: "Step forward one frame" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
 
           <ToolbarIconButton
             icon={<SkipNextIcon />}
-            tooltip={t("ui2:attrs.nextClipBoundaryShift", { defaultValue: "Next clip boundary (Shift+→)" })}
+            tooltip={withActionShortcut(t("timeline:editor.nextClipBoundary", { defaultValue: "Next clip boundary" }), keyboardPreset, "nextCut")}
             onClick={jumpToNextBoundary}
-            aria-label={t("ui2:attrs.nextClipBoundary", { defaultValue: "Next clip boundary" })}
+            aria-label={t("timeline:editor.nextClipBoundary", { defaultValue: "Next clip boundary" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
@@ -1130,15 +1347,14 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
             </Text>
           )}
           <div css={scrubberCss}>
-            <Slider
-              aria-label={t("ui2:attrs.scrubTimeline", { defaultValue: "Scrub timeline" })}
-              min={0}
+            <PlaybackScrubber
               max={scrubMax}
-              step={frameDeltaMs(fps)}
               value={scrubValue}
+              isPlaying={isPlaying}
+              subscribeTime={subscribeTime}
+              step={frameDeltaMs(fps)}
               onChange={handleScrubChange}
               onChangeCommitted={handleScrubCommit}
-              density="compact"
             />
           </div>
           {showDuration && (
@@ -1152,13 +1368,32 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
             </Caption>
           )}
 
+          <SelectField
+            label={t("timeline:editor.previewQuality", { defaultValue: "Preview quality" })}
+            hideLabel
+            size="small"
+            value={previewQuality}
+            onChange={(value) => {
+              if (value === "auto" || value === "full" || value === "half" || value === "quarter") {
+                setPreviewQuality(value);
+              }
+            }}
+            options={[
+              { value: "auto", label: `Auto (${autoQualityLabel})` },
+              { value: "full", label: "Full" },
+              { value: "half", label: "Half" },
+              { value: "quarter", label: "Quarter" }
+            ]}
+            className="timeline-preview__quality"
+          />
+
           <ToolbarIconButton
             icon={<FilterBAndWOutlinedIcon />}
-            tooltip={t("ui2:attrs.showTheSelectedClipSSubjectMatteInsteadOfTheFrame", { defaultValue: "Show the selected clip's subject matte instead of the frame" })}
+            tooltip={t("timeline:editor.showMatteTooltip", { defaultValue: "Show the selected clip's subject matte instead of the frame" })}
             onClick={toggleMatteView}
             disabled={!hasReadyMatte}
             active={matteViewEnabled}
-            aria-label={t("ui2:attrs.showMatte", { defaultValue: "Show matte" })}
+            aria-label={t("timeline:editor.showMatte", { defaultValue: "Show matte" })}
             aria-pressed={matteViewEnabled}
             size="small"
             className="timeline-preview__matte-view"
@@ -1166,9 +1401,9 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
 
           <ToolbarIconButton
             icon={isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-            tooltip={isFullscreen ? t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : t("timeline:attrs.fullscreen", { defaultValue: "Fullscreen" })}
+            tooltip={isFullscreen ? t("timeline:editor.exitFullscreen", { defaultValue: "Exit fullscreen" }) : t("timeline:editor.fullscreen", { defaultValue: "Fullscreen" })}
             onClick={handleFullscreen}
-            aria-label={isFullscreen ? t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : t("timeline:attrs.fullscreen", { defaultValue: "Fullscreen" })}
+            aria-label={isFullscreen ? t("timeline:editor.exitFullscreen", { defaultValue: "Exit fullscreen" }) : t("timeline:editor.fullscreen", { defaultValue: "Fullscreen" })}
             size="small"
             className="timeline-preview__fullscreen"
           />

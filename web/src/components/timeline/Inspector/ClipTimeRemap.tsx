@@ -42,8 +42,7 @@ import {
 import { parseFiniteNumber } from "./InspectorPrimitives.helpers";
 import { useTranslation } from "react-i18next";
 import {
-  EASING_HINT,
-  UNPARSEABLE_EASING_HINT
+  EASING_HINT
 } from "./InspectorMotionFields";
 
 type RemapKeyframe = ClipTimeRemap["keyframes"][number];
@@ -269,7 +268,7 @@ const TimeRemapEditor: React.FC<ClipTimeRemapProps> = memo(
                       </FlexRow>
                       {easingUnparseable && (
                         <Caption color="muted">
-                          {UNPARSEABLE_EASING_HINT}
+                          {t("timeline:attrs.unparseableEasingHint", { defaultValue: "Not an easing this build reads; plays linear" })}
                         </Caption>
                       )}
                     </FlexColumn>
@@ -282,13 +281,11 @@ const TimeRemapEditor: React.FC<ClipTimeRemapProps> = memo(
                   </Caption>
                 )}
                 <Caption color="muted">
-                  Columns are time (0..1 across the clip), source position, and
-                  easing: {EASING_HINT}
+                  {t("timeline:attrs.columnsAreTime01AcrossTheClipSourcePositionAndEasing", { defaultValue: "Columns are time (0..1 across the clip), source position, and easing: " })}
+                  {EASING_HINT}
                 </Caption>
                 <Caption color="muted">
-                  Source times may descend, which plays the clip backwards.
-                  Split and trim refuse a remapped clip until the remap is
-                  baked.
+                  {t("timeline:attrs.sourceTimesMayDescend", { defaultValue: "Source times may descend, which plays the clip backwards. Split and trim refuse a remapped clip until the remap is baked." })}
                 </Caption>
                 <FlexRow gap={SPACING.md}>
                   <Button

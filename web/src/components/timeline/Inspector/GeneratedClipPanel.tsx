@@ -184,7 +184,9 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
     }
 
     const paramOverrides = clip.paramOverrides ?? EMPTY_PARAM_OVERRIDES;
-    const generateLabel = clip.currentAssetId ? "Regenerate" : "Generate";
+    const generateLabel = clip.currentAssetId
+      ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })
+      : t("ui2:attrs.generate", { defaultValue: "Generate" });
 
     return (
       <Panel background="default" bordered={false} sx={panelSx}>
@@ -264,7 +266,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                 onClick={handleGenerateClick}
                 data-testid="generated-clip-generate"
               >
-                {isActive ? "Cancel" : generateLabel}
+                {isActive ? t("timeline:attrs.cancel", { defaultValue: "Cancel" }) : generateLabel}
               </EditorButton>
               {isFailed && (
                 <Caption color="error" sx={{ textAlign: "center" }}>{t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}</Caption>
