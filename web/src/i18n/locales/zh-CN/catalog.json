@@ -978,6 +978,28 @@
     "backstage-violinist": "小提琴手的后台肖像，头顶一盏裸露的灯泡",
     "deep-sea-cables-poster": "一部深海光缆纪录片的海报设计"
   },
+  "scriptFormats": {
+    "voiceover": {
+      "title": "旁白解说",
+      "description": "一个声音配着画面朗读。"
+    },
+    "dialogue": {
+      "title": "对话",
+      "description": "两个或更多角色互相交谈。"
+    },
+    "interview": {
+      "title": "访谈",
+      "description": "主持人提问，嘉宾作答。"
+    },
+    "ad-read": {
+      "title": "广告口播",
+      "description": "一个声音在固定时长里推销产品。"
+    },
+    "tutorial": {
+      "title": "教程",
+      "description": "一个声音带你走完各个步骤。"
+    }
+  },
   "imageUseCases": {
     "product": {
       "title": "产品照",

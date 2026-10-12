@@ -36,6 +36,7 @@ export const SIZE_PRESETS: readonly SizePreset[] = [
 export const SIZE_PRESET_LABEL_KEYS: Readonly<Record<string, string>> = {
   square: "storyboard:attrs.sizeSquare",
   portrait: "storyboard:attrs.sizePortrait",
+  poster: "storyboard:attrs.sizePoster",
   landscape: "storyboard:attrs.sizeLandscape",
   story: "storyboard:attrs.sizeStory",
   banner: "storyboard:attrs.sizeBanner"

@@ -1,4 +1,5 @@
 import type { EntityKind } from "@nodetool-ai/protocol";
+import { useTranslation } from "react-i18next";
 
 import {
   BORDER_RADIUS,
@@ -30,26 +31,30 @@ export const ReviewStep = ({
   name,
   descriptor,
   tags
-}: ReviewStepProps) => (
+}: ReviewStepProps) => {
+  const { t } = useTranslation();
+  return (
   <FlexColumn gap={GAP.spacious} sx={{ maxWidth: SETUP_CONTENT_WIDTH }}>
     <FlexColumn gap={GAP.tight}>
       <Text size="big" component="h1">
-        Review your entity
+        {t("storyboard:attrs.reviewYourEntity", { defaultValue: "Review your entity" })}
       </Text>
       <Text color="secondary">
-        This reference and descriptor will be available anywhere entities can
-        be added.
+        {t("setup:entity.thisReferenceAndDescriptorWillBeAvailable", {
+          defaultValue:
+            "This reference and descriptor will be available anywhere entities can be added."
+        })}
       </Text>
     </FlexColumn>
 
     <GalleryFrame
       locator={`asset://${assetId}`}
       kind="image"
-      caption={`${name} reference`}
+      caption={t("setup:entity.nameReference", { defaultValue: "{{name}} reference", name })}
     >
       <ResponsiveImage
         locator={`asset://${assetId}`}
-        alt={`${name} reference`}
+        alt={t("setup:entity.nameReference", { defaultValue: "{{name}} reference", name })}
         aspectRatio="1/1"
         fit="contain"
         borderRadius={BORDER_RADIUS.md}
@@ -68,10 +73,16 @@ export const ReviewStep = ({
     </FlexRow>
     <Text>{descriptor}</Text>
     {tags.length > 0 ? (
-      <Caption color="secondary">Tags: {tags.join(", ")}</Caption>
+      <Caption color="secondary">
+        {t("setup:entity.tagsLabel", {
+          defaultValue: "Tags: {{tags}}",
+          tags: tags.join(", ")
+        })}
+      </Caption>
     ) : null}
   </FlexColumn>
-);
+  );
+};
 
 export default ReviewStep;
 
@@ -84,16 +95,25 @@ interface ReviewFallbackProps {
  * still loading, or the reference is missing or already used by another
  * entity. The footer names what to do about it.
  */
-export const ReviewFallback = ({ loading }: ReviewFallbackProps) =>
-  loading ? (
+export const ReviewFallback = ({ loading }: ReviewFallbackProps) => {
+  const { t } = useTranslation();
+  return loading ? (
     <FlexRow gap={GAP.normal} align="center">
       <LoadingSpinner inline size="small" />
-      <Text color="secondary">Loading your entity library…</Text>
+      <Text color="secondary">
+        {t("setup:entity.loadingYourEntityLibraryEllipsis", {
+          defaultValue: "Loading your entity library…"
+        })}
+      </Text>
     </FlexRow>
   ) : (
     <EmptyState
       variant="empty"
-      title="No reference image yet"
-      description="Go back to the reference step and choose or generate one."
+      title={t("setup:entity.noReferenceImageYet", { defaultValue: "No reference image yet" })}
+      description={t("setup:entity.goBackToTheReferenceStep", {
+        defaultValue:
+          "Go back to the reference step and choose or generate one."
+      })}
     />
   );
+};

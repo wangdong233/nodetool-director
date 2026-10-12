@@ -82,8 +82,10 @@ const FormatStepInternal: React.FC = () => {
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">{t("storyboard:attrs.chooseAVideoTemplate", { defaultValue: "Choose a video template" })}</Text>
         <Text size="normal" color="secondary">
-          Each template combines a target length, frame shape and editing style.
-          These are starting settings, not generated footage.
+          {t("setup:video.templateBody", {
+            defaultValue:
+              "Each template combines a target length, frame shape and editing style. These are starting settings, not generated footage."
+          })}
         </Text>
       </FlexColumn>
       {/* One template, not seven independent switches: the cards are radios

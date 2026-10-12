@@ -50,7 +50,7 @@ export const useImageSetupStage = (): SketchSetupStage =>
  * The flow's name, above the stepper. Each step body carries its own heading,
  * so this says what is being made and no more.
  */
-const FLOW_LABELS = { title: "Image" } as const;
+const FLOW_TITLE = { title: "Image" } as const;
 
 export interface ImageSetupFlowOptions {
   /**
@@ -153,8 +153,8 @@ export const useImageSetupFlow = ({
     () =>
       refineModel
         ? {
-            result: "Expand your sentence into a five-field brief you can edit",
-            next: "You read and fix the brief next. No layer is added and no image is rendered here.",
+            result: i18n.t("storyboard:attrs.expandYourSentenceIntoAFivefieldBriefYouCanEdit", { defaultValue: "Expand your sentence into a five-field brief you can edit" }),
+            next: i18n.t("storyboard:attrs.youReadAndFixTheBriefNextNoLayerIsAddedAndNoImageIsRenderedHere", { defaultValue: "You read and fix the brief next. No layer is added and no image is rendered here." }),
             model: refineModel,
             brief,
             maxOutputTokens: REFINE_BRIEF_MAX_TOKENS,
@@ -185,13 +185,13 @@ export const useImageSetupFlow = ({
       {
         stage: "idea",
         label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
-        primaryLabel: "Continue",
+        primaryLabel: i18n.t("storyboard:attrs.continue", { defaultValue: "Continue" }),
         canAdvance: brief.trim().length > 0,
-        blockedReason: "Describe the image, or upload one to edit",
+        blockedReason: i18n.t("storyboard:attrs.describeTheImageOrUploadOneToEdit", { defaultValue: "Describe the image, or upload one to edit" }),
         // An upload finishes the flow when it lands, so Continue waits for it
         // rather than racing it to the next step (F17).
         pending: upload.uploading,
-        pendingLabel: "Reading your file",
+        pendingLabel: i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" }),
         onCancel: upload.cancel,
         footerControls: (context) =>
           createElement(BriefModelFooterField, { readOnly: context.readOnly }),
@@ -204,10 +204,10 @@ export const useImageSetupFlow = ({
         stage: "useCase",
         label: i18n.t("storyboard:attrs.brief", { defaultValue: "Brief" }),
         primaryLabel: briefIsCurrent
-          ? "Continue to the brief"
+          ? i18n.t("storyboard:attrs.continueToTheBrief", { defaultValue: "Continue to the brief" })
           : t("storyboard:attrs.refineTheBrief", { defaultValue: "Refine the brief" }),
         canAdvance: (useCase ?? "").length > 0,
-        blockedReason: "Pick an image use case",
+        blockedReason: i18n.t("storyboard:attrs.pickAnImageUseCase", { defaultValue: "Pick an image use case" }),
         pending: refining,
         pendingLabel: i18n.t("storyboard:attrs.refiningTheBrief", { defaultValue: "Refining the brief" }),
         generation: briefIsCurrent ? undefined : refineSummary,
@@ -222,9 +222,9 @@ export const useImageSetupFlow = ({
       {
         stage: "review",
         label: i18n.t("storyboard:attrs.brief", { defaultValue: "Brief" }),
-        primaryLabel: "Continue to look",
+        primaryLabel: i18n.t("storyboard:attrs.continueToLook", { defaultValue: "Continue to look" }),
         canAdvance: promptIsWritable,
-        blockedReason: "Write what the image shows before choosing the look",
+        blockedReason: i18n.t("storyboard:attrs.writeWhatTheImageShowsBeforeChoosingTheLook", { defaultValue: "Write what the image shows before choosing the look" }),
         // The review's own `Re-refine` is a second call on the same brief.
         // The shell reads it too, so nothing moves the creator on while the
         // brief they are reading is being replaced (F2).
@@ -283,7 +283,12 @@ export const useImageSetupFlow = ({
   );
 
   return {
-    config: { labels: FLOW_LABELS, steps, stage, onStageChange },
+    config: {
+      labels: { title: i18n.t("home:entry.image.title", { defaultValue: FLOW_TITLE.title }) },
+      steps,
+      stage,
+      onStageChange
+    },
     look
   };
 };

@@ -76,7 +76,12 @@ const StoryboardSetupHost = ({
   if (config.stage === "done") {
     return (
       <FlexColumn align="center" justify="center" sx={{ padding: PADDING.section }}>
-        <ThinkingIndicator label="Opening your storyboard" announce />
+        <ThinkingIndicator
+          label={i18n.t("setup:storyboard.openingYourStoryboard", {
+            defaultValue: "Opening your storyboard"
+          })}
+          announce
+        />
       </FlexColumn>
     );
   }

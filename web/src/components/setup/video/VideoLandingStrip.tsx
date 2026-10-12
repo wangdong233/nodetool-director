@@ -148,19 +148,24 @@ const VideoLandingStripInternal: React.FC<VideoLandingStripProps> = ({
       ) : null}
       {failedClipIds.length > 0 ? (
         <EditorButton variant="outlined" onClick={handleRetry}>
-          {`Retry ${failedClipIds.length} failed`}
+          {t("setup:video.retryCountFailed", {
+            defaultValue: "Retry {{count}} failed",
+            count: failedClipIds.length
+          })}
         </EditorButton>
       ) : null}
       {done && !dismissed ? (
         <>
-          <Caption color="secondary">Next:</Caption>
+          <Caption color="secondary">
+            {t("storyboard:attrs.next", { defaultValue: "Next:" })}
+          </Caption>
           {clips.length > 0 ? (
             <EditorButton
               variant="text"
               onClick={onExport}
               disabled={!onExport}
             >
-              Export
+              {t("storyboard:attrs.export", { defaultValue: "Export" })}
             </EditorButton>
           ) : null}
           <EditorButton variant="text" onClick={handleCaptions}>
@@ -171,7 +176,7 @@ const VideoLandingStripInternal: React.FC<VideoLandingStripProps> = ({
       {dismissed ? null : (
         <CloseButton
           onClick={handleDismiss}
-          tooltip="Hide next steps"
+          tooltip={t("setup:video.hideNextSteps", { defaultValue: "Hide next steps" })}
           sx={{ marginLeft: "auto" }}
         />
       )}

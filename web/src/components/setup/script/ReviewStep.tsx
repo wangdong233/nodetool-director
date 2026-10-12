@@ -147,13 +147,13 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   // unassigned rather than as a blank box (F7).
   const speakerOptions = useMemo(
     () => [
-      { value: "", label: "No speaker" },
+      { value: "", label: t("editor:ui.noSpeaker", { defaultValue: "No speaker" }) },
       ...(script?.cast ?? []).map((speaker) => ({
         value: speaker.id,
         label: speaker.name
       }))
     ],
-    [script?.cast]
+    [script?.cast, t]
   );
 
   const sections = useMemo<PlanReviewSection[]>(
@@ -174,9 +174,9 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           },
           {
             id: line.id,
-            label: "Line",
+            label: t("editor:ui.scriptLine", { defaultValue: "Line" }),
             hideLabel: true,
-            placeholder: "Line",
+            placeholder: t("editor:ui.scriptLine", { defaultValue: "Line" }),
             value: line.text,
             multiline: true,
             readOnly: locked,
@@ -253,17 +253,30 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          Read it through
+          {t("storyboard:attrs.readItThrough", { defaultValue: "Read it through" })}
         </Text>
         <Caption color="secondary" component="p">
-          {`${words} words · about ${spokenLength(estimateSpokenSeconds(words, pace))} spoken at a ${pace} read`}
+          {t("setup:script.wordsAboutSpoken", {
+            defaultValue:
+              "{{words}} words · about {{length}} spoken at a {{pace}} read",
+            words,
+            length: spokenLength(estimateSpokenSeconds(words, pace)),
+            pace: t(
+              pace === "slow"
+                ? "setup:script.paceSlow"
+                : pace === "fast"
+                  ? "setup:script.paceFast"
+                  : "setup:script.paceNormal",
+              { defaultValue: pace }
+            )
+          })}
         </Caption>
       </FlexColumn>
 
       {/* The model and the rewrite belong together: picking a different
           writer is only useful next to the button that runs it. */}
       <FlexRow gap={GAP.normal} align="center" wrap>
-        <Label>Write with</Label>
+        <Label>{t("storyboard:attrs.writeWith", { defaultValue: "Write with" })}</Label>
         <Box sx={{ width: MODEL_PICKER_WIDTH }}>
           <LanguageModelSelect
             value={writerModel?.id ?? ""}
@@ -286,7 +299,10 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       {/* A rewrite is a model call like any other, so it says what it will
           cost before it is pressed rather than after (F23). */}
       <GenerationSummary
-        result={`Rewrite ${words} words, keeping the lines it keeps`}
+        result={t("setup:script.rewriteWordsResult", {
+          defaultValue: "Rewrite {{words}} words, keeping the lines it keeps",
+          words
+        })}
         next={
           source
             ? i18n.t("storyboard:attrs.thisReplacesYourImportedWordsWithTheModelsYourOwnTextIsDropped", { defaultValue: "This replaces your imported words with the model's. Your own text is dropped." })
@@ -307,7 +323,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           onClick={addLine}
           disabled={locked}
         >
-          Add a line
+          {t("setup:script.addALine", { defaultValue: "Add a line" })}
         </EditorButton>
         {emptyLineIds.length > 0 ? (
           <EditorButton
@@ -316,7 +332,10 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
             disabled={locked}
             onClick={() => emptyLineIds.forEach(removeLine)}
           >
-            {`Remove ${emptyLineIds.length} empty ${emptyLineIds.length === 1 ? "line" : "lines"}`}
+            {t("setup:script.removeEmptyLines", {
+              defaultValue: "Remove {{count}} empty lines",
+              count: emptyLineIds.length
+            })}
           </EditorButton>
         ) : null}
       </FlexRow>
@@ -336,10 +355,15 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           disabled={readOnly}
           onClick={onOpenEditor}
         >
-          Open the editor without voicing
+          {t("storyboard:attrs.openTheEditorWithoutVoicing", {
+            defaultValue: "Open the editor without voicing"
+          })}
         </EditorButton>
         <Caption color="secondary">
-          Finish here with the text. You can voice it in the editor later.
+          {t("editor:ui.finishHereWithTheTextYouCanVoiceItInTheEditorLater", {
+            defaultValue:
+              "Finish here with the text. You can voice it in the editor later."
+          })}
         </Caption>
       </FlexRow>
     </FlexColumn>

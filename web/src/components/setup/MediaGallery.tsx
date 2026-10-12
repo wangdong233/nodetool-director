@@ -35,6 +35,7 @@ import React, {
 } from "react";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import type { SxProps, Theme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 
 import { ContextMenuProvider } from "../../providers/ContextMenuProvider";
 import { useAssetsForLocators } from "../../hooks/assets/useAssetsForLocators";
@@ -352,6 +353,7 @@ export const GalleryExpandButton: React.FC<GalleryExpandButtonProps> = ({
   caption,
   label
 }) => {
+  const { t } = useTranslation();
   const ref = useRef<HTMLButtonElement>(null);
   const open = useMediaGallery();
   useGalleryMedia({ locator, kind, caption }, ref);
@@ -373,8 +375,15 @@ export const GalleryExpandButton: React.FC<GalleryExpandButtonProps> = ({
     <ToolbarIconButton
       ref={ref}
       icon={<FullscreenIcon fontSize="small" />}
-      tooltip="View fullscreen"
-      ariaLabel={name ? `View ${name} fullscreen` : "View fullscreen"}
+      tooltip={t("storyboard:attrs.viewFullscreen", { defaultValue: "View fullscreen" })}
+      ariaLabel={
+        name
+          ? t("setup:gallery.viewNameFullscreen", {
+              defaultValue: "View {{name}} fullscreen",
+              name
+            })
+          : t("storyboard:attrs.viewFullscreen", { defaultValue: "View fullscreen" })
+      }
       onClick={handleClick}
       data-testid="media-gallery-expand"
       sx={expandButtonSx}

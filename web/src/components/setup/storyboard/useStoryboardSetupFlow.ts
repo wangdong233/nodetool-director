@@ -112,7 +112,10 @@ const CAMERA_PASS_MAX_OUTPUT_TOKENS = 4096;
 const EMPTY_ENTITY_IDS: string[] = [];
 
 const shotsLabel = (count: number): string =>
-  `${count} shot${count === 1 ? "" : "s"}`;
+  i18n.t("storyboard:attrs.shotsCount", {
+    defaultValue: "{{count}} shots",
+    count
+  });
 
 export interface StoryboardSetupFlowOptions {
   boardId: string;
@@ -420,7 +423,7 @@ export const useStoryboardSetupFlow = ({
           !contextError &&
           (brief.trim().length > 0 || imported?.preserveWords === true),
         blockedReason: importingFile
-          ? "Reading your file"
+          ? i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" })
           : (contextError ?? i18n.t("storyboard:attrs.writeASentenceOrBringYourOwnScript", { defaultValue: "Write a sentence, or bring your own script" })),
         render: (context) =>
           createElement(IdeaStep, {
@@ -448,8 +451,14 @@ export const useStoryboardSetupFlow = ({
         blockedReason: t("storyboard:attrs.pickAGenre", { defaultValue: "Pick a genre" }),
         pending: directing,
         pendingLabel: cameraPass
-          ? `Directing ${shotsLabel(directedShotCount)}`
-          : `Writing ${shotsLabel(directedShotCount)}`,
+          ? t("setup:storyboard.directingShots", {
+              defaultValue: "Directing {{shots}}",
+              shots: shotsLabel(directedShotCount)
+            })
+          : t("setup:storyboard.writingShots", {
+              defaultValue: "Writing {{shots}}",
+              shots: shotsLabel(directedShotCount)
+            }),
         // The shell aborts its own run. A run the agent started has only this.
         onCancel: directing ? cancelDirecting : undefined,
         // What the run costs, in the same shape every other flow shows before
@@ -460,9 +469,18 @@ export const useStoryboardSetupFlow = ({
           ? undefined
           : {
               result: cameraPass
-                ? `Add camera direction to your ${directedShotCount}-shot script`
-                : `Write a ${shotCount}-shot screenplay you can edit as text`,
-              next: "Review and edit the scenes and shots next. No stills are rendered until the Look step.",
+                ? t("setup:storyboard.addCameraDirectionToYourCountShotScript", {
+                    defaultValue: "Add camera direction to your {{count}}-shot script",
+                    count: directedShotCount
+                  })
+                : t("setup:storyboard.writeACountShotScreenplay", {
+                    defaultValue: "Write a {{count}}-shot screenplay you can edit as text",
+                    count: shotCount
+                  }),
+              next: t("setup:storyboard.reviewAndEditScenesNext", {
+                defaultValue:
+                  "Review and edit the scenes and shots next. No stills are rendered until the Look step."
+              }),
               model: directorModel,
               brief,
               maxOutputTokens: cameraPass
@@ -521,9 +539,17 @@ export const useStoryboardSetupFlow = ({
         // than a rewrite may ask for.
         pendingLabel: directing
           ? cameraPass
-            ? `Directing ${shotsLabel(directedShotCount)}`
-            : `Rewriting ${shotsLabel(rewriteShotCount)}`
-          : "Saving your screenplay",
+            ? t("setup:storyboard.directingShots", {
+                defaultValue: "Directing {{shots}}",
+                shots: shotsLabel(directedShotCount)
+              })
+            : t("setup:storyboard.rewritingShots", {
+                defaultValue: "Rewriting {{shots}}",
+                shots: shotsLabel(rewriteShotCount)
+              })
+          : t("setup:storyboard.savingYourScreenplay", {
+              defaultValue: "Saving your screenplay"
+            }),
         onCancel: directing ? cancelDirecting : undefined,
         cancelable: false,
         render: (context) =>
@@ -559,8 +585,11 @@ export const useStoryboardSetupFlow = ({
         pending: creatingEntities > 0,
         pendingLabel:
           creatingEntities === 1
-            ? "Creating an entity"
-            : `Creating ${creatingEntities} entities`,
+            ? t("setup:storyboard.creatingAnEntity", { defaultValue: "Creating an entity" })
+            : t("setup:storyboard.creatingCountEntities", {
+                defaultValue: "Creating {{count}} entities",
+                count: creatingEntities
+              }),
         onCancel: cancelEntityCreation,
         render: (context) =>
           createElement(EntitiesStep, {

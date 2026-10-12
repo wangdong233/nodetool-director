@@ -175,11 +175,14 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     const numbers = new Map<string, string>();
     sceneOrder(shots).forEach((group, sceneIndex) => {
       group.shots.forEach((shot, position) => {
-        numbers.set(shot.id, `Scene ${sceneIndex + 1} | Shot ${position + 1}`);
+        numbers.set(
+          shot.id,
+          `${t("setup:storyboard.sceneN", { defaultValue: "Scene {{index}}", index: sceneIndex + 1 })} | ${t("setup:storyboard.shotN", { defaultValue: "Shot {{index}}", index: position + 1 })}`
+        );
       });
     });
     return numbers;
-  }, [shots]);
+  }, [shots, t]);
 
   const importNotice = useMemo(() => {
     if (!notice) {
@@ -197,9 +200,18 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       return {
         severity: "warning" as const,
         title: i18n.t("storyboard:attrs.scriptKeptAsWritten", { defaultValue: "Your script was kept as written" }),
-        body: `The Director changed the words or the order of ${listed}${
-          rest > 0 ? ` and ${rest} more` : ""
-        }. The imported text was put back.`
+        body: t("setup:storyboard.directorChangedWordsOrder", {
+          defaultValue:
+            "The Director changed the words or the order of {{listed}}{{more}}. The imported text was put back.",
+          listed,
+          more:
+            rest > 0
+              ? t("setup:storyboard.andCountMoreScenes", {
+                  defaultValue: " and {{count}} more",
+                  count: rest
+                })
+              : ""
+        })
       };
     }
     if (notice.missingLines.length === 0) {
@@ -221,14 +233,25 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       0
     );
     const parts = [
-      `${shots.length} shot${shots.length === 1 ? "" : "s"}`,
-      `${sceneCount} scene${sceneCount === 1 ? "" : "s"}`
+      t("storyboard:attrs.shotsCount", {
+        defaultValue: "{{count}} shots",
+        count: shots.length
+      }),
+      t("setup:storyboard.scenesCount", {
+        defaultValue: "{{count}} scenes",
+        count: sceneCount
+      })
     ];
     if (seconds > 0) {
-      parts.push(`about ${Math.round(seconds)}s`);
+      parts.push(
+        t("setup:storyboard.aboutSeconds", {
+          defaultValue: "about {{count}}s",
+          count: Math.round(seconds)
+        })
+      );
     }
     return parts.join(" · ");
-  }, [scenes, shots]);
+  }, [scenes, shots, t]);
 
   const handleRestore = useCallback(() => {
     if (replaced && !readOnly) {
@@ -260,11 +283,11 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     const groups = sceneOrder(shots, scenes);
     const screenplaySection: PlanReviewSection = {
       id: "screenplay",
-      header: "Title",
+      header: t("storyboard:attrs.title", { defaultValue: "Title" }),
       rows: [
         {
           id: "title",
-          label: "Title",
+          label: t("storyboard:attrs.title", { defaultValue: "Title" }),
           hideLabel: true,
           value: title,
           onChange: (value: string) => setTitle(boardId, value)
@@ -314,7 +337,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
         const shotGroups = group.shots.map(
           (shot, position): PlanReviewGroup => ({
             id: shot.id,
-            header: `Shot ${position + 1}`,
+            header: t("setup:storyboard.shotN", { defaultValue: "Shot {{index}}", index: position + 1 }),
             // What the shot is, beside its number: its slug and how long it
             // runs. Both are optional on the document, so a shot with neither
             // shows a bare heading.
@@ -325,7 +348,10 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
             rows: [
               {
                 id: `${shot.id}:action`,
-                label: `Shot ${position + 1} · Action`,
+                label: t("setup:storyboard.shotNAction", {
+                  defaultValue: "Shot {{index}} · Action",
+                  index: position + 1
+                }),
                 // The block's heading numbers the shot, so the row does not
                 // repeat it; the label stays as the field's accessible name.
                 hideLabel: true,
@@ -336,7 +362,10 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
               },
               {
                 id: `${shot.id}:dialogue`,
-                label: `Shot ${position + 1} · Dialogue`,
+                label: t("setup:storyboard.shotNDialogue", {
+                  defaultValue: "Shot {{index}} · Dialogue",
+                  index: position + 1
+                }),
                 readOnly:
                   !!shot.script_line_ids?.length ||
                   !!productionRequirementsFrom(shot)?.speech_binding
@@ -441,13 +470,14 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
         );
         return {
           id: sceneId ?? "unscened",
-          header: `Scene ${index + 1}`,
+          header: t("setup:storyboard.sceneN", { defaultValue: "Scene {{index}}", index: index + 1 }),
           // The slugline is the scene's name, but it is also the first field
           // below — the header says how big the scene is instead, which the
           // rows do not.
-          subheader: `${group.shots.length} shot${
-            group.shots.length === 1 ? "" : "s"
-          }`,
+          subheader: t("storyboard:attrs.shotsCount", {
+            defaultValue: "{{count}} shots",
+            count: group.shots.length
+          }),
           rows: sceneRows,
           groups: shotGroups
         };
@@ -488,10 +518,13 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     >
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          Your screenplay
+          {t("storyboard:attrs.yourScreenplay", { defaultValue: "Your screenplay" })}
         </Text>
         <Text size="normal" color="secondary">
-          Edit anything here. It is the text your storyboard is drawn from.
+          {t("editor:ui.editAnythingHereItIsTheTextYourStoryboardIsDrawnFrom", {
+            defaultValue:
+              "Edit anything here. It is the text your storyboard is drawn from."
+          })}
         </Text>
       </FlexColumn>
       {importNotice ? (
@@ -509,8 +542,10 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
         <AlertBanner severity="warning" title={t("storyboard:attrs.writtenHereNotByYourModel", { defaultValue: "Written here, not by your model" })}>
           <FlexColumn gap={GAP.tight}>
             <Caption component="span">
-              Your model returned nothing usable, so this outline was built from
-              your brief. Keep it and edit it, or run the Director again.
+              {t("setup:storyboard.modelReturnedNothingUsable", {
+                defaultValue:
+                  "Your model returned nothing usable, so this outline was built from your brief. Keep it and edit it, or run the Director again."
+              })}
             </Caption>
             <FlexRow gap={GAP.normal} wrap>
               <EditorButton
@@ -519,7 +554,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 disabled={readOnly || rewriting}
                 onClick={onRewrite}
               >
-                Run the Director again
+                {t("storyboard:attrs.runTheDirectorAgain", { defaultValue: "Run the Director again" })}
               </EditorButton>
               {onKeepFallback ? (
                 <EditorButton
@@ -528,7 +563,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                   onClick={onKeepFallback}
                   disabled={readOnly}
                 >
-                  Keep this outline
+                  {t("storyboard:attrs.keepThisOutline", { defaultValue: "Keep this outline" })}
                 </EditorButton>
               ) : null}
             </FlexRow>
@@ -543,14 +578,16 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           severity="info"
           title={
             keptAsWritten
-              ? "Directed from your script"
+              ? t("setup:storyboard.directedFromYourScript", { defaultValue: "Directed from your script" })
               : i18n.t("storyboard:attrs.rewrittenFromYourBrief", { defaultValue: "Rewritten from your brief" })
           }
         >
           <FlexRow gap={GAP.normal} align="center" wrap>
             <Caption component="span">
               {keptAsWritten
-                ? "The version before this camera pass is still here."
+                ? t("setup:storyboard.theVersionBeforeThisCameraPass", {
+                    defaultValue: "The version before this camera pass is still here."
+                  })
                 : i18n.t("storyboard:attrs.thePreviousScreenplayIsStillHere", { defaultValue: "The previous screenplay is still here." })}
             </Caption>
             <EditorButton
@@ -559,7 +596,9 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
               disabled={readOnly || rewriting}
               onClick={handleRestore}
             >
-              Restore the previous screenplay
+              {t("storyboard:attrs.restoreThePreviousScreenplay", {
+                defaultValue: "Restore the previous screenplay"
+              })}
             </EditorButton>
           </FlexRow>
         </AlertBanner>
@@ -579,8 +618,8 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           >
             {keptAsWritten
               ? rewriting
-                ? "Directing your script…"
-                : "Direct the camera again"
+                ? t("setup:storyboard.directingYourScript", { defaultValue: "Directing your script…" })
+                : t("setup:storyboard.directTheCameraAgain", { defaultValue: "Direct the camera again" })
               : rewriting
                 ? i18n.t("storyboard:attrs.rewritingScreenplay", { defaultValue: "Rewriting screenplay…" })
                 : i18n.t("storyboard:attrs.rewriteFromBrief", { defaultValue: "Rewrite from brief" })}
@@ -608,12 +647,17 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           <GenerationSummary
             result={
               keptAsWritten
-                ? "Add camera direction to your script again"
+                ? t("setup:storyboard.addCameraDirectionAgain", {
+                    defaultValue: "Add camera direction to your script again"
+                  })
                 : i18n.t("storyboard:attrs.rewriteTheScreenplayFromYourBrief", { defaultValue: "Rewrite the screenplay from your brief" })
             }
             next={
               keptAsWritten
-                ? "Your words and scene order stay as written. No images are generated."
+                ? t("setup:storyboard.yourWordsAndSceneOrderStay", {
+                    defaultValue:
+                      "Your words and scene order stay as written. No images are generated."
+                  })
                 : i18n.t("storyboard:attrs.retainedShotsKeepTheirStillsNoImagesAreGenerated", { defaultValue: "Retained shots keep their stills. No images are generated." })
             }
             model={model}

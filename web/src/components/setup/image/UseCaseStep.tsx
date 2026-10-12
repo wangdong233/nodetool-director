@@ -8,6 +8,7 @@
  */
 
 import React, { memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 import { FlexColumn, GAP, Text } from "../../ui_primitives";
 import { useSketchStore } from "../../sketch/state/useSketchStore";
@@ -15,6 +16,7 @@ import { OptionCardGrid } from "../OptionCardGrid";
 import { USE_CASE_CARDS, findUseCase } from "./useCases";
 
 const UseCaseStepInternal: React.FC = () => {
+  const { t } = useTranslation();
   const useCaseId = useSketchStore(
     (state) => state.document.setup?.use_case ?? null
   );
@@ -38,10 +40,10 @@ const UseCaseStepInternal: React.FC = () => {
   return (
     <FlexColumn gap={GAP.spacious}>
       <Text size="big" component="h2">
-        What is it for?
+        {t("storyboard:attrs.whatIsItFor", { defaultValue: "What is it for?" })}
       </Text>
       <OptionCardGrid
-        label="Use case"
+        label={t("storyboard:attrs.useCase", { defaultValue: "Use case" })}
         options={USE_CASE_CARDS}
         selectedId={useCaseId}
         onSelect={handleSelect}

@@ -1,5 +1,6 @@
 import { formatUsd } from "@nodetool-ai/model-pricing";
 import { isModelSelected } from "@nodetool-ai/protocol";
+import { useTranslation } from "react-i18next";
 import {
   Caption,
   FlexColumn,
@@ -50,6 +51,7 @@ export function GenerationEstimateLine({
   noModelCall,
   hideModel = false
 }: GenerationEstimateLineProps) {
+  const { t } = useTranslation();
   // The "empty" sentinel is no choice, whatever default id it carries.
   const model = isModelSelected(rawModel) ? rawModel : null;
   const estimate = noModelCall
@@ -58,19 +60,24 @@ export function GenerationEstimateLine({
   const parts = [
     hideModel || noModelCall
       ? null
-      : (model?.name ?? model?.id ?? "No model selected"),
+      : (model?.name ?? model?.id ?? t("setup:estimate.noModelSelected", { defaultValue: "No model selected" })),
     noModelCall
-      ? "No model call"
+      ? t("setup:estimate.noModelCall", { defaultValue: "No model call" })
       : estimate
         ? estimate.high === 0
-          ? "$0 (local)"
+          ? t("setup:estimate.zeroLocal", { defaultValue: "$0 (local)" })
           : `~${formatUsd(estimate.low)}–${formatUsd(estimate.high)}`
-        : "Cost unknown",
-    noModelCall ? null : "~30–60s"
+        : t("setup:estimate.costUnknown", { defaultValue: "Cost unknown" }),
+    noModelCall ? null : t("setup:estimate.tilde3060s", { defaultValue: "~30–60s" })
   ].filter((part): part is string => part !== null);
   const assumptions =
     estimate && estimate.high > 0
-      ? ` About ${estimate.inputTokens.toLocaleString()} input and 1,000–${maxOutputTokens.toLocaleString()} output tokens. Actual usage may cost more.`
+      ? t("setup:estimate.aboutInputAndOutputTokens", {
+          defaultValue:
+            " About {{input}} input and 1,000–{{output}} output tokens. Actual usage may cost more.",
+          input: estimate.inputTokens.toLocaleString(),
+          output: maxOutputTokens.toLocaleString()
+        })
       : "";
   return (
     <Tooltip
@@ -84,7 +91,7 @@ export function GenerationEstimateLine({
         color="secondary"
         component="span"
         role="group"
-        aria-label="Before you generate"
+        aria-label={t("storyboard:attrs.beforeYouGenerate", { defaultValue: "Before you generate" })}
         tabIndex={0}
         sx={{ whiteSpace: "nowrap", cursor: "help" }}
       >
@@ -106,18 +113,23 @@ export default function GenerationSummary({
   concise = false,
   hideTokenEstimate = false
 }: GenerationSummaryProps) {
+  const { t } = useTranslation();
   // The "empty" sentinel is no choice, whatever default id it carries.
   const model = isModelSelected(rawModel) ? rawModel : null;
   const estimate = noModelCall
     ? null
     : generationEstimate(model, brief, maxOutputTokens, extraInputTokens);
   const cost = noModelCall
-    ? "$0, no model call"
+    ? i18n.t("storyboard:attrs.zeroNoModelCall", { defaultValue: "$0, no model call" })
     : estimate
       ? estimate.high === 0
-        ? "$0 provider cost (local model)"
-        : `Rough cost: ${formatUsd(estimate.low)}–${formatUsd(estimate.high)}`
-      : "Cost estimate unavailable for this model";
+        ? i18n.t("storyboard:attrs.zeroProviderCostLocalModel", { defaultValue: "$0 provider cost (local model)" })
+        : t("setup:estimate.roughCost", {
+            defaultValue: "Rough cost: {{low}}–{{high}}",
+            low: formatUsd(estimate.low),
+            high: formatUsd(estimate.high)
+          })
+      : i18n.t("storyboard:attrs.costEstimateUnavailableForThisModel", { defaultValue: "Cost estimate unavailable for this model" });
   return (
     <FlexColumn
       gap={GAP.tight}
@@ -131,16 +143,16 @@ export default function GenerationSummary({
       <FlexRow gap={GAP.spacious} wrap>
         <Text size="small">
           {noModelCall
-            ? "Uses the existing text or preset"
+            ? i18n.t("storyboard:attrs.usesTheExistingTextOrPreset", { defaultValue: "Uses the existing text or preset" })
             : i18n.t("storyboard:attrs.modelNameProvider", { defaultValue: "Model: {{name}}{{provider}}", name: model?.name ?? model?.id ?? i18n.t("storyboard:attrs.notSelected", { defaultValue: "Not selected" }), provider: model ? ` (${model.provider})` : "" })}
         </Text>
         <Text size="small">{cost}</Text>
         <Text size="small">
           {noModelCall
-            ? "Ready immediately"
+            ? i18n.t("storyboard:attrs.readyImmediately", { defaultValue: "Ready immediately" })
             : concise || compact
-              ? "Rough wait: 30–60s or longer"
-              : "Rough wait: 30–60 seconds; longer for large requests or slower models"}
+              ? i18n.t("storyboard:attrs.roughWait3060sOrLonger", { defaultValue: "Rough wait: 30–60s or longer" })
+              : i18n.t("storyboard:attrs.roughWait3060SecondsLongerForLargeRequestsOrSlowerModels", { defaultValue: "Rough wait: 30–60 seconds; longer for large requests or slower models" })}
         </Text>
       </FlexRow>
       {estimate && estimate.high > 0 && !hideTokenEstimate ? (

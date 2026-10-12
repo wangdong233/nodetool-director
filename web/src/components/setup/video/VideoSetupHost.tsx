@@ -26,6 +26,7 @@ import { useTimelineAgentBridge } from "../../../hooks/timeline/useTimelineAgent
 import { buildTimelineDocumentPayload } from "../../../hooks/timeline/timelineDocumentPayload";
 import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
 import { FlexColumn, PADDING, ThinkingIndicator } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 import { SetupFlow } from "../SetupFlow";
 import { useFinishIfLoadedDone } from "../useFinishIfLoadedDone";
 import {
@@ -134,7 +135,11 @@ const VideoSetupBody = ({
         sx={{ padding: PADDING.section }}
       >
         <ThinkingIndicator
-          label={submitting ? "Starting your clips" : "Opening your timeline"}
+          label={
+            submitting
+              ? i18n.t("setup:video.startingYourClips", { defaultValue: "Starting your clips" })
+              : i18n.t("setup:video.openingYourTimeline", { defaultValue: "Opening your timeline" })
+          }
           announce
         />
       </FlexColumn>

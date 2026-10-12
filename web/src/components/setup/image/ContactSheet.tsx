@@ -96,11 +96,20 @@ export const downloadVariation = async (
 ): Promise<void> => {
   const url = await resolveMediaUri(`asset://${assetId}`);
   if (!url) {
-    throw new Error("Its file could not be found.");
+    throw new Error(
+      i18n.t("setup:image.itsFileCouldNotBeFound", {
+        defaultValue: "Its file could not be found."
+      })
+    );
   }
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`The file could not be read (${response.status}).`);
+    throw new Error(
+      i18n.t("setup:image.theFileCouldNotBeRead", {
+        defaultValue: "The file could not be read ({{status}}).",
+        status: response.status
+      })
+    );
   }
   const blob = await response.blob();
   const extension = IMAGE_EXTENSION[blob.type] ?? "png";
@@ -122,6 +131,14 @@ const STATUS_TEXT: Record<string, string> = {
   queued: "Queued",
   generating: "Rendering",
   failed: "This one failed"
+};
+
+/** zh wording for the statuses, keyed by the binding status id. */
+const STATUS_TEXT_KEYS: Record<string, string> = {
+  draft: "storyboard:attrs.waitingToStart",
+  queued: "editor:ui.queued",
+  generating: "storyboard:attrs.rendering",
+  failed: "storyboard:attrs.thisOneFailed"
 };
 
 /** Statuses that mean the request has not settled yet. */
@@ -173,13 +190,21 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
 
   const tiles = useMemo(() => {
     const names = layerNames.split(NAME_SEPARATOR);
+    const unrecorded = t("setup:image.thisOneDidNotRender", {
+      defaultValue: UNRECORDED_REASON
+    });
     return layerIds.map((layerId, index) => {
       const binding = bindings[layerId];
       const status = binding?.status ?? "draft";
       const failure = status === "failed" ? directGenFailure(layerId) : null;
       return {
         layerId,
-        label: names[index] || `Variation ${index + 1}`,
+        label:
+          names[index] ||
+          t("setup:image.variationLabel", {
+            defaultValue: "Variation {{index}}",
+            index: index + 1
+          }),
         assetId: binding?.currentAssetId,
         status,
         pending: PENDING.has(status),
@@ -191,10 +216,10 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
             ? null
             : failure
               ? describeDirectGenFailure(failure)
-              : UNRECORDED_REASON
+              : unrecorded
       };
     });
-  }, [bindings, layerIds, layerNames]);
+  }, [bindings, layerIds, layerNames, t]);
 
   const landed = tiles.filter((tile) => tile.assetId !== undefined).length;
   const failedTiles = tiles.filter((tile) => tile.failed);
@@ -203,8 +228,11 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
 
   // A batch usually fails for one reason — a key, a quota, a prompt — so the
   // sheet says it once above the grid instead of on every tile.
+  const unrecordedReason = t("setup:image.thisOneDidNotRender", {
+    defaultValue: UNRECORDED_REASON
+  });
   const reasons = Array.from(
-    new Set(failedTiles.map((tile) => tile.reason ?? UNRECORDED_REASON))
+    new Set(failedTiles.map((tile) => tile.reason ?? unrecordedReason))
   );
   const sharedReason = failed > 1 && reasons.length === 1 ? reasons[0] : null;
 
@@ -255,7 +283,10 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
         ...current,
         [layerId]: {
           state: "saving",
-          message: destination === "entity" ? "Saving to entities…" : "Opening…"
+          message:
+            destination === "entity"
+              ? i18n.t("setup:image.savingToEntitiesProgress", { defaultValue: "Saving to entities…" })
+              : i18n.t("setup:image.openingProgress", { defaultValue: "Opening…" })
         }
       }));
       try {
@@ -282,8 +313,8 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
             state: "failed",
             message:
               destination === "entity"
-                ? `Could not save to entities.${reason}`
-                : `Could not open that canvas.${reason}`
+                ? i18n.t("setup:image.couldNotSaveToEntities", { defaultValue: "Could not save to entities.{{reason}}", reason })
+                : i18n.t("setup:image.couldNotOpenThatCanvas", { defaultValue: "Could not open that canvas.{{reason}}", reason })
           }
         }));
       }
@@ -295,18 +326,34 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          Pick your image
+          {t("storyboard:attrs.pickYourImage", { defaultValue: "Pick your image" })}
         </Text>
         <Text size="normal" color="secondary">
-          Every variation stays on the document, so nothing you rendered is
-          lost.
+          {t("setup:image.everyVariationStays", {
+            defaultValue:
+              "Every variation stays on the document, so nothing you rendered is lost."
+          })}
         </Text>
         {/* What the batch did, said once and out loud, so a reader who cannot
             see the grid still learns that three landed and one did not. */}
         <Text size="small" color="secondary" role="status" aria-live="polite">
-          {`${landed} of ${tiles.length} rendered` +
-            (failed > 0 ? ` · ${failed} failed` : "") +
-            (pending > 0 ? ` · ${pending} still running` : "")}
+          {t("setup:image.nOfTotalRendered", {
+              defaultValue: "{{landed}} of {{total}} rendered",
+              landed,
+              total: tiles.length
+            }) +
+            (failed > 0
+              ? ` · ${t("setup:image.countFailed", {
+                  defaultValue: "{{count}} failed",
+                  count: failed
+                })}`
+              : "") +
+            (pending > 0
+              ? ` · ${t("setup:image.countStillRunning", {
+                  defaultValue: "{{count}} still running",
+                  count: pending
+                })}`
+              : "")}
         </Text>
       </FlexColumn>
 
@@ -325,9 +372,10 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
         >
           <FlexColumn gap={GAP.tight}>
             <Text size="small">
-              Nothing rendered. Try a variation again, change the model or size
-              under the generation settings, or open the editor and work from
-              the canvas.
+              {t("setup:image.nothingRendered", {
+                defaultValue:
+                  "Nothing rendered. Try a variation again, change the model or size under the generation settings, or open the editor and work from the canvas."
+              })}
             </Text>
             {reasons.map((reason) => (
               <Text key={reason} size="small">
@@ -379,7 +427,10 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
           >
             <Box
               role="group"
-              aria-label={`${tile.label} preview`}
+              aria-label={t("setup:image.labelPreview", {
+                defaultValue: "{{label}} preview",
+                label: tile.label
+              })}
               aria-busy={tile.pending}
               className={MEDIA_GALLERY_HOST_CLASS}
               // A click on the still picks it, the same as `Sketch editor`
@@ -422,7 +473,9 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                   }}
                 >
                   <Caption color="secondary">
-                    {STATUS_TEXT[tile.status] ?? "Rendering"}
+                    {t(STATUS_TEXT_KEYS[tile.status] ?? "storyboard:attrs.rendering", {
+                      defaultValue: STATUS_TEXT[tile.status] ?? "Rendering"
+                    })}
                   </Caption>
                 </Box>
               )}
@@ -444,7 +497,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                 disabled={!tile.assetId}
                 onClick={() => pick(tile.layerId)}
               >
-                Sketch editor
+                {t("storyboard:attrs.sketchEditor", { defaultValue: "Sketch editor" })}
               </EditorButton>
               {(
                 [
@@ -469,7 +522,12 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                 disabled={tile.pending}
                 onClick={() => regenerate(tile.layerId, tile.failed)}
               >
-                {tile.failed ? `Try ${tile.label} again` : "Regenerate"}
+                {tile.failed
+                  ? t("setup:image.tryLabelAgain", {
+                      defaultValue: "Try {{label}} again",
+                      label: tile.label
+                    })
+                  : t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}
                 {/* Another render is paid for, so its price sits on the button. */}
                 {regenerateDetail ? ` · ${regenerateDetail}` : ""}
               </EditorButton>
@@ -486,7 +544,11 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                           ...current,
                           [tile.layerId]: {
                             state: "failed",
-                            message: `Could not download ${tile.label}.${reason}`
+                            message: i18n.t("setup:image.couldNotDownloadLabel", {
+                              defaultValue: "Could not download {{label}}.{{reason}}",
+                              label: tile.label,
+                              reason
+                            })
                           }
                         }));
                       }
@@ -494,7 +556,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                   }
                 }}
               >
-                Download
+                {t("storyboard:attrs.download", { defaultValue: "Download" })}
               </EditorButton>
             </FlexRow>
             {actions[tile.layerId] ? (
@@ -525,10 +587,12 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
           </Caption>
         ) : null}
         <EditorButton variant="text" onClick={onBackToSettings}>
-          Back to generation settings
+          {t("setup:image.backToGenerationSettings", {
+            defaultValue: "Back to generation settings"
+          })}
         </EditorButton>
         <EditorButton variant="text" onClick={onOpenEditor}>
-          Open editor
+          {t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}
         </EditorButton>
       </FlexRow>
     </FlexColumn>

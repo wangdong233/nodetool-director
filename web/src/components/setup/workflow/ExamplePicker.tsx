@@ -158,7 +158,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
           onClick={onCancel}
           disabled={pickingId !== null}
         >
-          Back to your idea
+          {t("setup:workflow.backToYourIdea", { defaultValue: "Back to your idea" })}
         </EditorButton>
       </FlexRow>
 
@@ -178,7 +178,7 @@ const PickerInternal: React.FC<WorkflowExamplePickerProps> = ({
                   void refetch();
                 }}
               >
-                Try again
+                {t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}
               </EditorButton>
               <ReportBugButton
                 context={{

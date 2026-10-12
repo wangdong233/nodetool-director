@@ -7,7 +7,8 @@
  * shell's primary button is what calls the designer.
  */
 
-import React, { memo } from "react";
+import React, { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   NATIVE_GAME_TEMPLATES,
   findNativeGameTemplate
@@ -41,24 +42,36 @@ const TemplateStepInternal: React.FC<GameTemplateStepProps> = ({
   onSelect,
   readOnly = false
 }) => {
+  const { t } = useTranslation();
   const chosen = selectedId ? findNativeGameTemplate(selectedId) : null;
+  const options = useMemo(
+    () =>
+      TEMPLATE_OPTIONS.map((option) => ({
+        ...option,
+        meta: t("setup:game.assetsCount", {
+          defaultValue: "{{count}} assets",
+          count: findNativeGameTemplate(option.id)?.manifest.slots.length ?? 0
+        }),
+        disabled: readOnly
+      })),
+    [readOnly, t]
+  );
   return (
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          Pick how it plays
+          {t("setup:game.pickHowItPlays", { defaultValue: "Pick how it plays" })}
         </Text>
         <Text size="normal" color="secondary">
-          The template sets the rules and the pieces of art. The design you
-          review next fills them in for your idea.
+          {t("setup:game.templateSetsRules", {
+            defaultValue:
+              "The template sets the rules and the pieces of art. The design you review next fills them in for your idea."
+          })}
         </Text>
       </FlexColumn>
       <OptionCardGrid
-        label="Game template"
-        options={TEMPLATE_OPTIONS.map((option) => ({
-          ...option,
-          disabled: readOnly
-        }))}
+        label={t("storyboard:attrs.gameTemplate", { defaultValue: "Game template" })}
+        options={options}
         selectedId={selectedId}
         onSelect={onSelect}
       />
@@ -66,7 +79,9 @@ const TemplateStepInternal: React.FC<GameTemplateStepProps> = ({
         <FlexColumn
           gap={GAP.tight}
           component="ul"
-          aria-label="Assets this template uses"
+          aria-label={t("setup:game.assetsThisTemplateUses", {
+            defaultValue: "Assets this template uses"
+          })}
           sx={{ listStyle: "none", m: 0, p: 0, "& li": { listStyle: "none" } }}
         >
           {chosen.manifest.slots.map((slot) => (
@@ -90,19 +105,22 @@ export interface DesignerModelFooterFieldProps {
 /** The designer model, for the shell's footer. */
 export const DesignerModelFooterField: React.FC<
   DesignerModelFooterFieldProps
-> = ({ designerModel, onDesignerModelChange, readOnly = false }) => (
-  <SetupFooterField label="Model">
+> = ({ designerModel, onDesignerModelChange, readOnly = false }) => {
+  const { t } = useTranslation();
+  return (
+  <SetupFooterField label={t("ui2:attrs.model", { defaultValue: "Model" })}>
     <LanguageModelSelect
       value={designerModel?.id ?? ""}
       provider={designerModel?.provider}
-      placeholder="Designer model"
+      placeholder={t("setup:game.designerModel", { defaultValue: "Designer model" })}
       disabled={readOnly}
       onChange={(value: LanguageModelValue) =>
         onDesignerModelChange({ provider: value.provider, id: value.id })
       }
     />
   </SetupFooterField>
-);
+  );
+};
 
 export const GameTemplateStep = memo(TemplateStepInternal);
 GameTemplateStep.displayName = "GameTemplateStep";

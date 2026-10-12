@@ -75,13 +75,21 @@ export function ExampleBriefs({
     <FlexColumn role="group" aria-label={t("storyboard:attrs.inspiration", { defaultValue: "Inspiration" })} gap={GAP.tight}>
       {undo ? (
         <FlexRow gap={GAP.normal} align="center" wrap>
-          <Caption role="status">The example replaced your text.</Caption>
+          <Caption role="status">
+            {t("setup:briefs.exampleReplacedYourText", {
+              defaultValue: "The example replaced your text."
+            })}
+          </Caption>
           <EditorButton variant="text" size="small" onClick={restore}>
-            Undo
+            {t("appbuilder:attrs.undo", { defaultValue: "Undo" })}
           </EditorButton>
         </FlexRow>
       ) : null}
-      {choices.length > 0 ? <Caption>Try an example</Caption> : null}
+      {choices.length > 0 ? (
+        <Caption>
+          {t("storyboard:attrs.tryAnExample", { defaultValue: "Try an example" })}
+        </Caption>
+      ) : null}
       {choices.map((text) => (
         <EditorButton
           key={text}

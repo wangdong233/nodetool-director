@@ -19,6 +19,7 @@ links the artifact or the command that measures its current state. Pair with
 | Game editor & player (2D/3D) | `game.json` | Editor chrome, toolbar, dock, command palette, inspector/collision/authoring surfaces. Registry titles (panels/commands/categories) resolve at render time through `components/game/gameI18n.ts` with the registry value as the English fallback; schema-derived field labels (`SchemaFields.fieldLabel`) stay English as data class |
 | Settings & integrations | `settings.json`, `tools.json` | Env-var descriptions, provider cards, MCP section |
 | Navigation & pages | `nav.json`, `home.json` | Rail, tabs, page sidebar. `home.json` fully covers the redesigned home surface (composer pills, guided-flow cards + states, game-dimension select, blank-document footer, model notices, guided-flow error panel with per-kind noun keys, document-tree group labels via `labelKey`) |
+| Guided creation flows (`components/setup/`) | `setup.json` + heavy reuse of `storyboard:attrs` / `editor:ui` | The SetupFlow shell and the seven flows (entity/game/image/script/storyboard/video/workflow): stepper chrome, cancel/change-flow states, estimate lines, plan review, per-flow steps and hosts. Data classes: game style descriptions and image/script format cards resolve through keys at render (`STYLE_DESCRIPTION_KEYS`, `catalog:scriptFormats` / `catalog:imageUseCases` overlays); track names, language names, game-slot readouts, bug-report summaries and agent repair prompts stay English (sentinels / model input — `terminology.json` "keep-English (setup 域裁定)") |
 | Primitives / shared | `common.json`, `ui.json`, `ui2.json` | Action verbs, attrs, relative time |
 
 Every `t()` call carries `defaultValue: "<English>"`, so English renders with
@@ -32,7 +33,7 @@ or without a dictionary. Find unwired strings: `npm run i18n:audit`.
 | Node documentation | `nodeDocs` | node type | `nodeDocs.ts` (parser-shaped mirror) |
 | Workflow template names & descriptions | `workflowTemplates` | template file id | `workflowTemplateCopy.ts` |
 | Shipped skill names & descriptions | `skills` | skill slug | render-time `t()` at list/viewer/tab sites and the home surface's starter pills (`catalog:skills.<slug>.name/.description`, `starterLabel` as English fallback) |
-| Example apps / styles / example chips | `apps`, `styles`, `storyboardExamples`, `scriptInspirations`, `imageInspirations`, `imageUseCases`, `gameInspiration`, `workflowInspiration` | slug | render-time `t()` |
+| Example apps / styles / example chips | `apps`, `styles`, `storyboardExamples`, `scriptInspirations`, `imageInspirations`, `imageUseCases`, `scriptFormats`, `gameInspiration`, `workflowInspiration` | slug | render-time `t()` |
 | HuggingFace task names | `hfTask` | task id | `modelFormatting` |
 | Static tables (attrs/shortcuts/dataTypes/snippets) | same file | — | label-key indirection |
 

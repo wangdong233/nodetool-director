@@ -93,7 +93,15 @@ export interface IdeaStepProps {
 }
 
 /** Why the ways out of the step wait for an upload. */
-const UPLOAD_PENDING_REASON = "Wait for your files to finish uploading";
+const UPLOAD_PENDING_EN = "Wait for your files to finish uploading";
+
+/** zh labels for the reference-binding kinds, keyed by the stored kind id. */
+const REFERENCE_KIND_LABEL_KEYS: Readonly<Record<string, string>> = {
+  product: "setup:video.refKind_product",
+  character: "setup:video.refKind_character",
+  location: "setup:video.refKind_location",
+  style: "setup:video.refKind_style"
+};
 
 const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   onStartBlank,
@@ -208,7 +216,12 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       }
       if (importing || importingRef.current) {
         setImportFailed(false);
-        setError("Wait for the current upload to finish, then drop again.");
+        setError(
+          t("setup:video.waitCurrentUploadThenDropAgain", {
+            defaultValue:
+              "Wait for the current upload to finish, then drop again."
+          })
+        );
         return;
       }
       const media = files.filter(isMediaFile);
@@ -218,7 +231,11 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       if (media.length === 0) {
         setImportFailed(false);
         setError(
-          `No track takes ${notMedia.join(" · ")}. Drop video, audio or images.`
+          t("setup:video.noTrackTakesDropInstead", {
+            defaultValue:
+              "No track takes {{names}}. Drop video, audio or images.",
+            names: notMedia.join(" · ")
+          })
         );
         return;
       }
@@ -254,7 +271,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "media",
-        title: "Drop your media",
+        title: t("storyboard:attrs.dropYourMedia", { defaultValue: "Drop your media" }),
         description: i18n.t("timeline:attrs.mediaLandsInOrder", { defaultValue: "Video, audio and images land on the timeline in order" }),
         onSelect: () => mediaInput.current?.click(),
         disabled: importing,
@@ -271,9 +288,12 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         disabledReason: !onStartFromScript
           ? i18n.t("storyboard:attrs.notAvailableHereStartAScriptFromTheProjectScreen", { defaultValue: "Not available here. Start a script from the project screen." })
           : importing
-            ? UPLOAD_PENDING_REASON
+            ? t("setup:video.waitFilesFinishUploading", { defaultValue: UPLOAD_PENDING_EN })
             : hasPlacedMedia
-              ? "Your media is on this timeline and would be left behind. Plan the beats here instead."
+              ? t("setup:video.mediaOnTimelinePlanHere", {
+                  defaultValue:
+                    "Your media is on this timeline and would be left behind. Plan the beats here instead."
+                })
               : undefined
       },
       {
@@ -282,7 +302,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         description: i18n.t("timeline:attrs.skipPlanCutItYourself", { defaultValue: "Skip the plan and cut it yourself" }),
         onSelect: onStartBlank,
         disabled: importing,
-        disabledReason: importing ? UPLOAD_PENDING_REASON : undefined
+        disabledReason: importing
+          ? t("setup:video.waitFilesFinishUploading", { defaultValue: UPLOAD_PENDING_EN })
+          : undefined
       }
     ],
     [hasPlacedMedia, importing, onStartBlank, onStartFromScript, t]
@@ -309,10 +331,12 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            What&apos;s the video?
+            {t("editor:ui.whatSTheVideo", { defaultValue: "What's the video?" })}
           </Text>
           <Text size="normal" color="secondary">
-            We&apos;ll plan the beats and cut it on the timeline.
+            {t("editor:ui.weLlPlanTheBeatsAndCutItOnTheTimeline", {
+              defaultValue: "We'll plan the beats and cut it on the timeline."
+            })}
           </Text>
         </FlexColumn>
 
@@ -336,7 +360,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
 
         {dragging ? (
           <Caption color="secondary" role="status">
-            Drop to place your media on the timeline.
+            {t("storyboard:attrs.dropToPlaceYourMediaOnTheTimeline", {
+              defaultValue: "Drop to place your media on the timeline."
+            })}
           </Caption>
         ) : null}
 
@@ -372,11 +398,15 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           >
             <FlexColumn gap={GAP.micro}>
               <Text size="normal" component="span">
-                {`Placed ${imported.placed.length} file${
-                  imported.placed.length === 1 ? "" : "s"
-                } on the timeline${
-                  imported.advanced ? "" : ". Say what to make of it below."
-                }`}
+                {t("setup:video.placedFilesOnTimeline", {
+                    defaultValue: "Placed {{count}} files on the timeline",
+                    count: imported.placed.length
+                  }) +
+                  (imported.advanced
+                    ? ""
+                    : t("setup:video.sayWhatToMakeOfItBelow", {
+                        defaultValue: ". Say what to make of it below."
+                      }))}
               </Text>
               {imported.placed.length > 0 ? (
                 <Caption component="span" color="secondary">
@@ -385,7 +415,11 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
               ) : null}
               {imported.failed.map((failure) => (
                 <Caption key={failure.name} component="span" color="error">
-                  {`${failure.name} did not upload: ${failure.reason}`}
+                  {t("setup:video.fileDidNotUpload", {
+                    defaultValue: "{{name}} did not upload: {{reason}}",
+                    name: failure.name,
+                    reason: failure.reason
+                  })}
                 </Caption>
               ))}
               {imported.failed.length > 0 ? (
@@ -403,9 +437,11 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
               ) : null}
               {skippedNames.length > 0 ? (
                 <Caption component="span" color="secondary">
-                  {`No track takes ${skippedNames.join(
-                    " · "
-                  )}. Video, audio and images only.`}
+                  {t("setup:video.noTrackTakesOnly", {
+                    defaultValue:
+                      "No track takes {{names}}. Video, audio and images only.",
+                    names: skippedNames.join(" · ")
+                  })}
                 </Caption>
               ) : null}
             </FlexColumn>
@@ -432,7 +468,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                         locator={reference.uri}
                         kind="image"
                         caption={reference.name ?? undefined}
-                        label={reference.name ?? "reference image"}
+                        label={reference.name ?? t("storyboard:attrs.referenceImage", { defaultValue: "reference image" })}
                       >
                         <ResponsiveImage
                           locator={reference.uri}
@@ -449,7 +485,12 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                       </GalleryFrame>
                       <Caption color="secondary">
                         {binding
-                          ? `${binding.kind} conditioning`
+                          ? t("setup:video.kindConditioning", {
+                              defaultValue: "{{kind}} conditioning",
+                              kind: t(REFERENCE_KIND_LABEL_KEYS[binding.kind] ?? "", {
+                                defaultValue: binding.kind
+                              })
+                            })
                           : i18n.t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })}
                       </Caption>
                     </FlexColumn>
@@ -459,17 +500,24 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
             ) : null}
             {carriedEntities.length > 0 ? (
               <FlexRow gap={GAP.tight} wrap>
-                {carriedEntities.map((entity) => (
-                  <Chip
-                    key={entity.id}
-                    label={`${entity.name} · ${
-                      creativeContext?.reference_bindings?.find(
-                        (binding) => binding.entity_id === entity.id
-                      )?.kind ?? "inspiration only"
-                    }`}
-                    size="small"
-                  />
-                ))}
+                {carriedEntities.map((entity) => {
+                  const binding = creativeContext?.reference_bindings?.find(
+                    (candidate) => candidate.entity_id === entity.id
+                  );
+                  return (
+                    <Chip
+                      key={entity.id}
+                      label={`${entity.name} · ${
+                        binding
+                          ? t(REFERENCE_KIND_LABEL_KEYS[binding.kind] ?? "", {
+                              defaultValue: binding.kind
+                            })
+                          : i18n.t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })
+                      }`}
+                      size="small"
+                    />
+                  );
+                })}
               </FlexRow>
             ) : null}
           </FlexColumn>

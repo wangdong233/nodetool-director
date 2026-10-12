@@ -92,7 +92,11 @@ export function useScriptFileImport(scriptId: string): ScriptFileImportResult {
       // A source with no lines reads back as no source at all, so writing it
       // would silently drop the one already on the script.
       if (imported.lines.length === 0) {
-        setError("No lines were found in this file.");
+        setError(
+          i18n.t("setup:script.noLinesWereFoundInThisFile", {
+            defaultValue: "No lines were found in this file."
+          })
+        );
         return;
       }
       useScriptStore.getState().setSetup(scriptId, scriptSourcePatch(imported));

@@ -7,6 +7,7 @@ import type { GameSlotSpec, GameStyleChoice } from "@nodetool-ai/protocol";
 import type { GameDesign } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 
 import type { StylePresetEntity } from "../../../serverState/useStylePresets";
+import { i18n } from "../../../i18n";
 
 /** What one slot is, in a few words. */
 export const describeGameSlot = (slot: GameSlotSpec): string => {
@@ -37,11 +38,16 @@ export const gameDesignGaps = (
 ): string[] => {
   const gaps: string[] = [];
   if (design.title.trim().length === 0) {
-    gaps.push("a title");
+    gaps.push(i18n.t("setup:game.gapTitle", { defaultValue: "a title" }));
   }
   for (const member of design.cast) {
     if (member.descriptor.trim().length === 0) {
-      gaps.push(`how ${member.name.trim() || member.slot_id} looks`);
+      gaps.push(
+        i18n.t("setup:game.gapHowLooks", {
+          defaultValue: "how {{name}} looks",
+          name: member.name.trim() || member.slot_id
+        })
+      );
     }
   }
   for (const slot of slots) {
@@ -52,7 +58,12 @@ export const gameDesignGaps = (
       (entry) => entry.slot_id === slot.id
     );
     if (!prompt || prompt.prompt.trim().length === 0) {
-      gaps.push(`what the ${slot.id} art shows`);
+      gaps.push(
+        i18n.t("setup:game.gapWhatArtShows", {
+          defaultValue: "what the {{id}} art shows",
+          id: slot.id
+        })
+      );
     }
   }
   return gaps;

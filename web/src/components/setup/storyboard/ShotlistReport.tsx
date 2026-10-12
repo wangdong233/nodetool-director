@@ -40,8 +40,11 @@ export const ShotlistReport: React.FC<ShotlistReportProps> = ({
     <Dialog open={open} onClose={onClose} title={t("storyboard:attrs.shotlistImported", { defaultValue: "Shotlist imported" })}>
       <FlexColumn gap={GAP.normal}>
         <Text size="normal">
-          {shotCount} shot{shotCount === 1 ? "" : "s"} imported. These values did
-          not come with them.
+          {t("setup:storyboard.shotsImportedTheseValuesDidNotCome", {
+            defaultValue:
+              "{{count}} shots imported. These values did not come with them.",
+            count: shotCount
+          })}
         </Text>
         <FlexColumn
           gap={GAP.tight}
@@ -54,7 +57,11 @@ export const ShotlistReport: React.FC<ShotlistReportProps> = ({
               component="li"
               color="secondary"
             >
-              Row {entry.row}, {entry.column}
+              {t("setup:storyboard.rowColumn", {
+                defaultValue: "Row {{row}}, {{column}}",
+                row: entry.row,
+                column: entry.column
+              })}
               {entry.value === "" ? "" : ` — “${entry.value}”`}: {entry.reason}
             </Caption>
           ))}

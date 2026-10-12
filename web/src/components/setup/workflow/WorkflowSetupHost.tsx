@@ -333,7 +333,9 @@ const WorkflowSetupHost: React.FC<WorkflowSetupHostProps> = ({
         sx={{ padding: PADDING.section }}
       >
         <ThinkingIndicator
-          label="Checking and test-running your workflow"
+          label={i18n.t("setup:workflow.checkingAndTestRunning", {
+            defaultValue: "Checking and test-running your workflow"
+          })}
           announce
         />
         <EditorButton
@@ -341,7 +343,7 @@ const WorkflowSetupHost: React.FC<WorkflowSetupHostProps> = ({
           variant="text"
           onClick={() => void config.cancelBuild()}
         >
-          Cancel
+          {i18n.t("storyboard:attrs.cancel", { defaultValue: "Cancel" })}
         </EditorButton>
       </FlexColumn>
     );
@@ -354,7 +356,12 @@ const WorkflowSetupHost: React.FC<WorkflowSetupHostProps> = ({
         justify="center"
         sx={{ padding: PADDING.section }}
       >
-        <ThinkingIndicator label="Opening your workflow" announce />
+        <ThinkingIndicator
+          label={i18n.t("setup:workflow.openingYourWorkflow", {
+            defaultValue: "Opening your workflow"
+          })}
+          announce
+        />
       </FlexColumn>
     );
   }

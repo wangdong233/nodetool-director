@@ -399,6 +399,7 @@ const PackedLines: React.FC<{ rows: readonly PlanReviewField[] }> = ({
 const PlanReviewLines: React.FC<{ rows: readonly PlanReviewField[] }> = ({
   rows
 }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const basic = rows.filter((row) => !row.advanced);
   const advanced = rows.filter((row) => row.advanced);
@@ -422,7 +423,9 @@ const PlanReviewLines: React.FC<{ rows: readonly PlanReviewField[] }> = ({
             />
           }
         >
-          {open ? "Fewer options" : "More options"}
+          {open
+            ? t("setup:plan.fewerOptions", { defaultValue: "Fewer options" })
+            : t("setup:plan.moreOptions", { defaultValue: "More options" })}
         </EditorButton>
         {summary ? <Caption color="muted">{summary}</Caption> : null}
       </FlexRow>

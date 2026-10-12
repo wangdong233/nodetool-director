@@ -261,7 +261,11 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
         <FlexRow gap={GAP.normal} align="baseline">
           <Text size="normal" color={over ? "warning" : "secondary"}>
             {format
-              ? `${formatSeconds(totalMs)} of ${formatSeconds(format.durationMs)}`
+              ? t("setup:video.durationOfTotal", {
+                  defaultValue: "{{current}} of {{total}}",
+                  current: formatSeconds(totalMs),
+                  total: formatSeconds(format.durationMs)
+                })
               : formatSeconds(totalMs)}
           </Text>
           {over ? (

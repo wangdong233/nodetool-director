@@ -2828,6 +2828,7 @@
     "fromTopicToVoicedLines": "From a topic to voiced lines, ready to place.",
     "fromDescriptionToPickedVariation": "From a description to a picked variation in the editor.",
     "fromTaskToRunningGraph": "From a task to a running graph, with the plan reviewed first.",
+    "fromAnIdeaToAPlayableGameWithTheDesignReviewedFirst": "From an idea to a playable game, with the design reviewed first.",
     "fromSentenceToRunningGodotProject": "From a sentence to a running Godot project, assets checked.",
     "gameLevel": "Level",
     "gameSourceIsUnavailable": "Game source is unavailable.",

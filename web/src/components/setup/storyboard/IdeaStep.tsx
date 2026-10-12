@@ -169,19 +169,19 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "upload",
-        title: "Upload your file",
-        description: "PDF, DOCX, FDX",
+        title: t("storyboard:attrs.uploadYourFile", { defaultValue: "Upload your file" }),
+        description: t("setup:storyboard.pdfDocxFdx", { defaultValue: "PDF, DOCX, FDX" }),
         onSelect: () => scriptInput.current?.click(),
         disabled: readOnly || importing,
         disabledReason: importing ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "shotlist",
-        title: "Import your shotlist",
+        title: t("storyboard:attrs.importYourShotlist", { defaultValue: "Import your shotlist" }),
         description: i18n.t("storyboard:attrs.csvOneRowPerShot", { defaultValue: "CSV, one row per shot" }),
         onSelect: () => shotlistInput.current?.click(),
         disabled: readOnly || importing,
-        disabledReason: importing ? "Reading your file…" : undefined
+        disabledReason: importing ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined
       },
       {
         id: "blank",
@@ -215,10 +215,12 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            What&apos;s your story?
+            {t("editor:ui.whatSYourStory", { defaultValue: "What's your story?" })}
           </Text>
           <Text size="normal" color="secondary">
-            We&apos;ll turn it into a screenplay and storyboard.
+            {t("editor:ui.weLlTurnItIntoAScreenplayAndStoryboard", {
+              defaultValue: "We'll turn it into a screenplay and storyboard."
+            })}
           </Text>
         </FlexColumn>
 
@@ -236,12 +238,15 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         {source ? (
           <AlertBanner
             severity="info"
-            title={`Imported from ${source.fileName}`}
+            title={t("setup:storyboard.importedFrom", {
+              defaultValue: "Imported from {{name}}",
+              name: source.fileName
+            })}
           >
             <FlexColumn gap={GAP.tight}>
               <Caption component="span">
                 {locked
-                  ? "Your scenes and dialogue are used as written. The Director only adds camera, motion and timing."
+                  ? i18n.t("storyboard:attrs.yourScenesAndDialogueAreUsedAsWrittenTheDirectorOnlyAddsCameraMotionAndTiming", { defaultValue: "Your scenes and dialogue are used as written. The Director only adds camera, motion and timing." })
                   : i18n.t("storyboard:attrs.theDirectorStructuresThisTextIntoScenesAndShots", { defaultValue: "The Director structures this text into scenes and shots." })}
               </Caption>
               <FlexRow gap={GAP.normal} wrap>
@@ -251,7 +256,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                   onClick={replaceSource}
                   disabled={readOnly || importing}
                 >
-                  Replace file
+                  {t("storyboard:attrs.replaceFile", { defaultValue: "Replace file" })}
                 </EditorButton>
                 {locked ? (
                   <EditorButton
@@ -260,7 +265,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                     onClick={editAsText}
                     disabled={readOnly || importing}
                   >
-                    Edit as text
+                    {t("storyboard:attrs.editAsText", { defaultValue: "Edit as text" })}
                   </EditorButton>
                 ) : (
                   <EditorButton
@@ -269,7 +274,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                     onClick={removeSource}
                     disabled={readOnly || importing}
                   >
-                    Remove the file
+                    {t("storyboard:attrs.removeTheFile", { defaultValue: "Remove the file" })}
                   </EditorButton>
                 )}
               </FlexRow>
@@ -348,7 +353,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         />
         <Caption color="secondary" component="p">
           <a href={SHOTLIST_TEMPLATE_URL} download>
-            Download the CSV template
+            {t("storyboard:attrs.downloadTheCSVTemplate", {
+              defaultValue: "Download the CSV template"
+            })}
           </a>
         </Caption>
       </FlexColumn>

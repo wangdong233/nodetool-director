@@ -72,7 +72,9 @@ export const ENTRY_CARDS: readonly EntryCard[] = [
   {
     id: "game",
     title: "Game",
-    description: "From an idea to a playable game, with the design reviewed first."
+    titleKey: "home:entry.game.title",
+    description: "From an idea to a playable game, with the design reviewed first.",
+    descriptionKey: "editor:ui.fromAnIdeaToAPlayableGameWithTheDesignReviewedFirst"
   }
 ];
 

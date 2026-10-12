@@ -157,6 +157,24 @@ const PROMPT_OPTIONS: Record<
   ]
 };
 
+/**
+ * zh display labels for the reference views, keyed by option id; the ids and
+ * prompt instructions stay locale-independent (the instruction is model input).
+ */
+export const PROMPT_OPTION_LABEL_KEYS: Readonly<Record<string, string>> = {
+  "full-body": "setup:entity.view.fullBody",
+  portrait: "setup:entity.view.portrait",
+  "character-sheet": "setup:entity.view.characterSheet",
+  "establishing-view": "setup:entity.view.establishingView",
+  "detail-view": "setup:entity.view.detailView",
+  "location-sheet": "setup:entity.view.locationSheet",
+  "style-sample": "setup:entity.view.styleSample",
+  "style-sheet": "setup:entity.view.styleSheet",
+  "texture-detail": "setup:entity.view.textureDetail",
+  "product-view": "setup:entity.view.productView",
+  "turnaround-sheet": "setup:entity.view.turnaroundSheet"
+};
+
 const referencePrompt = (
   name: string,
   kind: EntityKind,
@@ -284,9 +302,9 @@ const GenerateReferenceDialog = ({
       })
     : null;
   const modelHelper = !model
-    ? "Pick an image model to generate the reference."
+    ? i18n.t("setup:entity.pickAnImageModelToGenerateTheReference", { defaultValue: "Pick an image model to generate the reference." })
     : estimate
-      ? `Used to create the reference image. About ${estimate.label}.`
+      ? i18n.t("setup:entity.usedToCreateReferenceImageAbout", { defaultValue: "Used to create the reference image. About {{estimate}}.", estimate: estimate.label })
       : i18n.t("storyboard:attrs.usedToCreateReferenceImage", { defaultValue: "Used to create the reference image." });
 
   return (
@@ -302,13 +320,17 @@ const GenerateReferenceDialog = ({
     >
       <FlexColumn gap={GAP.comfortable} sx={{ minWidth: SETUP_FIELD_WIDTH }}>
         <Caption color="secondary">
-          Choose a view, then edit the prompt to refine the image.
+          {t("setup:entity.chooseAViewThenEdit", {
+            defaultValue: "Choose a view, then edit the prompt to refine the image."
+          })}
         </Caption>
         <FlexRow gap={GAP.tight} wrap>
           {options.map((option) => (
             <Chip
               key={option.id}
-              label={option.label}
+              label={t(PROMPT_OPTION_LABEL_KEYS[option.id] ?? "", {
+                defaultValue: option.label
+              })}
               active={selectedOption === option.id}
               aria-pressed={selectedOption === option.id}
               onClick={() => {
@@ -385,11 +407,13 @@ export const ReferenceStep = ({
     <FlexColumn gap={GAP.spacious} sx={{ maxWidth: SETUP_CONTENT_WIDTH }}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h1">
-          Choose a reference image
+          {t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" })}
         </Text>
         <Text color="secondary">
-          Pick the clearest image of the traits you want future generations to
-          preserve, or create one with AI.
+          {t("setup:entity.pickTheClearestImage", {
+            defaultValue:
+              "Pick the clearest image of the traits you want future generations to preserve, or create one with AI."
+          })}
         </Text>
       </FlexColumn>
 
@@ -397,11 +421,15 @@ export const ReferenceStep = ({
         <GalleryFrame
           locator={`asset://${assetId}`}
           kind="image"
-          caption={name ? `${name} reference` : "Selected reference"}
+          caption={
+            name
+              ? t("setup:entity.nameReference", { defaultValue: "{{name}} reference", name })
+              : t("setup:entity.selectedReference", { defaultValue: "Selected reference" })
+          }
         >
           <ResponsiveImage
             locator={`asset://${assetId}`}
-            alt="Selected entity reference"
+            alt={t("editor:ui.selectedEntityReference", { defaultValue: "Selected entity reference" })}
             // Stable hook for the reference slot. The rendered <img> is not one:
             // jsdom fetches a src but has no image codec, so it fires `error`
             // for even a valid data: URI and the error fallback replaces the
@@ -440,7 +468,7 @@ export const ReferenceStep = ({
           startIcon={<AutoAwesomeOutlinedIcon />}
           onClick={() => setGeneratorOpen(true)}
         >
-          Generate with AI
+          {t("storyboard:attrs.generateWithAI", { defaultValue: "Generate with AI" })}
         </EditorButton>
       </FlexRow>
 

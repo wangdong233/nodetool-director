@@ -102,14 +102,17 @@ export const newScriptSetupDocument = (
  * The flow's name, above the stepper. Each step body carries its own heading
  * and subline (PRD § 9.1–9.3), so this says what is being made and no more.
  */
-const FLOW_LABELS = { title: "Script" } as const;
+const FLOW_TITLE = { title: "Script" } as const;
 
 const VOICING_LIVE = "This script is already being voiced";
 
 const TRANSCRIPTION_EXTRA = "Word timing transcription is extra.";
 
 const linesLabel = (count: number): string =>
-  `${count} ${count === 1 ? "line" : "lines"}`;
+  i18n.t("setup:script.countLines", {
+    defaultValue: "{{count}} lines",
+    count
+  });
 
 /**
  * The Voices step's cost line. A figure covers only the lines that priced, so
@@ -125,13 +128,31 @@ export const formatCost = (
   if (lineCount === 0) {
     return undefined;
   }
+  const extra = i18n.t("setup:script.transcriptionExtra", {
+    defaultValue: TRANSCRIPTION_EXTRA
+  });
   if (cost <= 0) {
-    return `${linesLabel(lineCount)} to voice`;
+    return i18n.t("setup:script.voiceLines", {
+      defaultValue: "{{lines}} to voice",
+      lines: linesLabel(lineCount)
+    });
   }
   if (pricedLineCount < lineCount) {
-    return `About $${cost.toFixed(2)} for ${pricedLineCount} of ${linesLabel(lineCount)}, the rest unpriced. ${TRANSCRIPTION_EXTRA}`;
+    return i18n.t("setup:script.aboutForPricedOf", {
+      defaultValue:
+        "About {{cost}} for {{priced}} of {{lines}}, the rest unpriced. {{extra}}",
+      cost: `$${cost.toFixed(2)}`,
+      priced: pricedLineCount,
+      lines: linesLabel(lineCount),
+      extra
+    });
   }
-  return `About $${cost.toFixed(2)} to voice ${linesLabel(lineCount)}. ${TRANSCRIPTION_EXTRA}`;
+  return i18n.t("setup:script.aboutToVoice", {
+    defaultValue: "About {{cost}} to voice {{lines}}. {{extra}}",
+    cost: `$${cost.toFixed(2)}`,
+    lines: linesLabel(lineCount),
+    extra
+  });
 };
 
 export interface ScriptSetupFlowOptions {
@@ -269,9 +290,11 @@ export const useScriptSetupFlow = ({
 
   const unassignedReason =
     unassignedLines > 0
-      ? `Pick a speaker for ${unassignedLines} ${
-          unassignedLines === 1 ? "line" : "lines"
-        }. A line with no speaker is not voiced.`
+      ? i18n.t("setup:script.pickSpeakerForLines", {
+          defaultValue:
+            "Pick a speaker for {{count}} lines. A line with no speaker is not voiced.",
+          count: unassignedLines
+        })
       : undefined;
 
   // What the format step's button is about to spend, when it spends anything.
@@ -284,12 +307,32 @@ export const useScriptSetupFlow = ({
             generation: {
               result: imported
                 ? hasLines
-                  ? `Prepare ${imported.lines.length} lines again from your import, replacing edits made in the review`
-                  : `Prepare ${imported.lines.length} existing lines, keeping your words`
+                  ? i18n.t("setup:script.prepareLinesFromImport", {
+                      defaultValue:
+                        "Prepare {{count}} lines again from your import, replacing edits made in the review",
+                      count: imported.lines.length
+                    })
+                  : i18n.t("setup:script.prepareExistingLines", {
+                      defaultValue:
+                        "Prepare {{count}} existing lines, keeping your words",
+                      count: imported.lines.length
+                    })
                 : hasLines
-                  ? `Rewrite your ${linesLabel(lineCount)} for about ${setup?.length_seconds ?? 60} seconds of speech, keeping your edits as context`
-                  : `Write a text script for about ${setup?.length_seconds ?? 60} seconds of speech`,
-              next: "Review and edit the lines next. Choose voices and generate audio separately in Voices.",
+                  ? i18n.t("setup:script.rewriteLinesForSeconds", {
+                      defaultValue:
+                        "Rewrite your {{lines}} for about {{seconds}} seconds of speech, keeping your edits as context",
+                      lines: linesLabel(lineCount),
+                      seconds: setup?.length_seconds ?? 60
+                    })
+                  : i18n.t("setup:script.writeTextScript", {
+                      defaultValue:
+                        "Write a text script for about {{seconds}} seconds of speech",
+                      seconds: setup?.length_seconds ?? 60
+                    }),
+              next: i18n.t("setup:script.reviewAndEditLinesNext", {
+                defaultValue:
+                  "Review and edit the lines next. Choose voices and generate audio separately in Voices."
+              }),
               model: writerModel,
               // The call sends the imported words, or the script it rewrites,
               // along with the brief, so the estimate prices them too.
@@ -321,15 +364,15 @@ export const useScriptSetupFlow = ({
       {
         stage: "idea",
         label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
-        primaryLabel: "Continue",
+        primaryLabel: i18n.t("storyboard:attrs.continue", { defaultValue: "Continue" }),
         // Imported words are enough on their own: they say what the script is,
         // and the brief beside them is a note for the attribution pass (F3).
         canAdvance:
           !importingFile &&
           ((setup?.brief.trim().length ?? 0) > 0 || imported !== null),
         blockedReason: importingFile
-          ? "Reading your file"
-          : "Describe what to write, or import your script",
+          ? i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" })
+          : i18n.t("storyboard:attrs.describeWhatToWriteOrImportYourScript", { defaultValue: "Describe what to write, or import your script" }),
         render: (context) =>
           createElement(IdeaStep, {
             scriptId,
@@ -347,22 +390,24 @@ export const useScriptSetupFlow = ({
         label: i18n.t("editor:ui.format", { defaultValue: "Format" }),
         primaryLabel: needsWrite
           ? hasLines
-            ? "Rewrite"
-            : "Write the script"
-          : "Continue to review",
+            ? i18n.t("storyboard:attrs.rewrite", { defaultValue: "Rewrite" })
+            : i18n.t("storyboard:attrs.writeTheScript", { defaultValue: "Write the script" })
+          : i18n.t("storyboard:attrs.continueToReview", { defaultValue: "Continue to review" }),
         canAdvance:
           formatError === null &&
           (setup?.format ?? "") !== "" &&
           (!needsModel || Boolean(writerModel?.id)),
         blockedReason:
           formatError ??
-          (!setup?.format ? "Pick a script format" : "Pick a writer model"),
+          (!setup?.format
+            ? i18n.t("storyboard:attrs.pickAScriptFormat", { defaultValue: "Pick a script format" })
+            : i18n.t("storyboard:attrs.pickAWriterModel", { defaultValue: "Pick a writer model" })),
         // No model runs when the script already answers these inputs, so
         // nothing is estimated either (PRD § 6.2) — the step carries no
         // `generation` at all rather than an empty one.
         ...writeEstimate,
         pending: writing,
-        pendingLabel: "Writing your script",
+        pendingLabel: i18n.t("storyboard:attrs.writingYourScript", { defaultValue: "Writing your script" }),
         footerControls: (context) =>
           createElement(WriterModelFooterField, {
             scriptId,
@@ -390,14 +435,14 @@ export const useScriptSetupFlow = ({
       {
         stage: "review",
         label: i18n.t("editor:ui.format", { defaultValue: "Format" }),
-        primaryLabel: "Continue to voices",
+        primaryLabel: i18n.t("storyboard:attrs.continueToVoices", { defaultValue: "Continue to voices" }),
         // Empty lines produce no take and no audio, so they are caught before
         // the creator pays for the rest of the script (F20).
         canAdvance: hasLines && !hasEmptyLine && unassignedLines === 0,
         blockedReason: !hasLines
           ? i18n.t("storyboard:attrs.addAtLeastOneScriptLine", { defaultValue: "Add at least one script line" })
           : hasEmptyLine
-            ? "Every line needs words, or remove it"
+            ? i18n.t("storyboard:attrs.everyLineNeedsWordsOrRemoveIt", { defaultValue: "Every line needs words, or remove it" })
             : unassignedReason,        // `Rewrite` runs outside the shell's primary button, so the shell has
         // to read its wait: the creator cannot move on to voices while the
         // lines they are reading are being replaced (F2).
@@ -417,21 +462,21 @@ export const useScriptSetupFlow = ({
       {
         stage: "voices",
         label: i18n.t("editor:ui.voices", { defaultValue: "Voices" }),
-        primaryLabel: "Voice your script",
+        primaryLabel: i18n.t("storyboard:attrs.voiceYourScript", { defaultValue: "Voice your script" }),
         canAdvance:
           !voicingLive &&
           castNeedingVoice === 0 &&
           hasLines &&
           unassignedLines === 0,
         blockedReason: voicingLive
-          ? VOICING_LIVE
+          ? i18n.t("setup:script.voicingLive", { defaultValue: VOICING_LIVE })
           : !hasLines
             ? i18n.t("storyboard:attrs.addAtLeastOneScriptLine", { defaultValue: "Add at least one script line" })
-            : (unassignedReason ?? "Choose a voice for every speaker"),
+            : (unassignedReason ?? i18n.t("storyboard:attrs.chooseAVoiceForEverySpeaker", { defaultValue: "Choose a voice for every speaker" })),
         // A write the agent started replaces the cast and the lines, so the
         // voices picked now and the lines voiced now would be thrown away.
         pending: writing,
-        pendingLabel: "Writing your script",
+        pendingLabel: i18n.t("storyboard:attrs.writingYourScript", { defaultValue: "Writing your script" }),
         onCancel: cancel,
         primaryDetail: formatCost(
           cost.cost,
@@ -449,7 +494,9 @@ export const useScriptSetupFlow = ({
           // Checked before the record is written: a refused run must not
           // reset the progress of the run that is going.
           if (isVoicingLive(scriptId)) {
-            throw new Error(`${VOICING_LIVE}.`);
+            throw new Error(
+              `${i18n.t("setup:script.voicingLive", { defaultValue: VOICING_LIVE })}.`
+            );
           }
           // Queued, then opened, then completed: `voiceAll` moves the record to
           // `running` and finally to `completed` with the lines that failed, so
@@ -511,7 +558,12 @@ export const useScriptSetupFlow = ({
     ]
   );
 
-  return { labels: FLOW_LABELS, steps, stage, onStageChange };
+  return {
+    labels: { title: i18n.t("home:entry.script.title", { defaultValue: FLOW_TITLE.title }) },
+    steps,
+    stage,
+    onStageChange
+  };
 };
 
 export default useScriptSetupFlow;
