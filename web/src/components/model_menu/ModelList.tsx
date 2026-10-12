@@ -305,13 +305,13 @@ function ModelList<TModel extends ModelSelectorModel>({
       const tooltipTitle = downloadTarget
         ? ""
         : execution.state !== "ready"
-          ? (execution.reason ?? "This model is not ready to use.")
+          ? (execution.reason ?? t("editor:ui.thisModelIsNotReadyToUse", { defaultValue: "This model is not ready to use." }))
           : !providerEnabled && !hasKey
-            ? "Enable provider and add API key in Settings to use this model"
+            ? t("editor:ui.enableProviderAndAddAPIKeyInSettingsToUseThisModel", { defaultValue: "Enable provider and add API key in Settings to use this model" })
             : !providerEnabled
-              ? "Enable provider in the left sidebar to use this model"
+              ? t("editor:ui.enableProviderInTheLeftSidebarToUseThisModel", { defaultValue: "Enable provider in the left sidebar to use this model" })
               : !hasKey
-                ? "Add API key in Settings to use this model"
+                ? t("editor:ui.addApiKeyInSettingsToUseThisModel", { defaultValue: "Add API key in Settings to use this model" })
                 : "";
       return (
         <Tooltip disableInteractive title={tooltipTitle}>
@@ -391,7 +391,7 @@ function ModelList<TModel extends ModelSelectorModel>({
                     {m.path
                       ? m.name
                       : m.provider
-                        ? `Provider: ${m.provider}`
+                        ? t("editor:ui.providerColon", { defaultValue: "Provider: {{provider}}", provider: m.provider })
                         : ""}
                   </span>
                 }
@@ -413,7 +413,8 @@ function ModelList<TModel extends ModelSelectorModel>({
       theme.vars.palette.primary.main,
       modelType,
       onModelDownload,
-      downloadTargetLabel
+      downloadTargetLabel,
+      t
     ]
   );
 
@@ -443,11 +444,11 @@ function ModelList<TModel extends ModelSelectorModel>({
                   letterSpacing: 0.5
                 }}
               >
-                Available to download
+                {t("editor:ui.availableToDownload", { defaultValue: "Available to download" })}
               </Text>
               {downloadTargetLabel && (
                 <Tooltip
-                  title={`Downloads land on ${downloadTargetLabel} — where models run in this session.`}
+                  title={t("editor:ui.downloadsLandOn", { defaultValue: "Downloads land on {{target}} — where models run in this session.", target: downloadTargetLabel })}
                 >
                   <Caption
                     sx={{
@@ -475,7 +476,7 @@ function ModelList<TModel extends ModelSelectorModel>({
         />
       );
     },
-    [renderRow, onDownloadSelect, onDownloadStart, downloadTargetLabel]
+    [renderRow, onDownloadSelect, onDownloadStart, downloadTargetLabel, t]
   );
 
   return (
@@ -486,7 +487,7 @@ function ModelList<TModel extends ModelSelectorModel>({
             variant="no-results"
             size="small"
             title={t("editor:ui.noModelsFound", { defaultValue: "No models found" })}
-            description={`No models match "${searchTerm}". Try a different term or enable more providers.`}
+            description={t("editor:ui.noModelsMatch", { defaultValue: "No models match \"{{term}}\". Try a different term or enable more providers.", term: searchTerm })}
           />
         ) : hasDownloads ? (
           <EmptyState
@@ -496,8 +497,7 @@ function ModelList<TModel extends ModelSelectorModel>({
             title={t("editor:ui.noModelsYetLetsGetStarted", { defaultValue: "No models yet — let's get started" })}
             description={
               <>
-                Download a local model or add an API key for a cloud provider to
-                get going.{" "}
+                {t("editor:ui.downloadALocalModelOrAddAnAPIKeyForACloudProviderToGetGoing", { defaultValue: "Download a local model or add an API key for a cloud provider to get going." })}{" "}
                 <Box
                   component="button"
                   type="button"
@@ -525,7 +525,7 @@ function ModelList<TModel extends ModelSelectorModel>({
             title={t("editor:ui.noModelsAvailable", { defaultValue: "No models available" })}
             description={
               <>
-                Enable a provider in the left sidebar or add an API key in{" "}
+                {t("editor:ui.noModelsProviderHintA", { defaultValue: "Enable a provider in the left sidebar or add an API key in" })}{" "}
                 <Box
                   component="button"
                   type="button"
@@ -541,9 +541,9 @@ function ModelList<TModel extends ModelSelectorModel>({
                   }}
                   onClick={handleOpenSettings}
                 >
-                  Settings
+                  {t("ui:attrs.settings", { defaultValue: "Settings" })}
                 </Box>
-                .
+                {t("editor:ui.noModelsProviderHintB", { defaultValue: "." })}
               </>
             }
             actionText={t("editor:ui.openSettings", { defaultValue: "Open Settings" })}

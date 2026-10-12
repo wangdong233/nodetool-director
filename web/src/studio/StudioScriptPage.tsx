@@ -146,11 +146,11 @@ const StudioScriptPage = () => {
       {assembleError ? (
         <AlertBanner
           severity="error"
-          title="We couldn't create the video"
+          title={t("editor:studio.couldNotCreateVideo", { defaultValue: "We couldn't create the video" })}
           sx={{ margin: SPACING.md }}
           action={
             <ReportBugButton
-              label="Report this failure"
+              label={t("home:flowError.report", { defaultValue: "Report this failure" })}
               variant="outlined"
               size="small"
               context={{

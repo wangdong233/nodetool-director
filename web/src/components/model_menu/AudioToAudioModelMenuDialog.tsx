@@ -36,7 +36,7 @@ function AudioToAudioModelMenuDialog({
       modelData={modelData}
       onModelChange={onModelChange}
       title={t("editor:ui.selectAudioToAudioModel", { defaultValue: "Select Audio To Audio Model" })}
-      searchPlaceholder="Search voice changers, separators, denoisers..."
+      searchPlaceholder={t("editor:ui.searchVoiceChangers", { defaultValue: "Search voice changers, separators, denoisers..." })}
       storeHook={useAudioToAudioModelMenuStore}
       modelType="audio_to_audio_model"
       recommendedModels={recommendedModels}

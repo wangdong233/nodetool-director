@@ -60,7 +60,7 @@ const CollectionProperty = (props: PropertyProps<CollectionValue | null>) => {
         description={props.property.description}
         id={id}
       />
-      {isLoading && <p>Loading…</p>}
+      {isLoading && <p>{t("common:status.loading", { defaultValue: "Loading…" })}</p>}
       {error && <p>Error: {error.message}</p>}
       <Select
         value={selectValue}

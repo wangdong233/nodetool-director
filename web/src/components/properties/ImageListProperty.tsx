@@ -516,13 +516,13 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
           {leadingUpstreamImages.map((image, index) => (
             <Tooltip
               key={`upstream-${index}-${image.uri}`}
-              title="From the connected input"
+              title={t("editor:ui.fromTheConnectedInput", { defaultValue: "From the connected input" })}
             >
               <div className="image-item is-upstream">
                 <div className="image-content">
                   <ListImageThumb
                     item={image}
-                    alt={`Connected item ${index + 1}`}
+                    alt={t("editor:ui.connectedItemAlt", { defaultValue: "Connected item {{index}}", index: index + 1 })}
                   />
                 </div>
               </div>
@@ -533,7 +533,7 @@ const ImageListProperty = (props: PropertyProps<ImageItem[] | null>) => {
               <div className="image-content">
                 <ListImageThumb
                   item={image}
-                  alt={`Item ${index + 1}`}
+                  alt={t("editor:ui.itemAlt", { defaultValue: "Item {{index}}", index: index + 1 })}
                   imgRef={(el) => {
                     if (el) {
                       imageRefs.current[image.uri] = el;

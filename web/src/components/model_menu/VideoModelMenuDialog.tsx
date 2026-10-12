@@ -39,7 +39,7 @@ function VideoModelMenuDialog({
       modelData={modelData}
       onModelChange={onModelChange}
       title={t("editor:ui.selectVideoModel", { defaultValue: "Select Video Model" })}
-      searchPlaceholder="Search text-to-video models..."
+      searchPlaceholder={t("editor:ui.searchTextToVideoModels", { defaultValue: "Search text-to-video models..." })}
       storeHook={useVideoModelMenuStore}
       modelType="video_model"
       recommendedModels={recommendedModels}

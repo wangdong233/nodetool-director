@@ -125,7 +125,7 @@ const DocumentPickerProperty = ({
           value={selectedId}
           onChange={handleChange}
         >
-          {isLoading && <NodeMenuItem disabled>Loading…</NodeMenuItem>}
+          {isLoading && <NodeMenuItem disabled>{i18n.t("common:status.loading", { defaultValue: "Loading…" })}</NodeMenuItem>}
           {error && <NodeMenuItem disabled>Error: {error.message}</NodeMenuItem>}
           {data?.map((document) => (
             <NodeMenuItem key={document.id} value={document.id}>

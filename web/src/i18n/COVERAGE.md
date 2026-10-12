@@ -12,9 +12,9 @@ links the artifact or the command that measures its current state. Pair with
 
 | Surface | Dictionary | Notes |
 |---|---|---|
-| Editor chrome, dialogs, menus, toolbars | `locales/{en,zh-CN}/editor.json` | Largest namespace; action buttons, save indicators, empty states included |
-| Storyboard / timeline domains | `storyboard.json`, `timeline.json` | Shot/take/clip/track/keyframe vocabulary lives here |
-| Sketch tools | `sketch.json` | Brush/layer/tool chrome |
+| Editor chrome, dialogs, menus, toolbars | `locales/{en,zh-CN}/editor.json` | Largest namespace; action buttons, save indicators, empty states, model-editor & 3D scene chrome (`primitive.`/`mat.`/`geoParam.`/`sc.` families), panel chrome (logs/queue/trace/versions), command palette (`cm.*`), workspace tabs/rails, memory/model-menu/runs/support/version/studio stragglers |
+| Storyboard / timeline domains | `storyboard.json`, `timeline.json` | Shot/take/clip/track/keyframe vocabulary; camera vocabulary value/label split (storage enums English, labels localized through `cameraOptions()`'s 42 keys, shared by ShotEditTable + TimelineShotForm); timeline gains code/shot/sampler/view groups (Fable panel module labels stay Latin, hardware convention) |
+| Sketch tools | `sketch.json` | Brush/layer/tool chrome; vector layers, SVG panel, rulers+guides, brush-assist, undo/redo combo tooltips. Layer NAMES are document data (written into the sketch doc, dedup depends on English literals) — menu labels localize, stored names don't |
 | Mini-app builder | `appbuilder.json` | Puck field labels resolved from a localized config clone |
 | Game editor & player (2D/3D) | `game.json` | Editor chrome, toolbar, dock, command palette, inspector/collision/authoring surfaces. Registry titles (panels/commands/categories) resolve at render time through `components/game/gameI18n.ts` with the registry value as the English fallback; schema-derived field labels (`SchemaFields.fieldLabel`) stay English as data class |
 | Settings & integrations | `settings.json`, `tools.json` | Env-var descriptions, provider cards, MCP section |

@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import isEqual from "../../utils/isEqual";
 import MusicModelMenuDialog from "../model_menu/MusicModelMenuDialog";
 import type {
@@ -27,6 +28,7 @@ const MusicModelSelect: React.FC<MusicModelSelectProps> = ({
   recommendedModels,
   modelPacks
 }) => {
+  const { t } = useTranslation();
   const { anchorEl, buttonRef, handleClick, handleClose, handleSelect } =
     useModelSelectMenu("music_model", onChange);
   const { data: models } = useQuery({
@@ -62,9 +64,9 @@ const MusicModelSelect: React.FC<MusicModelSelectProps> = ({
         ref={buttonRef}
         active={!!modelId}
         label={
-          currentSelectedModelDetails?.name || modelId || "Select Music Model"
+          currentSelectedModelDetails?.name || modelId || t("editor:ui.selectMusicModel", { defaultValue: "Select Music Model" })
         }
-        subLabel="Select Text-to-Music Model"
+        subLabel={t("editor:ui.selectTextToMusicModel", { defaultValue: "Select Text-to-Music Model" })}
         onClick={handleClick}
       />
       <MusicModelMenuDialog

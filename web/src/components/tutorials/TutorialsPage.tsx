@@ -475,7 +475,7 @@ const TutorialsPage: React.FC = () => {
                   disabled={openingTask}
                   aria-busy={openingTask}
                 >
-                  {openingTask ? "Opening task…" : "Open task"}
+                  {openingTask ? t("tools:tutorials.openingTask", { defaultValue: "Opening task…" }) : t("editor:ui.openTask", { defaultValue: "Open task" })}
                 </EditorButton>
               ) : (
                 <EditorButton variant="contained" onClick={() => navigate("/workspace")}>{t("tools:tutorials.startBuilding", { defaultValue: "Start building" })}</EditorButton>

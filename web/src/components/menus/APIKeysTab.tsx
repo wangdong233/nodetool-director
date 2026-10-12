@@ -411,7 +411,7 @@ export const ProviderCard = memo(function ProviderCard({
               >
                 {oauth.isConnecting
                   ? t("editor:ui.connecting", { defaultValue: "Connecting…" })
-                  : t("editor:ui.signInWith", { defaultValue: "Sign in with {{name}}", name: meta.name })}
+                  : t("editor:ui.signInWith", { defaultValue: "Sign in with {{account}}", account: meta.name })}
               </EditorButton>
             ))}
 

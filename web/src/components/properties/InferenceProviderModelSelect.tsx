@@ -49,7 +49,7 @@ const providerOptions = [
     { label: "Sambanova", labelKey: "sambanova", value: "sambanova" },
     { label: "Together", labelKey: "together", value: "together" },
     { label: "Z.AI", labelKey: "zAI", value: "zai-org" },
-    { label: "Add providers…", labelKey: "addProviders", value: "__add_providers" }
+    { label: "Add providers…", labelKey: "addProvidersEllipsis", value: "__add_providers" }
 ];
 
 const InferenceProviderModelSelect = ({
@@ -159,7 +159,7 @@ const InferenceProviderModelSelect = ({
                     </Text>
                     <Select
                         onOpenChange={setModelOpen}
-                        options={[...modelOptions, { value: "__add_providers", label: t("editor:ui.addProviders", { defaultValue: "Add providers…" }) }]}
+                        options={[...modelOptions, { value: "__add_providers", label: t("editor:ui.addProvidersEllipsis", { defaultValue: "Add providers…" }) }]}
                         value={value.model_id}
                         onChange={handleChangeModel}
                         placeholder={

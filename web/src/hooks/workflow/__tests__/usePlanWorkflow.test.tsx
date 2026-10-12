@@ -567,7 +567,7 @@ describe("pinnedChipPlan", () => {
 
   it("matches a chip's localized brief (显示即所发: the label is the brief)", async () => {
     await changeAppLanguage("zh-CN");
-    const zhBrief = "总结 PDF 并发邮件";
+    const zhBrief = "总结 PDF 并发送邮件";
     try {
       expect(zhBrief).not.toBe(WORKFLOW_INSPIRATION_CHIPS[0].brief);
       expect(pinnedChipPlan(zhBrief)).toEqual(WORKFLOW_INSPIRATION_CHIPS[0].plan);

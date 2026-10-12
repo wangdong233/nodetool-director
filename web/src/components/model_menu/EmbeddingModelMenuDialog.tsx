@@ -34,7 +34,7 @@ function EmbeddingModelMenuDialog({
       modelData={modelData}
       onModelChange={onModelChange}
       title={t("editor:ui.selectEmbeddingModel", { defaultValue: "Select Embedding Model" })}
-      searchPlaceholder="Search embedding models..."
+      searchPlaceholder={t("editor:ui.searchEmbeddingModels", { defaultValue: "Search embedding models..." })}
       storeHook={useEmbeddingModelMenuStore}
       modelType="embedding_model"
       recommendedModels={recommendedModels}

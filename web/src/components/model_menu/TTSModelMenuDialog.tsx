@@ -34,7 +34,7 @@ function TTSModelMenuDialog({
       modelData={modelData}
       onModelChange={onModelChange}
       title={t("editor:ui.selectTTSModel", { defaultValue: "Select TTS Model" })}
-      searchPlaceholder="Search text-to-speech models..."
+      searchPlaceholder={t("editor:ui.searchTextToSpeechModels", { defaultValue: "Search text-to-speech models..." })}
       storeHook={useTTSModelMenuStore}
       modelType="tts_model"
       recommendedModels={recommendedModels}

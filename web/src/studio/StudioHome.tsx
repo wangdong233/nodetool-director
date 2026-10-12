@@ -56,7 +56,7 @@ import type {
   StudioProject
 } from "./groupLinkedProjects";
 import { creationProjectId } from "../stores/WorkspaceTabsStore";
-import { i18n } from "../i18n";
+import { i18n, useAppLanguage } from "../i18n";
 import { useTranslation } from "react-i18next";
 
 const KIND_LABEL = {
@@ -152,6 +152,8 @@ const BlankStart = ({
 
 const StudioHome = () => {
   const { t } = useTranslation();
+  // Subscribe so card meta re-renders on language change.
+  const language = useAppLanguage();
   const navigate = useNavigate();
   const createStoryboard = useCreateStoryboard();
   const createScript = useCreateScript();
@@ -284,17 +286,17 @@ const StudioHome = () => {
             card.id === pendingCard
               ? {
                   ...card,
-                  meta: "Creating…",
+                  meta: t("home:surface.creatingMeta", { defaultValue: "Creating…" }),
                   disabled: true,
-                  disabledReason: "Creating your draft…"
+                  disabledReason: t("home:surface.creatingDraft", { defaultValue: "Creating your draft…" })
                 }
               : {
                   ...card,
                   disabled: true,
-                  disabledReason: "Another start is in progress."
+                  disabledReason: t("editor:studio.anotherStartInProgress", { defaultValue: "Another start is in progress." })
                 }
           ),
-    [creating, pendingCard]
+    [creating, pendingCard, t, language.version]
   );
 
   const startScript = useCallback(() => {
@@ -332,10 +334,10 @@ const StudioHome = () => {
           {startError ? (
             <AlertBanner
               severity="error"
-              title="We couldn't start it"
+              title={t("editor:studio.couldNotStart", { defaultValue: "We couldn't start it" })}
               action={
                 <ReportBugButton
-                  label="Report this failure"
+                  label={t("home:flowError.report", { defaultValue: "Report this failure" })}
                   variant="outlined"
                   size="small"
                   context={{

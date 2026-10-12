@@ -1425,9 +1425,16 @@ const NewProjectSurface = ({
       showMoreFlows || ["storyboard", "image", "workflow"].includes(card.id)
     ).map((card) => ({
       ...card,
-      description: card.id === "game" && gameDimension === "3d"
-        ? t("home:entry.game.desc3d", { defaultValue: "Start with a playable 3D exploration scene in the built-in engine." })
-        : card.description,
+      // The grid resolves descriptionKey over description, so the 3D variant
+      // swaps both — overriding description alone renders nothing.
+      description:
+        card.id === "game" && gameDimension === "3d"
+          ? t("home:entry.game.desc3d", { defaultValue: "Start with a playable 3D exploration scene in the built-in engine." })
+          : card.description,
+      descriptionKey:
+        card.id === "game" && gameDimension === "3d"
+          ? "home:entry.game.desc3d"
+          : card.descriptionKey,
       image: ENTRY_BACKGROUNDS[card.id]
     }));
     if (pendingFlow === null) {

@@ -169,7 +169,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
   modelData,
   onModelChange,
   title = i18n.t("editor:ui.selectModel", { defaultValue: "Select Model" }),
-  searchPlaceholder = "Search models...",
+  searchPlaceholder = i18n.t("editor:ui.searchModels", { defaultValue: "Search models..." }),
   storeHook,
   recommendedModels = [],
   modelPacks = [],
