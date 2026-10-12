@@ -13,6 +13,7 @@
 
 import React, { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../i18n";
 import {
   Box,
   Card,
@@ -78,10 +79,12 @@ const pairGridSx = {
   alignItems: "start"
 } as const;
 
-const RENDER_MODE_OPTIONS = [
-  { value: "keyframe", label: "Keyframe" },
-  { value: "direct", label: "Direct" },
-  { value: "reference", label: "Reference" }
+type Translate = ReturnType<typeof useTranslation>["t"];
+
+const RENDER_MODE_OPTIONS = (t: Translate): { value: string; label: string }[] => [
+  { value: "keyframe", label: t("storyboard:attrs.renderModeKeyframe", { defaultValue: "Keyframe" }) },
+  { value: "direct", label: t("storyboard:attrs.renderModeDirect", { defaultValue: "Direct" }) },
+  { value: "reference", label: t("storyboard:attrs.renderModeReference", { defaultValue: "Reference" }) }
 ];
 
 const chipSx = {
@@ -102,6 +105,9 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
   onEditInScript
 }) => {
   const { t } = useTranslation();
+  // The camera option labels resolve through i18n; this dep recomputes the
+  // memoized option lists when the language changes.
+  const { version: languageVersion } = useAppLanguage();
   const set = useCallback(
     (patch: Partial<ShotDraft>) => onChange({ ...draft, ...patch }),
     [onChange, draft]
@@ -119,23 +125,23 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
 
   const framingOptions = useMemo(
     () => cameraOptions(FRAMING_OPTIONS, draft.framing),
-    [draft.framing]
+    [draft.framing, languageVersion]
   );
   const angleOptions = useMemo(
     () => cameraOptions(ANGLE_OPTIONS, draft.angle),
-    [draft.angle]
+    [draft.angle, languageVersion]
   );
   const movementOptions = useMemo(
     () => cameraOptions(MOVEMENT_OPTIONS, draft.movement),
-    [draft.movement]
+    [draft.movement, languageVersion]
   );
   const equipmentOptions = useMemo(
     () => cameraOptions(EQUIPMENT_OPTIONS, draft.equipment),
-    [draft.equipment]
+    [draft.equipment, languageVersion]
   );
   const lensOptions = useMemo(
     () => cameraOptions(LENS_OPTIONS, draft.lens),
-    [draft.lens]
+    [draft.lens, languageVersion]
   );
 
   const pinned = draft.durationSource === "manual";
@@ -213,13 +219,15 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
                 >
                   {draft.dialogue || "—"}
                 </Text>
-                <Caption color="muted">The script owns these words.</Caption>
+                <Caption color="muted">
+                  {t("storyboard:attrs.theScriptOwnsTheseWords", { defaultValue: "The script owns these words." })}
+                </Caption>
                 <EditorButton
                   size="small"
                   onClick={onEditInScript}
                   sx={{ alignSelf: "flex-start" }}
                 >
-                  Edit in script
+                  {t("storyboard:attrs.editInScript", { defaultValue: "Edit in script" })}
                 </EditorButton>
               </FlexColumn>
             ) : (
@@ -305,43 +313,43 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
                 options={equipmentOptions}
               />
             </Cell>
-            <Cell label="ERT">
+            <Cell label={t("storyboard:attrs.ert", { defaultValue: "ERT" })}>
               <FlexColumn gap={SPACING.xs}>
                 <TextInput
                   compact
                   size="small"
                   type="number"
-                  label="Estimated running time in seconds"
+                  label={t("storyboard:attrs.estimatedRunningTimeInSeconds", { defaultValue: "Estimated running time in seconds" })}
                   hideLabel
                   placeholder={
                     !pinned && takesDuration != null
                       ? String(takesDuration)
-                      : "auto"
+                      : t("storyboard:attrs.auto", { defaultValue: "auto" })
                   }
                   disabled={readOnly}
                   value={draft.durationSeconds}
                   onChange={handleDuration}
                   errorMessage={
                     isDurationInvalid(draft.durationSeconds)
-                      ? "Enter a length above 0 seconds"
+                      ? t("storyboard:attrs.enterALengthAbove0Seconds", { defaultValue: "Enter a length above 0 seconds" })
                       : undefined
                   }
                   inputProps={{
                     min: 1,
                     step: 1,
-                    "aria-label": "Estimated running time in seconds"
+                    "aria-label": t("storyboard:attrs.estimatedRunningTimeInSeconds", { defaultValue: "Estimated running time in seconds" })
                   }}
                 />
                 {linksLines && (
                   <Chip
                     compact
                     variant="outlined"
-                    label={pinned ? "pinned" : "from takes"}
+                    label={pinned ? t("storyboard:attrs.pinned", { defaultValue: "pinned" }) : t("storyboard:attrs.fromTakes", { defaultValue: "from takes" })}
                     sx={chipSx}
                     title={
                       pinned
-                        ? "Length is pinned to the shot's own value. Click to take it from the lines this shot covers."
-                        : "Length comes from the takes of the lines this shot covers. Click to pin it to the shot's own value."
+                        ? t("storyboard:attrs.lengthIsPinnedToTheShotsOwnValueClickToTakeItFromTheLinesThisShotCovers", { defaultValue: "Length is pinned to the shot's own value. Click to take it from the lines this shot covers." })
+                        : t("storyboard:attrs.lengthComesFromTheTakesOfTheLinesThisShotCoversClickToPinItToTheShotsOwnValue", { defaultValue: "Length comes from the takes of the lines this shot covers. Click to pin it to the shot's own value." })
                     }
                     onClick={readOnly ? undefined : handleToggleDurationSource}
                   />
@@ -360,35 +368,38 @@ const ShotAdvancedFieldsInner: React.FC<{
   draft: ShotDraft;
   onChange: (draft: ShotDraft) => void;
   readOnly?: boolean;
-}> = ({ draft, onChange, readOnly }) => (
-  <Box sx={pairGridSx}>
-    <Cell label="Shot title">
-      <TextInput
-        compact
-        size="small"
-        label="Shot title"
-        hideLabel
-        placeholder="Untitled shot"
-        disabled={readOnly}
-        value={draft.slug}
-        onChange={(event) => onChange({ ...draft, slug: event.target.value })}
-      />
-    </Cell>
-    <Cell label="Render mode">
-      <SelectField
-        size="small"
-        label="Render mode"
-        hideLabel
-        disabled={readOnly}
-        value={draft.renderMode}
-        onChange={(value) =>
-          onChange({ ...draft, renderMode: value as ShotDraft["renderMode"] })
-        }
-        options={RENDER_MODE_OPTIONS}
-      />
-    </Cell>
-  </Box>
-);
+}> = ({ draft, onChange, readOnly }) => {
+  const { t } = useTranslation();
+  return (
+    <Box sx={pairGridSx}>
+      <Cell label={t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}>
+        <TextInput
+          compact
+          size="small"
+          label={t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}
+          hideLabel
+          placeholder={t("storyboard:attrs.untitledShot", { defaultValue: "Untitled shot" })}
+          disabled={readOnly}
+          value={draft.slug}
+          onChange={(event) => onChange({ ...draft, slug: event.target.value })}
+        />
+      </Cell>
+      <Cell label={t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}>
+        <SelectField
+          size="small"
+          label={t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}
+          hideLabel
+          disabled={readOnly}
+          value={draft.renderMode}
+          onChange={(value) =>
+            onChange({ ...draft, renderMode: value as ShotDraft["renderMode"] })
+          }
+          options={RENDER_MODE_OPTIONS(t)}
+        />
+      </Cell>
+    </Box>
+  );
+};
 
 export const ShotAdvancedFields = memo(ShotAdvancedFieldsInner);
 

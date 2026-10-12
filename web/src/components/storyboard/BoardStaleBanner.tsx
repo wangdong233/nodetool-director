@@ -257,7 +257,17 @@ const BoardStaleBannerImpl = ({
       <Dialog
         open={confirming !== null}
         onClose={closeConfirm}
-        title={`${t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })} ${countLabel(confirmCount, `${t("storyboard:attrs.stale", { defaultValue: "stale" })} ${confirmNoun}`)}?`}
+        title={
+          confirming === "clips"
+            ? t("storyboard:attrs.regenerateStaleClip", {
+                count: confirmCount,
+                defaultValue: `Regenerate ${confirmCount} stale ${confirmCount === 1 ? "clip" : "clips"}?`
+              })
+            : t("storyboard:attrs.regenerateStaleStill", {
+                count: confirmCount,
+                defaultValue: `Regenerate ${confirmCount} stale ${confirmCount === 1 ? "still" : "stills"}?`
+              })
+        }
         onConfirm={handleConfirm}
         confirmText={`${t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}${costSuffix(confirmCost)}`}
       >

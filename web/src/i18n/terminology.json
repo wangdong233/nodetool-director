@@ -8,6 +8,7 @@
     "r32 增量: 英文动作按钮清查轮新增 12 锚(小节/拍/注册表/内置/文档/浏览/展开折叠/自定义/收藏/附加文件/播放暂停/今天昨天),分域 note 已标边界。",
     "r33 增量(覆盖扩展轮·game 命名空间): 新增 game 域 12 锚(play session=运行族/tick 保留拉丁/prefab 预制体/construction 构造/rebuild 重建/staged 暂存/collision layer 碰撞层+hierarchy 层级/scene tree 场景树/nudge 微调/frame selection 聚焦所选/dock 停靠),详见各条目;游戏运行会话 Play=运行 与媒体 Play=播放(ui:attrs.play)分域分立。",
     "r34 增量(覆盖扩展轮·timeline 组件第二批): 244 裸串清至 46(全部裁定类);新锚 11 组(采样器/Fable 面板拉丁裁定/衍生镜头/轨道文件夹/mute·solo/relink·media offline/rebake/stagger 单位/动画角色/BPM/混合 aria 复合键族);en 词典 5 处死键值漂移修正(smartReframe/aiEdit/saveAsAsset/chooseAWT1BL1/middleC 对齐源码字节);死键清理 18 组(无渲染站点删除+本批接线复活约 40 键)。",
+    "r36 增量(覆盖扩展轮·storyboard 组件第四批): 147 裸串清零(sentence-like 111→0;余 3 条为扫描器对代码表达式/TS 类型的误报);新锚 4 组(one take=一镜到底/camera 词汇表存储值·标签分立/reframe=重新构图/slideshow=幻灯片对齐 timeline);B2 遗留 FRAMING/ANGLE/MOVEMENT/EQUIPMENT/LENS 词表收口:存储值保留英文(cameraPass schema 枚举喂模型+parseShotlistCsv 逐字匹配,哨兵),标签经 cameraOptions() 统一走 storyboard:attrs.framing*/angle*/movement*/equipment*/lens* key 族,storyboard(ShotEditTable)与 timeline(TimelineShotForm)两侧同 helper 同词表,useMemo 加 useAppLanguage().version dep;[Image N] 提示词占位符在 zh 译文内逐字保留(提示词引用哨兵)。",
     "微件规范 (动词不加请/全角标点/加载中…) 与 F-23 拉丁保留清单的 SSOT 仍是 glossary.md; 本表 keep_latin 为其快照片段。"
   ],
   "keep_latin": [
@@ -1093,6 +1094,16 @@
     "designer model": { "zh": "设计器模型", "domain": "guided-setup", "grade": "clean", "note": "r35:游戏引导流写设计的模型=设计器模型(write the design=写设计);与 writer model=编剧模型、screenplay model=剧本模型 同族。", "variants_seen": ["设计器模型"] },
     "brief model": { "zh": "简报模型", "domain": "guided-setup", "grade": "clean", "note": "r35:图像引导流扩写简报的语言模型=简报模型;brief=简报 沿 glossary。", "variants_seen": ["简报模型"] },
     "character sheet": { "zh": "角色设定图", "domain": "guided-setup", "grade": "clean", "note": "r35:实体参考图视角族新锚;location sheet=场景设定图、style sheet=风格设定图、turnaround sheet=转面设定图、establishing view=定场全景、full body=全身像、portrait=半身像、texture detail=纹理细节、product view=产品视图。", "variants_seen": ["角色设定图", "场景设定图", "转面设定图", "定场全景"] },
-    "keep-English (setup 域裁定)": { "zh": "保留英文", "domain": "guided-setup", "grade": "B", "note": "r35 裁定:①ReportBugButton context.summary 全域保留英文(开发者面向报告载荷);②buildFailureMessage 的 Repair: 段与 onAskAgent 提示词(模型输入);③entitySuggestions/useCustomStyle/referencePrompt 的模型提示词;④describeGameSlot 技术读出(16×16 sprite/frames);⑤视频轨名 Video/Voiceover/Music(写入文档数据哨兵,LookStep 以 === 比较);⑥VoicesStep LANGUAGES 语言名(写入 setup.language 并喂模型);⑦slugline 占位符 INT. LOCATION — TIME(剧本行业格式);⑧TypeScript 类型标识(Promise/void|Promise 等审计噪声)。", "variants_seen": ["保留英文", "不译(setup 域)"] }
+    "keep-English (setup 域裁定)": { "zh": "保留英文", "domain": "guided-setup", "grade": "B", "note": "r35 裁定:①ReportBugButton context.summary 全域保留英文(开发者面向报告载荷);②buildFailureMessage 的 Repair: 段与 onAskAgent 提示词(模型输入);③entitySuggestions/useCustomStyle/referencePrompt 的模型提示词;④describeGameSlot 技术读出(16×16 sprite/frames);⑤视频轨名 Video/Voiceover/Music(写入文档数据哨兵,LookStep 以 === 比较);⑥VoicesStep LANGUAGES 语言名(写入 setup.language 并喂模型);⑦slugline 占位符 INT. LOCATION — TIME(剧本行业格式);⑧TypeScript 类型标识(Promise/void|Promise 等审计噪声)。", "variants_seen": ["保留英文", "不译(setup 域)"] },
+    "one take": { "zh": "一镜到底", "domain": "film", "grade": "clean", "note": "r36 新锚(storyboard 第四批):one take/one continuous take=一镜到底(影视行话,整板一条连续镜头);render one take=渲染一镜到底;close one take=关闭一镜到底。", "variants_seen": ["一镜到底"] },
+    "camera vocabulary (framing/angle/movement/equipment/lens)": {
+      "zh": "标签译/存储值保留英文",
+      "domain": "film",
+      "grade": "clean",
+      "note": "r36 裁定(B2 遗留收口):cameraOptions.ts 词表为存储值——cameraPass.ts JSON schema 枚举(喂模型)与 parseShotlistCsv.ts(逐字匹配导入)依赖英文原文,值一律保留英文;仅下拉标签本地化,cameraOptions() 统一经 storyboard:attrs.framing*/angle*/movement*/equipment*/lens* key 族解析(storyboard ShotEditTable 与 timeline TimelineShotForm 两侧同 helper 同词表,useMemo 加 useAppLanguage().version dep)。焦距 mm 值与自由串(代理写入)不译。行话锚:景别 大远景/远景/中全景/中景/中近景/特写/大特写/过肩镜头/双人镜头/插入镜头;角度 平视/仰拍/俯拍/顶摄/鸟瞰/虫视/荷兰角;运镜 固定机位/缓慢推近/缓慢拉远/左右摇/上下摇/推轨靠近·拉远/跟拍/手持/升降摇/环绕/变焦推近·拉远;器材 三脚架/斯坦尼康/云台/轨道车/滑轨/摇臂/无人机;镜头 微距/变形宽银幕。",
+      "variants_seen": ["景别", "运镜", "仰拍", "荷兰角", "跟拍", "斯坦尼康"]
+    },
+    "reframe": { "zh": "重新构图", "domain": "media-task", "grade": "clean", "note": "r36 新锚:静帧改宽高比并外补画面(outpaint 通路)=重新构图;reframe model=重新构图模型;new aspect ratio=新宽高比。与 crop=裁剪、outpaint=扩图分立。", "variants_seen": ["重新构图"] },
+    "slideshow (storyboard)": { "zh": "幻灯片", "domain": "film", "grade": "clean", "note": "r36:分镜板逐镜连放面板,与 timeline:attrs.slideshow=幻灯片 同词对齐(禁 放映 变体)。autoplay=自动播放、not rendered yet=尚未渲染。", "variants_seen": ["幻灯片"] }
   }
 }

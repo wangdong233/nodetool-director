@@ -206,26 +206,30 @@ const toolsSx = {
   [STACKED]: { overflow: "visible" }
 } as const;
 
-const DRAFT_LABELS: Record<ShotDraftKey, string> = {
-  slug: i18n.t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" }),
-  sceneId: i18n.t("storyboard:attrs.slugline", { defaultValue: "Slugline" }),
-  lighting: i18n.t("storyboard:attrs.sceneLighting", { defaultValue: "Scene lighting" }),
-  action: "Description",
-  dialogue: "Dialogue",
-  durationSeconds: "Estimated running time",
-  durationSource: "Duration source",
-  framing: "Size",
-  angle: "Perspective",
-  movement: "Movement",
-  equipment: "Equipment",
-  lens: "Focal length",
-  notes: "Notes",
-  renderMode: i18n.t("storyboard:attrs.renderMode", { defaultValue: "Render mode" }),
-  graphics: "Graphics",
-  motion: "Shot motion",
-  endState: "End",
-  sound: "Sound"
-};
+type Translate = ReturnType<typeof useTranslation>["t"];
+
+/** A draft field as the conflict dialog names it. Resolved at render time so
+ *  the labels follow the language switch. */
+const draftLabels = (t: Translate): Record<ShotDraftKey, string> => ({
+  slug: t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" }),
+  sceneId: t("storyboard:attrs.slugline", { defaultValue: "Slugline" }),
+  lighting: t("storyboard:attrs.sceneLighting", { defaultValue: "Scene lighting" }),
+  action: t("storyboard:attrs.description", { defaultValue: "Description" }),
+  dialogue: t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" }),
+  durationSeconds: t("storyboard:attrs.estimatedRunningTime", { defaultValue: "Estimated running time" }),
+  durationSource: t("storyboard:attrs.durationSource", { defaultValue: "Duration source" }),
+  framing: t("storyboard:attrs.size", { defaultValue: "Size" }),
+  angle: t("storyboard:attrs.perspective", { defaultValue: "Perspective" }),
+  movement: t("storyboard:attrs.movement", { defaultValue: "Movement" }),
+  equipment: t("storyboard:attrs.equipment", { defaultValue: "Equipment" }),
+  lens: t("storyboard:attrs.focalLength", { defaultValue: "Focal length" }),
+  notes: t("storyboard:attrs.notes", { defaultValue: "Notes" }),
+  renderMode: t("storyboard:attrs.renderMode", { defaultValue: "Render mode" }),
+  graphics: t("storyboard:attrs.graphics", { defaultValue: "Graphics" }),
+  motion: t("storyboard:attrs.shotMotion", { defaultValue: "Shot motion" }),
+  endState: t("storyboard:attrs.end", { defaultValue: "End" }),
+  sound: t("storyboard:attrs.sound", { defaultValue: "Sound" })
+});
 
 /** A render that could not start: the hook records the ones it knows about. */
 const reportRenderFailure = (error: unknown): void => {
@@ -233,33 +237,43 @@ const reportRenderFailure = (error: unknown): void => {
     type: "error",
     alert: true,
     dismissable: true,
-    content: `Render did not start. ${getErrorMessage(error, "Try again.")}`
+    content: i18n.t("storyboard:attrs.renderDidNotStart", {
+      defaultValue: "Render did not start. {{error}}",
+      error: getErrorMessage(
+        error,
+        i18n.t("storyboard:attrs.tryAgain2", { defaultValue: "Try again." })
+      )
+    })
   });
 };
 
 /** A draft value as the conflict dialog shows it: names, not ids or objects. */
 const formatDraftValue = (
+  t: Translate,
   key: ShotDraftKey,
   value: ShotDraft[ShotDraftKey],
   sceneOptions: { value: string; label: string }[]
 ): string => {
   if (value === undefined || value === null || value === "") {
-    return i18n.t("storyboard:attrs.notSet", { defaultValue: "Not set" });
+    return t("storyboard:attrs.notSet", { defaultValue: "Not set" });
   }
   if (key === "sceneId") {
-    return sceneOptions.find((option) => option.value === value)?.label ?? "Not set";
+    return (
+      sceneOptions.find((option) => option.value === value)?.label ??
+      t("storyboard:attrs.notSet", { defaultValue: "Not set" })
+    );
   }
   if (typeof value === "object") {
-    return "Edited graphics";
+    return t("storyboard:attrs.editedGraphics", { defaultValue: "Edited graphics" });
   }
   return String(value);
 };
 
 type SideTab = "takes" | "change";
 
-const SIDE_TABS: { value: SideTab; label: string }[] = [
-  { value: "takes", label: "Takes" },
-  { value: "change", label: "Change still" }
+const sideTabs = (t: Translate): { value: SideTab; label: string }[] => [
+  { value: "takes", label: t("storyboard:attrs.takes", { defaultValue: "Takes" }) },
+  { value: "change", label: t("storyboard:attrs.changeStill", { defaultValue: "Change still" }) }
 ];
 
 const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
@@ -361,8 +375,8 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
     () =>
       boardEntities
         .filter((entity) => appliedIds.includes(entity.id))
-        .map((entity) => entity.name || "Untitled"),
-    [boardEntities, appliedIds]
+        .map((entity) => entity.name || t("storyboard:attrs.untitled", { defaultValue: "Untitled" })),
+    [boardEntities, appliedIds, t]
   );
   // The prompt preview reads the scene the draft points at, lit the way the
   // draft says: both are saved with the shot.
@@ -384,9 +398,11 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
     () =>
       sceneOrder(shots, scenes).map((group, i) => ({
         value: group.sceneId ?? "",
-        label: group.scene?.slugline || `SCENE ${i + 1}`
+        label:
+          group.scene?.slugline ||
+          t("storyboard:attrs.sceneNumber", { defaultValue: "SCENE {{n}}", n: i + 1 })
       })),
-    [shots, scenes]
+    [shots, scenes, t]
   );
 
   /**
@@ -728,7 +744,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
           startIcon={<ArrowBackIcon fontSize="small" />}
           sx={{ justifySelf: "start" }}
         >
-          Back to storyboard
+          {t("storyboard:attrs.backToStoryboard", { defaultValue: "Back to storyboard" })}
         </EditorButton>
 
         <FlexRow align="center" gap={SPACING.md}>
@@ -736,21 +752,21 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
             <ToolbarIconButton
               icon={<ChevronLeftIcon />}
               tooltip={t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}
-              ariaLabel="Previous shot"
+              ariaLabel={t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}
               onClick={() => stepShot(-1)}
               disabled={!canStepBack}
             />
           )}
           <FlexColumn align="center" sx={{ minWidth: 0 }}>
             <Text size="big" data-testid="shot-edit-title">
-              {`Scene ${numbering.scene || "—"}, Shot ${numbering.shot || "—"}`}
+              {t("storyboard:attrs.sceneCommaShot", { defaultValue: "Scene {{scene}}, Shot {{shot}}", scene: numbering.scene || "—", shot: numbering.shot || "—" })}
             </Text>
           </FlexColumn>
           {canStep && (
             <ToolbarIconButton
               icon={<ChevronRightIcon />}
               tooltip={t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}
-              ariaLabel="Next shot"
+              ariaLabel={t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}
               onClick={() => stepShot(1)}
               disabled={!canStepForward}
             />
@@ -769,7 +785,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
             <>
               <ToolbarIconButton
                 icon={<MoreHorizIcon sx={{ fontSize: "1em" }} />}
-                tooltip="More actions"
+                tooltip={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
                 ariaLabel={t("storyboard:attrs.moreShotActions", { defaultValue: "More shot actions" })}
                 onClick={(event) => setMenuAnchor(event.currentTarget)}
               />
@@ -777,10 +793,12 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
                 onClick={handleRegenerate}
                 disabled={generating || durationInvalid}
                 title={
-                  generating ? "This shot is already rendering" : undefined
+                  generating
+                    ? t("storyboard:attrs.thisShotIsAlreadyRendering", { defaultValue: "This shot is already rendering" })
+                    : undefined
                 }
               >
-                {`Regenerate${stepCost("Still")}`}
+                {`${t("storyboard:attrs.regenerate", { defaultValue: "Regenerate" })}${stepCost("Still")}`}
               </EditorButton>
               <EditorButton
                 variant="contained"
@@ -788,7 +806,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
                 onClick={handleSave}
                 disabled={!dirty || durationInvalid}
               >
-                Save
+                {t("storyboard:attrs.save", { defaultValue: "Save" })}
               </EditorButton>
             </>
           )}
@@ -811,7 +829,11 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
               />
               <Card variant="outlined" padding="normal">
                 <CollapsibleSection
-                  title={<Caption sx={sectionTitleSx}>Advanced</Caption>}
+                  title={
+                    <Caption sx={sectionTitleSx}>
+                      {t("editor:ui.advanced", { defaultValue: "Advanced" })}
+                    </Caption>
+                  }
                   compact
                   defaultOpen={false}
                 >
@@ -826,8 +848,8 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
                       size="small"
                       multiline
                       minRows={2}
-                      label="Notes"
-                      placeholder="Anything the render should not read as direction"
+                      label={t("storyboard:attrs.notes", { defaultValue: "Notes" })}
+                      placeholder={t("storyboard:attrs.anythingTheRenderShouldNotReadAsDirection", { defaultValue: "Anything the render should not read as direction" })}
                       disabled={readOnly}
                       value={draft.notes}
                       onChange={(event) =>
@@ -870,11 +892,11 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
             {!readOnly && (
               <Box sx={{ flexShrink: 0 }}>
                 <TabGroup
-                  tabs={SIDE_TABS}
+                  tabs={sideTabs(t)}
                   value={sideTab}
                   onChange={(value) => setSideTab(value as SideTab)}
                   size="small"
-                  aria-label="Takes or change the still"
+                  aria-label={t("storyboard:attrs.takesOrChangeTheStill", { defaultValue: "Takes or change the still" })}
                 />
               </Box>
             )}
@@ -903,9 +925,9 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
           label={`${shot.clip ? i18n.t("storyboard:attrs.reRenderClip", { defaultValue: "Re-render clip" }) : i18n.t("storyboard:attrs.renderClip", { defaultValue: "Render clip" })}${stepCost("Clip")}`}
           secondary={
             generating
-              ? "This shot is already rendering"
+              ? t("storyboard:attrs.thisShotIsAlreadyRendering", { defaultValue: "This shot is already rendering" })
               : clipNeedsStill
-                ? "Render a still first, or set render mode to Direct"
+                ? t("storyboard:attrs.renderAStillFirstOrSetRenderModeToDirect", { defaultValue: "Render a still first, or set render mode to Direct" })
                 : undefined
           }
           disabled={generating || clipNeedsStill}
@@ -915,13 +937,13 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
           onClick={() => handleNudge("up")}
           disabled={numbering.shot <= 1}
         >
-          Move earlier in scene
+          {t("storyboard:attrs.moveEarlierInScene", { defaultValue: "Move earlier in scene" })}
         </EditorMenuItem>
         <EditorMenuItem
           onClick={() => handleNudge("down")}
           disabled={numbering.shot >= shotsInScene}
         >
-          Move later in scene
+          {t("storyboard:attrs.moveLaterInScene", { defaultValue: "Move later in scene" })}
         </EditorMenuItem>
       </EditorMenu>
 
@@ -940,23 +962,27 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
         title={t("storyboard:attrs.discardChanges", { defaultValue: "Discard changes?" })}
         actions={
           <FlexRow align="center" gap={SPACING.sm}>
-            <EditorButton onClick={keepEditing}>{t("storyboard:attrs.keepEditing", { defaultValue: "Keep editing" })}</EditorButton>
+            <EditorButton onClick={keepEditing}>
+              {t("storyboard:attrs.keepEditing", { defaultValue: "Keep editing" })}
+            </EditorButton>
             <EditorButton onClick={() => runPending(false)}>
-              Discard
+              {t("storyboard:attrs.discard", { defaultValue: "Discard" })}
             </EditorButton>
             <EditorButton
               variant="contained"
               color="primary"
               onClick={() => runPending(true)}
             >
-              Save
+              {t("storyboard:attrs.save", { defaultValue: "Save" })}
             </EditorButton>
           </FlexRow>
         }
       >
         <Text>{t("storyboard:attrs.thisShotHasEditsThatHaveNotBeenSaved", { defaultValue: "This shot has edits that have not been saved." })}</Text>
         <Caption color="secondary">
-          Version choices, deletions, flips and uploads are already saved.
+          {t("storyboard:attrs.versionChoicesDeletionsFlipsAndUploadsAreAlreadySaved", {
+            defaultValue: "Version choices, deletions, flips and uploads are already saved."
+          })}
         </Caption>
       </Dialog>
 
@@ -967,34 +993,36 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
         actions={
           <FlexRow align="center" gap={SPACING.sm} wrap>
             <EditorButton onClick={() => setSaveConflicts([])}>
-              Keep editing
+              {t("storyboard:attrs.keepEditing", { defaultValue: "Keep editing" })}
             </EditorButton>
             <EditorButton onClick={() => resolveSaveConflicts("current")}>
-              Use current values
+              {t("storyboard:attrs.useCurrentValues", { defaultValue: "Use current values" })}
             </EditorButton>
             <EditorButton
               variant="contained"
               color="primary"
               onClick={() => resolveSaveConflicts("mine")}
             >
-              Keep my changes
+              {t("storyboard:attrs.keepMyChanges", { defaultValue: "Keep my changes" })}
             </EditorButton>
           </FlexRow>
         }
       >
         <FlexColumn gap={SPACING.md}>
           <Text>
-            The same fields changed after you opened this editor. Compare them
-            before saving.
+            {t("storyboard:attrs.theSameFieldsChangedAfterYouOpenedThisEditor", {
+              defaultValue:
+                "The same fields changed after you opened this editor. Compare them before saving."
+            })}
           </Text>
           {draft && original && shot &&
             saveConflicts.map((key) => {
               const current = draftFromShot(shot, scene);
               return (
                 <FlexColumn key={key} gap={SPACING.xs}>
-                  <Label>{DRAFT_LABELS[key]}</Label>
-                  <Caption color="secondary">{`Your edit: ${formatDraftValue(key, draft[key], sceneOptions)}`}</Caption>
-                  <Caption color="secondary">{`Current: ${formatDraftValue(key, current[key], sceneOptions)}`}</Caption>
+                  <Label>{draftLabels(t)[key]}</Label>
+                  <Caption color="secondary">{t("storyboard:attrs.yourEditValue", { defaultValue: "Your edit: {{value}}", value: formatDraftValue(t, key, draft[key], sceneOptions) })}</Caption>
+                  <Caption color="secondary">{t("storyboard:attrs.currentValue", { defaultValue: "Current: {{value}}", value: formatDraftValue(t, key, current[key], sceneOptions) })}</Caption>
                 </FlexColumn>
               );
             })}

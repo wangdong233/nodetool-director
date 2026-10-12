@@ -24,6 +24,7 @@ import React, {
   useRef,
   useState
 } from "react";
+import { useTranslation } from "react-i18next";
 import type { Shot } from "@nodetool-ai/protocol";
 import { resolveEffectiveProductionRequirement } from "@nodetool-ai/protocol";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -158,6 +159,7 @@ const StoryboardSlideshowInner: React.FC<StoryboardSlideshowProps> = ({
   onClose,
   onEditShot
 }) => {
+  const { t } = useTranslation();
   const { shots, screenplay, aspectRatio } = useBoard(boardId);
   const thumbAspect = (aspectRatio || "16:9").replace(":", " / ");
   const slides = useMemo<Slide[]>(
@@ -165,10 +167,14 @@ const StoryboardSlideshowInner: React.FC<StoryboardSlideshowProps> = ({
       sceneOrder(shots, screenplay?.scenes).flatMap((group, sceneIndex) =>
         group.shots.map((shot, shotIndex) => ({
           shot,
-          caption: `Scene ${sceneIndex + 1}, Shot ${shotIndex + 1}`
+          caption: t("storyboard:attrs.sceneCommaShot", {
+            defaultValue: "Scene {{scene}}, Shot {{shot}}",
+            scene: sceneIndex + 1,
+            shot: shotIndex + 1
+          })
         }))
       ),
-    [shots, screenplay?.scenes]
+    [shots, screenplay?.scenes, t]
   );
 
   const [shotId, setShotId] = useState<string | null>(
@@ -294,7 +300,7 @@ const StoryboardSlideshowInner: React.FC<StoryboardSlideshowProps> = ({
   const theme = useTheme();
   const compact = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const title = slide ? slide.caption : "Slideshow";
+  const title = slide ? slide.caption : t("storyboard:attrs.slideshow", { defaultValue: "Slideshow" });
 
   return (
     <Dialog
@@ -308,7 +314,7 @@ const StoryboardSlideshowInner: React.FC<StoryboardSlideshowProps> = ({
         <FlexRow align="center" gap={SPACING.md}>
           <LabeledSwitch
             id="storyboard-slideshow-autoplay"
-            label="Autoplay"
+            label={t("storyboard:attrs.autoplay", { defaultValue: "Autoplay" })}
             size="small"
             checked={autoplay}
             onChange={setAutoplay}
@@ -318,12 +324,12 @@ const StoryboardSlideshowInner: React.FC<StoryboardSlideshowProps> = ({
             (compact ? (
               <ToolbarIconButton
                 icon={<EditOutlinedIcon />}
-                tooltip="Edit shot"
+                tooltip={t("storyboard:attrs.editShot", { defaultValue: "Edit shot" })}
                 onClick={handleEdit}
               />
             ) : (
               <EditorButton size="small" onClick={handleEdit}>
-                Edit shot
+                {t("storyboard:attrs.editShot", { defaultValue: "Edit shot" })}
               </EditorButton>
             ))}
         </FlexRow>
@@ -338,8 +344,8 @@ const StoryboardSlideshowInner: React.FC<StoryboardSlideshowProps> = ({
           <FlexRow align="center" sx={arrowSx("left")}>
             <ToolbarIconButton
               icon={<ChevronLeftIcon />}
-              tooltip="Previous shot"
-              ariaLabel="Previous shot"
+              tooltip={t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}
+              ariaLabel={t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}
               onClick={() => step(-1)}
               disabled={index <= 0}
             />
@@ -351,7 +357,9 @@ const StoryboardSlideshowInner: React.FC<StoryboardSlideshowProps> = ({
             onTouchEnd={handleTouchEnd}
           >
             {!slide ? (
-              <Caption color="muted">This board has no shots.</Caption>
+              <Caption color="muted">
+                {t("storyboard:attrs.thisBoardHasNoShots", { defaultValue: "This board has no shots." })}
+              </Caption>
             ) : hasGraphics(slide.shot) ? (
               <Box sx={mediaSx}>
                 <ShotDesignFrame boardId={boardId} shot={slide.shot} />
@@ -370,20 +378,22 @@ const StoryboardSlideshowInner: React.FC<StoryboardSlideshowProps> = ({
               <Box sx={mediaSx}>
                 <ResponsiveImage
                   locator={slide.shot.keyframe}
-                  alt={`${slide.caption} still`}
+                  alt={t("storyboard:attrs.captionStill", { defaultValue: "{{caption}} still", caption: slide.caption })}
                   fit="contain"
                   sx={{ height: "100%" }}
                 />
               </Box>
             ) : (
-              <Caption color="muted">Not rendered yet</Caption>
+              <Caption color="muted">
+                {t("storyboard:attrs.notRenderedYet", { defaultValue: "Not rendered yet" })}
+              </Caption>
             )}
           </Box>
           <FlexRow align="center" sx={arrowSx("right")}>
             <ToolbarIconButton
               icon={<ChevronRightIcon />}
-              tooltip="Next shot"
-              ariaLabel="Next shot"
+              tooltip={t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}
+              ariaLabel={t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}
               onClick={() => step(1)}
               disabled={atEnd}
             />
@@ -392,7 +402,7 @@ const StoryboardSlideshowInner: React.FC<StoryboardSlideshowProps> = ({
 
         {slide && (
           <Text size="small" sx={descriptionSx} aria-live="polite">
-            {slide.shot.action || "No description"}
+            {slide.shot.action || t("storyboard:attrs.noDescription", { defaultValue: "No description" })}
           </Text>
         )}
 
@@ -400,7 +410,7 @@ const StoryboardSlideshowInner: React.FC<StoryboardSlideshowProps> = ({
           <FlexRow
             gap={SPACING.sm}
             role="group"
-            aria-label="Shots"
+            aria-label={t("storyboard:attrs.shots", { defaultValue: "Shots" })}
             sx={{ pb: SPACING.xs, justifyContent: "safe center" }}
           >
             {slides.map((entry, entryIndex) => {

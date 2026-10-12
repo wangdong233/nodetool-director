@@ -5,6 +5,7 @@
  */
 
 import React, { memo, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { Entity } from "@nodetool-ai/protocol";
 
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
@@ -22,8 +23,6 @@ interface ShotEntitiesFieldProps {
   readOnly?: boolean;
 }
 
-const removeLabel = (name: string): string => `Remove ${name} from this shot`;
-
 const ShotEntitiesFieldInner: React.FC<ShotEntitiesFieldProps> = ({
   boardId,
   shotId,
@@ -32,6 +31,15 @@ const ShotEntitiesFieldInner: React.FC<ShotEntitiesFieldProps> = ({
   boardEntityIds,
   readOnly
 }) => {
+  const { t } = useTranslation();
+  const removeLabel = useCallback(
+    (name: string): string =>
+      t("storyboard:attrs.removeNameFromThisShot", {
+        defaultValue: "Remove {{name}} from this shot",
+        name
+      }),
+    [t]
+  );
   const toggleShotEntity = useStoryboardStore(
     (state) => state.toggleShotEntity
   );
@@ -61,17 +69,23 @@ const ShotEntitiesFieldInner: React.FC<ShotEntitiesFieldProps> = ({
   return (
     <EntityTilesField
       data-testid="shot-entities"
-      label="In this shot"
+      label={t("storyboard:attrs.inThisShot", { defaultValue: "In this shot" })}
       entities={applied}
       selectedIds={appliedIds}
       onPick={handlePick}
       onRemove={handleRemove}
       removeLabel={removeLabel}
-      emptyText="No entities. Choose a character, location, style or prop to keep it consistent in this shot."
+      emptyText={t("storyboard:attrs.noEntitiesChooseACharacterLocationStyleOrPropForThisShot", {
+        defaultValue:
+          "No entities. Choose a character, location, style or prop to keep it consistent in this shot."
+      })}
       readOnly={readOnly}
       // A new entity joins the board and this shot, as a picked one does.
       extraAction={
-        <CreateEntityButton label="New entity" onCreated={handlePick} />
+        <CreateEntityButton
+          label={t("storyboard:attrs.newEntity", { defaultValue: "New entity" })}
+          onCreated={handlePick}
+        />
       }
     />
   );

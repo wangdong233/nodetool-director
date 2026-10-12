@@ -166,8 +166,8 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
         <ToolbarIconButton
           ref={setMoreButton}
           icon={<MoreVertIcon sx={iconSx} />}
-          tooltip="Shot actions"
-          ariaLabel="Shot actions"
+          tooltip={t("storyboard:attrs.shotActions", { defaultValue: "Shot actions" })}
+          ariaLabel={t("storyboard:attrs.shotActions", { defaultValue: "Shot actions" })}
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           onClick={openMenu}
@@ -179,12 +179,12 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
         onClose={closeMenu}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{ list: { "aria-label": "Shot actions" } }}
+        slotProps={{ list: { "aria-label": t("storyboard:attrs.shotActions", { defaultValue: "Shot actions" }) } }}
       >
         {onRenderStill && (
           <MenuItemPrimitive
             compact
-            label="Render still…"
+            label={t("storyboard:attrs.renderStillEllipsis", { defaultValue: "Render still…" })}
             icon={<ImageOutlinedIcon fontSize="small" />}
             disabled={renderDisabled}
             onClick={runAndClose(onRenderStill)}
@@ -193,7 +193,7 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
         {onRenderClip && (
           <MenuItemPrimitive
             compact
-            label="Render clip…"
+            label={t("storyboard:attrs.renderClipEllipsis", { defaultValue: "Render clip…" })}
             icon={<MovieOutlinedIcon fontSize="small" />}
             disabled={renderDisabled}
             onClick={runAndClose(onRenderClip)}
@@ -213,10 +213,10 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
             compact
             dividerBefore={hasRender}
             label={t("storyboard:attrs.downloadThis", {
-              defaultValue: "Download this {{kind}}",
+              defaultValue: "Download {{kind}}",
               kind:
                 downloadLabel === "clip"
-                  ? t("storyboard:attrs.clip", { defaultValue: "clip" })
+                  ? t("storyboard:attrs.clipLower", { defaultValue: "clip" })
                   : t("storyboard:attrs.stillLower", { defaultValue: "still" })
             })}
             icon={<DownloadIcon fontSize="small" />}
@@ -227,7 +227,7 @@ export const ShotHoverToolbar: React.FC<ShotHoverToolbarProps> = ({
           <MenuItemPrimitive
             compact
             dividerBefore={hasRender && !onDownload}
-            label="Send to workflow…"
+            label={t("storyboard:attrs.sendToWorkflowEllipsis", { defaultValue: "Send to workflow…" })}
             icon={<AccountTreeOutlinedIcon fontSize="small" />}
             onClick={openSend}
           />

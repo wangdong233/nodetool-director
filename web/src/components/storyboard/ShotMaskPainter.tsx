@@ -12,6 +12,7 @@
  */
 
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Box,
@@ -117,6 +118,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
   onCancel,
   onDone
 }) => {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const last = useRef<{ x: number; y: number } | null>(null);
@@ -229,18 +231,20 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
     <Dialog
       open
       onClose={onCancel}
-      title="Paint the area to change"
+      title={t("storyboard:attrs.paintTheAreaToChange", { defaultValue: "Paint the area to change" })}
       maxWidth="lg"
       actions={
         <FlexRow align="center" gap={SPACING.sm}>
-          <EditorButton onClick={onCancel}>Cancel</EditorButton>
+          <EditorButton onClick={onCancel}>
+            {t("storyboard:attrs.cancel", { defaultValue: "Cancel" })}
+          </EditorButton>
           <EditorButton
             variant="contained"
             color="primary"
             onClick={handleDone}
             disabled={!ready}
           >
-            Use this area
+            {t("storyboard:attrs.useThisArea", { defaultValue: "Use this area" })}
           </EditorButton>
         </FlexRow>
       }
@@ -257,14 +261,18 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
                 setTool(next);
               }
             }}
-            aria-label="Painting tool"
+            aria-label={t("storyboard:attrs.paintingTool", { defaultValue: "Painting tool" })}
           >
-            <ToggleOption value="brush">Brush</ToggleOption>
-            <ToggleOption value="eraser">Eraser</ToggleOption>
+            <ToggleOption value="brush">
+              {t("editor:ui.brush", { defaultValue: "Brush" })}
+            </ToggleOption>
+            <ToggleOption value="eraser">
+              {t("editor:ui.eraser", { defaultValue: "Eraser" })}
+            </ToggleOption>
           </ToggleGroup>
           <FlexRow align="center" gap={SPACING.sm}>
             <Caption color="secondary" id="shot-mask-brush-label">
-              Brush size
+              {t("storyboard:attrs.brushSize", { defaultValue: "Brush size" })}
             </Caption>
             <Slider
               density="compact"
@@ -279,7 +287,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
             />
           </FlexRow>
           <EditorButton size="small" onClick={handleClear}>
-            Clear
+            {t("storyboard:attrs.clear", { defaultValue: "Clear" })}
           </EditorButton>
         </FlexRow>
         <Box sx={frameSx}>
@@ -288,7 +296,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
             component="img"
             ref={imageRef}
             src={stillUrl}
-            alt="Still to paint on"
+            alt={t("storyboard:attrs.stillToPaintOn", { defaultValue: "Still to paint on" })}
             crossOrigin="anonymous"
             onLoad={handleImageLoad}
             sx={{ maxWidth: "100%", maxHeight: "65vh", display: "block" }}
@@ -296,7 +304,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
           <Box
             component="canvas"
             ref={canvasRef}
-            aria-label="Mask painting area"
+            aria-label={t("storyboard:attrs.maskPaintingArea", { defaultValue: "Mask painting area" })}
             data-testid="shot-mask-canvas"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -306,7 +314,9 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
           />
         </Box>
         <Caption color="secondary">
-          Paint over what should change. The rest of the still is kept.
+          {t("storyboard:attrs.paintOverWhatShouldChange", {
+            defaultValue: "Paint over what should change. The rest of the still is kept."
+          })}
         </Caption>
       </FlexColumn>
     </Dialog>

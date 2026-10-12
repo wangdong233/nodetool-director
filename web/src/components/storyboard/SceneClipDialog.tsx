@@ -13,6 +13,7 @@
  */
 
 import React, { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { formatUsd } from "@nodetool-ai/model-pricing";
 import {
   SCENE_CLIP_MAX_SHOTS,
@@ -80,6 +81,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
   saved,
   onClose
 }) => {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState<SceneClipDirection>(clip);
   const setSceneClip = useStoryboardStore((state) => state.setSceneClip);
   const removeSceneClip = useStoryboardStore((state) => state.removeSceneClip);
@@ -111,9 +113,9 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
         .slice(0, Math.max(0, sceneShots.length - SCENE_CLIP_MIN_SHOTS + 1))
         .map((shot, index) => ({
           value: String(index),
-          label: `Shot ${index + 1}${shot.slug ? ` · ${shot.slug}` : ""}`
+          label: `${t("storyboard:attrs.shotNumber", { defaultValue: "Shot {{index}}", index: index + 1 })}${shot.slug ? ` · ${shot.slug}` : ""}`
         })),
-    [sceneShots]
+    [sceneShots, t]
   );
   const maxCount = Math.min(SCENE_CLIP_MAX_SHOTS, sceneShots.length - startIndex);
   const countOptions = useMemo(
@@ -122,10 +124,13 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
         { length: Math.max(0, maxCount - SCENE_CLIP_MIN_SHOTS + 1) },
         (_, i) => {
           const value = SCENE_CLIP_MIN_SHOTS + i;
-          return { value: String(value), label: `${value} shots` };
+          return {
+            value: String(value),
+            label: t("storyboard:attrs.nShots", { defaultValue: "{{count}} shots", count: value })
+          };
         }
       ),
-    [maxCount]
+    [maxCount, t]
   );
 
   const handleStartChange = useCallback(
@@ -174,19 +179,22 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
         ? [...declared]
         : [...ONE_TAKE_FALLBACK_DURATIONS];
     return [
-      { value: "", label: `Shot total (${seconds(shotTotal)})` },
+      {
+        value: "",
+        label: t("storyboard:attrs.shotTotal", { defaultValue: "Shot total ({{seconds}})", seconds: seconds(shotTotal) })
+      },
       ...values.map((value) => ({ value: String(value), label: seconds(value) }))
     ];
-  }, [catalogModel?.durations, shotTotal]);
+  }, [catalogModel?.durations, shotTotal, t]);
   const resolutionOptions = useMemo(() => {
     const declared = catalogModel?.resolutions;
     const values =
       declared && declared.length > 0 ? declared : ONE_TAKE_FALLBACK_RESOLUTIONS;
     return [
-      { value: "", label: "Default" },
+      { value: "", label: t("storyboard:attrs.default", { defaultValue: "Default" }) },
       ...values.map((value) => ({ value, label: value }))
     ];
-  }, [catalogModel?.resolutions]);
+  }, [catalogModel?.resolutions, t]);
 
   const cost = useMemo(
     () =>
@@ -215,13 +223,14 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
         type: "error",
         alert: true,
         dismissable: true,
-        content: `Scene clip did not start. ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        content: t("storyboard:attrs.sceneClipDidNotStart", {
+          defaultValue: "Scene clip did not start. {{error}}",
+          error: error instanceof Error ? error.message : String(error)
+        })
       });
     });
     onClose();
-  }, [blockers.length, setSceneClip, boardId, draft, renderSceneClip, onClose]);
+  }, [blockers.length, setSceneClip, boardId, draft, renderSceneClip, onClose, t]);
 
   const handleRemove = useCallback(() => {
     removeSceneClip(boardId, clip.id);
@@ -235,24 +244,25 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
     <Dialog
       open
       onClose={onClose}
-      title="Render scene clip"
+      title={t("storyboard:attrs.renderSceneClip", { defaultValue: "Render scene clip" })}
       onConfirm={handleConfirm}
-      confirmText={`Render scene clip${priced ? ` · ~${formatUsd(cost)}` : ""}`}
+      confirmText={`${t("storyboard:attrs.renderSceneClip", { defaultValue: "Render scene clip" })}${priced ? ` · ~${formatUsd(cost)}` : ""}`}
       confirmDisabled={blockers.length > 0}
       fullWidth
       maxWidth="sm"
     >
       <FlexColumn gap={SPACING.lg} data-testid="scene-clip-dialog">
         <Caption color="secondary">
-          Renders these shots as one continuous clip. The clip lands on the
-          first shot, and each other shot plays its window of it, so the cut
-          keeps its order.
+          {t("storyboard:attrs.rendersTheseShotsAsOneContinuousClip", {
+            defaultValue:
+              "Renders these shots as one continuous clip. The clip lands on the first shot, and each other shot plays its window of it, so the cut keeps its order."
+          })}
         </Caption>
 
         <FlexRow gap={SPACING.md} wrap>
           <Box sx={settingSx}>
             <SelectField
-              label="From"
+              label={t("storyboard:attrs.from", { defaultValue: "From" })}
               size="small"
               value={String(startIndex)}
               onChange={handleStartChange}
@@ -261,7 +271,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
           </Box>
           <Box sx={settingSx}>
             <SelectField
-              label="Length"
+              label={t("storyboard:attrs.length", { defaultValue: "Length" })}
               size="small"
               value={String(count)}
               onChange={handleCountChange}
@@ -285,7 +295,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
                       locator={{ asset_id: assetId }}
                       preferThumbnail
                       loading="lazy"
-                      alt={shot?.slug ?? "Shot still"}
+                      alt={shot?.slug ?? t("storyboard:attrs.shotStill", { defaultValue: "Shot still" })}
                       aspectRatio="16 / 9"
                       fit="cover"
                     />
@@ -305,16 +315,21 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
           multiline
           minRows={3}
           size="small"
-          label="Your prompt"
-          placeholder="One continuous move from the doorway to the window."
-          helperText="Optional. The shots' actions, motion and sound are added after it. Refer to stills as [Image N]."
+          label={t("storyboard:attrs.yourPrompt", { defaultValue: "Your prompt" })}
+          placeholder={t("storyboard:attrs.oneContinuousMoveFromTheDoorwayToTheWindow", { defaultValue: "One continuous move from the doorway to the window." })}
+          helperText={t("storyboard:attrs.optionalTheShotsActionsMotionAndSoundAreAddedAfterIt", {
+            defaultValue:
+              "Optional. The shots' actions, motion and sound are added after it. Refer to stills as [Image N]."
+          })}
           value={draft.prompt}
           onChange={handlePromptChange}
         />
 
         <FlexColumn gap={SPACING.sm}>
-          <Label sx={{ color: "text.secondary" }}>Render settings</Label>
-          <FormField label="Video model" sx={modelFieldSx}>
+          <Label sx={{ color: "text.secondary" }}>
+            {t("storyboard:attrs.renderSettings", { defaultValue: "Render settings" })}
+          </Label>
+          <FormField label={t("storyboard:attrs.videoModel", { defaultValue: "Video model" })} sx={modelFieldSx}>
             <VideoModelSelect
               value={model?.id ?? ""}
               provider={model?.provider}
@@ -325,7 +340,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
           <FlexRow gap={SPACING.md} wrap>
             <Box sx={settingSx}>
               <SelectField
-                label="Duration"
+                label={t("storyboard:attrs.duration", { defaultValue: "Duration" })}
                 size="small"
                 value={
                   draft.duration_seconds ? String(draft.duration_seconds) : ""
@@ -336,7 +351,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
             </Box>
             <Box sx={settingSx}>
               <SelectField
-                label="Resolution"
+                label={t("storyboard:attrs.resolution", { defaultValue: "Resolution" })}
                 size="small"
                 value={draft.resolution ?? ""}
                 onChange={handleResolutionChange}
@@ -345,12 +360,12 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
             </Box>
           </FlexRow>
           <Text size="small" data-testid="scene-clip-summary">
-            {`${seconds(duration_seconds)} · ${settings.aspect_ratio} · ${resolution} · ${references.length} of ${ONE_TAKE_MAX_IMAGES} images`}
+            {`${seconds(duration_seconds)} · ${settings.aspect_ratio} · ${resolution} · ${t("storyboard:attrs.countOfMaxImages", { defaultValue: "{{count}} of {{max}} images", count: references.length, max: ONE_TAKE_MAX_IMAGES })}`}
           </Text>
           <Text size="small">
             {priced
-              ? `Estimated cost: about ${formatUsd(cost)}`
-              : "Select a priced model to see the estimate."}
+              ? t("storyboard:attrs.estimatedCostAbout", { defaultValue: "Estimated cost: about {{cost}}", cost: formatUsd(cost) })
+              : t("storyboard:attrs.selectAPricedModelToSeeTheEstimate", { defaultValue: "Select a priced model to see the estimate." })}
           </Text>
         </FlexColumn>
 
@@ -367,7 +382,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
         {saved && (
           <FlexRow>
             <EditorButton variant="text" color="error" onClick={handleRemove}>
-              Remove scene clip
+              {t("storyboard:attrs.removeSceneClip", { defaultValue: "Remove scene clip" })}
             </EditorButton>
           </FlexRow>
         )}

@@ -1,4 +1,5 @@
 import React, { lazy, Suspense, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   resolveEffectiveProductionRequirement,
   type Shot
@@ -10,6 +11,7 @@ import {
   resolveShotSource
 } from "@nodetool-ai/timeline";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
+import { i18n, useAppLanguage } from "../../i18n";
 import {
   createTimelineInstance,
   TimelineProvider,
@@ -44,6 +46,10 @@ export default function ShotDesignFrame({
   boardId,
   shot
 }: ShotDesignFrameProps): React.ReactElement {
+  const { t } = useTranslation();
+  // The preview memo resolves diagnostic copy through i18n; this dep
+  // recomputes it when the language changes.
+  const { version: languageVersion } = useAppLanguage();
   const board = useStoryboardStore((state) => state.boards[boardId]);
   const sourceShots = useMemo(
     () => board?.shots.map((value) => value.id === shot.id ? shot : value) ?? [],
@@ -81,7 +87,11 @@ export default function ShotDesignFrame({
         const assetId = entity?.reference_images?.[0]?.asset_id;
         if (!assetId) {
           return {
-            error: `Entity ${entityId} needs a reference image before its design frame can be reviewed.`
+            error: i18n.t("storyboard:attrs.entityNeedsAReferenceImage", {
+              defaultValue:
+                "Entity {{id}} needs a reference image before its design frame can be reviewed.",
+              id: entityId
+            })
           };
         }
         if (
@@ -89,13 +99,21 @@ export default function ShotDesignFrame({
           sources.data.entitiesByReference[protection.entity_id]?.id !== entity.id
         ) {
           return {
-            error: `Element ${element.id} references a different entity from its protected source. Update the production inputs before reviewing.`
+            error: i18n.t("storyboard:attrs.elementReferencesADifferentEntity", {
+              defaultValue:
+                "Element {{id}} references a different entity from its protected source. Update the production inputs before reviewing.",
+              id: element.id
+            })
           };
         }
         for (const declaredId of [element.asset_id, protection?.asset_id]) {
           if (declaredId && sources.data.assetsByReference[declaredId]?.id !== assetId) {
             return {
-              error: `Entity ${entityId} no longer points to the exact declared source asset. Update the production inputs before reviewing.`
+              error: i18n.t("storyboard:attrs.entityNoLongerPointsToTheDeclaredAsset", {
+                defaultValue:
+                  "Entity {{id}} no longer points to the exact declared source asset. Update the production inputs before reviewing.",
+                id: entityId
+              })
             };
           }
         }
@@ -164,11 +182,11 @@ export default function ShotDesignFrame({
       startMs: frame.timeMs - durationMs / 2,
       endMs: frame.timeMs + durationMs / 2
     };
-  }, [board, shot, sourceShots, sources.data, sources.error, boardId]);
+  }, [board, shot, sourceShots, sources.data, sources.error, boardId, languageVersion]);
   return (
     <Box
       role="region"
-      aria-label={`Composited design frame for shot ${shot.index + 1}`}
+      aria-label={t("storyboard:attrs.compositedDesignFrameForShot", { defaultValue: "Composited design frame for shot {{index}}", index: shot.index + 1 })}
       sx={{
         position: "relative",
         width: "100%",
@@ -220,6 +238,7 @@ function ComposedShotPlayback({
   startMs: number;
   endMs: number;
 }): React.ReactElement {
+  const { t } = useTranslation();
   const playback = useTimelinePlaybackStoreApi();
   const playing = useTimelinePlaybackStore((state) => state.isPlaying);
   const clock = useRef<PlaybackClock | null>(null);
@@ -260,8 +279,16 @@ function ComposedShotPlayback({
     >
       <ToolbarIconButton
         icon={playing ? <PauseIcon /> : <PlayArrowIcon />}
-        tooltip={playing ? "Pause composed shot" : "Play composed shot"}
-        ariaLabel={playing ? "Pause composed shot" : "Play composed shot"}
+        tooltip={
+          playing
+            ? t("storyboard:attrs.pauseComposedShot", { defaultValue: "Pause composed shot" })
+            : t("storyboard:attrs.playComposedShot", { defaultValue: "Play composed shot" })
+        }
+        ariaLabel={
+          playing
+            ? t("storyboard:attrs.pauseComposedShot", { defaultValue: "Pause composed shot" })
+            : t("storyboard:attrs.playComposedShot", { defaultValue: "Play composed shot" })
+        }
         onClick={toggle}
       />
     </Box>
