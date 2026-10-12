@@ -406,7 +406,9 @@ export const ClipAdjustments: React.FC<ClipAdjustmentsProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title={isSounding ? "Audio" : "Render"}
+              title={isSounding
+                ? t("timeline:attrs.audio", { defaultValue: "Audio" })
+                : t("timeline:attrs.render", { defaultValue: "Render" })}
               icon={
                 isSounding ? <VolumeUpOutlinedIcon /> : <LayersOutlinedIcon />
               }

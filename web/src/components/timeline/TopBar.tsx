@@ -55,6 +55,7 @@ const useSaveStateLabel = (
   sequenceId: string | undefined,
   isSaving: boolean
 ): string | null => {
+  const { t } = useTranslation();
   const key = sequenceId ? `timeline:${sequenceId}` : null;
   const autosaving = useDocumentDraftStore((s) =>
     key ? Boolean(s.savingTabs[key]) : false
@@ -63,8 +64,10 @@ const useSaveStateLabel = (
     key ? Boolean(s.dirtyTabs[key]) : false
   );
   if (!key) return null;
-  if (isSaving || autosaving) return "Saving…";
-  return dirty ? "Unsaved changes" : "Saved";
+  if (isSaving || autosaving) return t("timeline:topbar.saving", { defaultValue: "Saving…" });
+  return dirty
+    ? t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })
+    : t("ui2:attrs.saved", { defaultValue: "Saved" });
 };
 
 export const TopBar: React.FC<TopBarProps> = memo(
@@ -113,8 +116,12 @@ export const TopBar: React.FC<TopBarProps> = memo(
         {onToggleTranscript && (
           <ToolbarIconButton
             onClick={onToggleTranscript}
-            tooltip={transcriptVisible ? "Hide transcript" : "Show transcript"}
-            aria-label={transcriptVisible ? "Hide transcript" : "Show transcript"}
+            tooltip={transcriptVisible
+              ? t("timeline:transcript.hide", { defaultValue: "Hide transcript" })
+              : t("timeline:transcript.show", { defaultValue: "Show transcript" })}
+            aria-label={transcriptVisible
+              ? t("timeline:transcript.hide", { defaultValue: "Hide transcript" })
+              : t("timeline:transcript.show", { defaultValue: "Show transcript" })}
             aria-pressed={transcriptVisible}
             sx={{ color: transcriptVisible ? "primary.main" : undefined }}
           >
@@ -124,8 +131,12 @@ export const TopBar: React.FC<TopBarProps> = memo(
         {onToggleSidePanel && (
           <ToolbarIconButton
             onClick={onToggleSidePanel}
-            tooltip={sidePanelVisible ? "Hide side panel" : "Show side panel"}
-            aria-label={sidePanelVisible ? "Hide side panel" : "Show side panel"}
+            tooltip={sidePanelVisible
+              ? t("timeline:topbar.hideSidePanel", { defaultValue: "Hide side panel" })
+              : t("timeline:topbar.showSidePanel", { defaultValue: "Show side panel" })}
+            aria-label={sidePanelVisible
+              ? t("timeline:topbar.hideSidePanel", { defaultValue: "Hide side panel" })
+              : t("timeline:topbar.showSidePanel", { defaultValue: "Show side panel" })}
             aria-pressed={sidePanelVisible}
             sx={{ color: sidePanelVisible ? "primary.main" : undefined }}
           >
@@ -135,8 +146,8 @@ export const TopBar: React.FC<TopBarProps> = memo(
         {hasCode && onOpenCode && (
           <ToolbarIconButton
             onClick={onOpenCode}
-            tooltip="Code"
-            aria-label="Open the timeline's code"
+            tooltip={t("ui2:attrs.code", { defaultValue: "Code" })}
+            aria-label={t("timeline:topbar.openTheTimelinesCode", { defaultValue: "Open the timeline's code" })}
           >
             <CodeIcon fontSize="small" />
           </ToolbarIconButton>
@@ -155,8 +166,12 @@ export const TopBar: React.FC<TopBarProps> = memo(
           <ToolbarIconButton
             onClick={onSave}
             disabled={isSaving}
-            tooltip={isSaving ? "Saving…" : "Save"}
-            aria-label={isSaving ? "Saving…" : "Save"}
+            tooltip={isSaving
+              ? t("timeline:topbar.saving", { defaultValue: "Saving…" })
+              : t("timeline:topbar.save", { defaultValue: "Save" })}
+            aria-label={isSaving
+              ? t("timeline:topbar.saving", { defaultValue: "Saving…" })
+              : t("timeline:topbar.save", { defaultValue: "Save" })}
           >
             <SaveIcon fontSize="small" />
           </ToolbarIconButton>
@@ -165,8 +180,12 @@ export const TopBar: React.FC<TopBarProps> = memo(
           <ToolbarIconButton
             onClick={onExportVideo}
             disabled={isExporting}
-            tooltip={isExporting ? "Exporting…" : "Export video"}
-            aria-label={isExporting ? "Exporting…" : "Export video"}
+            tooltip={isExporting
+              ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" })
+              : t("timeline:topbar.exportVideo", { defaultValue: "Export video" })}
+            aria-label={isExporting
+              ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" })
+              : t("timeline:topbar.exportVideo", { defaultValue: "Export video" })}
           >
             <FileDownloadIcon fontSize="small" />
           </ToolbarIconButton>
@@ -205,7 +224,7 @@ export const TopBar: React.FC<TopBarProps> = memo(
               {onSaveToAssets && (
                 <MenuItemPrimitive
                   icon={<VideoLibraryOutlinedIcon fontSize="small" />}
-                  label="Save as asset"
+                  label={t("timeline:topbar.saveAsAsset", { defaultValue: "Save as asset" })}
                   disabled={isExporting}
                   onClick={runFromMenu(() => {
                     const anchor = overflowButtonRef.current;
@@ -217,7 +236,9 @@ export const TopBar: React.FC<TopBarProps> = memo(
                 <MenuItemPrimitive
                   icon={<FolderZipOutlinedIcon fontSize="small" />}
                   label={
-                    isExportingBundle ? "Exporting…" : "Export project (.zip)"
+                    isExportingBundle
+                      ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" })
+                      : t("timeline:attrs.exportProjectZip", { defaultValue: "Export project (.zip)" })
                   }
                   disabled={isExportingBundle}
                   onClick={runFromMenu(onExportBundle)}

@@ -5,7 +5,6 @@ import { SourceViewerPanel } from "./SourceViewerPanel";
 import { i18n } from "../../i18n";
 
 const mockSetSourceRange = jest.fn((range) => {
-  const { t } = useTranslation();
   mockSourceRange = range;
 });
 let mockSourceRange: { assetId: string; inMs: number; outMs: number } | null = null;

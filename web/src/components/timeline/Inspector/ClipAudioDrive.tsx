@@ -507,7 +507,9 @@ export const ClipAudioDrive: React.FC<ClipAudioDriveProps> = memo(({ clip }) => 
                     ) : undefined
                   }
                 >
-                  {existing ? "Re-bake" : "Animate from audio"}
+                  {existing
+                    ? t("timeline:attrs.reBake", { defaultValue: "Re-bake" })
+                    : t("timeline:attrs.animateFromAudio", { defaultValue: "Animate from audio" })}
                 </Button>
               </FlexRow>
               {status && (

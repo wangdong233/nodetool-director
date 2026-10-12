@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
@@ -30,6 +31,7 @@ export const TrackFolderHeader: React.FC<TrackFolderHeaderProps> = ({
   collapsed,
   onToggle
 }) => {
+  const { t } = useTranslation();
   const renameTrackFolder = useTimelineStore((state) => state.renameTrackFolder);
   const removeTrackFolder = useTimelineStore((state) => state.removeTrackFolder);
   const [editing, setEditing] = useState(false);
@@ -59,7 +61,9 @@ export const TrackFolderHeader: React.FC<TrackFolderHeaderProps> = ({
             )
           }
           onClick={() => onToggle(folder.id)}
-          aria-label={`${collapsed ? "Expand" : "Collapse"} folder ${folder.name}`}
+          aria-label={collapsed
+            ? t("timeline:attrs.expandFolder", { defaultValue: "Expand folder {{name}}", name: folder.name })
+            : t("timeline:attrs.collapseFolder", { defaultValue: "Collapse folder {{name}}", name: folder.name })}
           aria-expanded={!collapsed}
           size="small"
           sx={{ p: SPACING.none }}
@@ -70,19 +74,19 @@ export const TrackFolderHeader: React.FC<TrackFolderHeaderProps> = ({
           editing={editing}
           onEditingChange={setEditing}
           onCommit={(name) => renameTrackFolder(folder.id, name)}
-          ariaLabel={`Folder name: ${folder.name}`}
-          title="Double-click to rename folder"
+          ariaLabel={t("timeline:attrs.folderNameAria", { defaultValue: "Folder name: {{name}}", name: folder.name })}
+          title={t("timeline:attrs.doubleclickToRenameFolder", { defaultValue: "Double-click to rename folder" })}
           displayAsInput
           sx={{ flex: "1 1 auto", minWidth: 0 }}
         />
-        <Caption aria-label={`${count} tracks`}>({count})</Caption>
+        <Caption aria-label={t("timeline:attrs.tracksCountAria", { defaultValue: "{{count}} tracks", count })}>({count})</Caption>
         <ToolbarIconButton
           icon={<MoreHorizIcon fontSize="small" />}
           onClick={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
             setMenuPosition({ x: rect.right, y: rect.bottom });
           }}
-          aria-label={`Folder options for ${folder.name}`}
+          aria-label={t("timeline:attrs.folderOptionsAria", { defaultValue: "Folder options for {{name}}", name: folder.name })}
           size="small"
           sx={{ p: SPACING.none }}
         />
@@ -94,7 +98,7 @@ export const TrackFolderHeader: React.FC<TrackFolderHeaderProps> = ({
         compact
       >
         <MenuItemPrimitive
-          label="Rename folder"
+          label={t("timeline:attrs.renameFolder", { defaultValue: "Rename folder" })}
           onClick={() => {
             setMenuPosition(null);
             setEditing(true);
@@ -102,7 +106,7 @@ export const TrackFolderHeader: React.FC<TrackFolderHeaderProps> = ({
           compact
         />
         <MenuItemPrimitive
-          label="Ungroup tracks"
+          label={t("timeline:attrs.ungroupTracks", { defaultValue: "Ungroup tracks" })}
           onClick={() => {
             removeTrackFolder(folder.id);
             setMenuPosition(null);

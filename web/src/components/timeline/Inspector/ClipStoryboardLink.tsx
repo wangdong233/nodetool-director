@@ -61,9 +61,9 @@ const ClipStoryboardLinkInner = ({ clip }: ClipStoryboardLinkProps) => {
           size="small"
           startIcon={<LinkOutlinedIcon />}
           onClick={() => setLinkOpen(true)}
-          title="Make this clip follow a shot on a storyboard"
+          title={t("timeline:attrs.makeThisClipFollowAShotOnAStoryboard", { defaultValue: "Make this clip follow a shot on a storyboard" })}
         >
-          Link to shot
+          {t("timeline:attrs.linkToShot", { defaultValue: "Link to shot" })}
         </EditorButton>
         {linkOpen && (
           <LinkShotDialog clipId={clip.id} onClose={() => setLinkOpen(false)} />

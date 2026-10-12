@@ -23,6 +23,7 @@ import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 
 import {
   AlertBanner,
@@ -80,6 +81,7 @@ const SceneRow: React.FC<{
   onSelect: (groupId: string) => void;
 }> = memo(({ scene, onSelect }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const handleClick = useCallback(
     () => onSelect(scene.groupId),
     [onSelect, scene.groupId]
@@ -93,7 +95,7 @@ const SceneRow: React.FC<{
       onClick={handleClick}
       role="button"
       tabIndex={0}
-      aria-label={`Select scene ${scene.name} on the timeline`}
+      aria-label={t("timeline:code.selectSceneAria", { defaultValue: "Select scene {{name}} on the timeline", name: scene.name })}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
@@ -105,7 +107,7 @@ const SceneRow: React.FC<{
         {scene.name}
       </Text>
       {scene.edited && (
-        <Chip label="Edited" compact color="warning" size="small" />
+        <Chip label={t("ui2:attrs.edited", { defaultValue: "Edited" })} compact color="warning" size="small" />
       )}
     </FlexRow>
   );
@@ -122,6 +124,7 @@ const emptyBakeResult: TimelineCodeBakeResult = {
 
 export const CodePanel: React.FC = memo(() => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const sequenceId = useTimelineStore((s) => s.sequenceId);
   const clips = useTimelineStore((s) => s.clips);
   const uiStoreApi = useTimelineUIStoreApi();
@@ -258,9 +261,14 @@ export const CodePanel: React.FC = memo(() => {
     () =>
       bakeResult.conflicts.map((conflict) => ({
         unitId: conflict.scene,
-        label: `Scene "${conflict.scene}" was edited in the editor since the last bake — kept. (${conflict.reason})`
+        label: t("timeline:attrs.rebakeConflict", {
+          defaultValue:
+            "Scene \"{{scene}}\" was edited in the editor since the last bake — kept. ({{reason}})",
+          scene: conflict.scene,
+          reason: conflict.reason
+        })
       })),
-    [bakeResult.conflicts]
+    [bakeResult.conflicts, t]
   );
 
   const toolbarActions = useMemo(
@@ -272,16 +280,18 @@ export const CodePanel: React.FC = memo(() => {
           onClick={handleRebake}
           disabled={!sequenceId || isSettingCode || !dirty}
         >
-          {isSettingCode ? "Rebaking…" : "Rebake"}
+          {isSettingCode
+            ? t("timeline:attrs.rebaking", { defaultValue: "Rebaking…" })
+            : t("timeline:attrs.rebake", { defaultValue: "Rebake" })}
         </EditorButton>
       ) : null,
-    [hasCode, handleRebake, sequenceId, isSettingCode, dirty]
+    [hasCode, handleRebake, sequenceId, isSettingCode, dirty, t]
   );
 
   if (isLoading) {
     return (
       <FlexColumn align="center" justify="center" fullHeight sx={{ flex: 1 }}>
-        <LoadingSpinner size="small" text="Loading code…" />
+        <LoadingSpinner size="small" text={t("timeline:attrs.loadingCode", { defaultValue: "Loading code…" })} />
       </FlexColumn>
     );
   }
@@ -289,7 +299,9 @@ export const CodePanel: React.FC = memo(() => {
   if (error) {
     return (
       <FlexColumn gap={SPACING.micro} sx={{ p: SPACING.md }}>
-        <Text color="error">Failed to load the timeline's code</Text>
+        <Text color="error">
+          {t("timeline:attrs.failedToLoadCode", { defaultValue: "Failed to load the timeline's code" })}
+        </Text>
         <Caption size="smaller" color="secondary">
           {error instanceof Error ? error.message : String(error)}
         </Caption>
@@ -306,8 +318,8 @@ export const CodePanel: React.FC = memo(() => {
         sx={{ flex: 1, px: SPACING.md }}
       >
         <EmptyState
-          title="No code"
-          description="This timeline wasn't built from code, so there is nothing to edit here."
+          title={t("timeline:code.noCode", { defaultValue: "No code" })}
+          description={t("timeline:code.noCodeDesc", { defaultValue: "This timeline wasn't built from code, so there is nothing to edit here." })}
         />
       </FlexColumn>
     );
@@ -316,7 +328,7 @@ export const CodePanel: React.FC = memo(() => {
   return (
     <FlexColumn fullWidth fullHeight sx={{ minHeight: 0, overflow: "hidden" }}>
       <PanelHeader
-        title="Code"
+        title={t("timeline:code.title", { defaultValue: "Code" })}
         count={scenes.length || undefined}
         actions={toolbarActions}
       />
@@ -335,8 +347,8 @@ export const CodePanel: React.FC = memo(() => {
           <ConflictBanner
             sx={{ m: SPACING.sm }}
             conflicts={conflictRows}
-            acceptLabel="Overwrite with code"
-            discardLabel="Detach"
+            acceptLabel={t("timeline:attrs.overwriteWithCode", { defaultValue: "Overwrite with code" })}
+            discardLabel={t("timeline:attrs.detach", { defaultValue: "Detach" })}
             onAccept={handleOverwriteScene}
             onDiscard={handleDetachScene}
           />

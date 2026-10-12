@@ -1558,7 +1558,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
               size="small"
               startIcon={<AutoAwesomeIcon fontSize="small" />}
               onClick={onGenerate}
-              aria-label="Generate"
+              aria-label={t("ui2:attrs.generate", { defaultValue: "Generate" })}
               data-testid="timeline-generate"
               sx={{
                 ml: SPACING.xs,
@@ -1569,7 +1569,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
                 })
               }}
             >
-              {toolbarCompact ? null : "Generate"}
+              {toolbarCompact ? null : t("ui2:attrs.generate", { defaultValue: "Generate" })}
             </EditorButton>
           )}
           <div style={{ flex: "1 1 auto" }} />
@@ -1581,7 +1581,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             <HelpButton
               onClick={() => setShortcutsOpen(true)}
               iconVariant="helpOutline"
-              tooltip="Keyboard shortcuts (?)"
+              tooltip={t("timeline:attrs.keyboardShortcuts(?)", { defaultValue: "Keyboard shortcuts (?)" })}
             />
           )}
           <TimelineViewControls
@@ -1593,10 +1593,10 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
         {/* ── Sub-header: TRACKS label + ruler ────────────────────────── */}
         <FlexRow align="stretch" fullWidth>
           <div css={tracksSectionHeaderStyles(theme, isMobile)}>
-            <span>Tracks</span>
+            <span>{t("timeline:attrs.tracks", { defaultValue: "Tracks" })}</span>
             <span
               css={trackCountChipStyles(theme)}
-              aria-label={`${tracks.length} tracks`}
+              aria-label={t("timeline:attrs.tracksCountAria", { defaultValue: "{{count}} tracks", count: tracks.length })}
             >
               {tracks.length}
             </span>

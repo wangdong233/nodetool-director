@@ -92,6 +92,7 @@ interface VersionRowProps {
 
 const VersionRow: React.FC<VersionRowProps> = memo(
   ({ version, busy, onRestore, onDelete }) => {
+    const { t } = useTranslation();
     const handleRestore = useCallback(
       () => onRestore(version),
       [onRestore, version]
@@ -129,9 +130,9 @@ const VersionRow: React.FC<VersionRowProps> = memo(
               variant="text"
               disabled={busy}
               onClick={handleRestore}
-              aria-label={`Restore version ${version.version}`}
+              aria-label={t("timeline:history.restoreVersion", { defaultValue: "Restore version {{n}}", n: version.version })}
             >
-              Restore
+              {t("timeline:attrs.restore", { defaultValue: "Restore" })}
             </EditorButton>
             <EditorButton
               density="compact"
@@ -344,7 +345,9 @@ export const TimelineVersionHistoryPanel: React.FC<
         open={restoreTarget !== null}
         onClose={clearRestoreTarget}
         title={
-          restoreTarget ? `Restore v${restoreTarget.version}?` : "Restore?"
+          restoreTarget
+            ? t("timeline:history.restoreConfirm", { defaultValue: "Restore v{{n}}?", n: restoreTarget.version })
+            : t("timeline:history.restoreGeneric", { defaultValue: "Restore?" })
         }
         onConfirm={handleConfirmRestore}
         onCancel={clearRestoreTarget}

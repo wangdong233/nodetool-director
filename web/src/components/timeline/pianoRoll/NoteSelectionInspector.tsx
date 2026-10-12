@@ -97,7 +97,7 @@ export function NoteSelectionInspector({
           sx={{ width: 128 }}
           disabled={!first}
           defaultValue={field.value ?? ""}
-          placeholder={first ? "Mixed" : "—"}
+          placeholder={first ? t("ui2:attrs.mixed", { defaultValue: "Mixed" }) : "—"}
           inputProps={{ min: field.min, max: field.max, step: field.step }}
           onBlur={(event) => {
             const value = Math.round(Number(event.target.value) / field.step) * field.step;

@@ -1647,7 +1647,7 @@ const EffectCard: React.FC<EffectCardProps> = memo(
             />
           </FlexRow>
           <FlexRow gap={0.5}>
-            <Tooltip title={t("timeline:attrs.removeEffect", { defaultValue: "Remove effect" })}>
+            <Tooltip title={t("timeline:attrs.removeEffectTooltip", { defaultValue: "Remove effect" })}>
               <button
                 type="button"
                 css={removeButtonCss}

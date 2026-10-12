@@ -8,6 +8,7 @@
  */
 
 import React, { memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   FlexRow,
@@ -30,6 +31,7 @@ const stopPropagation = (e: React.SyntheticEvent): void => {
 };
 
 const OfflineBadge: React.FC<{ assetId: string }> = ({ assetId }) => {
+  const { t } = useTranslation();
   const relink = useRelinkAsset();
   const addNotification = useNotificationStore((s) => s.addNotification);
 
@@ -40,7 +42,7 @@ const OfflineBadge: React.FC<{ assetId: string }> = ({ assetId }) => {
       if (!path) {
         addNotification({
           type: "error",
-          content: "Could not read that file's location. Pick a file on this computer."
+          content: t("timeline:attrs.couldNotReadThatFilesLocation", { defaultValue: "Could not read that file's location. Pick a file on this computer." })
         });
         return;
       }
@@ -74,11 +76,11 @@ const OfflineBadge: React.FC<{ assetId: string }> = ({ assetId }) => {
         zIndex: Z_INDEX.base + 4
       }}
     >
-      <StatusPill tone="failed">Media offline</StatusPill>
+      <StatusPill tone="failed">{t("timeline:attrs.mediaOffline", { defaultValue: "Media offline" })}</StatusPill>
       {canResolveLocalFilePaths() && (
         <UploadButton
-          label="Relink"
-          tooltip="Relink to the file's new location"
+          label={t("timeline:attrs.relink", { defaultValue: "Relink" })}
+          tooltip={t("timeline:attrs.relinkToNewLocation", { defaultValue: "Relink to the file's new location" })}
           iconVariant="file"
           multiple={false}
           disabled={relink.isPending}

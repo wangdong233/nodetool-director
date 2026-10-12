@@ -328,7 +328,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
     <CollapsibleSection
       title={
         <InspectorSectionTitle
-          title="AI edit"
+          title={t("timeline:attrs.aiEdit", { defaultValue: "AI edit" })}
           icon={<AutoAwesomeOutlinedIcon />}
         />
       }
@@ -347,10 +347,10 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
         ) : (
           <>
             <TextInput
-              label="Instruction"
+              label={t("timeline:attrs.instruction", { defaultValue: "Instruction" })}
               value={instruction}
               onChange={(event) => setInstruction(event.target.value)}
-              placeholder="e.g. Make it golden hour"
+              placeholder={t("timeline:attrs.aiEditExample", { defaultValue: "e.g. Make it golden hour" })}
               multiline
               minRows={3}
               maxRows={8}
@@ -387,7 +387,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
               />
             ) : (
               <SelectField
-                label="Model"
+                label={t("timeline:attrs.model", { defaultValue: "Model" })}
                 size="small"
                 value={selectedModel ? modelKey(selectedModel) : ""}
                 options={modelOptions}
@@ -430,7 +430,11 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                 }}
                 data-testid="ai-edit-submit"
               >
-                {active ? "Cancel" : failed ? "Retry" : "Edit video"}
+                {active
+                  ? t("timeline:attrs.cancel", { defaultValue: "Cancel" })
+                  : failed
+                    ? t("timeline:attrs.retry", { defaultValue: "Retry" })
+                    : t("timeline:attrs.editVideoAction", { defaultValue: "Edit video" })}
               </EditorButton>
               <FlexRow justify="flex-end" fullWidth>
                 <CostEstimateLine
@@ -465,7 +469,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                   label={t("timeline:attrs.newTake", { defaultValue: "New take" })}
                   value={newTakeInstruction}
                   onChange={(event) => setNewTakeInstruction(event.target.value)}
-                  placeholder="Optional direction for the new take"
+                  placeholder={t("timeline:attrs.directionForNewTakePlaceholder", { defaultValue: "Optional direction for the new take" })}
                   multiline
                   minRows={2}
                   maxRows={4}

@@ -39,8 +39,7 @@ import {
   INSPECTOR_ROW_BUTTON_SX
 } from "./InspectorPrimitives";
 import {
-  EASING_HINT,
-  UNPARSEABLE_EASING_HINT
+  EASING_HINT
 } from "./InspectorMotionFields";
 
 type CustomCurve = CustomClipAnimation["curves"][number];
@@ -105,6 +104,9 @@ const KeyframeRow: React.FC<KeyframeRowProps> = memo(
     onPatch,
     onRemove
   }) => {
+    // `t` below is the keyframe's time value; the translation function is
+    // aliased to keep them apart.
+    const { t: translate } = useTranslation();
     const handleTimeCommit = useCallback(
       (raw: string) => {
         const t = Number(raw);
@@ -181,7 +183,7 @@ const KeyframeRow: React.FC<KeyframeRowProps> = memo(
           />
         </FlexRow>
         {easingUnparseable && (
-          <Caption color="muted">{UNPARSEABLE_EASING_HINT}</Caption>
+          <Caption color="muted">{translate("timeline:attrs.unparseableEasingHint", { defaultValue: "Not an easing this build reads; plays linear" })}</Caption>
         )}
       </FlexColumn>
     );
@@ -299,6 +301,7 @@ interface ClipCustomCurvesProps {
 
 export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
   ({ custom, labelPrefix, sourceAnchored, onChange }) => {
+    const { t } = useTranslation();
     const curves = custom?.curves ?? EMPTY_CURVES;
     const bakedFromCode = custom?.code !== undefined;
     const bakedFrom = custom?.bakedFrom;
@@ -427,8 +430,8 @@ export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
         ))}
         <Caption color="muted">
           {sourceAnchored
-            ? "Columns are source time (ms, read-only), value, and easing: "
-            : "Columns are time (0..1 across the animation), value, and easing: "}
+            ? t("timeline:attrs.columnsAreSourceTimeMsReadonlyValueAndEasing", { defaultValue: "Columns are source time (ms, read-only), value, and easing: " })
+            : t("timeline:attrs.columnsAreTime01AcrossTheAnimationValueAndEasing", { defaultValue: "Columns are time (0..1 across the animation), value, and easing: " })}
           {EASING_HINT}
         </Caption>
         {curvesError && (
@@ -443,7 +446,7 @@ export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
           onClick={addCurve}
           disabled={nextProperty === undefined}
         >
-          Add curve
+          {t("timeline:attrs.addCurve", { defaultValue: "Add curve" })}
         </Button>
       </FlexColumn>
     );

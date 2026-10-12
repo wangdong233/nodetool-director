@@ -193,6 +193,7 @@ const VersionTile: React.FC<VersionTileProps> = memo(
     onDelete
   }) => {
     const theme = useTheme();
+    const { t } = useTranslation();
     const getAsset = useAssetStore((s) => s.get);
     const [url, setUrl] = useState<string | undefined>(undefined);
 
@@ -212,10 +213,12 @@ const VersionTile: React.FC<VersionTileProps> = memo(
 
     // Newest first → label by recency ("Latest", then "2 ago", "3 ago"…),
     // unless the take has been given a display label.
-    const ordinal = index === 0 ? "Latest" : `#${total - index}`;
+    const ordinal = index === 0 ? t("timeline:attrs.latest", { defaultValue: "Latest" }) : `#${total - index}`;
     const displayName = version.label?.trim() ? version.label : ordinal;
     const when = relativeTime(version.createdAt);
-    const tooltip = active ? `Current · ${displayName} · ${when}` : `${displayName} · ${when}`;
+    const tooltip = active
+      ? `${t("timeline:attrs.current", { defaultValue: "Current" })} · ${displayName} · ${when}`
+      : `${displayName} · ${when}`;
 
     const isImage = mediaType === "image" || mediaType === "overlay";
     const isVideo = mediaType === "video";
@@ -251,7 +254,11 @@ const VersionTile: React.FC<VersionTileProps> = memo(
               isImage && url ? { backgroundImage: `url(${url})` } : undefined
             }
             onClick={handleClick}
-            aria-label={`${tooltip} — Preview ${active ? "Original" : "Candidate"}`}
+            aria-label={`${tooltip} — ${
+              active
+                ? t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" })
+                : t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })
+            }`}
             aria-current={active}
             aria-pressed={auditioned}
           >
@@ -280,29 +287,33 @@ const VersionTile: React.FC<VersionTileProps> = memo(
           <div className="take-actions" css={takeActionsStyles}>
             <ToolbarIconButton
               icon={<PlayArrowIcon />}
-              tooltip={active ? "Preview Original" : "Preview Candidate"}
+              tooltip={active
+                ? t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" })
+                : t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
               onClick={(e) => {
                 e.stopPropagation();
                 onPreview(active ? null : version.id);
               }}
-              aria-label={active ? "Preview Original" : "Preview Candidate"}
+              aria-label={active
+                ? t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" })
+                : t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
               sx={actionIconSx}
             />
             {!active && (
               <ToolbarIconButton
                 icon={<CheckIcon />}
-                tooltip={`Use take ${displayName}`}
+                tooltip={t("timeline:attrs.useTakeName", { defaultValue: "Use take {{name}}", name: displayName })}
                 onClick={(e) => {
                   e.stopPropagation();
                   onUseTake(version.id);
                 }}
-                aria-label={`Use take ${displayName}`}
+                aria-label={t("timeline:attrs.useTakeName", { defaultValue: "Use take {{name}}", name: displayName })}
                 sx={actionIconSx}
               />
             )}
             <ToolbarIconButton
               icon={<EditOutlinedIcon />}
-              tooltip={`Rename ${displayName}`}
+              tooltip={t("timeline:attrs.renameName", { defaultValue: "Rename {{name}}", name: displayName })}
               onClick={handleRenameClick}
               sx={actionIconSx}
             />
@@ -310,8 +321,8 @@ const VersionTile: React.FC<VersionTileProps> = memo(
               icon={<DeleteOutlineIcon />}
               tooltip={
                 active
-                  ? "This is the active take — select a different take before deleting it."
-                  : `Delete ${displayName}`
+                  ? t("timeline:attrs.thisIsTheActiveTakeSelectADifferentTakeBeforeDeletingIt", { defaultValue: "This is the active take — select a different take before deleting it." })
+                  : t("timeline:attrs.deleteName", { defaultValue: "Delete {{name}}", name: displayName })
               }
               disabled={active}
               onClick={handleDeleteClick}
