@@ -50,7 +50,6 @@
     "packages/reve-nodes",
     "packages/atlascloud-nodes",
     "packages/higgsfield-nodes",
-    "packages/mediagen-nodes",
     "packages/together-nodes",
     "packages/sandbox-compiler",
     "packages/workflow-runner",

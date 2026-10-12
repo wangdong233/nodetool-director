@@ -50,14 +50,6 @@ async function loadBuiltinRegistry(): Promise<NodeRegistry> {
     // Some environments do not have the MiniMax node package in a runnable state.
   }
   try {
-    const { registerMediagenNodes } = await import(
-      "@nodetool-ai/mediagen-nodes"
-    );
-    registerMediagenNodes(builtinRegistry);
-  } catch {
-    // Some environments do not have the mediagen node package in a runnable state.
-  }
-  try {
     const { registerTransformersJsNodes } = await import(
       "@nodetool-ai/transformers-js-nodes"
     );

@@ -44,7 +44,6 @@ import {
   createGraphNodeTypeResolver
 } from "@nodetool-ai/node-sdk";
 import { registerBuiltinPacks } from "@nodetool-ai/base-nodes/builtin-packs";
-import { registerMediagenNodes } from "@nodetool-ai/mediagen-nodes";
 import { CLI_LOCAL_BUILTIN_PACK_POLICY, CLI_DSL_BUILTIN_PACK_POLICY } from "./node-registry.js";
 import { ProcessingContext, createLocalWorkspace, initTelemetry, onPythonBridgeCreated } from "@nodetool-ai/runtime";
 import { FileStorageAdapter } from "@nodetool-ai/storage";
@@ -615,7 +614,6 @@ addSupervisorOptions(
 
       const registry = new NodeRegistry();
       registerBuiltinPacks(registry, CLI_LOCAL_BUILTIN_PACK_POLICY);
-      registerMediagenNodes(registry);
 
       const jobId = `job-${Date.now()}`;
       // Resolve asset URIs (e.g. /api/storage/<key>) against the local
@@ -1647,7 +1645,6 @@ mcp
       // validate_workflow without spinning up a Python worker.
       const registry = new NodeRegistry();
       registerBuiltinPacks(registry, CLI_LOCAL_BUILTIN_PACK_POLICY);
-      registerMediagenNodes(registry);
 
       // stdio serves exactly one local user; "1" is the local single-user id.
       const server = createMcpServer({

@@ -161,14 +161,6 @@ at 24 hours.
 
 **Deliberately private hosts.** Reaching an internal address is the feature:
 
-- `packages/mediagen-nodes/src/channels/gemini/transport.ts` — the Gemini web
-  channel's CDP transport. Its in-process fetches are DevTools discovery
-  (`/json/list`, `/json/new`) against the literal loopback host `127.0.0.1` on
-  the operator-set `GEMINI_CDP_PORT`: driving the operator's own channel Chrome
-  is the feature. No credential rides the wire — the Google session lives in
-  that Chrome's profile. The media fetch the audit scan also finds there is
-  source text of a page-side expression that runs inside that Chrome, not in
-  the server process.
 - `packages/whisper-cpp/src/whisper-server-provider.ts` — the operator's
   `WHISPER_CPP_SERVER_URL`, normally localhost or the LAN. This local-only
   provider uses native fetch, following the llama.cpp server provider's policy.
