@@ -37,7 +37,7 @@ function ImageModelMenuDialog({
       modelData={modelData}
       onModelChange={onModelChange}
       title={t("editor:ui.selectImageModel", { defaultValue: "Select Image Model" })}
-      searchPlaceholder="Search image models..."
+      searchPlaceholder={t("editor:ui.searchImageModels", { defaultValue: "Search image models..." })}
       storeHook={useImageModelMenuStore}
       modelType="image_model"
       recommendedModels={recommendedModels}

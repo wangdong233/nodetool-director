@@ -44,7 +44,7 @@ function LanguageModelMenuDialog({
       modelData={modelData}
       onModelChange={onModelChange}
       title={t("editor:ui.selectLanguageModel", { defaultValue: "Select Language Model" })}
-      searchPlaceholder="Search language models..."
+      searchPlaceholder={t("editor:ui.searchLanguageModels", { defaultValue: "Search language models..." })}
       storeHook={useLanguageModelMenuStore}
       modelType="language_model"
       recommendedModels={recommendedModels}

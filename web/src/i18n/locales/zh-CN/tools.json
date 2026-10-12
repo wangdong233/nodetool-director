@@ -268,6 +268,7 @@
     "countOne": "{{count}} 个教程",
     "countMany": "{{count}} 个教程",
     "startBuilding": "开始搭建",
+    "openingTask": "正在打开任务…",
     "browseExamples": "浏览示例",
     "backToWorkspace": "工作区",
     "playTutorialAria": "播放教程：{{title}}",

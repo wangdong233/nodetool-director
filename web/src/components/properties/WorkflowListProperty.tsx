@@ -62,7 +62,7 @@ const WorkflowListProperty = (props: PropertyProps<WorkflowValue[] | null>) => {
         input={<OutlinedInput id="select-multiple-chip" label={t("editor:ui.chip", { defaultValue: "Chip" })} />}
         renderValue={renderSelectedValue}
       >
-        {isLoading && <NodeMenuItem disabled>Loading…</NodeMenuItem>}
+        {isLoading && <NodeMenuItem disabled>{t("common:status.loading", { defaultValue: "Loading…" })}</NodeMenuItem>}
         {error && <NodeMenuItem disabled>Error: {error.message}</NodeMenuItem>}
         {data?.workflows &&
           data.workflows.map((workflow) => (

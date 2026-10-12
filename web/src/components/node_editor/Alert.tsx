@@ -190,7 +190,7 @@ const NotificationItem = memo(function NotificationItem({
                   <CopyButton
                     value={notification.content}
                     className="copy-button"
-                    tooltip="Copy to clipboard"
+                    tooltip={t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
                   />
                 )
               )}

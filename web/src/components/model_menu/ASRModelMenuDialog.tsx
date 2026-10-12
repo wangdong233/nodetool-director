@@ -49,7 +49,7 @@ function ASRModelMenuDialog({
       modelData={modelData}
       onModelChange={onModelChange}
       title={t("editor:ui.selectASRModel", { defaultValue: "Select ASR Model" })}
-      searchPlaceholder="Search speech-to-text models..."
+      searchPlaceholder={t("editor:ui.searchSpeechToTextModels", { defaultValue: "Search speech-to-text models..." })}
       storeHook={useASRModelMenuStore}
       modelType="asr_model"
       recommendedModels={recommendedModels}

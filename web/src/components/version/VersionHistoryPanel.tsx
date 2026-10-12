@@ -350,9 +350,9 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
           compact
           aria-label={t("editor:ui.versionFilter", { defaultValue: "version filter" })}
         >
-          <ToggleOption value="all" aria-label="all">All</ToggleOption>
-          <ToggleOption value="manual" aria-label="manual">Manual</ToggleOption>
-          <ToggleOption value="autosave" aria-label="autosave">Auto</ToggleOption>
+          <ToggleOption value="all" aria-label="all">{t("editor:ui.all", { defaultValue: "All" })}</ToggleOption>
+          <ToggleOption value="manual" aria-label="manual">{t("timeline:history.manual", { defaultValue: "Manual" })}</ToggleOption>
+          <ToggleOption value="autosave" aria-label="autosave">{t("timeline:history.auto", { defaultValue: "Auto" })}</ToggleOption>
         </ToggleGroup>
       </PanelHeader>
 
@@ -363,8 +363,8 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         }}>
           <Caption size="smaller" color="primary">
             {!selectedVersionId
-              ? "Select the first version to compare"
-              : "Select the second version to compare"}
+              ? t("editor:ui.selectTheFirstVersionToCompare", { defaultValue: "Select the first version to compare" })
+              : t("editor:ui.selectTheSecondVersionToCompare", { defaultValue: "Select the second version to compare" })}
           </Caption>
         </div>
       )}
@@ -535,8 +535,8 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
               <Text color="secondary">{t("editor:ui.selectAVersionToPreview", { defaultValue: "Select a version to preview" })}</Text>
               <Caption size="smaller" color="muted">
                 {isCompareMode
-                  ? "Pick two versions to see what changed."
-                  : "Click any entry to see its graph and metadata here."}
+                  ? t("editor:ui.pickTwoVersionsToSeeWhatChanged", { defaultValue: "Pick two versions to see what changed." })
+                  : t("editor:ui.clickAnyEntryToSeeItsGraphAndMetadataHere", { defaultValue: "Click any entry to see its graph and metadata here." })}
               </Caption>
             </FlexColumn>
           )}

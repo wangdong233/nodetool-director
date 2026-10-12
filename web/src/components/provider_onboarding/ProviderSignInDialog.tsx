@@ -1,4 +1,5 @@
 import { memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Caption, Dialog, FlexColumn, Text } from "../ui_primitives";
 import { useOAuthConnection } from "../../hooks/useOAuthConnection";
@@ -11,6 +12,7 @@ import { OAuthManualCompletionDialog } from "../oauth/OAuthManualCompletionDialo
  * itself once a fresh token is stored.
  */
 const ProviderSignInDialog: React.FC = () => {
+  const { t } = useTranslation();
   const provider = useProviderSignInStore((state) => state.provider);
   const dismiss = useProviderSignInStore((state) => state.dismiss);
   const oauth = useOAuthConnection(provider?.oauth ?? null, {
@@ -32,28 +34,26 @@ const ProviderSignInDialog: React.FC = () => {
       <Dialog
         open
         onClose={handleClose}
-        title={`Sign in to ${provider.label} again`}
+        title={t("editor:ui.signInToAgain", { defaultValue: "Sign in to {{label}} again", label: provider.label })}
         showActions
         onConfirm={oauth.connect}
         onCancel={handleClose}
         confirmText={
           oauth.isConnecting
-            ? "Waiting for sign-in…"
-            : `Sign in with ${provider.account}`
+            ? t("editor:ui.waitingForSignIn", { defaultValue: "Waiting for sign-in…" })
+            : t("editor:ui.signInWith", { defaultValue: "Sign in with {{account}}", account: provider.account })
         }
-        cancelText="Not now"
+        cancelText={t("editor:ui.notNow", { defaultValue: "Not now" })}
         confirmDisabled={oauth.isConnecting}
         isLoading={oauth.isConnecting}
         minWidth="440px"
       >
         <FlexColumn gap={2}>
           <Text size="small">
-            Your {provider.account} sign-in expired, so {provider.label} refused
-            the request. Sign in again, then run the workflow again.
+            {t("editor:ui.signInExpiredBody", { defaultValue: "Your {{account}} sign-in expired, so {{label}} refused the request. Sign in again, then run the workflow again.", account: provider.account, label: provider.label })}
           </Text>
           <Caption sx={{ opacity: 0.6 }}>
-            The sign-in opens in a new window. This dialog closes when it
-            finishes.
+            {t("editor:ui.signInOpensInNewWindow", { defaultValue: "The sign-in opens in a new window. This dialog closes when it finishes." })}
           </Caption>
         </FlexColumn>
       </Dialog>

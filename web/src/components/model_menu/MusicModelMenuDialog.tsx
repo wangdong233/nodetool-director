@@ -32,7 +32,7 @@ function MusicModelMenuDialog({
       modelData={modelData}
       onModelChange={onModelChange}
       title={t("editor:ui.selectMusicModel", { defaultValue: "Select Music Model" })}
-      searchPlaceholder="Search text-to-music models..."
+      searchPlaceholder={t("editor:ui.searchTextToMusicModels", { defaultValue: "Search text-to-music models..." })}
       storeHook={useMusicModelMenuStore}
       modelType="music_model"
       recommendedModels={recommendedModels}

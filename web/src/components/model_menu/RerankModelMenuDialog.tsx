@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 import ModelMenuDialogBase from "./shared/ModelMenuDialogBase";
 import type { RerankModel } from "../../stores/ApiTypes";
 import { useRerankModelsByProvider } from "../../hooks/useRerankModels";
@@ -17,6 +18,7 @@ function RerankModelMenuDialog({
   onModelChange,
   anchorEl
 }: RerankModelMenuDialogProps) {
+  const { t } = useTranslation();
   const modelData = useRerankModelsByProvider();
   return (
     <ModelMenuDialogBase<RerankModel>
@@ -25,8 +27,8 @@ function RerankModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select Rerank Model"
-      searchPlaceholder="Search reranking models..."
+      title={t("editor:ui.selectRerankModel", { defaultValue: "Select Rerank Model" })}
+      searchPlaceholder={t("editor:ui.searchRerankingModels", { defaultValue: "Search reranking models..." })}
       storeHook={useRerankModelMenuStore}
       modelType="rerank_model"
     />

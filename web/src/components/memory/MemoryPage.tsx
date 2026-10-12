@@ -76,7 +76,7 @@ const MemoryPage: React.FC = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not delete memory: ${error.message}`
+        content: i18n.t("editor:ui.couldNotDeleteMemoryError", { defaultValue: "Could not delete memory: {{message}}", message: error.message })
       });
     }
   });
@@ -87,7 +87,7 @@ const MemoryPage: React.FC = () => {
         addNotification({
           type: "error",
           alert: true,
-          content: `Could not open chat: ${error instanceof Error ? error.message : String(error)}`
+          content: i18n.t("editor:ui.couldNotOpenChatError", { defaultValue: "Could not open chat: {{message}}", message: error instanceof Error ? error.message : String(error) })
         });
       });
     },
@@ -106,9 +106,9 @@ const MemoryPage: React.FC = () => {
       return (
         <EmptyState
           variant="error"
-          title="Could not load memories"
-          description="Check your connection and try again."
-          actionText="Retry"
+          title={t("editor:ui.couldNotLoadMemories", { defaultValue: "Could not load memories" })}
+          description={t("editor:ui.checkYourConnectionAndTryAgain", { defaultValue: "Check your connection and try again." })}
+          actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
           onAction={() => { void activeQuery.refetch(); }}
         />
       );
@@ -123,7 +123,9 @@ const MemoryPage: React.FC = () => {
           description={
             searching || kind
               ? kind
-                ? `No memories match the ${kind} filter${searching ? " and search" : ""}. Select All to reset the filter.`
+                ? searching
+                  ? i18n.t("editor:ui.noMemoriesMatchFilterAndSearch", { defaultValue: "No memories match the {{kind}} filter and search. Select All to reset the filter.", kind })
+                  : i18n.t("editor:ui.noMemoriesMatchFilter", { defaultValue: "No memories match the {{kind}} filter. Select All to reset the filter.", kind })
                 : i18n.t("editor:ui.noMemoryContainsAllOfThoseWords", { defaultValue: "No memory contains all of those words." })
               : i18n.t("editor:ui.theAgentRecordsProjectNotesAndTheAssetsItCreatesAsItWorksTheyShowUpHere", { defaultValue: "The agent records project notes and the assets it creates as it works. They show up here." })
           }
@@ -163,13 +165,13 @@ const MemoryPage: React.FC = () => {
             sx={{ maxWidth: 360, width: "100%" }}
           />
           <Text size="small" sx={{ opacity: 0.6, flexShrink: 0 }}>
-            {visible.length === 1 ? i18n.t("editor:ui.oneMemory", { defaultValue: "1 memory" }) : `${visible.length} memories`}
+            {visible.length === 1 ? i18n.t("editor:ui.oneMemory", { defaultValue: "1 memory" }) : i18n.t("editor:ui.nMemories", { defaultValue: "{{n}} memories", n: visible.length })}
           </Text>
         </FlexRow>
         {(kinds.length > 1 || kind !== null) && (
           <FlexRow gap={SPACING.sm} sx={{ flexWrap: "wrap" }}>
             <Chip
-              label="All"
+              label={t("editor:ui.all", { defaultValue: "All" })}
               compact
               variant="outlined"
               active={kind === null}
@@ -190,9 +192,9 @@ const MemoryPage: React.FC = () => {
         {activeQuery.isError && activeQuery.data && (
           <AlertBanner
             severity="error"
-            action={<EditorButton onClick={() => { void activeQuery.refetch(); }}>Retry</EditorButton>}
+            action={<EditorButton onClick={() => { void activeQuery.refetch(); }}>{t("editor:explorer.retry", { defaultValue: "Retry" })}</EditorButton>}
           >
-            Could not refresh memories. Showing the last loaded results.
+            {t("editor:ui.couldNotRefreshMemories", { defaultValue: "Could not refresh memories. Showing the last loaded results." })}
           </AlertBanner>
         )}
         {activeQuery.isError && <ReportBugButton context={{ source: "panel-crash", summary: "Could not load memories", errorText: activeQuery.error?.message }} />}
@@ -207,7 +209,7 @@ const MemoryPage: React.FC = () => {
           }
         }}
         title={t("editor:ui.deleteMemory", { defaultValue: "Delete memory" })}
-        content="Delete this memory? This cannot be undone."
+        content={t("editor:ui.deleteThisMemoryThisCannotBeUndone", { defaultValue: "Delete this memory? This cannot be undone." })}
         confirmText={t("common:action.delete", { defaultValue: "Delete" })}
         cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       />

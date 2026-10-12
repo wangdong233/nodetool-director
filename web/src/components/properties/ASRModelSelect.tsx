@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import isEqual from "../../utils/isEqual";
 import ASRModelMenuDialog from "../model_menu/ASRModelMenuDialog";
 import type { ASRModel, ModelPack, UnifiedModel } from "../../stores/ApiTypes";
@@ -29,6 +30,7 @@ const ASRModelSelect: React.FC<ASRModelSelectProps> = ({
   recommendedModels,
   modelPacks
 }) => {
+  const { t } = useTranslation();
   const { anchorEl, buttonRef, handleClick, handleClose, handleSelect } =
     useModelSelectMenu("asr_model", onChange);
   const { data: models } = useQuery({
@@ -52,10 +54,10 @@ const ASRModelSelect: React.FC<ASRModelSelectProps> = ({
         active={!!value}
         label={
           currentSelectedModelDetails?.name ||
-          (value ? modelLabelFromId(value) : "Select Model")
+          (value ? modelLabelFromId(value) : t("editor:ui.selectModel", { defaultValue: "Select Model" }))
         }
         secondaryLabel={currentSelectedModelDetails?.provider ?? provider}
-        subLabel="Select ASR Model"
+        subLabel={t("editor:ui.selectASRModel", { defaultValue: "Select ASR Model" })}
         onClick={handleClick}
       />
       <ASRModelMenuDialog

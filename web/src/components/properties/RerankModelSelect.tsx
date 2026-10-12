@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import isEqual from "../../utils/isEqual";
 import RerankModelMenuDialog from "../model_menu/RerankModelMenuDialog";
 import { useRerankModelsByProvider } from "../../hooks/useRerankModels";
@@ -23,6 +24,7 @@ const RerankModelSelect: React.FC<RerankModelSelectProps> = ({
   value,
   provider
 }) => {
+  const { t } = useTranslation();
   const { anchorEl, buttonRef, handleClick, handleClose, handleSelect } =
     useModelSelectMenu("rerank_model", onChange);
 
@@ -42,9 +44,9 @@ const RerankModelSelect: React.FC<RerankModelSelectProps> = ({
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={selected?.name || value || "Select Model"}
+        label={selected?.name || value || t("editor:ui.selectModel", { defaultValue: "Select Model" })}
         secondaryLabel={selected?.provider}
-        subLabel="Select Rerank Model"
+        subLabel={t("editor:ui.selectRerankModel", { defaultValue: "Select Rerank Model" })}
         onClick={handleClick}
       />
       <RerankModelMenuDialog

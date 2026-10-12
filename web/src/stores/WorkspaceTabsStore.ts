@@ -318,6 +318,27 @@ const stillOpen = (
     : null;
 
 /**
+ * The scope a desynced rehydration falls back to. `activeProjectId` is
+ * persisted and can be null while project tabs survive — the scope filter
+ * then hides every one of them and none can ever be activated again. When
+ * the Personal project is known and any document tab still belongs to a
+ * project, restoring the Personal scope puts the session back on screen.
+ */
+const revivePersonalScope = (
+  tabs: WorkspaceTab[],
+  personalProjectId: string | null
+): string | null =>
+  personalProjectId &&
+  tabs.some(
+    (tab) =>
+      !isGlobalWorkspaceTab(tab) &&
+      tab.projectId !== undefined &&
+      tab.projectId !== LOOSE_PROJECT_ID
+  )
+    ? personalProjectId
+    : null;
+
+/**
  * The store's tab order, canonicalized: the active project's tabs gathered
  * into one contiguous run, at the position of the first of them. Every other
  * tab keeps its place.
@@ -462,9 +483,12 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
         const existing = get().tabs.find((t) => t.id === id);
         const project =
           projectId === undefined ? existing?.projectId : projectOf(projectId);
+        // A project's tab opened into a null or mismatched scope adopts that
+        // scope — the same switch clicking the tab performs in setActiveTab.
+        // Without it the newly opened tab is filtered out of the bar.
         const activeProjectId = foreground
           ? (project ?? null)
-          : get().activeProjectId;
+          : (project ?? get().activeProjectId);
         if (existing) {
           set((state) => {
             const movedBetweenProjects = existing.projectId !== project;
@@ -816,7 +840,16 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
 
       resolvePersonalProject: (projectId) =>
         set((state) => {
-          if (state.personalProjectId === projectId) return state;
+          // Same-id is a no-op only while some scope is on screen. With a
+          // null scope the recalibration below must still run, or a desynced
+          // session (null scope, surviving project tabs) never heals even
+          // after the server confirms the Personal project.
+          if (
+            state.personalProjectId === projectId &&
+            state.activeProjectId !== null
+          ) {
+            return state;
+          }
           const looseSession = sessionFor(state.projectSessions, undefined);
           const existingSession = sessionFor(
             state.projectSessions,
@@ -1023,14 +1056,21 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
         // it has a tab; dropping it renamed its home tab to "Home".
         const persistedProjectId = merged.activeProjectId ?? null;
         const activeProjectId =
-          persistedProjectId &&
+          (persistedProjectId &&
           (persistedProjectId === merged.personalProjectId ||
             Object.prototype.hasOwnProperty.call(
               projectSessions,
               persistedProjectId
             ))
             ? persistedProjectId
-            : stillOpen(merged.tabs ?? [], persistedProjectId);
+            : stillOpen(merged.tabs ?? [], persistedProjectId)) ??
+          // Startup recalibration: a persisted null scope with a known
+          // Personal project and surviving project tabs is a desync — the
+          // scope filter hides those tabs and the session cannot be used.
+          revivePersonalScope(
+            merged.tabs ?? [],
+            merged.personalProjectId ?? null
+          );
         return {
           ...merged,
           projectSessions,

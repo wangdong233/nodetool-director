@@ -170,10 +170,9 @@ const ProjectListSurface = () => {
           pb: SPACING.md
         }}
       >
-        <Text size="big">Projects</Text>
+        <Text size="big">{t("nav:tabs.projects", { defaultValue: "Projects" })}</Text>
         <Caption color="secondary" sx={{ display: { xs: "none", md: "block" } }}>
-          One piece of work — the documents an agent built for it, what it
-          cost, where it stands.
+          {t("editor:ui.onePieceOfWorkTheDocumentsAnAgentBuiltForItWhatItCostWhereItStands", { defaultValue: "One piece of work — the documents an agent built for it, what it cost, where it stands." })}
         </Caption>
         <Box sx={{ flex: 1 }} />
         <Box

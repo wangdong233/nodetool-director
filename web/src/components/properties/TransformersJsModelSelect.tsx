@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import isEqual from "../../utils/isEqual";
 import TransformersJsModelMenuDialog from "../model_menu/TransformersJsModelMenuDialog";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
@@ -22,6 +23,7 @@ const TransformersJsModelSelect: React.FC<TransformersJsModelSelectProps> = ({
   onChange,
   value
 }) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const addRecent = useModelPreferencesStore((s) => s.addRecent);
@@ -87,7 +89,7 @@ const TransformersJsModelSelect: React.FC<TransformersJsModelSelectProps> = ({
         active={!!(value?.repo_id || value?.id)}
         label={displayInfo.repoId}
         secondaryLabel={displayInfo.path}
-        subLabel="Select Transformers.js Model"
+        subLabel={t("editor:ui.selectTransformersjsModel", { defaultValue: "Select Transformers.js Model" })}
         onClick={handleClick}
       />
       <TransformersJsModelMenuDialog

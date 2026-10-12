@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import isEqual from "../../utils/isEqual";
 import HuggingFaceModelMenuDialog from "../model_menu/HuggingFaceModelMenuDialog";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
@@ -35,6 +36,7 @@ const HuggingFaceModelSelect: React.FC<HuggingFaceModelSelectProps> = ({
   recommendedModels: recommendedModelsFromProps,
   modelPacks
 }) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const addRecent = useModelPreferencesStore((s) => s.addRecent);
@@ -196,7 +198,7 @@ const HuggingFaceModelSelect: React.FC<HuggingFaceModelSelectProps> = ({
         active={!!(value?.repo_id || value?.id)}
         label={displayInfo.repoId}
         secondaryLabel={displayInfo.path}
-        subLabel="Select HuggingFace Model"
+        subLabel={t("editor:ui.selectHuggingFaceModel", { defaultValue: "Select HuggingFace Model" })}
         onClick={handleClick}
       />
       <HuggingFaceModelMenuDialog

@@ -5,6 +5,7 @@ import useChatDraftStore from "../../stores/ChatDraftStore";
 import { creationProjectId, useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { AlertBanner, EditorButton, FlexColumn } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
+import { i18n } from "../../i18n";
 
 export interface AskRunAgentButtonProps {
   runId: string;
@@ -12,7 +13,7 @@ export interface AskRunAgentButtonProps {
   label?: string;
 }
 
-export function AskRunAgentButton({ runId, spanId, label = "Ask the agent" }: AskRunAgentButtonProps): React.ReactElement {
+export function AskRunAgentButton({ runId, spanId, label = i18n.t("editor:ui.askTheAgent", { defaultValue: "Ask the agent" }) }: AskRunAgentButtonProps): React.ReactElement {
   const [opening, setOpening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const createThread = useGlobalChatStore((state) => state.createNewThread);
@@ -30,7 +31,7 @@ export function AskRunAgentButton({ runId, spanId, label = "Ask the agent" }: As
       drafts.setDraft(threadId, spanId ? "Help me diagnose this span in the selected run." : "Help me diagnose the selected run.");
       openTab({ type: "chat", ref: threadId, title: "Inspect run", mode: "view", projectId });
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Could not open run chat");
+      setError(failure instanceof Error ? failure.message : i18n.t("editor:ui.couldNotOpenRunChat", { defaultValue: "Could not open run chat" }));
     } finally {
       setOpening(false);
     }

@@ -8,6 +8,7 @@
  */
 import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Caption,
   EditorButton,
@@ -30,6 +31,7 @@ import {
 const PREVIEW_WORKFLOW_ID = "public-share-preview";
 
 const PublicWorkflowPage = () => {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const authState = useAuth((auth) => auth.state);
@@ -52,18 +54,18 @@ const PublicWorkflowPage = () => {
       const copy = await duplicate.mutateAsync(token);
       addNotification({
         type: "success",
-        content: `Added "${copy.name}" to your workflows`,
+        content: t("editor:ui.addedToYourWorkflows", { defaultValue: "Added \"{{name}}\" to your workflows", name: copy.name }),
         alert: true
       });
       navigate(`/editor/${copy.id}`);
     } catch {
       addNotification({
         type: "error",
-        content: "Could not copy this workflow",
+        content: t("editor:ui.couldNotCopyThisWorkflow", { defaultValue: "Could not copy this workflow" }),
         alert: true
       });
     }
-  }, [token, signedIn, duplicate, addNotification, navigate]);
+  }, [token, signedIn, duplicate, addNotification, navigate, t]);
 
   if (isLoading) {
     return (
@@ -83,8 +85,8 @@ const PublicWorkflowPage = () => {
       >
         <EmptyState
           variant="error"
-          title="This workflow is not available"
-          description="The link may have been revoked. Ask the person who shared it for a new one."
+          title={t("editor:ui.thisWorkflowIsNotAvailable", { defaultValue: "This workflow is not available" })}
+          description={t("editor:ui.theLinkMayHaveBeenRevoked", { defaultValue: "The link may have been revoked. Ask the person who shared it for a new one." })}
         />
       </FlexColumn>
     );
@@ -110,7 +112,7 @@ const PublicWorkflowPage = () => {
           disabled={duplicate.isPending || authState === "loading"}
           onClick={() => void handleDuplicate()}
         >
-          {signedIn ? "Duplicate to my workflows" : "Sign in to duplicate"}
+          {signedIn ? t("editor:ui.duplicateToMyWorkflows", { defaultValue: "Duplicate to my workflows" }) : t("editor:ui.signInToDuplicate", { defaultValue: "Sign in to duplicate" })}
         </EditorButton>
       </FlexRow>
       <FlexColumn sx={{ flex: 1, minHeight: 0 }}>

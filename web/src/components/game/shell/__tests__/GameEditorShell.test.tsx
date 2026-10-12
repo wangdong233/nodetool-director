@@ -170,11 +170,13 @@ it.each([
       { id: "hierarchy", keyboardScope: true, node: <button>Hierarchy selection</button> },
       { id: "revisions", node: <button>Restore to draft</button> }
     ]} /></ThemeProvider>);
-  await user.click(screen.getByRole("tab", { name: "revisions" }));
+  // Panel titles resolve through game:panels.* — the en label, not the raw
+  // registry id, names the tab.
+  await user.click(screen.getByRole("tab", { name: "Revisions" }));
   await user.click(screen.getByRole("button", { name: "Restore to draft" }));
   await user.keyboard("{Control>}z{/Control}");
   expect(undo).not.toHaveBeenCalled();
-  await user.click(screen.getByRole("tab", { name: "hierarchy" }));
+  await user.click(screen.getByRole("tab", { name: "Hierarchy" }));
   await user.click(screen.getByRole("button", { name: "Hierarchy selection" }));
   await user.keyboard("{Control>}z{/Control}");
   expect(undo).toHaveBeenCalledTimes(1);

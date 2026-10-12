@@ -138,6 +138,8 @@
     "descKeepRuns": "Completed, failed, and cancelled run records older than this are removed. Active runs are preserved.",
     "lblKeepRunLogs": "Keep run event logs (days)",
     "descKeepRunLogs": "Per-node event logs from a run are removed after this many days. The run record itself follows the limit above.",
+    "lblKeepRunTrace": "Keep app run inputs and outputs (days)",
+    "descKeepRunTrace": "After this many days, inputs, outputs, and document snapshots expire. Status, timing, and cost remain until the completed run record expires.",
     "lblKeepGen": "Keep generation details (days)",
     "descKeepGen": "After this many days, prompts, parameters, and logs are cleared from generation records. The billing record — model, provider, tokens, cost, and date — is kept.",
     "lblAutoClean": "Automatic history cleanup",
