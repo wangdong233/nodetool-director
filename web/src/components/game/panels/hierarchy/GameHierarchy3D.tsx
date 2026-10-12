@@ -9,6 +9,7 @@ import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import CropSquareIcon from "@mui/icons-material/CropSquare";
 import ViewInArOutlinedIcon from "@mui/icons-material/ViewInArOutlined";
 import type { GameDocument3D, GameEntity3D, GameScene3D } from "@nodetool-ai/protocol";
+import { useTranslation } from "react-i18next";
 
 import { Box, Caption, FlexColumn, FONT_SIZE_SANS, InspectorSelect, SPACING, Text, ToolbarIconButton, TreeRow } from "../../../ui_primitives";
 import GamePanelHeader from "../../GamePanelHeader";
@@ -66,19 +67,20 @@ function treeRows(entities: readonly GameEntity3D[]): { entity: GameEntity3D; de
 
 /** Scene hierarchy panel for the 3D game editor. */
 export default function GameHierarchy3D({ document, scene, selectedIds, onSelect, onSelectScene, onAdd, footer }: GameHierarchy3DProps) {
+  const { t } = useTranslation();
   const rows = treeRows(scene?.entities ?? []);
   return <FlexColumn sx={{ height: "100%", minHeight: 0 }}>
-    <GamePanelHeader title="Hierarchy" icon={<AccountTreeOutlinedIcon sx={ICON_SX} />}>
-      <ToolbarIconButton icon={<CropSquareIcon fontSize="small" />} tooltip="Add box" onClick={() => onAdd("box")} />
-      <ToolbarIconButton icon={<CircleOutlinedIcon fontSize="small" />} tooltip="Add sphere" onClick={() => onAdd("sphere")} />
-      <ToolbarIconButton icon={<LightbulbOutlinedIcon fontSize="small" />} tooltip="Add light" onClick={() => onAdd("light")} />
+    <GamePanelHeader title={t("game:panels.hierarchy", { defaultValue: "Hierarchy" })} icon={<AccountTreeOutlinedIcon sx={ICON_SX} />}>
+      <ToolbarIconButton icon={<CropSquareIcon fontSize="small" />} tooltip={t("game:hierarchy.addBox", { defaultValue: "Add box" })} onClick={() => onAdd("box")} />
+      <ToolbarIconButton icon={<CircleOutlinedIcon fontSize="small" />} tooltip={t("game:hierarchy.addSphere", { defaultValue: "Add sphere" })} onClick={() => onAdd("sphere")} />
+      <ToolbarIconButton icon={<LightbulbOutlinedIcon fontSize="small" />} tooltip={t("game:inspector.addLight", { defaultValue: "Add light" })} onClick={() => onAdd("light")} />
     </GamePanelHeader>
     <Box sx={{ px: SPACING.md, py: SPACING.sm, borderBottom: 1, borderColor: "divider" }}>
-      <InspectorSelect label="Scene" grow value={scene?.id ?? document.entrySceneId}
+      <InspectorSelect label={t("storyboard:attrs.scene", { defaultValue: "Scene" })} grow value={scene?.id ?? document.entrySceneId}
         options={document.scenes.map((item) => ({ value: item.id, label: item.name }))} onChange={onSelectScene} />
     </Box>
-    <FlexColumn role="list" aria-label="Scene entities" sx={{ flex: 1, minHeight: 0, overflowY: "auto", py: SPACING.xs, px: SPACING.xs }}>
-      {rows.length === 0 && <Caption sx={{ p: SPACING.md }}>This scene has no entities.</Caption>}
+    <FlexColumn role="list" aria-label={t("game:hierarchy.sceneEntities", { defaultValue: "Scene entities" })} sx={{ flex: 1, minHeight: 0, overflowY: "auto", py: SPACING.xs, px: SPACING.xs }}>
+      {rows.length === 0 && <Caption sx={{ p: SPACING.md }}>{t("game:hierarchy.noEntities", { defaultValue: "This scene has no entities." })}</Caption>}
       {rows.map(({ entity, depth }) => {
         const selected = selectedIds.includes(entity.id);
         const kind = entityKind(entity);
@@ -91,7 +93,7 @@ export default function GameHierarchy3D({ document, scene, selectedIds, onSelect
             <Text size="small" weight={400} truncate sx={{ flex: 1, minWidth: 0, color: "inherit", opacity: entity.templateOnly ? 0.6 : 1 }}>
               {entity.name || entity.id}
             </Text>
-            {kind && <Caption sx={{ color: "inherit", opacity: 0.7 }}>{kind}</Caption>}
+            {kind && <Caption sx={{ color: "inherit", opacity: 0.7 }}>{kind === "Camera" ? t("timeline:attrs.camera", { defaultValue: "Camera" }) : t("storyboard:attrs.character", { defaultValue: "Character" })}</Caption>}
           </TreeRow>
         </Box>;
       })}

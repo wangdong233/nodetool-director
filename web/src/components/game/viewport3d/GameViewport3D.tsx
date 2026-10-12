@@ -15,6 +15,8 @@ import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import OpenWithIcon from "@mui/icons-material/OpenWith";
 import SportsEsportsOutlinedIcon from "@mui/icons-material/SportsEsportsOutlined";
 import ThreeSixtyIcon from "@mui/icons-material/ThreeSixty";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { BORDER_RADIUS, Box, Caption, Divider, FlexColumn, FlexRow, FONT_SIZE_SANS, SPACING, ToolbarIconButton } from "../../ui_primitives";
 import { syncGameTransformTarget3D } from "../gameTransformTarget3D";
 import GamePanelHeader from "../GamePanelHeader";
@@ -24,11 +26,20 @@ import type { GamePlaySession3D } from "../useGamePlaySession3D";
 
 type TransformMode = "translate" | "rotate" | "scale";
 
-const TOOLS: readonly { mode: TransformMode; label: string; command: "tool.move" | "tool.rotate" | "tool.scale"; icon: ReactNode }[] = [
-  { mode: "translate", label: "Move", command: "tool.move", icon: <OpenWithIcon fontSize="small" /> },
-  { mode: "rotate", label: "Rotate", command: "tool.rotate", icon: <ThreeSixtyIcon fontSize="small" /> },
-  { mode: "scale", label: "Scale", command: "tool.scale", icon: <OpenInFullIcon fontSize="small" /> }
+const TOOLS: readonly { mode: TransformMode; command: "tool.move" | "tool.rotate" | "tool.scale"; icon: ReactNode }[] = [
+  { mode: "translate", command: "tool.move", icon: <OpenWithIcon fontSize="small" /> },
+  { mode: "rotate", command: "tool.rotate", icon: <ThreeSixtyIcon fontSize="small" /> },
+  { mode: "scale", command: "tool.scale", icon: <OpenInFullIcon fontSize="small" /> }
 ];
+
+/** Tooltip of one transform tool button ("Move"/"Rotate"/"Scale"). */
+function toolLabel(t: TFunction, command: "tool.move" | "tool.rotate" | "tool.scale"): string {
+  switch (command) {
+    case "tool.move": return t("timeline:shortcuts.move", { defaultValue: "Move" });
+    case "tool.rotate": return t("game:tool.rotate", { defaultValue: "Rotate" });
+    case "tool.scale": return t("game:tool.scale", { defaultValue: "Scale" });
+  }
+}
 const HEADER_ICON_SX = { fontSize: FONT_SIZE_SANS.body, color: "text.secondary" } as const;
 
 interface GameViewport3DProps {
@@ -59,6 +70,7 @@ function transform(matrixValue: Matrix4): GameTransform3D {
 }
 
 export default function GameViewport3D({ document, host, selectedId, highlightedIds = [], sceneId, onSelect, onOps, onGestureStart, onGestureEnd, playerOnly = false }: GameViewport3DProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [mode, setMode] = useState<TransformMode>("translate");
   const [snap, setSnap] = useState(true);
@@ -314,25 +326,26 @@ export default function GameViewport3D({ document, host, selectedId, highlighted
   const frameShortcut = useGameCommandShortcut("view.frameSelection");
   const snapShortcut = useGameCommandShortcut("view.toggleSnap");
 
-  const hint = host.playDocument ? "WASD, arrows or a gamepad to move. Space to jump. Click to capture the mouse, Esc to release it."
-    : flyMode ? "WASD to fly. R/F to rise and descend. Drag to look." : "Drag to orbit. Shift-drag to pan. Scroll to zoom.";
+  const hint = host.playDocument ? t("game:viewport.playHint", { defaultValue: "WASD, arrows or a gamepad to move. Space to jump. Click to capture the mouse, Esc to release it." })
+    : flyMode ? t("game:viewport.flyHint", { defaultValue: "WASD to fly. R/F to rise and descend. Drag to look." })
+    : t("game:viewport.orbitHint", { defaultValue: "Drag to orbit. Shift-drag to pan. Scroll to zoom." });
   return <FlexColumn sx={{ flex: 1, minHeight: 0, minWidth: 0 }}>
-    {!playerOnly && <GamePanelHeader title={host.playDocument ? "Game" : "Scene"}
+    {!playerOnly && <GamePanelHeader title={host.playDocument ? t("home:entry.game.title", { defaultValue: "Game" }) : t("storyboard:attrs.scene", { defaultValue: "Scene" })}
       icon={host.playDocument ? <SportsEsportsOutlinedIcon sx={HEADER_ICON_SX} /> : <GridViewOutlinedIcon sx={HEADER_ICON_SX} />}>
       {editing && <>
-        <FlexRow gap={SPACING.micro} align="center" role="group" aria-label="Transform mode">
-          {TOOLS.map((tool) => <ToolbarIconButton key={tool.mode} icon={tool.icon} tooltip={tool.label} shortcut={toolShortcuts[tool.command]}
+        <FlexRow gap={SPACING.micro} align="center" role="group" aria-label={t("game:viewport.transformModeAria", { defaultValue: "Transform mode" })}>
+          {TOOLS.map((tool) => <ToolbarIconButton key={tool.mode} icon={tool.icon} tooltip={toolLabel(t, tool.command)} shortcut={toolShortcuts[tool.command]}
             aria-pressed={mode === tool.mode} active={mode === tool.mode} onClick={() => setMode(tool.mode)} />)}
         </FlexRow>
         <Divider orientation="vertical" flexItem sx={{ my: SPACING.sm, mx: SPACING.xs }} />
-        <ToolbarIconButton icon={<GridOnIcon fontSize="small" />} tooltip="Snap" shortcut={snapShortcut} aria-pressed={snap} active={snap} onClick={() => setSnap((value) => !value)} />
-        <ToolbarIconButton icon={<LayersOutlinedIcon fontSize="small" />} tooltip="Overlays" aria-pressed={overlays} active={overlays} onClick={() => setOverlays((value) => !value)} />
-        <ToolbarIconButton icon={<FlightOutlinedIcon fontSize="small" />} tooltip="Fly camera" aria-pressed={flyMode} active={flyMode} onClick={() => setFlyMode((value) => !value)} />
-        <ToolbarIconButton icon={<CenterFocusStrongOutlinedIcon fontSize="small" />} tooltip="Frame selection" shortcut={frameShortcut} onClick={frameSelection} disabled={!selectedId} />
+        <ToolbarIconButton icon={<GridOnIcon fontSize="small" />} tooltip={t("ui2:attrs.snap", { defaultValue: "Snap" })} shortcut={snapShortcut} aria-pressed={snap} active={snap} onClick={() => setSnap((value) => !value)} />
+        <ToolbarIconButton icon={<LayersOutlinedIcon fontSize="small" />} tooltip={t("game:viewport.overlays", { defaultValue: "Overlays" })} aria-pressed={overlays} active={overlays} onClick={() => setOverlays((value) => !value)} />
+        <ToolbarIconButton icon={<FlightOutlinedIcon fontSize="small" />} tooltip={t("game:viewport.flyCamera", { defaultValue: "Fly camera" })} aria-pressed={flyMode} active={flyMode} onClick={() => setFlyMode((value) => !value)} />
+        <ToolbarIconButton icon={<CenterFocusStrongOutlinedIcon fontSize="small" />} tooltip={t("game:command.view.frameSelection", { defaultValue: "Frame selection" })} shortcut={frameShortcut} onClick={frameSelection} disabled={!selectedId} />
       </>}
     </GamePanelHeader>}
     <Box sx={{ position: "relative", flex: 1, minHeight: 0, minWidth: 0, bgcolor: "common.black" }}>
-      <Box component="canvas" ref={host.canvasRef} data-game-undo-scope tabIndex={0} aria-label="3D game viewport"
+      <Box component="canvas" ref={host.canvasRef} data-game-undo-scope tabIndex={0} aria-label={t("game:viewport.viewport3dAria", { defaultValue: "3D game viewport" })}
         onKeyDown={(event) => {
           if (host.playDocument && host.playing) {
             host.inputRef.current.keyDown(event.code, event.key);

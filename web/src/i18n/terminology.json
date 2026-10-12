@@ -6,6 +6,7 @@
     "variants_seen = 本轮机械矩阵在 9011 条 zh 串中实际捕获的译法变体(含标准译名)。",
     "单串改词流程: 先查 glossary.md → 再查本表; 修正执行以本表为准绳 (30b)。",
     "r32 增量: 英文动作按钮清查轮新增 12 锚(小节/拍/注册表/内置/文档/浏览/展开折叠/自定义/收藏/附加文件/播放暂停/今天昨天),分域 note 已标边界。",
+    "r33 增量(覆盖扩展轮·game 命名空间): 新增 game 域 12 锚(play session=运行族/tick 保留拉丁/prefab 预制体/construction 构造/rebuild 重建/staged 暂存/collision layer 碰撞层+hierarchy 层级/scene tree 场景树/nudge 微调/frame selection 聚焦所选/dock 停靠),详见各条目;游戏运行会话 Play=运行 与媒体 Play=播放(ui:attrs.play)分域分立。",
     "微件规范 (动词不加请/全角标点/加载中…) 与 F-23 拉丁保留清单的 SSOT 仍是 glossary.md; 本表 keep_latin 为其快照片段。"
   ],
   "keep_latin": [
@@ -1053,6 +1054,26 @@
     "favorite / unfavorite": { "zh": "收藏 / 取消收藏", "domain": "app-core", "grade": "clean", "note": "r32;FavoriteButton 原语与模型收藏星;添加收藏=Add to favorites。", "variants_seen": ["收藏", "取消收藏", "添加收藏"] },
     "attach files": { "zh": "附加文件", "domain": "chat-composer", "grade": "clean", "note": "r32;与 editor:ui.attachFilesToTheBugReport=附加文件 一致。", "variants_seen": ["附加文件"] },
     "play / pause (media)": { "zh": "播放 / 暂停", "domain": "media-controls", "grade": "clean", "note": "r32;VideoPlayer 原语 aria;TC(时间码)保留拉丁。", "variants_seen": ["播放", "暂停"] },
-    "today / yesterday (grouping)": { "zh": "今天 / 昨天", "domain": "list-grouping", "grade": "clean", "note": "r32;列表日期分组(groupByDate);N 天前走 relTime.dayAgo 复数系。", "variants_seen": ["今天", "昨天"] }
+    "today / yesterday (grouping)": { "zh": "今天 / 昨天", "domain": "list-grouping", "grade": "clean", "note": "r32;列表日期分组(groupByDate);N 天前走 relTime.dayAgo 复数系。", "variants_seen": ["今天", "昨天"] },
+    "play session (game)": {
+      "zh_by_domain": {
+        "game-editor": "运行",
+        "media": "播放"
+      },
+      "domain": "game",
+      "grade": "C",
+      "note": "r33 新锚:游戏编辑器/播放器面的 Play 一族=运行(运行会话/停止运行会话/运行或暂停/状态 运行中),与 app-core Run=运行 同锚;媒体播放动词 Play=播放(ui:attrs.play)分域分立,禁互串。Resume(游戏会话)=继续(game:player.resume),与 editor:ui.resume=恢复(泛恢复义)分立。Step=单步。playtest=试玩。",
+      "variants_seen": ["运行", "播放(媒体域)", "继续", "单步", "试玩"]
+    },
+    "tick (game loop)": { "zh": "Tick", "domain": "game", "grade": "clean", "note": "r33 裁定:游戏循环 tick 保留拉丁 Tick/tick(引擎技术标识,中文游戏开发圈惯例原样使用;如 单步一个 tick/回放到 tick N);zh 语句内 tick 按专名混排处理,不算未处理英文残留。", "variants_seen": ["Tick", "tick"] },
+    "prefab": { "zh": "预制体", "domain": "game", "grade": "clean", "note": "r33 新锚:Unity/Godot 行话 预制体;prefab 引用处标签 Prefab {{id}}=预制体 {{id}}。", "variants_seen": ["预制体"] },
+    "construction (game authoring)": { "zh": "构造", "domain": "game", "grade": "clean", "note": "r33 新锚:authoring 程序化生成管线的 construction=构造(构造值/构造源码/构造输入/从构造分离);rebuild=重建(预览重建/应用重建/重建期间的编辑);suppress=抑制(已抑制)。", "variants_seen": ["构造", "重建", "抑制"] },
+    "staged (assets)": { "zh": "暂存", "domain": "game", "grade": "clean", "note": "r33 新锚:生成结果暂存于服务器素材区=暂存(暂存候选/已暂存的{{kind}}文件/生成并安装);candidate=候选。", "variants_seen": ["暂存", "候选"] },
+    "collision layer / collider": { "zh": "碰撞层 / 碰撞体", "domain": "game", "grade": "clean", "note": "r33 新锚:physics 行话 碰撞层/碰撞体;category/mask bits=类别位/遮罩位(mask 遮罩 与时间线 matte=遮罩 同形,bitmask 语境);Layer(碰撞域单字段)=层,与图像域 layer=图层(ui2)分立。collide=碰撞。", "variants_seen": ["碰撞层", "碰撞体", "类别位", "遮罩位", "层"] },
+    "hierarchy (game)": { "zh": "层级", "domain": "game", "grade": "B", "note": "r33 新锚:游戏编辑器 Hierarchy 面板=层级(引擎惯例);scene tree=场景树;两者并存非双译(不同面板:3D 层级面板 vs 2D 场景树)。", "variants_seen": ["层级", "场景树"] },
+    "nudge": { "zh": "微调", "domain": "game", "grade": "clean", "note": "r33 新锚:键盘箭头微调实体位置=微调(向左微调所选/微调 2.5 个单位);units=单位。", "variants_seen": ["微调"] },
+    "frame selection (viewport)": { "zh": "聚焦所选", "domain": "game", "grade": "clean", "note": "r33 新锚:F 键聚焦选中物体=聚焦所选(engine 惯例);与 frame(帧)分立。", "variants_seen": ["聚焦所选"] },
+    "dock (panel)": { "zh": "停靠", "domain": "game", "grade": "clean", "note": "r33 新锚:面板停靠布局=停靠(停靠到左侧/新停靠组目标);dock region=左侧/右侧/底部/视口。", "variants_seen": ["停靠"] },
+    "player (game runtime surface)": { "zh": "播放器", "domain": "game", "grade": "clean", "note": "r33:Loading 3D player=正在加载 3D 播放器(引擎 Player 运行时惯例,Unity Player=Unity 播放器);动作动词仍走 运行 族(见 play session 条)。", "variants_seen": ["播放器"] }
   }
 }

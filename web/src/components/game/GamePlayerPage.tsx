@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, type KeyboardEvent } from "react";
 import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import type { GameDocument } from "@nodetool-ai/protocol/game.js";
 
 import { trpc } from "../../trpc/client";
@@ -17,9 +18,13 @@ interface GamePlayerProps {
 }
 
 export function GamePlayer({ gameId, name, document, active = true, setsDocumentTitle = true }: GamePlayerProps) {
+  const { t } = useTranslation();
   const { canvasRef, inputRef, playing, playDocument, playState, backend, error,
     beginPlay, stop } = useGamePlaySession({ refId: gameId, active, document, name });
-  const status = playState.won ? "Won" : playing ? "Playing" : playDocument ? "Paused" : "Ready";
+  const status = playState.won ? t("game:status.won", { defaultValue: "Won" })
+    : playing ? t("game:status.playingState", { defaultValue: "Playing" })
+    : playDocument ? t("game:status.pausedState", { defaultValue: "Paused" })
+    : t("editor:ui.ready", { defaultValue: "Ready" });
 
   useEffect(() => {
     if (!setsDocumentTitle) return;
@@ -39,17 +44,17 @@ export function GamePlayer({ gameId, name, document, active = true, setsDocument
     <FlexRow align="center" gap={SPACING.sm} wrap>
       <Text size="big">{name}</Text>
       <EditorButton onClick={beginPlay} disabled={backend === "Initializing"}>
-        {playing ? "Pause" : playDocument ? "Resume" : "Play"}
+        {playing ? t("ui:attrs.pause", { defaultValue: "Pause" }) : playDocument ? t("game:player.resume", { defaultValue: "Resume" }) : t("game:toolbar.play", { defaultValue: "Play" })}
       </EditorButton>
-      <EditorButton onClick={stop} disabled={!playDocument}>Stop</EditorButton>
-      <Caption>Score {playState.score} · {status} · {backend}</Caption>
+      <EditorButton onClick={stop} disabled={!playDocument}>{t("ui2:attrs.stop", { defaultValue: "Stop" })}</EditorButton>
+      <Caption>{t("game:status.scoreLine", { score: playState.score, state: status, backend, defaultValue: "Score {{score}} · {{state}} · {{backend}}" })}</Caption>
     </FlexRow>
     {error && <FlexRow align="center" gap={SPACING.sm}>
       <Caption color="error" role="alert">{error}</Caption>
       <ReportBugButton context={{ source: "panel-crash", summary: "Game player failed", errorText: error }} />
     </FlexRow>}
     <Box sx={{ flex: 1, minHeight: 0, minWidth: 0, bgcolor: "common.black" }}>
-      <Box component="canvas" ref={canvasRef} width={512} height={288} aria-label={`${name} game`} tabIndex={0}
+      <Box component="canvas" ref={canvasRef} width={512} height={288} aria-label={t("game:player.gameAria", { name, defaultValue: "{{name}} game" })} tabIndex={0}
         onKeyDown={onKeyDown}
         onKeyUp={(event) => inputRef.current.keyUp(event.code)}
         onBlur={() => inputRef.current.release()}
@@ -62,13 +67,14 @@ export function GamePlayer({ gameId, name, document, active = true, setsDocument
 const Player3D = lazy(() => import("./GamePlayer3D"));
 
 export function SavedGamePlayer({ gameId, active = true, setsDocumentTitle = true }: { gameId: string; active?: boolean; setsDocumentTitle?: boolean }) {
+  const { t } = useTranslation();
   const { data, isPending, error } = trpc.games.getDraft.useQuery({ id: gameId ?? "" },
     { enabled: Boolean(gameId), staleTime: 15_000 });
-  if (!gameId) return <EmptyState variant="error" title="Game not found" description="The game link is incomplete." />;
-  if (isPending) return <LoadingSpinner text="Loading game" />;
-  if (error || !data) return <EmptyState variant="error" title="Could not load game" description={error?.message ?? "The game may have been deleted."} />;
+  if (!gameId) return <EmptyState variant="error" title={t("game:player.gameNotFound", { defaultValue: "Game not found" })} description={t("game:player.gameLinkIncomplete", { defaultValue: "The game link is incomplete." })} />;
+  if (isPending) return <LoadingSpinner text={t("editor:ui.loadingGame", { defaultValue: "Loading game" })} />;
+  if (error || !data) return <EmptyState variant="error" title={t("editor:ui.couldNotLoadGame", { defaultValue: "Could not load game" })} description={error?.message ?? t("editor:ui.theGameMayHaveBeenDeleted", { defaultValue: "The game may have been deleted." })} />;
   if (data.document.schemaVersion === 3) {
-    return <Suspense fallback={<LoadingSpinner text="Loading 3D player" />}><Player3D gameId={gameId} name={data.game.name} document={data.document} active={active} /></Suspense>;
+    return <Suspense fallback={<LoadingSpinner text={t("game:player.loading3dPlayer", { defaultValue: "Loading 3D player" })} />}><Player3D gameId={gameId} name={data.game.name} document={data.document} active={active} /></Suspense>;
   }
   return <GamePlayer gameId={gameId} name={data.game.name} document={data.document} active={active} setsDocumentTitle={setsDocumentTitle} />;
 }

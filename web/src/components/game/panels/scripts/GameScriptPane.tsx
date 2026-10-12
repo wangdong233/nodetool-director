@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GameBehavior } from "@nodetool-ai/protocol/game.js";
 import { GAME_SCRIPT_LIFECYCLE_TYPES, GAME_SCRIPT_LIFECYCLE_TYPES_3D, GAME_SCRIPT_TYPES, GAME_SCRIPT_TYPES_3D, GAME_SCRIPT_WORLD_TYPES, GAME_SCRIPT_WORLD_TYPES_3D } from "@nodetool-ai/game-runtime";
+import { useTranslation } from "react-i18next";
 
 import { useMonacoEditor } from "../../../../hooks/editor/useMonacoEditor";
 import { Box, Caption, EditorButton, FlexColumn, FlexRow, LoadingSpinner, SPACING, Text } from "../../../ui_primitives";
@@ -24,6 +25,7 @@ interface GameScriptPaneProps {
 
 export default function GameScriptPane({ dimension = "2d", entityId, entityName, behaviorIndex, behavior, error, onReplay, onAskAssistant, onRunTenSeconds,
   runningTenSeconds, runSummary, runEntityStats = [], onChange, onClose }: GameScriptPaneProps) {
+  const { t } = useTranslation();
   const { MonacoEditor, monacoLoadError, isMonacoLoading, loadMonacoIfNeeded } = useMonacoEditor();
   const [source, setSource] = useState(behavior.source);
   const [conflict, setConflict] = useState(false);
@@ -51,15 +53,15 @@ export default function GameScriptPane({ dimension = "2d", entityId, entityName,
   return (
     <FlexColumn gap={SPACING.sm} sx={{ minHeight: 0, height: "100%" }}>
       <FlexRow gap={SPACING.sm} align="center">
-        <Text>Script: {entityName || entityId} · {behaviorIndex}</Text>
-        <EditorButton onClick={onClose}>Close</EditorButton>
+        <Text>{t("game:script.title", { name: entityName || entityId, index: behaviorIndex, defaultValue: `Script: ${entityName || entityId} · ${behaviorIndex}` })}</Text>
+        <EditorButton onClick={onClose}>{t("common:action.close", { defaultValue: "Close" })}</EditorButton>
       </FlexRow>
-      {conflict && <FlexRow gap={SPACING.sm} align="center"><Caption color="error" role="alert">The draft script changed. Your edits are not being saved until you choose a version.</Caption>
-        <EditorButton onClick={() => { sourceRef.current = behavior.source; setSource(behavior.source); setConflict(false); }}>Use draft version</EditorButton>
-        <EditorButton onClick={() => { setConflict(false); onChange(sourceRef.current); }}>Keep my version</EditorButton></FlexRow>}
-      {error && <FlexRow gap={SPACING.sm} align="center"><Caption color="error" role="alert">Tick {error.tick}: {error.message}</Caption>
-        {onReplay && error.tick > 0 && <EditorButton onClick={onReplay}>Replay to tick {error.tick - 1}</EditorButton>}
-        {onAskAssistant && <EditorButton onClick={onAskAssistant}>Ask the assistant</EditorButton>}</FlexRow>}
+      {conflict && <FlexRow gap={SPACING.sm} align="center"><Caption color="error" role="alert">{t("game:script.conflict", { defaultValue: "The draft script changed. Your edits are not being saved until you choose a version." })}</Caption>
+        <EditorButton onClick={() => { sourceRef.current = behavior.source; setSource(behavior.source); setConflict(false); }}>{t("game:script.useDraftVersion", { defaultValue: "Use draft version" })}</EditorButton>
+        <EditorButton onClick={() => { setConflict(false); onChange(sourceRef.current); }}>{t("game:script.keepMyVersion", { defaultValue: "Keep my version" })}</EditorButton></FlexRow>}
+      {error && <FlexRow gap={SPACING.sm} align="center"><Caption color="error" role="alert">{t("game:script.tickError", { tick: error.tick, message: error.message, defaultValue: `Tick ${error.tick}: ${error.message}` })}</Caption>
+        {onReplay && error.tick > 0 && <EditorButton onClick={onReplay}>{t("game:script.replayToTick", { tick: error.tick - 1, defaultValue: `Replay to tick ${error.tick - 1}` })}</EditorButton>}
+        {onAskAssistant && <EditorButton onClick={onAskAssistant}>{t("game:console.askTheAssistant", { defaultValue: "Ask the assistant" })}</EditorButton>}</FlexRow>}
       <Box sx={{ flex: 1, minHeight: 0 }}>
         {MonacoEditor ? <MonacoEditor key={key} value={source} onChange={(value) => {
           const next = value ?? "";
@@ -85,12 +87,12 @@ export default function GameScriptPane({ dimension = "2d", entityId, entityName,
           language="javascript" theme="vs-dark" width="100%" height="100%" options={options} />
           : monacoLoadError ? <Text color="error">{monacoLoadError}</Text> : isMonacoLoading ? <LoadingSpinner /> : null}
       </Box>
-      <Caption>{source.length} / 16384 characters · {behavior.maxCommands} commands · {behavior.maxTickMs} ms per tick</Caption>
+      <Caption>{t("game:script.characterLine", { current: source.length, commands: behavior.maxCommands, ms: behavior.maxTickMs, defaultValue: `${source.length} / 16384 characters · ${behavior.maxCommands} commands · ${behavior.maxTickMs} ms per tick` })}</Caption>
       <FlexRow gap={SPACING.sm} align="center">
-        {onRunTenSeconds && <EditorButton disabled={runningTenSeconds} onClick={onRunTenSeconds}>{runningTenSeconds ? "Running" : "Run 10 s"}</EditorButton>}
+        {onRunTenSeconds && <EditorButton disabled={runningTenSeconds} onClick={onRunTenSeconds}>{runningTenSeconds ? t("editor:ui.running", { defaultValue: "Running" }) : t("game:script.runTenSeconds", { defaultValue: "Run 10 s" })}</EditorButton>}
         {runSummary && <Caption role="status">{runSummary}</Caption>}
       </FlexRow>
-      {runEntityStats.map((entry) => <Caption key={entry.entityId}>{entry.entityId}: {entry.durationMs.toFixed(1)} ms across {entry.calls} calls</Caption>)}
+      {runEntityStats.map((entry) => <Caption key={entry.entityId}>{t("game:script.entityStat", { entityId: entry.entityId, ms: entry.durationMs.toFixed(1), calls: entry.calls, defaultValue: `${entry.entityId}: ${entry.durationMs.toFixed(1)} ms across ${entry.calls} calls` })}</Caption>)}
     </FlexColumn>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ComponentProps, type ReactNode } from "react";
 import { useStore, type StoreApi } from "zustand";
+import { useTranslation } from "react-i18next";
 
 import type { GamePanelLayoutState } from "../../../stores/game/GamePanelLayoutStore";
 import { useGameShortcutStore } from "../../../stores/game/GameShortcutStore";
@@ -12,6 +13,7 @@ import { GameDockCanvas } from "./GameDockCanvas";
 import { GameLayoutMenu } from "./GameLayoutMenu";
 import { useGameDockPresentation } from "./useGameDockPresentation";
 import { dispatchGameShortcut, formatGameBinding, GAME_COMMANDS, resolveGameBindings, type GameCommandHandlers } from "./gameCommands";
+import { gameCommandCategory, gameCommandTitle } from "../gameI18n";
 import type { ContextCommand } from "../../../stores/CommandMenuStore";
 import { useContextCommands } from "../../../hooks/useContextCommands";
 import { isMac } from "../../../utils/platform";
@@ -43,6 +45,7 @@ interface GameEditorShellProps {
 
 export default function GameEditorShell({ dimension, toolbar, status, panels, layoutStore, registry = gamePanelRegistry,
   notices, mobile, dialogs, commands, active = true }: GameEditorShellProps): ReactNode {
+  const { t } = useTranslation();
   const root = useRef<HTMLDivElement | null>(null);
   const registrations = useSyncExternalStore(registry.subscribe, registry.getSnapshot, registry.getSnapshot);
   const layout = useStore(layoutStore, (state) => state.layout);
@@ -78,13 +81,14 @@ export default function GameEditorShell({ dimension, toolbar, status, panels, la
     .filter((entry) => entry.id !== "editor.commandPalette" && entry.dimensions.includes(dimension) && (!playSession || entry.whilePlaying))
     .map((entry) => {
       const binding = bindings.get(entry.id)?.[0];
-      return { id: entry.id, label: entry.title, keywords: [entry.category],
+      const category = gameCommandCategory(t, entry.category, entry.category);
+      return { id: entry.id, label: gameCommandTitle(t, entry.id, entry.title), keywords: [entry.category, category],
         shortcut: binding ? formatGameBinding(binding, isMac()).join("+") : undefined,
         run: () => {
           const handler = commandRegistry.handler(entry.id);
           if (handler && handler.enabled !== false) { handler.run(); }
         } };
-    }), [bindings, commandRegistry, dimension, playSession]);
+    }), [bindings, commandRegistry, dimension, playSession, t]);
   useContextCommands("Game", menuCommands, active);
   return <EditorUiProvider scope="inspector"><GameCommandContext.Provider value={commandRegistry}><FlexColumn ref={root} sx={GAME_EDITOR_ROOT_SX}
     onKeyDown={(event) => {
