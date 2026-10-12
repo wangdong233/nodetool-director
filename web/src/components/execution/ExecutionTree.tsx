@@ -843,7 +843,7 @@ const ExecutionTree: React.FC<ExecutionTreeProps> = ({ state, onToggleTask }) =>
       {hasTasks && (
         <div className="plan-card">
           <FlexRow className="plan-header" align="center" gap={2}>
-            <span className="plan-title">{t("ui2:attrs.executionPlan", { defaultValue: "Execution plan" })}</span>
+            <span className="plan-title">{t("ui2:attrs.executionPlanLower", { defaultValue: "Execution plan" })}</span>
             <div
               className="plan-progress-track"
               role="progressbar"

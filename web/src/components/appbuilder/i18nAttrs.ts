@@ -153,6 +153,11 @@ export const APPBUILDER_ATTRS: Record<string, string> = {
   "fileName": "File name",
   "filePathInput": "File Path Input",
   "fit": "Fit",
+  // The binding-syntax field label config.tsx composes from FORMAT_FILTERS
+  // (technical tail stays Latin; a newly registered upstream filter only
+  // degrades this entry back to English via the exact-match miss).
+  "formatBindingSyntax":
+    "Format ({binding} · number:2 · date:short · upper · lower · join:, · truncate:80)",
   "folderPathInput": "Folder Path Input",
   "futureRunsWillUseTheSelectedPublishedVersionHistoricalRunsKeepTheirOriginalVersionIncompatibleStatePreventsAdvancement": "Future runs will use the selected published version. Historical runs keep their original version. Incompatible state prevents advancement.",
   "gallery": "Gallery",

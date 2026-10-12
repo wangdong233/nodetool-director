@@ -130,6 +130,7 @@
     "fileName": "File name",
     "filePathInput": "File Path Input",
     "fit": "Fit",
+    "formatBindingSyntax": "Format ({binding} · number:2 · date:short · upper · lower · join:, · truncate:80)",
     "folderPathInput": "Folder Path Input",
     "futureRunsWillUseTheSelectedPublishedVersionHistoricalRunsKeepTheirOriginalVersionIncompatibleStatePreventsAdvancement": "Future runs will use the selected published version. Historical runs keep their original version. Incompatible state prevents advancement.",
     "gallery": "Gallery",

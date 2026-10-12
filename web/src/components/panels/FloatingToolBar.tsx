@@ -815,7 +815,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
             toolbar within a phone-width row. */}
         {editorViewMode === "graph" && !isMobile && (
           <Tooltip
-            title={t("editor:ui.autoLayout", { defaultValue: "Auto Layout" })}
+            title={t("editor:ui.autoLayoutTitle", { defaultValue: "Auto Layout" })}
             placement="top"
             delay={TOOLTIP_ENTER_DELAY}
           >

@@ -167,7 +167,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
           </EditorButton>
         </Tooltip>
         <Tooltip
-          title={t("sketch:attrs.resetToBlackAndWhite", { defaultValue: "Reset to B/W (D)" })}
+          title={t("sketch:attrs.resetToBwShort", { defaultValue: "Reset to B/W (D)" })}
           placement="right"
           enterDelay={SKETCH_TOOLTIP_DELAY_MS}
           enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}

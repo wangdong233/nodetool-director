@@ -18,6 +18,9 @@
  */
 
 import { useCallback, useMemo } from "react";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../i18n";
 import { compileOneTake } from "@nodetool-ai/protocol";
 import type {
   CompiledOneTake,
@@ -226,26 +229,51 @@ export const oneTakeMaxSeconds = (model?: OneTakeModelLimits | null): number =>
 const secondsText = (value: number): string =>
   `${Math.round(value * 10) / 10}s`;
 
-/** Why the plan cannot render with these settings, or an empty list. */
+/** Why the plan cannot render with these settings, or an empty list.
+ *
+ * `t` is optional: the display path passes the hook's translation function
+ * so blockers render localized; callers that only need the English text
+ * (the send-time guard's thrown Error, tests) omit it.
+ */
 export const oneTakeBlockers = (
   plan: OneTakeRenderPlan | null,
-  settings?: Pick<OneTakeSettings, "model" | "catalogModel"> | null
+  settings?: Pick<OneTakeSettings, "model" | "catalogModel"> | null,
+  t?: TFunction
 ): string[] => {
   if (!plan) {
-    return ["Add a shot to the board first."];
+    return [
+      t?.("storyboard:attrs.addAShotToTheBoardFirst", {
+        defaultValue: "Add a shot to the board first."
+      }) ?? "Add a shot to the board first."
+    ];
   }
   const blockers: string[] = [];
   const imageCount = plan.compiled.references.length;
   if (imageCount === 0) {
-    blockers.push("Render a still for at least one shot.");
+    blockers.push(
+      t?.("storyboard:attrs.renderAStillForAtLeastOneShot", {
+        defaultValue: "Render a still for at least one shot."
+      }) ?? "Render a still for at least one shot."
+    );
   }
   if (imageCount > ONE_TAKE_MAX_IMAGES) {
+    const excess = imageCount - ONE_TAKE_MAX_IMAGES;
     blockers.push(
-      `${imageCount} images is over the limit of ${ONE_TAKE_MAX_IMAGES}. Remove ${imageCount - ONE_TAKE_MAX_IMAGES}.`
+      t?.("storyboard:attrs.imagesOverTheLimit", {
+        count: imageCount,
+        max: ONE_TAKE_MAX_IMAGES,
+        excess,
+        defaultValue: `${imageCount} images is over the limit of ${ONE_TAKE_MAX_IMAGES}. Remove ${excess}.`
+      }) ??
+        `${imageCount} images is over the limit of ${ONE_TAKE_MAX_IMAGES}. Remove ${excess}.`
     );
   }
   if (settings && !settings.model) {
-    blockers.push("No video model chosen.");
+    blockers.push(
+      t?.("storyboard:attrs.noVideoModelChosen", {
+        defaultValue: "No video model chosen."
+      }) ?? "No video model chosen."
+    );
   }
   const duration = plan.compiled.duration_seconds;
   const durations = declared(settings?.catalogModel?.durations);
@@ -256,12 +284,27 @@ export const oneTakeBlockers = (
         settings?.catalogModel?.name ??
         settings?.model?.id;
       blockers.push(
-        `${name} does not offer a ${secondsText(duration)} clip. Pick one of ${durations.map(secondsText).join(", ")}.`
+        t?.("storyboard:attrs.modelDoesNotOfferClip", {
+          name,
+          duration: secondsText(duration),
+          durations: durations.map(secondsText).join(", "),
+          defaultValue: `${name} does not offer a ${secondsText(duration)} clip. Pick one of ${durations
+            .map(secondsText)
+            .join(", ")}.`
+        }) ??
+          `${name} does not offer a ${secondsText(duration)} clip. Pick one of ${durations
+            .map(secondsText)
+            .join(", ")}.`
       );
     }
   } else if (duration > ONE_TAKE_DEFAULT_MAX_SECONDS) {
     blockers.push(
-      `The take runs ${secondsText(duration)}. One take renders at most ${ONE_TAKE_DEFAULT_MAX_SECONDS}s.`
+      t?.("storyboard:attrs.takeRunsTooLong", {
+        duration: secondsText(duration),
+        max: ONE_TAKE_DEFAULT_MAX_SECONDS,
+        defaultValue: `The take runs ${secondsText(duration)}. One take renders at most ${ONE_TAKE_DEFAULT_MAX_SECONDS}s.`
+      }) ??
+        `The take runs ${secondsText(duration)}. One take renders at most ${ONE_TAKE_DEFAULT_MAX_SECONDS}s.`
     );
   }
   return blockers;
@@ -289,6 +332,9 @@ export const oneTakeRequestData = (
 });
 
 export const useRenderOneTake = (boardId: string): UseRenderOneTakeResult => {
+  const { t } = useTranslation();
+  // Blockers resolve catalog copy in a memo; re-resolve on language change.
+  const { version: languageVersion } = useAppLanguage();
   const board = useStoryboardStore((state) => state.boards[boardId]);
   const { models: catalog } = useVideoModelsByProvider();
   const byTask = useLastModelStore((state) => state.byTask);
@@ -305,8 +351,8 @@ export const useRenderOneTake = (boardId: string): UseRenderOneTakeResult => {
     [board, catalog, remembered]
   );
   const blockers = useMemo(
-    () => oneTakeBlockers(plan, settings),
-    [plan, settings]
+    () => oneTakeBlockers(plan, settings, t),
+    [plan, settings, t, languageVersion]
   );
 
   const renderOneTake = useCallback(async (): Promise<void> => {
