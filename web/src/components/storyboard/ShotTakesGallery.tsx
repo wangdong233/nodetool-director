@@ -12,7 +12,6 @@
  * and export uses.
  */
 
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import type { ImageRef, Shot, VideoRef } from "@nodetool-ai/protocol";
@@ -279,7 +278,7 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
           className="still-thumbs"
         >
           <Caption color="secondary" sx={takeRowLabelSx}>
-            Stills
+            {t("storyboard:attrs.stills", { defaultValue: "Stills" })}
           </Caption>
           {stills.map((still, i) => {
             const isCurrent = i === selectedStill;
@@ -296,10 +295,10 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
                     type="button"
                     aria-label={
                       isCurrent
-                        ? `Still ${i + 1}, current still`
+                        ? t("storyboard:attrs.stillNCurrentStill", { defaultValue: "Still {{n}}, current still", n: i + 1 })
                         : readOnly
-                          ? `Preview still ${i + 1}`
-                          : `Use still ${i + 1} as current still`
+                          ? t("storyboard:attrs.previewStillN", { defaultValue: "Preview still {{n}}", n: i + 1 })
+                          : t("storyboard:attrs.useStillNAsCurrentStill", { defaultValue: "Use still {{n}} as current still", n: i + 1 })
                     }
                     aria-current={isCurrent ? "true" : undefined}
                     onClick={() =>
@@ -325,7 +324,7 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
                     <ToolbarIconButton
                       icon={<DeleteOutlineIcon sx={{ fontSize: "1em" }} />}
                       tooltip={t("storyboard:attrs.removeStill", { defaultValue: "Remove still" })}
-                      ariaLabel={`Remove still ${i + 1}`}
+                      ariaLabel={t("storyboard:attrs.removeStillN", { defaultValue: "Remove still {{n}}", n: i + 1 })}
                       onClick={() => handleRemoveStill(i)}
                       disabled={isGenerating}
                       sx={removeButtonSx}
@@ -335,7 +334,7 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
                   <ToolbarIconButton
                     icon={<FullscreenIcon sx={{ fontSize: "1em" }} />}
                     tooltip={t("storyboard:attrs.viewFullscreen", { defaultValue: "View fullscreen" })}
-                    ariaLabel={`View still ${i + 1} fullscreen`}
+                    ariaLabel={t("storyboard:attrs.viewStillNFullscreen", { defaultValue: "View still {{n}} fullscreen", n: i + 1 })}
                     onClick={() => setViewerMedia(still)}
                     sx={viewButtonSx}
                   />
@@ -371,10 +370,10 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
                     type="button"
                     aria-label={
                       isCurrent
-                        ? `Clip ${i + 1}, current clip`
+                        ? t("storyboard:attrs.clipNCurrentClip", { defaultValue: "Clip {{n}}, current clip", n: i + 1 })
                         : readOnly
-                          ? `Preview clip ${i + 1}`
-                          : `Use clip ${i + 1} as current clip`
+                          ? t("storyboard:attrs.previewClipN", { defaultValue: "Preview clip {{n}}", n: i + 1 })
+                          : t("storyboard:attrs.useClipNAsCurrentClip", { defaultValue: "Use clip {{n}} as current clip", n: i + 1 })
                     }
                     aria-current={isCurrent ? "true" : undefined}
                     onClick={() =>
@@ -390,7 +389,7 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
                     <ToolbarIconButton
                       icon={<DeleteOutlineIcon sx={{ fontSize: "1em" }} />}
                       tooltip={t("storyboard:attrs.removeClip", { defaultValue: "Remove clip" })}
-                      ariaLabel={`Remove clip ${i + 1}`}
+                      ariaLabel={t("storyboard:attrs.removeClipN", { defaultValue: "Remove clip {{n}}", n: i + 1 })}
                       onClick={() => handleRemoveClip(i)}
                       disabled={isGenerating}
                       sx={removeButtonSx}
@@ -399,8 +398,8 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
                   )}
                   <ToolbarIconButton
                     icon={<FullscreenIcon sx={{ fontSize: "1em" }} />}
-                    tooltip="View fullscreen"
-                    ariaLabel={`View clip ${i + 1} fullscreen`}
+                    tooltip={t("storyboard:attrs.viewFullscreen", { defaultValue: "View fullscreen" })}
+                    ariaLabel={t("storyboard:attrs.viewClipNFullscreen", { defaultValue: "View clip {{n}} fullscreen", n: i + 1 })}
                     onClick={() => setViewerMedia(clip)}
                     sx={viewButtonSx}
                   />
@@ -419,7 +418,7 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
             "&:hover": { color: "text.primary", bgcolor: "c_overlay_subtle" }
           }}
         >
-          {expanded ? i18n.t("storyboard:attrs.hideTakes", { defaultValue: "Hide takes" }) : i18n.t("storyboard:attrs.viewTakes", { defaultValue: "View takes" })}
+          {expanded ? t("storyboard:attrs.hideTakes", { defaultValue: "Hide takes" }) : t("storyboard:attrs.viewTakes", { defaultValue: "View takes" })}
         </EditorButton>
       </FlexRow>
 
@@ -436,7 +435,7 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
           )}
           {clips.length > 0 && (
             <>
-              <Caption color="secondary">Clips</Caption>
+              <Caption color="secondary">{t("storyboard:attrs.clips", { defaultValue: "Clips" })}</Caption>
               <OutputRenderer value={clips} showTextActions={false} />
             </>
           )}

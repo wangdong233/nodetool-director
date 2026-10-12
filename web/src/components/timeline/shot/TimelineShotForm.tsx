@@ -13,6 +13,7 @@
 
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../../i18n";
 import type { Shot } from "@nodetool-ai/protocol";
 
 import {
@@ -59,6 +60,9 @@ const TimelineShotFormInner = ({
   readOnly
 }: TimelineShotFormProps) => {
   const { t } = useTranslation();
+  // The shared camera option labels resolve through i18n; this dep recomputes
+  // the memoized option lists when the language changes.
+  const { version: languageVersion } = useAppLanguage();
   const applyShotDraft = useStoryboardStore((state) => state.applyShotDraft);
   const scene = useStoryboardStore(
     (state) =>
@@ -117,15 +121,15 @@ const TimelineShotFormInner = ({
 
   const framingOptions = useMemo(
     () => cameraOptions(FRAMING_OPTIONS, draft.framing),
-    [draft.framing]
+    [draft.framing, languageVersion]
   );
   const angleOptions = useMemo(
     () => cameraOptions(ANGLE_OPTIONS, draft.angle),
-    [draft.angle]
+    [draft.angle, languageVersion]
   );
   const movementOptions = useMemo(
     () => cameraOptions(MOVEMENT_OPTIONS, draft.movement),
-    [draft.movement]
+    [draft.movement, languageVersion]
   );
 
   return (

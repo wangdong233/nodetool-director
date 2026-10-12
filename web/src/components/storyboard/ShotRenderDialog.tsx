@@ -9,6 +9,7 @@
  */
 
 import React, { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { CLIP_RESOLUTION, shotRenderMode } from "@nodetool-ai/protocol";
 import type { Shot, ShotModelRef } from "@nodetool-ai/protocol";
 import { formatUsd } from "@nodetool-ai/model-pricing";
@@ -72,6 +73,7 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
   step,
   onClose
 }) => {
+  const { t } = useTranslation();
   const { generateKeyframe, generateClip } = useGenerateShot();
   const { models: imageModels } = useImageModelsByProvider();
   const { models: videoModels } = useVideoModelsByProvider();
@@ -191,7 +193,9 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
 
   const isClip = step === "clip";
   const priced = estimate.pricedRequestCount > 0 && estimate.cost > 0;
-  const verb = isClip ? "Render clip" : "Render still";
+  const verb = isClip
+    ? t("storyboard:attrs.renderClip", { defaultValue: "Render clip" })
+    : t("storyboard:attrs.renderStill", { defaultValue: "Render still" });
 
   return (
     <Dialog
@@ -205,8 +209,14 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
       <FlexColumn gap={SPACING.md}>
         <Caption color="secondary">
           {isClip
-            ? "Pick the model for this shot's clip. The shot keeps the choice for the next render."
-            : "Pick the model for this shot's still. The shot keeps the choice for the next render."}
+            ? t("storyboard:attrs.pickTheModelForThisShotsClip", {
+                defaultValue:
+                  "Pick the model for this shot's clip. The shot keeps the choice for the next render."
+              })
+            : t("storyboard:attrs.pickTheModelForThisShotsStill", {
+                defaultValue:
+                  "Pick the model for this shot's still. The shot keeps the choice for the next render."
+              })}
         </Caption>
         {isClip ? (
           <>
@@ -218,9 +228,9 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
                 onChange={setPickedClip}
               />
             </FormField>
-            <FormField label="Resolution">
+            <FormField label={t("storyboard:attrs.resolution", { defaultValue: "Resolution" })}>
               <SelectField
-                label="Resolution"
+                label={t("storyboard:attrs.resolution", { defaultValue: "Resolution" })}
                 value={resolution}
                 onChange={setPickedResolution}
                 options={resolutionOptions}
@@ -228,7 +238,7 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
             </FormField>
           </>
         ) : (
-          <FormField label="Still model" sx={modelFieldSx}>
+          <FormField label={t("storyboard:attrs.stillModel", { defaultValue: "Still model" })} sx={modelFieldSx}>
             <ImageModelSelect
               value={stillSelection?.id ?? ""}
               provider={stillSelection?.provider}
@@ -245,8 +255,10 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
         )}
         {isClip && needsStill ? (
           <Caption role="alert" sx={{ color: "error.main" }}>
-            This shot animates its still. Render a still first, or set the shot
-            to render directly from its prompt.
+            {t("storyboard:attrs.thisShotAnimatesItsStill", {
+              defaultValue:
+                "This shot animates its still. Render a still first, or set the shot to render directly from its prompt."
+            })}
           </Caption>
         ) : (
           <RenderCostSummary estimate={estimate} />
