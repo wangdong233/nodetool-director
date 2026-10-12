@@ -29,7 +29,11 @@ const ConnectedGeneratedLayerSectionInner: React.FC = () => {
   if (layer?.type === "vector") {
     return (
       <CollapsibleSection
-        title={<InspectorSectionTitle title="Vector layer" />}
+        title={
+          <InspectorSectionTitle
+            title={t("sketch:attrs.vectorLayer", { defaultValue: "Vector layer" })}
+          />
+        }
         defaultOpen
         compact
         sx={sectionSx}

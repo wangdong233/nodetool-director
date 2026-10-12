@@ -125,7 +125,9 @@ export const ShapeSettingsPanel = memo(function ShapeSettingsPanel({
               />
             }
             label={
-              <Text sx={{ fontSize: FONT_SIZE_SANS.label }}>Fill</Text>
+              <Text sx={{ fontSize: FONT_SIZE_SANS.label }}>
+                {t("ui2:attrs.fill", { defaultValue: "Fill" })}
+              </Text>
             }
           />
           {settings.filled && (
@@ -364,7 +366,7 @@ export const CloneStampSettingsPanel = memo(function CloneStampSettingsPanel({
         <SketchModeOption value="composited">{t("ui2:attrs.allLayers", { defaultValue: "All Layers" })}</SketchModeOption>
       </SketchModeToggle>
       <Text sx={{ ...sketchHintTextSx, mt: 1 }}>
-        Alt+click to set source point
+        {t("sketch:attrs.altClickToSetSourcePoint", { defaultValue: "Alt+click to set source point" })}
       </Text>
     </>
   );

@@ -47,7 +47,7 @@ const SketchInspectorInner: React.FC = () => {
       <EmptyState
         variant="empty"
         size="small"
-        title={`${selectedLayerIds.length} layers selected`}
+        title={t("sketch:attrs.layersSelected", { defaultValue: "{{count}} layers selected", count: String(selectedLayerIds.length) })}
         description={t("editor:ui.selectASingleLayerToInspect")}
       />
     );

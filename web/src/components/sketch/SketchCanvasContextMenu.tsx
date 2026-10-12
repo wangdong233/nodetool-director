@@ -419,7 +419,7 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
       return (
         <FlexRow gap={1}>
           <ColorPreview label={t("sketch:attrs.start", { defaultValue: "Start" })} color={gradientSettings.startColor} />
-          <ColorPreview label="End" color={gradientSettings.endColor} />
+          <ColorPreview label={t("ui2:attrs.end", { defaultValue: "End" })} color={gradientSettings.endColor} />
         </FlexRow>
       );
     }

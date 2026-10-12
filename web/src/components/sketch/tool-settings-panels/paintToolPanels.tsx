@@ -84,7 +84,7 @@ const AdvancedToggleButton: React.FC<{
     }}
     startIcon={open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
   >
-    Advanced
+    {t("editor:ui.advanced", { defaultValue: "Advanced" })}
   </EditorButton>
 )
   };
@@ -144,27 +144,31 @@ const STROKE_ASSIST_PRESETS: Array<{
   label: string;
   labelKey?: string;
   tooltip: string;
+  tooltipKey: string;
 }> = [
   {
     value: "smooth",
     label: "Smooth",
     labelKey: "editor:ui.smooth",
     tooltip:
-      "Rolling-average stabilizer. Filters jitter while the tip keeps following the cursor — good for general drawing."
+      "Rolling-average stabilizer. Filters jitter while the tip keeps following the cursor — good for general drawing.",
+    tooltipKey: "sketch:attrs.strokeAssistSmoothTooltip"
   },
   {
     value: "lazy",
     label: "Lazy",
     labelKey: "sketch:attrs.lazy",
     tooltip:
-      "Rope/leash. Tip stays still until the cursor exceeds a dead-zone radius, then trails behind in a straight line. Best for slow, deliberate inking."
+      "Rope/leash. Tip stays still until the cursor exceeds a dead-zone radius, then trails behind in a straight line. Best for slow, deliberate inking.",
+    tooltipKey: "sketch:attrs.strokeAssistLazyTooltip"
   },
   {
     value: "inking",
     label: "Ink",
     labelKey: "sketch:attrs.ink",
     tooltip:
-      "Lazy leash + 45° angle snap. Long strokes lock to nearest 45° direction — for clean axis-aligned linework."
+      "Lazy leash + 45° angle snap. Long strokes lock to nearest 45° direction — for clean axis-aligned linework.",
+    tooltipKey: "sketch:attrs.strokeAssistInkingTooltip"
   }
 ];
 
@@ -252,13 +256,13 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
           value="off"
           title={t("editor:ui.noStrokeAssistTipFollowsTheRawPointer", { defaultValue: "No stroke assist. Tip follows the raw pointer." })}
         >
-          Off
+          {t("editor:ui.off", { defaultValue: "Off" })}
         </SketchModeOption>
-        {STROKE_ASSIST_PRESETS.map(({ value, label, labelKey, tooltip }) => (
+        {STROKE_ASSIST_PRESETS.map(({ value, label, labelKey, tooltip, tooltipKey }) => (
           <SketchModeOption
             key={value}
             value={value}
-            title={tooltip}
+            title={t(tooltipKey, { defaultValue: tooltip })}
           >
             {labelKey ? t(labelKey, { defaultValue: label }) : label}
           </SketchModeOption>
@@ -267,7 +271,7 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
           value="custom"
           title={t("editor:ui.tuneAlgorithmStrengthAndAngleSnapManually", { defaultValue: "Tune algorithm, strength and angle snap manually." })}
         >
-          Custom
+          {t("sketch:attrs.custom", { defaultValue: "Custom" })}
         </SketchModeOption>
       </SketchModeToggle>
       {assistOn && (
@@ -304,7 +308,7 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
             value="stabilizer"
             title={t("editor:ui.rollingAverageSmoothingTipFollowsTheCursorAlongALowPassFilteredPath")}
           >
-            Stabilizer
+            {t("sketch:attrs.stabilizer", { defaultValue: "Stabilizer" })}
           </SketchModeOption>
           <SketchModeOption
             value="lazy"
@@ -332,7 +336,7 @@ function StrokeAssistSettingsPanel<T extends StrokeAssistToolSettings>({
           <SketchModeOption
             key={angle}
             value={angle}
-            title={`Snap stroke direction to nearest ${angle}°.`}
+            title={t("sketch:attrs.snapStrokeToAngle", { defaultValue: "Snap stroke direction to nearest {{angle}}°.", angle: String(angle) })}
           >
             {angle}°
           </SketchModeOption>
@@ -621,13 +625,13 @@ export const EraserSettingsPanel = memo(function EraserSettingsPanel({
             value="brush"
             title={t("editor:ui.eraseWithTheCurrentBrushStampSoftHardSprayFollowBrushSettings")}
           >
-            Brush
+            {t("editor:ui.brush", { defaultValue: "Brush" })}
           </SketchModeOption>
           <SketchModeOption
             value="pencil"
             title={t("sketch:attrs.eraseWithCrispPencilDabs", { defaultValue: "Erase with crisp pencil dabs — follows the pencil tool's Pixel/Soft toggle." })}
           >
-            Pencil
+            {t("sketch:attrs.pencil", { defaultValue: "Pencil" })}
           </SketchModeOption>
         </SketchModeToggle>
       </SettingGroup>

@@ -205,7 +205,11 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         <IconButton
           size="small"
           onClick={handleAssistant}
-          aria-label={assistantPanelOpen ? "Hide Assistant" : "Show Assistant"}
+          aria-label={
+            assistantPanelOpen
+              ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" })
+              : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })
+          }
           aria-pressed={assistantPanelOpen}
           data-testid="sketch-assistant-toggle"
         >
@@ -217,7 +221,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         <IconButton
           size="small"
           onClick={(e) => setMenuAnchor(e.currentTarget)}
-          aria-label="Editor actions"
+          aria-label={t("editor:ui.editorActions", { defaultValue: "Editor actions" })}
           aria-haspopup="menu"
           data-testid="sketch-editor-menu"
         >
@@ -252,7 +256,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
 
         <Divider key="view-divider" />
         <ViewToggleItem
-          label="Rulers"
+          label={t("sketch:attrs.rulers", { defaultValue: "Rulers" })}
           checked={rulersVisible}
           actionId="toggle-rulers"
           onClick={() => {
@@ -262,7 +266,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
           testId="sketch-toggle-rulers"
         />
         <ViewToggleItem
-          label="Guides"
+          label={t("sketch:attrs.guides", { defaultValue: "Guides" })}
           checked={guidesVisible}
           actionId="toggle-guides"
           onClick={() => {
@@ -272,7 +276,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
           testId="sketch-toggle-guides"
         />
         <ViewToggleItem
-          label="Snap"
+          label={t("ui2:attrs.snap", { defaultValue: "Snap" })}
           checked={snapEnabled}
           actionId="toggle-snap"
           onClick={() => {
@@ -290,7 +294,9 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
           data-testid="sketch-clear-guides"
         >
           <ListItemIcon />
-          <ListItemText>Clear guides</ListItemText>
+          <ListItemText>
+            {t("sketch:attrs.clearGuides", { defaultValue: "Clear guides" })}
+          </ListItemText>
         </EditorMenuItem>
 
         {menuItems ? <Divider key="host-divider" /> : null}

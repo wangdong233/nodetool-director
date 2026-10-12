@@ -247,11 +247,15 @@ const ADD_ACTION_ICON_SX = {
 };
 
 /** Fill presets offered in the add-layer menu; `null` is transparent. */
-const NEW_LAYER_FILLS: readonly { label: string; fill: string | null }[] = [
-  { label: "Transparent layer", fill: null },
-  { label: "White layer", fill: "#ffffff" },
-  { label: "Black layer", fill: "#000000" },
-  { label: "Gray layer", fill: "#808080" }
+const NEW_LAYER_FILLS: readonly {
+  key: string;
+  en: string;
+  fill: string | null;
+}[] = [
+  { key: "transparentLayer", en: "Transparent layer", fill: null },
+  { key: "whiteLayer", en: "White layer", fill: "#ffffff" },
+  { key: "blackLayer", en: "Black layer", fill: "#000000" },
+  { key: "grayLayer", en: "Gray layer", fill: "#808080" }
 ];
 
 const ADD_MENU_ITEM_SX = {
@@ -1055,7 +1059,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               }
               sx={GENERATE_ACTION_SX}
             >
-              From text
+              {t("sketch:attrs.fromText", { defaultValue: "From text" })}
             </Button>
           </Tooltip>
           <Tooltip
@@ -1072,7 +1076,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               }
               sx={GENERATE_ACTION_SX}
             >
-              From image
+              {t("sketch:attrs.fromImage", { defaultValue: "From image" })}
             </Button>
           </Tooltip>
         </FlexRow>
@@ -1082,27 +1086,27 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           gap={SPACING.xs}
         >
           <Tooltip
-            title="Add a transparent layer"
+            title={t("sketch:attrs.addATransparentLayer", { defaultValue: "Add a transparent layer" })}
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <Button
-              aria-label="New layer"
+              aria-label={t("sketch:attrs.newLayer", { defaultValue: "New layer" })}
               onClick={() => onAddLayer(null)}
               data-testid="layers-panel-new-layer"
               startIcon={<AddIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
               sx={NEW_LAYER_ACTION_SX}
             >
-              New layer
+              {t("sketch:attrs.newLayer", { defaultValue: "New layer" })}
             </Button>
           </Tooltip>
           <Tooltip
-            title="More ways to add a layer"
+            title={t("sketch:attrs.moreWaysToAddALayer", { defaultValue: "More ways to add a layer" })}
             enterDelay={SKETCH_TOOLTIP_DELAY_MS}
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
-              aria-label="More ways to add a layer"
+              aria-label={t("sketch:attrs.moreWaysToAddALayer", { defaultValue: "More ways to add a layer" })}
               aria-haspopup="menu"
               aria-expanded={addMenuAnchor !== null}
               size="small"
@@ -1123,9 +1127,9 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           transformOrigin={{ vertical: "top", horizontal: "right" }}
           slotProps={{ paper: { sx: { minWidth: 200 } } }}
         >
-          {NEW_LAYER_FILLS.map(({ label, fill }) => (
+          {NEW_LAYER_FILLS.map(({ key, en, fill }) => (
             <MenuItem
-              key={label}
+              key={key}
               sx={ADD_MENU_ITEM_SX}
               onClick={() => runAddMenuAction(() => onAddLayer(fill))}
             >
@@ -1137,7 +1141,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
                   ...(fill ? { backgroundColor: fill } : SKETCH_CHECKERBOARD)
                 }}
               />
-              {label}
+              {t(`sketch:attrs.${key}`, { defaultValue: en })}
             </MenuItem>
           ))}
           <MenuItem
@@ -1145,7 +1149,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             onClick={() => runAddMenuAction(() => onAddGroup())}
           >
             <CreateNewFolderIcon sx={ADD_MENU_ICON_SX} />
-            Layer group
+            {t("sketch:attrs.layerGroup", { defaultValue: "Layer group" })}
           </MenuItem>
           <Divider sx={{ my: getSpacingPx(SPACING.xs) }} />
           <MenuItem
@@ -1155,14 +1159,14 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             }
           >
             <UploadFileIcon sx={ADD_MENU_ICON_SX} />
-            Import SVG file…
+            {t("sketch:attrs.importSvgFileMenu", { defaultValue: "Import SVG file…" })}
           </MenuItem>
           <MenuItem
             sx={ADD_MENU_ITEM_SX}
             onClick={() => runAddMenuAction(() => setSvgDialogOpen(true))}
           >
             <AutoAwesomeIcon sx={ADD_MENU_ICON_SX} />
-            Generate SVG layer…
+            {t("sketch:attrs.generateSvgLayerMenu", { defaultValue: "Generate SVG layer…" })}
           </MenuItem>
           <MenuItem
             sx={ADD_MENU_ITEM_SX}
@@ -1170,7 +1174,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             onClick={() => runAddMenuAction(() => setGenerateDialogOpen(true))}
           >
             <AddPhotoAlternateIcon sx={ADD_MENU_ICON_SX} />
-            Layer from workflow…
+            {t("sketch:attrs.layerFromWorkflow", { defaultValue: "Layer from workflow…" })}
           </MenuItem>
         </Menu>
         <SvgLayerImport inputRef={svgImportInputRef} />
@@ -1255,8 +1259,8 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           <IconButton
             aria-label={
               maskLayerId === activeLayerId
-                ? "Remove Mask Designation"
-                : "Set as Mask Layer"
+                ? t("sketch:attrs.removeMaskDesignation", { defaultValue: "Remove Mask Designation" })
+                : t("sketch:attrs.setAsMaskLayer", { defaultValue: "Set as Mask Layer" })
             }
             size="small"
             onClick={() =>
@@ -1282,8 +1286,8 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           <IconButton
             aria-label={
               activeLayer?.alphaLock
-                ? "Unlock Transparency"
-                : "Lock Transparency"
+                ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock Transparency" })
+                : t("sketch:attrs.lockTransparency", { defaultValue: "Lock Transparency" })
             }
             size="small"
             onClick={() => onToggleAlphaLock(activeLayerId)}
@@ -1300,7 +1304,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
         >
           <span>
             <IconButton
-              aria-label="Group selected layers"
+              aria-label={t("sketch:attrs.groupSelectedLayers", { defaultValue: "Group selected layers" })}
               size="small"
               onClick={onGroupSelectedLayers}
               disabled={!hasMultiLayerSelection}
@@ -1319,7 +1323,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
-              aria-label="Duplicate Layer"
+              aria-label={t("sketch:attrs.duplicateLayer", { defaultValue: "Duplicate Layer" })}
               size="small"
               onClick={() => onDuplicateLayer(activeLayerId)}
               sx={OPS_ICON_SX}
@@ -1365,7 +1369,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             <Text
               sx={{ fontSize: FONT_SIZE_SANS.label, color: SKETCH_COLORS.textMuted }}
             >
-              Opacity
+              {t("sketch:attrs.opacity", { defaultValue: "Opacity" })}
             </Text>
             <Slider
               sx={sketchSliderSx}
@@ -1600,7 +1604,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               {isMulti ? i18n.t("sketch:attrs.duplicateLayers", { defaultValue: "Duplicate Layers" }) : i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}
             </MenuItem>
             <MenuItem sx={menuItemSx} onClick={handleCtxDelete}>
-              Remove
+              {t("sketch:attrs.remove", { defaultValue: "Remove" })}
             </MenuItem>
 
             <Divider sx={{ my: getSpacingPx(SPACING.xs) }} />
@@ -1610,28 +1614,28 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               onClick={handleCtxClear}
               disabled={ctxPixelActionsDisabled || isMulti}
             >
-              Clear Layer
+              {t("sketch:attrs.clearLayer", { defaultValue: "Clear Layer" })}
             </MenuItem>
             <MenuItem
               sx={menuItemSx}
               onClick={handleCtxFlipH}
               disabled={ctxPixelActionsDisabled || isMulti}
             >
-              Flip Horizontal
+              {t("sketch:attrs.flipHorizontal", { defaultValue: "Flip Horizontal" })}
             </MenuItem>
             <MenuItem
               sx={menuItemSx}
               onClick={handleCtxFlipV}
               disabled={ctxPixelActionsDisabled || isMulti}
             >
-              Flip Vertical
+              {t("sketch:attrs.flipVertical", { defaultValue: "Flip Vertical" })}
             </MenuItem>
             <MenuItem
               sx={menuItemSx}
               onClick={handleCtxRotate180}
               disabled={ctxPixelActionsDisabled || isMulti}
             >
-              Rotate 180°
+              {t("sketch:attrs.rotate180°", { defaultValue: "Rotate 180°" })}
             </MenuItem>
             {!isMulti && (
               <MenuItem
@@ -1639,11 +1643,11 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
                 onClick={handleCtxMergeDown}
                 disabled={!ctxCanMergeDown}
               >
-                Merge Down
+                {t("sketch:attrs.mergeDown", { defaultValue: "Merge Down" })}
               </MenuItem>
             )}
             <MenuItem sx={menuItemSx} onClick={handleCtxFlatten}>
-              Flatten Visible
+              {t("sketch:attrs.flattenVisible", { defaultValue: "Flatten Visible" })}
             </MenuItem>
 
             <Divider sx={{ my: getSpacingPx(SPACING.xs) }} />
@@ -1654,8 +1658,8 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               disabled={ctxIsGroup || isMulti}
             >
               {ctxLayer?.alphaLock
-                ? "Unlock Transparency"
-                : "Lock Transparency"}
+                ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock Transparency" })
+                : t("sketch:attrs.lockTransparency", { defaultValue: "Lock Transparency" })}
             </MenuItem>
             <MenuItem
               sx={menuItemSx}
@@ -1671,17 +1675,17 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               onClick={handleCtxCropToExtents}
               disabled={ctxIsGroup || isMulti || ctxLayer?.type === "mask"}
             >
-              Crop Canvas to Layer Extents
+              {t("sketch:attrs.cropCanvasToLayerExtents", { defaultValue: "Crop Canvas to Layer Extents" })}
             </MenuItem>
 
             {ctxIsGroup && !isMulti && (
               <MenuItem sx={menuItemSx} onClick={handleCtxUngroup}>
-                Ungroup
+                {t("sketch:attrs.ungroup", { defaultValue: "Ungroup" })}
               </MenuItem>
             )}
             {isMulti ? (
               <MenuItem sx={menuItemSx} onClick={handleCtxGroup}>
-                Group Selected
+                {t("sketch:attrs.groupSelected", { defaultValue: "Group Selected" })}
               </MenuItem>
             ) : null}
             {isMulti ? (
@@ -1692,7 +1696,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
                   getMergeSelectedLayersPlan(layers, targetIds) === null
                 }
               >
-                Merge Selected
+                {t("sketch:attrs.mergeSelected", { defaultValue: "Merge Selected" })}
               </MenuItem>
             ) : null}
           </Menu>

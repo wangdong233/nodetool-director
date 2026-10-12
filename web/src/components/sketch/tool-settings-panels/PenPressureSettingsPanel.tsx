@@ -70,7 +70,7 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
         className="setting-label"
         title={t("sketch:attrs.sizeOpacityAtMinimumPressure", { defaultValue: "Size/opacity at minimum pressure. Slider uses eased mapping so the upper range is easier to dial in." })}
       >
-        Light end
+        {t("sketch:attrs.lightEnd", { defaultValue: "Light end" })}
       </Text>
       <Slider
         sx={sketchSliderSx}

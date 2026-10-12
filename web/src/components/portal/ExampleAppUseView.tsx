@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import type { Data } from "@puckeditor/core";
 import { applicationBundle } from "@nodetool-ai/protocol/api-schemas/applications.js";
 import {
@@ -23,6 +24,7 @@ interface ExampleAppUseViewProps {
 }
 
 export default function ExampleAppUseView({ slug }: ExampleAppUseViewProps) {
+  const { t } = useTranslation();
   const query = useQuery({
     queryKey: ["example-app-bundle", slug],
     queryFn: async ({ signal }) => {
@@ -58,14 +60,14 @@ export default function ExampleAppUseView({ slug }: ExampleAppUseViewProps) {
     [slug]
   );
   if (query.isPending) {
-    return <LoadingSpinner text="Loading app" />;
+    return <LoadingSpinner text={t("editor:ui.loadingApp", { defaultValue: "Loading app" })} />;
   }
   if (query.isError) {
     return (
       <EmptyState
         variant="error"
-        title="Could not load app"
-        actionText="Retry"
+        title={t("editor:ui.couldNotLoadApp", { defaultValue: "Could not load app" })}
+        actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
         onAction={() => void query.refetch()}
         description={
           <ReportBugButton
@@ -100,7 +102,12 @@ export default function ExampleAppUseView({ slug }: ExampleAppUseViewProps) {
   }
   const document = parseApplicationDocument(bundle.app);
   if (!document) {
-    return <EmptyState variant="error" title="Invalid app document" />;
+    return (
+      <EmptyState
+        variant="error"
+        title={t("editor:ui.invalidAppDocument", { defaultValue: "Invalid app document" })}
+      />
+    );
   }
   const host =
     workflows[document.operations[0]?.workflowId ?? ""] ??

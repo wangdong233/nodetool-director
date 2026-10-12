@@ -163,7 +163,7 @@ const ExampleAppCard = memo(function ExampleAppCard({
     <button
       type="button"
       className="app-card"
-      title={`Use ${app.name}`}
+      title={t("editor:ui.useAppAria", { defaultValue: "Use {{name}}", name: app.name })}
       onClick={() => onUse(app)}
     >
       <span className="app-thumb" aria-hidden>
@@ -239,7 +239,13 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
   });
 
   const apps = data ?? [];
-  const countLabel = `${apps.length} app${apps.length === 1 ? "" : "s"}`;
+  const countLabel = t(
+    apps.length === 1 ? "editor:ui.appCount_one" : "editor:ui.appCount_other",
+    {
+      defaultValue: `${apps.length} app${apps.length === 1 ? "" : "s"}`,
+      count: String(apps.length)
+    }
+  );
   const visibleApps = compact ? apps.slice(0, 4) : apps;
 
   return (
@@ -255,12 +261,15 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
               density="compact"
               onClick={onBrowseAll}
             >
-              See all apps
+              {t("editor:ui.seeAllApps", { defaultValue: "See all apps" })}
             </EditorButton>
           )}
         </SectionHeader>
         <p className="apps-lede">
-          Open an app to use it, or edit a copy to customize its workflows.
+          {t("editor:ui.openAnAppToUseOrEditLede", {
+            defaultValue:
+              "Open an app to use it, or edit a copy to customize its workflows."
+          })}
         </p>
         {isLoading ? (
           <div className="apps-loading">

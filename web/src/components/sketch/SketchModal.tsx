@@ -154,14 +154,14 @@ const SketchModal: React.FC<SketchModalProps> = ({
   const headerPenPressureOn = penPressure.pressureSensitivity !== false;
 
   const symmetryLabels = {
-    off: "Off",
+    off: t("editor:ui.off", { defaultValue: "Off" }),
     horizontal: i18n.t("sketch:attrs.symmetryHorizontal", { defaultValue: "Horizontal" }),
     vertical: i18n.t("sketch:attrs.symmetryVertical", { defaultValue: "Vertical" }),
     dual: i18n.t("sketch:attrs.symmetryDualAxis", { defaultValue: "Dual Axis" }),
-    radial: `Radial (${symmetryRays})`,
-    mandala: `Mandala (${symmetryRays})`
+    radial: t("sketch:attrs.symmetryRadial", { defaultValue: "Radial ({{count}})", count: String(symmetryRays) }),
+    mandala: t("sketch:attrs.symmetryMandala", { defaultValue: "Mandala ({{count}})", count: String(symmetryRays) })
   } satisfies Record<SymmetryMode, string>;
-  const symmetryLabel = symmetryLabels[symmetryMode] || "Off";
+  const symmetryLabel = symmetryLabels[symmetryMode] || t("editor:ui.off", { defaultValue: "Off" });
   const symmetryActive = symmetryMode !== "off";
 
   useEffect(() => {
@@ -296,16 +296,16 @@ const SketchModal: React.FC<SketchModalProps> = ({
         ) : null}
 
         <FlexRow align="center" sx={{ gap: getSpacingPx(SPACING.micro) }}>
-          <Tooltip title={`Undo (${displayCombo("undo")})`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+          <Tooltip title={t("sketch:attrs.undoCombo", { defaultValue: "Undo ({{combo}})", combo: displayCombo("undo") })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <span style={{ display: 'inline-flex' }}>
-              <IconButton size="small" aria-label="Undo" onClick={() => editorRef.current?.undo()} disabled={!canUndo}>
+              <IconButton size="small" aria-label={t("editor:ui.undo", { defaultValue: "Undo" })} onClick={() => editorRef.current?.undo()} disabled={!canUndo}>
                 <UndoIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
               </IconButton>
             </span>
           </Tooltip>
-          <Tooltip title={`Redo (${displayCombo("redo")})`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+          <Tooltip title={t("sketch:attrs.redoCombo", { defaultValue: "Redo ({{combo}})", combo: displayCombo("redo") })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <span style={{ display: 'inline-flex' }}>
-              <IconButton size="small" aria-label="Redo" onClick={() => editorRef.current?.redo()} disabled={!canRedo}>
+              <IconButton size="small" aria-label={t("editor:ui.redo", { defaultValue: "Redo" })} onClick={() => editorRef.current?.redo()} disabled={!canRedo}>
                 <RedoIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
               </IconButton>
             </span>
@@ -325,7 +325,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
 
           <Divider orientation="vertical" flexItem sx={{ mx: getSpacingPx(SPACING.xs) }} />
 
-          <Tooltip title={`Symmetry: ${symmetryLabel}`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+          <Tooltip title={t("sketch:attrs.symmetryTooltip", { defaultValue: "Symmetry: {{mode}}", mode: symmetryLabel })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <IconButton
               size="small"
               aria-label={t("sketch:attrs.symmetryMenu", { defaultValue: "Symmetry menu" })}
@@ -358,7 +358,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
             {(symmetryMode === "radial" || symmetryMode === "mandala") && (
               <Box sx={{ px: 2, py: 1, minWidth: 160 }}>
                 <Caption sx={{ color: "grey.500" }}>
-                  Rays: {symmetryRays}
+                  {t("sketch:attrs.raysLabel", { defaultValue: "Rays: {{count}}", count: String(symmetryRays) })}
                 </Caption>
                 <Slider
                   value={symmetryRays}
@@ -379,7 +379,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
           {confirmDiscard ? (
             <>
               <Caption sx={{ color: "warning.main", whiteSpace: "nowrap" }}>
-                Discard changes?
+                {t("sketch:attrs.discardChanges?", { defaultValue: "Discard changes?" })}
               </Caption>
               <IconButton size="small" aria-label={t("sketch:attrs.confirmDiscard", { defaultValue: "Confirm discard" })} color="error" onClick={() => { editorRef.current?.discardToInitial(); onClose(); }}>
                 <TrashIcon width={16} height={16} />
@@ -397,7 +397,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
           )}
 
           <Tooltip title={t("sketch:attrs.exportImage", { defaultValue: "Export Image" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
-            <IconButton size="small" aria-label="Export Image" onClick={() => editorRef.current?.exportPng()}>
+            <IconButton size="small" aria-label={t("sketch:attrs.exportImage", { defaultValue: "Export Image" })} onClick={() => editorRef.current?.exportPng()}>
               <SaveAltIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
             </IconButton>
           </Tooltip>
@@ -474,9 +474,9 @@ const SketchModal: React.FC<SketchModalProps> = ({
                 }}
               >
                 <Text id="sketch-shortcuts-heading" sx={{ fontWeight: 600 }}>
-                  Keyboard shortcuts
+                  {t("sketch:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
                 </Text>
-                <Tooltip title="Close" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+                <Tooltip title={t("sketch:attrs.close", { defaultValue: "Close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
                   <IconButton
                     size="small"
                     onClick={() => setShortcutsPaneOpen(false)}

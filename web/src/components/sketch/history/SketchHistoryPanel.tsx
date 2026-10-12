@@ -7,6 +7,7 @@
  */
 
 import { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useSketchStore } from "../state/useSketchStore";
 import { hasUncommittedHistoryTip } from "../state/slices/historySlice";
@@ -31,6 +32,7 @@ export const SketchHistoryPanel = memo(function SketchHistoryPanel({
   onUndo,
   onRedo
 }: SketchHistoryPanelProps) {
+  const { t } = useTranslation();
   const history = useSketchStore((s) => s.history);
   const historyIndex = useSketchStore((s) => s.historyIndex);
   const uncommittedTip = useSketchStore(hasUncommittedHistoryTip);
@@ -73,14 +75,14 @@ export const SketchHistoryPanel = memo(function SketchHistoryPanel({
   if (rows.length === 0) {
     return (
       <Caption sx={{ px: 1.5, py: 1 }} data-testid="sketch-history-empty">
-        Your edits appear here.
+        {t("sketch:attrs.yourEditsAppearHere", { defaultValue: "Your edits appear here." })}
       </Caption>
     );
   }
 
   return (
     <ScrollArea ref={scrollRef} maxHeight={LIST_MAX_HEIGHT} data-testid="sketch-history-panel">
-      <FlexColumn role="list" aria-label="History" gap={0}>
+      <FlexColumn role="list" aria-label={t("sketch:attrs.history", { defaultValue: "History" })} gap={0}>
         {rows.map((row, i) => (
           <SelectableListItem
             key={row.index ?? "live"}

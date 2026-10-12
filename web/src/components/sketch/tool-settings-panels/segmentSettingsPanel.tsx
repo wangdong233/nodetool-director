@@ -321,7 +321,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
                 onClick={onClearPrompts}
                 sx={{ ...sketchButtonSmallSx, minWidth: "56px" }}
               >
-                Clear
+                {t("common:action.clear", { defaultValue: "Clear" })}
               </EditorButton>
             )}
           </>
@@ -354,7 +354,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
               onClick={onApplyResult}
               sx={{ ...sketchButtonSmallSx, minWidth: "56px" }}
             >
-              Apply
+              {t("common:action.apply", { defaultValue: "Apply" })}
             </EditorButton>
             <EditorButton
               size="small"
@@ -362,7 +362,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
               onClick={onDiscardResult}
               sx={{ ...sketchButtonSmallSx, minWidth: "56px" }}
             >
-              Discard
+              {t("sketch:attrs.discard", { defaultValue: "Discard" })}
             </EditorButton>
           </>
         )}

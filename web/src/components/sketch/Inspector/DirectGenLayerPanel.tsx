@@ -196,7 +196,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
             <>
               <MediaOptionChip
                 icon={<TuneIcon fontSize="small" />}
-                label={`Strength ${(binding.strength ?? DEFAULT_STRENGTH).toFixed(2)}`}
+                label={t("sketch:attrs.strengthValue", { defaultValue: "Strength {{v}}", v: (binding.strength ?? DEFAULT_STRENGTH).toFixed(2) })}
                 header={t("editor:ui.editStrength", { defaultValue: "Edit Strength" })}
                 value={binding.strength ?? DEFAULT_STRENGTH}
                 options={strengthOptions}
@@ -204,7 +204,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
               />
               <MediaOptionChip
                 icon={<LayersIcon fontSize="small" />}
-                label={`${binding.numInferenceSteps ?? DEFAULT_STEPS} steps`}
+                label={t("sketch:attrs.stepsValue", { defaultValue: "{{v}} steps", v: String(binding.numInferenceSteps ?? DEFAULT_STEPS) })}
                 header={t("editor:ui.inferenceSteps", { defaultValue: "Inference Steps" })}
                 value={binding.numInferenceSteps ?? DEFAULT_STEPS}
                 options={stepsOptions}
@@ -255,17 +255,24 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
             onClick={() => void start(layer.id)}
             data-testid="direct-gen-generate"
           >
-            {binding.currentAssetId ? "Regenerate" : "Generate"}
+            {binding.currentAssetId
+              ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })
+              : t("editor:ui.generate", { defaultValue: "Generate" })}
           </EditorButton>
         )}
         {binding.status === "failed" && (
           <Text size="small" sx={{ color: theme.vars.palette.error.main }}>
-            {failure ? describeDirectGenFailure(failure) : "Generation failed."}
+            {failure
+              ? describeDirectGenFailure(failure)
+              : t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}
           </Text>
         )}
         {binding.status === "generated" && binding.currentAssetId && (
           <Caption color="secondary">
-            Done. Asset {binding.currentAssetId.slice(0, 8)}.
+            {t("sketch:attrs.directGenDone", {
+              defaultValue: "Done. Asset {{id}}.",
+              id: binding.currentAssetId.slice(0, 8)
+            })}
           </Caption>
         )}
       </FlexColumn>
