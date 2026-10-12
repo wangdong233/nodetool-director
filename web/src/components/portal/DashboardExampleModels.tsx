@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAssetStore } from "../../stores/AssetStore";
 import {
   creationProjectId,
@@ -36,6 +37,7 @@ const exampleModelQueryKeys = {
 };
 
 const DashboardExampleModels = () => {
+  const { t } = useTranslation();
   const [pack, setPack] = useState(EXAMPLE_MODEL_PACKS[0].slug);
   const navigate = useNavigate();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
@@ -78,20 +80,26 @@ const DashboardExampleModels = () => {
   return (
     <FlexColumn
       component="section"
-      aria-label="Example 3D models"
+      aria-label={t("editor:ui.example3DModels", { defaultValue: "Example 3D models" })}
       gap={SPACING.xl}
       sx={{ p: SPACING.xxl }}
     >
       <FlexColumn gap={SPACING.xs}>
-        <Text size="big">Start from a 3D model</Text>
+        <Text size="big">{t("editor:ui.startFromA3DModel", { defaultValue: "Start from a 3D model" })}</Text>
         <Text color="secondary">
-          Open a low-poly game model in the 3D editor. Each opens as your own
-          editable copy in the current project.
+          {t("editor:ui.exampleModelsLede", {
+            defaultValue:
+              "Open a low-poly game model in the 3D editor. Each opens as your own editable copy in the current project."
+          })}
         </Text>
-        <Caption>glTF 2.0 · Meters, +Y up · No model or API key needed</Caption>
+        <Caption>
+          {t("editor:ui.exampleModelsMeta", {
+            defaultValue: "glTF 2.0 · Meters, +Y up · No model or API key needed"
+          })}
+        </Caption>
       </FlexColumn>
       <TabGroup
-        aria-label="Model packs"
+        aria-label={t("editor:ui.modelPacks", { defaultValue: "Model packs" })}
         tabs={EXAMPLE_MODEL_PACKS.map(({ slug, label }) => ({
           value: slug,
           label
@@ -103,7 +111,10 @@ const DashboardExampleModels = () => {
       <Card padding="none" variant="outlined" sx={{ overflow: "hidden" }}>
         <ResponsiveImage
           locator={exampleModelOverviewUri(pack)}
-          alt={`Every model in the ${packLabel} pack`}
+          alt={t("editor:ui.everyModelInThePackAria", {
+            defaultValue: "Every model in the {{pack}} pack",
+            pack: packLabel
+          })}
           aspectRatio="16 / 9"
           fit="contain"
           loading="lazy"
@@ -111,14 +122,14 @@ const DashboardExampleModels = () => {
       </Card>
       {catalog.isPending ? (
         <FlexColumn align="center" padding={PADDING.spacious}>
-          <LoadingSpinner size="medium" text="Loading models" />
+          <LoadingSpinner size="medium" text={t("editor:ui.loadingExampleModels", { defaultValue: "Loading models" })} />
         </FlexColumn>
       ) : catalog.isError ? (
         <EmptyState
           variant="error"
-          title="Couldn't load models"
-          description="Try again in a moment."
-          actionText="Retry"
+          title={t("editor:ui.couldntLoadModels", { defaultValue: "Couldn't load models" })}
+          description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })}
+          actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
           onAction={() => void catalog.refetch()}
         />
       ) : (
@@ -142,19 +153,24 @@ const DashboardExampleModels = () => {
                   <Text size="normal">{model.name}</Text>
                   <Text color="secondary">{model.use}</Text>
                   <Caption>
-                    {model.triangles.toLocaleString()} triangles
+                    {t("editor:ui.trianglesCount", {
+                      defaultValue: "{{count}} triangles",
+                      count: model.triangles.toLocaleString()
+                    })}
                     {model.clips.length > 0
                       ? ` · ${model.clips.join(", ")}`
                       : ""}
                   </Caption>
                   <EditorButton
                     disabled={install.isPending}
-                    aria-label={`Open ${model.name}`}
+                    aria-label={t("editor:ui.openNamedItem", { defaultValue: "Open {{name}}", name: model.name })}
                     aria-busy={opening}
                     onClick={() => install.mutate(model)}
                     sx={{ alignSelf: "flex-start", mt: "auto" }}
                   >
-                    {opening ? "Opening model…" : "Open model"}
+                    {opening
+                      ? t("editor:ui.openingModel", { defaultValue: "Opening model…" })
+                      : t("editor:ui.openModel", { defaultValue: "Open model" })}
                   </EditorButton>
                 </FlexColumn>
               </Card>

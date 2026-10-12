@@ -373,7 +373,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
             data-testid="sketch-gen-submit"
             sx={{ alignSelf: "flex-end", height: 34 }}
           >
-            Generate
+            {t("editor:ui.generate", { defaultValue: "Generate" })}
           </EditorButton>
         </FlexColumn>
       </Popover>

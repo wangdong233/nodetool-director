@@ -3,6 +3,7 @@ import { css } from "@emotion/react";
 import { useTheme, type Theme } from "@mui/material/styles";
 import { memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import type { ExampleTimelineSummary } from "@nodetool-ai/protocol/api-schemas/timeline.js";
 import { useExampleTimelines, useInstallExampleTimeline } from "../../hooks/useTimelineSequence";
 import { useResolvedMediaUri } from "../../hooks/useResolvedMediaUri";
@@ -63,18 +64,29 @@ interface TimelineCardProps {
 }
 
 const TimelineCard = memo(function TimelineCard({ timeline, installing, onInstall }: TimelineCardProps) {
+  const { t } = useTranslation();
   const poster = useResolvedMediaUri(timeline.posterUri);
   return (
     <article className="timeline-card">
       <div className="timeline-preview">
-        <VideoPlayer locator={timeline.videoUri} poster={poster} label={`${timeline.name} preview`} prominentPlay />
+        <VideoPlayer locator={timeline.videoUri} poster={poster} label={t("editor:ui.timelinePreviewAria", { defaultValue: "{{name}} preview", name: timeline.name })} prominentPlay />
       </div>
       <div className="timeline-body">
         <span className="timeline-name">{timeline.name}</span>
         <span className="timeline-description">{timeline.description}</span>
-        <span className="timeline-meta">{Math.round(timeline.durationMs / 1000)} seconds · {timeline.clipCount} editable clips · {timeline.fps} fps</span>
+        <span className="timeline-meta">
+          {t("editor:ui.timelineCardMeta", {
+            defaultValue:
+              "{{seconds}} seconds · {{clips}} editable clips · {{fps}} fps",
+            seconds: String(Math.round(timeline.durationMs / 1000)),
+            clips: String(timeline.clipCount),
+            fps: String(timeline.fps)
+          })}
+        </span>
         <button className="timeline-action" type="button" disabled={installing} onClick={() => onInstall(timeline)}>
-          {installing ? "Adding timeline…" : "Install timeline"}
+          {installing
+            ? t("editor:ui.addingTimeline", { defaultValue: "Adding timeline…" })
+            : t("editor:ui.installTimeline", { defaultValue: "Install timeline" })}
         </button>
       </div>
     </article>
@@ -82,6 +94,7 @@ const TimelineCard = memo(function TimelineCard({ timeline, installing, onInstal
 });
 
 const DashboardExampleTimelines = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const navigate = useNavigate();
@@ -98,23 +111,23 @@ const DashboardExampleTimelines = () => {
         navigate("/workspace");
       },
       onError: (error) => {
-        addNotification({ type: "error", alert: true, content: `Couldn't add ${timeline.name}: ${error.message}` });
+        addNotification({ type: "error", alert: true, content: t("editor:ui.couldntAddNameError", { defaultValue: "Couldn't add {{name}}: {{error}}", name: timeline.name, error: error.message }) });
       }
     });
-  }, [addNotification, install, navigate, openTab]);
+  }, [addNotification, install, navigate, openTab, t]);
 
   const timelines = data ?? [];
   return (
-    <section css={styles(theme)} aria-label="Example timelines">
+    <section css={styles(theme)} aria-label={t("editor:ui.exampleTimelines", { defaultValue: "Example timelines" })}>
       <div css={sectionWrap}>
-        <SectionHeader title="Start from a timeline" count={`${timelines.length} timelines`} />
-        <p className="timeline-lede">Watch a timeline directly, or install a copy to make your own version.</p>
+        <SectionHeader title={t("editor:ui.startFromATimeline", { defaultValue: "Start from a timeline" })} count={t("editor:ui.timelinesCount", { defaultValue: "{{count}} timelines", count: String(timelines.length) })} />
+        <p className="timeline-lede">{t("editor:ui.exampleTimelinesLede", { defaultValue: "Watch a timeline directly, or install a copy to make your own version." })}</p>
         {isLoading ? (
-          <div className="timeline-state"><LoadingSpinner size="medium" text="Loading timelines" /></div>
+          <div className="timeline-state"><LoadingSpinner size="medium" text={t("editor:ui.loadingTimelines", { defaultValue: "Loading timelines" })} /></div>
         ) : isError ? (
-          <div className="timeline-state"><EmptyState variant="error" title="Couldn't load timelines" description="Try again in a moment." actionText="Retry" onAction={() => refetch()} /></div>
+          <div className="timeline-state"><EmptyState variant="error" title={t("editor:ui.couldntLoadTimelines", { defaultValue: "Couldn't load timelines" })} description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })} actionText={t("editor:explorer.retry", { defaultValue: "Retry" })} onAction={() => refetch()} /></div>
         ) : timelines.length === 0 ? (
-          <div className="timeline-state"><EmptyState variant="no-data" title="No timelines available" description="Example timelines will appear here when this install ships them." /></div>
+          <div className="timeline-state"><EmptyState variant="no-data" title={t("editor:ui.noTimelinesAvailable", { defaultValue: "No timelines available" })} description={t("editor:ui.exampleTimelinesWillAppearHereWhenThisInstallShipsThem", { defaultValue: "Example timelines will appear here when this install ships them." })} /></div>
         ) : (
           <div className="timeline-grid">
             {timelines.map((timeline) => (

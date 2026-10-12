@@ -262,8 +262,8 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
               isActive
                 ? t("sketch:attrs.cancelGeneration", { defaultValue: "Cancel generation" })
                 : generatePending
-                  ? "Starting…"
-                  : "Generate layer from the bound workflow and overrides"
+                  ? t("timeline:attrs.starting", { defaultValue: "Starting…" })
+                  : t("sketch:attrs.generateLayerFromBoundWorkflow", { defaultValue: "Generate layer from the bound workflow and overrides" })
             }
             delay={TOOLTIP_ENTER_DELAY}
             placement="top"

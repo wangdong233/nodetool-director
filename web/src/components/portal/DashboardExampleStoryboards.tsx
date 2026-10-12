@@ -4,6 +4,7 @@ import { useTheme, type Theme } from "@mui/material/styles";
 import AutoStoriesOutlinedIcon from "@mui/icons-material/AutoStoriesOutlined";
 import { memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import type { ExampleStoryboardSummary } from "@nodetool-ai/protocol/api-schemas/storyboards.js";
 import { useExampleStoryboards, useInstallExampleStoryboard } from "../../hooks/storyboard/useStoryboards";
 import { useNotificationStore } from "../../stores/NotificationStore";
@@ -108,13 +109,17 @@ const StoryboardCard = memo(function StoryboardCard({
   installing,
   onInstall
 }: StoryboardCardProps) {
+  const { t } = useTranslation();
   const stills = storyboard.stillUrls;
   return (
     <button
       type="button"
       className={installing ? "board-card installing" : "board-card"}
       aria-busy={installing}
-      title={`Add ${storyboard.name} to your storyboards`}
+      title={t("editor:ui.addToYourStoryboardsAria", {
+        defaultValue: "Add {{name}} to your storyboards",
+        name: storyboard.name
+      })}
       onClick={() => onInstall(storyboard)}
     >
       <span className="board-hero" aria-hidden>
@@ -141,7 +146,10 @@ const StoryboardCard = memo(function StoryboardCard({
         <span className="board-name">{storyboard.name}</span>
         <span className="board-description">{storyboard.description}</span>
         <span className="board-meta">
-          {storyboard.shotCount} shot{storyboard.shotCount === 1 ? "" : "s"} · Stills included
+          {t("editor:ui.shotsAndStills", {
+            defaultValue: "{{count}} shots · Stills included",
+            count: String(storyboard.shotCount)
+          })}
         </span>
       </span>
     </button>
@@ -149,6 +157,7 @@ const StoryboardCard = memo(function StoryboardCard({
 });
 
 const DashboardExampleStoryboards = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const navigate = useNavigate();
@@ -177,32 +186,42 @@ const DashboardExampleStoryboards = () => {
             addNotification({
               type: "error",
               alert: true,
-              content: `Couldn't add ${storyboard.name}: ${error.message}`
+              content: t("editor:ui.couldntAddNameError", {
+                defaultValue: "Couldn't add {{name}}: {{error}}",
+                name: storyboard.name,
+                error: error.message
+              })
             });
           }
         }
       );
     },
-    [addNotification, install, navigate, openTab]
+    [addNotification, install, navigate, openTab, t]
   );
 
   const storyboards = data ?? [];
   return (
-    <section css={styles(theme)} aria-label="Example storyboards">
+    <section css={styles(theme)} aria-label={t("editor:ui.exampleStoryboards", { defaultValue: "Example storyboards" })}>
       <div css={sectionWrap}>
-        <SectionHeader title="Start from a storyboard" count={`${storyboards.length} boards`} />
+        <SectionHeader
+          title={t("editor:ui.startFromAStoryboard", { defaultValue: "Start from a storyboard" })}
+          count={t("editor:ui.boardsCount", { defaultValue: "{{count}} boards", count: String(storyboards.length) })}
+        />
         <p className="boards-lede">
-          Explore a shot sequence with rendered stills. Open a board to make your own copy.
+          {t("editor:ui.exampleStoryboardsLede", {
+            defaultValue:
+              "Explore a shot sequence with rendered stills. Open a board to make your own copy."
+          })}
         </p>
         {isLoading ? (
-          <div className="boards-state"><LoadingSpinner size="medium" text="Loading storyboards" /></div>
+          <div className="boards-state"><LoadingSpinner size="medium" text={t("editor:ui.loadingStoryboards", { defaultValue: "Loading storyboards" })} /></div>
         ) : isError ? (
           <div className="boards-state">
-            <EmptyState variant="error" title="Couldn't load storyboards" description="Try again in a moment." actionText="Retry" onAction={() => refetch()} />
+            <EmptyState variant="error" title={t("editor:ui.couldntLoadStoryboards", { defaultValue: "Couldn't load storyboards" })} description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })} actionText={t("editor:explorer.retry", { defaultValue: "Retry" })} onAction={() => refetch()} />
           </div>
         ) : storyboards.length === 0 ? (
           <div className="boards-state">
-            <EmptyState variant="no-data" title="No storyboards available" description="Example storyboards will appear here when this install ships them." />
+            <EmptyState variant="no-data" title={t("editor:ui.noStoryboardsAvailable", { defaultValue: "No storyboards available" })} description={t("editor:ui.exampleStoryboardsWillAppearHereWhenThisInstallShipsThem", { defaultValue: "Example storyboards will appear here when this install ships them." })} />
           </div>
         ) : (
           <div className="boards-grid">

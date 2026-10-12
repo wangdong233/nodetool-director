@@ -392,7 +392,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
               ) : null}
               {layer.alphaLock ? (
                 <Tooltip
-                  title={t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })}
+                  title={t("sketch:attrs.lockTransparency", { defaultValue: "Lock Transparency" })}
                   placement="top"
                   enterDelay={SKETCH_TOOLTIP_DELAY_MS}
                   enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -503,7 +503,11 @@ const LayerItem: React.FC<LayerItemProps> = ({
           <IconButton
             size="small"
             disableRipple
-            aria-label={`${layer.visible ? "Hide" : "Show"} ${layer.name}`}
+            aria-label={
+              layer.visible
+                ? t("sketch:attrs.hideLayerName", { defaultValue: "Hide {{name}}", name: layer.name })
+                : t("sketch:attrs.showLayerName", { defaultValue: "Show {{name}}", name: layer.name })
+            }
             onPointerDown={(e) =>
               onVisibilityButtonMouseDown(e, layer.id)
             }

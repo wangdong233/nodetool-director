@@ -147,7 +147,7 @@ const inputNamesFromGraph = (
 const formatRequiredModel = (model: ModelRequirement): string => {
   const provider = model.provider
     ? formatGenericProviderName(model.provider)
-    : "Unknown provider";
+    : i18n.t("editor:ui.unknownProvider", { defaultValue: "Unknown provider" });
   return `${provider} / ${model.id}`;
 };
 
@@ -279,6 +279,23 @@ interface CompatibilityDetailsProps {
   compatibility: EntryCompatibility;
 }
 
+/**
+ * `unknowns` carries English sentinel strings (the `startsWith` check below
+ * and any consumer comparing entries depend on them), so localization happens
+ * at render time through this closed map keyed by the exact English source.
+ */
+const COMPAT_UNKNOWN_KEYS: Record<string, string> = {
+  "No inputs are declared": "editor:ui.compatUnknownNoInputs",
+  "Input requirements are unknown": "editor:ui.compatUnknownInputReq",
+  "Which inputs are required is unknown": "editor:ui.compatUnknownWhichInputs",
+  "Provider/model requirements are unknown": "editor:ui.compatUnknownProviderModel",
+  "No model is selected; compatible options are shown only as guidance":
+    "editor:ui.compatUnknownNoModelSelected",
+  "A provider is not declared for one or more models": "editor:ui.compatUnknownNoProvider",
+  "Credential requirements are not declared": "editor:ui.compatUnknownCreds",
+  "Runtime requirements are unknown for some nodes": "editor:ui.compatUnknownRuntime"
+};
+
 export const CompatibilityDetails = ({
   compatibility
 }: CompatibilityDetailsProps): ReactNode => {
@@ -290,20 +307,20 @@ export const CompatibilityDetails = ({
     ? compatibility.inputs
         .map((input) =>
           input.required === true
-            ? `${input.name} (required)`
+            ? t("editor:ui.compatInputRequired", { defaultValue: "{{name}} (required)", name: input.name })
             : input.required === false
-              ? `${input.name} (optional)`
-              : `${input.name} (requirement unknown)`
+              ? t("editor:ui.compatInputOptional", { defaultValue: "{{name}} (optional)", name: input.name })
+              : t("editor:ui.compatInputRequirementUnknown", { defaultValue: "{{name}} (requirement unknown)", name: input.name })
         )
         .join(", ")
     : inputRequirementsUnknown
-      ? "Unknown"
+      ? t("editor:ui.unknown", { defaultValue: "Unknown" })
       : t("editor:ui.noneDeclared", { defaultValue: "None declared" });
   const modelLabel = compatibility.selectedModels.length
     ? compatibility.selectedModels.map(formatRequiredModel).join(", ")
     : compatibility.compatibleModels.length
       ? t("editor:ui.notSelectedSuffix", { v: compatibility.compatibleModels.map(formatRequiredModel).join(", ") })
-      : "Unknown";
+      : t("editor:ui.unknown", { defaultValue: "Unknown" });
   const providerLabel = compatibility.providers.length
     ? compatibility.providers.map(formatGenericProviderName).join(", ")
     : t("editor:ui.unknownProvider", { defaultValue: "Unknown provider" });
@@ -325,7 +342,14 @@ export const CompatibilityDetails = ({
         <span>{t("editor:ui.compatRuntime", { v: compatibility.requiredRuntimes.join(", ") })}</span>
       )}
       {compatibility.unknowns.map((unknown) => (
-        <span key={unknown}>{t("editor:ui.compatUnknown", { v: unknown })}</span>
+        <span key={unknown}>
+          {t(
+            COMPAT_UNKNOWN_KEYS[unknown] ?? "editor:ui.compatUnknown",
+            COMPAT_UNKNOWN_KEYS[unknown]
+              ? { defaultValue: unknown }
+              : { v: unknown }
+          )}
+        </span>
       ))}
     </span>
   );

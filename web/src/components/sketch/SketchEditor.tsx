@@ -467,7 +467,7 @@ function SketchEditor({
 
       <CollapsibleSection
         className="sketch-editor__history-section"
-        title={<InspectorSectionTitle title="History" />}
+        title={<InspectorSectionTitle title={t("sketch:attrs.history", { defaultValue: "History" })} />}
         defaultOpen={false}
         compact
         sx={sectionSx}

@@ -331,6 +331,7 @@ describe("catalog key parity (CI completeness guard)", () => {
         "nav:qa.",
         "home:entry.",
         "home:flowError.kind.",
+        "sketch:attrs.",
         "editor:nodeBody.items.",
         "editor:bottom.",
         "editor:ui.",

@@ -98,7 +98,7 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
           onClick={onApply}
           sx={{ ...sketchButtonSmallSx, flex: 1 }}
         >
-          Apply
+          {t("common:action.apply", { defaultValue: "Apply" })}
         </EditorButton>
         <EditorButton
           size="small"
@@ -122,6 +122,7 @@ export const MoveSettingsPanel = memo(function MoveSettingsPanel({
   autoSelect,
   onAutoSelectChange
 }: MoveSettingsPanelProps) {
+  const { t } = useTranslation();
   return (
     <FormControlLabel
       control={
@@ -136,7 +137,7 @@ export const MoveSettingsPanel = memo(function MoveSettingsPanel({
         <Text
           sx={{ ...TYPOGRAPHY.sans.label, userSelect: "none" }}
         >
-          Auto-Select
+          {t("sketch:attrs.autoSelect", { defaultValue: "Auto-Select" })}
         </Text>
       }
       sx={{ mr: 2, ml: 0 }}
@@ -186,7 +187,7 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
           <Text
             sx={{ ...TYPOGRAPHY.sans.label, userSelect: "none" }}
           >
-            Auto-Select
+            {t("sketch:attrs.autoSelect", { defaultValue: "Auto-Select" })}
           </Text>
         }
         sx={{ mr: 2, ml: 0 }}
@@ -286,8 +287,10 @@ export const CropSettingsPanel = memo(function CropSettingsPanel({
   return (
     <>
       <Text sx={{ ...sketchHintTextSx }}>
-        Drag to outline the crop. Drag edges or corners to adjust. Press Enter
-        or Apply to crop the canvas.
+        {t("sketch:attrs.cropHint", {
+          defaultValue:
+            "Drag to outline the crop. Drag edges or corners to adjust. Press Enter or Apply to crop the canvas."
+        })}
       </Text>
       <FlexRow sx={{ gap: getSpacingPx(SPACING.micro), ml: 1 }}>
         <ToolbarIconButton

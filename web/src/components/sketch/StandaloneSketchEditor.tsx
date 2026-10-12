@@ -221,7 +221,11 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
         <ListItemIcon>
           <SaveOutlinedIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>{saving ? "Saving…" : "Save"}</ListItemText>
+        <ListItemText>
+          {saving
+            ? t("editor:ui.saving", { defaultValue: "Saving…" })
+            : t("editor:ui.save", { defaultValue: "Save" })}
+        </ListItemText>
       </EditorMenuItem>,
       <EditorMenuItem
         key="save-as-asset"
@@ -236,7 +240,9 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
           <AddPhotoAlternateOutlinedIcon fontSize="small" />
         </ListItemIcon>
         <ListItemText>
-          {savingAsAsset ? "Saving…" : "Save as Asset"}
+          {savingAsAsset
+            ? t("editor:ui.saving", { defaultValue: "Saving…" })
+            : t("editor:ui.saveAsAsset", { defaultValue: "Save as Asset" })}
         </ListItemText>
       </EditorMenuItem>,
       <EditorMenuItem
@@ -264,7 +270,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
             <EmptyState
               variant="error"
               title={t("sketch:attrs.sketchDocumentNotFound", { defaultValue: "Sketch document not found" })}
-              description="The image document you requested does not exist or you do not have access to it."
+              description={t("sketch:attrs.imageDocumentUnavailable", { defaultValue: "The image document you requested does not exist or you do not have access to it." })}
             />
           </FlexColumn>
         );

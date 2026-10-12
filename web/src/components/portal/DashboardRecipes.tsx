@@ -242,7 +242,7 @@ const RecipeStepRow = memo(function RecipeStepRow({
       type="button"
       className={loading ? "rcp-step loading" : "rcp-step"}
       onClick={() => onOpen(slug, step)}
-      title={`Open ${step.example}`}
+      title={t("editor:ui.openNamedItem", { defaultValue: "Open {{name}}", name: step.example })}
     >
       <span className="rcp-index">
         {loading ? (
@@ -292,7 +292,11 @@ const RecipeAppRow = memo(function RecipeAppRow({
     <div className="rcp-app">
       <span className="rcp-text">
         <span className="rcp-app-name">
-          {app.name} — {app.operationCount} steps on one page
+          {t("editor:ui.appStepsOnOnePage", {
+            defaultValue: "{{name}} — {{count}} steps on one page",
+            name: app.name,
+            count: String(app.operationCount)
+          })}
         </span>
         <span className="rcp-app-role">{app.role}</span>
         <span className="rcp-models">
@@ -363,7 +367,9 @@ const RecipeCard = memo(function RecipeCard({
             disabled={installingPrimary}
             onClick={() => void installApp(primaryApp.slug)}
           >
-            {installingPrimary ? "Installing…" : `Install ${primaryApp.name}`}
+            {installingPrimary
+              ? t("editor:ui.installing", { defaultValue: "Installing…" })
+              : t("editor:ui.installNamedApp", { defaultValue: "Install {{name}}", name: primaryApp.name })}
           </button>
         )}
       </div>
@@ -384,8 +390,10 @@ const RecipeCard = memo(function RecipeCard({
             />
           ))}
           <p className="rcp-steps-lede">
-            The workflows behind those apps. Open one to change how a step
-            works, or add the whole chain as graphs.
+            {t("editor:ui.recipeStepsLede", {
+              defaultValue:
+                "The workflows behind those apps. Open one to change how a step works, or add the whole chain as graphs."
+            })}
           </p>
           {recipe.steps.map((step, index) => (
             <RecipeStepRow
@@ -404,7 +412,7 @@ const RecipeCard = memo(function RecipeCard({
             onClick={() => void addRecipe(recipe)}
           >
             {adding
-              ? "Adding…"
+              ? t("editor:ui.adding", { defaultValue: "Adding…" })
               : t("editor:ui.addAllNAsWorkflows", { n: recipe.steps.length })}
           </button>
           {recipe.caveats.map((caveat) => (
@@ -444,8 +452,10 @@ const DashboardRecipes: React.FC = () => {
       <div css={sectionWrap}>
         <SectionHeader title={t("editor:ui.recipes", { defaultValue: "Recipes" })} count={`${recipes.length}`} />
         <p className="rcp-lede">
-          Each one installs as an app that runs the whole chain, with the
-          example workflows behind it in your library to edit.
+          {t("editor:ui.recipesLede", {
+            defaultValue:
+              "Each one installs as an app that runs the whole chain, with the example workflows behind it in your library to edit."
+          })}
         </p>
         {isLoading ? (
           <div className="rcp-loading">
