@@ -17,7 +17,7 @@ links the artifact or the command that measures its current state. Pair with
 | Sketch tools | `sketch.json` | Brush/layer/tool chrome |
 | Mini-app builder | `appbuilder.json` | Puck field labels resolved from a localized config clone |
 | Settings & integrations | `settings.json`, `tools.json` | Env-var descriptions, provider cards, MCP section |
-| Navigation & pages | `nav.json`, `home.json` | Rail, tabs, page sidebar |
+| Navigation & pages | `nav.json`, `home.json` | Rail, tabs, page sidebar. `home.json` fully covers the redesigned home surface (composer pills, guided-flow cards + states, game-dimension select, blank-document footer, model notices, guided-flow error panel with per-kind noun keys, document-tree group labels via `labelKey`) |
 | Primitives / shared | `common.json`, `ui.json`, `ui2.json` | Action verbs, attrs, relative time |
 
 Every `t()` call carries `defaultValue: "<English>"`, so English renders with
@@ -30,7 +30,7 @@ or without a dictionary. Find unwired strings: `npm run i18n:audit`.
 | Node display names (incl. provider catalogs) | `nodes` + `nodes.__taskSuffixes` | node type / task phrase | `nodeDisplayName.ts` (direct hit, else suffix composition) |
 | Node documentation | `nodeDocs` | node type | `nodeDocs.ts` (parser-shaped mirror) |
 | Workflow template names & descriptions | `workflowTemplates` | template file id | `workflowTemplateCopy.ts` |
-| Shipped skill names & descriptions | `skills` | skill slug | render-time `t()` at list/viewer/tab sites |
+| Shipped skill names & descriptions | `skills` | skill slug | render-time `t()` at list/viewer/tab sites and the home surface's starter pills (`catalog:skills.<slug>.name/.description`, `starterLabel` as English fallback) |
 | Example apps / styles / example chips | `apps`, `styles`, `storyboardExamples`, `scriptInspirations`, `imageInspirations`, `imageUseCases`, `gameInspiration`, `workflowInspiration` | slug | render-time `t()` |
 | HuggingFace task names | `hfTask` | task id | `modelFormatting` |
 | Static tables (attrs/shortcuts/dataTypes/snippets) | same file | — | label-key indirection |
