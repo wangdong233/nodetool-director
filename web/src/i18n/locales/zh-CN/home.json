@@ -12,11 +12,35 @@
     "title": "你想做什么？",
     "subtitle": "智能体会规划文档，并在你眼前逐步搭建。所有产物保持可编辑。",
     "startGuided": "从引导流程开始",
-    "orDescribe": "或直接描述你想做什么",
+    "orDescribe": "从技能开始，或直接描述你想做什么。",
     "guidedFlowsLabel": "引导创作流程",
     "creating": "正在创建项目…",
     "creatingMeta": "创建中…",
-    "oneFlowStarting": "已有流程正在启动。"
+    "oneFlowStarting": "已有流程正在启动。",
+    "guidedLede": "每条流程只需几步，每步都以一个可继续编辑的文档收尾。",
+    "gameStartsAs": "游戏卡片初始为",
+    "gameDimension": "游戏维度",
+    "game2d": "2D 游戏",
+    "game3d": "3D 探索",
+    "fewerFormats": "收起格式",
+    "moreFormats": "更多格式",
+    "waitingUploads": "正在等待参考图上传完成。",
+    "creatingDraft": "正在创建草稿…"
+  },
+  "flowError": {
+    "title": "暂时还打不开",
+    "report": "报告问题",
+    "open": "打开你的{{kind}}",
+    "notOpened": "你的{{kind}}已就绪，但它的项目没有打开。",
+    "openedWithFailures": "已打开你的{{kind}}，但{{failures}}",
+    "kind": {
+      "entity": "实体",
+      "storyboard": "分镜",
+      "video": "视频",
+      "script": "剧本",
+      "workflow": "工作流",
+      "game": "游戏"
+    }
   },
   "entry": {
     "entity": {
@@ -45,7 +69,8 @@
     },
     "game": {
       "title": "游戏",
-      "desc": "从一句话到可运行的 Godot 项目，素材齐备。"
+      "desc": "从一句话到可运行的 Godot 项目，素材齐备。",
+      "desc3d": "从内置引擎中一个可游玩的 3D 探索场景开始。"
     }
   },
   "composer": {
@@ -61,7 +86,8 @@
     "skillGroup": "从技能开始",
     "showFewer": "收起",
     "moreCount": "还有{{count}}个",
-    "removeFile": "移除{{name}}"
+    "removeFile": "移除{{name}}",
+    "estimate": "预估 ${{min}}–${{max}} · 来自 {{count}} 个历史项目 · 按服务商费率，无加价"
   },
   "docs": {
     "title": "文档 ·{{count}}",
@@ -87,6 +113,14 @@
   "notices": {
     "checkingModels": "仍在检查语言模型，请稍后再试。",
     "needModel": "就差一步——对话需要先选定模型。",
-    "noModelSelected": "未选择模型。请先在此选择语言模型再打开对话。"
+    "noModelSelected": "未选择模型。请先在此选择语言模型再打开对话。",
+    "pickModel": "选择一个语言模型，对话随即开始。"
+  },
+  "entitiesPickerTitle": "此项目的实体",
+  "blank": {
+    "title": "空白文档",
+    "lede": "——作为独立标签页打开，不归属于任何项目",
+    "browseExamples": "浏览示例",
+    "tutorials": "教程"
   }
 }
