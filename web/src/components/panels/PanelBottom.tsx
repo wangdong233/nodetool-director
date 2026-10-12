@@ -373,8 +373,10 @@ const TabButton = memo(function TabButton({
   count,
   onClick
 }: TabButtonProps) {
+  const { t } = useTranslation();
+  const label = t(`editor:bottom.${spec.id}`, { defaultValue: spec.label });
   return (
-    <Tooltip title={spec.label} placement="top" delay={TOOLTIP_ENTER_DELAY}>
+    <Tooltip title={label} placement="top" delay={TOOLTIP_ENTER_DELAY}>
       <button
         type="button"
         role="tab"
@@ -383,7 +385,7 @@ const TabButton = memo(function TabButton({
         onClick={onClick}
       >
         {spec.icon}
-        <span>{spec.label}</span>
+        <span>{label}</span>
         {count !== undefined && count > 0 && (
           <span className="tab-count">{count}</span>
         )}
@@ -453,7 +455,7 @@ export const PanelBodyContent = memo(function PanelBodyContent({
           fullHeight
           sx={{ overflow: "hidden" }}
         >
-          <PanelHeader title="Queue" docsTopic="debugging" />
+          <PanelHeader title={t("editor:bottom.queue", { defaultValue: "Queue" })} docsTopic="debugging" />
           <FlexColumn
             fullWidth
             sx={{
@@ -478,8 +480,13 @@ export const PanelBodyContent = memo(function PanelBodyContent({
         />
       ) : (
         <EmptyState
-          title="Select a workflow to view its versions"
-          description="Versions follows the selected workflow tab. Open a workflow or select one of your workflow tabs."
+          title={t("editor:ui.selectAWorkflowToViewItsVersions", {
+            defaultValue: "Select a workflow to view its versions"
+          })}
+          description={t("editor:ui.versionsFollowsTheSelectedWorkflowTab", {
+            defaultValue:
+              "Versions follows the selected workflow tab. Open a workflow or select one of your workflow tabs."
+          })}
         />
       );
     case "trace":

@@ -90,7 +90,7 @@ const kindLabel = (kind: string): string =>
   KIND_LABELS[kind] ? i18n.t(KIND_LABEL_KEYS[kind] ?? kind, { defaultValue: KIND_LABELS[kind] }) : kind;
 
 const formatLastFired = (iso: string | null): string => {
-  if (!iso) return "Never";
+  if (!iso) return i18n.t("editor:ui.neverFired", { defaultValue: "Never" });
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
   return date.toLocaleString();
@@ -400,10 +400,10 @@ const TriggerActivationButton: React.FC = () => {
                       }
                       label={
                         reg?.enabled
-                          ? "Active"
+                          ? t("editor:ui.active", { defaultValue: "Active" })
                           : stoppedBecause
-                            ? "Stopped"
-                            : "Inactive"
+                            ? t("editor:ui.stopped", { defaultValue: "Stopped" })
+                            : t("editor:ui.inactive", { defaultValue: "Inactive" })
                       }
                       size="small"
                     />
@@ -425,7 +425,10 @@ const TriggerActivationButton: React.FC = () => {
                   {schedule && <Caption>{schedule}</Caption>}
                   {!isLoading && !isError && (
                     <Caption>
-                      Last fired: {formatLastFired(reg?.last_fired_at ?? null)}
+                      {t("editor:ui.lastFired", {
+                        defaultValue: "Last fired: {{time}}",
+                        time: formatLastFired(reg?.last_fired_at ?? null)
+                      })}
                     </Caption>
                   )}
                   {stoppedBecause && (

@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import StopIcon from "@mui/icons-material/Stop";
@@ -28,6 +29,7 @@ const formatSeconds = (seconds: number): string => seconds.toFixed(2);
  * object to the pose it had before playback, which is the pose that is saved.
  */
 const AnimationBar = ({ preview, onActiveChange, className }: AnimationBarProps) => {
+  const { t } = useTranslation();
   const [clipIndex, setClipIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
@@ -113,20 +115,24 @@ const AnimationBar = ({ preview, onActiveChange, className }: AnimationBarProps)
       <MovieOutlinedIcon fontSize="small" color="action" />
       <ToolbarIconButton
         icon={playing ? <PauseIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
-        tooltip={playing ? "Pause animation" : "Play animation"}
+        tooltip={playing
+          ? t("editor:ui.pauseAnimation", { defaultValue: "Pause animation" })
+          : t("editor:ui.playAnimation", { defaultValue: "Play animation" })}
         onClick={togglePlay}
         size="small"
       />
       <ToolbarIconButton
         icon={<StopIcon fontSize="small" />}
-        tooltip="Stop and return to the rest pose"
+        tooltip={t("editor:ui.stopAndReturnToTheRestPose", {
+          defaultValue: "Stop and return to the rest pose"
+        })}
         onClick={stop}
         disabled={!active}
         size="small"
       />
       {preview.clips.length > 1 ? (
         <SelectField
-          label="Clip"
+          label={t("editor:ui.clip", { defaultValue: "Clip" })}
           hideLabel
           size="small"
           appearance="inspector"
@@ -134,15 +140,17 @@ const AnimationBar = ({ preview, onActiveChange, className }: AnimationBarProps)
           onChange={changeClip}
           options={preview.clips.map((c, i) => ({
             value: String(i),
-            label: c.name || `Clip ${i + 1}`
+            label: c.name || t("editor:ui.clipIndex", { defaultValue: "Clip {{index}}", index: i + 1 })
           }))}
         />
       ) : (
-        <Caption>{clip?.name || "Animation"}</Caption>
+        <Caption>
+          {clip?.name || t("editor:ui.animation", { defaultValue: "Animation" })}
+        </Caption>
       )}
       <Slider
         density="compact"
-        aria-label="Animation time"
+        aria-label={t("editor:ui.animationTime", { defaultValue: "Animation time" })}
         min={0}
         max={duration || 1}
         step={0.01}

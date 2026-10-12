@@ -434,10 +434,16 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
     hasApp,
     isPending: isAppPending
   } = useWorkflowApp();
-  const appActionLabel = hasApp ? "Open app" : "Make app";
+  const appActionLabel = hasApp
+    ? t("editor:ui.openApp", { defaultValue: "Open app" })
+    : t("editor:ui.makeApp", { defaultValue: "Make app" });
   const appActionTooltip = hasApp
-    ? "Open the app that runs this workflow"
-    : "Make an app from this workflow, with a field for each input";
+    ? t("editor:ui.openTheAppThatRunsThisWorkflow", {
+        defaultValue: "Open the app that runs this workflow"
+      })
+    : t("editor:ui.makeAnAppFromThisWorkflowWithAFieldForEachInput", {
+        defaultValue: "Make an app from this workflow, with a field for each input"
+      });
 
   const { bottomPanelVisible, bottomPanelSize } = useBottomPanelStore(
     useShallow((state) => ({
@@ -744,11 +750,17 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
   });
 
   const runAriaLabel = isStopping
-    ? "Stopping workflow"
+    ? t("editor:ui.stoppingWorkflow", { defaultValue: "Stopping workflow" })
     : runControlLabel.startsWith("Error")
-      ? `${runControlLabel}. Retry the entire workflow`
+      ? t("editor:ui.retryEntireWorkflow", {
+          defaultValue: "{{label}}. Retry the entire workflow",
+          label: runControlLabel
+        })
       : isWorkflowActive
-        ? `${runControlLabel}. Queue another entire workflow run`
+        ? t("editor:ui.queueAnotherEntireWorkflowRunAria", {
+            defaultValue: "{{label}}. Queue another entire workflow run",
+            label: runControlLabel
+          })
         : runControlLabel;
 
   // The workflow toolbar: the composer's second row. Canvas tools sit on the
@@ -767,7 +779,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
               type="button"
               className="composer-action"
               onClick={handleToggleNodeMenu}
-              aria-label="Add node"
+              aria-label={t("editor:ui.addNode", { defaultValue: "Add node" })}
             >
               <AddCircleIcon />
             </button>
@@ -775,7 +787,11 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         )}
 
         <Tooltip
-          title={conversationOpen ? "Hide conversation" : "Show conversation"}
+          title={
+            conversationOpen
+              ? t("editor:ui.hideConversation", { defaultValue: "Hide conversation" })
+              : t("editor:ui.showConversation", { defaultValue: "Show conversation" })
+          }
           placement="top"
           delay={TOOLTIP_ENTER_DELAY}
         >
@@ -783,7 +799,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
             type="button"
             className={cn("composer-convo", conversationOpen && "active")}
             onClick={toggleConversation}
-            aria-label="Toggle conversation"
+            aria-label={t("editor:ui.toggleConversation", { defaultValue: "Toggle conversation" })}
             aria-pressed={conversationOpen}
           >
             <ForumOutlinedIcon />
@@ -807,7 +823,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
               type="button"
               className="composer-action"
               onClick={handleAutoLayout}
-              aria-label="Auto layout"
+              aria-label={t("editor:ui.autoLayout", { defaultValue: "Auto layout" })}
             >
               <LayoutIcon />
             </button>
@@ -815,12 +831,16 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         )}
 
         {!isMobile && (
-          <Tooltip title="Save" placement="top" delay={TOOLTIP_ENTER_DELAY}>
+          <Tooltip
+            title={t("editor:ui.save", { defaultValue: "Save" })}
+            placement="top"
+            delay={TOOLTIP_ENTER_DELAY}
+          >
             <button
               type="button"
               className="composer-action"
               onClick={handleSave}
-              aria-label="Save workflow"
+              aria-label={t("editor:ui.saveWorkflow", { defaultValue: "Save workflow" })}
             >
               <SaveIcon />
             </button>
@@ -861,7 +881,11 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
               type="button"
               className="composer-stop"
               onClick={handleStop}
-              aria-label={isStopping ? "Stopping workflow" : "Stop workflow"}
+              aria-label={
+                isStopping
+                  ? t("editor:ui.stoppingWorkflow", { defaultValue: "Stopping workflow" })
+                  : t("editor:ui.stopWorkflow", { defaultValue: "Stop workflow" })
+              }
               disabled={isStopping}
             >
               <StopIcon />
@@ -895,7 +919,11 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         </Tooltip>
 
         <Tooltip
-          title={composerCollapsed ? "Show prompt" : "Hide prompt"}
+          title={
+            composerCollapsed
+              ? t("editor:ui.showPrompt", { defaultValue: "Show prompt" })
+              : t("editor:ui.hidePrompt", { defaultValue: "Hide prompt" })
+          }
           placement="top"
           delay={TOOLTIP_ENTER_DELAY}
         >
@@ -903,7 +931,11 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
             type="button"
             className="composer-action composer-collapse"
             onClick={handleToggleComposer}
-            aria-label={composerCollapsed ? "Show prompt" : "Hide prompt"}
+            aria-label={
+              composerCollapsed
+                ? t("editor:ui.showPrompt", { defaultValue: "Show prompt" })
+                : t("editor:ui.hidePrompt", { defaultValue: "Hide prompt" })
+            }
             aria-expanded={!composerCollapsed}
           >
             {composerCollapsed ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -911,7 +943,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         </Tooltip>
 
         <Tooltip
-          title="Workflow actions"
+          title={t("editor:ui.workflowActions", { defaultValue: "Workflow actions" })}
           placement="top"
           delay={TOOLTIP_ENTER_DELAY}
         >
@@ -919,7 +951,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
             type="button"
             className={cn("composer-menu", actionsMenuAnchor && "active")}
             onClick={handleOpenActionsMenu}
-            aria-label="Workflow actions"
+            aria-label={t("editor:ui.workflowActions", { defaultValue: "Workflow actions" })}
             aria-haspopup="menu"
             aria-expanded={Boolean(actionsMenuAnchor)}
           >
@@ -981,7 +1013,11 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         paperSx={{ minWidth: "220px", maxWidth: "280px" }}
       >
         <MenuItemPrimitive
-          label={editorViewMode === "graph" ? "Chain View" : "Graph View"}
+          label={
+            editorViewMode === "graph"
+              ? t("editor:ui.chainView", { defaultValue: "Chain View" })
+              : t("editor:ui.graphView", { defaultValue: "Graph View" })
+          }
           icon={
             editorViewMode === "graph" ? (
               <LinearScaleIcon fontSize="small" />
@@ -994,12 +1030,16 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         <MenuItemPrimitive
           label={t("editor:ui.instantUpdate", { defaultValue: "Instant Update" })}
           icon={<BoltIcon fontSize="small" />}
-          secondary={instantUpdate ? "On" : "Off"}
+          secondary={
+            instantUpdate
+              ? t("editor:ui.on", { defaultValue: "On" })
+              : t("editor:ui.off", { defaultValue: "Off" })
+          }
           onClick={runWithClose(handleToggleInstantUpdate)}
         />
         {isRunningish && (
           <MenuItemPrimitive
-            label="Stop"
+            label={t("editor:ui.stop", { defaultValue: "Stop" })}
             icon={<StopIcon fontSize="small" />}
             onClick={runWithClose(handleStop)}
           />
@@ -1013,7 +1053,7 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         )}
         {isMobile && (
           <MenuItemPrimitive
-            label="Save"
+            label={t("editor:ui.save", { defaultValue: "Save" })}
             icon={<SaveIcon fontSize="small" />}
             onClick={runWithClose(handleSave)}
           />
@@ -1027,7 +1067,11 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
         <MenuItemPrimitive
           label={t("editor:ui.miniMap", { defaultValue: "Mini Map" })}
           icon={<MapIcon fontSize="small" />}
-          secondary={isMiniMapVisible ? "Visible" : "Hidden"}
+          secondary={
+            isMiniMapVisible
+              ? t("editor:ui.visible", { defaultValue: "Visible" })
+              : t("editor:ui.hidden", { defaultValue: "Hidden" })
+          }
           onClick={runWithClose(handleToggleMiniMap)}
         />
         <MenuItemPrimitive

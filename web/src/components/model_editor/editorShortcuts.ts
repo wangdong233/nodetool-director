@@ -4,6 +4,7 @@
  * bindings. `keys` are display labels; `combos` are the dispatcher strings
  * (lower-case keys, sorted, joined with "+").
  */
+import { i18n } from "../../i18n";
 
 export type EditorAction =
   | "undo"
@@ -73,6 +74,14 @@ export const EDITOR_SHORTCUTS: readonly EditorShortcut[] = [
 ];
 
 const BY_ACTION = new Map(EDITOR_SHORTCUTS.map((s) => [s.action, s]));
+
+/** Localized label for a shortcut, keyed by its stable action id. */
+export const shortcutLabel = (shortcut: EditorShortcut): string =>
+  i18n.t(`editor:ui.sc.${shortcut.action}`, { defaultValue: shortcut.label });
+
+/** Localized heading for a shortcut group. */
+export const shortcutGroupLabel = (group: EditorShortcut["group"]): string =>
+  i18n.t(`editor:ui.scGroup.${group}`, { defaultValue: group });
 
 /** Display keys for an action, for tooltips: `shortcutKeys("undo")` → ["Ctrl","Z"]. */
 export const shortcutKeys = (action: EditorAction): string[] =>

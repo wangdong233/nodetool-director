@@ -523,7 +523,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeader
-              title="Chats"
+              title={t("nav:tabs.chats", { defaultValue: "Chats" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
             />
@@ -607,7 +607,10 @@ const PanelContent = memo(function PanelContent({
               description={headlineDescription}
               actions={
                 <>
-                  <Tooltip title="Open in full page" placement="right-start">
+                  <Tooltip
+                    title={t("editor:ui.openInFullPage", { defaultValue: "Open in full page" })}
+                    placement="right-start"
+                  >
                     <ToolbarIconButton
                       onClick={handleEntitiesFullscreenClick}
                       tabIndex={-1}
@@ -693,7 +696,7 @@ const PanelContent = memo(function PanelContent({
         >
           {!isMobile && (
             <PanelHeader
-              title="Apps"
+              title={t("nav:qa.apps.label", { defaultValue: "Apps" })}
               docsTopic={activeCategory.docsTopic}
               description={headlineDescription}
               actions={
@@ -907,7 +910,6 @@ const MobilePanelLeft: React.FC<{
 
   const handleSheetViewChange = useCallback(
     (view: LeftPanelView) => {
-  const { t } = useTranslation();
       onViewChange(view);
     },
     [onViewChange]

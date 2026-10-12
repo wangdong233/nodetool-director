@@ -5,6 +5,7 @@ import type { GetRunResult, GetRunTraceResult, RunLog, RunLogsOptions, RunReader
 import useTraceStore, { type RunInspectionView } from "../../stores/TraceStore";
 import { useRun, useRunLiveUpdates, useRunLogs, useRuns, useRunTrace } from "../../serverState/useRuns";
 import { workflowQueryKey } from "../../serverState/useWorkflow";
+import { i18n } from "../../i18n";
 import {
   AlertBanner, Autocomplete, BORDER_RADIUS, Box, Caption, Checkbox, CONTROL, CopyButton, EditorButton, EmptyState,
   FlexColumn, FlexRow, Label, LoadingSpinner, ScrollArea, SelectField, SPACING, StatusPill, Text, TextInput, TYPOGRAPHY,
@@ -35,12 +36,30 @@ interface SpanLaneProps {
 }
 
 function ContentStatus({ flags, limited }: ContentStatusProps): React.ReactElement | null {
+  const { t } = useTranslation();
   const notices = [
-    flags.content_expired ? "Run content expired." : null,
-    flags.content_state === "public" ? "Visitor run. Content was not recorded." : null,
-    flags.truncated ? "Recording was truncated at the run limit." : null,
-    flags.incomplete ? "The trace is incomplete." : null,
-    limited ? "Showing a bounded portion. Focus a span or narrow the filters to inspect more." : null
+    flags.content_expired
+      ? t("editor:ui.runContentExpired", { defaultValue: "Run content expired." })
+      : null,
+    flags.content_state === "public"
+      ? t("editor:ui.visitorRunContentNotRecorded", {
+          defaultValue: "Visitor run. Content was not recorded."
+        })
+      : null,
+    flags.truncated
+      ? t("editor:ui.recordingTruncatedAtRunLimit", {
+          defaultValue: "Recording was truncated at the run limit."
+        })
+      : null,
+    flags.incomplete
+      ? t("editor:ui.traceIncomplete", { defaultValue: "The trace is incomplete." })
+      : null,
+    limited
+      ? t("editor:ui.showingABoundedPortion", {
+          defaultValue:
+            "Showing a bounded portion. Focus a span or narrow the filters to inspect more."
+        })
+      : null
   ].filter(Boolean);
   return notices.length ? <Caption role="status">{notices.join(" ")}</Caption> : null;
 }
@@ -74,15 +93,37 @@ function formatDuration(ms: number): string {
   return `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s`;
 }
 
-const STATUS_DISPLAY: Record<SpanStatusCode, { tone: StatusPillTone; label: string; hint: string }> = {
-  OK: { tone: "done", label: "ok", hint: "The span ended with status OK." },
-  ERROR: { tone: "failed", label: "error", hint: "The span ended with status ERROR." },
-  UNSET: { tone: "neutral", label: "unset", hint: "The span ended without an explicit status. OpenTelemetry treats this as success." }
+const STATUS_DISPLAY: Record<SpanStatusCode, { tone: StatusPillTone; label: string; hintKey: string; hint: string }> = {
+  OK: {
+    tone: "done",
+    label: "ok",
+    hintKey: "editor:ui.spanEndedOk",
+    hint: "The span ended with status OK."
+  },
+  ERROR: {
+    tone: "failed",
+    label: "error",
+    hintKey: "editor:ui.spanEndedError",
+    hint: "The span ended with status ERROR."
+  },
+  UNSET: {
+    tone: "neutral",
+    label: "unset",
+    hintKey: "editor:ui.spanEndedUnset",
+    hint: "The span ended without an explicit status. OpenTelemetry treats this as success."
+  }
 };
 
 function SpanStatus({ code, message }: SpanStatusProps): React.ReactElement {
+  const { t } = useTranslation();
   const status = STATUS_DISPLAY[code];
-  return <Tooltip title={message || status.hint}><span><StatusPill tone={status.tone}>{status.label}</StatusPill></span></Tooltip>;
+  return (
+    <Tooltip title={message || t(status.hintKey, { defaultValue: status.hint })}>
+      <span>
+        <StatusPill tone={status.tone}>{status.label}</StatusPill>
+      </span>
+    </Tooltip>
+  );
 }
 
 // Spans record failures as a status message, an OpenTelemetry exception event, or an error attribute.
@@ -97,8 +138,11 @@ function formatValue(value: unknown): string {
 }
 
 function AttributeList({ attributes }: AttributeListProps): React.ReactElement {
+  const { t } = useTranslation();
   const entries = Object.entries(attributes).sort(([a], [b]) => a.localeCompare(b));
-  if (entries.length === 0) { return <Caption color="muted">None recorded.</Caption>; }
+  if (entries.length === 0) {
+    return <Caption color="muted">{t("editor:ui.noneRecorded", { defaultValue: "None recorded." })}</Caption>;
+  }
   return <Box component="dl" sx={{ display: "grid", gridTemplateColumns: "fit-content(40%) minmax(0, 1fr)", columnGap: SPACING.xl, rowGap: SPACING.xs, alignItems: "baseline", m: 0 }}>
     {entries.map(([key, value]) => <Box key={key} sx={{ display: "contents" }}>
       <Text component="dt" sx={{ ...TYPOGRAPHY.mono.code, color: "text.secondary", overflowWrap: "anywhere" }}>{key}</Text>
@@ -108,22 +152,29 @@ function AttributeList({ attributes }: AttributeListProps): React.ReactElement {
 }
 
 function SpanDetails({ record, runStart }: SpanDetailsProps): React.ReactElement {
+  const { t } = useTranslation();
   const error = spanError(record);
   const cost = record.attributes["gen_ai.usage.cost_usd"];
   return <FlexColumn gap={SPACING.md}>
     <FlexRow gap={SPACING.md} sx={{ alignItems: "center", flexWrap: "wrap" }}>
       <SpanStatus code={record.status.code} message={error} />
       <Caption sx={{ fontVariantNumeric: "tabular-nums" }}>
-        {formatDuration(record.duration_ms)} · starts at +{formatDuration(Math.max(0, record.start_time_ms - runStart))}{typeof cost === "number" ? ` · $${cost.toFixed(4)}` : ""}
+        {formatDuration(record.duration_ms)} · {t("editor:ui.spanStartsAt", {
+          defaultValue: "starts at +{{offset}}",
+          offset: formatDuration(Math.max(0, record.start_time_ms - runStart))
+        })}{typeof cost === "number" ? ` · $${cost.toFixed(4)}` : ""}
       </Caption>
       <Caption color="muted" sx={TYPOGRAPHY.mono.code}>{record.span_id}</Caption>
-      <CopyButton value={JSON.stringify(record, null, 2)} tooltip="Copy span as JSON" />
+      <CopyButton
+        value={JSON.stringify(record, null, 2)}
+        tooltip={t("editor:ui.copySpanAsJSON", { defaultValue: "Copy span as JSON" })}
+      />
     </FlexRow>
     {error && <AlertBanner severity="error" compact>{error}</AlertBanner>}
-    <Label>Attributes</Label>
+    <Label>{t("editor:ui.attributes", { defaultValue: "Attributes" })}</Label>
     <AttributeList attributes={record.attributes} />
     {record.events.length > 0 && <>
-      <Label>Events · {record.events.length}</Label>
+      <Label>{t("editor:ui.eventsCount", { defaultValue: "Events · {{count}}", count: record.events.length })}</Label>
       {record.events.map((event, index) => <FlexColumn key={event.id ?? index} gap={SPACING.xs}>
         <Caption sx={{ fontVariantNumeric: "tabular-nums" }}>+{formatDuration(Math.max(0, event.time_ms - record.start_time_ms))} · {event.name}</Caption>
         {event.attributes && <AttributeList attributes={event.attributes} />}
@@ -133,6 +184,7 @@ function SpanDetails({ record, runStart }: SpanDetailsProps): React.ReactElement
 }
 
 function SpanLane({ label, nodes, focusedSpanId, onFocus, start, duration }: SpanLaneProps): React.ReactElement {
+  const { t } = useTranslation();
   const theme = useTheme();
   // A lane is as tall as its rows, up to the space available, so a one-span browser lane does not take half the panel.
   // Lanes shrink to three rows before they scroll, so a second lane or the details pane never overlaps them.
@@ -143,8 +195,8 @@ function SpanLane({ label, nodes, focusedSpanId, onFocus, start, duration }: Spa
   }}>
     <Box sx={{ display: "grid", gridTemplateColumns: spanGrid(theme), columnGap: SPACING.lg, alignItems: "center", height: LANE_HEADER_HEIGHT, flexShrink: 0, px: SPACING.sm }}>
       <Label sx={{ pl: SPACING.xs }}>{label} · {nodes.length}</Label>
-      <Caption color="muted">Status</Caption>
-      <Caption color="muted" sx={{ textAlign: "right" }}>Duration</Caption>
+      <Caption color="muted">{t("editor:ui.status", { defaultValue: "Status" })}</Caption>
+      <Caption color="muted" sx={{ textAlign: "right" }}>{t("editor:ui.duration", { defaultValue: "Duration" })}</Caption>
       <FlexRow sx={{ justifyContent: "space-between" }}>
         <Caption color="muted">0</Caption>
         <Caption color="muted">{formatDuration(duration)}</Caption>
@@ -171,7 +223,11 @@ function SpanLane({ label, nodes, focusedSpanId, onFocus, start, duration }: Spa
             <EditorButton
               size="small" variant="text"
               aria-pressed={focused}
-              aria-label={`Inspect span ${record.name} ${record.span_id}`}
+              aria-label={t("editor:ui.inspectSpan", {
+                defaultValue: "Inspect span {{name}} {{id}}",
+                name: record.name,
+                id: record.span_id
+              })}
               title={record.name}
               onClick={() => onFocus(record.span_id)}
               sx={{ minWidth: 0, maxWidth: "100%", justifyContent: "flex-start", textTransform: "none", px: SPACING.xs,
@@ -183,7 +239,12 @@ function SpanLane({ label, nodes, focusedSpanId, onFocus, start, duration }: Spa
             {formatDuration(record.duration_ms)}{typeof cost === "number" ? ` · $${cost.toFixed(4)}` : ""}
           </Caption>
           <Box sx={{ minWidth: theme.spacing(SPACING.xxxl), position: "relative", height: theme.spacing(SPACING.sm), borderRadius: BORDER_RADIUS.xs, bgcolor: "action.hover" }}>
-            <Box role="img" aria-label={`${record.name} timeline: ${Math.max(0, record.start_time_ms - start).toFixed(1)} ms from start, ${record.duration_ms.toFixed(1)} ms duration`}
+            <Box role="img" aria-label={t("editor:ui.spanTimelineAria", {
+              defaultValue: "{{name}} timeline: {{start}} ms from start, {{duration}} ms duration",
+              name: record.name,
+              start: Math.max(0, record.start_time_ms - start).toFixed(1),
+              duration: record.duration_ms.toFixed(1)
+            })}
               sx={{ position: "absolute", left: `${offset}%`, width: `${width}%`, minWidth: theme.spacing(SPACING.micro), height: "100%", borderRadius: BORDER_RADIUS.xs, bgcolor: barColor }} />
           </Box>
         </Box>;
@@ -210,6 +271,7 @@ function SplitView({ detailsOpen, details, children }: SplitViewProps): React.Re
 }
 
 function TraceView({ runId, focusedSpanId, onFocus }: RunViewProps): React.ReactElement {
+  const { t } = useTranslation();
   const [errorsOnly, setErrorsOnly] = useState(false);
   const [depth, setDepth] = useState("64");
   const [name, setName] = useState("");
@@ -231,25 +293,52 @@ function TraceView({ runId, focusedSpanId, onFocus }: RunViewProps): React.React
   return <FlexColumn gap={SPACING.md} sx={{ flex: 1, minHeight: 0 }}>
     <FlexRow gap={SPACING.lg} sx={{ alignItems: "flex-end", flexWrap: "wrap" }}>
       <Box sx={{ width: (theme) => theme.spacing(SPACING.xxxl * 4) }}>
-        <SelectField label="Trace depth" size="small" value={depth} onChange={setDepth} options={[{ value: "4", label: "4 levels" }, { value: "16", label: "16 levels" }, { value: "64", label: "All levels" }]} />
+        <SelectField
+          label={t("editor:ui.traceDepth", { defaultValue: "Trace depth" })}
+          size="small"
+          value={depth}
+          onChange={setDepth}
+          options={[
+            { value: "4", label: t("editor:ui.nLevels", { defaultValue: "{{count}} levels", count: 4 }) },
+            { value: "16", label: t("editor:ui.nLevels", { defaultValue: "{{count}} levels", count: 16 }) },
+            { value: "64", label: t("editor:ui.allLevels", { defaultValue: "All levels" }) }
+          ]}
+        />
       </Box>
       <Box sx={{ flex: "1 1 auto", minWidth: (theme) => theme.spacing(SPACING.xxxl * 6), maxWidth: (theme) => theme.spacing(SPACING.xxxl * 12) }}>
-        <TextInput label="Span name" size="small" fullWidth value={name} onChange={(event) => setName(event.target.value.slice(0, 200))} />
+        <TextInput
+          label={t("editor:ui.spanName", { defaultValue: "Span name" })}
+          size="small"
+          fullWidth
+          value={name}
+          onChange={(event) => setName(event.target.value.slice(0, 200))}
+        />
       </Box>
       <Box sx={{ width: (theme) => theme.spacing(SPACING.xxxl * 8), maxWidth: "100%" }}>
-        <SpanPicker label="Focus span" emptyLabel="Whole run" nodes={trace.data?.nodes ?? []} value={focusedSpanId} onChange={onFocus} />
+        <SpanPicker
+          label={t("editor:ui.focusSpan", { defaultValue: "Focus span" })}
+          emptyLabel={t("editor:ui.wholeRun", { defaultValue: "Whole run" })}
+          nodes={trace.data?.nodes ?? []}
+          value={focusedSpanId}
+          onChange={onFocus}
+        />
       </Box>
       <ControlSlot>
-        <Checkbox label="Errors only" size="small" checked={errorsOnly} onChange={(_, checked) => setErrorsOnly(checked)} />
+        <Checkbox
+          label={t("editor:ui.errorsOnly", { defaultValue: "Errors only" })}
+          size="small"
+          checked={errorsOnly}
+          onChange={(_, checked) => setErrorsOnly(checked)}
+        />
       </ControlSlot>
-      {focusedSpanId && <ControlSlot><EditorButton size="small" onClick={() => onFocus(null)}>Clear span focus</EditorButton></ControlSlot>}
+      {focusedSpanId && <ControlSlot><EditorButton size="small" onClick={() => onFocus(null)}>{t("editor:ui.clearSpanFocus", { defaultValue: "Clear span focus" })}</EditorButton></ControlSlot>}
     </FlexRow>
     {trace.error && <QueryError error={trace.error} />}
     {trace.isLoading && <LoadingSpinner />}
     {trace.data && <ContentStatus flags={trace.data} limited={trace.data.limited} />}
     <SplitView detailsOpen={Boolean(focusedSpanId)} details={<>
       <FlexRow gap={SPACING.md} sx={{ alignItems: "center", minHeight: LANE_HEADER_HEIGHT }}>
-        <Label sx={{ minWidth: 0, overflowWrap: "anywhere" }}>{focused?.name ?? nodes.find(({ record }) => record.span_id === focusedSpanId)?.record.name ?? "Span"}</Label>
+        <Label sx={{ minWidth: 0, overflowWrap: "anywhere" }}>{focused?.name ?? nodes.find(({ record }) => record.span_id === focusedSpanId)?.record.name ?? t("editor:ui.span", { defaultValue: "Span" })}</Label>
         <AskRunAgentButton runId={runId} spanId={focusedSpanId ?? undefined} />
       </FlexRow>
       {focus.error && <QueryError error={focus.error} />}
@@ -257,11 +346,26 @@ function TraceView({ runId, focusedSpanId, onFocus }: RunViewProps): React.React
       {focus.data && <ContentStatus flags={focus.data} limited={focus.data.limited} />}
       {focused && !focus.error && !focus.data?.content_expired && <SpanDetails record={focused} runStart={runStart} />}
     </>}>
-      {browser.length > 0 && <SpanLane label="Browser spans" nodes={browser} focusedSpanId={focusedSpanId} onFocus={onFocus} start={start} duration={Math.max(1, end - start)} />}
-      {server.length > 0 && <SpanLane label="Server spans" nodes={server} focusedSpanId={focusedSpanId} onFocus={onFocus} start={start} duration={Math.max(1, end - start)} />}
+      {browser.length > 0 && <SpanLane label={t("editor:ui.browserSpans", { defaultValue: "Browser spans" })} nodes={browser} focusedSpanId={focusedSpanId} onFocus={onFocus} start={start} duration={Math.max(1, end - start)} />}
+      {server.length > 0 && <SpanLane label={t("editor:ui.serverSpans", { defaultValue: "Server spans" })} nodes={server} focusedSpanId={focusedSpanId} onFocus={onFocus} start={start} duration={Math.max(1, end - start)} />}
       {!trace.isLoading && !trace.error && nodes.length === 0 && (filtered
-        ? <EmptyState variant="no-results" title="No spans match these filters" description="Clear the filters to see every span in this run." actionText="Clear filters" onAction={clearFilters} size="small" />
-        : <EmptyState title="No spans recorded" description="The trace may still be arriving. Stored spans appear here when available." size="small" />)}
+        ? <EmptyState
+            variant="no-results"
+            title={t("editor:ui.noSpansMatchTheseFilters", { defaultValue: "No spans match these filters" })}
+            description={t("editor:ui.clearTheFiltersToSeeEverySpanInThisRun", {
+              defaultValue: "Clear the filters to see every span in this run."
+            })}
+            actionText={t("editor:ui.clearFilters", { defaultValue: "Clear filters" })}
+            onAction={clearFilters}
+            size="small"
+          />
+        : <EmptyState
+            title={t("editor:ui.noSpansRecorded", { defaultValue: "No spans recorded" })}
+            description={t("editor:ui.theTraceMayStillBeArriving", {
+              defaultValue: "The trace may still be arriving. Stored spans appear here when available."
+            })}
+            size="small"
+          />)}
     </SplitView>
   </FlexColumn>;
 }
@@ -274,9 +378,15 @@ function logText(log: RunLog): string {
 // Time, level, source, span, message. Fixed meta widths keep the columns aligned across rows.
 const logGrid = (theme: Theme): string => `${theme.spacing(SPACING.xxxl * 3)} ${theme.spacing(SPACING.xxxl * 2)} minmax(0, 0.6fr) minmax(0, 1fr) minmax(0, 3fr)`;
 const LOG_LEVEL_COLOR: Record<string, string> = { error: "error.main", warn: "warning.main" };
-const LOG_LEVELS = [{ value: "debug", label: "Debug" }, { value: "info", label: "Info" }, { value: "warn", label: "Warning" }, { value: "error", label: "Error" }];
+const LOG_LEVELS = [
+  { value: "debug", labelKey: "editor:ui.logDebug", label: "Debug" },
+  { value: "info", labelKey: "editor:ui.logInfo", label: "Info" },
+  { value: "warn", labelKey: "editor:ui.logWarning", label: "Warning" },
+  { value: "error", labelKey: "editor:ui.logError", label: "Error" }
+];
 
 function LogsView({ runId, focusedSpanId, onFocus }: RunViewProps): React.ReactElement {
+  const { t } = useTranslation();
   const [level, setLevel] = useState("");
   const [source, setSource] = useState("");
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
@@ -285,6 +395,11 @@ function LogsView({ runId, focusedSpanId, onFocus }: RunViewProps): React.ReactE
   if (source) { logOptions.source = source; }
   if (focusedSpanId) { logOptions.span_id = focusedSpanId; }
   const logs = useRunLogs(runId, logOptions);
+  // Resolve the level labels once per render, not once per row.
+  const logLevels = LOG_LEVELS.map(({ value, labelKey, label }) => ({
+    value,
+    label: t(labelKey, { defaultValue: label })
+  }));
   const entries = logs.error ? [] : [...new Map(logs.data?.pages.flatMap((page) => page.logs).map((log) => [log.id, log]) ?? []).values()];
   entries.sort((a, b) => a.time_ms - b.time_ms || a.id.localeCompare(b.id));
   const selectedLog = logs.data?.pages.some((page) => page.content_expired) ? undefined : entries.find((log) => log.id === selectedLogId);
@@ -293,13 +408,37 @@ function LogsView({ runId, focusedSpanId, onFocus }: RunViewProps): React.ReactE
   return <FlexColumn gap={SPACING.md} sx={{ flex: 1, minHeight: 0 }}>
     <FlexRow gap={SPACING.lg} sx={{ alignItems: "flex-end", flexWrap: "wrap" }}>
       <Box sx={{ width: (theme) => theme.spacing(SPACING.xxxl * 4) }}>
-        <SelectField label="Log level" size="small" value={level} onChange={setLevel} options={[{ value: "", label: "All levels" }, ...LOG_LEVELS]} />
+        <SelectField
+          label={t("editor:ui.logLevel", { defaultValue: "Log level" })}
+          size="small"
+          value={level}
+          onChange={setLevel}
+          options={[
+            { value: "", label: t("editor:ui.allLevels", { defaultValue: "All levels" }) },
+            ...logLevels
+          ]}
+        />
       </Box>
       <Box sx={{ width: (theme) => theme.spacing(SPACING.xxxl * 5) }}>
-        <SelectField label="Log source" size="small" value={source} onChange={setSource} options={[{ value: "", label: "All sources" }, ...[...new Set([...entries.map((log) => log.source).filter((value): value is string => Boolean(value)), ...(source ? [source] : [])])].map((value) => ({ value, label: value }))]} />
+        <SelectField
+          label={t("editor:ui.logSource", { defaultValue: "Log source" })}
+          size="small"
+          value={source}
+          onChange={setSource}
+          options={[
+            { value: "", label: t("editor:ui.allSources", { defaultValue: "All sources" }) },
+            ...[...new Set([...entries.map((log) => log.source).filter((value): value is string => Boolean(value)), ...(source ? [source] : [])])].map((value) => ({ value, label: value }))
+          ]}
+        />
       </Box>
       <Box sx={{ width: (theme) => theme.spacing(SPACING.xxxl * 8), maxWidth: "100%" }}>
-        <SpanPicker label="Log span" emptyLabel="All spans" nodes={trace.data?.nodes ?? []} value={focusedSpanId} onChange={onFocus} />
+        <SpanPicker
+          label={t("editor:ui.logSpan", { defaultValue: "Log span" })}
+          emptyLabel={t("editor:ui.allSpans", { defaultValue: "All spans" })}
+          nodes={trace.data?.nodes ?? []}
+          value={focusedSpanId}
+          onChange={onFocus}
+        />
       </Box>
     </FlexRow>
     {logs.error && <QueryError error={logs.error} />}
@@ -310,49 +449,62 @@ function LogsView({ runId, focusedSpanId, onFocus }: RunViewProps): React.ReactE
         <Label>{selectedLog.span_name}</Label>
         <Caption color="muted" sx={{ fontVariantNumeric: "tabular-nums" }}>{new Date(selectedLog.time_ms).toLocaleTimeString()} · {selectedLog.level ?? selectedLog.name}</Caption>
         <AskRunAgentButton runId={runId} spanId={selectedLog.span_id} />
-        <EditorButton size="small" onClick={() => setSelectedLogId(null)}>Close log event</EditorButton>
+        <EditorButton size="small" onClick={() => setSelectedLogId(null)}>{t("editor:ui.closeLogEvent", { defaultValue: "Close log event" })}</EditorButton>
       </FlexRow>
       <AttributeList attributes={selectedLog.attributes} />
     </>}>
-      {!logs.isLoading && entries.length === 0 && <EmptyState title="No matching log events" size="small" />}
+      {!logs.isLoading && entries.length === 0 && <EmptyState title={t("editor:ui.noMatchingLogEvents", { defaultValue: "No matching log events" })} size="small" />}
       {entries.length > 0 && <FlexColumn gap={SPACING.xs} sx={{ flex: 1, minHeight: 0 }}>
         <Box sx={{ display: "grid", gridTemplateColumns: logGrid(theme), columnGap: SPACING.lg, alignItems: "center", height: LANE_HEADER_HEIGHT, flexShrink: 0, px: SPACING.sm }}>
-          {["Time", "Level", "Source", "Span", "Message"].map((heading) => <Caption key={heading} color="muted">{heading}</Caption>)}
+          {[
+            { key: "time", label: t("editor:ui.logColTime", { defaultValue: "Time" }) },
+            { key: "level", label: t("editor:ui.logColLevel", { defaultValue: "Level" }) },
+            { key: "source", label: t("editor:ui.logColSource", { defaultValue: "Source" }) },
+            { key: "span", label: t("editor:ui.logColSpan", { defaultValue: "Span" }) },
+            { key: "message", label: t("editor:ui.logColMessage", { defaultValue: "Message" }) }
+          ].map((heading) => <Caption key={heading.key} color="muted">{heading.label}</Caption>)}
         </Box>
-        <VirtualList ariaLabel="Run logs" items={entries} estimateSize={SPAN_ROW_HEIGHT} getItemKey={(log) => log.id} sx={{ flex: 1, minHeight: 0 }}
+        <VirtualList ariaLabel={t("editor:ui.runLogs", { defaultValue: "Run logs" })} items={entries} estimateSize={SPAN_ROW_HEIGHT} getItemKey={(log) => log.id} sx={{ flex: 1, minHeight: 0 }}
           renderItem={(log) => <Box sx={{
             display: "grid", gridTemplateColumns: logGrid(theme), columnGap: SPACING.lg, alignItems: "center", height: "100%", px: SPACING.sm, borderRadius: BORDER_RADIUS.sm,
             bgcolor: log.id === selectedLog?.id ? "action.selected" : "transparent", "&:hover": { bgcolor: log.id === selectedLog?.id ? "action.selected" : "action.hover" }
           }}>
             <Caption sx={{ whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{new Date(log.time_ms).toLocaleTimeString()}</Caption>
-            <Caption sx={{ color: LOG_LEVEL_COLOR[log.level ?? ""] ?? "text.secondary" }}>{LOG_LEVELS.find(({ value }) => value === log.level)?.label ?? log.level ?? "Event"}</Caption>
+            <Caption sx={{ color: LOG_LEVEL_COLOR[log.level ?? ""] ?? "text.secondary" }}>{logLevels.find(({ value }) => value === log.level)?.label ?? log.level ?? t("editor:ui.event", { defaultValue: "Event" })}</Caption>
             <Caption component="div" color="muted" sx={{ minWidth: 0 }}><TruncatedText component="span" variant="inherit">{log.source ?? log.name}</TruncatedText></Caption>
-            <EditorButton size="small" variant="text" aria-label={`Inspect log span ${log.span_id}`} title={log.span_name} onClick={() => onFocus(log.span_id)}
+            <EditorButton size="small" variant="text" aria-label={t("editor:ui.inspectLogSpan", { defaultValue: "Inspect log span {{id}}", id: log.span_id })} title={log.span_name} onClick={() => onFocus(log.span_id)}
               sx={{ minWidth: 0, justifyContent: "flex-start", textTransform: "none", px: 0, color: "text.secondary" }}
             ><TruncatedText component="span" variant="inherit">{log.span_name}</TruncatedText></EditorButton>
-            <EditorButton size="small" variant="text" aria-label={`Read ${log.name} event ${log.id}`} title={logText(log).slice(0, 200)} onClick={() => setSelectedLogId(log.id)}
+            <EditorButton size="small" variant="text" aria-label={t("editor:ui.readLogEvent", { defaultValue: "Read {{name}} event {{id}}", name: log.name, id: log.id })} title={logText(log).slice(0, 200)} onClick={() => setSelectedLogId(log.id)}
               sx={{ minWidth: 0, justifyContent: "flex-start", textTransform: "none", px: 0, color: log.level === "error" ? "error.main" : "text.primary" }}
             ><TruncatedText component="span" variant="inherit">{logText(log).slice(0, 200)}</TruncatedText></EditorButton>
           </Box>} />
       </FlexColumn>}
-      {logs.hasNextPage && <EditorButton size="small" disabled={logs.isFetchingNextPage} onClick={() => void logs.fetchNextPage()}>Load more log events</EditorButton>}
+      {logs.hasNextPage && <EditorButton size="small" disabled={logs.isFetchingNextPage} onClick={() => void logs.fetchNextPage()}>{t("editor:ui.loadMoreLogEvents", { defaultValue: "Load more log events" })}</EditorButton>}
     </SplitView>
   </FlexColumn>;
 }
 
 // Leads with the error message and the span that raised it, so a failed run explains itself without opening spans.
 function FailureBanner({ result, onShowSpan }: FailureBannerProps): React.ReactElement | null {
+  const { t } = useTranslation();
   const { run, summary } = result;
   if (run.status !== "failed" && !summary.first_failed_span_id) { return null; }
   const failing = [...summary.failure_path].reverse().find((span) => span.error) ?? summary.failure_path.at(-1);
-  const message = run.error ?? failing?.error ?? "No error message was recorded.";
+  const message = run.error ?? failing?.error ?? t("editor:ui.noErrorMessageWasRecorded", { defaultValue: "No error message was recorded." });
   const failedSpanId = summary.first_failed_span_id;
-  const title = run.status === "failed" ? `Run failed${failing ? ` in ${failing.name}` : ""}` : `A span failed${failing ? ` in ${failing.name}` : ""}, but the run continued`;
+  const title = run.status === "failed"
+    ? failing
+      ? t("editor:ui.runFailedIn", { defaultValue: "Run failed in {{name}}", name: failing.name })
+      : t("editor:ui.runFailed", { defaultValue: "Run failed" })
+    : failing
+      ? t("editor:ui.aSpanFailedIn", { defaultValue: "A span failed in {{name}}, but the run continued", name: failing.name })
+      : t("editor:ui.aSpanFailed", { defaultValue: "A span failed, but the run continued" });
   return <AlertBanner
     compact
     severity={run.status === "failed" ? "error" : "warning"}
     title={title}
-    action={failedSpanId ? <EditorButton size="small" onClick={() => onShowSpan(failedSpanId)}>Show failing span</EditorButton> : undefined}
+    action={failedSpanId ? <EditorButton size="small" onClick={() => onShowSpan(failedSpanId)}>{t("editor:ui.showFailingSpan", { defaultValue: "Show failing span" })}</EditorButton> : undefined}
   ><Text component="span" sx={{ display: "block", maxHeight: (theme) => theme.spacing(SPACING.xxxl * 3), overflow: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{message}</Text></AlertBanner>;
 }
 
@@ -367,10 +519,19 @@ function runSummaryText({ run, summary }: GetRunResult): string {
   const duration = runDuration(run);
   return [
     duration,
-    `${summary.span_count} ${summary.span_count === 1 ? "span" : "spans"}`,
-    `${summary.event_count} ${summary.event_count === 1 ? "event" : "events"}`,
+    i18n.t("editor:ui.spanCount", {
+      defaultValue: "{{count}} spans",
+      count: summary.span_count
+    }),
+    i18n.t("editor:ui.eventCount", {
+      defaultValue: "{{count}} events",
+      count: summary.event_count
+    }),
     cost > 0 ? `$${cost.toFixed(4)}` : null,
-    `started ${new Date(run.started_at).toLocaleString()}`
+    i18n.t("editor:ui.startedAt", {
+      defaultValue: "started {{time}}",
+      time: new Date(run.started_at).toLocaleString()
+    })
   ].filter(Boolean).join(" · ");
 }
 
@@ -379,21 +540,27 @@ const RUN_STATUS_TONE: Record<GetRunResult["run"]["status"], StatusPillTone> = {
 // Workflow runs carry a job id as their source, so the name comes from a workflow already in the cache. Nothing is fetched per run.
 function runTitle(run: RunRecord, workflowName: string | undefined): string {
   if (run.app) { return run.app.operation_id; }
-  if (run.kind === "workflow") { return workflowName ?? "Workflow run"; }
-  return run.kind === "chat" ? "Chat turn" : "App run";
+  if (run.kind === "workflow") {
+    return workflowName ?? i18n.t("editor:ui.workflowRun", { defaultValue: "Workflow run" });
+  }
+  return run.kind === "chat"
+    ? i18n.t("editor:ui.chatTurn", { defaultValue: "Chat turn" })
+    : i18n.t("editor:ui.appRun", { defaultValue: "App run" });
 }
 
 const matchesQuery = (query: string, ...fields: string[]): boolean => fields.join(" ").toLowerCase().includes(query.trim().toLowerCase());
 
 function RunPicker({ runs, value, onChange }: RunPickerProps): React.ReactElement {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const titleOf = (run: RunRecord): string => {
     const workflowId = run.parents.find((parent) => parent.kind === "workflow")?.id;
     return runTitle(run, workflowId ? queryClient.getQueryData<Workflow>(workflowQueryKey(workflowId))?.name : undefined);
   };
   return <Autocomplete<RunRecord, false, false>
-    label="Run" size="small" sx={PICKER_SX} options={runs} value={runs.find((run) => run.id === value) ?? null}
-    noOptionsText="No matching runs" placeholder="No recent runs"
+    label={t("editor:ui.run", { defaultValue: "Run" })} size="small" sx={PICKER_SX} options={runs} value={runs.find((run) => run.id === value) ?? null}
+    noOptionsText={t("editor:ui.noMatchingRuns", { defaultValue: "No matching runs" })}
+    placeholder={t("editor:ui.noRecentRuns", { defaultValue: "No recent runs" })}
     getOptionLabel={(run) => `${titleOf(run)} · ${run.status} · ${relativeTime(run.started_at)}`}
     isOptionEqualToValue={(option, selected) => option.id === selected.id}
     filterOptions={(options, { inputValue }) => options.filter((run) => matchesQuery(inputValue, titleOf(run), run.kind, run.status))}
@@ -413,10 +580,12 @@ function RunPicker({ runs, value, onChange }: RunPickerProps): React.ReactElemen
 
 // Spans are listed in tree order and indented by depth, so repeated names such as several llm.stream calls stay apart by position, timing and status.
 function SpanPicker({ label, emptyLabel, nodes, value, onChange }: SpanPickerProps): React.ReactElement {
+  const { t } = useTranslation();
   const start = nodes.length ? Math.min(...nodes.map(({ record }) => record.start_time_ms)) : 0;
   return <Autocomplete<TraceNode, false, false>
     label={label} size="small" sx={PICKER_SX} options={nodes} value={nodes.find(({ record }) => record.span_id === value) ?? null}
-    placeholder={value ? `Span ${value}` : emptyLabel} noOptionsText="No matching spans"
+    placeholder={value ? t("editor:ui.spanIdPlaceholder", { defaultValue: "Span {{id}}", id: value }) : emptyLabel}
+    noOptionsText={t("editor:ui.noMatchingSpans", { defaultValue: "No matching spans" })}
     getOptionLabel={({ record }) => record.name}
     isOptionEqualToValue={(option, selected) => option.record.span_id === selected.record.span_id}
     filterOptions={(options, { inputValue }) => options.filter(({ record }) => matchesQuery(inputValue, record.name, record.status.code))}
@@ -433,6 +602,7 @@ function SpanPicker({ label, emptyLabel, nodes, value, onChange }: SpanPickerPro
 }
 
 export default function TracePanel({ view = "trace" }: TracePanelProps): React.ReactElement {
+  const { t } = useTranslation();
   const selectedRunId = useTraceStore((state) => state.selectedRunId);
   const focusedSpanId = useTraceStore((state) => state.focusedSpanId);
   const selectRun = useTraceStore((state) => state.selectRun);
@@ -450,7 +620,7 @@ export default function TracePanel({ view = "trace" }: TracePanelProps): React.R
       <Box sx={{ flex: "1 1 auto", minWidth: (theme) => theme.spacing(SPACING.xxxl * 6), maxWidth: (theme) => theme.spacing(SPACING.xxxl * 12) }}>
         <RunPicker runs={pickerRuns} value={canonicalId} onChange={selectRun} />
       </Box>
-      {recent.hasNextPage && <ControlSlot><EditorButton size="small" onClick={() => void recent.fetchNextPage()}>Older runs</EditorButton></ControlSlot>}
+      {recent.hasNextPage && <ControlSlot><EditorButton size="small" onClick={() => void recent.fetchNextPage()}>{t("editor:ui.olderRuns", { defaultValue: "Older runs" })}</EditorButton></ControlSlot>}
       {summary.data && <ControlSlot>
         <FlexRow gap={SPACING.sm} sx={{ alignItems: "center" }}>
           <StatusPill tone={RUN_STATUS_TONE[summary.data.run.status]}>{summary.data.run.status}</StatusPill>
@@ -462,7 +632,13 @@ export default function TracePanel({ view = "trace" }: TracePanelProps): React.R
     {recent.error && <QueryError error={recent.error} />}
     {summary.error && <QueryError error={summary.error} />}
     {summary.data && <FailureBanner result={summary.data} onShowSpan={focusSpan} />}
-    {!runId && !recent.isLoading && <EmptyState title="No recorded runs" description="Start an app operation, workflow, or chat turn to inspect its trace and logs." size="small" />}
+    {!runId && !recent.isLoading && <EmptyState
+      title={t("editor:ui.noRecordedRuns", { defaultValue: "No recorded runs" })}
+      description={t("editor:ui.startAnAppOperationWorkflowOrChatTurn", {
+        defaultValue: "Start an app operation, workflow, or chat turn to inspect its trace and logs."
+      })}
+      size="small"
+    />}
     {canonicalId && (view === "logs" ? <LogsView key={canonicalId} runId={canonicalId} focusedSpanId={focusedSpanId} onFocus={focusSpan} /> : <TraceView key={canonicalId} runId={canonicalId} focusedSpanId={focusedSpanId} onFocus={focusSpan} />)}
   </FlexColumn>;
 }

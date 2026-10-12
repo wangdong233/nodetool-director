@@ -428,7 +428,9 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
       {!isMobile && (
         <PanelHeader
           title={t("editor:ui.documents", { defaultValue: "Documents" })}
-          description="Open documents in the current project."
+          description={t("editor:ui.openDocumentsInTheCurrentProject", {
+            defaultValue: "Open documents in the current project."
+          })}
         />
       )}
       <FlexColumn sx={{ py: SPACING.md }}>
@@ -436,13 +438,13 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
           value={query}
           onChange={setQuery}
           ariaLabel={t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
-          placeholder="Search documents"
+          placeholder={t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
           fullWidth
         />
       </FlexColumn>
       {isLoading ? (
         <FlexColumn fullHeight align="center" justify="center">
-          <LoadingSpinner text="Loading documents" />
+          <LoadingSpinner text={t("editor:ui.loadingDocuments", { defaultValue: "Loading documents" })} />
         </FlexColumn>
       ) : isError ? (
         <FlexColumn
