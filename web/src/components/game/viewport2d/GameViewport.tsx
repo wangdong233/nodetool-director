@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type Poin
 import { useColorScheme, useTheme } from "@mui/material/styles";
 import type { GameDocument, GameRenderFrame } from "@nodetool-ai/protocol/game.js";
 import { projectedCamera } from "@nodetool-ai/game-renderer";
+import { useTranslation } from "react-i18next";
 
 import { Box, EditorButton, FlexRow, SPACING, Z_INDEX } from "../../ui_primitives";
 import { isMac } from "../../../utils/platform";
@@ -61,6 +62,7 @@ function point(event: { clientX: number; clientY: number }, canvas: HTMLCanvasEl
 }
 
 export default function GameViewport({ canvasRef, frame, document, sceneId, playing, paused, active, selectedIds, highlightedIds, onSelect, onSelectMany, onMove, onMoves, onTransform, onLight, onGestureStart, onGestureEnd, onCamera, onViewportAspect, onKeyDown, onKeyUp, onBlur }: GameViewportProps) {
+  const { t } = useTranslation();
   const gestureRef = useRef<number | null>(null);
   const gestureCallbacks = useRef({ onGestureStart, onGestureEnd });
   gestureCallbacks.current = { onGestureStart, onGestureEnd };
@@ -455,19 +457,19 @@ export default function GameViewport({ canvasRef, frame, document, sceneId, play
       <Box ref={stageRef} sx={{ position: "relative", width: "100%", height: "100%" }}>
         {!playing && <FlexRow gap={SPACING.xs} wrap sx={{ position: "absolute", top: SPACING.xs, left: SPACING.xs, right: SPACING.xs, zIndex: Z_INDEX.raised }}>
           <EditorButton variant={panTool ? "contained" : "text"} aria-pressed={panTool}
-            title={mac ? "Two-finger scroll or right/middle drag to pan. Pinch or Ctrl+scroll to zoom."
-              : "Right/middle drag to pan. Mouse wheel zooms."}
-            onClick={() => setPanTool((value) => !value)}>Pan</EditorButton>
-          <EditorButton variant={showSelection ? "contained" : "text"} onClick={() => setShowSelection((value) => !value)}>Selection</EditorButton>
-          <EditorButton variant={showGrid ? "contained" : "text"} onClick={() => setShowGrid((value) => !value)}>Grid</EditorButton>
-          <EditorButton variant={snapToGrid ? "contained" : "text"} title={snapShortcut ? `Toggle snapping (${snapShortcut.join("+")})` : "Toggle snapping"}
-            onClick={() => setSnapToGrid((value) => !value)}>Snap</EditorButton>
-          <EditorButton variant={showColliders ? "contained" : "text"} onClick={() => setShowColliders((value) => !value)}>Colliders</EditorButton>
-          <EditorButton variant={showLights ? "contained" : "text"} onClick={() => setShowLights((value) => !value)}>Lights</EditorButton>
-          <EditorButton variant={showBackgrounds ? "contained" : "text"} onClick={() => setShowBackgrounds((value) => !value)}>Backgrounds</EditorButton>
-          <EditorButton variant={showCameraBounds ? "contained" : "text"} onClick={() => setShowCameraBounds((value) => !value)}>Camera</EditorButton>
+            title={mac ? t("game:viewport.panHintMac", { defaultValue: "Two-finger scroll or right/middle drag to pan. Pinch or Ctrl+scroll to zoom." })
+              : t("game:viewport.panHint", { defaultValue: "Right/middle drag to pan. Mouse wheel zooms." })}
+            onClick={() => setPanTool((value) => !value)}>{t("game:viewport.pan", { defaultValue: "Pan" })}</EditorButton>
+          <EditorButton variant={showSelection ? "contained" : "text"} onClick={() => setShowSelection((value) => !value)}>{t("game:viewport.selection", { defaultValue: "Selection" })}</EditorButton>
+          <EditorButton variant={showGrid ? "contained" : "text"} onClick={() => setShowGrid((value) => !value)}>{t("game:viewport.grid", { defaultValue: "Grid" })}</EditorButton>
+          <EditorButton variant={snapToGrid ? "contained" : "text"} title={snapShortcut ? t("game:viewport.toggleSnappingWithKey", { shortcut: snapShortcut.join("+"), defaultValue: `Toggle snapping (${snapShortcut.join("+")})` }) : t("game:viewport.toggleSnapping", { defaultValue: "Toggle snapping" })}
+            onClick={() => setSnapToGrid((value) => !value)}>{t("ui2:attrs.snap", { defaultValue: "Snap" })}</EditorButton>
+          <EditorButton variant={showColliders ? "contained" : "text"} onClick={() => setShowColliders((value) => !value)}>{t("game:viewport.colliders", { defaultValue: "Colliders" })}</EditorButton>
+          <EditorButton variant={showLights ? "contained" : "text"} onClick={() => setShowLights((value) => !value)}>{t("game:viewport.lights", { defaultValue: "Lights" })}</EditorButton>
+          <EditorButton variant={showBackgrounds ? "contained" : "text"} onClick={() => setShowBackgrounds((value) => !value)}>{t("game:inspector.backgrounds", { defaultValue: "Backgrounds" })}</EditorButton>
+          <EditorButton variant={showCameraBounds ? "contained" : "text"} onClick={() => setShowCameraBounds((value) => !value)}>{t("timeline:attrs.camera", { defaultValue: "Camera" })}</EditorButton>
         </FlexRow>}
-        <Box component="canvas" ref={canvasRef} width={512} height={288} aria-label="Game viewport" role="group" tabIndex={0}
+        <Box component="canvas" ref={canvasRef} width={512} height={288} aria-label={t("game:viewport.gameViewportAria", { defaultValue: "Game viewport" })} role="group" tabIndex={0}
           onKeyDown={(event) => {
             if (!playing && event.code === "Space") { event.preventDefault(); spaceHeldRef.current = true; }
             onKeyDown(event);
@@ -476,7 +478,7 @@ export default function GameViewport({ canvasRef, frame, document, sceneId, play
           onBlur={() => { spaceHeldRef.current = false; onPointerCancel(); onBlur(); }}
           sx={{ width: "100%", height: "100%", objectFit: "contain" }} />
         {(!playing || paused) && frame && <Box component="canvas" ref={overlayRef} width={Math.round(frame.width * frame.pixelsPerUnit)} height={Math.round(frame.height * frame.pixelsPerUnit)}
-          aria-label="Game edit overlay" role="group"
+          aria-label={t("game:viewport.editOverlayAria", { defaultValue: "Game edit overlay" })} role="group"
           onContextMenu={(event) => event.preventDefault()}
           onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerCancel} onLostPointerCapture={onPointerCancel}
           onWheel={(event) => {

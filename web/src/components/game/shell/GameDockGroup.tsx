@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { StoreApi } from "zustand";
+import { useTranslation } from "react-i18next";
 
 import { useGlobalCombo } from "../../../stores/KeyPressedStore";
 import type { GamePanelLayoutState } from "../../../stores/game/GamePanelLayoutStore";
 import { GAME_PANEL_REGIONS, type GamePanelGroup } from "../../../stores/game/GamePanelLayout";
 import { Box, EditorButton, FlexColumn, FlexRow, SelectField, SPACING, TabGroup } from "../../ui_primitives";
 import type { GamePanelRegion } from "./panelRegistry";
+import { gamePanelTitle, gameRegionLabel } from "../gameI18n";
 import type { GameDockPresentation } from "./useGameDockPresentation";
 
 interface GameDockGroupProps {
@@ -17,9 +19,11 @@ interface GameDockGroupProps {
 }
 
 export function GameDockGroup({ group, region, presentation, store, setSlot }: GameDockGroupProps): ReactNode {
+  const { t } = useTranslation();
   const { metadata } = presentation;
   const eligible = group.panels.filter((id) => metadata.availableIds.includes(id) && !metadata.layout.hidden.includes(id));
   const active = eligible.includes(group.activePanelId) ? group.activePanelId : eligible[0];
+  const panelTitle = (id: string): string => gamePanelTitle(t, id, metadata.registry.find((entry) => entry.id === id)?.title ?? id);
   const drag = useRef<{ panelId: string; pointerId: number } | null>(null);
   const dragButton = useRef<HTMLButtonElement | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -36,8 +40,10 @@ export function GameDockGroup({ group, region, presentation, store, setSlot }: G
   }, [cancel]);
   if (!active) { return null; }
   const targets = GAME_PANEL_REGIONS.flatMap((targetRegion) => [
-    { value: JSON.stringify([targetRegion, null]), region: targetRegion, groupId: null, label: `New ${targetRegion} group` },
-    ...metadata.layout.regions[targetRegion].map((entry) => ({ value: JSON.stringify([targetRegion, entry.id]), region: targetRegion, groupId: entry.id, label: `${targetRegion}: ${entry.panels.join(", ")}` }))
+    { value: JSON.stringify([targetRegion, null]), region: targetRegion, groupId: null,
+      label: t("game:dock.newRegionGroup", { region: gameRegionLabel(t, targetRegion, targetRegion), defaultValue: `New ${targetRegion} group` }) },
+    ...metadata.layout.regions[targetRegion].map((entry) => ({ value: JSON.stringify([targetRegion, entry.id]), region: targetRegion, groupId: entry.id,
+      label: t("game:dock.regionGroup", { region: gameRegionLabel(t, targetRegion, targetRegion), panels: entry.panels.join(", "), defaultValue: `${targetRegion}: ${entry.panels.join(", ")}` }) }))
   ]);
   const uniqueGroupId = (targetRegion: GamePanelRegion): string => {
     const ids = new Set(GAME_PANEL_REGIONS.flatMap((entry) => store.getState().layout.regions[entry].map((item) => item.id)));
@@ -57,11 +63,11 @@ export function GameDockGroup({ group, region, presentation, store, setSlot }: G
   };
   return <FlexColumn data-game-dock-region={region} data-game-dock-group={group.id}
     sx={{ flex: 1, minHeight: 0, minWidth: 0, overflow: "hidden" }}>
-    <TabGroup size="small" value={active} aria-label={`${region} game panel tabs`}
-      tabs={eligible.map((id) => ({ value: id, label: metadata.registry.find((entry) => entry.id === id)?.title ?? id }))}
+    <TabGroup size="small" value={active} aria-label={t("game:dock.panelTabsAria", { region: gameRegionLabel(t, region, region), defaultValue: `${region} game panel tabs` })}
+      tabs={eligible.map((id) => ({ value: id, label: panelTitle(id) }))}
       onChange={(panelId) => store.getState().dispatch({ type: "activate", panelId })} />
     <FlexRow gap={SPACING.xs}>
-      <EditorButton ref={dragButton} aria-label={`Drag ${active} panel`} size="small"
+      <EditorButton ref={dragButton} aria-label={t("game:dock.dragPanelAria", { panel: panelTitle(active), defaultValue: `Drag ${active} panel` })} size="small"
         onPointerDown={(event) => {
           if (event.button !== 0) { return; }
           event.preventDefault();
@@ -80,19 +86,19 @@ export function GameDockGroup({ group, region, presentation, store, setSlot }: G
         }}
         onPointerCancel={cancel} onLostPointerCapture={cancel} onBlur={cancel}
         onKeyDown={(event) => { if (event.key === "Escape") { cancel(); event.preventDefault(); } }}
-        sx={{ touchAction: "none" }}>Drag</EditorButton>
-      <SelectField label={`Move ${active} panel`} value={moveTarget} options={targets} onChange={(value) => { setMoveTarget(value); setMovePosition("end"); }} />
-      <SelectField label={`Position ${active} panel`} value={movePosition}
-        options={[{ value: "end", label: "At end" }, ...targetPanels.map((id) => ({ value: JSON.stringify(id), label: `Before ${id}` }))]}
+        sx={{ touchAction: "none" }}>{t("editor:ui.drag", { defaultValue: "Drag" })}</EditorButton>
+      <SelectField label={t("game:dock.movePanel", { panel: panelTitle(active), defaultValue: `Move ${active} panel` })} value={moveTarget} options={targets} onChange={(value) => { setMoveTarget(value); setMovePosition("end"); }} />
+      <SelectField label={t("game:dock.positionPanel", { panel: panelTitle(active), defaultValue: `Position ${active} panel` })} value={movePosition}
+        options={[{ value: "end", label: t("game:dock.atEnd", { defaultValue: "At end" }) }, ...targetPanels.map((id) => ({ value: JSON.stringify(id), label: t("game:dock.beforePanel", { panel: panelTitle(id), defaultValue: `Before ${id}` }) }))]}
         onChange={setMovePosition} />
       <EditorButton size="small" disabled={!moveTarget} onClick={() => {
         const selected = targets.find((entry) => entry.value === moveTarget);
         if (!selected) { return; }
         move(active, selected.region, selected.groupId ?? uniqueGroupId(selected.region), targetPanels.find((id) => JSON.stringify(id) === movePosition));
-      }}>Move</EditorButton>
-      {active !== "viewport" && <EditorButton size="small" onClick={() => store.getState().dispatch({ type: "hide", panelId: active })}>Hide</EditorButton>}
+      }}>{t("timeline:shortcuts.move", { defaultValue: "Move" })}</EditorButton>
+      {active !== "viewport" && <EditorButton size="small" onClick={() => store.getState().dispatch({ type: "hide", panelId: active })}>{t("ui2:attrs.hide", { defaultValue: "Hide" })}</EditorButton>}
     </FlexRow>
-    <Box ref={slotRef} data-game-dock-slot={group.id} role="tabpanel" aria-label={`${active} panel`}
+    <Box ref={slotRef} data-game-dock-slot={group.id} role="tabpanel" aria-label={t("game:dock.panelAria", { panel: panelTitle(active), defaultValue: `${active} panel` })}
       sx={{ flex: 1, minHeight: 0, minWidth: 0, overflow: "hidden" }} />
   </FlexColumn>;
 }

@@ -91,7 +91,7 @@ try {
 // by construction — the regex requires the full path before the quote.
 {
   const dicts = {}; // ns -> Set of flattened key paths
-  for (const ns of ["common","nav","settings","home","editor","timeline","sketch","storyboard","ui","ui2","appbuilder","catalog","tools"]) {
+  for (const ns of ["common","nav","settings","home","editor","timeline","sketch","storyboard","ui","ui2","appbuilder","catalog","tools","game"]) {
     try {
       const raw = JSON.parse(readFileSync(join(webRoot, "src/i18n/locales/en", `${ns}.json`), "utf8"));
       const flat = (o, p) => { for (const [k, v] of Object.entries(o)) { v && typeof v === "object" ? flat(v, `${p}${k}.`) : dicts[ns].add(`${p}${k}`); } };

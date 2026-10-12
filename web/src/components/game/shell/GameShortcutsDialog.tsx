@@ -1,11 +1,13 @@
 import { useState, type KeyboardEvent, type ReactNode } from "react";
 import { useStore } from "zustand";
 import type { StoreApi } from "zustand/vanilla";
+import { useTranslation } from "react-i18next";
 
 import type { GameShortcutState } from "../../../stores/game/GameShortcutStore";
 import { Caption, Dialog, EditorButton, FlexColumn, FlexRow, Label, ShortcutHint, SPACING, Text } from "../../ui_primitives";
 import { isMac } from "../../../utils/platform";
 import { formatGameBinding, GAME_COMMANDS, gameBindingFromEvent, resolveGameBindings, type GameCommandCategory } from "./gameCommands";
+import { gameCommandCategory, gameCommandTitle } from "../gameI18n";
 import type { GameDimension } from "./panelRegistry";
 
 interface GameShortcutsDialogProps {
@@ -17,6 +19,7 @@ interface GameShortcutsDialogProps {
 
 /** Lists the editor commands for one dimension and lets the user record, remove or reset their shortcuts. */
 export default function GameShortcutsDialog({ open, dimension, store, onClose }: GameShortcutsDialogProps): ReactNode {
+  const { t } = useTranslation();
   const overrides = useStore(store, (state) => state.overrides);
   const [recording, setRecording] = useState<string | null>(null);
   const [message, setMessage] = useState<{ readonly commandId: string; readonly text: string } | null>(null);
@@ -40,34 +43,35 @@ export default function GameShortcutsDialog({ open, dimension, store, onClose }:
   };
   const close = (): void => { setRecording(null); setMessage(null); onClose(); };
   const group = (category: GameCommandCategory): ReactNode => <FlexColumn key={category} gap={SPACING.xs}>
-    <Label>{category}</Label>
+    <Label>{gameCommandCategory(t, category, category)}</Label>
     {commands.filter((entry) => entry.category === category).map((entry) => {
       const current = bindings.get(entry.id) ?? [];
       const isRecording = recording === entry.id;
+      const title = gameCommandTitle(t, entry.id, entry.title);
       return <FlexColumn key={entry.id} gap={SPACING.micro}>
         <FlexRow gap={SPACING.sm} align="center">
-          <Text sx={{ flex: 1, minWidth: 0 }}>{entry.title}</Text>
-          {isRecording ? <Caption role="status">Press a key combination. Escape cancels.</Caption>
+          <Text sx={{ flex: 1, minWidth: 0 }}>{title}</Text>
+          {isRecording ? <Caption role="status">{t("game:shortcuts.pressKeys", { defaultValue: "Press a key combination. Escape cancels." })}</Caption>
             : current.length ? current.map((binding) => <ShortcutHint key={formatGameBinding(binding, mac).join("+")} shortcut={formatGameBinding(binding, mac)} />)
-              : <Caption>No shortcut</Caption>}
-          <EditorButton aria-label={`Change shortcut for ${entry.title}`} aria-pressed={isRecording}
+              : <Caption>{t("game:shortcuts.noShortcut", { defaultValue: "No shortcut" })}</Caption>}
+          <EditorButton aria-label={t("game:shortcuts.changeFor", { title, defaultValue: `Change shortcut for ${entry.title}` })} aria-pressed={isRecording}
             onClick={() => { setMessage(null); setRecording(isRecording ? null : entry.id); }}
             onKeyDown={isRecording ? (event: KeyboardEvent<HTMLElement>) => record(entry.id, event) : undefined}>
-            {isRecording ? "Cancel" : "Change"}</EditorButton>
-          <EditorButton aria-label={`Remove shortcut for ${entry.title}`} disabled={current.length === 0}
-            onClick={() => attempt(entry.id, () => store.getState().setBindings(entry.id, []))}>Remove</EditorButton>
-          <EditorButton aria-label={`Reset shortcut for ${entry.title}`} disabled={!(entry.id in overrides)}
-            onClick={() => attempt(entry.id, () => store.getState().resetBindings(entry.id))}>Reset</EditorButton>
+            {isRecording ? t("common:action.cancel", { defaultValue: "Cancel" }) : t("game:shortcuts.change", { defaultValue: "Change" })}</EditorButton>
+          <EditorButton aria-label={t("game:shortcuts.removeFor", { title, defaultValue: `Remove shortcut for ${entry.title}` })} disabled={current.length === 0}
+            onClick={() => attempt(entry.id, () => store.getState().setBindings(entry.id, []))}>{t("common:action.remove", { defaultValue: "Remove" })}</EditorButton>
+          <EditorButton aria-label={t("game:shortcuts.resetFor", { title, defaultValue: `Reset shortcut for ${entry.title}` })} disabled={!(entry.id in overrides)}
+            onClick={() => attempt(entry.id, () => store.getState().resetBindings(entry.id))}>{t("sketch:attrs.reset", { defaultValue: "Reset" })}</EditorButton>
         </FlexRow>
         {message?.commandId === entry.id && <Caption color="error" role="alert">{message.text}</Caption>}
       </FlexColumn>;
     })}
   </FlexColumn>;
-  return <Dialog open={open} onClose={close} title="Keyboard shortcuts" maxWidth="md" fullWidth
+  return <Dialog open={open} onClose={close} title={t("editor:ui.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })} maxWidth="md" fullWidth
     actions={<EditorButton disabled={Object.keys(overrides).length === 0}
-      onClick={() => { store.getState().resetAll(); setMessage(null); }}>Reset all shortcuts</EditorButton>}>
+      onClick={() => { store.getState().resetAll(); setMessage(null); }}>{t("game:shortcuts.resetAll", { defaultValue: "Reset all shortcuts" })}</EditorButton>}>
     <FlexColumn gap={SPACING.lg}>
-      <Caption>Shortcuts apply to both game editors. Ctrl and Cmd are interchangeable.</Caption>
+      <Caption>{t("game:shortcuts.applyBoth", { defaultValue: "Shortcuts apply to both game editors. Ctrl and Cmd are interchangeable." })}</Caption>
       {categories.map(group)}
     </FlexColumn>
   </Dialog>;

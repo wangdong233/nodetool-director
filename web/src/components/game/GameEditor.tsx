@@ -171,7 +171,7 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
           retries = 0;
         } catch (cause) {
           if (isMissingDraft(cause)) {
-            store.getState().failSave("Draft source unavailable. Export your local draft before restoring.");
+            store.getState().failSave(t("game:editor.draftSourceUnavailableExport", { defaultValue: "Draft source unavailable. Export your local draft before restoring." }));
             await queries.games.getDraft.invalidate({ id: refId });
             throw cause;
           }
@@ -209,7 +209,7 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
       }
     };
     await flushGameDraft(savingPromiseRef, save);
-  }, [refId, queries.games.getDraft]);
+  }, [refId, queries.games.getDraft, t]);
 
   useEffect(() => {
     if (saveStatus !== "unsaved" || conflicts.items.length > 0) return;
@@ -305,9 +305,11 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
     const scene = document?.scenes.find((entry) => entry.entities.some((entity) => entity.id === id));
     const entity = scene?.entities.find((entry) => entry.id === id);
     if (!scene || !entity) { return; }
-    const action = set.rotation === undefined ? "Scale" : "Rotate";
+    const label = set.rotation === undefined
+      ? t("game:viewport.scaleEntity", { name: entity.name || entity.id, defaultValue: "Scale {{name}}" })
+      : t("game:viewport.rotateEntity", { name: entity.name || entity.id, defaultValue: "Rotate {{name}}" });
     getGameDraftStore(refId).getState().apply([{ op: "update_entity", entity_id: id, scene_id: scene.id, set: { transform2d: set } }],
-      { label: `${action} ${entity.name || entity.id}`, mergeKey: "transform-selection", gestureId });
+      { label, mergeKey: "transform-selection", gestureId });
   };
 
   const transformLight = (sceneId: string, index: number, set: { x?: number; y?: number; radius?: number }, gestureId?: number): void => {
@@ -446,7 +448,7 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
         </> },
       { id: "revisions", visible: !isMobile,
         node: <>
-          <CollapsibleSection title={<Label component="span" sx={{ mb: 0 }}>Revisions</Label>} compact defaultOpen={false}
+          <CollapsibleSection title={<Label component="span" sx={{ mb: 0 }}>{t("game:panels.revisions", { defaultValue: "Revisions" })}</Label>} compact defaultOpen={false}
             sx={{ flexShrink: 0, maxHeight: "30%", overflowY: "auto", px: SPACING.md,
               "& > [role='button'] > svg": { fontSize: FONT_SIZE_SANS.body } }}>
           <GameRevisions revisions={revisions ?? []} busy={saving} onRestore={restoreRevision} />
@@ -526,8 +528,9 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
 const Editor3D = lazy(() => import("./GameEditor3D"));
 
 export default function GameEditor(props: GameEditorProps) {
+  const { t } = useTranslation();
   const { data } = trpc.games.getDraft.useQuery({ id: props.refId }, { staleTime: 15_000 });
   return data?.document.schemaVersion === 3
-    ? <Suspense fallback={<LoadingSpinner text="Loading 3D editor" />}><Editor3D {...props} /></Suspense>
+    ? <Suspense fallback={<LoadingSpinner text={t("game:editor.loading3dEditor", { defaultValue: "Loading 3D editor" })} />}><Editor3D {...props} /></Suspense>
     : <LegacyGameEditor {...props} />;
 }

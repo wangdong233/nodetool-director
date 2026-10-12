@@ -11,6 +11,7 @@ import ui2En from "../locales/en/ui2.json";
 import appbuilderEn from "../locales/en/appbuilder.json";
 import catalogEn from "../locales/en/catalog.json";
 import toolsEn from "../locales/en/tools.json";
+import gameEn from "../locales/en/game.json";
 import commonZh from "../locales/zh-CN/common.json";
 import navZh from "../locales/zh-CN/nav.json";
 import settingsZh from "../locales/zh-CN/settings.json";
@@ -24,6 +25,7 @@ import ui2Zh from "../locales/zh-CN/ui2.json";
 import appbuilderZh from "../locales/zh-CN/appbuilder.json";
 import catalogZh from "../locales/zh-CN/catalog.json";
 import toolsZh from "../locales/zh-CN/tools.json";
+import gameZh from "../locales/zh-CN/game.json";
 import {
   changeAppLanguage,
   i18n,
@@ -128,6 +130,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     ["appbuilder", appbuilderEn, appbuilderZh],
     ["catalog", staticBlocks(catalogEn), staticBlocks(catalogZh)],
     ["tools", toolsEn, toolsZh],
+    ["game", gameEn, gameZh],
   ];
 
   it.each(suites)("%s: en and zh-CN carry exactly the same key set", (_ns, en, zh) => {
@@ -186,6 +189,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     collect(appbuilderEn, "appbuilder", "");
     collect(catalogEn, "catalog", "");
     collect(toolsEn, "tools", "");
+    collect(gameEn, "game", "");
 
     // Single-pass extraction (r25 perf): the original per-key loop ran a fresh
     // regex + includes() over the ~40MB allSource for every leaf × every
@@ -321,6 +325,7 @@ describe("catalog key parity (CI completeness guard)", () => {
         "nav:tabs.",
         "nav:qa.",
         "home:entry.",
+        "home:flowError.kind.",
         "editor:nodeBody.items.",
         "editor:bottom.",
         "editor:ui.",

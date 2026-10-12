@@ -7,6 +7,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
 import ViewInArOutlinedIcon from "@mui/icons-material/ViewInArOutlined";
+import { useTranslation } from "react-i18next";
 import { diffGameDocuments3D } from "../../../../stores/game/diffGameDocuments3D";
 import { Box, Caption, CONTROL, EditorButton, FlexColumn, FlexRow, FONT_SIZE_SANS, InspectorFieldRow, InspectorSection, InspectorValueInput, SPACING, Text, ToolbarIconButton } from "../../../ui_primitives";
 import ReportBugButton from "../../../support/ReportBugButton";
@@ -25,11 +26,15 @@ interface GameInspector3DProps {
   readonly onScript: (index: number) => void;
 }
 
-const TRANSFORM_LABELS = { position: "Position", rotation: "Rotation", scale: "Scale" } as const;
-const TRANSFORM_UNITS = { position: "Position in meters", rotation: "Rotation in degrees", scale: "Scale factor" } as const;
+const TRANSFORM_UNITS: Readonly<Record<"position" | "rotation" | "scale", (t: (key: string, opts?: Record<string, unknown>) => string) => string>> = {
+  position: (t) => t("game:viewport.positionInMeters", { defaultValue: "Position in meters" }),
+  rotation: (t) => t("game:viewport.rotationInDegrees", { defaultValue: "Rotation in degrees" }),
+  scale: (t) => t("game:viewport.scaleFactor", { defaultValue: "Scale factor" })
+};
 const ENTITY_FIELDS = gameSchemaFields(gameEntity3D.omit({ id: true, transform3d: true, behaviors: true }));
 
 export default function GameInspector3D({ document, sceneId, entityId, onOps, onOperationError, onScript }: GameInspector3DProps) {
+  const { t } = useTranslation();
   const scene = document.scenes.find((item) => item.id === sceneId);
   const entity = scene?.entities.find((item) => item.id === entityId);
   const validation = useMemo(() => validateGame3D(document), [document]);
@@ -56,16 +61,16 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
       <FlexRow gap={SPACING.sm} align="center" sx={{ py: SPACING.sm }}>
         <PublicOutlinedIcon sx={{ fontSize: FONT_SIZE_SANS.title, color: "text.secondary" }} />
         <FlexColumn sx={{ flex: 1, minWidth: 0 }}>
-          <Text weight={500} truncate>{scene?.name ?? "Scene"}</Text>
-          <Caption>Scene settings. Select an entity to edit it.</Caption>
+          <Text weight={500} truncate>{scene?.name ?? t("storyboard:attrs.scene", { defaultValue: "Scene" })}</Text>
+          <Caption>{t("game:inspector.sceneSettingsHint", { defaultValue: "Scene settings. Select an entity to edit it." })}</Caption>
         </FlexColumn>
       </FlexRow>
       {scene && <SchemaFields componentSections schema={gameSchemaFields(gameScene3D.omit({ id: true, entities: true }))}
         value={settings} assets={document.assets} onChange={(value) => {
           const updated = gameScene3D.parse({ ...gameScene3D.omit({ id: true, entities: true }).parse(value), id: scene.id, entities: scene.entities });
-          applyDocument({ ...document, scenes: document.scenes.map((item) => item.id === sceneId ? updated : item) }, "Change Scene Settings");
+          applyDocument({ ...document, scenes: document.scenes.map((item) => item.id === sceneId ? updated : item) }, t("game:viewport.changeSceneSettings", { defaultValue: "Change Scene Settings" }));
         }} />}
-      <InspectorSection title="Collision layers">
+      <InspectorSection title={t("game:inspector.collisionLayers", { defaultValue: "Collision layers" })}>
         <CollisionMatrixEditor document={document} onDocument={applyDocument} />
       </InspectorSection>
       {validation.diagnostics.map((issue, index) => <Caption key={`${issue.code}:${index}`} color="error">{issue.path.join(".")}: {issue.message}</Caption>)}
@@ -78,18 +83,22 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
   const scale = entity.transform3d.scale;
   const angles = new Euler().setFromQuaternion(new Quaternion().fromArray(entity.transform3d.rotation), "YXZ");
   const rotation = { x: angles.x * 180 / Math.PI, y: angles.y * 180 / Math.PI, z: angles.z * 180 / Math.PI };
+  const transformLabel = (kind: "position" | "rotation" | "scale"): string => kind === "position" ? t("editor:ui.position", { defaultValue: "Position" })
+    : kind === "rotation" ? t("editor:ui.rotation", { defaultValue: "Rotation" })
+    : t("timeline:attrs.scale", { defaultValue: "Scale" });
   const transformField = (kind: "position" | "scale" | "rotation", values: { x: number; y: number; z: number }): ReactNode =>
-    <InspectorFieldRow label={<Box component="span" title={TRANSFORM_UNITS[kind]}>{TRANSFORM_LABELS[kind]}</Box>}>
+    <InspectorFieldRow label={<Box component="span" title={TRANSFORM_UNITS[kind](t)}>{transformLabel(kind)}</Box>}>
       {(["x", "y", "z"] as const).map((axis) => <FlexRow key={axis} sx={{ flex: 1, minWidth: 0 }}>
-        <InspectorValueInput ariaLabel={`${kind} ${axis}`} grow minWidth={CONTROL.height.xl} value={String(Math.round(values[axis] * 1000) / 1000)}
+        <InspectorValueInput ariaLabel={t("game:viewport.axisAria", { kind, axis, defaultValue: `${kind} ${axis}` })} grow minWidth={CONTROL.height.xl} value={String(Math.round(values[axis] * 1000) / 1000)}
           onCommit={(value) => {
             const numeric = Number(value);
             if (!Number.isFinite(numeric) || (kind === "scale" && numeric <= 0)) { return; }
             if (kind === "rotation") {
               const updated = { ...rotation, [axis]: numeric };
               const quaternion = new Quaternion().setFromEuler(new Euler(updated.x * Math.PI / 180, updated.y * Math.PI / 180, updated.z * Math.PI / 180, "YXZ"));
-              apply({ transform3d: { rotation: [quaternion.x, quaternion.y, quaternion.z, quaternion.w] } }, `Rotate ${entity.name || entity.id}`);
-            } else { apply({ transform3d: { [kind]: { ...values, [axis]: numeric } } }, `${kind === "position" ? "Move" : "Scale"} ${entity.name || entity.id}`); }
+              apply({ transform3d: { rotation: [quaternion.x, quaternion.y, quaternion.z, quaternion.w] } }, t("game:viewport.rotateEntity", { name: entity.name || entity.id, defaultValue: `Rotate ${entity.name || entity.id}` }));
+            } else { apply({ transform3d: { [kind]: { ...values, [axis]: numeric } } }, t(kind === "position" ? "editor:ui.moveName" : "game:viewport.scaleEntity",
+              { name: entity.name || entity.id, defaultValue: `${kind === "position" ? "Move" : "Scale"} ${entity.name || entity.id}` })); }
           }} />
       </FlexRow>)}
     </InspectorFieldRow>;
@@ -101,13 +110,13 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
         <Text weight={500} truncate>{entity.name || entity.id}</Text>
         <Caption sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={entity.id}>{entity.id}</Caption>
       </FlexColumn>
-      <ToolbarIconButton icon={<DeleteOutlineIcon fontSize="small" />} tooltip="Delete entity" variant="error"
+      <ToolbarIconButton icon={<DeleteOutlineIcon fontSize="small" />} tooltip={t("game:inspector.deleteEntity", { defaultValue: "Delete entity" })} variant="error"
         onClick={() => onOps([{ op: "remove_entity", scene_id: sceneId, entity_id: entity.id }])} />
     </FlexRow>
     <Box sx={{ pb: SPACING.xs }}>
       <GameOverrideFields document={document} sceneId={sceneId} entityId={entity.id} onOps={onOps} />
     </Box>
-    <InspectorSection title="Transform">
+    <InspectorSection title={t("timeline:attrs.transform", { defaultValue: "Transform" })}>
       {transformField("position", position)}
       {transformField("rotation", rotation)}
       {transformField("scale", scale)}
@@ -118,15 +127,15 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
           id: entity.id, transform3d: entity.transform3d, behaviors: entity.behaviors });
         applyDocument({ ...document, scenes: document.scenes.map((item) => item.id === sceneId ?
           { ...item, entities: item.entities.map((candidate) => candidate.id === entity.id ? updated : candidate) } : item) },
-        updated.light3d && entity.light3d?.intensity !== updated.light3d.intensity ? "Change Light Intensity" : "Change Entity Components");
+        updated.light3d && entity.light3d?.intensity !== updated.light3d.intensity ? t("game:viewport.changeLightIntensity", { defaultValue: "Change Light Intensity" }) : t("game:viewport.changeEntityComponents", { defaultValue: "Change Entity Components" }));
       }} />
-    <InspectorSection title="Behaviors">
+    <InspectorSection title={t("game:inspector.behaviors", { defaultValue: "Behaviors" })}>
       <FlexColumn gap={SPACING.sm}>
-        {entity.behaviors.length === 0 && <Caption>No behaviors yet.</Caption>}
+        {entity.behaviors.length === 0 && <Caption>{t("game:inspector.noBehaviors", { defaultValue: "No behaviors yet." })}</Caption>}
         {entity.behaviors.map((behavior, index) => <FlexColumn key={`${behavior.kind}:${index}`} gap={SPACING.xs}>
           <FlexRow gap={SPACING.xs} align="center"><Caption sx={{ flex: 1 }}>{behavior.kind}</Caption>
-            {behavior.kind === "script" && <EditorButton onClick={() => onScript(index)}>Edit script</EditorButton>}
-            <EditorButton onClick={() => onOps([{ op: "remove_behavior", scene_id: sceneId, entity_id: entity.id, index }])}>Remove</EditorButton>
+            {behavior.kind === "script" && <EditorButton onClick={() => onScript(index)}>{t("game:inspector.editScript", { defaultValue: "Edit script" })}</EditorButton>}
+            <EditorButton onClick={() => onOps([{ op: "remove_behavior", scene_id: sceneId, entity_id: entity.id, index }])}>{t("common:action.remove", { defaultValue: "Remove" })}</EditorButton>
           </FlexRow>
           {behavior.kind === "script" && behavior.params && <ScriptParamsEditor params={behavior.params} values={behavior.values} assets={document.assets}
             entities={scene?.entities ?? []} issues={validation.issues}
@@ -135,7 +144,7 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
             onChange={(value) => onOps([gameDocumentOp3D.parse({ op: "update_behavior", scene_id: sceneId, entity_id: entity.id, index, behavior: value })])} />}
         </FlexColumn>)}
         <EditorButton variant="outlined" startIcon={<AddIcon fontSize="small" />} onClick={() => onOps([{ op: "add_behavior", scene_id: sceneId, entity_id: entity.id,
-          behavior: { kind: "script", source: '(input) => ({ state: input.state, commands: [] })' } }])}>Add script</EditorButton>
+          behavior: { kind: "script", source: '(input) => ({ state: input.state, commands: [] })' } }])}>{t("game:inspector.addScript", { defaultValue: "Add script" })}</EditorButton>
       </FlexColumn>
     </InspectorSection>
   </FlexColumn>;

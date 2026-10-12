@@ -11,6 +11,7 @@ import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import ViewInArOutlinedIcon from "@mui/icons-material/ViewInArOutlined";
 import type { GameDocument, GameEntity, GameScene } from "@nodetool-ai/protocol/game.js";
 import type { GameDocumentOp, GameValidationIssue } from "@nodetool-ai/game-runtime";
+import { useTranslation } from "react-i18next";
 
 import { Box, CONTROL, Divider, EditorButton, EditorMenu, FlexColumn, FlexRow, FONT_SIZE_SANS, Label, MenuItemPrimitive, SearchInput, SPACING, Text, Tooltip, TreeRow, TYPOGRAPHY } from "../../../ui_primitives";
 
@@ -141,6 +142,7 @@ function entityIcon(entity: GameEntity) {
 }
 
 export default function GameSceneTree({ document, activeSceneId, selectedIds, issues = [], scriptErrorEntityId, onSelect, onSelectScene, onOps }: GameSceneTreeProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [addSceneId, setAddSceneId] = useState<string | null>(null);
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
@@ -196,14 +198,14 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
   return (
     <FlexColumn gap={SPACING.sm} sx={{ flex: 1, minHeight: 0 }}>
       <FlexRow align="center" justify="space-between" sx={{ px: SPACING.md, pt: SPACING.md }}>
-        <Text size="small">Scene tree</Text>
-        <Tooltip title="Alt+arrow keys move or nest a focused entity"><HelpOutlineIcon sx={{ ...TREE_ICON_SX, color: "text.secondary" }} /></Tooltip>
+        <Text size="small">{t("game:sceneTree.title", { defaultValue: "Scene tree" })}</Text>
+        <Tooltip title={t("game:sceneTree.altArrowHint", { defaultValue: "Alt+arrow keys move or nest a focused entity" })}><HelpOutlineIcon sx={{ ...TREE_ICON_SX, color: "text.secondary" }} /></Tooltip>
       </FlexRow>
       <Box sx={{ px: SPACING.md }}><SearchInput value={search} onChange={(value) => {
         setSearch(value);
         setSearchCollapsedScenes(new Set());
         setSearchCollapsedGroups(new Set());
-      }} placeholder="Search entities" ariaLabel="Search entities" size="small"
+      }} placeholder={t("storyboard:attrs.searchEntities", { defaultValue: "Search entities" })} ariaLabel={t("storyboard:attrs.searchEntities", { defaultValue: "Search entities" })} size="small"
         sx={{ "&& .MuiInputBase-input": TYPOGRAPHY.sans.label, "& .search-icon, & .clear-button svg": TREE_ICON_SX }} /></Box>
       <Divider />
       <FlexColumn gap={SPACING.sm} sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
@@ -212,13 +214,13 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
         return (
         <FlexColumn key={scene.id} gap={SPACING.micro} sx={{ px: SPACING.xs }}>
           <FlexRow align="center" justify="space-between" sx={{ px: SPACING.md, py: SPACING.micro }}>
-            <EditorButton variant="text" aria-label={`${sceneExpanded ? "Collapse" : "Expand"} ${scene.name}`}
+            <EditorButton variant="text" aria-label={sceneExpanded ? t("game:sceneTree.collapseName", { name: scene.name, defaultValue: `Collapse ${scene.name}` }) : t("game:sceneTree.expandName", { name: scene.name, defaultValue: `Expand ${scene.name}` })}
               aria-expanded={sceneExpanded}
               onClick={() => toggleCollapsed(scene.id, needle ? setSearchCollapsedScenes : setCollapsedScenes)}
               sx={{ width: CONTROL.height.xs, minWidth: 0, px: SPACING.none, flexShrink: 0, color: "text.secondary" }}>
               {sceneExpanded ? <ExpandMoreIcon sx={TREE_ICON_SX} aria-hidden="true" /> : <ChevronRightIcon sx={TREE_ICON_SX} aria-hidden="true" />}
             </EditorButton>
-            <EditorButton variant="text" aria-label={`Scene ${scene.name}`} aria-pressed={activeSceneId === scene.id}
+            <EditorButton variant="text" aria-label={t("game:sceneTree.sceneName", { name: scene.name, defaultValue: `Scene ${scene.name}` })} aria-pressed={activeSceneId === scene.id}
               onClick={() => onSelectScene(scene.id)}
               sx={{ flex: 1, minWidth: 0, justifyContent: "flex-start", gap: SPACING.xs,
                 bgcolor: activeSceneId === scene.id ? "action.selected" : "transparent",
@@ -226,7 +228,7 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
               <FolderOpenOutlinedIcon sx={TREE_ICON_SX} />
               <Text component="span" size="small" sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{scene.name}</Text>
             </EditorButton>
-            <EditorButton aria-label={`Add entity to ${scene.name}`} title={`Add entity to ${scene.name}`} onClick={(event) => {
+            <EditorButton aria-label={t("game:sceneTree.addEntityTo", { name: scene.name, defaultValue: `Add entity to ${scene.name}` })} title={t("game:sceneTree.addEntityTo", { name: scene.name, defaultValue: `Add entity to ${scene.name}` })} onClick={(event) => {
               setAnchor(event.currentTarget); setAddSceneId(scene.id);
             }}><AddIcon sx={TREE_ICON_SX} /></EditorButton>
           </FlexRow>
@@ -236,13 +238,13 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
             if (prefabs && rows.length === 0 && !dragged) return null;
             const groupKey = `${scene.id}:${prefabs ? "prefabs" : "entities"}`;
             const groupExpanded = !((needle ? searchCollapsedGroups : collapsedGroups).has(groupKey));
-            const groupName = prefabs ? "Prefabs" : "Entities";
+            const groupName = prefabs ? t("game:sceneTree.prefabs", { defaultValue: "Prefabs" }) : t("editor:ui.entities", { defaultValue: "Entities" });
             return (
               <FlexColumn key={String(prefabs)} gap={SPACING.micro}>
                 <FlexRow onDragOver={(event) => { if (dragged?.sceneId === scene.id) event.preventDefault(); }}
                   onDrop={(event) => { event.preventDefault(); drop(scene, null, "inside", prefabs); }}
                   sx={{ pl: SPACING.xxxl, pr: SPACING.md, py: SPACING.xs }}>
-                  <EditorButton variant="text" aria-label={`${groupName} in ${scene.name}`} aria-expanded={groupExpanded}
+                  <EditorButton variant="text" aria-label={t("game:sceneTree.groupInScene", { group: groupName, scene: scene.name, defaultValue: `${groupName} in ${scene.name}` })} aria-expanded={groupExpanded}
                     onClick={() => toggleCollapsed(groupKey, needle ? setSearchCollapsedGroups : setCollapsedGroups)}
                     sx={{ width: "100%", color: "text.secondary", justifyContent: "flex-start", gap: SPACING.xs,
                       textTransform: "uppercase", letterSpacing: "0.12em" }}>
@@ -258,7 +260,7 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
                   return (
                     <TreeRow key={entity.id} component="button" type="button" draggable interactive selected={selected}
                       depth={depth} baseIndent={SPACING.xxxl * 2} indentStep={SPACING.xl}
-                      aria-label={`${entity.name || entity.id}${hasIssue ? ", has errors" : ""}`}
+                      aria-label={hasIssue ? t("game:sceneTree.entityAriaWithError", { name: entity.name || entity.id, defaultValue: `${entity.name || entity.id}, has errors` }) : entity.name || entity.id}
                       aria-pressed={selected}
                       aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight"
                       onClick={(event) => onSelect(entity.id, event.shiftKey || event.metaKey || event.ctrlKey)}
@@ -290,12 +292,19 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
       ); })}
       </FlexColumn>
       <EditorMenu anchorEl={anchor} open={Boolean(addSceneId)} onClose={() => setAddSceneId(null)}
-        slotProps={{ list: { "aria-label": "Add game entity" } }}>
-        {PRESETS.map(({ kind, label }) => (
-          <MenuItemPrimitive key={kind} label={label} onClick={() => add(kind)}
+        slotProps={{ list: { "aria-label": t("game:sceneTree.addGameEntity", { defaultValue: "Add game entity" }) } }}>
+        {PRESETS.map(({ kind, label }) => {
+          // The preset's English label doubles as the created entity's name; only the menu item localizes.
+          const localized = kind === "sprite" ? t("game:sceneTree.presetSprite", { defaultValue: label })
+            : kind === "wall" ? t("game:sceneTree.presetWall", { defaultValue: label })
+            : kind === "collectible" ? t("game:sceneTree.presetCollectible", { defaultValue: label })
+            : kind === "trigger" ? t("game:sceneTree.presetTrigger", { defaultValue: label })
+            : kind === "camera" ? t("game:sceneTree.presetCamera", { defaultValue: label })
+            : t("game:sceneTree.presetEmpty", { defaultValue: label });
+          return <MenuItemPrimitive key={kind} label={localized} onClick={() => add(kind)}
             disabled={kind === "sprite" && !imageSlot}
-            secondary={kind === "sprite" && !imageSlot ? "Install an image first" : undefined} />
-        ))}
+            secondary={kind === "sprite" && !imageSlot ? t("game:sceneTree.installAnImageFirst", { defaultValue: "Install an image first" }) : undefined} />;
+        })}
       </EditorMenu>
     </FlexColumn>
   );

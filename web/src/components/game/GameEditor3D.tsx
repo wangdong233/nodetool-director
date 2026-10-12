@@ -95,9 +95,11 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
     const rotated = transform?.rotation?.some((value, index) => value !== selected?.transform3d.rotation[index]);
     const scaled = transform?.scale && (transform.scale.x !== selected?.transform3d.scale.x
       || transform.scale.y !== selected?.transform3d.scale.y || transform.scale.z !== selected?.transform3d.scale.z);
-    const action = rotated ? "Rotate" : scaled ? "Scale" : "Move";
+    const action = rotated ? t("game:viewport.rotateEntity", { name: selected?.name || selected?.id || t("editor:ui.entity", { defaultValue: "Entity" }), defaultValue: "Rotate {{name}}" })
+      : scaled ? t("game:viewport.scaleEntity", { name: selected?.name || selected?.id || t("editor:ui.entity", { defaultValue: "Entity" }), defaultValue: "Scale {{name}}" })
+      : t("editor:ui.moveName", { name: selected?.name || selected?.id || t("editor:ui.entity", { defaultValue: "Entity" }) });
     getGameDraftStore(refId).getState().apply(ops,
-      { label: `${action} ${selected?.name || selected?.id || "Entity"}`, mergeKey: "transform-selection", gestureId });
+      { label: action, mergeKey: "transform-selection", gestureId });
   }, [refId, selected?.id, selected?.name, selected?.transform3d]);
   const beginGesture = (): number => getGameDraftStore(refId).getState().beginGesture();
   const endGesture = (id: number): void => getGameDraftStore(refId).getState().endGesture(id);
@@ -145,7 +147,7 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
           retries = 0;
         } catch (cause) {
           if (isMissingDraft(cause)) {
-            store.getState().failSave("Draft source unavailable. Export your local draft before restoring.");
+            store.getState().failSave(t("game:editor.draftSourceUnavailableExport", { defaultValue: "Draft source unavailable. Export your local draft before restoring." }));
             await queries.games.getDraft.invalidate({ id: refId });
             throw cause;
           }
@@ -171,7 +173,7 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
     };
     await flushGameDraft(savingRef, save);
     setOperationError(null);
-  }, [refId, pullFromServer, queries.games.getDraft]);
+  }, [refId, pullFromServer, queries.games.getDraft, t]);
 
   useEffect(() => registerDocumentSync("game", refId, {
     localRevision: () => getGameDraftStore(refId).getState().baseUpdatedAt,
@@ -216,7 +218,7 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
       await flush();
       await flushGameDraft(savingRef, async () => {
         const state = getGameDraftStore(refId).getState();
-        if (!state.baseUpdatedAt) { throw new Error("The draft is not ready for model installation"); }
+        if (!state.baseUpdatedAt) { throw new Error(t("game:editor.draftNotReadyForModelInstallation", { defaultValue: "The draft is not ready for model installation" })); }
         await trpcClient.games.installAsset.mutate({ id: refId, assetId, slot: assetSlot, baseUpdatedAt: state.baseUpdatedAt });
         await pullFromServer();
       });
@@ -237,7 +239,7 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
       await flush();
       await flushGameDraft(savingRef, async () => {
         const state = getGameDraftStore(refId).getState();
-        if (!state.baseUpdatedAt) { throw new Error("The draft is not ready for restoration"); }
+        if (!state.baseUpdatedAt) { throw new Error(t("game:editor.draftNotReadyForRestoration", { defaultValue: "The draft is not ready for restoration" })); }
         const result = await trpcClient.games.restoreDraft.mutate({ id: refId, baseUpdatedAt: state.baseUpdatedAt, revision });
         getGameDraftStore(refId).getState().load(result.document, result.game.draftUpdatedAt);
       });
@@ -287,14 +289,15 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
         score: host.inspection?.score ?? 0,
         won: host.inspection?.won ?? false,
         backend: host.backend,
-        hint: selected ? `Selected: ${selected.name || selected.id}` : `${scene?.entities.length ?? 0} entities in ${scene?.name ?? "scene"}` }}
+        hint: selected ? t("game:status.selectedStatus", { name: selected.name || selected.id, defaultValue: "Selected: {{name}}" })
+          : t("game:status.entitiesInScene", { count: scene?.entities.length ?? 0, name: scene?.name ?? t("game:status.sceneFallback", { defaultValue: "scene" }), defaultValue: "{{count}} entities in {{name}}" }) }}
     notices={<>
     {notice && <FlexColumn gap={SPACING.xs} sx={{ px: SPACING.md, py: SPACING.xs, borderBottom: 1, borderColor: "divider", bgcolor: "background.paper" }}>
       {(host.error || draftError || operationError) && <FlexRow gap={SPACING.xs} align="center"><Caption color="error" role="alert" sx={{ flex: 1, minWidth: 0 }}>{host.error ?? draftError ?? operationError}</Caption>
         {host.error && <EditorButton onClick={() => void host.replayBeforeError()}>{t("editor:ui.replayBeforeError")}</EditorButton>}
         <ReportBugButton context={{ source: "panel-crash", summary: "3D game editor failed", errorText: host.error ?? draftError ?? operationError ?? "",
           nodeDetail: `Game: ${refId}\nScene: ${activeSceneId}\nEntity: ${selected?.id ?? "none"}\nTick: ${host.inspection?.tick ?? 0}` }} /></FlexRow>}
-      {restart && <Caption role="status">The draft changed. Stop and play again to apply it.</Caption>}
+      {restart && <Caption role="status">{t("editor:ui.theDraftChangedStopAndPlayAgainToApplyIt", { defaultValue: "The draft changed. Stop and play again to apply it." })}</Caption>}
     </FlexColumn>}
     <GameAuthoringPreview key={refId} gameId={refId} document={document} flush={flush} onHighlight={setHighlightedIds} />
     {conflicts.items.length > 0 && <ConflictBanner conflicts={conflicts.items} onAccept={conflicts.accept} onDiscard={conflicts.discard} />}
@@ -306,22 +309,22 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
         node: <>
 <GameHierarchy3D document={document} scene={scene} selectedIds={selectedIds} onSelect={select} onAdd={add}
           onSelectScene={(value) => { setSceneId(value); getGameDraftStore(refId).getState().selectMany([]); }}
-          footer={<CollapsibleSection title={<Label component="span" sx={{ mb: 0 }}>Model assets</Label>} compact defaultOpen={false}>
+          footer={<CollapsibleSection title={<Label component="span" sx={{ mb: 0 }}>{t("game:editor.modelAssets", { defaultValue: "Model assets" })}</Label>} compact defaultOpen={false}>
             <FlexColumn gap={SPACING.sm} sx={{ pb: SPACING.md }}>
               <TextInput label={t("editor:ui.ownedModelAssetId")} compact value={assetId} onChange={(event) => setAssetId(event.target.value)} />
               <TextInput label={t("editor:ui.modelSlot")} compact value={assetSlot} onChange={(event) => setAssetSlot(event.target.value)} />
-              <EditorButton variant="outlined" disabled={!assetId || !assetSlot} onClick={() => void installModel()}>Prepare and install model</EditorButton>
+              <EditorButton variant="outlined" disabled={!assetId || !assetSlot} onClick={() => void installModel()}>{t("game:editor.prepareAndInstallModel", { defaultValue: "Prepare and install model" })}</EditorButton>
               {Object.entries(document.assets).map(([slot, binding]) => <FlexRow key={slot} gap={SPACING.xs} align="center">
                 <Caption sx={{ flex: 1, minWidth: 0 }}>{slot} · {binding.mediaKind}</Caption>
                 {binding.mediaKind === "model" && <EditorButton onClick={() => useWorkspaceTabsStore.getState().openTab({
                   type: "model3d", ref: binding.sourceAssetId ?? binding.assetId, mode: "edit", title: slot, projectId
-                })}>Edit model</EditorButton>}
+                })}>{t("game:editor.editModel", { defaultValue: "Edit model" })}</EditorButton>}
               </FlexRow>)}
-              <Caption>After saving model changes, prepare and install them again.</Caption>
+              <Caption>{t("game:editor.afterSavingModelChanges", { defaultValue: "After saving model changes, prepare and install them again." })}</Caption>
             </FlexColumn>
           </CollapsibleSection>} />        </> },
       { id: "revisions",
-        node: <CollapsibleSection title={<Label component="span" sx={{ mb: 0 }}>Revisions</Label>} compact defaultOpen={false}
+        node: <CollapsibleSection title={<Label component="span" sx={{ mb: 0 }}>{t("game:panels.revisions", { defaultValue: "Revisions" })}</Label>} compact defaultOpen={false}
           sx={{ flexShrink: 0, maxHeight: "30%", overflowY: "auto", px: SPACING.md }}>
           <GameRevisions revisions={revisions ?? []} busy={restoring || saveStatus === "saving"} onRestore={restoreRevision} />
         </CollapsibleSection> },
@@ -346,7 +349,7 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
           onSelectEntity={(entitySceneId, entityId) => { setSceneId(entitySceneId); select(entityId); }} onAskAssistant={assistant.draft} /> },
       { id: "inspector",
         node: <>
-        <GamePanelHeader title="Inspector" icon={<TuneOutlinedIcon sx={{ fontSize: FONT_SIZE_SANS.body }} />} />
+        <GamePanelHeader title={t("editor:ui.inspector", { defaultValue: "Inspector" })} icon={<TuneOutlinedIcon sx={{ fontSize: FONT_SIZE_SANS.body }} />} />
         <FlexColumn sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
           <GameInspector3D document={document} sceneId={activeSceneId} entityId={selected?.id} onOps={onOps} onOperationError={(message) => getGameDraftStore(refId).getState().reportOperationError(message)} onScript={(index) => { if (selected) { setScriptKey({ sceneId: activeSceneId, entityId: selected.id, index }); layoutStore.getState().dispatch({ type: "reveal", panelId: "scripts" }); } }} />
           {host.playDocument && !host.playing && <CollapsibleSection title={t("editor:ui.runtimeState")} compact sx={{ px: SPACING.md }}><Caption>{JSON.stringify(host.inspection?.entities.find((entity) => entity.id === selected?.id))}</Caption></CollapsibleSection>}

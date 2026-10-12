@@ -16,6 +16,7 @@ links the artifact or the command that measures its current state. Pair with
 | Storyboard / timeline domains | `storyboard.json`, `timeline.json` | Shot/take/clip/track/keyframe vocabulary lives here |
 | Sketch tools | `sketch.json` | Brush/layer/tool chrome |
 | Mini-app builder | `appbuilder.json` | Puck field labels resolved from a localized config clone |
+| Game editor & player (2D/3D) | `game.json` | Editor chrome, toolbar, dock, command palette, inspector/collision/authoring surfaces. Registry titles (panels/commands/categories) resolve at render time through `components/game/gameI18n.ts` with the registry value as the English fallback; schema-derived field labels (`SchemaFields.fieldLabel`) stay English as data class |
 | Settings & integrations | `settings.json`, `tools.json` | Env-var descriptions, provider cards, MCP section |
 | Navigation & pages | `nav.json`, `home.json` | Rail, tabs, page sidebar. `home.json` fully covers the redesigned home surface (composer pills, guided-flow cards + states, game-dimension select, blank-document footer, model notices, guided-flow error panel with per-kind noun keys, document-tree group labels via `labelKey`) |
 | Primitives / shared | `common.json`, `ui.json`, `ui2.json` | Action verbs, attrs, relative time |

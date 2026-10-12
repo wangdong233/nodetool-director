@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { AnyGameDocument as GameDocument } from "@nodetool-ai/protocol";
 import { applyAnyGameOps as applyGameOps, type AnyGameDocumentOp as GameDocumentOp } from "@nodetool-ai/game-runtime";
+import { useTranslation } from "react-i18next";
 
 import { trpc, trpcClient } from "../../../../trpc/client";
 import { mergeByUnits } from "../../../../stores/documentMerge";
@@ -19,6 +20,7 @@ interface GameChangesProps {
 }
 
 export default function GameChanges({ gameId, document, onOps, onHover, onFocusMessage }: GameChangesProps) {
+  const { t } = useTranslation();
   const { data: changes } = trpc.games.draftChanges.useQuery({ id: gameId }, { staleTime: 5_000 });
   const [undoing, setUndoing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,15 +71,15 @@ export default function GameChanges({ gameId, document, onOps, onHover, onFocusM
 
   if (groups.length === 0) return null;
   return <FlexColumn gap={SPACING.xs} sx={{ maxHeight: "25%", overflowY: "auto" }}>
-    <Text>Changes</Text>
+    <Text>{t("game:changes.title", { defaultValue: "Changes" })}</Text>
     {error && <Caption color="error" role="alert">{error}</Caption>}
     {groups.map((group) => <FlexRow key={group.id} gap={SPACING.sm} align="center"
       onMouseEnter={() => onHover([...new Set(group.entityIds)])} onMouseLeave={() => onHover([])}>
       <Caption>{group.summary.join("; ")}</Caption>
       {group.threadId && group.messageId && <EditorButton onClick={() => {
         if (group.threadId && group.messageId) onFocusMessage(group.threadId, group.messageId);
-      }}>View in chat</EditorButton>}
-      <EditorButton disabled={undoing !== null} onClick={() => void undo(group)}>Undo</EditorButton>
+      }}>{t("game:changes.viewInChat", { defaultValue: "View in chat" })}</EditorButton>}
+      <EditorButton disabled={undoing !== null} onClick={() => void undo(group)}>{t("timeline:shortcuts.undo", { defaultValue: "Undo" })}</EditorButton>
     </FlexRow>)}
   </FlexColumn>;
 }
