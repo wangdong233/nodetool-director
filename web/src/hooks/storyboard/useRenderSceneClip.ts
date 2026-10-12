@@ -17,6 +17,9 @@
  */
 
 import { useCallback, useMemo } from "react";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../i18n";
 import { sceneClipRun } from "@nodetool-ai/protocol";
 import type {
   OneTakeDirection,
@@ -41,6 +44,37 @@ import {
   type OneTakeRenderPlan,
   type OneTakeSettings
 } from "./useRenderOneTake";
+
+/**
+ * `sceneClipRun`'s issues come from @nodetool-ai/protocol as English data
+ * strings (the package has no i18n). The display path maps the known
+ * literals to localized copy; anything unrecognized passes through verbatim.
+ */
+const localizeSceneClipIssue = (issue: string, t: TFunction): string => {
+  if (issue === "A shot in this scene clip was deleted.") {
+    return t("storyboard:attrs.sceneClipShotDeleted", {
+      defaultValue: issue
+    });
+  }
+  if (issue.startsWith("A scene clip covers ")) {
+    return t("storyboard:attrs.sceneClipShotCount", {
+      min: 2,
+      max: 5,
+      defaultValue: issue
+    });
+  }
+  if (issue === "The shots in this scene clip are no longer next to each other.") {
+    return t("storyboard:attrs.sceneClipNotAdjacent", {
+      defaultValue: issue
+    });
+  }
+  if (issue === "The shots in this scene clip are no longer in one scene.") {
+    return t("storyboard:attrs.sceneClipNotOneScene", {
+      defaultValue: issue
+    });
+  }
+  return issue;
+};
 
 /** The direction a scene clip renders with, after the board fallbacks. */
 export const sceneClipDirectionWithFallbacks = (
@@ -85,10 +119,16 @@ export const sceneClipBlockers = (
   board: StoryboardBoard | undefined,
   clip: SceneClipDirection,
   plan: OneTakeRenderPlan | null,
-  settings: OneTakeSettings
+  settings: OneTakeSettings,
+  t?: TFunction
 ): string[] => {
   const issue = board ? sceneClipRun(board.shots, clip.shot_ids).issue : null;
-  return [...(issue ? [issue] : []), ...oneTakeBlockers(plan, settings)];
+  return [
+    ...(issue
+      ? [t ? localizeSceneClipIssue(issue, t) : issue]
+      : []),
+    ...oneTakeBlockers(plan, settings, t)
+  ];
 };
 
 interface UseRenderSceneClipResult {
@@ -103,6 +143,9 @@ export const useRenderSceneClip = (
   boardId: string,
   clip: SceneClipDirection
 ): UseRenderSceneClipResult => {
+  const { t } = useTranslation();
+  // Blockers resolve catalog copy in a memo; re-resolve on language change.
+  const { version: languageVersion } = useAppLanguage();
   const board = useStoryboardStore((state) => state.boards[boardId]);
   const { models: catalog } = useVideoModelsByProvider();
   const byTask = useLastModelStore((state) => state.byTask);
@@ -119,8 +162,8 @@ export const useRenderSceneClip = (
     [board, clip, catalog, remembered]
   );
   const blockers = useMemo(
-    () => sceneClipBlockers(board, clip, plan, settings),
-    [board, clip, plan, settings]
+    () => sceneClipBlockers(board, clip, plan, settings, t),
+    [board, clip, plan, settings, t, languageVersion]
   );
 
   const renderSceneClip = useCallback(

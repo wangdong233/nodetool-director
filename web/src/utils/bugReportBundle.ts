@@ -191,9 +191,11 @@ function errorSectionContent(context: BugReportContext): string {
 export function buildServerErrorSection(markdown: string): BundleSection {
   return {
     id: "server-errors",
-    label: "Recent server errors",
-    description:
-      "Errors the server recorded in the last hour: message, stack and the job or route. Stored redacted, with no prompts or keys.",
+    label: i18n.t("editor:ui.recentServerErrors", { defaultValue: "Recent server errors" }),
+    description: i18n.t("editor:ui.errorsTheServerRecorded", {
+      defaultValue:
+        "Errors the server recorded in the last hour: message, stack and the job or route. Stored redacted, with no prompts or keys."
+    }),
     fileName: "server-errors.md",
     content: redactSecretsInText(markdown),
     defaultIncluded: true

@@ -311,7 +311,7 @@ const VerticalToolbar = memo(function VerticalToolbar({
       />
       <Divider className="toolbar-divider" sx={{ mx: SPACING.lg }} />
       <ThemeToggle />
-      <Tooltip title={t("editor:ui.togglePanel", { defaultValue: "Toggle Panel" })} placement="right-start">
+      <Tooltip title={t("editor:ui.togglePanelTitle", { defaultValue: "Toggle Panel" })} placement="right-start">
         <ToolbarIconButton
           tabIndex={-1}
           ariaLabel="Toggle panel"

@@ -130,6 +130,7 @@
     "fileName": "文件名",
     "filePathInput": "文件路径输入",
     "fit": "适配方式",
+    "formatBindingSyntax": "格式（{{binding}} · number:2 · date:short · upper · lower · join:, · truncate:80）",
     "folderPathInput": "文件夹路径输入",
     "futureRunsWillUseTheSelectedPublishedVersionHistoricalRunsKeepTheirOriginalVersionIncompatibleStatePreventsAdvancement": "之后的运行将使用选定的已发布版本。历史运行保留其原始版本。不兼容的状态会阻止推进。",
     "gallery": "图库",
