@@ -88,7 +88,7 @@
     "descApiToken": "此令牌用于向 Nodetool API 验证你的账户。",
     "apiTokenSecret": "妥善保管此令牌，不要公开分享",
     "optAskShort": "每次询问",
-    "optQuitShort": "退出",
+    "optQuitShort": "退出应用",
     "optBackgroundShort": "后台运行",
     "optSelectNodesShort": "框选节点",
     "apiIntTitle": "Nodetool API",
@@ -99,6 +99,7 @@
   },
   "search": {
     "placeholder": "搜索设置…",
+    "ariaLabel": "搜索设置",
     "noMatchesIn": "在“{{label}}”中没有找到匹配项。",
     "alsoIn": "另见",
     "see": "见",

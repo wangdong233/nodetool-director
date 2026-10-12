@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { Caption, Dialog, FlexColumn, Text } from "../ui_primitives";
 import useRuntimePackagePromptStore from "../../stores/RuntimePackagePromptStore";
@@ -23,6 +24,7 @@ const MODEL_QUERY_KEYS = [
  * Package Manager.
  */
 const InstallRuntimePackageDialog: React.FC = () => {
+  const { t } = useTranslation();
   const packageId = useRuntimePackagePromptStore((s) => s.packageId);
   const dismiss = useRuntimePackagePromptStore((s) => s.dismiss);
   const available = useRuntimePackagesStore((s) => s.available);
@@ -100,15 +102,20 @@ const InstallRuntimePackageDialog: React.FC = () => {
       <Dialog
         open
         onClose={dismiss}
-        title={`${name} is installed`}
+        title={t("editor:ui.runtimeInstalledTitle", {
+          defaultValue: "{{name}} is installed",
+          name
+        })}
         showActions
         onConfirm={dismiss}
         onCancel={dismiss}
-        confirmText="Done"
-        cancelText="Close"
+        confirmText={t("editor:ui.done", { defaultValue: "Done" })}
+        cancelText={t("ui:attrs.close", { defaultValue: "Close" })}
         minWidth="440px"
       >
-        <Text size="small">Try again to use it.</Text>
+        <Text size="small">
+          {t("editor:ui.tryAgainToUseIt", { defaultValue: "Try again to use it." })}
+        </Text>
       </Dialog>
     );
   }
@@ -117,12 +124,19 @@ const InstallRuntimePackageDialog: React.FC = () => {
     <Dialog
       open
       onClose={phase === "installing" ? undefined : dismiss}
-      title={`Install ${name}?`}
+      title={t("editor:ui.installNameQuestion", {
+        defaultValue: "Install {{name}}?",
+        name
+      })}
       showActions
       onConfirm={handleInstall}
       onCancel={dismiss}
-      confirmText={phase === "installing" ? "Installing…" : "Install"}
-      cancelText="Not now"
+      confirmText={
+        phase === "installing"
+          ? t("editor:ui.installing", { defaultValue: "Installing…" })
+          : t("editor:ui.install", { defaultValue: "Install" })
+      }
+      cancelText={t("editor:ui.notNow", { defaultValue: "Not now" })}
       confirmDisabled={phase === "installing"}
       cancelDisabled={phase === "installing"}
       isLoading={phase === "installing"}
@@ -130,14 +144,21 @@ const InstallRuntimePackageDialog: React.FC = () => {
     >
       <FlexColumn gap={2}>
         <Text size="small">
-          {name} is not installed. Install it now, then try again.
+          {t("editor:ui.nameIsNotInstalledInstallItNowThenTryAgain", {
+            defaultValue: "{{name}} is not installed. Install it now, then try again.",
+            name
+          })}
         </Text>
         {status?.description && (
           <Caption sx={{ opacity: 0.7 }}>{status.description}</Caption>
         )}
         {phase === "failed" && (
           <Caption sx={{ color: "error.main" }}>
-            {error ?? "The install failed. Try again from the Package Manager."}
+            {error ??
+              t("editor:ui.theInstallFailedTryAgainFromThePackageManager", {
+                defaultValue:
+                  "The install failed. Try again from the Package Manager."
+              })}
           </Caption>
         )}
       </FlexColumn>

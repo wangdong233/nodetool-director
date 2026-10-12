@@ -58,11 +58,11 @@ interface ComposerAttachDialogProps {
   onUploadFiles: (files: File[]) => void;
 }
 
-const TABS: { value: AttachTab; label: string }[] = [
-  { value: "assets", label: "Assets" },
-  { value: "entities", label: "Entities" },
-  { value: "documents", label: "Documents" },
-  { value: "upload", label: "Upload" }
+const TABS: { value: AttachTab; label: string; labelKey: string }[] = [
+  { value: "assets", label: "Assets", labelKey: "nav:rail.assets" },
+  { value: "entities", label: "Entities", labelKey: "nav:rail.entities" },
+  { value: "documents", label: "Documents", labelKey: "nav:tabs.documents" },
+  { value: "upload", label: "Upload", labelKey: "ui:attrs.upload" }
 ];
 
 /** Fixed so switching tabs never resizes the dialog. */
@@ -112,7 +112,12 @@ const AssetsTab: React.FC<{
   }
   return (
     <ScrollArea sx={{ height: PANEL_HEIGHT }} onScroll={handleScroll}>
-      <FlexRow wrap gap={SPACING.xs} role="listbox" aria-label="Assets">
+      <FlexRow
+        wrap
+        gap={SPACING.xs}
+        role="listbox"
+        aria-label={t("nav:rail.assets", { defaultValue: "Assets" })}
+      >
         {displayedAssets.map((asset) => (
           <MentionAssetTile
             key={asset.id}
@@ -178,9 +183,14 @@ const DocumentsTab: React.FC<{
   }
   return (
     <ScrollArea sx={{ height: PANEL_HEIGHT }}>
-      <FlexColumn gap={SPACING.xs} aria-label="Documents">
+      <FlexColumn
+        gap={SPACING.xs}
+        aria-label={t("nav:tabs.documents", { defaultValue: "Documents" })}
+      >
         {documents.map((entry) => {
-          const name = entry.name || "Untitled";
+          const name =
+            entry.name ||
+            t("editor:asset.untitled", { defaultValue: "Untitled" });
           return (
             <Card
               key={`${entry.type}:${entry.id}`}
@@ -294,6 +304,13 @@ export const ComposerAttachDialog: React.FC<ComposerAttachDialogProps> = ({
     [onUploadFiles, onClose]
   );
 
+  const localizedTabs = TABS.map(({ value, label, labelKey }) => ({
+    value,
+    label: t(labelKey, { defaultValue: label })
+  }));
+  const localizedTabLabel = (value: AttachTab): string =>
+    localizedTabs.find((tab) => tab.value === value)?.label ?? value;
+
   return (
     <Dialog
       open={open}
@@ -305,7 +322,7 @@ export const ComposerAttachDialog: React.FC<ComposerAttachDialogProps> = ({
     >
       <FlexColumn gap={SPACING.md}>
         <TabGroup
-          tabs={TABS}
+          tabs={localizedTabs}
           value={tab}
           onChange={handleTabChange}
           aria-label={t("editor:ui.whatToAdd")}
@@ -315,8 +332,14 @@ export const ComposerAttachDialog: React.FC<ComposerAttachDialogProps> = ({
           <SearchInput
             value={query}
             onChange={setQuery}
-            placeholder={`Search ${tab}`}
-            ariaLabel={`Search ${tab}`}
+            placeholder={t("editor:ui.searchTab", {
+              defaultValue: "Search {{tab}}",
+              tab: localizedTabLabel(tab)
+            })}
+            ariaLabel={t("editor:ui.searchTab", {
+              defaultValue: "Search {{tab}}",
+              tab: localizedTabLabel(tab)
+            })}
             size="small"
             autoFocus
             fullWidth

@@ -692,11 +692,16 @@ const ScriptLineRow = ({
       {hasCurrentTake && (
         <SendToWorkflowButton
           items={currentTakeMedia}
-          tooltip="Send current take to a workflow"
+          tooltip={t("editor:ui.sendCurrentTakeToAWorkflow", {
+            defaultValue: "Send current take to a workflow"
+          })}
         />
       )}
       <ToolbarIconButton
-        tooltip={`Takes (${line.takes.length})`}
+        tooltip={t("editor:ui.takesWithCount", {
+          defaultValue: "Takes ({{count}})",
+          count: line.takes.length
+        })}
         onClick={(e: MouseEvent<HTMLElement>) =>
           setGalleryAnchor(e.currentTarget)
         }

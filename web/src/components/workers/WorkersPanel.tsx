@@ -281,7 +281,9 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
               disabled={busy || !isRunning || !isHealthy}
               onClick={() => onAttach(instance.id)}
             >
-              {isBooting ? "Booting…" : "Attach"}
+              {isBooting
+                ? t("editor:ui.booting", { defaultValue: "Booting…" })
+                : t("editor:ui.attach", { defaultValue: "Attach" })}
             </EditorButton>
           )}
           {/* Pause (keep the volume) — only meaningful while the pod runs. */}

@@ -99,7 +99,7 @@ describe("DefaultModelsMenu", () => {
     try {
       expect(screen.getByText("默认模型")).toBeInTheDocument();
       expect(screen.getByText("语言模型")).toBeInTheDocument();
-      expect(screen.getByText("语音合成模型")).toBeInTheDocument();
+      expect(screen.getByText("TTS 语音合成模型")).toBeInTheDocument();
       expect(screen.getByText("代码生成")).toBeInTheDocument();
     } finally {
       await resetI18nForTest();

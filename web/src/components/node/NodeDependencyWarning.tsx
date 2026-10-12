@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useMemo, useState, type FC } from "react"
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 import { BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import isEqual from "../../utils/isEqual";
@@ -84,6 +85,7 @@ interface NodeDependencyWarningProps {
 const NodeDependencyWarning: FC<NodeDependencyWarningProps> = ({
   requiredRuntimes,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedWarningStyles = useMemo(() => warningStyles(theme), [theme]);
   const [missingRuntimes, setMissingRuntimes] = useState<string[]>([]);
@@ -158,7 +160,10 @@ const NodeDependencyWarning: FC<NodeDependencyWarningProps> = ({
     >
       <div className="warning-title">
         <WarningAmberIcon sx={{ fontSize: 14 }} />
-        Requires {runtimeNames}
+        {t("editor:ui.requiresRuntimes", {
+          defaultValue: "Requires {{names}}",
+          names: runtimeNames
+        })}
       </div>
       {isElectron ? (
         <button
@@ -167,12 +172,22 @@ const NodeDependencyWarning: FC<NodeDependencyWarningProps> = ({
           onClick={handleInstall}
           disabled={installing}
         >
-          {installing ? "Installing..." : `Install ${runtimeNames}`}
+          {installing
+            ? t("editor:ui.installingPlain", { defaultValue: "Installing..." })
+            : t("editor:ui.installRuntimes", {
+                defaultValue: "Install {{names}}",
+                names: runtimeNames
+              })}
         </button>
       ) : (
         <div className="warning-text">
-          Install it on the machine running the NodeTool server to use this
-          node.
+          {t(
+            "editor:ui.installItOnTheMachineRunningTheNodetoolServerToUseThisNode",
+            {
+              defaultValue:
+                "Install it on the machine running the NodeTool server to use this node."
+            }
+          )}
         </div>
       )}
     </div>

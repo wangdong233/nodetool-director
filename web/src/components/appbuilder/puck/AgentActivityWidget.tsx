@@ -326,7 +326,9 @@ export const AgentActivityWidget: React.FC<AgentActivityWidgetProps> = (
     <FlexColumn gap={SPACING.sm} fullWidth>
       <FlexRow gap={SPACING.sm} align="center" fullWidth>
         {props.label ? <Label>{props.label}</Label> : null}
-        {running ? <StatusPill tone="rendering">Working</StatusPill> : null}
+        {running ? (
+          <StatusPill tone="rendering">{tAttr("Working")}</StatusPill>
+        ) : null}
         {runId ? <EditorButton onClick={() => openRunInspection({ runId })}>{tAttr("View trace")}</EditorButton> : null}
         {runId ? <AskRunAgentButton runId={runId} /> : null}
       </FlexRow>

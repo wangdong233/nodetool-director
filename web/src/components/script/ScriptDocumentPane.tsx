@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { memo, useCallback, useMemo, useState } from "react";
 import type { DragEvent } from "react";
@@ -637,13 +637,14 @@ const VoicingStrip = ({
     >
       <FlexColumn gap={SPACING.xs}>
         <Text size="smaller">
-          {`${stopped ? "Voicing stopped before it finished. " : ""}Voiced ${run.voiced} of ${run.total} lines.${
+          {`${stopped ? i18n.t("editor:ui.voicingStoppedBeforeItFinished", { defaultValue: "Voicing stopped before it finished. " }) : ""}${i18n.t("editor:ui.voicedLinesCount", { defaultValue: "Voiced {{voiced}} of {{total}} lines.", voiced: run.voiced, total: run.total })}${
             run.failed.length > 0
-              ? ` ${run.failed.length} ${
-                  run.failed.length === 1 ? "line" : "lines"
-                } could not be voiced.`
+              ? ` ${i18n.t("editor:ui.linesCouldNotBeVoiced", {
+                  defaultValue: "{{count}} line could not be voiced.",
+                  count: run.failed.length
+                })}`
               : ""
-          }${stopped && !readOnly ? " Press Voice all to voice the rest." : ""}`}
+          }${stopped && !readOnly ? i18n.t("editor:ui.pressVoiceAllToVoiceTheRest", { defaultValue: " Press Voice all to voice the rest." }) : ""}`}
         </Text>
         {run.failed.length === 0 ? null : (
           <FlexColumn
@@ -701,6 +702,7 @@ const ScriptDocumentPane = ({
   active = false
 }: ScriptDocumentPaneProps) => {
   const theme = useTheme();
+  const { version: languageVersion } = useAppLanguage();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const inStudio = useInStudio();
   const { sections, timelineId } = useScript(scriptId);
@@ -910,16 +912,18 @@ const ScriptDocumentPane = ({
       commands.push({
         id: "send-to-timeline",
         label: storyboardId
-          ? "Assemble Video"
+          ? i18n.t("editor:ui.assembleVideoCommand", { defaultValue: "Assemble Video" })
           : timelineId
-            ? "Update Timeline"
-            : "Send to Timeline",
+            ? i18n.t("editor:ui.updateTimelineCommand", { defaultValue: "Update Timeline" })
+            : i18n.t("editor:ui.sendToTimelineCommand", { defaultValue: "Send to Timeline" }),
         run: onSendToTimeline
       });
     }
     commands.push({
       id: "export-subtitles",
-      label: "Export Subtitles (SRT)",
+      label: i18n.t("editor:ui.exportSubtitlesSrt", {
+        defaultValue: "Export Subtitles (SRT)"
+      }),
       run: onExportSubtitles
     });
     return commands;
@@ -930,7 +934,8 @@ const ScriptDocumentPane = ({
     storyboardId,
     timelineId,
     onSendToTimeline,
-    onExportSubtitles
+    onExportSubtitles,
+    languageVersion
   ]);
   useContextCommands("Script", menuCommands, active);
 
@@ -1034,18 +1039,20 @@ const ScriptDocumentPane = ({
             }
           >
             {assembling
-              ? "Assembling…"
+              ? i18n.t("editor:ui.assembling", { defaultValue: "Assembling…" })
               : storyboardId
-                ? "Assemble video"
+                ? i18n.t("editor:ui.assembleVideo", { defaultValue: "Assemble video" })
                 : timelineId
                   ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" })
-                  : "Send to timeline"}
+                  : i18n.t("editor:ui.sendToTimeline", { defaultValue: "Send to timeline" })}
           </EditorButton>
         )}
         {hasVoicedLine && (
           <SendToWorkflowButton
             items={workflowMedia}
-            tooltip="Send every current take to a workflow"
+            tooltip={i18n.t("editor:ui.sendEveryCurrentTakeToAWorkflow", {
+              defaultValue: "Send every current take to a workflow"
+            })}
           />
         )}
         {!readOnly && <StoryboardLinkControl scriptId={scriptId} />}

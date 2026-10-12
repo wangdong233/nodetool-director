@@ -406,15 +406,24 @@ const InstallPanel = memo(function InstallPanel({
         {t("editor:ui.installAPack")}
       </Text>
       <Text size="small" color="secondary">
-        Paste an npm package name, e.g. <code>@acme/cool-nodes</code> or{" "}
-        <code>cool-nodes@1.2.3</code>. The server must be restarted to load the
-        new pack.
+        {t("editor:ui.pasteAnNpmPackageNameEg", {
+          defaultValue: "Paste an npm package name, e.g. "
+        })}
+        <code>@acme/cool-nodes</code>
+        {t("editor:ui.npmPackOr", { defaultValue: " or " })}
+        <code>cool-nodes@1.2.3</code>
+        {t("editor:ui.theServerMustBeRestartedToLoadTheNewPack", {
+          defaultValue: ". The server must be restarted to load the new pack."
+        })}
       </Text>
       <Text size="small" color="secondary">
-        Installing runs no pack code. A pack that ships sandbox modules is
-        active right away, and those modules run inside your workflows with the
-        node&apos;s capabilities once a node imports one. A pack that registers
-        host nodes stays inactive until you approve trust.
+        {t(
+          "editor:ui.sandboxPackTrustDisclosure",
+          {
+            defaultValue:
+              "Installing runs no pack code. A pack that ships sandbox modules is active right away, and those modules run inside your workflows with the node's capabilities once a node imports one. A pack that registers host nodes stays inactive until you approve trust."
+          }
+        )}
       </Text>
       <FlexRow gap={1} align="center">
         <TextInput
@@ -565,7 +574,10 @@ function PackagesMenu() {
       <FlexColumn gap={SPACING.md}>
         <FlexRow gap={1} align="center" justify="space-between">
           <Text size="normal" weight={600}>
-            Discovered packs ({packs.length})
+            {t("editor:ui.discoveredPacksCount", {
+              defaultValue: "Discovered packs ({{count}})",
+              count: packs.length
+            })}
           </Text>
           <EditorButton
             variant="outlined"
@@ -573,7 +585,9 @@ function PackagesMenu() {
             onClick={() => void reload()}
             disabled={isLoading}
           >
-            {isLoading ? "Reloading…" : "Reload"}
+            {isLoading
+              ? t("editor:ui.reloading", { defaultValue: "Reloading…" })
+              : t("editor:ui.reload", { defaultValue: "Reload" })}
           </EditorButton>
         </FlexRow>
 

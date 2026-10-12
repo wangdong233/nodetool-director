@@ -359,8 +359,12 @@ const ApplicationSurface = ({
                 onChange={handleViewChange}
                 aria-label={t("ui2:attrs.appView", { defaultValue: "App view" })}
               >
-                <ToggleOption value="design">Design</ToggleOption>
-                <ToggleOption value="run">Run</ToggleOption>
+                <ToggleOption value="design">
+                  {t("ui2:attrs.design", { defaultValue: "Design" })}
+                </ToggleOption>
+                <ToggleOption value="run">
+                  {t("ui2:attrs.run", { defaultValue: "Run" })}
+                </ToggleOption>
                 <ToggleOption value="preview">{t("ui2:attrs.previewDraft", { defaultValue: "Preview draft" })}</ToggleOption>
                 <ToggleOption value="settings">{t("nav:rail.settings", { defaultValue: "Settings" })}</ToggleOption>
               </ToggleGroup>
@@ -462,8 +466,16 @@ const ApplicationSurface = ({
           ref={narrowAgentButtonRef}
           icon={narrowAgentOpen ? <CloseIcon /> : <AutoAwesomeIcon />}
           onClick={toggleNarrowAgent}
-          ariaLabel={narrowAgentOpen ? "Close agent" : "Ask Agent"}
-          tooltip={narrowAgentOpen ? "Close agent" : "Ask Agent"}
+          ariaLabel={
+            narrowAgentOpen
+              ? t("editor:ui.closeAgent", { defaultValue: "Close agent" })
+              : t("editor:ui.askAgent", { defaultValue: "Ask Agent" })
+          }
+          tooltip={
+            narrowAgentOpen
+              ? t("editor:ui.closeAgent", { defaultValue: "Close agent" })
+              : t("editor:ui.askAgent", { defaultValue: "Ask Agent" })
+          }
           tooltipPlacement="top"
           size={48}
           position="absolute"

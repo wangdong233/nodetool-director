@@ -149,7 +149,9 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         }}
       >
         <ToolbarIconButton
-          title={isWorkflowRunning ? "Running..." : "Run Node"}
+          title={isWorkflowRunning
+            ? t("editor:ui.runningPlain", { defaultValue: "Running..." })
+            : t("editor:node.runNode", { defaultValue: "Run Node" })}
           delay={TOOLTIP_ENTER_DELAY}
           className="nodrag"
           onClick={runFromHere}
@@ -186,7 +188,9 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
               {getShortcutTooltip("bypassNode", undefined, "combo")}
             </>
           }
-          ariaLabel={isBypassed ? "Enable Node" : "Disable Node"}
+          ariaLabel={isBypassed
+            ? t("editor:node.enableNode", { defaultValue: "Enable Node" })
+            : t("editor:node.disableNode", { defaultValue: "Disable Node" })}
           delay={TOOLTIP_ENTER_DELAY}
           className="nodrag"
           onClick={handleToggleBypass}

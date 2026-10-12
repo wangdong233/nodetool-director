@@ -122,7 +122,9 @@ const TakeRow = ({
       />
       <SendToWorkflowButton
         items={workflowMedia}
-        tooltip="Send take to a workflow"
+        tooltip={t("editor:ui.sendTakeToAWorkflow", {
+          defaultValue: "Send take to a workflow"
+        })}
       />
       <ToolbarIconButton
         tooltip={

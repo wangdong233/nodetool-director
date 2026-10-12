@@ -534,8 +534,8 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
           />
           <ToolbarIconButton
             icon={isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-            tooltip={isPlaying ? "Pause" : "Play"}
-            ariaLabel={isPlaying ? "Pause" : "Play"}
+            tooltip={isPlaying ? t("ui:attrs.pause", { defaultValue: "Pause" }) : t("ui:attrs.play", { defaultValue: "Play" })}
+            ariaLabel={isPlaying ? t("ui:attrs.pause", { defaultValue: "Pause" }) : t("ui:attrs.play", { defaultValue: "Play" })}
             disabled={!videoSrc}
             onClick={handleTogglePlay}
           />
@@ -550,8 +550,8 @@ const ExtractVideoFrameBodyInner: React.FC<ExtractVideoFrameBodyProps> = ({
         <div className="transport-actions">
           <ToolbarIconButton
             icon={muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
-            tooltip={muted ? "Unmute" : "Mute"}
-            ariaLabel={muted ? "Unmute" : "Mute"}
+            tooltip={muted ? t("timeline:attrs.unmute", { defaultValue: "Unmute" }) : t("ui2:attrs.mute", { defaultValue: "Mute" })}
+            ariaLabel={muted ? t("timeline:attrs.unmute", { defaultValue: "Unmute" }) : t("ui2:attrs.mute", { defaultValue: "Mute" })}
             disabled={!videoSrc}
             onClick={handleToggleMute}
           />

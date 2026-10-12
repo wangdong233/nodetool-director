@@ -95,7 +95,7 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
   }, [displayModels, handleDownload]);
 
   if (!recommendedModels) {
-    return <div>Loading…</div>;
+    return <div>{t("common:status.loading", { defaultValue: "Loading…" })}</div>;
   }
 
   return (

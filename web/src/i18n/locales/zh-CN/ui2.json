@@ -356,6 +356,11 @@
     "jsScript": "JS 脚本",
     "assignSpeaker": "指派说话人",
     "speakerChangeSpeaker": "{{name}}，更换说话人",
-    "loadFailedUnavailable": "文档加载失败。它可能已不可用，或你需要重新连接。"
+    "loadFailedUnavailable": "文档加载失败。它可能已不可用，或你需要重新连接。",
+    "docAudioAsset": "音频素材",
+    "doc3dAsset": "3D 素材",
+    "addKey": "添加关键帧",
+    "removeKey": "移除关键帧",
+    "curveEditorHint": "方向键移动关键帧，Shift 加大步幅。Insert 添加关键帧，Delete 删除关键帧。双击绘图区可在该处添加关键帧。"
   }
 }

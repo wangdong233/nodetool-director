@@ -249,7 +249,9 @@ export const AssetMentionMenu: React.FC<AssetMentionMenuProps> = ({
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => onTabChange(tab)}
           >
-            {tab === "recent" ? "Recent" : "Saved"}
+            {tab === "recent"
+              ? t("editor:ui.recent", { defaultValue: "Recent" })
+              : t("ui2:attrs.saved", { defaultValue: "Saved" })}
           </button>
         ))}
       </div>

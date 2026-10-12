@@ -471,10 +471,15 @@ const WorkflowEditorSurface = ({
       return (
         <EmptyState
           variant="error"
-          title="Could not load workflow"
+          title={t("editor:ui.couldNotLoadWorkflow", {
+            defaultValue: "Could not load workflow"
+          })}
           description={
             <FlexColumn align="center" gap={SPACING.sm}>
-              Check your connection and try again. Your tab is still open.
+              {t("editor:ui.checkYourConnectionAndTryAgainYourTabIsStillOpen", {
+                defaultValue:
+                  "Check your connection and try again. Your tab is still open."
+              })}
               <ReportBugButton
                 context={{
                   source: "operation-failure",
@@ -485,7 +490,7 @@ const WorkflowEditorSurface = ({
               />
             </FlexColumn>
           }
-          actionText="Retry"
+          actionText={t("common:action.retry", { defaultValue: "Retry" })}
           onAction={() => setLoadAttempt((attempt) => attempt + 1)}
         />
       );
@@ -582,7 +587,7 @@ const WorkflowEditorSurface = ({
                     }}
                   >
                     <CloseButton
-                      tooltip="Dismiss"
+                      tooltip={t("common:action.dismiss", { defaultValue: "Dismiss" })}
                       onClick={() => setLandingDismissed(true)}
                     />
                   </Box>

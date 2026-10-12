@@ -192,7 +192,9 @@ const MediaPlaceholder: React.FC<{
         })
       }}
     >
-      <Caption color="secondary">{producing ? "Generating…" : text}</Caption>
+      <Caption color="secondary">
+        {producing ? tAttr("Generating…") : text}
+      </Caption>
     </FlexColumn>
   );
 };

@@ -200,7 +200,9 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
             onClick={handleSave}
             startIcon={<KeyRoundedIcon />}
           >
-            {saving ? "Saving…" : "Save key"}
+            {saving
+              ? t("editor:ui.saving", { defaultValue: "Saving…" })
+              : t("editor:ui.saveKey", { defaultValue: "Save key" })}
           </EditorButton>
         </FlexRow>
       </div>

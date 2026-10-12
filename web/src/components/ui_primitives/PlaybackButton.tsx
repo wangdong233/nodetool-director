@@ -20,6 +20,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import StopIcon from "@mui/icons-material/Stop";
 import { useTheme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 import {
   TOOLTIP_ENTER_DELAY,
   TOOLTIP_ENTER_NEXT_DELAY
@@ -114,6 +115,7 @@ export const PlaybackButton = memo(
       },
       ref
     ) => {
+      const { t } = useTranslation();
       const theme = useTheme();
 
       const handleClick = useCallback(() => {
@@ -155,16 +157,18 @@ export const PlaybackButton = memo(
       const tooltip = useMemo(() => {
         switch (playbackAction) {
           case "play":
-            return "Play";
+            return t("ui:attrs.play", { defaultValue: "Play" });
           case "pause":
-            return "Pause";
+            return t("ui:attrs.pause", { defaultValue: "Pause" });
           case "stop":
-            return "Stop";
+            return t("ui2:attrs.stop", { defaultValue: "Stop" });
           case "toggle":
           default:
-            return state === "playing" ? "Pause" : "Play";
+            return state === "playing"
+              ? t("ui:attrs.pause", { defaultValue: "Pause" })
+              : t("ui:attrs.play", { defaultValue: "Play" });
         }
-      }, [playbackAction, state]);
+      }, [playbackAction, state, t]);
 
       const sizeStyles = useMemo(() => {
         switch (buttonSize) {

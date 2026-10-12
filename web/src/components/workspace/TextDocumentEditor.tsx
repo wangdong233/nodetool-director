@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import { i18n } from "../../i18n";
+import { i18n, useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -98,6 +98,7 @@ const TextDocumentEditor = ({
   active = false
 }: TextDocumentEditorProps) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const editorStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -243,12 +244,24 @@ const TextDocumentEditor = ({
     }
     if (!isCsv) {
       commands.push(
-        { id: "undo", label: "Undo", run: handleUndo, shortcut: `${mod}Z` },
-        { id: "redo", label: "Redo", run: handleRedo, shortcut: `${shiftMod}Z` }
+        {
+          id: "undo",
+          label: i18n.t("editor:ui.undo", { defaultValue: "Undo" }),
+          run: handleUndo,
+          shortcut: `${mod}Z`
+        },
+        {
+          id: "redo",
+          label: i18n.t("editor:ui.redo", { defaultValue: "Redo" }),
+          run: handleRedo,
+          shortcut: `${shiftMod}Z`
+        }
       );
       commands.push({
         id: "word-wrap",
-        label: wordWrap ? "Turn Off Word Wrap" : "Turn On Word Wrap",
+        label: wordWrap
+          ? i18n.t("editor:ui.turnOffWordWrap", { defaultValue: "Turn Off Word Wrap" })
+          : i18n.t("editor:ui.turnOnWordWrap", { defaultValue: "Turn On Word Wrap" }),
         run: () => setWordWrap((wrap) => !wrap)
       });
     }
@@ -260,7 +273,8 @@ const TextDocumentEditor = ({
     wordWrap,
     handleSave,
     handleUndo,
-    handleRedo
+    handleRedo,
+    languageVersion
   ]);
   useContextCommands("Text", menuCommands, active);
 
@@ -374,7 +388,12 @@ const TextDocumentEditor = ({
           />
           <FlexRow align="center" gap={0.5} sx={{ px: 1 }}>
             {isDirty && (
-              <span className="dirty-dot" aria-label="Unsaved changes" />
+              <span
+                className="dirty-dot"
+                aria-label={t("ui2:attrs.unsavedChanges", {
+                  defaultValue: "Unsaved changes"
+                })}
+              />
             )}
             <EditorButton
               variant="contained"

@@ -135,7 +135,7 @@ const AssetItemContextMenu = () => {
       await copyAssetToClipboard(asset.content_type, asset.get_url, asset.name || undefined);
 
       const contentTypeLabel = asset.content_type.startsWith("image/")
-        ? "Image"
+        ? i18n.t("ui2:attrs.image", { defaultValue: "Image" })
         : asset.content_type.startsWith("video/")
         ? i18n.t("editor:ui.videoInfo", { defaultValue: "Video info" })
         : asset.content_type.startsWith("audio/")
@@ -144,14 +144,19 @@ const AssetItemContextMenu = () => {
 
       addNotification({
         type: "success",
-        content: `${contentTypeLabel} copied to clipboard`,
+        content: i18n.t("editor:ui.assetCopiedToClipboard", {
+          defaultValue: "{{label}} copied to clipboard",
+          label: contentTypeLabel
+        }),
         alert: true
       });
     } catch (error) {
       console.error("Failed to copy to clipboard", error);
       addNotification({
         type: "error",
-        content: "Failed to copy to clipboard",
+        content: i18n.t("editor:ui.failedToCopyToClipboard", {
+          defaultValue: "Failed to copy to clipboard"
+        }),
         alert: true
       });
     }
@@ -260,10 +265,11 @@ const AssetItemContextMenu = () => {
         <MenuItem disabled>
           <Text className="title">
             {isFolder
-              ? "Folder"
-              : `${selectedAssetIds.length} item${
-                  selectedAssetIds.length > 1 ? "s" : ""
-                }`}
+              ? t("editor:ui.folder", { defaultValue: "Folder" })
+              : t("editor:ui.itemCount", {
+                  defaultValue: "{{count}} item",
+                  count: selectedAssetIds.length
+                })}
           </Text>
         </MenuItem>
         <Divider />
@@ -299,9 +305,12 @@ const AssetItemContextMenu = () => {
               event?.stopPropagation();
               setSendingToWorkflow(true);
             }}
-            label="Send to Workflow"
+            label={t("editor:ui.sendToWorkflowMenu", { defaultValue: "Send to Workflow" })}
             IconComponent={<AccountTreeOutlinedIcon />}
-            tooltip="Add the selected media to a workflow canvas as constant nodes"
+            tooltip={t("editor:ui.sendSelectedMediaToWorkflowTooltip", {
+              defaultValue:
+                "Add the selected media to a workflow canvas as constant nodes"
+            })}
           />
         )}
         {singleVideo && (

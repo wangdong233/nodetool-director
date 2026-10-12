@@ -356,6 +356,11 @@
     "jsScript": "JS script",
     "assignSpeaker": "Assign speaker",
     "speakerChangeSpeaker": "{{name}}, change speaker",
-    "loadFailedUnavailable": "The document could not be loaded. It may be unavailable or you may need to reconnect."
+    "loadFailedUnavailable": "The document could not be loaded. It may be unavailable or you may need to reconnect.",
+    "docAudioAsset": "audio asset",
+    "doc3dAsset": "3D asset",
+    "addKey": "Add key",
+    "removeKey": "Remove key",
+    "curveEditorHint": "Arrow keys move a key, Shift moves further. Insert adds a key, Delete removes it. Double-click the plot to add a key there."
   }
 }

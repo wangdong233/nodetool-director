@@ -1,4 +1,5 @@
 import React, { Suspense } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useInstallExampleApp } from "../../hooks/useInstallExampleApp";
 import {
@@ -34,6 +35,7 @@ interface ExampleAppSurfaceProps {
  * makes an editable copy and opens that copy in a second tab.
  */
 const ExampleAppSurface = ({ slug, title }: ExampleAppSurfaceProps) => {
+  const { t } = useTranslation();
   const install = useInstallExampleApp();
   const installing = install.isPending;
   return (
@@ -44,11 +46,19 @@ const ExampleAppSurface = ({ slug, title }: ExampleAppSurfaceProps) => {
           disabled={installing}
           onClick={() => install.mutate({ slug, name: title })}
         >
-          {installing ? "Installing…" : "Edit app"}
+          {installing
+            ? t("editor:ui.installing", { defaultValue: "Installing…" })
+            : t("editor:ui.editApp", { defaultValue: "Edit app" })}
         </EditorButton>
       </FlexRow>
       <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-        <Suspense fallback={<LoadingSpinner text="Loading app" />}>
+        <Suspense
+          fallback={
+            <LoadingSpinner
+              text={t("editor:ui.loadingApp", { defaultValue: "Loading app" })}
+            />
+          }
+        >
           <ExampleAppUseView slug={slug} />
         </Suspense>
       </Box>

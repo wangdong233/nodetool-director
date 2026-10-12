@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { i18n, useAppLanguage } from "../../i18n";
 import TheatersIcon from "@mui/icons-material/Theaters";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import {
@@ -74,6 +75,7 @@ const isMobilePane = (value: string): value is MobilePane =>
  */
 const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobilePane, setMobilePane] = useState<MobilePane>("board");
@@ -171,12 +173,20 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
       return [];
     }
     const commands: ContextCommand[] = [
-      { id: "assemble", label: "Assemble Timeline", run: handleAssemble }
+      {
+        id: "assemble",
+        label: i18n.t("editor:ui.assembleTimelineCommand", {
+          defaultValue: "Assemble Timeline"
+        }),
+        run: handleAssemble
+      }
     ];
     if (desktopAssistant) {
       commands.push({
         id: "assistant",
-        label: assistantOpen ? "Hide Assistant" : "Show Assistant",
+        label: assistantOpen
+          ? i18n.t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" })
+          : i18n.t("editor:ui.showAssistant", { defaultValue: "Show Assistant" }),
         run: toggleAssistant
       });
     }
@@ -188,7 +198,8 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
     handleAssemble,
     desktopAssistant,
     assistantOpen,
-    toggleAssistant
+    toggleAssistant,
+    languageVersion
   ]);
   useContextCommands("Storyboard", menuCommands, active);
 

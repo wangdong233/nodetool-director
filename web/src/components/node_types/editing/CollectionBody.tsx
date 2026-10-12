@@ -318,8 +318,11 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
         />
         <span>
           {items.length === 0
-            ? "Collection"
-            : `${items.length} item${items.length === 1 ? "" : "s"}`}
+            ? t("editor:ui.collection", { defaultValue: "Collection" })
+            : t("editor:ui.itemCount", {
+                defaultValue: "{{count}} item",
+                count: items.length
+              })}
         </span>
         {lockedType ? <span className="col-type">{lockedType}</span> : null}
         <span className="spacer" />

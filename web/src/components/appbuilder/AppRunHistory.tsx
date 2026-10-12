@@ -228,7 +228,9 @@ export default function AppRunHistory({
                   {(["inputs", "outputs"] as const).map((field) => (
                     <FlexColumn key={field} gap={SPACING.sm}>
                       <Text weight={600}>
-                        {field === "inputs" ? "Inputs" : "Outputs"}
+                        {field === "inputs"
+                          ? tAttr("Inputs")
+                          : tAttr("Outputs")}
                       </Text>
                       {Object.entries(run.app?.[field] ?? {}).map(
                         ([name, value]) => (

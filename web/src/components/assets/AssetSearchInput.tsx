@@ -395,7 +395,11 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
           }`}
           onClick={toggleSearchMode}
           data-testid="asset-search-mode-toggle"
-          aria-label={isGlobalSearchMode ? "Switch to local search" : "Switch to global search"}
+          aria-label={
+            isGlobalSearchMode
+              ? t("editor:ui.switchToLocalSearch", { defaultValue: "Switch to local search" })
+              : t("editor:ui.switchToGlobalSearch", { defaultValue: "Switch to global search" })
+          }
         >
           {isGlobalSearchMode ? <Public /> : <Folder />}
         </button>
@@ -430,7 +434,7 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
             localSearchTerm.trim() === "" ? "disabled" : ""
           }`}
           disabled={localSearchTerm.trim() === ""}
-          aria-label="Clear search"
+          aria-label={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
           onClick={clearSearch}
           data-testid="asset-search-clear-btn"
         >

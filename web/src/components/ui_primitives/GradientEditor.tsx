@@ -11,6 +11,7 @@
 import { forwardRef, useCallback, useEffect, useId, useRef, useState, type ChangeEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import Box from "@mui/material/Box";
 import { useTheme, type SxProps, type Theme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 
 import { EditorButton } from "../editor_ui";
 import { Caption } from "./Caption";
@@ -57,6 +58,7 @@ export const GradientEditor = forwardRef<HTMLDivElement, GradientEditorProps>(fu
   disabled = false,
   sx
 }, ref) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const hintId = useId();
   const [selected, setSelected] = useState(0);
@@ -309,10 +311,10 @@ export const GradientEditor = forwardRef<HTMLDivElement, GradientEditorProps>(fu
             }
           }}
         />
-        <EditorButton density="compact" disabled={disabled || value.length >= maxStops} onClick={() => addStopAt(insertionTime(value, selectedIndex))}>Add stop</EditorButton>
-        <EditorButton density="compact" disabled={disabled || value.length <= minStops} onClick={() => removeStopAt(selectedIndex)}>Remove stop</EditorButton>
+        <EditorButton density="compact" disabled={disabled || value.length >= maxStops} onClick={() => addStopAt(insertionTime(value, selectedIndex))}>{t("editor:ui.addStop", { defaultValue: "Add stop" })}</EditorButton>
+        <EditorButton density="compact" disabled={disabled || value.length <= minStops} onClick={() => removeStopAt(selectedIndex)}>{t("editor:ui.removeStop", { defaultValue: "Remove stop" })}</EditorButton>
       </FlexRow>
-      <Caption id={hintId}>Arrow keys move a stop, Shift moves further. Insert adds a stop, Delete removes it. Double-click the bar to add a stop there.</Caption>
+      <Caption id={hintId}>{t("editor:ui.gradientEditorHint", { defaultValue: "Arrow keys move a stop, Shift moves further. Insert adds a stop, Delete removes it. Double-click the bar to add a stop there." })}</Caption>
     </FlexColumn>
   );
 });

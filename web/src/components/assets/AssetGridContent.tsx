@@ -376,8 +376,13 @@ const AssetGridContent: React.FC<AssetGridContentProps> = memo(({
           <EmptyState
             variant="error"
             title={t("editor:ui.couldNotLoadAssets", { defaultValue: "Could not load assets" })}
-            description={error.message || "An error occurred. Please try again."}
-            actionText="Retry"
+            description={
+              error.message ||
+              t("editor:ui.anErrorOccurredPleaseTryAgain", {
+                defaultValue: "An error occurred. Please try again."
+              })
+            }
+            actionText={t("common:action.retry", { defaultValue: "Retry" })}
             onAction={refetchAssets}
             size="small"
           />

@@ -11,6 +11,7 @@ import {
 import { useSaveSketchToAsset } from "../../hooks/sketch/useSaveSketchToAsset";
 import type { Asset } from "../../stores/ApiTypes";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../i18n";
 
 interface ImageSketchEditorProps {
   asset: Asset;
@@ -26,6 +27,8 @@ interface ImageSketchEditorProps {
  */
 const ImageSketchEditor = ({ asset, onClose }: ImageSketchEditorProps) => {
   const { t } = useTranslation();
+  // Header actions memo resolves catalog copy; re-resolve on language change.
+  const { version: languageVersion } = useAppLanguage();
   const updateAsset = useAssetStore((state) => state.update);
   const [documentId, setDocumentId] = useState<string | null>(() =>
     readSketchDocumentId(asset)
@@ -50,14 +53,16 @@ const ImageSketchEditor = ({ asset, onClose }: ImageSketchEditorProps) => {
           onClick={save}
           disabled={saving}
         >
-          {saving ? "Saving…" : "Save to image"}
+          {saving
+            ? t("editor:ui.saving", { defaultValue: "Saving…" })
+            : t("editor:ui.saveToImage", { defaultValue: "Save to image" })}
         </EditorButton>
         <EditorButton variant="text" size="small" onClick={onClose}>
-          Done
+          {t("editor:ui.done", { defaultValue: "Done" })}
         </EditorButton>
       </FlexRow>
     ),
-    [save, saving, onClose]
+    [save, saving, onClose, languageVersion]
   );
 
   useEffect(() => {

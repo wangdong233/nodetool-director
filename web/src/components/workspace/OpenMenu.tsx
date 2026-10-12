@@ -93,7 +93,9 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
       >
         {view === "root" && (
           <>
-            <MenuSectionLabel>Guided flows</MenuSectionLabel>
+            <MenuSectionLabel>
+              {t("ui2:attrs.guidedFlows", { defaultValue: "Guided flows" })}
+            </MenuSectionLabel>
             {/* The item being started says so, as the New Project cards do,
                 so the disabled menu does not read as a dead click. */}
             {starters.map((starter) => (
@@ -108,7 +110,9 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
                   )
                 }
                 secondary={
-                  starting === starter.id ? "Creating…" : starter.description
+                  starting === starter.id
+                    ? t("editor:ui.creating", { defaultValue: "Creating…" })
+                    : starter.description
                 }
                 onClick={() => void starter.start()}
                 disabled={busy}
@@ -116,7 +120,9 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
             ))}
 
             <Divider sx={{ my: SPACING.xs }} />
-            <MenuSectionLabel>Blank documents</MenuSectionLabel>
+            <MenuSectionLabel>
+              {t("ui2:attrs.blankDocuments", { defaultValue: "Blank documents" })}
+            </MenuSectionLabel>
             {entries.map((entry) => (
               <MenuItemPrimitive
                 key={entry.key}
@@ -182,7 +188,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
               <MenuItemPrimitive
                 key={example.slug}
                 label={t(`catalog:storyboardExamples.${example.slug}.name`, { defaultValue: example.name })}
-                secondary={t("storyboard:attrs.shotsAlreadyRendered", { defaultValue: "{{count}} shots, already rendered", count: example.shotCount })}
+                secondary={t("storyboard:attrs.shotsStillsIncluded", { defaultValue: "{{count}} shots, stills included", count: example.shotCount })}
                 onClick={() =>
                   void installStoryboardExample(example.slug, example.name)
                 }

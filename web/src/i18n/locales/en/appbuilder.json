@@ -393,6 +393,12 @@
     "writeAMessage": "Write a message…",
     "yes": "Yes",
     "you": "You",
-    "yourResultAppearsHere": "Your result appears here"
+    "yourResultAppearsHere": "Your result appears here",
+    "generating": "Generating…",
+    "outputs": "Outputs",
+    "saving": "Saving…",
+    "selectApp": "Select App",
+    "thisAppCouldNotBeLoaded": "This app could not be loaded.",
+    "working": "Working"
   }
 }

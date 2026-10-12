@@ -159,6 +159,7 @@ const StatusFooter = memo<StatusFooterProps>(
     pendingMediaMessage,
     activePredictions
   }) => {
+    const { t } = useTranslation();
     const isBusy = status === "loading" || status === "streaming";
     const elapsed = useElapsedTime(isBusy);
     const hasPredictions = activePredictions.length > 0;
@@ -194,8 +195,8 @@ const StatusFooter = memo<StatusFooterProps>(
                   {progressMessage && !runningToolCallId
                     ? progressMessage
                     : status === "streaming"
-                      ? "Responding…"
-                      : "Thinking…"}
+                      ? t("editor:ui.responding", { defaultValue: "Responding…" })
+                      : t("editor:ui.thinking", { defaultValue: "Thinking…" })}
                 </ShimmerText>
               </Text>
               <Caption className="chat-status-elapsed" color="muted">
