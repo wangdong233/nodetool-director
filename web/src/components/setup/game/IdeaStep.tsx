@@ -73,32 +73,38 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
   const alternatives: AlternativeEntry[] = useMemo(() => {
     const busy = startingAlternative !== null || readOnly;
     const busyReason =
-      startingAlternative !== null ? "Creating your game" : "Not editable";
+      startingAlternative !== null
+        ? t("setup:game.creatingYourGame", { defaultValue: "Creating your game" })
+        : t("setup:game.notEditable", { defaultValue: "Not editable" });
     return [
       {
         id: "blank-2d",
-        title: "Start with a blank room",
+        title: t("setup:game.startWithABlankRoom", { defaultValue: "Start with a blank room" }),
         description:
           startingAlternative === "blank-2d"
-            ? "Creating your game"
-            : "Skip the design and edit the top-down room yourself",
+            ? t("setup:game.creatingYourGame", { defaultValue: "Creating your game" })
+            : t("setup:game.skipTheDesignEditRoom", {
+                defaultValue: "Skip the design and edit the top-down room yourself"
+              }),
         onSelect: () => onStartAlternative("blank-2d"),
         disabled: busy,
         disabledReason: busyReason
       },
       {
         id: "blank-3d",
-        title: "Start a blank 3D game",
+        title: t("setup:game.startABlank3dGame", { defaultValue: "Start a blank 3D game" }),
         description:
           startingAlternative === "blank-3d"
-            ? "Creating your game"
-            : "An empty 3D scene in the built-in engine",
+            ? t("setup:game.creatingYourGame", { defaultValue: "Creating your game" })
+            : t("setup:game.anEmpty3dScene", {
+                defaultValue: "An empty 3D scene in the built-in engine"
+              }),
         onSelect: () => onStartAlternative("blank-3d"),
         disabled: busy,
         disabledReason: busyReason
       }
     ];
-  }, [onStartAlternative, readOnly, startingAlternative]);
+  }, [onStartAlternative, readOnly, startingAlternative, t]);
 
   return (
     <Box
@@ -118,8 +124,10 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
             {t("editor:ui.whatSYourGame")}
           </Text>
           <Text size="normal" color="secondary">
-            Describe it in a sentence. We&apos;ll write a design you can edit,
-            then draw its art.
+            {t("setup:game.describeItInASentence", {
+              defaultValue:
+                "Describe it in a sentence. We'll write a design you can edit, then draw its art."
+            })}
           </Text>
         </FlexColumn>
 
@@ -128,9 +136,11 @@ const IdeaStepInternal: React.FC<GameIdeaStepProps> = ({
           autoFocus
           multiline
           rows={3}
-          label="Your game"
+          label={t("editor:ui.yourGame", { defaultValue: "Your game" })}
           hideLabel
-          placeholder="A cat collecting fish in a moonlit garden"
+          placeholder={t("setup:game.ideaPlaceholder", {
+            defaultValue: "A cat collecting fish in a moonlit garden"
+          })}
           onChange={handleChange}
           inputRef={briefField}
           disabled={readOnly}

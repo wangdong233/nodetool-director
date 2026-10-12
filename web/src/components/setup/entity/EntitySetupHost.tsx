@@ -198,9 +198,10 @@ const EntitySetupHost = ({
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not start a blank entity: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        content: i18n.t("setup:entity.couldNotStartABlankEntity", {
+          defaultValue: "Could not start a blank entity: {{error}}",
+          error: error instanceof Error ? error.message : String(error)
+        })
       });
     } finally {
       setStartingBlank(false);
@@ -209,7 +210,11 @@ const EntitySetupHost = ({
 
   const save = useCallback(async () => {
     if (!referenceAssetId || entitiesLoading || entitiesError) {
-      throw new Error("Choose a reference image before creating the entity.");
+      throw new Error(
+        i18n.t("setup:entity.chooseAReferenceImageBeforeCreating", {
+          defaultValue: "Choose a reference image before creating the entity."
+        })
+      );
     }
     const input: Parameters<typeof saveEntity.mutateAsync>[0] = {
       assetId: referenceAssetId,
@@ -245,10 +250,10 @@ const EntitySetupHost = ({
     : entitiesLoading
       ? i18n.t("storyboard:attrs.loadingYourEntityLibrary", { defaultValue: "Loading your entity library" })
       : !referenceAssetId
-        ? "Go back and choose a reference image"
+        ? i18n.t("setup:entity.goBackAndChooseAReferenceImage", { defaultValue: "Go back and choose a reference image" })
         : details.name.trim().length === 0
-          ? "Go back and name the entity"
-          : "Go back and describe the traits to preserve";
+          ? i18n.t("setup:entity.goBackAndNameTheEntity", { defaultValue: "Go back and name the entity" })
+          : i18n.t("setup:entity.goBackAndDescribeTheTraits", { defaultValue: "Go back and describe the traits to preserve" });
 
   const steps = useMemo<SetupStep<EntitySetupStage>[]>(
     () => [
@@ -264,7 +269,7 @@ const EntitySetupHost = ({
             ? i18n.t("storyboard:attrs.nameTheEntity", { defaultValue: "Name the entity" })
             : i18n.t("storyboard:attrs.describeTheTraitsToPreserve", { defaultValue: "Describe the traits to preserve" }),
         pending: startingBlank,
-        pendingLabel: "Preparing a blank reference",
+        pendingLabel: i18n.t("setup:entity.preparingABlankReference", { defaultValue: "Preparing a blank reference" }),
         render: () =>
           createElement(DetailsStep, {
             value: details,
@@ -280,9 +285,9 @@ const EntitySetupHost = ({
         canAdvance:
           referenceAssetId !== null && !entitiesLoading && !entitiesError,
         blockedReason: entitiesError
-          ? "Could not verify your entity library"
+          ? i18n.t("storyboard:attrs.couldNotVerifyYourEntityLibrary", { defaultValue: "Could not verify your entity library" })
           : entitiesLoading
-            ? "Loading your entity library"
+            ? i18n.t("storyboard:attrs.loadingYourEntityLibrary", { defaultValue: "Loading your entity library" })
             : i18n.t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" }),
         render: () =>
           createElement(ReferenceStep, {
@@ -350,7 +355,7 @@ const EntitySetupHost = ({
   }, [busy, onBusyChange]);
 
   const config: SetupFlowConfig<EntitySetupStage> = {
-    labels: { title: "Entity" },
+    labels: { title: i18n.t("editor:ui.entity", { defaultValue: "Entity" }) },
     steps,
     stage,
     onStageChange: setStage

@@ -17,7 +17,9 @@ export const FORMAT_CARDS: readonly OptionCardItem[] = SCRIPT_FORMATS.map(
   (format) => ({
     id: format.id,
     title: format.label,
+    titleKey: `catalog:scriptFormats.${format.id}.title`,
     description: format.description,
+    descriptionKey: `catalog:scriptFormats.${format.id}.description`,
     image: setupStill(SETUP_STILL_GROUPS.scriptFormats, format.id)
   })
 );

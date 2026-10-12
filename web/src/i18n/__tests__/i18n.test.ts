@@ -12,6 +12,7 @@ import appbuilderEn from "../locales/en/appbuilder.json";
 import catalogEn from "../locales/en/catalog.json";
 import toolsEn from "../locales/en/tools.json";
 import gameEn from "../locales/en/game.json";
+import setupEn from "../locales/en/setup.json";
 import commonZh from "../locales/zh-CN/common.json";
 import navZh from "../locales/zh-CN/nav.json";
 import settingsZh from "../locales/zh-CN/settings.json";
@@ -26,6 +27,7 @@ import appbuilderZh from "../locales/zh-CN/appbuilder.json";
 import catalogZh from "../locales/zh-CN/catalog.json";
 import toolsZh from "../locales/zh-CN/tools.json";
 import gameZh from "../locales/zh-CN/game.json";
+import setupZh from "../locales/zh-CN/setup.json";
 import {
   changeAppLanguage,
   i18n,
@@ -114,6 +116,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     delete copy.workflowTemplates;
     delete copy.nodes;
     delete copy.nodeDocs;
+    delete copy.scriptFormats;
     return copy;
   };
   const suites: Array<[string, Record<string, unknown>, Record<string, unknown>]> = [
@@ -131,6 +134,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     ["catalog", staticBlocks(catalogEn), staticBlocks(catalogZh)],
     ["tools", toolsEn, toolsZh],
     ["game", gameEn, gameZh],
+    ["setup", setupEn, setupZh],
   ];
 
   it.each(suites)("%s: en and zh-CN carry exactly the same key set", (_ns, en, zh) => {
@@ -190,6 +194,7 @@ describe("catalog key parity (CI completeness guard)", () => {
     collect(catalogEn, "catalog", "");
     collect(toolsEn, "tools", "");
     collect(gameEn, "game", "");
+    collect(setupEn, "setup", "");
 
     // Single-pass extraction (r25 perf): the original per-key loop ran a fresh
     // regex + includes() over the ~40MB allSource for every leaf × every

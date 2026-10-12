@@ -93,6 +93,7 @@ const ScreenplayModelField: React.FC<{
   boardId: string;
   readOnly?: boolean;
 }> = ({ boardId, readOnly }) => {
+  const { t } = useTranslation();
   // Pre-fills the picker, so the step directs without a required choice.
   useDefaultDirectorModel(boardId, !readOnly);
   const directorModel = useStoryboardStore(
@@ -110,11 +111,11 @@ const ScreenplayModelField: React.FC<{
     [boardId, readOnly, setDirectorModel]
   );
   return (
-    <SetupFooterField label="Model">
+    <SetupFooterField label={t("ui2:attrs.model", { defaultValue: "Model" })}>
       <LanguageModelSelect
         value={directorModel?.id ?? ""}
         provider={directorModel?.provider}
-        placeholder="Screenplay model"
+        placeholder={t("storyboard:attrs.screenplayModel", { defaultValue: "Screenplay model" })}
         onChange={handleChange}
         disabled={readOnly}
       />
@@ -170,7 +171,7 @@ export const GenreFooterControls: React.FC<GenreFooterControlsProps> = ({
     <>
       {!hideShotCount && (
         <SelectField
-          label="Shots"
+          label={t("storyboard:attrs.shots", { defaultValue: "Shots" })}
           hideLabel
           size="small"
           value={String(shotCount)}
@@ -223,14 +224,14 @@ const GenreStepInternal: React.FC<GenreStepProps> = ({
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          Choose your genre
+          {t("storyboard:attrs.chooseYourGenre", { defaultValue: "Choose your genre" })}
         </Text>
         <Text size="normal" color="secondary">
           {i18n.t("editor:ui.tonePacingAndFramingFollowYourChoiceYouCanChangeItLater")}
         </Text>
       </FlexColumn>
       <OptionCardGrid
-        label="Genre"
+        label={t("storyboard:attrs.genre", { defaultValue: "Genre" })}
         variant="media"
         minColumnWidth={320}
         options={options}
@@ -243,7 +244,9 @@ const GenreStepInternal: React.FC<GenreStepProps> = ({
           two announcements of one wait is worse than none. */}
       {directing ? (
         <Text size="small" color="secondary">
-          This usually takes about half a minute.
+          {t("storyboard:attrs.thisUsuallyTakesAboutHalfAMinute", {
+            defaultValue: "This usually takes about half a minute."
+          })}
         </Text>
       ) : null}
       {/* Why the button says `Continue` rather than writing a screenplay: the
@@ -251,8 +254,14 @@ const GenreStepInternal: React.FC<GenreStepProps> = ({
       {!directing && upToDate ? (
         <Text size="small" color="secondary">
           {cameraPass
-            ? "Your script is already directed for these choices. Change the genre to direct it again."
-            : "Your screenplay already follows these choices. Change the genre, the brief or the shot count to write a new one."}
+            ? t("setup:storyboard.yourScriptIsAlreadyDirected", {
+                defaultValue:
+                  "Your script is already directed for these choices. Change the genre to direct it again."
+              })
+            : t("setup:storyboard.yourScreenplayAlreadyFollows", {
+                defaultValue:
+                  "Your screenplay already follows these choices. Change the genre, the brief or the shot count to write a new one."
+              })}
         </Text>
       ) : null}
     </FlexColumn>

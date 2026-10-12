@@ -172,7 +172,7 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
     if (settledDone && gameId) {
       handleFinish({
         gameId,
-        name: game?.project_name ?? game?.design?.title ?? "Untitled game",
+        name: game?.project_name ?? game?.design?.title ?? t("editor:ui.untitledGame", { defaultValue: "Untitled game" }),
         projectId,
         failures: []
       });
@@ -182,7 +182,10 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
   if (!loaded) {
     return (
       <FlexColumn align="center" justify="center" sx={{ padding: PADDING.section }}>
-        <ThinkingIndicator label="Opening your game setup" announce />
+        <ThinkingIndicator
+          label={t("setup:game.openingYourGameSetup", { defaultValue: "Opening your game setup" })}
+          announce
+        />
       </FlexColumn>
     );
   }
@@ -193,19 +196,20 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
     return (
       <FlexColumn gap={GAP.comfortable} sx={{ padding: PADDING.section }}>
         <Text size="big" component="h2">
-          Legacy game setup
+          {t("setup:game.legacyGameSetup", { defaultValue: "Legacy game setup" })}
         </Text>
         <Caption>
-          This setup used the removed Godot workflow. Its source files and
-          generated assets remain available. Create a native game to rebuild
-          its gameplay.
+          {t("setup:game.legacyGameSetupBody", {
+            defaultValue:
+              "This setup used the removed Godot workflow. Its source files and generated assets remain available. Create a native game to rebuild its gameplay."
+          })}
         </Caption>
         <EditorButton
           variant="contained"
           sx={{ alignSelf: "flex-start" }}
           onClick={() => void onStartAlternative("blank-2d")}
         >
-          Create native game
+          {t("setup:game.createNativeGame", { defaultValue: "Create native game" })}
         </EditorButton>
       </FlexColumn>
     );
@@ -214,7 +218,10 @@ const GameSetupHost: React.FC<GameSetupHostProps> = ({
   if (settledDone) {
     return (
       <FlexColumn align="center" justify="center" sx={{ padding: PADDING.section }}>
-        <ThinkingIndicator label="Opening your game" announce />
+        <ThinkingIndicator
+          label={t("setup:game.openingYourGame", { defaultValue: "Opening your game" })}
+          announce
+        />
       </FlexColumn>
     );
   }

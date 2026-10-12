@@ -58,7 +58,7 @@ import {
   parseImageModelTileId
 } from "./gameSetupModel";
 
-const FLOW_LABELS = { title: "Game" } as const;
+const FLOW_TITLE = { title: "Game" } as const;
 
 export interface GameSetupFlowOptions {
   workflowId: string;
@@ -174,15 +174,15 @@ export const useGameSetupFlow = ({
       {
         stage: "idea",
         label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
-        primaryLabel: "Continue",
+        primaryLabel: i18n.t("storyboard:attrs.continue", { defaultValue: "Continue" }),
         canAdvance: startingAlternative === null && brief.trim().length > 0,
         // A blank game lands by leaving this flow, so Back and Change flow
         // wait until it has.
         holdNavigation: startingAlternative !== null,
         blockedReason:
           startingAlternative !== null
-            ? "Creating your game"
-            : "Describe your game",
+            ? i18n.t("setup:game.creatingYourGame", { defaultValue: "Creating your game" })
+            : i18n.t("storyboard:attrs.describeYourGame", { defaultValue: "Describe your game" }),
         render: (context) =>
           createElement(GameIdeaStep, {
             workflowId,
@@ -210,33 +210,39 @@ export const useGameSetupFlow = ({
         stage: "template",
         label: i18n.t("ui2:attrs.design", { defaultValue: "Design" }),
         primaryLabel: designIsCurrent
-          ? "Continue to your design"
+          ? i18n.t("storyboard:attrs.continueToYourDesign", { defaultValue: "Continue to your design" })
           : design
-            ? "Re-design the game"
-            : "Write the design",
+            ? i18n.t("setup:game.reDesignTheGame", { defaultValue: "Re-design the game" })
+            : i18n.t("storyboard:attrs.writeTheDesign", { defaultValue: "Write the design" }),
         canAdvance:
           template !== null &&
           (designIsCurrent || Boolean(designerModel?.id) || hasPinnedDesign),
         blockedReason:
           template === null
-            ? "Pick a template"
-            : "Pick a designer model, or use one of the example ideas",
+            ? i18n.t("storyboard:attrs.pickATemplate", { defaultValue: "Pick a template" })
+            : i18n.t("setup:game.pickADesignerModelOrExamples", {
+                defaultValue: "Pick a designer model, or use one of the example ideas"
+              }),
         generation: designIsCurrent
           ? undefined
           : {
-              result:
-                "Write a design: the premise, how it plays, the characters and what each piece of art shows",
-              next: "Review and edit it next. Nothing is drawn until the last step.",
+              result: i18n.t("setup:game.designGenerationResult", {
+                defaultValue:
+                  "Write a design: the premise, how it plays, the characters and what each piece of art shows"
+              }),
+              next: i18n.t("setup:game.designGenerationNext", {
+                defaultValue: "Review and edit it next. Nothing is drawn until the last step."
+              }),
               model: designerModel,
               brief,
               maxOutputTokens: GAME_DESIGNER_MAX_OUTPUT_TOKENS,
               noModelCall: !designerModel?.id && hasPinnedDesign
             },
         primaryDetail: designIsCurrent
-          ? "Your design is unchanged — this keeps it."
+          ? i18n.t("storyboard:attrs.yourDesignIsUnchangedThisKeepsIt", { defaultValue: "Your design is unchanged — this keeps it." })
           : undefined,
         pending: designing,
-        pendingLabel: "Writing the design",
+        pendingLabel: i18n.t("storyboard:attrs.writingTheDesign", { defaultValue: "Writing the design" }),
         footerControls: (context) =>
           createElement(DesignerModelFooterField, {
             designerModel,
@@ -268,13 +274,16 @@ export const useGameSetupFlow = ({
       {
         stage: "review",
         label: i18n.t("ui2:attrs.design", { defaultValue: "Design" }),
-        primaryLabel: "Continue to the look",
+        primaryLabel: i18n.t("setup:game.continueToTheLook", { defaultValue: "Continue to the look" }),
         // A re-design answers onto this step, so Back waits for it.
         holdNavigation: designing,
         canAdvance: !designing && designGaps.length === 0,
         blockedReason: designing
-          ? "Re-designing the game"
-          : `Write ${designGaps.join(", ")}`,
+          ? i18n.t("setup:game.reDesigningTheGame", { defaultValue: "Re-designing the game" })
+          : i18n.t("setup:game.writeGaps", {
+              defaultValue: "Write {{gaps}}",
+              gaps: designGaps.join(", ")
+            }),
         render: (context) =>
           design
             ? createElement(GameReviewStep, {
@@ -299,12 +308,19 @@ export const useGameSetupFlow = ({
       },
       {
         stage: "look",
-        label: "Build",
-        primaryLabel: "Build your game",
+        label: i18n.t("editor:ui.build", { defaultValue: "Build" }),
+        primaryLabel: i18n.t("setup:game.buildYourGame", { defaultValue: "Build your game" }),
         primaryDetail:
           estimate === null
-            ? `Draws ${imageSlots.length} images`
-            : `Draws ${imageSlots.length} images, about ${formatUsd(estimate)}`,
+            ? i18n.t("setup:game.drawsImages", {
+                defaultValue: "Draws {{count}} images",
+                count: imageSlots.length
+              })
+            : i18n.t("setup:game.drawsImagesAbout", {
+                defaultValue: "Draws {{count}} images, about {{cost}}",
+                count: imageSlots.length,
+                cost: formatUsd(estimate)
+              }),
         canAdvance:
           design !== null &&
           designGaps.length === 0 &&
@@ -312,14 +328,19 @@ export const useGameSetupFlow = ({
           name.trim().length > 0,
         blockedReason:
           imageModel === null
-            ? "Pick an image model"
+            ? i18n.t("storyboard:attrs.pickAnImageModel", { defaultValue: "Pick an image model" })
             : name.trim().length === 0
-              ? "Name your game"
-              : "Finish the design first",
+              ? i18n.t("setup:game.nameYourGame", { defaultValue: "Name your game" })
+              : i18n.t("setup:game.finishTheDesignFirst", { defaultValue: "Finish the design first" }),
         pending: building,
         pendingLabel: progress
-          ? `Drawing ${progress.label} (${progress.done + 1} of ${progress.total})`
-          : "Creating your game",
+          ? i18n.t("setup:game.drawingProgress", {
+              defaultValue: "Drawing {{label}} ({{done}} of {{total}})",
+              label: progress.label,
+              done: progress.done + 1,
+              total: progress.total
+            })
+          : i18n.t("setup:game.creatingYourGame", { defaultValue: "Creating your game" }),
         footerControls: (context) =>
           createElement(ImageModelFooterField, {
             model: imageModel,
@@ -407,7 +428,7 @@ export const useGameSetupFlow = ({
   );
 
   return {
-    labels: FLOW_LABELS,
+    labels: { title: i18n.t("home:entry.game.title", { defaultValue: FLOW_TITLE.title }) },
     steps,
     stage,
     onStageChange,

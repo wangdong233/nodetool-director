@@ -13,6 +13,7 @@
  */
 
 import React, { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import type { GameSlotSpec } from "@nodetool-ai/protocol";
 import type { GameDesign } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 
@@ -57,7 +58,9 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
   error,
   readOnly = false
 }) => {
+  const { t } = useTranslation();
   const locked = readOnly || redesignPending;
+  const filledHint = t("setup:game.filledHint", { defaultValue: FILLED_HINT });
 
   const sections = useMemo<PlanReviewSection[]>(() => {
     const field = (
@@ -76,7 +79,7 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
     const cast: PlanReviewField[] = design.cast.flatMap((member, index) => [
       {
         id: `cast-${member.slot_id}-name`,
-        label: `${member.slot_id} name`,
+        label: t("setup:game.slotName", { defaultValue: "{{id}} name", id: member.slot_id }),
         value: member.name,
         compact: true,
         readOnly: locked,
@@ -90,12 +93,15 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
       },
       {
         id: `cast-${member.slot_id}-descriptor`,
-        label: `How ${member.name.trim() || member.slot_id} looks`,
+        label: t("setup:game.howNameLooks", {
+          defaultValue: "How {{name}} looks",
+          name: member.name.trim() || member.slot_id
+        }),
         value: member.descriptor,
         multiline: true,
         readOnly: locked,
         hint: filled.includes(`cast.${member.slot_id}`)
-          ? FILLED_HINT
+          ? filledHint
           : undefined,
         onChange: (value: string) =>
           onDesignChange({
@@ -119,9 +125,11 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
         multiline: true,
         readOnly: locked || sound,
         hint: sound
-          ? "Sounds keep the template's built-in effect for now."
+          ? t("setup:game.soundsKeepEffectForNow", {
+              defaultValue: "Sounds keep the template's built-in effect for now."
+            })
           : filled.includes(`slot_prompts.${slot.id}`)
-            ? FILLED_HINT
+            ? filledHint
             : undefined,
         onChange: (value: string) => {
           const exists = design.slot_prompts.some(
@@ -144,41 +152,48 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
     return [
       {
         id: "game",
-        header: "The game",
+        header: t("setup:game.sectionGame", { defaultValue: "The game" }),
         rows: [
-          field("title", "Title"),
-          field("premise", "Premise", true),
-          field("core_loop", "How it plays", true),
-          field("level", "The level", true),
-          field("win", "How you win"),
-          field("lose", "How you lose")
+          field("title", t("storyboard:attrs.title", { defaultValue: "Title" })),
+          field("premise", t("editor:ui.premise", { defaultValue: "Premise" }), true),
+          field("core_loop", t("setup:game.howItPlays", { defaultValue: "How it plays" }), true),
+          field("level", t("setup:game.theLevel", { defaultValue: "The level" }), true),
+          field("win", t("setup:game.howYouWin", { defaultValue: "How you win" })),
+          field("lose", t("setup:game.howYouLose", { defaultValue: "How you lose" }))
         ]
       },
       {
         id: "cast",
-        header: "Characters",
-        subheader:
-          "Each look is pasted into its sprite's prompt, so the art matches it.",
+        header: t("storyboard:attrs.characters", { defaultValue: "Characters" }),
+        subheader: t("setup:game.eachLookPastedIntoPrompt", {
+          defaultValue:
+            "Each look is pasted into its sprite's prompt, so the art matches it."
+        }),
         rows: cast
       },
       {
         id: "art",
-        header: "Art",
-        subheader: "What each piece of art shows. The style is added next.",
+        header: t("setup:game.artLabel", { defaultValue: "Art" }),
+        subheader: t("setup:game.whatEachArtShows", {
+          defaultValue:
+            "What each piece of art shows. The style is added next."
+        }),
         rows: art
       }
     ];
-  }, [design, filled, locked, onDesignChange, slots]);
+  }, [design, filled, filledHint, locked, onDesignChange, slots, t]);
 
   return (
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          Review the design
+          {t("setup:game.reviewTheDesign", { defaultValue: "Review the design" })}
         </Text>
         <Text size="normal" color="secondary">
-          Edit anything before the art is drawn. Nothing has been generated
-          yet.
+          {t("setup:game.editAnythingBeforeArt", {
+            defaultValue:
+              "Edit anything before the art is drawn. Nothing has been generated yet."
+          })}
         </Text>
       </FlexColumn>
 
@@ -207,11 +222,13 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
           onClick={onRedesign}
           disabled={locked}
         >
-          {redesignPending ? "Re-designing" : "Re-design"}
+          {redesignPending
+            ? t("setup:game.reDesigning", { defaultValue: "Re-designing" })
+            : t("setup:game.reDesign", { defaultValue: "Re-design" })}
         </EditorButton>
         {redesignPending && !readOnly ? (
           <EditorButton variant="text" size="small" onClick={onCancelRedesign}>
-            Cancel
+            {t("storyboard:attrs.cancel", { defaultValue: "Cancel" })}
           </EditorButton>
         ) : null}
       </FlexRow>

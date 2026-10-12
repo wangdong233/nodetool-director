@@ -2820,6 +2820,7 @@
     "fromTopicToVoicedLines": "从主题到配音台词，即取即用。",
     "fromDescriptionToPickedVariation": "从一段描述到编辑器中选定的变体。",
     "fromTaskToRunningGraph": "从任务到运行中的图谱，计划先经确认。",
+    "fromAnIdeaToAPlayableGameWithTheDesignReviewedFirst": "从一个点子到可玩的游戏，设计先经复查。",
     "fromSentenceToRunningGodotProject": "从一句话到可运行的 Godot 项目，素材已核对。",
     "gameLevel": "关卡",
     "gameSourceIsUnavailable": "游戏源不可用。",

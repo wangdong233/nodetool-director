@@ -62,7 +62,7 @@ import type { ModelRoleAvailability, ModelRoleChoices } from "./SetupStep";
 import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
-const FLOW_LABELS = { title: "Workflow" } as const;
+const FLOW_TITLE = { title: "Workflow" } as const;
 
 /** One planner call's output allowance. */
 const PLANNER_MAX_OUTPUT_TOKENS = 4096;
@@ -330,7 +330,7 @@ export const useWorkflowSetupFlow = ({
       {
         stage: "idea",
         label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
-        primaryLabel: "Continue",
+        primaryLabel: i18n.t("storyboard:attrs.continue", { defaultValue: "Continue" }),
         // The copy cannot be stopped once asked for, so it is not the shell's
         // pending operation: that would offer a Cancel that hides the picker
         // and leaves only a Retry the open picker keeps disabled. The picker
@@ -340,12 +340,12 @@ export const useWorkflowSetupFlow = ({
         // and Change flow stay off until it has.
         holdNavigation: pickingExampleId !== null || importing,
         blockedReason: importing
-          ? "Reading your file"
+          ? i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" })
           : pickingExampleId !== null
-            ? "Copying the example"
+            ? i18n.t("storyboard:attrs.copyingTheExample2", { defaultValue: "Copying the example" })
             : browsingExamples
-              ? "Pick an example, or go back to your idea"
-              : "Describe the task",
+              ? i18n.t("storyboard:attrs.pickAnExampleOrGoBackToYourIdea", { defaultValue: "Pick an example, or go back to your idea" })
+              : i18n.t("storyboard:attrs.describeTheTask", { defaultValue: "Describe the task" }),
         render: () =>
           createElement(WorkflowIdeaStep, {
             workflowId,
@@ -379,22 +379,26 @@ export const useWorkflowSetupFlow = ({
         // the brief and category on screen, the button continues to that plan
         // instead of throwing it away and calling the model again (F15).
         primaryLabel: planIsCurrent
-          ? "Continue to your plan"
+          ? i18n.t("storyboard:attrs.continueToYourPlan", { defaultValue: "Continue to your plan" })
           : plan.steps.length > 0
-            ? "Re-plan the steps"
-            : "Plan the steps",
+            ? i18n.t("storyboard:attrs.rePlanTheSteps", { defaultValue: "Re-plan the steps" })
+            : i18n.t("storyboard:attrs.planTheSteps", { defaultValue: "Plan the steps" }),
         canAdvance:
           (category ?? "").length > 0 &&
           (planIsCurrent || Boolean(plannerModel?.id) || hasPinnedPlan),
         blockedReason: !category
-          ? "Pick a workflow category"
-          : "Pick a planner model, or use a shipped example",
+          ? i18n.t("storyboard:attrs.pickAWorkflowCategory", { defaultValue: "Pick a workflow category" })
+          : i18n.t("storyboard:attrs.pickAPlannerModelOrUseAShippedExample", { defaultValue: "Pick a planner model, or use a shipped example" }),
         // The planner checks its own draft and may call the model again to
         // repair it, so the estimate covers every round's output (F10).
         generation: planIsCurrent
           ? undefined
           : {
-              result: `Draft a plan of inputs, processing steps and outputs, then check it (up to ${WORKFLOW_PLAN_MAX_ROUNDS} planner calls)`,
+              result: i18n.t("setup:workflow.draftAPlanOfInputs", {
+                defaultValue:
+                  "Draft a plan of inputs, processing steps and outputs, then check it (up to {{rounds}} planner calls)",
+                rounds: WORKFLOW_PLAN_MAX_ROUNDS
+              }),
               next: i18n.t("storyboard:attrs.reviewTheProposedNodesAndRequiredModelsNextBuildPlacesTheNodesLaterThisClickDoesNotRunTheWorkflow", { defaultValue: "Review the proposed nodes and required models next. Build places the nodes later; this click does not run the workflow." }),
               model: plannerModel,
               brief,
@@ -403,11 +407,13 @@ export const useWorkflowSetupFlow = ({
               noModelCall: !plannerModel?.id && hasPinnedPlan
             },
         primaryDetail: planIsCurrent
-          ? "Your plan is unchanged — this keeps it."
+          ? i18n.t("storyboard:attrs.yourPlanIsUnchangedThisKeepsIt", { defaultValue: "Your plan is unchanged — this keeps it." })
           : undefined,
         pending: planning,
         pendingLabel:
-          planningPhase === "checking" ? "Checking the plan" : "Planning the steps",
+          planningPhase === "checking"
+            ? i18n.t("setup:workflow.checkingThePlan", { defaultValue: "Checking the plan" })
+            : i18n.t("storyboard:attrs.planningTheSteps", { defaultValue: "Planning the steps" }),
         footerControls: (context) =>
           createElement(PlannerModelFooterField, {
             plannerModel,
@@ -456,7 +462,7 @@ export const useWorkflowSetupFlow = ({
       {
         stage: "review",
         label: i18n.t("editor:ui.plan", { defaultValue: "Plan" }),
-        primaryLabel: "Continue to setup",
+        primaryLabel: i18n.t("storyboard:attrs.continueToSetup", { defaultValue: "Continue to setup" }),
         // Criterion 4 and D23, plus the content gate: a step with no title, or
         // an output with no name, builds a node nobody can read afterwards, so
         // the review does not hand an empty field on to the build (F20).
@@ -476,15 +482,15 @@ export const useWorkflowSetupFlow = ({
           planContentIsComplete,
         blockedReason: planning
           ? planningPhase === "checking"
-            ? "Checking the plan"
+            ? i18n.t("setup:workflow.checkingThePlan", { defaultValue: "Checking the plan" })
             : i18n.t("storyboard:attrs.rePlanningTheSteps", { defaultValue: "Re-planning the steps" })
           : plan.steps.length === 0
-            ? "Add a plan step"
+            ? i18n.t("storyboard:attrs.addAPlanStep", { defaultValue: "Add a plan step" })
             : !planContentIsComplete
-              ? "Give every step and output a name"
+              ? i18n.t("storyboard:attrs.giveEveryStepAndOutputAName", { defaultValue: "Give every step and output a name" })
               : rolesLoading
                 ? t("storyboard:attrs.readingTheModelsYourProvidersOffer", { defaultValue: "Reading the models your providers offer" })
-                : "Resolve the missing nodes or model providers above",
+                : i18n.t("storyboard:attrs.resolveTheMissingNodesOrModelProvidersAbove", { defaultValue: "Resolve the missing nodes or model providers above" }),
         render: () =>
           createElement(WorkflowReviewStep, {
             plan,
@@ -612,7 +618,11 @@ export const useWorkflowSetupFlow = ({
   );
 
   return {
-    labels: FLOW_LABELS,
+    labels: {
+      title: i18n.t("home:entry.workflow.title", {
+        defaultValue: FLOW_TITLE.title
+      })
+    },
     steps,
     stage,
     onStageChange,

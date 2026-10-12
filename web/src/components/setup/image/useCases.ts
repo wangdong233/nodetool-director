@@ -23,7 +23,9 @@ export const USE_CASE_CARDS: readonly OptionCardItem[] = IMAGE_USE_CASES.map(
   (useCase) => ({
     id: useCase.id,
     title: useCase.title,
+    titleKey: `catalog:imageUseCases.${useCase.id}.title`,
     description: useCase.description,
+    descriptionKey: `catalog:imageUseCases.${useCase.id}.description`,
     image: setupStill(SETUP_STILL_GROUPS.imageUseCases, useCase.id)
   })
 );

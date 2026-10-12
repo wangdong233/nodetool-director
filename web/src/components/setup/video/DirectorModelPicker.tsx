@@ -28,10 +28,13 @@ const DirectorModelPickerInternal: React.FC<{ readOnly?: boolean }> = ({
     return (
       <FlexRow gap={GAP.tight} align="center" wrap>
         <Caption color="error" role="alert">
-          {`The model list could not be read: ${error}`}
+          {t("setup:video.modelListCouldNotBeRead", {
+            defaultValue: "The model list could not be read: {{error}}",
+            error
+          })}
         </Caption>
         <EditorButton size="small" variant="text" onClick={refetch}>
-          Try again
+          {t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}
         </EditorButton>
         <ReportBugButton
           context={{
@@ -46,17 +49,24 @@ const DirectorModelPickerInternal: React.FC<{ readOnly?: boolean }> = ({
   if (noProvider) {
     return (
       <Caption color="warning" role="alert">
-        No provider offers a language model. Add a key in Settings.
+        {t("setup:video.noProviderOffersALanguageModelAddAKey", {
+          defaultValue:
+            "No provider offers a language model. Add a key in Settings."
+        })}
       </Caption>
     );
   }
 
   return (
-    <SetupFooterField label="Model">
+    <SetupFooterField label={t("ui2:attrs.model", { defaultValue: "Model" })}>
       <LanguageModelSelect
         value={model?.id ?? ""}
         provider={model?.provider}
-        placeholder={loading ? "Reading providers…" : "Model for the beats"}
+        placeholder={
+          loading
+            ? t("setup:video.readingProviders", { defaultValue: "Reading providers…" })
+            : t("storyboard:attrs.modelForTheBeats", { defaultValue: "Model for the beats" })
+        }
         onChange={(value) => select(directorModelKey(value))}
         disabled={readOnly || loading || options.length === 0}
       />

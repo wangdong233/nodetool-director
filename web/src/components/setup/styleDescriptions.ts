@@ -11,7 +11,14 @@ export const STYLE_DESCRIPTION_KEYS: Readonly<Record<string, string>> = {
   "flat-vector": "storyboard:attrs.styleFlatVector",
   noir: "storyboard:attrs.styleNoir",
   "stick-figure": "storyboard:attrs.styleStickFigure",
-  "graphic-novel": "storyboard:attrs.styleGraphicNovel"
+  "graphic-novel": "storyboard:attrs.styleGraphicNovel",
+  // The Game flow's look step.
+  "pixel-16bit": "storyboard:attrs.stylePixel16bit",
+  "pixel-8bit": "storyboard:attrs.stylePixel8bit",
+  "pixel-handheld": "storyboard:attrs.stylePixelHandheld",
+  "pixel-1bit": "storyboard:attrs.stylePixel1bit",
+  "pixel-modern": "storyboard:attrs.stylePixelModern",
+  "painted-2d": "storyboard:attrs.stylePainted2d"
 };
 
 /** Display copy stays separate from the complete generation descriptor. */

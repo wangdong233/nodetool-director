@@ -118,15 +118,17 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         // A file being read lands on this workflow and opens it, so a second
         // way in started meanwhile would be overwritten by it, or overwrite it.
         disabled: importing,
-        disabledReason: "Reading your file"
+        disabledReason: i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" })
       },
       {
         id: "import",
         title: i18n.t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" }),
-        description: importing ? "Reading your file" : "A workflow JSON file",
+        description: importing
+          ? i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" })
+          : i18n.t("setup:workflow.aWorkflowJSONFile", { defaultValue: "A workflow JSON file" }),
         onSelect: () => importInput.current?.click(),
         disabled: importing,
-        disabledReason: "Reading your file"
+        disabledReason: i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" })
       },
       {
         id: "blank",
@@ -134,7 +136,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         description: i18n.t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
         onSelect: onStartBlank,
         disabled: importing,
-        disabledReason: "Reading your file"
+        disabledReason: i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" })
       }
     ],
     [importing, onBrowseExamples, onStartBlank, t]

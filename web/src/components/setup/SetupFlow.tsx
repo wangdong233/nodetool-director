@@ -519,12 +519,12 @@ export function SetupFlow<Stage extends string>({
   );
   const primaryText = backToStep
     ? currentIndex > entries[currentEntry].firstIndex
-      ? `Back to ${SUBSTEP_LABEL.toLowerCase()}`
-      : "Back to this step"
+      ? t("setup:shell.backToReview", { defaultValue: "Back to review" })
+      : t("setup:shell.backToThisStep", { defaultValue: "Back to this step" })
     : canceled
-      ? "Retry"
+      ? t("storyboard:attrs.retry", { defaultValue: "Retry" })
       : error
-        ? "Try again"
+        ? t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })
         : step.primaryLabel;
   const bodyLocked = readOnly || locked;
 
@@ -535,20 +535,23 @@ export function SetupFlow<Stage extends string>({
   const status = pending ? (
     <FlexRow gap={GAP.normal} align="center" wrap>
       <Text size="small" component="div">
-        <ThinkingIndicator label={step.pendingLabel ?? "Working"} announce />
+        <ThinkingIndicator
+          label={step.pendingLabel ?? t("setup:shell.working", { defaultValue: "Working" })}
+          announce
+        />
       </Text>
       {/* The body locks while the run reads it, so the step says why. */}
       <Caption size="small" color="secondary">
-        Changes are paused
+        {t("setup:shell.changesArePaused", { defaultValue: "Changes are paused" })}
       </Caption>
     </FlexRow>
   ) : changingFlow ? (
     <Caption size="small" color="secondary">
-      Discarding this draft
+      {t("setup:shell.discardingThisDraft", { defaultValue: "Discarding this draft" })}
     </Caption>
   ) : canceled ? (
     <Caption size="small" color="secondary">
-      Canceled
+      {t("storyboard:attrs.canceled", { defaultValue: "Canceled" })}
     </Caption>
   ) : blocked && step.blockedReason ? (
     <Caption size="small" color="secondary" id={blockedReasonId}>
@@ -570,7 +573,7 @@ export function SetupFlow<Stage extends string>({
   const footerControls = step.footerControls ? (
     <FlexRow
       role="group"
-      aria-label="Generation settings"
+      aria-label={t("setup:shell.generationSettings", { defaultValue: "Generation settings" })}
       gap={GAP.normal}
       align="center"
       wrap
@@ -594,9 +597,11 @@ export function SetupFlow<Stage extends string>({
           largest text on the page belongs to the step the creator is on. */}
       <FlexRow gap={GAP.normal} align="baseline" wrap>
         <Text size="small" color="secondary" component="h2">
-          {labels.title}
+          {labels.titleKey
+            ? t(labels.titleKey, { defaultValue: labels.title })
+            : labels.title}
         </Text>
-        <Box component="nav" aria-label="Setup steps">
+        <Box component="nav" aria-label={t("storyboard:attrs.setupSteps", { defaultValue: "Setup steps" })}>
           <FlexRow
             component="ol"
             gap={GAP.normal}
@@ -615,7 +620,7 @@ export function SetupFlow<Stage extends string>({
               const onSubstep =
                 index === currentEntry && currentIndex > entry.firstIndex;
               const text = onSubstep
-                ? `${index + 1}. ${entry.label} · ${SUBSTEP_LABEL}`
+                ? `${index + 1}. ${entry.label} · ${t("storyboard:attrs.review", { defaultValue: SUBSTEP_LABEL })}`
                 : `${index + 1}. ${entry.label}`;
               return (
                 <FlexRow
@@ -671,9 +676,14 @@ export function SetupFlow<Stage extends string>({
       ) : null}
 
       {readOnly ? (
-        <AlertBanner severity="info" title="View only">
-          This setup can be reviewed here, but it cannot be changed in view
-          mode.
+        <AlertBanner
+          severity="info"
+          title={t("storyboard:attrs.viewOnly", { defaultValue: "View only" })}
+        >
+          {t("setup:shell.viewOnlyBody", {
+            defaultValue:
+              "This setup can be reviewed here, but it cannot be changed in view mode."
+          })}
         </AlertBanner>
       ) : null}
 
@@ -691,11 +701,13 @@ export function SetupFlow<Stage extends string>({
           <AlertBanner
             ref={changeFlowErrorRef}
             severity="error"
-            title="We couldn't discard this draft"
+            title={t("setup:shell.weCouldntDiscardThisDraft", {
+              defaultValue: "We couldn't discard this draft"
+            })}
             sx={{ marginBottom: SPACING.xl }}
             action={
               <ReportBugButton
-                label="Report this failure"
+                label={t("storyboard:attrs.reportThisFailure", { defaultValue: "Report this failure" })}
                 variant="outlined"
                 size="small"
                 context={{
@@ -706,18 +718,23 @@ export function SetupFlow<Stage extends string>({
               />
             }
           >
-            {`${changeFlowError} Press Change flow to try again.`}
+            {t("setup:shell.pressChangeFlowToTryAgain", {
+              defaultValue: "{{error}} Press Change flow to try again.",
+              error: changeFlowError
+            })}
           </AlertBanner>
         ) : null}
         {error && !canceled ? (
           <AlertBanner
             ref={errorRef}
             severity="error"
-            title="We couldn't complete this step"
+            title={t("storyboard:attrs.weCouldn'tCompleteThisStep", {
+              defaultValue: "We couldn't complete this step"
+            })}
             sx={{ marginBottom: SPACING.xl }}
             action={
               <ReportBugButton
-                label="Report this failure"
+                label={t("storyboard:attrs.reportThisFailure", { defaultValue: "Report this failure" })}
                 variant="outlined"
                 size="small"
                 context={{
@@ -745,17 +762,34 @@ export function SetupFlow<Stage extends string>({
           {canceled ? (
             <FlexColumn gap={GAP.spacious} fullWidth>
               <Text size="big" component="h1">
-                This step was canceled
+                {t("storyboard:attrs.thisStepWasCanceled", { defaultValue: "This step was canceled" })}
               </Text>
-              <AlertBanner severity="info" title="Canceled">
-                The pending operation was canceled. Your draft is unchanged.
+              <AlertBanner
+                severity="info"
+                title={t("storyboard:attrs.canceled", { defaultValue: "Canceled" })}
+              >
+                {t("editor:ui.thePendingOperationWasCanceledYourDraftIsUnchanged", {
+                  defaultValue:
+                    "The pending operation was canceled. Your draft is unchanged."
+                })}
               </AlertBanner>
               <Text size="normal" color="secondary">
                 {canceling
-                  ? "Stopping the canceled request."
+                  ? t("setup:shell.stoppingTheCanceledRequest", {
+                      defaultValue: "Stopping the canceled request."
+                    })
                   : backToStep
-                    ? "Go back to the step when you are ready. The canceled request cannot replace this draft."
-                    : "Retry when you are ready. A new request will be started deliberately and the canceled request cannot replace this draft."}
+                    ? t("setup:shell.goBackToTheStepWhenYouAreReady", {
+                        defaultValue:
+                          "Go back to the step when you are ready. The canceled request cannot replace this draft."
+                      })
+                    : t(
+                        "storyboard:attrs.retryWhenYouAreReadyANewRequestWillBeStartedDeliberatelyAndTheCanceledRequestCannotReplaceThisDraft",
+                        {
+                          defaultValue:
+                            "Retry when you are ready. A new request will be started deliberately and the canceled request cannot replace this draft."
+                        }
+                      )}
               </Text>
             </FlexColumn>
           ) : (
@@ -811,7 +845,7 @@ export function SetupFlow<Stage extends string>({
                 disabled={currentIndex === 0 || locked || step.holdNavigation}
                 sx={{ fontSize: FONT_SIZE_SANS.body }}
               >
-                Back
+                {t("storyboard:attrs.back", { defaultValue: "Back" })}
               </EditorButton>
               {/* The way out of the wrong card. It stands where `Back` is dead, on
                 the first step, and only when a host can actually perform the
@@ -825,7 +859,7 @@ export function SetupFlow<Stage extends string>({
                   disabled={locked || step.holdNavigation}
                   sx={{ fontSize: FONT_SIZE_SANS.body }}
                 >
-                  Change flow
+                  {t("editor:ui.changeFlow", { defaultValue: "Change flow" })}
                 </EditorButton>
               ) : null}
               {step.onSkip ? (
@@ -836,7 +870,7 @@ export function SetupFlow<Stage extends string>({
                   disabled={locked}
                   sx={{ fontSize: FONT_SIZE_SANS.body }}
                 >
-                  {step.skipLabel ?? "Skip"}
+                  {step.skipLabel ?? t("setup:shell.skip", { defaultValue: "Skip" })}
                 </EditorButton>
               ) : null}
             </FlexRow>
@@ -857,7 +891,7 @@ export function SetupFlow<Stage extends string>({
                     onClick={handleCancel}
                     sx={{ fontSize: FONT_SIZE_SANS.body }}
                   >
-                    Cancel
+                    {t("storyboard:attrs.cancel", { defaultValue: "Cancel" })}
                   </EditorButton>
                 ) : null}
                 <EditorButton
@@ -890,7 +924,7 @@ export function SetupFlow<Stage extends string>({
       <Dialog
         open={confirmingChange && changeFlowAvailable}
         onClose={() => setConfirmingChange(false)}
-        title="Change flow?"
+        title={t("storyboard:attrs.changeFlow", { defaultValue: "Change flow?" })}
         showActions
         destructive
         confirmText={t("editor:ui.discardAndChoose", { defaultValue: "Discard and choose" })}
@@ -900,7 +934,11 @@ export function SetupFlow<Stage extends string>({
         maxWidth="xs"
       >
         <Text size="normal">
-          {`Your brief, and the references and entities you started with, come with you to the flow you pick next. This ${labels.title.toLowerCase()} draft is discarded with anything else added on this step, such as creative context, imported files and placed media. Nothing has been generated for it yet.`}
+          {t("setup:shell.changeFlowBody", {
+            defaultValue:
+              "Your brief, and the references and entities you started with, come with you to the flow you pick next. This {{title}} draft is discarded with anything else added on this step, such as creative context, imported files and placed media. Nothing has been generated for it yet.",
+            title: labels.title.toLowerCase()
+          })}
         </Text>
       </Dialog>
     </FlexColumn>

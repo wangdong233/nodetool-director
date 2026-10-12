@@ -28,6 +28,7 @@ import {
 import { OptionCardGrid } from "../OptionCardGrid";
 import { SetupCardButton, useRovingRadioGroup } from "../SetupCardButton";
 import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import {
   DEFAULT_LENGTH_SECONDS,
   FORMAT_CARDS,
@@ -71,16 +72,17 @@ export const WriterModelFooterField: React.FC<{
   scriptId: string;
   readOnly?: boolean;
 }> = ({ scriptId, readOnly = false }) => {
+  const { t } = useTranslation();
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
   const chatModel = useGlobalChatStore((state) => state.selectedModel);
   const writerModel = setup?.writer_model ?? chatModel;
   return (
-    <SetupFooterField label="Model">
+    <SetupFooterField label={t("ui2:attrs.model", { defaultValue: "Model" })}>
       <LanguageModelSelect
         value={writerModel?.id ?? ""}
         provider={writerModel?.provider}
-        placeholder="Writer model"
+        placeholder={t("storyboard:attrs.writerModel", { defaultValue: "Writer model" })}
         disabled={readOnly}
         onChange={(value) => {
           if (readOnly) {
@@ -100,6 +102,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
   onValidationChange,
   readOnly = false
 }) => {
+  const { t } = useTranslation();
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
   const seconds = setup?.length_seconds ?? DEFAULT_LENGTH_SECONDS;
@@ -145,9 +148,13 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
         label: choice.label,
         disabled: readOnly
       })),
-      { id: CUSTOM_LENGTH_ID, label: "Custom", disabled: readOnly }
+      {
+        id: CUSTOM_LENGTH_ID,
+        label: t("storyboard:attrs.custom", { defaultValue: "Custom" }),
+        disabled: readOnly
+      }
     ],
-    [readOnly]
+    [readOnly, t]
   );
 
   const selectedLengthId = custom
@@ -218,7 +225,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          Choose your format
+          {t("storyboard:attrs.chooseYourFormat", { defaultValue: "Choose your format" })}
         </Text>
         <Text size="normal" color="secondary">
           {i18n.t("editor:ui.itSetsWhoSpeaksAndHowTheScriptIsLaidOut")}
@@ -226,7 +233,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
       </FlexColumn>
 
       <OptionCardGrid
-        label="Format"
+        label={t("storyboard:attrs.format", { defaultValue: "Format" })}
         options={formatCards}
         selectedId={setup?.format ?? null}
         onSelect={selectFormat}
@@ -234,14 +241,19 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
 
       <FlexColumn gap={GAP.normal}>
         <Caption color="secondary" component="p">
-          How long should it run?
+          {t("storyboard:attrs.howLongShouldItRun", { defaultValue: "How long should it run?" })}
         </Caption>
         <FlexRow gap={GAP.normal} align="center" wrap>
           {/* One choice among four, so one tab stop and arrow keys between the
               options — four cards announcing themselves as independent
               toggles described the wrong control (F26). The seconds field is
               not one of the options and stays outside the group. */}
-          <FlexRow role="radiogroup" aria-label="Length" gap={GAP.normal} wrap>
+          <FlexRow
+            role="radiogroup"
+            aria-label={t("storyboard:attrs.length", { defaultValue: "Length" })}
+            gap={GAP.normal}
+            wrap
+          >
             {lengthOptions.map((option) => {
               const radio = radioProps(option);
               return (
@@ -263,7 +275,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
             <Box sx={{ width: CUSTOM_FIELD_WIDTH }}>
               <TextInput
                 type="number"
-                label="Custom seconds"
+                label={t("storyboard:attrs.customSeconds", { defaultValue: "Custom seconds" })}
                 value={customDraft}
                 slotProps={{
                   htmlInput: {
@@ -272,7 +284,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
                     step: 1
                   }
                 }}
-                placeholder="Custom"
+                placeholder={t("storyboard:attrs.custom", { defaultValue: "Custom" })}
                 disabled={readOnly}
                 error={customError !== null}
                 helperText={

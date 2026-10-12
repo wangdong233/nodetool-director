@@ -151,7 +151,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            What image do you want?
+            {t("storyboard:attrs.whatImageDoYouWant", { defaultValue: "What image do you want?" })}
           </Text>
           <Text size="normal" color="secondary">
             {t("storyboard:attrs.describeItOnceWellRefineTheBrief", { defaultValue: "Describe it once. We'll refine the brief and render variations to pick from." })}
@@ -163,9 +163,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           autoFocus
           multiline
           rows={4}
-          label="Your image"
+          label={t("storyboard:attrs.yourImage", { defaultValue: "Your image" })}
           hideLabel
-          placeholder="One sentence is enough."
+          placeholder={t("storyboard:attrs.oneSentenceIsEnough", { defaultValue: "One sentence is enough." })}
           onChange={handleChange}
           inputRef={briefField}
         />
@@ -196,7 +196,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
             {references.length > 0 ? (
               <FlexRow
                 role="group"
-                aria-label="Reference images"
+                aria-label={t("storyboard:attrs.referenceImages", { defaultValue: "Reference images" })}
                 gap={GAP.normal}
                 wrap
               >
@@ -227,7 +227,12 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
               </FlexRow>
             ) : null}
             {entityNames.length > 0 ? (
-              <FlexRow role="group" aria-label="Entities" gap={GAP.normal} wrap>
+              <FlexRow
+                role="group"
+                aria-label={t("storyboard:attrs.entities", { defaultValue: "Entities" })}
+                gap={GAP.normal}
+                wrap
+              >
                 {entityNames.map((name) => (
                   <Chip key={name} label={name} />
                 ))}
@@ -254,7 +259,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label="Other ways to start"
+        label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
 
@@ -264,7 +269,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={fileInput}
         accept={IMAGE_ACCEPT}
-        aria-label="Upload an image to edit"
+        aria-label={t("storyboard:attrs.uploadAnImageToEdit", { defaultValue: "Upload an image to edit" })}
         onChange={handlePicked}
       />
     </Box>

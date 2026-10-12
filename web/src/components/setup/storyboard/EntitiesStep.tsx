@@ -282,8 +282,11 @@ export const EntitiesStep = ({
     createPrice === null
       ? null
       : createPrice.cost === null
-        ? "Price unknown"
-        : `About ${formatUsd(createPrice.cost)}`;
+        ? i18n.t("editor:ui.priceUnknown", { defaultValue: "Price unknown" })
+        : t("setup:image.aboutCost", {
+            defaultValue: "About {{cost}}",
+            cost: formatUsd(createPrice.cost)
+          });
 
   const handleCreated = (entity: Entity | null): void => {
     if (entity) {
@@ -472,7 +475,10 @@ export const EntitiesStep = ({
   const visibleEntities = availableEntities.filter(
     (entity) =>
       (!onlySelected || selectedSet.has(entity.id)) &&
-      `${entity.name} ${entity.kind} ${entity.descriptor}`
+      `${entity.name} ${entity.kind} ${entity.descriptor} ${t(
+        `storyboard:attrs.${entity.kind}`,
+        { defaultValue: entity.kind }
+      )}`
         .toLocaleLowerCase()
         .includes(query)
   );
@@ -640,7 +646,11 @@ export const EntitiesStep = ({
                     <FlexColumn gap={SPACING.xs} sx={{ flex: "1 1 320px" }}>
                       <FlexRow gap={SPACING.sm} align="baseline">
                         <Label component="h3">{suggestion.name}</Label>
-                        <Caption>{suggestion.kind}</Caption>
+                        <Caption>
+                          {t(`storyboard:attrs.${suggestion.kind}`, {
+                            defaultValue: suggestion.kind
+                          })}
+                        </Caption>
                       </FlexRow>
                       <Text color="secondary">{suggestion.descriptor}</Text>
                     </FlexColumn>
@@ -666,12 +676,21 @@ export const EntitiesStep = ({
                       >
                         {creating ? (
                           <ThinkingIndicator
-                            label={`Creating ${suggestion.name}`}
+                            label={t("setup:storyboard.creatingName", {
+                              defaultValue: "Creating {{name}}",
+                              name: suggestion.name
+                            })}
                           />
                         ) : existing ? (
-                          `Use ${suggestion.name}`
+                          t("setup:storyboard.useName", {
+                            defaultValue: "Use {{name}}",
+                            name: suggestion.name
+                          })
                         ) : (
-                          `Create ${suggestion.name}`
+                          t("setup:storyboard.createName", {
+                            defaultValue: "Create {{name}}",
+                            name: suggestion.name
+                          })
                         )}
                       </EditorButton>
                     </FlexRow>
@@ -980,7 +999,10 @@ export const EntitiesStep = ({
                 <FlexColumn
                   key={shot.id}
                   component="section"
-                  aria-label={`Shot ${shot.index + 1}`}
+                  aria-label={t("setup:storyboard.shotN", {
+                    defaultValue: "Shot {{index}}",
+                    index: shot.index + 1
+                  })}
                   gap={SPACING.xl}
                   justify="space-between"
                   sx={{
@@ -993,7 +1015,12 @@ export const EntitiesStep = ({
                   }}
                 >
                   <FlexColumn gap={SPACING.sm}>
-                    <Label component="h3">Shot {shot.index + 1}</Label>
+                    <Label component="h3">
+                      {t("setup:storyboard.shotN", {
+                        defaultValue: "Shot {{index}}",
+                        index: shot.index + 1
+                      })}
+                    </Label>
                     <Text>{shot.slug ?? shot.action}</Text>
                   </FlexColumn>
                   <FlexRow gap={SPACING.md} wrap>

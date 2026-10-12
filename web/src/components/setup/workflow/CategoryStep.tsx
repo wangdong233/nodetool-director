@@ -38,19 +38,22 @@ export interface PlannerModelFooterFieldProps {
 /** The planner model, for the shell's footer. */
 export const PlannerModelFooterField: React.FC<
   PlannerModelFooterFieldProps
-> = ({ plannerModel, onPlannerModelChange, readOnly = false }) => (
-  <SetupFooterField label="Model">
-    <LanguageModelSelect
-      value={plannerModel?.id ?? ""}
-      provider={plannerModel?.provider}
-      placeholder="Planner model"
-      disabled={readOnly}
-      onChange={(value: LanguageModelValue) =>
-        onPlannerModelChange({ provider: value.provider, id: value.id })
-      }
-    />
-  </SetupFooterField>
-);
+> = ({ plannerModel, onPlannerModelChange, readOnly = false }) => {
+  const { t } = useTranslation();
+  return (
+    <SetupFooterField label={t("ui2:attrs.model", { defaultValue: "Model" })}>
+      <LanguageModelSelect
+        value={plannerModel?.id ?? ""}
+        provider={plannerModel?.provider}
+        placeholder={t("setup:workflow.plannerModel", { defaultValue: "Planner model" })}
+        disabled={readOnly}
+        onChange={(value: LanguageModelValue) =>
+          onPlannerModelChange({ provider: value.provider, id: value.id })
+        }
+      />
+    </SetupFooterField>
+  );
+};
 
 const CategoryStepInternal: React.FC<WorkflowCategoryStepProps> = ({
   selectedId,
@@ -62,14 +65,14 @@ const CategoryStepInternal: React.FC<WorkflowCategoryStepProps> = ({
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          What kind of workflow?
+          {t("setup:workflow.whatKindOfWorkflow", { defaultValue: "What kind of workflow?" })}
         </Text>
         <Text size="normal" color="secondary">
           {t("storyboard:attrs.thisDecidesWhichNodesThePlanReachesFor", { defaultValue: "This decides which nodes the plan reaches for, and how it runs once it is built." })}
         </Text>
       </FlexColumn>
       <OptionCardGrid
-        label="Workflow category"
+        label={t("storyboard:attrs.workflowCategory", { defaultValue: "Workflow category" })}
         options={WORKFLOW_CATEGORIES}
         selectedId={selectedId}
         onSelect={onSelect}

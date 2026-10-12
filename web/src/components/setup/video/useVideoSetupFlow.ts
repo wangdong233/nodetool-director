@@ -9,7 +9,7 @@
  * before this flow existed (D3, criterion 2).
  */
 
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 import {
   createElement,
   useCallback,
@@ -174,6 +174,8 @@ export const useVideoSetupFlow = ({
   onStartFromScript
 }: VideoSetupFlowOptions = {}): SetupFlowConfig<TimelineSetupStage> => {
   const { t } = useTranslation();
+  // Re-render on language change so the memoized step copy re-resolves.
+  const { version: languageVersion } = useAppLanguage();
   const stage = useVideoSetupStage();
   const [reviewError, setReviewError] = useState<string>();
   const [contextError, setContextError] = useState<string>();
@@ -405,10 +407,13 @@ export const useVideoSetupFlow = ({
       : videoFormatById(formatId)?.beatCount;
   const draftResult =
     draftBeatCount === undefined
-      ? "Draft the beats"
-      : `Draft ${draftBeatCount} beat${draftBeatCount === 1 ? "" : "s"}${
-          placedClips > 0 ? ", one per clip" : ""
-        }`;
+      ? i18n.t("setup:video.draftTheBeats", { defaultValue: "Draft the beats" })
+      : i18n.t("setup:video.draftCountBeats", {
+          defaultValue:
+            "Draft {{count}} beats{{perClip}}",
+          count: draftBeatCount,
+          perClip: placedClips > 0 ? i18n.t("setup:video.onePerClip", { defaultValue: ", one per clip" }) : ""
+        });
 
   // The estimate prices what the Director is sent, not only the brief: the
   // context lines and, on a re-plan, the edited plan go with it.
@@ -425,12 +430,15 @@ export const useVideoSetupFlow = ({
   const replanGeneration = useMemo(
     () => ({
       result: draftResult,
-      next: "Your edited plan guides the new beats, which replace these.",
+      next: i18n.t("setup:video.editedPlanGuidesNewBeats", {
+        defaultValue:
+          "Your edited plan guides the new beats, which replace these."
+      }),
       model: director.model ? toLanguageModelValue(director.model) : null,
       brief: plannedBrief,
       maxOutputTokens: 8192
     }),
-    [director.model, draftResult, plannedBrief]
+    [director.model, draftResult, plannedBrief, languageVersion]
   );
 
   const emptyBeats = (beats ?? []).filter(
@@ -448,7 +456,7 @@ export const useVideoSetupFlow = ({
         canAdvance:
           brief.trim().length > 0 && !contextError && !importingMedia,
         blockedReason: importingMedia
-          ? "Uploading your media"
+          ? i18n.t("setup:video.uploadingYourMedia", { defaultValue: "Uploading your media" })
           : (contextError ?? i18n.t("storyboard:attrs.describeTheVideoOrBringYourOwnMedia", { defaultValue: "Describe the video, or bring your own media" })),
         // Change flow discards this draft, so it waits for the upload too.
         holdNavigation: importingMedia,
@@ -486,18 +494,27 @@ export const useVideoSetupFlow = ({
           videoFormatById(formatId) === null
             ? i18n.t("storyboard:attrs.pickAVideoTemplate", { defaultValue: "Pick a video template" })
             : director.loading
-              ? "Loading the models that can draft the beats"
+              ? i18n.t("setup:video.loadingModelsThatCanDraftTheBeats", {
+                  defaultValue: "Loading the models that can draft the beats"
+                })
               : director.error
-                ? "The model list could not be read"
+                ? i18n.t("setup:video.theModelListCouldNotBeRead", {
+                    defaultValue: "The model list could not be read"
+                  })
                 : director.noProvider
-                  ? "No provider offers a language model"
+                  ? i18n.t("setup:video.noProviderOffersALanguageModel", {
+                      defaultValue: "No provider offers a language model"
+                    })
                   : i18n.t("storyboard:attrs.pickAModelToDraftTheBeats", { defaultValue: "Pick a model to draft the beats" }),
         generation: planIsCurrent
           ? undefined
           : {
               result: draftResult,
               next: hasPlan
-                ? "Your inputs changed since this plan was drafted. Your edited plan will guide the new beats."
+                ? i18n.t("setup:video.inputsChangedEditedPlanGuides", {
+                    defaultValue:
+                      "Your inputs changed since this plan was drafted. Your edited plan will guide the new beats."
+                  })
                 : i18n.t("storyboard:attrs.reviewTheBeatsAndTimingMediaComesLaterInLook", { defaultValue: "Review the beats and timing. Media comes later in Look." }),
               model: director.model
                 ? toLanguageModelValue(director.model)
@@ -565,7 +582,12 @@ export const useVideoSetupFlow = ({
         canAdvance: !productionBlocker && !planning && look.canAdvance,
         blockedReason:
           productionBlocker ??
-          (planning ? "The beats are being planned" : look.blockedReason),        primaryDetail: look.primaryDetail,
+          (planning
+            ? i18n.t("setup:video.theBeatsAreBeingPlanned", {
+                defaultValue: "The beats are being planned"
+              })
+            : look.blockedReason),
+        primaryDetail: look.primaryDetail,
         // The placeholders are written before the first await, so a Cancel
         // could never leave the draft unchanged.
         cancelable: false,
