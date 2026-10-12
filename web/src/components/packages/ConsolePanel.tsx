@@ -84,10 +84,12 @@ const ConsolePanel = ({ lines, onClear, busy = false }: ConsolePanelProps) => {
         {open && lines.length > 0 && (
           <FlexRow gap={0.5} align="center">
             <EditorButton variant="text" density="compact" onClick={handleCopy}>
-              {copied ? "Copied" : "Copy"}
+              {copied
+                ? t("editor:ui.copiedPlain", { defaultValue: "Copied" })
+                : t("common:action.copy", { defaultValue: "Copy" })}
             </EditorButton>
             <EditorButton variant="text" density="compact" onClick={onClear}>
-              Clear
+              {t("common:action.clear", { defaultValue: "Clear" })}
             </EditorButton>
           </FlexRow>
         )}

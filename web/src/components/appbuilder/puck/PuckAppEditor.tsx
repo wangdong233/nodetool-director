@@ -82,7 +82,7 @@ const SaveButton: React.FC<{ onSave: (data: Data) => void; saving?: boolean }> =
       onClick={handleClick}
       disabled={saving}
     >
-      {saving ? "Saving…" : "Save"}
+      {saving ? tAttr("Saving…") : tAttr("Save")}
     </EditorButton>
   );
 };

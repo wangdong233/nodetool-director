@@ -34,9 +34,17 @@ const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const statusChip = engine.separateInstallUrl ? (
-    <Chip label="Separate app" compact variant="outlined" />
+    <Chip
+      label={t("editor:ui.separateApp", { defaultValue: "Separate app" })}
+      compact
+      variant="outlined"
+    />
   ) : engine.runtimeId ? (
-    <Chip label="Runtime" compact variant="outlined" />
+    <Chip
+      label={t("editor:ui.runtime", { defaultValue: "Runtime" })}
+      compact
+      variant="outlined"
+    />
   ) : null;
 
   return (
@@ -97,6 +105,7 @@ const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
 };
 
 const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Select primitives only — deriving a new array inside the selector would
   // change the snapshot on every render and loop useSyncExternalStore.
@@ -159,7 +168,11 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
           }
           sx={{ flexShrink: 0 }}
         >
-          {available ? "Install" : "Open Manager"}
+          {available
+            ? t("editor:ui.install", { defaultValue: "Install" })
+            : t("editor:ui.openPackageManager", {
+                defaultValue: "Open Manager"
+              })}
         </EditorButton>
       )}
     </FlexRow>

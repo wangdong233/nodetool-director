@@ -399,7 +399,9 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
           onClick={copyToClipboard}
           variant="outlined"
         >
-          {copied ? "Copied!" : "Copy CSS"}
+          {copied
+            ? t("editor:ui.copied", { defaultValue: "Copied!" })
+            : t("editor:ui.copyCss", { defaultValue: "Copy CSS" })}
         </EditorButton>
       </FlexRow>
 

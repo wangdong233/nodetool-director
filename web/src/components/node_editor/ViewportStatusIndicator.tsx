@@ -228,7 +228,15 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
 
         <ToolbarIconButton
           icon={<CenterFocusStrongIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-          tooltip={getShortcutTooltip("fitView")}
+          // The tooltip is a node (label · combo), so the button carries an
+          // explicit accessible name — a stringified element reads as
+          // "[object Object]" and names nothing.
+          tooltip={
+            <>
+              {t("editor:ui.fitAll", { defaultValue: "Fit all" })} · {getShortcutTooltip("fitView", undefined, "combo")}
+            </>
+          }
+          ariaLabel={t("editor:ui.fitAll", { defaultValue: "Fit all" })}
           tooltipPlacement="top"
           onClick={handleFitView}
           size="small"

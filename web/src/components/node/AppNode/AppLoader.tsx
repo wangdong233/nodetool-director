@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { useTranslation } from "react-i18next";
 import {
   parseApplicationDocument,
   type OperationBinding
@@ -63,6 +64,7 @@ const storedOperationId = (data: NodeData): string | undefined => {
  * value typed into an input on the node survives a re-derive.
  */
 export const AppLoader: React.FC<AppLoaderProps> = memo(({ nodeId, data }) => {
+  const { t } = useTranslation();
   const appId = isString(data.properties?.app_id)
     ? data.properties.app_id
     : "";
@@ -279,7 +281,12 @@ export const AppLoader: React.FC<AppLoaderProps> = memo(({ nodeId, data }) => {
 
   const loading = isLoadingList || isLoadingApp;
   const message =
-    error ?? (appError ? "This app could not be loaded." : null);
+    error ??
+    (appError
+      ? t("appbuilder:attrs.thisAppCouldNotBeLoaded", {
+          defaultValue: "This app could not be loaded."
+        })
+      : null);
 
   return (
     <FlexColumn gap={GAP.tight} sx={{ px: SPACING.sm, py: SPACING.xs }}>
@@ -294,7 +301,7 @@ export const AppLoader: React.FC<AppLoaderProps> = memo(({ nodeId, data }) => {
         renderInput={(params) => (
           <TextField
             {...params}
-            label="Select App"
+            label={t("appbuilder:attrs.selectApp", { defaultValue: "Select App" })}
             variant="outlined"
             size="small"
             slotProps={{
@@ -323,7 +330,7 @@ export const AppLoader: React.FC<AppLoaderProps> = memo(({ nodeId, data }) => {
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Operation"
+              label={t("appbuilder:attrs.operation", { defaultValue: "Operation" })}
               variant="outlined"
               size="small"
             />

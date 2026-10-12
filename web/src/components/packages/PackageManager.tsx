@@ -18,6 +18,7 @@ import {
   type MouseEvent
 } from "react";
 import { useTheme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 
 import { useGlobalCombo } from "../../stores/KeyPressedStore";
 
@@ -84,6 +85,7 @@ const saveCategory = (cat: PMCategory) => {
  * "Installed"). "Always on" / "Not installed" stay neutral.
  */
 const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   if (!badge) return null;
   const styles: Record<
@@ -91,22 +93,22 @@ const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
     { label: string; bg: string; fg: string }
   > = {
     alwaysOn: {
-      label: "Always on",
+      label: t("editor:ui.alwaysOn", { defaultValue: "Always on" }),
       bg: theme.vars.palette.action.selected,
       fg: theme.vars.palette.text.secondary
     },
     installed: {
-      label: "Installed",
+      label: t("editor:ui.installed", { defaultValue: "Installed" }),
       bg: `rgba(${theme.vars.palette.success.mainChannel} / 0.14)`,
       fg: theme.vars.palette.success.main
     },
     update: {
-      label: "Update available",
+      label: t("editor:ui.updateAvailable", { defaultValue: "Update available" }),
       bg: `rgba(${theme.vars.palette.warning.mainChannel} / 0.16)`,
       fg: theme.vars.palette.warning.main
     },
     notInstalled: {
-      label: "Not installed",
+      label: t("editor:ui.notInstalled", { defaultValue: "Not installed" }),
       bg: theme.vars.palette.action.hover,
       fg: theme.vars.palette.text.secondary
     }
@@ -123,6 +125,7 @@ const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
 };
 
 const RowActions = ({ row }: { row: PMRow }) => {
+  const { t } = useTranslation();
   if (row.toggle) {
     return (
       <LabeledSwitch
@@ -145,7 +148,9 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUpdate}
         >
-          {busy ? "Working…" : "Update"}
+          {busy
+            ? t("editor:ui.working", { defaultValue: "Working…" })
+            : t("editor:ui.update", { defaultValue: "Update" })}
         </EditorButton>
       )}
       {install && (
@@ -155,7 +160,9 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onInstall}
         >
-          {busy ? "Installing…" : "Install"}
+          {busy
+            ? t("editor:ui.installing", { defaultValue: "Installing…" })
+            : t("editor:ui.install", { defaultValue: "Install" })}
         </EditorButton>
       )}
       {uninstall && (
@@ -165,7 +172,9 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUninstall}
         >
-          {busy ? "Working…" : "Uninstall"}
+          {busy
+            ? t("editor:ui.working", { defaultValue: "Working…" })
+            : t("editor:ui.uninstall", { defaultValue: "Uninstall" })}
         </EditorButton>
       )}
     </>
@@ -193,6 +202,7 @@ const PackageRowItem = memo(function PackageRowItem({ row }: { row: PMRow }) {
 });
 
 function PackageManager() {
+  const { t } = useTranslation();
   const [cat, setCat] = useState(loadCategory);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<PMFilter>("all");
@@ -329,8 +339,11 @@ function PackageManager() {
                     onClick={model.bulkUpdate.onUpdateAll}
                   >
                     {model.bulkUpdate.busy
-                      ? "Updating…"
-                      : `Update all (${model.bulkUpdate.count})`}
+                      ? t("editor:ui.updating", { defaultValue: "Updating…" })
+                      : t("editor:ui.updateAllItems", {
+                          defaultValue: "Update all ({{count}})",
+                          count: model.bulkUpdate.count
+                        })}
                   </EditorButton>
                 )}
                 <Box sx={{ width: { xs: "100%", sm: 250 } }}>
@@ -338,7 +351,9 @@ function PackageManager() {
                     ref={searchRef}
                     value={q}
                     onChange={setQ}
-                    placeholder="Search…  (press /)"
+                    placeholder={t("editor:ui.searchPress", {
+                      defaultValue: "Search…  (press /)"
+                    })}
                     showClear
                   />
                 </Box>
@@ -353,7 +368,9 @@ function PackageManager() {
                 exclusive
                 segmented
                 onChange={handleFilter}
-                aria-label="Status filter"
+                aria-label={t("editor:ui.statusFilter", {
+                  defaultValue: "Status filter"
+                })}
               >
                 {model.filters.map((option) => (
                   <ToggleOption key={option.id} value={option.id}>
@@ -425,13 +442,26 @@ function PackageManager() {
           ) : (
             <EmptyState
               variant={narrowed ? "no-results" : "empty"}
-              title={narrowed ? "Nothing matches" : "Nothing here yet"}
+              title={
+                narrowed
+                  ? t("editor:ui.nothingMatches", { defaultValue: "Nothing matches" })
+                  : t("editor:ui.nothingHereYet", { defaultValue: "Nothing here yet" })
+              }
               description={
                 narrowed
-                  ? "No package in this list matches the search and the status filter."
-                  : "This list has no packages."
+                  ? t("editor:ui.noPackageInThisListMatchesTheSearchAndTheStatusFilter", {
+                      defaultValue:
+                        "No package in this list matches the search and the status filter."
+                    })
+                  : t("editor:ui.thisListHasNoPackages", {
+                      defaultValue: "This list has no packages."
+                    })
               }
-              actionText={narrowed ? "Show all" : undefined}
+              actionText={
+                narrowed
+                  ? t("editor:ui.showAll", { defaultValue: "Show all" })
+                  : undefined
+              }
               onAction={narrowed ? clearSearchAndFilter : undefined}
             />
           )}

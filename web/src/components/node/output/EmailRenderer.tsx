@@ -23,15 +23,16 @@ export const EmailRenderer: React.FC<{ value: Email }> = ({ value }) => {
           <strong>{t("editor:ui.from2", { defaultValue: "From:" })}</strong> {value.sender}
         </p>
         <p>
-          <strong>To:</strong> {value.to}
+          <strong>{t("editor:ui.to2", { defaultValue: "To:" })}</strong> {value.to}
         </p>
         {value.cc && (
           <p>
-            <strong>CC:</strong> {value.cc}
+            <strong>{t("editor:ui.cc", { defaultValue: "CC:" })}</strong> {value.cc}
           </p>
         )}
         <p>
-          <strong>Subject:</strong> {value.subject}
+          <strong>{t("editor:ui.subject", { defaultValue: "Subject:" })}</strong>{" "}
+          {value.subject}
         </p>
       </div>
       <div className="email-body">

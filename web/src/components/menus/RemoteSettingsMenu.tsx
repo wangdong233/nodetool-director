@@ -628,13 +628,15 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
 
             {isDirty && (
               <div className="save-button-container">
-                <Text className="save-bar-message">Unsaved changes</Text>
+                <Text className="save-bar-message">
+                  {t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })}
+                </Text>
                 <EditorButton
                   variant="text"
                   onClick={handleDiscard}
                   disabled={updateSettingsMutation.isPending}
                 >
-                  Discard
+                  {t("editor:ui.discard2", { defaultValue: "Discard" })}
                 </EditorButton>
                 <EditorButton
                   variant="contained"
@@ -644,7 +646,9 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                   startIcon={<SaveIcon />}
                   disabled={updateSettingsMutation.isPending}
                 >
-                  {updateSettingsMutation.isPending ? "Saving…" : "Save changes"}
+                  {updateSettingsMutation.isPending
+                    ? t("editor:ui.saving", { defaultValue: "Saving…" })
+                    : t("editor:ui.saveChanges", { defaultValue: "Save changes" })}
                 </EditorButton>
               </div>
             )}

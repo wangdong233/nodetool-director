@@ -209,19 +209,19 @@ export const DownloadProgress: React.FC<{
   // Display speed - show as stalled/disconnected if no recent updates
   const displaySpeed = useMemo(() => {
     if (isDisconnected) {
-      return "Disconnected";
+      return t("editor:ui.disconnected", { defaultValue: "Disconnected" });
     }
     if (isReconnecting) {
-      return "Reconnecting...";
+      return t("editor:ui.reconnectingPlain", { defaultValue: "Reconnecting..." });
     }
     if (isStalled) {
-      return "Stalled";
+      return t("editor:ui.stalled", { defaultValue: "Stalled" });
     }
     if (download.speed) {
       return `${(download.speed / 1024 / 1024).toFixed(2)} MB/s`;
     }
     return "-";
-  }, [download.speed, isStalled, isDisconnected, isReconnecting]);
+  }, [download.speed, isStalled, isDisconnected, isReconnecting, t]);
 
   const showDetails =
     download.status === "start" ||
@@ -255,11 +255,11 @@ export const DownloadProgress: React.FC<{
         : 0;
     const label =
       download.status === "completed"
-        ? "Done"
+        ? t("editor:ui.done", { defaultValue: "Done" })
         : download.status === "error"
-        ? "Error"
+        ? t("ui2:attrs.error", { defaultValue: "Error" })
         : download.status === "cancelled"
-        ? "Cancelled"
+        ? t("ui2:attrs.cancelled", { defaultValue: "Cancelled" })
         : totalBytes > 0
         ? `${percent.toFixed(0)}%`
         : "…";
@@ -429,17 +429,25 @@ export const DownloadProgress: React.FC<{
                 title={
                   isDisconnected
                     ? t("editor:ui.websocketConnectionLostTheDownloadMayStillBeRunningOnTheServerClickReconnectToRestoreProgressUpdates", { defaultValue: "WebSocket connection lost. The download may still be running on the server. Click Reconnect to restore progress updates." })
-                    : `No progress received for ${timeSinceUpdate}. The download may have stalled or the connection was lost. Try cancelling and restarting the download.`
+                    : t("editor:ui.noProgressReceivedForTheDownloadMayHaveStalledOrTheConnectionWasLostTryCancellingAndRestartingTheDownload", {
+                        defaultValue:
+                          "No progress received for {{time}}. The download may have stalled or the connection was lost. Try cancelling and restarting the download.",
+                        time: timeSinceUpdate
+                      })
                 }
               >
                 <FlexRow align="center" gap={0.5} sx={{ color: "var(--palette-warning-main)" }}>
                   <WarningAmberIcon fontSize="small" />
                   <Caption sx={{ fontWeight: 500 }}>
                     {isDisconnected
-                      ? "Disconnected"
+                      ? t("editor:ui.disconnected", { defaultValue: "Disconnected" })
                       : isReconnecting
-                        ? "Reconnecting..."
-                        : `Stalled (${timeSinceUpdate} since last update)`}
+                        ? t("editor:ui.reconnectingPlain", { defaultValue: "Reconnecting..." })
+                        : t("editor:ui.stalledFor", {
+                            defaultValue:
+                              "Stalled ({{time}} since last update)",
+                            time: timeSinceUpdate
+                          })}
                   </Caption>
                   {isDisconnected && !isReconnecting && (
                     <EditorButton
@@ -453,7 +461,7 @@ export const DownloadProgress: React.FC<{
                         fontSize: "var(--fontSizeSmall)"
                       }}
                     >
-                      Reconnect
+                      {t("editor:ui.reconnect", { defaultValue: "Reconnect" })}
                     </EditorButton>
                   )}
                 </FlexRow>

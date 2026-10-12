@@ -88,8 +88,8 @@
     "descApiToken": "This token is used to authenticate your account with the Nodetool API.",
     "apiTokenSecret": "Keep this token secure and do not share it publicly",
     "optAskShort": "Ask Every Time",
-    "optQuitShort": "Quit",
-    "optBackgroundShort": "Background",
+    "optQuitShort": "Quit Application",
+    "optBackgroundShort": "Keep Running in Background",
     "optSelectNodesShort": "Select nodes",
     "apiIntTitle": "Nodetool API",
     "apiIntDesc": "Use the Nodetool API to execute workflows programmatically.",
@@ -99,6 +99,7 @@
   },
   "search": {
     "placeholder": "Search settings…",
+    "ariaLabel": "Search settings",
     "noMatchesIn": "No matches in {{label}}.",
     "alsoIn": "Also in",
     "see": "See",

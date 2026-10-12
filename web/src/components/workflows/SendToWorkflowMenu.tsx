@@ -9,6 +9,7 @@
  */
 
 import React, { memo, useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 import AddIcon from "@mui/icons-material/Add";
 
@@ -27,6 +28,7 @@ interface SendToWorkflowMenuProps {
 
 export const SendToWorkflowMenu: React.FC<SendToWorkflowMenuProps> = memo(
   ({ items, anchorEl, position, onClose }) => {
+    const { t } = useTranslation();
     const { targets, send } = useSendMediaToWorkflow();
 
     const choose = useCallback(
@@ -44,17 +46,19 @@ export const SendToWorkflowMenu: React.FC<SendToWorkflowMenuProps> = memo(
         position={position}
         onClose={onClose}
         compact
-        slotProps={{ list: { "aria-label": "Send to workflow" } }}
+        slotProps={{ list: { "aria-label": t("editor:ui.sendToWorkflowAria", { defaultValue: "Send to workflow" }) } }}
       >
         <MenuItemPrimitive
           label={
-            items.length === 1 ? "Send 1 item to" : `Send ${items.length} items to`
+            items.length === 1
+              ? t("editor:ui.sendOneItemTo", { defaultValue: "Send 1 item to" })
+              : t("editor:ui.sendNItemsTo", { count: items.length, defaultValue: "Send {{count}} items to" })
           }
           disabled
           compact
         />
         <MenuItemPrimitive
-          label="New workflow"
+          label={t("editor:ui.newWorkflowLower", { defaultValue: "New workflow" })}
           icon={<AddIcon fontSize="small" />}
           compact
           dividerAfter={targets.length > 0}
@@ -63,7 +67,7 @@ export const SendToWorkflowMenu: React.FC<SendToWorkflowMenuProps> = memo(
         {targets.map((target) => (
           <MenuItemPrimitive
             key={target.workflowId}
-            label={target.title || "Untitled workflow"}
+            label={target.title || t("editor:ui.untitledWorkflow", { defaultValue: "Untitled workflow" })}
             icon={<AccountTreeOutlinedIcon fontSize="small" />}
             compact
             onClick={() => choose(target.workflowId)}
@@ -84,7 +88,9 @@ interface SendToWorkflowButtonProps {
 
 /** A toolbar button that opens {@link SendToWorkflowMenu} below itself. */
 export const SendToWorkflowButton: React.FC<SendToWorkflowButtonProps> = memo(
-  ({ items, tooltip = "Send to workflow", iconSx }) => {
+  ({ items, tooltip, iconSx }) => {
+    const { t } = useTranslation();
+    const resolvedTooltip = tooltip ?? t("editor:ui.sendToWorkflowAria", { defaultValue: "Send to workflow" });
     const inStudio = useInStudio();
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const open = useCallback(
@@ -103,8 +109,8 @@ export const SendToWorkflowButton: React.FC<SendToWorkflowButtonProps> = memo(
       <>
         <ToolbarIconButton
           icon={<AccountTreeOutlinedIcon fontSize="small" sx={iconSx} />}
-          tooltip={tooltip}
-          ariaLabel="Send to workflow"
+          tooltip={resolvedTooltip}
+          ariaLabel={resolvedTooltip}
           aria-haspopup="menu"
           aria-expanded={anchorEl !== null}
           disabled={items.length === 0}

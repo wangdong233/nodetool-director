@@ -1175,8 +1175,8 @@ export const MessageView: React.FC<MessageViewProps> = React.memo(
               {message.role === "assistant" && onRegenerate && (
                 <ToolbarIconButton
                   icon={<RefreshIcon fontSize="small" />}
-                  tooltip="Regenerate"
-                  ariaLabel="Regenerate"
+                  tooltip={t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })}
+                  ariaLabel={t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })}
                   onClick={onRegenerate}
                 />
               )}

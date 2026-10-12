@@ -308,7 +308,9 @@ const WorkspaceFileText = ({
                 disabled={!canSave}
                 onClick={handleSave}
               >
-                {isSaving ? "Saving…" : "Save"}
+                {isSaving
+                  ? t("editor:ui.saving", { defaultValue: "Saving…" })
+                  : t("common:action.save", { defaultValue: "Save" })}
               </EditorButton>
             </>
           )}

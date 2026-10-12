@@ -338,7 +338,11 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
       <FlexColumn gap={1} align="center" className="node-actions" sx={{ margin: `${getSpacingPx(SPACING.md)} 0` }}>
         {disabledPack ? (
           <Tooltip
-            title={`This node is part of the ${disabledPack.name} pack, which is currently disabled. Enable it to load the node.`}
+            title={t("editor:ui.thisNodeIsPartOfThePackWhichIsCurrentlyDisabledEnableItToLoadTheNode", {
+              defaultValue:
+                "This node is part of the {{name}} pack, which is currently disabled. Enable it to load the node.",
+              name: disabledPack.name
+            })}
           >
             <EditorButton
               variant="contained"
@@ -349,12 +353,20 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
               startIcon={<ExtensionIcon />}
             >
               {enabling
-                ? "Enabling…"
-                : `Enable ${disabledPack.name} Nodes`}
+                ? t("editor:ui.enabling", { defaultValue: "Enabling…" })
+                : t("editor:ui.enablePackNodes", {
+                    defaultValue: "Enable {{name}} Nodes",
+                    name: disabledPack.name
+                  })}
             </EditorButton>
           </Tooltip>
         ) : (
-          <Tooltip title={`Search for ${resolvedType} in Package Manager`}>
+          <Tooltip
+            title={t("editor:ui.searchForTypeInPackageManager", {
+              defaultValue: "Search for {{type}} in Package Manager",
+              type: resolvedType
+            })}
+          >
             <EditorButton
               variant="contained"
               density="compact"
@@ -362,7 +374,9 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
               onClick={openPackageManager}
               startIcon={<CloudDownloadIcon />}
             >
-              Search Package Manager
+              {t("editor:ui.searchPackageManager", {
+                defaultValue: "Search Package Manager"
+              })}
             </EditorButton>
           </Tooltip>
         )}

@@ -345,7 +345,10 @@ const MediaAspectResizeControl = memo(function MediaAspectResizeControl({
       <button
         type="button"
         className="resize-grip nodrag nopan"
-        aria-label="Resize node, keeping image aspect ratio. Double-click to fit the media."
+        aria-label={t("editor:ui.resizeNodeKeepingImageAspectRatioDoubleClickToFitTheMedia", {
+          defaultValue:
+            "Resize node, keeping image aspect ratio. Double-click to fit the media."
+        })}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endDrag}

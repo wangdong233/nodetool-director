@@ -80,7 +80,12 @@ export const tabDisplayTitle = (tab: {
   ref?: string;
 }): string => {
   if (tab.type === "project" || tab.type === "project-new") {
-    return i18n.t("nav:tabs.home", { defaultValue: PROJECT_HOME_TAB_TITLE });
+    // The unnamed home landing keeps its localized label; a project's
+    // overview tab is named by the project (user data, verbatim).
+    if (tab.type === "project-new" || tab.title === PROJECT_HOME_TAB_TITLE) {
+      return i18n.t("nav:tabs.home", { defaultValue: PROJECT_HOME_TAB_TITLE });
+    }
+    return tab.title;
   }
   // The projects list is one fixed tab — resolve at render time so it follows
   // the language switcher (the stored title is an English snapshot).

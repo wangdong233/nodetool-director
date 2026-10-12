@@ -807,7 +807,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
         compact
       >
         <MenuItemPrimitive
-          label="Rename"
+          label={i18n.t("common:action.rename", { defaultValue: "Rename" })}
           compact
           onClick={() => {
             setHomeMenuPosition(null);

@@ -13,6 +13,8 @@ import {
   type WorkspaceTabMode
 } from "../../stores/WorkspaceTabsStore";
 import { BASE_URL } from "../../stores/BASE_URL";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 import DocumentLoadStatus from "./DocumentLoadStatus";
 
@@ -102,6 +104,7 @@ const withVersion = (url: string, version: string): string =>
  * but loads the asset here and passes data down so no editor edits are needed.
  */
 const Model3DSurface = ({ refId, mode, active }: Model3DSurfaceProps) => {
+  const { t } = useTranslation();
   const { data: asset, isPending, refetch } = useAssetById(refId);
 
   const updateAsset = useAssetStore((state) => state.update);
@@ -197,7 +200,10 @@ const Model3DSurface = ({ refId, mode, active }: Model3DSurfaceProps) => {
       }
       useNotificationStore.getState().addNotification({
         type: "success",
-        content: `Saved ${asset.name || "3D model"}.`
+        content: i18n.t("editor:notify.savedWithName", {
+          defaultValue: "Saved {{name}}.",
+          name: asset.name || "3D model"
+        })
       });
     },
     [asset, updateAsset, invalidateQueries, documentTabId]
@@ -211,7 +217,7 @@ const Model3DSurface = ({ refId, mode, active }: Model3DSurfaceProps) => {
     return (
       <DocumentLoadStatus
         state={isPending ? "loading" : "error"}
-        label="3D asset"
+        label={t("ui2:attrs.doc3dAsset", { defaultValue: "3D asset" })}
         onRetry={() => { void refetch(); }}
         onClose={() => useWorkspaceTabsStore.getState().closeTab(tabId("model3d", refId))}
       />

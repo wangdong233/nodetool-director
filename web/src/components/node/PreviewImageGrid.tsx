@@ -92,7 +92,9 @@ const ImageTile = memo<ImageTileProps>(({
           draggable={false}
         />
       ) : (
-        <div className="placeholder">IMAGE</div>
+        <div className="placeholder">
+          {t("editor:ui.imagePlaceholderBadge", { defaultValue: "IMAGE" })}
+        </div>
       )}
       {showActions && !selectionMode && (
         <div className="tile-actions">
@@ -521,7 +523,7 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
           onClick={toggleSelectionMode}
           startIcon={selectionMode ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />}
         >
-          {selectionMode ? t("editor:ui.exitSelect", { defaultValue: "Exit Select" }) : t("editor:ui.select", { defaultValue: "Select" })}
+          {selectionMode ? t("editor:ui.exitSelect", { defaultValue: "Exit Select" }) : t("editor:ui.selectPlain", { defaultValue: "Select" })}
         </EditorButton>
       )}
 

@@ -655,7 +655,7 @@ function SettingsPage() {
               size="medium"
               fullWidth
               showClear
-              ariaLabel={t("settings:search.placeholder")}
+              ariaLabel={t("settings:search.ariaLabel", { defaultValue: "Search settings" })}
             />
           </div>
         </header>
@@ -833,11 +833,16 @@ function SettingsPage() {
                             <b>{t18("optAskShort", "Ask Every Time")}:</b>{" "}
                             {t18("descOnCloseAsk", "Shows a dialog with options.")}
                             <br />
-                            <b>Quit Application:</b> Closes the application
-                            completely.
+                            <b>{t18("optQuitShort", "Quit Application")}:</b>{" "}
+                            {t18("descOnCloseQuit", "Closes the application completely.")}
                             <br />
-                            <b>Keep Running in Background:</b> Keeps the app
-                            running in the system tray.
+                            <b>
+                              {t18("optBackgroundShort", "Keep Running in Background")}:
+                            </b>{" "}
+                            {t18(
+                              "descOnCloseBackground",
+                              "Keeps the app running in the system tray."
+                            )}
                           </Text>
                         </SearchItem>
                       </div>
@@ -1259,7 +1264,11 @@ function SettingsPage() {
                             </Text>
                           </div>
                           <Box>
-                            <Tooltip title="Copy to clipboard">
+                            <Tooltip
+                              title={t("settings:general.apiIntCopyTooltip", {
+                                defaultValue: "Copy to clipboard"
+                              })}
+                            >
                               <EditorButton
                                 size="small"
                                 variant="outlined"

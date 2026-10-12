@@ -393,6 +393,12 @@
     "writeAMessage": "写一条消息…",
     "yes": "是",
     "you": "你",
-    "yourResultAppearsHere": "结果将显示在这里"
+    "yourResultAppearsHere": "结果将显示在这里",
+    "generating": "生成中…",
+    "outputs": "输出",
+    "saving": "保存中…",
+    "selectApp": "选择小程序",
+    "thisAppCouldNotBeLoaded": "无法加载此小程序。",
+    "working": "运行中"
   }
 }

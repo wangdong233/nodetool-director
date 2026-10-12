@@ -13,6 +13,7 @@
 import { forwardRef, useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import Box from "@mui/material/Box";
 import { useTheme, type SxProps, type Theme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 
 import { EditorButton } from "../editor_ui";
 import { Caption } from "./Caption";
@@ -77,6 +78,7 @@ export const CurveEditor = forwardRef<HTMLDivElement, CurveEditorProps>(function
   disabled = false,
   sx
 }, ref) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const hintId = useId();
   const [selected, setSelected] = useState(0);
@@ -337,10 +339,10 @@ export const CurveEditor = forwardRef<HTMLDivElement, CurveEditorProps>(function
             }
           }}
         />
-        <EditorButton density="compact" disabled={disabled || value.length >= maxKeys} onClick={() => addKeyAfter(selectedIndex)}>Add key</EditorButton>
-        <EditorButton density="compact" disabled={disabled || value.length <= minKeys} onClick={() => removeKeyAt(selectedIndex)}>Remove key</EditorButton>
+        <EditorButton density="compact" disabled={disabled || value.length >= maxKeys} onClick={() => addKeyAfter(selectedIndex)}>{t("ui2:attrs.addKey", { defaultValue: "Add key" })}</EditorButton>
+        <EditorButton density="compact" disabled={disabled || value.length <= minKeys} onClick={() => removeKeyAt(selectedIndex)}>{t("ui2:attrs.removeKey", { defaultValue: "Remove key" })}</EditorButton>
       </FlexRow>
-      <Caption id={hintId}>Arrow keys move a key, Shift moves further. Insert adds a key, Delete removes it. Double-click the plot to add a key there.</Caption>
+      <Caption id={hintId}>{t("ui2:attrs.curveEditorHint", { defaultValue: "Arrow keys move a key, Shift moves further. Insert adds a key, Delete removes it. Double-click the plot to add a key there." })}</Caption>
     </FlexColumn>
   );
 });

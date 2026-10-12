@@ -287,9 +287,12 @@ const ListGeneratorBodyInner: React.FC<BespokeBodyProps> = ({
         <span>
           {items.length === 0
             ? isRunning
-              ? "Generating…"
-              : "List"
-            : `${items.length} item${items.length === 1 ? "" : "s"}`}
+              ? t("editor:ui.generating", { defaultValue: "Generating…" })
+              : t("editor:ui.list", { defaultValue: "List" })
+            : t("editor:ui.itemCount", {
+                defaultValue: "{{count}} item",
+                count: items.length
+              })}
         </span>
         {isRunning && <LoadingSpinner inline size={12} color="inherit" />}
       </div>
