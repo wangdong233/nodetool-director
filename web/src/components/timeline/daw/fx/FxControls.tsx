@@ -10,7 +10,7 @@ import type * as React from "react";
 import { useEffect, useRef } from "react";
 
 import { normToValue, valueToNorm, type ParamDef } from "../fablesynth/params";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 const A0 = -135;
 const A1 = 135;

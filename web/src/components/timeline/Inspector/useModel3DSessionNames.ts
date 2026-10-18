@@ -14,7 +14,7 @@ import type { ActiveLayer } from "@nodetool-ai/timeline/render";
 
 import { Model3DLayerSource } from "../preview/Model3DLayerSource";
 import { useAssetUrl } from "../Tracks/useAssetUrl";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** What the inspector knows about a 3D clip's model right now. */
 export interface Model3DSessionNames {

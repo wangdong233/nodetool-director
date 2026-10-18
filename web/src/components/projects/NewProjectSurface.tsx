@@ -180,7 +180,7 @@ import imageBackground from "../../assets/guided-flows/image.webp";
 import workflowBackground from "../../assets/guided-flows/workflow.webp";
 import gameBackground from "../../assets/guided-flows/game.webp";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const ENTRY_BACKGROUNDS: Partial<Record<EntryFlowId, string>> = {
   storyboard: storyboardBackground,
@@ -1087,7 +1087,7 @@ const NewProjectSurface = ({
             }
             return [
               {
-                kind: entity.kind === "prop" ? t("setup:video.refKind_product", { defaultValue: "product" }) : entity.kind,
+                kind: entity.kind === "prop" ? "product" : entity.kind,
                 asset_id: assetId,
                 entity_id: entity.id,
                 label: entity.name

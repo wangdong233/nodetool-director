@@ -10,7 +10,7 @@ import { useAssetGridStore } from "../../stores/AssetGridStore";
 import useAssets from "../../serverState/useAssets";
 import useAuth from "../../stores/useAuth";
 import { FolderTree, AssetTreeNode } from "../../stores/AssetStore";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -63,7 +63,7 @@ function buildBreadcrumbPath(
   folderTree: FolderTree | undefined,
   currentFolderId: string | null,
   rootId: string
-): Array<{ id: string; name: string }> {
+): Array<{ id: string; name: string; nameKey?: string; }> {
   if (!folderTree || !currentFolderId) {
     return [{ id: rootId, name: "Assets", nameKey: "timeline:attrs.kindAssets" }];
   }
@@ -90,7 +90,7 @@ function buildBreadcrumbPath(
   traverse(rootNodes, rootId);
 
   // Walk up from current folder to root
-  const path: Array<{ id: string; name: string }> = [];
+  const path: Array<{ id: string; name: string; nameKey?: string }> = [];
   let nodeId: string | undefined = currentFolderId;
 
   while (nodeId && nodeId !== rootId) {

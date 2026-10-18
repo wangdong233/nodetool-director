@@ -15,7 +15,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { BORDER_RADIUS, MOTION, reducedMotion } from "./tokens";
 import { SPACING } from "./spacing";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // --- ToggleGroup ---
 

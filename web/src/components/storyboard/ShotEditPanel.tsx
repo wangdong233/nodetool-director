@@ -100,7 +100,7 @@ import { getErrorMessage } from "../../utils/errorHandling";
 import { isShotGenerating } from "./ShotStatusPill";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface ShotEditPanelProps {
   boardId: string;
@@ -210,11 +210,11 @@ const toolsSx = {
 const DRAFT_LABELS: Record<ShotDraftKey, string> = {
   slug: "Shot title",
   sceneId: "Slugline",
-  lighting: "Scene lighting", lightingKey: "storyboard:attrs.sceneLighting",
+  lighting: "Scene lighting",
   action: "Description",
   dialogue: "Dialogue",
   durationSeconds: "Duration",
-  durationSource: "Duration source", durationSourceKey: "storyboard:attrs.durationSource",
+  durationSource: "Duration source",
   framing: "Size",
   angle: "Perspective",
   movement: "Movement",
@@ -242,7 +242,7 @@ const reportRenderFailure = (error: unknown): void => {
 const formatDraftValue = (
   key: ShotDraftKey,
   value: ShotDraft[ShotDraftKey],
-  sceneOptions: { value: string; label: string }[]
+  sceneOptions: { value: string; label: string; labelKey?: string; }[]
 ): string => {
   if (value === undefined || value === null || value === "") {
     return i18n.t("editor:ui.notSet", { defaultValue: "Not set" });
@@ -260,7 +260,7 @@ type SideTab = "takes" | "change";
 
 const SIDE_TABS: { value: SideTab; label: string }[] = [
   { value: "takes", label: i18n.t("storyboard:attrs.takes", { defaultValue: "Takes" }) },
-  { value: "change", label: "Change still", labelKey: "storyboard:attrs.changeStill" }
+  { value: "change", label: "Change still" }
 ];
 
 const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({

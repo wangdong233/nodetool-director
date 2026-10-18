@@ -19,7 +19,7 @@ import { useFormFieldContext } from "./formFieldContext";
 import { useFieldDensity } from "./fieldDensity";
 import { SPACING } from "./spacing";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface TextInputProps
   extends Omit<MuiTextFieldProps, "variant" | "size"> {

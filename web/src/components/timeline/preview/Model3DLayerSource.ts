@@ -32,7 +32,7 @@ import type {
   Model3DRenderSession,
   Model3DSessionOptions
 } from "@nodetool-ai/video-nodes/nodes/model3d/render3d-core";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 export type { Model3DRenderSession, Model3DSessionOptions };
 

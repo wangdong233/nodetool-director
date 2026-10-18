@@ -56,8 +56,9 @@ import type { AlternativeEntry } from "../AlternativesColumn";
 import { useVideoSetupContext } from "./setupContext";
 import CreativeContextFields from "./CreativeContextFields";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../../i18n";
 
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** How wide a carried reference thumbnail is drawn. */
 const REFERENCE_THUMBNAIL = getSpacingPx(12);
@@ -106,6 +107,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   readOnly = false
 }) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const brief = useTimelineStore((state) => state.setup?.brief ?? "");
   const setSetup = useTimelineStore((state) => state.setSetup);
   const { importFiles, importing } = useSetupMediaImport();

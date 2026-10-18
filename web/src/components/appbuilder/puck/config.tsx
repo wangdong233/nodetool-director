@@ -89,7 +89,16 @@ import {
 } from "./RecorderWidgets";
 import { ChartWidget } from "./ChartWidget";
 import { tAttr } from "../i18nAttrs";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
+
+declare module "@puckeditor/core" {
+  interface RadioField { labelKey?: string }
+  interface SelectField { labelKey?: string }
+  interface TextareaField { labelKey?: string }
+  interface FieldOption { labelKey?: string }
+  interface Category<T = string> { titleKey?: string }
+}
+
 
 const ACTION_OPTIONS = [
   { label: "Run workflow", value: "run" },
@@ -381,7 +390,7 @@ export const appConfig: Config = {
   },
   categories: {
     inputs: {
-      title: "Inputs", titleKey: "timeline:attrs.inputs",
+      title: "Inputs",
       components: [
         "WorkflowForm",
         "WorkflowInput",
@@ -450,7 +459,7 @@ export const appConfig: Config = {
       ]
     },
     layout: {
-      title: "Layout", titleKey: "timeline:attrs.layout",
+      title: "Layout",
       components: [
         "Container",
         "Columns",
@@ -573,7 +582,7 @@ export const appConfig: Config = {
       render: withConditions((props) => <AudioWidget {...props} />)
     },
     Video: {
-      label: "Video", labelKey: "home:entry.video.title",
+      label: "Video",
       fields: {
         binding: bindingField("read"),
         height: { type: "number", label: "Max height (px)" },
@@ -635,7 +644,7 @@ export const appConfig: Config = {
       render: withConditions((props) => <StoryboardWidget {...props} />)
     },
     StoryboardPreview: {
-      label: "Storyboard Preview", labelKey: "storyboard:attrs.storyboardPreview",
+      label: "Storyboard Preview",
       fields: {
         binding: bindingField("read"),
         height: { type: "number", label: "Height (px)" },
@@ -798,7 +807,7 @@ export const appConfig: Config = {
       render: withConditions((props) => <AlertWidget {...props} />)
     },
     CodeBlock: {
-      label: "Code", labelKey: "timeline:code.title",
+      label: "Code",
       fields: {
         binding: bindingField("read"),
         text: { type: "textarea", label: "Code", labelKey: "timeline:code.title" },
@@ -990,7 +999,7 @@ export const appConfig: Config = {
       render: withConditions((props) => <SliderWidget {...props} />)
     },
     Switch: {
-      label: "Switch", labelKey: "common:action.switch",
+      label: "Switch",
       fields: {
         binding: bindingField("write"),
         label: { type: "text", label: "Label" },
@@ -1001,7 +1010,7 @@ export const appConfig: Config = {
       render: withConditions((props) => <SwitchWidget {...props} />)
     },
     Select: {
-      label: i18n.t("editor:ui.selectPlain", { defaultValue: "Select" }), labelKey: "common:action.select",
+      label: i18n.t("editor:ui.selectPlain", { defaultValue: "Select" }),
       fields: {
         binding: bindingField("write"),
         label: { type: "text", label: "Label" },
@@ -1238,7 +1247,7 @@ export const appConfig: Config = {
           options: [
             { label: "Language", value: "language_model" },
             { label: "Image", value: "image_model" },
-            { label: "Video", labelKey: "home:entry.video.title", value: "video_model" },
+            { label: "Video", value: "video_model" },
             { label: "Speech (TTS)", value: "tts_model" },
             { label: "Transcription (ASR)", value: "asr_model" },
             { label: "Embedding", value: "embedding_model" },
@@ -1268,7 +1277,7 @@ export const appConfig: Config = {
           type: "select",
           label: "Background",
           options: [
-            { label: "White", labelKey: "ui2:attrs.whiteLower", value: "white" },
+            { label: "White", value: "white" },
             { label: "Transparent", value: "transparent" }
           ]
         },
@@ -1342,7 +1351,7 @@ export const appConfig: Config = {
           label: "List of",
           options: [
             { label: "Images", value: "image_list" },
-            { label: "Videos", labelKey: "timeline:attrs.kindVideos", value: "video_list" },
+            { label: "Videos", value: "video_list" },
             { label: "Audio", value: "audio_list" },
             { label: "Text", value: "text_list" }
           ]
@@ -1385,7 +1394,7 @@ export const appConfig: Config = {
           type: "radio",
           label: "Width",
           options: [
-            { label: "Full", labelKey: "settings:general.opts.full", value: true },
+            { label: "Full", value: true },
             { label: "Fit label", value: false }
           ]
         },

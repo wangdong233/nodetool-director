@@ -11,7 +11,7 @@ import { useDynamicProperty } from "../../../hooks/nodes/useDynamicProperty";
 import { SubgraphSync } from "./SubgraphSync";
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 interface SubgraphNodeContentProps {
   id: string;

@@ -50,7 +50,7 @@ import { TYPE_COLOR, TYPE_GLYPH } from "./tabTypeIdentity";
 import { useOpenNewProjectTab, useProjects } from "../../hooks/useProjects";
 import { useWorkspaceHeaderActions } from "./WorkspaceHeaderActionsContext";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Whether a document type supports both View and Edit (vs view-only). */
 const SUPPORTS_BOTH_MODES = {

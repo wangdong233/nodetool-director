@@ -14,7 +14,7 @@ import {
   type GameProfileSource, type GameProfileStat
 } from "./gameProfileModel";
 import { useGameProfilerView } from "./useGameProfilerView";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 interface ProfilerDocument {
   readonly scenes: readonly { readonly entities: readonly { readonly id: string; readonly name?: string }[] }[];

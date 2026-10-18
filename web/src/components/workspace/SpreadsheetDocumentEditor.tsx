@@ -30,7 +30,7 @@ import {
   workbookToBytes,
   worksheetToDataframe
 } from "../../utils/xlsxDataframe";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const XLSX_CONTENT_TYPE =
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";

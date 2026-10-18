@@ -23,7 +23,7 @@ import { Graph, Workflow } from "../../stores/ApiTypes";
 import { shallow } from "zustand/shallow";
 import { getLocalFilePath, pathToFileUri } from "../../utils/localFile";
 import { readImportedWorkflow } from "../../utils/readImportedWorkflow";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export type FileHandlerResult = {
   success: boolean;

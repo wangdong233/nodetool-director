@@ -20,7 +20,7 @@ import {
   type PackageConsoleSlice,
   type PackageOpState
 } from "./packageStorePlumbing";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 /** Display names for the runtimes the server reports (it sends bare ids). */
 const SERVER_RUNTIME_LABELS: Record<string, string> = {

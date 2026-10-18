@@ -19,7 +19,7 @@ import {
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface DownloadButtonProps {
   /**

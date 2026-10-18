@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { favoriteKey, filterEntries, loadFavorites, saveFavorites, type BrowserItem } from '../../shared/presetBrowser';
-import { i18n } from "../../../../../../../i18n";
+import { i18n } from "../../../../../../i18n";
 import './presetBrowser.css';
 
 export type BrowserMode = 'kept' | 'audition' | 'variant' | 'b';

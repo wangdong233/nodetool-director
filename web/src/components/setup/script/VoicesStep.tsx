@@ -59,7 +59,7 @@ import { REVIEW_BLOCK, REVIEW_CONTENT_WIDTH } from "../reviewStyles";
 import { useSetupVoices } from "./useSetupVoices";
 import type { SetupVoice } from "./useSetupVoices";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** The languages the flow offers to write and read in. */
 const LANGUAGES = [
@@ -75,7 +75,7 @@ const LANGUAGES = [
   "Hindi"
 ];
 
-const PACES: ReadonlyArray<{ value: ScriptPace; label: string }> = [
+const PACES: ReadonlyArray<{ value: ScriptPace; label: string; labelKey?: string; }> = [
   { value: "slow", label: "Slow", labelKey: "setup:script.paceSlowLabel" },
   { value: "normal", label: "Normal", labelKey: "setup:script.paceNormalLabel" },
   { value: "fast", label: "Fast", labelKey: "setup:script.paceFastLabel" }

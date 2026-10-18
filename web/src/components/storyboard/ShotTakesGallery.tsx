@@ -44,7 +44,7 @@ import { useVideoThumbnail } from "../../hooks/useVideoThumbnail";
 import { asResolvedMediaUrl } from "../../utils/resolveMediaUri";
 import { ResponsiveImage } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface ShotTakesGalleryProps {
   boardId: string;

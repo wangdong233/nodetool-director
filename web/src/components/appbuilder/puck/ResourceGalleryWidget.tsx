@@ -26,7 +26,7 @@ import {
 import { trpc } from "../../../trpc/client";
 import { useBoundResource, type ResourceItem } from "./useBoundResource";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 interface ResourceGalleryProps {
   /** Puck injects the placed widget's id. */

@@ -35,7 +35,7 @@ import {
 import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
 import { replaceDynamicSlots } from "../../../utils/replaceDynamicSlots";
 import { isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Wait this long after the last keystroke before parsing pasted JSON. */
 const PARSE_DEBOUNCE_MS = 300;

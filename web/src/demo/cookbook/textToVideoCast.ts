@@ -20,7 +20,7 @@ import {
   stringInputMeta,
   videoNodeMeta,
 } from "./builders";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const STRING_INPUT = "nodetool.input.StringInput";
 const KLING = "fal.text_to_video.KlingVideoV16ProTextToVideo";

@@ -13,7 +13,7 @@ import type { FieldSchema } from "./schemaForm";
 import { schemaDefault, schemaVariant } from "./schemaForm";
 import type { GameComponentEditorProps, GameComponentEditors } from "./componentEditors";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 interface SchemaFieldsProps {
   schema: FieldSchema;

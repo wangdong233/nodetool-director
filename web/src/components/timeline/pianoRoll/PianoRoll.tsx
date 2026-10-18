@@ -90,7 +90,7 @@ import {
 
 import { decodeNoteClipboard, encodeNoteClipboard, pasteNotes } from "./noteClipboard";
 import { NoteSelectionInspector } from "./NoteSelectionInspector";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const isNoteControl = (target: EventTarget) => target instanceof HTMLElement &&
   target.closest("input, select, textarea, button, [role=combobox], [role=listbox], [role=option], [role=dialog], [contenteditable=true]") !== null;

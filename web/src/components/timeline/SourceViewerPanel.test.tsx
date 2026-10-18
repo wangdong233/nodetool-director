@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { SourceViewerPanel } from "./SourceViewerPanel";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const mockSetSourceRange = jest.fn((range) => {
   mockSourceRange = range;

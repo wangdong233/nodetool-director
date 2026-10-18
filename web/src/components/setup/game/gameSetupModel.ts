@@ -7,7 +7,7 @@ import type { GameSlotSpec, GameStyleChoice } from "@nodetool-ai/protocol";
 import type { GameDesign } from "@nodetool-ai/protocol/api-schemas/workflows.js";
 
 import type { StylePresetEntity } from "../../../serverState/useStylePresets";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** What one slot is, in a few words. */
 export const describeGameSlot = (slot: GameSlotSpec): string => {

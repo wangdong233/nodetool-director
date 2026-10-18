@@ -1,5 +1,5 @@
 import React from "react";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 /**
  * Defines the structure for a keyboard shortcut.
@@ -219,7 +219,7 @@ export const getShortcutTooltip = (
 export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
   // exit fullscreen with ESC key
   {
-    title: i18n.t("common:action.exitFullscreen", { defaultValue: "Exit fullscreen" }), titleKey: "common:action.exitFullscreen", titleKey: "timeline:editor.exitFullscreen", titleKey: "timeline:attrs.exitFullscreen",
+    title: i18n.t("common:action.exitFullscreen", { defaultValue: "Exit fullscreen" }), titleKey: "common:action.exitFullscreen",
     slug: "exitFullscreen",
     keyCombo: ["Escape"],
     category: "editor",
@@ -790,7 +790,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     registerCombo: true
   },
   {
-    title: "Zoom in", titleKey: "catalog:shortcuts.zoomIn", titleKey: "timeline:shortcuts.zoomIn",
+    title: "Zoom in", titleKey: "catalog:shortcuts.zoomIn",
     slug: "zoomIn",
     keyCombo: ["Control", "="],
     category: "editor" as const,
@@ -798,7 +798,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     registerCombo: true
   },
   {
-    title: "Zoom out", titleKey: "catalog:shortcuts.zoomOut", titleKey: "timeline:shortcuts.zoomOut",
+    title: "Zoom out", titleKey: "catalog:shortcuts.zoomOut",
     slug: "zoomOut",
     keyCombo: ["Control", "-"],
     category: "editor" as const,

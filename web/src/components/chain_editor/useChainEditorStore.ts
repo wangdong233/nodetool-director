@@ -7,7 +7,7 @@ import useMetadataStore from "../../stores/MetadataStore";
 import type { NodeMetadata, Workflow } from "../../stores/ApiTypes";
 import type { ChainNode, ChainConnection, InputMappings, InputSource } from "./chainTypes";
 import { areTypesCompatible, autoMapInputs, buildConnections, chainToGraph } from "./chainTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 function generateId(): string {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {

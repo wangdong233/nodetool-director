@@ -20,7 +20,8 @@ import { useBottomPanelStore } from "../stores/BottomPanelStore";
 import { usePanelStore } from "../stores/PanelStore";
 import { useMiniMapStore } from "../stores/MiniMapStore";
 import { useNotificationStore } from "../stores/NotificationStore";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
+import { useAppLanguage } from "../i18n";
 
 interface FloatingToolbarActions {
   handleRun: () => Promise<void>;
@@ -47,6 +48,7 @@ interface FloatingToolbarActions {
 }
 
 export const useFloatingToolbarActions = (): FloatingToolbarActions => {
+  const { version: languageVersion } = useAppLanguage();
   const nodeStore = useNodeStoreRef();
   const workflow = useNodes((state) => state.workflow);
   const autoLayout = useNodes((state) => state.autoLayout);

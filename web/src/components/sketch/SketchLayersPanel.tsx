@@ -101,7 +101,7 @@ import {
 } from "./Inspector/VectorLayerPanel";
 import { isFunction } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * Layer row modifiers: `getModifierState` helps when `draggable` rows omit flags on
@@ -256,7 +256,7 @@ const ADD_ACTION_ICON_SX = {
 };
 
 /** Fill presets offered in the add-layer menu; `null` is transparent. */
-const NEW_LAYER_FILLS: readonly { label: string; fill: string | null }[] = [
+const NEW_LAYER_FILLS: readonly { label: string; fill: string | null; labelKey?: string; }[] = [
   { label: "Transparent layer", labelKey: "sketch:attrs.transparentLayer", fill: null },
   { label: "White layer", labelKey: "sketch:attrs.whiteLayer", fill: "#ffffff" },
   { label: "Black layer", labelKey: "sketch:attrs.blackLayer", fill: "#000000" },

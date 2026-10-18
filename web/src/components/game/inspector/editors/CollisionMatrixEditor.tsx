@@ -5,7 +5,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { Box, Caption, Checkbox, CONTROL, FlexColumn, FlexRow, InspectorValueInput, ScrollArea, SPACING, ToolbarIconButton, TruncatedText } from "../../../ui_primitives";
 import { AddButton } from "../InspectorParts";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 const ACTION_SX = { width: CONTROL.height.xs, height: CONTROL.height.xs, p: SPACING.none, flexShrink: 0 } as const;
 

@@ -16,7 +16,7 @@
  * of the board would.
  */
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { useMemo } from "react";
 import type { Shot, ShotModelRef } from "@nodetool-ai/protocol";
 import { CLIP_RESOLUTION, STILL_RESOLUTION } from "./renderSpec";

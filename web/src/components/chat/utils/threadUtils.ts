@@ -1,7 +1,7 @@
 import type { Message } from "../../../stores/ApiTypes";
 import { ThreadInfo } from "../types/thread.types";
 import { isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * A stored chat title: a title still carrying the creation-time seeded

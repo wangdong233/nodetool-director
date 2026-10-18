@@ -35,7 +35,7 @@ import {
 } from "../../ui_primitives";
 import { cn } from "../../editor_ui/editorUtils";
 import { useAlertNotifier } from "../../../hooks/useAlertNotifier";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const actionsRowStyles = (theme: Theme) =>
   css({

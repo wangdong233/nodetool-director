@@ -38,7 +38,7 @@ import { useTranslation } from "react-i18next";
 
 type KindFilter = "all" | EntityKind;
 
-const KIND_FILTERS: { value: KindFilter; label: string }[] = [
+const KIND_FILTERS: { value: KindFilter; label: string; labelKey?: string; }[] = [
   { value: "all", label: "All", labelKey: "storyboard:attrs.all" },
   { value: "character", label: "Characters" },
   { value: "location", label: "Locations", labelKey: "storyboard:attrs.locations" },

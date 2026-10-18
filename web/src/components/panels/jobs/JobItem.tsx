@@ -32,7 +32,7 @@ import { notifyMutationError } from "../../../utils/notifyMutationError";
 import { formatClockTime } from "../../../utils/formatUtils";
 import ReportBugButton from "../../support/ReportBugButton";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const formatDuration = (ms: number): string => {
   if (ms < 0) {

@@ -4,7 +4,7 @@ import {
   BINDING_CATALOG,
   type BindingEntry
 } from "./shortcuts/bindingCatalog";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 function bindingToWinKeyCombo(entry: BindingEntry): string[] {
   const combo: string[] = [];

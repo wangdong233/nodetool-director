@@ -1,7 +1,7 @@
 import { type Dispatch, type MutableRefObject, type SetStateAction, useEffect, useRef, useState, useCallback } from "react";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { Asset } from "../../stores/ApiTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export type VideoRecorderProps = {
   onChange: (asset: Asset) => void;

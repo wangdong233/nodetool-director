@@ -47,7 +47,7 @@ import {
   STUDIO_DIRECTOR_MODEL,
   STUDIO_STILL_MODEL
 } from "./curatedModels";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 /** Stamp the curated models onto a board that has none selected. */
 const useStudioModelPolicy = (

@@ -27,7 +27,7 @@ import openaiIcon from "../../../icons/providers/openai.svg";
 import anthropicIcon from "../../../icons/providers/anthropic.svg";
 import geminiColorIcon from "../../../icons/providers/gemini-color.svg";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Keeps the subtitle to a readable line length on a wide column. */
 const WELCOME_TEXT_MAX_WIDTH = 520;

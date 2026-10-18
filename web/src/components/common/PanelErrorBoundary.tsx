@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import React from "react";
 import { Text, EditorButton, FlexColumn, SPACING } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { reportClientError, type ClientErrorRunContext } from "../../utils/errorTraceReporting";
 import { useRunInspection } from "../../hooks/useRunInspection";
 interface PanelErrorBoundaryProps {

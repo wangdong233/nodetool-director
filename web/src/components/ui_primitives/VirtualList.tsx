@@ -18,7 +18,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { ScrollArea } from "./ScrollArea";
 import { scrollbarStyles } from "./tokens";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export type VirtualListAlign = "start" | "center" | "end" | "auto";
 

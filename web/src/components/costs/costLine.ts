@@ -12,7 +12,7 @@ import { formatUsd } from "@nodetool-ai/model-pricing";
 import type { WorkflowCostEstimateDetail } from "@nodetool-ai/node-sdk/cost-estimate";
 import type { GenerationCostEstimate } from "../../utils/generationCostEstimate";
 import type { CostLineDetail } from "./CostEstimateLine";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** One direct generation as a cost line. */
 export function generationCostLine(

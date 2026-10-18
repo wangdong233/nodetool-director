@@ -4,7 +4,7 @@ import RestoreIcon from "@mui/icons-material/Restore";
 import {
   Caption, CONTROL, Dialog, FlexColumn, FlexRow, SPACING, Text, ToolbarIconButton
 } from "../../../ui_primitives";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 interface GameRevision {
   readonly revision: string;

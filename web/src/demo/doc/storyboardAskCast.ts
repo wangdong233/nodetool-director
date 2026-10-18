@@ -26,7 +26,7 @@ import {
   type StoryboardCastDoc,
   type StoryboardDocCast
 } from "./docCastTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const QUESTION_TURN = "storyboard-ask-1";
 const PLAN_TURN = "storyboard-ask-2";

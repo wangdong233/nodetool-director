@@ -35,7 +35,7 @@ import {
   getSpacingPx,
   Tooltip
 } from "../../ui_primitives";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const buttonStyles = (theme: Theme, compact: boolean) =>
   css({

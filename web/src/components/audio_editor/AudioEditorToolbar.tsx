@@ -28,7 +28,7 @@ import {
 } from "../ui_primitives";
 import { AUDIO_EFFECTS, EFFECT_GROUPS } from "./audioEffects";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface AudioEditorToolbarProps {
   hasSelection: boolean;

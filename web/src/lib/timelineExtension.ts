@@ -13,7 +13,7 @@ import { probeMediaDurationMs } from "../utils/probeMediaDuration";
 import { globalWebSocketManager } from "./websocket/GlobalWebSocketManager";
 import { watchGeneration } from "./websocket/generationWatch";
 import { randomRequestId } from "./websocket/rpcRequest";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 type TimelineHandle = Pick<TimelineStoreApi, "getState" | "setState">;
 type ExtensionInput = Omit<

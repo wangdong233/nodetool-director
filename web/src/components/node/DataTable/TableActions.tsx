@@ -18,7 +18,7 @@ import type {
   DataframeCellValue
 } from "./DataTable";
 import { isNumber, isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * Union type for all possible table data formats

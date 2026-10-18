@@ -46,7 +46,7 @@ import { useDocumentDraftStore } from "../../stores/DocumentDraftStore";
 import { useDocumentConflicts } from "../../hooks/useDocumentConflicts";
 import { tAttr, tAttrTpl } from "./i18nAttrs";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface ApplicationAppBuilderProps {
   applicationId: string;

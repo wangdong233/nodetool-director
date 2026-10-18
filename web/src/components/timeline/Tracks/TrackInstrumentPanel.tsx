@@ -15,7 +15,7 @@ import FableSynthInstrumentEditor, { InstrumentKeyboard } from "./FableSynthInst
 import { Button, Caption, FlexColumn, LoadingSpinner, SelectField, SPACING } from "../../ui_primitives";
 import PanelErrorBoundary from "../../common/PanelErrorBoundary";
 import { instrumentView } from "../daw/devices/deviceViews";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 import "../daw/devices/registerDeviceViews";
 export const AUDITION_DEBOUNCE_MS = 120;
 const containerStyles = (theme: Theme) => css({

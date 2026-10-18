@@ -43,7 +43,7 @@ import {
 } from "../../lib/websocket/GlobalWebSocketManager";
 import { extractAssetId } from "../../stores/outputAssetId";
 import { isNumber, isObjectLike, isString } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * Snapshot of the binding fields needed to generate a layer. Supplied by

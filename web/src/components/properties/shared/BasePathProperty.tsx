@@ -9,7 +9,7 @@ import { Text, SPACING, getSpacingPx, EditorButton, CloseButton } from "../../ui
 import type { Theme } from "@mui/material/styles";
 import FileBrowserDialog from "../../dialogs/FileBrowserDialog";
 import { isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 export type PathType = "file_path" | "folder_path";
 

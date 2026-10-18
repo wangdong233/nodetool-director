@@ -56,7 +56,7 @@ const NODE_ROW_HEIGHT = 28;
  */
 const NODE_PATHS_BY_TYPE: Record<
   string,
-  { inputPath: string; constantPath: string; sourceHandle?: string }
+  { inputPath: string; constantPath: string; sourceHandle?: string; labelKey?: string; }
 > = {
   str: {
     inputPath: "nodetool.input.StringInput",
@@ -143,7 +143,7 @@ const getNodePathsForType = (
  */
 const LIST_CONSTANT_PATHS: Record<
   string,
-  { constantPath: string; inputPath: string; label: string }
+  { constantPath: string; inputPath: string; label: string; labelKey?: string }
 > = {
   image: {
     constantPath: "nodetool.constant.ImageList",

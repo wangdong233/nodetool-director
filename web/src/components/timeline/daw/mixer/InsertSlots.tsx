@@ -28,7 +28,7 @@ import {
 import { AUDIO_EFFECT_TYPES, EFFECT_LABELS } from "../../Tracks/trackEffectsConstants";
 import { FABLE_FX_KINDS, FABLE_FX_LABELS, makeFableEffect } from "../fx/fableFxParams";
 import { effectTitle } from "../dock/DeviceChainView";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 export interface InsertSlotsProps {
   /** Channel name, for accessible labels. */

@@ -11,7 +11,7 @@
  * saves it, so that action waits for the script's editor.
  */
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useState } from "react";
 import type { Shot } from "@nodetool-ai/protocol";
@@ -57,7 +57,7 @@ interface ShotScriptPanelProps {
   readOnly?: boolean;
 }
 
-const STATUS_META: Record<LineStatus, { status: StatusType; label: string }> = {
+const STATUS_META: Record<LineStatus, { status: StatusType; label: string; labelKey?: string; }> = {
   draft: { status: "default", label: "Not voiced", labelKey: "storyboard:attrs.notVoiced" },
   stale: { status: "warning", label: i18n.t("storyboard:attrs.stale", { defaultValue: "Stale" }) },
   voiced: { status: "success", label: "Voiced", labelKey: "storyboard:attrs.voiced" }

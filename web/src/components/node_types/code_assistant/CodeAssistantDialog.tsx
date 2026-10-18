@@ -48,7 +48,7 @@ import CodeAssistantChatPanel from "./CodeAssistantChatPanel";
 import ResizableSideDock from "../../chat/assistant/ResizableSideDock";
 import { isString } from "../../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const CHAT_PANEL_WIDTH = 360;
 

@@ -26,7 +26,7 @@ import {
   useBindingValue,
   useRuntimeSelector
 } from "../runtime/AppRuntimeContext";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 export type WidgetBindingMode = BindingMode;
 
@@ -128,7 +128,7 @@ export const useWidgetRuntime = ({
     return named ?? bound ?? scope.defaultOperationId;
   }, [boundRef, events, operations, scope.defaultOperationId]);
   const runnerState = useRuntimeSelector((s) =>
-    isOperationRunning(s, operationId) ? i18n.t("setup:workflow.pill_running", { defaultValue: "running" }) : i18n.t("appbuilder:attrs:runtimeIdle", { defaultValue: "idle" })
+    isOperationRunning(s, operationId) ? "running" : "idle"
   );
   const progress = useRuntimeSelector((s) => operationProgress(s, operationId));
   const activity = useRuntimeSelector((s) => operationActivity(s, operationId));

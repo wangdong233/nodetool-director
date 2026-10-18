@@ -14,7 +14,7 @@ import type { GamePanelLayoutState } from "../../../stores/game/GamePanelLayoutS
 import type { GamePanelRegistration } from "./panelRegistry";
 import { Caption, ContextMenu, Dialog, EditorButton, FlexColumn, FlexRow, ListSubheader, MenuItemPrimitive, SPACING, TextInput } from "../../ui_primitives";
 import ReportBugButton from "../../support/ReportBugButton";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 interface GameLayoutMenuProps {
   readonly store: StoreApi<GamePanelLayoutState>;

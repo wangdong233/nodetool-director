@@ -19,7 +19,7 @@
  * appbuilder/__tests__ asserts the table and the en catalog agree).
  */
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** key → English source string. en/appbuilder.json mirrors this exactly. */
 export const APPBUILDER_ATTRS: Record<string, string> = {

@@ -54,7 +54,7 @@ import {
 } from "@nodetool-ai/protocol";
 import { formatSchedule } from "../../utils/triggerSchedule";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Stable empty fallback, so a pending query doesn't hand every render a new
  * array identity and re-create the callbacks that close over it. */
@@ -235,7 +235,7 @@ const TriggerActivationButton: React.FC = () => {
       : rows.length === 0
         ? "unregistered"
         : enabledCount === 0
-          ? t("game:runtime.inactive", { defaultValue: "inactive" }) : enabledCount === rows.length
+          ? "inactive" : enabledCount === rows.length
             ? "active"
             : "mixed";
   // A trigger the dispatcher gave up on is a failure the user has to see, even

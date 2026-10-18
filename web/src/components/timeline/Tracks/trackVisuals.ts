@@ -16,7 +16,7 @@ import SubtitlesOutlinedIcon from "@mui/icons-material/SubtitlesOutlined";
 import PianoOutlinedIcon from "@mui/icons-material/PianoOutlined";
 import QueueMusicOutlinedIcon from "@mui/icons-material/QueueMusicOutlined";
 import type { SvgIconComponent } from "@mui/icons-material";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 export type TrackTypeKey = TimelineTrack["type"];
 type ClipMediaKey = TimelineClip["mediaType"];

@@ -3,7 +3,7 @@ import { AssetUpdate, useAssetStore } from "../stores/AssetStore";
 import { useNotificationStore } from "../stores/NotificationStore";
 import { useAssetGridStoreApi } from "../stores/AssetGridStore";
 import { AssetList } from "../stores/ApiTypes";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 export const useAssetUpdate = () => {
   const queryClient = useQueryClient();

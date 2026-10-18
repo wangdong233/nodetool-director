@@ -5,7 +5,7 @@ import { useTheme } from "@mui/material/styles";
 import { Box, Caption, FlexColumn, FlexRow, MOTION, SPACING, TruncatedText, TYPOGRAPHY } from "../../../ui_primitives";
 import { ANIMATION_HANDLE, type AnimationStateFlowNode } from "./animationGraphFlow";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 const NODE_WIDTH = 168;
 // Transitions back to an earlier column leave and enter through the bottom edge, so a pair of opposite transitions draws as two separate curves.

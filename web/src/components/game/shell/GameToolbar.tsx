@@ -20,7 +20,7 @@ import { useGameCommandShortcut } from "./useGameCommands";
 import GameExportButton from "./GameExportButton";
 import type { GameExportTarget } from "../../../utils/gameExportZip";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 interface GameToolbarProps {
   name: string;

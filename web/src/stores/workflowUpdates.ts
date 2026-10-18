@@ -60,7 +60,7 @@ import {
   isRecord,
   isString
 } from "../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 /**
  * Pending audio-chunk store appends, coalesced per node and flushed on a

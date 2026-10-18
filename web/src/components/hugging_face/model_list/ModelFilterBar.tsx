@@ -20,7 +20,7 @@ import { MODEL_GOALS } from "./modelFit";
 import { MODEL_FORMATS } from "./modelFormat";
 import type { UseModelsResult } from "./useModels";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const AVAILABILITY_FILTERS: {
   value: ModelAvailabilityFilter;

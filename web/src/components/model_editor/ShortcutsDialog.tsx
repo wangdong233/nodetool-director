@@ -10,7 +10,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import { EDITOR_SHORTCUTS, type EditorShortcut } from "./editorShortcuts";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const GROUPS: EditorShortcut["group"][] = ["General", "Transform", "Selection", "View"];
 

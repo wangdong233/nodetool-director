@@ -5,7 +5,7 @@ import useChatDraftStore from "../../stores/ChatDraftStore";
 import { creationProjectId, useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { AlertBanner, EditorButton, FlexColumn } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface AskRunAgentButtonProps {
   runId: string;

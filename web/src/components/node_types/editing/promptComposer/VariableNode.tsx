@@ -9,7 +9,7 @@ import {
 } from "lexical";
 
 import { VariableChip } from "./VariableChip";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 export type SerializedVariableNode = Spread<
   {

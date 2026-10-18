@@ -38,7 +38,7 @@ import {
   InspectorSectionTitle
 } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * Rotation is stored in radians (`animation/types.ts`) and shown in degrees,
@@ -48,7 +48,7 @@ const DISPLAY_SCALE: Partial<Record<KeyframeProperty, number>> = {
   rotation: 180 / Math.PI
 };
 
-const PROPERTY_LABELS: Record<KeyframeProperty, { label: string; unit?: string; step: number }> = {
+const PROPERTY_LABELS: Record<KeyframeProperty, { label: string; unit?: string; step: number; labelKey?: string; }> = {
   opacity: { label: "Opacity", step: 0.05 },
   scale: { label: "Scale", unit: "×", step: 0.05 },
   offsetX: { label: "Position X", unit: "px", step: 1 },

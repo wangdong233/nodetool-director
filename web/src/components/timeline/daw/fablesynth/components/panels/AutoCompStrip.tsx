@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BLOCK_RATE, COMP_STYLES, compStyleById, fitComp } from '../../engine/autoComp';
 import type { FxTelemetryEngine } from './fxAdapter';
-import { i18n } from "../../../../../../../i18n";
+import { i18n } from "../../../../../../i18n";
 
 const LEARN_SECONDS = 8, SPARSE_SECONDS = 12, TIMEOUT_SECONDS = 30;
 const KEYS = ['on', 'thr', 'ratio', 'att', 'rel'] as const;

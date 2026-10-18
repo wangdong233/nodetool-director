@@ -14,13 +14,15 @@ import { useNodeStatus, useNodeResultValue } from "../../../hooks/nodes/useNodeE
 import { useNodeFocusStore } from "../../../stores/NodeFocusStore";
 import { DynamicFalSchemaContent } from "./DynamicFalSchemaContent";
 import { FalSchemaLoader } from "./FalSchemaLoader";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
+import { useAppLanguage } from "../../../i18n";
 
 /** FAL node accent (distinct from input/output/generic) */
 const FAL_HEADER_COLOR = "#8B5CF6";
 
 /** Dedicated React Flow node for fal.DynamicFal. */
 const DynamicFalSchemaNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const { id, type, data, selected, parentId, dragging } = props;
   const { workflow_id } = data;

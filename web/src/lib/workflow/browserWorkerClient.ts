@@ -17,7 +17,7 @@ import type {
   BrowserGraphJobResult
 } from "./browserRunnerCore";
 import type { SandboxModuleRecord } from "./sandboxModuleCatalog";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface ReadyMessage {
   type: "ready";

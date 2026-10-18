@@ -10,7 +10,7 @@ import { Box, BoxProps, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { SPACING } from "./spacing";
 import { EYEBROW, TYPOGRAPHY } from "./tokens";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface SectionHeaderProps extends BoxProps {
   /** Section title text */

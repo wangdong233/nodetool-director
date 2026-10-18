@@ -12,7 +12,7 @@
  * is text the creator can edit. The build draws one image per visual slot.
  */
 
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 import { createElement, useCallback, useMemo, useState } from "react";
 import { formatUsd } from "@nodetool-ai/model-pricing";
 import {

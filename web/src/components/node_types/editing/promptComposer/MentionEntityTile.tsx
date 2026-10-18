@@ -21,7 +21,7 @@ import {
   Tooltip
 } from "../../../ui_primitives";
 import { ENTITY_KIND_COLOR, ENTITY_KIND_ICON } from "../../../entities/entityKind";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 const styles = (theme: Theme) =>
   css({

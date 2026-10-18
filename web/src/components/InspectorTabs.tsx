@@ -4,7 +4,7 @@ import { TabGroup, type TabItem } from "./ui_primitives";
 /** The tabs shown at the top of the Inspector panel. */
 export type InspectorTab = "params" | "io" | "help";
 
-const TAB_DEFS: { value: InspectorTab; label: string; hasCount: boolean }[] = [
+const TAB_DEFS: { value: InspectorTab; label: string; hasCount: boolean; labelKey?: string; }[] = [
   { value: "params", label: "Params", labelKey: "editor:inspector.tabParams", hasCount: true },
   { value: "io", label: "I/O", hasCount: true },
   { value: "help", label: "Help", labelKey: "timeline:shortcuts.help", hasCount: false }

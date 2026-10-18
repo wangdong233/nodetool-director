@@ -8,7 +8,7 @@
 import { memo } from "react";
 
 import { ToggleGroup, ToggleOption } from "../../ui_primitives";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 export type MobileRail = "chat" | "todos" | "task";
 

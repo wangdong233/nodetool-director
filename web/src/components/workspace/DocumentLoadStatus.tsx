@@ -1,7 +1,7 @@
 import ReportBugButton from "../support/ReportBugButton";
 import type { DocumentLoadState } from "../../stores/documentSync";
 import { EditorButton, EmptyState, FlexColumn, LoadingSpinner } from "../ui_primitives";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface DocumentLoadStatusProps {
   state: Exclude<DocumentLoadState, "ready">;

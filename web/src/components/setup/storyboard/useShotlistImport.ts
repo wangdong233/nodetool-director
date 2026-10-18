@@ -29,7 +29,7 @@ import {
   parseShotlistCsv,
   type ShotlistReportEntry
 } from "../../../lib/storyboard/parseShotlistCsv";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** What the file picker offers. */
 export const SHOTLIST_ACCEPT = ".csv,text/csv";

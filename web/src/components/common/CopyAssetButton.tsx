@@ -21,7 +21,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/CloseOutlined";
 import { copyAssetToClipboard, isClipboardSupported, getClipboardSupportMessage } from "../../utils/clipboardUtils";
 import { isElectron } from "../../utils/browser";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const FEEDBACK_TIMEOUT = 2000;
 

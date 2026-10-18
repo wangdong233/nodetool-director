@@ -20,7 +20,7 @@ import { BORDER_RADIUS, CONTROL, FONT_SIZE_SANS, TYPOGRAPHY } from "./tokens";
 import { SPACING } from "./spacing";
 import { useFormFieldContext } from "./formFieldContext";
 import { useFieldDensity } from "./fieldDensity";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 
 export interface SelectOption {

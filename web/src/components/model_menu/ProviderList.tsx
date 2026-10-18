@@ -144,7 +144,7 @@ import skyworkColorIcon from "../../icons/providers/skywork-color.svg";
 import tencentColorIcon from "../../icons/providers/tencent-color.svg";
 import tencentcloudColorIcon from "../../icons/providers/tencentcloud-color.svg";
 import yuanbaoColorIcon from "../../icons/providers/yuanbao-color.svg";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const providerIconMap: Record<string, string> = {
   // OpenAI / GPT

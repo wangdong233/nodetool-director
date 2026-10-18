@@ -20,7 +20,7 @@ import { Button } from "@mui/material";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { BORDER_RADIUS, MOTION } from "./tokens";
 import { SPACING, getSpacingPx } from "./spacing";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

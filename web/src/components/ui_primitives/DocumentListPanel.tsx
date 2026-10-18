@@ -14,7 +14,7 @@ import { EmptyState } from "./EmptyState";
 import { FlexColumn } from "./FlexColumn";
 import { listPanelStyles } from "./listPanelStyles";
 import { LoadingSpinner } from "./LoadingSpinner";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface DocumentListPanelDocument {
   id: string;

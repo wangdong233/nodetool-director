@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
 
 type OverlayKey = "selection" | "grid" | "colliders" | "lights" | "backgrounds" | "camera";
 
-const OVERLAY_TOGGLES: readonly { key: OverlayKey; label: string; icon: ReactNode }[] = [
+const OVERLAY_TOGGLES: readonly { key: OverlayKey; label: string; icon: ReactNode; labelKey?: string; }[] = [
   { key: "selection", label: "Selection", labelKey: "game:viewport.selection", icon: <HighlightAltIcon fontSize="small" /> },
   { key: "grid", label: "Grid", labelKey: "game:viewport.grid", icon: <Grid4x4Icon fontSize="small" /> },
   { key: "colliders", label: "Colliders", labelKey: "game:assets.kindCollider", icon: <CropFreeIcon fontSize="small" /> },

@@ -58,7 +58,7 @@ import { SKETCH_Z_INDEX } from "./sketchStyles";
 import { RefineSelectionPopover } from "./tool-settings-panels/refine-selection";
 import { useAlertNotifier } from "../../hooks/useAlertNotifier";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Gap in CSS px between the selection edge and the bar. */
 const BAR_GAP = 12;

@@ -18,7 +18,7 @@ import { TYPOGRAPHY, Tooltip } from "../../ui_primitives";
 import { computeBarRulerTicks } from "../Tracks/tempoGrid";
 import { pickPianoRollColors } from "./pianoRollColors";
 import { tickToX, xToTick, type PianoRollGeometry } from "./pianoRollGeometry";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Height of the ruler strip. */
 export const PIANO_ROLL_RULER_HEIGHT_PX = 22;

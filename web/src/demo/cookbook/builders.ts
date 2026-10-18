@@ -15,7 +15,7 @@ import { PREVIEW_NODE_TYPE } from "../../constants/nodeTypes";
 import { edge, meta, node, out, prop, type GraphNode } from "../castHelpers";
 import { CAST_ASSET_SCHEME, type CastAsset, type CastViewport } from "../castTypes";
 import type { Edge, NodeMetadata, Workflow } from "../../stores/ApiTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Assemble a synthetic Workflow from nodes/edges (positions are real). */
 export const cookbookWorkflow = (

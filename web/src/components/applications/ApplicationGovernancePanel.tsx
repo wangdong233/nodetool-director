@@ -37,7 +37,7 @@ import {
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 type Version = RouterOutputs["applications"]["versions"][number];
 type BudgetPeriod = RouterOutputs["applications"]["setBudget"]["period"];

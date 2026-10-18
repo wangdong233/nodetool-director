@@ -7,7 +7,7 @@ import type { Asset } from "../../stores/ApiTypes";
 import { isEditableModel3DAsset } from "../model_editor/isEditableModel3D";
 import { assetTabType } from "../workspace/assetTabType";
 import { isSpreadsheetAsset, previewKind } from "../../utils/assetLanguage";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export type ViewerMedia = {
   isImage: boolean;

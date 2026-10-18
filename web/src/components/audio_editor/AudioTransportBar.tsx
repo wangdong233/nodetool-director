@@ -29,7 +29,7 @@ import { isNumber } from "../../utils/typePredicates";
 import type { PlayheadStore } from "./playheadStore";
 import { formatEditorTime } from "./formatEditorTime";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface AudioTransportBarProps {
   isPlaying: boolean;

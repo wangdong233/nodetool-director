@@ -44,7 +44,7 @@ import {
 import ExampleNeedsPill from "./ExampleNeedsPill";
 import { runsAsIs } from "../../utils/exampleNeeds";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Rows shown on the dashboard before the user searches or opens the Examples tab. */
 const MAX_VISIBLE = 18;

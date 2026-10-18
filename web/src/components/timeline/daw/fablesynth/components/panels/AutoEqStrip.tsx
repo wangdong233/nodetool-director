@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EQ_REFERENCES, SpectrumCapture, fitEq, referenceById, removeEq, type EqFit } from '../../engine/autoEq';
 import { EQ_BANDS, readEqBands } from '../../engine/eqResponse';
-import { i18n } from "../../../../../../../i18n";
+import { i18n } from "../../../../../../i18n";
 
 const LEARN_SECONDS = 8, TIMEOUT_SECONDS = 30;
 const EQ_KEYS = ['fx.eq.on', ...EQ_BANDS.flatMap(b => [b.freq, b.gain, b.q, b.type, b.on])];

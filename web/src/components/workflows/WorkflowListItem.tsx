@@ -12,7 +12,7 @@ import StarIcon from "@mui/icons-material/Star";
 import { FavoriteButton, FlexColumn, FlexRow, Text, Tooltip, Checkbox, Box, FONT_WEIGHT, InlineEditableText, SPACING, getSpacingPx, Chip, ICON_SIZE } from "../ui_primitives";
 import { WorkflowTriggerIndicator } from "./WorkflowTriggerIndicator";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // Single-click on the row opens the workflow. Double-clicking the name renames
 // it inline instead, so the open is deferred briefly to let a following

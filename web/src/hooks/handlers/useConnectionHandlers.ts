@@ -27,7 +27,7 @@ import { dynamicInputSlotPatch } from "../../utils/dynamicSlots";
 import { CONTROL_HANDLE_ID } from "../../stores/graphEdgeToReactFlowEdge";
 import { shallow } from "zustand/shallow";
 import { isFunction } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const PREVIEW_VALUE_HANDLE = "value";
 const REROUTE_INPUT_HANDLE = "input_value";

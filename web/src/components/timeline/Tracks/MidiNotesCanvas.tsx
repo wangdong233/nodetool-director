@@ -13,7 +13,7 @@ import { css } from "@emotion/react";
 import { useColorScheme, useTheme } from "@mui/material/styles";
 import { ticksToMs, visibleNotes } from "@nodetool-ai/timeline";
 import type { MidiNote } from "@nodetool-ai/timeline";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const canvasStyles = css({
   position: "absolute",

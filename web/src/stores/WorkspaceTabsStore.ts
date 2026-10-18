@@ -14,7 +14,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useAuth } from "./useAuth";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 export type WorkspaceTabType =
   | "workflow"

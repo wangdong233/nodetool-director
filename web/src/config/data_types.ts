@@ -1,4 +1,4 @@
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 function stringToColor(str: string): string {
   let hash = 0;

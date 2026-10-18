@@ -56,7 +56,7 @@ import {
   videoModelPatch
 } from "./modelSelection";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Static option lists — the same rows whatever the model. */
 const VARIATIONS_OPTIONS: MediaOption<number>[] = IMAGE_VARIATIONS.map((n) => ({

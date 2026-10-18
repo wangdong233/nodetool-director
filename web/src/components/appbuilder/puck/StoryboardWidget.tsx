@@ -24,7 +24,7 @@ import { useStoryboardServerSync } from "../../../hooks/storyboard/useStoryboard
 import { isString } from "../../../utils/typePredicates";
 import { AppEvent } from "../types";
 import { useWidgetRuntime } from "./useWidgetRuntime";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const LazyStoryboardBoard = React.lazy(
   () => import("../../storyboard/StoryboardBoard")

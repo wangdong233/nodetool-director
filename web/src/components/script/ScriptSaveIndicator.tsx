@@ -10,7 +10,7 @@ import {
 import type { SaveStateValue } from "../ui_primitives";
 import { useScriptSaveStatus } from "../../stores/script/ScriptStore";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface ScriptSaveIndicatorProps {
   scriptId: string;

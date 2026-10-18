@@ -83,7 +83,7 @@ import { liveDeviceFactory } from "../daw/devices/liveDevice";
 import { DawTransport } from "../daw/transport/DawTransport";
 import { Metronome } from "../daw/transport/metronome";
 import { useTimelineLayoutStore } from "../../../stores/timeline/TimelineLayoutStore";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 import "../daw/devices/registerFablesynthDevices";
 
 /** Space is bound by the preview itself (useCombo below), not the keymap. */

@@ -71,7 +71,7 @@ import {
   type ToolCallRun
 } from "./groupToolCalls";
 import { toolCallPhrase, toolCallRunDisplay } from "./toolCallPhrase";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * PrettyJson - Memoized component for displaying formatted JSON.

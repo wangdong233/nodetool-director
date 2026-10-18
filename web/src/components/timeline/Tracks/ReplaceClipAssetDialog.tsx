@@ -23,7 +23,7 @@ import {
   SearchInput,
   SPACING
 } from "../../ui_primitives";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Fixed so the dialog does not resize while results load. */
 const PANEL_HEIGHT = 360;

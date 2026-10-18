@@ -42,7 +42,7 @@ import gmiIcon from "../../icons/gmi.svg";
 import metaColorIcon from "../../icons/providers/meta-color.svg";
 import azureColorIcon from "../../icons/providers/azure-color.svg";
 import bedrockColorIcon from "../../icons/providers/bedrock-color.svg";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 
 export interface ProviderMeta {
@@ -73,10 +73,10 @@ export interface ProviderMeta {
    */
   localOnly?: boolean;
   /** Multi-field credentials (e.g. login + password). Single-field providers omit this. */
-  fields?: Array<{ key: string; label: string; secret?: boolean }>;
+  fields?: Array<{ key: string; label: string; labelKey?: string; secret?: boolean }>;
   /** One copied value that is parsed into the separately stored credential fields. */
   combinedCredential?: {
-    label: string;
+    label: string; labelKey?: string;
     placeholder: string;
     errorMessage: string;
     parse: (value: string) => Record<string, string> | null;
@@ -425,7 +425,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     ],
     combinedCredential: {
       label: "API key", labelKey: "tools:menus.providers.HIGGSFIELD_API_KEY_ID.credentialLabel",
-      placeholder: "Paste key-id:secret", placeholderKey: "tools:menus.providers.HIGGSFIELD_API_KEY_ID.credentialPlaceholder",
+      placeholder: "Paste key-id:secret",
       errorMessage:
         "Paste the complete Higgsfield API key in the key-id:secret format.",
       parse: parseHiggsfieldCredential

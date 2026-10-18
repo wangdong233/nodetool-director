@@ -4,7 +4,7 @@
  * bindings. `keys` are display labels; `combos` are the dispatcher strings
  * (lower-case keys, sorted, joined with "+").
  */
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export type EditorAction =
   | "undo"

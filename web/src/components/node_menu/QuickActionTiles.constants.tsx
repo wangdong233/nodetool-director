@@ -18,7 +18,7 @@ import CollectionsIcon from "@mui/icons-material/Collections";
 import { colorForType } from "../../config/data_types";
 import { IconForType } from "../../config/IconForType";
 import type { QuickActionNodeType } from "../../config/quickActionNodeTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export type QuickActionDefinition = {
   key: string;
@@ -30,7 +30,7 @@ export type QuickActionDefinition = {
   shadow: string;
   hoverShadow?: string;
   iconColor: string;
-};
+ labelKey?: string; };
 
 /**
  * Build a QuickActionDefinition from two rgba base colors and an icon color.
@@ -157,7 +157,7 @@ export const CONSTANT_NODES: QuickActionDefinition[] = [
   }),
   buildConstantNode({
     key: "constant-date",
-    label: "Date", labelKey: "ui2:attrs.date",
+    label: "Date",
     nodeType: "nodetool.constant.Date",
     iconType: "date"
   }),
@@ -229,7 +229,7 @@ export const CONSTANT_NODES: QuickActionDefinition[] = [
   }),
   buildConstantNode({
     key: "constant-video",
-    label: "Video", labelKey: "home:entry.video.title",
+    label: "Video",
     nodeType: "nodetool.constant.Video",
     iconType: "video"
   })

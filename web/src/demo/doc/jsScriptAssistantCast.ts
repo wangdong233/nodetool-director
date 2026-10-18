@@ -24,7 +24,7 @@ import {
   type JsScriptCastDoc,
   type JsScriptDocCast
 } from "./docCastTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const ASSISTANT_ID = "jsscript-assistant-1";
 const PORTS_CALL = "jsscript-call-ports";

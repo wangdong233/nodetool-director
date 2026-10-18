@@ -67,7 +67,7 @@ import {
   useWorkspaceTabsStore
 } from "./WorkspaceTabsStore";
 import useAuth from "./useAuth";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 // Include additional runtime statuses used during message streaming
 type ChatStatus =

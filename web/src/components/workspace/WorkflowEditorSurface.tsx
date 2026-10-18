@@ -69,7 +69,7 @@ import { useDocumentConflicts } from "../../hooks/useDocumentConflicts";
 import { useBrowserPreviewsOnLoad } from "../../hooks/nodes/useBrowserPreviewsOnLoad";
 import WorkflowGraphPreview from "../version/WorkflowGraphPreview";
 import { WorkflowLandingChecklist } from "../setup/workflow/WorkflowLandingChecklist";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 // Floating editor status message: sits above the canvas and node overlays but

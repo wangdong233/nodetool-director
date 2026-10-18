@@ -8,7 +8,7 @@ import useOnboardingStore from "../stores/OnboardingStore";
 import { queryClient } from "../queryClient";
 import { installExampleApp } from "../utils/exampleApps";
 import { useOpenApplication } from "./useOpenApplication";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 type Recipe = recipes.ExampleRecipeSummary;
 

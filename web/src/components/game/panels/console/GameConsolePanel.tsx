@@ -17,7 +17,7 @@ import {
   countGameConsoleLevels, filterGameConsoleGroups, GAME_CONSOLE_LEVELS, gameConsoleEntityScene,
   type GameConsoleEntry, type GameConsoleGroup, type GameConsoleLevel
 } from "./gameConsoleModel";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface ConsoleDocument {

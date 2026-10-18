@@ -58,7 +58,7 @@ import { AddStyleDialog } from "./AddStyleDialog";
 import { useCustomStyle, useStyleSaving } from "./useCustomStyle";
 import { setShotlistImport, useShotlistImportSummary } from "./setupChoices";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 export interface LookStepProps {
   boardId: string;

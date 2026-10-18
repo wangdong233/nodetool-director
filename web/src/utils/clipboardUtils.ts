@@ -5,7 +5,7 @@
  */
 
 import type {} from "../window.d";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 /**
  * Make a URL absolute if it's relative.

@@ -33,7 +33,7 @@ import {
   ToggleOption,
   ICON_SIZE
 } from "../../ui_primitives";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 interface PuckAppEditorProps {
   /** The application being edited — the id the agent's `ui_app_*` tools take. */

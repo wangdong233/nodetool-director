@@ -9,7 +9,7 @@ import SwapVertIcon from "@mui/icons-material/SwapVert";
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { formatFileSize } from "../../utils/formatUtils";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface ImageMetadata {
   width?: number;
@@ -206,7 +206,7 @@ const ImageComparer: React.FC<ImageComparerProps> = ({
 
   const toggleMode = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    setMode((prev) => (prev === "horizontal" ? t("sketch:attrs.symmetryVertical", { defaultValue: "vertical" }) : i18n.t("sketch:attrs.symmetryHorizontal", { defaultValue: "horizontal" })));
+    setMode((prev) => (prev === "horizontal" ? "vertical" : "horizontal"));
     setPosition(50);
   }, []);
 

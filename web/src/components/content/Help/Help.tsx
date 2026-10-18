@@ -23,7 +23,7 @@ import KeyboardShortcutsView from "./KeyboardShortcutsView";
 import { NODE_EDITOR_SHORTCUTS } from "../../../config/shortcuts";
 import ControlsShortcutsTab from "./ControlsShortcutsTab";
 import { Dialog } from "../../ui_primitives";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 // The header store keeps the help tab as an index into this list.
 const HELP_TABS: TabItem[] = [

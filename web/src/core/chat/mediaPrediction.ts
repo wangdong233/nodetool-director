@@ -1,3 +1,4 @@
+import { i18n } from "../../i18n";
 /**
  * Media provider calls that ChatUI should surface while they run.
  * Judge / embed / ASR / chat-model predictions stay silent.

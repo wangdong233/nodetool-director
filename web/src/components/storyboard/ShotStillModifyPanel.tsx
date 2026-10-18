@@ -75,11 +75,11 @@ import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { getErrorMessage } from "../../utils/errorHandling";
 import type { ImageModelValue } from "../../stores/ApiTypes";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 type ModifyTab = "edit" | "upscale" | "reframe" | "adjust";
 
-const TABS: { value: ModifyTab; label: string }[] = [
+const TABS: { value: ModifyTab; label: string; labelKey?: string; }[] = [
   { value: "edit", label: "Edit", labelKey: "storyboard:attrs.stillTabEdit" },
   { value: "upscale", label: "Upscale", labelKey: "storyboard:attrs.stillTabUpscale" },
   { value: "reframe", label: "Reframe", labelKey: "storyboard:attrs.stillTabReframe" },
@@ -100,7 +100,7 @@ const TASK_FOR_MODE: Record<StillVariantMode, ImageModelTask> = {
 
 const NEUTRAL: StillAdjustment = { brightness: 100, contrast: 100, saturation: 100 };
 
-const ADJUSTMENTS: { key: keyof StillAdjustment; label: string }[] = [
+const ADJUSTMENTS: { key: keyof StillAdjustment; label: string; labelKey?: string; }[] = [
   { key: "brightness", label: "Brightness", labelKey: "storyboard:attrs.brightness" },
   { key: "contrast", label: "Contrast", labelKey: "storyboard:attrs.contrast" },
   { key: "saturation", label: "Saturation", labelKey: "storyboard:attrs.saturation" }

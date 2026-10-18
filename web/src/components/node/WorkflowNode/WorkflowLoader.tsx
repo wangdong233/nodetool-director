@@ -19,7 +19,7 @@ import {
   createsWorkflowCycle,
   extractDynamicIO
 } from "./WorkflowLoader.helpers";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 export { WORKFLOW_NODE_TYPE } from "../../../constants/nodeTypes";
 

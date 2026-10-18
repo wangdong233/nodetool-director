@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import FolderSpecialOutlinedIcon from "@mui/icons-material/FolderSpecialOutlined";
 import { PageLayout, ICON_SIZE } from "../ui_primitives";
 import WorkspacesManager from "./WorkspacesManager";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * Full-screen Workspaces page. Reachable from the logo menu; wraps the

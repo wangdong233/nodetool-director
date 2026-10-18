@@ -18,7 +18,7 @@ import { trpcClient } from "../trpc/client";
 import { normalizeAssetList } from "../utils/normalizeAsset";
 import { useNotificationStore } from "../stores/NotificationStore";
 import { useAssetProjectScope } from "../hooks/assets/useAssetProjectScope";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 type FilterOptions = {
   searchTerm: string;

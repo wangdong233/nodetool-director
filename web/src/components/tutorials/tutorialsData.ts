@@ -11,7 +11,7 @@
  * a video is requested only when someone presses play.
  */
 import { DOCS_BASE_URL } from "../../config/docsLinks";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** A video, streamed from the docs site rather than bundled. */
 const tutorialVideo = (file: string): string =>
@@ -20,6 +20,9 @@ const tutorialVideo = (file: string): string =>
 /** A poster, served by the app itself from `web/public/tutorials/`. */
 const tutorialPoster = (file: string): string => `/tutorials/${file}`;
 export interface Tutorial {
+  resultKey?: string;
+  taskKey?: string;
+  startingStateKey?: string;
   descriptionKey?: string;
   taglineKey?: string;
   titleKey?: string;

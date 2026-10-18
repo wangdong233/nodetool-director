@@ -6,7 +6,7 @@
  */
 import type { MediaMode } from "../../../stores/MediaGenerationStore";
 import type { OnboardingCapability } from "../../../stores/ProviderOnboardingStore";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Backend capability a mode's generation request is served by. Modes that are
  *  not selectable yet (retake, extend, …) map to null and are never gated. */

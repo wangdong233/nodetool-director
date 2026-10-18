@@ -179,7 +179,7 @@ import {
   sameIdSet,
   type ComprehensionContext
 } from "./reactFlowGraphModel";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const ReactFlowWrapper = ({
   workflowId,

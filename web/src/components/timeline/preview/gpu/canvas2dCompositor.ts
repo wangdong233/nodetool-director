@@ -15,7 +15,7 @@ import type {
   CompositorInitResult,
   TimelineCompositor
 } from "./types";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /**
  * Canvas2D fallback for the timeline preview compositor.

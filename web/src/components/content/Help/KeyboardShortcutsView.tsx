@@ -20,7 +20,8 @@ import { keyboardLayouts } from "./keyboard_layouts";
 import { useKeyPressedStore } from "../../../stores/KeyPressedStore";
 import { physicalKeyToLayoutButtonId } from "./physicalKeyboardLayoutKey";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
+import { useAppLanguage } from "../../../i18n";
 
 interface KeyboardShortcutsViewProps {
   shortcuts?: Shortcut[];
@@ -53,6 +54,7 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
   imageEditorShortcuts = false
 }) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const [os, setOs] = useState<"mac" | "win">(isMac() ? "mac" : "win");
   const [layoutName, setLayoutName] = useState<"english" | "german">(() => {
     if (typeof navigator !== "undefined") {

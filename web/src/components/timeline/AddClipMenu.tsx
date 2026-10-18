@@ -53,7 +53,7 @@ import type {
 } from "../../stores/ApiTypes";
 import { clipFitsTrack, makeClip } from "@nodetool-ai/timeline";
 import type { TimelineTrack } from "@nodetool-ai/timeline";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * An adjustment layer draws nothing of its own — like an authored text or
@@ -560,7 +560,7 @@ export const AddClipMenu: React.FC<AddClipMenuProps> = memo(
         trackId,
         startMs,
         durationMs: ADJUSTMENT_CLIP_DURATION_MS,
-        name: i18n.t("timeline:attrs.adjustment", { defaultValue: "Adjustment" }), nameKey: "timeline:attrs.adjustment",
+        name: i18n.t("timeline:attrs.adjustment", { defaultValue: "Adjustment" }),
         mediaType: "adjustment",
         sourceType: "imported",
         status: "generated",

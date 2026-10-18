@@ -9,7 +9,7 @@ import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
 import { replaceDynamicSlots } from "../../../utils/replaceDynamicSlots";
 import { NodeData } from "../../../stores/NodeData";
 import { isNumber } from "../../../utils/typePredicates";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 export { DYNAMIC_FAL_NODE_TYPE } from "../../../constants/nodeTypes";
 

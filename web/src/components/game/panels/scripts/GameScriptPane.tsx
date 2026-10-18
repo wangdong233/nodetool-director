@@ -10,7 +10,7 @@ import { useMonacoEditor } from "../../../../hooks/editor/useMonacoEditor";
 import { Box, Caption, CONTROL, Divider, EditorButton, FlexColumn, FlexRow, FONT_SIZE_SANS, LoadingSpinner, SPACING, ToolbarIconButton } from "../../../ui_primitives";
 import GamePanelHeader from "../../GamePanelHeader";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 interface GameScriptPaneProps {
   dimension?: "2d" | "3d";

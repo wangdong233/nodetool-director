@@ -10,7 +10,7 @@ import VideoModelSelect from "../properties/VideoModelSelect";
 import { CODE_MODEL_PREFERENCE } from "../../hooks/useCodeAuthoringModel";
 import type { ImageModelValue } from "../../stores/ApiTypes";
 import { IMAGE_TASK_DEFAULTS } from "../../utils/applyDefaultModels";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface TaskModelSelectProps {
   onChange: (value: ImageModelValue) => void;

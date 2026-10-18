@@ -40,6 +40,7 @@ import { useNodes } from "../../contexts/NodeContext";
 import { getCodeNodeLanguage, isCodeNode } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../i18n";
 
 const EDITOR_OPTIONS = {
   minimap: { enabled: false },
@@ -73,6 +74,7 @@ const CodeProperty = ({
   onPropertyContextMenu
 }: PropertyProps) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const id = `code-${property.name}-${propertyIndex}`;
   const storeValue = isString(value) ? value : "";

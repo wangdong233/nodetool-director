@@ -1,5 +1,5 @@
 import { isProduction } from "../../lib/env";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface SidebarSection {
   category: string;

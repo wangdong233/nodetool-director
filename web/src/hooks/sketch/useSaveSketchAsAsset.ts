@@ -5,7 +5,7 @@ import { useSketchInstance } from "../../stores/sketch/SketchInstance";
 import { useAssetStore } from "../../stores/AssetStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * Flatten the live sketch composite into a NEW image asset in a chosen folder

@@ -15,6 +15,7 @@ import { useCodeEditorActivation } from "../../hooks/editor/useCodeEditorActivat
 import { EditorActivationCover, cn } from "../editor_ui";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../i18n";
 
 interface JSONValue {
   type: "json";
@@ -82,6 +83,7 @@ const rootStyles = (theme: Theme) =>
 
 const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const id = `json-${props.property.name}-${props.propertyIndex}`;
   const rootCss = useMemo(() => rootStyles(theme), [theme]);

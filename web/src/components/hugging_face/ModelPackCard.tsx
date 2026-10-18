@@ -35,7 +35,7 @@ import {
 import { Tooltip } from "../ui_primitives";
 import { useModelDownloadTarget } from "../../hooks/useModelDownloadTarget";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface ModelPackCardProps {
   pack: ModelPack;

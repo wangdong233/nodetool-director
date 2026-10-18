@@ -21,7 +21,7 @@ import {
 import type { ScriptTake } from "../../stores/script/ScriptStore";
 import { patch, scriptLine, scriptSection } from "./docCastHelpers";
 import { DOC_CAST_VERSION, type ScriptDocCast } from "./docCastTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const ASSISTANT_ID = "script-assistant-1";
 const SPEAKER_CALL = "script-call-add-speaker";

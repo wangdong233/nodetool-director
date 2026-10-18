@@ -52,7 +52,8 @@ import {
 } from "../../../utils/hfCache";
 import { isString } from "../../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { useAppLanguage } from "../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Width of the category rail. */
 const SIDEBAR_WIDTH = 260;
@@ -153,6 +154,7 @@ type ListItem =
 
 const ModelListIndex: React.FC = () => {
   const { t } = useTranslation("editor");
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);

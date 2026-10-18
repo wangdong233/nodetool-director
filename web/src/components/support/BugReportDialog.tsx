@@ -54,7 +54,7 @@ import {
   type BundleSection
 } from "../../utils/bugReportBundle";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const GITHUB_ISSUE_URL = "https://github.com/nodetool-ai/nodetool/issues/new";
 

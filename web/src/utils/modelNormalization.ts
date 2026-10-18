@@ -10,7 +10,7 @@ import type {
 import type { SizeBucket } from "../stores/ModelFiltersStore";
 import type { ModelExecutionAvailability } from "@nodetool-ai/protocol";
 import { isLocalhost } from "../lib/env";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 export type ModelSelectorModel = (
   | LanguageModel

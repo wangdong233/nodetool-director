@@ -13,7 +13,7 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 
 import { CloseButton, Text } from "../ui_primitives";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import CompositorEditor, {
   type CompositorEditorProps
 } from "./CompositorEditor";

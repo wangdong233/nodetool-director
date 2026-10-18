@@ -75,7 +75,7 @@ import { layoutTrackRows } from "./trackWindow";
 import { trackRowHeightPx } from "./trackHeight";
 import { useTimelineLayoutStore } from "../../../stores/timeline/TimelineLayoutStore";
 import { snapAssetDropMs } from "./dropSnap";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Two bars of 4/4 at 120 BPM — what an empty midi clip is sized to. */
 const DEFAULT_MIDI_CLIP_DURATION_MS = 4000;

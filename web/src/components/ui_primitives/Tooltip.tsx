@@ -19,7 +19,7 @@ import {
   TOOLTIP_ENTER_DELAY,
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * A tooltip label with its keyboard shortcut drawn as a key hint below it,

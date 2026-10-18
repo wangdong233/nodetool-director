@@ -35,7 +35,7 @@ import {
   type SliderSpec
 } from "./AdjustmentSlider";
 import ColorPicker from "../../inputs/ColorPicker";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 // Min/max for properties whose metadata omits them (e.g. GaussianNoise's
 // mean / stddev).

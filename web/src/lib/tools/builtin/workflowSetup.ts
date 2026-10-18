@@ -26,7 +26,7 @@ import {
   PLAN_SOURCE_KEY,
   planSourceOf
 } from "../../../components/setup/workflow/setupExtras";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * The four tools that drive the Workflow creation flow from an agent

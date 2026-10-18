@@ -39,7 +39,7 @@ import {
 } from "../ui_primitives";
 import { newDocumentId } from "../../lib/newDocumentId";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DRAG_IMAGE_Z_INDEX = 9999;

@@ -5,7 +5,7 @@ import { SecretResponse } from "./ApiTypes";
 import { queryClient } from "../queryClient";
 import useRemoteSettingsStore from "./RemoteSettingStore";
 import { isString } from "../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 /**
  * What the server learned by probing a credential. `unverifiable` is its own

@@ -18,7 +18,7 @@ import useNodePacksStore, {
 import useOptionalNodePacksStore from "../../stores/OptionalNodePacksStore";
 import { OPTIONAL_NODE_PACKS } from "../../config/optionalNodePacks";
 import { getRequiredKeyForBuiltinPack } from "../../utils/providerPacks";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** The rail entries. Each one is a list in the right pane. */
 export type PMCategory = "included" | "python" | "thirdparty" | "runtimes";

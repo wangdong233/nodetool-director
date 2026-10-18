@@ -31,7 +31,7 @@ import {
 import { RefineSelectionPopover } from "./refine-selection";
 import { useSketchStore } from "../state";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 interface SelectSettingsPanelProps {
   settings: SelectSettings;

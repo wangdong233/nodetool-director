@@ -357,7 +357,7 @@ const OrbitTargetBridge = ({
   return null;
 };
 
-const ADD_MENU_GROUPS: { title: string; kinds: PrimitiveKind[] }[] = [
+const ADD_MENU_GROUPS: { title: string; kinds: PrimitiveKind[]; titleKey?: string; }[] = [
   { title: "Mesh", kinds: ["box", "sphere", "plane", "cylinder", "cone", "torus"] },
   { title: "Light", kinds: ["directionalLight", "pointLight", "spotLight"] },
   { title: "Other", titleKey: "tools:menus.other", kinds: ["empty"] }
@@ -410,6 +410,7 @@ const Model3DEditor = ({
   onDismissExternal
 }: Model3DEditorProps) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
 

@@ -22,7 +22,7 @@ import { GAME_EDITOR_ROOT_SX } from "./gameEditorStyles";
 import { useGameExport } from "./useGameExport";
 import { useGameExecutableBuild } from "./useGameExecutableBuild";
 import { isElectron, isLocalhost } from "../../../lib/env";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Compiling runs cargo on the server's machine, which is this computer only in the desktop app or a local server. */
 const CAN_BUILD_EXECUTABLE = isElectron || isLocalhost;

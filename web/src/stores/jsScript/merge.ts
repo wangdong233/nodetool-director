@@ -55,7 +55,7 @@ export const jsScriptMergeAdapter: DocumentMergeAdapter<JsScriptMergeDoc> = {
   ],
   scalars: [
     {
-      name: "code", nameKey: "ui2:attrs.code",
+      name: "code",
       read: (doc) => doc.code,
       write: (doc, value) => ({ ...doc, code: value as string })
     },

@@ -31,7 +31,7 @@ import {
 } from "../ui_primitives";
 import { openverseLicenseLabel } from "../../utils/openverseLicense";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 type MediaType = "images" | "audio";
 type LicenseType = "all" | "commercial" | "modification";

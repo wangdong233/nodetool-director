@@ -18,7 +18,7 @@ import { useSidebarDocumentMenu } from "../../hooks/useSidebarDocumentMenu";
 import { trpc } from "../../trpc/client";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import { downgradeScriptsLinkedToBoard } from "../../lib/scriptStoryboardDowngrade";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import {
   DocumentListPanel,
   ListPanelItem,

@@ -18,7 +18,7 @@ import {
   TYPOGRAPHY
 } from "../ui_primitives";
 import { getAudioDownloadFilename } from "../../utils/audioFormat";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface AudioControlsProps {
   /** `normal` draws the larger controls of the asset viewer. */

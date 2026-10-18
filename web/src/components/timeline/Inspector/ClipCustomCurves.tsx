@@ -41,7 +41,7 @@ import {
 import {
   EASING_HINT
 } from "./InspectorMotionFields";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 type CustomCurve = CustomClipAnimation["curves"][number];
 type CustomKeyframe = CustomCurve["keyframes"][number];

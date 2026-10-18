@@ -23,7 +23,7 @@ import {
   stringInputMeta,
   textAgentMeta,
 } from "./builders";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const STRING_INPUT = "nodetool.input.StringInput";
 const HYBRID_SEARCH = "vector.HybridSearch";

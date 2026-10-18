@@ -12,7 +12,7 @@ import {
   SPACING,
   Text
 } from "../ui_primitives";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface WorkflowDeleteDialogProps {
   open: boolean;

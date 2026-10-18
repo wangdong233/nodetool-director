@@ -65,7 +65,7 @@ import CanvasMediaComposer from "./CanvasMediaComposer";
 import ConversationOverlay from "./ConversationOverlay";
 import TriggerActivationButton from "./TriggerActivationButton";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const MOBILE_DOCK_POSITION: DockPosition = { x: 0, y: 0 };
 const MOBILE_DOCK_LAYER_STYLE: React.CSSProperties = {

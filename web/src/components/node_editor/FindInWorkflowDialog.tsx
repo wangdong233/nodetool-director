@@ -25,7 +25,7 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { CloseButton, SHADOW } from "../ui_primitives";
 import { useFindInWorkflow } from "../../hooks/useFindInWorkflow";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

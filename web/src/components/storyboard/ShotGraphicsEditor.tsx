@@ -15,7 +15,7 @@ import {
   TextInput
 } from "../ui_primitives";
 import type { ShotDraft } from "./shotDraft";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface ShotGraphicsEditorProps {
   shot: Shot;

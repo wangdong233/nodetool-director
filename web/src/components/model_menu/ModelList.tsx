@@ -42,7 +42,7 @@ import {
 import { getProviderDisplayName } from "../../utils/providerDisplay";
 
 import type { Theme } from "@mui/material/styles";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // Rows are spaced 2px apart so neighbouring hover and selection fills do not
 // touch.

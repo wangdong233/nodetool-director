@@ -21,7 +21,7 @@ import { FlexRow } from "./FlexRow";
 import { SPACING, getSpacingPx } from "./spacing";
 import { CONTROL, TYPOGRAPHY } from "./tokens";
 import { Tooltip } from "./Tooltip";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface PanelHeaderProps {
   /**

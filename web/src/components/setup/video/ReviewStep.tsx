@@ -32,7 +32,7 @@ import {
   productionAuthoringBlocker,
   productionGenerationBlocker
 } from "./productionAuthoring";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** "12s", "1m 04s" — a length as a creator reads it. */
 export const formatSeconds = (ms: number): string => {

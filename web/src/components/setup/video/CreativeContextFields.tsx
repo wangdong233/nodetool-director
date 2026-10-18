@@ -21,7 +21,7 @@ import {
 import { SETUP_FIELD_WIDTH } from "../layout";
 import { GalleryFrame } from "../MediaGallery";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 interface CreativeContextFieldsProps {
   readonly value: CreativeContext | undefined;

@@ -42,7 +42,7 @@ import { useProviderOnboardingStore } from "../../stores/ProviderOnboardingStore
 import { DIALOG_PREVIEWS } from "./DialogPreviews";
 import PreviewProgressStates from "./ProgressPreviews";
 import PreviewModelPicker from "./ModelPickerPreview";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const CostsDashboard = React.lazy(() => import("../costs/CostsDashboard"));
 const ModelListIndex = React.lazy(
@@ -274,7 +274,7 @@ const SAMPLE_NODE_README: NodeMetadata = {
       name: "prompt",
       type: { type: "str", optional: false, type_args: [] },
       default: "A cinematic photo of a cat astronaut on the moon",
-      title: "Prompt", titleKey: "sketch:attrs.prompt",
+      title: "Prompt",
       description: "The text description of the image to generate.",
       required: false
     },
@@ -323,7 +323,7 @@ const SAMPLE_DATAFRAME: DataframeRef = {
   uri: "",
   columns: [
     { name: "id", data_type: "int", description: "Row id" },
-    { name: "product", nameKey: "setup:video.refKind_product", data_type: "string", description: "Product name", descriptionKey: "storyboard:attrs.productName" },
+    { name: "product", data_type: "string", description: "Product name" },
     { name: "category", data_type: "string", description: "Category" },
     { name: "price", data_type: "float", description: "Price (USD)" },
     { name: "in_stock", data_type: "bool", description: "Availability" }

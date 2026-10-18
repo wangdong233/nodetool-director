@@ -21,7 +21,7 @@ import { useTheme } from "@mui/material/styles";
 import { TOOLTIP_ENTER_DELAY, TOOLTIP_ENTER_NEXT_DELAY } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { MOTION } from "./tokens";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface ExpandCollapseButtonProps
   extends Omit<IconButtonProps, "children"> {

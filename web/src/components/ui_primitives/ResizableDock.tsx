@@ -10,7 +10,7 @@ import { useCallback, useState, type ReactNode } from "react";
 import { FlexColumn } from "./FlexColumn";
 import { FlexRow } from "./FlexRow";
 import { ResizeHandle } from "./ResizeHandle";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Prefix every assistant dock has always written under. */
 const DEFAULT_STORAGE_PREFIX = "nodetool.assistantDock.";

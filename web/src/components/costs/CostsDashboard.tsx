@@ -51,10 +51,10 @@ import {
 } from "./costsData";
 import { useCostsDashboard } from "./useCostsDashboard";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const RANGE_OPTIONS: DateRange[] = ["7d", "14d", "30d", "90d"];
-const GROUP_OPTIONS: { value: GroupByKey; label: string }[] = [
+const GROUP_OPTIONS: { value: GroupByKey; label: string; labelKey?: string; }[] = [
   { value: "execution", label: "Execution", labelKey: "settings:general.secExecution" },
   { value: "nodeType", label: "Node type" },
   { value: "workflow", label: "Workflow", labelKey: "home:flowError.kind.workflow" },

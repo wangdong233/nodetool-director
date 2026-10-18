@@ -25,7 +25,7 @@ import AgentAccessSection from "./AgentAccessSection";
 import ExternalMcpServersSection from "./ExternalMcpServersSection";
 import { trpcClient } from "../../trpc/client";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface TargetStatus {
   target: string;

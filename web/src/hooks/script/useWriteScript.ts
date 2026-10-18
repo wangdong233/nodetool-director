@@ -71,7 +71,7 @@ import {
 import { writerSignature, writerSignaturePatch } from "./scriptWriteSignature";
 import { activeWrites, notifyWrites, subscribeWrites } from "./scriptWrites";
 import { isVoicingLive } from "../../stores/script/scriptVoicing";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** The length a script is written to when no step wrote one. */
 export const DEFAULT_SCRIPT_SECONDS = 60;

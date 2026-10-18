@@ -20,7 +20,7 @@ import {
   type PackageConsoleSlice,
   type PackageOpState
 } from "./packageStorePlumbing";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 /** A pack offered by the registry (may or may not be installed). */
 export interface PackageInfo {

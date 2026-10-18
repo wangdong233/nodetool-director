@@ -12,7 +12,7 @@ import { ChainEditor } from "./ChainEditor";
 import { useChainEditorStore } from "./useChainEditorStore";
 import { trpcClient } from "../../trpc/client";
 import type { Workflow } from "../../stores/ApiTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const ChainEditorPage: React.FC = () => {
   const { workflowId } = useParams<{ workflowId?: string }>();

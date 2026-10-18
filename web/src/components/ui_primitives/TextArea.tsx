@@ -17,7 +17,7 @@ import { Box } from "./Box";
 import { CONTROL, MOTION, reducedMotion } from "./tokens";
 import { SPACING } from "./spacing";
 import { isRecord, isString } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** One key of a MUI slot prop, which may be an object or a function. */
 const slotValue = (slot: unknown, key: string): unknown =>

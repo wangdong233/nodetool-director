@@ -26,7 +26,7 @@ import {
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const FEEDBACK_TIMEOUT = 2000;
 

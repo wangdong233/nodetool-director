@@ -27,7 +27,7 @@ export const PAGE_TAB_TITLES = {
   memory: "Memory",
   settings: "Settings"
 } satisfies Record<PageTabKey, string>;
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // The tab strip must stay in sync with the logo menu (see comment above) —
 // including its language. Resolves through i18n at CALL time so a switch

@@ -49,7 +49,7 @@ import {
   SPACING,
   getSpacingPx
 } from "../../ui_primitives";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const LINE_WIDTH_PX = 1.5;
 const HIT_AREA_WIDTH_PX = 16;

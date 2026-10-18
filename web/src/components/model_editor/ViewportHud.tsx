@@ -23,7 +23,7 @@ import {
 } from "./editorShortcuts";
 import type { ViewPreset } from "./ViewportHelpers";
 import type { ViewPrefs } from "./viewPrefs";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const VIEW_LABELS: Record<ViewPreset, string> = {
   front: "Front",

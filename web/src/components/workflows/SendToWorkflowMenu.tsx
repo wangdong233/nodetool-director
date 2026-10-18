@@ -21,7 +21,7 @@ import {
 import { useSendMediaToWorkflow } from "../../hooks/useSendMediaToWorkflow";
 import { useInStudio } from "../../studio/StudioContext";
 import type { WorkflowMediaItem } from "../../hooks/handlers/useGenerationToCanvas";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface SendToWorkflowMenuProps {
   items: readonly WorkflowMediaItem[];

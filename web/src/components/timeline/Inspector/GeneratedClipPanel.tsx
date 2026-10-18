@@ -49,7 +49,7 @@ import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipVersionHistory } from "./ClipVersionHistory";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 interface GeneratedClipPanelProps {
   clipId: string;

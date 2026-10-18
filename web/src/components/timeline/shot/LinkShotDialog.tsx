@@ -21,7 +21,8 @@ import { useStoryboards } from "../../../hooks/storyboard/useStoryboards";
 import { useTimelineStoreApi } from "../../../stores/timeline/TimelineStore";
 import { useTimelineHistoryBatch } from "../../../stores/timeline/useTimelineHistoryBatch";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
+import { useAppLanguage } from "../../../i18n";
 
 interface LinkShotDialogProps {
   clipId: string;
@@ -35,6 +36,7 @@ const shotLabel = (shot: Shot): string =>
 
 const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const timeline = useTimelineStoreApi();
   const history = useTimelineHistoryBatch();
   const { data: boards, isLoading: boardsLoading } = useStoryboards();

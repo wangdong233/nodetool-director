@@ -41,7 +41,7 @@ import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
 import { useSettingsStore } from "../../stores/SettingsStore";
 import { GRID_DIVISION_OPTIONS } from "./Tracks/tempoGrid";
 import { formatActionShortcut } from "./timelineKeymap";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Custom pointer cursor — monoline, 1.6px stroke. */
 const PointerIcon: React.FC = () => (

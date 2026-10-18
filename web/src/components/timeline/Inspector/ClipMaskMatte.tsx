@@ -52,7 +52,7 @@ import {
   INSPECTOR_SECTION_CONTENT_SX
 } from "./InspectorPrimitives";
 import { TextCommitField } from "./InspectorMotionFields";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const MASK_KINDS = [
   { value: "rect", label: "Rectangle" },

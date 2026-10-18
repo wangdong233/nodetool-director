@@ -23,7 +23,7 @@ import {
   GradientStop,
   gradientToCss
 } from "../../stores/ColorPickerStore";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

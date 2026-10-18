@@ -24,7 +24,7 @@ import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 import { rpcRequest } from "../../lib/websocket/rpcRequest";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** The provider/model/voice a sample is spoken by. */
 export interface SampleVoice {

@@ -30,7 +30,7 @@ import { useSelectionActions } from "../../hooks/useSelectionActions";
 import { useRunSelectedNodes } from "../../hooks/nodes/useRunSelectedNodes";
 import { getShortcutTooltip } from "../../config/shortcuts";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface SelectionActionToolbarProps {
   visible: boolean;

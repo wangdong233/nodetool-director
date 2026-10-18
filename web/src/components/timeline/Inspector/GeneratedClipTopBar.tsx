@@ -14,7 +14,7 @@ import type { TimelineClip } from "@nodetool-ai/timeline";
 import { Toolbar, Z_INDEX } from "../../ui_primitives";
 import { GeneratedClipHeader } from "./GeneratedClipHeader";
 import { ClipActions } from "./ClipActions";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 // Pinned stack of two rows rather than a single-row bar: the surface, rule and
 // z-order come from Toolbar, the column layout is local.

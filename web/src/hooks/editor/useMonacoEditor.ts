@@ -4,7 +4,7 @@ import React, { useCallback, useRef, useState } from "react";
 // reached this hook — including the inspector, which mounts with the workspace
 // — so the app downloaded the code editor on every boot.
 import type * as monaco from "monaco-editor";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { toggleCommandMenuFromShortcut } from "../../components/menus/commandMenuShortcut";
 import { withTypingSafeValue } from "./withTypingSafeValue";
 // Configure Monaco loader to use local files instead of CDN

@@ -25,7 +25,7 @@ import {
 } from "../../utils/searchProviders";
 import { matchesSearch } from "./settingsSearch";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface SearchProviderSectionProps {
   settingValues: Record<string, string>;

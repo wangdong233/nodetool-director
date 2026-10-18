@@ -8,7 +8,7 @@ import { useLiveSpectrum } from '../../components/panels/useLiveSpectrum';
 import { KitCapture, fitKitMix } from '../kitMix';
 import { pad, PAD_COUNT } from '../params';
 import { useDrumStore } from '../dr1Store';
-import { i18n } from "../../../../../../../i18n";
+import { i18n } from "../../../../../../i18n";
 
 const LEARN_SECONDS = 8, TIMEOUT_SECONDS = 30;
 

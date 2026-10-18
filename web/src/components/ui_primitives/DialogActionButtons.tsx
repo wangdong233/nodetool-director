@@ -19,7 +19,7 @@ import { Button, ButtonProps } from "@mui/material";
 import { LoadingSpinner } from "./LoadingSpinner";
 import DialogActions from "@mui/material/DialogActions";
 import { MOTION } from "./tokens";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface DialogActionButtonsProps {
   /**

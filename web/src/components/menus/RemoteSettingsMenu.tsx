@@ -30,7 +30,7 @@ import ExternalLink from "../common/ExternalLink";
 import SearchProviderSection from "./SearchProviderSection";
 import { matchesSearch } from "./settingsSearch";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * Groups surfaced elsewhere (General tab, Folders panel) or via
@@ -63,7 +63,7 @@ const META_SECTION_GROUPS: ReadonlyArray<{
   key: string;
   label: string;
   groups: ReadonlyArray<string>;
-}> = [
+ labelKey?: string; }> = [
   {
     key: "local-model-servers",
     label: "Local model servers", labelKey: "tools:menus.localModelServers",

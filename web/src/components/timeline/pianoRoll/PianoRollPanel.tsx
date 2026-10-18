@@ -38,7 +38,7 @@ import {
 import type { TempoGridDivision } from "@nodetool-ai/timeline";
 import { GRID_DIVISION_OPTIONS } from "../Tracks/tempoGrid";
 import { PianoRoll } from "./PianoRoll";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const HANDLE_HEIGHT_PX = 6;
 /** Arrow-key step for keyboard resizing. */

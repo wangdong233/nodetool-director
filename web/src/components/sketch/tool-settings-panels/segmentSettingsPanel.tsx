@@ -28,7 +28,7 @@ import type { ImageModelValue } from "../../../stores/ApiTypes";
 import { useSketchStore } from "../state";
 import { getLayerDataImageUrl } from "../serialization";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 function promptModeHelpText(mode: SegmentPromptMode): string {
   if (mode === "point") {

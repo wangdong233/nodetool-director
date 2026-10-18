@@ -22,6 +22,7 @@ import { CopyAssetButton } from "../common/CopyAssetButton";
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../i18n";
 
 interface PropertyDropzoneProps {
   asset: Asset | undefined;
@@ -41,6 +42,7 @@ const PropertyDropzone = ({
   showRecorder = true
 }: PropertyDropzoneProps) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const emitRef = useCallback(
     (next: Asset) => onChange(mediaRefFromAsset(next, contentType)),

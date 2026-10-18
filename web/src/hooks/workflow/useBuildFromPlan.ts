@@ -35,7 +35,7 @@ import useResultsStore from "../../stores/ResultsStore";
 import useWorkflowRunsStore from "../../stores/WorkflowRunsStore";
 import { getWorkflowRunnerStore } from "../../stores/WorkflowRunner";
 import { useWorkflowSetupWriter } from "./useWorkflowSetup";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { resolveSnippetSteps } from "../../utils/planSnippetSteps";
 export const workflowBuildStatuses = [

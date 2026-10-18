@@ -8,7 +8,7 @@
 import type { StatusDotTone } from "./StatusDot";
 import type { StatusType } from "./StatusIndicator";
 import type { StatusPillTone } from "./StatusPill";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Shared by `LayerStatus` (image-editor) and `ClipStatus` (timeline). */
 export type GenerationStatus =

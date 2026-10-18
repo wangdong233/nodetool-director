@@ -21,7 +21,7 @@ import { trpcClient } from "../../trpc/client";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import EmbeddingModelSelect from "../properties/EmbeddingModelSelect";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const slideIn = keyframes`
   from {

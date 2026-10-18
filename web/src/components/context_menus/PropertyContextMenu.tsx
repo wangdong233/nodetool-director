@@ -39,7 +39,7 @@ import { useExposedInputToggle } from "../../hooks/nodes/useExposedInputToggle";
 import { isObjectLike } from "../../utils/typePredicates";
 import { runAsOneUndoEntry } from "../../utils/runAsOneUndoEntry";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Payload from inspector multi-edit: reset/copy/remove apply to every id. */
 function resolvePropertyMenuTargetNodeIds(

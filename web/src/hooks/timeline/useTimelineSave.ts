@@ -21,7 +21,7 @@ import { trpcClient } from "../../trpc/client";
 import { saveTimelineThroughEditor } from "../../stores/timeline/timelineSaveRegistry";
 import { buildTimelineDocumentPayload } from "./timelineDocumentPayload";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface UseTimelineSaveResult {
   /** PATCH the current document immediately. Resolves when the save settles. */

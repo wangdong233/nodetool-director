@@ -3,7 +3,7 @@ import WaveSurfer from "wavesurfer.js";
 import RecordPlugin from "wavesurfer.js/dist/plugins/record";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { Asset } from "../../stores/ApiTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export type WaveRecorderProps = {
   onChange: (asset: Asset) => void;

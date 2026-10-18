@@ -28,7 +28,7 @@ import {
   Tooltip,
   getSpacingPx
 } from "../../ui_primitives";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const TIME_ZOOM_RANGE = Math.log(MAX_MS_PER_PX / MIN_MS_PER_PX);
 

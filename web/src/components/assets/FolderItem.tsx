@@ -17,7 +17,7 @@ import {
 } from "../ui_primitives";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

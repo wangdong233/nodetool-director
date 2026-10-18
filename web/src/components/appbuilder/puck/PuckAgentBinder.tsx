@@ -41,7 +41,7 @@ import {
 import type { WorkflowState } from "../workflowState";
 import { useOperationScripts } from "../useOperationScripts";
 import { isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 interface PuckAgentBinderProps {
   config: Config;

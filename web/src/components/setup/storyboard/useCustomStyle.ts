@@ -30,7 +30,7 @@ import {
   buildUserStyle,
   type StyleSource
 } from "../../../lib/storyboard/userStyle";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 export { MAX_STYLE_REFERENCES };
 

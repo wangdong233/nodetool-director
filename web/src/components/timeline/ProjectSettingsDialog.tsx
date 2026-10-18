@@ -30,7 +30,7 @@ import type { SelectOption } from "../ui_primitives";
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import { useTimelineProjectSettings } from "../../hooks/timeline/useTimelineProjectSettings";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 

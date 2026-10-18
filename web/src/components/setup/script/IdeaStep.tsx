@@ -59,8 +59,9 @@ import {
   useScriptFileImport
 } from "./useScriptFileImport";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../../i18n";
 
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** The § 9.1 inspiration chips. */
 const INSPIRATIONS = [
@@ -224,7 +225,7 @@ const replaceNote = (source: ImportedScript): string | null => {
     return null;
   }
   return source.kind === "subtitles"
-    ? t("setup:script.pastedReplacesSubtitles", { defaultValue: "Pasted text replaces your subtitle file, and its cue timings are not kept. Cancel to keep the file." }) : i18n.t("setup:script.pastedReplacesFinalDraft", { defaultValue: "Pasted text replaces your Final Draft file, and its speakers are not kept. Cancel to keep the file." });
+    ? i18n.t("setup:script.pastedReplacesSubtitles", { defaultValue: "Pasted text replaces your subtitle file, and its cue timings are not kept. Cancel to keep the file." }) : i18n.t("setup:script.pastedReplacesFinalDraft", { defaultValue: "Pasted text replaces your Final Draft file, and its speakers are not kept. Cancel to keep the file." });
 };
 
 const IdeaStepInternal: React.FC<IdeaStepProps> = ({
@@ -234,6 +235,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   readOnly = false
 }) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
   const imports = useScriptFileImport(scriptId);

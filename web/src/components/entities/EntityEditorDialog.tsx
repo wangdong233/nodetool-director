@@ -27,7 +27,7 @@ import { entityAssistContext } from "../../utils/textAssist";
 import ImageRefPreview from "../node/ImageRefPreview";
 import EntityAssetPickerDialog from "./EntityAssetPickerDialog";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface EntityEditorDialogProps {
   open: boolean;

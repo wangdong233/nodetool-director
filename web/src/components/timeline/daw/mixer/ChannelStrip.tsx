@@ -44,7 +44,7 @@ import {
   parseDb
 } from "./faderTaper";
 import { InsertSlots } from "./InsertSlots";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** Strip width on a roomy mixer, from the spacing scale (120 px). */
 const STRIP_UNITS = 30;

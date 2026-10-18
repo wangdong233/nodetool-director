@@ -20,7 +20,7 @@ import {
   QUANTIZE_DIVISIONS
 } from "@nodetool-ai/timeline";
 import type { TempoGridDivision, TimelineTempo } from "@nodetool-ai/timeline";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** How far apart `division`'s grid lines sit, in ms. */
 export function tempoGridIntervalMs(

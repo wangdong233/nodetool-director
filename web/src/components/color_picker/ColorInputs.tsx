@@ -15,7 +15,7 @@ import {
 import { Box } from "../ui_primitives";
 import { useColorConversion } from "../../hooks/useColorConversion";
 import type { ColorMode } from "../../hooks/useColorConversion";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

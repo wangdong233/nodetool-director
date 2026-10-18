@@ -15,7 +15,7 @@ import { ExpandCollapseButton } from "./ExpandCollapseButton";
 import { PanelHeader } from "./PanelHeader";
 import { SPACING, snapSpacing } from "./spacing";
 import { isNumber } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface PanelProps extends BoxProps {
   /** Panel title */

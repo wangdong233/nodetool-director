@@ -14,7 +14,7 @@ import useRuntimePackagePromptStore from "../../stores/RuntimePackagePromptStore
 import useRuntimePackagesStore from "../../stores/RuntimePackagesStore";
 import { useOpenPackageManagerInNewTab } from "../../hooks/useOpenPackageManager";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Model lists a newly installed local runtime can add entries to. */
 const MODEL_QUERY_KEYS = [

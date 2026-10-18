@@ -39,7 +39,7 @@ import GameViewport3D, { type GameViewportAction3D } from "./viewport3d/GameView
 import { scriptFailure } from "./useGamePlaySession";
 import { EMPTY_INPUT_3D, useGamePlaySession3D } from "./useGamePlaySession3D";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 async function openDiagnosticSession(document: GameDocument3D, signal: AbortSignal): Promise<GameDiagnosticSession> {
   const session = await openGameDiagnosticSession3D(document, signal);

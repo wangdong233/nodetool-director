@@ -20,7 +20,7 @@ import { Box } from "./Box";
 import type { BoxProps } from "./Box";
 import { SPACING, getSpacingPx } from "./spacing";
 import { BORDER_RADIUS, MOTION, reducedMotion } from "./tokens";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export type StatusDotTone =
   | "primary"

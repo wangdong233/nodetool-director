@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import { PageLayout, ICON_SIZE } from "../ui_primitives";
 import PackageManager from "./PackageManager";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * Full-screen Package Manager page: the unified installer (runtimes and node

@@ -43,7 +43,7 @@ import {
   REVIEW_WIDE_WIDTH
 } from "./reviewStyles";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface PlanReviewField {
   id: string;

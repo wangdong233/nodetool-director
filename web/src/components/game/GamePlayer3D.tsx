@@ -6,7 +6,7 @@ import GameViewport3D from "./viewport3d/GameViewport3D";
 import { useGamePlaySession3D } from "./useGamePlaySession3D";
 import { gamePlayStatus } from "./gamePlayStatus";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface GamePlayer3DProps { readonly gameId: string; readonly name: string; readonly document: GameDocument3D; readonly active?: boolean;
   /** Start the game as soon as the renderer is ready, for a Play button that opened the player. */

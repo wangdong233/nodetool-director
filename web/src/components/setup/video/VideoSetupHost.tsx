@@ -26,7 +26,7 @@ import { useTimelineAgentBridge } from "../../../hooks/timeline/useTimelineAgent
 import { buildTimelineDocumentPayload } from "../../../hooks/timeline/timelineDocumentPayload";
 import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
 import { FlexColumn, PADDING, ThinkingIndicator } from "../../ui_primitives";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 import { SetupFlow } from "../SetupFlow";
 import { useFinishIfLoadedDone } from "../useFinishIfLoadedDone";
 import {

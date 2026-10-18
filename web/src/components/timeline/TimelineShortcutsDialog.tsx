@@ -36,7 +36,7 @@ import {
   type TimelineAction,
   type TimelineKeyboardPreset
 } from "./timelineKeymap";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface Row {
   labelKey?: string;
@@ -166,7 +166,7 @@ export const TIMELINE_SHORTCUT_GROUPS: readonly Group[] = [
     ]
   },
   {
-    title: i18n.t("settings:general.catHistory", { defaultValue: "History" }), titleKey: "settings:general.catHistory", titleKey: "timeline:shortcuts.history", titleKey: "timeline:editor.history",
+    title: i18n.t("settings:general.catHistory", { defaultValue: "History" }), titleKey: "settings:general.catHistory",
     rows: [
       { action: "undo", label: "Undo" },
       { action: "redo", label: "Redo" }

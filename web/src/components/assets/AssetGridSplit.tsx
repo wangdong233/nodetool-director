@@ -3,7 +3,7 @@ import { css } from "@emotion/react";
 import React, { useCallback, useState } from "react";
 
 import { ResizeHandle } from "../ui_primitives";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export type SplitOrientation = "horizontal" | "vertical";
 
@@ -84,7 +84,7 @@ const AssetGridSplit: React.FC<AssetGridSplitProps> = ({
       </div>
       <ResizeHandle
         className="asset-split-separator"
-        orientation={orientation === "horizontal" ? i18n.t("sketch:attrs.symmetryVertical", { defaultValue: "vertical" }) : i18n.t("sketch:attrs.symmetryHorizontal", { defaultValue: "horizontal" })}
+        orientation={orientation === "horizontal" ? "vertical" : "horizontal"}
         value={size}
         min={minSize}
         max={maxSize}

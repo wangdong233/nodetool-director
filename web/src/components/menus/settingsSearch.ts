@@ -4,7 +4,7 @@ import type { SettingsSection } from "../../stores/SettingsPageStore";
 export const SETTINGS_TAB_ITEMS: ReadonlyArray<{
   value: SettingsSection;
   label: string;
-}> = [
+ labelKey?: string; }> = [
   { value: "general", label: "General", labelKey: "nav:settings.general" },
   { value: "providers", label: "Models & providers" },
   { value: "integrations", label: "Integrations", labelKey: "nav:settings.integrations" },

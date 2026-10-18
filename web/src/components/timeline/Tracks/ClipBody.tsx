@@ -54,7 +54,7 @@ import {
 import { useAssetUrl } from "./useAssetUrl";
 import { ClipMediaOffline } from "./ClipMediaOffline";
 import { openPersistedFold } from "../Inspector/usePersistedFold";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const TRIM_HANDLE_WIDTH_PX = 8;
 /** Hit area for the same grip under a finger; the visible width stays 8px. */

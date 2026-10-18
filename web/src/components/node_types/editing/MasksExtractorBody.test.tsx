@@ -124,7 +124,7 @@ jest.mock("@mui/material/styles", () => ({
 
 import { useNodes } from "../../../contexts/NodeContext";
 import { useRunSingleNode } from "../../../hooks/nodes/useRunSingleNode";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const mockUseNodes = asMock(useNodes);
 const mockUseRunSingleNode = asMock(useRunSingleNode);

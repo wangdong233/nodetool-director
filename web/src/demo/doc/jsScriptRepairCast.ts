@@ -26,7 +26,7 @@ import {
   type JsScriptCastDoc,
   type JsScriptDocCast
 } from "./docCastTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const FIND_TURN = "jsscript-repair-1";
 const FIX_TURN = "jsscript-repair-2";

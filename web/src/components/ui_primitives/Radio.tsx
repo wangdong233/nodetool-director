@@ -14,7 +14,7 @@ import {
   FormControlLabelProps
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface RadioProps extends Omit<MuiRadioProps, "size"> {
   /** Label text displayed next to the radio */

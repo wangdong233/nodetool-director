@@ -56,7 +56,7 @@ import {
   useModel3DSessionNames,
   type Model3DSessionNames
 } from "./useModel3DSessionNames";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const CAMERA_MODES = [
   { value: "orbit", label: "Orbit" },

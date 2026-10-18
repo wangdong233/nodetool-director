@@ -38,12 +38,12 @@ import { createGameViewportOverlays3D, disposeGameViewportOverlays3D } from "./g
 import GameOrientationGizmo3D, { createGameCameraOrientation3D } from "./GameOrientationGizmo3D";
 import type { GamePlaySession3D } from "../useGamePlaySession3D";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** What a viewport edit did, for the undo label. `Ground` is Align to ground. */
 export type GameViewportAction3D = "Move" | "Rotate" | "Scale" | "Ground";
 
-const TOOLS: readonly { mode: GameGizmoMode3D; label: string; command: "tool.move" | "tool.rotate" | "tool.scale"; icon: ReactNode }[] = [
+const TOOLS: readonly { mode: GameGizmoMode3D; label: string; command: "tool.move" | "tool.rotate" | "tool.scale"; icon: ReactNode; labelKey?: string; }[] = [
   { mode: "translate", label: "Move", command: "tool.move", icon: <OpenWithIcon fontSize="small" /> },
   { mode: "rotate", label: "Rotate", labelKey: "game:tool.rotate", command: "tool.rotate", icon: <ThreeSixtyIcon fontSize="small" /> },
   { mode: "scale", label: "Scale", command: "tool.scale", icon: <OpenInFullIcon fontSize="small" /> }

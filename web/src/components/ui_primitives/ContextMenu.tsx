@@ -14,7 +14,7 @@ import {
 import { SxProps, Theme } from "@mui/material";
 import { sxEntries } from "./tokens";
 import { MENU_MIN_WIDTH } from "./menuStyles";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface ContextMenuProps extends Omit<MuiMenuProps, "anchorPosition"> {
   /** Position for right-click context menus */

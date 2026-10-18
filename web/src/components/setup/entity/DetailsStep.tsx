@@ -12,7 +12,7 @@ import { AlternativesColumn } from "../AlternativesColumn";
 import { OptionCardGrid } from "../OptionCardGrid";
 import { SETUP_OPTION_MIN_WIDTH } from "../layout";
 import { entityAssistContext } from "../../../utils/textAssist";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const ENTITY_KINDS: readonly {
   id: EntityKind;

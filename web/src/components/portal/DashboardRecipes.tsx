@@ -20,7 +20,7 @@ import {
 } from "../ui_primitives";
 import { useSectionWrap, DashboardSectionHeader } from "./dashboardChrome";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 type Recipe = recipeSchemas.ExampleRecipeSummary;
 type RecipeStep = recipeSchemas.ExampleRecipeStep;

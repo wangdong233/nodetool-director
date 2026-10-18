@@ -19,7 +19,7 @@ import { findClipById } from "../../../stores/timeline/clipLookup";
 import { ReplaceClipAssetDialog } from "../Tracks/ReplaceClipAssetDialog";
 import { ToolbarIconButton, FlexRow, SPACING } from "../../ui_primitives";
 import { useAlertNotifier } from "../../../hooks/useAlertNotifier";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 

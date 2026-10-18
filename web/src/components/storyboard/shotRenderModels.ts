@@ -17,7 +17,7 @@ import type {
   VideoModelTask
 } from "../../hooks/useModelsByProvider";
 import type { ImageModelValue, VideoModelValue } from "../../stores/ApiTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // Stills can come from a plain generator or an editing model; the latter can
 // take entity reference images, so the picker offers both.

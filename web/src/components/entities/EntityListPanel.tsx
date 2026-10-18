@@ -27,7 +27,7 @@ import EntityCard from "./EntityCard";
 import EntityEditorDialog from "./EntityEditorDialog";
 import { creationProjectId } from "../../stores/WorkspaceTabsStore";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Picks an image asset, then opens the editor to describe it. */
 interface CreateEntityButtonProps {

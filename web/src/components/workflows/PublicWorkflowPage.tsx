@@ -25,7 +25,7 @@ import {
 } from "../../serverState/useWorkflowSharing";
 import { rememberPostLoginReturn } from "../../utils/postLoginReturn";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** `graphNodeToReactFlowNode` stamps this onto each node; nothing reads it back. */
 const PREVIEW_WORKFLOW_ID = "public-share-preview";

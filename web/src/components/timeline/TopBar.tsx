@@ -29,7 +29,7 @@ import ViewSidebarOutlinedIcon from "@mui/icons-material/ViewSidebarOutlined";
 import { useDocumentDraftStore } from "../../stores/DocumentDraftStore";
 import { useSettingsStore } from "../../stores/SettingsStore";
 import { formatActionShortcut } from "./timelineKeymap";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface TopBarProps {
   onExportVideo?: () => void;

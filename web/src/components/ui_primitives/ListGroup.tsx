@@ -19,7 +19,7 @@ import { useTheme } from "@mui/material/styles";
 import { SxProps, Theme } from "@mui/material";
 import { focusRing, selectableRowStyles, selectedRowStyles } from "./selectionStyles";
 import { TYPOGRAPHY } from "./tokens";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // --- ListGroup ---
 

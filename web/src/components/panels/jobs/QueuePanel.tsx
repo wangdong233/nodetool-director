@@ -32,7 +32,7 @@ const FILTERS: {
   id: HistoryFilter;
   label: string;
   color?: "error";
-}[] = [
+ labelKey?: string; }[] = [
   { id: "all", label: "All", labelKey: "storyboard:attrs.all" },
   { id: "failed", label: "Failed", labelKey: "setup:workflow.pill_failed", color: "error" },
   { id: "completed", label: "Completed", labelKey: "setup:workflow.pill_completed" },

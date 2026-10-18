@@ -72,7 +72,7 @@ import {
   STUDIO_VOICE
 } from "../../studio/curatedModels";
 import { useAlertNotifier } from "../../hooks/useAlertNotifier";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const GENERATION_MODES = ["video", "audio", "music"] as const;
 type GenerationMode = (typeof GENERATION_MODES)[number];

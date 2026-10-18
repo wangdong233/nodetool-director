@@ -60,7 +60,7 @@ import {
   DEFAULT_PAD_WIDTH,
   type SketchPadBackground
 } from "./sketchPadOptions";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** The pad's tools: paint, erase, flood-fill. Nothing that needs a layer stack. */
 const PAD_TOOLS: readonly SketchTool[] = ["brush", "pencil", "eraser", "fill"];

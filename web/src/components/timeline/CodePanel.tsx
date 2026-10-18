@@ -55,7 +55,8 @@ import {
 } from "../../serverState/useTimelineCode";
 import { useDocumentDraftStore } from "../../stores/DocumentDraftStore";
 import { notifyMutationError } from "../../utils/notifyMutationError";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
 
 const editorBoxStyles = (theme: Theme) =>
   css({
@@ -122,6 +123,7 @@ const emptyBakeResult: TimelineCodeBakeResult = {
 };
 
 export const CodePanel: React.FC = memo(() => {
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const sequenceId = useTimelineStore((s) => s.sequenceId);
   const clips = useTimelineStore((s) => s.clips);

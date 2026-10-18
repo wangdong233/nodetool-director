@@ -14,7 +14,7 @@ import {
   resolveDesktopAsrDefault,
   type DesktopAsrDefault
 } from "./desktopAsrDefault";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** The `defaults` key holding the speech-to-text model (Settings → Default Models). */
 export const ASR_MODEL_PREFERENCE = "asr_model";

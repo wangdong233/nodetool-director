@@ -12,7 +12,7 @@ import {
 import StraightenIcon from "@mui/icons-material/Straighten";
 import useModelFiltersStore, { SizeBucket } from "../../stores/ModelFiltersStore";
 import { isProduction } from "../../lib/env";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const barStyles = css({
   display: "flex",

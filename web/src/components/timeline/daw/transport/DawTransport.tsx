@@ -44,7 +44,7 @@ import {
 import { formatTimecode } from "../../Inspector/InspectorPrimitives.helpers";
 import { defaultLoopRange, formatBarsBeatsTicks } from "./loopRange";
 import { MasterMeter } from "./MasterMeter";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 const MIN_BPM = 20;
 const MAX_BPM = 300;

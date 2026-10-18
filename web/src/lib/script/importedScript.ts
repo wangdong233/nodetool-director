@@ -30,7 +30,7 @@ import type { ScriptSetup } from "@nodetool-ai/protocol/api-schemas/scripts.js";
 
 import { parseFdx, type FdxImport } from "../storyboard/parseFdx";
 import { parseSrt, type SubtitleImport } from "./parseSrt";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** One imported line, before it is given an id and put on the document. */
 export interface ImportedLine {

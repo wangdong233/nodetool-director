@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { useCallback, useState } from "react";
 import FileBrowserDialog from "../dialogs/FileBrowserDialog";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const hasNativeDialog = (): boolean => {
   return typeof window !== "undefined" && window.api?.dialog !== undefined;

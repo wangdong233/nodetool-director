@@ -29,7 +29,7 @@ import {
   useNodeImageModelConstraints,
   useNodeVideoModelConstraints
 } from "../../hooks/useMediaModelConstraints";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * Keep only the values the node's own enum can express, and fall back to the

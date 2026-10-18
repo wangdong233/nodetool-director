@@ -24,7 +24,8 @@ import { isLocalhost } from "../../lib/env";
 import { NavButton, NodeTextField, ToolbarIconButton } from "../ui_primitives";
 import { SettingWithValue } from "../../stores/RemoteSettingStore";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
 
 interface FolderButtonProps {
   label: string;
@@ -51,6 +52,7 @@ interface OpenFolderButtonProps {
 
 const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const handleClick = useCallback(() => {
     if (settingValue) {
       openInExplorer(settingValue);
@@ -75,6 +77,7 @@ OpenFolderButton.displayName = "OpenFolderButton";
 
 const FoldersSettings = () => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const queryClient = useQueryClient();
   const updateSettings = useRemoteSettingsStore((state) => state.updateSettings);
   const fetchSettings = useRemoteSettingsStore((state) => state.fetchSettings);

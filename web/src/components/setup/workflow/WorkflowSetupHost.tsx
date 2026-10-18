@@ -47,7 +47,7 @@ import type { OptionCardItem } from "../OptionCardGrid";
 import { useWorkflowSetupFlow } from "./useWorkflowSetupFlow";
 import { pickDefaultPlannerModel } from "./defaultPlannerModel";
 import type { ModelRoleAvailability, ModelRoleStatus } from "./SetupStep";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** A model as the setup step's tile row shows it. */
 interface RoleModel {

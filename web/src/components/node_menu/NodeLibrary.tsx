@@ -47,7 +47,7 @@ import {
 } from "../../config/quickAccessCategories";
 import type { NodeCategoryId } from "../../stores/PanelStore";
 import type { NodeMetadata } from "../../stores/ApiTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const ROW_HEIGHT = 36;
 

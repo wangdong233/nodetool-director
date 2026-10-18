@@ -38,7 +38,7 @@ import AddIcon from "@mui/icons-material/AddOutlined";
 import { CONTROL, MOTION } from "./tokens";
 import { Tooltip } from "./Tooltip";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({

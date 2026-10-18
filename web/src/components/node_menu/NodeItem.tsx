@@ -25,7 +25,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { NOTIFICATION_TIMEOUT_SHORT } from "../../config/constants";
 import { formatNodeDocumentation } from "../../stores/formatNodeDocumentation";
 import { findSnippetByNodeType } from "../../config/snippetMetadata";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { useAppLanguage } from "../../i18n";
 import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
 import { nodeDocumentation } from "../../i18n/nodeDocs";

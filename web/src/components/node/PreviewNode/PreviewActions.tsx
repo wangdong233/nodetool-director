@@ -7,7 +7,7 @@ import { CopyButton } from "../../ui_primitives";
 import { CopyAssetButton } from "../../common/CopyAssetButton";
 import { useNotificationStore } from "../../../stores/NotificationStore";
 import { isObjectLike, isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 type PreviewActionsProps = {
   onDownload: () => void;

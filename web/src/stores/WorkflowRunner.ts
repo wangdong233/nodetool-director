@@ -44,7 +44,7 @@ import { clearRunSignatures, recordRunSignatures } from "./runSignatures";
 import { computeRunSignatures } from "../utils/computeRunSignatures";
 import { getNodeGenerations } from "./nodeGenerationAccessor";
 import { noteWorkflowRunStarted } from "../lib/analytics";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 /**
  * Title for a run: the node's name for a single-node run, otherwise the

@@ -32,7 +32,7 @@ import { assetLocator } from "../../../utils/mediaRef";
 import LazyModel3DViewer from "../../asset_viewer/LazyModel3DViewer";
 import ResourceChip from "./ResourceChip";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const LazySketchRenderer = React.lazy(
   () => import("../../sketch/SketchRenderer")

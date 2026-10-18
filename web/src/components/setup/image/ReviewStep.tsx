@@ -30,7 +30,7 @@ import { SetupCardButton, useRovingRadioGroup } from "../SetupCardButton";
 import BriefModelSelect from "./BriefModelSelect";
 import ReportBugButton from "../../support/ReportBugButton";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** The counts the flow offers (PRD § 10.2). */
 export const VARIATION_COUNTS: readonly number[] = [1, 2, 4];

@@ -48,7 +48,7 @@ import { watchGeneration } from "../../lib/websocket/generationWatch";
 import { useNotificationStore } from "../NotificationStore";
 import { useStoryboardStore } from "./StoryboardStore";
 import { isNumber } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

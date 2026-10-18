@@ -9,7 +9,7 @@ import { useModelDownloadStore } from "../../stores/ModelDownloadStore";
 import { useShallow } from "zustand/react/shallow";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // Threshold in ms to consider a download stalled (30 seconds)
 const STALL_THRESHOLD_MS = 30000;

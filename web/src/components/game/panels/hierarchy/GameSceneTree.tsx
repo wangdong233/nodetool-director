@@ -25,7 +25,7 @@ import {
 
 import { reparentTransform } from "../../viewport2d/viewportGeometry";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 interface GameSceneTreeProps {
   document: GameDocument;
@@ -42,7 +42,7 @@ type Preset = "sprite" | "wall" | "collectible" | "trigger" | "camera" | "empty"
 type DropPosition = "before" | "inside" | "after";
 const TREE_ICON_SX = { fontSize: FONT_SIZE_SANS.body } as const;
 const MENU_ICON_SX = { ...TREE_ICON_SX, color: "text.secondary" } as const;
-const PRESETS: readonly { kind: Preset; label: string; icon: ReactNode }[] = [
+const PRESETS: readonly { kind: Preset; label: string; icon: ReactNode; labelKey?: string; }[] = [
   { kind: "sprite", label: "Sprite", labelKey: "game:sceneTree.presetSprite", icon: <ImageOutlinedIcon sx={MENU_ICON_SX} /> },
   { kind: "wall", label: "Static wall", labelKey: "game:sceneTree.presetWall", icon: <CropSquareIcon sx={MENU_ICON_SX} /> },
   { kind: "collectible", label: "Collectible", labelKey: "game:sceneTree.presetCollectible", icon: <StarOutlineIcon sx={MENU_ICON_SX} /> },

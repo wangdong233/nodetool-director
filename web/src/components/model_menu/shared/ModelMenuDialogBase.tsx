@@ -80,7 +80,7 @@ import {
   nextAvailableIndex
 } from "../../../utils/modelMenuNavigation";
 import type { ModelPack, UnifiedModel } from "../../../stores/ApiTypes";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface ModelMenuBaseProps<TModel extends ModelSelectorModel> {
@@ -638,7 +638,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
     }
   }, [open, updatePosition, setSearch]);
 
-  const railOrientation = isMobile ? i18n.t("sketch:attrs.symmetryHorizontal", { defaultValue: "horizontal" }) : i18n.t("sketch:attrs.symmetryVertical", { defaultValue: "vertical" });
+  const railOrientation = isMobile ? "horizontal" : "vertical";
   // Runs before an entry's own click, so picking All models or a provider
   // leaves Favorites or Recent, and picking Favorites or Recent sets it again.
   const handleRailClickCapture = useCallback(() => {

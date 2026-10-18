@@ -21,7 +21,7 @@ import { SPACING, getSpacingPx } from "./spacing";
 import { BORDER_RADIUS, TYPOGRAPHY } from "./tokens";
 import { Toolbar } from "./Toolbar";
 import type { ToolbarProps } from "./Toolbar";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export type StatusBarProps = Omit<ToolbarProps, "position" | "density">;
 

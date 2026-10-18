@@ -26,7 +26,7 @@ import {
 } from "../ui_primitives";
 import type { OAuthManualPrompt } from "../../hooks/useOAuthConnection";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface OAuthManualCompletionDialogProps {
   /** The pending login, or null when nothing is waiting on a paste. */

@@ -1,3 +1,4 @@
+import { i18n } from "../../i18n";
 /**
  * The constant/input node types the pane context menu can drop on the canvas.
  *

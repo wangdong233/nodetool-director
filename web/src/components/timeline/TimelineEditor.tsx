@@ -135,7 +135,7 @@ import { useTimelineIsMobile } from "../../hooks/timeline/useTimelineIsMobile";
 import { useGuardedPanelTab } from "../../hooks/timeline/useGuardedPanelTab";
 import { ensureBundledFontsLoaded } from "./preview/fontLoading";
 import { useWorkspaceHeaderActions } from "../workspace/WorkspaceHeaderActionsContext";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 // The `@font-face` rules for the bundled corpus, pointing at the same files

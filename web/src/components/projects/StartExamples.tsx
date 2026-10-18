@@ -2,7 +2,7 @@ import { lazy, Suspense, useState } from "react";
 import { LoadingSpinner, TabGroup } from "../ui_primitives";
 import DashboardExampleApps from "../portal/DashboardExampleApps";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const DashboardTemplates = lazy(() => import("../portal/DashboardTemplates"));
 const DashboardExampleStoryboards = lazy(

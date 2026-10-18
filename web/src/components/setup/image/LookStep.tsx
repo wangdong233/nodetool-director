@@ -66,7 +66,7 @@ import {
 } from "./lookSelection";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Which of the model list's answers the step got (F14). */
 export type ModelAvailability =

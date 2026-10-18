@@ -62,7 +62,7 @@ import { ScriptSpeakerPicker, SPEAKER_GUTTER } from "./ScriptSpeakerPicker";
 import ScriptTakeWaveform from "./ScriptTakeWaveform";
 import type { ScriptLineShotLink } from "../../hooks/script/useScriptShotLinks";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * A keyboard intent bubbled up from a line's text field. The pane owns the

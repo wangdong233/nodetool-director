@@ -19,7 +19,7 @@ import {
 import { useNotificationStore } from "../stores/NotificationStore";
 import { assetToClip } from "../components/timeline/dnd/assetToClipAdapter";
 import { newDocumentId } from "../lib/newDocumentId";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 export const useEditVideoAsset = (
   projectId?: string

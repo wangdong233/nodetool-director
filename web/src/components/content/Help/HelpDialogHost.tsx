@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { useAppHeaderStore } from "../../../stores/AppHeaderStore";
 import { Dialog, LoadingSpinner } from "../../ui_primitives";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const Help = lazy(() => import("./Help"));
 

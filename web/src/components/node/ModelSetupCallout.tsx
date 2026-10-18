@@ -10,7 +10,7 @@ import { useProviders } from "../../hooks/useProviders";
 import { openProviderOnboarding } from "../../stores/ProviderOnboardingStore";
 import { Text, EditorButton, ToolbarIconButton, MOTION, ICON_SIZE } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const enter = keyframes({
   from: { opacity: 0, transform: "translateY(-4px)" },

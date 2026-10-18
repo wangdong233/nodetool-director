@@ -59,7 +59,7 @@ import { WorkflowIdeaStep } from "./IdeaStep";
 import { WorkflowReviewStep } from "./ReviewStep";
 import { WorkflowSetupStep } from "./SetupStep";
 import type { ModelRoleAvailability, ModelRoleChoices } from "./SetupStep";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 const FLOW_TITLE = { title: "Workflow", titleKey: "home:flowError.kind.workflow" } as const;

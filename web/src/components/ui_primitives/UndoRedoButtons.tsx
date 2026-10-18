@@ -10,7 +10,7 @@ import RedoIcon from "@mui/icons-material/Redo";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { BORDER_RADIUS, CONTROL, MOTION } from "./tokens";
 import { SPACING, getSpacingPx } from "./spacing";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface UndoRedoButtonsProps {
   /** Whether undo is available */
@@ -117,7 +117,7 @@ const UndoRedoButtonsInternal: React.FC<UndoRedoButtonsProps> = ({
       {showDivider && (
         <Divider 
           className={`divider ${direction}`}
-          orientation={direction === "horizontal" ? i18n.t("sketch:attrs.symmetryVertical", { defaultValue: "vertical" }) : i18n.t("sketch:attrs.symmetryHorizontal", { defaultValue: "horizontal" })}
+          orientation={direction === "horizontal" ? "vertical" : "horizontal"}
           flexItem
         />
       )}

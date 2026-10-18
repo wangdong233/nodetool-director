@@ -5,7 +5,7 @@ import { CollectionList as CollectionListType } from "./ApiTypes";
 import { trpcClient } from "../trpc/client";
 import { queryClient } from "../queryClient";
 import { useNotificationStore } from "./NotificationStore";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 interface IndexResponseData {
   path: string;

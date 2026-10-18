@@ -9,7 +9,7 @@ import { isElectron, isProduction } from "../../lib/env";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import ErrorBanner from "../support/ErrorBanner";
 import { FlexRow, FlexColumn, Text, Caption, LoadingSpinner, Chip, Box, getSpacingPx, SPACING } from "../ui_primitives";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // Note: This interface mirrors the SystemInfo type from window.d.ts
 // We use a local copy to avoid type export complexity

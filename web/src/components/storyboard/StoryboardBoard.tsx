@@ -166,7 +166,7 @@ import {
 } from "../../stores/lastModelStore";
 import { countOwnedClips } from "../../lib/assembledSequenceMerge";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // The preview mounts the timeline compositor; keep it out of the board bundle.
 const LazyStoryboardPreview = React.lazy(() => import("./StoryboardPreview"));

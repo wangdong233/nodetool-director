@@ -14,7 +14,7 @@ import {
 } from "../ui_primitives";
 import useAssets from "../../serverState/useAssets";
 import { ContextMenuProvider } from "../../providers/ContextMenuProvider";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 // AssetGrid sizes itself for the narrow left panel (a top margin and a

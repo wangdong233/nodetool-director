@@ -9,7 +9,7 @@
 import { forwardRef } from "react";
 import { Alert, AlertTitle, AlertProps as MuiAlertProps } from "@mui/material";
 import { BORDER_RADIUS } from "./tokens";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export interface AlertBannerProps extends Omit<MuiAlertProps, 'variant'> {
   /** Alert title (optional) */

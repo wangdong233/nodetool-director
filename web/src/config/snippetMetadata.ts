@@ -19,7 +19,7 @@ import {
   inferOutputKeysFromCode,
   inferInputKeysFromCode
 } from "../utils/codeOutputInference";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 export const SNIPPET_NODE_PREFIX = "nodetool.";
 

@@ -35,8 +35,9 @@ import type { Workflow } from "../../../stores/ApiTypes";
 import ReportBugButton from "../../support/ReportBugButton";
 import { WorkflowExamplePicker } from "./ExamplePicker";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../../i18n";
 
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 export interface WorkflowIdeaStepProps {
   workflowId: string;
@@ -84,6 +85,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
   onDismissImportError
 }) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const setup = useWorkflowSetupDocument(workflowId);
   const brief = setup?.brief ?? "";
   const importInput = useRef<HTMLInputElement>(null);

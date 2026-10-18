@@ -5,7 +5,7 @@ import { trpc } from "../lib/trpc";
 import { useHfCacheStatusStore } from "./HfCacheStatusStore";
 import type { ModelScope } from "./ModelManagerStore";
 import { isNumber, isObjectLike, isString } from "../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 const DOWNLOAD_STATUSES = [
   "pending",

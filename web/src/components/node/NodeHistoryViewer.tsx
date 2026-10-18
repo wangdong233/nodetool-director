@@ -60,7 +60,7 @@ import { TextRenderer } from "./output/TextRenderer";
 import { extractTextValue } from "../../utils/extractTextValue";
 import { isString } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface NodeHistoryViewerProps {
   workflowId: string;

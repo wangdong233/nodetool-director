@@ -12,7 +12,7 @@ import { Caption, LoadingSpinner } from "../../ui_primitives";
 import { AppEvent } from "../types";
 import { getStoryboardId, ReadOnlyBoardLoader } from "./StoryboardWidget";
 import { useWidgetRuntime } from "./useWidgetRuntime";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const LazyStoryboardPreview = React.lazy(
   () => import("../../storyboard/StoryboardPreview")

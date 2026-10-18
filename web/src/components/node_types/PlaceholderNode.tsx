@@ -39,7 +39,8 @@ import {
   isString
 } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
 
 const humanizeType = (type: string) => {
   return type.replace(/([A-Z])/g, " $1").trim();
@@ -157,6 +158,7 @@ const typeForValue = (value: unknown) => {
 
 const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const placeholderStyles = useMemo(() => styles(theme), [theme]);
   const nodeType = props.type;

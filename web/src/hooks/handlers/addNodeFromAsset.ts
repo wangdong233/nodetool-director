@@ -11,7 +11,7 @@ import useMetadataStore from "../../stores/MetadataStore";
 import { useNodes } from "../../contexts/NodeContext";
 import { shallow } from "zustand/shallow";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 export const useAddNodeFromAsset = () => {
   const { addNode, createNode } = useNodes((state) => ({
     addNode: state.addNode,

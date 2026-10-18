@@ -32,7 +32,7 @@ import { useAuth } from "../../stores/useAuth";
 import NewProjectDialog from "./NewProjectDialog";
 import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const selectorStyles = (theme: Theme, inline: boolean, mobile: boolean) =>
   css({

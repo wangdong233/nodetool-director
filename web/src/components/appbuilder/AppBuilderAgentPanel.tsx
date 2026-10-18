@@ -170,7 +170,7 @@ const AppBuilderAgentPanel: React.FC<AppBuilderAgentPanelProps> = ({
 
   const viewStatus: ChatViewStatus =
     runtime.status === "idle" || runtime.status === "stopping"
-      ? t("editor:bottom.stateConnected", { defaultValue: "connected" }) : runtime.status;
+      ? "connected" : runtime.status;
 
   return (
     <FlexColumn

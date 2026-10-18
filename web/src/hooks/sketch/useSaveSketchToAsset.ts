@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { useSketchCanvasRefStore } from "../../stores/sketch/SketchCanvasRefStore";
 import { useAssetStore } from "../../stores/AssetStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * Flatten the live sketch composite and write it into an image asset.

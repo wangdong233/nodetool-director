@@ -25,7 +25,7 @@ import type { LanguageModelValue } from "../../../stores/ApiTypes";
 import { SetupFooterField } from "../SetupFooterField";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 import {
   STORYBOARD_GENRES,

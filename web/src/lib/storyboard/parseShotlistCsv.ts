@@ -25,7 +25,7 @@ import {
   LENS_OPTIONS,
   MOVEMENT_OPTIONS
 } from "../../components/storyboard/cameraOptions";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Without these two a row describes nothing (PRD § 7.7.8). */
 export const REQUIRED_COLUMNS = ["scene", "description"] as const;

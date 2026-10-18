@@ -3,7 +3,7 @@ import { StateIconButton, BORDER_RADIUS } from "../ui_primitives";
 import ColorizeIcon from "@mui/icons-material/Colorize";
 import type { Theme } from "@mui/material/styles";
 import { isEyeDropperSupported } from "./EyedropperButton.helpers";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface EyedropperButtonProps {
   onColorPicked: (color: string) => void;

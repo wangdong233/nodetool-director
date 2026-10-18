@@ -2,7 +2,7 @@ import { useMemo, useRef } from "react";
 import type { Entity } from "@nodetool-ai/protocol";
 
 import { trpc } from "../trpc/client";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 export type DocumentTreeLeafType =
   | "workflow"

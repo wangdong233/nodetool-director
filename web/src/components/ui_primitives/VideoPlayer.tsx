@@ -33,7 +33,7 @@ import {
   type MediaLocator
 } from "../../hooks/useResolvedMediaUri";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface FullscreenVideoElement extends HTMLVideoElement {

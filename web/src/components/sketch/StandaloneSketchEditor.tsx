@@ -59,7 +59,7 @@ import {
 import { useSaveSketchDocument } from "../../hooks/sketch/useSaveSketchDocument";
 import { useSaveSketchAsAsset } from "../../hooks/sketch/useSaveSketchAsAsset";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const containerStyles = (theme: Theme) =>
   css({

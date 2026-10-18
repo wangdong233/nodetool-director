@@ -25,7 +25,7 @@ import {
 import { AskRunAgentButton } from "../runs/AskRunAgentButton";
 import ReportBugButton from "../support/ReportBugButton";
 import { StoredRunActivity } from "./puck/AgentActivityWidget";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface AppRunHistoryProps {
   instanceId: string;

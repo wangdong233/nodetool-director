@@ -28,7 +28,7 @@ import {
   TextInput
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface AppInstanceManagerProps {
   applicationId: string;

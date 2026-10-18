@@ -20,7 +20,7 @@ import { gameSchemaFields, schemaVariant } from "../../inspector/schemaForm";
 
 import { parentCandidates, reparentTransform } from "../../viewport2d/viewportGeometry";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 
 interface GameInspectorProps {
   document: GameDocument;
@@ -187,7 +187,7 @@ export default function GameInspector({ document, activeSceneId, selectedIds, is
             onChange={(value) => setEffects(effects.map((entry, position) => position === index ? value as GameRenderEffect : entry))} />
         </FieldGroup>)}
         <InspectorFieldRow label={i18n.t("game:inspector.hudEffectOrder", { defaultValue: "HUD effect order" })}><InspectorSelect grow label={i18n.t("game:inspector.hudEffectOrder", { defaultValue: "HUD effect order" })} value={document.hudEffectOrder ?? "beforeEffects"}
-          options={[{ value: "beforeEffects", label: "Before effects", labelKey: "game:inspector.beforeEffects" }, { value: "afterEffects", label: "After effects", labelKey: "game:inspector.afterEffects" }]}
+          options={[{ value: "beforeEffects", label: "Before effects", labelKey: "game:inspector.beforeEffects" }, { value: "afterEffects", label: "After effects", }]}
           onChange={(value) => setEffects(effects, value as GameDocument["hudEffectOrder"])} /></InspectorFieldRow>
         <InspectorAddMenu label={i18n.t("timeline:attrs.addEffect", { defaultValue: "Add effect" })} disabled={effects.length >= 8}
           options={EFFECTS.map((kind) => ({ value: kind, label: displayKind(kind), disabled: kind === "lut" && !lutReady }))}
@@ -270,7 +270,7 @@ export default function GameInspector({ document, activeSceneId, selectedIds, is
       <SchemaFields schema={SCENE_SCHEMA.properties?.name ?? { type: "string" }} value={scene.name} path="Name"
         issuePath={[...scenePath, "name"]} issues={issues}
         onChange={(value) => onOps([{ op: "update_scene", scene_id: scene.id, set: { name: String(value) } }])} />
-      <InspectorSection title={i18n.t("editor:ui.music", { defaultValue: "Music" })} action={scene.music ? { icon: <CloseIcon />, label: "Remove music", labelKey: "game:inspector.removeMusic",
+      <InspectorSection title={"Music"} action={scene.music ? { icon: <CloseIcon />, label: "Remove music",
         onClick: () => onOps([{ op: "update_scene", scene_id: scene.id, set: { music: null } }]) } : undefined}>
         {scene.music ? <SchemaFields schema={SCENE_SCHEMA.properties?.music ?? { type: "object" }} value={scene.music} path="music" issuePath={[...scenePath, "music"]}
           issues={issues} assets={document.assets} onChange={(value) => onOps([{ op: "update_scene", scene_id: scene.id, set: { music: value as typeof scene.music } }])} />
@@ -279,7 +279,7 @@ export default function GameInspector({ document, activeSceneId, selectedIds, is
             if (assetId) onOps([{ op: "update_scene", scene_id: scene.id, set: { music: { assetId, volume: 1, fadeInTicks: 0, fadeOutTicks: 0 } } }]);
           }}>{i18n.t("game:inspector.addMusic", { defaultValue: "Add music" })}</AddButton>}
       </InspectorSection>
-      <InspectorSection title={i18n.t("timeline:attrs.lighting", { defaultValue: "Lighting" })} action={scene.lighting ? { icon: <CloseIcon />, label: "Remove lighting", labelKey: "game:inspector.removeLighting",
+      <InspectorSection title={"Lighting"} action={scene.lighting ? { icon: <CloseIcon />, label: "Remove lighting",
         onClick: () => onOps([{ op: "set_lighting", scene_id: scene.id, lighting: null }]) } : undefined}>
         {scene.lighting ? <>
           <SchemaFields schema={SCENE_SCHEMA.properties?.lighting?.properties?.ambient ?? { type: "object" }} value={scene.lighting.ambient} path="lighting.ambient"

@@ -50,7 +50,7 @@ import {
 } from "../../ui_primitives";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const TILE_PX = 56;
 

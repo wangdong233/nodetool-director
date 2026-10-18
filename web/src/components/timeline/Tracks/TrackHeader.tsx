@@ -76,7 +76,7 @@ import type { LongPressPoint } from "../../../hooks/timeline/useLongPress";
 import { trackRowHeightPx } from "./trackHeight";
 import { useTimelineLayoutStore } from "../../../stores/timeline/TimelineLayoutStore";
 import { trackTypeMeta, trackTypeAccent } from "./trackVisuals";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 export const TRACK_HEADER_WIDTH_PX = DEFAULT_TRACK_HEADER_WIDTH_PX;
 /**
  * Phone header width. 192px is half a 390px viewport — the lanes get less room

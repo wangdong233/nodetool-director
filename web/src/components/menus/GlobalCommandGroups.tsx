@@ -48,7 +48,8 @@ import {
 } from "../../utils/applicationBundle";
 import type { Workflow, WorkflowList } from "../../stores/ApiTypes";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { useAppLanguage } from "../../i18n";
+import { i18n } from "../../i18n";
 
 const WORKSPACE_PATH = "/workspace";
 
@@ -202,6 +203,7 @@ const NavigateCommands = memo(function NavigateCommands() {
 /** Every project, so switching projects does not need the tab bar. */
 const ProjectCommands = memo(function ProjectCommands() {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const { data: projects } = useProjects();
   const activeProjectId = useWorkspaceTabsStore(
     (state) => state.activeProjectId

@@ -31,7 +31,7 @@ import { useTranslation } from "react-i18next";
 
 type Channel = "red" | "green" | "blue" | "alpha" | "luminance";
 
-const CHANNELS: ReadonlyArray<{ value: Channel; short: string; label: string }> = [
+const CHANNELS: ReadonlyArray<{ value: Channel; short: string; label: string; labelKey?: string; }> = [
   { value: "red", short: "R", label: "Red", labelKey: "sketch:attrs.redChannel" },
   { value: "green", short: "G", label: "Green", labelKey: "sketch:attrs.greenChannel" },
   { value: "blue", short: "B", label: "Blue", labelKey: "sketch:attrs.blueChannel" },

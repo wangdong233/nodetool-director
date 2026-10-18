@@ -28,7 +28,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { newDocumentId } from "../../lib/newDocumentId";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.

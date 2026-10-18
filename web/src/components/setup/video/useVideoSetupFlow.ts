@@ -172,6 +172,7 @@ export const useVideoSetupFlow = ({
   onFinish,
   onStartFromScript
 }: VideoSetupFlowOptions = {}): SetupFlowConfig<TimelineSetupStage> => {
+  const { version: languageVersion } = useAppLanguage();
   const stage = useVideoSetupStage();
   const [reviewError, setReviewError] = useState<string>();
   const [contextError, setContextError] = useState<string>();

@@ -73,7 +73,7 @@ import {
 import { codeHighlightTheme } from "../textEditor/codeHighlightTheme";
 import { codeHighlightTokenStyles } from "../textEditor/codeHighlightStyles";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const initialConfigTemplate = {
   namespace: "TextEditorModal",
@@ -1564,7 +1564,7 @@ const TextEditorModal = ({
                       status={
                         runtime.status === "idle" ||
                         runtime.status === "stopping"
-                          ? t("editor:bottom.stateConnected", { defaultValue: "connected" }) : runtime.status
+                          ? "connected" : runtime.status
                       }
                       progress={runtime.progress.current}
                       total={runtime.progress.total}

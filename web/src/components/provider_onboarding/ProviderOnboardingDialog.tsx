@@ -16,7 +16,7 @@ import ollamaIcon from "../../icons/providers/ollama.svg";
 import ProviderOnboardingCard from "./ProviderOnboardingCard";
 import { CAPABILITY_LABELS, providersForCapability } from "./providerOnboardingCatalog";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const ProviderOnboardingDialog: React.FC = () => {
   const { t } = useTranslation();

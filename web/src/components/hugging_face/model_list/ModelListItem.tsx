@@ -32,7 +32,7 @@ import ModelCompatibilityDialog from "./ModelCompatibilityDialog";
 import { classifyModelFit, estimateRequiredGb } from "./modelFit";
 import type { FitLevel } from "../onboarding/onboardingCatalog";
 import { executionForDisplay } from "../../../utils/modelNormalization";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 const IMPORTANT_TAGS = new Set(["gguf", "mlx"]);
 

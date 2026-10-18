@@ -30,7 +30,7 @@ import {
   useCreateFormatAdaptation
 } from "../../hooks/timeline/useCreateFormatAdaptation";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const FORMAT_OPTIONS = [
   { value: "9:16", label: "9:16", dimensions: "1080 × 1920" },

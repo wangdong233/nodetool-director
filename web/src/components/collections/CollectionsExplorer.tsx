@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
 import { PageLayout, ICON_SIZE } from "../ui_primitives";
 import CollectionList from "./CollectionList";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * Full-screen Collections page. Reachable from the logo menu; wraps the

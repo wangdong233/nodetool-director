@@ -28,7 +28,7 @@ import type {
   TokenPolicy
 } from "../../hooks/useWorkers";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 // The secrets each provider's API needs before a worker can be provisioned.
 // Verda authenticates with an OAuth2 client id AND secret, so this is a list.

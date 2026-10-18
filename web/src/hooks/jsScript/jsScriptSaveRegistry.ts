@@ -13,7 +13,7 @@
  */
 
 import { getErrorMessage } from "../../utils/errorHandling";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export type JsScriptSaveResult =
   /** `updatedAt` is null when no server sync is registered for the script. */

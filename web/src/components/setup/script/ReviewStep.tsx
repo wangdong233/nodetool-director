@@ -68,7 +68,7 @@ import { readScriptSource } from "../../../lib/script/importedScript";
 import { GenerationEstimateLine } from "../GenerationSummary";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 /** A duration as the review states it: seconds under a minute, else m:ss. */
 const spokenLength = (seconds: number): string => {

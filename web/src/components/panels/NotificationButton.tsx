@@ -9,7 +9,7 @@ import { useTheme } from "@mui/material/styles";
 import { CopyButton, Text, Caption, CountBadge, ToolbarIconButton, Box, MOTION, BORDER_RADIUS, SHADOW } from "../ui_primitives";
 import { useShallow } from "zustand/react/shallow";
 import ReportBugButton from "../support/ReportBugButton";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const popoverStyles = css({
   paddingRight: "4em",

@@ -70,7 +70,7 @@ import { REVIEW_BLOCK, REVIEW_CONTENT_WIDTH } from "../reviewStyles";
 import type { PlanReviewSection } from "../PlanReview";
 import { MODEL_ROLE_ONBOARDING } from "./modelRoles";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../i18n";
 
 export interface WorkflowReviewStepProps {
   plan: WorkflowSetupPlan;

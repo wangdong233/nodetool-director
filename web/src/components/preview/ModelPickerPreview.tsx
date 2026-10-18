@@ -16,7 +16,7 @@ import {
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
 import type { ModelExecutionAvailability } from "@nodetool-ai/protocol";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const API: ModelExecutionAvailability = {
   kind: "api",

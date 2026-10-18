@@ -1,6 +1,6 @@
 import type { Asset, ProviderCost } from "../stores/ApiTypes";
 import { isRecord, isString } from "./typePredicates";
-import { i18n } from "../../i18n";
+import { i18n } from "../i18n";
 
 /**
  * The `{ type, uri, … }` record the preview components render — the same shape
@@ -365,7 +365,7 @@ export const groupByRun = (generations: Generation[]): RunGroup[] => {
     const hasRunning = variants.some((v) => v.status === "running");
     const hasError = variants.some((v) => v.status === "error");
     const status: RunGroup["status"] = hasRunning
-      ? i18n.t("setup:workflow.pill_running", { defaultValue: "running" }) : hasError
+      ? "running" : hasError
         ? "error"
         : "completed";
     return {

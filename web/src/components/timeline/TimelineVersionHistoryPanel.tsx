@@ -50,8 +50,9 @@ import {
   PanelHeader
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../i18n";
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 const SAVE_TYPE_LABEL = {
   manual: "Manual",
@@ -169,6 +170,7 @@ export const TimelineVersionHistoryPanel: React.FC<
   TimelineVersionHistoryPanelProps
 > = ({ sequenceId }) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const store = useTimelineStoreApi();
   const {

@@ -33,9 +33,11 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import { useEntityLibraryStore } from "../../stores/EntityLibraryStore";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../i18n";
 
 const EntityLibraryInternal: React.FC = () => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const projectId =
     useWorkspaceTabsStore((state) => state.activeProjectId) ?? LOOSE_PROJECT_ID;
   const { data: entities, isLoading } = useEntities();

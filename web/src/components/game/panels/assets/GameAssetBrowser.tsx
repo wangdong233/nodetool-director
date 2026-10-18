@@ -17,7 +17,7 @@ import { AutoGrid, BORDER_RADIUS, Box, Caption, Chip, CONTROL, Dialog, Divider, 
 import GameAssetThumbnail from "./GameAssetThumbnail";
 import { GAME_ASSET_KIND_FILTERS, candidatesForSlot, panelGenerationKind, shortDigest, type GameAssetBrowserTab,
   type GameAssetPanelGenerationKind, type GameAssetSource } from "./gameAssetBrowserModel";
-import { i18n } from "../../../../../i18n";
+import { i18n } from "../../../../i18n";
 import { useTranslation } from "react-i18next";
 
 export interface GameAssetBrowserProps {

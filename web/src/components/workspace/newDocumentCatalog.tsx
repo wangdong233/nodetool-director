@@ -41,7 +41,7 @@ import {
   type WorkspaceTabType
 } from "../../stores/WorkspaceTabsStore";
 import { newDocumentId } from "../../lib/newDocumentId";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 /** Render a blank white PNG to seed a "New sketch" canvas asset. */
 const createBlankImageFile = (): Promise<File> =>

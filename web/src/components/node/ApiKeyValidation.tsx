@@ -4,7 +4,7 @@ import { useApiKeyValidation } from "../../hooks/useApiKeyValidation";
 import { getRequiredSecretKeyForNamespace } from "../../utils/nodeProvider";
 import { openProviderOnboarding } from "../../stores/ProviderOnboardingStore";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface ApiKeyValidationProps {

@@ -42,7 +42,7 @@ import {
   type LoadedModules
 } from "./browserRunnerCore";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 export { collectNodeClasses };
 export type { BrowserGraphJobOptions, BrowserGraphJobResult };

@@ -2,7 +2,7 @@ import { memo, useCallback } from "react";
 import type { Ref } from "react";
 
 import { SearchInput } from "../ui_primitives";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../i18n";
 
 interface CategorySearchBarProps {
   value: string;
