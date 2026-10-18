@@ -32,8 +32,10 @@ import {
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
 import { useEntityLibraryStore } from "../../stores/EntityLibraryStore";
+import { useTranslation } from "react-i18next";
 
 const EntityLibraryInternal: React.FC = () => {
+  const { t } = useTranslation();
   const projectId =
     useWorkspaceTabsStore((state) => state.activeProjectId) ?? LOOSE_PROJECT_ID;
   const { data: entities, isLoading } = useEntities();
@@ -108,9 +110,9 @@ const EntityLibraryInternal: React.FC = () => {
       return (
         <EmptyState
           variant="empty"
-          title="No entities yet"
+          title={t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
           description="Tag an image as a character, location, style, or prop to reuse it across shots. In the Library, right-click an image and choose Use as entity."
-          actionText="Add entity"
+          actionText={t("editor:ui.addEntity", { defaultValue: "Add entity" })}
           onAction={handleAdd}
         />
       );
@@ -159,8 +161,8 @@ const EntityLibraryInternal: React.FC = () => {
     <FlexColumn gap={SPACING.md} sx={{ p: 2, width: "100%" }}>
       <FlexRow align="center" justify="space-between">
         <FlexColumn gap={0}>
-          <Text size="big">Entities</Text>
-          <Caption>Reusable characters, locations, styles, and props</Caption>
+          <Text size="big">{t("nav:rail.entities", { defaultValue: "Entities" })}</Text>
+          <Caption>{t("nav:qa.entities.description", { defaultValue: "Reusable characters, locations, styles, and props" })}</Caption>
         </FlexColumn>
         <EditorButton
           variant="contained"

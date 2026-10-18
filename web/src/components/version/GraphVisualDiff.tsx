@@ -8,6 +8,7 @@ import { useTheme } from "@mui/material/styles";
 import { GraphDiff } from "../../utils/graphDiff";
 import { Graph, Node } from "../../stores/ApiTypes";
 import { Caption, FlexColumn, FlexRow, Surface, Tooltip, StatusDot, EmptyState } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface GraphVisualDiffProps {
   diff: GraphDiff;
@@ -108,6 +109,7 @@ export const GraphVisualDiff: React.FC<GraphVisualDiffProps> = ({
   width = 280,
   height = 180
 }) => {
+  const { t } = useTranslation("editor");
   const theme = useTheme();
 
   const nodePositions = useMemo(() => {
@@ -231,7 +233,7 @@ export const GraphVisualDiff: React.FC<GraphVisualDiffProps> = ({
           align="center"
           justify="center"
         >
-          <EmptyState variant="no-data" size="small" title="No changes to display" />
+          <EmptyState variant="no-data" size="small" title={t("editor:ui.noChangesToDisplay", { defaultValue: "No changes to display" })} />
         </FlexColumn>
       </Surface>
     );

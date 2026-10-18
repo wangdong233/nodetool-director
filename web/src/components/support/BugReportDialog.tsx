@@ -53,6 +53,7 @@ import {
   type BundleFile,
   type BundleSection
 } from "../../utils/bugReportBundle";
+import { useTranslation } from "react-i18next";
 
 const GITHUB_ISSUE_URL = "https://github.com/nodetool-ai/nodetool/issues/new";
 
@@ -77,6 +78,7 @@ interface BugReportDialogProps {
 }
 
 const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
+  const { t } = useTranslation();
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState("");
   const [expected, setExpected] = useState("");
@@ -326,7 +328,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         className="bug-report-dialog"
         open
         onClose={onClose}
-        title="Report sent"
+        title={t("editor:ui.reportSent", { defaultValue: "Report sent" })}
         maxWidth="sm"
         fullWidth
       >
@@ -343,7 +345,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         className="bug-report-dialog"
         open
         onClose={onClose}
-        title="Report saved"
+        title={t("editor:ui.reportSaved", { defaultValue: "Report saved" })}
         maxWidth="sm"
         fullWidth
         onConfirm={handleOpenIssue}
@@ -368,11 +370,11 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
       className="bug-report-dialog"
       open
       onClose={onClose}
-      title="Report a bug"
+      title={t("common:action.reportBug", { defaultValue: "Report a bug" })}
       maxWidth="md"
       fullWidth
       onConfirm={() => void handleSaveBundle()}
-      confirmText={SUBMIT_TO_BACKEND ? "Send report" : "Save report bundle"}
+      confirmText={SUBMIT_TO_BACKEND ? t("editor:ui.sendReport", { defaultValue: "Send report" }) : "Save report bundle"}
       confirmDisabled={description.trim() === ""}
       isLoading={busy}
     >
@@ -386,17 +388,17 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         <Caption>Reported from: {sourceLabel(context.source)}</Caption>
 
         <TextInput
-          label="What went wrong?"
+          label={t("editor:ui.whatWentWrong", { defaultValue: "What went wrong?" })}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           multiline
           minRows={3}
           fullWidth
           autoFocus
-          placeholder="Describe the problem in a sentence or two."
+          placeholder={t("editor:ui.describeTheProblemInASentenceOrTwo", { defaultValue: "Describe the problem in a sentence or two." })}
         />
         <TextInput
-          label="Steps to reproduce"
+          label={t("editor:ui.stepsToReproduce", { defaultValue: "Steps to reproduce" })}
           value={steps}
           onChange={(event) => setSteps(event.target.value)}
           multiline
@@ -405,7 +407,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
           placeholder={"1. Open …\n2. Add a … node\n3. Run the workflow"}
         />
         <TextInput
-          label="What did you expect?"
+          label={t("editor:ui.whatDidYouExpect", { defaultValue: "What did you expect?" })}
           value={expected}
           onChange={(event) => setExpected(event.target.value)}
           multiline
@@ -416,12 +418,12 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         <FlexColumn gap={SPACING.sm}>
           <SectionHeader
             size="small"
-            title="Attached data"
+            title={t("ui2:attrs.attachedData", { defaultValue: "Attached data" })}
             subtitle="API keys and inlined media are removed before the file is written. Open any file to read it first."
           />
 
           {allSections.length === 0 ? (
-            <Caption>Nothing was captured to attach to this report.</Caption>
+            <Caption>{t("editor:ui.nothingWasCapturedToAttachToThisReport", { defaultValue: "Nothing was captured to attach to this report." })}</Caption>
           ) : (
             allSections.map((section) => (
               <FlexColumn
@@ -489,12 +491,12 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         <FlexColumn gap={SPACING.sm}>
           <SectionHeader
             size="small"
-            title="Screenshots and other files"
+            title={t("ui2:attrs.screenshotsAndOtherFiles", { defaultValue: "Screenshots and other files" })}
             subtitle="A screenshot of the broken screen is the most useful thing you can add."
           />
           <UploadButton
             label="Add files"
-            tooltip="Attach files to the bug report"
+            tooltip={t("editor:ui.attachFilesToTheBugReport", { defaultValue: "Attach files to the bug report" })}
             iconVariant="file"
             nodrag={false}
             onFileSelect={handleAttach}

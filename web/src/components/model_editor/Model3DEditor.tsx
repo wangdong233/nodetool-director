@@ -155,6 +155,7 @@ import {
   type ViewPreset
 } from "./ViewportHelpers";
 import { useModel3DAgentTools } from "./useModel3DAgentTools";
+import { useTranslation } from "react-i18next";
 
 type GizmoMode = "translate" | "rotate" | "scale";
 type GizmoSpace = "world" | "local";
@@ -407,6 +408,7 @@ const Model3DEditor = ({
   onReloadExternal,
   onDismissExternal
 }: Model3DEditorProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -870,7 +872,7 @@ const Model3DEditor = ({
   const renameObject = useCallback(
     (obj: THREE.Object3D, next: string) =>
       record({
-        label: "Rename",
+        label: i18n.t("common:action.rename", { defaultValue: "Rename" }),
         get: () => obj.name,
         set: (v) => {
           obj.name = v;
@@ -935,7 +937,7 @@ const Model3DEditor = ({
       node.visible = true;
     });
     pushCommand({
-      label: "Show all",
+      label: i18n.t("editor:ui.showAll", { defaultValue: "Show all" }),
       undo: () => hidden.forEach((node) => (node.visible = false)),
       redo: () => hidden.forEach((node) => (node.visible = true))
     });
@@ -1031,7 +1033,7 @@ const Model3DEditor = ({
     }
     const after = captureTransform(start.object);
     if (!transformsEqual(start.before, after)) {
-      const verb = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? "Rotate" : "Scale";
+      const verb = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? t("editor:ui.rotate", { defaultValue: "Rotate" }) : "Scale";
       pushCommand(
         transformCommand(`${verb} ${start.object.name || start.object.type}`, start.object, start.before, after)
       );
@@ -1291,7 +1293,7 @@ const Model3DEditor = ({
         : "Hold Ctrl to snap";
     }
     if (selectedObject) {
-      const tool = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? "Rotate" : "Scale";
+      const tool = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? t("editor:ui.rotate", { defaultValue: "Rotate" }) : "Scale";
       return `${tool} (${gizmoSpace}) · drag the gizmo, hold Ctrl to snap · F frame · Ctrl+D duplicate · Del delete`;
     }
     return "Click to select · drag to orbit · right-drag to pan · scroll to zoom · press ? for shortcuts";
@@ -1358,8 +1360,8 @@ const Model3DEditor = ({
             {name || "3D Model"}
           </Text>
           {isDirty && (
-            <Tooltip title="Unsaved changes">
-              <StatusDot tone="warning" label="Unsaved changes" />
+            <Tooltip title={t("ui2:attrs.unsavedChangesCapitalized", { defaultValue: "Unsaved changes" })}>
+              <StatusDot tone="warning" label={t("ui2:attrs.unsavedChangesCapitalized", { defaultValue: "Unsaved changes" })} />
             </Tooltip>
           )}
         </FlexRow>
@@ -1380,17 +1382,17 @@ const Model3DEditor = ({
           value={gizmoMode}
           onChange={(_e, value) => value && setGizmoMode(value as GizmoMode)}
         >
-          <ToggleOption value="translate" size="small" aria-label="Move tool">
+          <ToggleOption value="translate" size="small" aria-label={t("editor:ui.moveTool", { defaultValue: "Move tool" })}>
             <Tooltip title={withShortcut("Move", "translate")}>
               <OpenWithIcon fontSize="small" />
             </Tooltip>
           </ToggleOption>
-          <ToggleOption value="rotate" size="small" aria-label="Rotate tool">
+          <ToggleOption value="rotate" size="small" aria-label={t("editor:ui.rotateTool", { defaultValue: "Rotate tool" })}>
             <Tooltip title={withShortcut("Rotate", "rotate")}>
               <ThreeDRotationIcon fontSize="small" />
             </Tooltip>
           </ToggleOption>
-          <ToggleOption value="scale" size="small" aria-label="Scale tool">
+          <ToggleOption value="scale" size="small" aria-label={t("editor:ui.scaleTool", { defaultValue: "Scale tool" })}>
             <Tooltip title={withShortcut("Scale", "scale")}>
               <AspectRatioIcon fontSize="small" />
             </Tooltip>
@@ -1399,7 +1401,7 @@ const Model3DEditor = ({
         <ToolbarIconButton
           icon={gizmoSpace === "world" ? <PublicIcon fontSize="small" /> : <ControlCameraIcon fontSize="small" />}
           tooltip={withShortcut(
-            gizmoSpace === "world" ? "World space: gizmo follows the scene axes" : "Local space: gizmo follows the object",
+            gizmoSpace === "world" ? t("editor:ui.worldSpaceGizmoFollowsTheSceneAxes", { defaultValue: "World space: gizmo follows the scene axes" }) : "Local space: gizmo follows the object",
             "toggleSpace"
           )}
           onClick={actions.toggleSpace}
@@ -1418,7 +1420,7 @@ const Model3DEditor = ({
           ariaLabel="Toggle snapping"
         />
         <Divider orientation="vertical" flexItem />
-        <MenuButton label="Add" icon={<AddIcon />} tooltip="Add an object at the view center">
+        <MenuButton label={t("common:action.add", { defaultValue: "Add" })} icon={<AddIcon />} tooltip={t("editor:ui.addAnObjectAtTheViewCenter", { defaultValue: "Add an object at the view center" })}>
           {(close) =>
             ADD_MENU_GROUPS.flatMap((group, groupIndex) =>
               group.kinds.map((kind, index) => (
@@ -1442,7 +1444,7 @@ const Model3DEditor = ({
             ).concat(
               <MenuItemPrimitive
                 key="import"
-                label="Import model…"
+                label={t("editor:ui.importModel", { defaultValue: "Import model…" })}
                 dividerBefore
                 icon={<FileUploadOutlinedIcon fontSize="small" />}
                 onClick={() => {
@@ -1459,7 +1461,7 @@ const Model3DEditor = ({
           accept={IMPORT_ACCEPT}
           multiple
           hidden
-          aria-label="Import model file"
+          aria-label={t("editor:ui.importModelFile", { defaultValue: "Import model file" })}
           onChange={(e) => {
             if (e.target.files) {
               handleImportFiles(e.target.files);
@@ -1469,7 +1471,7 @@ const Model3DEditor = ({
         />
         <ToolbarIconButton
           icon={<ContentCopyIcon fontSize="small" />}
-          tooltip="Duplicate"
+          tooltip={t("editor:ui.duplicate", { defaultValue: "Duplicate" })}
           shortcut={shortcutKeys("duplicate")}
           onClick={handleDuplicate}
           disabled={!selectedObject}
@@ -1477,7 +1479,7 @@ const Model3DEditor = ({
         />
         <ToolbarIconButton
           icon={<DeleteOutlineIcon fontSize="small" />}
-          tooltip="Delete"
+          tooltip={t("common:action.delete", { defaultValue: "Delete" })}
           shortcut={shortcutKeys("delete")}
           onClick={handleDelete}
           disabled={!selectedObject}
@@ -1486,7 +1488,7 @@ const Model3DEditor = ({
         <FlexRow sx={{ marginLeft: "auto" }} gap={SPACING.xs} align="center">
           <ToolbarIconButton
             icon={<KeyboardIcon fontSize="small" />}
-            tooltip="Keyboard shortcuts"
+            tooltip={t("editor:ui.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
           shortcut={shortcutKeys("showShortcuts")}
             onClick={actions.showShortcuts}
             size="small"
@@ -1501,7 +1503,7 @@ const Model3DEditor = ({
           />
           <ToolbarIconButton
             icon={<AutoAwesomeIcon fontSize="small" />}
-            tooltip={showAssistant ? "Hide assistant" : "Show assistant"}
+            tooltip={showAssistant ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : "Show assistant"}
             onClick={toggleAssistant}
             active={showAssistant}
             size="small"
@@ -1529,7 +1531,7 @@ const Model3DEditor = ({
               )
             }
           </MenuButton>
-          <Tooltip title={withShortcut(isDirty ? "Save changes" : "No unsaved changes", "save")}>
+          <Tooltip title={withShortcut(isDirty ? t("editor:ui.saveChanges", { defaultValue: "Save changes" }) : "No unsaved changes", "save")}>
             <span>
               <EditorButton
                 density="compact"
@@ -1538,18 +1540,18 @@ const Model3DEditor = ({
                 onClick={() => void handleSave()}
                 disabled={isSaving || !canSave}
               >
-                {isSaving ? "Saving…" : "Save"}
+                {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
               </EditorButton>
             </span>
           </Tooltip>
-          <CloseButton onClick={requestClose} tooltip="Close editor" />
+          <CloseButton onClick={requestClose} tooltip={t("editor:ui.closeEditor", { defaultValue: "Close editor" })} />
         </FlexRow>
       </FlexRow>
 
       <FlexRow className="editor-body" fullWidth>
         <FlexColumn className="side-panel left" fullHeight>
           <PanelHeader
-            title="Scene"
+            title={t("editor:ui.scene", { defaultValue: "Scene" })}
             count={`${stats.objects} ${stats.objects === 1 ? "object" : "objects"}`}
           />
           <div className="panel-body">
@@ -1642,7 +1644,7 @@ const Model3DEditor = ({
             <FlexColumn fullWidth fullHeight align="center" justify="center" gap={SPACING.md}>
               <EmptyState
                 variant="error"
-                title="This model could not be opened"
+                title={t("editor:ui.thisModelCouldNotBeOpened", { defaultValue: "This model could not be opened" })}
                 description={loadError}
               />
               <ReportBugButton context={loadErrorContext} variant="outlined" />
@@ -1756,12 +1758,9 @@ const Model3DEditor = ({
               <LoadingSpinner />
               <Text color="primary">
                 {isSaving
-                  ? "Saving…"
-                  : isImporting
-                    ? "Importing model…"
-                    : isExporting
-                      ? "Exporting…"
-                      : "Loading model…"}
+                  ? t("editor:ui.saving", { defaultValue: "Saving…" }) : isImporting
+                    ? t("editor:ui.importingModel", { defaultValue: "Importing model…" }) : isExporting
+                      ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : "Loading model…"}
               </Text>
             </FlexColumn>
           )}
@@ -1769,7 +1768,7 @@ const Model3DEditor = ({
 
         <FlexColumn className="side-panel right" fullHeight>
           <PanelHeader
-            title="Inspector"
+            title={t("editor:ui.inspector", { defaultValue: "Inspector" })}
             actions={
               selectedObject && interactive ? (
                 <FlexRow gap={SPACING.xs} align="center">
@@ -1830,7 +1829,7 @@ const Model3DEditor = ({
             ariaLabel="Resize 3D assistant"
           >
             <PanelHeader
-              title="Assistant"
+              title={t("editor:ui.assistant", { defaultValue: "Assistant" })}
               icon={<AutoAwesomeIcon />}
               onClose={() => toggleAssistant()}
               closeLabel="Hide assistant"
@@ -1868,7 +1867,7 @@ const Model3DEditor = ({
           setConfirmCloseOpen(false);
           onClose();
         }}
-        title="Discard unsaved changes?"
+        title={t("editor:ui.discardUnsavedChanges", { defaultValue: "Discard unsaved changes?" })}
         content="Closing the editor now loses the edits made since the last save."
         confirmText="Discard and close"
         cancelText="Keep editing"

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import { LoadingSpinner, TabGroup } from "../ui_primitives";
 import DashboardExampleApps from "../portal/DashboardExampleApps";
+import { useTranslation } from "react-i18next";
 
 const DashboardTemplates = lazy(() => import("../portal/DashboardTemplates"));
 const DashboardExampleStoryboards = lazy(
@@ -36,15 +37,16 @@ const EXAMPLE_TABS = [
 ];
 
 const StartExamples = ({ onBrowseAll, onMakeGame }: StartExamplesProps) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("apps");
 
   return (
-    <section aria-label="Examples">
+    <section aria-label={t("editor:ui.examples", { defaultValue: "Examples" })}>
       <TabGroup
         tabs={EXAMPLE_TABS}
         value={activeTab}
         onChange={setActiveTab}
-        aria-label="Example types"
+        aria-label={t("editor:ui.exampleTypes", { defaultValue: "Example types" })}
         size="small"
       />
       <Suspense fallback={<LoadingSpinner size="medium" text="Loading examples" />}>

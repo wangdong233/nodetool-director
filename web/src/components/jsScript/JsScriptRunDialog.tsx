@@ -28,6 +28,7 @@ import {
 } from "../appbuilder/inputProperty";
 import { workflowInputForScriptPort } from "../appbuilder/workflowIO";
 import type { JsScriptPort } from "../../stores/jsScript/JsScriptStore";
+import { useTranslation } from "react-i18next";
 
 /** What the dialog hands back: buffered values, or items staged per handle. */
 export interface JsScriptRunRequest {
@@ -128,6 +129,7 @@ const JsScriptRunDialog = ({
   onClose,
   onRun
 }: JsScriptRunDialogProps) => {
+  const { t } = useTranslation();
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [jsonDrafts, setJsonDrafts] = useState<Record<string, string>>({});
 
@@ -163,7 +165,7 @@ const JsScriptRunDialog = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Run script"
+      title={t("editor:ui.runScript", { defaultValue: "Run script" })}
       fullWidth
       maxWidth="sm"
       onConfirm={handleRun}

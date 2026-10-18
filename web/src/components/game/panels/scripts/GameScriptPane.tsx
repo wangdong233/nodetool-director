@@ -9,6 +9,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { useMonacoEditor } from "../../../../hooks/editor/useMonacoEditor";
 import { Box, Caption, CONTROL, Divider, EditorButton, FlexColumn, FlexRow, FONT_SIZE_SANS, LoadingSpinner, SPACING, ToolbarIconButton } from "../../../ui_primitives";
 import GamePanelHeader from "../../GamePanelHeader";
+import { useTranslation } from "react-i18next";
 
 interface GameScriptPaneProps {
   dimension?: "2d" | "3d";
@@ -35,6 +36,7 @@ function Notice({ tone, children }: { tone: "warning" | "error"; children: React
 
 export default function GameScriptPane({ dimension = "2d", entityId, entityName, behaviorIndex, behavior, error, onReplay, onAskAssistant, onRunTenSeconds,
   runningTenSeconds, runSummary, runEntityStats = [], onChange, onClose }: GameScriptPaneProps) {
+    const { t } = useTranslation();
   const { MonacoEditor, monacoLoadError, isMonacoLoading, loadMonacoIfNeeded } = useMonacoEditor();
   const [source, setSource] = useState(behavior.source);
   const [conflict, setConflict] = useState(false);
@@ -62,22 +64,22 @@ export default function GameScriptPane({ dimension = "2d", entityId, entityName,
   const limits = `${source.length} / 16384 characters · ${behavior.maxCommands} commands · ${behavior.maxTickMs} ms per tick`;
   return (
     <FlexColumn sx={{ flex: 1, minHeight: 0, minWidth: 0, height: "100%" }}>
-      <GamePanelHeader title="Scripts" label={`${entityName || entityId} · Script ${behaviorIndex + 1}`}
+      <GamePanelHeader title={t("editor:ui.scripts", { defaultValue: "Scripts" })} label={`${entityName || entityId} · Script ${behaviorIndex + 1}`}
         icon={<CodeIcon sx={{ fontSize: FONT_SIZE_SANS.body, color: "text.secondary" }} />}>
         {onRunTenSeconds && <EditorButton startIcon={<PlayArrowIcon fontSize="small" />} disabled={runningTenSeconds}
-          onClick={onRunTenSeconds}>{runningTenSeconds ? "Running" : "Run 10 s"}</EditorButton>}
+          onClick={onRunTenSeconds}>{runningTenSeconds ? t("editor:ui.running", { defaultValue: "Running" }) : "Run 10 s"}</EditorButton>}
         {onRunTenSeconds && <Divider orientation="vertical" flexItem sx={{ my: SPACING.sm, mx: SPACING.xs }} />}
-        <ToolbarIconButton icon={<CloseIcon fontSize="small" />} tooltip="Close" onClick={onClose} />
+        <ToolbarIconButton icon={<CloseIcon fontSize="small" />} tooltip={t("common:action.close", { defaultValue: "Close" })} onClick={onClose} />
       </GamePanelHeader>
       {conflict && <Notice tone="warning">
-        <Caption role="alert" sx={{ flex: 1, minWidth: 0 }}>The draft script changed. Your edits are not being saved until you choose a version.</Caption>
-        <EditorButton onClick={() => { sourceRef.current = behavior.source; setSource(behavior.source); setConflict(false); }}>Use draft version</EditorButton>
-        <EditorButton onClick={() => { setConflict(false); onChange(sourceRef.current); }}>Keep my version</EditorButton>
+        <Caption role="alert" sx={{ flex: 1, minWidth: 0 }}>{t("game:script.conflict", { defaultValue: "The draft script changed. Your edits are not being saved until you choose a version." })}</Caption>
+        <EditorButton onClick={() => { sourceRef.current = behavior.source; setSource(behavior.source); setConflict(false); }}>{t("game:script.useDraftVersion", { defaultValue: "Use draft version" })}</EditorButton>
+        <EditorButton onClick={() => { setConflict(false); onChange(sourceRef.current); }}>{t("game:script.keepMyVersion", { defaultValue: "Keep my version" })}</EditorButton>
       </Notice>}
       {error && <Notice tone="error">
         <Caption color="error" role="alert" sx={{ flex: 1, minWidth: 0, fontFamily: "var(--fontFamily2)" }}>Tick {error.tick}: {error.message}</Caption>
         {onReplay && error.tick > 0 && <EditorButton onClick={onReplay}>Replay to tick {error.tick - 1}</EditorButton>}
-        {onAskAssistant && <EditorButton onClick={onAskAssistant}>Ask the assistant</EditorButton>}
+        {onAskAssistant && <EditorButton onClick={onAskAssistant}>{t("game:console.askTheAssistant", { defaultValue: "Ask the assistant" })}</EditorButton>}
       </Notice>}
       <Box sx={{ position: "relative", flex: 1, minHeight: 0 }}>
         {MonacoEditor ? <MonacoEditor key={key} value={source} onChange={(value) => {

@@ -34,6 +34,7 @@ import {
 import { NO_EXAMPLE_NEEDS } from "../../utils/exampleNeeds";
 import { DashboardSectionHeader, useSectionWrap } from "./dashboardChrome";
 import ExampleNeedsPill from "./ExampleNeedsPill";
+import { useTranslation } from "react-i18next";
 
 const ExampleGamePlayView = lazy(() => import("./ExampleGamePlayView"));
 
@@ -64,6 +65,7 @@ const GameCard = memo(function GameCard({
   onInstall,
   onPlay
 }: GameCardProps) {
+  const { t } = useTranslation();
   const handleClick = useCallback(() => onInstall(game), [game, onInstall]);
   return (
     <article className="game-card">
@@ -100,7 +102,7 @@ const GameCard = memo(function GameCard({
             onClick={handleClick}
             sx={{ alignSelf: "flex-start" }}
           >
-            {installing ? "Adding game…" : "Install game"}
+            {installing ? t("editor:ui.addingGame", { defaultValue: "Adding game…" }) : "Install game"}
           </EditorButton>
         </FlexRow>
       </FlexColumn>
@@ -115,6 +117,7 @@ interface DashboardExampleGamesProps {
 }
 
 const DashboardExampleGames = ({ onMakeGame }: DashboardExampleGamesProps) => {
+  const { t } = useTranslation();
   const [playingGame, setPlayingGame] = useState<ExampleGameSummary | null>(
     null
   );
@@ -167,10 +170,10 @@ const DashboardExampleGames = ({ onMakeGame }: DashboardExampleGamesProps) => {
 
   const games = data ?? [];
   return (
-    <section css={styles(theme)} aria-label="Example games">
+    <section css={styles(theme)} aria-label={t("editor:ui.exampleGames", { defaultValue: "Example games" })}>
       <div css={sectionWrap}>
         <DashboardSectionHeader
-          title="Start from a game"
+          title={t("editor:ui.startFromAGame", { defaultValue: "Start from a game" })}
           count={`${games.length} games`}
         >
           {onMakeGame && (
@@ -217,16 +220,16 @@ const DashboardExampleGames = ({ onMakeGame }: DashboardExampleGamesProps) => {
         ) : isError ? (
           <EmptyState
             variant="error"
-            title="Couldn't load games"
-            description="Try again in a moment."
-            actionText="Retry"
+            title={t("editor:ui.couldntLoadGames", { defaultValue: "Couldn't load games" })}
+            description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })}
+            actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
             onAction={() => refetch()}
           />
         ) : games.length === 0 ? (
           <EmptyState
             variant="no-data"
-            title="No games available"
-            description="Example games will appear here when this install ships them."
+            title={t("editor:ui.noGamesAvailable", { defaultValue: "No games available" })}
+            description={t("editor:ui.exampleGamesWillAppearHereWhenThisInstallShipsThem", { defaultValue: "Example games will appear here when this install ships them." })}
             actionText={onMakeGame ? "Make a game" : undefined}
             onAction={onMakeGame}
           />

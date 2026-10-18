@@ -19,6 +19,7 @@ import {
   ListSubheader,
   MenuItemPrimitive
 } from "../../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface ClipTransformContextMenuProps {
   open: boolean;
@@ -43,6 +44,7 @@ const ClipTransformContextMenu: React.FC<ClipTransformContextMenuProps> = ({
   onFlipHorizontal,
   onFlipVertical
 }) => {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -80,7 +82,7 @@ const ClipTransformContextMenu: React.FC<ClipTransformContextMenuProps> = ({
       <ListSubheader>Transform</ListSubheader>
 
       <MenuItemPrimitive
-        label="Reset"
+        label={t("timeline:attrs.reset", { defaultValue: "Reset" })}
         icon={<RestartAltIcon />}
         shortcut="."
         onClick={run(onReset)}
@@ -89,17 +91,17 @@ const ClipTransformContextMenu: React.FC<ClipTransformContextMenuProps> = ({
       <Divider />
 
       <MenuItemPrimitive
-        label="Rotate 180°"
+        label={t("ui2:attrs.rotate180", { defaultValue: "Rotate 180°" })}
         icon={<Rotate90DegreesCwIcon />}
         onClick={run(onRotate180)}
       />
       <MenuItemPrimitive
-        label="Rotate 90° CW"
+        label={t("ui2:attrs.rotate90CW", { defaultValue: "Rotate 90° CW" })}
         icon={<RotateRightIcon />}
         onClick={run(onRotate90CW)}
       />
       <MenuItemPrimitive
-        label="Rotate 90° CCW"
+        label={t("ui2:attrs.rotate90CCW", { defaultValue: "Rotate 90° CCW" })}
         icon={<RotateLeftIcon />}
         onClick={run(onRotate90CCW)}
       />
@@ -107,12 +109,12 @@ const ClipTransformContextMenu: React.FC<ClipTransformContextMenuProps> = ({
       <Divider />
 
       <MenuItemPrimitive
-        label="Flip horizontal"
+        label={t("storyboard:attrs.flipHorizontal", { defaultValue: "Flip horizontal" })}
         icon={<FlipIcon />}
         onClick={run(onFlipHorizontal)}
       />
       <MenuItemPrimitive
-        label="Flip vertical"
+        label={t("ui2:attrs.flipVertical", { defaultValue: "Flip vertical" })}
         icon={<FlipIcon sx={{ transform: "rotate(90deg)" }} />}
         onClick={run(onFlipVertical)}
       />

@@ -3,6 +3,7 @@ import { trpc } from "../../trpc/client";
 import { GamePlayer } from "../game/GamePlayerPage";
 import { EmptyState, LoadingSpinner } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
+import { useTranslation } from "react-i18next";
 
 const Player3D = lazy(() => import("../game/GamePlayer3D"));
 
@@ -14,6 +15,7 @@ interface ExampleGamePlayViewProps {
 export default function ExampleGamePlayView({
   slug
 }: ExampleGamePlayViewProps) {
+  const { t } = useTranslation();
   const query = trpc.games.example.useQuery(
     { slug },
     { staleTime: Infinity, retry: false }
@@ -25,8 +27,8 @@ export default function ExampleGamePlayView({
     return (
       <EmptyState
         variant="error"
-        title="Could not load game"
-        actionText="Retry"
+        title={t("editor:ui.couldNotLoadGame", { defaultValue: "Could not load game" })}
+        actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
         onAction={() => void query.refetch()}
         description={
           <ReportBugButton

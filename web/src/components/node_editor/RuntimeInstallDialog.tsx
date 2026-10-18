@@ -35,6 +35,7 @@ import {
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
 import { createErrorMessage } from "../../utils/errorHandling";
 import type { MissingRuntime } from "../../hooks/useWorkflowRuntimeCheck";
+import { useTranslation } from "react-i18next";
 
 type RuntimeStatus = "pending" | "installing" | "installed" | "failed";
 
@@ -107,6 +108,7 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
   open,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const openPackageManager = useOpenPackageManager();
   const [installing, setInstalling] = useState(false);
@@ -175,16 +177,14 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
   const confirmText = allInstalled
     ? "Done"
     : installing
-      ? "Installing…"
-      : failedCount > 0
-        ? "Retry"
-        : "Install all";
+      ? t("editor:ui.installing", { defaultValue: "Installing…" }) : failedCount > 0
+        ? t("editor:explorer.retry", { defaultValue: "Retry" }) : "Install all";
 
   return (
     <Dialog
       open={open}
       onClose={handleDialogClose}
-      title="Install required runtimes"
+      title={t("editor:ui.installRequiredRuntimes", { defaultValue: "Install required runtimes" })}
       maxWidth="xs"
       fullWidth
       onConfirm={allInstalled ? onClose : handleInstall}
@@ -260,6 +260,7 @@ interface RuntimeRowProps {
 }
 
 const RuntimeRow: React.FC<RuntimeRowProps> = ({ name, status, error }) => {
+  const { t } = useTranslation();
   return (
     <FlexRow
       gap={SPACING.xs}
@@ -308,7 +309,7 @@ const RuntimeRow: React.FC<RuntimeRowProps> = ({ name, status, error }) => {
         compact
         color={STATUS_COLOR[status]}
         active={status !== "pending"}
-        label={error ? "Failed" : STATUS_LABEL[status]}
+        label={error ? t("editor:ui.failed", { defaultValue: "Failed" }) : STATUS_LABEL[status]}
       />
     </FlexRow>
   );

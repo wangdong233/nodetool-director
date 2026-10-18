@@ -26,8 +26,10 @@ import {
 } from "../../utils/fileExplorer";
 import { isLocalhost, isProduction } from "../../lib/env";
 import { isElectron } from "../../utils/browser";
+import { useTranslation } from "react-i18next";
 
 const DownloadManagerDialog: React.FC = () => {
+  const { t } = useTranslation();
   const { isDialogOpen, closeDialog, downloads } = useModelDownloadStore(
     useShallow((state) => ({
       isDialogOpen: state.isDialogOpen,
@@ -46,11 +48,11 @@ const DownloadManagerDialog: React.FC = () => {
   ) : (
     <FlexColumn gap={SPACING.xs}>
       <span>
-        Download models using the <strong>Recommended models</strong> button
+        Download models using the <strong>{t("ui2:attrs.recommendedModels", { defaultValue: "Recommended models" })}</strong> button
         inside nodes.
       </span>
       <span>
-        The <strong>Model manager</strong> in the top right panel shows all
+        The <strong>{t("ui2:attrs.modelManager", { defaultValue: "Model manager" })}</strong> in the top right panel shows all
         available models.
       </span>
     </FlexColumn>
@@ -61,7 +63,7 @@ const DownloadManagerDialog: React.FC = () => {
       className="download-dialog"
       open={isDialogOpen}
       onClose={closeDialog}
-      title="Downloads"
+      title={t("nav:rail.downloads", { defaultValue: "Downloads" })}
       maxWidth="md"
       fullWidth
     >
@@ -75,7 +77,7 @@ const DownloadManagerDialog: React.FC = () => {
         ) : (
           <EmptyState
             icon={<DownloadingIcon />}
-            title="No active downloads"
+            title={t("ui2:attrs.noActiveDownloads", { defaultValue: "No active downloads" })}
             description="Start a model download from the Recommended Models dialog or Model Manager."
           />
         )}

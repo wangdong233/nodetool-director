@@ -75,28 +75,28 @@ export interface EmptyStateProps {
 const defaultContent = {
   empty: {
     icon: <InboxIcon className="empty-icon" />,
-    title: "Nothing here yet",
-    description: "Get started by creating your first item."
+    title: "Nothing here yet", titleKey: "editor:ui.nothingHereYet",
+    description: "Get started by creating your first item.", descriptionKey: "editor:ui.getStartedByCreatingFirstItem",
   },
   "no-results": {
     icon: <SearchOffIcon className="empty-icon" />,
-    title: "No results found",
-    description: "Try adjusting your search or filters."
+    title: "No results found", titleKey: "editor:ui.noResultsFound",
+    description: "Try adjusting your search or filters.", descriptionKey: "editor:ui.tryAdjustingSearchOrFilters",
   },
   "no-data": {
     icon: <FolderOffIcon className="empty-icon" />,
-    title: "No data available",
-    description: "Data will appear here when available."
+    title: "No data available", titleKey: "editor:ui.noDataAvailable",
+    description: "Data will appear here when available.", descriptionKey: "editor:ui.dataWillAppearWhenAvailable",
   },
   offline: {
     icon: <CloudOffIcon className="empty-icon" />,
-    title: "You're offline",
-    description: "Check your internet connection and try again."
+    title: "You're offline", titleKey: "editor:ui.youAreOffline",
+    description: "Check your internet connection and try again.", descriptionKey: "editor:ui.checkInternetAndRetry",
   },
   error: {
     icon: <ErrorOutlineIcon className="empty-icon" />,
-    title: "Something went wrong",
-    description: "An error occurred. Please try again."
+    title: "Something went wrong", titleKey: "editor:ui.somethingWentWrong",
+    description: "An error occurred. Please try again.", descriptionKey: "editor:explorer.errorGeneric",
   }
 } satisfies Record<
   EmptyStateVariant,

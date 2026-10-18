@@ -23,6 +23,7 @@ import { isElectron } from "../../utils/browser";
 import { isLocalhost } from "../../lib/env";
 import { NavButton, NodeTextField, ToolbarIconButton } from "../ui_primitives";
 import { SettingWithValue } from "../../stores/RemoteSettingStore";
+import { useTranslation } from "react-i18next";
 
 interface FolderButtonProps {
   label: string;
@@ -61,7 +62,7 @@ const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
   return (
     <ToolbarIconButton
       icon={<FolderOutlinedIcon fontSize="small" />}
-      tooltip="Open folder in file explorer"
+      tooltip={t("editor:ui.openFolderInFileExplorer", { defaultValue: "Open folder in file explorer" })}
       onClick={handleClick}
       sx={{ ml: 1 }}
     />
@@ -71,6 +72,7 @@ const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
 OpenFolderButton.displayName = "OpenFolderButton";
 
 const FoldersSettings = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const updateSettings = useRemoteSettingsStore((state) => state.updateSettings);
   const fetchSettings = useRemoteSettingsStore((state) => state.fetchSettings);
@@ -192,7 +194,7 @@ const FoldersSettings = () => {
         css={getSharedSettingsStyles(theme)}
       >
         <div className="settings-main-content">
-          <Text size="giant">Folder settings</Text>
+          <Text size="giant">{t("ui2:attrs.folderSettings", { defaultValue: "Folder settings" })}</Text>
 
           {canOpenSystemFolders && (
             <div className="settings-section">
@@ -204,15 +206,15 @@ const FoldersSettings = () => {
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton
-                  label="NodeTool installation"
+                  label={t("editor:ui.nodetoolInstallation", { defaultValue: "NodeTool installation" })}
                   onClick={openInstallationPath}
                 />
                 <FolderButton
-                  label="NodeTool logs"
+                  label={t("editor:ui.nodetoolLogs", { defaultValue: "NodeTool logs" })}
                   onClick={openLogsPath}
                 />
                 <FolderButton
-                  label="Assets storage"
+                  label={t("editor:ui.assetsStorage", { defaultValue: "Assets storage" })}
                   onClick={openAssetsPath}
                 />
               </FlexColumn>
@@ -229,11 +231,11 @@ const FoldersSettings = () => {
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton
-                  label="HuggingFace models"
+                  label={t("editor:ui.huggingfaceModels", { defaultValue: "HuggingFace models" })}
                   onClick={openHuggingfacePath}
                 />
                 <FolderButton
-                  label="Ollama models"
+                  label={t("editor:ui.ollamaModels", { defaultValue: "Ollama models" })}
                   onClick={openOllamaPath}
                 />
               </FlexColumn>
@@ -283,7 +285,7 @@ const FoldersSettings = () => {
               <div className="save-button-container">
                 <NavButton
                   icon={<SaveIcon />}
-                  label="SAVE FOLDER SETTINGS"
+                  label={t("editor:ui.saveFolderSettings", { defaultValue: "SAVE FOLDER SETTINGS" })}
                   onClick={handleSave}
                   color="primary"
                   className="save-button"

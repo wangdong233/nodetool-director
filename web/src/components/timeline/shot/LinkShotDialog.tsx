@@ -20,6 +20,7 @@ import { trpc } from "../../../trpc/client";
 import { useStoryboards } from "../../../hooks/storyboard/useStoryboards";
 import { useTimelineStoreApi } from "../../../stores/timeline/TimelineStore";
 import { useTimelineHistoryBatch } from "../../../stores/timeline/useTimelineHistoryBatch";
+import { useTranslation } from "react-i18next";
 
 interface LinkShotDialogProps {
   clipId: string;
@@ -32,6 +33,7 @@ const shotLabel = (shot: Shot): string =>
   }`;
 
 const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
+  const { t } = useTranslation();
   const timeline = useTimelineStoreApi();
   const history = useTimelineHistoryBatch();
   const { data: boards, isLoading: boardsLoading } = useStoryboards();
@@ -48,10 +50,8 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
       {
         value: "",
         label: boardsLoading
-          ? "Loading storyboards…"
-          : (boards?.length ?? 0) === 0
-            ? "No storyboards yet"
-            : "Choose a storyboard"
+          ? t("timeline:shot.loadingStoryboards", { defaultValue: "Loading storyboards…" }) : (boards?.length ?? 0) === 0
+            ? t("timeline:shot.noStoryboardsYet", { defaultValue: "No storyboards yet" }) : "Choose a storyboard"
       },
       ...(boards ?? []).map((item) => ({
         value: item.id,
@@ -67,7 +67,7 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
     return [
       {
         value: "",
-        label: boardId ? "Choose a shot" : "Choose a storyboard first"
+        label: boardId ? t("timeline:shot.chooseAShot", { defaultValue: "Choose a shot" }) : "Choose a storyboard first"
       },
       ...[...shots]
         .sort((a, b) => a.index - b.index)
@@ -117,7 +117,7 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
     <Dialog
       open
       onClose={onClose}
-      title="Link to a storyboard shot"
+      title={t("timeline:shot.linkToAStoryboardShot", { defaultValue: "Link to a storyboard shot" })}
       onConfirm={handleConfirm}
       confirmText="Link"
       confirmDisabled={!boardId || !shotId}
@@ -128,14 +128,14 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
           changes, the clip plays the new one.
         </Caption>
         <SelectField
-          label="Storyboard"
+          label={t("editor:ui.storyboard", { defaultValue: "Storyboard" })}
           value={boardId}
           onChange={handleBoardChange}
           options={boardOptions}
           disabled={boardsLoading}
         />
         <SelectField
-          label="Shot"
+          label={t("editor:ui.shot", { defaultValue: "Shot" })}
           value={shotId}
           onChange={setShotId}
           options={shotOptions}

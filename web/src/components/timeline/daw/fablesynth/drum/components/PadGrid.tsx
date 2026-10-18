@@ -1,12 +1,14 @@
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import { CHOKE_NAMES, OUT_NAMES, pad } from '../params';
 import { useDrumStore } from '../dr1Store';
+import { useTranslation } from "react-i18next";
 
 const PAD_ORDER = Array.from({ length: 4 }, (_, row) =>
   Array.from({ length: 4 }, (_, col) => (3 - row) * 4 + col),
 ).flat();
 
 export function PadGrid() {
+  const { t } = useTranslation("editor");
   const sel = useDrumStore((s) => s.sel);
   const padNames = useDrumStore((s) => s.padNames);
   const hitTick = useDrumStore((s) => s.hitTick);
@@ -88,7 +90,7 @@ export function PadGrid() {
         })}
       </div>
       <label className="dr-pad-output">
-        <span>OUTPUT</span>
+        <span>{t("editor:io.output", { defaultValue: "OUTPUT" })}</span>
         <select className="mod-select" aria-label="Selected pad output" value={params[pad(sel, 'out')] | 0}
           onChange={(e) => setParam(pad(sel, 'out'), Number(e.target.value))}>
           {OUT_NAMES.map((name, index) => <option key={name} value={index}>{name}</option>)}

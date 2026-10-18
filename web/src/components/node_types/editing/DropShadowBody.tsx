@@ -30,6 +30,7 @@ import {
   clamp,
   type SliderSpec
 } from "./AdjustmentSlider";
+import { useTranslation } from "react-i18next";
 
 export const DROP_SHADOW_NODE_TYPE = "lib.image.effects.DropShadow";
 
@@ -120,6 +121,7 @@ const DropShadowBodyInner: React.FC<DropShadowBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -167,7 +169,7 @@ const DropShadowBodyInner: React.FC<DropShadowBodyProps> = ({
       </div>
 
       <FlexRow className="color-row" align="center" justify="space-between">
-        <span className="color-label">Shadow color</span>
+        <span className="color-label">{t("timeline:attrs.shadowColor", { defaultValue: "Shadow color" })}</span>
         <ColorPicker
           color={shadowColor}
           onColorChange={handleColorChange}

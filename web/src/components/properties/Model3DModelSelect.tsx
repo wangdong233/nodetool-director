@@ -13,6 +13,7 @@ import {
   ListSubheader,
   MenuItemPrimitive
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 // Local type until codegen adds Model3DModel to ApiTypes
 interface Model3DModel {
@@ -65,6 +66,7 @@ const Model3DModelSelect: React.FC<Model3DModelSelectProps> = ({
   provider,
   task
 }) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const addRecent = useModelPreferencesStore((s) => s.addRecent);
@@ -173,7 +175,7 @@ const Model3DModelSelect: React.FC<Model3DModelSelectProps> = ({
       >
         {isLoading && <MenuItemPrimitive label="Loading models…" disabled />}
         {!isLoading && filteredModels.length === 0 && (
-          <MenuItemPrimitive label="No 3D models available" disabled />
+          <MenuItemPrimitive label={t("editor:ui.no3DModelsAvailable", { defaultValue: "No 3D models available" })} disabled />
         )}
         {Object.entries(modelsByProvider).flatMap(
           ([groupProvider, providerModels], index) => [
@@ -193,7 +195,7 @@ const Model3DModelSelect: React.FC<Model3DModelSelectProps> = ({
             ))
           ]
         )}
-        <MenuItemPrimitive label="Add providers" dividerBefore onClick={openSetup} />
+        <MenuItemPrimitive label={t("ui2:attrs.addProviders", { defaultValue: "Add providers" })} dividerBefore onClick={openSetup} />
       </EditorMenu>
     </>
   );

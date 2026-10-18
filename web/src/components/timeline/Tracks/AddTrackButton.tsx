@@ -78,22 +78,22 @@ interface TrackTypeOption {
 const TRACK_TYPES: TrackTypeOption[] = [
   {
     type: "video",
-    label: "Video",
+    label: "Video", labelKey: "editor:ui.video",
     icon: <VideocamOutlinedIcon fontSize="small" />
   },
   {
     type: "audio",
-    label: "Audio",
+    label: "Audio", labelKey: "timeline:attrs.audio",
     icon: <AudiotrackOutlinedIcon fontSize="small" />
   },
   {
     type: "overlay",
-    label: "Overlay",
+    label: "Overlay", labelKey: "sketch:attrs.overlay",
     icon: <LayersOutlinedIcon fontSize="small" />
   },
   {
     type: "subtitle",
-    label: "Subtitle",
+    label: "Subtitle", labelKey: "timeline:attrs.subtitle",
     icon: <SubtitlesOutlinedIcon fontSize="small" />
   },
   {

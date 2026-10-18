@@ -16,6 +16,7 @@ import {
   type GroupByKey,
   type GroupRow
 } from "./costsData";
+import { useTranslation } from "react-i18next";
 
 interface CostsTableProps {
   executions: Execution[];
@@ -315,6 +316,7 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
   executions,
   groupBy
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isExecution = groupBy === "execution";
 
@@ -338,14 +340,14 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
       <Box sx={headerSx}>
         {isExecution ? (
           <>
-            <HeaderText>Node</HeaderText>
-            <HeaderText>Workflow</HeaderText>
-            <HeaderText>Provider / model</HeaderText>
-            <HeaderText align="right">Tokens (in/out)</HeaderText>
-            <HeaderText align="right">Runtime</HeaderText>
-            <HeaderText>Status</HeaderText>
+            <HeaderText>{t("ui2:attrs.node", { defaultValue: "Node" })}</HeaderText>
+            <HeaderText>{t("home:entry.workflow.title", { defaultValue: "Workflow" })}</HeaderText>
+            <HeaderText>{t("ui2:attrs.providerModel", { defaultValue: "Provider / model" })}</HeaderText>
+            <HeaderText align="right">{t("ui2:attrs.tokensInOut", { defaultValue: "Tokens (in/out)" })}</HeaderText>
+            <HeaderText align="right">{t("ui2:attrs.runtime", { defaultValue: "Runtime" })}</HeaderText>
+            <HeaderText>{t("editor:ui.status", { defaultValue: "Status" })}</HeaderText>
             <FlexRow align="center" justify="flex-end" gap={SPACING.micro}>
-              <HeaderText align="right">When</HeaderText>
+              <HeaderText align="right">{t("ui2:attrs.when", { defaultValue: "When" })}</HeaderText>
               <ArrowDropDownIcon
                 sx={{
                   fontSize: ICON_SIZE.sm,
@@ -353,22 +355,20 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
                 }}
               />
             </FlexRow>
-            <HeaderText align="right">Cost</HeaderText>
+            <HeaderText align="right">{t("ui2:attrs.cost", { defaultValue: "Cost" })}</HeaderText>
           </>
         ) : (
           <>
             <HeaderText>
               {groupBy === "nodeType"
-                ? "Node type"
-                : groupBy === "workflow"
-                  ? "Workflow"
-                  : groupBy === "provider"
+                ? t("editor:ui.nodeType", { defaultValue: "Node type" }) : groupBy === "workflow"
+                  ? t("home:entry.workflow.title", { defaultValue: "Workflow" }) : groupBy === "provider"
                     ? "Provider"
                     : "Model"}
             </HeaderText>
-            <HeaderText align="right">Executions</HeaderText>
-            <HeaderText>Share of spend</HeaderText>
-            <HeaderText align="right">Cost</HeaderText>
+            <HeaderText align="right">{t("ui2:attrs.executions", { defaultValue: "Executions" })}</HeaderText>
+            <HeaderText>{t("ui2:attrs.shareOfSpend", { defaultValue: "Share of spend" })}</HeaderText>
+            <HeaderText align="right">{t("ui2:attrs.cost", { defaultValue: "Cost" })}</HeaderText>
           </>
         )}
       </Box>

@@ -20,6 +20,7 @@ import {
   LoadingSpinner
 } from "../ui_primitives";
 import { PROJECT_COLOR, PROJECT_GLYPH } from "../projects/projectIdentity";
+import { useTranslation } from "react-i18next";
 
 const projectGlyph = (
   <Box component="span" aria-hidden sx={{ color: PROJECT_COLOR }}>
@@ -33,6 +34,7 @@ const projectGlyph = (
  * where it is.
  */
 const AssetProjectFilter: React.FC = () => {
+  const { t } = useTranslation("editor");
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const setProjectFilter = useAssetGridStore(
     (state) => state.setProjectFilter
@@ -58,8 +60,7 @@ const AssetProjectFilter: React.FC = () => {
     scopeKey === ALL_PROJECTS
       ? "All projects"
       : isPersonalScope
-        ? "Personal"
-        : (namedProjects.find((project) => project.id === scopeKey)?.name ??
+        ? t("editor:ui.personal", { defaultValue: "Personal" }) : (namedProjects.find((project) => project.id === scopeKey)?.name ??
           "Project");
 
   const choose = useCallback(
@@ -105,7 +106,7 @@ const AssetProjectFilter: React.FC = () => {
           dividerAfter
         />
         <MenuItemPrimitive
-          label="Personal"
+          label={t("editor:ui.personal", { defaultValue: "Personal" })}
           icon={projectGlyph}
           checkable="radio"
           checked={isPersonalScope}

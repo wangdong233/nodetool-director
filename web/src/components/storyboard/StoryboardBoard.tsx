@@ -165,6 +165,7 @@ import {
   getRememberedModelForTask
 } from "../../stores/lastModelStore";
 import { countOwnedClips } from "../../lib/assembledSequenceMerge";
+import { useTranslation } from "react-i18next";
 
 // The preview mounts the timeline compositor; keep it out of the board bundle.
 const LazyStoryboardPreview = React.lazy(() => import("./StoryboardPreview"));
@@ -368,6 +369,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   assistantOpen = false,
   onToggleAssistant
 }) => {
+  const { t } = useTranslation();
   const {
     title,
     brief,
@@ -1140,7 +1142,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   const downloadingStatus = downloading && (
     <FlexRow align="center" gap={SPACING.xs} role="status">
       <LoadingSpinner inline size={16} />
-      <Caption color="secondary">Preparing ZIP…</Caption>
+      <Caption color="secondary">{t("storyboard:attrs.preparingZip", { defaultValue: "Preparing ZIP…" })}</Caption>
     </FlexRow>
   );
   const actionsMenu = (
@@ -1154,7 +1156,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   );
   const renderStillsButton = (
     <RenderBatchButton
-      label="Render stills"
+      label={t("storyboard:attrs.renderStills", { defaultValue: "Render stills" })}
       estimate={stillsCost}
       disabled={pendingStills.length === 0 || !!directing}
       highlighted={stillStepActive}
@@ -1164,7 +1166,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   );
   const renderClipsButton = (
     <RenderBatchButton
-      label="Render clips"
+      label={t("storyboard:attrs.renderClips", { defaultValue: "Render clips" })}
       estimate={clipsCost}
       disabled={pendingClips.length === 0 || !!directing}
       highlighted={clipStepActive}
@@ -1228,7 +1230,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       onClick={togglePreview}
                       disabled={!hasPlayableShot}
                     >
-                      {previewOpen ? "Hide preview" : "Preview"}
+                      {previewOpen ? t("storyboard:attrs.hidePreview", { defaultValue: "Hide preview" }) : "Preview"}
                     </EditorButton>
                     <EditorButton
                       variant={settingsVisible ? "contained" : "outlined"}
@@ -1280,7 +1282,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 {!readOnly && (
                   <ToolbarIconButton
                     icon={<AddIcon />}
-                    tooltip="Add shot"
+                    tooltip={t("storyboard:attrs.addShot", { defaultValue: "Add shot" })}
                     onClick={handleAddShot}
                     disabled={directing}
                   />
@@ -1288,14 +1290,14 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 {hasShots && (
                   <ToolbarIconButton
                     icon={<SlideshowIcon />}
-                    tooltip="Slideshow"
+                    tooltip={t("storyboard:attrs.slideshow", { defaultValue: "Slideshow" })}
                     onClick={openSlideshow}
                   />
                 )}
                 {!readOnly && (
                   <ToolbarIconButton
                     icon={<PlayCircleOutlineIcon />}
-                    tooltip={previewOpen ? "Hide preview" : "Preview"}
+                    tooltip={previewOpen ? t("storyboard:attrs.hidePreview", { defaultValue: "Hide preview" }) : "Preview"}
                     onClick={togglePreview}
                     disabled={!hasPlayableShot}
                     active={previewOpen}
@@ -1305,7 +1307,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 {!readOnly && (
                   <ToolbarIconButton
                     icon={<TuneIcon />}
-                    tooltip="Board settings"
+                    tooltip={t("storyboard:attrs.boardSettings", { defaultValue: "Board settings" })}
                     onClick={toggleSettings}
                     active={settingsVisible}
                     aria-expanded={settingsVisible}
@@ -1315,7 +1317,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 {!readOnly && (
                   <ToolbarIconButton
                     icon={<MovieOutlinedIcon />}
-                    tooltip="One take"
+                    tooltip={t("storyboard:attrs.oneTake", { defaultValue: "One take" })}
                     onClick={toggleOneTake}
                     active={oneTakeOpen}
                     aria-expanded={oneTakeOpen}
@@ -1353,37 +1355,37 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
               >
                 <FlexColumn gap={SPACING.xl}>
                   <SectionHeader
-                    title="Board settings"
+                    title={t("storyboard:attrs.boardSettings", { defaultValue: "Board settings" })}
                     size="medium"
                     action={
                       <CloseButton
-                        tooltip="Close board settings"
+                        tooltip={t("storyboard:attrs.closeBoardSettings", { defaultValue: "Close board settings" })}
                         onClick={closeSettings}
                       />
                     }
                   />
                   <FormGrid stackBelow={FORM_STACK_BELOW}>
-                    <FormSection label="Screenplay">
+                    <FormSection label={t("storyboard:attrs.screenplay", { defaultValue: "Screenplay" })}>
                       <TextInput
-                        label="Title"
+                        label={t("storyboard:attrs.title", { defaultValue: "Title" })}
                         value={title}
-                        placeholder="Untitled film"
+                        placeholder={t("storyboard:attrs.untitledFilm", { defaultValue: "Untitled film" })}
                         onChange={(e) => setTitle(boardId, e.target.value)}
                       />
                       <TextArea
-                        label="Brief"
+                        label={t("storyboard:attrs.brief", { defaultValue: "Brief" })}
                         value={brief}
-                        placeholder="Your film in one or two sentences"
+                        placeholder={t("storyboard:attrs.yourFilmInOneOrTwoSentences", { defaultValue: "Your film in one or two sentences" })}
                         onChange={(value) => setBrief(boardId, value)}
                         minRows={3}
                       />
                       <TextInput
-                        label="Style"
+                        label={t("storyboard:attrs.style", { defaultValue: "Style" })}
                         value={style}
-                        placeholder="Palette, light, lens, texture"
+                        placeholder={t("storyboard:attrs.paletteLightLensTexture", { defaultValue: "Palette, light, lens, texture" })}
                         onChange={(e) => setStyle(boardId, e.target.value)}
                       />
-                      <FormField label="Entities">
+                      <FormField label={t("storyboard:attrs.entities", { defaultValue: "Entities" })}>
                         <StoryboardEntitiesField
                           boardId={boardId}
                           entityIds={entityIds}
@@ -1392,11 +1394,11 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       </FormField>
                     </FormSection>
 
-                    <FormSection label="Direction" sx={settingsRailSx}>
+                    <FormSection label={t("storyboard:attrs.direction", { defaultValue: "Direction" })} sx={settingsRailSx}>
                       {/* The Studio shell pins the director model — a beginner
                           picks what the film looks like, not which LLM writes it. */}
                       {!inStudio && (
-                        <FormField label="Screenplay model" sx={modelFieldSx}>
+                        <FormField label={t("storyboard:attrs.screenplayModel", { defaultValue: "Screenplay model" })} sx={modelFieldSx}>
                           <LanguageModelSelect
                             value={directorModel?.id ?? ""}
                             onChange={(value) =>
@@ -1406,13 +1408,13 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                         </FormField>
                       )}
                       <SelectField
-                        label="Aspect ratio"
+                        label={t("storyboard:attrs.aspectRatio", { defaultValue: "Aspect ratio" })}
                         value={aspectRatio}
                         onChange={(value) => setAspectRatio(boardId, value)}
                         options={ASPECT_OPTIONS}
                       />
                       <SelectField
-                        label="Shots"
+                        label={t("storyboard:attrs.shots", { defaultValue: "Shots" })}
                         value={shotCount}
                         onChange={(value) => setShotCount(Number(value))}
                         options={SHOT_COUNT_OPTIONS}
@@ -1436,8 +1438,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       {directError ??
                         assembleError ??
                         (hasShots
-                          ? "Re-directing rewrites the screenplay and replaces every shot."
-                          : "Direct writes the screenplay and seeds your shots.")}
+                          ? t("storyboard:attrs.reDirectingRewritesTheScreenplayAndReplacesEveryShot", { defaultValue: "Re-directing rewrites the screenplay and replaces every shot." }) : "Direct writes the screenplay and seeds your shots.")}
                     </Caption>
                     <EditorButton
                       variant="contained"
@@ -1446,10 +1447,8 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       disabled={!onDirect || directing}
                     >
                       {directing
-                        ? "Directing…"
-                        : hasShots
-                          ? "Re-direct"
-                          : "Direct"}
+                        ? t("storyboard:attrs.directing", { defaultValue: "Directing…" }) : hasShots
+                          ? t("editor:ui.reDirect", { defaultValue: "Re-direct" }) : "Direct"}
                     </EditorButton>
                   </FlexRow>
                 </FlexColumn>
@@ -1470,7 +1469,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           <Dialog
             open={renderDialog === "stills"}
             onClose={() => setRenderDialog(null)}
-            title="Render stills"
+            title={t("storyboard:attrs.renderStills", { defaultValue: "Render stills" })}
             onConfirm={handleGenerateAllStills}
             confirmText={`Render stills${
               stillsCost.pricedRequestCount > 0 && stillsCost.cost > 0
@@ -1484,7 +1483,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 Pick the model for this batch. The choice is remembered on every
                 shot for one-click regeneration.
               </Caption>
-              <FormField label="Still model" sx={modelFieldSx}>
+              <FormField label={t("storyboard:attrs.stillModel", { defaultValue: "Still model" })} sx={modelFieldSx}>
                 <ImageModelSelect
                   value={stillSelection?.id ?? ""}
                   provider={stillSelection?.provider}
@@ -1511,7 +1510,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           <Dialog
             open={renderDialog === "clips"}
             onClose={() => setRenderDialog(null)}
-            title="Render clips"
+            title={t("storyboard:attrs.renderClips", { defaultValue: "Render clips" })}
             onConfirm={handleGenerateAllClips}
             confirmText={`Render clips${
               clipsCost.pricedRequestCount > 0 && clipsCost.cost > 0
@@ -1553,7 +1552,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           <Dialog
             open={confirmRedirect}
             onClose={() => setConfirmRedirect(false)}
-            title="Re-direct this storyboard?"
+            title={t("storyboard:attrs.redirectThisStoryboard", { defaultValue: "Re-direct this storyboard?" })}
             onConfirm={handleConfirmRedirect}
             confirmText="Re-direct"
             destructive
@@ -1572,7 +1571,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           <Dialog
             open={assembleConfirmOpen}
             onClose={() => setAssembleConfirmOpen(false)}
-            title="Rebuild linked timeline?"
+            title={t("storyboard:attrs.rebuildLinkedTimeline", { defaultValue: "Rebuild linked timeline?" })}
             onConfirm={handleConfirmAssemble}
             confirmText="Rebuild timeline"
             destructive
@@ -1595,7 +1594,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           <Dialog
             open={downloadFallbackError !== null}
             onClose={() => setDownloadFallbackError(null)}
-            title="Latest changes could not be saved"
+            title={t("storyboard:attrs.latestChangesCouldNotBeSaved", { defaultValue: "Latest changes could not be saved" })}
             onConfirm={() => {
               setDownloadFallbackError(null);
               void downloadZip(false);
@@ -1644,11 +1643,10 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           ) : shots.length === 0 ? (
             <EmptyState
               variant="empty"
-              title="No shots yet"
+              title={t("storyboard:attrs.noShotsYet", { defaultValue: "No shots yet" })}
               description={
                 readOnly
-                  ? "This storyboard has no shots."
-                  : "Write a brief and press Direct to generate a screenplay of shots."
+                  ? t("storyboard:attrs.thisStoryboardHasNoShots", { defaultValue: "This storyboard has no shots." }) : "Write a brief and press Direct to generate a screenplay of shots."
               }
             />
           ) : (
@@ -1680,7 +1678,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 <FlexRow
                   ref={gridRef}
                   role="group"
-                  aria-label="Shots"
+                  aria-label={t("storyboard:attrs.shots", { defaultValue: "Shots" })}
                   onKeyDown={handleGridKeyDown}
                   align="flex-start"
                   wrap
@@ -1773,10 +1771,8 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                   disabled={!onAssemble || assembling || !hasRenderedShot}
                 >
                   {assembling
-                    ? "Assembling…"
-                    : timelineId
-                      ? "Rebuild linked timeline…"
-                      : "Create timeline"}
+                    ? t("storyboard:attrs.assembling", { defaultValue: "Assembling…" }) : timelineId
+                      ? t("storyboard:attrs.rebuildLinkedTimelineEllipsis", { defaultValue: "Rebuild linked timeline…" }) : "Create timeline"}
                 </EditorButton>
                 {timelineId && (
                   <EditorButton
@@ -1791,8 +1787,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
               {!hasRenderedShot && (
                 <Caption color="secondary">
                   {hasUnselectedClip
-                    ? "Set a clip take as current to create a timeline."
-                    : "Generate a still or render a clip to create a timeline."}
+                    ? t("storyboard:attrs.setAClipTakeAsCurrentToCreateATimeline", { defaultValue: "Set a clip take as current to create a timeline." }) : "Generate a still or render a clip to create a timeline."}
                 </Caption>
               )}
               {assembleError && (

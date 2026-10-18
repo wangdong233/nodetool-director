@@ -24,6 +24,7 @@ import {
 import LinkShotDialog from "../shot/LinkShotDialog";
 import { colorForType } from "../../../config/data_types";
 import { useClipStoryboardLink } from "../../../hooks/timeline/useClipStoryboardLink";
+import { useTranslation } from "react-i18next";
 
 /** Violet — the app's colour for anything picture-shaped. */
 const BOARD_COLOR = colorForType("video");
@@ -33,6 +34,7 @@ interface ClipStoryboardLinkProps {
 }
 
 const ClipStoryboardLinkInner = ({ clip }: ClipStoryboardLinkProps) => {
+  const { t } = useTranslation();
   const link = useClipStoryboardLink(
     clip.storyboardBoardId,
     clip.storyboardShotId
@@ -50,7 +52,7 @@ const ClipStoryboardLinkInner = ({ clip }: ClipStoryboardLinkProps) => {
           size="small"
           startIcon={<LinkOutlinedIcon />}
           onClick={() => setLinkOpen(true)}
-          tooltip="Make this clip follow a shot on a storyboard"
+          tooltip={t("timeline:attrs.makeThisClipFollowAShotOnAStoryboard", { defaultValue: "Make this clip follow a shot on a storyboard" })}
         >
           Link to shot
         </EditorButton>

@@ -32,8 +32,10 @@ import { notifyMutationError } from "../../utils/notifyMutationError";
 import { useAddExampleModelAsset } from "../../hooks/useAddExampleModelAsset";
 import { NO_EXAMPLE_NEEDS } from "../../utils/exampleNeeds";
 import ExampleNeedsPill from "./ExampleNeedsPill";
+import { useTranslation } from "react-i18next";
 
 const DashboardExampleModels = () => {
+  const { t } = useTranslation();
   const [pack, setPack] = useState(EXAMPLE_MODEL_PACKS[0].slug);
   const navigate = useNavigate();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
@@ -69,20 +71,20 @@ const DashboardExampleModels = () => {
   return (
     <FlexColumn
       component="section"
-      aria-label="Example 3D models"
+      aria-label={t("editor:ui.example3DModels", { defaultValue: "Example 3D models" })}
       gap={SPACING.xl}
       sx={{ p: SPACING.xxl }}
     >
       <FlexColumn gap={SPACING.xs}>
-        <Text size="big">Start from a 3D model</Text>
+        <Text size="big">{t("editor:ui.startFromA3DModel", { defaultValue: "Start from a 3D model" })}</Text>
         <Text color="secondary">
           Open a low-poly game model in the 3D editor. Each opens as your own
           editable copy in the current project.
         </Text>
-        <Caption>glTF 2.0 · Meters, +Y up · No model or API key needed</Caption>
+        <Caption>{t("editor:ui.exampleModelsMeta", { defaultValue: "glTF 2.0 · Meters, +Y up · No model or API key needed" })}</Caption>
       </FlexColumn>
       <TabGroup
-        aria-label="Model packs"
+        aria-label={t("editor:ui.modelPacks", { defaultValue: "Model packs" })}
         tabs={EXAMPLE_MODEL_PACKS.map(({ slug, label }) => ({
           value: slug,
           label
@@ -107,9 +109,9 @@ const DashboardExampleModels = () => {
       ) : catalog.isError ? (
         <EmptyState
           variant="error"
-          title="Couldn't load models"
-          description="Try again in a moment."
-          actionText="Retry"
+          title={t("editor:ui.couldntLoadModels", { defaultValue: "Couldn't load models" })}
+          description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })}
+          actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
           onAction={() => void catalog.refetch()}
         />
       ) : (
@@ -136,7 +138,7 @@ const DashboardExampleModels = () => {
                     onClick={() => install.mutate(model)}
                     sx={{ alignSelf: "flex-start", mt: "auto" }}
                   >
-                    {opening ? "Opening model…" : "Open model"}
+                    {opening ? t("editor:ui.openingModel", { defaultValue: "Opening model…" }) : "Open model"}
                   </EditorButton>
                 </FlexColumn>
               </Card>

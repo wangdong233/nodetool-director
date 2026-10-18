@@ -14,6 +14,7 @@ import {
   menuPaperStyles
 } from "../../ui_primitives";
 import type { AspectRatioOption } from "../../../stores/MediaGenerationStore";
+import { useTranslation } from "react-i18next";
 
 interface MediaAspectRatioMenuProps {
   anchorEl: HTMLElement | null;
@@ -138,6 +139,7 @@ const MediaAspectRatioMenu: React.FC<MediaAspectRatioMenuProps> = ({
   options,
   onChange
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   return (
@@ -148,7 +150,7 @@ const MediaAspectRatioMenu: React.FC<MediaAspectRatioMenuProps> = ({
       placement="top-center"
       paperSx={menuPaperStyles(theme)}
     >
-      <div css={cssStyles} role="dialog" aria-label="Aspect ratio">
+      <div css={cssStyles} role="dialog" aria-label={t("editor:ui.aspectRatio", { defaultValue: "Aspect ratio" })}>
         <Caption className="aspect-header" size="small">
           Aspect ratio
         </Caption>

@@ -32,6 +32,7 @@ import {
   CONSTANT_NODES,
   type QuickActionDefinition
 } from "./QuickActionTiles.constants";
+import { useTranslation } from "react-i18next";
 
 /** Hover delay before a tile shows its description, so sweeping across the grid stays quiet. */
 const TILE_TOOLTIP_DELAY_MS = 600;
@@ -190,6 +191,7 @@ const TileSection = memo(function TileSection({
 });
 
 const QuickActionTiles = memo(function QuickActionTiles() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => tileStyles(theme), [theme]);
 
@@ -310,13 +312,13 @@ const QuickActionTiles = memo(function QuickActionTiles() {
 
   return (
     <div css={memoizedStyles}>
-      <TileSection title="AI nodes" actions={AI_TASK_ACTIONS} {...sectionProps} />
+      <TileSection title={t("editor:ui.aiNodes", { defaultValue: "AI nodes" })} actions={AI_TASK_ACTIONS} {...sectionProps} />
       <TileSection
         title="Provider models"
         actions={PROVIDER_ACTIONS}
         {...sectionProps}
       />
-      <TileSection title="Constants" actions={CONSTANT_NODES} {...sectionProps} />
+      <TileSection title={t("ui2:attrs.constants", { defaultValue: "Constants" })} actions={CONSTANT_NODES} {...sectionProps} />
     </div>
   );
 });

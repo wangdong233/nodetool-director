@@ -55,6 +55,7 @@ import { AlternativesColumn } from "../AlternativesColumn";
 import type { AlternativeEntry } from "../AlternativesColumn";
 import { useVideoSetupContext } from "./setupContext";
 import CreativeContextFields from "./CreativeContextFields";
+import { useTranslation } from "react-i18next";
 
 /** How wide a carried reference thumbnail is drawn. */
 const REFERENCE_THUMBNAIL = getSpacingPx(12);
@@ -102,6 +103,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   onImportingChange,
   readOnly = false
 }) => {
+  const { t } = useTranslation();
   const brief = useTimelineStore((state) => state.setup?.brief ?? "");
   const setSetup = useTimelineStore((state) => state.setSetup);
   const { importFiles, importing } = useSetupMediaImport();
@@ -250,22 +252,21 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       {
         id: "media",
         title: "Drop your media",
-        description: "Video, audio and images land on the timeline in order",
+        description: i18n.t("timeline:attrs.mediaLandsInOrder", { defaultValue: "Video, audio and images land on the timeline in order" }),
         onSelect: () => mediaInput.current?.click(),
         disabled: importing,
-        disabledReason: importing ? "Uploading your files…" : undefined
+        disabledReason: importing ? i18n.t("storyboard:attrs.uploadingYourFiles", { defaultValue: "Uploading your files…" }) : undefined
       },
       {
         id: "script",
-        title: "Start from a script",
-        description: "Write the words first, then send them to the timeline",
+        title: i18n.t("timeline:attrs.startFromScript", { defaultValue: "Start from a script" }),
+        description: i18n.t("timeline:attrs.writeWordsFirstThenTimeline", { defaultValue: "Write the words first, then send them to the timeline" }),
         onSelect: onStartFromScript ?? (() => undefined),
         // Leaving the flow mid-upload would drop the media still arriving,
         // and leaving after it would drop the clips it placed.
         disabled: !onStartFromScript || importing || hasPlacedMedia,
         disabledReason: !onStartFromScript
-          ? "Not available here. Start a script from the project screen."
-          : importing
+          ? i18n.t("storyboard:attrs.notAvailableHereStartAScriptFromTheProjectScreen", { defaultValue: "Not available here. Start a script from the project screen." }) : importing
             ? UPLOAD_PENDING_REASON
             : hasPlacedMedia
               ? "Your media is on this timeline and would be left behind. Plan the beats here instead."
@@ -273,8 +274,8 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       },
       {
         id: "blank",
-        title: "Start with a blank timeline",
-        description: "Skip the plan and cut it yourself",
+        title: i18n.t("timeline:attrs.startWithBlankTimeline", { defaultValue: "Start with a blank timeline" }),
+        description: i18n.t("timeline:attrs.skipPlanCutItYourself", { defaultValue: "Skip the plan and cut it yourself" }),
         onSelect: onStartBlank,
         disabled: importing,
         disabledReason: importing ? UPLOAD_PENDING_REASON : undefined
@@ -315,9 +316,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           value={brief}
           autoFocus
           rows={4}
-          label="Your video"
+          label={t("editor:ui.yourVideo", { defaultValue: "Your video" })}
           hideLabel
-          placeholder="One sentence is enough."
+          placeholder={t("storyboard:attrs.oneSentenceIsEnough", { defaultValue: "One sentence is enough." })}
           onChange={handleChange}
           inputRef={briefField}
         />
@@ -409,9 +410,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           <FlexColumn
             gap={GAP.tight}
             role="group"
-            aria-label="Carried from your project screen"
+            aria-label={t("storyboard:attrs.carriedFromYourProjectScreen", { defaultValue: "Carried from your project screen" })}
           >
-            <Caption color="muted">From your project screen</Caption>
+            <Caption color="muted">{t("storyboard:attrs.fromYourProjectScreen", { defaultValue: "From your project screen" })}</Caption>
             {references.length > 0 ? (
               <FlexRow gap={GAP.tight} wrap>
                 {references.map((reference) => {
@@ -477,7 +478,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label="Other ways to start"
+        label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
 
@@ -488,7 +489,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         multiple
         ref={mediaInput}
         accept={MEDIA_ACCEPT}
-        aria-label="Drop your media"
+        aria-label={t("storyboard:attrs.dropYourMedia", { defaultValue: "Drop your media" })}
         onChange={handlePicked}
       />
     </DropZone>

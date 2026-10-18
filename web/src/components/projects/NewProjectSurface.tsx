@@ -179,6 +179,7 @@ import scriptBackground from "../../assets/guided-flows/script.webp";
 import imageBackground from "../../assets/guided-flows/image.webp";
 import workflowBackground from "../../assets/guided-flows/workflow.webp";
 import gameBackground from "../../assets/guided-flows/game.webp";
+import { useTranslation } from "react-i18next";
 
 const ENTRY_BACKGROUNDS: Partial<Record<EntryFlowId, string>> = {
   storyboard: storyboardBackground,
@@ -463,6 +464,7 @@ const NewProjectSurface = ({
   initialSetupTarget,
   active = true
 }: NewProjectSurfaceProps) => {
+  const { t } = useTranslation();
   const [prompt, setPrompt] = useState("");
   const [showMoreFlows, setShowMoreFlows] = useState(false);
   const [gameDimension, setGameDimension] = useState<"2d" | "3d">("2d");
@@ -1531,8 +1533,7 @@ const NewProjectSurface = ({
     ).map((card) => ({
       ...card,
       description: card.id === "game" && gameDimension === "3d"
-        ? "Start with a playable 3D exploration scene in the built-in engine."
-        : card.description,
+        ? t("home:entry.game.desc3d", { defaultValue: "Start with a playable 3D exploration scene in the built-in engine." }) : card.description,
       image: ENTRY_BACKGROUNDS[card.id]
     }));
     if (pendingFlow === null) {
@@ -1990,10 +1991,10 @@ const NewProjectSurface = ({
       <FlexColumn gap={SPACING.md} sx={{ p: SPACING.xl, maxWidth: COLUMN_WIDTH }}>
         <AlertBanner
           severity="error"
-          title="Could not open it yet"
+          title={t("home:flowError.title", { defaultValue: "Could not open it yet" })}
           action={
             <ReportBugButton
-              label="Report this failure"
+              label={t("home:flowError.report", { defaultValue: "Report this failure" })}
               variant="outlined"
               size="small"
               context={{
@@ -2147,7 +2148,7 @@ const NewProjectSurface = ({
               above it (`mentionMenuPosition`). */}
           <FlexColumn
             component="section"
-            aria-label="Describe what you want to make"
+            aria-label={t("home:checklist.describeIdea", { defaultValue: "Describe what you want to make" })}
             gap={SPACING.lg}
             sx={{ pt: showOnboarding ? 0 : SPACING.xxl }}
           >
@@ -2183,7 +2184,7 @@ const NewProjectSurface = ({
                 minRows={3}
                 maxRows={12}
                 variant="standard"
-                label="Chat prompt"
+                label={t("home:composer.promptLabel", { defaultValue: "Chat prompt" })}
                 hideLabel
                 inputRef={promptRef}
                 placeholder="Ask a question, or describe what to make: a 30-second launch spot for our desk lamp. Type / for a skill, @ for a file or entity."
@@ -2251,15 +2252,14 @@ const NewProjectSurface = ({
                   sx={composerToolSx}
                 >
                   {referenceImageCount === 0
-                    ? "Reference images"
-                    : `Ref images · ${referenceImageCount}`}
+                    ? t("home:composer.refImagesAria", { defaultValue: "Reference images" }) : `Ref images · ${referenceImageCount}`}
                 </EditorButton>
                 <input
                   ref={refInputRef}
                   type="file"
                   accept="image/*"
                   multiple
-                  aria-label="Reference images"
+                  aria-label={t("home:composer.refImagesAria", { defaultValue: "Reference images" })}
                   onChange={handleRefImages}
                   style={{ display: "none" }}
                 />
@@ -2272,8 +2272,7 @@ const NewProjectSurface = ({
                   sx={composerToolSx}
                 >
                   {selectedEntities.length === 0
-                    ? "Entities · none"
-                    : `Entities · ${selectedEntities
+                    ? t("home:composer.entitiesNone", { defaultValue: "Entities · none" }) : `Entities · ${selectedEntities
                         .map((entity) => entity.name)
                         .join(", ")}`}
                 </EditorButton>
@@ -2329,7 +2328,7 @@ const NewProjectSurface = ({
                   gap={SPACING.sm}
                   wrap
                   role="group"
-                  aria-label="Start from a skill"
+                  aria-label={t("home:composer.skillGroup", { defaultValue: "Start from a skill" })}
                 >
                   {visibleStarters.map((entry) => {
                     const active = entry.name === starter?.name;
@@ -2359,8 +2358,7 @@ const NewProjectSurface = ({
                       aria-expanded={showAllStarters}
                       label={
                         showAllStarters
-                          ? "Show fewer"
-                          : `${hiddenStarterCount} more`
+                          ? t("home:composer.showFewer", { defaultValue: "Show fewer" }) : `${hiddenStarterCount} more`
                       }
                       onClick={() => setShowAllStarters((shown) => !shown)}
                       sx={{ borderStyle: "dashed" }}
@@ -2388,7 +2386,7 @@ const NewProjectSurface = ({
           <FlexColumn
             component="section"
             id="guided-flows"
-            aria-label="Start with a guided flow"
+            aria-label={t("home:surface.startGuided", { defaultValue: "Start with a guided flow" })}
             gap={SPACING.lg}
             // Only the flow cards sit on black. The section's other buttons
             // (More formats, the game dimension select, a card's expand
@@ -2420,9 +2418,9 @@ const NewProjectSurface = ({
                 </Caption>
               </FlexColumn>
               {showMoreFlows && <FlexRow align="center" gap={SPACING.sm}>
-                <Caption color="muted">Game card starts as</Caption>
+                <Caption color="muted">{t("home:surface.gameStartsAs", { defaultValue: "Game card starts as" })}</Caption>
                 <InspectorSelect
-                  label="Game dimension"
+                  label={t("home:surface.gameDimension", { defaultValue: "Game dimension" })}
                   value={gameDimension}
                   options={[
                     { value: "2d", label: "2D game" },
@@ -2437,7 +2435,7 @@ const NewProjectSurface = ({
               </FlexRow>}
             </FlexRow>
             <OptionCardGrid
-              label="Guided creation flows"
+              label={t("home:surface.guidedFlowsLabel", { defaultValue: "Guided creation flows" })}
               options={entryOptions}
               onSelect={handleEntryCard}
               minColumnWidth={190}
@@ -2450,7 +2448,7 @@ const NewProjectSurface = ({
               aria-expanded={showMoreFlows}
               onClick={() => setShowMoreFlows((shown) => !shown)}
             >
-              {showMoreFlows ? "Fewer formats" : "More formats"}
+              {showMoreFlows ? t("home:surface.fewerFormats", { defaultValue: "Fewer formats" }) : "More formats"}
             </EditorButton>
           </FlexColumn>
 
@@ -2568,7 +2566,7 @@ const NewProjectSurface = ({
         open={entityPickerOpen}
         onClose={() => setEntityPickerOpen(false)}
         onSelect={toggleEntity}
-        title="Entities for this project"
+        title={t("home:entitiesPickerTitle", { defaultValue: "Entities for this project" })}
         multiple
         selectedIds={entityIds}
         entities={entities}
@@ -2613,7 +2611,7 @@ const NewProjectSurface = ({
           ))}
         {submenu?.kind === "storyboards" && (
           <MenuItemPrimitive
-            label="Blank storyboard"
+            label={t("editor:ui.blankStoryboard", { defaultValue: "Blank storyboard" })}
             dividerAfter
             disabled={creating !== null}
             onClick={() => {

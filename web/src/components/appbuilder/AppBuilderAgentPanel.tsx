@@ -10,6 +10,7 @@ import useGlobalChatStore from "../../stores/GlobalChatStore";
 import { useChatViewThread } from "../../hooks/chat/useChatViewThread";
 import useThreadModel from "../../hooks/chat/useThreadModel";
 import { Box, FlexColumn } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 type ChatViewStatus = React.ComponentProps<typeof ChatView>["status"];
 
@@ -88,6 +89,7 @@ const AppBuilderAgentPanel: React.FC<AppBuilderAgentPanelProps> = ({
   applicationId,
   workflowId
 }) => {
+  const { t } = useTranslation("appbuilder");
   const {
     connect,
     openWorkflowThread,
@@ -180,8 +182,8 @@ const AppBuilderAgentPanel: React.FC<AppBuilderAgentPanelProps> = ({
       }}
     >
       <ChatPanelHeader
-        title="App builder agent"
-        description="Build the app layout and bind widgets to workflow inputs and outputs."
+        title={t("appbuilder:attrs.appBuilderAgent", { defaultValue: "App builder agent" })}
+        description={t("appbuilder:attrs.buildTheAppLayoutAndBindWidgetsToWorkflowInputsAndOutputs", { defaultValue: "Build the app layout and bind widgets to workflow inputs and outputs." })}
         onNewChat={handleNewChat}
         onSelectThread={selectThread}
         threadId={threadId}

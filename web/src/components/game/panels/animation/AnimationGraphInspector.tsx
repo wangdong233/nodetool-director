@@ -10,6 +10,7 @@ import {
   addAnimationParameter, ANY_ANIMATION_STATE, conditionOpsFor, convertAnimationMotion, defaultCondition, removeAnimationParameter,
   renameAnimationParameter, setAnimationParameterDefault, setAnimationParameterKind, uniqueAnimationName, type AnimationParameterKind
 } from "./animationGraphEdits";
+import { useTranslation } from "react-i18next";
 
 /** Applies a graph edit and returns whether it was applied. The edit may throw an `AnimationGraphEditError` to refuse itself. */
 export type AnimationGraphCommit = (edit: (graph: GameAnimationGraph3D) => GameAnimationGraph3D, label: string) => boolean;
@@ -59,6 +60,7 @@ interface ParameterListProps {
 
 /** The graph's parameters with their kinds and defaults, and their live values while a session plays. */
 export function AnimationParameterList({ graph, live, commit, onRenamed }: ParameterListProps) {
+  const { t } = useTranslation(["ui2","storyboard","appbuilder","editor","timeline"]);
   const add = (kind: AnimationParameterKind): void => {
     const name = uniqueAnimationName(Object.keys(graph.parameters), kind === "float" ? "speed" : kind === "bool" ? "flag" : "trigger");
     commit((current) => addAnimationParameter(current, name, kind), "Add Animation Parameter");
@@ -76,20 +78,20 @@ export function AnimationParameterList({ graph, live, commit, onRenamed }: Param
               if (raw.trim() !== name && commit((current) => renameAnimationParameter(current, name, raw), "Rename Animation Parameter")) { onRenamed(name, raw.trim()); }
             }} />
         </InspectorFieldRow>
-        <InspectorFieldRow label="Kind">
+        <InspectorFieldRow label={t("ui2:attrs.kind", { defaultValue: "Kind" })}>
           <InspectorSelect grow label={`Parameter ${name} kind`} value={parameter.kind} options={KIND_OPTIONS}
             onChange={(kind) => commit((current) => setAnimationParameterKind(current, name, kind as AnimationParameterKind), "Change Animation Parameter")} />
         </InspectorFieldRow>
-        {parameter.kind === "float" && <NumberRow label="Default" value={parameter.default}
+        {parameter.kind === "float" && <NumberRow label={t("storyboard:attrs.default", { defaultValue: "Default" })} value={parameter.default}
           onCommit={(next) => commit((current) => setAnimationParameterDefault(current, name, next ?? 0), "Change Animation Parameter")} />}
-        {parameter.kind === "bool" && <InspectorToggleRow label="Default" checked={parameter.default}
+        {parameter.kind === "bool" && <InspectorToggleRow label={t("storyboard:attrs.default", { defaultValue: "Default" })} checked={parameter.default}
           onChange={(next) => commit((current) => setAnimationParameterDefault(current, name, next), "Change Animation Parameter")} />}
       </FieldGroup>;
     })}
     <FlexRow gap={SPACING.micro} wrap>
-      <AddButton onClick={() => add("float")}>Float</AddButton>
-      <AddButton onClick={() => add("bool")}>Bool</AddButton>
-      <AddButton onClick={() => add("trigger")}>Trigger</AddButton>
+      <AddButton onClick={() => add("float")}>{t("editor:ui.float", { defaultValue: "Float" })}</AddButton>
+      <AddButton onClick={() => add("bool")}>{t("editor:ui.bool", { defaultValue: "Bool" })}</AddButton>
+      <AddButton onClick={() => add("trigger")}>{t("game:sceneTree.presetTrigger", { defaultValue: "Trigger" })}</AddButton>
     </FlexRow>
   </FlexColumn>;
 }
@@ -145,7 +147,7 @@ function BlendPoints({ graph, motion, clips, onChange }: {
       {points.map((point, index) => <FieldGroup key={index} title={`Point ${index + 1}`} actions={<RowAction icon={<DeleteOutlineIcon />}
         label={`Remove point ${index + 1}`} disabled={points.length <= 2}
         onClick={() => onChange({ ...motion, points: points.filter((_entry, position) => position !== index) })} />}>
-        <NumberRow label="Value" value={point.value} onCommit={(value) => onChange({ ...motion,
+        <NumberRow label={t("appbuilder:attrs.value", { defaultValue: "Value" })} value={point.value} onCommit={(value) => onChange({ ...motion,
           points: points.map((entry, position) => position === index ? { ...entry, value: value ?? 0 } : entry) })} />
         <InspectorFieldRow label="Clip"><ClipField label={`Point ${index + 1} clip`} value={point.clip} clips={clips}
           onChange={(clip) => onChange({ ...motion, points: points.map((entry, position) => position === index ? { ...entry, clip } : entry) })} /></InspectorFieldRow>
@@ -181,12 +183,13 @@ function BlendPoints({ graph, motion, clips, onChange }: {
 
 /** Name, motion, speed and looping of one state. */
 export function AnimationStateInspector({ graph, stateId, node, initial, clips, onRename, onChange, onMakeInitial, onRemove, onError, transitionTargets, onAddTransition }: StateInspectorProps) {
+  const { t } = useTranslation(["ui2","storyboard","appbuilder","editor","timeline"]);
   const motion = node.motion;
   return <FlexColumn gap={SPACING.xs}>
     <InspectorFieldRow label="Name">
       <InspectorValueInput grow ariaLabel="State name" value={stateId} onCommit={onRename} />
     </InspectorFieldRow>
-    <InspectorFieldRow label="Motion">
+    <InspectorFieldRow label={t("editor:ui.motion", { defaultValue: "Motion" })}>
       <InspectorSelect grow label="Motion kind" value={motion.kind} options={MOTION_OPTIONS} onChange={(kind) => {
         try { onChange({ ...node, motion: convertAnimationMotion(graph, motion, kind as GameAnimationMotion3D["kind"]) }, "Change Animation Motion"); }
         catch (cause) { onError(cause instanceof Error ? cause.message : String(cause)); }
@@ -196,7 +199,7 @@ export function AnimationStateInspector({ graph, stateId, node, initial, clips, 
       ? <InspectorFieldRow label="Clip"><ClipField label="Clip" value={motion.clip} clips={clips}
         onChange={(clip) => onChange({ ...node, motion: { kind: "clip", clip } }, "Change Animation Clip")} /></InspectorFieldRow>
       : <BlendPoints graph={graph} motion={motion} clips={clips} onChange={(next) => onChange({ ...node, motion: next }, "Change Animation Blend")} />}
-    <NumberRow label="Speed" value={node.speed} onCommit={(speed) => onChange({ ...node, speed: speed ?? 1 }, "Change Animation State")} />
+    <NumberRow label={t("timeline:attrs.speed", { defaultValue: "Speed" })} value={node.speed} onCommit={(speed) => onChange({ ...node, speed: speed ?? 1 }, "Change Animation State")} />
     <InspectorToggleRow label="Loop" checked={node.loop} onChange={(loop) => onChange({ ...node, loop }, "Change Animation State")} />
     <AnimationTransitionAdder label="Transition to" onAdd={onAddTransition} targets={transitionTargets} />
     <FlexRow gap={SPACING.xs} wrap sx={{ pt: SPACING.xs }}>
@@ -216,6 +219,7 @@ interface TransitionInspectorProps {
 
 /** Source, target, timing and conditions of one transition. All conditions must hold for it to fire. */
 export function AnimationTransitionInspector({ graph, stateIds, transition, onChange, onRemove }: TransitionInspectorProps) {
+  const { t } = useTranslation(["ui2","storyboard","appbuilder","editor","timeline"]);
   const stateOptions = stateIds.map((id) => ({ value: id, label: id }));
   const parameterNames = Object.keys(graph.parameters);
   const parameterOptions = parameterNames.map((name) => ({ value: name, label: name }));
@@ -235,7 +239,7 @@ export function AnimationTransitionInspector({ graph, stateIds, transition, onCh
             if (nextKind) { setConditions(conditions.map((entry, position) => position === index ? defaultCondition(parameter, nextKind) : entry)); }
           }} />
         </InspectorFieldRow>
-        <InspectorFieldRow label="Test">
+        <InspectorFieldRow label={t("editor:ui.test", { defaultValue: "Test" })}>
           <InspectorSelect grow label={`Condition ${index + 1} test`} value={condition.op} options={ops.map((op) => ({ value: op, label: OP_LABELS[op] }))}
             onChange={(op) => setConditions(conditions.map((entry, position) => {
               if (position !== index) { return entry; }
@@ -244,7 +248,7 @@ export function AnimationTransitionInspector({ graph, stateIds, transition, onCh
               return next;
             }))} />
         </InspectorFieldRow>
-        {kind === "float" && <NumberRow label="Value" value={condition.value ?? 0}
+        {kind === "float" && <NumberRow label={t("appbuilder:attrs.value", { defaultValue: "Value" })} value={condition.value ?? 0}
           onCommit={(value) => setConditions(conditions.map((entry, position) => position === index ? { ...entry, value: value ?? 0 } : entry))} />}
       </FieldGroup>;
     });
@@ -271,7 +275,7 @@ export function AnimationTransitionInspector({ graph, stateIds, transition, onCh
       if (kind) { setConditions([...conditions, defaultCondition(firstParameter, kind)]); }
     }}>Add condition</AddButton>
     <FlexRow sx={{ pt: SPACING.xs }}>
-      <EditorButton variant="outlined" color="error" onClick={onRemove}>Remove transition</EditorButton>
+      <EditorButton variant="outlined" color="error" onClick={onRemove}>{t("timeline:attrs.removeTransition", { defaultValue: "Remove transition" })}</EditorButton>
     </FlexRow>
   </FlexColumn>;
 }

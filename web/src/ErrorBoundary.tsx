@@ -8,6 +8,7 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { openBugReport } from "./stores/BugReportStore";
 import { reportClientError } from "./utils/errorTraceReporting";
+import { useTranslation } from "react-i18next";
 
 const errorBoundaryStyles = (theme: Theme) =>
   css({
@@ -173,6 +174,7 @@ const errorBoundaryStyles = (theme: Theme) =>
   });
 
 const ErrorBoundary: React.FC = () => {
+  const { t } = useTranslation();
   const error = useRouteError();
   const theme = useTheme();
   const [showDetails, setShowDetails] = useState(false);
@@ -210,8 +212,8 @@ const ErrorBoundary: React.FC = () => {
   return (
     <Box css={errorBoundaryStyles(theme)}>
       <Box className="hero">
-        <img src="/logo192.png" alt="NodeTool logo" className="logo" />
-        <Text className="heading">Something went wrong</Text>
+        <img src="/logo192.png" alt={t("editor:ui.nodeToolLogo", { defaultValue: "NodeTool logo" })} className="logo" />
+        <Text className="heading">{t("editor:ui.somethingWentWrong", { defaultValue: "Something went wrong" })}</Text>
         <Text className="subtext">
           An unexpected error occurred. You can try reloading the page. If
           this keeps happening, please reach out so we can fix it.
@@ -266,7 +268,7 @@ const ErrorBoundary: React.FC = () => {
           disableRipple
           onClick={() => setShowDetails((prev) => !prev)}
         >
-          {showDetails ? "Hide details ▲" : "Show details ▼"}
+          {showDetails ? i18n.t("editor:ui.hideDetails", { defaultValue: "Hide details ▲" }) : "Show details ▼"}
         </EditorButton>
 
         {showDetails && (

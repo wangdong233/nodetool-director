@@ -4,6 +4,7 @@ import { Caption, Dialog, FlexColumn, SPACING, Text } from "../ui_primitives";
 import { useOAuthConnection } from "../../hooks/useOAuthConnection";
 import useProviderSignInStore from "../../stores/ProviderSignInStore";
 import { OAuthManualCompletionDialog } from "../oauth/OAuthManualCompletionDialog";
+import { useTranslation } from "react-i18next";
 
 /**
  * Renews an expired account sign-in (Codex, Claude) after a run fails on it.
@@ -11,6 +12,7 @@ import { OAuthManualCompletionDialog } from "../oauth/OAuthManualCompletionDialo
  * itself once a fresh token is stored.
  */
 const ProviderSignInDialog: React.FC = () => {
+  const { t } = useTranslation();
   const provider = useProviderSignInStore((state) => state.provider);
   const dismiss = useProviderSignInStore((state) => state.dismiss);
   const oauth = useOAuthConnection(provider?.oauth ?? null, {
@@ -36,8 +38,7 @@ const ProviderSignInDialog: React.FC = () => {
         onConfirm={oauth.connect}
         confirmText={
           oauth.isConnecting
-            ? "Waiting for sign-in…"
-            : `Sign in with ${provider.account}`
+            ? t("editor:ui.waitingForSignIn", { defaultValue: "Waiting for sign-in…" }) : `Sign in with ${provider.account}`
         }
         cancelText="Not now"
         confirmDisabled={oauth.isConnecting}

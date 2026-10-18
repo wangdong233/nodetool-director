@@ -50,6 +50,7 @@ import {
   type Execution
 } from "./costsData";
 import { useCostsDashboard } from "./useCostsDashboard";
+import { useTranslation } from "react-i18next";
 
 const RANGE_OPTIONS: DateRange[] = ["7d", "14d", "30d", "90d"];
 const GROUP_OPTIONS: { value: GroupByKey; label: string }[] = [
@@ -114,6 +115,7 @@ const matchesSearch = (
 };
 
 const CostsDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const [range, setRange] = useState<DateRange>("14d");
@@ -273,7 +275,7 @@ const CostsDashboard: React.FC = () => {
               <>
                 <FilterDropdown
                   icon={<FilterListIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-                  label={providersAllSelected ? "All providers" : "Providers"}
+                  label={providersAllSelected ? t("editor:ui.allProviders", { defaultValue: "All providers" }) : "Providers"}
                   count={
                     providersAllSelected
                       ? String(providerUniverse.length)
@@ -298,7 +300,7 @@ const CostsDashboard: React.FC = () => {
 
                 <FilterDropdown
                   icon={<AccountTreeIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-                  label={workflowsAllSelected ? "All workflows" : "Workflows"}
+                  label={workflowsAllSelected ? t("editor:ui.allWorkflows", { defaultValue: "All workflows" }) : "Workflows"}
                   count={
                     workflowsAllSelected
                       ? undefined
@@ -412,6 +414,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   visibleCount,
   totalCount
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const segmentedStyles = useMemo(() => segmentedSx(theme), [theme]);
   const stats = view.stats;
@@ -430,7 +433,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       {/* stat cards */}
       <FlexRow gap={2} wrap sx={{ mb: 3 }}>
         <CostStatCard
-          label="Total spend"
+          label={t("editor:ui.totalSpend", { defaultValue: "Total spend" })}
           icon={AttachMoneyIcon}
           value={total.whole}
           decimal={total.decimal}
@@ -461,19 +464,19 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           }
         />
         <CostStatCard
-          label="Node executions"
+          label={t("editor:ui.nodeExecutions", { defaultValue: "Node executions" })}
           icon={GridViewIcon}
           value={String(stats.executionCount)}
           caption={`${stats.failedCount} failed · ${stats.workflowCount} workflows`}
         />
         <CostStatCard
-          label="Avg / execution"
+          label={t("editor:ui.avgExecution", { defaultValue: "Avg / execution" })}
           icon={ShowChartIcon}
           value={formatMoney(stats.avgPerExecution)}
           caption="across all node types"
         />
         <CostStatCard
-          label="Top cost driver"
+          label={t("editor:ui.topCostDriver", { defaultValue: "Top cost driver" })}
           icon={BarChartIcon}
           value={driver ? driver.label : "—"}
           valueVariant="label"

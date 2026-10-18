@@ -32,6 +32,7 @@ import {
   FORMAT_CARDS,
   LENGTH_CHOICES
 } from "./formats";
+import { useTranslation } from "react-i18next";
 
 /** The fourth option in the length row, not a toggle beside the other three. */
 const CUSTOM_LENGTH_ID = "custom";
@@ -70,16 +71,17 @@ export const WriterModelFooterField: React.FC<{
   scriptId: string;
   readOnly?: boolean;
 }> = ({ scriptId, readOnly = false }) => {
+  const { t } = useTranslation();
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
   const chatModel = useGlobalChatStore((state) => state.selectedModel);
   const writerModel = setup?.writer_model ?? chatModel;
   return (
-    <SetupFooterField label="Model">
+    <SetupFooterField label={t("ui2:attrs.model", { defaultValue: "Model" })}>
       <LanguageModelSelect
         value={writerModel?.id ?? ""}
         provider={writerModel?.provider}
-        placeholder="Writer model"
+        placeholder={t("storyboard:attrs.writerModel", { defaultValue: "Writer model" })}
         disabled={readOnly}
         onChange={(value) => {
           if (readOnly) {
@@ -99,6 +101,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
   onValidationChange,
   readOnly = false
 }) => {
+  const { t } = useTranslation();
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
   const seconds = setup?.length_seconds ?? DEFAULT_LENGTH_SECONDS;
@@ -225,7 +228,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
       </FlexColumn>
 
       <OptionCardGrid
-        label="Format"
+        label={t("storyboard:attrs.format", { defaultValue: "Format" })}
         options={formatCards}
         selectedId={setup?.format ?? null}
         onSelect={selectFormat}
@@ -236,8 +239,8 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
             options — four cards announcing themselves as independent toggles
             described the wrong control (F26). The seconds field is not one of
             the options and stays outside the group. */}
-        <FormField label="How long should it run?">
-          <FlexRow role="radiogroup" aria-label="Length" gap={GAP.normal} wrap>
+        <FormField label={t("storyboard:attrs.howLongShouldItRun", { defaultValue: "How long should it run?" })}>
+          <FlexRow role="radiogroup" aria-label={t("storyboard:attrs.length", { defaultValue: "Length" })} gap={GAP.normal} wrap>
             {lengthOptions.map((option) => {
               const radio = radioProps(option);
               return (
@@ -260,7 +263,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
           <Box sx={{ width: CUSTOM_FIELD_WIDTH }}>
             <TextInput
               type="number"
-              label="Custom seconds"
+              label={t("storyboard:attrs.customSeconds", { defaultValue: "Custom seconds" })}
               value={customDraft}
               slotProps={{
                 htmlInput: {
@@ -269,7 +272,7 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
                   step: 1
                 }
               }}
-              placeholder="Custom"
+              placeholder={t("storyboard:attrs.custom", { defaultValue: "Custom" })}
               disabled={readOnly}
               errorMessage={customError ?? undefined}
               helperText={`${MIN_CUSTOM_SECONDS}–${MAX_CUSTOM_SECONDS} seconds`}

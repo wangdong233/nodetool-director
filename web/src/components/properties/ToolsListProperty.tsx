@@ -27,6 +27,7 @@ import Description from "@mui/icons-material/Description";
 import EditNote from "@mui/icons-material/EditNote";
 import Folder from "@mui/icons-material/FolderOutlined";
 import Lock from "@mui/icons-material/Lock";
+import { useTranslation } from "react-i18next";
 
 const BROWSER_TOOL_IDS = [
   "browser_view",
@@ -81,43 +82,44 @@ interface ToolEntry {
 const AVAILABLE_TOOLS: ToolEntry[] = [
   {
     id: "read_file",
-    description: "Read file in workspace",
+    description: "Read file in workspace", descriptionKey: "editor:ui.readFileInWorkspace",
     icon: <Description fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: ["read_file"]
   },
   {
     id: "write_file",
-    description: "Write file in workspace",
+    description: "Write file in workspace", descriptionKey: "editor:ui.writeFileInWorkspace",
     icon: <EditNote fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: ["write_file"]
   },
   {
     id: "list_directory",
-    description: "List files in workspace",
+    description: "List files in workspace", descriptionKey: "editor:ui.listFilesInWorkspace",
     icon: <Folder fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: ["list_directory"]
   },
   {
     id: "google_search",
-    description: "Search the web",
+    description: "Search the web", descriptionKey: "editor:ui.searchTheWeb",
     icon: <Search fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: ["google_search"]
   },
   {
     id: "browser",
-    description: "Browse the web",
+    description: "Browse the web", descriptionKey: "editor:ui.browseTheWeb",
     icon: <Language fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: BROWSER_TOOL_IDS
   },
   {
     id: "sandbox",
-    description: "Sandbox shell, files, and browser",
+    description: "Sandbox shell, files, and browser", descriptionKey: "editor:ui.sandboxShellFilesBrowser",
     icon: <Lock fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: SANDBOX_TOOL_IDS
   }
 ];
 
 const ToolsListProperty = (props: PropertyProps<Tool[]>) => {
+  const { t } = useTranslation();
   const id = `tools-list-${props.property.name}-${props.propertyIndex}`;
   const toolNames: string[] = useMemo(
     () => props.value?.map((tool) => tool.name) || [],
@@ -201,7 +203,7 @@ const ToolsListProperty = (props: PropertyProps<Tool[]>) => {
         ))}
 
         <ToolbarIconButton
-          tooltip="Add / remove tools"
+          tooltip={t("editor:ui.addRemoveTools", { defaultValue: "Add / remove tools" })}
           tooltipPlacement="top"
           icon={<Add fontSize="small" />}
           size="small"

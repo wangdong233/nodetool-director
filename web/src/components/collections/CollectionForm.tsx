@@ -20,6 +20,7 @@ import { CollectionCreate } from "../../stores/ApiTypes";
 import { trpcClient } from "../../trpc/client";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import EmbeddingModelSelect from "../properties/EmbeddingModelSelect";
+import { useTranslation } from "react-i18next";
 
 const slideIn = keyframes`
   from {
@@ -50,6 +51,7 @@ interface CollectionFormProps {
 }
 
 const CollectionForm = ({ onClose, onSuccess }: CollectionFormProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<CollectionCreate>({
@@ -108,7 +110,7 @@ const CollectionForm = ({ onClose, onSuccess }: CollectionFormProps) => {
     >
       <FlexRow gap={SPACING.lg} align="center" wrap>
         <TextInput
-          label="Collection name"
+          label={t("editor:ui.collectionName", { defaultValue: "Collection name" })}
           sx={{ flex: 1, minWidth: 180 }}
           value={formData.name}
           onChange={(e) =>
@@ -126,7 +128,7 @@ const CollectionForm = ({ onClose, onSuccess }: CollectionFormProps) => {
         />
 
         <FormField
-          label="Embedding model"
+          label={t("settings:defModels.mEmbedding", { defaultValue: "Embedding model" })}
           compact
           sx={{ flex: 1, minWidth: 200 }}
         >

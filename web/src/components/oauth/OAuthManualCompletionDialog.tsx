@@ -25,6 +25,7 @@ import {
   TextLink
 } from "../ui_primitives";
 import type { OAuthManualPrompt } from "../../hooks/useOAuthConnection";
+import { useTranslation } from "react-i18next";
 
 interface OAuthManualCompletionDialogProps {
   /** The pending login, or null when nothing is waiting on a paste. */
@@ -43,6 +44,7 @@ export const OAuthManualCompletionDialog = ({
   onSubmit,
   onCancel
 }: OAuthManualCompletionDialogProps) => {
+  const { t } = useTranslation();
   const [value, setValue] = useState("");
 
   const handleCancel = useCallback(() => {
@@ -65,7 +67,7 @@ export const OAuthManualCompletionDialog = ({
       onClose={handleCancel}
       title={`Finish signing in with ${label}`}
       onConfirm={handleConfirm}
-      confirmText={isSubmitting ? "Connecting…" : "Connect"}
+      confirmText={isSubmitting ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : "Connect"}
       confirmDisabled={value.trim().length === 0 || isSubmitting}
       isLoading={isSubmitting}
       maxWidth="sm"
@@ -88,7 +90,7 @@ export const OAuthManualCompletionDialog = ({
           </Text>
         )}
         <TextInput
-          label={prompt.input === "code" ? "Authorization code" : "Redirect address"}
+          label={prompt.input === "code" ? t("editor:ui.authorizationCode", { defaultValue: "Authorization code" }) : "Redirect address"}
           placeholder={
             prompt.input === "code"
               ? "code#state"

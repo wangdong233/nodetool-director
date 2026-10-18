@@ -22,13 +22,14 @@ import {
   Text
 } from "../../ui_primitives";
 import type { BuildFromPlanResult } from "../../../hooks/workflow/useBuildFromPlan";
+import { useTranslation } from "react-i18next";
 
 /** What each run mode leaves to do once the graph runs (PRD § 11.4). */
 const NEXT_STEP: Readonly<
   Record<WorkflowSetupRunMode, { label: string; detail: string }>
 > = {
   manual: {
-    label: "Continue on canvas",
+    label: "Continue on canvas", labelKey: "editor:ui.continueOnCanvas",
     detail: "Adjust inputs or run the workflow from the canvas."
   },
   app: {
@@ -36,7 +37,7 @@ const NEXT_STEP: Readonly<
     detail: "Create and open a Mini App backed by this workflow."
   },
   trigger: {
-    label: "Add a trigger",
+    label: "Add a trigger", labelKey: "editor:ui.addTrigger",
     detail: "Open the trigger-node picker on this canvas."
   }
 };
@@ -144,8 +145,7 @@ const validationLine = (result: BuildFromPlanResult): LineState => {
       pill: "unknown",
       detail:
         result.status === "unrecorded"
-          ? "The check's result was not recorded"
-          : "Not checked"
+          ? t("setup:workflow.theChecksResultWasNotRecorded", { defaultValue: "The check's result was not recorded" }) : "Not checked"
     };
   }
   if (result.validationErrors.length > 0) {
@@ -219,10 +219,12 @@ const testRunLine = (result: BuildFromPlanResult): LineState => {
     pill: "skipped",
     detail:
       result.validationErrors.length > 0
-        ? "Not started, the graph did not validate"
-        : result.issues.length > 0
-          ? "Not started, part of the plan is unwired"
-          : "Not started, the build stopped first"
+        ? i18n.t("setup:workflow.notStartedGraphDidNotValidate", {
+            defaultValue: "Not started, the graph did not validate"
+          }) : result.issues.length > 0
+          ? i18n.t("setup:workflow.notStartedPlanUnwired", {
+              defaultValue: "Not started, part of the plan is unwired"
+            }) : "Not started, the build stopped first"
   };
 };
 
@@ -233,6 +235,7 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
   nextStepPending = false,
   onAskAgent
 }) => {
+  const { t } = useTranslation();
   const failure = buildFailureMessage(result);
   const next = NEXT_STEP[runMode];
 
@@ -241,14 +244,14 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
       <Line
         tone="done"
         pill="built"
-        label="Graph built"
+        label={t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
         detail={`${result.nodeCount} node${result.nodeCount === 1 ? "" : "s"} placed`}
       />
-      <Line label="Validated" {...validationLine(result)} />
+      <Line label={t("storyboard:attrs.validated", { defaultValue: "Validated" })} {...validationLine(result)} />
       {/* The creator was told on the setup step that building would run it
           once, so a missing run is a promise this screen has to account for
           (F1, F8). */}
-      <Line label="Test run" {...testRunLine(result)} />
+      <Line label={t("storyboard:attrs.testRun", { defaultValue: "Test run" })} {...testRunLine(result)} />
 
       {failure === null ? (
         <FlexRow gap={GAP.normal} align="center">
@@ -264,7 +267,7 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
       ) : (
         <AlertBanner
           severity="error"
-          title="This needs a fix before it works"
+          title={t("storyboard:attrs.thisNeedsAFixBeforeItWorks", { defaultValue: "This needs a fix before it works" })}
           action={
             <EditorButton variant="text" onClick={() => onAskAgent(failure)}>
               Ask the agent

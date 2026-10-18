@@ -21,6 +21,7 @@ import EnvironmentPresetEditor from "../../inspector/editors/EnvironmentPresetEd
 import DecalEditor3D from "../../inspector/editors/DecalEditor3D";
 import { AddButton, RowAction } from "../../inspector/InspectorParts";
 import { gameSchemaFields } from "../../inspector/schemaForm";
+import { useTranslation } from "react-i18next";
 
 interface GameInspector3DProps {
   readonly document: GameDocument3D;
@@ -40,6 +41,7 @@ const ACTION_SX = { width: CONTROL.height.xs, height: CONTROL.height.xs, p: SPAC
 const HEADER_SX = { py: SPACING.sm, minHeight: CONTROL.height.lg } as const;
 
 export default function GameInspector3D({ document, sceneId, entityId, onOps, onOperationError, onScript }: GameInspector3DProps) {
+  const { t } = useTranslation();
   const scene = document.scenes.find((item) => item.id === sceneId);
   const entity = scene?.entities.find((item) => item.id === entityId);
   const validation = useMemo(() => validateGame3D(document), [document]);
@@ -68,7 +70,7 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
         <PublicOutlinedIcon sx={ICON_SX} />
         <FlexColumn sx={{ flex: 1, minWidth: 0 }}>
           <Text weight={500} truncate>{scene?.name ?? "Scene"}</Text>
-          <Caption>Scene settings. Select an entity to edit it.</Caption>
+          <Caption>{t("game:inspector.sceneSettingsHint", { defaultValue: "Scene settings. Select an entity to edit it." })}</Caption>
         </FlexColumn>
       </FlexRow>
       {scene && <InspectorSection title="Environment preset"><EnvironmentPresetEditor sceneId={scene.id} onOps={onOps} /></InspectorSection>}
@@ -78,7 +80,7 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
           const updated = gameScene3D.parse({ ...gameScene3D.omit({ id: true, entities: true }).parse(value), id: scene.id, entities: scene.entities });
           applyDocument({ ...document, scenes: document.scenes.map((item) => item.id === sceneId ? updated : item) }, "Change Scene Settings");
         }} />}
-      <InspectorSection title="Collision layers">
+      <InspectorSection title={t("game:inspector.collisionLayers", { defaultValue: "Collision layers" })}>
         <CollisionMatrixEditor document={document} onDocument={applyDocument} />
       </InspectorSection>
       <InspectorSection title="Physics materials">
@@ -120,29 +122,29 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
         <TextInput label="Name" hideLabel compact value={entity.name} placeholder={entity.id} title={`ID: ${entity.id}`} sx={{ flex: 1, minWidth: 0 }}
           onChange={(event) => replaceEntity({ ...entity, name: event.target.value }, "Rename Entity")} />
       </FieldDensityContext.Provider>
-      <ToolbarIconButton icon={<DeleteOutlineIcon fontSize="small" />} tooltip="Delete entity" variant="error" sx={ACTION_SX}
+      <ToolbarIconButton icon={<DeleteOutlineIcon fontSize="small" />} tooltip={t("game:inspector.deleteEntity", { defaultValue: "Delete entity" })} variant="error" sx={ACTION_SX}
         onClick={() => onOps([{ op: "remove_entity", scene_id: sceneId, entity_id: entity.id }])} />
     </FlexRow>
     <GameOverrideFields document={document} sceneId={sceneId} entityId={entity.id} onOps={onOps} />
     <DecalEditor3D key={entity.id} document={document} sceneId={sceneId} entityId={entity.id} onOps={onOps} />
     <SchemaFields schema={ENTITY_FIELDS} value={components} path="entity" assets={document.assets} componentSections
       componentEditors={GAME_COMPONENT_EDITORS} dimension="3d"
-      collisionLayers={document.collisionLayers} physicsMaterials={physicsMaterialNames} beforeSections={<InspectorSection title="Transform">
+      collisionLayers={document.collisionLayers} physicsMaterials={physicsMaterialNames} beforeSections={<InspectorSection title={t("timeline:attrs.transform", { defaultValue: "Transform" })}>
         {transformField("position", position)}
         {transformField("rotation", rotation)}
         {transformField("scale", scale)}
       </InspectorSection>} onChange={(value) => {
         const updated = gameEntity3D.parse({ ...gameEntity3D.omit({ id: true, name: true, transform3d: true, behaviors: true }).parse(value),
           id: entity.id, name: entity.name, transform3d: entity.transform3d, behaviors: entity.behaviors });
-        replaceEntity(updated, updated.light3d && entity.light3d?.intensity !== updated.light3d.intensity ? "Change Light Intensity" : "Change Entity Components");
+        replaceEntity(updated, updated.light3d && entity.light3d?.intensity !== updated.light3d.intensity ? t("game:viewport.changeLightIntensity", { defaultValue: "Change Light Intensity" }) : "Change Entity Components");
       }} />
-    <InspectorSection title="Behaviors">
-      {entity.behaviors.length === 0 && <Caption>No behaviors yet.</Caption>}
+    <InspectorSection title={t("game:inspector.behaviors", { defaultValue: "Behaviors" })}>
+      {entity.behaviors.length === 0 && <Caption>{t("game:inspector.noBehaviors", { defaultValue: "No behaviors yet." })}</Caption>}
       {entity.behaviors.map((behavior, index) => <FlexColumn key={`${behavior.kind}:${index}`} gap={SPACING.xs} sx={{ width: "100%", minWidth: 0 }}>
         <FlexRow gap={SPACING.xs} align="center" sx={{ minHeight: CONTROL.height.sm }}>
           <Label component="span" sx={{ mb: 0, flex: 1, minWidth: 0, color: "text.primary" }}>{index + 1}. {behavior.kind}</Label>
-          {behavior.kind === "script" && <RowAction icon={<CodeIcon />} label="Edit script" onClick={() => onScript(index)} />}
-          <RowAction icon={<CloseIcon />} label="Remove behavior" onClick={() => onOps([{ op: "remove_behavior", scene_id: sceneId, entity_id: entity.id, index }])} />
+          {behavior.kind === "script" && <RowAction icon={<CodeIcon />} label={t("game:inspector.editScript", { defaultValue: "Edit script" })} onClick={() => onScript(index)} />}
+          <RowAction icon={<CloseIcon />} label={t("game:inspector.removeBehavior", { defaultValue: "Remove behavior" })} onClick={() => onOps([{ op: "remove_behavior", scene_id: sceneId, entity_id: entity.id, index }])} />
         </FlexRow>
         {behavior.kind === "script" && behavior.params && <ScriptParamsEditor params={behavior.params} values={behavior.values} assets={document.assets}
           entities={scene?.entities ?? []} issues={validation.issues}
@@ -151,7 +153,7 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
           onChange={(value) => onOps([gameDocumentOp3D.parse({ op: "update_behavior", scene_id: sceneId, entity_id: entity.id, index, behavior: value })])} />}
       </FlexColumn>)}
       <AddButton onClick={() => onOps([{ op: "add_behavior", scene_id: sceneId, entity_id: entity.id,
-        behavior: { kind: "script", source: '(input) => ({ state: input.state, commands: [] })' } }])}>Add script</AddButton>
+        behavior: { kind: "script", source: '(input) => ({ state: input.state, commands: [] })' } }])}>{t("game:inspector.addScript", { defaultValue: "Add script" })}</AddButton>
     </InspectorSection>
   </FlexColumn>;
 }

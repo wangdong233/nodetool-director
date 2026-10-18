@@ -3,6 +3,7 @@ import ModelMenuDialogBase from "./shared/ModelMenuDialogBase";
 import type { LanguageModel, ModelPack, UnifiedModel } from "../../stores/ApiTypes";
 import { useLanguageModelMenuStore } from "../../stores/ModelMenuStore";
 import { useLanguageModelsByProvider } from "../../hooks/useModelsByProvider";
+import { useTranslation } from "react-i18next";
 
 /** The provider capability this picker serves, for local providers to install. */
 const LOCAL_CAPABILITIES = ["generate_message"];
@@ -36,6 +37,7 @@ function LanguageModelMenuDialog({
   modelPacks,
   selectedModel
 }: LanguageModelMenuDialogProps) {
+  const { t } = useTranslation();
   const modelData = useLanguageModelsByProvider({
     allowedProviders,
     requireToolSupport
@@ -47,7 +49,7 @@ function LanguageModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select language model"
+      title={t("editor:ui.selectLanguageModel", { defaultValue: "Select language model" })}
       searchPlaceholder="Search language models"
       storeHook={useLanguageModelMenuStore}
       modelType="language_model"

@@ -52,6 +52,7 @@ import {
   SPACING,
   Z_INDEX
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface ApplicationSurfaceProps {
   refId: string;
@@ -103,6 +104,7 @@ const ApplicationSurface = ({
   selectedRunId,
   mode = "view"
 }: ApplicationSurfaceProps) => {
+  const { t } = useTranslation();
   const {
     data: application,
     isLoading,
@@ -298,7 +300,7 @@ const ApplicationSurface = ({
     return (
       <EmptyState
         variant="error"
-        title="Could not load app"
+        title={t("ui2:attrs.couldNotLoadApp", { defaultValue: "Could not load app" })}
         description={error?.message ?? "The app may have been deleted."}
       />
     );
@@ -355,12 +357,12 @@ const ApplicationSurface = ({
                 exclusive
                 value={view}
                 onChange={handleViewChange}
-                aria-label="App view"
+                aria-label={t("ui2:attrs.appView", { defaultValue: "App view" })}
               >
-                <ToggleOption value="design">Design</ToggleOption>
-                <ToggleOption value="run">Run</ToggleOption>
-                <ToggleOption value="preview">Preview draft</ToggleOption>
-                <ToggleOption value="settings">Settings</ToggleOption>
+                <ToggleOption value="design">{t("ui2:attrs.design", { defaultValue: "Design" })}</ToggleOption>
+                <ToggleOption value="run">{t("ui2:attrs.run", { defaultValue: "Run" })}</ToggleOption>
+                <ToggleOption value="preview">{t("ui2:attrs.previewDraft", { defaultValue: "Preview draft" })}</ToggleOption>
+                <ToggleOption value="settings">{t("nav:rail.settings", { defaultValue: "Settings" })}</ToggleOption>
               </ToggleGroup>
             </FlexRow>
           </FlexRow>
@@ -434,7 +436,7 @@ const ApplicationSurface = ({
             <Box
               ref={narrowAgentPanelRef}
               role="dialog"
-              aria-label="App builder assistant"
+              aria-label={t("ui2:attrs.appBuilderAssistant", { defaultValue: "App builder assistant" })}
               tabIndex={-1}
               sx={{
                 ...overlayPanelSx,
@@ -460,8 +462,8 @@ const ApplicationSurface = ({
           ref={narrowAgentButtonRef}
           icon={narrowAgentOpen ? <CloseIcon /> : <AutoAwesomeIcon />}
           onClick={toggleNarrowAgent}
-          ariaLabel={narrowAgentOpen ? "Close agent" : "Ask agent"}
-          tooltip={narrowAgentOpen ? "Close agent" : "Ask agent"}
+          ariaLabel={narrowAgentOpen ? t("editor:ui.closeAgent", { defaultValue: "Close agent" }) : "Ask agent"}
+          tooltip={narrowAgentOpen ? t("editor:ui.closeAgent", { defaultValue: "Close agent" }) : "Ask agent"}
           tooltipPlacement="top"
           size={48}
           position="absolute"

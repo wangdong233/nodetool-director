@@ -16,6 +16,7 @@ import FolderIcon from "@mui/icons-material/FolderOutlined";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { BORDER_RADIUS, MOTION } from "./tokens";
 import { SPACING, getSpacingPx } from "./spacing";
+import { useTranslation } from "react-i18next";
 
 export interface BreadcrumbItem {
   /** Label to display */
@@ -119,6 +120,7 @@ const BreadcrumbsInternal: React.FC<BreadcrumbsProps> = ({
   maxItems,
   className
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
@@ -148,7 +150,7 @@ const BreadcrumbsInternal: React.FC<BreadcrumbsProps> = ({
       <MuiBreadcrumbs
         separator={getSeparator(separator)}
         maxItems={maxItems}
-        aria-label="breadcrumb"
+        aria-label={t("ui:attrs.breadcrumb", { defaultValue: "breadcrumb" })}
       >
         {items.map((item, index) => {
           const isLast = index === items.length - 1;

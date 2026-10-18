@@ -17,6 +17,7 @@ import {
   MenuItemPrimitive
 } from "../../ui_primitives";
 import type { MediaMode } from "../../../stores/MediaGenerationStore";
+import { useTranslation } from "react-i18next";
 
 interface MediaModeMenuProps {
   anchorEl: HTMLElement | null;
@@ -69,7 +70,7 @@ const MODES: ModeItem[] = [
   {
     id: "reference_to_video",
     label: "Reference to video",
-    description: "several references, one shot",
+    description: "several references, one shot", descriptionKey: "editor:ui.severalReferencesOneShot",
     icon: <BurstModeIcon fontSize="small" />,
     enabled: true
   },
@@ -125,6 +126,7 @@ const MediaModeMenu: React.FC<MediaModeMenuProps> = ({
   onChange,
   modes
 }) => {
+  const { t } = useTranslation();
   return (
     <ContextMenu
       open={open}
@@ -135,7 +137,7 @@ const MediaModeMenu: React.FC<MediaModeMenuProps> = ({
       minWidth={240}
       slotProps={{ list: { "aria-label": "Generation mode" } }}
     >
-      <ListSubheader>Mode</ListSubheader>
+      <ListSubheader>{t("ui2:attrs.mode", { defaultValue: "Mode" })}</ListSubheader>
       {MODES.filter((m) => !modes || modes.includes(m.id)).map((m) => {
         const selected = m.id === value;
         return (

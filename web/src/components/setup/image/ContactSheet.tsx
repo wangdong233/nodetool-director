@@ -43,6 +43,7 @@ import {
 } from "../../../hooks/sketch/useDirectGenJob";
 import { variationSeeds } from "../../../hooks/sketch/useGenerateVariations";
 import { resolveMediaUri } from "../../../utils/resolveMediaUri";
+import { useTranslation } from "react-i18next";
 
 export interface ContactSheetProps {
   /** The batch, in the order it was enqueued. */
@@ -149,6 +150,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
   onSaveToLibrary,
   onOpenCanvas
 }) => {
+  const { t } = useTranslation();
   const bindings = useSketchSessionStore((state) => state.bindings);
   const { start } = useDirectGenJob();
   const [actions, setActions] = useState<
@@ -252,7 +254,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
         ...current,
         [layerId]: {
           state: "saving",
-          message: destination === "entity" ? "Saving to entities…" : "Opening…"
+          message: destination === "entity" ? i18n.t("setup:image.savingToEntitiesProgress", { defaultValue: "Saving to entities…" }) : "Opening…"
         }
       }));
       try {
@@ -267,8 +269,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
             state: "saved",
             message:
               destination === "entity"
-                ? "Saved to entities."
-                : "Opened in a new node canvas."
+                ? i18n.t("storyboard:attrs.savedToEntities", { defaultValue: "Saved to entities." }) : "Opened in a new node canvas."
           }
         }));
       } catch (cause) {
@@ -357,7 +358,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
 
       <Box
         role="group"
-        aria-label="Variations"
+        aria-label={t("storyboard:attrs.variations", { defaultValue: "Variations" })}
         sx={{
           display: "grid",
           gridTemplateColumns:
@@ -526,7 +527,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
           disabled={makeMorePending}
           onClick={onMakeMore}
         >
-          {makeMorePending ? "Making more…" : "Make more variations"}
+          {makeMorePending ? i18n.t("storyboard:attrs.makingMore", { defaultValue: "Making more…" }) : "Make more variations"}
         </EditorButton>
         {makeMoreDetail && !makeMorePending ? (
           <Caption color="secondary" sx={{ alignSelf: "center" }}>

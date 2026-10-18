@@ -40,6 +40,7 @@ import {
   withDurationSourceToggled,
   type ShotDraft
 } from "./shotDraft";
+import { useTranslation } from "react-i18next";
 
 interface ShotEditTableProps {
   draft: ShotDraft;
@@ -83,6 +84,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
   focusDialogue,
   onEditInScript
 }) => {
+  const { t } = useTranslation();
   const set = useCallback(
     (patch: Partial<ShotDraft>) => onChange({ ...draft, ...patch }),
     [onChange, draft]
@@ -128,8 +130,8 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           compact
           size="small"
           minRows={1}
-          label="Description"
-          placeholder="What the shot shows"
+          label={t("storyboard:attrs.description", { defaultValue: "Description" })}
+          placeholder={t("storyboard:attrs.whatTheShotShows", { defaultValue: "What the shot shows" })}
           disabled={readOnly}
           value={draft.action}
           onChange={(value) => set({ action: value })}
@@ -138,8 +140,8 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           compact
           size="small"
           minRows={1}
-          label="Shot motion"
-          placeholder="What moves, and how the camera moves, over the clip"
+          label={t("storyboard:attrs.shotMotion", { defaultValue: "Shot motion" })}
+          placeholder={t("storyboard:attrs.whatMovesAndHowTheCameraMovesOverTheClip", { defaultValue: "What moves, and how the camera moves, over the clip" })}
           disabled={readOnly}
           value={draft.motion}
           onChange={(value) => set({ motion: value })}
@@ -148,8 +150,8 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           compact
           size="small"
           minRows={1}
-          label="End"
-          placeholder="The picture the shot ends on"
+          label={t("storyboard:attrs.end", { defaultValue: "End" })}
+          placeholder={t("storyboard:attrs.thePictureTheShotEndsOn", { defaultValue: "The picture the shot ends on" })}
           disabled={readOnly}
           value={draft.endState}
           onChange={(value) => set({ endState: value })}
@@ -158,15 +160,15 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           compact
           size="small"
           minRows={1}
-          label="Sound"
-          placeholder="What is heard"
+          label={t("storyboard:attrs.sound", { defaultValue: "Sound" })}
+          placeholder={t("storyboard:attrs.whatIsHeard", { defaultValue: "What is heard" })}
           disabled={readOnly}
           value={draft.sound}
           onChange={(value) => set({ sound: value })}
         />
 
         {linksLines ? (
-          <FormField label="Dialogue" helperText="The script owns these words.">
+          <FormField label={t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" })} helperText={t("storyboard:attrs.theScriptOwnsTheseWords", { defaultValue: "The script owns these words." })}>
             <FlexColumn gap={SPACING.xs}>
               <Text
                 sx={{ whiteSpace: "pre-wrap" }}
@@ -188,8 +190,8 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
             compact
             size="small"
             minRows={1}
-            label="Dialogue"
-            placeholder="What is said in shot"
+            label={t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" })}
+            placeholder={t("storyboard:attrs.whatIsSaidInShot", { defaultValue: "What is said in shot" })}
             disabled={readOnly}
             autoFocus={focusDialogue}
             value={draft.dialogue}
@@ -200,11 +202,11 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
 
       {entities}
 
-      <FormSection label="Shot details">
+      <FormSection label={t("storyboard:attrs.shotDetails", { defaultValue: "Shot details" })}>
         <Box sx={pairGridSx}>
           <SelectField
             size="small"
-            label="Size"
+            label={t("storyboard:attrs.size", { defaultValue: "Size" })}
             disabled={readOnly}
             value={draft.framing}
             onChange={(value) => set({ framing: value })}
@@ -212,7 +214,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           />
           <SelectField
             size="small"
-            label="Focal length"
+            label={t("storyboard:attrs.focalLength", { defaultValue: "Focal length" })}
             disabled={readOnly}
             value={draft.lens}
             onChange={(value) => set({ lens: value })}
@@ -220,7 +222,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           />
           <SelectField
             size="small"
-            label="Perspective"
+            label={t("storyboard:attrs.perspective", { defaultValue: "Perspective" })}
             disabled={readOnly}
             value={draft.angle}
             onChange={(value) => set({ angle: value })}
@@ -228,7 +230,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           />
           <SelectField
             size="small"
-            label="Movement"
+            label={t("storyboard:attrs.movement", { defaultValue: "Movement" })}
             disabled={readOnly}
             value={draft.movement}
             onChange={(value) => set({ movement: value })}
@@ -236,7 +238,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
           />
           <SelectField
             size="small"
-            label="Equipment"
+            label={t("storyboard:attrs.equipment", { defaultValue: "Equipment" })}
             disabled={readOnly}
             value={draft.equipment}
             onChange={(value) => set({ equipment: value })}
@@ -258,8 +260,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
               onChange={handleDuration}
               errorMessage={
                 isDurationInvalid(draft.durationSeconds)
-                  ? "Enter a length above 0 seconds"
-                  : undefined
+                  ? t("storyboard:attrs.enterALengthAbove0Seconds", { defaultValue: "Enter a length above 0 seconds" }) : undefined
               }
               inputProps={{
                 min: 1,
@@ -302,15 +303,15 @@ const ShotAdvancedFieldsInner: React.FC<{
     <TextInput
       compact
       size="small"
-      label="Shot title"
-      placeholder="Untitled shot"
+      label={t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}
+      placeholder={t("storyboard:attrs.untitledShot", { defaultValue: "Untitled shot" })}
       disabled={readOnly}
       value={draft.slug}
       onChange={(event) => onChange({ ...draft, slug: event.target.value })}
     />
     <SelectField
       size="small"
-      label="Render mode"
+      label={t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}
       disabled={readOnly}
       value={draft.renderMode}
       onChange={(value) =>

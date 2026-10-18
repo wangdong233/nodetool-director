@@ -5,6 +5,7 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 
 import { Caption, EditorButton, FlexColumn, FlexRow, InspectorSection, SPACING } from "../ui_primitives";
 import { RowAction } from "./inspector/InspectorParts";
+import { useTranslation } from "react-i18next";
 
 interface GameOverrideFieldsProps {
   document: AnyGameDocument;
@@ -14,6 +15,7 @@ interface GameOverrideFieldsProps {
 }
 
 export default function GameOverrideFields({ document, sceneId, entityId, onOps }: GameOverrideFieldsProps) {
+  const { t } = useTranslation();
   const authoring = document.authoring;
   if (!authoring) { return null; }
   const detached = authoring.detached.some((target) => target.sceneId === sceneId && target.entityId === entityId);
@@ -25,15 +27,15 @@ export default function GameOverrideFields({ document, sceneId, entityId, onOps 
   const generated = Boolean(generatedEntity);
   const instance = authoring.instances.find((target) => target.sceneId === sceneId && target.entityId === entityId);
   const prefab = instance ? authoring.prefabs[instance.prefabId] : null;
-  if (!generated && !detached) { return <Caption sx={{ py: SPACING.xs }}>Hand authored entity</Caption>; }
-  return <InspectorSection title="Construction values" defaultOpen={false}>
-    <Caption>{detached ? "Detached from construction" : "Generated entity. Fields without overrides follow construction."}</Caption>
+  if (!generated && !detached) { return <Caption sx={{ py: SPACING.xs }}>{t("game:overrides.handAuthoredEntity", { defaultValue: "Hand authored entity" })}</Caption>; }
+  return <InspectorSection title={t("game:overrides.constructionValues", { defaultValue: "Construction values" })} defaultOpen={false}>
+    <Caption>{detached ? t("game:overrides.detachedFromConstruction", { defaultValue: "Detached from construction" }) : "Generated entity. Fields without overrides follow construction."}</Caption>
     {instance && <Caption>Prefab: {instance.prefabId}</Caption>}
     {generatedEntity && typeof generatedEntity === "object" && !Array.isArray(generatedEntity) && <FlexColumn gap={SPACING.micro}>
       {Object.entries(generatedEntity).filter(([key]) => key !== "id").map(([key, value]) => {
         const overridden = overrides.some((override) => override.path[0] === key);
         const inherited = prefab && typeof prefab === "object" && !Array.isArray(prefab) && key in prefab && JSON.stringify(prefab[key]) === JSON.stringify(value);
-        return <Caption key={key} color={overridden ? "primary" : undefined}>{key}: {overridden ? "Overridden" : inherited ? "Inherited" : "Generated"}</Caption>;
+        return <Caption key={key} color={overridden ? "primary" : undefined}>{key}: {overridden ? t("game:overrides.overridden", { defaultValue: "Overridden" }) : inherited ? t("game:overrides.inherited", { defaultValue: "Inherited" }) : "Generated"}</Caption>;
       })}
     </FlexColumn>}
     {overrides.map((override) => <FlexRow key={JSON.stringify(override.path)} gap={SPACING.xs} align="center" sx={{ width: "100%", minWidth: 0 }}>
@@ -42,8 +44,8 @@ export default function GameOverrideFields({ document, sceneId, entityId, onOps 
         onClick={() => onOps([{ op: "reset_override", scene_id: sceneId, entity_id: entityId, path: override.path }])} />
     </FlexRow>)}
     {!detached && <FlexRow gap={SPACING.xs}>
-      <EditorButton variant="text" disabled={overrides.length === 0} onClick={() => onOps([{ op: "reset_override", scene_id: sceneId, entity_id: entityId }])}>Reset all overrides</EditorButton>
-      <EditorButton variant="text" onClick={() => onOps([{ op: "detach_entity", scene_id: sceneId, entity_id: entityId }])}>Detach entity</EditorButton>
+      <EditorButton variant="text" disabled={overrides.length === 0} onClick={() => onOps([{ op: "reset_override", scene_id: sceneId, entity_id: entityId }])}>{t("game:overrides.resetAllOverrides", { defaultValue: "Reset all overrides" })}</EditorButton>
+      <EditorButton variant="text" onClick={() => onOps([{ op: "detach_entity", scene_id: sceneId, entity_id: entityId }])}>{t("game:overrides.detachEntity", { defaultValue: "Detach entity" })}</EditorButton>
     </FlexRow>}
   </InspectorSection>;
 }

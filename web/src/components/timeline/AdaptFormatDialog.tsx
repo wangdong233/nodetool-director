@@ -29,6 +29,7 @@ import {
   type CreateFormatAdaptationOptions,
   useCreateFormatAdaptation
 } from "../../hooks/timeline/useCreateFormatAdaptation";
+import { useTranslation } from "react-i18next";
 
 const FORMAT_OPTIONS = [
   { value: "9:16", label: "9:16", dimensions: "1080 × 1920" },
@@ -49,6 +50,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
   sequence,
   mediaTracks
 }) => {
+  const { t } = useTranslation();
   const [formats, setFormats] = useState<Set<string>>(new Set(["9:16"]));
   const [strategy, setStrategy] = useState<AdaptFormatStrategy>("smart");
   const [safeMarginPercent, setSafeMarginPercent] = useState(10);
@@ -139,8 +141,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
   const strategyHelp =
     [
       readyTracks.length === 0
-        ? "Track a subject first to use “Follow selected object.”"
-        : undefined,
+        ? t("editor:ui.trackASubjectFirstToUseFollowSelectedObject", { defaultValue: "Track a subject first to use “Follow selected object.”" }) : undefined,
       smartUnavailable
         ? "Smart reframe needs a current subject track or authored framing for every visual clip. Use Center until those signals exist."
         : undefined
@@ -152,22 +153,22 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Adapt format"
+      title={t("timeline:adapt.title", { defaultValue: "Adapt format" })}
       onConfirm={() => void handleCreate()}
       confirmText={
-        formats.size > 1 ? "Create adaptations" : "Create adaptation"
+        formats.size > 1 ? t("timeline:adapt.createMany", { defaultValue: "Create adaptations" }) : "Create adaptation"
       }
       confirmDisabled={cannotCreate}
       isLoading={isCreating}
     >
       <FlexColumn gap={SPACING.lg}>
-        <FormField label="Original">
+        <FormField label={t("timeline:attrs.original", { defaultValue: "Original" })}>
           <Text size="small">
             {sequence ? `${sequence.width} × ${sequence.height}` : "—"}
           </Text>
         </FormField>
 
-        <FormField label="Target formats">
+        <FormField label={t("timeline:attrs.targetFormats", { defaultValue: "Target formats" })}>
           <FlexColumn gap={SPACING.xs}>
             {FORMAT_OPTIONS.map((format) => (
               <Checkbox
@@ -181,18 +182,18 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
           </FlexColumn>
         </FormField>
 
-        <FormField label="Strategy" helperText={strategyHelp}>
+        <FormField label={t("timeline:attrs.strategy", { defaultValue: "Strategy" })} helperText={strategyHelp}>
           <RadioSet value={strategy} onChange={handleStrategyChange}>
-            <Radio value="center" label="Center" size="small" />
+            <Radio value="center" label={t("timeline:adapt.center", { defaultValue: "Center" })} size="small" />
             <Radio
               value="smart"
-              label="Smart reframe"
+              label={t("timeline:attrs.smartReframe", { defaultValue: "Smart reframe" })}
               size="small"
               disabled={smartUnavailable}
             />
             <Radio
               value="track"
-              label="Follow selected object"
+              label={t("timeline:adapt.followObject", { defaultValue: "Follow selected object" })}
               size="small"
               disabled={readyTracks.length === 0}
             />
@@ -200,7 +201,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
         </FormField>
         {strategy === "track" && (
           <SelectField
-            label="Reframe subject"
+            label={t("timeline:adapt.reframeSubject", { defaultValue: "Reframe subject" })}
             value={trackId}
             onChange={setTrackId}
             options={trackOptions}

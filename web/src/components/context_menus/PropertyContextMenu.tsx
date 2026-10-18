@@ -38,6 +38,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { useExposedInputToggle } from "../../hooks/nodes/useExposedInputToggle";
 import { isObjectLike } from "../../utils/typePredicates";
 import { runAsOneUndoEntry } from "../../utils/runAsOneUndoEntry";
+import { useTranslation } from "react-i18next";
 
 /** Payload from inspector multi-edit: reset/copy/remove apply to every id. */
 function resolvePropertyMenuTargetNodeIds(
@@ -59,6 +60,7 @@ function resolvePropertyMenuTargetNodeIds(
 }
 
 const PropertyContextMenuComponent: React.FC = () => {
+  const { t } = useTranslation();
   const { writeClipboard } = useClipboard();
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -321,7 +323,7 @@ const PropertyContextMenuComponent: React.FC = () => {
       onContextMenu={(event) => event.preventDefault()}
       position={menuPosition}
     >
-      <ListSubheader>Property</ListSubheader>
+      <ListSubheader>{t("editor:property.sectionTitle", { defaultValue: "Property" })}</ListSubheader>
 
       {description && description.length > 0 && (
         <Caption
@@ -340,13 +342,13 @@ const PropertyContextMenuComponent: React.FC = () => {
       <Divider />
       <ContextMenuItem
         onClick={handleCopyValue}
-        label="Copy value"
+        label={t("editor:property.copyValue", { defaultValue: "Copy value" })}
         IconComponent={<ContentCopyIcon />}
         tooltip="Copy property value"
       />
       <ContextMenuItem
         onClick={handleReset}
-        label="Reset to default value"
+        label={t("editor:property.resetDefault", { defaultValue: "Reset to default value" })}
         IconComponent={<SettingsBackupRestoreIcon />}
         tooltip={getShortcutTooltip("resetDefault")}
       />
@@ -356,15 +358,13 @@ const PropertyContextMenuComponent: React.FC = () => {
           onClick={handleToggleExposedInput}
           label={
             isExposedHandle
-              ? "Hide input handle (top)"
-              : "Show as input handle (top)"
+              ? t("editor:ui.hideInputHandleTop", { defaultValue: "Hide input handle (top)" }) : "Show as input handle (top)"
           }
           IconComponent={<ArrowForwardIcon />}
           tooltip={
             isExposedHandle
               ? isConnected
-                ? "Hide top input handle (disconnects edge)"
-                : "Hide top input handle"
+                ? t("editor:ui.hideTopInputHandleDisconnectsEdge", { defaultValue: "Hide top input handle (disconnects edge)" }) : "Hide top input handle"
               : "Show as handle on the left/top of the node (no label)"
           }
         />
@@ -374,22 +374,20 @@ const PropertyContextMenuComponent: React.FC = () => {
           onClick={handleToggleExposedInputLabeled}
           label={
             isExposedLabeled
-              ? "Hide labeled input (bottom)"
-              : "Show labeled input (bottom)"
+              ? t("editor:ui.hideLabeledInputBottom", { defaultValue: "Hide labeled input (bottom)" }) : "Show labeled input (bottom)"
           }
           IconComponent={<ArrowForwardIcon />}
           tooltip={
             isExposedLabeled
               ? isConnected
-                ? "Hide labeled input at bottom (disconnects edge)"
-                : "Hide labeled input at bottom"
+                ? t("editor:ui.hideLabeledInputAtBottomDisconnectsEdge", { defaultValue: "Hide labeled input at bottom (disconnects edge)" }) : "Hide labeled input at bottom"
               : "Show input at bottom with parameter title and editor"
           }
         />
       )}
 
       {isDynamicProperty && <Divider />}
-      {slotTypeOptions !== null && <ListSubheader>Slot type</ListSubheader>}
+      {slotTypeOptions !== null && <ListSubheader>{t("editor:property.slotType", { defaultValue: "Slot type" })}</ListSubheader>}
       {slotTypeOptions?.map((option) => (
         <ContextMenuItem
           key={slotTypeKey(option)}

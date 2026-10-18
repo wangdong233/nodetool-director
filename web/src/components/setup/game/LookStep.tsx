@@ -29,6 +29,7 @@ import { SetupFooterField } from "../SetupFooterField";
 import { SETUP_FIELD_WIDTH } from "../layout";
 import { STYLE_DESCRIPTIONS } from "../styleDescriptions";
 import { NO_GAME_STYLE_ID } from "./gameSetupModel";
+import { useTranslation } from "react-i18next";
 
 const IMAGE_MODEL_TASKS: ImageModelTask[] = ["text_to_image"];
 
@@ -54,6 +55,7 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
   imageSlots,
   readOnly = false
 }) => {
+  const { t } = useTranslation();
   const tiles = useMemo<PresetTile[]>(
     () =>
       presets.map((preset) => ({
@@ -80,20 +82,20 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
 
       <Box sx={{ maxWidth: SETUP_FIELD_WIDTH }}>
         <TextInput
-          label="Game name"
+          label={t("setup:game.gameName", { defaultValue: "Game name" })}
           value={name}
-          placeholder="Untitled game"
+          placeholder={t("editor:ui.untitledGame", { defaultValue: "Untitled game" })}
           onChange={(event) => onNameChange(event.target.value)}
           disabled={readOnly}
         />
       </Box>
 
-      <FormField label="Art style">
+      <FormField label={t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}>
         {presetsLoading && presets.length === 0 ? (
           <LoadingSpinner size="small" text="Loading the styles" />
         ) : (
           <PresetTileGrid
-            label="Art style"
+            label={t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
             presets={tiles}
             selectedId={styleEntityId}
             onSelect={onStyleSelect}
@@ -142,7 +144,7 @@ export const ImageModelFooterField: React.FC<ImageModelFooterFieldProps> = ({
   onModelChange,
   readOnly = false
 }) => (
-  <SetupFooterField label="Art">
+  <SetupFooterField label={t("setup:game.artLabel", { defaultValue: "Art" })}>
     <ImageModelSelect
       value={model?.id ?? ""}
       provider={model?.provider}

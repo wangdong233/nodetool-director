@@ -27,6 +27,7 @@ import {
   ToolbarIconButton
 } from "../ui_primitives";
 import { AUDIO_EFFECTS, EFFECT_GROUPS } from "./audioEffects";
+import { useTranslation } from "react-i18next";
 
 interface AudioEditorToolbarProps {
   hasSelection: boolean;
@@ -77,6 +78,7 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
   onSave,
   onDone
 }: AudioEditorToolbarProps) {
+  const { t } = useTranslation();
   const [effectsAnchor, setEffectsAnchor] = useState<HTMLElement | null>(null);
   const openEffectsMenu = useCallback(
     (event: MouseEvent<HTMLElement>) => setEffectsAnchor(event.currentTarget),
@@ -102,13 +104,13 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
       <ToolbarGroup role="group" aria-label="History">
         <ToolbarIconButton
           icon={<UndoIcon fontSize="small" />}
-          tooltip="Undo"
+          tooltip={t("timeline:shortcuts.undo", { defaultValue: "Undo" })}
           onClick={onUndo}
           disabled={!canUndo}
         />
         <ToolbarIconButton
           icon={<RedoIcon fontSize="small" />}
-          tooltip="Redo"
+          tooltip={t("timeline:shortcuts.redo", { defaultValue: "Redo" })}
           onClick={onRedo}
           disabled={!canRedo}
         />
@@ -125,7 +127,7 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
         />
         <ToolbarIconButton
           icon={<DeleteOutlineOutlinedIcon fontSize="small" />}
-          tooltip="Delete selection"
+          tooltip={t("timeline:attrs.deleteSelection", { defaultValue: "Delete selection" })}
           onClick={onDelete}
           disabled={!hasSelection}
         />

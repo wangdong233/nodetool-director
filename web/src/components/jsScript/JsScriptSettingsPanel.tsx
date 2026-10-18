@@ -25,6 +25,7 @@ import {
 } from "../../stores/jsScript/JsScriptStore";
 import JsScriptPortsEditor from "./JsScriptPortsEditor";
 import JsScriptSecretsEditor from "./JsScriptSecretsEditor";
+import { useTranslation } from "react-i18next";
 
 /** What a newly exposed script lands under until its owner names a category. */
 const DEFAULT_CATEGORY = "My Nodes";
@@ -38,6 +39,7 @@ const JsScriptSettingsPanel = ({
   scriptId,
   readOnly = false
 }: JsScriptSettingsPanelProps) => {
+  const { t } = useTranslation();
   const document = useJsScriptDocument(scriptId);
   const setDescription = useJsScriptStore((state) => state.setDescription);
   const setPorts = useJsScriptStore((state) => state.setPorts);
@@ -69,11 +71,11 @@ const JsScriptSettingsPanel = ({
     <ScrollArea>
       <FlexColumn gap={SPACING.lg} padding={2}>
         <TextArea
-          label="Description"
+          label={t("editor:ui.description", { defaultValue: "Description" })}
           size="small"
           minRows={1}
           value={document.description}
-          placeholder="What this script does"
+          placeholder={t("editor:ui.whatThisScriptDoes", { defaultValue: "What this script does" })}
           helperText="Agents read this to decide whether to call the script."
           disabled={readOnly}
           onChange={(value) =>
@@ -84,13 +86,13 @@ const JsScriptSettingsPanel = ({
         <Divider />
         <FlexColumn data-focus-id="jsscript-ports" gap={SPACING.lg}>
           <JsScriptPortsEditor
-            label="Inputs"
+            label={t("editor:ui.inputs", { defaultValue: "Inputs" })}
             ports={document.inputs}
             readOnly={readOnly}
             onChange={handleInputs}
           />
           <JsScriptPortsEditor
-            label="Outputs"
+            label={t("editor:ui.outputs", { defaultValue: "Outputs" })}
             ports={document.outputs}
             readOnly={readOnly}
             onChange={handleOutputs}
@@ -107,16 +109,16 @@ const JsScriptSettingsPanel = ({
         <Divider />
         <FlexColumn gap={SPACING.lg}>
           <LabeledSwitch
-            label="Show in node menu"
+            label={t("editor:ui.showInNodeMenu", { defaultValue: "Show in node menu" })}
             size="small"
             checked={document.palette !== undefined}
             disabled={readOnly}
             onChange={handleShowInMenu}
-            description="Adds this script to My Nodes, so it drops onto a graph like any node."
+            description={t("editor:ui.addsThisScriptToMyNodesSoItDropsOntoAGraphLikeAnyNode", { defaultValue: "Adds this script to My Nodes, so it drops onto a graph like any node." })}
           />
           {document.palette !== undefined ? (
             <TextInput
-              label="Category"
+              label={t("editor:ui.category", { defaultValue: "Category" })}
               size="small"
               value={document.palette.category}
               placeholder={DEFAULT_CATEGORY}

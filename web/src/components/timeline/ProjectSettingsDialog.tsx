@@ -29,6 +29,7 @@ import {
 import type { SelectOption } from "../ui_primitives";
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import { useTimelineProjectSettings } from "../../hooks/timeline/useTimelineProjectSettings";
+import { useTranslation } from "react-i18next";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -108,6 +109,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
   open,
   onClose
 }) => {
+  const { t } = useTranslation();
   const { fps, width, height } = useTimelineStore(
     useShallow((s) => ({ fps: s.fps, width: s.width, height: s.height }))
   );
@@ -228,7 +230,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
     <Dialog
       open={open}
       onClose={() => onClose()}
-      title="Project settings"
+      title={t("timeline:project.title", { defaultValue: "Project settings" })}
       onConfirm={() => void handleApply()}
       confirmText="Apply"
       isLoading={isSaving}
@@ -238,11 +240,11 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
     >
       <FlexColumn gap={SPACING.xl}>
         {/* ── Canvas size ─────────────────────────────────────────── */}
-        <FormSection label="Canvas size">
+        <FormSection label={t("timeline:attrs.canvasSize", { defaultValue: "Canvas size" })}>
           {/* Label hidden — the section header names it; an outlined variant
               keeps it consistent with the Width/Height fields below. */}
           <SelectField
-            label="Canvas preset"
+            label={t("timeline:project.canvasPreset", { defaultValue: "Canvas preset" })}
             hideLabel
             variant="outlined"
             value={resolutionPreset}
@@ -252,7 +254,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
           />
           <FlexRow gap={SPACING.lg} align="flex-start">
             <NumberField
-              label="Width"
+              label={t("timeline:project.width", { defaultValue: "Width" })}
               size="small"
               value={widthText}
               onChange={(e) => setWidthText(e.target.value)}
@@ -267,7 +269,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
               sx={{ flex: 1 }}
             />
             <NumberField
-              label="Height"
+              label={t("timeline:project.height", { defaultValue: "Height" })}
               size="small"
               value={heightText}
               onChange={(e) => setHeightText(e.target.value)}
@@ -285,11 +287,11 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
         </FormSection>
 
         {/* ── Frame rate ──────────────────────────────────────────── */}
-        <FormSection label="Frame rate">
+        <FormSection label={t("timeline:attrs.frameRate", { defaultValue: "Frame rate" })}>
           <FlexRow gap={SPACING.lg} align="flex-start">
             <FlexColumn sx={{ flex: 2 }}>
               <SelectField
-                label="Frame rate preset"
+                label={t("timeline:project.frameRate", { defaultValue: "Frame rate preset" })}
                 hideLabel
                 variant="outlined"
                 value={fpsPreset}
@@ -299,7 +301,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
               />
             </FlexColumn>
             <NumberField
-              label="FPS"
+              label={t("timeline:attrs.fps", { defaultValue: "FPS" })}
               size="small"
               value={fpsText}
               onChange={(e) => setFpsText(e.target.value)}
@@ -317,7 +319,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
         </FormSection>
 
         {/* ── Tempo ───────────────────────────────────────────────── */}
-        <FormSection label="Tempo">
+        <FormSection label={t("timeline:attrs.tempo", { defaultValue: "Tempo" })}>
           <FlexRow gap={SPACING.lg} align="flex-start">
             <NumberField
               label="BPM"
@@ -333,7 +335,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
               sx={{ flex: 1 }}
             />
             <NumberField
-              label="Beats per bar"
+              label={t("timeline:project.beatsPerBar", { defaultValue: "Beats per bar" })}
               size="small"
               value={beatsPerBarText}
               onChange={(e) => setBeatsPerBarText(e.target.value)}
@@ -349,7 +351,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
             />
             <FlexColumn sx={{ flex: 1 }}>
               <SelectField
-                label="Beat unit"
+                label={t("timeline:project.beatUnit", { defaultValue: "Beat unit" })}
                 variant="outlined"
                 value={beatUnit}
                 onChange={setBeatUnit}
@@ -359,7 +361,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
             </FlexColumn>
           </FlexRow>
           <NumberField
-            label="Beat one at"
+            label={t("timeline:attrs.beatOneAt", { defaultValue: "Beat one at" })}
             size="small"
             value={offsetText}
             onChange={(e) => setOffsetText(e.target.value)}

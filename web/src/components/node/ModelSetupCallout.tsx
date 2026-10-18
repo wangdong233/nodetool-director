@@ -9,6 +9,7 @@ import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import { useProviders } from "../../hooks/useProviders";
 import { openProviderOnboarding } from "../../stores/ProviderOnboardingStore";
 import { Text, EditorButton, ToolbarIconButton, MOTION, ICON_SIZE } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const enter = keyframes({
   from: { opacity: 0, transform: "translateY(-4px)" },
@@ -70,6 +71,7 @@ interface ModelSetupCalloutProps {
  * - A provider exists → tell the user to pick a model in the selector above.
  */
 const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const { providers, isLoading, error } = useProviders();
@@ -88,8 +90,8 @@ const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
       <ToolbarIconButton
         className="callout-close"
         size="small"
-        aria-label="Dismiss"
-        tooltip="Dismiss"
+        aria-label={t("editor:ui.dismiss", { defaultValue: "Dismiss" })}
+        tooltip={t("editor:ui.dismiss", { defaultValue: "Dismiss" })}
         onClick={onDismiss}
         icon={<CloseOutlinedIcon sx={{ fontSize: ICON_SIZE.xs }} />}
       />
@@ -101,8 +103,7 @@ const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
         )}
         <Text size="small" sx={{ pr: 2 }}>
           {noProvider
-            ? "Connect an AI provider to use models — add an API key to get started."
-            : "Pick a model here before running this workflow."}
+            ? t("editor:ui.connectAnAIProviderToUseModelsAddAnAPIKeyToGetStarted", { defaultValue: "Connect an AI provider to use models — add an API key to get started." }) : "Pick a model here before running this workflow."}
         </Text>
       </div>
       {noProvider && (

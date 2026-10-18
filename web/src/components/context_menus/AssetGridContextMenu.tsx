@@ -14,8 +14,10 @@ import StorageIcon from "@mui/icons-material/Storage";
 import useContextMenuStore from "../../stores/ContextMenuStore";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useSettingsStore } from "../../stores/SettingsStore";
+import { useTranslation } from "react-i18next";
 
 const AssetGridContextMenu = () => {
+  const { t } = useTranslation();
   const currentFolder = useAssetGridStore((state) => state.currentFolder);
   const menuPosition = useContextMenuStore((state) => state.menuPosition);
   const closeContextMenu = useContextMenuStore(
@@ -55,31 +57,31 @@ const AssetGridContextMenu = () => {
       </ListSubheader>
       <ContextMenuItem
         onClick={handleCreateFolder}
-        label="Create new folder"
+        label={t("editor:asset.createNewFolder", { defaultValue: "Create new folder" })}
         IconComponent={<CreateNewFolderIcon />}
         tooltip={`Create a new folder in '${currentFolder?.name || "ASSETS"}' `}
       />
       <Divider />
       <MenuItemPrimitive
         onClick={handleSortByName}
-        label="Sort by name"
+        label={t("editor:asset.sortName", { defaultValue: "Sort by name" })}
         selected={assetsOrder === "name"}
         icon={<SortByAlphaIcon />}
-        tooltip="Sort assets by name"
+        tooltip={t("editor:asset.sortByName", { defaultValue: "Sort assets by name" })}
       />
       <MenuItemPrimitive
         onClick={handleSortByDate}
-        label="Sort by date"
+        label={t("editor:asset.sortDate", { defaultValue: "Sort by date" })}
         selected={assetsOrder === "date"}
         icon={<AccessTimeIcon />}
-        tooltip="Sort assets by creation date"
+        tooltip={t("editor:asset.sortByDate", { defaultValue: "Sort assets by creation date" })}
       />
       <MenuItemPrimitive
         onClick={handleSortBySize}
-        label="Sort by size"
+        label={t("editor:asset.sortSize", { defaultValue: "Sort by size" })}
         selected={assetsOrder === "size"}
         icon={<StorageIcon />}
-        tooltip="Sort assets by file size"
+        tooltip={t("editor:asset.sortBySize", { defaultValue: "Sort assets by file size" })}
       />
     </ContextMenu>
   );

@@ -11,6 +11,7 @@ import {
 import MediaControlChip from "./MediaControlChip";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
 import type { PermissionMode } from "../../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 
 interface ModeItem {
   id: PermissionMode;
@@ -23,19 +24,19 @@ interface ModeItem {
 const MODES: ModeItem[] = [
   {
     id: "plan",
-    label: "Plan",
-    description: "Investigate and propose a plan. Nothing runs.",
+    label: i18n.t("editor:ui.plan", { defaultValue: "Plan" }),
+    description: i18n.t("editor:ui.investigateAndProposePlan", { defaultValue: "Investigate and propose a plan. Nothing runs." }),
     tone: "info"
   },
   {
     id: "default",
-    label: "Default",
-    description: "Reads run. Actions ask first.",
+    label: i18n.t("appbuilder:attrs.default", { defaultValue: "Default" }),
+    description: i18n.t("editor:ui.readsRunActionsAskFirst", { defaultValue: "Reads run. Actions ask first." }),
     tone: "warning"
   },
   {
     id: "auto",
-    label: "Auto",
+    label: i18n.t("timeline:history.auto", { defaultValue: "Auto" }),
     description:
       "Routine work runs unattended. A step that deletes, publishes, or spends asks once.",
     tone: "success"
@@ -72,6 +73,7 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
   threadId,
   compact = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -113,7 +115,7 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
         paperSx={{ maxWidth: 320 }}
         slotProps={{ list: { "aria-label": "Permission mode" } }}
       >
-        <ListSubheader>Permission mode</ListSubheader>
+        <ListSubheader>{t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}</ListSubheader>
         {MODES.map((m) => {
           const selected = m.id === mode;
           return (

@@ -11,6 +11,7 @@ import {
   LabeledSwitch,
   Text
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 function formatBytes(bytes: number | null): string {
   if (bytes === null) return "Not available";
@@ -22,6 +23,7 @@ function formatBytes(bytes: number | null): string {
 }
 
 export default function StorageHistorySettings() {
+  const { t } = useTranslation("settings");
   const history = useStorageHistory();
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -107,8 +109,8 @@ export default function StorageHistorySettings() {
     <>
       <div className="settings-item">
         <NumberSetting
-          label="Autosaves per workflow"
-          description="Maximum recent autosaves kept for each workflow. Manual versions do not count toward this limit."
+          label={t("settings:storage.lblAutosavesPer", { defaultValue: "Autosaves per workflow" })}
+          description={t("settings:storage.descAutosavesPer", { defaultValue: "Maximum recent autosaves kept for each workflow. Manual versions do not count toward this limit." })}
           value={policy.maxAutosavesPerWorkflow}
           onCommit={(value) => updatePolicy({ maxAutosavesPerWorkflow: value })}
           min={1}
@@ -119,8 +121,8 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label="Keep autosaves (days)"
-          description="Autosaves older than this are removed even when the workflow is below its count limit."
+          label={t("settings:storage.lblKeepDays", { defaultValue: "Keep autosaves (days)" })}
+          description={t("settings:storage.descKeepDays", { defaultValue: "Autosaves older than this are removed even when the workflow is below its count limit." })}
           value={policy.autosaveRetentionDays}
           onCommit={(value) => updatePolicy({ autosaveRetentionDays: value })}
           min={1}
@@ -131,8 +133,8 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label="Keep manual versions (days)"
-          description="Manual workflow snapshots older than this are removed. Checkpoints are always preserved."
+          label={t("settings:storage.lblKeepManual", { defaultValue: "Keep manual versions (days)" })}
+          description={t("settings:storage.descKeepManual", { defaultValue: "Manual workflow snapshots older than this are removed. Checkpoints are always preserved." })}
           value={policy.manualVersionRetentionDays}
           onCommit={(value) =>
             updatePolicy({ manualVersionRetentionDays: value })
@@ -145,8 +147,8 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label="Keep completed runs (days)"
-          description="Completed, failed, and cancelled run records older than this are removed. Active runs are preserved."
+          label={t("settings:storage.lblKeepRuns", { defaultValue: "Keep completed runs (days)" })}
+          description={t("settings:storage.descKeepRuns", { defaultValue: "Completed, failed, and cancelled run records older than this are removed. Active runs are preserved." })}
           value={policy.terminalJobRetentionDays}
           onCommit={(value) =>
             updatePolicy({ terminalJobRetentionDays: value })
@@ -159,8 +161,8 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label="Keep run event logs (days)"
-          description="Per-node event logs from a run are removed after this many days. The run record itself follows the limit above."
+          label={t("settings:storage.lblKeepRunLogs", { defaultValue: "Keep run event logs (days)" })}
+          description={t("settings:storage.descKeepRunLogs", { defaultValue: "Per-node event logs from a run are removed after this many days. The run record itself follows the limit above." })}
           value={policy.runEventRetentionDays ?? 30}
           onCommit={(value) => updatePolicy({ runEventRetentionDays: value })}
           min={1}
@@ -171,7 +173,7 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label="Keep app run inputs and outputs (days)"
+          label={t("settings:storage.lblKeepRunTrace", { defaultValue: "Keep app run inputs and outputs (days)" })}
           description="After this many days, inputs, outputs, and document snapshots expire. Status, timing, and cost remain until the completed run record expires."
           value={policy.runTraceRetentionDays ?? 30}
           onCommit={(value) => updatePolicy({ runTraceRetentionDays: value })}
@@ -183,7 +185,7 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label="Keep generation details (days)"
+          label={t("settings:storage.lblKeepGen", { defaultValue: "Keep generation details (days)" })}
           description="After this many days, prompts, parameters, and logs are cleared from generation records. The billing record — model, provider, tokens, cost, and date — is kept."
           value={policy.predictionRetentionDays ?? 400}
           onCommit={(value) => updatePolicy({ predictionRetentionDays: value })}
@@ -195,10 +197,10 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <LabeledSwitch
-          label="Automatic history cleanup"
+          label={t("settings:storage.lblAutoClean", { defaultValue: "Automatic history cleanup" })}
           checked={policy.automaticCleanup}
           onChange={(checked) => updatePolicy({ automaticCleanup: checked })}
-          description="Apply these limits in the background once per day. Database compaction remains manual."
+          description={t("settings:storage.descAutoClean", { defaultValue: "Apply these limits in the background once per day. Database compaction remains manual." })}
           disabled={disabled}
         />
       </div>
@@ -224,7 +226,7 @@ export default function StorageHistorySettings() {
             onClick={() => setConfirmation("cleanup")}
             disabled={disabled || pendingCount === 0}
           >
-            {history.isCleaning ? "Cleaning…" : `Clean now (${pendingCount})`}
+            {history.isCleaning ? t("settings:storage.cleaning", { defaultValue: "Cleaning…" }) : `Clean now (${pendingCount})`}
           </EditorButton>
           {isSqlite && (
             <EditorButton
@@ -232,7 +234,7 @@ export default function StorageHistorySettings() {
               onClick={() => setConfirmation("compact")}
               disabled={disabled}
             >
-              {history.isCompacting ? "Compacting…" : "Compact database"}
+              {history.isCompacting ? t("settings:storage.compacting", { defaultValue: "Compacting…" }) : "Compact database"}
             </EditorButton>
           )}
         </FlexRow>
@@ -243,15 +245,14 @@ export default function StorageHistorySettings() {
         onConfirm={runConfirmedAction}
         title={
           confirmation === "compact"
-            ? "Compact database?"
-            : "Clean old history?"
+            ? t("settings:storage.confirmCompactTitle", { defaultValue: "Compact database?" }) : "Clean old history?"
         }
         content={
           confirmation === "compact"
             ? "Compaction returns unused SQLite pages to disk. It can pause database writes while it rebuilds a large local database."
             : `Remove ${cleanupCount} old workflow-history, completed-run, and run-event records, and clear prompts and parameters from ${redactionCount} generation records? The billing record for each generation is kept. Current workflows, assets, checkpoints, and active runs are not changed.`
         }
-        confirmText={confirmation === "compact" ? "Compact" : "Clean"}
+        confirmText={confirmation === "compact" ? t("settings:storage.confirmCompact", { defaultValue: "Compact" }) : "Clean"}
         cancelText="Cancel"
       />
     </>

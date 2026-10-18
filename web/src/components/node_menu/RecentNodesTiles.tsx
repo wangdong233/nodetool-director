@@ -19,6 +19,7 @@ import { useRecentNodesStore } from "../../stores/RecentNodesStore";
 import { QUICK_ACTION_BUTTONS } from "./QuickActionTiles.constants";
 import { colorForType } from "../../config/data_types";
 import { IconForType } from "../../config/IconForType";
+import { useTranslation } from "react-i18next";
 
 const QUICK_ACTION_NODE_TYPES = new Set<string>(
   QUICK_ACTION_BUTTONS.map((action) => action.nodeType)
@@ -156,6 +157,7 @@ const tileStyles = (theme: Theme) =>
   });
 
 const RecentNodesTiles = memo(function RecentNodesTiles() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => tileStyles(theme), [theme]);
 
@@ -308,15 +310,15 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
   return (
     <div css={memoizedStyles}>
       <div className="tiles-header">
-        <Text size="normal" weight={600}>Recent nodes</Text>
+        <Text size="normal" weight={600}>{t("ui2:attrs.recentNodes", { defaultValue: "Recent nodes" })}</Text>
         <ToolbarIconButton
           icon={<ClearIcon fontSize="small" />}
-          tooltip="Clear recent nodes"
+          tooltip={t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}
           tooltipPlacement="top"
           size="small"
           className="clear-button"
           onClick={() => setClearConfirmOpen(true)}
-          aria-label="Clear recent nodes"
+          aria-label={t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}
         />
       </div>
       <div className="tiles-container">

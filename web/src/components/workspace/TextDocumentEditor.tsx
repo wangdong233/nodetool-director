@@ -36,6 +36,7 @@ import {
   SaveState,
   Toolbar
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface TextDocumentEditorProps {
   asset: Asset;
@@ -91,6 +92,7 @@ const TextDocumentEditor = ({
   asset,
   active = false
 }: TextDocumentEditorProps) => {
+  const { t } = useTranslation("editor");
   const theme = useTheme();
   const editorStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -334,19 +336,19 @@ const TextDocumentEditor = ({
     if (isDirty && !isSaving) {
       commands.push({
         id: "save",
-        label: "Save",
+        label: i18n.t("common:action.save", { defaultValue: "Save" }),
         run: handleSave,
         shortcut: `${mod}S`
       });
     }
     if (!isCsv) {
       commands.push(
-        { id: "undo", label: "Undo", run: handleUndo, shortcut: `${mod}Z` },
-        { id: "redo", label: "Redo", run: handleRedo, shortcut: `${shiftMod}Z` }
+        { id: "undo", label: i18n.t("editor:ui.undo", { defaultValue: "Undo" }), run: handleUndo, shortcut: `${mod}Z` },
+        { id: "redo", label: i18n.t("editor:ui.redo", { defaultValue: "Redo" }), run: handleRedo, shortcut: `${shiftMod}Z` }
       );
       commands.push({
         id: "word-wrap",
-        label: wordWrap ? "Turn off word wrap" : "Turn on word wrap",
+        label: wordWrap ? t("editor:ui.turnOffWordWrap", { defaultValue: "Turn off word wrap" }) : "Turn on word wrap",
         run: () => setWordWrap((wrap) => !wrap)
       });
     }
@@ -436,7 +438,7 @@ const TextDocumentEditor = ({
                   disabled={!isDirty || isSaving}
                   onClick={handleSave}
                 >
-                  {isSaving ? "Saving…" : "Save"}
+                  {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
                 </EditorButton>
               </>
             }
@@ -490,7 +492,7 @@ const TextDocumentEditor = ({
               disabled={!isDirty || isSaving}
               onClick={handleSave}
             >
-              {isSaving ? "Saving…" : "Save"}
+              {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
             </EditorButton>
           </FlexRow>
         </Toolbar>

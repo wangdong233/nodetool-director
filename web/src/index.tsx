@@ -185,6 +185,7 @@ const registerFrontendTools = () => {
 import { useModelDownloadStore } from "./stores/ModelDownloadStore";
 
 import { BORDER_RADIUS, SPACING, getSpacingPx } from "./components/ui_primitives";
+import { useTranslation } from "react-i18next";
 installIpcLogBridge();
 
 if (isLocalhost) {
@@ -633,6 +634,7 @@ const MenuNavigationBridge = () => {
 };
 
 const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
+  const { t } = useTranslation("common");
   const [status, setStatus] = useState<string>("pending");
   const [metadataError, setMetadataError] = useState<string>("");
   const [configLoaded, setConfigLoaded] = useState(false);
@@ -775,7 +777,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                       </button>
                       <ReportBugButton
                         variant="outlined"
-                        label="Report a bug"
+                        label={t("common:action.reportBug", { defaultValue: "Report a bug" })}
                         context={{
                           source: "app-crash",
                           summary: "Error loading application metadata",

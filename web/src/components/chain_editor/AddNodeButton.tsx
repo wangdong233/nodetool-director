@@ -42,8 +42,8 @@ export const AddNodeButton: React.FC<AddNodeButtonProps> = ({ onClick, isHero = 
       <Box sx={{ width: 2, height: 14, backgroundColor: theme.vars.palette.divider }} />
       <ToolbarIconButton
         size="small"
-        ariaLabel={t("editor:ui.Add Node", { defaultValue: "Add node" })}
-        tooltip={t("editor:ui.Add Node", { defaultValue: "Add node" })}
+        ariaLabel={t("editor:ui.addNode", { defaultValue: "Add node" })}
+        tooltip={t("editor:ui.addNode", { defaultValue: "Add node" })}
         onClick={onClick}
         icon={<AddIcon sx={{ fontSize: ICON_SIZE.sm, color: theme.vars.palette.primary.main }} />}
         sx={{

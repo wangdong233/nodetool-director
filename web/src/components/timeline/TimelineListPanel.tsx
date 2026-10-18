@@ -38,6 +38,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { newDocumentId } from "../../lib/newDocumentId";
+import { useTranslation } from "react-i18next";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DRAG_IMAGE_Z_INDEX = 9999;
@@ -172,6 +173,7 @@ const TimelineListItem = memo(function TimelineListItem({
 });
 
 export const CreateTimelineButton = memo(function CreateTimelineButton() {
+  const { t } = useTranslation();
   const createTimeline = useCreateTimeline();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -277,7 +279,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
 
   return (
     <FlexRow align="center" gap={SPACING.xs}>
-      <Tooltip title="New timeline" placement="right-start">
+      <Tooltip title={t("timeline:list.newTimeline", { defaultValue: "New timeline" })} placement="right-start">
         <ToolbarIconButton
           ariaLabel="New timeline"
           onClick={() => void handleCreate()}
@@ -302,7 +304,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
         ref={fileInputRef}
         type="file"
         accept=".zip,application/zip"
-        aria-label="Import timeline archive"
+        aria-label={t("timeline:list.importTooltip", { defaultValue: "Import timeline archive" })}
         style={{ display: "none" }}
         onChange={(event) => void handleImportFile(event)}
       />

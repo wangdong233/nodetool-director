@@ -65,6 +65,7 @@ import ArticleIcon from "@mui/icons-material/Article";
 import HistoryIcon from "@mui/icons-material/History";
 import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay";
 import MemoryIcon from "@mui/icons-material/Memory";
+import { useTranslation } from "react-i18next";
 
 const HEADER_HEIGHT = CONTROL.height.md;
 
@@ -289,6 +290,7 @@ export const PanelBodyContent = memo(function PanelBodyContent({
 }: {
   activeView: BottomPanelView;
 }) {
+  const { t } = useTranslation();
   const currentWorkflowId = useWorkspaceTabsStore((state) => {
     const tab = state.tabs.find((item) => item.id === state.activeTabId);
     return tab?.type === "workflow" ? tab.ref : null;
@@ -342,7 +344,7 @@ export const PanelBodyContent = memo(function PanelBodyContent({
           fullHeight
           sx={{ overflow: "hidden" }}
         >
-          <PanelHeader title="Queue" docsTopic="debugging" />
+          <PanelHeader title={t("editor:bottom.queue", { defaultValue: "Queue" })} docsTopic="debugging" />
           <FlexColumn
             fullWidth
             sx={{
@@ -367,8 +369,8 @@ export const PanelBodyContent = memo(function PanelBodyContent({
         />
       ) : (
         <EmptyState
-          title="Select a workflow to view its versions"
-          description="Versions follows the selected workflow tab. Open a workflow or select one of your workflow tabs."
+          title={t("editor:ui.selectAWorkflowToViewItsVersions", { defaultValue: "Select a workflow to view its versions" })}
+          description={t("editor:ui.versionsFollowsTheSelectedWorkflowTab", { defaultValue: "Versions follows the selected workflow tab. Open a workflow or select one of your workflow tabs." })}
         />
       );
     case "trace":
@@ -379,6 +381,7 @@ export const PanelBodyContent = memo(function PanelBodyContent({
 });
 
 const PanelBottom: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const path = useLocation().pathname;
@@ -540,11 +543,11 @@ const PanelBottom: React.FC = () => {
               onChange={handleTabToggle}
               onReselect={handleTabToggle}
             />
-            <div className="meta-cluster" aria-label="Workflow stats">
+            <div className="meta-cluster" aria-label={t("editor:ui.workflowStats", { defaultValue: "Workflow stats" })}>
               {currentWorkflowId && (
                 <span className="meta-pair">
                   <span className="meta-value">{nodeCount}</span>
-                  <span className="meta-key">nodes</span>
+                  <span className="meta-key">{t("nav:settings.docsTopics.nodes", { defaultValue: "nodes" })}</span>
                   <span className="sep" aria-hidden>·</span>
                   <span className="meta-value">{edgeCount}</span>
                   <span className="meta-key">edges</span>

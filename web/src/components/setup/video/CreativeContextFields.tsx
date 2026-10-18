@@ -20,6 +20,7 @@ import {
 } from "../../ui_primitives";
 import { SETUP_FIELD_WIDTH } from "../layout";
 import { GalleryFrame } from "../MediaGallery";
+import { useTranslation } from "react-i18next";
 
 interface CreativeContextFieldsProps {
   readonly value: CreativeContext | undefined;
@@ -140,14 +141,14 @@ export default function CreativeContextFields({
   onValidationChange,
   readOnly = false
 }: CreativeContextFieldsProps) {
+  const { t } = useTranslation();
   const [pickerKind, setPickerKind] = useState<ProductionReferenceKind | null>(
     null
   );
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const error =
     invalidFields.length > 0
-      ? "Context was not saved. Use at most 64 claims per list and 32 references."
-      : undefined;
+      ? t("storyboard:attrs.contextWasNotSavedUseAtMost64ClaimsPerListAnd32References", { defaultValue: "Context was not saved. Use at most 64 claims per list and 32 references." }) : undefined;
   useEffect(() => {
     onValidationChange?.(error);
     return () => onValidationChange?.(undefined);
@@ -194,7 +195,7 @@ export default function CreativeContextFields({
   };
   return (
     <CollapsibleSection
-      title="Creative context (optional)"
+      title={t("storyboard:attrs.creativeContextOptional", { defaultValue: "Creative context (optional)" })}
       defaultOpen={false}
       unmountOnExit
     >
@@ -220,8 +221,7 @@ export default function CreativeContextFields({
             readOnly={readOnly}
             label={
               key === "approved_claims"
-                ? "Approved claims"
-                : "Prohibited claims"
+                ? t("storyboard:attrs.approvedClaims", { defaultValue: "Approved claims" }) : "Prohibited claims"
             }
             value={value?.[key]?.join("\n") ?? ""}
             onCommit={(text) => update(claimsPatch(key, text))}

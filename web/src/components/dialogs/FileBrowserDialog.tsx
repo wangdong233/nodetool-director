@@ -41,6 +41,7 @@ import {
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 export type SelectionMode = "file" | "directory";
 
@@ -146,6 +147,7 @@ function FileBrowserDialog({
   initialPath = "~",
   selectionMode = "file"
 }: FileBrowserDialogProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const [currentPath, setCurrentPath] = useState(initialPath);
@@ -751,7 +753,7 @@ function FileBrowserDialog({
             {selectedPath && (
               <CopyButton
                 value={selectedPath}
-                tooltip="Copy path"
+                tooltip={t("editor:ui.copyPath", { defaultValue: "Copy path" })}
                 buttonSize="small"
               />
             )}
@@ -787,7 +789,7 @@ function FileBrowserDialog({
         >
           <ToolbarIconButton
             icon={<ArrowUpwardIcon fontSize="small" />}
-            tooltip="Up one level"
+            tooltip={t("editor:ui.upOneLevel", { defaultValue: "Up one level" })}
             onClick={handleUp}
             disabled={currentPath === "~" || currentPath === "/"}
             size="small"
@@ -852,7 +854,7 @@ function FileBrowserDialog({
 
           <ToolbarIconButton
             icon={<CreateNewFolderIcon fontSize="small" />}
-            tooltip="New folder here"
+            tooltip={t("editor:ui.newFolderHere", { defaultValue: "New folder here" })}
             onClick={handleStartNewFolder}
             size="small"
           />
@@ -860,7 +862,7 @@ function FileBrowserDialog({
           <RefreshButton
             onClick={handleRefresh}
             buttonSize="small"
-            tooltip="Refresh"
+            tooltip={t("ui:attrs.refresh", { defaultValue: "Refresh" })}
           />
         </FlexRow>
 
@@ -877,12 +879,12 @@ function FileBrowserDialog({
           >
             <FlexRow align="flex-start" gap={SPACING.xs}>
               <TextInput
-                label="New folder name"
+                label={t("editor:ui.newFolderName", { defaultValue: "New folder name" })}
                 hideLabel
                 size="small"
                 autoFocus
                 value={newFolderName}
-                placeholder="New folder name"
+                placeholder={t("editor:ui.newFolderName", { defaultValue: "New folder name" })}
                 onChange={handleNewFolderChange}
                 onKeyDown={handleNewFolderKeyDown}
                 helperText={`Creates a folder in ${currentPath}`}

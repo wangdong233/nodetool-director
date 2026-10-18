@@ -26,6 +26,7 @@ import {
   useInstallExtensionHost
 } from "../../serverState/useExtensionStatus";
 import { BASE_URL } from "../../stores/BASE_URL";
+import { useTranslation } from "react-i18next";
 
 export const CHROME_EXTENSIONS_URL = "chrome://extensions";
 
@@ -77,6 +78,7 @@ const SetupStep: React.FC<SetupStepProps> = ({ index, title, children }) => {
  * a live connection status so the user sees the moment it works.
  */
 const ChromeExtensionStep: React.FC = () => {
+  const { t } = useTranslation(["editor","storyboard"]);
   const theme = useTheme();
   const { status, isLoading } = useExtensionStatus();
   const connected = status?.connected ?? false;
@@ -128,10 +130,8 @@ const ChromeExtensionStep: React.FC = () => {
             }
             label={
               isLoading
-                ? "Checking…"
-                : connected
-                  ? "Extension connected"
-                  : "Extension not connected"
+                ? t("editor:ui.checking", { defaultValue: "Checking…" }) : connected
+                  ? t("editor:ui.extensionConnected", { defaultValue: "Extension connected" }) : "Extension not connected"
             }
             color={connected ? "success" : "default"}
           />
@@ -210,7 +210,7 @@ const ChromeExtensionStep: React.FC = () => {
                   </ErrorBanner>
                 )}
                 <EditorButton density="compact" variant="outlined" size="small" onClick={() => install()}>
-                  {host.error ? "Try again" : "Register"}
+                  {host.error ? t("storyboard:attrs.tryAgain", { defaultValue: "Try again" }) : "Register"}
                 </EditorButton>
               </FlexColumn>
             )}

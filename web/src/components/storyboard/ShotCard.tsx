@@ -77,6 +77,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { captureLastFrame } from "./lastFrame";
 import { formatDuration } from "../../utils/formatUtils";
+import { useTranslation } from "react-i18next";
 
 interface ShotCardProps {
   boardId: string;
@@ -183,6 +184,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   onDrop,
   onEdit
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const shotRenderContext =
     typeof renderContext === "function" ? renderContext(shot) : renderContext;
@@ -551,7 +553,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             role={stillRendering ? "status" : undefined}
             sx={{ textAlign: "center", p: SPACING.md }}
           >
-            {stillRendering ? "Rendering still…" : "No still yet"}
+            {stillRendering ? t("storyboard:attrs.renderingStill", { defaultValue: "Rendering still…" }) : "No still yet"}
           </Caption>
         )}
         {isGenerating && <MagicGenerationFill />}
@@ -581,7 +583,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             previewMedia && !isGenerating ? handleOpenViewer : undefined
           }
           fullscreenLabel={
-            previewClip ? "View clip fullscreen" : "View still fullscreen"
+            previewClip ? t("storyboard:attrs.viewClipFullscreen", { defaultValue: "View clip fullscreen" }) : "View still fullscreen"
           }
           onRenderStill={readOnly ? undefined : handleRenderStill}
           onRenderClip={readOnly ? undefined : handleRenderClip}
@@ -606,7 +608,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
               {onEdit && (
                 <ToolbarIconButton
                   icon={<EditOutlinedIcon fontSize="inherit" />}
-                  tooltip="Edit shot"
+                  tooltip={t("storyboard:attrs.editShot", { defaultValue: "Edit shot" })}
                   ariaLabel="Edit shot"
                   onClick={handleEdit}
                 />
@@ -624,8 +626,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
                 icon={<MovieOutlinedIcon fontSize="inherit" />}
                 tooltip={
                   clipNeedsStill
-                    ? "Render a still first"
-                    : "Render a clip and pick its model"
+                    ? t("storyboard:attrs.renderAStillFirst", { defaultValue: "Render a still first" }) : "Render a clip and pick its model"
                 }
                 ariaLabel="Render clip"
                 onClick={handleRenderClip}
@@ -633,7 +634,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
               />
               <UploadButton
                 onFileSelect={handleUpload}
-                tooltip="Upload your own still"
+                tooltip={t("storyboard:attrs.uploadYourOwnStill", { defaultValue: "Upload your own still" })}
                 accept="image/*"
                 multiple={false}
               />
@@ -659,7 +660,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
               showValue={false}
               size="small"
               accent={CLIP_COLOR}
-              aria-label="Rendering clip"
+              aria-label={t("storyboard:attrs.renderingClip", { defaultValue: "Rendering clip" })}
             />
           </Box>
         )}
@@ -740,7 +741,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
         <Dialog
           open={confirmDelete}
           onClose={handleCloseDeleteConfirm}
-          title="Delete shot?"
+          title={t("editor:ui.deleteShot", { defaultValue: "Delete shot?" })}
           onConfirm={handleDeleteConfirmed}
           confirmText="Delete"
           destructive

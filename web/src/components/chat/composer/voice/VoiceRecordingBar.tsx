@@ -16,6 +16,7 @@ import {
   StatusDot
 } from "../../../ui_primitives";
 import { RecordingWaveform } from "./RecordingWaveform";
+import { useTranslation } from "react-i18next";
 
 interface VoiceRecordingBarProps {
   levelsRef: React.MutableRefObject<Float32Array>;
@@ -67,6 +68,7 @@ export const VoiceRecordingBar = memo(function VoiceRecordingBar({
   onConfirm,
   onCancel
 }: VoiceRecordingBarProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -78,7 +80,7 @@ export const VoiceRecordingBar = memo(function VoiceRecordingBar({
         css={cssStyles}
         className="voice-recording-bar"
         role="status"
-        aria-label="Transcribing recording"
+        aria-label={t("editor:ui.transcribingRecording", { defaultValue: "Transcribing recording" })}
       >
         <FlexRow className="wave-slot" gap={1} align="center">
           <LoadingSpinner inline size={16} />
@@ -95,12 +97,12 @@ export const VoiceRecordingBar = memo(function VoiceRecordingBar({
       css={cssStyles}
       className="voice-recording-bar"
       role="group"
-      aria-label="Voice recording"
+      aria-label={t("editor:ui.voiceRecording", { defaultValue: "Voice recording" })}
     >
       <ToolbarIconButton
         className="voice-cancel"
-        aria-label="Discard recording"
-        tooltip="Discard recording"
+        aria-label={t("editor:ui.discardRecording", { defaultValue: "Discard recording" })}
+        tooltip={t("editor:ui.discardRecording", { defaultValue: "Discard recording" })}
         icon={<CloseOutlinedIcon fontSize="small" />}
         onClick={onCancel}
         variant="error"
@@ -114,8 +116,8 @@ export const VoiceRecordingBar = memo(function VoiceRecordingBar({
       </Text>
       <ToolbarIconButton
         className="voice-confirm"
-        aria-label="Accept recording"
-        tooltip="Accept recording"
+        aria-label={t("editor:ui.acceptRecording", { defaultValue: "Accept recording" })}
+        tooltip={t("editor:ui.acceptRecording", { defaultValue: "Accept recording" })}
         icon={<CheckRoundedIcon fontSize="small" />}
         onClick={onConfirm}
         variant="primary"

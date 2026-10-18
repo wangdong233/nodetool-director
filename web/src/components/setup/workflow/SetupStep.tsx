@@ -47,6 +47,7 @@ import ReportBugButton from "../../support/ReportBugButton";
 import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
 import { MODEL_ROLE_LABEL, MODEL_ROLE_ONBOARDING } from "./modelRoles";
+import { useTranslation } from "react-i18next";
 
 /**
  * The three run modes, as cards (PRD § 11.3).
@@ -59,18 +60,18 @@ import { MODEL_ROLE_LABEL, MODEL_ROLE_ONBOARDING } from "./modelRoles";
 export const RUN_MODE_CARDS = [
   {
     id: "manual",
-    title: "Run by hand",
-    description: "After the test run, you open it and press run."
+    title: "Run by hand", titleKey: "editor:ui.runByHand",
+    description: "After the test run, you open it and press run.", descriptionKey: "editor:ui.afterTestRunOpenAndPressRun",
   },
   {
     id: "app",
-    title: "App with a form",
-    description: "After the test run, put a shareable form over the inputs."
+    title: "App with a form", titleKey: "editor:ui.appWithForm",
+    description: "After the test run, put a shareable form over the inputs.", descriptionKey: "editor:ui.afterTestRunShareableForm",
   },
   {
     id: "trigger",
-    title: "On a trigger",
-    description: "After the test run, a schedule or a webhook starts it."
+    title: "On a trigger", titleKey: "editor:ui.onTrigger",
+    description: "After the test run, a schedule or a webhook starts it.", descriptionKey: "editor:ui.afterTestRunScheduleOrWebhook",
   }
 ] as const;
 
@@ -129,6 +130,7 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
   onRunModeChange,
   onSampleChange
 }) => {
+  const { t } = useTranslation();
   const runModeOptions = useMemo(() => [...RUN_MODE_CARDS], []);
   // A media input takes an upload, so only typed values get a sample field.
   const sampleInputs = useMemo(
@@ -153,11 +155,11 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
       ))}
 
       <FormField
-        label="How it runs"
-        helperText="Building runs it once with the sample inputs. This is how you start it after that."
+        label={t("storyboard:attrs.howItRuns", { defaultValue: "How it runs" })}
+        helperText={t("setup:workflow.buildingRunsItOnceBody", { defaultValue: "Building runs it once with the sample inputs. This is how you start it after that." })}
       >
         <OptionCardGrid
-          label="Run mode"
+          label={t("storyboard:attrs.runMode", { defaultValue: "Run mode" })}
           options={runModeOptions}
           selectedId={runMode}
           onSelect={(id) => onRunModeChange(id as WorkflowSetupRunMode)}
@@ -165,7 +167,7 @@ const SetupStepInternal: React.FC<WorkflowSetupStepProps> = ({
       </FormField>
 
       {sampleInputs.length > 0 ? (
-        <FormSection label="Sample inputs">
+        <FormSection label={t("setup:workflow.sampleInputs", { defaultValue: "Sample inputs" })}>
           <Caption color="secondary" component="p">
             The values the test run uses. Change them to something of yours.
           </Caption>
@@ -201,6 +203,7 @@ const BuildDisclosure: React.FC<{
   hasSamples: boolean;
   roles: readonly ModelRoleChoices[];
 }> = ({ hasSamples, roles }) => {
+  const { t } = useTranslation();
   const chosen = roles
     .map((role) => {
       const tile = role.tiles.find((option) => option.id === role.selectedId);
@@ -212,7 +215,7 @@ const BuildDisclosure: React.FC<{
     <FlexColumn
       gap={GAP.tight}
       role="region"
-      aria-label="Before you build"
+      aria-label={t("editor:ui.beforeYouBuild", { defaultValue: "Before you build" })}
       sx={{
         borderTop: "1px solid",
         borderColor: "divider",

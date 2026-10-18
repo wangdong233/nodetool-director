@@ -20,6 +20,7 @@ import {
   createAssetDragImage
 } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
+import { useTranslation } from "react-i18next";
 
 interface GlobalSearchResultsProps {
   results: AssetWithPath[];
@@ -194,6 +195,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
   onNavigateToFolder,
   containerWidth = 1200
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const rootStyles = useMemo(() => styles(theme), [theme]);
   const { selectedAssetIds, handleSelectAsset } = useAssetSelection(results);
@@ -517,7 +519,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                       </span>
                     </div>
                     {onNavigateToFolder && (
-                      <Tooltip title="Go to folder">
+                      <Tooltip title={t("editor:ui.goToFolder", { defaultValue: "Go to folder" })}>
                         <EditorButton
                           className="global-search-navigate-btn folder-navigate-btn"
                           density="compact"

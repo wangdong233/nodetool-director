@@ -7,6 +7,7 @@ import type {
 } from "../../stores/ApiTypes";
 import { useAudioToAudioModelMenuStore } from "../../stores/ModelMenuStore";
 import { useAudioToAudioModelsByProvider } from "../../hooks/useModelsByProvider";
+import { useTranslation } from "react-i18next";
 
 interface AudioToAudioModelMenuDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ function AudioToAudioModelMenuDialog({
   recommendedModels,
   modelPacks
 }: AudioToAudioModelMenuDialogProps) {
+  const { t } = useTranslation("editor");
   const modelData = useAudioToAudioModelsByProvider();
   return (
     <ModelMenuDialogBase<AudioToAudioModel>
@@ -33,7 +35,7 @@ function AudioToAudioModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select audio-to-audio model"
+      title={t("editor:ui.selectAudioToAudioModel2", { defaultValue: "Select audio-to-audio model" })}
       searchPlaceholder="Search voice changers, separators, denoisers"
       storeHook={useAudioToAudioModelMenuStore}
       modelType="audio_to_audio_model"

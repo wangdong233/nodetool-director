@@ -7,6 +7,7 @@ import { Box, Chip, EditorButton, FlexRow, SPACING } from "../ui_primitives";
 import { ASSET_GROUP_KEYS, AssetGroupKey } from "./assetGridUtils";
 import { AssetGroupIcon } from "./assetGroupIcons";
 import { assetTypeLabel } from "./assetTypeLabels";
+import { useTranslation } from "react-i18next";
 
 const ChipLabel: React.FC<{ label: string; count: number }> = ({
   label,
@@ -26,6 +27,7 @@ const ChipLabel: React.FC<{ label: string; count: number }> = ({
  * Hidden when the folder holds a single type and no type is filtered in.
  */
 const AssetTypeFilterBar: React.FC = () => {
+  const { t } = useTranslation("game");
   const { typeCounts } = useAssets();
   const typeFilter = useAssetGridStore((state) => state.typeFilter);
   const setTypeFilter = useAssetGridStore((state) => state.setTypeFilter);
@@ -80,7 +82,7 @@ const AssetTypeFilterBar: React.FC = () => {
     >
       <Chip
         compact
-        label={<ChipLabel label="All types" count={total} />}
+        label={<ChipLabel label={t("game:assets.allTypes", { defaultValue: "All types" })} count={total} />}
         active={typeFilter === "all"}
         onClick={() => setTypeFilter("all")}
       />

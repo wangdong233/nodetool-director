@@ -85,7 +85,7 @@ const GROUPS: readonly {
   { id: "apps", label: "Apps", types: ["application"] },
   {
     id: "creative",
-    label: "Creative documents",
+    label: "Creative documents", labelKey: "editor:ui.creativeDocuments",
     types: ["sketch", "script", "storyboard", "timeline", "game"]
   },
   { id: "text", label: "Text files", types: ["text"] },

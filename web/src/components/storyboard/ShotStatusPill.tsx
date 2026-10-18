@@ -76,7 +76,7 @@ const lifecyclePill = (
     return {
       tone: "rendering",
       label:
-        shot.status === "clip_generating" ? i18n.t("storyboard:attrs.renderingClip", { defaultValue: "rendering clip" }) : i18n.t("storyboard:attrs.renderingStillLower", { defaultValue: "rendering still" })
+        shot.status === "clip_generating" ? i18n.t("storyboard:attrs.renderingClipLower", { defaultValue: "rendering clip" }) : i18n.t("storyboard:attrs.renderingStillLower", { defaultValue: "rendering still" })
     };
   }
   if (shot.status === "failed") {

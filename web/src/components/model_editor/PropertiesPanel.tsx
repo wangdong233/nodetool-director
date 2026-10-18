@@ -40,6 +40,7 @@ import {
 } from "./geometryParams";
 import type { RecordEdit, ValueEdit } from "./editorCommands";
 import { isBoolean, isNumber } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const headerStyles = (theme: Theme) =>
   css({
@@ -399,6 +400,7 @@ interface MaterialSectionProps {
 }
 
 const MaterialSection = ({ material, record }: MaterialSectionProps) => {
+  const { t } = useTranslation();
   const key = (field: string) => `${material.uuid}:${field}`;
   const setNumber = (field: string, label: string, value: number) =>
     record({
@@ -445,7 +447,7 @@ const MaterialSection = ({ material, record }: MaterialSectionProps) => {
         );
       })}
       <NumberRow
-        label="Opacity"
+        label={t("editor:ui.opacity", { defaultValue: "Opacity" })}
         value={material.opacity}
         min={0}
         max={1}
@@ -461,7 +463,7 @@ const MaterialSection = ({ material, record }: MaterialSectionProps) => {
         }
       />
       <NumberRow
-        label="Alpha test"
+        label={t("editor:ui.materialAlphaTest", { defaultValue: "Alpha test" })}
         value={material.alphaTest}
         min={0}
         max={1}
@@ -479,10 +481,10 @@ const MaterialSection = ({ material, record }: MaterialSectionProps) => {
           })
         }
       />
-      <InspectorFieldRow label="Side">
+      <InspectorFieldRow label={t("editor:ui.side", { defaultValue: "Side" })}>
         <InspectorSelect
           grow
-          label="Side"
+          label={t("editor:ui.side", { defaultValue: "Side" })}
           value={String(material.side)}
           options={SIDE_OPTIONS}
           onChange={(v) =>
@@ -533,6 +535,7 @@ interface PropertiesPanelProps {
 }
 
 const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [materialSlot, setMaterialSlot] = useState(0);
   // `tick` is intentionally a render trigger: bumping it re-renders this panel
@@ -546,8 +549,8 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
           variant="empty"
           size="small"
           icon={<TouchAppOutlinedIcon />}
-          title="Nothing selected"
-          description="Click an object in the viewport or the scene list to inspect it."
+          title={t("editor:ui.nothingSelected", { defaultValue: "Nothing selected" })}
+          description={t("editor:ui.clickAnObjectInTheViewportOrTheSceneList", { defaultValue: "Click an object in the viewport or the scene list to inspect it." })}
         />
       </FlexColumn>
     );
@@ -620,7 +623,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
       <FlexColumn css={headerStyles(theme)} gap={SPACING.xs} key={`header-${uuid}`}>
         <TextInput
           className="nodrag"
-          label="Name"
+          label={t("editor:asset.info.name", { defaultValue: "Name" })}
           hideLabel
           size="small"
           value={object.name}
@@ -642,10 +645,10 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
         {/* Remount fields only when the selected object changes; live value
             updates from gizmo drags are handled by InspectorValueInput's value sync. */}
         <FlexColumn key={uuid} fullWidth sx={{ px: SPACING.lg }}>
-          <InspectorSection title="Transform" divider={false}>
-            <Vector3Row label="Position" objectUuid={uuid} vector={object.position} step={0.1} resetValue={0} record={record} />
+          <InspectorSection title={t("editor:ui.transform", { defaultValue: "Transform" })} divider={false}>
+            <Vector3Row label={t("editor:ui.position", { defaultValue: "Position" })} objectUuid={uuid} vector={object.position} step={0.1} resetValue={0} record={record} />
             <Vector3Row
-              label="Rotation"
+              label={t("editor:ui.rotation", { defaultValue: "Rotation" })}
               objectUuid={uuid}
               vector={object.rotation}
               toDisplay={toDegrees}
@@ -654,14 +657,14 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
               resetValue={0}
               record={record}
             />
-            <Vector3Row label="Scale" objectUuid={uuid} vector={object.scale} step={0.1} resetValue={1} record={record} />
+            <Vector3Row label={t("editor:ui.scale", { defaultValue: "Scale" })} objectUuid={uuid} vector={object.scale} step={0.1} resetValue={1} record={record} />
           </InspectorSection>
 
           {light && (
-            <InspectorSection title="Light">
-              <ColorRow label="Color" color={light.color} record={record} mergeKey={`${uuid}:lightColor`} />
+            <InspectorSection title={t("editor:ui.light", { defaultValue: "Light" })}>
+              <ColorRow label={t("editor:ui.color", { defaultValue: "Color" })} color={light.color} record={record} mergeKey={`${uuid}:lightColor`} />
               <NumberRow
-                label="Intensity"
+                label={t("editor:ui.intensity", { defaultValue: "Intensity" })}
                 value={light.intensity}
                 min={0}
                 step={0.1}
@@ -670,14 +673,14 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
               {(pointLight ?? spotLight) && (
                 <>
                   <NumberRow
-                    label="Range"
+                    label={t("editor:ui.range", { defaultValue: "Range" })}
                     value={(pointLight ?? spotLight)?.distance ?? 0}
                     min={0}
                     step={0.5}
                     onCommit={(v) => setNumber("Range", "distance", light, Math.max(0, v))}
                   />
                   <NumberRow
-                    label="Decay"
+                    label={t("editor:ui.decay", { defaultValue: "Decay" })}
                     value={(pointLight ?? spotLight)?.decay ?? 2}
                     min={0}
                     step={0.1}
@@ -688,7 +691,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
               {spotLight && (
                 <>
                   <NumberRow
-                    label="Angle"
+                    label={t("editor:ui.angle", { defaultValue: "Angle" })}
                     value={toDegrees(spotLight.angle)}
                     min={1}
                     max={90}
@@ -696,7 +699,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
                     onCommit={(v) => setNumber("Angle", "angle", spotLight, toRadians(THREE.MathUtils.clamp(v, 1, 90)))}
                   />
                   <NumberRow
-                    label="Penumbra"
+                    label={t("editor:ui.penumbra", { defaultValue: "Penumbra" })}
                     value={spotLight.penumbra}
                     min={0}
                     max={1}
@@ -709,7 +712,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
           )}
 
           {hasGeometry && mesh && geometryParams && isEditableGeometryType(geometryType) && (
-            <InspectorSection title="Geometry">
+            <InspectorSection title={t("editor:ui.geometry", { defaultValue: "Geometry" })}>
               <Caption>{geometryType}</Caption>
               {GEOMETRY_PARAM_SPECS[geometryType].map((spec) => {
                 const isAngle = spec.kind === "angle";
@@ -733,12 +736,12 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
           )}
 
           {material && (
-            <InspectorSection title="Material">
+            <InspectorSection title={t("editor:ui.material", { defaultValue: "Material" })}>
               {materials.length > 1 && (
-                <InspectorFieldRow label="Slot">
+                <InspectorFieldRow label={t("editor:ui.slot", { defaultValue: "Slot" })}>
                   <InspectorSelect
                     grow
-                    label="Material slot"
+                    label={t("editor:ui.materialSlot", { defaultValue: "Material slot" })}
                     value={String(slot)}
                     options={materials.map((m, i) => ({
                       value: String(i),
@@ -752,17 +755,17 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
             </InspectorSection>
           )}
 
-          <InspectorSection title="Rendering">
-            <ToggleRow label="Visible" checked={object.visible} onChange={(c) => setFlag("Visible", "visible", object, c)} />
+          <InspectorSection title={t("editor:ui.rendering", { defaultValue: "Rendering" })}>
+            <ToggleRow label={t("editor:ui.visible", { defaultValue: "Visible" })} checked={object.visible} onChange={(c) => setFlag("Visible", "visible", object, c)} />
             {mesh && (
               <>
-                <ToggleRow label="Cast shadow" checked={mesh.castShadow} onChange={(c) => setFlag("Cast shadow", "castShadow", mesh, c)} />
-                <ToggleRow label="Receive shadow" checked={mesh.receiveShadow} onChange={(c) => setFlag("Receive shadow", "receiveShadow", mesh, c)} />
+                <ToggleRow label={t("editor:ui.meshCastShadow", { defaultValue: "Cast shadow" })} checked={mesh.castShadow} onChange={(c) => setFlag("Cast shadow", "castShadow", mesh, c)} />
+                <ToggleRow label={t("editor:ui.meshReceiveShadow", { defaultValue: "Receive shadow" })} checked={mesh.receiveShadow} onChange={(c) => setFlag("Receive shadow", "receiveShadow", mesh, c)} />
               </>
             )}
-            <ToggleRow label="Frustum cull" checked={object.frustumCulled} onChange={(c) => setFlag("Frustum cull", "frustumCulled", object, c)} />
+            <ToggleRow label={t("editor:ui.objectFrustumCull", { defaultValue: "Frustum cull" })} checked={object.frustumCulled} onChange={(c) => setFlag("Frustum cull", "frustumCulled", object, c)} />
             <NumberRow
-              label="Render order"
+              label={t("editor:ui.renderOrder", { defaultValue: "Render order" })}
               value={object.renderOrder}
               integer
               step={1}

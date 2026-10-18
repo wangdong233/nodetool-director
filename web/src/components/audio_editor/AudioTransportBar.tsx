@@ -28,6 +28,7 @@ import {
 import { isNumber } from "../../utils/typePredicates";
 import type { PlayheadStore } from "./playheadStore";
 import { formatEditorTime } from "./formatEditorTime";
+import { useTranslation } from "react-i18next";
 
 interface AudioTransportBarProps {
   isPlaying: boolean;
@@ -121,6 +122,7 @@ const AudioTransportBar = memo(function AudioTransportBar({
   onZoomFit,
   onZoomChange
 }: AudioTransportBarProps) {
+  const { t } = useTranslation(["editor","ui"]);
   const handleZoomSliderChange = useCallback(
     (_event: Event, value: number | number[]) => {
       if (isNumber(value)) {
@@ -168,7 +170,7 @@ const AudioTransportBar = memo(function AudioTransportBar({
                 <PlayArrowIcon fontSize="small" />
               )
             }
-            tooltip={isPlaying ? "Pause" : "Play"}
+            tooltip={isPlaying ? t("ui:attrs.pause", { defaultValue: "Pause" }) : "Play"}
             tooltipPlacement="top"
             onClick={onTogglePlay}
             sx={{
@@ -197,7 +199,7 @@ const AudioTransportBar = memo(function AudioTransportBar({
         {status}
       </FlexRow>
 
-      <FlexRow role="group" aria-label="Zoom" align="center" gap={SPACING.micro}>
+      <FlexRow role="group" aria-label={t("editor:ui.zoom", { defaultValue: "Zoom" })} align="center" gap={SPACING.micro}>
         <ToolbarIconButton
           icon={<ZoomOutIcon fontSize="small" />}
           tooltip="Zoom out"
@@ -207,7 +209,7 @@ const AudioTransportBar = memo(function AudioTransportBar({
         />
         <Box sx={{ width: 96, mx: SPACING.xs }}>
           <Slider
-            aria-label="Waveform zoom"
+            aria-label={t("editor:ui.waveformZoom", { defaultValue: "Waveform zoom" })}
             density="compact"
             value={zoomToSliderValue(zoom, minZoom, maxZoom)}
             min={0}
@@ -225,7 +227,7 @@ const AudioTransportBar = memo(function AudioTransportBar({
         />
         <ToolbarIconButton
           icon={<FitScreenOutlinedIcon fontSize="small" />}
-          tooltip="Fit to window"
+          tooltip={t("editor:ui.fitToWindow", { defaultValue: "Fit to window" })}
           tooltipPlacement="top"
           onClick={onZoomFit}
           disabled={zoom === minZoom}

@@ -41,8 +41,8 @@ interface OptionalNodePack {
 export const OPTIONAL_NODE_PACKS: readonly OptionalNodePack[] = [
   {
     id: "documents",
-    label: "Documents",
-    description: "Rasterize a PDF.",
+    label: "Documents", labelKey: "nav:qa.documents.label",
+    description: "Rasterize a PDF.", descriptionKey: "editor:ui.rasterizeAPdf",
     namespaces: ["lib.pdf"]
   },
   {
@@ -55,37 +55,37 @@ export const OPTIONAL_NODE_PACKS: readonly OptionalNodePack[] = [
   {
     id: "audio_dsp",
     label: "Audio processing",
-    description: "Low-level audio analysis and signal-processing utilities.",
+    description: "Low-level audio analysis and signal-processing utilities.", descriptionKey: "editor:ui.lowLevelAudioAnalysisUtilities",
     namespaces: ["lib.audio"]
   },
   {
     id: "web",
     label: "Web & scraping",
-    description: "Headless browser and media download.",
+    description: "Headless browser and media download.", descriptionKey: "editor:ui.headlessBrowserMediaDownload",
     namespaces: ["lib.browser", "lib.video.download"]
   },
   {
     id: "data_stores",
-    label: "Files, Cloud & Databases",
-    description: "Local filesystem and SQLite.",
+    label: "Files, Cloud & Databases", labelKey: "editor:ui.filesCloudDatabases",
+    description: "Local filesystem and SQLite.", descriptionKey: "editor:ui.localFilesystemAndSqlite",
     namespaces: ["lib.os", "lib.sqlite"]
   },
   {
     id: "integrations",
     label: "Integrations & messaging",
-    description: "Discord / Telegram message triggers.",
+    description: "Discord / Telegram message triggers.", descriptionKey: "editor:ui.discordTelegramTriggers",
     namespaces: ["messaging"]
   },
   {
     id: "text_data",
     label: "Text & data utilities",
-    description: "Image grid slicing.",
+    description: "Image grid slicing.", descriptionKey: "editor:ui.imageGridSlicing",
     namespaces: ["lib.grid"]
   },
   {
     id: "developer",
     label: "Developer tools",
-    description: "Run code, ComfyUI, and internal test nodes.",
+    description: "Run code, ComfyUI, and internal test nodes.", descriptionKey: "editor:ui.runCodeComfyUiTestNodes",
     namespaces: ["nodetool.code", "lib.comfy", "nodetool.test"]
   }
 ];

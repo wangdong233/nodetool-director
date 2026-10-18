@@ -42,6 +42,7 @@ import GameViewport from "./viewport2d/GameViewport";
 import { pastedEntities } from "./gameClipboard";
 import { EMPTY_INPUT, useGamePlaySession } from "./useGamePlaySession";
 import { localTransform, selectionRoots, worldTransforms } from "./viewport2d/viewportGeometry";
+import { useTranslation } from "react-i18next";
 
 interface GameEditorProps {
   refId: string;
@@ -56,6 +57,7 @@ async function openGameDiagnosticSession2D(document: GameDocument, signal: Abort
 }
 
 const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
+  const { t } = useTranslation();
   const { data, isPending, error: loadError } = trpc.games.getDraft.useQuery({ id: refId }, { staleTime: 15_000 });
   const { data: revisions } = trpc.games.revisions.useQuery({ id: refId }, { staleTime: 15_000 });
   const { data: changeEntries } = trpc.games.draftChanges.useQuery({ id: refId }, { staleTime: 5_000 });
@@ -284,7 +286,7 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
     const entity = scene?.entities.find((entry) => entry.id === id);
     if (!scene || !entity) { return; }
     getGameDraftStore(refId).getState().apply([{ op: "update_entity", entity_id: id, scene_id: scene.id, set: { transform2d: { x, y } } }],
-      { label: selectedIds.length > 1 ? "Move Selection" : `Move ${entity.name || entity.id}`, mergeKey: "move-selection", gestureId });
+      { label: selectedIds.length > 1 ? t("editor:ui.moveSelection", { defaultValue: "Move Selection" }) : `Move ${entity.name || entity.id}`, mergeKey: "move-selection", gestureId });
   };
 
   const moveEntities = (moves: readonly { id: string; x: number; y: number }[], gestureId?: number): void => {
@@ -300,7 +302,7 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
     }
     if (!ops.length) { return; }
     const first = targets.get(moves[0].id);
-    getGameDraftStore(refId).getState().apply(ops, { label: selectedIds.length > 1 ? "Move Selection" : `Move ${first?.name ?? moves[0].id}`,
+    getGameDraftStore(refId).getState().apply(ops, { label: selectedIds.length > 1 ? t("editor:ui.moveSelection", { defaultValue: "Move Selection" }) : `Move ${first?.name ?? moves[0].id}`,
       mergeKey: "move-selection", gestureId });
   };
 
@@ -315,7 +317,7 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
 
   const transformLight = (sceneId: string, index: number, set: { x?: number; y?: number; radius?: number }, gestureId?: number): void => {
     getGameDraftStore(refId).getState().apply([{ op: "update_light", scene_id: sceneId, index, set }],
-      { label: set.radius === undefined ? "Move Light" : "Resize Light", mergeKey: "transform-light", gestureId });
+      { label: set.radius === undefined ? t("editor:ui.moveLight", { defaultValue: "Move Light" }) : "Resize Light", mergeKey: "transform-light", gestureId });
   };
 
   const selectedScene = document?.scenes.find((entry) => entry.id === activeSceneId);
@@ -401,7 +403,7 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
   if (loadError?.data?.code === "PRECONDITION_FAILED") { return <GameDraftRecovery key={refId} refId={refId} />; }
   if (isPending || (data && !document)) return <LoadingSpinner text="Loading game" />;
   if (loadError || !data || !document) {
-    return <EmptyState variant="error" title="Could not load game" description={loadError?.message ?? "The game may have been deleted."} />;
+    return <EmptyState variant="error" title={t("editor:ui.couldNotLoadGame", { defaultValue: "Could not load game" })} description={loadError?.message ?? "The game may have been deleted."} />;
   }
 
   return <GameEditorShell layoutStore={layoutStore} dimension="2d" active={active}
@@ -435,7 +437,7 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
         <ReportBugButton context={{ source: "panel-crash", summary: "Game editor failed", errorText: error ?? draftError ?? "" }} />
       </FlexRow>}
       {conflicts.items.length > 0 && <ConflictBanner conflicts={conflicts.items} onAccept={conflicts.accept} onDiscard={conflicts.discard} />}
-      {needsPlayRestart && <Caption role="status" sx={{ px: SPACING.md, py: SPACING.xs }}>The draft changed. Stop and play again to apply it.</Caption>}
+      {needsPlayRestart && <Caption role="status" sx={{ px: SPACING.md, py: SPACING.xs }}>{t("editor:ui.theDraftChangedStopAndPlayAgainToApplyIt", { defaultValue: "The draft changed. Stop and play again to apply it." })}</Caption>}
       <GameAuthoringPreview key={refId} gameId={refId} document={document} flush={flushDraft} onHighlight={setHighlightedIds} />
       <GameChanges gameId={refId} document={document} onOps={onOps} onHover={setHighlightedIds}
         onFocusMessage={(threadId, messageId) => {
@@ -508,7 +510,7 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
         <GameInspector document={document} selectedIds={selectedIds} activeSceneId={activeSceneId ?? document.entrySceneId}
           onSceneChange={selectScene} issues={validationIssues} onOps={onOps}
           onEditScript={(sceneId, entityId, index) => { setScriptKey({ sceneId, entityId, index }); layoutStore.getState().dispatch({ type: "reveal", panelId: "scripts" }); }} />
-        <MobileBottomSheet open={assistantOpen} onClose={() => layoutStore.getState().dispatch({ type: "hide", panelId: "assistant" })} title="Game assistant" ariaLabel="Game assistant panel">
+        <MobileBottomSheet open={assistantOpen} onClose={() => layoutStore.getState().dispatch({ type: "hide", panelId: "assistant" })} title={t("editor:ui.gameAssistant", { defaultValue: "Game assistant" })} ariaLabel="Game assistant panel">
           <GameAgentPanel gameId={refId} name={data.game.name} selectedEntityIds={selectedIds} behaviorIndex={scriptKey?.index} onThreadId={assistant.onThreadId} focusMessage={focusMessage} />
         </MobileBottomSheet>
       </>}
@@ -517,9 +519,9 @@ const LegacyGameEditor = ({ refId, active }: GameEditorProps) => {
       <Dialog open={publishOpen} onClose={() => setPublishOpen(false)} title="Publish game"
         onConfirm={() => void publish()} confirmText="Publish" isLoading={saving} showActions>
         <FlexColumn gap={SPACING.sm}>
-          <Text>Changes since the last revision</Text>
-          {changeEntries?.length ? changeEntries.map((entry) => <Caption key={entry.id}>{entry.summary}</Caption>) : <Caption>No saved changes</Caption>}
-          <TextInput label="Revision message" value={publishMessage} onChange={(event) => setPublishMessage(event.target.value)} />
+          <Text>{t("editor:ui.changesSinceTheLastRevision", { defaultValue: "Changes since the last revision" })}</Text>
+          {changeEntries?.length ? changeEntries.map((entry) => <Caption key={entry.id}>{entry.summary}</Caption>) : <Caption>{t("editor:ui.noSavedChanges", { defaultValue: "No saved changes" })}</Caption>}
+          <TextInput label={t("editor:ui.revisionMessage", { defaultValue: "Revision message" })} value={publishMessage} onChange={(event) => setPublishMessage(event.target.value)} />
         </FlexColumn>
       </Dialog>
     </>}

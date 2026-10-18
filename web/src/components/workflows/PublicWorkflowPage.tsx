@@ -24,11 +24,13 @@ import {
   usePublicSharedWorkflow
 } from "../../serverState/useWorkflowSharing";
 import { rememberPostLoginReturn } from "../../utils/postLoginReturn";
+import { useTranslation } from "react-i18next";
 
 /** `graphNodeToReactFlowNode` stamps this onto each node; nothing reads it back. */
 const PREVIEW_WORKFLOW_ID = "public-share-preview";
 
 const PublicWorkflowPage = () => {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const authState = useAuth((auth) => auth.state);
@@ -84,8 +86,8 @@ const PublicWorkflowPage = () => {
       >
         <EmptyState
           variant="error"
-          title="This workflow is not available"
-          description="The link may have been revoked. Ask the person who shared it for a new one."
+          title={t("editor:ui.thisWorkflowIsNotAvailable", { defaultValue: "This workflow is not available" })}
+          description={t("editor:ui.theLinkMayHaveBeenRevoked", { defaultValue: "The link may have been revoked. Ask the person who shared it for a new one." })}
         />
       </FlexColumn>
     );
@@ -109,7 +111,7 @@ const PublicWorkflowPage = () => {
             disabled={duplicate.isPending || authState === "loading"}
             onClick={() => void handleDuplicate()}
           >
-            {signedIn ? "Duplicate to my workflows" : "Sign in to duplicate"}
+            {signedIn ? t("editor:ui.duplicateToMyWorkflows", { defaultValue: "Duplicate to my workflows" }) : "Sign in to duplicate"}
           </EditorButton>
         }
       />

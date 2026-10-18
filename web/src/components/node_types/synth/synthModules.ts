@@ -79,7 +79,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
       },
       knobs: [
         {
-          name: "frequency",
+          name: "frequency", labelKey: "timeline:attrs.freq",
           label: "Freq",
           labelKey: "timeline:attrs.freq",
           min: 0.1,
@@ -110,7 +110,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
       },
       knobs: [
         {
-          name: "rate_hz",
+          name: "rate_hz", labelKey: "timeline:attrs.rate",
           label: "Rate",
           labelKey: "timeline:attrs.rate",
           min: 0.01,
@@ -121,7 +121,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
         },
         { name: "depth", label: "Depth", min: 0, max: 10, default: 1 },
         {
-          name: "offset",
+          name: "offset", labelKey: "timeline:attrs.offset",
           label: "Offset",
           labelKey: "timeline:attrs.offset",
           min: -10,
@@ -158,7 +158,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
           unit: "s"
         },
         {
-          name: "off_duration",
+          name: "off_duration", labelKey: "appbuilder:attrs.off",
           label: "Off",
           labelKey: "appbuilder:attrs.off",
           min: 0.001,
@@ -190,7 +190,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
       },
       knobs: [
         {
-          name: "cutoff_hz",
+          name: "cutoff_hz", labelKey: "timeline:attrs.cutoff",
           label: "Cutoff",
           labelKey: "timeline:attrs.cutoff",
           min: 20,
@@ -209,7 +209,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
       inputs: ["signal"],
       knobs: [
         {
-          name: "scale",
+          name: "scale", labelKey: "timeline:attrs.scale",
           label: "Scale",
           labelKey: "timeline:attrs.scale",
           min: -10,
@@ -218,7 +218,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
           bipolar: true
         },
         {
-          name: "offset",
+          name: "offset", labelKey: "timeline:attrs.offset",
           label: "Offset",
           labelKey: "timeline:attrs.offset",
           min: -10,
@@ -251,7 +251,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
       inputs: ["chunk"],
       knobs: [
         {
-          name: "gain_db",
+          name: "gain_db", labelKey: "editor:ui.gain",
           label: "Gain",
           labelKey: "editor:ui.gain",
           min: -60,
@@ -268,7 +268,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
       inputs: ["chunk"],
       knobs: [
         {
-          name: "cutoff_frequency_hz",
+          name: "cutoff_frequency_hz", labelKey: "timeline:attrs.cutoff",
           label: "Cutoff",
           labelKey: "timeline:attrs.cutoff",
           min: 500,
@@ -286,7 +286,7 @@ export const SYNTH_MODULE_CONFIGS: Readonly<Record<string, SynthModuleConfig>> =
       inputs: ["chunk"],
       knobs: [
         {
-          name: "cutoff_frequency_hz",
+          name: "cutoff_frequency_hz", labelKey: "timeline:attrs.cutoff",
           label: "Cutoff",
           labelKey: "timeline:attrs.cutoff",
           min: 20,

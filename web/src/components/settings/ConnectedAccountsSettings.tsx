@@ -31,6 +31,7 @@ import {
   Text
 } from "../ui_primitives";
 import { trpcClient } from "../../trpc/client";
+import { useTranslation } from "react-i18next";
 
 /** Providers this card can link. Telegram is the only bridge shipping today. */
 const PROVIDER = "telegram" as const;
@@ -53,6 +54,7 @@ function formatLinkedAt(value: string): string {
 }
 
 const ConnectedAccountsSettings = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [pending, setPending] = useState<PendingCode | null>(null);
   const [confirmingDisconnect, setConfirmingDisconnect] = useState(false);
@@ -207,7 +209,7 @@ const ConnectedAccountsSettings = () => {
             </FlexRow>
             <FlexRow align="center" gap={SPACING.md}>
               <LoadingSpinner />
-              <Caption>Waiting for Telegram to confirm the link…</Caption>
+              <Caption>{t("editor:ui.waitingForTelegramToConfirmTheLink", { defaultValue: "Waiting for Telegram to confirm the link…" })}</Caption>
             </FlexRow>
             <FlexRow>
               <EditorButton variant="text" onClick={handleCancel}>

@@ -9,6 +9,7 @@ import {
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useAssetUpdate } from "../../serverState/useAssetUpdate";
 import useAssets from "../../serverState/useAssets";
+import { useTranslation } from "react-i18next";
 
 interface AssetRenameConfirmationProps {
   assets: string[];
@@ -17,6 +18,7 @@ interface AssetRenameConfirmationProps {
 const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
   props
 ) => {
+  const { t } = useTranslation("catalog");
   const { assets } = props;
   const setDialogOpen = useAssetGridStore((state) => state.setRenameDialogOpen);
   const dialogOpen = useAssetGridStore((state) => state.renameDialogOpen);
@@ -115,7 +117,7 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
       onClose={handleClose}
       maxWidth="xs"
       fullWidth
-      title={count === 1 ? "Rename asset" : `Rename ${count} assets`}
+      title={count === 1 ? t("catalog:shortcuts.renameAsset", { defaultValue: "Rename asset" }) : `Rename ${count} assets`}
       onConfirm={() => void handleRename()}
       confirmText="Rename"
       actionButtonsProps={{

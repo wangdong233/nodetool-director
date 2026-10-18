@@ -19,6 +19,7 @@ import {
   forTasks,
   STUDIO_CLIP_MODELS
 } from "../../studio/curatedModels";
+import { useTranslation } from "react-i18next";
 
 interface VideoModelSelectProps {
   onChange: (value: VideoModelValue) => void;
@@ -37,6 +38,7 @@ const VideoModelSelect: React.FC<VideoModelSelectProps> = ({
   recommendedModels,
   modelPacks
 }) => {
+  const { t } = useTranslation();
   const { anchorEl, buttonRef, handleClick, handleClose, handleSelect } =
     useModelSelectMenu("video_model", onChange);
   const inStudio = useInStudio();
@@ -59,7 +61,7 @@ const VideoModelSelect: React.FC<VideoModelSelectProps> = ({
     return (
       <CuratedModelSelect
         capability="text_to_video"
-        label="Video model"
+        label={t("editor:ui.videoModel", { defaultValue: "Video model" })}
         options={
           Array.isArray(task)
             ? forAllTasks(STUDIO_CLIP_MODELS, task)

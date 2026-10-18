@@ -19,6 +19,7 @@ import {
   type NewDocumentSubmenu
 } from "./newDocumentCatalog";
 import { useGuidedFlowStarters } from "./useGuidedFlowStarters";
+import { useTranslation } from "react-i18next";
 
 interface OpenMenuProps {
   anchorEl: HTMLElement | null;
@@ -77,6 +78,7 @@ const menuMaxHeight = (anchorEl: HTMLElement | null): string => {
  * Starting a project lives on the project selector to the left of New.
  */
 const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
+  const { t } = useTranslation();
   const [view, setView] = useState<MenuView>("root");
 
   const close = useCallback(() => {
@@ -113,7 +115,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
   const backRow = (
     <MenuItemPrimitive
       key="back"
-      label="Back"
+      label={t("timeline:addClip.back", { defaultValue: "Back" })}
       icon={<ArrowBackRoundedIcon fontSize="small" />}
       onClick={() => setView("root")}
       dividerAfter
@@ -141,7 +143,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
       }}
     >
       {view === "root" && [
-        <ListSubheader key="guided-label">Guided flows</ListSubheader>,
+        <ListSubheader key="guided-label">{t("ui2:attrs.guidedFlows", { defaultValue: "Guided flows" })}</ListSubheader>,
         // The item being started says so, as the New Project cards do, so
         // the disabled menu does not read as a dead click.
         ...starters.map((starter) => (
@@ -159,7 +161,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
               )
             }
             secondary={
-              starting === starter.id ? "Creating…" : starter.description
+              starting === starter.id ? t("editor:ui.creating", { defaultValue: "Creating…" }) : starter.description
             }
             onClick={() => void starter.start()}
             disabled={busy}
@@ -199,7 +201,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
         backRow,
         <MenuItemPrimitive
           key="blank-storyboard"
-          label="Blank storyboard"
+          label={t("ui2:attrs.blankStoryboard", { defaultValue: "Blank storyboard" })}
           icon={<AddOutlinedIcon fontSize="small" />}
           onClick={() => void createBlankStoryboard()}
           disabled={busy}

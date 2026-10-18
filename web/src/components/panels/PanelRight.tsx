@@ -28,6 +28,7 @@ import {
   reducedMotion,
   ResizeHandle
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 // Matches HEADER_HEIGHT in PanelBottom — the bar still occupies this when collapsed.
 const BOTTOM_PANEL_HEADER_HEIGHT = 32;
@@ -81,6 +82,7 @@ const styles = (theme: Theme, bottomOffset: number, isVisible: boolean) =>
 
 
 const PanelRight: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const {
@@ -163,7 +165,7 @@ const PanelRight: React.FC = () => {
         <MobileBottomSheet
           open={isVisible}
           onClose={handleMobileSheetClose}
-          title="Inspector"
+          title={t("editor:ui.inspector", { defaultValue: "Inspector" })}
           ariaLabel="Inspector panel"
         >
           <FlexColumn

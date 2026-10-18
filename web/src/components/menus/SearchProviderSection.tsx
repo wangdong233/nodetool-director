@@ -24,6 +24,7 @@ import {
   type SerpProviderId
 } from "../../utils/searchProviders";
 import { matchesSearch } from "./settingsSearch";
+import { useTranslation } from "react-i18next";
 
 interface SearchProviderSectionProps {
   settingValues: Record<string, string>;
@@ -36,6 +37,7 @@ const SearchProviderSection = memo(function SearchProviderSection({
   onChange,
   search = ""
 }: SearchProviderSectionProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const selectedProvider = (settingValues["SERP_PROVIDER"] ||
     DEFAULT_SERP_PROVIDER) as SerpProviderId;
@@ -90,7 +92,7 @@ const SearchProviderSection = memo(function SearchProviderSection({
       <div className="settings-item large">
         <SelectField
           id="provider-select"
-          label="Provider"
+          label={t("ui2:attrs.provider", { defaultValue: "Provider" })}
           value={selectedProvider}
           onChange={handleProviderChange}
           options={providerOptions}
@@ -156,7 +158,7 @@ const SearchProviderSection = memo(function SearchProviderSection({
               {isFilled && (
                 <Chip
                   icon={<CheckCircleIcon />}
-                  label="Configured"
+                  label={t("editor:ui.configured", { defaultValue: "Configured" })}
                   size="small"
                   color="success"
                   sx={{

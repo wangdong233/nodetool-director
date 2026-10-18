@@ -31,6 +31,7 @@ import {
 import { useAuth } from "../../stores/useAuth";
 import NewProjectDialog from "./NewProjectDialog";
 import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
+import { useTranslation } from "react-i18next";
 
 const selectorStyles = (theme: Theme, inline: boolean, mobile: boolean) =>
   css({
@@ -108,6 +109,7 @@ const ProjectSelector = ({
   inline = false,
   mobile = false
 }: ProjectSelectorProps) => {
+  const { t } = useTranslation();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
   const [open, setOpen] = useState(false);
@@ -139,8 +141,7 @@ const ProjectSelector = ({
   const name =
     activeProject?.name ??
     (activeProjectId === personalProjectId
-      ? "Personal"
-      : activeProjectId
+      ? t("editor:ui.personal", { defaultValue: "Personal" }) : activeProjectId
         ? (activeTabTitle ?? "Project")
         : "Personal");
   const personalProject = projects?.find((project) => project.isPersonal);
@@ -254,7 +255,7 @@ const ProjectSelector = ({
         )}
         {!inline && (
           <MenuItemPrimitive
-            label="New project"
+            label={t("editor:ui.newProject", { defaultValue: "New project" })}
             icon={<AddOutlinedIcon />}
             onClick={openNewProject}
             color="primary"
@@ -264,13 +265,13 @@ const ProjectSelector = ({
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Search projects"
+          placeholder={t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
           ariaLabel="Search projects"
           fullWidth
           sx={{ my: SPACING.xs, px: SPACING.xs, boxSizing: "border-box" }}
         />
         <MenuItemPrimitive
-          label="Personal"
+          label={t("editor:ui.personal", { defaultValue: "Personal" })}
           className="project-menu-item"
           selected={
             activeProjectId === resolvedPersonalId ||
@@ -305,7 +306,7 @@ const ProjectSelector = ({
         ))}
         {!isPending && !error && visibleProjects.length === 0 && (
           <Caption sx={{ px: SPACING.lg, py: SPACING.sm }}>
-            {needle ? "No matching projects" : "No named projects yet"}
+            {needle ? t("editor:ui.noMatchingProjects", { defaultValue: "No matching projects" }) : "No named projects yet"}
           </Caption>
         )}
       </ContextMenu>

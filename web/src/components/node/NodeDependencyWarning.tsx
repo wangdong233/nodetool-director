@@ -14,6 +14,7 @@ import {
   RUNTIME_TO_PACKAGE_ID,
   ensureRuntimeStatuses
 } from "./NodeDependencyWarning.helpers";
+import { useTranslation } from "react-i18next";
 
 const warningStyles = (theme: Theme) =>
   css({
@@ -66,6 +67,7 @@ interface NodeDependencyWarningProps {
 const NodeDependencyWarning: FC<NodeDependencyWarningProps> = ({
   requiredRuntimes,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedWarningStyles = useMemo(() => warningStyles(theme), [theme]);
   const statuses = useRuntimeStatusStore((s) => s.statuses);
@@ -140,7 +142,7 @@ const NodeDependencyWarning: FC<NodeDependencyWarningProps> = ({
           disabled={installing}
           sx={{ alignSelf: "flex-start", mt: SPACING.micro }}
         >
-          {installing ? "Installing…" : `Install ${runtimeNames}`}
+          {installing ? t("editor:ui.installing", { defaultValue: "Installing…" }) : `Install ${runtimeNames}`}
         </EditorButton>
       ) : (
         <div className="warning-text">

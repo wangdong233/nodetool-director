@@ -33,6 +33,7 @@ import {
   ICON_SIZE
 } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
+import { useTranslation } from "react-i18next";
 
 interface AssetActionsMenuProps {
   maxItemSize: number;
@@ -54,6 +55,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
   isFullscreenAssets = false,
   hideFolderControls = false
 }) => {
+  const { t } = useTranslation();
   const setAssetSearchTerm = useAssetGridStore(
     (state) => state.setAssetSearchTerm
   );
@@ -193,7 +195,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
       {!hideFolderControls && (
         <ToolbarIconButton
           icon={<CreateNewFolderIcon />}
-          tooltip="New folder"
+          tooltip={t("editor:asset.newFolderDefaultName", { defaultValue: "New folder" })}
           onClick={() => setCreateFolderDialogOpen(true)}
           tooltipPlacement="top"
           nodrag={false}
@@ -209,7 +211,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
       <UploadButton
         onFileSelect={(files) => onUploadFiles?.(files)}
         iconVariant="file"
-        tooltip="Upload files"
+        tooltip={t("editor:explorer.uploadFiles", { defaultValue: "Upload files" })}
         multiple
       />
     </FlexRow>
@@ -261,7 +263,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
             {!hideFolderControls && hasFolders && (
               <ToolbarIconButton
                 icon={foldersVisible ? <FolderIcon /> : <FolderOffIcon />}
-                tooltip={foldersVisible ? "Hide folders" : "Show folders"}
+                tooltip={foldersVisible ? i18n.t("editor:explorer.hideFolders", { defaultValue: "Hide folders" }) : "Show folders"}
                 onClick={toggleFoldersVisible}
                 tooltipPlacement="top"
                 nodrag={false}
@@ -307,7 +309,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         transformOrigin={{ vertical: "top", horizontal: "left" }}
       >
         <MenuItemPrimitive
-          label="Any model"
+          label={t("editor:ui.anyModel", { defaultValue: "Any model" })}
           icon={<FilterAltOffIcon />}
           checkable="radio"
           checked={modelFilter === null}

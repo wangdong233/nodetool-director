@@ -32,6 +32,7 @@ import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { useOpenAssetWorkflow } from "../../hooks/useOpenAssetWorkflow";
 import { useJobSnapshot } from "../../serverState/useJobSnapshot";
+import { useTranslation } from "react-i18next";
 
 /** Metadata keys rendered by their own section, not by the raw dump. */
 const RENDERED_METADATA_KEYS = new Set(["prompt", "generation", "openverse"]);
@@ -122,6 +123,7 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
   asset,
   onOpenWorkflow
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const currentFolder = useAssetGridStore((state) => state.currentFolder);
   const getWorkflow = useWorkflowManager((state) => state.getWorkflow);
@@ -188,23 +190,23 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
         <img className="info-thumb" src={thumbSrc} alt="" loading="eager" />
       )}
 
-      <InfoRow label="Name" value={asset.name} />
+      <InfoRow label={t("editor:asset.info.name", { defaultValue: "Name" })} value={asset.name} />
       <InfoRow
-        label="Type"
+        label={t("editor:asset.info.type", { defaultValue: "Type" })}
         value={asset.content_type ? formatContentType(asset.content_type) : null}
       />
       {asset.size != null && asset.size > 0 && (
-        <InfoRow label="Size" value={formatFileSize(asset.size)} />
+        <InfoRow label={t("editor:asset.info.size", { defaultValue: "Size" })} value={formatFileSize(asset.size)} />
       )}
       {asset.duration != null && asset.duration > 0 && (
-        <InfoRow label="Duration" value={secondsToHMS(asset.duration)} />
+        <InfoRow label={t("editor:asset.info.duration", { defaultValue: "Duration" })} value={secondsToHMS(asset.duration)} />
       )}
-      <InfoRow label="Created" value={formatDateTime(asset.created_at)} />
+      <InfoRow label={t("editor:asset.info.created", { defaultValue: "Created" })} value={formatDateTime(asset.created_at)} />
 
       {(folderName || workflowName || runGraphSnapshot) && (
         <div className="info-section">
-          {folderName && <InfoRow label="Folder" value={folderName} />}
-          {workflowName && <InfoRow label="Workflow" value={workflowName} />}
+          {folderName && <InfoRow label={t("editor:asset.info.folder", { defaultValue: "Folder" })} value={folderName} />}
+          {workflowName && <InfoRow label={t("editor:asset.info.workflow", { defaultValue: "Workflow" })} value={workflowName} />}
           {(asset.workflow_id || runGraphSnapshot) && (
             <FlexRow gap={SPACING.xs} wrap sx={{ pt: SPACING.xs }}>
               {asset.workflow_id && (
@@ -212,7 +214,7 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
                   variant="outlined"
                   startIcon={<AccountTreeIcon />}
                   onClick={handleOpenWorkflow}
-                  tooltip="Open the saved workflow and show the node that made this asset"
+                  tooltip={t("editor:ui.openTheSavedWorkflowAndShowTheNodeThatMadeThisAsset", { defaultValue: "Open the saved workflow and show the node that made this asset" })}
                 >
                   Open workflow
                 </EditorButton>
@@ -222,7 +224,7 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
                   variant="outlined"
                   startIcon={<HistoryIcon />}
                   onClick={handleOpenSnapshot}
-                  tooltip="Open the graph and inputs this asset was made with as a new unsaved workflow"
+                  tooltip={t("editor:ui.openTheGraphAndInputsThisAssetWasMadeWithAsANewUnsavedWorkflow", { defaultValue: "Open the graph and inputs this asset was made with as a new unsaved workflow" })}
                 >
                   Open as it was when made
                 </EditorButton>
@@ -238,7 +240,7 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
             <Text className="info-section-title" component="span">
               Prompt
             </Text>
-            <CopyButton value={prompt} tooltip="Copy prompt" buttonSize="small" />
+            <CopyButton value={prompt} tooltip={t("editor:asset.info.copyPrompt", { defaultValue: "Copy prompt" })} buttonSize="small" />
           </FlexRow>
           <Text className="info-prompt" component="p">
             {prompt}
@@ -297,10 +299,10 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
 
       {generation && (
         <div className="info-section">
-          <InfoRow label="Model" value={generation.model_name ?? generation.model} />
-          <InfoRow label="Provider" value={generation.provider} />
-          <InfoRow label="Node" value={generation.node_type} />
-          <InfoRow label="Task" value={generation.capability} />
+          <InfoRow label={t("editor:asset.info.model", { defaultValue: "Model" })} value={generation.model_name ?? generation.model} />
+          <InfoRow label={t("editor:asset.info.provider", { defaultValue: "Provider" })} value={generation.provider} />
+          <InfoRow label={t("editor:asset.info.node", { defaultValue: "Node" })} value={generation.node_type} />
+          <InfoRow label={t("editor:asset.info.task", { defaultValue: "Task" })} value={generation.capability} />
           {settings &&
             Object.entries(settings).map(([key, value]) => (
               <InfoRow

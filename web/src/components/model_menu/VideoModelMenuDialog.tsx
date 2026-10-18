@@ -8,6 +8,7 @@ import {
   useVideoModelsByProvider,
   type VideoModelTask
 } from "../../hooks/useModelsByProvider";
+import { useTranslation } from "react-i18next";
 
 interface VideoModelMenuDialogProps {
   open: boolean;
@@ -28,6 +29,7 @@ function VideoModelMenuDialog({
   recommendedModels,
   modelPacks
 }: VideoModelMenuDialogProps) {
+  const { t } = useTranslation();
   const modelData = useVideoModelsByProvider({ task });
   return (
     <ModelMenuDialogBase<VideoModel>
@@ -36,7 +38,7 @@ function VideoModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select video model"
+      title={t("editor:ui.selectVideoModel", { defaultValue: "Select video model" })}
       searchPlaceholder="Search text-to-video models"
       storeHook={useVideoModelMenuStore}
       modelType="video_model"

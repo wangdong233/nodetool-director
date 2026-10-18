@@ -32,6 +32,7 @@ import { useFolderPicker } from "./useFolderPicker";
 import FolderIcon from "@mui/icons-material/FolderOutlined";
 import AddIcon from "@mui/icons-material/AddOutlined";
 import StarIcon from "@mui/icons-material/Star";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -115,6 +116,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
     disabled = false,
     compact = false
   }) {
+    const { t } = useTranslation();
     const theme = useTheme();
     const fieldId = useId();
     const cssStyles = useMemo(() => styles(theme), [theme]);
@@ -230,7 +232,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
     };
 
     const labeled = Boolean(label) || Boolean(helperText);
-    const visibleLabel = labeled ? label ?? "Workspace" : undefined;
+    const visibleLabel = labeled ? label ?? t("nav:qa.workspace-files.label", { defaultValue: "Workspace" }) : undefined;
 
     const select = (
       <FormControl fullWidth={fullWidth} css={cssStyles}>

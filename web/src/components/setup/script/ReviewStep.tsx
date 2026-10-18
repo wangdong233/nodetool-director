@@ -66,6 +66,7 @@ import {
 import type { LanguageModelValue } from "../../../stores/ApiTypes";
 import { readScriptSource } from "../../../lib/script/importedScript";
 import { GenerationEstimateLine } from "../GenerationSummary";
+import { useTranslation } from "react-i18next";
 
 /** A duration as the review states it: seconds under a minute, else m:ss. */
 const spokenLength = (seconds: number): string => {
@@ -277,7 +278,7 @@ const ReviewLine: React.FC<ReviewLineProps> = memo(
             placeholder="Write a line"
             minRows={1}
             hideLabel
-            label="Line"
+            label={t("editor:ui.scriptLine", { defaultValue: "Line" })}
             compact
             fullWidth
             slotProps={{ input: { readOnly: locked } }}
@@ -302,7 +303,7 @@ const ReviewLine: React.FC<ReviewLineProps> = memo(
             />
             <ToolbarIconButton
               icon={<DeleteOutlineIcon fontSize="small" />}
-              tooltip="Delete line"
+              tooltip={t("editor:ui.deleteLine", { defaultValue: "Delete line" })}
               ariaLabel={`Delete ${excerpt}`}
               variant="error"
               onClick={remove}
@@ -418,6 +419,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   onOpenEditor,
   readOnly = false
 }) => {
+  const { t } = useTranslation();
   // Nothing on the step may change the script: not while a rewrite replaces
   // the lines, and not in a view-mode tab.
   const locked = rewriting || readOnly;
@@ -504,7 +506,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
               <LanguageModelSelect
                 value={writerModel?.id ?? ""}
                 provider={writerModel?.provider}
-                placeholder="Writer model"
+                placeholder={t("storyboard:attrs.writerModel", { defaultValue: "Writer model" })}
                 disabled={readOnly}
                 onChange={setWriterModel}
               />
@@ -514,7 +516,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
               disabled={locked}
               onClick={onRewrite}
             >
-              {rewriting ? "Rewriting…" : "Rewrite"}
+              {rewriting ? i18n.t("storyboard:attrs.rewriting", { defaultValue: "Rewriting…" }) : "Rewrite"}
             </EditorButton>
           </FlexRow>
           {/* A rewrite is a model call like any other, so it says what it

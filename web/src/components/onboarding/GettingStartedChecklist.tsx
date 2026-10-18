@@ -15,6 +15,7 @@ import {
   getSpacingPx,
   EditorButton
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -147,6 +148,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
   onDescribeIdea,
   onOpenExamples
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { completedSteps, dismissed, dismiss } = useOnboardingStore(
     useShallow((s) => ({
@@ -196,7 +198,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
   }
 
   return (
-    <section css={styles(theme)} aria-label="Getting started checklist">
+    <section css={styles(theme)} aria-label={t("home:checklist.aria", { defaultValue: "Getting started checklist" })}>
       <div>
         <div className="checklist-inner">
           <span className="checklist-label">
@@ -234,7 +236,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
             color="inherit"
             className="checklist-dismiss"
             onClick={dismiss}
-            aria-label="Dismiss getting started checklist"
+            aria-label={t("home:checklist.dismissAria", { defaultValue: "Dismiss getting started checklist" })}
           >
             Dismiss
           </EditorButton>

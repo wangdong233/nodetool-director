@@ -10,6 +10,7 @@ import {
   ToolbarIconButton
 } from "../ui_primitives";
 import type { FilmstripThumb, FilmstripWindow } from "./assetViewerModel";
+import { useTranslation } from "react-i18next";
 
 type AssetFilmstripProps = {
   current: Asset | undefined;
@@ -48,6 +49,7 @@ const AssetFilmstrip = ({
   onNext,
   onThumbnail
 }: AssetFilmstripProps) => {
+  const { t } = useTranslation("editor");
   const renderThumb = ({ asset, index }: FilmstripThumb) => (
     <EditorButton
       className={`item ${compareSelectedId === asset.id ? "compare-selected" : ""}`}
@@ -65,7 +67,7 @@ const AssetFilmstrip = ({
         <>
           <ToolbarIconButton
             icon={<KeyboardArrowLeftIcon />}
-            tooltip="Previous asset"
+            tooltip={t("editor:ui.previousAsset", { defaultValue: "Previous asset" })}
             onClick={onPrev}
             disabled={!strip.hasPrev}
             className="prev-next-button left"
@@ -73,7 +75,7 @@ const AssetFilmstrip = ({
           />
           <ToolbarIconButton
             icon={<KeyboardArrowRightIcon />}
-            tooltip="Next asset"
+            tooltip={t("editor:ui.nextAsset", { defaultValue: "Next asset" })}
             onClick={onNext}
             disabled={!strip.hasNext}
             className="prev-next-button right"

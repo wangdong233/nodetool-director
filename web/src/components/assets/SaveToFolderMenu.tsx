@@ -22,6 +22,7 @@ import {
 import { useFolderTree } from "../../serverState/useFolderTree";
 import { useAssetStore, type AssetTreeNode } from "../../stores/AssetStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { useTranslation } from "react-i18next";
 
 interface SaveToFolderMenuProps {
   anchorEl: HTMLElement | null;
@@ -81,6 +82,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
   onClose,
   onSelectFolder
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const { data: folderTree = {} } = useFolderTree("name");
@@ -185,7 +187,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
       paperSx={[menuPaperStyles(theme), { minWidth: 240 }]}
     >
       <div css={cssStyles} role="menu">
-        <span className="folder-menu-header">Save to folder</span>
+        <span className="folder-menu-header">{t("editor:ui.saveToFolder", { defaultValue: "Save to folder" })}</span>
         <div className="folder-menu-scroll">
           {renderRow(
             null,
@@ -239,7 +241,7 @@ const SaveToFolderMenu: React.FC<SaveToFolderMenuProps> = ({
               <span className="folder-menu-icon">
                 <CreateNewFolderOutlinedIcon fontSize="small" />
               </span>
-              <span>New folder…</span>
+              <span>{t("editor:ui.newFolder", { defaultValue: "New folder…" })}</span>
             </div>
           )}
         </div>

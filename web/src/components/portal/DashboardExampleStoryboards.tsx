@@ -23,6 +23,7 @@ import {
 import { runsAsIsFirst, storyboardNeeds } from "../../utils/exampleNeeds";
 import { DashboardSectionHeader, useSectionWrap } from "./dashboardChrome";
 import ExampleNeedsPill from "./ExampleNeedsPill";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -152,6 +153,7 @@ const StoryboardCard = memo(function StoryboardCard({
 });
 
 const DashboardExampleStoryboards = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const navigate = useNavigate();
@@ -195,9 +197,9 @@ const DashboardExampleStoryboards = () => {
     [data]
   );
   return (
-    <section css={styles(theme)} aria-label="Example storyboards">
+    <section css={styles(theme)} aria-label={t("editor:ui.exampleStoryboards", { defaultValue: "Example storyboards" })}>
       <div css={sectionWrap}>
-        <DashboardSectionHeader title="Start from a storyboard" count={`${storyboards.length} boards`} />
+        <DashboardSectionHeader title={t("editor:ui.startFromAStoryboard", { defaultValue: "Start from a storyboard" })} count={`${storyboards.length} boards`} />
         <p className="boards-lede">
           Explore a shot sequence with rendered stills. Open a board to make your own copy.
         </p>
@@ -205,11 +207,11 @@ const DashboardExampleStoryboards = () => {
           <div className="boards-state"><LoadingSpinner size="medium" text="Loading storyboards" /></div>
         ) : isError ? (
           <div className="boards-state">
-            <EmptyState variant="error" title="Couldn't load storyboards" description="Try again in a moment." actionText="Retry" onAction={() => refetch()} />
+            <EmptyState variant="error" title={t("editor:ui.couldntLoadStoryboards", { defaultValue: "Couldn't load storyboards" })} description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })} actionText={t("editor:explorer.retry", { defaultValue: "Retry" })} onAction={() => refetch()} />
           </div>
         ) : storyboards.length === 0 ? (
           <div className="boards-state">
-            <EmptyState variant="no-data" title="No storyboards available" description="Example storyboards will appear here when this install ships them." />
+            <EmptyState variant="no-data" title={t("editor:ui.noStoryboardsAvailable", { defaultValue: "No storyboards available" })} description={t("editor:ui.exampleStoryboardsWillAppearHereWhenThisInstallShipsThem", { defaultValue: "Example storyboards will appear here when this install ships them." })} />
           </div>
         ) : (
           <AutoGrid minItemWidth={280} fill="fit">

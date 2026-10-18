@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { moveNotes, setVelocity } from "@nodetool-ai/timeline";
 import type { MidiNote } from "@nodetool-ai/timeline";
 import { Caption, FlexRow, SPACING, TextInput } from "../../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 /** Wide enough for "127" or "12.25" beside the number spinner. */
 const FIELD_WIDTH_PX = 76;
@@ -27,6 +28,7 @@ export function NoteSelectionInspector({
   onChange,
   velocityAdjust
 }: Props) {
+  const { t } = useTranslation();
   const selected = notes.filter((note) => selectedIds.has(note.id));
   const first = selected[0];
   const lowest = selected.reduce((min, note) => Math.min(min, note.pitch), 127);
@@ -108,7 +110,7 @@ export function NoteSelectionInspector({
             sx={{ width: FIELD_WIDTH_PX }}
             disabled={!first}
             defaultValue={field.value ?? ""}
-            placeholder={first ? "Mixed" : "—"}
+            placeholder={first ? t("ui2:attrs.mixed", { defaultValue: "Mixed" }) : "—"}
             inputProps={{ min: field.min, max: field.max, step: field.step }}
             onBlur={(event) => {
               const value = Math.round(Number(event.target.value) / field.step) * field.step;

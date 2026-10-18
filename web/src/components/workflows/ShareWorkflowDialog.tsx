@@ -31,6 +31,7 @@ import {
   type ShareRole
 } from "../../serverState/useWorkflowSharing";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { useTranslation } from "react-i18next";
 
 const ROLE_LABELS: Record<ShareRole, string> = {
   viewer: "Can view",
@@ -56,6 +57,7 @@ const ShareWorkflowDialog = ({
   workflowId,
   workflowName
 }: ShareWorkflowDialogProps) => {
+  const { t } = useTranslation();
   const { query, createLink, revokeLink, setRole, removeCollaborator } =
     useWorkflowSharing(open ? workflowId : null);
   const addNotification = useNotificationStore(
@@ -149,7 +151,7 @@ const ShareWorkflowDialog = ({
 
         {activeShares.length > 0 && (
           <FlexColumn gap={SPACING.xs}>
-            <SectionHeader size="small" title="Active links" />
+            <SectionHeader size="small" title={t("ui2:attrs.activeLinks", { defaultValue: "Active links" })} />
             {activeShares.map((share) => (
               <FlexRow
                 key={share.id}
@@ -161,7 +163,7 @@ const ShareWorkflowDialog = ({
                   <Chip label={ROLE_LABELS[share.role]} size="small" />
                   <CopyButton
                     value={shareUrlForToken(share.token, share.role)}
-                    tooltip="Copy share link"
+                    tooltip={t("editor:ui.copyShareLink", { defaultValue: "Copy share link" })}
                   />
                 </FlexRow>
                 <EditorButton
@@ -178,12 +180,12 @@ const ShareWorkflowDialog = ({
 
         <Divider />
 
-        <SectionHeader size="small" title="People with access" />
+        <SectionHeader size="small" title={t("ui2:attrs.peopleWithAccess", { defaultValue: "People with access" })} />
         {collaborators.length === 0 && !query.isLoading && (
           <EmptyState
             variant="empty"
-            title="No collaborators yet"
-            description="Copy a link above and send it to someone."
+            title={t("editor:ui.noCollaboratorsYet", { defaultValue: "No collaborators yet" })}
+            description={t("editor:ui.copyALinkAboveAndSendItToSomeone", { defaultValue: "Copy a link above and send it to someone." })}
           />
         )}
         {collaborators.map((collaborator) => (
@@ -215,7 +217,7 @@ const ShareWorkflowDialog = ({
                 }
               />
               <DeleteButton
-                tooltip="Remove access"
+                tooltip={t("editor:ui.removeAccess", { defaultValue: "Remove access" })}
                 disabled={removeCollaborator.isPending}
                 onClick={() => removeCollaborator.mutate(collaborator.user_id)}
               />

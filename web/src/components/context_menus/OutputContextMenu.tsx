@@ -47,10 +47,12 @@ import {
   outputQuickActionsFor,
   type OutputQuickAction
 } from "../../config/outputQuickActions";
+import { useTranslation } from "react-i18next";
 
 const NODE_ROW_HEIGHT = 28;
 
 const OutputContextMenu: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const {
     nodeId,
@@ -514,7 +516,7 @@ const OutputContextMenu: React.FC = () => {
             onChange={handleSearchChange}
             onClick={(event) => event.stopPropagation()}
             onKeyDown={handleSearchKeyDown}
-            aria-label="Search connectable nodes"
+            aria-label={t("editor:io.searchConnectable", { defaultValue: "Search connectable nodes" })}
             sx={{
               "& .MuiOutlinedInput-root": {
                 backgroundColor: "action.disabledBackground",
@@ -548,7 +550,7 @@ const OutputContextMenu: React.FC = () => {
                 endAdornment: searchTerm ? (
                   <InputAdornment position="end">
                     <ToolbarIconButton
-                      aria-label="clear search"
+                      aria-label={t("editor:io.clearSearch", { defaultValue: "clear search" })}
                       onClick={handleClearSearch}
                       size="small"
                       icon={<ClearIcon sx={{ fontSize: ICON_SIZE.sm }} />}
@@ -564,7 +566,7 @@ const OutputContextMenu: React.FC = () => {
           <ContextMenuItem
             className="create-preview-node"
             onClick={handleCreatePreviewNode}
-            label="Preview"
+            label={t("editor:io.preview", { defaultValue: "Preview" })}
             IconComponent={<VisibilityIcon />}
           />
         )}
@@ -572,7 +574,7 @@ const OutputContextMenu: React.FC = () => {
           <ContextMenuItem
             className="create-output-node"
             onClick={handleCreateOutputNode}
-            label="Output"
+            label={t("editor:io.outputCapitalized", { defaultValue: "Output" })}
             IconComponent={<DataObjectIcon />}
           />
         )}
@@ -580,7 +582,7 @@ const OutputContextMenu: React.FC = () => {
           <ContextMenuItem
             className="create-reroute-node"
             onClick={handleCreateRerouteNode}
-            label="Reroute"
+            label={t("editor:io.reroute", { defaultValue: "Reroute" })}
             IconComponent={<AltRouteIcon />}
           />
         )}
@@ -596,7 +598,7 @@ const OutputContextMenu: React.FC = () => {
           <ContextMenuItem
             className="transform-output-with-ai"
             onClick={handleTransformWithAI}
-            label="Transform this output…"
+            label={t("editor:ui.transformThisOutput", { defaultValue: "Transform this output…" })}
             IconComponent={<AutoAwesomeIcon />}
           />
         )}
@@ -619,7 +621,7 @@ const OutputContextMenu: React.FC = () => {
           <ContextMenuItem
             className="delete-output"
             onClick={handleDeleteDynamicOutput}
-            label="Delete output"
+            label={t("editor:io.deleteOutput", { defaultValue: "Delete output" })}
             IconComponent={<DeleteOutlineIcon />}
             destructive
           />

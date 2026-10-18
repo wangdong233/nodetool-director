@@ -88,6 +88,7 @@ import { scriptWorkflowMedia } from "./scriptWorkflowMedia";
 import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
 import { useContextCommands } from "../../hooks/useContextCommands";
 import type { ContextCommand } from "../../stores/CommandMenuStore";
+import { useTranslation } from "react-i18next";
 
 interface ScriptDocumentPaneProps {
   scriptId: string;
@@ -160,7 +161,7 @@ const InsertLineGap = ({
       component="button"
       type="button"
       onClick={onInsert}
-      aria-label="Insert line here"
+      aria-label={t("editor:ui.insertLineHere", { defaultValue: "Insert line here" })}
       className="insert-line-rule"
       sx={{
         display: "flex",
@@ -391,9 +392,9 @@ const SectionBlockInner = ({
           onChange={(e) =>
             setSectionTitle(scriptId, section.id, e.target.value)
           }
-          placeholder="Untitled section"
+          placeholder={t("editor:ui.untitledSection", { defaultValue: "Untitled section" })}
           hideLabel
-          label="Section title"
+          label={t("editor:ui.sectionTitle", { defaultValue: "Section title" })}
           compact
           fullWidth
           disabled={readOnly}
@@ -549,8 +550,7 @@ const VoiceAllButton = ({
         <FlexColumn gap={SPACING.micro}>
           <Text size="small">
             {lineCount === 0
-              ? "Every line is already voiced."
-              : `${lineCount} line${lineCount === 1 ? "" : "s"} · ${characters} characters${
+              ? i18n.t("editor:ui.everyLineIsAlreadyVoiced", { defaultValue: "Every line is already voiced." }) : `${lineCount} line${lineCount === 1 ? "" : "s"} · ${characters} characters${
                   priced ? ` · about ${formatUsd(cost)}` : ""
                 }${
                   partial
@@ -708,7 +708,7 @@ const VoicingStrip = ({
     >
       <FlexColumn gap={SPACING.xs}>
         <Text size="smaller">
-          {`${stopped ? "Voicing stopped before it finished. " : ""}Voiced ${run.voiced} of ${run.total} lines.${
+          {`${stopped ? i18n.t("editor:ui.voicingStoppedBeforeItFinished", { defaultValue: "Voicing stopped before it finished. " }) : ""}Voiced ${run.voiced} of ${run.total} lines.${
             run.failed.length > 0
               ? ` ${run.failed.length} ${
                   run.failed.length === 1 ? "line" : "lines"
@@ -756,8 +756,7 @@ const VoicingStrip = ({
               onClick={() => retry(run.failed.map((failure) => failure.lineId))}
             >
               {retrying.length > 0
-                ? "Retrying…"
-                : `Retry all ${run.failed.length}`}
+                ? i18n.t("editor:ui.retrying", { defaultValue: "Retrying…" }) : `Retry all ${run.failed.length}`}
             </EditorButton>
           </FlexRow>
         )}
@@ -771,6 +770,7 @@ const ScriptDocumentPane = ({
   readOnly,
   active = false
 }: ScriptDocumentPaneProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const inStudio = useInStudio();
@@ -983,16 +983,16 @@ const ScriptDocumentPane = ({
       commands.push({
         id: "send-to-timeline",
         label: storyboardId
-          ? "Assemble video"
-          : timelineId
-            ? "Update timeline"
-            : "Send to timeline",
+          ? i18n.t("editor:ui.assembleVideo", { defaultValue: "Assemble video" }) : timelineId
+            ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" }) : "Send to timeline",
         run: onSendToTimeline
       });
     }
     commands.push({
       id: "export-subtitles",
-      label: "Export Subtitles (SRT)",
+      label: i18n.t("editor:ui.exportSubtitlesSrt", {
+        defaultValue: "Export Subtitles (SRT)"
+      }),
       run: onExportSubtitles
     });
     if (!exportingAudio) {
@@ -1106,7 +1106,7 @@ const ScriptDocumentPane = ({
             <FlexRow align="center" gap={SPACING.xs}>
               <LoadingSpinner inline size={16} />
               <Text size="smaller">
-                {voicingAll || voicingLive ? "Voicing…" : "Writing…"}
+                {voicingAll || voicingLive ? i18n.t("editor:ui.voicing", { defaultValue: "Voicing…" }) : "Writing…"}
               </Text>
             </FlexRow>
           ) : (
@@ -1128,8 +1128,7 @@ const ScriptDocumentPane = ({
           <Tooltip
             title={
               hasVoicedLine
-                ? "Play current takes in order"
-                : "Voice at least one line to play"
+                ? i18n.t("editor:ui.playCurrentTakesInOrder", { defaultValue: "Play current takes in order" }) : "Voice at least one line to play"
             }
           >
             <span>
@@ -1163,8 +1162,7 @@ const ScriptDocumentPane = ({
             disabled={assembling || !hasVoicedLine}
             tooltip={
               storyboardId
-                ? "Cut the linked storyboard's shots and these takes into one timeline"
-                : undefined
+                ? t("editor:ui.cutTheLinkedStoryboardsShotsAndTheseTakesIntoOneTimeline", { defaultValue: "Cut the linked storyboard's shots and these takes into one timeline" }) : undefined
             }
             disabledReason={
               hasVoicedLine
@@ -1173,25 +1171,22 @@ const ScriptDocumentPane = ({
             }
           >
             {assembling
-              ? "Assembling…"
-              : storyboardId
-                ? "Assemble video"
-                : timelineId
-                  ? "Update timeline"
-                  : "Send to timeline"}
+              ? t("storyboard:attrs.assembling", { defaultValue: "Assembling…" }) : storyboardId
+                ? i18n.t("editor:ui.assembleVideo", { defaultValue: "Assemble video" }) : timelineId
+                  ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" }) : "Send to timeline"}
           </EditorButton>
         )}
         {hasVoicedLine && (
           <SendToWorkflowButton
             items={workflowMedia}
-            tooltip="Send every current take to a workflow"
+            tooltip={t("editor:ui.sendEveryCurrentTakeToAWorkflow", { defaultValue: "Send every current take to a workflow" })}
           />
         )}
         {!readOnly && <StoryboardLinkControl scriptId={scriptId} />}
         {!readOnly && (
           <>
             <ToolbarIconButton
-              tooltip="More actions"
+              tooltip={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
               ariaLabel="More actions"
               onClick={(e) => setMoreAnchor(e.currentTarget)}
               icon={<MoreVertIcon fontSize="small" />}
@@ -1203,7 +1198,7 @@ const ScriptDocumentPane = ({
             >
               <MenuItemPrimitive
                 icon={<SubtitlesIcon fontSize="small" />}
-                label="Export SRT"
+                label={t("editor:ui.exportSRT", { defaultValue: "Export SRT" })}
                 disabled={!hasVoicedLine}
                 tooltip={
                   hasVoicedLine
@@ -1264,8 +1259,8 @@ const ScriptDocumentPane = ({
       >
         {isEmpty && (
           <EmptyState
-            title="Empty script"
-            description="Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them."
+            title={t("editor:ui.emptyScript", { defaultValue: "Empty script" })}
+            description={t("editor:ui.addLineToStartWriting", { defaultValue: "Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them." })}
             actionText={readOnly ? undefined : "Add first line"}
             onAction={readOnly ? undefined : () => addLine(scriptId)}
           />

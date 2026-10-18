@@ -91,8 +91,7 @@ const StudioAccountPage = () => {
                     onClick={() => topup.mutate({ credits: TOPUP_CREDITS })}
                   >
                     {topup.isPending
-                      ? "Adding…"
-                      : `Add ${TOPUP_CREDITS} credits (test)`}
+                      ? t("editor:ui.adding", { defaultValue: "Adding…" }) : `Add ${TOPUP_CREDITS} credits (test)`}
                   </EditorButton>
                 )}
               </FlexRow>

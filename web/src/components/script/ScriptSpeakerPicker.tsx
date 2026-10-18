@@ -25,6 +25,7 @@ import type { TTSModelValue } from "../../stores/ApiTypes";
 import { useInStudio } from "../../studio/StudioContext";
 import { STUDIO_VOICE } from "../../studio/curatedModels";
 import ScriptSpeakerAvatar from "./ScriptSpeakerAvatar";
+import { useTranslation } from "react-i18next";
 
 /** Width of the screenplay speaker gutter: avatar plus the speaker's name. */
 export const SPEAKER_GUTTER = 148;
@@ -79,6 +80,7 @@ export const ScriptSpeakerPicker = ({
   onAssign,
   quiet = false
 }: ScriptSpeakerPickerProps) => {
+  const { t } = useTranslation("editor");
   const theme = useTheme();
   const inStudio = useInStudio();
   const patchLine = useScriptStore((s) => s.patchLine);
@@ -143,8 +145,7 @@ export const ScriptSpeakerPicker = ({
           readOnly
             ? label
             : cast.length
-              ? "Change speaker"
-              : "Add a speaker"
+              ? t("editor:ui.changeSpeaker", { defaultValue: "Change speaker" }) : "Add a speaker"
         }
       >
         <Box
@@ -230,7 +231,7 @@ export const ScriptSpeakerPicker = ({
         transformOrigin={{ vertical: "top", horizontal: mobile ? "left" : "right" }}
       >
         <MenuItemPrimitive
-          label="No speaker"
+          label={t("editor:ui.noSpeaker", { defaultValue: "No speaker" })}
           selected={!speaker}
           onClick={() => assign(null)}
         />
@@ -246,7 +247,7 @@ export const ScriptSpeakerPicker = ({
         {!readOnly && (
           <MenuItemPrimitive
             dividerBefore
-            label="Add speaker"
+            label={t("editor:ui.addSpeaker", { defaultValue: "Add speaker" })}
             icon={<PersonAddIcon fontSize="small" />}
             onClick={addAndAssign}
           />

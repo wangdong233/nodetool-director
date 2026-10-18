@@ -3,6 +3,7 @@ import ModelMenuDialogBase from "./shared/ModelMenuDialogBase";
 import type { EmbeddingModel, ModelPack, UnifiedModel } from "../../stores/ApiTypes";
 import { useEmbeddingModelsByProvider } from "../../hooks/useEmbeddingModels";
 import { useEmbeddingModelMenuStore } from "../../stores/ModelMenuStore";
+import { useTranslation } from "react-i18next";
 
 /** The provider capability this picker serves, for local providers to install. */
 const LOCAL_CAPABILITIES = ["generate_embedding"];
@@ -26,6 +27,7 @@ function EmbeddingModelMenuDialog({
   recommendedModels,
   modelPacks
 }: EmbeddingModelMenuDialogProps) {
+  const { t } = useTranslation();
   const modelData = useEmbeddingModelsByProvider({ allowedProviders });
   return (
     <ModelMenuDialogBase<EmbeddingModel>
@@ -34,7 +36,7 @@ function EmbeddingModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select embedding model"
+      title={t("editor:ui.selectEmbeddingModel", { defaultValue: "Select embedding model" })}
       searchPlaceholder="Search embedding models"
       storeHook={useEmbeddingModelMenuStore}
       modelType="embedding_model"

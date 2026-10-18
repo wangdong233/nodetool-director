@@ -20,6 +20,7 @@ import {
   SUGGESTED_SERP_PROVIDER,
   type SerpProviderId
 } from "../../utils/searchProviders";
+import { useTranslation } from "react-i18next";
 
 const PROVIDER_OPTIONS: SelectOption[] = Object.values(
   SEARCH_PROVIDER_CONFIGS
@@ -35,6 +36,7 @@ const PROVIDER_OPTIONS: SelectOption[] = Object.values(
  * Mounted once at the app root; driven by {@link useSearchProviderCalloutStore}.
  */
 const SearchProviderSetupDialog: React.FC = () => {
+  const { t } = useTranslation();
   const open = useSearchProviderCalloutStore((s) => s.open);
   const nodes = useSearchProviderCalloutStore((s) => s.nodes);
   const dismiss = useSearchProviderCalloutStore((s) => s.dismiss);
@@ -122,7 +124,7 @@ const SearchProviderSetupDialog: React.FC = () => {
     <Dialog
       open={open}
       onClose={dismiss}
-      title="Set up web search"
+      title={t("editor:ui.setUpWebSearch", { defaultValue: "Set up web search" })}
       onConfirm={handleSave}
       confirmText="Save & continue"
       confirmDisabled={!allFilled}
@@ -137,7 +139,7 @@ const SearchProviderSetupDialog: React.FC = () => {
           </Text>
 
           <SelectField
-            label="Search provider"
+            label={t("editor:ui.searchProvider", { defaultValue: "Search provider" })}
             value={provider}
             onChange={handleProviderChange}
             options={PROVIDER_OPTIONS}

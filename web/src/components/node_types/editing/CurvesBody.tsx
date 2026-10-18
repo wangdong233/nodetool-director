@@ -33,6 +33,7 @@ import {
   clamp,
   type SliderSpec
 } from "./AdjustmentSlider";
+import { useTranslation } from "react-i18next";
 
 const TONAL_SLIDERS: ReadonlyArray<SliderSpec> = [
   { name: "black_point", label: "Black point", min: 0, max: 0.5, step: 0.01, default: 0, bipolar: false },
@@ -146,6 +147,7 @@ const CurvesBodyInner: React.FC<CurvesBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -189,11 +191,11 @@ const CurvesBodyInner: React.FC<CurvesBodyProps> = ({
 
       <div className="section">
         <FlexRow className="section-header" align="center" justify="space-between">
-          <span className="section-title">Tonal</span>
+          <span className="section-title">{t("ui2:attrs.tonal", { defaultValue: "Tonal" })}</span>
           <StateIconButton
             size="small"
             icon={<RestartAltIcon fontSize="small" />}
-            tooltip="Reset all curves"
+            tooltip={t("editor:ui.resetAllCurves", { defaultValue: "Reset all curves" })}
             ariaLabel="Reset all curves"
             onClick={handleReset}
           />
@@ -217,7 +219,7 @@ const CurvesBodyInner: React.FC<CurvesBodyProps> = ({
 
       <div className="section">
         <FlexRow className="section-header" align="center" justify="space-between">
-          <span className="section-title">RGB Midtones</span>
+          <span className="section-title">{t("ui2:attrs.rgbMidtones", { defaultValue: "RGB Midtones" })}</span>
         </FlexRow>
         <div className="controls">
           {RGB_SLIDERS.map((spec) => {

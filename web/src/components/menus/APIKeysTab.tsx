@@ -50,6 +50,7 @@ import {
 } from "./providerCatalog";
 
 import { docsLink, docsUrl } from "../../config/docsLinks";
+import { useTranslation } from "react-i18next";
 
 // For multi-field credentials, find the parent provider (the one with fields array)
 const getParentProviderMeta = (key: string): ProviderMeta | undefined => {
@@ -94,6 +95,7 @@ export const ProviderCard = memo(function ProviderCard({
   onManage,
   onDelete
 }: ProviderCardProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const oauth = useOAuthConnection(meta.oauth ?? null);
   const validateSecret = useSecretsStore((s) => s.validateSecret);
@@ -141,8 +143,7 @@ export const ProviderCard = memo(function ProviderCard({
   const statusLabel = isUnavailable
     ? "Unavailable"
     : isConnected
-      ? "Connected"
-      : "Not connected";
+      ? t("ui2:attrs.connected", { defaultValue: "Connected" }) : "Not connected";
 
   const handleConnect = useCallback(() => {
     onConnect(secret);
@@ -321,7 +322,7 @@ export const ProviderCard = memo(function ProviderCard({
                 overflowWrap: "anywhere"
               }}
             >
-              {hasKey ? "Key stored" : "Signed in"}, but this server does not
+              {hasKey ? t("editor:ui.keyStored", { defaultValue: "Key stored" }) : "Signed in"}, but this server does not
               offer {meta.name}. Its models stay out of the model menu.
             </Caption>
           )}
@@ -387,8 +388,7 @@ export const ProviderCard = memo(function ProviderCard({
                 disabled={oauth.isConnecting}
               >
                 {oauth.isConnecting
-                  ? "Connecting…"
-                  : `Sign in with ${meta.name}`}
+                  ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : `Sign in with ${meta.name}`}
               </EditorButton>
             ))}
 
@@ -401,7 +401,7 @@ export const ProviderCard = memo(function ProviderCard({
                 onClick={handleTest}
                 disabled={testing}
               >
-                {testing ? "Testing…" : "Test"}
+                {testing ? t("editor:ui.testing", { defaultValue: "Testing…" }) : "Test"}
               </EditorButton>
               <EditorButton
                 density="compact"
@@ -412,7 +412,7 @@ export const ProviderCard = memo(function ProviderCard({
                 Manage
               </EditorButton>
               <ToolbarIconButton
-                tooltip="Delete key"
+                tooltip={t("editor:ui.deleteKey", { defaultValue: "Delete key" })}
                 icon={<DeleteIcon fontSize="small" />}
                 size="small"
                 color="error"
@@ -508,6 +508,7 @@ interface APIKeysTabContentProps {
 export const APIKeysTabContent = memo(function APIKeysTabContent({
   searchTerm = ""
 }: APIKeysTabContentProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const secrets = useSecretsStore((state) => state.secrets);
   const safeSecrets = useMemo(() => secrets ?? [], [secrets]);
@@ -777,7 +778,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
       {!hasContent && lowerSearch && (
         <EmptyState
           variant="no-results"
-          title="No providers found"
+          title={t("editor:ui.noProvidersFound", { defaultValue: "No providers found" })}
           description={`No providers match "${searchTerm}"`}
         />
       )}
@@ -785,7 +786,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
       {connected.length > 0 && (
         <div>
           <SectionTitle
-            title="Connected providers"
+            title={t("editor:ui.connectedProviders", { defaultValue: "Connected providers" })}
             count={connected.length}
           />
           <FlexColumn
@@ -919,11 +920,11 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
               open={dialogOpen}
               onClose={handleCloseDialog}
               fullWidth
-              title={`${editingSecret?.is_configured ? "Update" : "Connect"} ${
+              title={`${editingSecret?.is_configured ? t("editor:ui.update", { defaultValue: "Update" }) : "Connect"} ${
                 meta?.name || editingSecret.key
               }`}
               onConfirm={handleSave}
-              confirmText={editingSecret?.is_configured ? "Update" : "Connect"}
+              confirmText={editingSecret?.is_configured ? t("editor:ui.update", { defaultValue: "Update" }) : "Connect"}
               confirmDisabled={!allFieldsFilled}
             >
               <FlexColumn gap={SPACING.lg}>
@@ -941,7 +942,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                     autoFocus
                     variant="outlined"
                     size="small"
-                    helperText="Paste the complete value copied from Higgsfield. The key ID and secret will be encrypted and stored separately."
+                    helperText={t("editor:ui.pasteTheCompleteValueCopiedFromHiggsfield", { defaultValue: "Paste the complete value copied from Higgsfield. The key ID and secret will be encrypted and stored separately." })}
                     errorMessage={formError ?? undefined}
                   />
                 ) : isMultiField ? (
@@ -966,8 +967,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                         size="small"
                         helperText={
                           index === fields.length - 1
-                            ? "All fields will be encrypted and stored securely. Never share them publicly."
-                            : undefined
+                            ? t("editor:ui.allFieldsWillBeEncryptedAndStoredSecurely", { defaultValue: "All fields will be encrypted and stored securely. Never share them publicly." }) : undefined
                         }
                         errorMessage={
                           formError && !formValues[field.key]
@@ -979,7 +979,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                   </>
                 ) : (
                   <TextInput
-                    label="API key"
+                    label={t("tools:menus.apiKey2", { defaultValue: "API key" })}
                     type="password"
                     value={formValue}
                     onChange={(e) => {
@@ -987,11 +987,11 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                       setFormError(null);
                     }}
                     fullWidth
-                    placeholder="Paste your API key here"
+                    placeholder={t("editor:ui.pasteYourAPIKeyHere", { defaultValue: "Paste your API key here" })}
                     autoFocus
                     variant="outlined"
                     size="small"
-                    helperText="Your key will be encrypted and stored securely. Never share it publicly."
+                    helperText={t("editor:ui.yourKeyWillBeEncryptedAndStoredSecurely", { defaultValue: "Your key will be encrypted and stored securely. Never share it publicly." })}
                     errorMessage={formError ?? undefined}
                   />
                 )}
@@ -1020,6 +1020,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
 /* ------------------------------------------------------------------ */
 
 export const SecurityNotice = memo(function SecurityNotice() {
+  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <Card
@@ -1041,7 +1042,7 @@ export const SecurityNotice = memo(function SecurityNotice() {
           }}
         />
         <FlexColumn sx={{ minWidth: 0 }}>
-          <Text size="small">Your secrets are safe</Text>
+          <Text size="small">{t("ui2:attrs.yourSecretsAreSafe", { defaultValue: "Your secrets are safe" })}</Text>
           <Caption
             size="smaller"
             sx={{ lineHeight: 1.4, marginTop: theme.spacing(0.5) }}
@@ -1075,6 +1076,7 @@ export const SecurityNotice = memo(function SecurityNotice() {
 /* ------------------------------------------------------------------ */
 
 export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const quickLinks = [
@@ -1190,7 +1192,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
           <CardGiftcardIcon
             sx={{ color: theme.vars.palette.primary.main, fontSize: "1.2em" }}
           />
-          <Text size="small">Need API credits?</Text>
+          <Text size="small">{t("editor:ui.needAPICredits", { defaultValue: "Need API credits?" })}</Text>
         </FlexRow>
         <Caption sx={{ lineHeight: 1.5, marginBottom: theme.spacing(3) }}>
           Get free credits and offers from our partner providers.

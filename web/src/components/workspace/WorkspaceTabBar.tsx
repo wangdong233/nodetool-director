@@ -49,6 +49,7 @@ import { PROJECT_COLOR } from "../projects/projectIdentity";
 import { TYPE_COLOR, TYPE_GLYPH } from "./tabTypeIdentity";
 import { useOpenNewProjectTab, useProjects } from "../../hooks/useProjects";
 import { useWorkspaceHeaderActions } from "./WorkspaceHeaderActionsContext";
+import { useTranslation } from "react-i18next";
 
 /** Whether a document type supports both View and Edit (vs view-only). */
 const SUPPORTS_BOTH_MODES = {
@@ -388,6 +389,7 @@ const styles = (theme: Theme) =>
   });
 
 const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
+  const { t } = useTranslation("editor");
   const theme = useTheme();
   const tabBarStyles = useMemo(() => styles(theme), [theme]);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -416,7 +418,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
     (project) => project.id === activeProjectId
   );
   const homeTitle =
-    activeProject?.name ?? (activeProjectId ? "Project" : "Home");
+    activeProject?.name ?? (activeProjectId ? t("editor:ui.project", { defaultValue: "Project" }) : "Home");
   const visibleTabs = useMemo(
     () =>
       tabs.filter(
@@ -599,7 +601,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
       ref={newTabButtonRef}
       type="button"
       className="new-tab"
-      aria-label="Open or create a tab"
+      aria-label={t("nav:tabs.openOrCreate", { defaultValue: "Open or create a tab" })}
       aria-haspopup="menu"
       aria-expanded={menuOpen}
       onClick={() => setMenuOpen((v) => !v)}
@@ -607,7 +609,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
       <span className="new-tab-plus" aria-hidden>
         +
       </span>
-      <span className="new-tab-label">New</span>
+      <span className="new-tab-label">{t("nav:tabs.new", { defaultValue: "New" })}</span>
       <span className="new-tab-caret" aria-hidden>
         ▾
       </span>

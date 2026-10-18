@@ -33,6 +33,7 @@ import useMetadataStore from "../../../stores/MetadataStore";
 import { NODE_COLLAPSED_LAYOUT } from "../../../styles/collapsedNodeTokens";
 import { isObjectLike } from "../../../utils/typePredicates";
 import { emptyOutputMessage } from "./emptyOutputMessage";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css([
@@ -232,6 +233,7 @@ const CONTENT_DIV_STYLE = {
  * This displays streaming outputs accumulated via output_update messages.
  */
 const OutputNode: React.FC<OutputNodeProps> = (props) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const addNotification = useNotificationStore(
@@ -445,7 +447,7 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
           className={`content ${isScrollable ? "scrollable nowheel" : "noscroll"
             }`}
           role="region"
-          aria-label="Node output"
+          aria-label={t("editor:ui.nodeOutput", { defaultValue: "Node output" })}
           style={CONTENT_DIV_STYLE}
           tabIndex={0}
           onFocus={handleContentFocus}

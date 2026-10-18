@@ -14,6 +14,7 @@ import {
   Z_INDEX,
   Tooltip
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface EditableTitleProps {
   nodeId: string;
@@ -83,6 +84,7 @@ const EditableTitle = memo(function EditableTitle({
   nodeId,
   title
 }: EditableTitleProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const updateNodeData = useNodes((state) => state.updateNodeData);
   const theme = useTheme();
@@ -260,7 +262,7 @@ const EditableTitle = memo(function EditableTitle({
         <textarea
           defaultValue={title}
           autoFocus
-          aria-label="Note text"
+          aria-label={t("editor:ui.noteText", { defaultValue: "Note text" })}
           placeholder="Add your note…"
           onKeyDown={handleKeyDown}
           onInput={handleInput}

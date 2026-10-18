@@ -54,6 +54,7 @@ import { useLayerCostEstimate } from "../../../hooks/sketch/useLayerCostEstimate
 import CostEstimateLine from "../../costs/CostEstimateLine";
 import { generationCostLine } from "../../costs/costLine";
 import { directGenSourceLayers } from "./directGenSources";
+import { useTranslation } from "react-i18next";
 
 // Defaults for image-to-image controls when the binding has no explicit
 // value yet — same as the media chat composer's image_edit defaults.
@@ -69,6 +70,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
   layer,
   binding
 }) => {
+  const { t } = useTranslation();
   const patchBinding = useSketchSessionStore((s) => s.patchBinding);
   const layers = useSketchStore((s) => s.document.layers);
   const { start, cancel } = useDirectGenJob();
@@ -197,8 +199,8 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
           value={binding.prompt ?? ""}
           onChange={(value) => patchBinding(layer.id, { prompt: value })}
           onFocus={revealGenerate}
-          placeholder="Describe the image…"
-          aria-label="Image prompt"
+          placeholder={t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" })}
+          aria-label={t("editor:ui.imagePrompt", { defaultValue: "Image prompt" })}
           sx={{ "& .MuiOutlinedInput-root": sketchFieldSx }}
           minRows={3}
           maxRows={8}
@@ -249,7 +251,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
             </Caption>
           ) : (
             <SelectField
-              label="Source"
+              label={t("timeline:editor.source", { defaultValue: "Source" })}
               value={binding.sourceLayerId ?? ""}
               onChange={(v) =>
                 patchBinding(layer.id, { sourceLayerId: v ? v : null })
@@ -262,7 +264,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
         <FlexRow justify="flex-end" fullWidth>
           <CostEstimateLine
             estimate={generationCostLine(costEstimate)}
-            title="Estimated cost of this generation"
+            title={t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
           />
         </FlexRow>
 
@@ -285,7 +287,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
             onClick={() => void start(layer.id)}
             data-testid="direct-gen-generate"
           >
-            {binding.currentAssetId ? "Regenerate" : "Generate"}
+            {binding.currentAssetId ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" }) : "Generate"}
           </EditorButton>
         )}
         {binding.status === "failed" && (

@@ -27,6 +27,7 @@ import {
   VirtualList
 } from "../ui_primitives";
 import type { VirtualListHandle } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 type HandleDirection = "source" | "target";
 
@@ -79,6 +80,7 @@ export const KeyboardConnectionPicker = ({
   typeMetadata,
   onClose
 }: KeyboardConnectionPickerProps) => {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const optionListRef = useRef<VirtualListHandle>(null);
@@ -281,8 +283,8 @@ export const KeyboardConnectionPicker = ({
               focusOption(0);
             }
           }}
-          label="Find a compatible node or port"
-          placeholder="Search compatible ports"
+          label={t("editor:ui.findACompatibleNodeOrPort", { defaultValue: "Find a compatible node or port" })}
+          placeholder={t("editor:ui.searchCompatiblePorts", { defaultValue: "Search compatible ports" })}
         />
         {filteredOptions.length > 0 ? (
           <VirtualList
@@ -325,7 +327,7 @@ export const KeyboardConnectionPicker = ({
                   <Text>{option.nodeTitle}</Text>
                   <Caption color="muted">{option.handleTitle}</Caption>
                   <Caption color="muted">
-                    {option.kind === "existing" ? "Existing node" : "Create node"}
+                    {option.kind === "existing" ? t("editor:ui.existingNode", { defaultValue: "Existing node" }) : "Create node"}
                   </Caption>
                 </FlexRow>
               </EditorButton>

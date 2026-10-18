@@ -98,6 +98,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { canTakeFocus } from "../../utils/browser";
 import { getErrorMessage } from "../../utils/errorHandling";
 import { isShotGenerating } from "./ShotStatusPill";
+import { useTranslation } from "react-i18next";
 
 interface ShotEditPanelProps {
   boardId: string;
@@ -270,6 +271,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
   leaveRequest,
   onLeaveRequestComplete
 }) => {
+  const { t } = useTranslation();
   // What the panel is waiting on an answer for: a close, or a step to another
   // shot. Null while there is nothing pending.
   const [pending, setPending] = useState<{
@@ -660,7 +662,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
         type: "script",
         ref: scriptId,
         mode: "edit",
-        title: "Script"
+        title: i18n.t("editor:ui.script", { defaultValue: "Script" })
       });
       onClose();
     });
@@ -732,7 +734,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
           {canStep && (
             <ToolbarIconButton
               icon={<ChevronLeftIcon />}
-              tooltip="Previous shot"
+              tooltip={t("storyboard:attrs.previousShot", { defaultValue: "Previous shot" })}
               ariaLabel="Previous shot"
               onClick={() => stepShot(-1)}
               disabled={!canStepBack}
@@ -746,7 +748,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
           {canStep && (
             <ToolbarIconButton
               icon={<ChevronRightIcon />}
-              tooltip="Next shot"
+              tooltip={t("storyboard:attrs.nextShot", { defaultValue: "Next shot" })}
               ariaLabel="Next shot"
               onClick={() => stepShot(1)}
               disabled={!canStepForward}
@@ -766,7 +768,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
             <>
               <ToolbarIconButton
                 icon={<MoreHorizIcon fontSize="inherit" />}
-                tooltip="More actions"
+                tooltip={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
                 ariaLabel="More shot actions"
                 onClick={(event) => setMenuAnchor(event.currentTarget)}
               />
@@ -774,7 +776,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
                 onClick={handleRegenerate}
                 disabled={generating || durationInvalid}
                 tooltip={
-                  generating ? "This shot is already rendering" : undefined
+                  generating ? t("storyboard:attrs.thisShotIsAlreadyRendering", { defaultValue: "This shot is already rendering" }) : undefined
                 }
               >
                 {`Regenerate${stepCost("Still")}`}
@@ -808,7 +810,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
               />
               <Card variant="outlined" padding="normal">
                 <CollapsibleSection
-                  title={<Caption sx={sectionTitleSx}>Advanced</Caption>}
+                  title={<Caption sx={sectionTitleSx}>{t("editor:ui.advanced", { defaultValue: "Advanced" })}</Caption>}
                   compact
                   defaultOpen={false}
                 >
@@ -822,8 +824,8 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
                       compact
                       size="small"
                       minRows={2}
-                      label="Notes"
-                      placeholder="Anything the render should not read as direction"
+                      label={t("storyboard:attrs.notes", { defaultValue: "Notes" })}
+                      placeholder={t("storyboard:attrs.anythingTheRenderShouldNotReadAsDirection", { defaultValue: "Anything the render should not read as direction" })}
                       disabled={readOnly}
                       value={draft.notes}
                       onChange={(value) =>
@@ -870,7 +872,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
                   value={sideTab}
                   onChange={(value) => setSideTab(value as SideTab)}
                   size="small"
-                  aria-label="Takes or change the still"
+                  aria-label={t("storyboard:attrs.takesOrChangeTheStill", { defaultValue: "Takes or change the still" })}
                 />
               </Box>
             )}
@@ -895,24 +897,22 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
         onClose={() => setMenuAnchor(null)}
       >
         <MenuItemPrimitive
-          label={`${shot.clip ? "Re-render clip" : "Render clip"}${stepCost("Clip")}`}
+          label={`${shot.clip ? i18n.t("storyboard:attrs.reRenderClip", { defaultValue: "Re-render clip" }) : "Render clip"}${stepCost("Clip")}`}
           secondary={
             generating
-              ? "This shot is already rendering"
-              : clipNeedsStill
-                ? "Render a still first, or set render mode to Direct"
-                : undefined
+              ? t("storyboard:attrs.thisShotIsAlreadyRendering", { defaultValue: "This shot is already rendering" }) : clipNeedsStill
+                ? t("storyboard:attrs.renderAStillFirstOrSetRenderModeToDirect", { defaultValue: "Render a still first, or set render mode to Direct" }) : undefined
           }
           disabled={generating || clipNeedsStill}
           onClick={handleRenderClip}
         />
         <MenuItemPrimitive
-          label="Move earlier in scene"
+          label={t("storyboard:attrs.moveEarlierInScene", { defaultValue: "Move earlier in scene" })}
           onClick={() => handleNudge("up")}
           disabled={numbering.shot <= 1}
         />
         <MenuItemPrimitive
-          label="Move later in scene"
+          label={t("storyboard:attrs.moveLaterInScene", { defaultValue: "Move later in scene" })}
           onClick={() => handleNudge("down")}
           disabled={numbering.shot >= shotsInScene}
         />
@@ -930,7 +930,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
       <Dialog
         open={pending !== null}
         onClose={keepEditing}
-        title="Discard changes?"
+        title={t("storyboard:attrs.discardChanges", { defaultValue: "Discard changes?" })}
         actions={
           <>
             <Button variant="text" color="inherit" onClick={keepEditing}>
@@ -949,7 +949,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
           </>
         }
       >
-        <Text>This shot has edits that have not been saved.</Text>
+        <Text>{t("storyboard:attrs.thisShotHasEditsThatHaveNotBeenSaved", { defaultValue: "This shot has edits that have not been saved." })}</Text>
         <Caption color="secondary">
           Version choices, deletions, flips and uploads are already saved.
         </Caption>
@@ -958,7 +958,7 @@ const ShotEditPanelInner: React.FC<ShotEditPanelProps> = ({
       <Dialog
         open={saveConflicts.length > 0}
         onClose={() => setSaveConflicts([])}
-        title="This shot changed elsewhere"
+        title={t("storyboard:attrs.thisShotChangedElsewhere", { defaultValue: "This shot changed elsewhere" })}
         actions={
           <>
             <Button

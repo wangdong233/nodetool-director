@@ -10,6 +10,7 @@ import {
   FlexRow,
   LogView
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface ConsolePanelProps {
   lines: string[];
@@ -19,6 +20,7 @@ interface ConsolePanelProps {
 }
 
 const ConsolePanel = ({ lines, onClear, busy = false }: ConsolePanelProps) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -47,13 +49,13 @@ const ConsolePanel = ({ lines, onClear, busy = false }: ConsolePanelProps) => {
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
         >
-          {open ? "Hide console" : "Show console"}
+          {open ? t("editor:ui.hideConsole", { defaultValue: "Hide console" }) : "Show console"}
           {lines.length > 0 ? ` (${lines.length})` : ""}
         </EditorButton>
         {open && lines.length > 0 && (
           <FlexRow gap={0.5} align="center">
             <EditorButton variant="text" density="compact" onClick={handleCopy}>
-              {copied ? "Copied" : "Copy"}
+              {copied ? t("editor:ui.copiedPlain", { defaultValue: "Copied" }) : "Copy"}
             </EditorButton>
             <EditorButton variant="text" density="compact" onClick={onClear}>
               Clear
@@ -65,7 +67,7 @@ const ConsolePanel = ({ lines, onClear, busy = false }: ConsolePanelProps) => {
         <LogView
           lines={lines}
           autoScroll
-          emptyText="No output yet. Logs appear here during install."
+          emptyText={t("editor:ui.noOutputYetLogsAppearHereDuringInstall", { defaultValue: "No output yet. Logs appear here during install." })}
         />
       )}
     </FlexColumn>

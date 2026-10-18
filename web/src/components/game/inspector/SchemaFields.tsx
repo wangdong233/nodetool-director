@@ -12,6 +12,7 @@ import { AddButton, FieldGroup, RowAction } from "./InspectorParts";
 import type { FieldSchema } from "./schemaForm";
 import { schemaDefault, schemaVariant } from "./schemaForm";
 import type { GameComponentEditorProps, GameComponentEditors } from "./componentEditors";
+import { useTranslation } from "react-i18next";
 
 interface SchemaFieldsProps {
   schema: FieldSchema;
@@ -117,7 +118,7 @@ function StringField({ label, value, schema, error, trailing, onChange }: { labe
   useEffect(() => setLocal(value), [value]);
   const validLength = local.length >= (schema.minLength ?? 0);
   const validPattern = !schema.pattern || new RegExp(schema.pattern).test(local);
-  const localError = !validLength ? `Enter at least ${schema.minLength} character${schema.minLength === 1 ? "" : "s"}` : !validPattern ? "Invalid format" : undefined;
+  const localError = !validLength ? `Enter at least ${schema.minLength} character${schema.minLength === 1 ? "" : "s"}` : !validPattern ? t("game:schema.invalidFormat", { defaultValue: "Invalid format" }) : undefined;
   return <FieldRow label={label} error={localError ?? error} trailing={trailing}>
     <FieldDensityContext.Provider value="compact">
       <TextInput label={label} hideLabel compact type={schema.pattern === "^#[0-9a-fA-F]{6}$" || /^#[0-9a-fA-F]{6}$/.test(local) ? "color" : "text"}
@@ -149,7 +150,7 @@ function NumberField({ label, value, schema, degrees, error, axis, trailing, onC
     const converted = degrees ? next * Math.PI / 180 : next;
     if (raw.trim() !== "" && numberAllowed(schema, converted)) onChange(converted);
   }} />;
-  const message = invalid ? "Value is outside the allowed range" : error;
+  const message = invalid ? t("game:schema.valueOutsideRange", { defaultValue: "Value is outside the allowed range" }) : error;
   if (axis) {
     return <FlexColumn gap={SPACING.micro} sx={{ flex: 1, minWidth: 0 }}>{control}{message && <Caption color="error">{message}</Caption>}</FlexColumn>;
   }
@@ -240,6 +241,7 @@ function withColliderReference(path: string, record: Record<string, unknown>, ke
 }
 
 export default function SchemaFields({ schema, value, onChange, path = "", issuePath = [], issues = [], assets, collisionLayers, physicsMaterials, componentSections = false, componentEditors, componentName, dimension = "2d", addLabel, beforeSections, trailing, hideAdd = false }: SchemaFieldsProps) {
+  const { t } = useTranslation();
   const shared = { issues, assets, collisionLayers, physicsMaterials, componentEditors, dimension };
   const Editor = componentName ? componentEditors?.[componentName] : undefined;
   if (Editor) {
@@ -353,9 +355,9 @@ export default function SchemaFields({ schema, value, onChange, path = "", issue
         const itemSchema = schema.prefixItems?.[index] ?? schema.items ?? { type: "string" };
         const move = (to: number): void => { const copy = [...items]; [copy[to], copy[index]] = [copy[index], copy[to]]; onChange(copy); };
         const actions = fixedLength ? undefined : <>
-          <RowAction icon={<ArrowUpwardIcon />} label="Move up" disabled={index === 0} onClick={() => move(index - 1)} />
-          <RowAction icon={<ArrowDownwardIcon />} label="Move down" disabled={index === items.length - 1} onClick={() => move(index + 1)} />
-          <RowAction icon={<CloseIcon />} label="Remove" disabled={items.length <= (schema.minItems ?? 0)} onClick={() => onChange(items.filter((_, position) => position !== index))} />
+          <RowAction icon={<ArrowUpwardIcon />} label={t("editor:ui.moveUp", { defaultValue: "Move up" })} disabled={index === 0} onClick={() => move(index - 1)} />
+          <RowAction icon={<ArrowDownwardIcon />} label={t("editor:ui.moveDown", { defaultValue: "Move down" })} disabled={index === items.length - 1} onClick={() => move(index + 1)} />
+          <RowAction icon={<CloseIcon />} label={t("common:action.remove", { defaultValue: "Remove" })} disabled={items.length <= (schema.minItems ?? 0)} onClick={() => onChange(items.filter((_, position) => position !== index))} />
         </>;
         const group = isGroupSchema(itemSchema);
         const kind = asRecord(item).kind;
@@ -373,14 +375,14 @@ export default function SchemaFields({ schema, value, onChange, path = "", issue
         </FieldGroup>;
       })}
       {!fixedLength && <AddButton disabled={items.length >= (schema.maxItems ?? Infinity)}
-        onClick={() => onChange([...items, schemaDefault(schema.items ?? { type: "string" })])}>Add item</AddButton>}
+        onClick={() => onChange([...items, schemaDefault(schema.items ?? { type: "string" })])}>{t("game:schema.addItem", { defaultValue: "Add item" })}</AddButton>}
       {error && <Caption color="error">{error}</Caption>}
     </FlexColumn>;
   }
   if ((path.endsWith("collider2d.category") || path.endsWith("collider2d.mask") || path.endsWith("collider3d.category") || path.endsWith("collider3d.mask")) && typeof value === "number") {
     return <FlexColumn gap={SPACING.xs} sx={FIELD_WIDTH}>
       <FlexRow align="center" sx={{ minHeight: CONTROL.height.xs }}>
-        <Label component="span" sx={{ mb: 0, flex: 1 }}>{path.endsWith("category") ? "Category" : "Mask"}</Label>
+        <Label component="span" sx={{ mb: 0, flex: 1 }}>{path.endsWith("category") ? t("editor:ui.category", { defaultValue: "Category" }) : "Mask"}</Label>
         {trailing}
       </FlexRow>
       <Box sx={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${CONTROL.height.xl + CONTROL.height.xs}px, 1fr))`, columnGap: SPACING.xs }}>
@@ -397,7 +399,7 @@ export default function SchemaFields({ schema, value, onChange, path = "", issue
   if (schema.type === "boolean") return <BooleanField label={fieldLabel(path)} value={Boolean(value)} error={error} trailing={trailing} onChange={onChange} />;
   if (schema.type === "number" || schema.type === "integer") {
     const degrees = path.endsWith("transform2d.rotation");
-    return <NumberField label={degrees ? "Rotation" : fieldLabel(path)} value={typeof value === "number" ? value : 0} schema={schema}
+    return <NumberField label={degrees ? t("editor:ui.rotation", { defaultValue: "Rotation" }) : fieldLabel(path)} value={typeof value === "number" ? value : 0} schema={schema}
       degrees={degrees} error={error} trailing={trailing} onChange={onChange} />;
   }
   const referenceField = path.endsWith("collider3d.layer") ? { label: "Layer", names: collisionLayers } :

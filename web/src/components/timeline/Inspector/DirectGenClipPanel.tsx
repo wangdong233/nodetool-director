@@ -79,6 +79,7 @@ import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipVersionHistory } from "./ClipVersionHistory";
+import { useTranslation } from "react-i18next";
 
 interface VideoModelChange {
   type: "video_model";
@@ -128,6 +129,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
   clipId,
   additionalSections
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [promptOpen, setPromptOpen] = usePersistedFold("direct-gen-prompt", true);
 
@@ -377,14 +379,11 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
 
   const promptPlaceholder =
     kind === "video"
-      ? "Describe the video…"
-      : kind === "music"
-        ? "Describe the music…"
-        : kind === "audio"
-          ? "Type text to speak…"
-          : "Describe the image…";
+      ? i18n.t("timeline:attrs.describeTheVideo", { defaultValue: "Describe the video…" }) : kind === "music"
+        ? i18n.t("timeline:attrs.describeTheMusic", { defaultValue: "Describe the music…" }) : kind === "audio"
+          ? i18n.t("timeline:attrs.typeTextToSpeak", { defaultValue: "Type text to speak…" }) : "Describe the image…";
 
-  const generateLabel = clip.currentAssetId ? "Regenerate" : "Generate";
+  const generateLabel = clip.currentAssetId ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" }) : "Generate";
 
   return (
     <Panel background="default" bordered={false} sx={panelSx}>
@@ -394,7 +393,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Prompt"
+              title={t("timeline:attrs.prompt", { defaultValue: "Prompt" })}
               icon={<AutoAwesomeOutlinedIcon />}
             />
           }
@@ -495,11 +494,11 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                 <EmptyState
                   variant="empty"
                   size="small"
-                  description="No source clips with a rendered asset are available."
+                  description={t("timeline:attrs.noSourceClipsWithRenderedAsset", { defaultValue: "No source clips with a rendered asset are available." })}
                 />
               ) : (
                 <SelectField
-                  label={isImageToVideo ? "Source image" : "Source clip"}
+                  label={isImageToVideo ? i18n.t("timeline:attrs.sourceImage", { defaultValue: "Source image" }) : "Source clip"}
                   value={clip.sourceClipId ?? ""}
                   onChange={handleSourceChange}
                   options={sourceOptions}
@@ -586,7 +585,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
             <FlexRow justify="flex-end" fullWidth>
               <CostEstimateLine
                 estimate={generationCostLine(costEstimate)}
-                title="Estimated cost of this generation"
+                title={t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
               />
             </FlexRow>
 
@@ -601,7 +600,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               onClick={handleGenerateClick}
               data-testid="direct-gen-generate"
             >
-              {isActive ? "Cancel" : generateLabel}
+              {isActive ? t("timeline:attrs.cancel", { defaultValue: "Cancel" }) : generateLabel}
             </EditorButton>
             {isFailed && (
               <ErrorBanner

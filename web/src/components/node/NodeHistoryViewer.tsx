@@ -59,6 +59,7 @@ import OutputQuickActionButtons from "./OutputQuickActionButtons";
 import { TextRenderer } from "./output/TextRenderer";
 import { extractTextValue } from "../../utils/extractTextValue";
 import { isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 interface NodeHistoryViewerProps {
   workflowId: string;
@@ -294,6 +295,7 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
   renderSingle,
   output
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   // Generation timeline drives selection (oldest→newest, current = selected ?? latest).
@@ -810,7 +812,7 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
             className="grid nodrag nopan nowheel"
             role="listbox"
             aria-multiselectable={hasDownstream || undefined}
-            aria-label="Generations"
+            aria-label={t("editor:ui.generations", { defaultValue: "Generations" })}
             onPointerDown={stopNodeSelection}
             onClick={handleGridClick}
             onKeyDown={handleGridKeyDown}
@@ -857,22 +859,22 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
       <div className="node-history-overlay overlay-top-left">
         <div className="overlay-cluster">
           <ToolbarIconButton
-            title={effectiveView === "single" ? "Show grid" : "Show single"}
+            title={effectiveView === "single" ? t("editor:ui.showGrid", { defaultValue: "Show grid" }) : "Show single"}
             size="small"
             onClick={handleToggleView}
             className="overlay-icon-btn"
-            aria-label="Toggle view"
+            aria-label={t("editor:ui.toggleView", { defaultValue: "Toggle view" })}
           >
             {effectiveView === "single" ? <GridViewIcon /> : <CropSquareIcon />}
           </ToolbarIconButton>
           {showPagination ? (
             <>
               <ToolbarIconButton
-                title="Previous"
+                title={t("editor:ui.previous", { defaultValue: "Previous" })}
                 size="small"
                 onClick={handlePrev}
                 className="overlay-icon-btn"
-                aria-label="Previous output"
+                aria-label={t("editor:ui.previousOutput", { defaultValue: "Previous output" })}
               >
                 <KeyboardArrowLeftIcon />
               </ToolbarIconButton>
@@ -880,11 +882,11 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
                 {`${currentIndex + 1} / ${generations.length}`}
               </span>
               <ToolbarIconButton
-                title="Next"
+                title={t("home:docs.nextCapitalized", { defaultValue: "Next" })}
                 size="small"
                 onClick={handleNext}
                 className="overlay-icon-btn"
-                aria-label="Next output"
+                aria-label={t("editor:ui.nextOutput", { defaultValue: "Next output" })}
               >
                 <KeyboardArrowRightIcon />
               </ToolbarIconButton>
@@ -904,22 +906,22 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
             />
           ) : null}
           <ToolbarIconButton
-            title={hasTextToOpen ? "Open full text" : "Open in viewer"}
+            title={hasTextToOpen ? t("editor:ui.openFullText", { defaultValue: "Open full text" }) : "Open in viewer"}
             size="small"
             onClick={handleOpenViewer}
             disabled={!canOpen}
             className="overlay-icon-btn"
-            aria-label={hasTextToOpen ? "Open full text" : "Open in viewer"}
+            aria-label={hasTextToOpen ? t("editor:ui.openFullText", { defaultValue: "Open full text" }) : "Open in viewer"}
           >
             <OpenInFullIcon />
           </ToolbarIconButton>
           <ToolbarIconButton
-            title="Download"
+            title={t("editor:ui.download", { defaultValue: "Download" })}
             size="small"
             onClick={handleDownload}
             disabled={!currentAsset || showingLive}
             className="overlay-icon-btn"
-            aria-label="Download current output"
+            aria-label={t("editor:ui.downloadCurrentOutput", { defaultValue: "Download current output" })}
           >
             <DownloadIcon />
           </ToolbarIconButton>
@@ -962,10 +964,10 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
         <Dialog
           open={viewerOpen}
           onClose={handleCloseViewer}
-          title="Generated text"
+          title={t("editor:ui.generatedText", { defaultValue: "Generated text" })}
           maxWidth="md"
           fullWidth
-          titleActions={<CopyButton value={currentText} tooltip="Copy text" />}
+          titleActions={<CopyButton value={currentText} tooltip={t("editor:ui.copyText", { defaultValue: "Copy text" })} />}
         >
           <ScrollArea className="text-popup nowheel" maxHeight="70vh">
             <TextRenderer text={currentText} showActions={false} />

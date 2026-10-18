@@ -4,6 +4,7 @@ import { useTheme } from "@mui/material/styles";
 
 import { Box, Caption, FlexColumn, FlexRow, MOTION, SPACING, TruncatedText, TYPOGRAPHY } from "../../../ui_primitives";
 import { ANIMATION_HANDLE, type AnimationStateFlowNode } from "./animationGraphFlow";
+import { useTranslation } from "react-i18next";
 
 const NODE_WIDTH = 168;
 // Transitions back to an earlier column leave and enter through the bottom edge, so a pair of opposite transitions draws as two separate curves.
@@ -12,6 +13,7 @@ const BACK_TARGET_STYLE = { left: "30%" } as const;
 
 /** One state on the animation graph canvas, drawn like a workflow node: a header with the state name over its motion. */
 function AnimationStateNode({ data, selected }: NodeProps<AnimationStateFlowNode>) {
+  const { t } = useTranslation("game");
   const theme = useTheme();
   const palette = theme.vars.palette;
   const live = data.live === "current" ? palette.success.main : data.live === "previous" ? palette.warning.main : null;
@@ -35,7 +37,7 @@ function AnimationStateNode({ data, selected }: NodeProps<AnimationStateFlowNode
     </FlexRow>
     {!data.any && <FlexColumn sx={{ px: SPACING.md, py: SPACING.xs }}>
       <TruncatedText sx={{ ...TYPOGRAPHY.sans.caption, color: "text.secondary" }}>{data.motion}</TruncatedText>
-      {status && <Caption sx={{ color: live ?? undefined }}>{status === "playing" ? "Playing" : "Blending out"}</Caption>}
+      {status && <Caption sx={{ color: live ?? undefined }}>{status === "playing" ? t("game:status.playingState", { defaultValue: "Playing" }) : "Blending out"}</Caption>}
     </FlexColumn>}
     <Handle type="source" id={ANIMATION_HANDLE.out} position={Position.Right} />
     {!data.any && <Handle type="source" id={ANIMATION_HANDLE.backOut} position={Position.Bottom} style={BACK_SOURCE_STYLE} />}

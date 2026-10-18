@@ -25,6 +25,7 @@ import {
   type InputConnection
 } from "../../utils/bugReport";
 import { openBugReport } from "../../stores/BugReportStore";
+import { useTranslation } from "react-i18next";
 
 /** Collect the upstream connections feeding a node from the graph state. */
 function collectInputConnections(
@@ -95,6 +96,7 @@ const NodeErrorsImpl: React.FC<{
   workflow_id: string;
   nodeType?: string;
 }> = ({ id, workflow_id, nodeType = "unknown" }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedErrorStyles = useMemo(() => errorStyles(theme), [theme]);
   const error = useNodeError(workflow_id, id);
@@ -190,8 +192,8 @@ const NodeErrorsImpl: React.FC<{
           startIcon={<ListAltIcon />}
           className="nodrag"
           onClick={handleViewLogs}
-          tooltip="Show logs for this node and run"
-          aria-label="View logs for this node and run"
+          tooltip={t("editor:ui.showLogsForThisNodeAndRun", { defaultValue: "Show logs for this node and run" })}
+          aria-label={t("editor:ui.viewLogsForThisNodeAndRun", { defaultValue: "View logs for this node and run" })}
         >
           View logs
         </EditorButton>
@@ -201,14 +203,14 @@ const NodeErrorsImpl: React.FC<{
           startIcon={<BugReportIcon />}
           className="nodrag"
           onClick={handleReport}
-          tooltip="Report this as a bug"
-          aria-label="Report this as a bug"
+          tooltip={t("editor:ui.reportThisAsABug", { defaultValue: "Report this as a bug" })}
+          aria-label={t("editor:ui.reportThisAsABug", { defaultValue: "Report this as a bug" })}
         >
           Report
         </EditorButton>
         <CopyButton
           value={errorDisplay}
-          tooltip="Copy error"
+          tooltip={t("editor:ui.copyError", { defaultValue: "Copy error" })}
         />
       </div>
       <div className="error-text">{errorDisplay}</div>

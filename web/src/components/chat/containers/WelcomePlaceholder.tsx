@@ -26,6 +26,7 @@ import { CHAT_COLUMN_MAX_WIDTH } from "../types/chat.types";
 import openaiIcon from "../../../icons/providers/openai.svg";
 import anthropicIcon from "../../../icons/providers/anthropic.svg";
 import geminiColorIcon from "../../../icons/providers/gemini-color.svg";
+import { useTranslation } from "react-i18next";
 
 /** Keeps the subtitle to a readable line length on a wide column. */
 const WELCOME_TEXT_MAX_WIDTH = 520;
@@ -157,6 +158,7 @@ interface WelcomePlaceholderProps {
 const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
   onSuggestionClick
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const { providers, isLoading, error } = useLanguageModelProviders();
@@ -241,7 +243,7 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
         ) : (
           <div className="chat-suggestions-block">
             <AutoAwesomeIcon className="welcome-icon" />
-            <Text className="welcome-title">How can I help you today?</Text>
+            <Text className="welcome-title">{t("editor:ui.howCanIHelpYouToday", { defaultValue: "How can I help you today?" })}</Text>
             <Text className="welcome-subtitle">
               Ask anything, drop in files, or start with one of these:
             </Text>

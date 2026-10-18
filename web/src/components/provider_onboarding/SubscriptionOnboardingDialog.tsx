@@ -27,6 +27,7 @@ import {
   isOnboardingProviderAvailable,
   type OnboardingProvider
 } from "./providerOnboardingCatalog";
+import { useTranslation } from "react-i18next";
 
 /**
  * The sign-in subscriptions, in the order the dialog lists them. This page is
@@ -63,6 +64,7 @@ interface GeminiRowProps {
  * gemini.google.com tab through the extension, so the row leads to that page.
  */
 const GeminiRow: React.FC<GeminiRowProps> = ({ extensionConnected, onSetUp }) => {
+  const { t } = useTranslation("editor");
   const theme = useTheme();
   return (
     <FlexRow
@@ -96,7 +98,7 @@ const GeminiRow: React.FC<GeminiRowProps> = ({ extensionConnected, onSetUp }) =>
         {extensionConnected ? (
           <>
             <CheckCircleRoundedIcon sx={{ fontSize: "1.2em", color: theme.vars.palette.success.main }} />
-            <Caption size="small">Extension connected</Caption>
+            <Caption size="small">{t("editor:ui.extensionConnected", { defaultValue: "Extension connected" })}</Caption>
           </>
         ) : (
           <EditorButton

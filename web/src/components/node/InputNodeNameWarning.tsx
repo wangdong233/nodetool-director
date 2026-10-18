@@ -2,6 +2,7 @@ import React, { memo } from "react";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import { useNodes } from "../../contexts/NodeContext";
 import { Text, Tooltip, getSpacingPx, SPACING, ICON_SIZE } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const INPUT_PREFIX = "nodetool.input.";
 
@@ -16,6 +17,7 @@ const InputNodeNameWarning: React.FC<InputNodeNameWarningProps> = ({
   nodeType,
   name
 }) => {
+  const { t } = useTranslation("editor");
   const isInput = nodeType.startsWith(INPUT_PREFIX);
   const isMissing = isInput && (!name || name.trim() === "");
   // Inputs sharing a name collapse into one parameter: one port on a
@@ -64,7 +66,7 @@ const InputNodeNameWarning: React.FC<InputNodeNameWarningProps> = ({
         }}
       >
         <WarningAmberOutlinedIcon sx={{ fontSize: ICON_SIZE.xs }} />
-        {isMissing ? "Name required" : "Duplicate name"}
+        {isMissing ? t("editor:ui.nameRequired", { defaultValue: "Name required" }) : "Duplicate name"}
       </Text>
     </Tooltip>
   );

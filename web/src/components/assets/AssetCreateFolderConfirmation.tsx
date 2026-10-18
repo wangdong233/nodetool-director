@@ -11,8 +11,10 @@ import { useAssetGridStore } from "../../stores/AssetGridStore";
 import useAssets from "../../serverState/useAssets";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { Asset } from "../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 
 const AssetCreateFolderConfirmation: React.FC = () => {
+  const { t } = useTranslation();
   const setDialogOpen = useAssetGridStore(
     (state) => state.setCreateFolderDialogOpen
   );
@@ -180,7 +182,7 @@ const AssetCreateFolderConfirmation: React.FC = () => {
       onClose={handleClose}
       maxWidth="xs"
       fullWidth
-      title={hasSelectedAssets ? "Move to new folder" : "Create folder"}
+      title={hasSelectedAssets ? t("editor:asset.moveToNew", { defaultValue: "Move to new folder" }) : "Create folder"}
       onConfirm={() => void handleCreateFolder()}
       confirmText={hasSelectedAssets ? "Move" : "Create"}
       actionButtonsProps={{

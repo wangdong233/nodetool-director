@@ -32,23 +32,23 @@ export interface EntryCard extends OptionCardItem {
 export const ENTRY_CARDS: readonly EntryCard[] = [
   {
     id: "entity",
-    title: "Entity",
-    description: "Create a reusable character, place, style, or prop."
+    title: "Entity", titleKey: "home:entry.entity.title",
+    description: "Create a reusable character, place, style, or prop.", descriptionKey: "editor:ui.createReusableCharacterPlaceStyleProp",
   },
   {
     id: "storyboard",
-    title: "Storyboard",
-    description: "From a sentence to a rendered board in four steps."
+    title: "Storyboard", titleKey: "editor:ui.storyboard",
+    description: "From a sentence to a rendered board in four steps.", descriptionKey: "editor:ui.fromSentenceToRenderedBoard",
   },
   {
     id: "video",
-    title: "Video",
-    description: "From a sentence to a cut on the timeline, no board."
+    title: "Video", titleKey: "editor:ui.video",
+    description: "From a sentence to a cut on the timeline, no board.", descriptionKey: "editor:ui.fromSentenceToCutNoBoard",
   },
   {
     id: "script",
-    title: "Script",
-    description: "From a topic to voiced lines, ready to place."
+    title: "Script", titleKey: "editor:ui.script",
+    description: "From a topic to voiced lines, ready to place.", descriptionKey: "editor:ui.fromTopicToVoicedLines",
   },
   {
     id: "speech",
@@ -57,18 +57,18 @@ export const ENTRY_CARDS: readonly EntryCard[] = [
   },
   {
     id: "image",
-    title: "Image",
-    description: "From a description to a picked variation in the editor."
+    title: "Image", titleKey: "editor:ui.image",
+    description: "From a description to a picked variation in the editor.", descriptionKey: "editor:ui.fromDescriptionToPickedVariation",
   },
   {
     id: "workflow",
-    title: "Workflow",
-    description: "From a task to a running graph, with the plan reviewed first."
+    title: "Workflow", titleKey: "editor:ui.workflow",
+    description: "From a task to a running graph, with the plan reviewed first.", descriptionKey: "editor:ui.fromTaskToRunningGraph",
   },
   {
     id: "game",
-    title: "Game",
-    description: "From an idea to a playable game, with the design reviewed first."
+    title: "Game", titleKey: "home:entry.game.title",
+    description: "From an idea to a playable game, with the design reviewed first.", descriptionKey: "editor:ui.fromAnIdeaToAPlayableGameWithTheDesignReviewedFirst",
   },
   {
     id: "app",

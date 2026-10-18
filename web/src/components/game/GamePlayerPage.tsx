@@ -7,6 +7,7 @@ import { Box, Caption, EditorButton, EmptyState, FlexColumn, FlexRow, LoadingSpi
 import ReportBugButton from "../support/ReportBugButton";
 import { useGamePlaySession } from "./useGamePlaySession";
 import { gamePlayStatus } from "./gamePlayStatus";
+import { useTranslation } from "react-i18next";
 
 interface GamePlayerProps {
   gameId: string;
@@ -20,6 +21,7 @@ interface GamePlayerProps {
 }
 
 export function GamePlayer({ gameId, name, document, active = true, setsDocumentTitle = true, autoPlay = false }: GamePlayerProps) {
+  const { t } = useTranslation();
   const { canvasRef, inputRef, playing, playDocument, playState, backend, error,
     beginPlay, stop } = useGamePlaySession({ refId: gameId, active, document, name });
   const status = gamePlayStatus({
@@ -55,9 +57,9 @@ export function GamePlayer({ gameId, name, document, active = true, setsDocument
     <FlexRow align="center" gap={SPACING.sm} wrap>
       <Text size="big">{name}</Text>
       <EditorButton onClick={beginPlay} disabled={backend === "Initializing"}>
-        {playing ? "Pause" : playDocument ? "Resume" : "Play"}
+        {playing ? t("ui:attrs.pause", { defaultValue: "Pause" }) : playDocument ? t("game:player.resume", { defaultValue: "Resume" }) : "Play"}
       </EditorButton>
-      <EditorButton onClick={stop} disabled={!playDocument}>Stop</EditorButton>
+      <EditorButton onClick={stop} disabled={!playDocument}>{t("ui2:attrs.stop", { defaultValue: "Stop" })}</EditorButton>
       <Caption>Score {playState.score} · {status} · {backend}</Caption>
     </FlexRow>
     {error && <FlexRow align="center" gap={SPACING.sm}>
@@ -78,11 +80,12 @@ export function GamePlayer({ gameId, name, document, active = true, setsDocument
 const Player3D = lazy(() => import("./GamePlayer3D"));
 
 export function SavedGamePlayer({ gameId, active = true, setsDocumentTitle = true }: { gameId: string; active?: boolean; setsDocumentTitle?: boolean }) {
+  const { t } = useTranslation();
   const { data, isPending, error } = trpc.games.getDraft.useQuery({ id: gameId ?? "" },
     { enabled: Boolean(gameId), staleTime: 15_000 });
-  if (!gameId) return <EmptyState variant="error" title="Game not found" description="The game link is incomplete." />;
+  if (!gameId) return <EmptyState variant="error" title={t("game:player.gameNotFound", { defaultValue: "Game not found" })} description={t("game:player.gameLinkIncomplete", { defaultValue: "The game link is incomplete." })} />;
   if (isPending) return <LoadingSpinner text="Loading game" />;
-  if (error || !data) return <EmptyState variant="error" title="Could not load game" description={error?.message ?? "The game may have been deleted."} />;
+  if (error || !data) return <EmptyState variant="error" title={t("editor:ui.couldNotLoadGame", { defaultValue: "Could not load game" })} description={error?.message ?? "The game may have been deleted."} />;
   if (data.document.schemaVersion === 3) {
     return <Suspense fallback={<LoadingSpinner text="Loading 3D player" />}><Player3D gameId={gameId} name={data.game.name} document={data.document} active={active} /></Suspense>;
   }

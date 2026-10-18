@@ -42,6 +42,7 @@ import {
   resolveImageSize,
   type ImageResolution
 } from "../../stores/MediaGenerationStore";
+import { useTranslation } from "react-i18next";
 
 function cycleArrayValue<T>(
   values: readonly T[],
@@ -99,6 +100,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
   canvasResizeHandlesEnabled,
   onCanvasResizeHandlesEnabledChange
 }) => {
+  const { t } = useTranslation();
   const [customWidth, setCustomWidth] = useState(String(canvasWidth));
   const [customHeight, setCustomHeight] = useState(String(canvasHeight));
 
@@ -213,8 +215,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
         <Tooltip
           title={
             canvasResizeHandlesEnabled
-              ? "Hide resize handles on canvas"
-              : "Show resize handles on canvas"
+              ? i18n.t("sketch:attrs.hideResizeHandlesOnCanvas", { defaultValue: "Hide resize handles on canvas" }) : "Show resize handles on canvas"
           }
           placement="left"
         >
@@ -232,7 +233,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
       <Select
         size="small"
         displayEmpty
-        aria-label="Canvas size preset"
+        aria-label={t("sketch:attrs.canvasSizePreset", { defaultValue: "Canvas size preset" })}
         value=""
         onChange={(e) => {
           const preset = CANVAS_PRESETS.find(
@@ -262,7 +263,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
                 color: match ? "grey.200" : SKETCH_COLORS.textFaint
               }}
             >
-              {match ? match.label : "Presets…"}
+              {match ? match.label: i18n.t("sketch:attrs.presets", { defaultValue: "Presets…" })}
             </Text>
           );
         }}
@@ -316,7 +317,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
       <FlexRow align="center" gap={1} sx={{ mt: 2 }}>
         <NumberField
           size="small"
-          label="Width"
+          label={t("sketch:attrs.width", { defaultValue: "Width" })}
           value={customWidth}
           onChange={(e) => setCustomWidth(e.target.value)}
           min={1}
@@ -329,7 +330,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
         </Text>
         <NumberField
           size="small"
-          label="Height"
+          label={t("sketch:attrs.height", { defaultValue: "Height" })}
           value={customHeight}
           onChange={(e) => setCustomHeight(e.target.value)}
           min={1}
@@ -339,7 +340,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
         />
         <StateIconButton
           icon={<CheckIcon sx={{ fontSize: ICON_SIZE.md }} />}
-          tooltip="Apply canvas size"
+          tooltip={t("sketch:attrs.applyCanvasSize", { defaultValue: "Apply canvas size" })}
           ariaLabel="Apply canvas size"
           onClick={handleApplyCustomSize}
           isActive={canvasCustomSizeApply.dirty}

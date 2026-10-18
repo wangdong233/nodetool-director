@@ -20,6 +20,7 @@ import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { deserializeDragData } from "../../lib/dragdrop";
 import { useAddExampleModelAsset } from "../../hooks/useAddExampleModelAsset";
 import { notifyMutationError } from "../../utils/notifyMutationError";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -122,6 +123,7 @@ const styles = (theme: Theme) =>
   });
 
 const Model3DProperty = (props: PropertyProps) => {
+  const { t } = useTranslation();
   const id = `model3d-${props.property.name}-${props.propertyIndex}`;
   const { asset, uri } = useAsset({ model3d: props.value });
   const theme = useTheme();
@@ -211,12 +213,12 @@ const Model3DProperty = (props: PropertyProps) => {
               autoCapitalize="off"
               spellCheck="false"
               onChange={handleUrlChange}
-              placeholder="Enter 3D model URL"
+              placeholder={t("editor:ui.enter3DModelURL", { defaultValue: "Enter 3D model URL" })}
             />
           )}
 
           <Tooltip
-            title={showUrlInput ? "Hide URL input" : "Show input to enter a URL"}
+            title={showUrlInput ? t("editor:ui.hideUrlInput", { defaultValue: "Hide URL input" }) : "Show input to enter a URL"}
           >
             <EditorButton
               className="toggle-url-button"
@@ -245,7 +247,7 @@ const Model3DProperty = (props: PropertyProps) => {
                 />
               </div>
             ) : (
-              <p className="prop-drop">Drop 3D model (GLB, GLTF)</p>
+              <p className="prop-drop">{t("ui2:attrs.drop3DModelGLBGLTF", { defaultValue: "Drop 3D model (GLB, GLTF)" })}</p>
             )}
           </DropZone>
 

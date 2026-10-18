@@ -28,6 +28,7 @@ import {
 } from "../ui_primitives";
 import PaletteIcon from "@mui/icons-material/Palette";
 import LegendToggleIcon from "@mui/icons-material/LegendToggle";
+import { useTranslation } from "react-i18next";
 
 const minimapStyle = {
   position: "absolute" as const,
@@ -37,6 +38,7 @@ const minimapStyle = {
 };
 
 const MiniMapNavigator: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isDarkMode = useIsDarkMode();
   const visible = useMiniMapStore((state) => state.visible);
@@ -189,7 +191,7 @@ const MiniMapNavigator: React.FC = () => {
           >
             {colorMode === "type" && showLegend && (
               <ToolbarIconButton
-                title="Node type legend"
+                title={t("editor:ui.nodeTypeLegend", { defaultValue: "Node type legend" })}
                 size="small"
                 onClick={handleOpenLegend}
                 sx={{
@@ -206,7 +208,7 @@ const MiniMapNavigator: React.FC = () => {
               </ToolbarIconButton>
             )}
             <ToolbarIconButton
-              title="Color mode settings"
+              title={t("editor:ui.colorModeSettings", { defaultValue: "Color mode settings" })}
               size="small"
               onClick={handleOpenSettings}
               sx={{
@@ -233,12 +235,12 @@ const MiniMapNavigator: React.FC = () => {
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <MenuItemPrimitive
-          label="Default colors"
+          label={t("editor:ui.defaultColors", { defaultValue: "Default colors" })}
           selected={colorMode === "default"}
           onClick={handleSetDefaultMode}
         />
         <MenuItemPrimitive
-          label="Color by type"
+          label={t("editor:ui.colorByType", { defaultValue: "Color by type" })}
           selected={colorMode === "type"}
           onClick={handleSetTypeMode}
         />

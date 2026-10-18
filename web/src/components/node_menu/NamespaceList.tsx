@@ -30,6 +30,7 @@ import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import { NamespaceTree } from "../../hooks/useNamespaceTree";
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
 import { isCloudProfile } from "../../lib/runtimeConfig";
+import { useTranslation } from "react-i18next";
 
 interface NamespaceListProps {
   namespaceTree: NamespaceTree;
@@ -310,6 +311,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
   selectedPathString: string;
   minSearchTermLength: number;
 }) {
+  const { t } = useTranslation();
   const openPacksPanel = useOpenPackageManager();
 
   return (
@@ -342,8 +344,8 @@ const NoSelectionContent = memo(function NoSelectionContent({
                 namespaces to find results.
               </li>
             )}
-            <li>just start typing to enter a new search term</li>
-            <li>clear search by clicking the clear button</li>
+            <li>{t("editor:ui.justStartTypingToEnterANewSearchTerm", { defaultValue: "just start typing to enter a new search term" })}</li>
+            <li>{t("editor:ui.clearSearchByClickingTheClearButton", { defaultValue: "clear search by clicking the clear button" })}</li>
           </ul>
         </>
       ) : null}

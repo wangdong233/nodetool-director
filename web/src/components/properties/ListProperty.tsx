@@ -6,6 +6,7 @@ import PropertyLabel from "../node/PropertyLabel";
 import { SPACING, getSpacingPx } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { isNumber, isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const detectTypeFromList = (list: unknown[]) => {
   if (list.length === 0) {
@@ -26,6 +27,7 @@ const detectTypeFromList = (list: unknown[]) => {
 };
 
 const ListProperty = (props: PropertyProps) => {
+  const { t } = useTranslation();
   const id = `list-${props.property.name}-${props.propertyIndex}`;
   const dataTypes = useMemo(() => ["int", "string", "datetime", "float"], []);
 
@@ -61,7 +63,7 @@ const ListProperty = (props: PropertyProps) => {
             value={dataType}
             onChange={handleDataTypeChange}
             options={options}
-            label="Data type"
+            label={t("editor:ui.dataType", { defaultValue: "Data type" })}
             placeholder="Select type…"
           />
         </div>

@@ -53,6 +53,7 @@ import {
   isObjectLike,
   isString
 } from "../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 /** Aspect-ratio dropdown options. `free` means no constraint. */
 const ASPECT_OPTIONS = [
@@ -289,6 +290,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -698,12 +700,12 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Aspect</span>
+        <span className="ctrl-label">{t("ui2:attrs.aspect", { defaultValue: "Aspect" })}</span>
         <NodeSelect
           className="aspect-select"
           value={aspect}
           onChange={handleAspectChange}
-          aria-label="Aspect ratio"
+          aria-label={t("editor:ui.aspectRatio", { defaultValue: "Aspect ratio" })}
         >
           {ASPECT_OPTIONS.map((o) => (
             <NodeMenuItem key={o.value} value={o.value}>
@@ -712,7 +714,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
           ))}
         </NodeSelect>
 
-        <span className="ctrl-label">Size</span>
+        <span className="ctrl-label">{t("ui2:attrs.size", { defaultValue: "Size" })}</span>
         <div className="dims-cluster">
           <div className="dim-field">
             <NumberInput
@@ -752,12 +754,12 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
             />
           </div>
         </div>
-        <Tooltip title="Reset crop" describeChild>
+        <Tooltip title={t("editor:ui.resetCrop", { defaultValue: "Reset crop" })} describeChild>
           <button
             type="button"
             className="reset-btn"
             onClick={handleReset}
-            aria-label="Reset crop"
+            aria-label={t("editor:ui.resetCrop", { defaultValue: "Reset crop" })}
           >
             <RestartAltIcon fontSize="small" />
           </button>

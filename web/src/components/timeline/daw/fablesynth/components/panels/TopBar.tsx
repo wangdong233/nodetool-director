@@ -6,8 +6,10 @@ import { ACCENTS } from '../../constants';
 import { FACTORY_PRESETS } from '../../presets';
 import { PresetBrowser } from '../presetBrowser/PresetBrowser';
 import { useStore } from '../../store';
+import { useTranslation } from "react-i18next";
 
 export function TopBar() {
+  const { t } = useTranslation(["timeline","ui2"]);
   const powered = useStore((s) => s.powered);
   const midiActive = useStore((s) => s.midiActive);
   const voiceCount = useStore((s) => s.voiceCount);
@@ -61,7 +63,7 @@ export function TopBar() {
         ) : (
           <select
             className="fs-preset-select"
-            aria-label="preset"
+            aria-label={t("timeline:attrs.presetLower", { defaultValue: "preset" })}
             value={presetValue}
             onChange={(e) => {
               loadPresetByValue(e.target.value);
@@ -85,7 +87,7 @@ export function TopBar() {
             ) : null}
           </select>
         )}
-        {!naming && dirty && <span className="pb-dirty" aria-label="unsaved changes" title="unsaved changes" />}
+        {!naming && dirty && <span className="pb-dirty" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "unsaved changes" })} title={t("ui2:attrs.unsavedChanges", { defaultValue: "unsaved changes" })} />}
         <button className="pb-btn fs-preset-next" aria-label="next preset" onClick={() => stepPreset(1)} disabled={naming}>▸</button>
         {naming ? (
           <>
@@ -107,7 +109,7 @@ export function TopBar() {
       <div className="hud">
         <div className="hud-cell">
           <ScopeView analyser={powered ? engine.scopeAnalyser : null} accent={ACCENTS.a} />
-          <span>SCOPE</span>
+          <span>{t("appbuilder:attrs.scope", { defaultValue: "SCOPE" })}</span>
         </div>
         <div className="hud-cell">
           <SpectrumView analyser={powered ? engine.specAnalyser : null} accent={ACCENTS.b} />
@@ -115,8 +117,8 @@ export function TopBar() {
         </div>
       </div>
       <div className={`status${midiDim ? ' dim' : ''}`}>
-        <div className="status-row"><span className={`led fs-midi-led${midiActive ? ' on' : ''}`} />MIDI</div>
-        <div className="status-row"><span className="fs-voice-count">{voiceCount}</span>VOICES</div>
+        <div className="status-row"><span className={`led fs-midi-led${midiActive ? ' on' : ''}`} />{t("timeline:trackTypes.midi", { defaultValue: "MIDI" })}</div>
+        <div className="status-row"><span className="fs-voice-count">{voiceCount}</span>{t("editor:ui.voicesUpper", { defaultValue: "VOICES" })}</div>
       </div>
       <div className="fs-master-knob"><Knob paramId="master.volume" size="md" accent="n" /></div>
     </header>

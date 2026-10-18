@@ -28,8 +28,10 @@ import { installExampleSketch } from "../../utils/installExampleSketch";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import { NO_EXAMPLE_NEEDS } from "../../utils/exampleNeeds";
 import ExampleNeedsPill from "./ExampleNeedsPill";
+import { useTranslation } from "react-i18next";
 
 const DashboardExampleSketches = () => {
+  const { t } = useTranslation();
   const [category, setCategory] = useState("All");
   const examples = EXAMPLE_SKETCHES.filter(
     (example) => category === "All" || example.category === category
@@ -60,12 +62,12 @@ const DashboardExampleSketches = () => {
   return (
     <FlexColumn
       component="section"
-      aria-label="Example sketches"
+      aria-label={t("editor:ui.exampleSketches", { defaultValue: "Example sketches" })}
       gap={SPACING.xl}
       sx={{ p: SPACING.xxl }}
     >
       <FlexColumn gap={SPACING.xs}>
-        <Text size="big">Make a sketch your own</Text>
+        <Text size="big">{t("editor:ui.makeASketchYourOwn", { defaultValue: "Make a sketch your own" })}</Text>
         <Text color="secondary">
           Sketch a campaign, plan a film, or explore a painted study. Each opens
           as your own editable copy with separate layers.
@@ -75,7 +77,7 @@ const DashboardExampleSketches = () => {
         </Caption>
       </FlexColumn>
       <TabGroup
-        aria-label="Sketch categories"
+        aria-label={t("editor:ui.sketchCategories", { defaultValue: "Sketch categories" })}
         tabs={["All", "NodeTool", "Ads", "Movies", "Art studies"].map(
           (label) => ({ value: label, label })
         )}
@@ -112,8 +114,7 @@ const DashboardExampleSketches = () => {
                 onClick={() => install.mutate(example)}
               >
                 {install.isPending && install.variables?.slug === example.slug
-                  ? "Opening sketch…"
-                  : "Open sketch"}
+                  ? t("editor:ui.openingSketch", { defaultValue: "Opening sketch…" }) : "Open sketch"}
               </EditorButton>
             </FlexColumn>
           </Card>

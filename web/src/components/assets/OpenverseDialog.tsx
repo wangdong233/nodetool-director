@@ -30,6 +30,7 @@ import {
   type SelectOption
 } from "../ui_primitives";
 import { openverseLicenseLabel } from "../../utils/openverseLicense";
+import { useTranslation } from "react-i18next";
 
 type MediaType = "images" | "audio";
 type LicenseType = "all" | "commercial" | "modification";
@@ -115,6 +116,7 @@ interface OpenverseDialogProps {
  * each file and stores its license and attribution in the asset's metadata.
  */
 const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
+  const { t } = useTranslation("editor");
   const [mediaType, setMediaType] = useState<MediaType>("images");
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
@@ -347,8 +349,7 @@ const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
         onClick={handleImport}
       >
         {busy
-          ? "Adding…"
-          : selected.size > 0
+          ? t("editor:ui.adding", { defaultValue: "Adding…" }) : selected.size > 0
             ? `Add ${selected.size} to assets`
             : "Add to assets"}
       </EditorButton>
@@ -411,7 +412,7 @@ const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
             size="small"
           />
           <SelectField
-            label="Category"
+            label={t("editor:ui.category", { defaultValue: "Category" })}
             hideLabel
             value={category}
             options={CATEGORY_OPTIONS[mediaType]}

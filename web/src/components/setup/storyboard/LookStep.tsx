@@ -57,6 +57,7 @@ import { STYLE_DESCRIPTIONS } from "../styleDescriptions";
 import { AddStyleDialog } from "./AddStyleDialog";
 import { useCustomStyle, useStyleSaving } from "./useCustomStyle";
 import { setShotlistImport, useShotlistImportSummary } from "./setupChoices";
+import { useTranslation } from "react-i18next";
 
 export interface LookStepProps {
   boardId: string;
@@ -153,10 +154,8 @@ export function useLookStep(boardId: string): LookStepControls {
   // A style still being saved replaces the board's style when it lands, so
   // generating now would render in the look it is about to replace (F8).
   const blockedReason = savingStyle
-    ? "Saving your style"
-    : style.trim().length === 0
-      ? "Pick an art style"
-      : hasStillModel
+    ? t("setup:storyboard.savingYourStyle", { defaultValue: "Saving your style" }) : style.trim().length === 0
+      ? t("storyboard:attrs.pickAnArtStyle", { defaultValue: "Pick an art style" }) : hasStillModel
         ? undefined
         : "Pick a still model";
 
@@ -177,6 +176,7 @@ export const LookFooterControls: React.FC<{
   boardId: string;
   readOnly?: boolean;
 }> = ({ boardId, readOnly }) => {
+  const { t } = useTranslation();
   useDefaultStillModel(boardId, !readOnly);
   // Studio's curated control carries its own label, so a caption beside it
   // would name the field twice.
@@ -208,7 +208,7 @@ export const LookFooterControls: React.FC<{
   return inStudio ? (
     <Box sx={{ width: SETUP_FOOTER_CONTROL_WIDTH }}>{select}</Box>
   ) : (
-    <SetupFooterField label="Stills">{select}</SetupFooterField>
+    <SetupFooterField label={t("storyboard:attrs.stills", { defaultValue: "Stills" })}>{select}</SetupFooterField>
   );
 };
 
@@ -217,6 +217,7 @@ export const LookStep: React.FC<LookStepProps> = ({
   readOnly = false,
   blockedReason
 }) => {
+  const { t } = useTranslation();
   const [addingStyle, setAddingStyle] = useState(false);
   // `Add your own style` reads the references with the screenplay model. A
   // shotlist import comes here straight from step 1, past the genre step that
@@ -373,14 +374,14 @@ export const LookStep: React.FC<LookStepProps> = ({
         </Text>
       </FlexColumn>
       {blockedReason && !readOnly ? (
-        <AlertBanner severity="info" title="Before you generate">
+        <AlertBanner severity="info" title={t("editor:ui.beforeYouGenerate", { defaultValue: "Before you generate" })}>
           {blockedReason}
         </AlertBanner>
       ) : null}
       {/* A shotlist import lands here rather than on the story steps, so what
           it wrote is said here — inline, and only expanded on request (F29). */}
       {shotlistImport ? (
-        <AlertBanner severity="info" title="Shotlist imported">
+        <AlertBanner severity="info" title={t("storyboard:attrs.shotlistImported", { defaultValue: "Shotlist imported" })}>
           <FlexColumn gap={GAP.tight}>
             <Caption component="span">
               {`${shotlistImport.shotCount} shot${
@@ -433,7 +434,7 @@ export const LookStep: React.FC<LookStepProps> = ({
       ) : null}
       <Box sx={{ maxWidth: SETUP_FIELD_WIDTH }}>
         <SelectField
-          label="Aspect ratio"
+          label={t("storyboard:attrs.aspectRatio", { defaultValue: "Aspect ratio" })}
           value={aspectRatio}
           onChange={handleAspect}
           options={ASPECT_OPTIONS}
@@ -443,9 +444,9 @@ export const LookStep: React.FC<LookStepProps> = ({
       {/* What the board will actually draw in, always — a style the creator
           made themselves and a style bible the Director wrote are both real
           looks, and neither of them used to say anything here (F19). */}
-      <FormField label="Art style" helperText={appliedStyle ?? undefined}>
+      <FormField label={t("storyboard:attrs.artStyle", { defaultValue: "Art style" })} helperText={appliedStyle ?? undefined}>
         <PresetTileGrid
-          label="Art style"
+          label={t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
           presets={tiles.map((tile) => ({
             ...tile,
             disabled: readOnly || tile.disabled

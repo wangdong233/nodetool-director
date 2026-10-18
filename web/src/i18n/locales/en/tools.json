@@ -37,7 +37,7 @@
     "imageFileInput": "Image file input",
     "includeTheVersionPathTheEndpointServesUsuallyV1": "Include the version path the endpoint serves, usually /v1.",
     "localModelServers": "Local Model Servers",
-    "npmPackages": "NPM Packages",
+    "npmPackages": "NPM packages",
     "observability": "Observability",
     "oneArgumentPerLineSoAPathWithASpaceStaysOneArgument": "One argument per line, so a path with a space stays one argument.",
     "oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "One Header=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys.",

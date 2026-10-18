@@ -17,6 +17,7 @@ import { useTheme } from "@mui/material/styles";
 import { selectStyles, portalOptionsStyles } from "./selectStyles";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 interface Option {
   value: string;
@@ -67,6 +68,7 @@ const Select: React.FC<SelectProps> = ({
   changed,
   onOpenChange
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const selectRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<HTMLUListElement>(null);
@@ -312,7 +314,7 @@ const Select: React.FC<SelectProps> = ({
                 setHighlightedIndex(-1);
               }}
               placeholder="Search"
-              aria-label="Search options"
+              aria-label={t("editor:ui.searchOptions", { defaultValue: "Search options" })}
               onClick={(e) => e.stopPropagation()}
             />
           )}

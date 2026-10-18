@@ -41,8 +41,10 @@ import {
   CONSTANT_NODE_OPTIONS,
   INPUT_NODE_OPTIONS
 } from "./paneNodeOptions";
+import { useTranslation } from "react-i18next";
 
 const PaneContextMenu: React.FC = () => {
+  const { t } = useTranslation();
   const { handlePaste } = useCopyPaste();
   const reactFlowInstance = useReactFlow();
   const { isClipboardValid } = useClipboard();
@@ -259,7 +261,7 @@ const PaneContextMenu: React.FC = () => {
       >
         <ContextMenuItem
           onClick={handlePasteAndClose}
-          label="Paste"
+          label={t("editor:common.paste", { defaultValue: "Paste" })}
           disabled={!isClipboardValid}
           IconComponent={<SouthEastIcon />}
           tooltip={
@@ -279,13 +281,13 @@ const PaneContextMenu: React.FC = () => {
         />
         <ContextMenuItem
           onClick={handleFitViewAndClose}
-          label="Fit screen"
+          label={t("editor:pane.fitScreen", { defaultValue: "Fit screen" })}
           IconComponent={<FitScreenIcon />}
           tooltip={getShortcutTooltip("fitView")}
         />
         {favorites.length > 0 && [
           <Divider key="favorites-divider" />,
-          <ListSubheader key="favorites-header">Favorites</ListSubheader>,
+          <ListSubheader key="favorites-header">{t("editor:pane.favorites", { defaultValue: "Favorites" })}</ListSubheader>,
           ...favorites.map((favorite) => {
             const displayName = getNodeDisplayName(favorite.nodeType);
             return (
@@ -302,44 +304,44 @@ const PaneContextMenu: React.FC = () => {
         <Divider />
         <ContextMenuItem
           onClick={handleOpenConstantMenu}
-          label="Add constant node"
+          label={t("editor:pane.addConstantNode", { defaultValue: "Add constant node" })}
           IconComponent={<DataObjectIcon />}
           hasSubmenu
         />
         <ContextMenuItem
           onClick={handleOpenInputMenu}
-          label="Add input node"
+          label={t("editor:pane.addInputNode", { defaultValue: "Add input node" })}
           IconComponent={<InputIcon />}
           hasSubmenu
         />
         <Divider />
         <ContextMenuItem
           onClick={handleAddCommentAndClose}
-          label="Add comment"
+          label={t("editor:pane.addComment", { defaultValue: "Add comment" })}
           IconComponent={<AddCommentIcon />}
           tooltip={"Hold C key and drag"}
         />
         <ContextMenuItem
           onClick={handleAddGroupAndClose}
-          label="Add group"
+          label={t("editor:pane.addGroup", { defaultValue: "Add group" })}
           IconComponent={<GroupWorkIcon />}
           tooltip={"Add a group node"}
         />
         <ContextMenuItem
           onClick={handleCreateNode(WORKFLOW_NODE_TYPE)}
-          label="Add workflow"
+          label={t("editor:pane.addWorkflow", { defaultValue: "Add workflow" })}
           IconComponent={<AccountTreeIcon />}
           tooltip={"Add a workflow node"}
         />
         <ContextMenuItem
           onClick={handleCreateNode(SUBGRAPH_NODE_TYPE)}
-          label="Add subgraph"
+          label={t("editor:pane.addSubgraph", { defaultValue: "Add subgraph" })}
           IconComponent={<SchemaIcon />}
           tooltip={"Add an inline subgraph node"}
         />
         <ContextMenuItem
           onClick={handleCreateNode(APP_NODE_TYPE)}
-          label="Add app"
+          label={t("editor:ui.addApp", { defaultValue: "Add app" })}
           IconComponent={<AppsIcon />}
           tooltip={"Run a mini app as a node"}
         />

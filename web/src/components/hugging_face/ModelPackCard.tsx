@@ -34,6 +34,7 @@ import {
 } from "../../utils/hfCache";
 import { Tooltip } from "../ui_primitives";
 import { useModelDownloadTarget } from "../../hooks/useModelDownloadTarget";
+import { useTranslation } from "react-i18next";
 
 interface ModelPackCardProps {
   pack: ModelPack;
@@ -44,6 +45,7 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
   pack,
   onDownloadAll
 }) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const packModelIds = useMemo(
     () => pack.models.map((m) => m.id),
@@ -230,8 +232,7 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
             }}
           >
             {allDownloaded
-              ? "All downloaded"
-              : someDownloaded
+              ? t("editor:ui.allDownloaded", { defaultValue: "All downloaded" }) : someDownloaded
                 ? `Download ${pack.models.length - downloadedModels.size} Remaining`
                 : "Download all"}
           </EditorButton>
@@ -239,7 +240,7 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
 
         <ToolbarIconButton
           icon={<ExpandMoreIcon />}
-          tooltip={expanded ? "Collapse model pack details" : "Expand model pack details"}
+          tooltip={expanded ? t("editor:ui.collapseModelPackDetails", { defaultValue: "Collapse model pack details" }) : "Expand model pack details"}
           onClick={handleToggleExpanded}
           sx={{
             transform: expanded ? "rotate(180deg)" : "rotate(0deg)",

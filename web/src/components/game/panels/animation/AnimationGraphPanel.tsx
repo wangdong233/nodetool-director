@@ -28,6 +28,7 @@ import {
   ANIMATION_STATE_NODE_TYPE, animationGraphClipAliases, animationGraphDiagnostics, animationGraphEdges, animationGraphLiveState,
   animationGraphNodes, transitionIndexOfEdge, type AnimationGraphPosition, type AnimationGraphSelection, type AnimationStateFlowNode
 } from "./animationGraphFlow";
+import { useTranslation } from "react-i18next";
 
 const NODE_TYPES: NodeTypes = { [ANIMATION_STATE_NODE_TYPE]: AnimationStateNode };
 const SIDE_COLUMN_WIDTH = 260;
@@ -67,6 +68,7 @@ function clipOptions(document: GameDocument3D, graphId: string, graph: GameAnima
 
 /** Bottom-dock editor for document animation graphs: states and transitions on a canvas, parameters, an inspector, and the live state while a session plays. */
 export default function AnimationGraphPanel({ document, diagnostics: documentDiagnostics, sceneId, selectedEntityId, inspection, onOps }: AnimationGraphPanelProps) {
+  const { t } = useTranslation("game");
   const theme = useTheme();
   const dark = useIsDarkMode();
   const graphs = useMemo(() => document.animationGraphs ?? {}, [document.animationGraphs]);
@@ -241,7 +243,7 @@ export default function AnimationGraphPanel({ document, diagnostics: documentDia
           onChange={(mode) => commit((current) => setAnimationLayerBlend(current, layerIndex, { mode: mode as "override" | "additive" }), "Change Animation Layer")} />
         <EditorButton variant="outlined" color="error" onClick={() => {
           if (commit((current) => removeAnimationLayer(current, layerIndex), "Remove Animation Layer")) { setLayerChoice(0); }
-        }}>Remove layer</EditorButton>
+        }}>{t("sketch:attrs.removeLayer", { defaultValue: "Remove layer" })}</EditorButton>
       </>}
     <AnimationTransitionAdder label="Any state to" targets={Object.keys(layer.states)} onAdd={(to) => connect(ANY_ANIMATION_STATE, to)} />
   </FlexColumn>;
@@ -281,7 +283,7 @@ export default function AnimationGraphPanel({ document, diagnostics: documentDia
         <InspectorSelect label="Animation layer" value={String(layerIndex)} options={graph.layers.map((entry, index) => ({ value: String(index), label: entry.id }))}
           onChange={(value) => { setLayerChoice(Number(value)); setSelection(null); }} />
       </Box>}
-      <ToolbarIconButton icon={<LayersOutlinedIcon />} tooltip="Add layer" ariaLabel="Add animation layer"
+      <ToolbarIconButton icon={<LayersOutlinedIcon />} tooltip={t("game:collision.addLayer", { defaultValue: "Add layer" })} ariaLabel="Add animation layer"
         onClick={() => { if (commit(addAnimationLayer, "Add Animation Layer")) { setLayerChoice(graph.layers.length); setSelection(null); } }} />
       <EditorButton startIcon={<AddIcon />} onClick={addState}>State</EditorButton>
       {canAssignToEntity && <EditorButton onClick={assignToEntity}>Use on {selectedEntity?.name || selectedEntity?.id}</EditorButton>}

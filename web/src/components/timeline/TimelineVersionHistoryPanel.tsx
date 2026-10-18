@@ -49,6 +49,7 @@ import {
   getSpacingPx,
   PanelHeader
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const SAVE_TYPE_LABEL = {
   manual: "Manual",
@@ -165,6 +166,7 @@ interface TimelineVersionHistoryPanelProps {
 export const TimelineVersionHistoryPanel: React.FC<
   TimelineVersionHistoryPanelProps
 > = ({ sequenceId }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const store = useTimelineStoreApi();
   const {
@@ -270,7 +272,7 @@ export const TimelineVersionHistoryPanel: React.FC<
         onClick={openSaveDialog}
         disabled={!sequenceId || isCreatingVersion}
       >
-        {isCreatingVersion ? "Saving…" : "Save version"}
+        {isCreatingVersion ? i18n.t("timeline:history.saving", { defaultValue: "Saving…" }) : "Save version"}
       </EditorButton>
     ),
     [openSaveDialog, sequenceId, isCreatingVersion]
@@ -279,7 +281,7 @@ export const TimelineVersionHistoryPanel: React.FC<
   return (
     <FlexColumn fullWidth fullHeight sx={{ minHeight: 0, overflow: "hidden" }}>
       <PanelHeader
-        title="History"
+        title={t("timeline:history.title", { defaultValue: "History" })}
         count={ordered.length}
         actions={toolbarActions}
       />
@@ -305,8 +307,8 @@ export const TimelineVersionHistoryPanel: React.FC<
         ) : ordered.length === 0 ? (
           <FlexColumn align="center" sx={{ py: 4, px: 2 }}>
             <EmptyState
-              title="No versions yet"
-              description="Save a version to snapshot the sequence you can come back to."
+              title={t("timeline:history.noneYet", { defaultValue: "No versions yet" })}
+              description={t("timeline:history.noneYetDesc", { defaultValue: "Save a version to snapshot the sequence you can come back to." })}
             />
           </FlexColumn>
         ) : (
@@ -325,13 +327,13 @@ export const TimelineVersionHistoryPanel: React.FC<
       <Dialog
         open={saveDialogOpen}
         onClose={closeSaveDialog}
-        title="Save a version"
+        title={t("timeline:history.saveTitle", { defaultValue: "Save a version" })}
         onConfirm={handleConfirmSave}
         confirmText="Save version"
       >
         <FlexColumn gap={SPACING.xs}>
           <TextInput
-            label="Name (optional)"
+            label={t("timeline:history.nameOptional", { defaultValue: "Name (optional)" })}
             value={saveName}
             onChange={handleSaveNameChange}
             size="small"
@@ -373,7 +375,7 @@ export const TimelineVersionHistoryPanel: React.FC<
         confirmText="Delete"
         destructive
       >
-        <Text color="secondary">This action cannot be undone.</Text>
+        <Text color="secondary">{t("ui2:attrs.thisActionCannotBeUndone", { defaultValue: "This action cannot be undone." })}</Text>
       </Dialog>
     </FlexColumn>
   );

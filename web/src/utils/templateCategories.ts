@@ -17,13 +17,13 @@ export const TOP_CATEGORIES: TemplateCategory[] = [
   { id: "audio", label: "Audio", tags: ["audio"], color: "#FFB86C" },
   {
     id: "multimodal",
-    label: "Multimodal",
+    label: "Multimodal", labelKey: "editor:ui.multimodal",
     tags: ["multimodal"],
     color: "#22D3EE"
   },
   {
     id: "agents",
-    label: "Agents",
+    label: "Agents", labelKey: "editor:ui.agents",
     tags: ["agent", "agents", "ai", "claude", "huggingface"],
     color: "#3d68a8"
   },

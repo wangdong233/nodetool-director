@@ -54,6 +54,7 @@ import {
   fetchFalPricingEstimate,
   type FalPricingEstimate
 } from "../../utils/fetchFalPricingEstimate";
+import { useTranslation } from "react-i18next";
 
 interface FalPricingFooterProps {
   metadata: NodeMetadata;
@@ -77,6 +78,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
   variant = "nodeFooter",
   popoverResetDep
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [creditsLoading, setCreditsLoading] = useState(false);
@@ -202,7 +204,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
         {pricing.source === "live" && (
           <span
             style={{ marginRight: 3, fontSize: "var(--fontSizeSmaller)", opacity: 0.85 }}
-            aria-label="live price"
+            aria-label={t("editor:ui.livePrice", { defaultValue: "live price" })}
           >
             ●
           </span>
@@ -300,7 +302,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
                 mt: 0.5
               }}
             >
-              {creditsData === "error" ? "Could not load credits" : "—"}
+              {creditsData === "error" ? t("editor:ui.couldNotLoadCredits", { defaultValue: "Could not load credits" }) : "—"}
             </Text>
           ) : creditsData.unavailable ? (
             <FlexColumn gap={0.5} sx={{ mt: 0.5 }}>
@@ -341,7 +343,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
         <Divider />
 
         <MenuItemPrimitive
-          label="View on fal.ai"
+          label={t("editor:ui.viewOnFalai", { defaultValue: "View on fal.ai" })}
           icon={<LaunchIcon />}
           onClick={() => {
             window.open(

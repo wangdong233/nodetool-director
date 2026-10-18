@@ -57,6 +57,7 @@ import ShotDesignFrame from "./ShotDesignFrame";
 import { isShotGenerating } from "./ShotStatusPill";
 import { copiedStill, flippedStill } from "./shotImageEdits";
 import { syncShotClipToTimeline } from "../../stores/storyboard/timelineSync";
+import { useTranslation } from "react-i18next";
 
 interface ShotEditViewerProps {
   boardId: string;
@@ -161,6 +162,7 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
   onLeave,
   onBeforeImageEditor
 }) => {
+  const { t } = useTranslation();
   const stillVersions = stillVersionsOf(shot);
   const clipVersions = clipVersionsOf(shot);
   const hasClip =
@@ -558,7 +560,7 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
               fit="contain"
             />
           ) : (
-            <Caption color="muted">No still yet</Caption>
+            <Caption color="muted">{t("storyboard:attrs.noStillYet", { defaultValue: "No still yet" })}</Caption>
           )}
         </Box>
         {generating && (
@@ -577,15 +579,15 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
             segmented
             value={shown}
             onChange={handleMedium}
-            aria-label="Show the still or the clip"
+            aria-label={t("storyboard:attrs.showTheStillOrTheClip", { defaultValue: "Show the still or the clip" })}
           >
-            <ToggleOption value="still">Still</ToggleOption>
-            <ToggleOption value="clip">Clip</ToggleOption>
+            <ToggleOption value="still">{t("storyboard:attrs.still", { defaultValue: "Still" })}</ToggleOption>
+            <ToggleOption value="clip">{t("storyboard:attrs.clip", { defaultValue: "Clip" })}</ToggleOption>
           </ToggleGroup>
         )}
         <ToolbarIconButton
           icon={<ChevronLeftIcon fontSize="inherit" />}
-          tooltip="Previous version"
+          tooltip={t("storyboard:attrs.previousVersion", { defaultValue: "Previous version" })}
           ariaLabel="Previous version"
           onClick={handlePrevious}
           disabled={index <= 0}
@@ -595,7 +597,7 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
         </Box>
         <ToolbarIconButton
           icon={<ChevronRightIcon fontSize="inherit" />}
-          tooltip="Next version"
+          tooltip={t("storyboard:attrs.nextVersion", { defaultValue: "Next version" })}
           ariaLabel="Next version"
           onClick={handleNext}
           disabled={index >= versions.length - 1}
@@ -611,34 +613,34 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
             pointers and keyboards. */}
         <FlexRow
           role="group"
-          aria-label="Pan controls"
+          aria-label={t("storyboard:attrs.panControls", { defaultValue: "Pan controls" })}
           gap={SPACING.micro}
           sx={{ "@media (pointer: coarse)": { display: "none" } }}
         >
           <ToolbarIconButton
             icon={<ArrowUpwardIcon fontSize="inherit" />}
-            tooltip="Pan up"
+            tooltip={t("storyboard:attrs.panUp", { defaultValue: "Pan up" })}
             ariaLabel="Pan up"
             onClick={() => nudgePan(0, -PAN_STEP)}
             disabled={!previewed}
           />
           <ToolbarIconButton
             icon={<ArrowDownwardIcon fontSize="inherit" />}
-            tooltip="Pan down"
+            tooltip={t("storyboard:attrs.panDown", { defaultValue: "Pan down" })}
             ariaLabel="Pan down"
             onClick={() => nudgePan(0, PAN_STEP)}
             disabled={!previewed}
           />
           <ToolbarIconButton
             icon={<ArrowBackIcon fontSize="inherit" />}
-            tooltip="Pan left"
+            tooltip={t("storyboard:attrs.panLeft", { defaultValue: "Pan left" })}
             ariaLabel="Pan left"
             onClick={() => nudgePan(-PAN_STEP, 0)}
             disabled={!previewed}
           />
           <ToolbarIconButton
             icon={<ArrowForwardIcon fontSize="inherit" />}
-            tooltip="Pan right"
+            tooltip={t("storyboard:attrs.panRight", { defaultValue: "Pan right" })}
             ariaLabel="Pan right"
             onClick={() => nudgePan(PAN_STEP, 0)}
             disabled={!previewed}
@@ -667,7 +669,7 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
           <>
             <ToolbarIconButton
               icon={<FlipIcon fontSize="inherit" />}
-              tooltip="Mirror this still as a new version"
+              tooltip={t("storyboard:attrs.mirrorThisStillAsANewVersion", { defaultValue: "Mirror this still as a new version" })}
               ariaLabel="Flip horizontal"
               onClick={() => void handleFlip()}
               disabled={!canEditStill}
@@ -676,7 +678,7 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
               size="small"
               onClick={() => void handleOpenImageEditor()}
               disabled={!canEditStill}
-              tooltip="Edit a copy of this still; the edit comes back as a new version"
+              tooltip={t("storyboard:attrs.editACopyOfThisStillTheEditComesBackAsANewVersion", { defaultValue: "Edit a copy of this still; the edit comes back as a new version" })}
             >
               Open in image editor
             </EditorButton>

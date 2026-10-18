@@ -4,6 +4,7 @@ import { useBassStore } from '../bassStoreContext';
 import { BassKnob } from './BassKnob';
 import { BassPosSlider } from './BassPosSlider';
 import { BassStepper } from './BassStepper';
+import { useTranslation } from "react-i18next";
 
 export function OscSection() {
   const tableValue = useBassStore((s) => s.params['osc.table']);
@@ -42,6 +43,7 @@ export function OscSection() {
 }
 
 export function SubSection() {
+  const { t } = useTranslation("timeline");
   return (
     <section className="panel bl-sub-section" data-accent="n">
       <div className="panel-head">
@@ -50,7 +52,7 @@ export function SubSection() {
       <div className="bl-sub-body">
         <div className="bl-sub-steppers">
           <div className="bl-sub-row">
-            <span className="bl-sub-label">SHAPE</span>
+            <span className="bl-sub-label">{t("timeline:attrs.shapeUpper", { defaultValue: "SHAPE" })}</span>
             <BassStepper paramId="sub.shape" accent="n" />
           </div>
           <div className="bl-sub-row">

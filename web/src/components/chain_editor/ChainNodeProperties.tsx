@@ -40,6 +40,7 @@ import { getComponentForProperty } from "../node/PropertyInput.resolver";
 import type { Property, TypeMetadata } from "../../stores/ApiTypes";
 import type { ChainNode, InputMappings, InputSource } from "./chainTypes";
 import { areTypesCompatible } from "./chainTypes";
+import { useTranslation } from "react-i18next";
 
 interface ChainNodePropertiesProps {
   nodeId: string;
@@ -129,6 +130,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
   onUpdate,
   onSetInputMapping,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const store = useMemo(() => getEmptyStore(), []);
   const cssStyles = useMemo(() => chainPropertyStyles(theme), [theme]);
@@ -283,7 +285,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
                     <ToolbarIconButton
                       size="small"
                       ariaLabel={`Disconnect ${prop.title ?? prop.name}`}
-                      tooltip="Disconnect — edit the value instead"
+                      tooltip={t("editor:ui.disconnectEditTheValueInstead", { defaultValue: "Disconnect — edit the value instead" })}
                       onClick={(e) => {
                         e.stopPropagation();
                         onSetInputMapping(prop.name, null);
@@ -315,7 +317,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
                     <ToolbarIconButton
                       size="small"
                       ariaLabel={`Connect ${prop.title ?? prop.name} to a previous step`}
-                      tooltip="Use output from a previous step"
+                      tooltip={t("editor:ui.useOutputFromAPreviousStep", { defaultValue: "Use output from a previous step" })}
                       onClick={(e) => handleOpenPicker(prop.name, e.currentTarget)}
                       icon={
                         <AddLinkIcon sx={{ fontSize: ICON_SIZE.sm, color: secondary }} />
@@ -364,8 +366,8 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
 
           {activeMapping && (
             <MenuItemPrimitive
-              label="Disconnect"
-              secondary="Edit the value manually"
+              label={t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
+              secondary={t("editor:ui.editTheValueManually", { defaultValue: "Edit the value manually" })}
               icon={<LinkOffIcon />}
               onClick={() => handleSelect(null)}
             />

@@ -30,6 +30,7 @@ import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { FavoriteButton } from "../ui_primitives";
 import { NOTIFICATION_TIMEOUT_SHORT } from "../../config/constants";
+import { useTranslation } from "react-i18next";
 
 const COMPACT_SVG_PROPS = { width: "14px", height: "14px" } as const;
 const EXPANDED_SVG_PROPS = { width: "16px", height: "16px" } as const;
@@ -235,6 +236,7 @@ const SearchResultItem = memo(function SearchResultItem({
   compact = false,
   ref
 }: SearchResultItemProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const outputType = node.outputs.length > 0 ? node.outputs[0].type.type : "";
   const providerKind = getProviderKindForNamespace(node.namespace);
@@ -253,8 +255,7 @@ const SearchResultItem = memo(function SearchResultItem({
       addNotification({
         type: "info",
         content: next
-          ? "Node added to favorites"
-          : "Node removed from favorites",
+          ? i18n.t("editor:ui.nodeAddedToFavorites", { defaultValue: "Node added to favorites" }) : "Node removed from favorites",
         timeout: NOTIFICATION_TIMEOUT_SHORT
       });
     },
@@ -460,7 +461,7 @@ const SearchResultItem = memo(function SearchResultItem({
             onToggle={handleFavoriteToggle}
             buttonSize="small"
           />
-          <Tooltip title={isExpanded ? "Collapse details" : "Show details"}>
+          <Tooltip title={isExpanded ? t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : "Show details"}>
             <div
               className={`expand-indicator ${isExpanded ? "expanded" : ""}`}
               role="button"
@@ -468,7 +469,7 @@ const SearchResultItem = memo(function SearchResultItem({
               onClick={handleToggleExpand}
               onKeyDown={handleExpandKeyDown}
               aria-expanded={isExpanded}
-              aria-label={isExpanded ? "Collapse details" : "Show details"}
+              aria-label={isExpanded ? t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : "Show details"}
             >
               <ExpandMoreIcon />
             </div>
@@ -491,7 +492,7 @@ const SearchResultItem = memo(function SearchResultItem({
         <Box className="io-info">
           {node.properties.length > 0 && (
             <Box className="io-row">
-              <span className="io-label">Input:</span>
+              <span className="io-label">{t("editor:ui.input", { defaultValue: "Input:" })}</span>
               <Box className="io-items">
                 {node.properties.slice(0, 6).map((prop) => (
                   <span
@@ -517,7 +518,7 @@ const SearchResultItem = memo(function SearchResultItem({
           )}
           {node.outputs.length > 0 && (
             <Box className="io-row">
-              <span className="io-label">Output:</span>
+              <span className="io-label">{t("editor:ui.output", { defaultValue: "Output:" })}</span>
               <Box className="io-items">
                 {node.outputs.map((output) => (
                   <span

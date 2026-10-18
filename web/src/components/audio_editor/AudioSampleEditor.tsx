@@ -42,6 +42,7 @@ import {
   silenceRange,
   type AudioSample
 } from "./audioSample";
+import { useTranslation } from "react-i18next";
 
 interface AudioSampleEditorProps {
   asset: Asset;
@@ -96,6 +97,7 @@ const AudioSampleEditor = ({
   onSaveSample,
   initialSelection
 }: AudioSampleEditorProps) => {
+  const { t } = useTranslation();
   const history = useEditHistory<AudioSample>();
   const resetHistory = history.reset;
   const sample = history.present;
@@ -515,7 +517,7 @@ const AudioSampleEditor = ({
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <EmptyState
           variant="error"
-          title="Could not open audio editor"
+          title={t("editor:ui.couldNotOpenAudioEditor", { defaultValue: "Could not open audio editor" })}
           description={error ?? "Audio could not be decoded."}
           actionText="Done"
           onAction={onClose}

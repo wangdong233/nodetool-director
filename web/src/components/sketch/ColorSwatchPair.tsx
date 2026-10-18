@@ -29,6 +29,7 @@ import {
 import { colorToHex6 } from "./types";
 import { colorSwatchSx } from "./sketchStyles";
 import ColorPickerPopover from "./ColorPickerPopover";
+import { useTranslation } from "react-i18next";
 
 /** Square edge (px) — matches colorSwatchSx. */
 const SWATCH = 24;
@@ -54,6 +55,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
   onSwapColors,
   onResetColors
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [fgAnchor, setFgAnchor] = useState<HTMLElement | null>(null);
   const [bgAnchor, setBgAnchor] = useState<HTMLElement | null>(null);
@@ -94,7 +96,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
         }}
       >
         <Tooltip
-          title="Background color"
+          title={t("timeline:attrs.backgroundColor", { defaultValue: "Background color" })}
           placement="right"
         >
           <Container
@@ -105,7 +107,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
             role="button"
             tabIndex={0}
             aria-haspopup="dialog"
-            aria-label="Background color"
+            aria-label={t("timeline:attrs.backgroundColor", { defaultValue: "Background color" })}
             sx={{
               ...colorSwatchSx,
               "&:focus-visible": focusRing(theme, 2),
@@ -123,7 +125,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
         </Tooltip>
 
         <Tooltip
-          title="Foreground color"
+          title={t("editor:ui.foregroundColor", { defaultValue: "Foreground color" })}
           placement="right"
         >
           <Container
@@ -134,7 +136,7 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
             role="button"
             tabIndex={0}
             aria-haspopup="dialog"
-            aria-label="Foreground color"
+            aria-label={t("editor:ui.foregroundColor", { defaultValue: "Foreground color" })}
             sx={{
               ...colorSwatchSx,
               "&:focus-visible": focusRing(theme, 2),

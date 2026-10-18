@@ -21,6 +21,7 @@ import type {
   PendingSecretRequest,
   SecretRequestOutcome
 } from "../../../stores/GlobalChatStore";
+import { useTranslation } from "react-i18next";
 
 interface SecretRequestCardProps {
   approvalId: string;
@@ -75,6 +76,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
   request,
   onResolve
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const updateSecret = useSecretsStore((s) => s.updateSecret);
@@ -122,7 +124,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
       <CardHeader
         divided
         icon={<KeyRoundedIcon fontSize="small" />}
-        title="Enter a credential"
+        title={t("editor:ui.enterACredential", { defaultValue: "Enter a credential" })}
         subtitle="Saved to your secret store. The agent never sees the value."
         trailing={<span className="secret-request-key">{request.key}</span>}
       />
@@ -155,7 +157,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
           type="password"
           autoComplete="off"
           label={request.key}
-          placeholder="Paste the key"
+          placeholder={t("editor:ui.pasteTheKey", { defaultValue: "Paste the key" })}
           value={value}
           onChange={handleChange}
           disabled={saving}
@@ -188,7 +190,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
             onClick={handleSave}
             startIcon={<KeyRoundedIcon />}
           >
-            {saving ? "Saving…" : "Save key"}
+            {saving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save key"}
           </EditorButton>
         </FlexRow>
       </div>

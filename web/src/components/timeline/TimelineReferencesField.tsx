@@ -25,6 +25,7 @@ import {
   BORDER_RADIUS,
   SPACING
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 export interface TimelineReferences {
   /** Image asset ids, in `[Image N]` order. */
@@ -99,6 +100,7 @@ const TimelineReferencesFieldInner: React.FC<TimelineReferencesFieldProps> = ({
   onChange,
   disabled
 }) => {
+  const { t } = useTranslation();
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
 
   const addImage = useCallback(
@@ -145,7 +147,7 @@ const TimelineReferencesFieldInner: React.FC<TimelineReferencesFieldProps> = ({
   return (
     <FlexColumn gap={SPACING.lg} data-testid="timeline-references">
       <FormField
-        label="Reference images"
+        label={t("storyboard:attrs.referenceImages", { defaultValue: "Reference images" })}
         helperText="Write [Image 1], [Image 2], … in the prompt to place each one."
       >
         <FlexColumn gap={SPACING.sm}>
@@ -179,22 +181,22 @@ const TimelineReferencesFieldInner: React.FC<TimelineReferencesFieldProps> = ({
         </FlexColumn>
       </FormField>
       <EntityTilesField
-        label="Entities"
+        label={t("editor:ui.entities", { defaultValue: "Entities" })}
         entities={value.entities}
         selectedIds={value.entities.map((entity) => entity.id)}
         onPick={toggleEntity}
         onRemove={toggleEntity}
         removeLabel={entityRemoveLabel}
-        emptyText="Choose a character, location, style or prop to keep it consistent in the clip."
+        emptyText={t("timeline:attrs.chooseAnEntityHint", { defaultValue: "Choose a character, location, style or prop to keep it consistent in the clip." })}
         readOnly={disabled}
         extraAction={
-          <CreateEntityButton label="New entity" onCreated={addEntity} />
+          <CreateEntityButton label={t("editor:ui.newEntity", { defaultValue: "New entity" })} onCreated={addEntity} />
         }
       />
       {imagePickerOpen && (
         <EntityAssetPickerDialog
           open
-          title="Pick a reference image"
+          title={t("editor:ui.pickAReferenceImage", { defaultValue: "Pick a reference image" })}
           onClose={() => setImagePickerOpen(false)}
           onPick={addImage}
         />

@@ -26,6 +26,7 @@ import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
+import { useTranslation } from "react-i18next";
 
 interface FolderValue {
   type: "folder";
@@ -33,6 +34,7 @@ interface FolderValue {
 }
 
 const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
+  const { t } = useTranslation();
   const id = `folder-${props.property.name}-${props.propertyIndex}`;
   const load = useAssetStore((state) => state.load);
   const createFolder = useAssetStore((state) => state.createFolder);
@@ -147,7 +149,7 @@ const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
           options={folderOptions}
           value={selectValue}
           onChange={handleFolderSelect}
-          placeholder="Select a folder"
+          placeholder={t("editor:ui.selectAFolder", { defaultValue: "Select a folder" })}
         />
         <EditorButton
           onClick={handleOpenMenu}
@@ -176,7 +178,7 @@ const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
           <TextInput
             className="input-field"
             inputRef={inputRef}
-            placeholder="Folder name"
+            placeholder={t("editor:ui.folderName", { defaultValue: "Folder name" })}
             autoFocus
             spellCheck={false}
             autoComplete="off"

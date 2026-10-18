@@ -28,6 +28,7 @@ import { useGuidedFlowStarters } from "../workspace/useGuidedFlowStarters";
 import { TutorialCard } from "./TutorialCard";
 import { TUTORIALS, getTutorial } from "./tutorialsData";
 import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -219,6 +220,7 @@ const styles = (theme: Theme) =>
   });
 
 const TutorialsPage: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -315,7 +317,7 @@ const TutorialsPage: React.FC = () => {
         icon={
           <Logo small width="26px" height="26px" fontSize="1em" borderRadius={BORDER_RADIUS.sm} />
         }
-        title="Tutorials"
+        title={t("nav:rail.tutorials", { defaultValue: "Tutorials" })}
         subtitle="Short, beginner-friendly walkthroughs of NodeTool"
         hideSubtitleOnMobile
         actions={
@@ -433,7 +435,7 @@ const TutorialsPage: React.FC = () => {
                   disabled={openingTask}
                   aria-busy={openingTask}
                 >
-                  {openingTask ? "Opening task…" : "Open task"}
+                  {openingTask ? t("tools:tutorials.openingTask", { defaultValue: "Opening task…" }) : "Open task"}
                 </EditorButton>
               ) : (
                 <EditorButton variant="contained" onClick={() => navigate("/workspace")}>

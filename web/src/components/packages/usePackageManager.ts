@@ -470,7 +470,7 @@ export function usePackageManager(params: {
         badge: item.required ? "alwaysOn" : null,
         toggle: {
           enabled: item.enabled,
-          label: item.enabled ? "Enabled" : "Disabled",
+          label: item.enabled ? i18n.t("editor:ui.enabled", { defaultValue: "Enabled" }) : "Disabled",
           disabled: item.required,
           onChange: item.onToggle
         }

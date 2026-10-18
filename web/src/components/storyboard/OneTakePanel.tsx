@@ -58,6 +58,7 @@ import { useVideoModelsByProvider } from "../../hooks/useModelsByProvider";
 import type { VideoModelValue } from "../../stores/ApiTypes";
 import { ASPECT_OPTIONS } from "./aspectOptions";
 import { modelFieldSx } from "./shotRenderModels";
+import { useTranslation } from "react-i18next";
 
 const OneTakeRenderDialog = React.lazy(() => import("./OneTakeRenderDialog"));
 
@@ -106,6 +107,7 @@ const OneTakePanelInner: React.FC<OneTakePanelProps> = ({
   id,
   onClose
 }) => {
+  const { t } = useTranslation();
   const { shots } = useBoard(boardId);
   const board = useStoryboardStore((state) => state.boards[boardId]);
   const oneTake = board?.oneTake;
@@ -242,25 +244,25 @@ const OneTakePanelInner: React.FC<OneTakePanelProps> = ({
     <Panel id={id} padding={SPACING.xl} sx={{ width: "100%" }}>
       <FlexColumn gap={SPACING.xl} data-testid="one-take-panel">
         <SectionHeader
-          title="One take"
+          title={t("storyboard:attrs.oneTake", { defaultValue: "One take" })}
           subtitle="Render the whole board as one continuous clip."
           size="small"
-          action={<CloseButton tooltip="Close one take" onClick={onClose} />}
+          action={<CloseButton tooltip={t("storyboard:attrs.closeOneTake", { defaultValue: "Close one take" })} onClick={onClose} />}
         />
 
         <TextArea
           minRows={1}
           size="small"
-          label="Your prompt"
-          placeholder="One continuous take, no cuts."
-          helperText="Brand, rules, light and anything else. Refer to images as [Image N]."
+          label={t("storyboard:attrs.yourPrompt", { defaultValue: "Your prompt" })}
+          placeholder={t("storyboard:attrs.oneContinuousTakeNoCuts", { defaultValue: "One continuous take, no cuts." })}
+          helperText={t("storyboard:attrs.brandRulesLightAndAnythingElse", { defaultValue: "Brand, rules, light and anything else. Refer to images as [Image N]." })}
           value={oneTake?.prompt ?? ""}
           onChange={handlePromptChange}
         />
 
         <Box data-testid="one-take-settings">
-          <FormSection label="Render settings">
-            <FormField label="Video model" sx={modelFieldSx}>
+          <FormSection label={t("storyboard:attrs.renderSettings", { defaultValue: "Render settings" })}>
+            <FormField label={t("storyboard:attrs.videoModel", { defaultValue: "Video model" })} sx={modelFieldSx}>
               <VideoModelSelect
                 value={model?.id ?? ""}
                 provider={model?.provider}
@@ -271,7 +273,7 @@ const OneTakePanelInner: React.FC<OneTakePanelProps> = ({
             <FlexRow gap={SPACING.lg} wrap>
               <Box sx={settingSx}>
                 <SelectField
-                  label="Duration"
+                  label={t("storyboard:attrs.duration", { defaultValue: "Duration" })}
                   size="small"
                   value={pickedValue(
                     oneTake?.duration_seconds,
@@ -280,13 +282,13 @@ const OneTakePanelInner: React.FC<OneTakePanelProps> = ({
                   onChange={handleDurationChange}
                   options={durationOptions}
                   description={
-                    scaled ? "Shot windows scale to fit." : undefined
+                    scaled ? t("storyboard:attrs.shotWindowsScaleToFit", { defaultValue: "Shot windows scale to fit." }) : undefined
                   }
                 />
               </Box>
               <Box sx={settingSx}>
                 <SelectField
-                  label="Aspect ratio"
+                  label={t("storyboard:attrs.aspectRatio", { defaultValue: "Aspect ratio" })}
                   size="small"
                   value={pickedValue(oneTake?.aspect_ratio, aspectOptions)}
                   onChange={handleAspectChange}
@@ -295,7 +297,7 @@ const OneTakePanelInner: React.FC<OneTakePanelProps> = ({
               </Box>
               <Box sx={settingSx}>
                 <SelectField
-                  label="Resolution"
+                  label={t("storyboard:attrs.resolution", { defaultValue: "Resolution" })}
                   size="small"
                   value={pickedValue(oneTake?.resolution, resolutionOptions)}
                   onChange={handleResolutionChange}
@@ -308,12 +310,12 @@ const OneTakePanelInner: React.FC<OneTakePanelProps> = ({
 
         <FlexColumn gap={SPACING.sm}>
           <SectionHeader
-            title="Compiled from the storyboard"
+            title={t("storyboard:attrs.compiledFromTheStoryboard", { defaultValue: "Compiled from the storyboard" })}
             size="small"
             action={
               <CopyButton
                 value={compiled.compiled}
-                tooltip="Copy compiled prompt"
+                tooltip={t("storyboard:attrs.copyCompiledPrompt", { defaultValue: "Copy compiled prompt" })}
                 buttonSize="small"
               />
             }

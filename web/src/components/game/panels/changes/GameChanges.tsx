@@ -12,6 +12,7 @@ import { diffAnyGameDocuments as diffGameDocuments } from "../../../../stores/ga
 import { getGameDraftStore } from "../../../../stores/game/GameDraftStore";
 import { acceptServerAnyGameUnit as acceptServerGameUnit, anyGameMergeAdapter as gameMergeAdapter } from "../../../../stores/game/anyMerge";
 import { Caption, CONTROL, FlexColumn, FlexRow, FONT_SIZE_SANS, Label, SPACING, Text, ToolbarIconButton } from "../../../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface GameChangesProps {
   gameId: string;
@@ -22,6 +23,7 @@ interface GameChangesProps {
 }
 
 export default function GameChanges({ gameId, document, onOps, onHover, onFocusMessage }: GameChangesProps) {
+  const { t } = useTranslation();
   const { data: changes } = trpc.games.draftChanges.useQuery({ id: gameId }, { staleTime: 5_000 });
   const [undoing, setUndoing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -88,10 +90,10 @@ export default function GameChanges({ gameId, document, onOps, onHover, onFocusM
             "&:hover": { bgcolor: "action.hover" } }}>
           <Text size="small" weight={400} truncate title={summary} sx={{ flex: 1, minWidth: 0, color: "text.primary" }}>{summary}</Text>
           {group.threadId && group.messageId && <ToolbarIconButton icon={<ChatBubbleOutlineIcon fontSize="small" />}
-            tooltip="View in chat" onClick={() => {
+            tooltip={t("game:changes.viewInChat", { defaultValue: "View in chat" })} onClick={() => {
               if (group.threadId && group.messageId) onFocusMessage(group.threadId, group.messageId);
             }} />}
-          <ToolbarIconButton icon={<UndoIcon fontSize="small" />} tooltip="Undo" disabled={undoing !== null}
+          <ToolbarIconButton icon={<UndoIcon fontSize="small" />} tooltip={t("timeline:shortcuts.undo", { defaultValue: "Undo" })} disabled={undoing !== null}
             onClick={() => void undo(group)} />
         </FlexRow>;
       })}

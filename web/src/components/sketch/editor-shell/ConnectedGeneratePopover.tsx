@@ -60,6 +60,7 @@ import { useLayerCostEstimate } from "../../../hooks/sketch/useLayerCostEstimate
 import CostEstimateLine from "../../costs/CostEstimateLine";
 import { generationCostLine } from "../../costs/costLine";
 import { useAlertNotifier } from "../../../hooks/useAlertNotifier";
+import { useTranslation } from "react-i18next";
 
 /** Most recent direct-gen binding's model, to seed the form's picker. */
 function seedModelFromBindings() {
@@ -92,6 +93,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
   anchorEl,
   onClose
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const docW = useSketchStore((s) => s.document.canvas.width);
@@ -266,7 +268,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
           <TextArea
             value={prompt}
             onChange={(value) => setPrompt(value)}
-            placeholder="Describe the image…"
+            placeholder={t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" })}
             autoFocus
             minRows={2}
             maxRows={6}
@@ -349,7 +351,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
           <FlexRow justify="flex-end" fullWidth>
             <CostEstimateLine
               estimate={generationCostLine(costEstimate)}
-              title="Estimated cost of this generation"
+              title={t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
             />
           </FlexRow>
 

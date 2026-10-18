@@ -17,6 +17,7 @@ import type { Entity } from "@nodetool-ai/protocol";
 import { MentionAssetTile } from "./MentionAssetTile";
 import { MentionEntityTile } from "./MentionEntityTile";
 import type { MentionTab } from "./useAssetMentionSearch";
+import { useTranslation } from "react-i18next";
 
 const MENTION_TABS: TabItem[] = [
   { value: "recent", label: "Recent" },
@@ -183,17 +184,16 @@ export const AssetMentionMenu: React.FC<AssetMentionMenuProps> = ({
   onLoadMore,
   className
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const menuStyles = useMemo(() => assetMentionMenuStyles(theme), [theme]);
   const entityCount = entities.length;
   const emptyMessage =
     activeTab === "recent"
       ? queryString
-        ? "No recent assets match."
-        : "No assets used yet. Generate or drag one in."
+        ? t("editor:ui.noRecentAssetsMatch", { defaultValue: "No recent assets match." }) : "No assets used yet. Generate or drag one in."
       : queryString
-        ? "No assets match."
-        : "No saved assets yet.";
+        ? t("editor:ui.noAssetsMatch", { defaultValue: "No assets match." }) : "No saved assets yet.";
 
   const handleTabChange = (tab: string) => {
     if (tab === "recent" || tab === "saved") {

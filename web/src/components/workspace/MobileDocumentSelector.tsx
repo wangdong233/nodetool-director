@@ -30,6 +30,7 @@ import {
 } from "../ui_primitives";
 import { PROJECT_HOME_GLYPH, tabDisplayTitle } from "./tabTypeIdentity";
 import { PROJECT_COLOR } from "../projects/projectIdentity";
+import { useTranslation } from "react-i18next";
 
 interface MobileDocumentSelectorProps {
   tabs: WorkspaceTab[];
@@ -123,6 +124,7 @@ const DocumentStatus = memo(function DocumentStatus({
 }: {
   tab: WorkspaceTab;
 }) {
+  const { t } = useTranslation("ui2");
   const workflowId = tab.type === "workflow" ? tab.ref : undefined;
   const isDirty = useWorkflowDirty(workflowId);
   const isRunning = useIsWorkflowRunning(workflowId);
@@ -137,7 +139,7 @@ const DocumentStatus = memo(function DocumentStatus({
         <LoadingSpinner inline size={14} color="primary" />
       )}
       {isDirty && (
-        <StatusDot tone="warning" size="medium" label="unsaved changes" />
+        <StatusDot tone="warning" size="medium" label={t("ui2:attrs.unsavedChanges", { defaultValue: "unsaved changes" })} />
       )}
     </>
   );
@@ -229,7 +231,7 @@ const MobileDocumentSelector = ({
       <MobileBottomSheet
         open={open}
         onClose={closeSheet}
-        title="Open documents"
+        title={t("nav:tabs.openDocuments", { defaultValue: "Open documents" })}
         ariaLabel="Switch between open documents"
       >
         <div css={listStyles}>

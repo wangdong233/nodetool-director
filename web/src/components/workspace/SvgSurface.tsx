@@ -26,6 +26,7 @@ import {
 } from "../ui_primitives";
 import MonacoPane from "./MonacoPane";
 import SvgPreview from "./SvgPreview";
+import { useTranslation } from "react-i18next";
 
 const SVG_CONTENT_TYPE = "image/svg+xml";
 
@@ -75,6 +76,7 @@ const styles = (theme: Theme) =>
  * renders to. Saving writes the markup back to the asset.
  */
 const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const surfaceStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -185,7 +187,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
         ) : (
           <EmptyState
             variant="no-data"
-            title="SVG not found"
+            title={t("editor:ui.svgNotFound", { defaultValue: "SVG not found" })}
             description="It may have been deleted."
           />
         )}
@@ -234,7 +236,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
             disabled={!isDirty || isSaving}
             onClick={handleSave}
           >
-            {isSaving ? "Saving…" : "Save"}
+            {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
           </EditorButton>
         </FlexRow>
       </Toolbar>

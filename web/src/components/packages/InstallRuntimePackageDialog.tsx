@@ -13,6 +13,7 @@ import {
 import useRuntimePackagePromptStore from "../../stores/RuntimePackagePromptStore";
 import useRuntimePackagesStore from "../../stores/RuntimePackagesStore";
 import { useOpenPackageManagerInNewTab } from "../../hooks/useOpenPackageManager";
+import { useTranslation } from "react-i18next";
 
 /** Model lists a newly installed local runtime can add entries to. */
 const MODEL_QUERY_KEYS = [
@@ -31,6 +32,7 @@ const MODEL_QUERY_KEYS = [
  * Package Manager.
  */
 const InstallRuntimePackageDialog: React.FC = () => {
+  const { t } = useTranslation();
   const packageId = useRuntimePackagePromptStore((s) => s.packageId);
   const dismiss = useRuntimePackagePromptStore((s) => s.dismiss);
   const available = useRuntimePackagesStore((s) => s.available);
@@ -116,7 +118,7 @@ const InstallRuntimePackageDialog: React.FC = () => {
           </Button>
         }
       >
-        <Text size="small">Try again to use it.</Text>
+        <Text size="small">{t("editor:ui.tryAgainToUseIt", { defaultValue: "Try again to use it." })}</Text>
       </Dialog>
     );
   }
@@ -127,7 +129,7 @@ const InstallRuntimePackageDialog: React.FC = () => {
       onClose={phase === "installing" ? undefined : dismiss}
       title={`Install ${name}?`}
       onConfirm={handleInstall}
-      confirmText={phase === "installing" ? "Installing…" : "Install"}
+      confirmText={phase === "installing" ? t("editor:ui.installing", { defaultValue: "Installing…" }) : "Install"}
       cancelText="Not now"
       confirmDisabled={phase === "installing"}
       cancelDisabled={phase === "installing"}

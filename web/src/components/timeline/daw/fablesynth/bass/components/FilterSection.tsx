@@ -6,6 +6,7 @@ import { setupCanvas } from '../../components/displays/canvas';
 import { useBassStore } from '../bassStoreContext';
 import { BassKnob } from './BassKnob';
 import { BassStepper } from './BassStepper';
+import { useTranslation } from "react-i18next";
 
 const FMIN = 20, FMAX = 20000;
 
@@ -100,10 +101,11 @@ function FilterView() {
 }
 
 export function FilterSection() {
+  const { t } = useTranslation("timeline");
   return (
     <section className="panel bl-filter-section" data-accent="f">
       <div className="panel-head">
-        <h2>FILTER</h2>
+        <h2>{t("timeline:attrs.filter", { defaultValue: "FILTER" })}</h2>
         <div className="bl-filter-stepper">
           <BassStepper paramId="flt.type" accent="f" />
         </div>

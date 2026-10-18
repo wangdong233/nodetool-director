@@ -7,6 +7,7 @@ import { Label, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
 import { ColumnDef } from "../../stores/ApiTypes";
 import isEqual from "../../utils/isEqual";
 import Column from "./Column";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -155,6 +156,7 @@ const ColumnsManager: React.FC<ColumnsManagerProps> = ({
   onChange,
   onDeleteColumn
 }: ColumnsManagerProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const [localColumns, setLocalColumns] = useState(columns);
@@ -227,8 +229,8 @@ const ColumnsManager: React.FC<ColumnsManagerProps> = ({
   return (
     <div css={cssStyles}>
       <div className="labels">
-        <Label className="label-name">Name</Label>
-        <Label className="label-datatype">Data type</Label>
+        <Label className="label-name">{t("editor:asset.info.name", { defaultValue: "Name" })}</Label>
+        <Label className="label-datatype">{t("ui2:attrs.dataType", { defaultValue: "Data type" })}</Label>
       </div>
       {localColumns.map((field, index) => (
         <Column

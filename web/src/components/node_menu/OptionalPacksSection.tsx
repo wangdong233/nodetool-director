@@ -46,6 +46,7 @@ import { useSecrets } from "../../hooks/useSecrets";
 import { getRequiredKeyForBuiltinPack } from "../../utils/providerPacks";
 import { getSecretDisplayName } from "../../utils/nodeProvider";
 import { isElectron } from "../../lib/env";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -119,6 +120,7 @@ const popoverStyles = (theme: Theme) =>
   });
 
 const OptionalPacksSection = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -209,7 +211,7 @@ const OptionalPacksSection = () => {
 
   return (
     <div css={styles(theme)} className="optional-packs-section">
-      <Tooltip title="Reveal advanced and niche node packs" describeChild>
+      <Tooltip title={t("editor:ui.revealAdvancedAndNicheNodePacks", { defaultValue: "Reveal advanced and niche node packs" })} describeChild>
         <button
           type="button"
           className="optional-packs-trigger"
@@ -218,7 +220,7 @@ const OptionalPacksSection = () => {
           aria-expanded={Boolean(anchorEl)}
         >
           <Inventory2OutlinedIcon className="icon" />
-          <span className="label">Optional packs</span>
+          <span className="label">{t("ui2:attrs.optionalPacks", { defaultValue: "Optional packs" })}</span>
           <span className="count">
             {enabledCount > 0 ? `${enabledCount}/${total}` : `+${total}`}
           </span>

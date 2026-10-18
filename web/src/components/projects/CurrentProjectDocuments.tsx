@@ -20,10 +20,12 @@ import { useRenameDocument } from "../../hooks/useRenameDocument";
 import ProjectDocumentCard from "./ProjectDocumentCard";
 import ProjectSelector from "./ProjectSelector";
 import type { ProjectDocument } from "./projectStatus";
+import { useTranslation } from "react-i18next";
 
 const DOCUMENTS_PER_PAGE = 4;
 
 const CurrentProjectDocuments = () => {
+  const { t } = useTranslation();
   const activeProjectId = useWorkspaceTabsStore(
     (state) => state.activeProjectId
   );
@@ -103,7 +105,7 @@ const CurrentProjectDocuments = () => {
   const documents = data?.documents ?? [];
   const firstDocument = page * DOCUMENTS_PER_PAGE;
   return (
-    <FlexColumn gap={SPACING.md} aria-label="Current project documents">
+    <FlexColumn gap={SPACING.md} aria-label={t("home:docs.sectionAria", { defaultValue: "Current project documents" })}>
       <FlexRow align="center" gap={SPACING.md} wrap>
         <ProjectSelector inline />
         <Caption color="muted">

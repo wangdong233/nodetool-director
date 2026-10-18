@@ -23,6 +23,7 @@ import type { UnifiedModel } from "../../../stores/ApiTypes";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import TerminalRoundedIcon from "@mui/icons-material/TerminalRounded";
+import { useTranslation } from "react-i18next";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(8px); }
@@ -129,6 +130,7 @@ const NodeList: React.FC<{
   label: string;
   isRecommended?: boolean;
 }> = ({ items, label, isRecommended }) => {
+  const { t } = useTranslation();
   if (items.length === 0) {
     return (
       <Text size="small" className="empty-state">
@@ -158,7 +160,7 @@ const NodeList: React.FC<{
                 </Text>
                 {isRecommended && (
                   <Chip
-                    label="Best match"
+                    label={t("editor:ui.bestMatch", { defaultValue: "Best match" })}
                     compact
                     color="primary"
                     variant="outlined"
@@ -186,7 +188,7 @@ const NodeList: React.FC<{
             <div className="copy-button">
               <CopyButton
                 value={node.nodeType}
-                tooltip="Copy node type"
+                tooltip={t("editor:ui.copyNodeType", { defaultValue: "Copy node type" })}
                 tooltipPlacement="left"
               />
             </div>
@@ -210,6 +212,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
   model,
   compatibility
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   return (
@@ -218,7 +221,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      title="Node compatibility"
+      title={t("editor:ui.nodeCompatibility", { defaultValue: "Node compatibility" })}
     >
       <div css={styles(theme)}>
         <FlexColumn gap={SPACING.lg}>
@@ -260,7 +263,7 @@ const ModelCompatibilityDialog: React.FC<ModelCompatibilityDialogProps> = ({
             </FlexRow>
             <NodeList
               items={compatibility.recommended}
-              label="recommended"
+              label={t("editor:ui.recommended", { defaultValue: "recommended" })}
               isRecommended
             />
           </FlexColumn>

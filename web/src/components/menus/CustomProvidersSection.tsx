@@ -28,6 +28,7 @@ import {
 import { ConfirmDialog } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient, type RouterOutputs } from "../../trpc/client";
+import { useTranslation } from "react-i18next";
 
 type CustomProviderRow = RouterOutputs["customProviders"]["list"][number];
 type TestResult = RouterOutputs["customProviders"]["test"];
@@ -131,7 +132,7 @@ const ProviderRow = memo(function ProviderRow({
             </Text>
             <Chip label={provider.provider_id} compact variant="outlined" />
             {provider.has_api_key && (
-              <Chip label="Key set" compact variant="outlined" color="success" />
+              <Chip label={t("editor:ui.keySet", { defaultValue: "Key set" })} compact variant="outlined" color="success" />
             )}
           </FlexRow>
           <Caption sx={{ opacity: 0.55, wordBreak: "break-all" }}>
@@ -181,7 +182,7 @@ const ProviderRow = memo(function ProviderRow({
           onClick={handleTest}
           disabled={testing}
         >
-          {testing ? "Testing…" : "Test"}
+          {testing ? t("editor:ui.testing", { defaultValue: "Testing…" }) : "Test"}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -212,6 +213,7 @@ const ProviderRow = memo(function ProviderRow({
  * built-in provider cards above it.
  */
 export const CustomProvidersSection = memo(function CustomProvidersSection() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const addNotification = useNotificationStore((s) => s.addNotification);
@@ -431,8 +433,8 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       {rows.length === 0 ? (
         <EmptyState
           variant="no-results"
-          title="No endpoints yet"
-          description="Add a base URL and an API key to use any OpenAI-compatible provider."
+          title={t("editor:ui.noEndpointsYet", { defaultValue: "No endpoints yet" })}
+          description={t("tools:menus.addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider", { defaultValue: "Add a base URL and an API key to use any OpenAI-compatible provider." })}
         />
       ) : (
         <FlexColumn sx={{ gap: theme.spacing(2) }}>
@@ -454,7 +456,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
         open={dialogOpen}
         onClose={handleClose}
         fullWidth
-        title={editingSlug ? "Edit endpoint" : "Add OpenAI-compatible endpoint"}
+        title={editingSlug ? t("editor:ui.editEndpoint", { defaultValue: "Edit endpoint" }) : "Add OpenAI-compatible endpoint"}
         onConfirm={handleSave}
         confirmText={editingSlug ? "Save" : "Add"}
         confirmDisabled={
@@ -463,17 +465,17 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       >
         <FlexColumn gap={SPACING.lg}>
           <TextInput
-            label="Name"
+            label={t("editor:asset.info.name", { defaultValue: "Name" })}
             value={draft.name}
             onChange={handleNameChange}
             fullWidth
-            placeholder="My Proxy"
+            placeholder={t("editor:ui.myProxy", { defaultValue: "My Proxy" })}
             autoFocus
             variant="outlined"
             size="small"
           />
           <TextInput
-            label="Slug"
+            label={t("editor:ui.slug", { defaultValue: "Slug" })}
             value={draft.slug}
             onChange={handleSlugChange}
             fullWidth
@@ -483,13 +485,12 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             size="small"
             errorMessage={
               duplicateSlug
-                ? "That slug is already in use."
-                : (slugError ?? undefined)
+                ? t("editor:ui.thatSlugIsAlreadyInUse", { defaultValue: "That slug is already in use." }) : (slugError ?? undefined)
             }
             helperText={`Provider id: custom_${draft.slug || "…"}`}
           />
           <TextInput
-            label="Base URL"
+            label={t("editor:ui.baseURL", { defaultValue: "Base URL" })}
             value={draft.baseUrl}
             onChange={handleBaseUrlChange}
             fullWidth
@@ -497,50 +498,50 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             variant="outlined"
             size="small"
             errorMessage={urlError ?? undefined}
-            helperText="Include the version path the endpoint serves, usually /v1."
+            helperText={t("tools:menus.includeTheVersionPathTheEndpointServesUsuallyV1", { defaultValue: "Include the version path the endpoint serves, usually /v1." })}
           />
           <TextInput
-            label="API key"
+            label={t("tools:menus.apiKey2", { defaultValue: "API key" })}
             type="password"
             value={draft.apiKey}
             onChange={handleApiKeyChange}
             fullWidth
             placeholder={
-              editingSlug ? "Leave blank to keep the stored key" : "Optional"
+              editingSlug ? t("editor:ui.leaveBlankToKeepTheStoredKey", { defaultValue: "Leave blank to keep the stored key" }) : "Optional"
             }
             variant="outlined"
             size="small"
             helperText={`The URL and key are encrypted and stored per account. The same values can come from the environment instead, as CUSTOM_${envSlug}_BASE_URL and CUSTOM_${envSlug}_API_KEY.`}
           />
           <TextInput
-            label="Models"
+            label={t("editor:ui.models", { defaultValue: "Models" })}
             value={draft.models}
             onChange={handleModelsChange}
             fullWidth
-            placeholder="Leave blank to read GET /models"
+            placeholder={t("editor:ui.leaveBlankToReadGETModels", { defaultValue: "Leave blank to read GET /models" })}
             variant="outlined"
             size="small"
-            helperText="Comma-separated model ids, for endpoints with no /models route."
+            helperText={t("tools:menus.commaSeparatedModelIdsForEndpointsWithNoModelsRoute", { defaultValue: "Comma-separated model ids, for endpoints with no /models route." })}
           />
           <TextInput
-            label="Image models"
+            label={t("editor:ui.imageModels", { defaultValue: "Image models" })}
             value={draft.imageModels}
             onChange={handleImageModelsChange}
             fullWidth
-            placeholder="Optional, e.g. flux-dev, seedream-4"
+            placeholder={t("editor:ui.optionalEgFluxdevSeedream4", { defaultValue: "Optional, e.g. flux-dev, seedream-4" })}
             variant="outlined"
             size="small"
-            helperText="Detected from the model list. Add ids that Test misses. Calls go to /images/generations."
+            helperText={t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations", { defaultValue: "Detected from the model list. Add ids that Test misses. Calls go to /images/generations." })}
           />
           <TextInput
-            label="Video models"
+            label={t("editor:ui.videoModels", { defaultValue: "Video models" })}
             value={draft.videoModels}
             onChange={handleVideoModelsChange}
             fullWidth
-            placeholder="Optional, e.g. kling-v2, veo-3"
+            placeholder={t("editor:ui.optionalEgKlingv2Veo3", { defaultValue: "Optional, e.g. kling-v2, veo-3" })}
             variant="outlined"
             size="small"
-            helperText="Detected from the model list. Add ids that Test misses. Calls go to /videos."
+            helperText={t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos", { defaultValue: "Detected from the model list. Add ids that Test misses. Calls go to /videos." })}
           />
         </FlexColumn>
       </Dialog>

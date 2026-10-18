@@ -43,6 +43,7 @@ import {
 } from "./entryCompatibility";
 import ExampleNeedsPill from "./ExampleNeedsPill";
 import { runsAsIs } from "../../utils/exampleNeeds";
+import { useTranslation } from "react-i18next";
 
 /** Rows shown on the dashboard before the user searches or opens the Examples tab. */
 const MAX_VISIBLE = 18;
@@ -286,6 +287,7 @@ interface DashboardTemplatesProps {
 const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
   fullPage = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const metadata = useMetadataStore((state) => state.metadata);
@@ -355,14 +357,14 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
       css={fullPage ? [styles(theme), fullPageStyles] : styles(theme)}
     >
       <div css={sectionWrap}>
-        <DashboardSectionHeader title="Start from a template" count={countLabel}>
+        <DashboardSectionHeader title={t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" })} count={countLabel}>
           <DashboardSearchBox
             ref={searchRef}
             value={query}
             onChange={setQuery}
             placeholder="Search templates by name, tag"
             kbd="/"
-            aria-label="Search templates"
+            aria-label={t("editor:ui.searchTemplates", { defaultValue: "Search templates" })}
           />
           {!fullPage && (
             <SectionLink onClick={handleViewAllTemplates}>
@@ -371,7 +373,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
           )}
         </DashboardSectionHeader>
 
-        <div className="cats" role="group" aria-label="Filter by category">
+        <div className="cats" role="group" aria-label={t("editor:ui.filterByCategory", { defaultValue: "Filter by category" })}>
           <Chip
             compact
             label="All"
@@ -404,9 +406,9 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
           <div className="tpl-empty">
             <EmptyState
               variant="error"
-              title="Couldn't load templates"
-              description="Try again in a moment."
-              actionText="Retry"
+              title={t("editor:ui.couldntLoadTemplates", { defaultValue: "Couldn't load templates" })}
+              description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })}
+              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </div>
@@ -415,23 +417,23 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
             {query.trim() ? (
               <EmptyState
                 variant="no-results"
-                title="No templates match your search"
-                description="Try a different search term."
-                actionText="Clear search"
+                title={t("editor:ui.noTemplatesMatchYourSearch", { defaultValue: "No templates match your search" })}
+                description={t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })}
+                actionText={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
                 onAction={() => setQuery("")}
               />
             ) : category !== "all" ? (
               <EmptyState
                 variant="no-results"
-                title="No templates in this category"
-                actionText="Show all templates"
+                title={t("editor:ui.noTemplatesInThisCategory", { defaultValue: "No templates in this category" })}
+                actionText={t("editor:ui.showAllTemplates", { defaultValue: "Show all templates" })}
                 onAction={() => setCategory("all")}
               />
             ) : (
               <EmptyState
                 variant="no-data"
-                title="No templates available"
-                description="Templates will appear here when available."
+                title={t("editor:ui.noTemplatesAvailable", { defaultValue: "No templates available" })}
+                description={t("editor:ui.templatesWillAppearHereWhenAvailable", { defaultValue: "Templates will appear here when available." })}
               />
             )}
           </div>

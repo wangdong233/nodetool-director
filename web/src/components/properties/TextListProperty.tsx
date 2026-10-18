@@ -22,6 +22,7 @@ import {
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { useAsset } from "../../serverState/useAsset";
+import { useTranslation } from "react-i18next";
 
 interface TextItem {
   uri: string;
@@ -165,6 +166,7 @@ const flattenTextItems = (items: unknown): TextItem[] => {
 };
 
 const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const id = `text-list-${props.property.name}-${props.propertyIndex}`;
   const { uploadAsset } = useAssetUpload();
@@ -305,7 +307,7 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
 
     try {
       const result = await window.api.dialog.openFile({
-        title: "Select text files",
+        title: i18n.t("editor:ui.selectTextFiles", { defaultValue: "Select text files" }),
         filters: [
           { name: "Text files", extensions: ["txt", "md", "json", "csv", "xml", "html", "htm", "yaml", "yml", "log", "ini", "cfg", "conf"] }
         ],
@@ -430,14 +432,14 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
                 className="remove-button"
                 onClick={removeButtonClickHandlers[index]}
                 buttonSize="small"
-                tooltip="Remove text file"
+                tooltip={t("editor:ui.removeTextFile", { defaultValue: "Remove text file" })}
               />
             </div>
           ))}
         </div>
       )}
 
-      <Tooltip title="Click to select text files or drag and drop">
+      <Tooltip title={t("editor:ui.clickToSelectTextFilesOrDragAndDrop", { defaultValue: "Click to select text files or drag and drop" })}>
         <div
           role="button"
           tabIndex={0}
@@ -448,7 +450,7 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
           onDragLeave={handleDragLeave}
           onDrop={onDrop}
         >
-          <p>Click or drop text files here</p>
+          <p>{t("ui2:attrs.clickOrDropTextFilesHere", { defaultValue: "Click or drop text files here" })}</p>
         </div>
       </Tooltip>
     </div>

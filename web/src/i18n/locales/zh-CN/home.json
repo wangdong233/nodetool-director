@@ -95,6 +95,7 @@
     "empty": "此项目还没有文档。",
     "previous": "上一页",
     "next": "下一页",
+    "nextCapitalized": "下一页",
     "range": "第{{first}}–{{last}}条，共{{total}}条",
     "sectionAria": "当前项目文档"
   },

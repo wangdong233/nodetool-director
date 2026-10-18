@@ -47,6 +47,7 @@ import { useSceneAiRender } from "../../hooks/model3d/useSceneAiRender";
 import { deserializeDragData, DRAG_DATA_MIME } from "../../lib/dragdrop/serialization";
 import { deriveImageSizePreset } from "../../stores/MediaGenerationStore";
 import { CAPTURE_PASSES, type CapturePass } from "./aiRender";
+import { useTranslation } from "react-i18next";
 
 /** A viewport capture and the pixel size it was drawn at. */
 export interface ViewportCapture {
@@ -114,6 +115,7 @@ const isImageAsset = (asset: Pick<Asset, "content_type">): boolean =>
   asset.content_type.startsWith("image/");
 
 const AiRenderPanel = ({ capture }: AiRenderPanelProps) => {
+  const { t } = useTranslation("editor");
   const theme = useTheme();
   const { render } = useSceneAiRender();
 
@@ -513,7 +515,7 @@ const AiRenderPanel = ({ capture }: AiRenderPanelProps) => {
                         {entry.status === "rendering" ? (
                           <LoadingSpinner inline size={14} />
                         ) : (
-                          <Caption color="error">Failed</Caption>
+                          <Caption color="error">{t("editor:ui.failed", { defaultValue: "Failed" })}</Caption>
                         )}
                       </FlexRow>
                     )}

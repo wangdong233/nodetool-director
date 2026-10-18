@@ -19,7 +19,7 @@
  *   tags={tags}
  *   onTagsChange={setTags}
  *   placeholder="Add a tag..."
- *   label="Tags"
+ *   label={t("editor:ui.tags", { defaultValue: "Tags" })}
  * />
  */
 
@@ -37,6 +37,7 @@ import CloseIcon from "@mui/icons-material/CloseOutlined";
 import AddIcon from "@mui/icons-material/AddOutlined";
 import { CONTROL, MOTION } from "./tokens";
 import { Tooltip } from "./Tooltip";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -154,6 +155,7 @@ export const TagInput: React.FC<TagInputProps> = memo(
     chipSize = "small",
     className,
   }) {
+    const { t } = useTranslation();
     const theme = useTheme();
     const [inputValue, setInputValue] = useState("");
     const [validationError, setValidationError] = useState<string>("");
@@ -325,17 +327,17 @@ export const TagInput: React.FC<TagInputProps> = memo(
             onKeyDown={handleInputKeyDown}
             placeholder={tags.length === 0 ? placeholder : ""}
             disabled={disabled || isMaxReached}
-            aria-label="Add new tag"
+            aria-label={t("ui:attrs.addNewTag", { defaultValue: "Add new tag" })}
             aria-invalid={hasError}
             aria-describedby={displayHelperText ? `${label || "tag"}-helper-text` : undefined}
           />
           {!disabled && !isMaxReached && inputValue.trim() && (
-            <Tooltip title="Add tag">
+            <Tooltip title={t("ui:attrs.addTag", { defaultValue: "Add tag" })}>
               <IconButton
                 className="add-button"
                 size="small"
                 onClick={handleAddButtonClick}
-                aria-label="Add tag"
+                aria-label={t("ui:attrs.addTag", { defaultValue: "Add tag" })}
               >
                 <AddIcon fontSize="small" />
               </IconButton>

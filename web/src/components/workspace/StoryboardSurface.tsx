@@ -37,6 +37,7 @@ import {
   useStoryboardSetupFlow,
   useStoryboardSetupStage
 } from "../setup/storyboard/useStoryboardSetupFlow";
+import { useTranslation } from "react-i18next";
 
 interface StoryboardSurfaceProps {
   refId: string;
@@ -70,6 +71,7 @@ const isMobilePane = (value: string): value is MobilePane =>
  * board, chat, and scroll state survive switches and breakpoint crossings.
  */
 const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobilePane, setMobilePane] = useState<MobilePane>("board");
@@ -172,7 +174,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
     if (desktopAssistant) {
       commands.push({
         id: "assistant",
-        label: assistantOpen ? "Hide assistant" : "Show assistant",
+        label: assistantOpen ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : "Show assistant",
         run: toggleAssistant
       });
     }
@@ -226,7 +228,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
     return (
       <DocumentLoadStatus
         state={loadState}
-        label="storyboard"
+        label={t("ui2:attrs.docStoryboard", { defaultValue: "storyboard" })}
         onRetry={() => setRetryToken((value) => value + 1)}
       />
     );

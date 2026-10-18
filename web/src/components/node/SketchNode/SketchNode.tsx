@@ -339,6 +339,7 @@ function ensureEditableActiveLayer(doc: SketchDocument): SketchDocument {
 }
 
 export { SKETCH_NODE_TYPE } from "../../../constants/nodeTypes";
+import { useTranslation } from "react-i18next";
 
 /** Composited `image` output from the editor (flattenToDataUrl); preferred over re-flattening sketch_data alone. */
 function getSketchOutputImageUri(
@@ -442,6 +443,7 @@ interface SketchNodeProps extends NodeProps {
 }
 
 const SketchNode: React.FC<SketchNodeProps> = (props) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const hasParent = props.parentId !== undefined;
   const isFocused = useNodeFocusStore(
@@ -1316,7 +1318,7 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
             <div
               className="sketch-preview-wrap"
               role="button"
-              aria-label="Open sketch editor"
+              aria-label={t("editor:ui.openSketchEditor", { defaultValue: "Open sketch editor" })}
               tabIndex={0}
               onClick={handleOpenEditor}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleOpenEditor(); } }}
@@ -1327,7 +1329,7 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
                     <img
                       className="preview-image"
                       src={displayPreviewUri}
-                      alt="Image editor preview"
+                      alt={t("editor:ui.imageEditorPreview", { defaultValue: "Image editor preview" })}
                     />
                     <div className="edit-overlay">
                       <EditIcon
@@ -1336,7 +1338,7 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
                           color: theme.vars.palette.common.white
                         }}
                       />
-                      <span className="edit-overlay-label">Edit sketch</span>
+                      <span className="edit-overlay-label">{t("ui2:attrs.editSketch", { defaultValue: "Edit sketch" })}</span>
                     </div>
                   </>
                 ) : (
@@ -1407,7 +1409,7 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
       <SketchProvider active={isModalOpen}>
         <SketchModal
           open={isModalOpen}
-          title="Sketch"
+          title={t("editor:ui.sketch", { defaultValue: "Sketch" })}
           initialDocument={editorDocument || sketchDoc}
           onClose={handleCloseEditor}
           onDocumentChange={handleDocumentChange}

@@ -29,6 +29,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import TimelineIcon from "@mui/icons-material/Timeline";
 import LinkOffIcon from "@mui/icons-material/LinkOff";
 import { GraphDiff, NodeChange, PropertyChange } from "../../utils/graphDiff";
+import { useTranslation } from "react-i18next";
 
 interface VersionDiffProps {
   diff: GraphDiff;
@@ -197,10 +198,11 @@ export const VersionDiff: React.FC<VersionDiffProps> = ({
   oldVersionNumber,
   newVersionNumber
 }) => {
+  const { t } = useTranslation();
   if (!diff.hasChanges) {
     return (
       <Surface>
-        <EmptyState variant="no-data" size="small" title="No changes detected" />
+        <EmptyState variant="no-data" size="small" title={t("ui2:attrs.noChangesDetected", { defaultValue: "No changes detected" })} />
       </Surface>
     );
   }

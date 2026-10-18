@@ -297,7 +297,7 @@
     "madeFor": "Made for {{slot}}",
     "unrecorded": "Unrecorded",
     "usedXTimes": "used {{count}}×",
-    "framesOutOfDate": "frames out of date",
+    "framesOutOfDate": "Frames out of date",
     "frameOf": "frame of {{slot}}",
     "prefabCounts": "{{entities}} entities · {{instances}} instances",
     "sceneCounts": "{{entities}} entities · {{assets}} assets",

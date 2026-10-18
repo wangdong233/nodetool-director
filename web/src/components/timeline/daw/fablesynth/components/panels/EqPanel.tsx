@@ -6,6 +6,7 @@ import type { FxPanelAdapter } from './fxAdapter';
 import { AutoEqStrip } from './AutoEqStrip';
 import { BAND_HZ, type EqFit } from '../../engine/autoEq';
 import './eq.css';
+import { useTranslation } from "react-i18next";
 
 const W = 360, H = 126, LEFT = 26, RIGHT = 348, TOP = 12, BOTTOM = 106;
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
@@ -13,6 +14,7 @@ const X = (freq: number) => LEFT + Math.log(freq / 20) / Math.log(1000) * (RIGHT
 const Y = (gain: number) => TOP + (15 - gain) / 30 * (BOTTOM - TOP);
 
 export function EqPanel({ adapter }: { adapter: FxPanelAdapter }) {
+  const { t } = useTranslation("timeline");
   const prefix = adapter.prefix ?? '';
   const source = adapter.params;
   const params = useMemo(() => Object.fromEntries(
@@ -157,7 +159,7 @@ export function EqPanel({ adapter }: { adapter: FxPanelAdapter }) {
         <button className="eq-enable" aria-label={`Enable EQ band ${selected + 1}`} aria-pressed={band.on}
           onClick={() => setParam(keys.on, band.on ? 0 : 1)}><span />BAND {selected + 1}</button>
         <select aria-label={`EQ band ${selected + 1} shape`} value={band.type} onChange={e => setParam(keys.type, Number(e.target.value))}>
-          <option value={0}>LOW SHELF</option><option value={1}>BELL</option><option value={2}>HIGH SHELF</option>
+          <option value={0}>{t("timeline:attrs.lowShelfUpper", { defaultValue: "LOW SHELF" })}</option><option value={1}>BELL</option><option value={2}>{t("timeline:attrs.highShelfUpper", { defaultValue: "HIGH SHELF" })}</option>
         </select>
         <button className="eq-reset" onClick={() => resetBand(selected)} title="Reset selected band">RESET</button>
       </div>

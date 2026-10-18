@@ -22,8 +22,10 @@ import { prettifyModelType } from "../../../utils/modelFormatting";
 import { useModels } from "./useModels";
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
 import { useTheme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 
 const ModelTypeSidebar: React.FC = () => {
+  const { t } = useTranslation();
   const scope = useModelManagerStore((state) => state.scope);
   const { modelTypes, availableModelTypes, modelCountsByType } =
     useModels(scope);
@@ -93,7 +95,7 @@ const ModelTypeSidebar: React.FC = () => {
                 href ? (
                   <ToolbarIconButton
                     icon={<OpenInNewIcon fontSize="small" />}
-                    tooltip="View on Hugging Face"
+                    tooltip={t("editor:ui.viewOnHuggingFace", { defaultValue: "View on Hugging Face" })}
                     edge="end"
                     component="a"
                     href={href}

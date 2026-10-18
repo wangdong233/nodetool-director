@@ -34,6 +34,7 @@ import {
   SETUP_MEDIA_WIDTH
 } from "../layout";
 import { GalleryFrame } from "../MediaGallery";
+import { useTranslation } from "react-i18next";
 
 interface ReferenceStepProps {
   readonly name: string;
@@ -182,6 +183,7 @@ const GenerateReferenceDialog = ({
   onClose,
   onPick
 }: GenerateReferenceDialogProps) => {
+  const { t } = useTranslation();
   const rememberedModel = getRememberedModel("image");
   const options = PROMPT_OPTIONS[kind];
   const [selectedOption, setSelectedOption] = useState(options[0].id);
@@ -280,8 +282,7 @@ const GenerateReferenceDialog = ({
       })
     : null;
   const modelHelper = !model
-    ? "Pick an image model to generate the reference."
-    : estimate
+    ? i18n.t("setup:entity.pickAnImageModelToGenerateTheReference", { defaultValue: "Pick an image model to generate the reference." }) : estimate
       ? `Used to create the reference image. About ${estimate.label}.`
       : "Used to create the reference image.";
 
@@ -289,11 +290,11 @@ const GenerateReferenceDialog = ({
     <Dialog
       open={open}
       onClose={handleClose}
-      title="Generate a reference image"
+      title={t("storyboard:attrs.generateAReferenceImage", { defaultValue: "Generate a reference image" })}
       maxWidth="sm"
       fullWidth
       onConfirm={() => void handleGenerate()}
-      confirmText={generating ? "Generating…" : "Generate reference"}
+      confirmText={generating ? t("editor:ui.generating", { defaultValue: "Generating…" }) : "Generate reference"}
       confirmDisabled={generating || !prompt.trim() || !model || !provider}
       isLoading={generating}
     >
@@ -319,14 +320,14 @@ const GenerateReferenceDialog = ({
           </FlexRow>
         </FormField>
         <TextArea
-          label="Prompt"
+          label={t("storyboard:attrs.prompt", { defaultValue: "Prompt" })}
           value={prompt}
           onChange={(value) => setPrompt(value)}
           rows={4}
           autoFocus
         />
         <FormField
-          label="Image model"
+          label={t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}
           helperText={modelHelper}
         >
           <ImageModelSelect
@@ -355,7 +356,7 @@ const GenerateReferenceDialog = ({
         {generating ? (
           <FlexRow gap={GAP.tight} align="center">
             <LoadingSpinner inline size="small" />
-            <Caption>Creating your reference image…</Caption>
+            <Caption>{t("storyboard:attrs.creatingYourReferenceImage", { defaultValue: "Creating your reference image…" })}</Caption>
           </FlexRow>
         ) : null}
       </FlexColumn>
@@ -376,6 +377,7 @@ export const ReferenceStep = ({
   onClosePicker,
   onPick
 }: ReferenceStepProps) => {
+  const { t } = useTranslation();
   const [generatorOpen, setGeneratorOpen] = useState(false);
 
   return (
@@ -398,7 +400,7 @@ export const ReferenceStep = ({
         >
           <ResponsiveImage
             locator={`asset://${assetId}`}
-            alt="Selected entity reference"
+            alt={t("editor:ui.selectedEntityReference", { defaultValue: "Selected entity reference" })}
             // Stable hook for the reference slot. The rendered <img> is not one:
             // jsdom fetches a src but has no image codec, so it fires `error`
             // for even a valid data: URI and the error fallback replaces the
@@ -425,12 +427,9 @@ export const ReferenceStep = ({
           disabled={assetsLoading || assetsError}
         >
           {assetsError
-            ? "Assets unavailable"
-            : assetsLoading
-              ? "Loading assets"
-              : assetId
-                ? "Change reference"
-                : "Choose from assets"}
+            ? i18n.t("storyboard:attrs.assetsUnavailable", { defaultValue: "Assets unavailable" }) : assetsLoading
+              ? t("editor:explorer.loading", { defaultValue: "Loading assets" }) : assetId
+                ? i18n.t("storyboard:attrs.changeReference", { defaultValue: "Change reference" }) : "Choose from assets"}
         </EditorButton>
         <EditorButton
           variant="outlined"

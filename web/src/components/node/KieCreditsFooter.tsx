@@ -48,6 +48,7 @@ import {
   kiePricingExternalUrl,
 } from "../../utils/formatKieUnitPricing";
 import { isNumber } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 /**
  * Format a kie node's actual last-run charge. Since #3426, `provider_cost.amount`
@@ -94,6 +95,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
   variant = "nodeFooter",
   popoverResetDep,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const lastRunCost = useNodeProviderCost(workflowId ?? "", nodeId ?? "");
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -207,7 +209,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         {pricing?.source === "live" && (
           <span
             style={{ marginRight: 4, fontSize: "var(--fontSizeSmaller)", opacity: 0.85 }}
-            aria-label="live price"
+            aria-label={t("editor:ui.livePrice", { defaultValue: "live price" })}
           >
             ●
           </span>
@@ -307,7 +309,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                 mt: 0.5,
               }}
             >
-              {creditsData === "error" ? "Could not load credits" : "—"}
+              {creditsData === "error" ? t("editor:ui.couldNotLoadCredits", { defaultValue: "Could not load credits" }) : "—"}
             </Text>
           ) : creditsData.unavailable ? (
             <FlexColumn gap={0.5} sx={{ mt: 0.5 }}>
@@ -376,7 +378,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         <Divider />
 
         <MenuItemPrimitive
-          label="View pricing on kie.ai"
+          label={t("editor:ui.viewPricingOnKieai", { defaultValue: "View pricing on kie.ai" })}
           icon={<LaunchIcon />}
           onClick={() => {
             window.open(
@@ -389,7 +391,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         />
 
         <MenuItemPrimitive
-          label="Top up credits"
+          label={t("editor:ui.topUpCredits", { defaultValue: "Top up credits" })}
           icon={<LaunchIcon />}
           onClick={() => {
             window.open(KIE_BILLING_URL, "_blank", "noopener,noreferrer");

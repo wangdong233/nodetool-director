@@ -54,6 +54,7 @@ import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
 import { relativeTime } from "../../utils/formatDateAndTime";
 import type { ProjectDetail } from "./projectStatus";
 import { PROJECT_FILE_EXTENSION } from "../../utils/projectArchive";
+import { useTranslation } from "react-i18next";
 
 /**
  * How many loose documents the strip lists. Every document a user has ever
@@ -118,6 +119,7 @@ const parseDragPayload = (payload: string): LooseDocument | null => {
  * that belong to none. Dragging one of those onto a card moves it in.
  */
 const ProjectListSurface = () => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
 
   const summaries = useProjectSummaries();
@@ -251,7 +253,7 @@ const ProjectListSurface = () => {
       >
         <PageHeader
           variant="plain"
-          title="Projects"
+          title={t("nav:tabs.projects", { defaultValue: "Projects" })}
           subtitle="One piece of work: the documents an agent built for it, what it cost, where it stands."
           hideSubtitleOnMobile
         />
@@ -265,7 +267,7 @@ const ProjectListSurface = () => {
           <SearchInput
             value={search}
             onChange={setSearch}
-            placeholder="Search projects"
+            placeholder={t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
             fullWidth
           />
         </Box>
@@ -302,14 +304,14 @@ const ProjectListSurface = () => {
         ) : summaries.error ? (
           <EmptyState
             variant="error"
-            title="Could not load projects"
+            title={t("ui2:attrs.couldNotLoadProjects", { defaultValue: "Could not load projects" })}
             description={summaries.error.message}
           />
         ) : search.trim() && matches.length === 0 ? (
           <EmptyState
             variant="no-results"
-            title="No matching projects"
-            description="Try a different search term."
+            title={t("editor:ui.noMatchingProjects", { defaultValue: "No matching projects" })}
+            description={t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })}
           />
         ) : (
           <AutoGrid
@@ -341,7 +343,7 @@ const ProjectListSurface = () => {
               })}
             >
               <AddIcon sx={{ color: PROJECT_COLOR, mb: SPACING.xs }} />
-              <Label>Start a project</Label>
+              <Label>{t("ui2:attrs.startAProject", { defaultValue: "Start a project" })}</Label>
               <Caption color="muted">
                 Say what you want made, and an agent builds its documents
               </Caption>

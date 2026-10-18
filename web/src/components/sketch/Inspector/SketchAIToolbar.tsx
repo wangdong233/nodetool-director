@@ -17,8 +17,10 @@ import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore
 import { useRegenerateStaleLayers } from "../../../hooks/sketch/useRegenerateStaleLayers";
 import { CreateGeneratedLayerDialog } from "./CreateGeneratedLayerDialog";
 import { useAlertNotifier } from "../../../hooks/useAlertNotifier";
+import { useTranslation } from "react-i18next";
 
 const SketchAIToolbarInner: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Derive the counts directly via Zustand selectors so we don't iterate
   // every binding on every render of the toolbar.
@@ -82,8 +84,7 @@ const SketchAIToolbarInner: React.FC = () => {
         <Tooltip
           title={
             staleCount === 0
-              ? "No stale layers."
-              : `Re-generate ${staleCount} stale layer${staleCount === 1 ? "" : "s"} in dependency order.`
+              ? t("sketch:attrs.noStaleLayers", { defaultValue: "No stale layers." }) : `Re-generate ${staleCount} stale layer${staleCount === 1 ? "" : "s"} in dependency order.`
           }
           placement="bottom"
         >
@@ -109,7 +110,7 @@ const SketchAIToolbarInner: React.FC = () => {
       <Dialog
         open={confirmRegenOpen}
         onClose={() => setConfirmRegenOpen(false)}
-        title="Re-generate stale layers?"
+        title={t("editor:ui.reGenerateStaleLayers", { defaultValue: "Re-generate stale layers?" })}
         onConfirm={() => void handleConfirmRegen()}
         confirmText="Re-generate"
       >

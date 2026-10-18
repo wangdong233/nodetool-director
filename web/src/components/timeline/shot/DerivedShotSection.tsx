@@ -28,6 +28,7 @@ import {
   type DerivedShot
 } from "../../../hooks/timeline/useDeriveShotFromClip";
 import { getErrorMessage } from "../../../utils/errorHandling";
+import { useTranslation } from "react-i18next";
 
 const FRAME_COUNT_OPTIONS = Array.from(
   { length: MAX_DERIVED_FRAMES },
@@ -42,6 +43,7 @@ interface DerivedShotSectionProps {
 }
 
 const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
+  const { t } = useTranslation();
   const { derive } = useDeriveShotFromClip();
   const selectClip = useTimelineUIStore((state) => state.selectClip);
   const [frameCount, setFrameCount] = useState("3");
@@ -78,10 +80,10 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
         Frames from this clip become the references for a new shot. Its clip
         goes on a new track above this one.
       </Caption>
-      <FormField label="Reference frames">
+      <FormField label={t("timeline:shot.referenceFrames", { defaultValue: "Reference frames" })}>
         <SelectField
           size="small"
-          label="Reference frames"
+          label={t("timeline:shot.referenceFrames", { defaultValue: "Reference frames" })}
           hideLabel
           value={frameCount}
           onChange={setFrameCount}
@@ -90,10 +92,10 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
         />
       </FormField>
       <TextArea
-        label="Description"
+        label={t("storyboard:attrs.description", { defaultValue: "Description" })}
         value={action}
         onChange={(value) => setAction(value)}
-        placeholder="What the new shot shows (defaults to this shot's)"
+        placeholder={t("timeline:shot.whatTheNewShotShows", { defaultValue: "What the new shot shows (defaults to this shot's)" })}
         maxRows={6}
         compact
         fullWidth
@@ -106,7 +108,7 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
         disabled={working}
         data-testid="derived-shot-create"
       >
-        {working ? "Taking frames…" : "Create derived shot"}
+        {working ? t("timeline:shot.takingFrames", { defaultValue: "Taking frames…" }) : "Create derived shot"}
       </EditorButton>
       {error && (
         <ErrorBanner

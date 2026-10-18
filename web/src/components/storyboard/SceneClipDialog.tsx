@@ -50,6 +50,7 @@ import { useRenderSceneClip } from "../../hooks/storyboard/useRenderSceneClip";
 import { priceRenderStep } from "../../hooks/storyboard/shotCostPricing";
 import type { VideoModelValue } from "../../stores/ApiTypes";
 import { modelFieldSx } from "./shotRenderModels";
+import { useTranslation } from "react-i18next";
 
 export interface SceneClipDialogProps {
   boardId: string;
@@ -81,6 +82,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
   saved,
   onClose
 }) => {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState<SceneClipDirection>(clip);
   const setSceneClip = useStoryboardStore((state) => state.setSceneClip);
   const removeSceneClip = useStoryboardStore((state) => state.removeSceneClip);
@@ -236,7 +238,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
     <Dialog
       open
       onClose={onClose}
-      title="Render scene clip"
+      title={t("storyboard:attrs.renderSceneClip", { defaultValue: "Render scene clip" })}
       fullWidth
       maxWidth="sm"
       actions={
@@ -281,7 +283,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
         <FlexRow gap={SPACING.lg} wrap>
           <Box sx={settingSx}>
             <SelectField
-              label="From"
+              label={t("storyboard:attrs.from", { defaultValue: "From" })}
               size="small"
               value={String(startIndex)}
               onChange={handleStartChange}
@@ -290,7 +292,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
           </Box>
           <Box sx={settingSx}>
             <SelectField
-              label="Length"
+              label={t("storyboard:attrs.length", { defaultValue: "Length" })}
               size="small"
               value={String(count)}
               onChange={handleCountChange}
@@ -333,15 +335,15 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
         <TextArea
           minRows={3}
           size="small"
-          label="Your prompt"
-          placeholder="One continuous move from the doorway to the window."
-          helperText="Optional. The shots' actions, motion and sound are added after it. Refer to stills as [Image N]."
+          label={t("storyboard:attrs.yourPrompt", { defaultValue: "Your prompt" })}
+          placeholder={t("storyboard:attrs.oneContinuousMoveFromTheDoorwayToTheWindow", { defaultValue: "One continuous move from the doorway to the window." })}
+          helperText={t("storyboard:attrs.optionalTheShotsActionsMotionAndSoundAreAddedAfterIt", { defaultValue: "Optional. The shots' actions, motion and sound are added after it. Refer to stills as [Image N]." })}
           value={draft.prompt}
           onChange={handlePromptChange}
         />
 
-        <FormSection label="Render settings">
-          <FormField label="Video model" sx={modelFieldSx}>
+        <FormSection label={t("storyboard:attrs.renderSettings", { defaultValue: "Render settings" })}>
+          <FormField label={t("storyboard:attrs.videoModel", { defaultValue: "Video model" })} sx={modelFieldSx}>
             <VideoModelSelect
               value={model?.id ?? ""}
               provider={model?.provider}
@@ -352,7 +354,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
           <FlexRow gap={SPACING.lg} wrap>
             <Box sx={settingSx}>
               <SelectField
-                label="Duration"
+                label={t("storyboard:attrs.duration", { defaultValue: "Duration" })}
                 size="small"
                 value={
                   draft.duration_seconds ? String(draft.duration_seconds) : ""
@@ -363,7 +365,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
             </Box>
             <Box sx={settingSx}>
               <SelectField
-                label="Resolution"
+                label={t("storyboard:attrs.resolution", { defaultValue: "Resolution" })}
                 size="small"
                 value={draft.resolution ?? ""}
                 onChange={handleResolutionChange}

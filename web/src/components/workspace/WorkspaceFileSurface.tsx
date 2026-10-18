@@ -24,6 +24,7 @@ import {
   workspaceFileDownloadPath,
   workspaceFileName
 } from "./workspaceFileRef";
+import { useTranslation } from "react-i18next";
 
 interface WorkspaceFileSurfaceProps {
   /** `${workspaceId}::${path}` — see workspaceFileRef.ts. */
@@ -33,6 +34,7 @@ interface WorkspaceFileSurfaceProps {
 }
 
 const BinaryFallback = ({ name, url }: { name: string; url: string }) => {
+  const { t } = useTranslation();
   const { handleDownload } = useAssetDownload({ url });
   return (
     <FlexColumn
@@ -45,7 +47,7 @@ const BinaryFallback = ({ name, url }: { name: string; url: string }) => {
       <EmptyState
         variant="no-data"
         title={name}
-        description="No preview available for this file type."
+        description={t("editor:ui.noPreviewAvailableForThisFileType", { defaultValue: "No preview available for this file type." })}
         actionText="Download"
         onAction={handleDownload}
       />

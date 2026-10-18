@@ -36,6 +36,7 @@ import {
 import { useEntities } from "../../serverState/useEntities";
 import { ENTITY_KIND_COLOR } from "../entities/entityKind";
 import ScriptSpeakerAvatar from "./ScriptSpeakerAvatar";
+import { useTranslation } from "react-i18next";
 
 interface ScriptCastPanelProps {
   scriptId: string;
@@ -101,6 +102,7 @@ const SpeakerCard = ({
   speaker: ScriptSpeaker;
   readOnly: boolean;
 }) => {
+  const { t } = useTranslation();
   const updateSpeaker = useScriptStore((s) => s.updateSpeaker);
   const removeSpeaker = useScriptStore((s) => s.removeSpeaker);
   const { data: entities } = useEntities();
@@ -161,7 +163,7 @@ const SpeakerCard = ({
                 updateSpeaker(scriptId, speaker.id, { name: e.target.value })
               }
               hideLabel
-              label="Speaker name"
+              label={t("editor:ui.speakerName", { defaultValue: "Speaker name" })}
               compact
               fullWidth
               disabled={readOnly}
@@ -212,7 +214,7 @@ const SpeakerCard = ({
         </Caption>
       )}
       {readOnly && !linkedEntity && speaker.entityId && (
-        <Caption color="warning">Linked entity missing</Caption>
+        <Caption color="warning">{t("ui2:attrs.linkedEntityMissing", { defaultValue: "Linked entity missing" })}</Caption>
       )}
       {!readOnly && expanded && (
         <FlexColumn gap={SPACING.sm} fullWidth>
@@ -221,7 +223,7 @@ const SpeakerCard = ({
             onChange={onVoiceChange}
           />
           <SelectField
-            label="Linked entity"
+            label={t("editor:ui.linkedEntity", { defaultValue: "Linked entity" })}
             value={speaker.entityId ?? ""}
             onChange={onEntityChange}
             options={entityOptions}
@@ -255,6 +257,7 @@ const ScriptCastPanel = ({
   cast,
   readOnly
 }: ScriptCastPanelProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const addSpeaker = useScriptStore((s) => s.addSpeaker);
   // Studio hands a new speaker a curated voice, so the beginner shell never
@@ -311,8 +314,8 @@ const ScriptCastPanel = ({
       </FlexRow>
       {cast.length === 0 ? (
         <EmptyState
-          title="No speakers"
-          description="Add a speaker, pick a voice, then click a line's name to assign it."
+          title={t("editor:ui.noSpeakers", { defaultValue: "No speakers" })}
+          description={t("editor:ui.addSpeakerPickVoiceAssign", { defaultValue: "Add a speaker, pick a voice, then click a line's name to assign it." })}
           actionText={readOnly ? undefined : "Add speaker"}
           onAction={readOnly ? undefined : onAdd}
         />

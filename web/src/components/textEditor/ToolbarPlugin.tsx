@@ -19,10 +19,12 @@ import { FloatingToolbar, ToolbarIconButton } from "../ui_primitives";
 import { isMac } from "../../utils/platform";
 import { copyAsMarkdown } from "./exportMarkdown";
 import { INSERT_HORIZONTAL_RULE_COMMAND } from "./horizontalRuleCommand";
+import { useTranslation } from "react-i18next";
 
 const MOD_KEY = isMac() ? "⌘" : "Ctrl";
 
 const ToolbarPlugin = () => {
+  const { t } = useTranslation();
   const [editor] = useLexicalComposerContext();
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
@@ -180,7 +182,7 @@ const ToolbarPlugin = () => {
       />
       <ToolbarIconButton
         icon={<FormatSizeIcon />}
-        tooltip="Toggle large font size"
+        tooltip={t("editor:ui.toggleLargeFontSize", { defaultValue: "Toggle large font size" })}
         ariaLabel="Toggle large font size"
         active={isLargeFont}
         aria-pressed={isLargeFont}
@@ -188,13 +190,13 @@ const ToolbarPlugin = () => {
       />
       <ToolbarIconButton
         icon={<HorizontalRuleIcon />}
-        tooltip="Insert horizontal rule"
+        tooltip={t("editor:ui.insertHorizontalRule", { defaultValue: "Insert horizontal rule" })}
         ariaLabel="Insert horizontal rule"
         onClick={handleInsertHR}
       />
       <ToolbarIconButton
         icon={<ContentCopyIcon />}
-        tooltip="Copy as Markdown"
+        tooltip={t("editor:ui.copyAsMarkdown", { defaultValue: "Copy as Markdown" })}
         ariaLabel="Copy as Markdown"
         active={copied}
         onClick={handleCopyAsMarkdown}

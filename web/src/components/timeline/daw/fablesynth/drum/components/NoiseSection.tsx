@@ -2,8 +2,10 @@ import { pad } from '../params';
 import { useDrumStore } from '../dr1Store';
 import { DrumKnob } from './DrumKnob';
 import { NoiseView } from './NoiseView';
+import { useTranslation } from "react-i18next";
 
 export function NoiseSection() {
+  const { t } = useTranslation("timeline");
   const sel = useDrumStore((s) => s.sel);
   const colorId = pad(sel, 'noise.color');
   const color = useDrumStore((s) => s.params[colorId]);
@@ -19,7 +21,7 @@ export function NoiseSection() {
       <div className="knob-row dr-noise-knobs">
         <DrumKnob paramId={colorId} size="sm" accent="b" />
         <DrumKnob paramId={pad(sel, 'noise.level')} size="sm" accent="b" />
-        <DrumKnob paramId={pad(sel, 'ring.freq')} size="sm" accent="b" label="FREQ" />
+        <DrumKnob paramId={pad(sel, 'ring.freq')} size="sm" accent="b" label={t("timeline:attrs.freqUpper", { defaultValue: "FREQ" })} />
         <DrumKnob paramId={pad(sel, 'ring.mix')} size="sm" accent="b" label="MIX" />
       </div>
     </section>

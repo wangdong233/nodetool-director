@@ -17,6 +17,7 @@ import { openPageTab } from "../workspace/openPageTab";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { useWorkspaceExplorer } from "../../hooks/useWorkspaceExplorer";
 import WorkspaceSelect from "./WorkspaceSelect";
+import { useTranslation } from "react-i18next";
 
 /** Props forwarded onto a rendered tree row. */
 interface TreeViewItemSlotProps {
@@ -180,7 +181,7 @@ const treeViewStyles = (theme: Theme) => ({
 
 const createErrorItem = (itemId: string): TreeViewItem => ({
   id: `${itemId}/error`,
-  label: "⚠️ Access denied",
+  label: i18n.t("editor:ui.accessDenied", { defaultValue: "⚠️ Access denied" }),
   children: undefined,
   className: "error-item"
 });
@@ -277,6 +278,7 @@ interface WorkspaceTreeProps {
 }
 
 const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [files, setFiles] = useState<TreeViewItem[]>([]);
   const filesRef = useRef<TreeViewItem[]>([]);
@@ -456,12 +458,12 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
   return (
     <Box css={workspaceTreeStyles(theme)}>
       <PanelHeader
-        title="Workspace Explorer"
+        title={t("editor:ui.workspaceExplorer", { defaultValue: "Workspace Explorer" })}
         docsTopic="workspaces"
         actions={
           <RefreshButton
             onClick={handleRefresh}
-            tooltip="Refresh"
+            tooltip={t("ui:attrs.refresh", { defaultValue: "Refresh" })}
             tooltipPlacement="bottom"
           />
         }
@@ -476,7 +478,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
         <SettingsButton
           className="settings-button"
           onClick={handleManageWorkspace}
-          tooltip="Manage workspaces"
+          tooltip={t("editor:ui.manageWorkspaces", { defaultValue: "Manage workspaces" })}
         />
       </div>
 
@@ -485,7 +487,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
           <span
             className="breadcrumb-segment"
             role="button"
-            aria-label="Go to workspace root"
+            aria-label={t("editor:ui.goToWorkspaceRoot", { defaultValue: "Go to workspace root" })}
             tabIndex={0}
             onClick={() => setSelectedFilePath("")}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { setSelectedFilePath(""); } }}
@@ -538,9 +540,9 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
           <EmptyState
             size="small"
             icon={<FolderOpenIcon />}
-            title="No workspace selected"
+            title={t("editor:ui.noWorkspaceSelected", { defaultValue: "No workspace selected" })}
             description="Select a workspace above or create one."
-            actionText="Create workspace"
+            actionText={t("editor:ui.createWorkspace", { defaultValue: "Create workspace" })}
             onAction={handleManageWorkspace}
           />
         ) : files.length > 0 ? (
@@ -555,7 +557,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
                 }
               }}
               items={files}
-              aria-label="workspace file browser"
+              aria-label={t("editor:ui.workspaceFileBrowser", { defaultValue: "workspace file browser" })}
               selectedItems={selectedFilePath}
               sx={treeViewStyles(theme)}
               slotProps={{
@@ -571,7 +573,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
           <EmptyState
             size="small"
             icon={<FolderOpenIcon />}
-            title="Workspace is empty"
+            title={t("editor:ui.workspaceIsEmpty", { defaultValue: "Workspace is empty" })}
             description="Add files to your workspace folder to see them here."
           />
         )}

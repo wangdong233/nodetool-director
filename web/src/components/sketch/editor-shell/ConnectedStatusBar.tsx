@@ -34,6 +34,7 @@ import { useSketchCanvasRefStore } from "../../../stores/sketch/SketchCanvasRefS
 import { getSelectionBounds } from "../selection";
 import { displayCombo } from "../shortcuts";
 import { colorToHex6 } from "../types";
+import { useTranslation } from "react-i18next";
 
 /** OS-aware combo for the fit-to-screen action ("⌘0" on Mac, "Ctrl+0" elsewhere). */
 const FIT_LABEL = `Fit to screen (${displayCombo("zoom-fit")})`;
@@ -68,6 +69,7 @@ const StatusCursorReadout = memo(function StatusCursorReadout() {
 });
 
 const ConnectedStatusBarInner: React.FC = () => {
+  const { t } = useTranslation();
   const documentId = useSketchSessionStore((s) => s.documentId);
   const panelsHidden = useSketchStore((s) => s.panelsHidden);
   const docW = useSketchStore((s) => s.document.canvas.width);
@@ -161,7 +163,7 @@ const ConnectedStatusBarInner: React.FC = () => {
       <FlexRow align="center" gap={1.5} sx={{ marginLeft: "auto" }}>
         <CostEstimateLine
           estimate={costEstimate}
-          title="Estimated cost of regenerating every generated layer"
+          title={t("editor:ui.estimatedCostOfRegeneratingEveryGeneratedLayer", { defaultValue: "Estimated cost of regenerating every generated layer" })}
           ariaPrefix="Estimated document cost"
         />
         <span>

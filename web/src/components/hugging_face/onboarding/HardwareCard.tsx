@@ -19,6 +19,7 @@ import {
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
 import { ModelStat } from "../ModelStat";
 import { TIER_LABELS, type HardwareProfile } from "./useHardwareProfile";
+import { useTranslation } from "react-i18next";
 
 interface HardwareCardProps {
   profile: HardwareProfile;
@@ -65,6 +66,7 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
   profile,
   dense = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const setVramOverrideGb = useModelManagerStore(
     (state) => state.setVramOverrideGb
@@ -128,16 +130,16 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
     <>
       <ModelStat
         icon={<DeveloperBoardIcon sx={{ fontSize: ICON_SIZE.xs }} />}
-        label="GPU memory"
+        label={t("editor:ui.gpuMemory", { defaultValue: "GPU memory" })}
         value={gb(profile.vramGb)}
       />
       <ModelStat
         icon={<MemoryIcon sx={{ fontSize: ICON_SIZE.xs }} />}
-        label="System RAM"
+        label={t("editor:ui.systemRAM", { defaultValue: "System RAM" })}
         value={gb(profile.ramGb)}
       />
       <ModelStat
-        label="Model budget"
+        label={t("editor:ui.modelBudget", { defaultValue: "Model budget" })}
         value={profile.budgetGb != null ? `${profile.budgetGb} GB` : "Not set"}
         highlight
       />
@@ -150,7 +152,7 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
         Set GPU memory
       </Caption>
       <SelectField
-        label="GPU memory budget"
+        label={t("editor:ui.gpuMemoryBudget", { defaultValue: "GPU memory budget" })}
         hideLabel
         variant="outlined"
         value={selectValue}

@@ -401,8 +401,7 @@ export const useVideoSetupFlow = ({
       : videoFormatById(formatId)?.beatCount;
   const draftResult =
     draftBeatCount === undefined
-      ? "Draft the beats"
-      : `Draft ${draftBeatCount} beat${draftBeatCount === 1 ? "" : "s"}${
+      ? i18n.t("setup:video.draftTheBeats", { defaultValue: "Draft the beats" }) : `Draft ${draftBeatCount} beat${draftBeatCount === 1 ? "" : "s"}${
           placedClips > 0 ? ", one per clip" : ""
         }`;
 
@@ -437,15 +436,14 @@ export const useVideoSetupFlow = ({
     () => [
       {
         stage: "idea",
-        label: "Idea",
+        label: i18n.t("editor:ui.idea", { defaultValue: "Idea" }),
         primaryLabel: "Continue",
         // An upload still running would land after the stage moved, and the
         // plan would be drafted without that media, so Continue waits for it.
         canAdvance:
           brief.trim().length > 0 && !contextError && !importingMedia,
         blockedReason: importingMedia
-          ? "Uploading your media"
-          : (contextError ??
+          ? i18n.t("setup:video.uploadingYourMedia", { defaultValue: "Uploading your media" }) : (contextError ??
             // Placed media alone does not advance: the brief says what to
             // make of it, as the upload notice asks.
             (placedClips > 0
@@ -468,15 +466,14 @@ export const useVideoSetupFlow = ({
         // Format and review are both step 2, so they collapse to one stepper
         // entry (PRD § 6.2).
         stage: "format",
-        label: "Beats",
+        label: i18n.t("timeline:attrs.beats", { defaultValue: "Beats" }),
         // A plan that still answers the brief and format on the document is
         // the plan the creator edited, so coming back here and pressing on
         // returns them to it rather than replacing it (F15).
         primaryLabel: planIsCurrent
           ? "Continue to the beats"
           : hasPlan
-            ? "Re-plan the beats"
-            : "Plan the beats",
+            ? i18n.t("storyboard:attrs.rePlanTheBeats", { defaultValue: "Re-plan the beats" }) : "Plan the beats",
         // A reopened draft carries the model it last used, which the
         // providers may have dropped since, so the plan waits for the list.
         canAdvance:
@@ -485,14 +482,16 @@ export const useVideoSetupFlow = ({
           !director.loading,
         blockedReason:
           videoFormatById(formatId) === null
-            ? "Pick a video template"
-            : director.loading
-              ? "Loading the models that can draft the beats"
-              : director.error
-                ? "The model list could not be read"
-                : director.noProvider
-                  ? "No provider offers a language model"
-                  : "Pick a model to draft the beats",
+            ? i18n.t("storyboard:attrs.pickAVideoTemplate", { defaultValue: "Pick a video template" }) : director.loading
+              ? i18n.t("setup:video.loadingModelsThatCanDraftTheBeats", {
+                  defaultValue: "Loading the models that can draft the beats"
+                }) : director.error
+                ? i18n.t("setup:video.theModelListCouldNotBeRead", {
+                    defaultValue: "The model list could not be read"
+                  }) : director.noProvider
+                  ? i18n.t("setup:video.noProviderOffersALanguageModel", {
+                      defaultValue: "No provider offers a language model"
+                    }) : "Pick a model to draft the beats",
         generation: planIsCurrent
           ? undefined
           : {
@@ -523,7 +522,7 @@ export const useVideoSetupFlow = ({
       },
       {
         stage: "review",
-        label: "Beats",
+        label: i18n.t("timeline:attrs.beats", { defaultValue: "Beats" }),
         primaryLabel: "Continue to look",
         // The look step's own check, so Continue is never offered toward a
         // Generate that refuses the plan (on-camera speech, invalid takes).
@@ -555,14 +554,16 @@ export const useVideoSetupFlow = ({
       },
       {
         stage: "look",
-        label: "Look",
+        label: i18n.t("editor:ui.look", { defaultValue: "Look" }),
         primaryLabel: "Generate your video",
         // The agent can re-plan while Look is up. Generate would render
         // beats that are about to be replaced.
         canAdvance: !productionBlocker && !planning && look.canAdvance,
         blockedReason:
           productionBlocker ??
-          (planning ? "The beats are being planned" : look.blockedReason),
+          (planning ? i18n.t("setup:video.theBeatsAreBeingPlanned", {
+                defaultValue: "The beats are being planned"
+              }) : look.blockedReason),
         primaryDetail: look.primaryDetail,
         // The placeholders are written before the first await, so a Cancel
         // could never leave the draft unchanged.

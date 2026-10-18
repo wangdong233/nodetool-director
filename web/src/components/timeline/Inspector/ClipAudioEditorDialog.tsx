@@ -15,6 +15,7 @@ import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
 import { Box, Dialog } from "../../ui_primitives";
 import { encodeWav, type AudioSample } from "../../audio_editor/audioSample";
 import type { Selection } from "../../audio_editor/WaveformView";
+import { useTranslation } from "react-i18next";
 
 interface ClipAudioEditorDialogProps {
   clipId: string;
@@ -34,6 +35,7 @@ const ClipAudioEditorDialog = ({
   sourceWindow,
   onClose
 }: ClipAudioEditorDialogProps) => {
+  const { t } = useTranslation("ui2");
   const { data: asset, isPending, refetch } = useAssetById(assetId);
   const createAsset = useAssetStore((state) => state.createAsset);
   const replaceClipOutput = useTimelineStore((state) => state.replaceClipOutput);
@@ -87,7 +89,7 @@ const ClipAudioEditorDialog = ({
         ) : (
           <DocumentLoadStatus
             state={isPending ? "loading" : "error"}
-            label="audio asset"
+            label={t("ui2:attrs.docAudioAsset", { defaultValue: "audio asset" })}
             onRetry={() => void refetch()}
             onClose={onClose}
             closeLabel="Close"

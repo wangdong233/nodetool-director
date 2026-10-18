@@ -21,8 +21,10 @@ import {
   SPACING
 } from "../ui_primitives";
 import { CollectionResponse } from "../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 
 const CollectionList = () => {
+  const { t } = useTranslation();
   const {
     collections,
     isLoading,
@@ -136,9 +138,9 @@ const CollectionList = () => {
             </Text>
             <CreateFab
               onClick={handleShowForm}
-              label="Create collection"
+              label={t("editor:ui.createCollection", { defaultValue: "Create collection" })}
               icon={<AddIcon />}
-              aria-label="Create collection"
+              aria-label={t("editor:ui.createCollection", { defaultValue: "Create collection" })}
             />
           </FlexRow>
 
@@ -156,9 +158,9 @@ const CollectionList = () => {
             >
               <EmptyState
                 variant="error"
-                title="Couldn't load collections"
-                description="Try again later."
-                actionText="Retry"
+                title={t("editor:ui.couldnTLoadCollections", { defaultValue: "Couldn't load collections" })}
+                description={t("editor:ui.tryAgainLater", { defaultValue: "Try again later." })}
+                actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
                 onAction={() => fetchCollections()}
               />
             </FlexColumn>
@@ -201,7 +203,7 @@ const CollectionList = () => {
       <Dialog
         open={Boolean(deleteTarget)}
         onClose={cancelDelete}
-        title="Delete this collection?"
+        title={t("editor:ui.deleteThisCollection", { defaultValue: "Delete this collection?" })}
         onConfirm={confirmDelete}
         confirmText="Delete"
         destructive
@@ -214,10 +216,10 @@ const CollectionList = () => {
         <Dialog
           open={true}
           onClose={handleClearIndexErrors}
-          title="Indexing report"
+          title={t("editor:ui.indexingReport", { defaultValue: "Indexing report" })}
         >
           <FlexColumn gap={SPACING.md}>
-            <Text>The following files encountered errors during indexing:</Text>
+            <Text>{t("editor:ui.theFollowingFilesEncounteredErrorsDuringIndexing", { defaultValue: "The following files encountered errors during indexing:" })}</Text>
             <ListGroup compact flush sx={{ pl: SPACING.md }}>
               {indexErrors.map((error) => (
                 <ListItemRow

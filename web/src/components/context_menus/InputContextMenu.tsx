@@ -45,6 +45,7 @@ import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { useCodeGenFromHandle } from "../../hooks/useCodeGenFromHandle";
 import { isNumber } from "../../utils/typePredicates";
 import ContextMenuItem from "./ContextMenuItem";
+import { useTranslation } from "react-i18next";
 
 const NODE_ROW_HEIGHT = 28;
 
@@ -177,6 +178,7 @@ const getListConstantPathForElementType = (
   LIST_CONSTANT_PATHS[elementTypeName] ?? null;
 
 const InputContextMenu: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const getMetadata = useMetadataStore((state) => state.getMetadata);
   const allMetadata = useMetadataStore((state) => state.metadata);
@@ -892,7 +894,7 @@ const InputContextMenu: React.FC = () => {
           onChange={handleSearchChange}
           onClick={(event) => event.stopPropagation()}
           onKeyDown={handleSearchKeyDown}
-          aria-label="Search connectable nodes"
+          aria-label={t("editor:io.searchConnectable", { defaultValue: "Search connectable nodes" })}
           sx={{
             "& .MuiOutlinedInput-root": {
               backgroundColor: "action.disabledBackground",
@@ -926,7 +928,7 @@ const InputContextMenu: React.FC = () => {
               endAdornment: searchTerm ? (
                 <InputAdornment position="end">
                   <ToolbarIconButton
-                    aria-label="clear search"
+                    aria-label={t("editor:io.clearSearch", { defaultValue: "clear search" })}
                     onClick={handleClearSearch}
                     size="small"
                     icon={<ClearIcon sx={{ fontSize: ICON_SIZE.sm }} />}
@@ -974,7 +976,7 @@ const InputContextMenu: React.FC = () => {
         <ContextMenuItem
           className="create-prompt-node"
           onClick={handleCreatePromptNode}
-          label="Prompt"
+          label={t("editor:asset.info.prompt", { defaultValue: "Prompt" })}
           IconComponent={<EditNoteIcon />}
         />
       )}
@@ -982,7 +984,7 @@ const InputContextMenu: React.FC = () => {
         <ContextMenuItem
           className="create-value-with-ai"
           onClick={handleCreateValueWithAI}
-          label="Create value with AI…"
+          label={t("editor:ui.createValueWithAI", { defaultValue: "Create value with AI…" })}
           IconComponent={<AutoAwesomeIcon />}
         />
       )}

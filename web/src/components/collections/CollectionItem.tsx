@@ -6,6 +6,7 @@ import WorkflowSelect from "./WorkflowSelect";
 import { useState } from "react";
 import { trpcClient } from "../../trpc/client";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { useTranslation } from "react-i18next";
 
 interface CollectionItemProps {
   collection: CollectionResponse;
@@ -62,6 +63,7 @@ const CollectionItem = ({
   onDragLeave,
   deletingCollection
 }: CollectionItemProps) => {
+  const { t } = useTranslation();
   const isDeleting = deletingCollection !== null;
   const addNotification = useNotificationStore((state) => state.addNotification);
   const queryClient = useQueryClient();
@@ -155,7 +157,7 @@ const CollectionItem = ({
         ) : (
           <DeleteButton
             onClick={handleDeleteClick}
-            tooltip="Delete this collection"
+            tooltip={t("editor:ui.deleteThisCollection", { defaultValue: "Delete this collection" })}
             disabled={isDeleting}
             sx={{ mt: -10 }}
             nodrag={false}
@@ -183,12 +185,12 @@ const CollectionItem = ({
       </FlexRow>
 
       <FlexRow align="center" gap={SPACING.lg} fullWidth>
-        <Tooltip title="Number of documents in this collection">
+        <Tooltip title={t("editor:ui.numberOfDocumentsInThisCollection", { defaultValue: "Number of documents in this collection" })}>
           <Caption color="secondary" sx={{ flexShrink: 0 }}>
             {collection.count} item{collection.count === 1 ? "" : "s"}
           </Caption>
         </Tooltip>
-        <Tooltip title="Model used for embedding documents">
+        <Tooltip title={t("editor:ui.modelUsedForEmbeddingDocuments", { defaultValue: "Model used for embedding documents" })}>
           <Caption
             sx={{
               flexShrink: 1,
@@ -204,7 +206,7 @@ const CollectionItem = ({
         {isEditingWorkflow ? (
           <WorkflowSelect
             onChange={onWorkflowChange}
-            label="Workflow"
+            label={t("settings:general.catWorkflow", { defaultValue: "Workflow" })}
             value={
               collection.metadata?.workflow
                 ? { id: collection.metadata.workflow as string }
@@ -219,7 +221,7 @@ const CollectionItem = ({
             }}
           />
         ) : (
-          <Tooltip title="Click to change the ingestion workflow for this collection">
+          <Tooltip title={t("editor:ui.clickToChangeTheIngestionWorkflowForThisCollection", { defaultValue: "Click to change the ingestion workflow for this collection" })}>
             <EditorButton
               variant="text"
               sx={{

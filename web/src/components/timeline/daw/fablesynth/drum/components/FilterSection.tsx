@@ -3,8 +3,10 @@ import { pad } from '../params';
 import { useDrumStore } from '../dr1Store';
 import { DrumKnob } from './DrumKnob';
 import { DrumStepper } from './DrumStepper';
+import { useTranslation } from "react-i18next";
 
 export function FilterSection() {
+  const { t } = useTranslation("timeline");
   const sel = useDrumStore((s) => s.sel);
   const onId = pad(sel, 'flt.on');
   const typeId = pad(sel, 'flt.type');
@@ -25,7 +27,7 @@ export function FilterSection() {
     <section className={`panel dr-edit-panel dr-filter${on === 1 ? '' : ' off'}`} data-accent="f">
       <div className="panel-head">
         <span className="dr-led dr-led-f" aria-hidden="true" />
-        <h2>FILTER</h2>
+        <h2>{t("timeline:attrs.filter", { defaultValue: "FILTER" })}</h2>
         <button
           className={`power-btn${on === 1 ? ' on' : ''}`}
           type="button"

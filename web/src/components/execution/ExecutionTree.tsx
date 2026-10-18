@@ -39,6 +39,7 @@ import type {
 } from "../../hooks/useExecutionTreeState";
 import { formatJavaScriptForDisplay } from "../../utils/formatJavaScript";
 import { isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 type NodeStatus = "waiting" | "running" | "completed" | "failed";
 
@@ -450,14 +451,14 @@ const StepInspector: React.FC<{ step: StepState }> = memo(({ step }) => {
     <div className="tl-inspector">
       {step.instructions ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label">Instructions</span>
+          <span className="tl-inspector-label">{t("ui2:attrs.instructions", { defaultValue: "Instructions" })}</span>
           <span className="tl-inspector-body">{step.instructions}</span>
         </div>
       ) : null}
 
       {step.duration !== undefined ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label">Duration</span>
+          <span className="tl-inspector-label">{t("ui2:attrs.duration", { defaultValue: "Duration" })}</span>
           <span className="tl-inspector-body">
             {formatDuration(step.duration)}
           </span>
@@ -477,14 +478,14 @@ const StepInspector: React.FC<{ step: StepState }> = memo(({ step }) => {
 
       {resultText ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label">Result</span>
+          <span className="tl-inspector-label">{t("editor:ui.result", { defaultValue: "Result" })}</span>
           <CodeBlock>{resultText}</CodeBlock>
         </div>
       ) : null}
 
       {step.error ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label tl-inspector-error">Error</span>
+          <span className="tl-inspector-label tl-inspector-error">{t("ui2:attrs.error", { defaultValue: "Error" })}</span>
           <CodeBlock tone="error">{step.error}</CodeBlock>
         </div>
       ) : null}
@@ -643,7 +644,7 @@ const TaskNode: React.FC<{
               In progress
             </span>
           ) : task.status === "waiting" ? (
-            <span className="tl-meta waiting">waiting</span>
+            <span className="tl-meta waiting">{t("setup:workflow.pill_waiting", { defaultValue: "waiting" })}</span>
           ) : (
             <span className="tl-meta">
               {duration && (
@@ -692,7 +693,7 @@ const PlanningLog: React.FC<{
             </div>
             <div className="tl-content">
               <div className="tl-row">
-                <span className="planning-phase">Planning</span>
+                <span className="planning-phase">{t("ui2:attrs.planning", { defaultValue: "Planning" })}</span>
                 <span className="tl-meta running">
               <StatusDot tone="info" pulse />
               In progress
@@ -758,6 +759,7 @@ interface ExecutionTreeProps {
 }
 
 const ExecutionTree: React.FC<ExecutionTreeProps> = ({ state, onToggleTask }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const rootStyles = useMemo(() => treeStyles(theme), [theme]);
 
@@ -784,12 +786,12 @@ const ExecutionTree: React.FC<ExecutionTreeProps> = ({ state, onToggleTask }) =>
       {hasTasks && (
         <div className="plan-card">
           <FlexRow className="plan-header" align="center" gap={2}>
-            <span className="plan-title">Execution plan</span>
+            <span className="plan-title">{t("ui2:attrs.executionPlanLower", { defaultValue: "Execution plan" })}</span>
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <ProgressBar
                 value={progressPct}
                 showValue={false}
-                aria-label="Completed tasks"
+                aria-label={t("editor:ui.completedTasks", { defaultValue: "Completed tasks" })}
               />
             </Box>
             <span className="plan-count">

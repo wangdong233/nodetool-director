@@ -24,6 +24,7 @@ import {
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import type { BrowserExportFormat } from "./render/TimelineRenderer";
 import { canEncodeMp4 } from "./render/canEncodeMp4";
+import { useTranslation } from "react-i18next";
 
 const formatOptions = (mp4Supported: boolean): readonly SelectOption[] => [
   { value: "mp4", label: "MP4 (H.264)", disabled: !mp4Supported },
@@ -73,6 +74,7 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
   onClose,
   onExport
 }) => {
+  const { t } = useTranslation();
   const width = useTimelineStore((state) => state.width);
   const height = useTimelineStore((state) => state.height);
   const [format, setFormat] = useState<BrowserExportFormat>("mp4");
@@ -113,13 +115,13 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Export timeline"
+      title={t("timeline:export.title", { defaultValue: "Export timeline" })}
       onConfirm={handleExport}
       confirmText="Export"
     >
       <FlexColumn gap={SPACING.lg}>
         <SelectField
-          label="Format"
+          label={t("timeline:export.format", { defaultValue: "Format" })}
           value={format}
           onChange={handleFormatChange}
           options={formatOptions(mp4Supported)}

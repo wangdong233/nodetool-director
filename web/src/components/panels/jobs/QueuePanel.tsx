@@ -17,6 +17,7 @@ import {
   Text
 } from "../../ui_primitives";
 import { groupByDate } from "../../../utils/groupByDate";
+import { useTranslation } from "react-i18next";
 
 const RUNNING = new Set(["running"]);
 const QUEUED = new Set(["queued", "scheduled", "starting"]);
@@ -101,6 +102,7 @@ const JobGrid = memo(function JobGrid({
  * grouped by day, with filter chips that pull failed runs out of the list.
  */
 const QueuePanel = memo(function QueuePanel() {
+  const { t } = useTranslation();
   const { data: jobs, isLoading, error } = useRunningJobs();
   const [filter, setFilter] = useState<HistoryFilter>("all");
 
@@ -174,7 +176,7 @@ const QueuePanel = memo(function QueuePanel() {
     <FlexColumn sx={{ flex: 1, minHeight: 0, height: "100%" }}>
       <FlexColumn
         component="section"
-        aria-label="Active"
+        aria-label={t("editor:ui.active", { defaultValue: "Active" })}
         sx={{
           flex: "0 0 auto",
           maxHeight: "45%",
@@ -186,7 +188,7 @@ const QueuePanel = memo(function QueuePanel() {
       >
         <SectionHeader
           size="small"
-          title="Active"
+          title={t("editor:ui.active", { defaultValue: "Active" })}
           action={
             activeSummary ? (
               <Text size="smaller" color="secondary">

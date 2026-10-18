@@ -72,6 +72,7 @@ import {
 
 import { codeHighlightTheme } from "../textEditor/codeHighlightTheme";
 import { codeHighlightTokenStyles } from "../textEditor/codeHighlightStyles";
+import { useTranslation } from "react-i18next";
 
 const initialConfigTemplate = {
   namespace: "TextEditorModal",
@@ -698,6 +699,7 @@ const TextEditorModal = ({
   showStatusBar = true,
   showFindReplace = true
 }: TextEditorModalProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const modalStyles = useMemo(() => styles(theme), [theme]);
   const modalOverlayRef = useRef<HTMLDivElement>(null);
@@ -1204,36 +1206,36 @@ const TextEditorModal = ({
             </div>
             <div className="actions">
               {!readOnly && (
-                <Tooltip title="Revert to original">
+                <Tooltip title={t("editor:ui.revertToOriginal", { defaultValue: "Revert to original" })}>
                   <button
                     type="button"
                     className="button"
                     onClick={handleRevert}
-                    aria-label="Revert to original"
+                    aria-label={t("editor:ui.revertToOriginal", { defaultValue: "Revert to original" })}
                   >
                     <HistoryIcon />
                   </button>
                 </Tooltip>
               )}
-              <Tooltip title="Download">
+              <Tooltip title={t("editor:ui.download", { defaultValue: "Download" })}>
                 <button
                   type="button"
                   className="button"
                   onClick={handleDownload}
-                  aria-label="Download"
+                  aria-label={t("editor:ui.download", { defaultValue: "Download" })}
                 >
                   <DownloadIcon />
                 </button>
               </Tooltip>
               <Tooltip
-                title={assistantVisible ? "Hide assistant" : "Show assistant"}
+                title={assistantVisible ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : "Show assistant"}
               >
                 <button
                   type="button"
                   className={`button ${assistantVisible ? "active" : ""}`}
                   onClick={toggleAssistantVisible}
                   aria-label={
-                    assistantVisible ? "Hide assistant" : "Show assistant"
+                    assistantVisible ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : "Show assistant"
                   }
                 >
                   {assistantVisible ? (
@@ -1244,13 +1246,13 @@ const TextEditorModal = ({
                 </button>
               </Tooltip>
               <Tooltip
-                title={focusMode ? "Exit focus mode" : "Focus mode (hide panels)"}
+                title={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : "Focus mode (hide panels)"}
               >
                 <button
                   type="button"
                   className={`button ${focusMode ? "active" : ""}`}
                   onClick={() => setFocusMode((v) => !v)}
-                  aria-label={focusMode ? "Exit focus mode" : "Focus mode"}
+                  aria-label={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : "Focus mode"}
                 >
                   {focusMode ? <OpenInFullIcon /> : <CloseFullscreenIcon />}
                 </button>
@@ -1267,12 +1269,12 @@ const TextEditorModal = ({
                   {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
                 </button>
               </Tooltip>
-              <Tooltip title="Close editor" shortcut={["Esc"]}>
+              <Tooltip title={t("editor:ui.closeEditor", { defaultValue: "Close editor" })} shortcut={["Esc"]}>
                 <button
                   type="button"
                   className="button button-close"
                   onClick={onClose}
-                  aria-label="Close editor"
+                  aria-label={t("editor:ui.closeEditor", { defaultValue: "Close editor" })}
                 >
                   <CloseIcon />
                 </button>
@@ -1287,8 +1289,7 @@ const TextEditorModal = ({
                   <Tooltip
                     title={
                       isCodeEditor
-                        ? "Switch to rich text"
-                        : "Switch to code editor"
+                        ? t("editor:ui.switchToRichText", { defaultValue: "Switch to rich text" }) : "Switch to code editor"
                     }
                   >
                     <button
@@ -1297,8 +1298,7 @@ const TextEditorModal = ({
                       onClick={handleToggleEditorMode}
                       aria-label={
                         isCodeEditor
-                          ? "Switch to rich text"
-                          : "Switch to code editor"
+                          ? t("editor:ui.switchToRichText", { defaultValue: "Switch to rich text" }) : "Switch to code editor"
                       }
                     >
                       {isCodeEditor ? <TextFieldsIcon /> : <CodeIcon />}
@@ -1306,7 +1306,7 @@ const TextEditorModal = ({
                   </Tooltip>
                 )}
                 <InspectorSelect
-                  label="Language"
+                  label={t("editor:ui.language", { defaultValue: "Language" })}
                   value={language}
                   options={languageOptions}
                   onChange={setLanguage}
@@ -1360,23 +1360,23 @@ const TextEditorModal = ({
               </div>
               <div className="toolbar-side">
                 <div className="font-controls">
-                  <Tooltip title="Decrease font size">
+                  <Tooltip title={t("editor:ui.decreaseFontSize", { defaultValue: "Decrease font size" })}>
                     <button
                       type="button"
                       className="button-ghost"
                       onClick={() => changeFontSize(-1)}
-                      aria-label="Decrease font size"
+                      aria-label={t("editor:ui.decreaseFontSize", { defaultValue: "Decrease font size" })}
                     >
                       <TextDecreaseIcon />
                     </button>
                   </Tooltip>
                   <span className="font-size-value">{fontSize}</span>
-                  <Tooltip title="Increase font size">
+                  <Tooltip title={t("editor:ui.increaseFontSize", { defaultValue: "Increase font size" })}>
                     <button
                       type="button"
                       className="button-ghost"
                       onClick={() => changeFontSize(1)}
-                      aria-label="Increase font size"
+                      aria-label={t("editor:ui.increaseFontSize", { defaultValue: "Increase font size" })}
                     >
                       <TextIncreaseIcon />
                     </button>
@@ -1527,31 +1527,31 @@ const TextEditorModal = ({
                           <AutoAwesomeIcon />
                         </span>
                         <div className="assistant-meta">
-                          <span className="assistant-name">Assistant</span>
+                          <span className="assistant-name">{t("timeline:editor.assistant", { defaultValue: "Assistant" })}</span>
                           <span className="assistant-sub">
                             writes &amp; edits this prompt
                           </span>
                         </div>
                       </div>
                       <div className="assistant-head-actions">
-                        <Tooltip title="New chat">
+                        <Tooltip title={t("editor:ui.newChat", { defaultValue: "New chat" })}>
                           <button
                             type="button"
                             className="button-ghost"
                             onClick={() => void createNewThread()}
-                            aria-label="New chat"
+                            aria-label={t("editor:ui.newChat", { defaultValue: "New chat" })}
                           >
                             <AddIcon />
                           </button>
                         </Tooltip>
                         <Tooltip
-                          title="Hide assistant"
+                          title={t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" })}
                         >
                           <button
                             type="button"
                             className="button-ghost"
                             onClick={toggleAssistantVisible}
-                            aria-label="Hide assistant"
+                            aria-label={t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" })}
                           >
                             <ChevronRightIcon />
                           </button>

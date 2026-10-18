@@ -48,6 +48,7 @@ import {
   toggleButtonSmallSx,
   colorPickerSliderThumbSx
 } from "./sketchStyles";
+import { useTranslation } from "react-i18next";
 
 const SV_SIZE = 160;
 const HUE_HEIGHT = 12;
@@ -74,6 +75,7 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
   onColorChange,
   onClose
 }) => {
+  const { t } = useTranslation();
   const open = Boolean(anchorEl);
   const [mode, setMode] = useState<ColorMode>("hex");
 
@@ -219,11 +221,11 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
       }}
     >
       <FlexRow className="color-picker__header" align="center" justify="flex-end" sx={{ minHeight: "22px", mt: `-${getSpacingPx(SPACING.sm)}`, mr: `-${getSpacingPx(SPACING.sm)}`, mb: getSpacingPx(SPACING.micro) }}>
-        <Tooltip title="Cancel — keep previous color">
+        <Tooltip title={t("sketch:attrs.cancelKeepPreviousColor", { defaultValue: "Cancel — keep previous color" })}>
           <IconButton
             size="small"
             onClick={handleCancel}
-            aria-label="Cancel color change"
+            aria-label={t("sketch:attrs.cancelColorChange", { defaultValue: "Cancel color change" })}
             sx={{ p: getSpacingPx(SPACING.micro), color: SKETCH_COLORS.textSecondary, "&:hover": { color: SKETCH_COLORS.textPrimary, bgcolor: "rgba(255,255,255,0.06)" } }}
           >
             <CloseIcon sx={{ fontSize: ICON_SIZE.sm }} />

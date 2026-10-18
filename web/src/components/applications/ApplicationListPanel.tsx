@@ -41,6 +41,7 @@ import {
   getSpacingPx,
   selectableRowStyles
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const pickerStyles = (theme: Theme) =>
   css({
@@ -60,6 +61,7 @@ const pickerStyles = (theme: Theme) =>
   });
 
 export const CreateApplicationButton = memo(function CreateApplicationButton() {
+  const { t } = useTranslation();
   const createApplication = useCreateApplication();
   const openApplication = useOpenApplication();
 
@@ -77,7 +79,7 @@ export const CreateApplicationButton = memo(function CreateApplicationButton() {
   }, [createApplication, openApplication]);
 
   return (
-    <Tooltip title="New app" placement="right-start">
+    <Tooltip title={t("editor:ui.newApp", { defaultValue: "New app" })} placement="right-start">
       <ToolbarIconButton
         ariaLabel="New app"
         onClick={() => void handleCreate()}
@@ -102,6 +104,7 @@ export const CreateApplicationFromWorkflowButton = memo(
   function CreateApplicationFromWorkflowButton({
     projectId
   }: CreateApplicationFromWorkflowButtonProps) {
+    const { t } = useTranslation();
     const theme = useTheme();
     const pickerCss = useMemo(() => pickerStyles(theme), [theme]);
     const [open, setOpen] = useState(false);
@@ -141,7 +144,7 @@ export const CreateApplicationFromWorkflowButton = memo(
 
     return (
       <>
-        <Tooltip title="Create app from workflow" placement="right-start">
+        <Tooltip title={t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })} placement="right-start">
           <ToolbarIconButton
             ariaLabel="Create app from workflow"
             onClick={() => setOpen(true)}
@@ -155,11 +158,11 @@ export const CreateApplicationFromWorkflowButton = memo(
             setOpen(false);
             setCreateError(null);
           }}
-          title="Create app from workflow"
+          title={t("editor:ui.createAppFromWorkflow", { defaultValue: "Create app from workflow" })}
         >
           <div css={pickerCss}>
             {createError ? (
-              <AlertBanner severity="error" title="Could not create app">
+              <AlertBanner severity="error" title={t("editor:ui.couldNotCreateApp", { defaultValue: "Could not create app" })}>
                 {createError} Select the workflow again to retry.
               </AlertBanner>
             ) : null}
@@ -167,8 +170,8 @@ export const CreateApplicationFromWorkflowButton = memo(
               <LoadingSpinner text="Loading workflows" />
             ) : workflows.length === 0 ? (
               <EmptyState
-                title="No workflows"
-                description="Create a workflow first, then build an app on top of it."
+                title={t("editor:ui.noWorkflows", { defaultValue: "No workflows" })}
+                description={t("editor:ui.createAWorkflowFirstThenBuildAnAppOnTopOfIt", { defaultValue: "Create a workflow first, then build an app on top of it." })}
               />
             ) : (
               <FlexColumn className="workflow-options" gap={SPACING.micro}>

@@ -9,6 +9,7 @@ import {
 import { useCallback, useState, memo } from "react";
 import { TypeMetadata } from "../../stores/ApiTypes";
 import { validateIdentifierName } from "../../utils/identifierValidation";
+import { useTranslation } from "react-i18next";
 
 interface AddDynamicOutputDialogProps {
   open: boolean;
@@ -31,6 +32,7 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
   onAdd,
   takenNames = []
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [type, setType] = useState("str");
   const [nameError, setNameError] = useState<string | undefined>();
@@ -68,14 +70,14 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
       onClose={handleClose}
       maxWidth="xs"
       fullWidth
-      title="Add output"
+      title={t("editor:ui.addOutput", { defaultValue: "Add output" })}
       onConfirm={handleSubmit}
       confirmText="Add output"
     >
       <FlexRow gap={SPACING.lg} align="flex-start">
         <TextInput
           autoFocus
-          label="Name"
+          label={t("editor:asset.info.name", { defaultValue: "Name" })}
           size="small"
           value={name}
           onChange={(e) => {
@@ -91,12 +93,12 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
             }
           }}
           errorMessage={nameError}
-          helperText="Cannot start with a number"
+          helperText={t("editor:inspector.nameNoNumber", { defaultValue: "Cannot start with a number" })}
           sx={{ flex: 1 }}
         />
         <Box sx={{ width: 140, flexShrink: 0 }}>
           <SelectField
-            label="Type"
+            label={t("editor:asset.info.type", { defaultValue: "Type" })}
             size="small"
             value={type}
             onChange={setType}

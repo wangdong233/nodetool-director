@@ -30,6 +30,7 @@ import {
   type ExampleGroup,
   type ExampleKind
 } from "./useExampleGroups";
+import { useTranslation } from "react-i18next";
 
 type ExampleFilter = ExampleKind | "all";
 
@@ -216,6 +217,7 @@ const ExampleSection = ({
  * surfaces that take them.
  */
 const ExamplesPanel = () => {
+  const { t } = useTranslation(["storyboard","editor"]);
   const theme = useTheme();
   const { groups, openingKey, open } = useExampleGroups();
   const [filter, setFilter] = useState<ExampleFilter>("all");
@@ -252,12 +254,12 @@ const ExamplesPanel = () => {
         <CategorySearchBar
           value={query}
           onChange={setQuery}
-          placeholder="Search examples"
+          placeholder={t("storyboard:attrs.searchExamples", { defaultValue: "Search examples" })}
         />
       </div>
       <FlexRow
         role="group"
-        aria-label="Example types"
+        aria-label={t("editor:ui.exampleTypes", { defaultValue: "Example types" })}
         wrap
         gap={SPACING.xs}
         sx={{ pb: SPACING.md }}
@@ -283,8 +285,8 @@ const ExamplesPanel = () => {
           <EmptyState
             variant="no-results"
             title="No matching examples"
-            description="Try a different search term."
-            actionText="Clear search"
+            description={t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })}
+            actionText={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
             onAction={() => setQuery("")}
           />
         </FlexColumn>

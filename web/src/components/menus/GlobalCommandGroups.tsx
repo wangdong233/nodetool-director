@@ -47,6 +47,7 @@ import {
   importApplicationBundle
 } from "../../utils/applicationBundle";
 import type { Workflow, WorkflowList } from "../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 
 const WORKSPACE_PATH = "/workspace";
 
@@ -199,6 +200,7 @@ const NavigateCommands = memo(function NavigateCommands() {
 
 /** Every project, so switching projects does not need the tab bar. */
 const ProjectCommands = memo(function ProjectCommands() {
+  const { t } = useTranslation();
   const { data: projects } = useProjects();
   const activeProjectId = useWorkspaceTabsStore(
     (state) => state.activeProjectId
@@ -214,7 +216,7 @@ const ProjectCommands = memo(function ProjectCommands() {
       uniqueValues(
         targets.map(
           (project) =>
-            `Switch to project ${project.isPersonal ? "Personal" : project.name}`
+            `Switch to project ${project.isPersonal ? t("editor:ui.personal", { defaultValue: "Personal" }) : project.name}`
         )
       ),
     [targets]
@@ -227,7 +229,7 @@ const ProjectCommands = memo(function ProjectCommands() {
   return (
     <Command.Group heading="Projects">
       {targets.map((project, index) => {
-        const name = project.isPersonal ? "Personal" : project.name;
+        const name = project.isPersonal ? t("editor:ui.personal", { defaultValue: "Personal" }) : project.name;
         return (
           <Command.Item
             key={project.id}
@@ -306,6 +308,7 @@ const CreateCommands = memo(function CreateCommands() {
  * app, then opens it.
  */
 const AppCommands = memo(function AppCommands() {
+  const { t } = useTranslation();
   const addNotification = useNotificationStore(
     (state) => state.addNotification
   );
@@ -382,7 +385,7 @@ const AppCommands = memo(function AppCommands() {
         ref={appBundleInputRef}
         type="file"
         accept=".json,application/json"
-        aria-label="Import app bundle file"
+        aria-label={t("editor:ui.importAppBundleFile", { defaultValue: "Import app bundle file" })}
         style={{ display: "none" }}
         onChange={handleAppBundleFileChange}
       />

@@ -58,6 +58,7 @@ import ReportBugButton from "../../support/ReportBugButton";
 import { REVIEW_BLOCK, REVIEW_CONTENT_WIDTH } from "../reviewStyles";
 import { useSetupVoices } from "./useSetupVoices";
 import type { SetupVoice } from "./useSetupVoices";
+import { useTranslation } from "react-i18next";
 
 /** The languages the flow offers to write and read in. */
 const LANGUAGES = [
@@ -148,6 +149,7 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
   speed,
   readOnly
 }) => {
+  const { t } = useTranslation();
   const { sampleFor, play, spokenText } = useVoiceSamples(speed);
   // Each press of `Hear` remounts the player with autoplay, so a sample that
   // is already cached plays again instead of the press doing nothing.
@@ -303,8 +305,7 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
             helperText={paceNote ?? undefined}
             error={
               noPresetVoice
-                ? "This model has no preset voices. Pick another model."
-                : undefined
+                ? t("setup:script.noPresetVoices", { defaultValue: "This model has no preset voices. Pick another model." }) : undefined
             }
           >
             <TTSModelSelect
@@ -337,8 +338,7 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
             }}
           >
             {sample?.pending
-              ? "Generating sample"
-              : selectedVoice
+              ? t("storyboard:attrs.generatingSample", { defaultValue: "Generating sample" }) : selectedVoice
                 ? `Hear ${selectedVoice.label}`
                 : "Hear voice"}
           </EditorButton>
@@ -379,6 +379,7 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({
   scriptId,
   readOnly = false
 }) => {
+  const { t } = useTranslation();
   const script = useScriptStore((state) => state.scripts[scriptId]);
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
@@ -415,14 +416,14 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({
       <FlexColumn
         gap={GAP.tight}
         component="section"
-        aria-label="Read settings"
+        aria-label={t("storyboard:attrs.readSettings", { defaultValue: "Read settings" })}
       >
         {/* Each control says what it reaches. Pace was reaching nothing at
             all, and language belongs to the writer, not to the speech call
             this step's button makes (F12). */}
         <FlexRow gap={GAP.comfortable} wrap align="flex-start">
           <SelectField
-            label="Language"
+            label={t("storyboard:attrs.language", { defaultValue: "Language" })}
             value={language}
             options={LANGUAGES.map((name) => ({ value: name, label: name }))}
             disabled={readOnly}
@@ -430,7 +431,7 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({
             description="What the script is written in. Change it, then rewrite on the Format step to apply it."
           />
           <SelectField
-            label="Pace"
+            label={t("setup:script.paceLabel", { defaultValue: "Pace" })}
             value={pace}
             options={PACES}
             disabled={readOnly}

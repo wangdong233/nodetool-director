@@ -25,6 +25,7 @@ import {
 } from "../../ui_primitives";
 import { trpc } from "../../../trpc/client";
 import { useBoundResource, type ResourceItem } from "./useBoundResource";
+import { useTranslation } from "react-i18next";
 
 interface ResourceGalleryProps {
   /** Puck injects the placed widget's id. */
@@ -148,6 +149,7 @@ export const ResourceGalleryWidget: React.FC<ResourceGalleryProps> = ({
   tileSize,
   disabled
 }) => {
+  const { t } = useTranslation("appbuilder");
   const { binding, items, isLoading, designMode, selected, select } =
     useBoundResource(resourceBindingId);
 
@@ -189,8 +191,7 @@ export const ResourceGalleryWidget: React.FC<ResourceGalleryProps> = ({
     return (
       <Caption color="secondary">
         {designMode
-          ? "Pick a resource binding for this gallery."
-          : "This gallery is not bound to a resource."}
+          ? t("appbuilder:attrs.pickAResourceBindingForThisGallery", { defaultValue: "Pick a resource binding for this gallery." }) : "This gallery is not bound to a resource."}
       </Caption>
     );
   }

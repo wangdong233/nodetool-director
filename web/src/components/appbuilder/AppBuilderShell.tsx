@@ -24,6 +24,7 @@ import {
 import PuckAppEditor from "./puck/PuckAppEditor";
 import AppDataPanel from "./AppDataPanel";
 import { isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 interface AppBuilderShellProps {
   /**
@@ -119,6 +120,7 @@ const AppBuilderShell: React.FC<AppBuilderShellProps> = ({
   onClose,
   projectId
 }) => {
+  const { t } = useTranslation("appbuilder");
   const setCurrentWorkflowId = useWorkflowManager((s) => s.setCurrentWorkflowId);
   // Puck owns the layout after mount, so this is the seed only. The document's
   // theme is seeded onto the root so the author edits it as a root field, and
@@ -241,9 +243,9 @@ const AppBuilderShell: React.FC<AppBuilderShellProps> = ({
         </Box>
       </FlexColumn>
       {dataOpen && (
-        <FlexColumn role="complementary" aria-label="App data" sx={panelSx}>
+        <FlexColumn role="complementary" aria-label={t("appbuilder:attrs.appData", { defaultValue: "App data" })} sx={panelSx}>
           {narrow && (
-            <EditorButton onClick={toggleData}>Back to canvas</EditorButton>
+            <EditorButton onClick={toggleData}>{t("appbuilder:attrs.backToCanvas", { defaultValue: "Back to canvas" })}</EditorButton>
           )}
           <AppDataPanel
             meta={meta}

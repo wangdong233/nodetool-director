@@ -49,6 +49,7 @@ import {
 import { displayCombo } from "./shortcuts";
 import SketchToolIconLabel from "./SketchToolIconLabel";
 import { ToolSettingsPanel } from "./ToolSettingsPanels";
+import { useTranslation } from "react-i18next";
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -360,6 +361,7 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
   onCheckSegmentModel,
   onSwapColors
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const activeDefinition = getToolDefinition(activeTool);
   const activeShortcutActionId = getToolShortcutActionId(
@@ -399,8 +401,8 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
     if (isShapeTool(activeTool)) {
       return (
         <FlexRow gap={1}>
-          <ColorPreview label="Stroke" color={shapeSettings.strokeColor} />
-          <ColorPreview label="Fill" color={shapeSettings.fillColor} />
+          <ColorPreview label={t("sketch:attrs.stroke", { defaultValue: "Stroke" })} color={shapeSettings.strokeColor} />
+          <ColorPreview label={t("ui2:attrs.fill", { defaultValue: "Fill" })} color={shapeSettings.fillColor} />
         </FlexRow>
       );
     }
@@ -408,8 +410,8 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
     if (activeTool === "gradient") {
       return (
         <FlexRow gap={1}>
-          <ColorPreview label="Start" color={gradientSettings.startColor} />
-          <ColorPreview label="End" color={gradientSettings.endColor} />
+          <ColorPreview label={t("sketch:attrs.start", { defaultValue: "Start" })} color={gradientSettings.startColor} />
+          <ColorPreview label={t("ui2:attrs.end", { defaultValue: "End" })} color={gradientSettings.endColor} />
         </FlexRow>
       );
     }
@@ -421,7 +423,7 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
         <ToolbarIconButton
           icon={<SwapHorizIcon sx={{ fontSize: ICON_SIZE.md }} />}
           onClick={onSwapColors}
-          aria-label="Swap foreground and background colors"
+          aria-label={t("sketch:attrs.swapForegroundAndBackgroundColors", { defaultValue: "Swap foreground and background colors" })}
           sx={{
             mt: 0,
             border: "1px solid",
@@ -634,38 +636,38 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
                   px: 0
                 }}
               >
-                <SectionLabel>Selection</SectionLabel>
+                <SectionLabel>{t("sketch:attrs.selection", { defaultValue: "Selection" })}</SectionLabel>
                 <FlexColumn gap={0.3}>
                   <SelectionMenuItem
                     icon={<DeselectIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-                    label="Deselect"
+                    label={t("sketch:attrs.deselect", { defaultValue: "Deselect" })}
                     shortcut={displayCombo("deselect")}
                     disabled={!hasActiveSelection}
                     onClick={() => { onDeselectSelection(); onClose(); }}
                   />
                   <SelectionMenuItem
                     icon={<RestoreIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-                    label="Reselect"
+                    label={t("sketch:attrs.reselect", { defaultValue: "Reselect" })}
                     shortcut={displayCombo("reselect")}
                     onClick={() => { onReselectSelection(); onClose(); }}
                   />
                   <SelectionMenuItem
                     icon={<CropIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-                    label="Crop to selection"
+                    label={t("sketch:attrs.cropToSelection", { defaultValue: "Crop to selection" })}
                     disabled={!hasActiveSelection}
                     onClick={() => { onCropCanvasToSelection(); onClose(); }}
                   />
                   <Divider sx={{ my: 0.5, borderColor: surfaceSoft }} />
                   <SelectionMenuItem
                     icon={<ContentCopyIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-                    label="Layer via copy"
+                    label={t("sketch:attrs.layerViaCopy", { defaultValue: "Layer via copy" })}
                     shortcut={displayCombo("layer-via-copy")}
                     disabled={!hasActiveSelection}
                     onClick={() => { onLayerViaCopy(); onClose(); }}
                   />
                   <SelectionMenuItem
                     icon={<ContentCutIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-                    label="Layer via cut"
+                    label={t("sketch:attrs.layerViaCut", { defaultValue: "Layer via cut" })}
                     shortcut={displayCombo("layer-via-cut")}
                     disabled={!hasActiveSelection}
                     onClick={() => { onLayerViaCut(); onClose(); }}
@@ -673,13 +675,13 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
                   <Divider sx={{ my: 0.5, borderColor: surfaceSoft }} />
                   <SelectionMenuItem
                     icon={<FormatColorFillIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-                    label="Fill"
+                    label={t("ui2:attrs.fill", { defaultValue: "Fill" })}
                     disabled={!hasActiveSelection}
                     onClick={() => { onFillSelectionWithForeground(); onClose(); }}
                   />
                   <SelectionMenuItem
                     icon={<HighlightAltIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-                    label="Stroke"
+                    label={t("sketch:attrs.stroke", { defaultValue: "Stroke" })}
                     disabled={!hasActiveSelection}
                     onClick={() => { onStrokeSelectionWithForeground(); onClose(); }}
                   />
@@ -698,7 +700,7 @@ const SketchCanvasContextMenu: React.FC<SketchCanvasContextMenuProps> = ({
               py: 1
             }}
           >
-            <SectionLabel>Tools</SectionLabel>
+            <SectionLabel>{t("sketch:attrs.tools", { defaultValue: "Tools" })}</SectionLabel>
             <FlexColumn
               gap={0.75}
               className="sketch-context-menu__tools-groups"

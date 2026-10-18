@@ -321,7 +321,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                   onClick={handleRecheck}
                   disabled={rechecking}
                 >
-                  {rechecking ? "Checking…" : "Recheck"}
+                  {rechecking ? t("editor:ui.checking", { defaultValue: "Checking…" }) : "Recheck"}
                 </EditorButton>
                 <EditorButton
                   density="compact"

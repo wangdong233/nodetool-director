@@ -53,6 +53,7 @@ import {
   isObjectLike,
   isString
 } from "../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const REMARK_PLUGINS: Options["remarkPlugins"] = [remarkGfm];
 
@@ -166,6 +167,7 @@ const MediaPlaceholder: React.FC<{
   designMode?: boolean;
   producing?: boolean;
 }> = ({ height, text, designMode, producing }) => {
+  const { t } = useTranslation("editor");
   const full = designMode || producing;
   return (
     <FlexColumn
@@ -187,7 +189,7 @@ const MediaPlaceholder: React.FC<{
     >
       {producing && <MagicGenerationFill borderRadius={BORDER_RADIUS.md} />}
       <Caption color="secondary" sx={{ position: "relative" }}>
-        {producing ? "Generating…" : text}
+        {producing ? t("editor:ui.generating", { defaultValue: "Generating…" }) : text}
       </Caption>
     </FlexColumn>
   );
@@ -1715,6 +1717,7 @@ export const ButtonWidget: React.FC<
     align?: "start" | "end";
   }
 > = (props) => {
+  const { t } = useTranslation("editor");
   const { emit, designMode, runnerState } = useBinding(props, "none");
   const isRunning = runnerState === "running";
   const runsOnClick = (props.events ?? []).some(
@@ -1751,7 +1754,7 @@ export const ButtonWidget: React.FC<
         showRunning ? <LoadingSpinner inline size={16} color="inherit" /> : undefined
       }
     >
-      {showRunning ? "Running…" : (props.label ?? "Button")}
+      {showRunning ? t("editor:node.running", { defaultValue: "Running…" }) : (props.label ?? "Button")}
     </EditorButton>
   );
   if (fullWidth) return button;
@@ -1919,7 +1922,7 @@ export const TabsWidget: React.FC<{
     : panes[0]?.value;
 
   if (panes.length === 0) {
-    return <Caption color="secondary">Name a tab to show its content</Caption>;
+    return <Caption color="secondary">{t("appbuilder:attrs.nameATabToShowItsContent", { defaultValue: "Name a tab to show its content" })}</Caption>;
   }
   return (
     <FlexColumn gap={SPACING.lg} fullWidth>

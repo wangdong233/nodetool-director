@@ -35,6 +35,7 @@ import {
   type QuickActionDefinition
 } from "../node_menu/QuickActionTiles.constants";
 import type { NodeMetadata } from "../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 
 interface NodePickerDialogProps {
   open: boolean;
@@ -88,6 +89,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
   onSelect,
   onClose
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const autoFocusEnabled = useAutoFocusEnabled();
@@ -148,7 +150,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Add node"
+      title={t("editor:ui.addNode", { defaultValue: "Add node" })}
       maxWidth="sm"
       fullWidth
     >
@@ -212,7 +214,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
             <EmptyState
               variant="no-results"
               size="small"
-              title="No nodes found"
+              title={t("editor:ui.noNodesFound", { defaultValue: "No nodes found" })}
             />
           ) : (
             <FlexColumn gap={SPACING.none}>

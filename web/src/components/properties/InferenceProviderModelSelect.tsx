@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import isEqual from "../../utils/isEqual";
 import Select from "../inputs/Select";
 import type { PropertyProps } from "../node/PropertyInput";
+import { useTranslation } from "react-i18next";
 
 interface HuggingFaceModel {
   id: string;
@@ -56,6 +57,7 @@ const InferenceProviderModelSelect = ({
   onChange,
   value: rawValue
 }: PropertyProps) => {
+  const { t } = useTranslation();
     const [providerOpen, setProviderOpen] = useState(false);
     const [modelOpen, setModelOpen] = useState(false);
     const closeSelect = useSelect((s) => s.close);
@@ -146,7 +148,7 @@ const InferenceProviderModelSelect = ({
                     options={providerOptions}
                     value={value.provider}
                     onChange={handleChangeProvider}
-                    placeholder="Select an inference provider"
+                    placeholder={t("editor:ui.selectAnInferenceProvider", { defaultValue: "Select an inference provider" })}
                 />
             </div>
 
@@ -164,8 +166,7 @@ const InferenceProviderModelSelect = ({
                             isLoadingModels
                                 ? "Loading models…"
                                 : modelsError
-                                    ? "Error loading models"
-                                    : "Select a model"
+                                    ? t("editor:ui.errorLoadingModels", { defaultValue: "Error loading models" }) : "Select a model"
                         }
                     />
                 </div>

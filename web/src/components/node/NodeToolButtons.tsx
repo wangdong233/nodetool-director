@@ -31,6 +31,7 @@ import { isMac } from "../../utils/platform";
 import { useRemoveFromGroup } from "../../hooks/nodes/useRemoveFromGroup";
 import { useRunFromHere } from "../../hooks/nodes/useRunFromHere";
 import { openPageTab } from "../workspace/openPageTab";
+import { useTranslation } from "react-i18next";
 
 interface NodeToolbarProps {
   nodeId: string | null;
@@ -44,6 +45,7 @@ const BUTTON_BOX = {
 const ICON_SX = { fontSize: 18 } as const;
 
 const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { getNode } = useReactFlow();
   const { deleteNode, updateNodeData, selectNodesByType, toggleBypass } = useNodes(
@@ -131,7 +133,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
     <>
       <FloatingToolbar className="node-toolbar" sx={{ marginBottom: 2 }}>
         <ToolbarIconButton
-          title={isWorkflowRunning ? "Running…" : "Run node"}
+          title={isWorkflowRunning ? t("editor:node.running", { defaultValue: "Running…" }) : "Run node"}
           className="nodrag"
           onClick={runFromHere}
           tabIndex={-1}
@@ -163,11 +165,11 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         <ToolbarIconButton
           title={
             <>
-              {isBypassed ? "Enable node" : "Disable node"}{" "}
+              {isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable node" }) : "Disable node"}{" "}
               {getShortcutTooltip("bypassNode", undefined, "combo")}
             </>
           }
-          ariaLabel={isBypassed ? "Enable node" : "Disable node"}
+          ariaLabel={isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable node" }) : "Disable node"}
           className="nodrag"
           onClick={handleToggleBypass}
           tabIndex={-1}
@@ -198,7 +200,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         </ToolbarIconButton>
 
         <ToolbarIconButton
-          title="More actions"
+          title={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
           className="nodrag"
           onClick={handleOpenDropdown}
           tabIndex={-1}
@@ -226,7 +228,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
       >
         {isInGroup && (
           <MenuItemPrimitive
-            label="Remove from group"
+            label={t("ui2:attrs.removeFromGroup", { defaultValue: "Remove from group" })}
             icon={<GroupRemoveIcon />}
             onClick={handleRemoveFromGroup}
           />
@@ -234,7 +236,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
 
         {conditions.canConvertToInput && (
           <MenuItemPrimitive
-            label="Convert to input"
+            label={t("ui2:attrs.convertToInput", { defaultValue: "Convert to input" })}
             icon={<SwapHorizIcon />}
             onClick={handlers.handleConvertToInput}
           />
@@ -242,7 +244,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
 
         {conditions.canConvertToConstant && (
           <MenuItemPrimitive
-            label="Convert to constant"
+            label={t("ui2:attrs.convertToConstant", { defaultValue: "Convert to constant" })}
             icon={<SwapHorizIcon />}
             onClick={handlers.handleConvertToConstant}
           />
@@ -255,7 +257,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         />
 
         <MenuItemPrimitive
-          label="Show templates"
+          label={t("ui2:attrs.showTemplates", { defaultValue: "Show templates" })}
           icon={<SearchIcon />}
           onClick={handleFindTemplates}
         />
@@ -267,7 +269,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         />
 
         <MenuItemPrimitive
-          label="Copy node as JSON"
+          label={t("ui2:attrs.copyNodeAsJSON", { defaultValue: "Copy node as JSON" })}
           icon={<DataArrayIcon />}
           onClick={handlers.handleCopyMetadataToClipboard}
         />

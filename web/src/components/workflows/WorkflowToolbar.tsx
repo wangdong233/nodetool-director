@@ -302,12 +302,12 @@ const WorkflowToolbar: FC<WorkflowToolbarProps> = ({
             }}
           >
             <MenuItemPrimitive
-              label="Sort by date"
+              label={t("editor:asset.sortDate", { defaultValue: "Sort by date" })}
               onClick={handleSortByDate}
               selected={sortBy === "date"}
             />
             <MenuItemPrimitive
-              label="Sort by name"
+              label={t("editor:asset.sortName", { defaultValue: "Sort by name" })}
               onClick={handleSortByName}
               selected={sortBy === "name"}
             />

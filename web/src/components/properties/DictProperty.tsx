@@ -6,6 +6,7 @@ import PropertyLabel from "../node/PropertyLabel";
 import { SPACING, getSpacingPx } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { isNumber, isObjectLike } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 // A dict is an object, so read the type from its first value.
 const detectTypeFromDict = (dict: unknown): DictDataType => {
@@ -20,6 +21,7 @@ const detectTypeFromDict = (dict: unknown): DictDataType => {
 };
 
 const DictProperty = (props: PropertyProps<Record<string, DictCellValue>>) => {
+  const { t } = useTranslation();
   const id = `list-${props.property.name}-${props.propertyIndex}`;
   const dataTypes = useMemo(() => ["int", "string", "datetime", "float"], []);
 
@@ -65,7 +67,7 @@ const DictProperty = (props: PropertyProps<Record<string, DictCellValue>>) => {
           value={dataType}
           onChange={handleDataTypeChange}
           options={options}
-          label="Data type"
+          label={t("editor:ui.dataType", { defaultValue: "Data type" })}
           placeholder="Select type…"
         />
       </div>

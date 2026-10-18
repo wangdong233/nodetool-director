@@ -13,6 +13,7 @@ import { useOptionalNodes } from "../../contexts/NodeContext";
 import { ImageSizePresetsMenu } from "./ImageSizePresetsMenu";
 import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import ConnectedBadge from "./ConnectedBadge";
+import { useTranslation } from "react-i18next";
 
 type ImageSizeValue = {
   width: number;
@@ -21,6 +22,7 @@ type ImageSizeValue = {
 };
 
 const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
+  const { t } = useTranslation();
   const { property, nodeId, value, onChange, tabIndex } = props;
 
   const isConnectedSelector = useIsConnectedSelector(nodeId, property.name);
@@ -164,7 +166,7 @@ const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
         <Box className="spacer" sx={{ flex: 1 }} />
         <FlexRow className="icon-container" align="center" gap={0} sx={{ mt: -2 }}>
           <ToolbarIconButton
-            tooltip="Swap width and height"
+            tooltip={t("editor:ui.swapWidthAndHeight", { defaultValue: "Swap width and height" })}
             icon={<SwapHoriz sx={{ fontSize: ICON_SIZE.md }} />}
             className="aspect-swap-button"
             onClick={handleSwap}
@@ -177,7 +179,7 @@ const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
           />
 
           <ToolbarIconButton
-            tooltip={locked ? "Unlock aspect ratio" : "Lock aspect ratio"}
+            tooltip={locked ? t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : "Lock aspect ratio"}
             icon={locked ? <Lock sx={{ fontSize: ICON_SIZE.sm }} /> : <LockOpen sx={{ fontSize: ICON_SIZE.sm }} />}
             className="aspect-lock-button"
             onClick={toggleLock}
@@ -190,7 +192,7 @@ const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
           />
 
           <ToolbarIconButton
-            tooltip="Presets"
+            tooltip={t("editor:ui.presets", { defaultValue: "Presets" })}
             icon={<MoreVert sx={{ fontSize: ICON_SIZE.md }} />}
             className="presets-menu-button"
             onClick={handlePresetClick}

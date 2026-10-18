@@ -245,7 +245,7 @@ const TimeRemapEditor: React.FC<ClipTimeRemapProps> = memo(
                         />
                         <InspectorPillInput
                           value={keyframe.easing ?? ""}
-                          placeholder="linear"
+                          placeholder={t("ui2:attrs.linear", { defaultValue: "linear" })}
                           allowEmpty
                           minWidth={96}
                           onCommit={(raw) => {

@@ -29,6 +29,7 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { BLUR_NODE_TYPE } from "../../../constants/nodeTypes";
+import { useTranslation } from "react-i18next";
 
 type BlurType = "gaussian" | "box" | "motion";
 
@@ -123,6 +124,7 @@ const BlurBodyInner: React.FC<BlurBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -174,12 +176,12 @@ const BlurBodyInner: React.FC<BlurBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Type</span>
+        <span className="ctrl-label">{t("editor:asset.info.type", { defaultValue: "Type" })}</span>
         <NodeSelect
           className="type-select"
           value={blurType}
           onChange={handleTypeChange}
-          aria-label="Blur type"
+          aria-label={t("editor:ui.blurType", { defaultValue: "Blur type" })}
         >
           {BLUR_TYPES.map((t) => (
             <NodeMenuItem key={t.value} value={t.value}>
@@ -188,7 +190,7 @@ const BlurBodyInner: React.FC<BlurBodyProps> = ({
           ))}
         </NodeSelect>
 
-        <span className="ctrl-label">Size</span>
+        <span className="ctrl-label">{t("ui2:attrs.size", { defaultValue: "Size" })}</span>
         <NodeSlider
           min={0}
           max={100}
@@ -196,7 +198,7 @@ const BlurBodyInner: React.FC<BlurBodyProps> = ({
           value={size}
           onChange={handleSizeChange}
           onChangeCommitted={handleSizeCommitted}
-          aria-label="Blur size"
+          aria-label={t("editor:ui.blurSize", { defaultValue: "Blur size" })}
         />
         <span className="ctrl-value">{Math.round(size)}</span>
       </div>

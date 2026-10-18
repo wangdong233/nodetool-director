@@ -20,6 +20,7 @@ import {
   useWorkspaceCacheWriter
 } from "../../hooks/useWorkspaces";
 import { useFolderPicker } from "./useFolderPicker";
+import { useTranslation } from "react-i18next";
 
 /** Derive a workspace name from an absolute folder path. */
 function nameFromPath(path: string): string {
@@ -46,6 +47,7 @@ interface WorkspaceChipProps {
 }
 
 const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -132,7 +134,7 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
         })}
         {canManage && (
           <MenuItemPrimitive
-            label="Add workspace…"
+            label={t("editor:ui.addWorkspaceEllipsis", { defaultValue: "Add workspace…" })}
             icon={<AddIcon fontSize="small" />}
             dividerBefore={workspaces.length > 0}
             onClick={() => void handleAdd()}

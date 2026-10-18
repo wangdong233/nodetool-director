@@ -16,10 +16,12 @@ import {
   ToolbarIconButton,
   Tooltip
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const DEFAULT_NAME = "Untitled JS script";
 
 export const CreateJsScriptButton = memo(function CreateJsScriptButton() {
+  const { t } = useTranslation();
   const createJsScript = useCreateJsScript();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setVisibility = usePanelStore((state) => state.setVisibility);
@@ -49,7 +51,7 @@ export const CreateJsScriptButton = memo(function CreateJsScriptButton() {
   }, [createJsScript, location.pathname, navigate, openTab, setVisibility]);
 
   return (
-    <Tooltip title="New JS script" placement="right-start">
+    <Tooltip title={t("editor:ui.newJSScript", { defaultValue: "New JS script" })} placement="right-start">
       <ToolbarIconButton
         ariaLabel="New JS script"
         onClick={() => void handleCreate()}

@@ -11,6 +11,7 @@ import { relativeTime } from "../../utils/formatDateAndTime";
 import StarIcon from "@mui/icons-material/Star";
 import { FavoriteButton, FlexColumn, FlexRow, Text, Tooltip, Checkbox, Box, FONT_WEIGHT, InlineEditableText, SPACING, getSpacingPx, Chip, ICON_SIZE } from "../ui_primitives";
 import { WorkflowTriggerIndicator } from "./WorkflowTriggerIndicator";
+import { useTranslation } from "react-i18next";
 
 // Single-click on the row opens the workflow. Double-clicking the name renames
 // it inline instead, so the open is deferred briefly to let a following
@@ -46,6 +47,7 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
   onRename,
   onOpenAsApp
 }: WorkflowListItemProps) => {
+  const { t } = useTranslation();
   const openContextMenu = useContextMenuStore((state) => state.openContextMenu);
   const setActions = useWorkflowActionsStore((state) => state.setActions);
   const clearActions = useWorkflowActionsStore((state) => state.clearActions);
@@ -254,7 +256,7 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
           ariaLabel="Workflow name"
           sx={inputSx}
         >
-          <Tooltip title="Double-click to rename" describeChild>
+          <Tooltip title={t("editor:ui.doubleclickToRename", { defaultValue: "Double-click to rename" })} describeChild>
             <Text
               className="name"
               size="small"

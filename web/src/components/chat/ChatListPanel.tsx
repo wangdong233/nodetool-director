@@ -26,6 +26,7 @@ import {
   Tooltip,
   ToolbarIconButton
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 /** Opens a thread as a chat tab, leaving the rest of the workspace in place. */
 const useOpenThreadTab = () => {
@@ -57,6 +58,7 @@ interface CreateChatButtonProps {
 export const CreateChatButton = memo(function CreateChatButton({
   projectId
 }: CreateChatButtonProps) {
+  const { t } = useTranslation();
   const createNewThread = useGlobalChatStore((state) => state.createNewThread);
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -80,7 +82,7 @@ export const CreateChatButton = memo(function CreateChatButton({
   }, [createNewThread, openThreadTab, addNotification, projectId]);
 
   return (
-    <Tooltip title="New chat" placement="right-start">
+    <Tooltip title={t("editor:chat.newChat", { defaultValue: "New chat" })} placement="right-start">
       <ToolbarIconButton
         ariaLabel="New chat"
         onClick={() => void handleCreate()}
@@ -101,6 +103,7 @@ interface ChatListPanelProps {
 }
 
 const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
+  const { t } = useTranslation();
   const [filterValue, setFilterValue] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const autoFocusEnabled = useAutoFocusEnabled();
@@ -219,7 +222,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
             role="status"
             aria-live="polite"
           >
-            <ShimmerText>Loading conversations…</ShimmerText>
+            <ShimmerText>{t("editor:ui.loadingConversations", { defaultValue: "Loading conversations…" })}</ShimmerText>
           </Text>
         </FlexColumn>
       ) : threadsError ? (
@@ -231,7 +234,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
         >
           <EmptyState
             variant="error"
-            title="Could not load conversations"
+            title={t("editor:chat.loadFailed", { defaultValue: "Could not load conversations" })}
             description={threadsError}
           />
         </FlexColumn>
@@ -245,9 +248,9 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
           {/* UX research study 4: this line used to point at another menu,
               and newcomers lost several actions finding "New chat". */}
           <EmptyState
-            title="No conversations yet"
+            title={t("editor:chat.noneYet", { defaultValue: "No conversations yet" })}
             description="Ask a question to start one."
-            actionText="New chat"
+            actionText={t("editor:chat.newChat", { defaultValue: "New chat" })}
             onAction={() => void handleNewThread()}
           />
         </FlexColumn>

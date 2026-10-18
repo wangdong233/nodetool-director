@@ -9,6 +9,7 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import WorkspaceSelect from "../workspaces/WorkspaceSelect";
+import { useTranslation } from "react-i18next";
 
 const RUN_MODE_OPTIONS = [
   { value: "workflow", label: "Workflow" },
@@ -62,6 +63,7 @@ interface WorkflowFormProps {
 }
 
 const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormProps) => {
+  const { t } = useTranslation();
   const [localWorkflow, setLocalWorkflow] = useState<Workflow>(workflow);
   const saveWorkflow = useWorkflowManager((state) => state.saveWorkflow);
   const getNodeStore = useWorkflowManager((state) => state.getNodeStore);
@@ -194,7 +196,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
     <div css={styles(theme)} className="workflow-form">
       <FormSection className="settings-section">
         <TextInput
-          label="Name"
+          label={t("editor:asset.info.name", { defaultValue: "Name" })}
           name="name"
           spellCheck={false}
           autoComplete="off"
@@ -204,7 +206,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
         />
 
         <TextArea
-          label="Description"
+          label={t("editor:ui.description", { defaultValue: "Description" })}
           name="description"
           value={localWorkflow.description}
           onChange={(description) => applyChange({ description })}
@@ -215,7 +217,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
         />
 
         <AutocompleteTagInput
-          label="Tags"
+          label={t("editor:ui.tags", { defaultValue: "Tags" })}
           value={localWorkflow.tags || []}
           onChange={(tags) => {
             const uniqueTags = Array.from(new Set(tags.map(t => t.trim().toLowerCase()).filter(t => t.length > 0)));
@@ -223,13 +225,13 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
           }}
           suggestions={tagOptions}
           placeholder="Type or select tags…"
-          description="Select from suggestions or type custom tags (press Enter to add)"
+          description={t("editor:ui.selectFromSuggestionsOrTypeCustomTagsPressEnterToAdd", { defaultValue: "Select from suggestions or type custom tags (press Enter to add)" })}
         />
       </FormSection>
 
-      <FormSection label="Execution" className="settings-section">
+      <FormSection label={t("editor:ui.execution", { defaultValue: "Execution" })} className="settings-section">
         <SelectField
-          label="Run mode"
+          label={t("storyboard:attrs.runMode", { defaultValue: "Run mode" })}
           value={localWorkflow.run_mode || "workflow"}
           onChange={(value) => applyChange({ run_mode: value }, true)}
           options={RUN_MODE_OPTIONS}
@@ -237,17 +239,17 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
         />
       </FormSection>
 
-      <FormSection label="Advanced" className="settings-section">
+      <FormSection label={t("editor:ui.advanced", { defaultValue: "Advanced" })} className="settings-section">
         <WorkspaceSelect
           label="Workspace"
           value={localWorkflow.workspace_id ?? undefined}
           onChange={handleWorkspaceChange}
-          helperText="Associate a workspace folder with this workflow for agent access"
+          helperText={t("editor:ui.associateWorkspaceFolder", { defaultValue: "Associate a workspace folder with this workflow for agent access" })}
         />
 
         <TextInput
-          label="Tool name"
-          helperText="Identifier for API/tool usage. Letters, numbers, underscores only."
+          label={t("editor:ui.toolName", { defaultValue: "Tool name" })}
+          helperText={t("editor:ui.identifierForApiToolUsage", { defaultValue: "Identifier for API/tool usage. Letters, numbers, underscores only." })}
           name="tool_name"
           spellCheck={false}
           autoComplete="off"

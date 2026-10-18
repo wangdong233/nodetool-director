@@ -45,6 +45,7 @@ import {
   Tooltip
 } from "../ui_primitives";
 import { colorForType } from "../../config/data_types";
+import { useTranslation } from "react-i18next";
 
 interface ShotInspectorProps {
   boardId: string;
@@ -82,6 +83,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
   onClose,
   onEdit
 }) => {
+  const { t } = useTranslation();
   const removeShot = useStoryboardStore((state) => state.removeShot);
   const boardEntityIds = useStoryboardStore(
     (state) => state.boards[boardId]?.entityIds ?? NO_ENTITY_IDS
@@ -187,9 +189,9 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
           <ShotActionText action={shot.action} entities={shotEntities} />
         </Box>
         <Divider orientation="vertical" flexItem />
-        <Caption color="secondary">Appears in</Caption>
+        <Caption color="secondary">{t("storyboard:attrs.appearsIn", { defaultValue: "Appears in" })}</Caption>
         {timelineLink && (
-          <Tooltip title="Open the cut with this shot's clip selected" describeChild>
+          <Tooltip title={t("storyboard:attrs.openTheCutWithThisShotClipSelected", { defaultValue: "Open the cut with this shot's clip selected" })} describeChild>
             <Chip
               compact
               variant="outlined"
@@ -200,7 +202,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
           </Tooltip>
         )}
         {scriptLink && (
-          <Tooltip title="Open the script this shot's lines come from" describeChild>
+          <Tooltip title={t("storyboard:attrs.openTheScriptThisShotLinesComeFrom", { defaultValue: "Open the script this shot's lines come from" })} describeChild>
             <Chip
               compact
               variant="outlined"
@@ -211,7 +213,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
           </Tooltip>
         )}
         {!timelineLink && !scriptLink && (
-          <Caption color="muted">nothing yet</Caption>
+          <Caption color="muted">{t("storyboard:attrs.nothingYet", { defaultValue: "nothing yet" })}</Caption>
         )}
         {!readOnly && (
           <>
@@ -220,7 +222,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
                 variant="contained"
                 color="primary"
                 onClick={() => onEdit(shot.id)}
-                tooltip="Open this shot's fields, takes and script lines under its card"
+                tooltip={t("storyboard:attrs.openThisShotFieldsTakesAndScriptLinesUnderItsCard", { defaultValue: "Open this shot's fields, takes and script lines under its card" })}
               >
                 Edit
               </EditorButton>
@@ -231,8 +233,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
               sx={quietActionSx}
               tooltip={
                 shot.clip
-                  ? "Re-render this clip with a note applied"
-                  : "Render a clip first"
+                  ? t("storyboard:attrs.reRenderThisClipWithANoteApplied", { defaultValue: "Re-render this clip with a note applied" }) : "Render a clip first"
               }
             >
               Iterate
@@ -241,7 +242,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
               onClick={handleRegenerate}
               disabled={isGenerating}
               sx={quietActionSx}
-              tooltip="Render a new still and pick its model"
+              tooltip={t("storyboard:attrs.renderANewStillAndPickItsModel", { defaultValue: "Render a new still and pick its model" })}
             >
               Regenerate
             </EditorButton>
@@ -249,21 +250,21 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
               onClick={() => setConfirmDelete(true)}
               disabled={isGenerating}
               sx={quietActionSx}
-              tooltip="Delete this shot"
+              tooltip={t("storyboard:attrs.deleteThisShot", { defaultValue: "Delete this shot" })}
             >
               Delete
             </EditorButton>
           </>
         )}
         {onClose && (
-          <CloseButton onClick={onClose} tooltip="Clear shot selection" />
+          <CloseButton onClick={onClose} tooltip={t("storyboard:attrs.clearShotSelection", { defaultValue: "Clear shot selection" })} />
         )}
       </FlexRow>
 
       <Dialog
         open={iterateOpen}
         onClose={() => setIterateOpen(false)}
-        title="Iterate on this clip"
+        title={t("storyboard:attrs.iterateOnThisClip", { defaultValue: "Iterate on this clip" })}
         onConfirm={handleIterateConfirm}
         confirmText="Iterate"
         confirmDisabled={iterateText.trim().length === 0}
@@ -275,7 +276,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
           </Caption>
           <TextArea
             value={iterateText}
-            placeholder="e.g. make it darker, add rain"
+            placeholder={t("storyboard:attrs.egMakeItDarkerAddRain", { defaultValue: "e.g. make it darker, add rain" })}
             onChange={(value) => setIterateText(value)}
             rows={3}
             autoFocus
@@ -296,7 +297,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
       <Dialog
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
-        title="Delete shot?"
+        title={t("editor:ui.deleteShot", { defaultValue: "Delete shot?" })}
         onConfirm={handleDelete}
         confirmText="Delete"
         destructive

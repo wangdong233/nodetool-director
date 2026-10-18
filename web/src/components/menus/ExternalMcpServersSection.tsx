@@ -30,6 +30,7 @@ import {
 } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient, type RouterOutputs } from "../../trpc/client";
+import { useTranslation } from "react-i18next";
 
 type ProbeResult = RouterOutputs["externalMcp"]["probe"];
 
@@ -221,7 +222,7 @@ const ServerRow = memo(function ServerRow({
             </Text>
             <Chip label={t.type} compact variant="outlined" />
             {!server.enabled && (
-              <Chip label="Disabled" compact variant="outlined" />
+              <Chip label={t("editor:ui.disabled", { defaultValue: "Disabled" })} compact variant="outlined" />
             )}
           </FlexRow>
           <Caption sx={{ opacity: 0.55, wordBreak: "break-all" }}>
@@ -238,8 +239,7 @@ const ServerRow = memo(function ServerRow({
             >
               {probe.ok
                 ? probe.tools.length === 0
-                  ? "Connected. The server offers no tools."
-                  : `${probe.tools.length} tool${probe.tools.length === 1 ? "" : "s"}: ${probe.tools
+                  ? t("editor:ui.connectedTheServerOffersNoTools", { defaultValue: "Connected. The server offers no tools." }) : `${probe.tools.length} tool${probe.tools.length === 1 ? "" : "s"}: ${probe.tools
                       .map((tool) => tool.name)
                       .join(", ")}`
                 : (probe.error ?? "Could not connect.")}
@@ -256,7 +256,7 @@ const ServerRow = memo(function ServerRow({
           onClick={handleProbe}
           disabled={probing}
         >
-          {probing ? "Connecting…" : "Test"}
+          {probing ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : "Test"}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -264,7 +264,7 @@ const ServerRow = memo(function ServerRow({
           size="small"
           onClick={handleToggle}
         >
-          {server.enabled ? "Disable" : "Enable"}
+          {server.enabled ? t("editor:ui.disable", { defaultValue: "Disable" }) : "Enable"}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -296,6 +296,7 @@ const ServerRow = memo(function ServerRow({
  */
 export const ExternalMcpServersSection = memo(
   function ExternalMcpServersSection() {
+    const { t } = useTranslation();
     const theme = useTheme();
     const queryClient = useQueryClient();
     const addNotification = useNotificationStore(
@@ -423,8 +424,7 @@ export const ExternalMcpServersSection = memo(
       draft.type === "http"
         ? urlError(draft.url)
         : !stdioEnabled
-          ? "Stdio servers are not available on this deployment."
-          : draft.command.trim()
+          ? t("editor:ui.stdioServersAreNotAvailableOnThisDeployment", { defaultValue: "Stdio servers are not available on this deployment." }) : draft.command.trim()
             ? null
             : "Enter a command.";
 
@@ -446,7 +446,7 @@ export const ExternalMcpServersSection = memo(
           sx={{ marginBottom: theme.spacing(3) }}
         >
           <FlexColumn gap={0.5}>
-            <Text size="big">External servers</Text>
+            <Text size="big">{t("ui2:attrs.externalServers", { defaultValue: "External servers" })}</Text>
             <Caption sx={{ opacity: 0.55 }}>
               Give the agent the tools of any MCP server: Blender, Hugging
               Face, or a script of your own. Works with every model provider.
@@ -466,8 +466,8 @@ export const ExternalMcpServersSection = memo(
         {servers.length === 0 ? (
           <EmptyState
             variant="no-results"
-            title="No external servers"
-            description="Add a command or a URL. Its tools join the agent's toolbelt on the next message."
+            title={t("editor:ui.noExternalServers", { defaultValue: "No external servers" })}
+            description={t("tools:menus.addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage", { defaultValue: "Add a command or a URL. Its tools join the agent's toolbelt on the next message." })}
           />
         ) : (
           <FlexColumn sx={{ gap: theme.spacing(2) }}>
@@ -490,7 +490,7 @@ export const ExternalMcpServersSection = memo(
           open={dialogOpen}
           onClose={handleClose}
           fullWidth
-          title={editingId ? "Edit MCP server" : "Add MCP server"}
+          title={editingId ? t("editor:ui.editMcpServer", { defaultValue: "Edit MCP server" }) : "Add MCP server"}
           onConfirm={handleSave}
           confirmText={editingId ? "Save" : "Add"}
           confirmDisabled={
@@ -499,11 +499,11 @@ export const ExternalMcpServersSection = memo(
         >
           <FlexColumn gap={SPACING.lg}>
             <TextInput
-              label="Name"
+              label={t("editor:asset.info.name", { defaultValue: "Name" })}
               value={draft.name}
               onChange={handleNameChange}
               fullWidth
-              placeholder="Blender"
+              placeholder={t("editor:ui.blender", { defaultValue: "Blender" })}
               autoFocus
               variant="outlined"
               size="small"
@@ -514,18 +514,17 @@ export const ExternalMcpServersSection = memo(
               onChange={field("id")}
               fullWidth
               disabled={Boolean(editingId)}
-              placeholder="blender"
+              placeholder={t("editor:ui.blenderLower", { defaultValue: "blender" })}
               variant="outlined"
               size="small"
               errorMessage={
                 duplicateId
-                  ? "That id is already in use."
-                  : (draftIdError ?? undefined)
+                  ? t("editor:ui.thatIdIsAlreadyInUse", { defaultValue: "That id is already in use." }) : (draftIdError ?? undefined)
               }
               helperText={`Tools are named ${MCP_TOOL_PREFIX}${draft.id || "id"}_<tool>`}
             />
             <SelectField
-              label="Connection"
+              label={t("editor:ui.connection", { defaultValue: "Connection" })}
               value={draft.type}
               onChange={handleTypeChange}
               options={TRANSPORT_OPTIONS}
@@ -540,7 +539,7 @@ export const ExternalMcpServersSection = memo(
             {draft.type === "stdio" ? (
               <>
                 <TextInput
-                  label="Command"
+                  label={t("editor:ui.command", { defaultValue: "Command" })}
                   value={draft.command}
                   onChange={field("command")}
                   fullWidth
@@ -550,7 +549,7 @@ export const ExternalMcpServersSection = memo(
                   errorMessage={transportError ?? undefined}
                 />
                 <TextInput
-                  label="Arguments"
+                  label={t("editor:ui.arguments", { defaultValue: "Arguments" })}
                   value={draft.args}
                   onChange={field("args")}
                   fullWidth
@@ -559,10 +558,10 @@ export const ExternalMcpServersSection = memo(
                   placeholder="blender-mcp"
                   variant="outlined"
                   size="small"
-                  helperText="One argument per line, so a path with a space stays one argument."
+                  helperText={t("tools:menus.oneArgumentPerLineSoAPathWithASpaceStaysOneArgument", { defaultValue: "One argument per line, so a path with a space stays one argument." })}
                 />
                 <TextInput
-                  label="Environment"
+                  label={t("editor:ui.environment", { defaultValue: "Environment" })}
                   value={draft.env}
                   onChange={field("env")}
                   fullWidth
@@ -571,14 +570,14 @@ export const ExternalMcpServersSection = memo(
                   placeholder={"HF_TOKEN=${HF_TOKEN}\nDEBUG=1"}
                   variant="outlined"
                   size="small"
-                  helperText="One KEY=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys."
+                  helperText={t("tools:menus.oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys", { defaultValue: "One KEY=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys." })}
                 />
                 <TextInput
-                  label="Working directory"
+                  label={t("editor:ui.workingDirectory", { defaultValue: "Working directory" })}
                   value={draft.cwd}
                   onChange={field("cwd")}
                   fullWidth
-                  placeholder="Optional"
+                  placeholder={t("editor:ui.optional", { defaultValue: "Optional" })}
                   variant="outlined"
                   size="small"
                 />
@@ -594,10 +593,10 @@ export const ExternalMcpServersSection = memo(
                   variant="outlined"
                   size="small"
                   errorMessage={transportError ?? undefined}
-                  helperText="Streamable HTTP, with SSE as the fallback."
+                  helperText={t("tools:menus.streamableHTTPWithSSEAsTheFallback", { defaultValue: "Streamable HTTP, with SSE as the fallback." })}
                 />
                 <TextInput
-                  label="Headers"
+                  label={t("editor:ui.headers", { defaultValue: "Headers" })}
                   value={draft.headers}
                   onChange={field("headers")}
                   fullWidth
@@ -606,12 +605,12 @@ export const ExternalMcpServersSection = memo(
                   placeholder={"Authorization=Bearer ${HF_TOKEN}"}
                   variant="outlined"
                   size="small"
-                  helperText="One Header=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys."
+                  helperText={t("tools:menus.oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys", { defaultValue: "One Header=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys." })}
                 />
               </>
             )}
             <LabeledSwitch
-              label="Enabled"
+              label={t("editor:ui.enabled", { defaultValue: "Enabled" })}
               checked={draft.enabled}
               onChange={handleEnabledChange}
               size="small"

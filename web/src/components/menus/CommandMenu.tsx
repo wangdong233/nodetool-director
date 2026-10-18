@@ -90,6 +90,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 
 import { readImportedWorkflow } from "../../utils/readImportedWorkflow";
+import { useTranslation } from "react-i18next";
 
 type CommandMenuProps = {
   undo: (steps?: number | undefined) => void;
@@ -97,6 +98,7 @@ type CommandMenuProps = {
 };
 
 const WorkflowCommands = memo(function WorkflowCommands() {
+  const { t } = useTranslation();
   // Optimization: use shallow equality to prevent the CommandMenu from
   // re-rendering 60 times a second on unrelated node position updates
   const {
@@ -289,7 +291,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         ref={fileInputRef}
         type="file"
         accept=".json"
-        aria-label="Import workflow file"
+        aria-label={t("editor:ui.importWorkflowFile", { defaultValue: "Import workflow file" })}
         style={{ display: "none" }}
         onChange={handleImportFileChange}
       />
@@ -297,7 +299,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         ref={bundleInputRef}
         type="file"
         accept=".nodetool,application/zip"
-        aria-label="Import workflow bundle file"
+        aria-label={t("editor:ui.importWorkflowBundleFile", { defaultValue: "Import workflow bundle file" })}
         style={{ display: "none" }}
         onChange={handleBundleFileChange}
       />
@@ -466,6 +468,7 @@ const LayoutCommands = memo(function LayoutCommands() {
 });
 
 const ViewCommands = memo(function ViewCommands() {
+  const { t } = useTranslation();
   const visible = useMiniMapStore((state) => state.visible);
   const toggleVisible = useMiniMapStore((state) => state.toggleVisible);
   const handleFitView = useFitView();
@@ -479,13 +482,13 @@ const ViewCommands = memo(function ViewCommands() {
         onSelect={() => runCommandAndClose(toggleVisible)}
       >
         {visible ? <MapOutlinedIcon /> : <MapRoundedIcon />}
-        {visible ? "Hide mini map" : "Show mini map"}
+        {visible ? t("editor:ui.hideMiniMap", { defaultValue: "Hide mini map" }) : "Show mini map"}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => setSnapToGrid(!snapToGrid))}
       >
         {snapToGrid ? <GridOffRoundedIcon /> : <GridOnRoundedIcon />}
-        {snapToGrid ? "Turn off snap to grid" : "Snap to grid"}
+        {snapToGrid ? t("editor:ui.turnOffSnapToGrid", { defaultValue: "Turn off snap to grid" }) : "Snap to grid"}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => handleFitView({ padding: 0.5 }))}

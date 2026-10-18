@@ -26,6 +26,7 @@ import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { entityAssistContext } from "../../utils/textAssist";
 import ImageRefPreview from "../node/ImageRefPreview";
 import EntityAssetPickerDialog from "./EntityAssetPickerDialog";
+import { useTranslation } from "react-i18next";
 
 interface EntityEditorDialogProps {
   open: boolean;
@@ -55,6 +56,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
   projectId,
   onSaved
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const saveEntity = useSaveEntity();
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -131,7 +133,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title={entity ? "Edit entity" : "New entity"}
+      title={entity ? t("editor:ui.editEntity", { defaultValue: "Edit entity" }) : "New entity"}
       maxWidth="xs"
       fullWidth
       onConfirm={handleConfirm}
@@ -140,7 +142,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
       isLoading={saveEntity.isPending}
     >
       <FlexColumn gap={SPACING.lg}>
-        <FormField label="Image">
+        <FormField label={t("ui2:attrs.image", { defaultValue: "Image" })}>
           <FlexRow gap={SPACING.md} align="center">
             <div
               style={{
@@ -165,7 +167,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
           </FlexRow>
         </FormField>
 
-        <FormField label="Kind">
+        <FormField label={t("ui2:attrs.kind", { defaultValue: "Kind" })}>
           <ToggleGroup
             value={kind}
             exclusive
@@ -182,7 +184,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         </FormField>
 
         <TextInput
-          label="Name"
+          label={t("editor:asset.info.name", { defaultValue: "Name" })}
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -191,7 +193,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         />
 
         <TextArea
-          label="Descriptor"
+          label={t("editor:ui.descriptor", { defaultValue: "Descriptor" })}
           required
           helperText="How it looks, in a sentence. Every prompt that uses this entity gets it word for word."
           value={descriptor}
@@ -204,7 +206,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
 
         {kind === "character" && (
           <TextInput
-            label="Voice id (optional)"
+            label={t("editor:ui.voiceIdOptional", { defaultValue: "Voice id (optional)" })}
             value={voiceId}
             onChange={(e) => setVoiceId(e.target.value)}
             size="small"
@@ -213,7 +215,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         )}
 
         <TextInput
-          label="Tags (comma-separated)"
+          label={t("editor:ui.tagsCommaseparated", { defaultValue: "Tags (comma-separated)" })}
           value={tags}
           onChange={(e) => setTags(e.target.value)}
           size="small"

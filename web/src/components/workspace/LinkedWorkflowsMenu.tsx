@@ -21,6 +21,7 @@ import {
   MenuItem,
   SPACING
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface LinkedWorkflowsMenuProps {
   applicationId: string;
@@ -37,6 +38,7 @@ const LinkedWorkflowsMenu = ({
   applicationId,
   active = true
 }: LinkedWorkflowsMenuProps) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const { links } = useLinkedWorkflows(applicationId, active);
@@ -94,7 +96,7 @@ const LinkedWorkflowsMenu = ({
               <FlexColumn gap={SPACING.micro} sx={{ minWidth: 0 }}>
                 <FlexRow align="center" gap={SPACING.xs}>
                   <ListItemText
-                    primary={broken ? "Workflow unavailable" : link.name}
+                    primary={broken ? t("editor:ui.workflowUnavailable", { defaultValue: "Workflow unavailable" }) : link.name}
                     slotProps={{ primary: { noWrap: true } }}
                   />
                   {link.isPinned && (
@@ -103,8 +105,7 @@ const LinkedWorkflowsMenu = ({
                       color="info"
                       label={
                         link.pinnedVersion === null
-                          ? "Pinned"
-                          : `Pinned v${link.pinnedVersion}`
+                          ? t("editor:ui.pinned", { defaultValue: "Pinned" }) : `Pinned v${link.pinnedVersion}`
                       }
                     />
                   )}

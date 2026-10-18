@@ -20,23 +20,23 @@ const ENTITY_KINDS: readonly {
 }[] = [
   {
     id: "character",
-    title: "Character",
-    description: "A person or creature that stays recognizable."
+    title: "Character", titleKey: "storyboard:attrs.character",
+    description: "A person or creature that stays recognizable.", descriptionKey: "storyboard:attrs.personOrCreatureStaysRecognizable",
   },
   {
     id: "location",
-    title: "Location",
-    description: "A place with a consistent setting and atmosphere."
+    title: "Location", titleKey: "storyboard:attrs.location",
+    description: "A place with a consistent setting and atmosphere.", descriptionKey: "storyboard:attrs.placeWithConsistentSetting",
   },
   {
     id: "style",
-    title: "Style",
-    description: "A visual language to apply across generations."
+    title: "Style", titleKey: "storyboard:attrs.style",
+    description: "A visual language to apply across generations.", descriptionKey: "storyboard:attrs.visualLanguageAcrossGenerations",
   },
   {
     id: "prop",
-    title: "Prop",
-    description: "A product or object that should keep its appearance."
+    title: "Prop", titleKey: "storyboard:attrs.prop",
+    description: "A product or object that should keep its appearance.", descriptionKey: "storyboard:attrs.productOrObjectKeepsAppearance",
   }
 ];
 

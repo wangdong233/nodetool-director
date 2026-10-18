@@ -24,6 +24,7 @@ import {
 } from "../../../ui_primitives";
 
 import { reparentTransform } from "../../viewport2d/viewportGeometry";
+import { useTranslation } from "react-i18next";
 
 interface GameSceneTreeProps {
   document: GameDocument;
@@ -174,6 +175,7 @@ function entityIcon(entity: GameEntity) {
 }
 
 export default function GameSceneTree({ document, activeSceneId, selectedIds, issues = [], scriptErrorEntityId, onSelect, onSelectScene, onOps }: GameSceneTreeProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [addSceneId, setAddSceneId] = useState<string | null>(null);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
@@ -233,7 +235,7 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
     ? <ExpandMoreIcon sx={TREE_ICON_SX} aria-hidden="true" />
     : <ChevronRightIcon sx={TREE_ICON_SX} aria-hidden="true" />;
   const toggleButton = (label: string, expanded: boolean, onToggle: () => void, disabled = false) => (
-    <FlexRow component="button" align="center" justify="center" aria-label={`${expanded ? "Collapse" : "Expand"} ${label}`}
+    <FlexRow component="button" align="center" justify="center" aria-label={`${expanded ? t("editor:ui.collapse", { defaultValue: "Collapse" }) : "Expand"} ${label}`}
       aria-expanded={expanded} aria-disabled={disabled} onClick={(event) => { event.stopPropagation(); if (!disabled) onToggle(); }}
       sx={{ ...ROW_BUTTON_SX, width: CHEVRON_SLOT, height: CHEVRON_SLOT, flex: "0 0 auto", justifyContent: "center",
         color: "text.secondary", borderRadius: BORDER_RADIUS.sm, "&:hover": { color: "text.primary" },
@@ -283,7 +285,7 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
             if (prefabs && rows.length === 0 && !dragged) return null;
             const groupKey = `${scene.id}:${prefabs ? "prefabs" : "entities"}`;
             const groupExpanded = !((needle ? searchCollapsedGroups : collapsedGroups).has(groupKey));
-            const groupName = prefabs ? "Prefabs" : "Entities";
+            const groupName = prefabs ? t("game:sceneTree.prefabs", { defaultValue: "Prefabs" }) : "Entities";
             return (
               <FlexColumn key={String(prefabs)}>
                 <TreeRow depth={1} baseIndent={SPACING.none} indentStep={SPACING.xl}
@@ -347,7 +349,7 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
         {PRESETS.map(({ kind, label, icon }) => (
           <MenuItemPrimitive key={kind} label={label} icon={icon} onClick={() => add(kind)}
             disabled={kind === "sprite" && !imageSlot}
-            secondary={kind === "sprite" && !imageSlot ? "Install an image first" : undefined} />
+            secondary={kind === "sprite" && !imageSlot ? t("game:sceneTree.installAnImageFirst", { defaultValue: "Install an image first" }) : undefined} />
         ))}
       </EditorMenu>
     </FlexColumn>

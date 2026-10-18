@@ -19,6 +19,7 @@ import type { WorkflowCostEstimateDetail } from "@nodetool-ai/node-sdk/cost-esti
 import { Box, Caption, ExternalLink, Tooltip } from "../ui_primitives";
 import { genspendPricingCatalog } from "@nodetool-ai/model-pricing/genspend-catalog";
 import { useCostEstimateSummary } from "./useCostEstimateSummary";
+import { useTranslation } from "react-i18next";
 
 /** Date the shipped GenSpend prices last moved, e.g. "2026-07-29". */
 const genspendUpdatedOn = genspendPricingCatalog.updatedAt.slice(0, 10);
@@ -146,6 +147,7 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
   emptyMessage = "Add a node that uses an AI model to estimate a run's cost.",
   showPriceCredit = true
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const summary = useCostEstimateSummary(estimate);
 
@@ -168,8 +170,8 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
     <Box css={styles(theme)} className="cost-estimate-summary">
       <div className="cost-table">
         <div className="cost-row is-head">
-          <span className="cost-col-head">Node</span>
-          <span className="cost-col-head">Provider / model</span>
+          <span className="cost-col-head">{t("ui2:attrs.node", { defaultValue: "Node" })}</span>
+          <span className="cost-col-head">{t("ui2:attrs.providerModel", { defaultValue: "Provider / model" })}</span>
           <span className="cost-col-head" style={{ textAlign: "right" }}>
             Units
           </span>
@@ -185,7 +187,7 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
               </span>
               {row.unknown ? (
                 <Tooltip title={row.unknownReason}>
-                  <span className="cost-unknown" aria-label="Price unknown">
+                  <span className="cost-unknown" aria-label={t("editor:ui.priceUnknown", { defaultValue: "Price unknown" })}>
                     <HelpOutlineIcon fontSize="inherit" />
                   </span>
                 </Tooltip>

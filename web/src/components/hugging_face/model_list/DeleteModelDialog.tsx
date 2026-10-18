@@ -10,6 +10,7 @@ import { trpc } from "../../../lib/trpc";
 import { useNotificationStore } from "../../../stores/NotificationStore";
 import { useModels } from "./useModels";
 import type { ModelScope } from "../../../stores/ModelManagerStore";
+import { useTranslation } from "react-i18next";
 
 interface DeleteModelDialogProps {
   modelId: string | null;
@@ -22,6 +23,7 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
   onClose,
   scope = "local"
 }) => {
+  const { t } = useTranslation();
   const { allModels } = useModels(scope);
   const queryClient = useQueryClient();
   const addNotification = useNotificationStore(
@@ -186,7 +188,7 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
             color="error"
             onClick={handleConfirmDelete}
             disabled={isDeleting}
-            aria-label="Delete"
+            aria-label={t("common:action.delete", { defaultValue: "Delete" })}
           >
             {isDeleting ? (
               <LoadingSpinner inline size="small" color="inherit" />

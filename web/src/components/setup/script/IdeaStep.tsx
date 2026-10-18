@@ -58,6 +58,7 @@ import {
   SCRIPT_TEXT_ACCEPT,
   useScriptFileImport
 } from "./useScriptFileImport";
+import { useTranslation } from "react-i18next";
 
 /** The § 9.1 inspiration chips. */
 const INSPIRATIONS = [
@@ -118,7 +119,7 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
     gap={GAP.normal}
     padding={PADDING.comfortable}
     component="section"
-    aria-label="Imported script"
+    aria-label={t("storyboard:attrs.importedScript", { defaultValue: "Imported script" })}
     sx={{
       border: "1px solid",
       borderColor: "divider",
@@ -126,7 +127,7 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
     }}
   >
     <FlexColumn gap={GAP.micro}>
-      <SectionHeader size="small" title="Your script, kept word for word" />
+      <SectionHeader size="small" title={t("storyboard:attrs.yourScriptKeptWordForWord", { defaultValue: "Your script, kept word for word" })} />
       <Caption color="secondary" component="p">
         {sourceSummary(source)}
       </Caption>
@@ -180,9 +181,9 @@ const CarriedContext: React.FC<{
   <FlexColumn
     gap={GAP.micro}
     component="section"
-    aria-label="Brought from your project"
+    aria-label={t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })}
   >
-    <SectionHeader size="small" title="Brought from your project" />
+    <SectionHeader size="small" title={t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })} />
     <Caption color="secondary" component="p">
       {[
         attachments.length > 0
@@ -231,6 +232,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   onImportingChange,
   readOnly = false
 }) => {
+  const { t } = useTranslation();
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
   const imports = useScriptFileImport(scriptId);
@@ -290,17 +292,15 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   // none while a file is still being read.
   const startLocked = readOnly || imports.importing;
   const startLockedReason = readOnly
-    ? "This tab is view only"
-    : imports.importing
-      ? "Reading your file…"
-      : undefined;
+    ? t("setup:script.thisTabIsViewOnly", { defaultValue: "This tab is view only" }) : imports.importing
+      ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined;
 
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
       {
         id: "paste",
-        title: source ? "Paste different words" : "Paste your script",
-        description: "Words you already have, kept exactly as you wrote them",
+        title: source ? i18n.t("storyboard:attrs.pasteDifferentWords", { defaultValue: "Paste different words" }) : "Paste your script",
+        description: i18n.t("editor:ui.wordsKeptExactlyAsWritten", { defaultValue: "Words you already have, kept exactly as you wrote them" }),
         onSelect: () => {
           setPasted("");
           setPasting(true);
@@ -311,7 +311,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       {
         id: "upload",
         title: "Upload a file",
-        description: "TXT, PDF, DOCX or Final Draft",
+        description: i18n.t("editor:ui.txtPdfDocxFinalDraft", { defaultValue: "TXT, PDF, DOCX or Final Draft" }),
         onSelect: () => textInput.current?.click(),
         disabled: startLocked,
         disabledReason: startLockedReason
@@ -319,15 +319,15 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       {
         id: "subtitles",
         title: "Import subtitles",
-        description: "SRT or VTT — each cue becomes a timed line",
+        description: i18n.t("editor:ui.srtOrVttEachCueTimedLine", { defaultValue: "SRT or VTT — each cue becomes a timed line" }),
         onSelect: () => subtitleInput.current?.click(),
         disabled: startLocked,
         disabledReason: startLockedReason
       },
       {
         id: "blank",
-        title: "Start with a blank script",
-        description: "Skip the questions and write it yourself",
+        title: i18n.t("editor:ui.startWithBlankScript", { defaultValue: "Start with a blank script" }),
+        description: i18n.t("editor:ui.skipQuestionsWriteYourself", { defaultValue: "Skip the questions and write it yourself" }),
         onSelect: onStartBlank,
         disabled: startLocked,
         disabledReason: startLockedReason
@@ -383,16 +383,14 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           disabled={readOnly}
           // The words here are a brief the writer may reword. Named "Your
           // script", it told a screen reader to put the script itself here.
-          label={source ? "Notes for the writer" : "What the script is about"}
+          label={source ? i18n.t("storyboard:attrs.notesForTheWriter", { defaultValue: "Notes for the writer" }) : "What the script is about"}
           hideLabel
           // A Final Draft or subtitle file already says who reads each line
           // and is applied with no model, so nothing reads a note about it.
           placeholder={
             source?.attributed
-              ? "Optional: notes to keep with the script."
-              : source
-                ? "Optional: say who reads what, or how to split the lines."
-                : "Describe the topic, audience and message for a new script."
+              ? t("setup:script.optionalNotesToKeep", { defaultValue: "Optional: notes to keep with the script." }) : source
+                ? i18n.t("storyboard:attrs.optionalSayWhoReadsWhatOrHowToSplitTheLines", { defaultValue: "Optional: say who reads what, or how to split the lines." }) : "Describe the topic, audience and message for a new script."
           }
           helperText={
             source?.attributed
@@ -421,7 +419,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label="Other ways to start"
+        label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
 
@@ -431,7 +429,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={textInput}
         accept={SCRIPT_TEXT_ACCEPT}
-        aria-label="Upload a file"
+        aria-label={t("storyboard:attrs.uploadAFile", { defaultValue: "Upload a file" })}
         onChange={handlePicked(imports.importText)}
       />
       <input
@@ -439,14 +437,14 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={subtitleInput}
         accept={SCRIPT_SUBTITLE_ACCEPT}
-        aria-label="Import subtitles"
+        aria-label={t("storyboard:attrs.importSubtitles", { defaultValue: "Import subtitles" })}
         onChange={handlePicked(imports.importSubtitles)}
       />
 
       <Dialog
         open={pasting}
         onClose={() => setPasting(false)}
-        title={source ? "Replace your script" : "Paste your script"}
+        title={source ? i18n.t("storyboard:attrs.replaceYourScript", { defaultValue: "Replace your script" }) : "Paste your script"}
         showActions
         confirmText="Use this text"
         // Empty text changes nothing, so the button is held until there is some.
@@ -460,9 +458,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           value={pasted}
           autoFocus
           rows={12}
-          label="Your script"
+          label={t("storyboard:attrs.yourScript", { defaultValue: "Your script" })}
           hideLabel
-          placeholder="Paste it here. We'll split it into lines and leave the words alone."
+          placeholder={t("storyboard:attrs.pasteItHereWe'llSplitItIntoLinesAndLeaveTheWordsAlone", { defaultValue: "Paste it here. We'll split it into lines and leave the words alone." })}
           helperText={sourceNote ?? undefined}
           onChange={(value) => setPasted(value)}
         />

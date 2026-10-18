@@ -19,6 +19,7 @@ import type {
 import { MODEL_GOALS } from "./modelFit";
 import { MODEL_FORMATS } from "./modelFormat";
 import type { UseModelsResult } from "./useModels";
+import { useTranslation } from "react-i18next";
 
 const AVAILABILITY_FILTERS: {
   value: ModelAvailabilityFilter;
@@ -29,7 +30,7 @@ const AVAILABILITY_FILTERS: {
   { value: "ready", label: "Ready", color: "success" },
   {
     value: "download_required",
-    label: "Download required",
+    label: "Download required", labelKey: "editor:ui.downloadRequired",
     color: "warning"
   },
   { value: "unavailable", label: "Unavailable", color: "default" }
@@ -66,6 +67,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
   source,
   availabilityCounts
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const {
     selectedGoal,
@@ -123,7 +125,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
         borderBottom: `1px solid ${theme.vars.palette.divider}`
       }}
     >
-      <FilterRow label="I want to">
+      <FilterRow label={t("editor:ui.iWantTo", { defaultValue: "I want to" })}>
         {MODEL_GOALS.map((goal) => (
           <Tooltip key={goal.id} title={goal.description}>
             <Chip
@@ -137,7 +139,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
         ))}
       </FilterRow>
 
-      <FilterRow label="Format">
+      <FilterRow label={t("editor:ui.format", { defaultValue: "Format" })}>
         {MODEL_FORMATS.map((format) => (
           <Chip
             key={format.id}
@@ -151,7 +153,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
       </FilterRow>
 
       {source === "installed" && (
-        <FilterRow label="Status">
+        <FilterRow label={t("editor:ui.status", { defaultValue: "Status" })}>
           {AVAILABILITY_FILTERS.map(({ value, label, color }) => (
             <Chip
               key={value}
@@ -165,7 +167,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
         </FilterRow>
       )}
 
-      <FilterRow label="Max size">
+      <FilterRow label={t("editor:ui.maxSize", { defaultValue: "Max size" })}>
         <FlexRow
           align="center"
           sx={{
@@ -174,7 +176,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
           }}
         >
           <NodeSlider
-            aria-label="Max model size in GB"
+            aria-label={t("editor:ui.maxModelSizeInGB", { defaultValue: "Max model size in GB" })}
             value={maxModelSizeGB}
             onChange={handleSizeChange}
             valueLabelDisplay="auto"
@@ -193,7 +195,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
             borderRadius: BORDER_RADIUS.sm
           }}
         >
-          {maxModelSizeGB === 0 ? "All sizes" : `${maxModelSizeGB} GB`}
+          {maxModelSizeGB === 0 ? t("editor:ui.allSizes", { defaultValue: "All sizes" }) : `${maxModelSizeGB} GB`}
         </Text>
       </FilterRow>
     </Box>

@@ -5,6 +5,7 @@ import { PowerButton } from '../PowerButton';
 import { FilterView } from '../displays/FilterView';
 import { ACCENTS } from '../../constants';
 import { useStore } from '../../store';
+import { useTranslation } from "react-i18next";
 
 function FilterBlock({ prefix, label, on, uid }: { prefix: string; label: string; on: boolean; uid: string }) {
   return (
@@ -26,6 +27,7 @@ function FilterBlock({ prefix, label, on, uid }: { prefix: string; label: string
 }
 
 export function FilterPanel() {
+  const { t } = useTranslation("editor");
   const [activeFilter, setActiveFilter] = useState<0 | 1>(0);
   const uid = useId();
   const t1 = useStore((s) => s.params['filter.type']);
@@ -49,7 +51,7 @@ export function FilterPanel() {
   return (
     <section className="panel panel-filter" data-accent="f" style={{ gridArea: 'filter' }}>
       <div className="panel-head">
-        <h2>FILTERS</h2>
+        <h2>{t("editor:ui.filters", { defaultValue: "FILTERS" })}</h2>
         <div className="filter-tabs" role="tablist" aria-label="Filter controls">
           {(['F1', 'F2'] as const).map((label, index) => (
             <button

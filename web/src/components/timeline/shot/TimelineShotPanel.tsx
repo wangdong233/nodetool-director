@@ -64,6 +64,7 @@ import {
 import { usePersistedFold } from "../Inspector/usePersistedFold";
 import TimelineShotForm from "./TimelineShotForm";
 import DerivedShotSection from "./DerivedShotSection";
+import { useTranslation } from "react-i18next";
 
 /** Whether a clip plays a storyboard shot's take. */
 export const isShotClip = (
@@ -166,7 +167,7 @@ const ShotContent = memo(({ clip, boardId, shot }: ShotContentProps) => {
               startIcon={<OpenInNewOutlinedIcon />}
               onClick={link?.open}
               disabled={!link}
-              tooltip="Open this shot on its storyboard"
+              tooltip={t("timeline:shot.openThisShotOnItsStoryboard", { defaultValue: "Open this shot on its storyboard" })}
             >
               Open on board
             </EditorButton>
@@ -175,7 +176,7 @@ const ShotContent = memo(({ clip, boardId, shot }: ShotContentProps) => {
               startIcon={<LinkOffOutlinedIcon />}
               onClick={handleUnlink}
               disabled={clip.locked}
-              tooltip="Stop this clip following the shot. Its footage stays."
+              tooltip={t("timeline:shot.stopFollowingKeepFootage", { defaultValue: "Stop this clip following the shot. Its footage stays." })}
             >
               Unlink
             </EditorButton>
@@ -185,7 +186,7 @@ const ShotContent = memo(({ clip, boardId, shot }: ShotContentProps) => {
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Takes"
+              title={t("timeline:shot.takes", { defaultValue: "Takes" })}
               icon={<MovieCreationOutlinedIcon />}
             />
           }
@@ -194,7 +195,7 @@ const ShotContent = memo(({ clip, boardId, shot }: ShotContentProps) => {
         >
           <FlexColumn gap={SPACING.sm} sx={{ py: SPACING.sm }}>
             {(shot.clip_versions?.length ?? 0) === 0 && !shot.clip && (
-              <Caption color="secondary">No takes rendered yet.</Caption>
+              <Caption color="secondary">{t("timeline:shot.noTakesRenderedYet", { defaultValue: "No takes rendered yet." })}</Caption>
             )}
             <ShotTakesGallery boardId={boardId} shot={shot} />
             <EditorButton
@@ -205,15 +206,12 @@ const ShotContent = memo(({ clip, boardId, shot }: ShotContentProps) => {
               data-testid="timeline-shot-new-take"
               tooltip={
                 needsStill
-                  ? "This shot animates a still. Render the still first."
-                  : "Render another take of this shot"
+                  ? t("timeline:shot.thisShotAnimatesAStill", { defaultValue: "This shot animates a still. Render the still first." }) : "Render another take of this shot"
               }
             >
               {generating
-                ? "Rendering…"
-                : needsStill
-                  ? "Render still"
-                  : "New take"}
+                ? t("timeline:shot.rendering", { defaultValue: "Rendering…" }) : needsStill
+                  ? t("timeline:shot.renderStill", { defaultValue: "Render still" }) : "New take"}
             </EditorButton>
             {clip.locked && (
               <Caption color="secondary">
@@ -240,7 +238,7 @@ const ShotContent = memo(({ clip, boardId, shot }: ShotContentProps) => {
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="Shot"
+              title={t("editor:ui.shot", { defaultValue: "Shot" })}
               icon={<EditNoteOutlinedIcon />}
             />
           }
@@ -258,7 +256,7 @@ const ShotContent = memo(({ clip, boardId, shot }: ShotContentProps) => {
             <CollapsibleSection
               title={
                 <InspectorSectionTitle
-                  title="Derived shot"
+                  title={t("timeline:shot.derivedShot", { defaultValue: "Derived shot" })}
                   icon={<CallSplitOutlinedIcon />}
                 />
               }
@@ -286,6 +284,7 @@ const ShotContent = memo(({ clip, boardId, shot }: ShotContentProps) => {
 ShotContent.displayName = "ShotContent";
 
 const TimelineShotPanelInner = () => {
+  const { t } = useTranslation();
   const clip = useSelectedShotClip();
   const boardId = clip?.storyboardBoardId ?? null;
   const shotId = clip?.storyboardShotId ?? null;
@@ -308,8 +307,8 @@ const TimelineShotPanelInner = () => {
       <EmptyState
         variant="empty"
         size="small"
-        title="No shot selected"
-        description="Select a clip linked to a storyboard shot."
+        title={t("timeline:shot.noShotSelected", { defaultValue: "No shot selected" })}
+        description={t("timeline:shot.selectClipLinkedToShot", { defaultValue: "Select a clip linked to a storyboard shot." })}
       />
     );
   }
@@ -318,8 +317,8 @@ const TimelineShotPanelInner = () => {
       <EmptyState
         variant="error"
         size="small"
-        title="Storyboard unavailable"
-        description="The storyboard this clip is linked to could not be opened."
+        title={t("timeline:shot.storyboardUnavailable", { defaultValue: "Storyboard unavailable" })}
+        description={t("timeline:shot.storyboardCouldNotBeOpened", { defaultValue: "The storyboard this clip is linked to could not be opened." })}
       />
     );
   }
@@ -327,7 +326,7 @@ const TimelineShotPanelInner = () => {
     return (
       <FlexColumn align="center" gap={SPACING.sm} sx={bodySx}>
         <LoadingSpinner size="small" />
-        <Caption color="secondary">Opening the storyboard…</Caption>
+        <Caption color="secondary">{t("timeline:shot.openingTheStoryboard", { defaultValue: "Opening the storyboard…" })}</Caption>
       </FlexColumn>
     );
   }
@@ -336,8 +335,8 @@ const TimelineShotPanelInner = () => {
       <EmptyState
         variant="empty"
         size="small"
-        title="Shot not found"
-        description="The shot this clip is linked to is no longer on its storyboard."
+        title={t("timeline:shot.shotNotFound", { defaultValue: "Shot not found" })}
+        description={t("timeline:shot.shotNoLongerOnStoryboard", { defaultValue: "The shot this clip is linked to is no longer on its storyboard." })}
       />
     );
   }

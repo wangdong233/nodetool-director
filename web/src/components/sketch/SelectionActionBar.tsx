@@ -57,6 +57,7 @@ import type { Point } from "./types";
 import { SKETCH_Z_INDEX } from "./sketchStyles";
 import { RefineSelectionPopover } from "./tool-settings-panels/refine-selection";
 import { useAlertNotifier } from "../../hooks/useAlertNotifier";
+import { useTranslation } from "react-i18next";
 
 /** Gap in CSS px between the selection edge and the bar. */
 const BAR_GAP = 12;
@@ -116,6 +117,7 @@ function docToCss(
 const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
   containerRef
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   const selection = useSketchStore((s) => s.selection);
@@ -407,7 +409,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
             as a mask). The picked mode drives the model filter and the run. */}
         <FlexRow gap={0} sx={{ flexShrink: 0, mr: 0.5 }}>
           <Tooltip
-            title="Edit — transform the whole frame from your prompt (image-to-image, no mask)."
+            title={t("sketch:attrs.editTransformTheWholeFrameFromYourPrompt(imagetoimageNoMask)", { defaultValue: "Edit — transform the whole frame from your prompt (image-to-image, no mask)." })}
             placement={placeAbove ? "top" : "bottom"}
           >
             <EditorButton
@@ -420,7 +422,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
             </EditorButton>
           </Tooltip>
           <Tooltip
-            title="Inpaint — regenerate only the selected region, using the selection as a mask."
+            title={t("sketch:attrs.inpaintRegenerateOnlyTheSelectedRegionUsingTheSelectionAsAMask", { defaultValue: "Inpaint — regenerate only the selected region, using the selection as a mask." })}
             placement={placeAbove ? "top" : "bottom"}
           >
             <EditorButton
@@ -440,11 +442,10 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
           onChange={(e) => setPrompt(e.target.value)}
           placeholder={
             mode === "inpaint"
-              ? "Replace selection with…"
-              : "Describe the edit…"
+              ? t("sketch:attrs.replaceSelectionWith", { defaultValue: "Replace selection with…" }) : "Describe the edit…"
           }
           compact
-          aria-label={mode === "inpaint" ? "Inpaint prompt" : "Edit prompt"}
+          aria-label={mode === "inpaint" ? t("sketch:attrs.inpaintPrompt", { defaultValue: "Inpaint prompt" }) : "Edit prompt"}
           data-testid="sketch-selection-inpaint-prompt"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !generateDisabled) {
@@ -497,13 +498,13 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               }
               data-testid="sketch-selection-generate"
             >
-              {mode === "inpaint" ? "Inpaint" : "Edit"}
+              {mode === "inpaint" ? t("sketch:attrs.inpaint", { defaultValue: "Inpaint" }) : "Edit"}
             </EditorButton>
           </span>
         </Tooltip>
 
         <Tooltip
-          title="Remove — clear the selected pixels from the active layer."
+          title={t("sketch:attrs.removeClearTheSelectedPixelsFromTheActiveLayer", { defaultValue: "Remove — clear the selected pixels from the active layer." })}
           placement={placeAbove ? "top" : "bottom"}
         >
           <span>
@@ -525,7 +526,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
             them there. */}
         {mode === "inpaint" && (
           <Tooltip
-            title="Refine mask — feather, smooth, grow / shrink, or border the selection used for inpainting."
+            title={t("sketch:attrs.refineMaskFeatherSmoothGrowShrinkOrBorderTheSelectionUsedForInpainting", { defaultValue: "Refine mask — feather, smooth, grow / shrink, or border the selection used for inpainting." })}
             placement={placeAbove ? "top" : "bottom"}
           >
             <EditorButton
@@ -542,7 +543,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
         )}
 
         <CloseButton
-          tooltip="Dismiss selection"
+          tooltip={t("sketch:attrs.dismissSelection", { defaultValue: "Dismiss selection" })}
           tooltipPlacement={placeAbove ? "top" : "bottom"}
           onClick={handleClose}
           buttonSize="small"

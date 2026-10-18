@@ -19,6 +19,7 @@ import {
   ToolbarIconButton
 } from "../ui_primitives";
 import type { WorkflowMediaItem } from "../../hooks/handlers/useGenerationToCanvas";
+import { useTranslation } from "react-i18next";
 
 interface BoardActionsMenuProps {
   onChangeStyle: () => void;
@@ -37,6 +38,7 @@ const BoardActionsMenu: React.FC<BoardActionsMenuProps> = ({
   hasShots,
   workflowMedia
 }) => {
+  const { t } = useTranslation();
   const inStudio = useInStudio();
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,7 +65,7 @@ const BoardActionsMenu: React.FC<BoardActionsMenuProps> = ({
       <ToolbarIconButton
         ref={setButton}
         icon={<MoreVertIcon fontSize="small" />}
-        tooltip="More board actions"
+        tooltip={t("storyboard:attrs.moreBoardActions", { defaultValue: "More board actions" })}
         ariaLabel="More board actions"
         aria-haspopup="menu"
         aria-expanded={menuOpen}
@@ -78,23 +80,22 @@ const BoardActionsMenu: React.FC<BoardActionsMenuProps> = ({
         slotProps={{ list: { "aria-label": "Board actions" } }}
       >
         <MenuItemPrimitive
-          label="Change style…"
+          label={t("storyboard:attrs.changeStyleEllipsis", { defaultValue: "Change style…" })}
           icon={<PaletteOutlinedIcon fontSize="small" />}
           onClick={changeStyle}
         />
         <MenuItemPrimitive
-          label={downloading ? "Preparing ZIP…" : "Download ZIP"}
+          label={downloading ? t("storyboard:attrs.preparingZip", { defaultValue: "Preparing ZIP…" }) : "Download ZIP"}
           icon={<DownloadIcon fontSize="small" />}
           disabled={!hasShots || downloading}
           onClick={downloadZip}
         />
         {!inStudio && (
           <MenuItemPrimitive
-            label="Send to workflow…"
+            label={t("storyboard:attrs.sendToWorkflowEllipsis", { defaultValue: "Send to workflow…" })}
             secondary={
               workflowMedia.length === 0
-                ? "Render a still or clip first"
-                : undefined
+                ? t("storyboard:attrs.renderAStillOrClipFirst", { defaultValue: "Render a still or clip first" }) : undefined
             }
             icon={<AccountTreeOutlinedIcon fontSize="small" />}
             disabled={workflowMedia.length === 0}

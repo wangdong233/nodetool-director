@@ -39,6 +39,7 @@ import {
   type ShotDraft
 } from "../../storyboard/shotDraft";
 import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
+import { useTranslation } from "react-i18next";
 
 const RENDER_MODE_OPTIONS = [
   { value: "keyframe", label: "Animate a still" },
@@ -57,6 +58,7 @@ const TimelineShotFormInner = ({
   shot,
   readOnly
 }: TimelineShotFormProps) => {
+  const { t } = useTranslation();
   const applyShotDraft = useStoryboardStore((state) => state.applyShotDraft);
   const scene = useStoryboardStore(
     (state) =>
@@ -129,7 +131,7 @@ const TimelineShotFormInner = ({
   return (
     <FlexColumn gap={SPACING.lg} data-testid="timeline-shot-form">
       <TextInput
-        label="Name"
+        label={t("timeline:shot.name", { defaultValue: "Name" })}
         value={draft.slug}
         onChange={(event) => set({ slug: event.target.value })}
         disabled={readOnly}
@@ -137,18 +139,18 @@ const TimelineShotFormInner = ({
         fullWidth
       />
       <TextArea
-        label="Description"
+        label={t("storyboard:attrs.description", { defaultValue: "Description" })}
         value={draft.action}
         onChange={(value) => set({ action: value })}
         disabled={readOnly}
-        placeholder="What the shot shows"
+        placeholder={t("storyboard:attrs.whatTheShotShows", { defaultValue: "What the shot shows" })}
         minRows={1}
         maxRows={8}
         compact
         fullWidth
       />
       <TextArea
-        label="Dialogue"
+        label={t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" })}
         value={draft.dialogue}
         onChange={(value) => set({ dialogue: value })}
         disabled={readOnly}
@@ -157,17 +159,17 @@ const TimelineShotFormInner = ({
         fullWidth
       />
       <TextArea
-        label="Motion"
+        label={t("editor:ui.motion", { defaultValue: "Motion" })}
         value={draft.motion}
         onChange={(value) => set({ motion: value })}
         disabled={readOnly}
-        placeholder="What moves, and how the camera moves"
+        placeholder={t("timeline:shot.whatMoves", { defaultValue: "What moves, and how the camera moves" })}
         maxRows={4}
         compact
         fullWidth
       />
       <TextInput
-        label="Sound"
+        label={t("storyboard:attrs.sound", { defaultValue: "Sound" })}
         value={draft.sound}
         onChange={(event) => set({ sound: event.target.value })}
         disabled={readOnly}
@@ -176,7 +178,7 @@ const TimelineShotFormInner = ({
       />
       <SelectField
         size="small"
-        label="Size"
+        label={t("storyboard:attrs.size", { defaultValue: "Size" })}
         disabled={readOnly}
         value={draft.framing}
         onChange={(value) => set({ framing: value })}
@@ -184,7 +186,7 @@ const TimelineShotFormInner = ({
       />
       <SelectField
         size="small"
-        label="Perspective"
+        label={t("storyboard:attrs.perspective", { defaultValue: "Perspective" })}
         disabled={readOnly}
         value={draft.angle}
         onChange={(value) => set({ angle: value })}
@@ -192,7 +194,7 @@ const TimelineShotFormInner = ({
       />
       <SelectField
         size="small"
-        label="Movement"
+        label={t("storyboard:attrs.movement", { defaultValue: "Movement" })}
         disabled={readOnly}
         value={draft.movement}
         onChange={(value) => set({ movement: value })}
@@ -200,7 +202,7 @@ const TimelineShotFormInner = ({
       />
       <SelectField
         size="small"
-        label="Render from"
+        label={t("timeline:shot.renderFrom", { defaultValue: "Render from" })}
         disabled={readOnly}
         value={draft.renderMode}
         onChange={(value) =>
@@ -209,12 +211,12 @@ const TimelineShotFormInner = ({
         options={RENDER_MODE_OPTIONS}
       />
       <TextInput
-        label="Length (s)"
+        label={t("timeline:shot.lengthS", { defaultValue: "Length (s)" })}
         value={draft.durationSeconds}
         onChange={(event) => set({ durationSeconds: event.target.value })}
         disabled={readOnly}
         errorMessage={
-          durationInvalid ? "Enter a length in seconds." : undefined
+          durationInvalid ? t("timeline:shot.enterLengthSeconds", { defaultValue: "Enter a length in seconds." }) : undefined
         }
         inputProps={{ inputMode: "decimal" }}
         compact
@@ -222,7 +224,7 @@ const TimelineShotFormInner = ({
       />
       {!readOnly && (
         <FlexRow gap={SPACING.sm} justify="flex-end" align="center">
-          {dirty && <Caption color="secondary">Unsaved changes</Caption>}
+          {dirty && <Caption color="secondary">{t("ui2:attrs.unsavedChangesCapitalized", { defaultValue: "Unsaved changes" })}</Caption>}
           <EditorButton onClick={handleRevert} disabled={!dirty}>
             Revert
           </EditorButton>

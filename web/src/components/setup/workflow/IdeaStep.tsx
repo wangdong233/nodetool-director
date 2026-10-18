@@ -34,6 +34,7 @@ import { useWorkflowSetupDocument } from "../../../hooks/workflow/useWorkflowSet
 import type { Workflow } from "../../../stores/ApiTypes";
 import ReportBugButton from "../../support/ReportBugButton";
 import { WorkflowExamplePicker } from "./ExamplePicker";
+import { useTranslation } from "react-i18next";
 
 export interface WorkflowIdeaStepProps {
   workflowId: string;
@@ -80,6 +81,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
   importError = null,
   onDismissImportError
 }) => {
+  const { t } = useTranslation();
   const setup = useWorkflowSetupDocument(workflowId);
   const brief = setup?.brief ?? "";
   const importInput = useRef<HTMLInputElement>(null);
@@ -109,8 +111,8 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
     () => [
       {
         id: "example",
-        title: "Start from an example",
-        description: "Browse the shipped workflows and copy one",
+        title: i18n.t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" }),
+        description: i18n.t("editor:ui.browseShippedWorkflowsCopyOne", { defaultValue: "Browse the shipped workflows and copy one" }),
         onSelect: () => onBrowseExamples(true),
         // A file being read lands on this workflow and opens it, so a second
         // way in started meanwhile would be overwritten by it, or overwrite it.
@@ -119,16 +121,16 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
       },
       {
         id: "import",
-        title: "Import a workflow",
-        description: importing ? "Reading your file" : "A workflow JSON file",
+        title: i18n.t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" }),
+        description: importing ? i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" }) : "A workflow JSON file",
         onSelect: () => importInput.current?.click(),
         disabled: importing,
         disabledReason: "Reading your file"
       },
       {
         id: "blank",
-        title: "Start with a blank canvas",
-        description: "Skip the plan and place nodes yourself",
+        title: i18n.t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
+        description: i18n.t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
         onSelect: onStartBlank,
         disabled: importing,
         disabledReason: "Reading your file"
@@ -175,7 +177,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
           value={brief}
           autoFocus
           rows={4}
-          label="The task"
+          label={t("storyboard:attrs.theTask", { defaultValue: "The task" })}
           hideLabel
           placeholder="Make a cover image for each title in a list"
           helperText="Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it."
@@ -211,7 +213,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label="Other ways to start"
+        label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
 
@@ -221,7 +223,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         hidden
         ref={importInput}
         accept={WORKFLOW_IMPORT_ACCEPT}
-        aria-label="Import a workflow"
+        aria-label={t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" })}
         onChange={handlePicked}
       />
     </Box>

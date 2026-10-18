@@ -612,8 +612,7 @@ export function landProductionDirectGen(
   if (sequenceId) {
     const failedMessage =
       status === "failed"
-        ? "Production generation failed before producing a candidate."
-        : undefined;
+        ? i18n.t("timeline:attrs.productionGenerationFailedBeforeProducingACandidate", { defaultValue: "Production generation failed before producing a candidate." }) : undefined;
     const claimed = useDirectGenPendingStore.getState().settleProduction({
       sequenceId,
       clipId,

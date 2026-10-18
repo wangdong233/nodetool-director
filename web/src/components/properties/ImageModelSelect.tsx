@@ -18,6 +18,7 @@ import { useProviderKeyMissing } from "../../hooks/useProviderKeyMissing";
 import CuratedModelSelect from "./curated/CuratedModelSelect";
 import { useInStudio } from "../../studio/StudioContext";
 import { forTasks, STUDIO_STILL_MODELS } from "../../studio/curatedModels";
+import { useTranslation } from "react-i18next";
 
 interface ImageModelSelectProps {
   onChange: (value: ImageModelValue) => void;
@@ -38,6 +39,7 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
   modelPacks,
   disabled
 }) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const addRecent = useModelPreferencesStore((s) => s.addRecent);
@@ -146,7 +148,7 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
     return (
       <CuratedModelSelect
         capability="text_to_image"
-        label="Image model"
+        label={t("editor:ui.imageModel", { defaultValue: "Image model" })}
         options={forTasks(STUDIO_STILL_MODELS, task)}
         value={value}
         onChange={onChange}

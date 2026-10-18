@@ -16,6 +16,7 @@ import {
   TYPOGRAPHY,
   getSpacingPx
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const MAX_SEARCH_LENGTH = 1000;
 
@@ -115,6 +116,7 @@ const FindReplaceBar = ({
   totalMatches = 0,
   isVisible = true
 }: FindReplaceBarProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
@@ -213,7 +215,7 @@ const FindReplaceBar = ({
 
         <ToolbarIconButton
           icon={<KeyboardArrowUpIcon fontSize="small" />}
-          tooltip="Previous"
+          tooltip={t("editor:ui.previous", { defaultValue: "Previous" })}
           onClick={onPrevious}
           disabled={totalMatches === 0}
           className="toolbar-button"
@@ -221,7 +223,7 @@ const FindReplaceBar = ({
 
         <ToolbarIconButton
           icon={<KeyboardArrowDownIcon fontSize="small" />}
-          tooltip="Next"
+          tooltip={t("home:docs.nextCapitalized", { defaultValue: "Next" })}
           onClick={onNext}
           disabled={totalMatches === 0}
           className="toolbar-button"
@@ -229,7 +231,7 @@ const FindReplaceBar = ({
 
         <ToolbarIconButton
           icon={<ReplaceIcon fontSize="small" />}
-          tooltip="Toggle replace"
+          tooltip={t("editor:ui.toggleReplace", { defaultValue: "Toggle replace" })}
           onClick={handleToggleReplace}
           className="toolbar-button"
         />
@@ -263,8 +265,8 @@ const FindReplaceBar = ({
 
           <span>
             <ToolbarIconButton
-              icon={<span style={TYPOGRAPHY.sans.label}>All</span>}
-              tooltip="Replace all"
+              icon={<span style={TYPOGRAPHY.sans.label}>{t("common:sizeFilters.all", { defaultValue: "All" })}</span>}
+              tooltip={t("editor:ui.replaceAll", { defaultValue: "Replace all" })}
               onClick={handleReplaceAll}
               disabled={!isValidSearch || totalMatches === 0}
               className="toolbar-button"
@@ -273,7 +275,7 @@ const FindReplaceBar = ({
         </ToolbarGroup>
       )}
 
-      <CloseButton onClick={handleClose} buttonSize="small" tooltip="Close Find/Replace" className="toolbar-button" />
+      <CloseButton onClick={handleClose} buttonSize="small" tooltip={t("editor:ui.closeFindReplace", { defaultValue: "Close Find/Replace" })} className="toolbar-button" />
     </Toolbar>
   );
 };

@@ -133,18 +133,18 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
     () => [
       {
         type: "protanopia" as const,
-        label: "Protanopia",
-        description: "Red-blind"
+        label: "Protanopia", labelKey: "editor:ui.protanopia",
+        description: "Red-blind", descriptionKey: "editor:ui.redBlind",
       },
       {
         type: "deuteranopia" as const,
-        label: "Deuteranopia",
-        description: "Green-blind"
+        label: "Deuteranopia", labelKey: "editor:ui.deuteranopia",
+        description: "Green-blind", descriptionKey: "editor:ui.greenBlind",
       },
       {
         type: "tritanopia" as const,
-        label: "Tritanopia",
-        description: "Blue-blind"
+        label: "Tritanopia", labelKey: "editor:ui.tritanopia",
+        description: "Blue-blind", descriptionKey: "editor:ui.blueBlind",
       }
     ],
     []

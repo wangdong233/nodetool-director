@@ -25,6 +25,7 @@ import { relativeTime } from "../../utils/formatDateAndTime";
 import { formatDateTime } from "../../utils/formatUtils";
 import { WorkflowVersion } from "../../stores/ApiTypes";
 import { WorkflowMiniPreview } from "./WorkflowMiniPreview";
+import { useTranslation } from "react-i18next";
 
 interface VersionListItemProps {
   version: WorkflowVersion & { save_type: SaveType; size_bytes: number; is_pinned?: boolean };
@@ -74,6 +75,7 @@ const VersionListItem = React.memo(function VersionListItem({
   onCompare,
   isRestoring = false
 }: VersionListItemProps) {
+  const { t } = useTranslation();
   const handleClick = useCallback(() => {
     if (compareMode) {
       onCompare(version.id);
@@ -166,7 +168,7 @@ const VersionListItem = React.memo(function VersionListItem({
           <ToolbarIconButton
             size="small"
             onClick={handleClick}
-            tooltip="Select for comparison"
+            tooltip={t("editor:ui.selectForComparison", { defaultValue: "Select for comparison" })}
             icon={<CompareIcon sx={{ fontSize: ICON_SIZE.xs }} />}
             sx={{ padding: getSpacingPx(SPACING.micro) }}
             nodrag={false}
@@ -178,14 +180,14 @@ const VersionListItem = React.memo(function VersionListItem({
             <ToolbarIconButton
               size="small"
               onClick={handleRestore}
-              tooltip="Restore this version"
+              tooltip={t("editor:ui.restoreThisVersion", { defaultValue: "Restore this version" })}
               icon={<RestoreIcon sx={{ fontSize: ICON_SIZE.xs }} />}
               sx={{ padding: getSpacingPx(SPACING.micro) }}
               nodrag={false}
             />
             <DeleteButton
               onClick={handleDelete}
-              tooltip="Delete version"
+              tooltip={t("editor:ui.deleteVersion", { defaultValue: "Delete version" })}
               sx={{ padding: getSpacingPx(SPACING.micro), "& .MuiSvgIcon-root": { fontSize: ICON_SIZE.xs } }}
             />
           </>

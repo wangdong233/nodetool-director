@@ -4,7 +4,7 @@
     "examples": "Examples",
     "costs": "Costs",
     "models": "Model Manager",
-    "packages": "Package Manager",
+    "packages": "Package manager",
     "assets": "Assets",
     "collections": "Collections",
     "workspaces": "Workspaces",
@@ -29,7 +29,7 @@
       "userInterface": "User Interface",
       "editorPanels": "Editor Panels",
       "workflows": "Workflows",
-      "nodes": "Nodes",
+      "nodes": "nodes",
       "nodePacks": "Node Packs",
       "packages": "Packages",
       "debugging": "Debugging",
@@ -56,9 +56,9 @@
     }
   },
   "tabs": {
-    "closeTab": "Close Tab",
-    "closeOthers": "Close Other Tabs",
-    "closeAll": "Close All Tabs",
+    "closeTab": "Close tab",
+    "closeOthers": "Close other tabs",
+    "closeAll": "Close all tabs",
     "home": "Home",
     "tabName": "Tab name",
     "unsaved": "unsaved changes",
@@ -146,14 +146,14 @@
     },
     "entities": {
       "label": "Entities",
-      "description": "Reusable characters, locations, styles, and props for prompts and shots."
+      "description": "Reusable characters, locations, styles, and props"
     },
     "timelines": {
       "label": "Timelines",
       "description": "Arrange media and events over time."
     },
     "jsscripts": {
-      "label": "JS Scripts",
+      "label": "JS scripts",
       "description": "Create and manage reusable JavaScript code."
     },
     "skills": {

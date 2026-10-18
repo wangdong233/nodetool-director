@@ -20,6 +20,7 @@ import { UnifiedModel } from "../../../stores/ApiTypes";
 import { isProduction } from "../../../lib/env";
 import { isElectron } from "../../../utils/browser";
 import { TOOLTIP_DESCRIPTION_DELAY } from "../../../config/constants";
+import { useTranslation } from "react-i18next";
 
 interface ModelListItemActionsProps {
   model: UnifiedModel;
@@ -40,6 +41,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
   showFileExplorerButton = true,
   isCheckingCache = false
 }) => {
+  const { t } = useTranslation();
   const isHuggingFace = model.type?.startsWith("hf") ?? false;
   const isOllama = model.type === "llama_model";
   const downloaded = model.downloaded ?? false;
@@ -81,7 +83,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
       {isCheckingCache && !downloaded && (
         <Chip
           icon={<LoadingSpinner inline size={14} color="inherit" />}
-          label="Checking cache…"
+          label={t("editor:ui.checkingCache", { defaultValue: "Checking cache…" })}
         />
       )}
       {onDownload && canDownload && !downloaded && !isCheckingCache && (
@@ -108,13 +110,12 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
         <Tooltip
           title={
             handleShowInExplorer && !isProduction && isElectron
-              ? "Show in Explorer"
-              : "Downloaded"
+              ? t("editor:ui.showInExplorer", { defaultValue: "Show in Explorer" }) : "Downloaded"
           }
           delay={TOOLTIP_DESCRIPTION_DELAY}
         >
           <Chip
-            label="Downloaded"
+            label={t("editor:ui.downloaded", { defaultValue: "Downloaded" })}
             color="success"
             variant="outlined"
             size="small"
@@ -132,7 +133,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
       <div className="model-actions">
         <CopyButton
           value={model.repo_id || model.id}
-          tooltip={isOllama ? "Copy model name" : "Copy repo ID"}
+          tooltip={isOllama ? t("editor:ui.copyModelName", { defaultValue: "Copy model name" }) : "Copy repo ID"}
           nodrag={false}
         />
         {canShowExplorerButton && !isProduction && isElectron && (
@@ -142,7 +143,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
           />
         )}
         {handleModelDelete && (
-          <DeleteButton onClick={handleDeleteClick} tooltip="Delete model" />
+          <DeleteButton onClick={handleDeleteClick} tooltip={t("editor:ui.deleteModel", { defaultValue: "Delete model" })} />
         )}
       </div>
       {isHuggingFace && <HuggingFaceLink modelId={model.repo_id || model.id} />}

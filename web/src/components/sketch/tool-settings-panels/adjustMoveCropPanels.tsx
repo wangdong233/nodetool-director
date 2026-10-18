@@ -26,6 +26,7 @@ import {
 import { SketchModeToggle, SketchModeOption } from "./SketchModeToggle";
 import { TransformMode } from "../types";
 import { getToolbarTransformModes } from "../transform/modes";
+import { useTranslation } from "react-i18next";
 
 interface AdjustmentsSettingsPanelProps {
   brightness: number;
@@ -48,11 +49,12 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
   onApply,
   onCancel
 }: AdjustmentsSettingsPanelProps) {
+  const { t } = useTranslation();
   const hasChanges = brightness !== 0 || contrast !== 0 || saturation !== 0;
   return (
     <>
       <Box className="setting-row">
-        <Text className="setting-label">Brightness</Text>
+        <Text className="setting-label">{t("ui2:attrs.brightness", { defaultValue: "Brightness" })}</Text>
         <Slider
           size="small"
           min={-100}
@@ -63,7 +65,7 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
         <Text className="setting-value">{brightness}</Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Contrast</Text>
+        <Text className="setting-label">{t("ui2:attrs.contrast", { defaultValue: "Contrast" })}</Text>
         <Slider
           size="small"
           min={-100}
@@ -74,7 +76,7 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
         <Text className="setting-value">{contrast}</Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Saturation</Text>
+        <Text className="setting-label">{t("ui2:attrs.saturation", { defaultValue: "Saturation" })}</Text>
         <Slider
           size="small"
           min={-100}
@@ -166,6 +168,7 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
   onCancel,
   onReset
 }: TransformSettingsPanelProps) {
+  const { t } = useTranslation();
   const rotDeg = Math.round(((rotation * 180) / Math.PI) * 10) / 10;
   return (
     <>
@@ -188,7 +191,7 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
         sx={{ mr: 2, ml: 0 }}
       />
       <Box className="setting-row">
-        <Text className="setting-label">Mode</Text>
+        <Text className="setting-label">{t("ui2:attrs.mode", { defaultValue: "Mode" })}</Text>
         <SketchModeToggle
           value={mode}
           onChange={(_, nextMode: TransformMode | null) => {
@@ -214,25 +217,25 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
         </SketchModeToggle>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Scale X</Text>
+        <Text className="setting-label">{t("ui2:attrs.scaleX", { defaultValue: "Scale X" })}</Text>
         <Text className="setting-value">
           {(scaleX * 100).toFixed(0)}%
         </Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Scale Y</Text>
+        <Text className="setting-label">{t("ui2:attrs.scaleY", { defaultValue: "Scale Y" })}</Text>
         <Text className="setting-value">
           {(scaleY * 100).toFixed(0)}%
         </Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">Rotation</Text>
+        <Text className="setting-label">{t("ui2:attrs.rotation", { defaultValue: "Rotation" })}</Text>
         <Text className="setting-value">{rotDeg}°</Text>
       </Box>
       <FlexRow sx={{ gap: getSpacingPx(SPACING.micro), ml: 1 }}>
         <ToolbarIconButton
           icon={<CheckIcon sx={{ fontSize: ICON_SIZE.md }} />}
-          tooltip="Commit"
+          tooltip={t("sketch:attrs.commit", { defaultValue: "Commit" })}
           shortcut={["Enter"]}
           tooltipPlacement="bottom"
           onClick={onCommit}
@@ -240,7 +243,7 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
         />
         <ToolbarIconButton
           icon={<CloseIcon sx={{ fontSize: ICON_SIZE.md }} />}
-          tooltip="Cancel"
+          tooltip={t("sketch:attrs.cancel", { defaultValue: "Cancel" })}
           shortcut={["Esc"]}
           tooltipPlacement="bottom"
           onClick={onCancel}
@@ -248,7 +251,7 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
         />
         <ToolbarIconButton
           icon={<RestartAltIcon sx={{ fontSize: ICON_SIZE.md }} />}
-          tooltip="Reset"
+          tooltip={t("sketch:attrs.reset", { defaultValue: "Reset" })}
           tooltipPlacement="bottom"
           onClick={onReset}
           sx={{ padding: 1, color: SKETCH_COLORS.textSecondary }}

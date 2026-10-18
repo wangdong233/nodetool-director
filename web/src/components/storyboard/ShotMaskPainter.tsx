@@ -27,6 +27,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
+import { useTranslation } from "react-i18next";
 
 interface ShotMaskPainterProps {
   /** The resolved URL of the still being masked. */
@@ -117,6 +118,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
   onCancel,
   onDone
 }) => {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const last = useRef<{ x: number; y: number } | null>(null);
@@ -229,7 +231,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
     <Dialog
       open
       onClose={onCancel}
-      title="Paint the area to change"
+      title={t("storyboard:attrs.paintTheAreaToChange", { defaultValue: "Paint the area to change" })}
       maxWidth="lg"
       onConfirm={handleDone}
       confirmText="Use this area"
@@ -247,10 +249,10 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
                 setTool(next);
               }
             }}
-            aria-label="Painting tool"
+            aria-label={t("storyboard:attrs.paintingTool", { defaultValue: "Painting tool" })}
           >
-            <ToggleOption value="brush">Brush</ToggleOption>
-            <ToggleOption value="eraser">Eraser</ToggleOption>
+            <ToggleOption value="brush">{t("editor:ui.brush", { defaultValue: "Brush" })}</ToggleOption>
+            <ToggleOption value="eraser">{t("editor:ui.eraser", { defaultValue: "Eraser" })}</ToggleOption>
           </ToggleGroup>
           <FlexRow align="center" gap={SPACING.sm}>
             <Caption color="secondary" id="shot-mask-brush-label">
@@ -278,7 +280,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
             component="img"
             ref={imageRef}
             src={stillUrl}
-            alt="Still to paint on"
+            alt={t("storyboard:attrs.stillToPaintOn", { defaultValue: "Still to paint on" })}
             crossOrigin="anonymous"
             onLoad={handleImageLoad}
             sx={{ maxWidth: "100%", maxHeight: "65vh", display: "block" }}
@@ -286,7 +288,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
           <Box
             component="canvas"
             ref={canvasRef}
-            aria-label="Mask painting area"
+            aria-label={t("storyboard:attrs.maskPaintingArea", { defaultValue: "Mask painting area" })}
             data-testid="shot-mask-canvas"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}

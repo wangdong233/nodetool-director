@@ -64,6 +64,7 @@ import {
   selectableRowStyles,
   ICON_SIZE
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const DOCUMENT_TAB_TYPES = {
   workflow: "workflow",
@@ -417,7 +418,7 @@ const DocumentTreeGroupRow = ({
           expanded={expanded}
           iconVariant="chevron"
           onClick={handleDisclosureClick}
-          aria-label={`${expanded ? "Collapse" : "Expand"} ${group.label}`}
+          aria-label={`${expanded ? i18n.t("editor:ui.collapse", { defaultValue: "Collapse" }) : "Expand"} ${group.label}`}
           tabIndex={-1}
         />
         <Icon aria-hidden="true" sx={{ fontSize: ICON_SIZE.md }} />
@@ -450,6 +451,7 @@ const DocumentTreeGroupRow = ({
 };
 
 const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const openApplication = useOpenApplication();
@@ -608,8 +610,8 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
     <FlexColumn fullHeight fullWidth gap={0}>
       {!isMobile && (
         <PanelHeader
-          title="Documents"
-          description="Open documents in the current project."
+          title={t("editor:ui.documents", { defaultValue: "Documents" })}
+          description={t("editor:ui.openDocumentsInTheCurrentProject", { defaultValue: "Open documents in the current project." })}
         />
       )}
       <FlexColumn sx={{ py: SPACING.md }}>
@@ -617,7 +619,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
           value={query}
           onChange={setQuery}
           ariaLabel="Search documents"
-          placeholder="Search documents"
+          placeholder={t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
           fullWidth
         />
       </FlexColumn>
@@ -634,7 +636,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         >
           <EmptyState
             variant="error"
-            title="Could not load documents"
+            title={t("editor:ui.couldNotLoadDocuments", { defaultValue: "Could not load documents" })}
             description={
               <FlexColumn align="center" gap={SPACING.sm}>
                 <Text size="small">{error?.message ?? "Try again later."}</Text>
@@ -652,7 +654,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         >
           <EmptyState
             variant={query.trim() ? "no-results" : "empty"}
-            title={query.trim() ? "No matching documents" : "No documents yet"}
+            title={query.trim() ? i18n.t("editor:ui.noMatchingDocuments", { defaultValue: "No matching documents" }) : "No documents yet"}
             description={
               query.trim()
                 ? // This search covers documents and text files only. Name
@@ -667,7 +669,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         <ScrollArea fullHeight thin sx={{ flex: 1, minHeight: 0 }}>
           <FlexColumn
             role="tree"
-            aria-label="Project documents"
+            aria-label={t("editor:ui.projectDocuments", { defaultValue: "Project documents" })}
             gap={SPACING.xs}
           >
             {filteredGroups.map((group) => (

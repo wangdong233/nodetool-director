@@ -38,6 +38,7 @@ import {
   preserveEditAfterSubmit,
   shouldApplyServerSkill
 } from "./skillEditorState";
+import { useTranslation } from "react-i18next";
 
 interface SkillEditorPaneProps {
   skillId: string;
@@ -68,6 +69,7 @@ const styles = (theme: Theme) =>
   });
 
 const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const editorStyles = styles(theme);
   const setTabTitle = useWorkspaceTabsStore((state) => state.setTitle);
@@ -441,7 +443,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
         />
         <FlexRow align="center" gap={SPACING.micro} sx={{ px: SPACING.xs }}>
           {isDirty && (
-            <StatusDot tone="warning" size="medium" label="Unsaved changes" />
+            <StatusDot tone="warning" size="medium" label={t("ui2:attrs.unsavedChangesCapitalized", { defaultValue: "Unsaved changes" })} />
           )}
           {updateMutation.error && (
             <ReportBugButton
@@ -459,13 +461,13 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
             disabled={!isDirty || updateMutation.isPending || readOnly}
             onClick={handleManualSave}
           >
-            {updateMutation.isPending ? "Saving…" : "Save"}
+            {updateMutation.isPending ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
           </EditorButton>
         </FlexRow>
       </FlexRow>
 
       <FlexColumn className="meta-row">
-        <FormField label="Name" required>
+        <FormField label={t("editor:asset.info.name", { defaultValue: "Name" })} required>
           <TextInput
             value={name}
             onChange={handleNameChange}
@@ -475,13 +477,13 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
           />
         </FormField>
         <FormField
-          label="Description"
-          helperText="Matched against the agent objective (words >=4 chars)"
+          label={t("editor:ui.description", { defaultValue: "Description" })}
+          helperText={t("editor:ui.matchedAgainstAgentObjective", { defaultValue: "Matched against the agent objective (words >=4 chars)" })}
         >
           <TextInput
             value={description}
             onChange={handleDescriptionChange}
-            placeholder="When to use this skill"
+            placeholder={t("editor:ui.whenToUseThisSkill", { defaultValue: "When to use this skill" })}
             disabled={readOnly}
             fullWidth
           />

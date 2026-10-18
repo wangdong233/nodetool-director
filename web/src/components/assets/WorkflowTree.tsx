@@ -29,6 +29,7 @@ import { WorkflowList, Workflow } from "../../stores/ApiTypes";
 import { useActivateOnKey } from "../../hooks/useActivateOnKey";
 import { workflowListQueryKey } from "../../serverState/workflowQueryKeys";
 import { useAssetProjectScope } from "../../hooks/assets/useAssetProjectScope";
+import { useTranslation } from "react-i18next";
 
 // Show the inline search field once the list grows past this many workflows.
 const SEARCH_THRESHOLD = 8;
@@ -137,6 +138,7 @@ const searchInputSx = {
  * workflow's assets (mutually exclusive with folder browsing).
  */
 const WorkflowTree: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const treeStyles = useMemo(() => styles(theme), [theme]);
   const [expanded, setExpanded] = useState(true);
@@ -213,7 +215,7 @@ const WorkflowTree: React.FC = () => {
         {isLoading ? (
           <LoadingSpinner size="small" />
         ) : workflows.length === 0 ? (
-          <EmptyState size="small" title="No workflows" />
+          <EmptyState size="small" title={t("ui2:attrs.noWorkflows", { defaultValue: "No workflows" })} />
         ) : (
           workflows.map((workflow) => (
             <div

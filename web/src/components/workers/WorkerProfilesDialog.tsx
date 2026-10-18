@@ -27,6 +27,7 @@ import type {
   WorkerTarget,
   TokenPolicy
 } from "../../hooks/useWorkers";
+import { useTranslation } from "react-i18next";
 
 // The secrets each provider's API needs before a worker can be provisioned.
 // Verda authenticates with an OAuth2 client id AND secret, so this is a list.
@@ -165,6 +166,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
   deleteProfile,
   apiKeyStatus
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [target, setTarget] = useState<WorkerTarget>("runpod");
   const [image, setImage] = useState(DEFAULT_WORKER_IMAGE);
@@ -306,7 +308,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Manage worker profiles"
+      title={t("editor:ui.manageWorkerProfiles", { defaultValue: "Manage worker profiles" })}
       maxWidth="sm"
       fullWidth
       actions={
@@ -336,7 +338,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
         )}
 
         <FlexColumn gap={SPACING.xs}>
-          <SectionHeader size="small" title="Existing profiles" />
+          <SectionHeader size="small" title={t("editor:ui.existingProfiles", { defaultValue: "Existing profiles" })} />
           {profiles.length === 0 ? (
             <EmptyState
               size="small"
@@ -371,29 +373,29 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           )}
         </FlexColumn>
 
-        <FormSection label="Create a profile">
+        <FormSection label={t("editor:ui.createAProfile", { defaultValue: "Create a profile" })}>
           <Caption size="small">
             A profile is a saved template. Provisioning it rents one GPU box
             and connects this app to it.
           </Caption>
 
           <TextInput
-            label="Name"
+            label={t("editor:asset.info.name", { defaultValue: "Name" })}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            helperText="A label to recognise this template, e.g. “A40 image worker”."
+            helperText={t("editor:ui.labelToRecogniseThisTemplate", { defaultValue: "A label to recognise this template, e.g. “A40 image worker”." })}
             fullWidth
             compact
           />
 
           <SelectField
-            label="Provider"
+            label={t("editor:ui.provider", { defaultValue: "Provider" })}
             value={target}
             onChange={(value) => handleTargetChange(value as WorkerTarget)}
             options={TARGET_OPTIONS}
             variant="outlined"
             size="small"
-            description="Where the GPU is rented. RunPod runs a dedicated pod; Vast picks the cheapest matching offer on its marketplace."
+            description={t("editor:ui.whereGpuIsRented", { defaultValue: "Where the GPU is rented. RunPod runs a dedicated pod; Vast picks the cheapest matching offer on its marketplace." })}
           />
 
           {apiKeyMissing && (
@@ -403,7 +405,7 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
               title={`No ${apiKeyName} configured`}
             >
               {`Add it in Settings → Models & Providers before provisioning a ${
-                target === "runpod" ? "RunPod" : "Vast.ai"
+                target === "runpod" ? t("editor:ui.runpod", { defaultValue: "RunPod" }) : "Vast.ai"
               } worker — provisioning fails without it.`}
             </AlertBanner>
           )}
@@ -425,15 +427,13 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             <TextInput
               label={
                 target === "runpod"
-                  ? "GPU id (RunPod gpuTypeId)"
-                  : "GPU id (Vast gpu_name)"
+                  ? t("editor:ui.gpuIdRunpodGpuTypeId", { defaultValue: "GPU id (RunPod gpuTypeId)" }) : "GPU id (Vast gpu_name)"
               }
               value={customGpu}
               onChange={(e) => setCustomGpu(e.target.value)}
               helperText={
                 target === "runpod"
-                  ? "Exact RunPod id, e.g. “NVIDIA RTX 6000 Ada Generation”."
-                  : "Exact Vast name, e.g. “RTX_6000Ada”."
+                  ? t("editor:ui.exactRunPodIdEgNVIDIARTX6000AdaGeneration", { defaultValue: "Exact RunPod id, e.g. “NVIDIA RTX 6000 Ada Generation”." }) : "Exact Vast name, e.g. “RTX_6000Ada”."
               }
               fullWidth
               compact
@@ -447,12 +447,12 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
               options={VCPU_OPTIONS}
               variant="outlined"
               size="small"
-              description="Number of virtual CPUs for the CPU-only pod. RunPod picks a matching CPU flavor."
+              description={t("editor:ui.numberOfVirtualCpus", { defaultValue: "Number of virtual CPUs for the CPU-only pod. RunPod picks a matching CPU flavor." })}
             />
           )}
 
           <NumberField
-            label="Disk (GB)"
+            label={t("editor:ui.diskGB", { defaultValue: "Disk (GB)" })}
             value={disk}
             onChange={(e) => setDisk(e.target.value)}
             helperText="Persistent volume for the model cache. Models download here once and survive a stop/resume. HF models are large — keep this generous."
@@ -461,21 +461,21 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           />
 
           <NumberField
-            label="Idle timeout (minutes)"
+            label={t("editor:ui.idleTimeoutMinutes", { defaultValue: "Idle timeout (minutes)" })}
             value={idleTimeout}
             onChange={(e) => setIdleTimeout(e.target.value)}
-            helperText="Idle this long → pause (GPU freed, volume + models kept). Your main guard against runaway GPU bills. Blank = never."
+            helperText={t("editor:ui.idleThisLongPause", { defaultValue: "Idle this long → pause (GPU freed, volume + models kept). Your main guard against runaway GPU bills. Blank = never." })}
             fullWidth
             compact
           />
 
           <CollapsibleSection
-            title={<InspectorSectionTitle title="Advanced" />}
+            title={<InspectorSectionTitle title={t("editor:ui.advanced", { defaultValue: "Advanced" })} />}
             defaultOpen={false}
           >
             <FlexColumn gap={SPACING.lg} sx={{ pt: SPACING.xs }}>
               <SelectField
-                label="Worker image preset"
+                label={t("editor:ui.workerImagePreset", { defaultValue: "Worker image preset" })}
                 value={
                   IMAGE_PRESETS.some((p) => p.value === image)
                     ? image
@@ -487,27 +487,27 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
                 options={IMAGE_PRESETS}
                 variant="outlined"
                 size="small"
-                description="ComfyUI worker fronts a co-located ComfyUI server for the “Run ComfyUI Workflow (Worker)” node."
+                description={t("editor:ui.comfyUiWorkerFrontsServer", { defaultValue: "ComfyUI worker fronts a co-located ComfyUI server for the “Run ComfyUI Workflow (Worker)” node." })}
               />
               <TextInput
-                label="Worker image"
+                label={t("editor:ui.workerImage", { defaultValue: "Worker image" })}
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
-                helperText="Container image the provider runs. Pick a preset above, or set your own worker build."
+                helperText={t("editor:ui.containerImageProviderRuns", { defaultValue: "Container image the provider runs. Pick a preset above, or set your own worker build." })}
                 fullWidth
                 compact
               />
               <SelectField
-                label="Token policy"
+                label={t("editor:ui.tokenPolicy", { defaultValue: "Token policy" })}
                 value={tokenPolicy}
                 onChange={(value) => setTokenPolicy(value as TokenPolicy)}
                 options={TOKEN_POLICY_OPTIONS}
                 variant="outlined"
                 size="small"
-                description="Generate issues a fresh auth token per worker (recommended). Fixed reuses a token you set elsewhere."
+                description={t("editor:ui.generateIssuesFreshAuthToken", { defaultValue: "Generate issues a fresh auth token per worker (recommended). Fixed reuses a token you set elsewhere." })}
               />
               <NumberField
-                label="Max lifetime (minutes)"
+                label={t("editor:ui.maxLifetimeMinutes", { defaultValue: "Max lifetime (minutes)" })}
                 value={maxLifetime}
                 onChange={(e) => setMaxLifetime(e.target.value)}
                 helperText="Hard cap: at this age the worker is TERMINATED — pod and volume destroyed (models lost) — to stop all billing. Blank = no cap."

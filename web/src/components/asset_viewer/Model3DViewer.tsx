@@ -48,6 +48,7 @@ import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import CloseIcon from "@mui/icons-material/CloseOutlined";
 import { cn, reactFlowClasses } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 // Lighting presets (must match drei Environment preset types)
 type LightingPreset =
@@ -482,6 +483,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
   onClick,
   onDoubleClick
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -756,7 +758,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
         {isFullscreen && (
           <ToolbarIconButton
             icon={<CloseIcon />}
-            tooltip="Exit Fullscreen (Esc)"
+            tooltip={t("ui2:attrs.exitFullscreenEsc", { defaultValue: "Exit Fullscreen (Esc)" })}
             className="fullscreen-close-button"
             onClick={exitFullscreen}
             size="medium"
@@ -767,7 +769,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
           <FlexRow className="controls-toolbar" gap={SPACING.micro} align="center">
             <ToolbarIconButton
               icon={<GridOnIcon fontSize="small" />}
-              tooltip="Toggle grid"
+              tooltip={t("ui2:attrs.toggleGrid", { defaultValue: "Toggle grid" })}
               onClick={handleToggleGrid}
               active={showGrid}
               size="small"
@@ -775,7 +777,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
 
             <ToolbarIconButton
               icon={<ViewInArIcon fontSize="small" />}
-              tooltip="Toggle axes"
+              tooltip={t("ui2:attrs.toggleAxes", { defaultValue: "Toggle axes" })}
               onClick={handleToggleAxes}
               active={showAxes}
               size="small"
@@ -797,7 +799,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
 
             <SelectField
               className="controls-select"
-              label="Lighting preset"
+              label={t("ui2:attrs.lightingPreset", { defaultValue: "Lighting preset" })}
               hideLabel
               size="small"
               appearance="inspector"
@@ -808,7 +810,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
 
             <SelectField
               className="controls-select"
-              label="Background color"
+              label={t("ui2:attrs.backgroundColor", { defaultValue: "Background color" })}
               hideLabel
               size="small"
               appearance="inspector"
@@ -819,14 +821,14 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
 
             <ToolbarIconButton
               icon={<RestartAltIcon fontSize="small" />}
-              tooltip="Reset camera"
+              tooltip={t("ui2:attrs.resetCamera", { defaultValue: "Reset camera" })}
               onClick={handleResetCamera}
               size="small"
             />
 
             <ToolbarIconButton
               icon={<CameraAltIcon fontSize="small" />}
-              tooltip="Take screenshot"
+              tooltip={t("ui2:attrs.takeScreenshot", { defaultValue: "Take screenshot" })}
               onClick={handleScreenshot}
               size="small"
             />

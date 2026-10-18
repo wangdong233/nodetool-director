@@ -28,13 +28,15 @@ import {
   type OnboardingEngine,
   type OnboardingNodePack
 } from "./onboardingCatalog";
+import { useTranslation } from "react-i18next";
 
 const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const statusChip = engine.separateInstallUrl ? (
-    <Chip label="Separate app" compact variant="outlined" />
+    <Chip label={t("editor:ui.separateApp", { defaultValue: "Separate app" })} compact variant="outlined" />
   ) : engine.runtimeId ? (
-    <Chip label="Runtime" compact variant="outlined" />
+    <Chip label={t("editor:ui.runtime", { defaultValue: "Runtime" })} compact variant="outlined" />
   ) : null;
 
   return (
@@ -95,6 +97,7 @@ const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
 };
 
 const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   // Select primitives only — deriving a new array inside the selector would
   // change the snapshot on every render and loop useSyncExternalStore.
@@ -157,7 +160,7 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
           }
           sx={{ flexShrink: 0 }}
         >
-          {available ? "Install" : "Open manager"}
+          {available ? t("editor:ui.install", { defaultValue: "Install" }) : "Open manager"}
         </EditorButton>
       )}
     </FlexRow>
@@ -215,8 +218,7 @@ const EngineGuide: React.FC = () => {
             </Text>
             <Caption sx={{ opacity: 0.7 }}>
               {available
-                ? "Install the packs that add the nodes you want to use."
-                : "Node packs install from the desktop app's Package Manager."}
+                ? i18n.t("editor:ui.installThePacksThatAddTheNodesYouWantToUse", { defaultValue: "Install the packs that add the nodes you want to use." }) : "Node packs install from the desktop app's Package Manager."}
             </Caption>
           </FlexColumn>
           <EditorButton

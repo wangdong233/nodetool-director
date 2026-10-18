@@ -17,6 +17,7 @@ import { useLineDeliveryRevision } from "../../../hooks/timeline/useLineDelivery
 import { useScriptStore, effectiveVoice } from "../../../stores/script/ScriptStore";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
+import { useTranslation } from "react-i18next";
 
 interface LineDeliveryPanelProps {
   clipId: string;
@@ -24,6 +25,7 @@ interface LineDeliveryPanelProps {
 
 /** Revise a Script-linked voiceover without replacing its accepted take. */
 const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
+  const { t } = useTranslation();
   const clip = useTimelineStore((state) => findClipById(state.clips, clipId));
   const sequenceId = useTimelineStore((state) => state.sequenceId);
   const script = useScriptStore((state) =>
@@ -54,15 +56,15 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
   if (!script || !line) {
     return (
       <CollapsibleSection
-        title={<InspectorSectionTitle title="Change line delivery" icon={<AutoAwesomeOutlinedIcon />} />}
+        title={<InspectorSectionTitle title={t("timeline:attrs.changeLineDelivery", { defaultValue: "Change line delivery" })} icon={<AutoAwesomeOutlinedIcon />} />}
         open={open}
         onToggle={setOpen}
       >
         <EmptyState
           variant="empty"
           size="small"
-          title="Line context unavailable"
-          description="Reopen the linked Script before revising this voiceover."
+          title={t("timeline:attrs.lineContextUnavailable", { defaultValue: "Line context unavailable" })}
+          description={t("timeline:attrs.reopenTheLinkedScriptBeforeRevisingThisVoiceover", { defaultValue: "Reopen the linked Script before revising this voiceover." })}
         />
       </CollapsibleSection>
     );
@@ -84,7 +86,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
 
   return (
     <CollapsibleSection
-      title={<InspectorSectionTitle title="Change line delivery" icon={<AutoAwesomeOutlinedIcon />} />}
+      title={<InspectorSectionTitle title={t("timeline:attrs.changeLineDelivery", { defaultValue: "Change line delivery" })} icon={<AutoAwesomeOutlinedIcon />} />}
       open={open}
       onToggle={setOpen}
     >
@@ -100,7 +102,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
         <TextArea
           value={instructions}
           onChange={(value) => setInstructions(value)}
-          placeholder="Optional delivery direction…"
+          placeholder={t("timeline:attrs.optionalDeliveryDirection", { defaultValue: "Optional delivery direction…" })}
           minRows={2}
           maxRows={5}
           compact
@@ -115,7 +117,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
           onClick={() => void handleSubmit()}
           startIcon={<AutoAwesomeOutlinedIcon />}
         >
-          {pending ? "Generating delivery…" : "Change line delivery"}
+          {pending ? i18n.t("timeline:attrs.generatingDelivery", { defaultValue: "Generating delivery…" }) : "Change line delivery"}
         </EditorButton>
         {error && (
           <ErrorBanner

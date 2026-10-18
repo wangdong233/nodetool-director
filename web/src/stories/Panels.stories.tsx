@@ -32,6 +32,7 @@ import { TabGroup } from "../components/ui_primitives/TabGroup";
 import { Text } from "../components/ui_primitives/Text";
 import { TextInput } from "../components/ui_primitives/TextInput";
 import { ToolbarIconButton } from "../components/ui_primitives/ToolbarIconButton";
+import { useTranslation } from "react-i18next";
 
 /**
  * Typical panels composed from primitives only. Each story is a docked side
@@ -121,6 +122,7 @@ const GenerateAction = ({
 );
 
 const InspectorPanel = () => {
+  const { t } = useTranslation(["timeline","ui2"]);
   const [tab, setTab] = useState("inspector");
   const [query, setQuery] = useState("");
   const [instruction, setInstruction] = useState("");
@@ -152,7 +154,7 @@ const InspectorPanel = () => {
           <SearchInput
             value={query}
             onChange={setQuery}
-            placeholder="Find a control"
+            placeholder={t("timeline:attrs.findAControl", { defaultValue: "Find a control" })}
             size="small"
             fullWidth
           />
@@ -173,16 +175,16 @@ const InspectorPanel = () => {
             </FlexRow>
           </FlexColumn>
 
-          <CollapsibleSection iconPosition="end" compact title={<SectionHeader title="Media" size="small" />} defaultOpen>
+          <CollapsibleSection iconPosition="end" compact title={<SectionHeader title={t("timeline:attrs.media", { defaultValue: "Media" })} size="small" />} defaultOpen>
             <FlexColumn gap={1}>
-              <InspectorFieldRow label="Fit">
-                <InspectorSelect label="Fit" value={fit} options={fitOptions} onChange={setFit} grow />
+              <InspectorFieldRow label={t("ui2:attrs.fit", { defaultValue: "Fit" })}>
+                <InspectorSelect label={t("ui2:attrs.fit", { defaultValue: "Fit" })} value={fit} options={fitOptions} onChange={setFit} grow />
               </InspectorFieldRow>
               <InspectorToggleRow label="Loop" checked={loop} onChange={setLoop} />
             </FlexColumn>
           </CollapsibleSection>
 
-          <CollapsibleSection iconPosition="end" compact title={<SectionHeader title="Timing" size="small" />} defaultOpen>
+          <CollapsibleSection iconPosition="end" compact title={<SectionHeader title={t("timeline:attrs.timing", { defaultValue: "Timing" })} size="small" />} defaultOpen>
             <FlexColumn gap={1}>
               <InspectorFieldRow label="Start">
                 <InspectorValueInput value={start} onCommit={setStart} ariaLabel="Start" grow />
@@ -190,7 +192,7 @@ const InspectorPanel = () => {
               <InspectorFieldRow label="Duration">
                 <InspectorValueInput value={duration} onCommit={setDuration} unit="s" ariaLabel="Duration" grow />
               </InspectorFieldRow>
-              <InspectorFieldRow label="Speed">
+              <InspectorFieldRow label={t("timeline:attrs.speed", { defaultValue: "Speed" })}>
                 <InspectorValueInput value={speed} onCommit={setSpeed} unit="%" ariaLabel="Speed" grow />
               </InspectorFieldRow>
             </FlexColumn>
@@ -198,11 +200,11 @@ const InspectorPanel = () => {
 
           <Divider />
 
-          <CollapsibleSection iconPosition="end" compact title={<SectionHeader title="AI edit" size="small" />} defaultOpen>
+          <CollapsibleSection iconPosition="end" compact title={<SectionHeader title={t("timeline:attrs.aiEdit", { defaultValue: "AI edit" })} size="small" />} defaultOpen>
             <FlexColumn gap={3}>
               <TextInput
-                label="Instruction"
-                placeholder="e.g. Make it golden hour"
+                label={t("timeline:attrs.instruction", { defaultValue: "Instruction" })}
+                placeholder={t("timeline:attrs.aiEditExample", { defaultValue: "e.g. Make it golden hour" })}
                 multiline
                 minRows={1}
                 maxRows={6}
@@ -220,10 +222,10 @@ const InspectorPanel = () => {
             </FlexColumn>
           </CollapsibleSection>
 
-          <CollapsibleSection iconPosition="end" compact title={<SectionHeader title="Extend" size="small" />} defaultOpen={false}>
+          <CollapsibleSection iconPosition="end" compact title={<SectionHeader title={t("timeline:attrs.extend", { defaultValue: "Extend" })} size="small" />} defaultOpen={false}>
             <FlexColumn gap={3}>
               <SelectField
-                label="Extension model"
+                label={t("timeline:attrs.extensionModel", { defaultValue: "Extension model" })}
                 value={extendModel}
                 onChange={setExtendModel}
                 options={extendModelOptions}
@@ -232,7 +234,7 @@ const InspectorPanel = () => {
               <FlexRow gap={2} align="flex-start">
                 <Box sx={{ flex: "1 1 0", minWidth: 0 }}>
                   <SelectField
-                    label="Extend from"
+                    label={t("timeline:attrs.extendFrom", { defaultValue: "Extend from" })}
                     value={extendFrom}
                     onChange={setExtendFrom}
                     options={extendFromOptions}
@@ -244,8 +246,8 @@ const InspectorPanel = () => {
                 </Box>
               </FlexRow>
               <TextInput
-                label="Extension intent"
-                placeholder="e.g. The camera keeps rising"
+                label={t("timeline:attrs.extensionIntent", { defaultValue: "Extension intent" })}
+                placeholder={t("timeline:attrs.extensionIntentExample", { defaultValue: "e.g. The camera keeps rising" })}
                 multiline
                 minRows={1}
                 maxRows={6}
@@ -254,7 +256,7 @@ const InspectorPanel = () => {
                 onChange={(e) => setIntent(e.target.value)}
               />
               <GenerateAction
-                label="Generate extension"
+                label={t("timeline:attrs.generateExtension", { defaultValue: "Generate extension" })}
                 cost="$1.20"
                 ready={intent.trim().length > 0}
                 hint="Describe the extension"
@@ -286,6 +288,7 @@ const versions = [
 ];
 
 const ListPanel = ({ empty }: { empty: boolean }) => {
+  const { t } = useTranslation(["timeline","ui2"]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState("v7");
   const items = empty
@@ -297,7 +300,7 @@ const ListPanel = ({ empty }: { empty: boolean }) => {
       <PanelHeader
         title="Versions"
         count={empty ? undefined : items.length}
-        actions={<ToolbarIconButton icon={<AddIcon />} tooltip="Save version" size="small" />}
+        actions={<ToolbarIconButton icon={<AddIcon />} tooltip={t("timeline:history.saveVersion", { defaultValue: "Save version" })} size="small" />}
         onClose={() => undefined}
       />
       <FlexColumn gap={2} sx={{ flex: "1 1 auto", minHeight: 0, px: 3, py: 2 }}>
@@ -321,7 +324,7 @@ const ListPanel = ({ empty }: { empty: boolean }) => {
           <EmptyState
             title={empty ? "No versions yet" : "No matches"}
             description={empty ? "Save a version to return to this state later." : "Try another name."}
-            actionText={empty ? "Save version" : undefined}
+            actionText={empty ? t("timeline:history.saveVersion", { defaultValue: "Save version" }) : undefined}
             onAction={empty ? () => undefined : undefined}
             size="small"
           />
@@ -356,6 +359,7 @@ const SettingsGroup = ({ title, children }: { title: string; children: ReactNode
 );
 
 const SettingsPanel = () => {
+  const { t } = useTranslation(["timeline","ui2"]);
   const [autosave, setAutosave] = useState(true);
   const [snap, setSnap] = useState(true);
   const [waveforms, setWaveforms] = useState(false);
@@ -380,7 +384,7 @@ const SettingsPanel = () => {
             onChange={setAutosave}
           />
           <SelectField
-            label="Keyboard layout"
+            label={t("timeline:attrs.keyboardLayout", { defaultValue: "Keyboard layout" })}
             value={keys}
             onChange={setKeys}
             options={[
@@ -393,7 +397,7 @@ const SettingsPanel = () => {
         </SettingsGroup>
         <SettingsGroup title="Preview">
           <SelectField
-            label="Preview quality"
+            label={t("timeline:editor.previewQuality", { defaultValue: "Preview quality" })}
             value={quality}
             onChange={setQuality}
             options={[
@@ -410,7 +414,7 @@ const SettingsPanel = () => {
             onChange={setWaveforms}
           />
         </SettingsGroup>
-        <SettingsGroup title="Media">
+        <SettingsGroup title={t("timeline:attrs.media", { defaultValue: "Media" })}>
           <FlexRow justify="space-between" align="center">
             <FlexRow gap={2} align="center">
               <ImageOutlinedIcon fontSize="small" />

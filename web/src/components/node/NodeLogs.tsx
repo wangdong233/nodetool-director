@@ -20,6 +20,7 @@ import {
 } from "../ui_primitives";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import LogsTable, { LogRow, Severity } from "../common/LogsTable";
+import { useTranslation } from "react-i18next";
 
 type NodeLogsProps = {
   id: string;
@@ -132,11 +133,11 @@ export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
         onClose={onClose}
         fullWidth
         maxWidth="md"
-        title="Node logs"
+        title={t("editor:ui.nodeLogs", { defaultValue: "Node logs" })}
         titleActions={
           <>
             <Chip size="small" label={`${count}`} />
-            <CopyButton value={logText} tooltip="Copy logs" nodrag={false} />
+            <CopyButton value={logText} tooltip={t("editor:ui.copyLogs", { defaultValue: "Copy logs" })} nodrag={false} />
           </>
         }
       >
@@ -150,14 +151,14 @@ export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
             />
             <Chip
               size="small"
-              label="Warnings"
+              label={t("game:console.warningMany", { defaultValue: "Warnings" })}
               color="warning"
               active={selectedSeverities.includes("warning")}
               onClick={toggleWarningSeverity}
             />
             <Chip
               size="small"
-              label="Errors"
+              label={t("game:console.errorMany", { defaultValue: "Errors" })}
               color="error"
               active={selectedSeverities.includes("error")}
               onClick={toggleErrorSeverity}
@@ -180,6 +181,7 @@ export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
 NodeLogsDialog.displayName = "NodeLogsDialog";
 
 const NodeLogsImpl: React.FC<NodeLogsProps> = ({ id, workflowId }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => styles(theme), [theme]);
   // O(1) lookup via pre-keyed map instead of filtering the full logs array.
@@ -212,7 +214,7 @@ const NodeLogsImpl: React.FC<NodeLogsProps> = ({ id, workflowId }) => {
           onClick={handleOpen}
           startIcon={<ListAltIcon />}
         >
-          <span>Logs</span>
+          <span>{t("editor:bottom.logs", { defaultValue: "Logs" })}</span>
           <Chip size="small" label={count} sx={{ ml: 1 }} />
         </EditorButton>
       </div>

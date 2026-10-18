@@ -28,6 +28,7 @@ import { EmptyState, FlexColumn, FlexRow, LoadingSpinner } from "../ui_primitive
 import { workflowListQueryKey } from "../../serverState/workflowQueryKeys";
 import { nextCopyName } from "../../utils/nextCopyName";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -64,6 +65,7 @@ interface WorkflowListProps {
 }
 
 const WorkflowList = ({ projectId }: WorkflowListProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -376,9 +378,9 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1, px: 2 }}>
             <EmptyState
               variant="error"
-              title="Couldn't load workflows"
-              description="Try again later."
-              actionText="Retry"
+              title={t("editor:ui.couldntLoadWorkflows", { defaultValue: "Couldn't load workflows" })}
+              description={t("editor:ui.tryAgainLater", { defaultValue: "Try again later." })}
+              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </FlexColumn>
@@ -386,26 +388,23 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
           <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1, px: 2 }}>
             {showFavoritesOnly ? (
               <EmptyState
-                title="No favorite workflows"
-                description="Click the star icon on a workflow to add it to your favorites."
+                title={t("editor:ui.noFavoriteWorkflows", { defaultValue: "No favorite workflows" })}
+                description={t("editor:ui.clickTheStarIconOnAWorkflowToAddItToYourFavorites", { defaultValue: "Click the star icon on a workflow to add it to your favorites." })}
               />
             ) : data?.workflows && data.workflows.length > 0 ? (
               <EmptyState
-                title="No matching workflows"
+                title={t("editor:ui.noMatchingWorkflows", { defaultValue: "No matching workflows" })}
                 description={
                   filterValue && selectedTags.length > 0
-                    ? "Try adjusting your search term or tag filters."
-                    : filterValue
-                      ? "Try a different search term."
-                      : selectedTags.length > 0
-                        ? "Try removing some tag filters."
-                        : "No workflows match the current filters."
+                    ? t("editor:ui.tryAdjustingYourSearchTermOrTagFilters", { defaultValue: "Try adjusting your search term or tag filters." }) : filterValue
+                      ? t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." }) : selectedTags.length > 0
+                        ? t("editor:ui.tryRemovingSomeTagFilters", { defaultValue: "Try removing some tag filters." }) : "No workflows match the current filters."
                 }
               />
             ) : (
               <EmptyState
-                title="No workflows yet"
-                description="Create your first workflow with the + button above."
+                title={t("editor:ui.noWorkflowsYet", { defaultValue: "No workflows yet" })}
+                description={t("editor:ui.createYourFirstWorkflowWithThe+ButtonAbove", { defaultValue: "Create your first workflow with the + button above." })}
               />
             )}
           </FlexColumn>

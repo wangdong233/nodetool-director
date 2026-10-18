@@ -51,6 +51,7 @@ import {
   getHfCacheKey
 } from "../../../utils/hfCache";
 import { isString } from "../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 /** Width of the category rail. */
 const SIDEBAR_WIDTH = 260;
@@ -150,6 +151,7 @@ type ListItem =
   | { type: "model"; model: UnifiedModel };
 
 const ModelListIndex: React.FC = () => {
+  const { t } = useTranslation("editor");
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);
@@ -512,7 +514,7 @@ const ModelListIndex: React.FC = () => {
       >
         <EmptyState
           variant="error"
-          title="Could not load models"
+          title={t("editor:ui.couldNotLoadModels", { defaultValue: "Could not load models" })}
           description={
             <FlexColumn gap={1} align="center" sx={{ maxWidth: 600 }}>
               <span>{errorMessage}</span>

@@ -700,6 +700,7 @@
     "reVoiceLine": "重新配音台词",
     "assignAVoiceToThisSpeakerFirst": "请先为该说话人分配声音",
     "renderingClip": "正在渲染片段",
+    "renderingClipLower": "正在渲染片段",
     "renderingStillLower": "正在渲染静帧",
     "stillClipQueued": "静帧 · 片段排队中",
     "hidePreview": "隐藏预览",

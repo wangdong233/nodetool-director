@@ -40,6 +40,7 @@ import {
   TEXT_ASSIST_ACTIONS,
   type TextAssistField
 } from "../../utils/textAssist";
+import { useTranslation } from "react-i18next";
 
 const PANEL_WIDTH = 380;
 const SUGGESTION_MAX_HEIGHT = 240;
@@ -75,6 +76,7 @@ const TextAssistButtonInternal: React.FC<TextAssistButtonProps> = ({
   disabled = false,
   onOpenChange
 }) => {
+  const { t } = useTranslation("timeline");
   const theme = useTheme();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -230,13 +232,13 @@ const TextAssistButtonInternal: React.FC<TextAssistButtonProps> = ({
                   ? "Refine the suggestion…"
                   : "Tell the assistant what to write…"
               }
-              label="Instruction"
+              label={t("timeline:attrs.instruction", { defaultValue: "Instruction" })}
               hideLabel
               disabled={running}
             />
             <ToolbarIconButton
               icon={<ArrowUpwardIcon fontSize="small" />}
-              tooltip="Send"
+              tooltip={t("appbuilder:attrs.send", { defaultValue: "Send" })}
               aria-label="Send the instruction"
               variant="primary"
               size="small"

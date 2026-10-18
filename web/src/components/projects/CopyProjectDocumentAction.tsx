@@ -11,6 +11,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import type { ProjectDocument } from "./projectStatus";
+import { useTranslation } from "react-i18next";
 
 /**
  * A document the copy route covers. Workflows and text files are listed but
@@ -34,6 +35,7 @@ const CopyProjectDocumentAction = ({
   document,
   sourceProjectId
 }: CopyProjectDocumentActionProps) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [destinationProjectId, setDestinationProjectId] = useState("");
   const { data: projects = [] } = trpc.projects.list.useQuery(
@@ -100,7 +102,7 @@ const CopyProjectDocumentAction = ({
             the destination. The source remains unchanged.
           </Caption>
           <SelectField
-            label="Destination project"
+            label={t("editor:ui.destinationProject", { defaultValue: "Destination project" })}
             value={destinationProjectId}
             onChange={setDestinationProjectId}
             options={destinations.map((project) => ({

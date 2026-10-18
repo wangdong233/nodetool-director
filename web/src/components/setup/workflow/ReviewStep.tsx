@@ -69,6 +69,7 @@ import { PlanReview, PlanReviewHeading } from "../PlanReview";
 import { REVIEW_BLOCK, REVIEW_CONTENT_WIDTH } from "../reviewStyles";
 import type { PlanReviewSection } from "../PlanReview";
 import { MODEL_ROLE_ONBOARDING } from "./modelRoles";
+import { useTranslation } from "react-i18next";
 
 export interface WorkflowReviewStepProps {
   plan: WorkflowSetupPlan;
@@ -317,7 +318,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
 
         {replanPending ? (
           <FlexRow gap={GAP.normal} align="center" wrap>
-            <ThinkingIndicator label="Re-planning the steps" announce />
+            <ThinkingIndicator label={t("storyboard:attrs.rePlanningTheSteps", { defaultValue: "Re-planning the steps" })} announce />
             {onCancelReplan ? (
               <EditorButton variant="text" onClick={onCancelReplan}>
                 Stop re-planning
@@ -347,7 +348,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
         {planProblems.length > 0 ? (
           <AlertBanner
             severity="warning"
-            title="This plan would fail when it runs"
+            title={t("setup:workflow.thisPlanWouldFailWhenItRuns", { defaultValue: "This plan would fail when it runs" })}
             action={
               <EditorButton
                 variant="text"
@@ -493,6 +494,7 @@ const StepRow: React.FC<StepRowProps> = ({
   readOnly,
   roleLoading
 }) => {
+  const { t } = useTranslation();
   const { step } = entry;
   // A role whose models are still being read has its own line above.
   const missingRole =
@@ -584,7 +586,7 @@ const StepRow: React.FC<StepRowProps> = ({
           compact
           label={`Step ${index + 1} description`}
           hideLabel
-          placeholder="What this step does"
+          placeholder={t("storyboard:attrs.whatThisStepDoes", { defaultValue: "What this step does" })}
           value={step.summary}
           disabled={readOnly}
           minRows={1}
@@ -594,17 +596,16 @@ const StepRow: React.FC<StepRowProps> = ({
         />
 
         {entry.unknownNodeType ? (
-          <AlertBanner severity="error" title="No node for this step">
+          <AlertBanner severity="error" title={t("storyboard:attrs.noNodeForThisStep", { defaultValue: "No node for this step" })}>
             <FlexColumn gap={GAP.normal}>
               <Caption component="span">
                 {step.node_type === null
-                  ? "The plan could not name a node for this step. Pick one."
-                  : `"${step.node_type}" is not a node type this install has. Pick one.`}
+                  ? t("storyboard:attrs.thePlanCouldNotNameANodeForThisStepPickOne", { defaultValue: "The plan could not name a node for this step. Pick one." }) : `"${step.node_type}" is not a node type this install has. Pick one.`}
               </Caption>
               <Autocomplete
                 options={nodeTypeOptions}
                 label={`Node type for step ${index + 1}`}
-                placeholder="Search node types"
+                placeholder={t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
                 disabled={readOnly}
                 onChange={(_event, value) => pickNodeType(value)}
               />
@@ -664,7 +665,7 @@ const StepRow: React.FC<StepRowProps> = ({
                   ) ?? null
                 }
                 label={`Node type for step ${index + 1}`}
-                placeholder="Search node types"
+                placeholder={t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
                 disabled={readOnly}
                 onChange={(_event, value) => pickNodeType(value)}
               />

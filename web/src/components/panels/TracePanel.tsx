@@ -384,7 +384,7 @@ const RUN_STATUS_TONE: Record<GetRunResult["run"]["status"], StatusPillTone> = {
 function runTitle(run: RunRecord, workflowName: string | undefined): string {
   if (run.app) { return run.app.operation_id; }
   if (run.kind === "workflow") { return workflowName ?? "Workflow run"; }
-  return run.kind === "chat" ? "Chat turn" : "App run";
+  return run.kind === "chat" ? i18n.t("editor:ui.chatTurn", { defaultValue: "Chat turn" }) : "App run";
 }
 
 const matchesQuery = (query: string, ...fields: string[]): boolean => fields.join(" ").toLowerCase().includes(query.trim().toLowerCase());

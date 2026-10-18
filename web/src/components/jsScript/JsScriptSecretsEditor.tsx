@@ -17,6 +17,7 @@ import {
   TextInput,
   SPACING
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface JsScriptSecretsEditorProps {
   secrets: readonly string[];
@@ -29,6 +30,7 @@ const JsScriptSecretsEditor = ({
   readOnly = false,
   onChange
 }: JsScriptSecretsEditorProps) => {
+  const { t } = useTranslation();
   const patch = useCallback(
     (index: number, value: string) => {
       onChange(secrets.map((name, i) => (i === index ? value : name)));
@@ -47,7 +49,7 @@ const JsScriptSecretsEditor = ({
     <FlexColumn gap={SPACING.sm}>
       <SectionHeader
         size="small"
-        title="Secrets"
+        title={t("ui2:attrs.secrets", { defaultValue: "Secrets" })}
         action={
           readOnly ? undefined : (
             <EditorButton

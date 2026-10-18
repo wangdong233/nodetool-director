@@ -16,6 +16,7 @@ import {
   SHORTCUT_CATEGORIES,
   type Shortcut
 } from "../../../config/shortcuts";
+import { useTranslation } from "react-i18next";
 
 const categories = Object.keys(SHORTCUT_CATEGORIES) as Array<
   keyof typeof SHORTCUT_CATEGORIES
@@ -43,6 +44,7 @@ export const ShortcutsSearchableList: React.FC<ShortcutsSearchableListProps> = (
   scrollSx,
   searchPlaceholder = "Search shortcuts"
 }) => {
+  const { t } = useTranslation();
   const catalog = tooltipCatalog ?? shortcuts;
   const [search, setSearch] = useState("");
 
@@ -107,7 +109,7 @@ export const ShortcutsSearchableList: React.FC<ShortcutsSearchableListProps> = (
             variant="no-results"
             size="small"
             title="No matching shortcuts"
-            description="Try a different search term."
+            description={t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })}
           />
         )}
         {categories.map((cat) => {

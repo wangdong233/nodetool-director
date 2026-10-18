@@ -33,6 +33,7 @@ import { ColumnDef, DataframeRef } from "../../stores/ApiTypes";
 import DataTable from "../node/DataTable/DataTable";
 import ColumnsManager from "../node/ColumnsManager";
 import { NavButton, NodeTextField, CloseButton as CloseButtonPrimitive } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface DataframeEditorModalProps {
   value: DataframeRef;
@@ -405,6 +406,7 @@ const DataframeEditorModal = ({
   propertyDescription,
   readOnly = false
 }: DataframeEditorModalProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const modalStyles = useMemo(() => styles(theme), [theme]);
   const modalOverlayRef = useRef<HTMLDivElement>(null);
@@ -541,14 +543,14 @@ const DataframeEditorModal = ({
                   </button>
                 </Tooltip>
                 <Tooltip
-                  title="Close editor"
+                  title={t("editor:ui.closeEditor", { defaultValue: "Close editor" })}
                   shortcut={["Esc"]}
                 >
                   <button
                     type="button"
                     className="button button-close"
                     onClick={onClose}
-                    aria-label="Close editor"
+                    aria-label={t("editor:ui.closeEditor", { defaultValue: "Close editor" })}
                   >
                     <CloseIcon />
                   </button>
@@ -566,7 +568,7 @@ const DataframeEditorModal = ({
                       className="add-column" 
                       onClick={addColumn}
                       icon={<TableRowsIcon style={{ rotate: "90deg" }} />}
-                      label="Add column"
+                      label={t("editor:ui.addColumn", { defaultValue: "Add column" })}
                     />
                   </div>
                   <ColumnsManager
@@ -593,7 +595,7 @@ const DataframeEditorModal = ({
                           <CloseButtonPrimitive
                             buttonSize="small"
                             onClick={handleClearSearch}
-                            tooltip="Clear search"
+                            tooltip={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
                           />
                         </InputAdornment>
                       )

@@ -23,6 +23,7 @@ import {
   MENTION_MENU_MAX_HEIGHT,
   mentionMenuPosition
 } from "./mentionMenuPosition";
+import { useTranslation } from "react-i18next";
 
 type Skill = RouterOutputs["skills"]["list"][number];
 
@@ -82,11 +83,12 @@ const SkillMentionMenu: React.FC<SkillMentionMenuProps> = ({
   onSelect,
   onHighlight
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <div
       role="listbox"
-      aria-label="Skills"
+      aria-label={t("editor:ui.skills", { defaultValue: "Skills" })}
       css={[
         menuPaperStyles(theme),
         menuListStyles(theme),

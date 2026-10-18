@@ -65,6 +65,7 @@ import { useNodeOutput, useUpstreamValues } from "../../../hooks/nodes/useNodeIO
 import { useDynamicProperty } from "../../../hooks/nodes/useDynamicProperty";
 import { COMPOSITOR_NODE_TYPE } from "../../../constants/nodeTypes";
 import { isNumber, isObjectLike, isString } from "../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 /** Canonical blend modes are owned by `@nodetool-ai/gpu`. */
 export type CompositorBlendMode = BlendMode;
@@ -171,6 +172,7 @@ const CompositorBodyInner: React.FC<CompositorBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation("editor");
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const nodeStoreRef = useNodeStoreRef();
@@ -434,7 +436,7 @@ const CompositorBodyInner: React.FC<CompositorBodyProps> = ({
             maxHeight={PREVIEW_MAX_HEIGHT}
           />
         ) : previewSrc ? (
-          <img src={previewSrc} alt="Composited output" />
+          <img src={previewSrc} alt={t("editor:ui.compositedOutput", { defaultValue: "Composited output" })} />
         ) : (
           <CheckerDropzone
             message="Add layers, then run"

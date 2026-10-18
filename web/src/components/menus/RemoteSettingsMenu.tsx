@@ -29,6 +29,7 @@ import { formatSettingLabel } from "./settingsLabel";
 import ExternalLink from "../common/ExternalLink";
 import SearchProviderSection from "./SearchProviderSection";
 import { matchesSearch } from "./settingsSearch";
+import { useTranslation } from "react-i18next";
 
 /**
  * Groups surfaced elsewhere (General tab, Folders panel) or via
@@ -194,7 +195,7 @@ export const getDisplayedSettingGroups = (
     // SearchProviderSection always renders alongside the registry list, so
     // the sidebar always lists it at this slot (after Local Model Servers).
     if (section.key === "local-model-servers") {
-      result.push({ id: "search-provider", label: "Search provider" });
+      result.push({ id: "search-provider", label: i18n.t("editor:ui.searchProvider", { defaultValue: "Search provider" }) });
     }
   }
   return result;
@@ -361,6 +362,7 @@ const settingMatches = (setting: SettingWithValue, search: string): boolean =>
   );
 
 const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const updateSettings = useRemoteSettingsStore((state) => state.updateSettings);
   const fetchSettings = useRemoteSettingsStore((state) => state.fetchSettings);
@@ -605,7 +607,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
 
             {isDirty && (
               <div className="save-button-container">
-                <Text className="save-bar-message">Unsaved changes</Text>
+                <Text className="save-bar-message">{t("ui2:attrs.unsavedChangesCapitalized", { defaultValue: "Unsaved changes" })}</Text>
                 <EditorButton
                   variant="text"
                   onClick={handleDiscard}
@@ -621,7 +623,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                   startIcon={<SaveIcon />}
                   disabled={updateSettingsMutation.isPending}
                 >
-                  {updateSettingsMutation.isPending ? "Saving…" : "Save changes"}
+                  {updateSettingsMutation.isPending ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save changes"}
                 </EditorButton>
               </div>
             )}
@@ -629,7 +631,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
         </div>
       )}
       {isSuccess && !hasVisibleSettings && (
-        <EmptyState variant="no-data" size="small" title="No settings available" />
+        <EmptyState variant="no-data" size="small" title={t("editor:ui.noSettingsAvailable", { defaultValue: "No settings available" })} />
       )}
     </>
   );

@@ -11,6 +11,7 @@ import {
   AlertBanner,
   SPACING
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const DEFAULT_VAULT_ID = "default";
 
@@ -32,6 +33,7 @@ interface VaultListResult {
  * (e.g. the web build running in a plain browser).
  */
 const VaultsSettings: React.FC = () => {
+  const { t } = useTranslation("settings");
   const vaultsApi = typeof window !== "undefined" ? window.api?.vaults : undefined;
 
   const [vaults, setVaults] = useState<VaultInfo[]>([]);
@@ -175,7 +177,7 @@ const VaultsSettings: React.FC = () => {
 
         <FlexRow gap={1} align="flex-end">
           <TextInput
-            label="New vault name"
+            label={t("settings:vaults.newName", { defaultValue: "New vault name" })}
             value={newName}
             autoComplete="off"
             disabled={busy}
@@ -202,7 +204,7 @@ const VaultsSettings: React.FC = () => {
       <Dialog
         open={renameTarget !== null}
         onClose={closeRename}
-        title="Rename vault"
+        title={t("settings:vaults.renamePromptTitle", { defaultValue: "Rename vault" })}
         onConfirm={confirmRename}
         confirmText="Rename"
         confirmDisabled={renameValue.trim().length === 0}

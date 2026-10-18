@@ -9,6 +9,7 @@ import {
 } from "../ui_primitives";
 import type { SaveStateValue } from "../ui_primitives";
 import { useScriptSaveStatus } from "../../stores/script/ScriptStore";
+import { useTranslation } from "react-i18next";
 
 interface ScriptSaveIndicatorProps {
   scriptId: string;
@@ -36,11 +37,12 @@ const TOOLTIPS: Record<string, string> = {
  * counterpart there, so it stays a warning readout of its own.
  */
 const ScriptSaveIndicator = ({ scriptId }: ScriptSaveIndicatorProps) => {
+  const { t } = useTranslation("editor");
   const status = useScriptSaveStatus(scriptId);
 
   if (status === "reloaded") {
     return (
-      <Tooltip title="This script was edited elsewhere, so the newer server version was loaded.">
+      <Tooltip title={t("editor:ui.thisScriptWasEditedElsewhereSoTheNewerServerVersionWasLoaded", { defaultValue: "This script was edited elsewhere, so the newer server version was loaded." })}>
         <FlexRow align="center" gap={SPACING.xs} aria-live="polite">
           <HistoryIcon color="warning" fontSize="small" />
           <Text size="smaller" color="warning">

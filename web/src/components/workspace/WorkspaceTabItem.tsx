@@ -21,6 +21,7 @@ import {
   Tooltip
 } from "../ui_primitives";
 import { tabDisplayTitle } from "./tabTypeIdentity";
+import { useTranslation } from "react-i18next";
 
 // Tabs are scanned, not studied — the title has to land while the pointer is
 // still moving. Well under the 700ms chrome default, and the native `title`
@@ -65,6 +66,7 @@ const WorkspaceTabItem = ({
   onCommitRename,
   onCancelRename
 }: WorkspaceTabItemProps) => {
+  const { t } = useTranslation();
   const workflowId = tab.type === "workflow" ? tab.ref : undefined;
   const isWorkflowDirty = useWorkflowDirty(workflowId);
   const isRunning = useIsWorkflowRunning(workflowId);
@@ -220,7 +222,7 @@ const WorkspaceTabItem = ({
               </span>
             </Tooltip>
             {isWorkflowDirty && (
-              <StatusDot tone="warning" size="medium" label="unsaved changes" />
+              <StatusDot tone="warning" size="medium" label={t("ui2:attrs.unsavedChanges", { defaultValue: "unsaved changes" })} />
             )}
           </>
         )}
@@ -250,21 +252,21 @@ const WorkspaceTabItem = ({
           />
         )}
         <MenuItemPrimitive
-          label="Close tab"
+          label={t("nav:tabs.closeTab", { defaultValue: "Close tab" })}
           onClick={() => {
             closeContextMenu();
             onClose(tab);
           }}
         />
         <MenuItemPrimitive
-          label="Close other tabs"
+          label={t("nav:tabs.closeOthers", { defaultValue: "Close other tabs" })}
           onClick={() => {
             closeContextMenu();
             onCloseOthers(tab);
           }}
         />
         <MenuItemPrimitive
-          label="Close all tabs"
+          label={t("nav:tabs.closeAll", { defaultValue: "Close all tabs" })}
           onClick={() => {
             closeContextMenu();
             onCloseAll();

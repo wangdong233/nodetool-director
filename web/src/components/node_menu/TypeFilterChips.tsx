@@ -52,12 +52,12 @@ type TypeOption = {
 
 const ALL_INPUT_OPTION: TypeOption = {
   value: "",
-  label: "All input types"
+  label: "All input types", labelKey: "editor:ui.allInputTypes",
 };
 
 const ALL_OUTPUT_OPTION: TypeOption = {
   value: "",
-  label: "All output types"
+  label: "All output types", labelKey: "editor:ui.allOutputTypes",
 };
 
 const typeFilterChipsStyles = (theme: Theme) =>

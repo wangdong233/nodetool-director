@@ -102,7 +102,7 @@ const LEFT_PANEL_CATEGORY_BY_ID: Readonly<
 > = {
   documents: {
     id: "documents",
-    label: "Documents",
+    label: "Documents", labelKey: "nav:qa.documents.label",
     description: "Browse every document in the current project.",
     docsTopic: "workflows",
     icon: <FolderCopyOutlinedIcon />
@@ -224,7 +224,7 @@ const LEFT_PANEL_CATEGORY_BY_ID: Readonly<
   },
   "workspace-files": {
     id: "workspace-files",
-    label: "Workspace",
+    label: "Workspace", labelKey: "editor:ui.workspace",
     description: "Browse the files in the selected workspace folder.",
     docsTopic: "workspaces",
     icon: <FolderOutlinedIcon />

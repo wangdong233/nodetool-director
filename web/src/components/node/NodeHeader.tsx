@@ -13,6 +13,7 @@ import ListAltIcon from "@mui/icons-material/ListAlt";
 import OpenInNew from "@mui/icons-material/OpenInNew";
 import { NodeLogsDialog } from "./NodeLogs";
 import { BORDER_RADIUS, Chip, FlexRow, Tooltip, ToolbarIconButton, MOTION, SPACING, getSpacingPx, ICON_SIZE } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface NodeHeaderProps {
   id: string;
@@ -132,6 +133,7 @@ const NodeHeaderImpl: React.FC<NodeHeaderProps> = ({
   showCodeBadge = false,
   codeBadgeTooltip = "Code node"
 }: NodeHeaderProps) => {
+  const { t } = useTranslation();
   const { openContextMenu } = useContextMenuActions();
   // Combine multiple useNodes subscriptions into a single selector with shallow equality
   // to reduce unnecessary re-renders when other parts of the node state change
@@ -302,7 +304,7 @@ const NodeHeaderImpl: React.FC<NodeHeaderProps> = ({
           {isEditingTitle ? (
             <input
               className="node-title-input nodrag nopan"
-              aria-label="Node title"
+              aria-label={t("editor:ui.nodeTitle", { defaultValue: "Node title" })}
               autoFocus
               value={draftTitle}
               onBlur={commitTitleEdit}
@@ -336,7 +338,7 @@ const NodeHeaderImpl: React.FC<NodeHeaderProps> = ({
           </ToolbarIconButton>
         )}
         {data.bypassed && (
-          <span className="bypass-badge">Disabled</span>
+          <span className="bypass-badge">{t("ui2:attrs.disabled", { defaultValue: "Disabled" })}</span>
         )}
         {logCount > 0 && !hideLogs && (
           <ToolbarIconButton

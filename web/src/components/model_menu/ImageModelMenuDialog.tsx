@@ -7,6 +7,7 @@ import {
   useImageModelsByProvider,
   type ImageModelTask
 } from "../../hooks/useModelsByProvider";
+import { useTranslation } from "react-i18next";
 
 interface ImageModelMenuDialogProps {
   open: boolean;
@@ -30,6 +31,7 @@ function ImageModelMenuDialog({
   modelPacks,
   selectedModel
 }: ImageModelMenuDialogProps) {
+  const { t } = useTranslation();
   const modelData = useImageModelsByProvider({ task });
   const localCapabilities = useMemo(
     () => imageTaskCapabilities(task === undefined ? undefined : [task].flat()),
@@ -42,7 +44,7 @@ function ImageModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title="Select image model"
+      title={t("editor:ui.selectImageModel", { defaultValue: "Select image model" })}
       searchPlaceholder="Search image models"
       storeHook={useImageModelMenuStore}
       modelType="image_model"

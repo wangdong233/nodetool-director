@@ -33,6 +33,7 @@ import {
   ListItem,
   ListItemSecondaryAction
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -102,6 +103,7 @@ function nameFromPath(path: string): string {
 }
 
 const WorkspacesManager: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -253,7 +255,7 @@ const WorkspacesManager: React.FC = () => {
                       {!workspace.is_accessible && (
                         <Chip
                           size="small"
-                          label="Inaccessible"
+                          label={t("editor:ui.inaccessible", { defaultValue: "Inaccessible" })}
                           color="error"
                           variant="outlined"
                         />
@@ -271,8 +273,7 @@ const WorkspacesManager: React.FC = () => {
                       }
                       tooltip={
                         workspace.is_default
-                          ? "Default workspace"
-                          : "Set as default"
+                          ? t("ui2:attrs.defaultWorkspace", { defaultValue: "Default workspace" }) : "Set as default"
                       }
                       onClick={() => handleToggleDefault(workspace)}
                       sx={{
@@ -298,11 +299,10 @@ const WorkspacesManager: React.FC = () => {
           ) : (
             <EmptyState
               icon={<FolderIcon />}
-              title="No workspaces configured"
+              title={t("ui2:attrs.noWorkspacesConfigured", { defaultValue: "No workspaces configured" })}
               description={
                 canManage
-                  ? "Add a workspace to allow agents to access local folders"
-                  : "This deployment manages your workspace for you"
+                  ? t("editor:ui.addAWorkspaceToAllowAgentsToAccessLocalFolders", { defaultValue: "Add a workspace to allow agents to access local folders" }) : "This deployment manages your workspace for you"
               }
             />
           )}
@@ -315,7 +315,7 @@ const WorkspacesManager: React.FC = () => {
                 fullWidth
                 disabled={createMutation.isPending}
               >
-                {createMutation.isPending ? "Adding…" : "Add Workspace"}
+                {createMutation.isPending ? t("editor:ui.adding", { defaultValue: "Adding…" }) : "Add Workspace"}
               </EditorButton>
             </div>
           )}
@@ -328,7 +328,7 @@ const WorkspacesManager: React.FC = () => {
         open={deleteConfirmOpen}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        title="Remove this workspace?"
+        title={t("editor:ui.removeThisWorkspace", { defaultValue: "Remove this workspace?" })}
         content={
           <Text>
             The workspace will be removed from NodeTool. The folder itself will

@@ -16,6 +16,7 @@ import {
   Box, BORDER_RADIUS, Caption, CONTROL, EditorMenu, FlexColumn, FlexRow, focusRing, FONT_SIZE_SANS, getSpacingPx, InspectorSelect,
   MenuItemPrimitive, SearchInput, SPACING, Text, ToolbarIconButton, TreeRow, TYPOGRAPHY
 } from "../../../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 type AddKind = "box" | "sphere" | "light";
 
@@ -100,6 +101,7 @@ function treeRows(entities: readonly GameEntity3D[], collapsed: ReadonlySet<stri
 
 /** Scene hierarchy panel for the 3D game editor. */
 export default function GameHierarchy3D({ document, scene, selectedIds, onSelect, onSelectScene, onAdd, footer }: GameHierarchy3DProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [search, setSearch] = useState("");
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
@@ -118,7 +120,7 @@ export default function GameHierarchy3D({ document, scene, selectedIds, onSelect
       flexShrink: 0, minHeight: CONTROL.height.md, boxSizing: "border-box", paddingInline: getSpacingPx(SPACING.sm),
       borderBottom: `1px solid ${theme.vars.palette.divider}`
     }}>
-      <ToolbarIconButton icon={<AddIcon fontSize="small" />} tooltip="Add entity" aria-haspopup="menu"
+      <ToolbarIconButton icon={<AddIcon fontSize="small" />} tooltip={t("editor:ui.addEntity", { defaultValue: "Add entity" })} aria-haspopup="menu"
         aria-expanded={Boolean(addAnchor)} onClick={(event) => setAddAnchor(event.currentTarget)} />
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <SearchInput value={search} onChange={setSearch} placeholder="Search" ariaLabel="Search entities" size="small" fullWidth
@@ -131,10 +133,10 @@ export default function GameHierarchy3D({ document, scene, selectedIds, onSelect
         onClick={() => { setAddAnchor(null); onAdd(kind); }} />)}
     </EditorMenu>
     <Box sx={{ flexShrink: 0, px: SPACING.sm, py: SPACING.xs, borderBottom: 1, borderColor: "divider" }}>
-      <InspectorSelect label="Scene" grow value={scene?.id ?? document.entrySceneId}
+      <InspectorSelect label={t("storyboard:attrs.scene", { defaultValue: "Scene" })} grow value={scene?.id ?? document.entrySceneId}
         options={document.scenes.map((item) => ({ value: item.id, label: item.name }))} onChange={onSelectScene} />
     </Box>
-    <FlexColumn role="list" aria-label="Scene entities" sx={{ flex: 1, minHeight: 0, overflowY: "auto", py: SPACING.xs, px: SPACING.xs }}>
+    <FlexColumn role="list" aria-label={t("game:hierarchy.sceneEntities", { defaultValue: "Scene entities" })} sx={{ flex: 1, minHeight: 0, overflowY: "auto", py: SPACING.xs, px: SPACING.xs }}>
       {rows.length === 0 && <Caption sx={{ px: SPACING.sm, py: SPACING.xs }}>
         {needle ? "No entities match." : "This scene has no entities."}
       </Caption>}
@@ -148,7 +150,7 @@ export default function GameHierarchy3D({ document, scene, selectedIds, onSelect
           sx={{ pr: SPACING.sm, minHeight: CONTROL.height.xs, gap: SPACING.micro,
             "&:focus-within": { bgcolor: selected ? "action.selected" : "action.hover" } }}>
           {hasChildren
-            ? <FlexRow component="button" aria-label={`${expanded ? "Collapse" : "Expand"} ${name}`}
+            ? <FlexRow component="button" aria-label={`${expanded ? t("editor:ui.collapse", { defaultValue: "Collapse" }) : "Expand"} ${name}`}
               aria-expanded={expanded} aria-disabled={needle !== ""} align="center" justify="center"
               onClick={(event) => { event.stopPropagation(); if (needle === "") { toggle(entity.id); } }}
               sx={{ flexShrink: 0,

@@ -14,8 +14,10 @@ import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import EditIcon from "@mui/icons-material/EditOutlined";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+import { useTranslation } from "react-i18next";
 
 const WorkflowContextMenu: React.FC = () => {
+  const { t } = useTranslation();
   const menuPosition = useContextMenuStore((state) => state.menuPosition);
   const closeContextMenu = useContextMenuStore((state) => state.closeContextMenu);
   const nodeId = useContextMenuStore((state) => state.nodeId);
@@ -79,26 +81,26 @@ const WorkflowContextMenu: React.FC = () => {
       <ListSubheader>{payload.name}</ListSubheader>
       <ContextMenuItem
         onClick={handleToggleFavorite}
-        label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+        label={isFavorite ? t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : "Add to favorites"}
         IconComponent={isFavorite ? <StarIcon /> : <StarBorderIcon />}
       />
-      <ContextMenuItem onClick={handleEdit} label="Edit" IconComponent={<EditIcon />} />
+      <ContextMenuItem onClick={handleEdit} label={t("editor:workflow.edit", { defaultValue: "Edit" })} IconComponent={<EditIcon />} />
       <ContextMenuItem
         onClick={handleDuplicate}
-        label="Duplicate"
+        label={t("common:action.duplicate", { defaultValue: "Duplicate" })}
         IconComponent={<ContentCopyIcon />}
       />
       {onOpenAsApp && (
         <ContextMenuItem
           onClick={handleOpenAsApp}
-          label="Open as app"
+          label={t("editor:workflow.openAsApp", { defaultValue: "Open as app" })}
           IconComponent={<StarIcon />}
         />
       )}
       <Divider />
       <ContextMenuItem
         onClick={handleDelete}
-        label="Delete"
+        label={t("common:action.delete", { defaultValue: "Delete" })}
         destructive
         IconComponent={<DeleteIcon />}
       />

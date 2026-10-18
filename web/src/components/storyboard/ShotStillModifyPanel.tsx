@@ -74,6 +74,7 @@ import { STILL_RESOLUTION } from "../../hooks/storyboard/renderSpec";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { getErrorMessage } from "../../utils/errorHandling";
 import type { ImageModelValue } from "../../stores/ApiTypes";
+import { useTranslation } from "react-i18next";
 
 type ModifyTab = "edit" | "upscale" | "reframe" | "adjust";
 
@@ -171,6 +172,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
   boardId,
   shot
 }) => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<ModifyTab>("edit");
   const [editModel, setEditModel] = useState<ImageModelValue | null>(
     () => rememberedFor("image_to_image") ?? rememberedFor("inpainting")
@@ -433,12 +435,12 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
         onChange={(value) => setTab(value as ModifyTab)}
         size="small"
         fullWidth
-        aria-label="Change the current still"
+        aria-label={t("storyboard:attrs.changeTheCurrentStill", { defaultValue: "Change the current still" })}
       />
 
       {tab === "edit" && (
         <FlexColumn gap={SPACING.md}>
-          <FormField label="Edit model" sx={modelFieldSx}>
+          <FormField label={t("storyboard:attrs.editModel", { defaultValue: "Edit model" })} sx={modelFieldSx}>
             <ImageModelSelect
               value={editModel?.id ?? ""}
               provider={editModel?.provider}
@@ -452,12 +454,12 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               onClick={() => setPainting(true)}
               disabled={!stillUrl}
             >
-              {strokes ? "Repaint area" : "Paint area"}
+              {strokes ? t("storyboard:attrs.repaintArea", { defaultValue: "Repaint area" }) : "Paint area"}
             </EditorButton>
             {strokes ? (
               <Chip
                 compact
-                label="Only the painted area changes"
+                label={t("storyboard:attrs.onlyThePaintedAreaChanges", { defaultValue: "Only the painted area changes" })}
                 onDelete={() => setStrokes(null)}
               />
             ) : (
@@ -467,8 +469,8 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
             )}
           </FlexRow>
           <TextArea
-            label="What to change"
-            placeholder="Make her scarf deep red"
+            label={t("storyboard:attrs.whatToChange", { defaultValue: "What to change" })}
+            placeholder={t("storyboard:attrs.makeHerScarfDeepRed", { defaultValue: "Make her scarf deep red" })}
             rows={3}
             value={prompt}
             onChange={(value) => setPrompt(value)}
@@ -478,7 +480,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               id={`shot-modify-cast-${shot.id}`}
               size="small"
               label={`Keep ${cast.map((entity) => entity.name).join(", ")} on model`}
-              description="Sends the cast's reference images with the edit."
+              description={t("storyboard:attrs.sendsTheCastsReferenceImagesWithTheEdit", { defaultValue: "Sends the cast's reference images with the edit." })}
               checked={includeCast}
               onChange={setIncludeCast}
             />
@@ -488,8 +490,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               {strokes
                 ? "This model cannot change only a painted area. Pick an inpainting model, or clear the area."
                 : supports(editModel, "inpainting")
-                  ? "This model only changes a painted area. Paint an area, or pick an editing model."
-                  : "This model cannot edit an existing image. Pick an editing model."}
+                  ? t("storyboard:attrs.thisModelOnlyChangesAPaintedArea", { defaultValue: "This model only changes a painted area. Paint an area, or pick an editing model." }) : "This model cannot edit an existing image. Pick an editing model."}
             </Caption>
           )}
           <EditorButton
@@ -505,7 +506,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
 
       {tab === "upscale" && (
         <FlexColumn gap={SPACING.md}>
-          <FormField label="Upscale model" sx={modelFieldSx}>
+          <FormField label={t("storyboard:attrs.upscaleModel", { defaultValue: "Upscale model" })} sx={modelFieldSx}>
             <ImageModelSelect
               value={upscaleModel?.id ?? ""}
               provider={upscaleModel?.provider}
@@ -513,7 +514,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               onChange={setUpscaleModel}
             />
           </FormField>
-          <FormField label="Scale">
+          <FormField label={t("storyboard:attrs.scale", { defaultValue: "Scale" })}>
             <ToggleGroup
               exclusive
               size="small"
@@ -524,7 +525,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
                   setScale(next);
                 }
               }}
-              aria-label="Upscale factor"
+              aria-label={t("storyboard:attrs.upscaleFactor", { defaultValue: "Upscale factor" })}
             >
               <ToggleOption value={2}>2×</ToggleOption>
               <ToggleOption value={4}>4×</ToggleOption>
@@ -543,9 +544,9 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
 
       {tab === "reframe" && (
         <FlexColumn gap={SPACING.md}>
-          <FormField label="New aspect ratio">
+          <FormField label={t("storyboard:attrs.newAspectRatio", { defaultValue: "New aspect ratio" })}>
             <SelectField
-              label="New aspect ratio"
+              label={t("storyboard:attrs.newAspectRatio", { defaultValue: "New aspect ratio" })}
               hideLabel
               size="small"
               value={aspect}
@@ -553,7 +554,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               options={[...ASPECT_OPTIONS]}
             />
           </FormField>
-          <FormField label="Reframe model" sx={modelFieldSx}>
+          <FormField label={t("storyboard:attrs.reframeModel", { defaultValue: "Reframe model" })} sx={modelFieldSx}>
             <ImageModelSelect
               value={reframeModel?.id ?? ""}
               provider={reframeModel?.provider}
@@ -562,8 +563,8 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
             />
           </FormField>
           <TextInput
-            label="What fills the new space (optional)"
-            placeholder="Leave empty to continue the scene"
+            label={t("storyboard:attrs.whatFillsTheNewSpaceOptional", { defaultValue: "What fills the new space (optional)" })}
+            placeholder={t("storyboard:attrs.leaveEmptyToContinueTheScene", { defaultValue: "Leave empty to continue the scene" })}
             value={reframePrompt}
             onChange={(event) => setReframePrompt(event.target.value)}
           />
@@ -586,7 +587,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               filter: adjustmentFilter(adjustment)
             }}
           >
-            <ResponsiveImage locator={still} alt="Adjusted still preview" fit="contain" />
+            <ResponsiveImage locator={still} alt={t("storyboard:attrs.adjustedStillPreview", { defaultValue: "Adjusted still preview" })} fit="contain" />
           </Box>
           {ADJUSTMENTS.map(({ key, label }) => (
             <FlexRow key={key} align="center" gap={SPACING.md}>
@@ -623,7 +624,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               color="primary"
               onClick={() => void handleSaveAdjustment()}
               disabled={!adjusted || busy || !stillUrl}
-              tooltip="Made in your browser, no provider involved"
+              tooltip={t("storyboard:attrs.madeInYourBrowserNoProviderInvolved", { defaultValue: "Made in your browser, no provider involved" })}
             >
               Save as new take
             </EditorButton>

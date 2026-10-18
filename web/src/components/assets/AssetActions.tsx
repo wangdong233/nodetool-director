@@ -25,6 +25,7 @@ import {
   ICON_SIZE
 } from "../ui_primitives";
 import { SIZE_FILTERS, SizeFilterKey } from "../../utils/formatUtils";
+import { useTranslation } from "react-i18next";
 
 type AssetsOrder = "name" | "date" | "size";
 
@@ -61,6 +62,7 @@ const AssetActions = ({
   handleSelectAllAssets,
   maxItemSize = 10
 }: AssetActionsProps) => {
+  const { t } = useTranslation();
   const { isLoading } = useAssets();
   const [settings, setAssetItemSize, setAssetsOrder] = useSettingsStore(
     useShallow(
@@ -124,7 +126,7 @@ const AssetActions = ({
         density="compact"
         startIcon={<StraightenIcon />}
         endIcon={<ArrowDropDownIcon />}
-        tooltip="Filter by file size"
+        tooltip={t("editor:ui.filterByFileSize", { defaultValue: "Filter by file size" })}
         aria-haspopup="menu"
         onClick={(e) => setSizeAnchor(e.currentTarget)}
       >

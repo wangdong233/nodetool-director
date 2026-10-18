@@ -35,6 +35,7 @@ import {
 } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
+import { useTranslation } from "react-i18next";
 
 type Connection = agentAccess.McpConnectionOutput;
 type TokenSummary = agentAccess.AccessTokenSummary;
@@ -83,6 +84,7 @@ function formatStamp(value: string | null): string {
 }
 
 const AgentAccessSection = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const addNotification = useNotificationStore(
@@ -181,7 +183,7 @@ const AgentAccessSection = () => {
 
   return (
     <div className="settings-section" style={{ marginTop: getSpacingPx(SPACING.xxl) }}>
-      <SectionHeader size="small" title="Connect an agent remotely" />
+      <SectionHeader size="small" title={t("ui2:attrs.connectAnAgentRemotely", { defaultValue: "Connect an agent remotely" })} />
       <Text className="description" sx={{ mb: 1 }}>
         Point Claude Code, Claude Desktop, or any MCP client at this server over
         HTTP. Create a token below and paste the configuration it produces.
@@ -203,7 +205,7 @@ const AgentAccessSection = () => {
         </AlertBanner>
       )}
 
-      <FormField label="Server URL" sx={{ mb: 2 }}>
+      <FormField label={t("ui2:attrs.serverURL", { defaultValue: "Server URL" })} sx={{ mb: 2 }}>
         <FlexRow align="center" gap={1}>
           <CodeBlock sx={{ flex: 1 }}>{url}</CodeBlock>
           <CopyButton value={url} tooltip="Copy server URL" />
@@ -212,14 +214,14 @@ const AgentAccessSection = () => {
 
       <FlexRow align="flex-end" gap={SPACING.lg} sx={{ mb: 1 }}>
         <TextInput
-          label="Token name"
-          placeholder="Claude Code on my laptop"
+          label={t("editor:ui.tokenName", { defaultValue: "Token name" })}
+          placeholder={t("editor:ui.claudeCodeOnMyLaptop", { defaultValue: "Claude Code on my laptop" })}
           value={name}
           size="small"
           onChange={(event) => setName(event.target.value)}
         />
         <SelectField
-          label="Expires"
+          label={t("editor:ui.expires", { defaultValue: "Expires" })}
           value={expiry}
           options={EXPIRY_OPTIONS}
           size="small"
@@ -227,7 +229,7 @@ const AgentAccessSection = () => {
         />
         <NavButton
           icon={<AddCircleOutlineIcon />}
-          label="Create token"
+          label={t("editor:ui.createToken", { defaultValue: "Create token" })}
           color="primary"
           disabled={!name.trim() || createToken.isPending}
           onClick={handleCreate}
@@ -242,16 +244,16 @@ const AgentAccessSection = () => {
           </AlertBanner>
           <FlexRow align="center" gap={1}>
             <CodeBlock sx={{ flex: 1 }}>{freshToken}</CodeBlock>
-            <CopyButton value={freshToken} tooltip="Copy token" />
+            <CopyButton value={freshToken} tooltip={t("settings:general.apiIntCopyToken", { defaultValue: "Copy token" })} />
           </FlexRow>
 
-          <Caption>Claude Code — run this</Caption>
+          <Caption>{t("editor:ui.claudeCodeRunThis", { defaultValue: "Claude Code — run this" })}</Caption>
           <FlexRow align="center" gap={1}>
             <CodeBlock sx={{ flex: 1 }}>{snippets.cli}</CodeBlock>
             <CopyButton value={snippets.cli} tooltip="Copy command" />
           </FlexRow>
 
-          <Caption>Or paste into an MCP client config file</Caption>
+          <Caption>{t("editor:ui.orPasteIntoAnMCPClientConfigFile", { defaultValue: "Or paste into an MCP client config file" })}</Caption>
           <FlexRow align="flex-start" gap={1}>
             <CodeBlock sx={{ flex: 1 }}>{snippets.json}</CodeBlock>
             <CopyButton
@@ -266,7 +268,7 @@ const AgentAccessSection = () => {
 
       {tokens.length > 0 && (
         <FlexColumn gap={0}>
-          <Caption sx={{ mb: 0.5 }}>Your tokens</Caption>
+          <Caption sx={{ mb: 0.5 }}>{t("ui2:attrs.yourTokens", { defaultValue: "Your tokens" })}</Caption>
           {tokens.map((token: TokenSummary) => (
             <div key={token.id} className="settings-item">
               <FlexRow align="center" justify="space-between" fullWidth>
@@ -282,7 +284,7 @@ const AgentAccessSection = () => {
                 </FlexColumn>
                 <NavButton
                   icon={<RemoveCircleOutlineIcon />}
-                  label="Revoke"
+                  label={t("editor:ui.revoke", { defaultValue: "Revoke" })}
                   disabled={revokeToken.isPending}
                   onClick={() => revokeToken.mutate(token.id)}
                   navSize="small"
@@ -299,10 +301,10 @@ const AgentAccessSection = () => {
       )}
 
       <FlexColumn gap={0} sx={{ mt: 2 }}>
-        <Caption sx={{ mb: 0.5 }}>Connected MCP clients</Caption>
+        <Caption sx={{ mb: 0.5 }}>{t("ui2:attrs.connectedMCPClients", { defaultValue: "Connected MCP clients" })}</Caption>
         {grantsLoading && <LoadingSpinner size="small" />}
         {!grantsLoading && grants.length === 0 && (
-          <Text className="description">No MCP client has connected yet.</Text>
+          <Text className="description">{t("ui2:attrs.noMCPClientHasConnectedYet", { defaultValue: "No MCP client has connected yet." })}</Text>
         )}
         {grants.map((grant: OauthGrant) => (
           <div key={grant.id} className="settings-item">
@@ -315,7 +317,7 @@ const AgentAccessSection = () => {
               </FlexColumn>
               <NavButton
                 icon={<RemoveCircleOutlineIcon />}
-                label="Revoke"
+                label={t("editor:ui.revoke", { defaultValue: "Revoke" })}
                 disabled={revokeGrant.isPending}
                 onClick={() => setGrantToRevoke(grant)}
                 navSize="small"
@@ -333,7 +335,7 @@ const AgentAccessSection = () => {
       <Dialog
         open={grantToRevoke !== null}
         onClose={() => setGrantToRevoke(null)}
-        title="Disconnect this client?"
+        title={t("editor:ui.disconnectThisClient", { defaultValue: "Disconnect this client?" })}
         confirmText="Disconnect"
         destructive
         isLoading={revokeGrant.isPending}

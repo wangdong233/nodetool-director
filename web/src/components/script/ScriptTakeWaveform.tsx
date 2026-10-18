@@ -13,6 +13,7 @@ import type { ScriptTake } from "../../stores/script/ScriptStore";
 import { useAssetUrl } from "../timeline/Tracks/useAssetUrl";
 import { useAudioPeaks } from "../timeline/Tracks/useAudioPeaks";
 import { samplePeaksWindow } from "../timeline/Tracks/audioPeaks";
+import { useTranslation } from "react-i18next";
 
 /** Bars drawn across the strip. */
 export const WAVEFORM_BARS = 48;
@@ -75,6 +76,7 @@ const ScriptTakeWaveform = ({
   stale,
   onPlay
 }: ScriptTakeWaveformProps) => {
+  const { t } = useTranslation("editor");
   const url = useAssetUrl(take?.assetId);
   const { peaks, durationMs } = useAudioPeaks(take?.assetId, url);
 
@@ -103,7 +105,7 @@ const ScriptTakeWaveform = ({
           borderColor: "divider"
         }}
       >
-        <Caption color="secondary">Not voiced yet</Caption>
+        <Caption color="secondary">{t("editor:ui.notVoicedYet", { defaultValue: "Not voiced yet" })}</Caption>
       </FlexRow>
     );
   }
@@ -115,7 +117,7 @@ const ScriptTakeWaveform = ({
       component={interactive ? "button" : "div"}
       type={interactive ? "button" : undefined}
       onClick={onPlay}
-      aria-label={interactive ? "Play take" : undefined}
+      aria-label={interactive ? t("editor:ui.playTake", { defaultValue: "Play take" }) : undefined}
       data-testid="script-take-waveform"
       sx={{
         display: "flex",

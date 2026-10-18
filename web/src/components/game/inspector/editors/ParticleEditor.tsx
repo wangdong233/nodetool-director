@@ -6,6 +6,7 @@ import ReportBugButton from "../../../support/ReportBugButton";
 import SchemaFields from "../SchemaFields";
 import type { GameComponentEditorProps } from "../componentEditors";
 import ParticlePreview from "./ParticlePreview";
+import { useTranslation } from "react-i18next";
 
 const CURVES = [
   { field: "sizeOverLifetime", label: "Size over lifetime" },
@@ -17,6 +18,7 @@ const CUSTOM_FIELDS = new Set<string>([...CURVES.map(({ field }) => field), "col
 const IDENTITY_GRADIENT_COLOR = "#ffffff";
 
 export default function ParticleEditor({ value, onChange, schema, assets, dimension, path, issuePath, issues }: GameComponentEditorProps) {
+  const { t } = useTranslation("timeline");
   const parsed = useMemo(() => gameParticles.safeParse(value), [value]);
   const [selected, setSelected] = useState(0);
   const [preset, setPreset] = useState("");
@@ -61,7 +63,7 @@ export default function ParticleEditor({ value, onChange, schema, assets, dimens
   };
 
   return <FlexColumn gap={SPACING.sm}>
-    <InspectorFieldRow label="Preset">
+    <InspectorFieldRow label={t("timeline:attrs.preset", { defaultValue: "Preset" })}>
       <InspectorSelect grow label="Particle preset" value={preset} options={[
         { value: "", label: "Choose preset" }, ...GAME_PARTICLE_PRESET_IDS.map((id) => ({ value: id, label: id.charAt(0).toUpperCase() + id.slice(1) }))
       ]} onChange={setPreset} />

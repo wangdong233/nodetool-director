@@ -5,12 +5,14 @@ import ReportBugButton from "../support/ReportBugButton";
 import GameViewport3D from "./viewport3d/GameViewport3D";
 import { useGamePlaySession3D } from "./useGamePlaySession3D";
 import { gamePlayStatus } from "./gamePlayStatus";
+import { useTranslation } from "react-i18next";
 
 interface GamePlayer3DProps { readonly gameId: string; readonly name: string; readonly document: GameDocument3D; readonly active?: boolean;
   /** Start the game as soon as the renderer is ready, for a Play button that opened the player. */
   readonly autoPlay?: boolean; }
 
 export default function GamePlayer3D({ gameId, name, document, active = true, autoPlay = false }: GamePlayer3DProps) {
+  const { t } = useTranslation();
   const host = useGamePlaySession3D({ refId: gameId, document, active });
   const status = gamePlayStatus({
     won: Boolean(host.inspection?.won),
@@ -29,8 +31,8 @@ export default function GamePlayer3D({ gameId, name, document, active = true, au
   return <FlexColumn gap={SPACING.sm} sx={{ height: "100%", minHeight: 0, p: SPACING.md }}>
     <FlexRow gap={SPACING.sm} align="center" wrap>
       <Text size="big">{name}</Text>
-      <EditorButton onClick={host.beginPlay} disabled={host.backend === "Initializing"}>{host.playing ? "Pause" : host.playDocument ? "Resume" : "Play"}</EditorButton>
-      <EditorButton onClick={host.stop} disabled={!host.playDocument}>Stop</EditorButton>
+      <EditorButton onClick={host.beginPlay} disabled={host.backend === "Initializing"}>{host.playing ? t("ui:attrs.pause", { defaultValue: "Pause" }) : host.playDocument ? t("game:player.resume", { defaultValue: "Resume" }) : "Play"}</EditorButton>
+      <EditorButton onClick={host.stop} disabled={!host.playDocument}>{t("ui2:attrs.stop", { defaultValue: "Stop" })}</EditorButton>
       <Caption>Score {host.inspection?.score ?? 0} · {status} · {host.backend}</Caption>
     </FlexRow>
     {host.error && <FlexRow gap={SPACING.xs}><Caption color="error" role="alert">{host.error}</Caption>

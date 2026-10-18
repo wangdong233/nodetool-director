@@ -24,6 +24,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import AgentAccessSection from "./AgentAccessSection";
 import ExternalMcpServersSection from "./ExternalMcpServersSection";
 import { trpcClient } from "../../trpc/client";
+import { useTranslation } from "react-i18next";
 
 interface TargetStatus {
   target: string;
@@ -67,6 +68,7 @@ async function uninstallMcp(
 }
 
 const MCPSettingsMenu = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const addNotification = useNotificationStore(
@@ -196,7 +198,7 @@ const MCPSettingsMenu = () => {
       <div className="settings-main-content">
         <Text className="description" sx={{ mb: 1 }}>
           Use NodeTool from Claude Code, Codex, or OpenCode through the{" "}
-          <strong>Model Context Protocol</strong>. The agent gets NodeTool
+          <strong>{t("editor:ui.modelContextProtocol", { defaultValue: "Model Context Protocol" })}</strong>. The agent gets NodeTool
           workflows, media generation, assets, nodes, and collections as tools.
         </Text>
 
@@ -254,7 +256,7 @@ const MCPSettingsMenu = () => {
                       {t.installed ? (
                         <NavButton
                           icon={<RemoveCircleOutlineIcon />}
-                          label="Remove"
+                          label={t("editor:ui.remove", { defaultValue: "Remove" })}
                           disabled={busy}
                           onClick={() => handleUninstall(t.target)}
                           navSize="small"
@@ -267,7 +269,7 @@ const MCPSettingsMenu = () => {
                       ) : (
                         <NavButton
                           icon={<AddCircleOutlineIcon />}
-                          label="Install"
+                          label={t("editor:ui.install", { defaultValue: "Install" })}
                           color="primary"
                           disabled={busy}
                           onClick={() => handleInstall(t.target)}
@@ -289,7 +291,7 @@ const MCPSettingsMenu = () => {
               <FlexRow justify="flex-start" sx={{ mt: 1 }}>
                 <NavButton
                   icon={<InstallDesktopIcon />}
-                  label="Install all"
+                  label={t("editor:ui.installAll2", { defaultValue: "Install all" })}
                   color="primary"
                   disabled={busy}
                   onClick={handleInstallAll}
@@ -338,7 +340,7 @@ const MCPSettingsMenu = () => {
             <FlexRow justify="flex-start">
               <NavButton
                 icon={<InstallDesktopIcon />}
-                label="Install extension"
+                label={t("editor:ui.installExtension", { defaultValue: "Install extension" })}
                 color="primary"
                 disabled={bundleBusy}
                 onClick={handleInstallBundle}

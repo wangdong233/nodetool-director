@@ -34,8 +34,10 @@ import AssetInfoPanel from "./AssetInfoPanel";
 import { SendToWorkflowMenu } from "../workflows/SendToWorkflowMenu";
 import type { WorkflowMediaItem } from "../../hooks/handlers/useGenerationToCanvas";
 import { useShallow } from "zustand/react/shallow";
+import { useTranslation } from "react-i18next";
 
 const AssetItemContextMenu = () => {
+  const { t } = useTranslation();
   const menuPosition = useContextMenuStore((state) => state.menuPosition);
   const closeContextMenu = useContextMenuStore((state) => state.closeContextMenu);
 
@@ -131,12 +133,9 @@ const AssetItemContextMenu = () => {
       await copyAssetToClipboard(asset.content_type, asset.get_url, asset.name || undefined);
 
       const contentTypeLabel = asset.content_type.startsWith("image/")
-        ? "Image"
-        : asset.content_type.startsWith("video/")
-        ? "Video info"
-        : asset.content_type.startsWith("audio/")
-        ? "Audio info"
-        : "Content";
+        ? i18n.t("ui2:attrs.image", { defaultValue: "Image" }) : asset.content_type.startsWith("video/")
+        ? i18n.t("editor:ui.videoInfo", { defaultValue: "Video info" }) : asset.content_type.startsWith("audio/")
+        ? i18n.t("editor:ui.audioInfo", { defaultValue: "Audio info" }) : "Content";
 
       addNotification({
         type: "success",
@@ -270,35 +269,33 @@ const AssetItemContextMenu = () => {
       >
         <ListSubheader className="title">
           {isFolder
-            ? "Folder"
-            : `${selectedAssetIds.length} item${
+            ? t("editor:ui.folder", { defaultValue: "Folder" }) : `${selectedAssetIds.length} item${
                 selectedAssetIds.length > 1 ? "s" : ""
               }`}
         </ListSubheader>
         {hasSelectedAssets && (
           <ContextMenuItem
             onClick={toggleFavorite}
-            label={allFavorite ? "Remove from favorites" : "Add to favorites"}
+            label={allFavorite ? t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : "Add to favorites"}
             IconComponent={allFavorite ? <StarBorderIcon /> : <StarIcon />}
             tooltip={
               allFavorite
-                ? "Unstar the selected assets"
-                : "Star the selected assets to find them under Favorites"
+                ? t("editor:ui.unstarTheSelectedAssets", { defaultValue: "Unstar the selected assets" }) : "Star the selected assets to find them under Favorites"
             }
           />
         )}
         <ContextMenuItem
           onClick={openRenameDialog}
-          label="Rename"
+          label={t("common:action.rename", { defaultValue: "Rename" })}
           IconComponent={<DriveFileRenameOutlineIcon />}
-          tooltip="Rename selected assets"
+          tooltip={t("editor:asset.renameTip", { defaultValue: "Rename selected assets" })}
         />
         {openableTabType && (
           <ContextMenuItem
             onClick={handleOpenAsTab}
-            label="Open as tab"
+            label={t("editor:asset.openAsTab", { defaultValue: "Open as tab" })}
             IconComponent={<TabIcon />}
-            tooltip="Open this asset in a new editor tab"
+            tooltip={t("editor:asset.openAsTabTip", { defaultValue: "Open this asset in a new editor tab" })}
           />
         )}
         {workflowMedia.length > 0 && (
@@ -307,9 +304,9 @@ const AssetItemContextMenu = () => {
               event?.stopPropagation();
               setSendingToWorkflow(true);
             }}
-            label="Send to workflow"
+            label={t("editor:ui.sendToWorkflowAria", { defaultValue: "Send to workflow" })}
             IconComponent={<AccountTreeOutlinedIcon />}
-            tooltip="Add the selected media to a workflow canvas as constant nodes"
+            tooltip={t("editor:ui.sendSelectedMediaToWorkflowTooltip", { defaultValue: "Add the selected media to a workflow canvas as constant nodes" })}
           />
         )}
         {entityCandidate && (
@@ -323,56 +320,50 @@ const AssetItemContextMenu = () => {
         {singleVideo && (
           <ContextMenuItem
             onClick={handleEditVideo}
-            label={singleVideo.timeline_id ? "Edit timeline" : "Create timeline from video"}
+            label={singleVideo.timeline_id ? t("editor:asset.editTimeline", { defaultValue: "Edit timeline" }) : "Create timeline from video"}
             IconComponent={<MovieEditIcon />}
             tooltip={
               singleVideo.timeline_id
-                ? "Open the timeline this video was rendered from"
-                : "Create a timeline from this video and open it for editing"
+                ? t("editor:asset.editTimelineTip", { defaultValue: "Open the timeline this video was rendered from" }) : "Create a timeline from this video and open it for editing"
             }
           />
         )}
         <Divider />
         <ContextMenuItem
           onClick={openMoveDialog}
-          label="Move to existing folder"
+          label={t("editor:asset.moveToExisting", { defaultValue: "Move to existing folder" })}
           IconComponent={<DriveFileMoveIcon />}
-          tooltip="Move selected assets to an existing folder"
+          tooltip={t("editor:asset.moveToExistingTip", { defaultValue: "Move selected assets to an existing folder" })}
         />
         <ContextMenuItem
           onClick={openCreateFolderDialog}
-          label={hasSelectedAssets ? "Move to new folder" : "Create new folder"}
+          label={hasSelectedAssets ? t("editor:asset.moveToNew", { defaultValue: "Move to new folder" }) : "Create new folder"}
           IconComponent={<CreateNewFolderIcon />}
           tooltip={
             hasSelectedAssets
-              ? "Create a new folder and move selected assets into it"
-              : "Create a new folder in the current location"
+              ? t("editor:asset.moveToNewTip", { defaultValue: "Create a new folder and move selected assets into it" }) : "Create a new folder in the current location"
           }
         />
         <Divider />
         <ContextMenuItem
           onClick={downloadSelected}
-          label="Download selected assets"
+          label={t("editor:asset.downloadSelected", { defaultValue: "Download selected assets" })}
           IconComponent={<FileDownloadIcon />}
-          tooltip="Download selected assets to your Downloads folder"
+          tooltip={t("editor:asset.downloadTip", { defaultValue: "Download selected assets to your Downloads folder" })}
         />
         {isElectron && isSingleClipboardSupported && (
           <ContextMenuItem
             onClick={copyToClipboard}
             label={
               selectedAssets[0]?.content_type?.startsWith("image/")
-                ? "Copy image"
-                : selectedAssets[0]?.content_type?.startsWith("video/")
-                ? "Copy video info"
-                : selectedAssets[0]?.content_type?.startsWith("audio/")
-                ? "Copy audio info"
-                : "Copy content"
+                ? t("editor:asset.copyImage", { defaultValue: "Copy image" }) : selectedAssets[0]?.content_type?.startsWith("video/")
+                ? t("editor:ui.copyVideoInfo", { defaultValue: "Copy video info" }) : selectedAssets[0]?.content_type?.startsWith("audio/")
+                ? t("editor:ui.copyAudioInfo", { defaultValue: "Copy audio info" }) : "Copy content"
             }
             IconComponent={<ContentCopyIcon />}
             tooltip={
               selectedAssets[0]?.content_type?.startsWith("image/")
-                ? "Copy image"
-                : selectedAssets[0]?.content_type?.startsWith("video/")
+                ? t("editor:asset.copyImage", { defaultValue: "Copy image" }) : selectedAssets[0]?.content_type?.startsWith("video/")
                 ? "Copy video URL and metadata"
                 : selectedAssets[0]?.content_type?.startsWith("audio/")
                 ? "Copy audio URL and metadata"
@@ -383,18 +374,18 @@ const AssetItemContextMenu = () => {
         {isTwoImages && (
           <ContextMenuItem
             onClick={handleCompareImages}
-            label="Compare images"
+            label={t("editor:ui.compareImages", { defaultValue: "Compare images" })}
             IconComponent={<CompareIcon />}
-            tooltip="Compare the two selected images side-by-side"
+            tooltip={t("editor:asset.compareTip", { defaultValue: "Compare the two selected images side-by-side" })}
           />
         )}
         <Divider />
         <ContextMenuItem
           onClick={openDeleteDialog}
-          label="Delete"
+          label={t("common:action.delete", { defaultValue: "Delete" })}
           destructive
           IconComponent={<RemoveCircleIcon />}
-          tooltip="Delete selected assets"
+          tooltip={t("editor:asset.deleteTip", { defaultValue: "Delete selected assets" })}
         />
         {singleAsset && (
           <AssetInfoPanel

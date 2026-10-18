@@ -6,6 +6,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 import { ContextMenu, MenuItemPrimitive } from "../ui_primitives";
 import { shortcutKeys, type EditorAction } from "./editorShortcuts";
+import { useTranslation } from "react-i18next";
 
 const keys = (action: EditorAction): string => shortcutKeys(action).join("+");
 
@@ -28,6 +29,7 @@ const ViewportContextMenu = ({
   onHide,
   onDelete
 }: ViewportContextMenuProps) => {
+  const { t } = useTranslation("game");
   const run = (action: () => void) => () => {
     action();
     onClose();
@@ -41,7 +43,7 @@ const ViewportContextMenu = ({
         onClick={run(onDuplicate)}
       />
       <MenuItemPrimitive
-        label="Frame selection"
+        label={t("game:command.view.frameSelection", { defaultValue: "Frame selection" })}
         icon={<CenterFocusStrongIcon fontSize="small" />}
         shortcut={keys("focusSelection")}
         onClick={run(onFrame)}

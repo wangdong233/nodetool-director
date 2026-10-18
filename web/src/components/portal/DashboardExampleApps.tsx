@@ -26,6 +26,7 @@ import {
 } from "../ui_primitives";
 import { useSectionWrap, DashboardSectionHeader } from "./dashboardChrome";
 import ExampleNeedsPill from "./ExampleNeedsPill";
+import { useTranslation } from "react-i18next";
 
 /** Query key for the shipped example apps, shared with any invalidation. */
 export const EXAMPLE_APPS_QUERY_KEY = ["applications", "examples"] as const;
@@ -191,6 +192,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
   compact = false,
   onBrowseAll
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
@@ -226,7 +228,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
       aria-labelledby="dashboard-example-apps-title"
     >
       <div css={compact ? css({ maxWidth: "none", padding: 0 }) : sectionWrap}>
-        <DashboardSectionHeader title="Start from an app" count={countLabel}>
+        <DashboardSectionHeader title={t("home:apps.title", { defaultValue: "Start from an app" })} count={countLabel}>
           {compact && onBrowseAll && apps.length > visibleApps.length && (
             <EditorButton
               variant="text"
@@ -248,9 +250,9 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
           <div className="apps-empty">
             <EmptyState
               variant="error"
-              title="Couldn't load apps"
-              description="Try again in a moment."
-              actionText="Retry"
+              title={t("editor:ui.couldntLoadApps", { defaultValue: "Couldn't load apps" })}
+              description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })}
+              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </div>
@@ -258,8 +260,8 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
           <div className="apps-empty">
             <EmptyState
               variant="no-data"
-              title="No apps available"
-              description="Example apps will appear here when the server ships them."
+              title={t("editor:ui.noAppsAvailable", { defaultValue: "No apps available" })}
+              description={t("editor:ui.exampleAppsWillAppearHereWhenTheServerShipsThem", { defaultValue: "Example apps will appear here when the server ships them." })}
             />
           </div>
         ) : (

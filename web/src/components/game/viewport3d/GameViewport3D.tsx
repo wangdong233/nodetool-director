@@ -37,6 +37,7 @@ import {
 import { createGameViewportOverlays3D, disposeGameViewportOverlays3D } from "./gameViewportOverlays3D";
 import GameOrientationGizmo3D, { createGameCameraOrientation3D } from "./GameOrientationGizmo3D";
 import type { GamePlaySession3D } from "../useGamePlaySession3D";
+import { useTranslation } from "react-i18next";
 
 /** What a viewport edit did, for the undo label. `Ground` is Align to ground. */
 export type GameViewportAction3D = "Move" | "Rotate" | "Scale" | "Ground";
@@ -126,6 +127,7 @@ function staticObjects(renderer: GameRenderer3D, frame: GameRenderFrame3D, movin
 
 export default function GameViewport3D({ document, host, selectedIds = NO_IDS, highlightedIds = NO_IDS, sceneId, onSelect, onSelectMany, onOps,
   onGestureStart, onGestureEnd, playerOnly = false }: GameViewport3DProps) {
+    const { t } = useTranslation();
   const theme = useTheme();
   const settingsStore = useGameViewportSettings3DStore();
   const space = useStore(settingsStore, (state) => state.space);
@@ -532,13 +534,12 @@ export default function GameViewport3D({ document, host, selectedIds = NO_IDS, h
   const hint = host.playDocument ? mouseLook
     ? "Use the game's controls. Click for mouse look, Esc to release it."
     : "Use the game's controls. Mouse buttons work without pointer capture."
-    : flyMode ? "WASD to fly. R/F to rise and descend. Drag to look."
-      : "Drag to orbit. Shift-drag to pan. Scroll to zoom. Shift-click adds to the selection.";
+    : flyMode ? t("game:viewport.flyHint", { defaultValue: "WASD to fly. R/F to rise and descend. Drag to look." }) : "Drag to orbit. Shift-drag to pan. Scroll to zoom. Shift-click adds to the selection.";
   return <FlexColumn sx={{ flex: 1, minHeight: 0, minWidth: 0 }}>
-    {!playerOnly && <GamePanelHeader title="Viewport" label={host.playDocument ? "Game" : "Scene"}
+    {!playerOnly && <GamePanelHeader title={t("game:panels.viewport", { defaultValue: "Viewport" })} label={host.playDocument ? "Game" : "Scene"}
       icon={host.playDocument ? <SportsEsportsOutlinedIcon sx={HEADER_ICON_SX} /> : <GridViewOutlinedIcon sx={HEADER_ICON_SX} />}>
       {editing && <>
-        <FlexRow gap={SPACING.micro} align="center" role="group" aria-label="Transform mode">
+        <FlexRow gap={SPACING.micro} align="center" role="group" aria-label={t("game:viewport.transformModeAria", { defaultValue: "Transform mode" })}>
           {TOOLS.map((tool) => <ToolbarIconButton key={tool.mode} icon={tool.icon} tooltip={tool.label} shortcut={toolShortcuts[tool.command]}
             aria-pressed={mode === tool.mode} active={mode === tool.mode} onClick={() => setMode(tool.mode)} />)}
         </FlexRow>
@@ -546,16 +547,16 @@ export default function GameViewport3D({ document, host, selectedIds = NO_IDS, h
           tooltip={space === "local" ? "Local space" : "World space"} ariaLabel="Local space" shortcut={spaceShortcut}
           aria-pressed={space === "local"} active={space === "local"} onClick={settings.toggleSpace} />
         <Divider orientation="vertical" flexItem sx={{ my: SPACING.sm, mx: SPACING.xs }} />
-        <ToolbarIconButton icon={<GridOnIcon fontSize="small" />} tooltip="Snap" shortcut={snapShortcut} aria-pressed={snap} active={snap}
+        <ToolbarIconButton icon={<GridOnIcon fontSize="small" />} tooltip={t("ui2:attrs.snap", { defaultValue: "Snap" })} shortcut={snapShortcut} aria-pressed={snap} active={snap}
           onClick={() => settings.toggle("snap")} />
         <ToolbarIconButton icon={<TuneOutlinedIcon fontSize="small" />} tooltip="Gizmo settings" aria-haspopup="dialog"
           aria-expanded={Boolean(settingsAnchor)} onClick={(event) => setSettingsAnchor(event.currentTarget)} />
         <ToolbarIconButton icon={<VerticalAlignBottomOutlinedIcon fontSize="small" />} tooltip="Align to ground" shortcut={groundShortcut}
           onClick={alignToGround} disabled={!hasSelection} />
-        <ToolbarIconButton icon={<LayersOutlinedIcon fontSize="small" />} tooltip="Overlays" aria-pressed={overlays} active={overlays} onClick={() => setOverlays((value) => !value)} />
+        <ToolbarIconButton icon={<LayersOutlinedIcon fontSize="small" />} tooltip={t("game:viewport.overlays", { defaultValue: "Overlays" })} aria-pressed={overlays} active={overlays} onClick={() => setOverlays((value) => !value)} />
         <Divider orientation="vertical" flexItem sx={{ my: SPACING.sm, mx: SPACING.xs }} />
-        <ToolbarIconButton icon={<FlightOutlinedIcon fontSize="small" />} tooltip="Fly camera" aria-pressed={flyMode} active={flyMode} onClick={() => setFlyMode((value) => !value)} />
-        <ToolbarIconButton icon={<CenterFocusStrongOutlinedIcon fontSize="small" />} tooltip="Frame selection" shortcut={frameShortcut} onClick={frameSelection} disabled={!hasSelection} />
+        <ToolbarIconButton icon={<FlightOutlinedIcon fontSize="small" />} tooltip={t("game:viewport.flyCamera", { defaultValue: "Fly camera" })} aria-pressed={flyMode} active={flyMode} onClick={() => setFlyMode((value) => !value)} />
+        <ToolbarIconButton icon={<CenterFocusStrongOutlinedIcon fontSize="small" />} tooltip={t("game:command.view.frameSelection", { defaultValue: "Frame selection" })} shortcut={frameShortcut} onClick={frameSelection} disabled={!hasSelection} />
         <Popover open={Boolean(settingsAnchor)} anchorEl={settingsAnchor} onClose={() => setSettingsAnchor(null)} placement="bottom-right"
           slotProps={{ paper: { role: "dialog", "aria-label": "Gizmo settings" } }}>
           <FlexColumn gap={SPACING.md} sx={{ p: SPACING.md }}>
@@ -573,7 +574,7 @@ export default function GameViewport3D({ document, host, selectedIds = NO_IDS, h
                   max={GAME_SNAP_LIMITS_3D.translate.max} onCommit={(value) => settings.setIncrement("translate", value)} />
                 <NumericField label="Rotate (°)" value={increments.rotate} step={5} min={GAME_SNAP_LIMITS_3D.rotate.min}
                   max={GAME_SNAP_LIMITS_3D.rotate.max} onCommit={(value) => settings.setIncrement("rotate", value)} />
-                <NumericField label="Scale" value={increments.scale} step={0.05} min={GAME_SNAP_LIMITS_3D.scale.min}
+                <NumericField label={t("game:tool.scale", { defaultValue: "Scale" })} value={increments.scale} step={0.05} min={GAME_SNAP_LIMITS_3D.scale.min}
                   max={GAME_SNAP_LIMITS_3D.scale.max} onCommit={(value) => settings.setIncrement("scale", value)} />
               </FlexRow>
             </FlexColumn>
@@ -586,7 +587,7 @@ export default function GameViewport3D({ document, host, selectedIds = NO_IDS, h
       </>}
     </GamePanelHeader>}
     <Box sx={{ position: "relative", flex: 1, minHeight: 0, minWidth: 0, bgcolor: "common.black" }}>
-      <Box component="canvas" ref={host.canvasRef} data-game-undo-scope tabIndex={0} aria-label="3D game viewport"
+      <Box component="canvas" ref={host.canvasRef} data-game-undo-scope tabIndex={0} aria-label={t("game:viewport.viewport3dAria", { defaultValue: "3D game viewport" })}
         onKeyDown={(event) => {
           if (host.playDocument && host.playing) {
             host.inputRef.current.keyDown(event.code, event.key);

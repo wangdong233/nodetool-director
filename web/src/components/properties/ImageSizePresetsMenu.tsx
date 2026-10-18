@@ -13,6 +13,7 @@ import {
 import Search from "@mui/icons-material/Search";
 import { IMAGE_SIZE_PRESETS, PresetOption } from "../../config/constants";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
+import { useTranslation } from "react-i18next";
 
 interface ImageSizePresetsMenuProps {
   anchorEl: null | HTMLElement;
@@ -31,6 +32,7 @@ export const ImageSizePresetsMenu: React.FC<ImageSizePresetsMenuProps> = ({
   currentWidth,
   currentHeight
 }) => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   // Skipped on touch, where the virtual keyboard would cover the preset list.
   const autoFocusEnabled = useAutoFocusEnabled();
@@ -135,7 +137,7 @@ export const ImageSizePresetsMenu: React.FC<ImageSizePresetsMenuProps> = ({
       </FlexRow>
 
       {Object.entries(filteredGroupedPresets).length === 0 ? (
-        <MenuItemPrimitive label="No presets found" disabled />
+        <MenuItemPrimitive label={t("ui2:attrs.noPresetsFound", { defaultValue: "No presets found" })} disabled />
       ) : (
         Object.entries(filteredGroupedPresets).map(([category, items]) => [
           <ListSubheader key={category} className="presets-category-header">{category}</ListSubheader>,

@@ -57,6 +57,7 @@ import {
   useVoiceAvailability,
   type CuratedAvailability
 } from "./modelAvailability";
+import { useTranslation } from "react-i18next";
 
 /** What the button says when no catalog figure covers the plan (PRD § 8.3). */
 export const COST_UNKNOWN_TEXT = "cost unknown until the first clip returns";
@@ -413,8 +414,7 @@ const ModelAvailabilityNote: React.FC<{
         <LoadingSpinner size="small" inline />
         <Caption color="secondary">
           {kind === "video"
-            ? "Checking which video models your providers offer…"
-            : "Checking which voices your providers offer…"}
+            ? i18n.t("storyboard:attrs.checkingWhichVideoModelsYourProvidersOffer", { defaultValue: "Checking which video models your providers offer…" }) : "Checking which voices your providers offer…"}
         </Caption>
       </FlexRow>
     );
@@ -425,8 +425,7 @@ const ModelAvailabilityNote: React.FC<{
         <FlexRow gap={GAP.normal} align="center" wrap>
           <Text size="normal" component="span">
             {kind === "video"
-              ? "Could not read the video models your providers offer."
-              : "Could not read the voices your providers offer."}
+              ? i18n.t("storyboard:attrs.couldNotReadTheVideoModelsYourProvidersOffer", { defaultValue: "Could not read the video models your providers offer." }) : "Could not read the voices your providers offer."}
           </Text>
           {pickedLabel ? (
             <Text size="normal" component="span">
@@ -456,8 +455,7 @@ const ModelAvailabilityNote: React.FC<{
         <FlexRow gap={GAP.normal} align="center" wrap>
           <Text size="normal" component="span">
             {kind === "video"
-              ? "No provider is set up to render video."
-              : "No provider is set up to read lines aloud, so switch Voiceover off or connect one."}
+              ? i18n.t("storyboard:attrs.noProviderIsSetUpToRenderVideo", { defaultValue: "No provider is set up to render video." }) : "No provider is set up to read lines aloud, so switch Voiceover off or connect one."}
           </Text>
           <EditorButton variant="outlined" onClick={connect}>
             Connect a provider
@@ -472,8 +470,7 @@ const ModelAvailabilityNote: React.FC<{
         <FlexRow gap={GAP.normal} align="center" wrap>
           <Text size="normal" component="span">
             {kind === "video"
-              ? "Your providers offer no video model."
-              : "Your providers offer no voice, so switch Voiceover off or connect one that does."}
+              ? i18n.t("storyboard:attrs.yourProvidersOfferNoVideoModel", { defaultValue: "Your providers offer no video model." }) : "Your providers offer no voice, so switch Voiceover off or connect one that does."}
           </Text>
           <EditorButton variant="outlined" onClick={connect}>
             Connect a provider
@@ -502,6 +499,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
   musicAvailable,
   error
 }) => {
+  const { t } = useTranslation();
   const width = useTimelineStore((state) => state.width);
   const height = useTimelineStore((state) => state.height);
   const hasLines = useTimelineStore((state) =>
@@ -596,10 +594,10 @@ const LookStepInternal: React.FC<LookStepProps> = ({
   // it as well as beside the button (F11).
   const voiceNote =
     voiceOn && !hasLines
-      ? "No beat has a line to read. Add one in the review."
-      : voiceOn && !pickedVoice
-      ? "Pick a voice, or switch Voiceover off — nothing is read otherwise."
-      : voiceOn && pickedVoice && !isAvailable(voices, pickedVoice)
+      ? i18n.t("setup:video.noBeatHasALineToRead", {
+          defaultValue: "No beat has a line to read. Add one in the review."
+        }) : voiceOn && !pickedVoice
+      ? i18n.t("storyboard:attrs.pickAVoiceOrSwitchVoiceoverOffNothingIsReadOtherwise", { defaultValue: "Pick a voice, or switch Voiceover off — nothing is read otherwise." }) : voiceOn && pickedVoice && !isAvailable(voices, pickedVoice)
         ? "Your providers do not offer the voice you picked. Pick another, or switch Voiceover off."
         : null;
 
@@ -685,7 +683,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
       </FlexColumn>
 
       {error ? (
-        <AlertBanner severity="error" title="Your clips did not start">
+        <AlertBanner severity="error" title={t("setup:video.yourClipsDidNotStart", { defaultValue: "Your clips did not start" })}>
           <FlexRow gap={GAP.normal} align="center" wrap>
             <Text size="normal" component="span">
               {error}
@@ -703,14 +701,14 @@ const LookStepInternal: React.FC<LookStepProps> = ({
 
       <Box sx={{ maxWidth: SETUP_FIELD_WIDTH }}>
         <SelectField
-          label="Aspect ratio"
+          label={t("storyboard:attrs.aspectRatio", { defaultValue: "Aspect ratio" })}
           value={aspectOf(width, height)}
           onChange={handleAspect}
           options={ASPECT_OPTIONS}
         />
       </Box>
 
-      <FormField label="Video model">
+      <FormField label={t("storyboard:attrs.videoModel", { defaultValue: "Video model" })}>
         <FlexColumn gap={GAP.normal}>
           <ModelAvailabilityNote
             availability={clipModels}
@@ -723,7 +721,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
                held open from the first paint rather than appearing under the
                reader. */
             <PresetTileGrid
-              label="Video model"
+              label={t("storyboard:attrs.videoModel", { defaultValue: "Video model" })}
               presets={modelTiles}
               selectedId={settings.video?.model ?? null}
               onSelect={handleModel}
@@ -735,7 +733,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
             />
           ) : clipModels.reported.length > 0 ? (
             <FormField
-              helperText="Every model your configured providers render clips with. You can change it in the editor."
+              helperText={t("editor:ui.everyModelYourConfiguredProvidersRenderClipsWithYouCanChangeItInTheEditor", { defaultValue: "Every model your configured providers render clips with. You can change it in the editor." })}
               sx={{ maxWidth: SETUP_FIELD_WIDTH }}
             >
               <VideoModelSelect
@@ -752,8 +750,8 @@ const LookStepInternal: React.FC<LookStepProps> = ({
       {voiceLane ? (
         <FlexColumn gap={GAP.comfortable}>
           <LabeledSwitch
-            label="Voiceover"
-            description="Reads each beat's line over its clip"
+            label={t("storyboard:attrs.voiceover", { defaultValue: "Voiceover" })}
+            description={t("timeline:attrs.readsEachBeatsLineOverItsClip", { defaultValue: "Reads each beat's line over its clip" })}
             checked={voiceOn}
             onChange={onVoiceChange}
           />
@@ -776,7 +774,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
           ) : null}
           {readsLines && curatedVoiceOffered ? (
             <PresetTileGrid
-              label="Voice"
+              label={t("storyboard:attrs.voice", { defaultValue: "Voice" })}
               presets={voiceTiles}
               selectedId={settings.voice?.voice ?? null}
               onSelect={handleVoice}
@@ -789,12 +787,11 @@ const LookStepInternal: React.FC<LookStepProps> = ({
           ) : null}
           {readsLines && !curatedVoiceOffered && voices.reported.length > 0 ? (
             <FormField
-              label="Voice model"
-              helperText="Every voice your configured providers read lines with."
+              label={t("storyboard:attrs.voiceModel", { defaultValue: "Voice model" })}
+              helperText={t("editor:ui.everyVoiceYourConfiguredProvidersReadLinesWith", { defaultValue: "Every voice your configured providers read lines with." })}
               error={
                 noPresetVoice
-                  ? "This model has no preset voices. Pick another model."
-                  : undefined
+                  ? t("setup:script.noPresetVoices", { defaultValue: "This model has no preset voices. Pick another model." }) : undefined
               }
               sx={{ maxWidth: SETUP_FIELD_WIDTH }}
             >
@@ -809,11 +806,10 @@ const LookStepInternal: React.FC<LookStepProps> = ({
 
       {musicLane ? (
         <LabeledSwitch
-          label="Music"
+          label={t("storyboard:attrs.music", { defaultValue: "Music" })}
           description={
             musicAvailable === false
-              ? "Music generation is unavailable. Add an audio track in the editor."
-              : "One bed under the whole cut"
+              ? i18n.t("storyboard:attrs.musicGenerationIsUnavailableAddAnAudioTrackInTheEditor", { defaultValue: "Music generation is unavailable. Add an audio track in the editor." }) : "One bed under the whole cut"
           }
           checked={musicOn && musicAvailable !== false}
           disabled={musicAvailable === false}

@@ -31,6 +31,7 @@ import {
   Toolbar,
   EmptyState
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface WorkspaceFileTextProps {
   workspaceId: string;
@@ -131,6 +132,7 @@ const WorkspaceFileText = ({
   kind,
   mode
 }: WorkspaceFileTextProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const paneStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -296,7 +298,7 @@ const WorkspaceFileText = ({
                 disabled={!canSave}
                 onClick={handleSave}
               >
-                {isSaving ? "Saving…" : "Save"}
+                {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
               </EditorButton>
             </>
           )}

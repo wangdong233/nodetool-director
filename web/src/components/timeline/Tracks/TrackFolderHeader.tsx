@@ -16,6 +16,7 @@ import {
   ToolbarIconButton
 } from "../../ui_primitives";
 import { TRACK_FOLDER_HEIGHT_PX } from "./trackWindow";
+import { useTranslation } from "react-i18next";
 
 interface TrackFolderHeaderProps {
   folder: TimelineTrackFolder;
@@ -30,6 +31,7 @@ export const TrackFolderHeader: React.FC<TrackFolderHeaderProps> = ({
   collapsed,
   onToggle
 }) => {
+  const { t } = useTranslation();
   const renameTrackFolder = useTimelineStore((state) => state.renameTrackFolder);
   const removeTrackFolder = useTimelineStore((state) => state.removeTrackFolder);
   const [editing, setEditing] = useState(false);
@@ -59,7 +61,7 @@ export const TrackFolderHeader: React.FC<TrackFolderHeaderProps> = ({
             )
           }
           onClick={() => onToggle(folder.id)}
-          aria-label={`${collapsed ? "Expand" : "Collapse"} folder ${folder.name}`}
+          aria-label={`${collapsed ? t("editor:ui.expand", { defaultValue: "Expand" }) : "Collapse"} folder ${folder.name}`}
           aria-expanded={!collapsed}
           size="small"
           sx={{ p: SPACING.none }}
@@ -71,7 +73,7 @@ export const TrackFolderHeader: React.FC<TrackFolderHeaderProps> = ({
           onEditingChange={setEditing}
           onCommit={(name) => renameTrackFolder(folder.id, name)}
           ariaLabel={`Folder name: ${folder.name}`}
-          title="Double-click to rename folder"
+          title={t("timeline:attrs.doubleclickToRenameFolder", { defaultValue: "Double-click to rename folder" })}
           displayAsInput
           sx={{ flex: "1 1 auto", minWidth: 0 }}
         />
@@ -92,14 +94,14 @@ export const TrackFolderHeader: React.FC<TrackFolderHeaderProps> = ({
         transformOrigin={{ vertical: "top", horizontal: "left" }}
       >
         <MenuItemPrimitive
-          label="Rename folder"
+          label={t("timeline:attrs.renameFolder", { defaultValue: "Rename folder" })}
           onClick={() => {
             setMenuAnchor(null);
             setEditing(true);
           }}
         />
         <MenuItemPrimitive
-          label="Ungroup tracks"
+          label={t("timeline:attrs.ungroupTracks", { defaultValue: "Ungroup tracks" })}
           onClick={() => {
             removeTrackFolder(folder.id);
             setMenuAnchor(null);

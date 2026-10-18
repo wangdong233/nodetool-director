@@ -20,6 +20,7 @@ import { framePoints, duplicateAt, deleteAt, moveFrame, framesFromWave } from '.
 import { FrameStrip } from './wavetable/FrameStrip';
 import { StackPreview } from './wavetable/StackPreview';
 import { frameFromDrawing } from '../engine/usertables';
+import { useTranslation } from "react-i18next";
 
 type Tab = 'audio' | 'draw';
 type AudioMode = 'single' | 'auto' | 'fixed';
@@ -31,6 +32,7 @@ function decodeFile(file: File, deviceCtx: BaseAudioContext | null): Promise<Aud
 }
 
 export function WavetableEditor() {
+  const { t } = useTranslation(["editor","ui2"]);
   const editorOsc = useStore((s) => s.editorOsc);
   const userTables = useStore((s) => s.userTables);
   const addUserTable = useStore((s) => s.addUserTable);
@@ -337,8 +339,8 @@ export function WavetableEditor() {
                   <button onClick={() => applySeed('tri')}>TRI</button>
                   <span className="wte-sep" />
                   <button className={brush === 'pen' ? 'on' : ''} onClick={() => setBrush('pen')}>PEN</button>
-                  <button className={brush === 'smooth' ? 'on' : ''} onClick={() => setBrush('smooth')}>SMOOTH</button>
-                  <button className={snap ? 'on' : ''} onClick={() => setSnap((s) => !s)}>SNAP</button>
+                  <button className={brush === 'smooth' ? 'on' : ''} onClick={() => setBrush('smooth')}>{t("editor:ui.smoothUpper", { defaultValue: "SMOOTH" })}</button>
+                  <button className={snap ? 'on' : ''} onClick={() => setSnap((s) => !s)}>{t("ui2:attrs.snapUpper", { defaultValue: "SNAP" })}</button>
                   <button className="wte-clear" onClick={() => { pointsRef.current = new Array(DRAW_N).fill(0); syncCurrentFrame(); setDrawVersion((v) => v + 1); }}>CLEAR</button>
                   <button className="wte-create" disabled={readOnly} onClick={createFromDraw}>
                     {selectedId && selectedId[0] === 'u' ? 'UPDATE TABLE' : 'CREATE TABLE'}

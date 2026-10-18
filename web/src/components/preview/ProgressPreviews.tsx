@@ -21,6 +21,7 @@ import RunGroupButton from "../node/RunGroupButton";
 import { DownloadProgress } from "../hugging_face/DownloadProgress";
 import { useModelDownloadStore } from "../../stores/ModelDownloadStore";
 import type { ExecutionTreeState } from "../../hooks/useExecutionTreeState";
+import { useTranslation } from "react-i18next";
 
 const TREE_STATE: ExecutionTreeState = {
   phase: "executing",
@@ -73,6 +74,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
 );
 
 const PreviewProgressStates: React.FC = () => {
+  const { t } = useTranslation(["ui2","editor"]);
   const theme = useTheme();
   const [seeded, setSeeded] = useState(false);
 
@@ -138,7 +140,7 @@ const PreviewProgressStates: React.FC = () => {
         </Section>
       </FlexRow>
       <FlexRow gap={SPACING.xl} align="flex-start" sx={{ "& > *": { flex: 1 } }}>
-        <Section title="Execution plan">
+        <Section title={t("ui2:attrs.executionPlanLower", { defaultValue: "Execution plan" })}>
           <ExecutionTree state={TREE_STATE} onToggleTask={() => undefined} />
         </Section>
         <Section title="Agent tasks">
@@ -161,7 +163,7 @@ const PreviewProgressStates: React.FC = () => {
           />
         </Section>
       </FlexRow>
-      <Section title="Model downloads">
+      <Section title={t("editor:ui.modelDownloads", { defaultValue: "Model downloads" })}>
         {seeded && <DownloadProgress name={DOWNLOAD_ID} />}
         {seeded && <DownloadProgress name={PENDING_ID} />}
       </Section>

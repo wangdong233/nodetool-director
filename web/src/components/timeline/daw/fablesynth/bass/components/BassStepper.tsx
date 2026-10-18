@@ -1,5 +1,6 @@
 import { BASS_PARAMS } from '../params';
 import { useBassStore } from '../bassStoreContext';
+import { useTranslation } from "react-i18next";
 
 interface BassStepperProps {
   paramId: string;
@@ -8,6 +9,7 @@ interface BassStepperProps {
 }
 
 export function BassStepper({ paramId, label, accent }: BassStepperProps) {
+  const { t } = useTranslation("home");
   const def = BASS_PARAMS[paramId];
   const value = useBassStore((s) => s.params[paramId]);
   const setParam = useBassStore((s) => s.setParam);
@@ -22,7 +24,7 @@ export function BassStepper({ paramId, label, accent }: BassStepperProps) {
         {label ? <span className="st-label">{label}</span> : null}
         <button className="st-btn st-prev" aria-label="previous" onClick={() => stepN(-1)}>◂</button>
         <span className="st-value">{def.fmt ? def.fmt(v) : String(v)}</span>
-        <button className="st-btn st-next" aria-label="next" onClick={() => stepN(1)}>▸</button>
+        <button className="st-btn st-next" aria-label={t("home:docs.next", { defaultValue: "next" })} onClick={() => stepN(1)}>▸</button>
       </div>
     );
   }
@@ -39,7 +41,7 @@ export function BassStepper({ paramId, label, accent }: BassStepperProps) {
       {label ? <span className="st-label">{label}</span> : null}
       <button className="st-btn st-prev" aria-label="previous" onClick={() => step(-1)}>◂</button>
       <span className="st-value">{options[index]}</span>
-      <button className="st-btn st-next" aria-label="next" onClick={() => step(1)}>▸</button>
+      <button className="st-btn st-next" aria-label={t("home:docs.next", { defaultValue: "next" })} onClick={() => step(1)}>▸</button>
     </div>
   );
 }

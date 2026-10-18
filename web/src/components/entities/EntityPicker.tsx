@@ -34,6 +34,7 @@ import {
   ToggleOption,
   Tooltip
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 type KindFilter = "all" | EntityKind;
 
@@ -149,6 +150,7 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
   autoFocus = false,
   onCreateStarted
 }) => {
+  const { t } = useTranslation("editor");
   const { data, isLoading } = useEntities();
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<KindFilter>("all");
@@ -173,7 +175,7 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
       <SearchInput
         value={query}
         onChange={setQuery}
-        placeholder="Search entities by name, kind, or tag"
+        placeholder={t("editor:ui.searchEntitiesByNameKindOrTag", { defaultValue: "Search entities by name, kind, or tag" })}
         ariaLabel="Search entities"
         size="small"
         autoFocus={autoFocus}
@@ -184,7 +186,7 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
         exclusive
         segmented
         size="small"
-        aria-label="Entity kind"
+        aria-label={t("editor:ui.entityKind", { defaultValue: "Entity kind" })}
         onChange={(_, value: KindFilter | null) => {
           if (value) {
             setKind(value);
@@ -204,7 +206,7 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
           <EmptyState
             variant="empty"
             title="No entities yet"
-            description="Characters, locations, styles, and props you create show up here."
+            description={t("editor:ui.charactersLocationsStylesAndPropsYouCreateShowUpHere", { defaultValue: "Characters, locations, styles, and props you create show up here." })}
             actionText={handleCreate ? "New entity" : undefined}
             onAction={handleCreate}
             size="small"
@@ -212,8 +214,8 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
         ) : visible.length === 0 ? (
           <EmptyState
             variant="no-results"
-            title="No entities match"
-            description="Try another name, kind, or tag."
+            title={t("editor:ui.noEntitiesMatchPlain", { defaultValue: "No entities match" })}
+            description={t("editor:ui.tryAnotherNameKindOrTag", { defaultValue: "Try another name, kind, or tag." })}
             actionText={handleCreate ? "New entity" : undefined}
             onAction={handleCreate}
             size="small"

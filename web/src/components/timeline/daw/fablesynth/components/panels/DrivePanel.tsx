@@ -1,9 +1,11 @@
 import { DRIVE_TYPES, driveToneDb, driveTransfer } from '../../engine/drive';
 import type { FxPanelAdapter } from './fxAdapter';
 import { fxId } from './fxAdapter';
+import { useTranslation } from "react-i18next";
 import './drive.css';
 
 export function DrivePanel({ adapter, compact = false }: { adapter: FxPanelAdapter; compact?: boolean }) {
+  const { t } = useTranslation("timeline");
   const { params, setParam } = adapter;
   const id = (key: string) => fxId(adapter.prefix, `fx.drive.${key}`);
   const on = params[id('on')] > 0.5, amount = params[id('amt')] ?? 0.3;
@@ -19,8 +21,8 @@ export function DrivePanel({ adapter, compact = false }: { adapter: FxPanelAdapt
     return [22 + i * 1.275, 53 - y * 31];
   });
   const response = path(81, i => [22 + i * 2.55, 116 - driveToneDb(100 * 100 ** (i / 80), on ? tone : 0, sr) * 1.68]);
-  return <section className={`${compact ? 'fx-module' : 'panel'} panel-drive${on ? '' : ' drive-bypassed'}`} style={compact ? undefined : { gridArea: 'drive' }} aria-label="Drive">
-    <div className="panel-head">{power(id('on'))}<h2>DRIVE</h2><span className="drive-caption">{on ? '4× SATURATION' : 'BYPASS'}</span></div>
+  return <section className={`${compact ? 'fx-module' : 'panel'} panel-drive${on ? '' : ' drive-bypassed'}`} style={compact ? undefined : { gridArea: 'drive' }} aria-label={t("timeline:attrs.drive", { defaultValue: "Drive" })}>
+    <div className="panel-head">{power(id('on'))}<h2>{t("timeline:attrs.driveUpper", { defaultValue: "DRIVE" })}</h2><span className="drive-caption">{on ? '4× SATURATION' : 'BYPASS'}</span></div>
     <svg className="drive-view" viewBox="0 0 240 140" role="img" aria-label={`${DRIVE_TYPES[type]} saturation ${on ? 'active' : 'bypassed'}, amount ${Math.round(amount * 100)} percent, mix ${Math.round(mix * 100)} percent. Tone ${tone === 0 ? 'neutral' : tone < 0 ? 'dark' : 'bright'}. Transfer curve and wet tone response.`}>
       <g className="drive-grid"><path d="M22 22H226 M22 53H226 M22 84H226 M124 22V84 M22 116H226" /><path className="drive-unity" d="M22 84L226 22" /></g>
       <g className="drive-label"><text x="22" y="14">TRANSFER / MIX</text><text x="22" y="100">WET TONE</text><text x="7" y="87">−1</text><text x="7" y="25">+1</text><text x="22" y="135">100 Hz</text><text x="119" y="135">1k</text><text x="211" y="135">10k</text></g>

@@ -16,6 +16,7 @@ import type { LlamaModelValue } from "../../stores/ApiTypes";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import { EditorMenu } from "../editor_ui";
 import { isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 interface LlamaModelSelectProps {
   onChange: (value: LlamaModelValue) => void;
@@ -23,6 +24,7 @@ interface LlamaModelSelectProps {
 }
 
 const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
+  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const open = Boolean(anchorEl);
@@ -116,7 +118,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
         ) : ollamaError ? (
           <div style={{ padding: getSpacingPx(SPACING.md), maxWidth: 300 }}>
             <ErrorBanner
-              title="Could not load Ollama models"
+              title={t("editor:ui.couldNotLoadOllamaModels", { defaultValue: "Could not load Ollama models" })}
               report={{
                 source: "operation-failure",
                 summary: "Ollama models failed to load",
@@ -147,7 +149,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
             </Caption>
           </div>
         ) : sortedModels.length === 0 ? (
-          <MenuItemPrimitive label="No models available" disabled />
+          <MenuItemPrimitive label={t("editor:ui.noModelsAvailable", { defaultValue: "No models available" })} disabled />
         ) : (
           sortedModels.map((model) => (
             <MenuItemPrimitive
@@ -158,7 +160,7 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
             />
           ))
         )}
-        <MenuItemPrimitive label="Add providers" dividerBefore onClick={openSetup} />
+        <MenuItemPrimitive label={t("ui2:attrs.addProviders", { defaultValue: "Add providers" })} dividerBefore onClick={openSetup} />
       </EditorMenu>
     </>
   );

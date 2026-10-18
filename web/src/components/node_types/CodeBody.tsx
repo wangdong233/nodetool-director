@@ -69,6 +69,7 @@ import { nodeInputsToCodeGenPorts } from "../../utils/codeGenSubmission";
 import CodeAssistantDialog from "./code_assistant/CodeAssistantDialog";
 import CodeNodeScriptLink from "./CodeNodeScriptLink";
 import { isObjectLike, isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 interface CodeBodyProps {
   id: string;
@@ -187,6 +188,7 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -440,8 +442,8 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
           <div className="code-actions">
             {supportsCodeGen && (
               <ToolbarIconButton
-                tooltip="Ask AI"
-                aria-label="Ask AI"
+                tooltip={t("editor:ui.askAI", { defaultValue: "Ask AI" })}
+                aria-label={t("editor:ui.askAI", { defaultValue: "Ask AI" })}
                 icon={
                   <AutoAwesomeIcon
                     sx={{ fontSize: ICON_SIZE.sm }}
@@ -453,7 +455,7 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
             )}
             {!supportsCodeGen && (
               <ToolbarIconButton
-                tooltip="Open editor"
+                tooltip={t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}
                 icon={<OpenInFullIcon sx={{ fontSize: ICON_SIZE.sm }} />}
                 onClick={toggleExpand}
                 size="small"

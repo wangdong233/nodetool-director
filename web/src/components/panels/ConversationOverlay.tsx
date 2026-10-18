@@ -46,6 +46,7 @@ import type { ThreadInfo } from "../chat/types/thread.types";
 import { threadPreview } from "../chat/utils/threadUtils";
 import type { Message } from "../../stores/ApiTypes";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
+import { useTranslation } from "react-i18next";
 
 type ThreadStatus = React.ComponentProps<typeof ChatThreadView>["status"];
 
@@ -216,6 +217,7 @@ const sideEdgeSx = {
 const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
   onCollapse
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -465,43 +467,43 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
           {title || "Conversation"}
         </Text>
         <FlexRow gap={0.5} align="center" sx={{ ml: "auto" }}>
-          <Tooltip title="Show threads">
+          <Tooltip title={t("editor:ui.showThreads", { defaultValue: "Show threads" })}>
             <button
               type="button"
               className={`convo-icon-btn${threadsOpen ? " active" : ""}`}
               onClick={() => setThreadsOpen(!threadsOpen)}
-              aria-label="Show threads"
+              aria-label={t("editor:ui.showThreads", { defaultValue: "Show threads" })}
               aria-pressed={threadsOpen}
             >
               <FormatListBulletedIcon />
             </button>
           </Tooltip>
-          <Tooltip title="Open in a workspace tab">
+          <Tooltip title={t("editor:ui.openInAWorkspaceTab", { defaultValue: "Open in a workspace tab" })}>
             <button
               type="button"
               className="convo-icon-btn"
               onClick={handleExpand}
-              aria-label="Open in a workspace tab"
+              aria-label={t("editor:ui.openInAWorkspaceTab", { defaultValue: "Open in a workspace tab" })}
             >
               <OpenInNewIcon />
             </button>
           </Tooltip>
-          <Tooltip title="New conversation">
+          <Tooltip title={t("editor:ui.newConversation", { defaultValue: "New conversation" })}>
             <button
               type="button"
               className="convo-icon-btn"
               onClick={() => void handleNewConversation()}
-              aria-label="New conversation"
+              aria-label={t("editor:ui.newConversation", { defaultValue: "New conversation" })}
             >
               <AddCommentOutlinedIcon />
             </button>
           </Tooltip>
-          <Tooltip title="Hide conversation">
+          <Tooltip title={t("editor:ui.hideConversation", { defaultValue: "Hide conversation" })}>
             <button
               type="button"
               className="convo-icon-btn"
               onClick={onCollapse}
-              aria-label="Hide conversation"
+              aria-label={t("editor:ui.hideConversation", { defaultValue: "Hide conversation" })}
             >
               <KeyboardArrowDownIcon />
             </button>
@@ -547,12 +549,12 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
                 fullWidth
                 showClear={false}
               />
-              <Tooltip title="Close threads">
+              <Tooltip title={t("editor:ui.closeThreads", { defaultValue: "Close threads" })}>
                 <button
                   type="button"
                   className="convo-icon-btn"
                   onClick={() => setThreadsOpen(false)}
-                  aria-label="Close threads"
+                  aria-label={t("editor:ui.closeThreads", { defaultValue: "Close threads" })}
                 >
                   <CloseIcon />
                 </button>

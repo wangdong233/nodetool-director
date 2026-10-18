@@ -36,6 +36,7 @@ import type {
   ConnectionMatchMenuPayload,
   ConnectionMatchOption
 } from "./ConnectionMatchMenu";
+import { useTranslation } from "react-i18next";
 
 const NODE_ROW_HEIGHT = 34;
 
@@ -151,6 +152,7 @@ export const getCompatibleConnectableOutputs = (
 };
 
 const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const reactFlowInstance = useReactFlow();
@@ -441,7 +443,7 @@ const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
               onChange={setSearchTerm}
               onKeyDown={handleSearchKeyDown}
               escapeClears={false}
-              placeholder="Search nodes"
+              placeholder={t("editor:io.searchNodesAria", { defaultValue: "Search nodes" })}
               autoFocus={isVisible}
               fullWidth
             />

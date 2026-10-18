@@ -24,6 +24,7 @@ import { IconForType } from "../../config/IconForType";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { useAssetProjectScope } from "../../hooks/assets/useAssetProjectScope";
+import { useTranslation } from "react-i18next";
 
 const styles = (_theme: Theme) =>
   css({
@@ -46,6 +47,7 @@ const AssetTree: React.FC<AssetTreeProps> = ({
   onTotalAssetsCalculated,
   onLoading
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [assetTree, setAssetTree] = useState<AssetTreeNode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -278,7 +280,7 @@ const AssetTree: React.FC<AssetTreeProps> = ({
       {renderAssetTree(assetTree)}
     </Box>
   ) : (
-    <EmptyState size="small" title="No assets found" />
+    <EmptyState size="small" title={t("ui2:attrs.noAssetsFound", { defaultValue: "No assets found" })} />
   );
 };
 

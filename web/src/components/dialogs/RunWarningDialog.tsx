@@ -8,6 +8,7 @@ import {
   FlexColumn,
   SPACING
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 /**
  * Confirmation shown before a "Run Entire Workflow" action that would execute many
@@ -15,6 +16,7 @@ import {
  * by {@link useRunWarningStore}.
  */
 const RunWarningDialog: React.FC = () => {
+  const { t } = useTranslation();
   const open = useRunWarningStore((s) => s.open);
   const kind = useRunWarningStore((s) => s.kind);
   const heavyCount = useRunWarningStore((s) => s.heavyCount);
@@ -44,16 +46,15 @@ const RunWarningDialog: React.FC = () => {
       onClose={handleCancel}
       title={
         isConcurrent
-          ? "Start another entire workflow run?"
-          : "Run the entire workflow?"
+          ? t("editor:ui.startAnotherEntireWorkflowRun", { defaultValue: "Start another entire workflow run?" }) : "Run the entire workflow?"
       }
       onConfirm={handleConfirm}
-      confirmText={isConcurrent ? "Start second run" : "Run anyway"}
+      confirmText={isConcurrent ? t("editor:ui.startSecondRun", { defaultValue: "Start second run" }) : "Run anyway"}
       content={
         <FlexColumn gap={SPACING.sm}>
           {isConcurrent ? (
             <Text>
-              This workflow is <strong>already running</strong>. Starting
+              This workflow is <strong>{t("editor:ui.alreadyRunning", { defaultValue: "already running" })}</strong>. Starting
               another run will execute both at the same time — for realtime
               audio patches that means overlapping sound. Stop the current run
               first if you meant to restart it.
@@ -68,7 +69,7 @@ const RunWarningDialog: React.FC = () => {
                 provider rate limits.
               </Text>
               <Checkbox
-                label="Don't ask again for this session"
+                label={t("editor:ui.donTAskAgainForThisSession", { defaultValue: "Don't ask again for this session" })}
                 checked={dontAskAgain}
                 onChange={(_event, checked) => setDontAskAgain(checked)}
               />

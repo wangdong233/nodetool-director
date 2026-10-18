@@ -55,6 +55,7 @@ import {
   recentModelEntry,
   videoModelPatch
 } from "./modelSelection";
+import { useTranslation } from "react-i18next";
 
 /** Static option lists — the same rows whatever the model. */
 const VARIATIONS_OPTIONS: MediaOption<number>[] = IMAGE_VARIATIONS.map((n) => ({
@@ -85,13 +86,13 @@ const { strengthOptions: STRENGTH_OPTIONS, stepsOptions: STEPS_OPTIONS } =
 const REFERENCE_AUDIO_OPTIONS: MediaOption<string>[] = [
   {
     id: "off",
-    label: "Model audio",
-    description: "let the model score the clip",
+    label: i18n.t("editor:ui.modelAudio", { defaultValue: "Model audio" }),
+    description: i18n.t("editor:ui.letModelScoreClip", { defaultValue: "let the model score the clip" }),
     icon: <VolumeUpIcon fontSize="small" />
   },
   {
     id: "on",
-    label: "Reference audio",
+    label: i18n.t("editor:ui.referenceAudio", { defaultValue: "Reference audio" }),
     description: "keep the reference video's track",
     icon: <VolumeUpIcon fontSize="small" />
   }
@@ -429,6 +430,7 @@ function ImageToVideoModeChips({ openModelPickerRef }: ClusterProps) {
 }
 
 function ReferenceToVideoModeChips({ openModelPickerRef }: ClusterProps) {
+  const { t } = useTranslation();
   const params = useMediaGenerationStore((s) => s.referenceToVideo);
   const setParams = useMediaGenerationStore((s) => s.setReferenceToVideoParams);
   const addRecentModel = useModelPreferencesStore((s) => s.addRecent);
@@ -481,7 +483,7 @@ function ReferenceToVideoModeChips({ openModelPickerRef }: ClusterProps) {
       <OptionChip
         menu="option"
         icon={<VolumeUpIcon fontSize="small" />}
-        label={params.useReferenceVideoAudio ? "Reference audio" : "Model audio"}
+        label={params.useReferenceVideoAudio ? t("editor:ui.referenceAudio", { defaultValue: "Reference audio" }) : "Model audio"}
         header="Audio source"
         value={params.useReferenceVideoAudio ? "on" : "off"}
         options={REFERENCE_AUDIO_OPTIONS}

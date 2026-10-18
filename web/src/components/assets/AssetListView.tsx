@@ -42,6 +42,7 @@ import {
 import { useSettingsStore } from "../../stores/SettingsStore";
 import { isCoarsePointer } from "../../utils/isCoarsePointer";
 import { useVideoThumbnail } from "../../hooks/useVideoThumbnail";
+import { useTranslation } from "react-i18next";
 
 interface AssetListViewProps {
   assets: Asset[];
@@ -273,6 +274,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
   containerWidth = 1200,
   isHorizontal = false
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const listStyles = useMemo(() => styles(theme), [theme]);
   const assetsOrder = useSettingsStore((state) => state.settings.assetsOrder);
@@ -540,8 +542,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
         {showType && (
           <div className="asset-item-type">
             {isFolder
-              ? "Folder"
-              : asset.content_type?.split("/")[1] || "Unknown"}
+              ? t("editor:ui.folder", { defaultValue: "Folder" }) : asset.content_type?.split("/")[1] || "Unknown"}
           </div>
         )}
 
@@ -559,7 +560,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
       <Box css={listStyles} className="asset-list-view">
         <EmptyState
           variant="no-data"
-          title="No assets to display"
+          title={t("editor:ui.noAssetsToDisplay", { defaultValue: "No assets to display" })}
           size="small"
         />
       </Box>
@@ -571,10 +572,10 @@ const AssetListView: React.FC<AssetListViewProps> = ({
       <div className="asset-list-container">
         <div className="asset-list-header">
           <div className="asset-header-icon-space"></div>
-          <div className="asset-header-name">Name</div>
-          {showSize && <div className="asset-header-size">Size</div>}
-          {showType && <div className="asset-header-type">Type</div>}
-          {showDate && <div className="asset-header-date">Modified</div>}
+          <div className="asset-header-name">{t("editor:asset.info.name", { defaultValue: "Name" })}</div>
+          {showSize && <div className="asset-header-size">{t("ui2:attrs.size", { defaultValue: "Size" })}</div>}
+          {showType && <div className="asset-header-type">{t("editor:asset.info.type", { defaultValue: "Type" })}</div>}
+          {showDate && <div className="asset-header-date">{t("ui2:attrs.modified", { defaultValue: "Modified" })}</div>}
         </div>
 
         <div

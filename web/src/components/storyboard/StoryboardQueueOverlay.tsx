@@ -50,6 +50,7 @@ import {
   type ShotRequestRecord
 } from "../../stores/storyboard/StoryboardGenerationStore";
 import { useGenerateShot } from "../../hooks/storyboard/useGenerateShot";
+import { useTranslation } from "react-i18next";
 
 export interface StoryboardQueueOverlayProps {
   boardId: string;
@@ -106,6 +107,7 @@ const panelEnter = keyframes`
  * progress, an indeterminate sweep otherwise.
  */
 const RenderBar = memo(function RenderBar({ progress }: { progress?: number }) {
+  const { t } = useTranslation();
   const determinate = progress != null && progress > 0 && progress < 100;
   return (
     <ProgressBar
@@ -113,7 +115,7 @@ const RenderBar = memo(function RenderBar({ progress }: { progress?: number }) {
       progressVariant={determinate ? "determinate" : "indeterminate"}
       showValue={false}
       size="small"
-      aria-label="Rendering"
+      aria-label={t("editor:ui.rendering", { defaultValue: "Rendering" })}
     />
   );
 });
@@ -149,10 +151,8 @@ const RequestCard = memo(function RequestCard({
 }) {
   const statusLabel =
     row.status === "stopped"
-      ? "Stopped tracking; provider may still finish and charge"
-      : row.awaitingReview
-        ? "Completed · awaiting review"
-        : row.status;
+      ? t("storyboard:attrs.stoppedTrackingProviderMayStillFinishAndCharge", { defaultValue: "Stopped tracking; provider may still finish and charge" }) : row.awaitingReview
+        ? t("storyboard:attrs.completedAwaitingReview", { defaultValue: "Completed · awaiting review" }) : row.status;
   return (
     <Box sx={cardSx}>
       <FlexRow align="center" gap={SPACING.xs} sx={{ minWidth: 0 }}>
@@ -164,7 +164,7 @@ const RequestCard = memo(function RequestCard({
         {row.status === "running" && onStopTracking && (
           <ToolbarIconButton
             icon={<CloseIcon fontSize="inherit" />}
-            tooltip="Stop tracking. The provider request may still finish and charge."
+            tooltip={t("storyboard:attrs.stopTrackingTheProviderRequestMayStillFinishAndCharge", { defaultValue: "Stop tracking. The provider request may still finish and charge." })}
             ariaLabel="Stop tracking render"
             variant="error"
             onClick={() => onStopTracking(row.jobId)}
@@ -225,6 +225,7 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
   readOnly = false,
   onReviewCompleted
 }: StoryboardQueueOverlayProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
 
@@ -336,7 +337,7 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
             </Text>
             <ToolbarIconButton
               icon={<KeyboardArrowUpIcon fontSize="inherit" />}
-              tooltip="Expand render queue"
+              tooltip={t("storyboard:attrs.expandRenderQueue", { defaultValue: "Expand render queue" })}
               ariaLabel="Expand render queue"
               onClick={() => setExpanded(true)}
             />
@@ -365,7 +366,7 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
         {counts.running > 0 && !readOnly && (
           <ToolbarIconButton
             icon={<CloseIcon fontSize="inherit" />}
-            tooltip="Stop tracking all. Provider requests may still finish and charge."
+            tooltip={t("storyboard:attrs.stopTrackingAllProviderRequestsMayStillFinishAndCharge", { defaultValue: "Stop tracking all. Provider requests may still finish and charge." })}
             ariaLabel="Stop tracking all renders"
             variant="error"
             onClick={handleStopAll}
@@ -373,7 +374,7 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
         )}
         <ToolbarIconButton
           icon={<RemoveIcon fontSize="inherit" />}
-          tooltip="Collapse render queue"
+          tooltip={t("storyboard:attrs.collapseRenderQueue", { defaultValue: "Collapse render queue" })}
           ariaLabel="Collapse render queue"
           onClick={() => setExpanded(false)}
         />

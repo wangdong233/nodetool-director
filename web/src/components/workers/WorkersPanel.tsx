@@ -24,6 +24,7 @@ import {
   type WorkerInstance
 } from "../../hooks/useWorkers";
 import WorkerProfilesDialog from "./WorkerProfilesDialog";
+import { useTranslation } from "react-i18next";
 
 /**
  * Workers panel — the live GPU-worker surface. Lists provisioned instances with
@@ -96,6 +97,7 @@ const ProvisionDialog: React.FC<ProvisionDialogProps> = ({
   onClose,
   isProvisioning
 }) => {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<string>(profileNames[0] ?? "");
   const effective = profileNames.includes(selected)
     ? selected
@@ -116,7 +118,7 @@ const ProvisionDialog: React.FC<ProvisionDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Start a worker"
+      title={t("editor:ui.startAWorker", { defaultValue: "Start a worker" })}
       maxWidth="xs"
       fullWidth
       onConfirm={handleProvision}
@@ -127,12 +129,12 @@ const ProvisionDialog: React.FC<ProvisionDialogProps> = ({
       <FlexColumn gap={SPACING.md}>
         {profileNames.length === 0 ? (
           <Caption size="small">
-            No worker profiles yet. Open <strong>Manage profiles</strong> to
+            No worker profiles yet. Open <strong>{t("editor:ui.manageProfiles", { defaultValue: "Manage profiles" })}</strong> to
             create one.
           </Caption>
         ) : (
           <SelectField
-            label="Profile"
+            label={t("editor:ui.profile", { defaultValue: "Profile" })}
             value={effective}
             onChange={setSelected}
             options={options}
@@ -166,6 +168,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
   stopping,
   busy
 }) => {
+  const { t } = useTranslation();
   const isAttached = instance.status === "attached";
   const isPaused = instance.status === "stopped";
   const isRunning = instance.status === "running";
@@ -190,10 +193,8 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
       : "running"
     : statusTone(instance.status);
   const statusHint = isBooting
-    ? "GPU up — worker still loading"
-    : isRunning && isHealthy
-      ? "Worker is answering — safe to attach"
-      : null;
+    ? t("editor:ui.gpuUpWorkerStillLoading", { defaultValue: "GPU up — worker still loading" }) : isRunning && isHealthy
+      ? t("editor:ui.workerIsAnsweringSafeToAttach", { defaultValue: "Worker is answering — safe to attach" }) : null;
 
   return (
     <Card variant="outlined" padding="normal">
@@ -257,7 +258,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
               disabled={busy || !isRunning || !isHealthy}
               onClick={() => onAttach(instance.id)}
             >
-              {isBooting ? "Booting…" : "Attach"}
+              {isBooting ? t("editor:ui.booting", { defaultValue: "Booting…" }) : "Attach"}
             </EditorButton>
           )}
           {/* Pause (keep the volume) — only meaningful while the pod runs. */}
@@ -315,6 +316,7 @@ interface OrphanWarning {
 }
 
 const WorkersPanel: React.FC = () => {
+  const { t } = useTranslation();
   const {
     profiles,
     instances,
@@ -467,7 +469,7 @@ const WorkersPanel: React.FC = () => {
   return (
     <FlexColumn gap={0} fullHeight css={panelStyles}>
       <PanelHeader
-        title="Workers"
+        title={t("editor:bottom.workers", { defaultValue: "Workers" })}
         count={shownInstances.length > 0 ? formatRate(totalCost) : undefined}
         actions={
           <>
@@ -475,7 +477,7 @@ const WorkersPanel: React.FC = () => {
               density="compact"
               variant="text"
               onClick={() => setProfilesOpen(true)}
-              aria-label="Manage profiles"
+              aria-label={t("editor:ui.manageProfiles", { defaultValue: "Manage profiles" })}
             >
               Manage profiles
             </EditorButton>
@@ -483,7 +485,7 @@ const WorkersPanel: React.FC = () => {
               density="compact"
               variant="outlined"
               onClick={() => setDialogOpen(true)}
-              aria-label="Start worker"
+              aria-label={t("editor:ui.startWorker", { defaultValue: "Start worker" })}
             >
               Start worker
             </EditorButton>
@@ -492,7 +494,7 @@ const WorkersPanel: React.FC = () => {
               variant="text"
               onClick={handleReconcile}
               disabled={busy}
-              aria-label="Reconcile workers"
+              aria-label={t("editor:ui.reconcileWorkers", { defaultValue: "Reconcile workers" })}
             >
               Reconcile
             </EditorButton>
@@ -501,7 +503,7 @@ const WorkersPanel: React.FC = () => {
               variant="text"
               onClick={handleStopAll}
               disabled={shownInstances.length === 0}
-              aria-label="Stop all workers"
+              aria-label={t("editor:notify.stopAllAria", { defaultValue: "Stop all workers" })}
             >
               Stop all
             </EditorButton>

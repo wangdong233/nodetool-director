@@ -19,6 +19,7 @@ import {
   EditorButton
 } from "../ui_primitives";
 import { useSectionWrap, DashboardSectionHeader } from "./dashboardChrome";
+import { useTranslation } from "react-i18next";
 
 type Recipe = recipeSchemas.ExampleRecipeSummary;
 type RecipeStep = recipeSchemas.ExampleRecipeStep;
@@ -212,6 +213,7 @@ const RecipeStepRow = memo(function RecipeStepRow({
   copyingStep,
   onOpen
 }: RecipeStepRowProps) {
+  const { t } = useTranslation();
   const loading = copyingStep === `${slug}:${step.example}`;
   return (
     <Tooltip title={`Open ${step.example}`} describeChild>
@@ -243,7 +245,7 @@ const RecipeStepRow = memo(function RecipeStepRow({
                 </span>
               ))
             ) : (
-              <span className="rcp-model">Runs locally — no key needed</span>
+              <span className="rcp-model">{t("editor:ui.runsLocallyNoKeyNeeded", { defaultValue: "Runs locally — no key needed" })}</span>
             )}
           </span>
         </span>
@@ -263,6 +265,7 @@ const RecipeAppRow = memo(function RecipeAppRow({
   installingApp,
   onInstall
 }: RecipeAppRowProps) {
+  const { t } = useTranslation();
   const installing = installingApp === app.slug;
   return (
     <div className="rcp-app">
@@ -285,7 +288,7 @@ const RecipeAppRow = memo(function RecipeAppRow({
         disabled={installing}
         onClick={() => onInstall(app.slug)}
       >
-        {installing ? "Installing…" : "Install app"}
+        {installing ? t("editor:ui.installing", { defaultValue: "Installing…" }) : "Install app"}
       </EditorButton>
     </div>
   );
@@ -302,6 +305,7 @@ const RecipeCard = memo(function RecipeCard({
   expanded,
   onToggle
 }: RecipeCardProps) {
+  const { t } = useTranslation();
   const { copyingStep, addingSlug, installingApp, openStep, installApp, addRecipe } =
     useRecipeActions();
   const thumb = thumbSrc(recipe.thumbnailUrl);
@@ -339,7 +343,7 @@ const RecipeCard = memo(function RecipeCard({
             disabled={installingPrimary}
             onClick={() => void installApp(primaryApp.slug)}
           >
-            {installingPrimary ? "Installing…" : `Install ${primaryApp.name}`}
+            {installingPrimary ? t("editor:ui.installing", { defaultValue: "Installing…" }) : `Install ${primaryApp.name}`}
           </EditorButton>
         )}
       </div>
@@ -380,8 +384,7 @@ const RecipeCard = memo(function RecipeCard({
             onClick={() => void addRecipe(recipe)}
           >
             {adding
-              ? "Adding…"
-              : `Add all ${recipe.steps.length} as workflows`}
+              ? t("editor:ui.adding", { defaultValue: "Adding…" }) : `Add all ${recipe.steps.length} as workflows`}
           </EditorButton>
           {recipe.caveats.map((caveat) => (
             <p key={caveat} className="rcp-caveat">
@@ -401,6 +404,7 @@ const RecipeCard = memo(function RecipeCard({
  * the workflows behind them, each openable as a graph.
  */
 const DashboardRecipes: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -417,7 +421,7 @@ const DashboardRecipes: React.FC = () => {
   return (
     <section css={styles(theme)}>
       <div css={sectionWrap}>
-        <DashboardSectionHeader title="Recipes" count={`${recipes.length}`} />
+        <DashboardSectionHeader title={t("editor:ui.recipes", { defaultValue: "Recipes" })} count={`${recipes.length}`} />
         <p className="rcp-lede">
           Each one installs as an app that runs the whole chain, with the
           example workflows behind it in your library to edit.
@@ -430,9 +434,9 @@ const DashboardRecipes: React.FC = () => {
           <div className="rcp-empty">
             <EmptyState
               variant="error"
-              title="Couldn't load recipes"
-              description="Try again in a moment."
-              actionText="Retry"
+              title={t("editor:ui.couldntLoadRecipes", { defaultValue: "Couldn't load recipes" })}
+              description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })}
+              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
           </div>

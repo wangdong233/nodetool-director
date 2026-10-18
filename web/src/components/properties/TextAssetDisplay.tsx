@@ -4,6 +4,7 @@ import { useAssetStore } from "../../stores/AssetStore";
 import TextEditorModal from "./TextEditorModal";
 import { Tooltip, Text, getSpacingPx, SPACING } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
+import { useTranslation } from "react-i18next";
 
 const MAX_TEXT_LENGTH = 1000;
 const MAX_TEXT_HEIGHT = 50;
@@ -13,6 +14,7 @@ interface TextAssetDisplayProps {
 }
 
 const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
+  const { t } = useTranslation();
   const getAsset = useAssetStore((state) => state.get);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -48,7 +50,7 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
         overflow: "auto"
       }}
     >
-      <Tooltip title="Open editor">
+      <Tooltip title={t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}>
         <button type="button" className="button-expand" onClick={toggleExpand}>
           {isExpanded ? "↙" : "↗"}
         </button>
@@ -58,8 +60,7 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
         sx={{ whiteSpace: "pre-wrap" }}
       >
         {error
-          ? "Error loading preview."
-          : isLoading
+          ? t("editor:ui.errorLoadingPreview", { defaultValue: "Error loading preview." }) : isLoading
           ? "Loading preview…"
           : memoizedPreviewText}
       </Text>

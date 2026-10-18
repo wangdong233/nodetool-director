@@ -201,7 +201,7 @@ export const ClipCaptionStyle: React.FC<ClipCaptionStyleProps> = memo(
               <InspectorPillInput
                 value={outline ? String(outline.widthPx) : ""}
                 unit="px"
-                placeholder="auto"
+                placeholder={t("storyboard:attrs.auto", { defaultValue: "auto" })}
                 allowEmpty
                 onCommit={handleOutlineWidth}
                 ariaLabel={t("timeline:attrs.captionOutlineWidth", { defaultValue: "Caption outline width" })}

@@ -165,7 +165,7 @@ export const useFloatingToolbarActions = (): FloatingToolbarActions => {
             w.graph,
             "checkpoint",
             {
-              description: "Before execution",
+              description: i18n.t("editor:ui.beforeExecution", { defaultValue: "Before execution" }),
               force: true,
               maxVersions: autosave.maxVersionsPerWorkflow,
               expectedUpdatedAt: w.updated_at ?? undefined

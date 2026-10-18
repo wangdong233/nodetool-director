@@ -47,6 +47,7 @@ import { registerCodeAssistantHandler } from "./codeAssistantBridge";
 import CodeAssistantChatPanel from "./CodeAssistantChatPanel";
 import ResizableSideDock from "../../chat/assistant/ResizableSideDock";
 import { isString } from "../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const CHAT_PANEL_WIDTH = 360;
 
@@ -89,6 +90,7 @@ const CodeAssistantDialogInner = ({
   inputs,
   expectedOutput
 }: CodeAssistantDialogProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { findNode, updateNodeData } = useNodes(
     (state) => ({
@@ -244,7 +246,7 @@ const CodeAssistantDialogInner = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title="Code assistant"
+      title={t("editor:ui.codeAssistant", { defaultValue: "Code assistant" })}
       maxWidth="lg"
       fullWidth
       onConfirm={handleApply}
@@ -259,8 +261,8 @@ const CodeAssistantDialogInner = ({
         <FlexColumn gap={SPACING.sm} sx={{ flex: 1, minWidth: 0 }}>
           <FlexRow gap={SPACING.md} align="center" sx={{ flexWrap: "wrap" }}>
             <SectionHeader size="small" title={nodeTitle} />
-            <PortChips label="Inputs" ports={draftInputs} />
-            <PortChips label="Outputs" ports={draftOutputs} />
+            <PortChips label={t("editor:ui.inputs", { defaultValue: "Inputs" })} ports={draftInputs} />
+            <PortChips label={t("editor:ui.outputs", { defaultValue: "Outputs" })} ports={draftOutputs} />
           </FlexRow>
           <Box
             sx={{
@@ -296,7 +298,7 @@ const CodeAssistantDialogInner = ({
             ) : (
               <Box
                 component="pre"
-                aria-label="Code draft"
+                aria-label={t("editor:ui.codeDraft", { defaultValue: "Code draft" })}
                 sx={{
                   ...TYPOGRAPHY.mono.code,
                   margin: 0,

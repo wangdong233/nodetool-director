@@ -146,7 +146,7 @@
     },
     "entities": {
       "label": "实体",
-      "description": "供提示词和镜头复用的角色、地点、风格与道具。"
+      "description": "可复用的角色、地点、风格与道具"
     },
     "timelines": {
       "label": "时间线",

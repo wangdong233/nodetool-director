@@ -28,6 +28,7 @@ import {
   clamp,
   type SliderSpec
 } from "./AdjustmentSlider";
+import { useTranslation } from "react-i18next";
 
 export const CHROMA_KEY_NODE_TYPE = "lib.image.keyer.ChromaKey";
 
@@ -106,6 +107,7 @@ const ChromaKeyBodyInner: React.FC<ChromaKeyBodyProps> = ({
   status,
   isOutputNode
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -155,7 +157,7 @@ const ChromaKeyBodyInner: React.FC<ChromaKeyBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">Key color</span>
+        <span className="ctrl-label">{t("timeline:attrs.keyColor", { defaultValue: "Key color" })}</span>
         <span style={{ gridColumn: "2 / 4", display: "flex", alignItems: "center" }}>
           <ColorPicker
             color={hexColor}

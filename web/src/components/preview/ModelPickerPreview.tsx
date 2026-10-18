@@ -15,6 +15,7 @@ import {
 } from "../../stores/ModelMenuStore";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
 import type { ModelExecutionAvailability } from "@nodetool-ai/protocol";
+import { useTranslation } from "react-i18next";
 
 const API: ModelExecutionAvailability = {
   kind: "api",
@@ -85,6 +86,7 @@ const MODEL_DATA = {
 const noop = (): void => undefined;
 
 const PreviewModelPicker: React.FC = () => {
+  const { t } = useTranslation("editor");
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -117,7 +119,7 @@ const PreviewModelPicker: React.FC = () => {
           anchorEl={anchorEl}
           onClose={noop}
           modelData={MODEL_DATA}
-          title="Select language model"
+          title={t("editor:ui.selectLanguageModel", { defaultValue: "Select language model" })}
           searchPlaceholder="Search language models"
           storeHook={useSampleMenuStore}
           modelType="language_model"

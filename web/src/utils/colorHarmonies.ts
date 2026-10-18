@@ -131,33 +131,33 @@ export function getHarmonyInfo(): Array<{ type: HarmonyType; name: string; descr
   return [
     {
       type: "complementary",
-      name: "Complementary",
-      description: "Opposite colors on the color wheel, creating high contrast"
+      name: "Complementary", nameKey: "editor:ui.complementary",
+      description: "Opposite colors on the color wheel, creating high contrast", descriptionKey: "editor:ui.oppositeColorsHighContrast",
     },
     {
       type: "analogous",
-      name: "Analogous",
-      description: "Adjacent colors that create a harmonious, natural look"
+      name: "Analogous", nameKey: "editor:ui.analogous",
+      description: "Adjacent colors that create a harmonious, natural look", descriptionKey: "editor:ui.adjacentColorsHarmoniousNaturalLook",
     },
     {
       type: "triadic",
-      name: "Triadic",
-      description: "Three colors equally spaced (120°) for vibrant combinations"
+      name: "Triadic", nameKey: "editor:ui.triadic",
+      description: "Three colors equally spaced (120°) for vibrant combinations", descriptionKey: "editor:ui.threeColorsEquallySpacedVibrant",
     },
     {
       type: "split-complementary",
       name: "Split complementary",
-      description: "Base color with two adjacent to its complement"
+      description: "Base color with two adjacent to its complement", descriptionKey: "editor:ui.baseColorWithTwoAdjacentToComplement",
     },
     {
       type: "tetradic",
-      name: "Tetradic",
-      description: "Four colors forming a rectangle on the color wheel"
+      name: "Tetradic", nameKey: "editor:ui.tetradic",
+      description: "Four colors forming a rectangle on the color wheel", descriptionKey: "editor:ui.fourColorsFormingRectangle",
     },
     {
       type: "square",
-      name: "Square",
-      description: "Four colors evenly spaced (90°) for bold combinations"
+      name: "Square", nameKey: "editor:ui.squareHarmony",
+      description: "Four colors evenly spaced (90°) for bold combinations", descriptionKey: "editor:ui.fourColorsEvenlySpacedBold",
     }
   ];
 }

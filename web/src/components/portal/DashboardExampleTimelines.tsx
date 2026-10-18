@@ -23,6 +23,7 @@ import {
 import { NO_EXAMPLE_NEEDS } from "../../utils/exampleNeeds";
 import { DashboardSectionHeader, useSectionWrap } from "./dashboardChrome";
 import ExampleNeedsPill from "./ExampleNeedsPill";
+import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) => css({
   paddingTop: getSpacingPx(SPACING.xxl),
@@ -59,6 +60,7 @@ interface TimelineCardProps {
 }
 
 const TimelineCard = memo(function TimelineCard({ timeline, installing, onInstall }: TimelineCardProps) {
+  const { t } = useTranslation();
   const poster = useResolvedMediaUri(timeline.posterUri);
   return (
     <article className="timeline-card">
@@ -77,7 +79,7 @@ const TimelineCard = memo(function TimelineCard({ timeline, installing, onInstal
           onClick={() => onInstall(timeline)}
           sx={{ alignSelf: "flex-start" }}
         >
-          {installing ? "Adding timeline…" : "Install timeline"}
+          {installing ? t("editor:ui.addingTimeline", { defaultValue: "Adding timeline…" }) : "Install timeline"}
         </EditorButton>
       </div>
     </article>
@@ -85,6 +87,7 @@ const TimelineCard = memo(function TimelineCard({ timeline, installing, onInstal
 });
 
 const DashboardExampleTimelines = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const navigate = useNavigate();
@@ -109,16 +112,16 @@ const DashboardExampleTimelines = () => {
 
   const timelines = data ?? [];
   return (
-    <section css={styles(theme)} aria-label="Example timelines">
+    <section css={styles(theme)} aria-label={t("editor:ui.exampleTimelines", { defaultValue: "Example timelines" })}>
       <div css={sectionWrap}>
-        <DashboardSectionHeader title="Start from a timeline" count={`${timelines.length} timelines`} />
-        <p className="timeline-lede">Watch a timeline directly, or install a copy to make your own version.</p>
+        <DashboardSectionHeader title={t("editor:ui.startFromATimeline", { defaultValue: "Start from a timeline" })} count={`${timelines.length} timelines`} />
+        <p className="timeline-lede">{t("editor:ui.exampleTimelinesLede", { defaultValue: "Watch a timeline directly, or install a copy to make your own version." })}</p>
         {isLoading ? (
           <div className="timeline-state"><LoadingSpinner size="medium" text="Loading timelines" /></div>
         ) : isError ? (
-          <div className="timeline-state"><EmptyState variant="error" title="Couldn't load timelines" description="Try again in a moment." actionText="Retry" onAction={() => refetch()} /></div>
+          <div className="timeline-state"><EmptyState variant="error" title={t("editor:ui.couldntLoadTimelines", { defaultValue: "Couldn't load timelines" })} description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })} actionText={t("editor:explorer.retry", { defaultValue: "Retry" })} onAction={() => refetch()} /></div>
         ) : timelines.length === 0 ? (
-          <div className="timeline-state"><EmptyState variant="no-data" title="No timelines available" description="Example timelines will appear here when this install ships them." /></div>
+          <div className="timeline-state"><EmptyState variant="no-data" title={t("editor:ui.noTimelinesAvailable", { defaultValue: "No timelines available" })} description={t("editor:ui.exampleTimelinesWillAppearHereWhenThisInstallShipsThem", { defaultValue: "Example timelines will appear here when this install ships them." })} /></div>
         ) : (
           <AutoGrid minItemWidth={360} fill="fit">
             {timelines.map((timeline) => (

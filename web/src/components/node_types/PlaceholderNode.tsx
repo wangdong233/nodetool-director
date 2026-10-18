@@ -38,6 +38,7 @@ import {
   isObjectLike,
   isString
 } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 const humanizeType = (type: string) => {
   return type.replace(/([A-Z])/g, " $1").trim();
@@ -154,6 +155,7 @@ const typeForValue = (value: unknown) => {
 };
 
 const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const placeholderStyles = useMemo(() => styles(theme), [theme]);
   const nodeType = props.type;
@@ -324,7 +326,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
         selected={props.selected}
         workflowId={nodeData?.workflow_id}
       />
-      <Tooltip title="This node type is missing. Search the node menu for a replacement or install the package that provides it.">
+      <Tooltip title={t("editor:ui.thisNodeTypeIsMissingSearchTheNodeMenuForAReplacementOrInstallThePackageThatProvidesIt", { defaultValue: "This node type is missing. Search the node menu for a replacement or install the package that provides it." })}>
         <Text size="big" className="missing-node-text">
           Missing node
         </Text>
@@ -351,7 +353,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
                 disabled={enabling}
                 startIcon={<ExtensionIcon />}
               >
-                {enabling ? "Enabling…" : `Enable ${disabledPack.name} Nodes`}
+                {enabling ? t("editor:ui.enabling", { defaultValue: "Enabling…" }) : `Enable ${disabledPack.name} Nodes`}
               </EditorButton>
             </Tooltip>
           ) : (

@@ -47,6 +47,7 @@ import {
   type PMFilter,
   type PMRow
 } from "./usePackageManager";
+import { useTranslation } from "react-i18next";
 
 /** Persist the active list so reopening the Package Manager lands where the
  *  user left off. */
@@ -99,6 +100,7 @@ const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
 };
 
 const RowActions = ({ row }: { row: PMRow }) => {
+  const { t } = useTranslation();
   if (row.toggle) {
     return (
       <LabeledSwitch
@@ -121,7 +123,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUpdate}
         >
-          {busy ? "Working…" : "Update"}
+          {busy ? t("editor:ui.working", { defaultValue: "Working…" }) : "Update"}
         </EditorButton>
       )}
       {install && (
@@ -131,7 +133,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onInstall}
         >
-          {busy ? "Installing…" : "Install"}
+          {busy ? t("editor:ui.installing", { defaultValue: "Installing…" }) : "Install"}
         </EditorButton>
       )}
       {uninstall && (
@@ -141,7 +143,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUninstall}
         >
-          {busy ? "Working…" : "Uninstall"}
+          {busy ? t("editor:ui.working", { defaultValue: "Working…" }) : "Uninstall"}
         </EditorButton>
       )}
     </>
@@ -169,6 +171,7 @@ const PackageRowItem = memo(function PackageRowItem({ row }: { row: PMRow }) {
 });
 
 function PackageManager() {
+  const { t } = useTranslation();
   const [cat, setCat] = useState(loadCategory);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<PMFilter>("all");
@@ -305,8 +308,7 @@ function PackageManager() {
                     onClick={model.bulkUpdate.onUpdateAll}
                   >
                     {model.bulkUpdate.busy
-                      ? "Updating…"
-                      : `Update all (${model.bulkUpdate.count})`}
+                      ? t("editor:ui.updating", { defaultValue: "Updating…" }) : `Update all (${model.bulkUpdate.count})`}
                   </EditorButton>
                 )}
                 <Box sx={{ width: { xs: "100%", sm: 250 } }}>
@@ -329,7 +331,7 @@ function PackageManager() {
                 exclusive
                 segmented
                 onChange={handleFilter}
-                aria-label="Status filter"
+                aria-label={t("editor:ui.statusFilter", { defaultValue: "Status filter" })}
               >
                 {model.filters.map((option) => (
                   <ToggleOption key={option.id} value={option.id}>
@@ -401,13 +403,12 @@ function PackageManager() {
           ) : (
             <EmptyState
               variant={narrowed ? "no-results" : "empty"}
-              title={narrowed ? "Nothing matches" : "Nothing here yet"}
+              title={narrowed ? t("editor:ui.nothingMatches", { defaultValue: "Nothing matches" }) : "Nothing here yet"}
               description={
                 narrowed
-                  ? "No package in this list matches the search and the status filter."
-                  : "This list has no packages."
+                  ? t("editor:ui.noPackageInThisListMatchesTheSearchAndTheStatusFilter", { defaultValue: "No package in this list matches the search and the status filter." }) : "This list has no packages."
               }
-              actionText={narrowed ? "Show all" : undefined}
+              actionText={narrowed ? t("editor:ui.showAll", { defaultValue: "Show all" }) : undefined}
               onAction={narrowed ? clearSearchAndFilter : undefined}
             />
           )}

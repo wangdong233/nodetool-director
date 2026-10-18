@@ -11,12 +11,14 @@ import { useReactFlow } from "@xyflow/react";
 import useMetadataStore from "../../stores/MetadataStore";
 import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import RouteIcon from "@mui/icons-material/Route";
+import { useTranslation } from "react-i18next";
 
 interface EdgeContextMenuProps {
   edgeId?: string;
 }
 
 const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
+  const { t } = useTranslation();
   const menuPosition = useContextMenuStore((state) => state.menuPosition);
   const closeContextMenu = useContextMenuStore(
     (state) => state.closeContextMenu
@@ -153,15 +155,15 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
         <ContextMenuItem
           onClick={handleInsertReroute}
           IconComponent={<RouteIcon />}
-          label="Insert reroute"
-          tooltip="Insert a reroute node at this position"
+          label={t("editor:edge.insertReroute", { defaultValue: "Insert reroute" })}
+          tooltip={t("editor:edge.insertRerouteTip", { defaultValue: "Insert a reroute node at this position" })}
         />
       )}
       {!isControlEdge && <Divider />}
       <ContextMenuItem
         onClick={handleDeleteEdge}
         IconComponent={<DeleteIcon />}
-        label="Delete edge"
+        label={t("editor:edge.deleteEdge", { defaultValue: "Delete edge" })}
         destructive
         tooltip={
           <span
@@ -171,7 +173,7 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
               alignItems: "center"
             }}
           >
-            <span>Delete this connection</span>
+            <span>{t("editor:edge.deleteTip1", { defaultValue: "Delete this connection" })}</span>
             <span style={{ textAlign: "center" }}>
               <kbd>Middle mouse button</kbd> or select the edge and press{" "}
               <kbd>Delete</kbd> or <kbd>Backspace</kbd>. Select many edges by

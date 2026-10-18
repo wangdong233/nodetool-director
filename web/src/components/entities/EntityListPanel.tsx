@@ -26,6 +26,7 @@ import EntityAssetPickerDialog from "./EntityAssetPickerDialog";
 import EntityCard from "./EntityCard";
 import EntityEditorDialog from "./EntityEditorDialog";
 import { creationProjectId } from "../../stores/WorkspaceTabsStore";
+import { useTranslation } from "react-i18next";
 
 /** Picks an image asset, then opens the editor to describe it. */
 interface CreateEntityButtonProps {
@@ -41,6 +42,7 @@ export const CreateEntityButton = memo(function CreateEntityButton({
   label,
   onCreated
 }: CreateEntityButtonProps) {
+  const { t } = useTranslation();
   const scopedProjectId = projectId ?? creationProjectId();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [assetId, setAssetId] = useState<string | null>(null);
@@ -71,7 +73,7 @@ export const CreateEntityButton = memo(function CreateEntityButton({
           {label}
         </EditorButton>
       ) : (
-        <Tooltip title="New entity" placement="right-start">
+        <Tooltip title={t("editor:ui.newEntity", { defaultValue: "New entity" })} placement="right-start">
           <ToolbarIconButton
             ariaLabel="New entity"
             onClick={() => setPickerOpen(true)}
@@ -109,6 +111,7 @@ interface EntityListPanelProps {
 const EntityListPanelInternal: React.FC<EntityListPanelProps> = ({
   projectId
 }) => {
+  const { t } = useTranslation();
   const { data: entities, isLoading } = useEntities(projectId);
   const deleteEntity = useDeleteEntity();
   const [editing, setEditing] = useState<Entity | null>(null);
@@ -132,7 +135,7 @@ const EntityListPanelInternal: React.FC<EntityListPanelProps> = ({
     return (
       <EmptyState
         variant="empty"
-        title="No entities yet"
+        title={t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
         description="Tag an image as a character, location, style, or prop with the + button above, or right-click an image in the Library and choose Use as entity."
         size="small"
       />

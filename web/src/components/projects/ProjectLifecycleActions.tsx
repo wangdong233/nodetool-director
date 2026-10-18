@@ -31,6 +31,7 @@ import {
   useRestoreProject
 } from "../../hooks/useProjects";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import { useTranslation } from "react-i18next";
 
 interface ErrorWithMessage {
   readonly message: string;
@@ -64,6 +65,7 @@ const ProjectLifecycleActions = ({
   project,
   layout = "buttons"
 }: ProjectLifecycleActionsProps) => {
+  const { t } = useTranslation();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const closeMenu = useCallback(() => setMenuAnchor(null), []);
@@ -152,26 +154,26 @@ const ProjectLifecycleActions = ({
           transformOrigin={{ vertical: "top", horizontal: "right" }}
         >
           <MenuItemPrimitive
-            label={exportProject.isPending ? "Exporting…" : "Export"}
+            label={exportProject.isPending ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : "Export"}
             icon={<FileDownloadOutlinedIcon />}
             disabled={exportProject.isPending}
             onClick={handleExport}
           />
           {project.archivedAt ? (
             <MenuItemPrimitive
-              label="Restore"
+              label={t("timeline:attrs.restore", { defaultValue: "Restore" })}
               icon={<UnarchiveOutlinedIcon />}
               onClick={handleRestore}
             />
           ) : (
             <MenuItemPrimitive
-              label="Archive"
+              label={t("editor:ui.archive", { defaultValue: "Archive" })}
               icon={<ArchiveOutlinedIcon />}
               onClick={handleArchive}
             />
           )}
           <MenuItemPrimitive
-            label="Delete project"
+            label={t("editor:ui.deleteProject", { defaultValue: "Delete project" })}
             icon={<DeleteOutlineIcon />}
             color="error"
             dividerBefore
@@ -187,7 +189,7 @@ const ProjectLifecycleActions = ({
           onClick={handleExport}
           disabled={exportProject.isPending}
         >
-          {exportProject.isPending ? "Exporting…" : "Export"}
+          {exportProject.isPending ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : "Export"}
         </EditorButton>
         {project.archivedAt ? (
           <EditorButton density="compact" variant="text" onClick={handleRestore}>

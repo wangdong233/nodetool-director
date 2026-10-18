@@ -29,6 +29,7 @@ import {
 import { useBatchedGesture } from "../../../hooks/timeline/useBatchedGesture";
 
 import "./fablesynth-editor.css";
+import { useTranslation } from "react-i18next";
 
 type FableInstrument = Exclude<MidiInstrument, { type: "subtractive" | "sampler" }>;
 type KnobSize = "lg" | "md" | "sm" | "xs";
@@ -115,6 +116,7 @@ const Knob: React.FC<KnobProps> = ({
   size = "md",
   accent = "n"
 }) => {
+  const { t } = useTranslation();
   const drag = useRef<{ y: number; norm: number } | null>(null);
   // A drag is one undo entry, however many pointermoves it takes.
   const gesture = useBatchedGesture(onChange);
@@ -138,7 +140,7 @@ const Knob: React.FC<KnobProps> = ({
           />
         </svg>
         <Tooltip
-          title="Drag up or down. Shift for fine adjustment. Double-click to reset."
+          title={t("timeline:attrs.dragUpOrDownShiftForFineAdjustmentDoubleclickToReset", { defaultValue: "Drag up or down. Shift for fine adjustment. Double-click to reset." })}
           describeChild
         >
           <input
@@ -306,7 +308,7 @@ export const InstrumentKeyboard = ({
   <Panel
     title="KEYS"
     className="fs-keys-panel"
-    head={<Caption>Click or focus a key and press Enter</Caption>}
+    head={<Caption>{t("timeline:attrs.clickOrFocusAKeyAndPressEnter", { defaultValue: "Click or focus a key and press Enter" })}</Caption>}
   >
     <div className="fs-keys">
       <div className="fs-white-keys">
@@ -362,11 +364,11 @@ const Filter = <T extends BassMidiInstrument | WavetableMidiInstrument>({
   onChange
 }: EditorProps<T>) => (
   <Panel
-    title="FILTER"
+    title={t("timeline:attrs.filter", { defaultValue: "FILTER" })}
     accent="f"
     head={
       <Stepper
-        label="TYPE"
+        label={t("editor:asset.info.typeUpper", { defaultValue: "TYPE" })}
         options={FILTERS}
         value={filterTypes.indexOf(instrument.filterType)}
         onChange={(index) =>
@@ -464,7 +466,7 @@ const Oscillator = ({
     accent={accent}
     head={
       <Stepper
-        label="TABLE"
+        label={t("appbuilder:attrs.table", { defaultValue: "TABLE" })}
         options={TABLES}
         value={tableNames.indexOf(osc.table)}
         onChange={(index) => onChange({ ...osc, table: tableNames[index] })}
@@ -525,7 +527,7 @@ const BassEditor = ({
         accent="a"
         head={
           <Stepper
-            label="TABLE"
+            label={t("appbuilder:attrs.table", { defaultValue: "TABLE" })}
             options={TABLES}
             value={tableNames.indexOf(instrument.table)}
             onChange={(index) =>
@@ -553,7 +555,7 @@ const BassEditor = ({
       <Panel title="SUB">
         <FlexRow className="fs-sub-controls" gap={SPACING.md} wrap>
           <Stepper
-            label="SHAPE"
+            label={t("timeline:attrs.shapeUpper", { defaultValue: "SHAPE" })}
             options={["SINE", "SQUARE"]}
             value={instrument.subShape === "square" ? 1 : 0}
             onChange={(index) =>
@@ -577,7 +579,7 @@ const BassEditor = ({
         </FlexRow>
       </Panel>
       <Filter instrument={instrument} onChange={onChange} />
-      <Panel title="ENV" className="fs-panel-inline" head={<Caption>Filter envelope</Caption>}>
+      <Panel title="ENV" className="fs-panel-inline" head={<Caption>{t("timeline:attrs.filterEnvelope", { defaultValue: "Filter envelope" })}</Caption>}>
         <div className="fs-knob-row">
           <Knob
             def={P("fattack", "F·ATT", 0, 500, 1, (v) => sec(v / 1000), "time")}
@@ -703,6 +705,7 @@ const DrumEditor = ({
   instrument,
   onChange
 }: EditorProps<DrumMidiInstrument>) => {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState(0);
   const pad = instrument.pads[selected];
   if (!pad) return null;
@@ -730,7 +733,7 @@ const DrumEditor = ({
         title="PADS"
         accent="b"
         className="fs-pad-panel"
-        head={<Caption>Select to edit and audition</Caption>}
+        head={<Caption>{t("timeline:attrs.selectToEditAndAudition", { defaultValue: "Select to edit and audition" })}</Caption>}
       >
         <div className="fs-pad-grid">
           {DRUM_PAD_ORDER.filter((index) => index < instrument.pads.length).map(
@@ -763,7 +766,7 @@ const DrumEditor = ({
             accent="a"
             head={
               <Stepper
-                label="TABLE"
+                label={t("appbuilder:attrs.table", { defaultValue: "TABLE" })}
                 options={drumTables.map((table) => table.toUpperCase())}
                 value={drumTables.indexOf(pad.table)}
                 onChange={(index) =>
@@ -868,12 +871,12 @@ const DrumEditor = ({
             </div>
           </Panel>
           <Panel
-            title="FILTER"
+            title={t("timeline:attrs.filter", { defaultValue: "FILTER" })}
             accent="f"
             head={
               <Power
                 on={Boolean(filter)}
-                label="Filter"
+                label={t("timeline:attrs.filterCapitalized", { defaultValue: "Filter" })}
                 onChange={() =>
                   commit({
                     ...pad,
@@ -889,7 +892,7 @@ const DrumEditor = ({
             {filter ? (
               <>
                 <Stepper
-                  label="TYPE"
+                  label={t("editor:asset.info.typeUpper", { defaultValue: "TYPE" })}
                   options={FILTERS}
                   value={filterTypes.indexOf(filter.type)}
                   onChange={(index) =>
@@ -920,10 +923,10 @@ const DrumEditor = ({
                 </div>
               </>
             ) : (
-              <Caption>Filter bypassed. Enable to shape this pad.</Caption>
+              <Caption>{t("timeline:attrs.filterBypassedEnableToShapeThisPad", { defaultValue: "Filter bypassed. Enable to shape this pad." })}</Caption>
             )}
           </Panel>
-          <Panel title="OUTPUT" accent="b">
+          <Panel title={t("editor:io.output", { defaultValue: "OUTPUT" })} accent="b">
             <div className="fs-knob-row">
               <Knob
                 def={P("level", "LEVEL", 0, 1, 0.8)}
@@ -955,6 +958,7 @@ const FableSynthInstrumentEditor = ({
   instrument,
   onChange
 }: FableSynthInstrumentEditorProps) => {
+  const { t } = useTranslation();
   const model =
     instrument.type === "bass"
       ? "BL-1"
@@ -971,10 +975,8 @@ const FableSynthInstrumentEditor = ({
         <Label>{model}</Label>
         <Caption className="fs-description">
           {instrument.type === "bass"
-            ? "Bass synthesizer"
-            : instrument.type === "wavetable"
-              ? "Wavetable synthesizer"
-              : "Drum synthesizer"}
+            ? t("timeline:attrs.bassSynthesizer", { defaultValue: "Bass synthesizer" }) : instrument.type === "wavetable"
+              ? t("timeline:attrs.wavetableSynthesizer", { defaultValue: "Wavetable synthesizer" }) : "Drum synthesizer"}
         </Caption>
         <EditorButton
           size="small"

@@ -94,7 +94,8 @@
     "titleEmpty": "Documents",
     "empty": "No documents in this project yet.",
     "previous": "Previous",
-    "next": "Next",
+    "next": "next",
+    "nextCapitalized": "Next",
     "range": "{{first}}–{{last}} of {{total}}",
     "sectionAria": "Current project documents"
   },

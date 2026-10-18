@@ -80,6 +80,7 @@ import {
   SETUP_MEDIA_WIDTH,
   SETUP_WIDE_CONTENT_WIDTH
 } from "../layout";
+import { useTranslation } from "react-i18next";
 
 // The estimate pulls in the provider price tables, as on the review step.
 const GenerationEstimateLine = lazy(() =>
@@ -154,6 +155,7 @@ export const EntitiesStep = ({
   readOnly = false,
   onCreationStart
 }: EntitiesStepProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const {
     data: entities,
@@ -280,8 +282,7 @@ export const EntitiesStep = ({
     createPrice === null
       ? null
       : createPrice.cost === null
-        ? "Price unknown"
-        : `About ${formatUsd(createPrice.cost)}`;
+        ? t("editor:ui.priceUnknown", { defaultValue: "Price unknown" }) : `About ${formatUsd(createPrice.cost)}`;
 
   const handleCreated = (entity: Entity | null): void => {
     if (entity) {
@@ -503,7 +504,7 @@ export const EntitiesStep = ({
           >
             <SectionHeader
               size="small"
-              title="Suggested from your story"
+              title={t("storyboard:attrs.suggestedFromYourStory", { defaultValue: "Suggested from your story" })}
               role="heading"
               aria-level={2}
             />
@@ -521,10 +522,8 @@ export const EntitiesStep = ({
                 disabled={readOnly || suggesting}
               >
                 {suggesting
-                  ? "Finding entities"
-                  : suggestions.length > 0
-                    ? "Refresh suggestions"
-                    : "Find entities"}
+                  ? i18n.t("storyboard:attrs.findingEntities", { defaultValue: "Finding entities" }) : suggestions.length > 0
+                    ? i18n.t("storyboard:attrs.refreshSuggestions", { defaultValue: "Refresh suggestions" }) : "Find entities"}
               </EditorButton>
               {suggesting ? (
                 // Named apart from the footer's Cancel, which stops entity
@@ -532,7 +531,7 @@ export const EntitiesStep = ({
                 <EditorButton
                   variant="text"
                   onClick={cancelFind}
-                  aria-label="Cancel finding entities"
+                  aria-label={t("storyboard:attrs.cancelFindingEntities", { defaultValue: "Cancel finding entities" })}
                 >
                   Cancel
                 </EditorButton>
@@ -547,7 +546,7 @@ export const EntitiesStep = ({
             {readOnly ? null : (
               <Suspense
                 fallback={
-                  <Caption color="secondary">Loading estimate…</Caption>
+                  <Caption color="secondary">{t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}</Caption>
                 }
               >
                 <GenerationEstimateLine
@@ -567,8 +566,7 @@ export const EntitiesStep = ({
             severity="error"
             title={
               assistFailure === "find"
-                ? "Could not find entities"
-                : "Could not create entities"
+                ? i18n.t("storyboard:attrs.couldNotFindEntities", { defaultValue: "Could not find entities" }) : "Could not create entities"
             }
             action={
               <ReportBugButton
@@ -599,7 +597,7 @@ export const EntitiesStep = ({
                 )
             ) ? (
               <FormField
-                label="Reference image model"
+                label={t("storyboard:attrs.referenceImageModel", { defaultValue: "Reference image model" })}
                 helperText={referenceModelHelperText(referenceModel)}
                 sx={{ maxWidth: SETUP_FIELD_WIDTH }}
               >
@@ -691,7 +689,7 @@ export const EntitiesStep = ({
         <FlexRow gap={SPACING.md} wrap align="baseline">
           <SectionHeader
             size="small"
-            title="Your entity library"
+            title={t("storyboard:attrs.yourEntityLibrary", { defaultValue: "Your entity library" })}
             role="heading"
             aria-level={2}
           />
@@ -716,7 +714,7 @@ export const EntitiesStep = ({
         // would send the creator to make again what they already have.
         <AlertBanner
           severity="error"
-          title="Could not load your entities"
+          title={t("storyboard:attrs.couldNotLoadYourEntities", { defaultValue: "Could not load your entities" })}
           action={
             <FlexRow gap={SPACING.sm}>
               <EditorButton
@@ -742,8 +740,8 @@ export const EntitiesStep = ({
       ) : !entities || entities.length === 0 ? (
         <EmptyState
           variant="no-data"
-          title="No entities yet"
-          description="Create one from a generated or uploaded image, or skip this step."
+          title={t("storyboard:attrs.noEntitiesYet", { defaultValue: "No entities yet" })}
+          description={t("editor:ui.createOneFromAGeneratedOrUploadedImageOrSkipThisStep", { defaultValue: "Create one from a generated or uploaded image, or skip this step." })}
           size="small"
         />
       ) : (
@@ -765,7 +763,7 @@ export const EntitiesStep = ({
               <SearchInput
                 value={search}
                 onChange={setSearch}
-                placeholder="Search entities"
+                placeholder={t("storyboard:attrs.searchEntities", { defaultValue: "Search entities" })}
                 fullWidth
               />
             </FlexColumn>
@@ -784,13 +782,11 @@ export const EntitiesStep = ({
                   variant="no-data"
                   title={
                     onlySelected && !query
-                      ? "No entities selected"
-                      : "No matching entities"
+                      ? i18n.t("storyboard:attrs.noEntitiesSelected", { defaultValue: "No entities selected" }) : "No matching entities"
                   }
                   description={
                     onlySelected && !query
-                      ? "Browse your library to choose references for this storyboard."
-                      : "Try another name or change the selected filter."
+                      ? i18n.t("storyboard:attrs.browseYourLibraryToChooseReferencesForThisStoryboard", { defaultValue: "Browse your library to choose references for this storyboard." }) : "Try another name or change the selected filter."
                   }
                   size="small"
                 />

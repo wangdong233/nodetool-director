@@ -6,6 +6,7 @@ import {
   useOpenProject
 } from "../../hooks/useProjects";
 import { Dialog, TextInput } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 interface NewProjectDialogProps {
   open: boolean;
@@ -17,6 +18,7 @@ interface NewProjectDialogProps {
  * point uses it, so a click always leaves a project in the Projects list.
  */
 const NewProjectDialog = ({ open, onClose }: NewProjectDialogProps) => {
+  const { t } = useTranslation("editor");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | undefined>();
   const createProject = useCreateProject();
@@ -62,14 +64,14 @@ const NewProjectDialog = ({ open, onClose }: NewProjectDialogProps) => {
     <Dialog
       open={open}
       onClose={close}
-      title="New project"
+      title={t("editor:ui.newProject", { defaultValue: "New project" })}
       onConfirm={() => void create()}
       confirmText="Create project"
       confirmDisabled={!trimmed}
       isLoading={isPending}
     >
       <TextInput
-        label="Project name"
+        label={t("storyboard:attrs.projectName", { defaultValue: "Project name" })}
         value={name}
         autoFocus
         inputProps={{ maxLength: 200 }}

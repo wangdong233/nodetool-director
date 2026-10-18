@@ -71,6 +71,7 @@ import {
   DownloadButton,
   FlexRow
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 const containerStyles = css({
   width: "100%",
@@ -359,6 +360,7 @@ type AssetViewerProps = {
 const FILMSTRIP_NEIGHBOURS = 5;
 
 const AssetViewer: React.FC<AssetViewerProps> = (props) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const {
     asset,
@@ -651,7 +653,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
         fullWidth
         open={open}
         onClose={handleClose}
-        aria-label="Asset viewer"
+        aria-label={t("editor:ui.assetViewer", { defaultValue: "Asset viewer" })}
         variant="fullscreen"
         slotProps={{
           // Media sits on a dark surface rather than the paper color.
@@ -743,7 +745,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {currentAsset?.workflow_id && !compareMode && inLibrary && (
             <ToolbarIconButton
               icon={<AccountTreeIcon />}
-              tooltip="Open the workflow that made this"
+              tooltip={t("editor:ui.openTheWorkflowThatMadeThis", { defaultValue: "Open the workflow that made this" })}
               onClick={handleOpenWorkflow}
               className="button open-workflow"
               nodrag={false}
@@ -765,7 +767,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {canCompare && !compareMode && !compareAssetB && (
             <ToolbarIconButton
               icon={<CompareIcon />}
-              tooltip="Compare with another image"
+              tooltip={t("editor:ui.compareWithAnotherImage", { defaultValue: "Compare with another image" })}
               onClick={startCompareMode}
               className="button compare"
               nodrag={false}
@@ -775,7 +777,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {currentAsset && !compareMode && inLibrary && (
             <ToolbarIconButton
               icon={<InfoOutlinedIcon />}
-              tooltip={showInfo ? "Hide info" : "Show info"}
+              tooltip={showInfo ? t("editor:ui.hideInfo", { defaultValue: "Hide info" }) : "Show info"}
               onClick={toggleInfo}
               className="button info"
               nodrag={false}
@@ -784,7 +786,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           )}
           <CloseButton
             onClick={compareAssetB ? exitCompareView : handleClose}
-            tooltip="Close"
+            tooltip={t("sketch:attrs.close", { defaultValue: "Close" })}
             className="button close"
             nodrag={false}
             sx={viewerActionButtonSx}

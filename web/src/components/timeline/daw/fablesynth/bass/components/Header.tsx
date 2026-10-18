@@ -8,8 +8,10 @@ import { patchOptions } from '../patches';
 import { useBassStore } from '../bassStoreContext';
 import { BassPatchBrowser } from './BassPatchBrowser';
 import { BassKnob } from './BassKnob';
+import { useTranslation } from "react-i18next";
 
 export function Header() {
+  const { t } = useTranslation("appbuilder");
   const device = useBassStore((s) => s.device);
   const patchValue = useBassStore((s) => s.patchValue);
   const userPatches = useBassStore((s) => s.userPatches);
@@ -84,7 +86,7 @@ export function Header() {
       <div className="hud bl-hud">
         <div className="hud-cell">
           {device ? <ScopeView analyser={device.getAnalyser()} accent="#4dff9e" /> : <canvas />}
-          <span>SCOPE</span>
+          <span>{t("appbuilder:attrs.scope", { defaultValue: "SCOPE" })}</span>
         </div>
       </div>
       <div className="bl-master">

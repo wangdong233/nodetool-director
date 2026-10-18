@@ -49,6 +49,7 @@ import {
 } from "../../stores/lastModelStore";
 import type { ImageModelValue, VideoModelValue } from "../../stores/ApiTypes";
 import { VIDEO_RESOLUTIONS } from "../../stores/MediaGenerationStore";
+import { useTranslation } from "react-i18next";
 
 export type ShotRenderStep = "still" | "clip";
 
@@ -73,6 +74,7 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
   step,
   onClose
 }) => {
+  const { t } = useTranslation();
   const { generateKeyframe, generateClip } = useGenerateShot();
   const { models: imageModels } = useImageModelsByProvider();
   const { models: videoModels } = useVideoModelsByProvider();
@@ -192,7 +194,7 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
 
   const isClip = step === "clip";
   const priced = estimate.pricedRequestCount > 0 && estimate.cost > 0;
-  const verb = isClip ? "Render clip" : "Render still";
+  const verb = isClip ? t("storyboard:attrs.renderClip", { defaultValue: "Render clip" }) : "Render still";
 
   return (
     <Dialog
@@ -220,14 +222,14 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
               />
             </FormField>
             <SelectField
-              label="Resolution"
+              label={t("storyboard:attrs.resolution", { defaultValue: "Resolution" })}
               value={resolution}
               onChange={setPickedResolution}
               options={resolutionOptions}
             />
           </>
         ) : (
-          <FormField label="Still model" sx={modelFieldSx}>
+          <FormField label={t("storyboard:attrs.stillModel", { defaultValue: "Still model" })} sx={modelFieldSx}>
             <ImageModelSelect
               value={stillSelection?.id ?? ""}
               provider={stillSelection?.provider}

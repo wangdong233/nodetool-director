@@ -38,6 +38,7 @@ import { gamePlaytestPrompt, gameScriptErrorPrompt, gameSelectionPrompt } from "
 import GameViewport3D, { type GameViewportAction3D } from "./viewport3d/GameViewport3D";
 import { scriptFailure } from "./useGamePlaySession";
 import { EMPTY_INPUT_3D, useGamePlaySession3D } from "./useGamePlaySession3D";
+import { useTranslation } from "react-i18next";
 
 async function openDiagnosticSession(document: GameDocument3D, signal: AbortSignal): Promise<GameDiagnosticSession> {
   const session = await openGameDiagnosticSession3D(document, signal);
@@ -48,6 +49,7 @@ interface GameEditor3DProps { readonly refId: string; readonly active: boolean; 
 interface GameEditor3DContentProps extends GameEditor3DProps { readonly document: GameDocument3D; readonly name: string; readonly projectId: string; }
 
 function GameEditor3DContent({ refId, active, document, name, projectId }: GameEditor3DContentProps) {
+  const { t } = useTranslation();
   const selectedIds = useGameDraft(refId, (state) => state.selectedIds);
   const saveStatus = useGameDraft(refId, (state) => state.saveStatus);
   const draftError = useGameDraft(refId, (state) => state.error);
@@ -297,10 +299,10 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
     notices={<>
     {notice && <FlexColumn gap={SPACING.xs} sx={{ px: SPACING.md, py: SPACING.xs, borderBottom: 1, borderColor: "divider", bgcolor: "background.paper" }}>
       {(host.error || draftError || operationError) && <FlexRow gap={SPACING.xs} align="center"><Caption color="error" role="alert" sx={{ flex: 1, minWidth: 0 }}>{host.error ?? draftError ?? operationError}</Caption>
-        {host.error && <EditorButton onClick={() => void host.replayBeforeError()}>Replay before error</EditorButton>}
+        {host.error && <EditorButton onClick={() => void host.replayBeforeError()}>{t("editor:ui.replayBeforeError", { defaultValue: "Replay before error" })}</EditorButton>}
         <ReportBugButton context={{ source: "panel-crash", summary: "3D game editor failed", errorText: host.error ?? draftError ?? operationError ?? "",
           nodeDetail: `Game: ${refId}\nScene: ${activeSceneId}\nEntity: ${selected?.id ?? "none"}\nTick: ${host.inspection?.tick ?? 0}` }} /></FlexRow>}
-      {restart && <Caption role="status">The draft changed. Stop and play again to apply it.</Caption>}
+      {restart && <Caption role="status">{t("editor:ui.theDraftChangedStopAndPlayAgainToApplyIt", { defaultValue: "The draft changed. Stop and play again to apply it." })}</Caption>}
     </FlexColumn>}
     <GameAuthoringPreview key={refId} gameId={refId} document={document} flush={flush} onHighlight={setHighlightedIds} />
     {conflicts.items.length > 0 && <ConflictBanner conflicts={conflicts.items} onAccept={conflicts.accept} onDiscard={conflicts.discard} />}
@@ -312,18 +314,18 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
         node: <>
 <GameHierarchy3D document={document} scene={scene} selectedIds={selectedIds} onSelect={select} onAdd={add}
           onSelectScene={(value) => { setSceneId(value); getGameDraftStore(refId).getState().selectMany([]); }}
-          footer={<CollapsibleSection title={<Label component="span" sx={{ mb: 0 }}>Model assets</Label>} compact defaultOpen={false}>
+          footer={<CollapsibleSection title={<Label component="span" sx={{ mb: 0 }}>{t("game:editor.modelAssets", { defaultValue: "Model assets" })}</Label>} compact defaultOpen={false}>
             <FlexColumn gap={SPACING.sm} sx={{ pb: SPACING.md }}>
-              <TextInput label="Owned model asset ID" compact value={assetId} onChange={(event) => setAssetId(event.target.value)} />
-              <TextInput label="Model slot" compact value={assetSlot} onChange={(event) => setAssetSlot(event.target.value)} />
-              <EditorButton variant="outlined" disabled={!assetId || !assetSlot} onClick={() => void installModel()}>Prepare and install model</EditorButton>
+              <TextInput label={t("editor:ui.ownedModelAssetId", { defaultValue: "Owned model asset ID" })} compact value={assetId} onChange={(event) => setAssetId(event.target.value)} />
+              <TextInput label={t("editor:ui.modelSlot", { defaultValue: "Model slot" })} compact value={assetSlot} onChange={(event) => setAssetSlot(event.target.value)} />
+              <EditorButton variant="outlined" disabled={!assetId || !assetSlot} onClick={() => void installModel()}>{t("game:editor.prepareAndInstallModel", { defaultValue: "Prepare and install model" })}</EditorButton>
               {Object.entries(document.assets).map(([slot, binding]) => <FlexRow key={slot} gap={SPACING.xs} align="center">
                 <Caption sx={{ flex: 1, minWidth: 0 }}>{slot} · {binding.mediaKind}</Caption>
                 {binding.mediaKind === "model" && <EditorButton onClick={() => useWorkspaceTabsStore.getState().openTab({
                   type: "model3d", ref: binding.sourceAssetId ?? binding.assetId, mode: "edit", title: slot, projectId
-                })}>Edit model</EditorButton>}
+                })}>{t("game:editor.editModel", { defaultValue: "Edit model" })}</EditorButton>}
               </FlexRow>)}
-              <Caption>After saving model changes, prepare and install them again.</Caption>
+              <Caption>{t("game:editor.afterSavingModelChanges", { defaultValue: "After saving model changes, prepare and install them again." })}</Caption>
             </FlexColumn>
           </CollapsibleSection>} />        </> },
       { id: "revisions",
@@ -357,7 +359,7 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
         node: <>
         <FlexColumn sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
           <GameInspector3D document={document} sceneId={activeSceneId} entityId={selected?.id} onOps={onOps} onOperationError={(message) => getGameDraftStore(refId).getState().reportOperationError(message)} onScript={(index) => { if (selected) { setScriptKey({ sceneId: activeSceneId, entityId: selected.id, index }); layoutStore.getState().dispatch({ type: "reveal", panelId: "scripts" }); } }} />
-          {host.playDocument && !host.playing && <CollapsibleSection title="Runtime state" compact sx={{ px: SPACING.md }}><Caption>{JSON.stringify(host.inspection?.entities.find((entity) => entity.id === selected?.id))}</Caption></CollapsibleSection>}
+          {host.playDocument && !host.playing && <CollapsibleSection title={t("editor:ui.runtimeState", { defaultValue: "Runtime state" })} compact sx={{ px: SPACING.md }}><Caption>{JSON.stringify(host.inspection?.entities.find((entity) => entity.id === selected?.id))}</Caption></CollapsibleSection>}
         </FlexColumn>
       </> },
       { id: "assistant",
@@ -373,12 +375,12 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
       "assistant.fixScriptError": { run: askAssistant, enabled: Boolean(scriptError && scriptKey) }
     }}
     dialogs={<>
-    <Dialog open={publishOpen} onClose={() => setPublishOpen(false)} title="Publish 3D game"
+    <Dialog open={publishOpen} onClose={() => setPublishOpen(false)} title={t("editor:ui.publish3dGame", { defaultValue: "Publish 3D game" })}
       onConfirm={() => void publish()} confirmText="Publish" isLoading={publishing} showActions>
-      <FlexColumn gap={SPACING.sm}><Text>Create an immutable revision from the current draft.</Text>
-        <TextInput label="Revision message" value={publishMessage} onChange={(event) => setPublishMessage(event.target.value)} />
-        <Text>Changes since the last revision</Text>
-        {changeEntries?.length ? changeEntries.map((entry) => <Caption key={entry.id}>{entry.summary}</Caption>) : <Caption>No saved changes</Caption>}
+      <FlexColumn gap={SPACING.sm}><Text>{t("editor:ui.createAnImmutableRevisionFromTheCurrentDraft", { defaultValue: "Create an immutable revision from the current draft." })}</Text>
+        <TextInput label={t("editor:ui.revisionMessage", { defaultValue: "Revision message" })} value={publishMessage} onChange={(event) => setPublishMessage(event.target.value)} />
+        <Text>{t("editor:ui.changesSinceTheLastRevision", { defaultValue: "Changes since the last revision" })}</Text>
+        {changeEntries?.length ? changeEntries.map((entry) => <Caption key={entry.id}>{entry.summary}</Caption>) : <Caption>{t("editor:ui.noSavedChanges", { defaultValue: "No saved changes" })}</Caption>}
       </FlexColumn>
     </Dialog>
     </>}
@@ -387,6 +389,7 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
 }
 
 export default function GameEditor3D({ refId, active }: GameEditor3DProps) {
+  const { t } = useTranslation();
   const { data, isPending, error } = trpc.games.getDraft.useQuery({ id: refId }, { staleTime: 15_000 });
   const document = useGameDraft(refId, (state) => state.document?.schemaVersion === 3 ? state.document : null);
   useEffect(() => {
@@ -400,7 +403,7 @@ export default function GameEditor3D({ refId, active }: GameEditor3DProps) {
   if (error || !data || !document) {
     const message = error?.message ?? "Game source is unavailable.";
     return <FlexColumn gap={SPACING.sm} align="center">
-      <EmptyState variant="error" title="Could not load game" description={message} />
+      <EmptyState variant="error" title={t("editor:ui.couldNotLoadGame", { defaultValue: "Could not load game" })} description={message} />
       <ReportBugButton context={{ source: "panel-crash", summary: "3D game could not load", errorText: message, nodeDetail: `Game: ${refId}` }} />
     </FlexColumn>;
   }

@@ -10,6 +10,7 @@ import { useDynamicOutput } from "../../hooks/nodes/useDynamicOutput";
 import { TypeMetadata } from "../../stores/ApiTypes";
 import { validateIdentifierName } from "../../utils/identifierValidation";
 import AddDynamicOutputDialog from "./AddDynamicOutputDialog";
+import { useTranslation } from "react-i18next";
 
 interface NodePropertyFormProps {
   id: string;
@@ -28,6 +29,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
   onAddProperty,
   nodeType
 }) => {
+  const { t } = useTranslation();
   const { handleAddOutput } = useDynamicOutput(id, dynamicOutputs);
   const staticOutputs = useMetadataStore((state) =>
     nodeType ? state.metadata[nodeType]?.outputs : undefined
@@ -139,13 +141,13 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
         onClose={handleHideInputDialog}
         maxWidth="xs"
         fullWidth
-        title="Add input"
+        title={t("editor:ui.addInput", { defaultValue: "Add input" })}
         onConfirm={handleAddInputProperty}
         confirmText="Add input"
       >
         <TextInput
           autoFocus
-          label="Name"
+          label={t("editor:asset.info.name", { defaultValue: "Name" })}
           size="small"
           value={newInputName}
           onChange={(e) => {
@@ -161,7 +163,7 @@ const NodePropertyForm: React.FC<NodePropertyFormProps> = ({
             }
           }}
           errorMessage={inputNameError}
-          helperText="Cannot start with a number"
+          helperText={t("editor:inspector.nameNoNumber", { defaultValue: "Cannot start with a number" })}
         />
       </Dialog>
     </div>

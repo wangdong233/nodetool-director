@@ -3,8 +3,10 @@ import { ScopeView } from '../../components/displays/ScopeView';
 import { DrumKnob } from './DrumKnob';
 import { KitBrowser } from './browser/KitBrowser';
 import { kitOptions, useDrumStore } from '../dr1Store';
+import { useTranslation } from "react-i18next";
 
 export function Header() {
+  const { t } = useTranslation("ui2");
   const powered = useDrumStore((s) => s.powered);
   const kitValue = useDrumStore((s) => s.kitValue);
   const userKits = useDrumStore((s) => s.userKits);
@@ -48,7 +50,7 @@ export function Header() {
         <button className="pb-btn" aria-label="previous kit" onClick={() => stepKit(-1)}>◂</button>
         <span className="dr-kitname">
           {currentKit}
-          {kitDirty && !naming && <span className="dr-dirty-dot" aria-label="unsaved changes" title="unsaved changes" />}
+          {kitDirty && !naming && <span className="dr-dirty-dot" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "unsaved changes" })} title={t("ui2:attrs.unsavedChanges", { defaultValue: "unsaved changes" })} />}
         </span>
         <button className="pb-btn" aria-label="next kit" onClick={() => stepKit(1)}>▸</button>
         {naming ? (
@@ -78,7 +80,7 @@ export function Header() {
       <div className="hud dr-hud">
         <div className="hud-cell">
           {powered && analyser ? <ScopeView analyser={analyser} accent="#4de8ff" /> : <canvas />}
-          <span>SCOPE</span>
+          <span>{t("appbuilder:attrs.scope", { defaultValue: "SCOPE" })}</span>
         </div>
       </div>
       <div className="status dr-midi">
