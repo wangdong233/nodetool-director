@@ -27,11 +27,9 @@
     "alpha": "带透明通道导出",
     "MP4CarriesNoAlphaChannelChooseWebMOrAPNGSequence": "MP4 不带 alpha 通道。请选择 WebM 或 PNG 序列。",
     "PNGSequenceZip": "PNG 序列（.zip）",
-    "VP9VideoWithOpusAudio": "VP9 视频，Opus 音频。",
     "compositesOverATransparentGroundAndKeepsTheAlphaChannel": "在透明底上合成，并保留 alpha 通道。",
     "everyPNGKeepsItsAlphaChannel": "每张 PNG 都保留 alpha 通道。",
-    "onePNGPerFrameInAZipWithAManifestjsonNamingTheRateAndSizeNoAudio": "每帧一张 PNG 打包为 zip，含 manifest.json 标明帧率与尺寸。无音频。",
-    "playsEverywhereNoTransparency": "处处可播，无透明。"
+    "onePNGPerFrameInAZipWithAManifestjsonNamingTheRateAndSizeNoAudio": "每帧一张 PNG 打包为 zip，含 manifest.json 标明帧率与尺寸。无音频。"
   },
   "project": {
     "title": "项目设置",
@@ -97,8 +95,7 @@
     "nextClipBoundary": "下一个剪辑点",
     "previewQuality": "预览画质",
     "showMatteTooltip": "显示所选剪辑的主体遮罩（替代原画面）",
-    "showMatte": "显示遮罩",
-    "exitFullscreen": "退出全屏"
+    "showMatte": "显示遮罩"
   },
   "tools": {
     "select": "选择",
@@ -147,7 +144,6 @@
     "instrumentTrack": "乐器轨道"
   },
   "attrs": {
-    "bypass": "旁通",
     "keyframes": "关键帧",
     "addAMIDITrackToChooseAnInstrument": "添加一条 MIDI 轨道来选择乐器。",
     "addMIDIClip": "添加 MIDI 片段",
@@ -652,7 +648,6 @@
     "dropOneAssetAtATimeOntoATrack": "一次只能向轨道放下一个素材。",
     "moveThePlayheadInsideTheClipToSplitIt": "把播放头移到片段内再拆分。",
     "thisBrowserHasNoWebGLSo3DClipsCannotBeDrawnHere": "此浏览器没有 WebGL，无法在此绘制 3D 片段。",
-    "exitFullscreen": "退出全屏",
     "timelinePreviewFailed": "时间线预览失败",
     "trackedSubject": "已跟踪主体",
     "failedToGet2DCanvasContext": "获取 2D 画布上下文失败",

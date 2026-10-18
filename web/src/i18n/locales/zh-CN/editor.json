@@ -1,5 +1,4 @@
 {
-  "wholeClip": "整个片段",
   "common": {
     "paste": "粘贴"
   },
@@ -65,7 +64,6 @@
     "disableAll": "全部停用"
   },
   "workflow": {
-    "planDrafting": "起草中",
     "runEntireWorkflow": "运行整个工作流",
     "removeFav": "取消收藏",
     "addFav": "添加收藏",
@@ -73,7 +71,6 @@
     "edit": "编辑",
     "runStopping": "停止中",
     "runStarting": "启动中",
-    "runRunning": "运行中",
     "runErrorRetry": "错误 · 重试"
   },
   "asset": {
@@ -150,11 +147,6 @@
     "connectableNodes": "可连接节点"
   },
   "nodeBody": {
-    "runImage": "运行以生成",
-    "runVideo": "运行以生成视频",
-    "runText": "运行以生成文本",
-    "runAudio": "运行以生成音频",
-    "run3d": "运行以生成 3D",
     "noMask": "还没有蒙版",
     "runList": "运行以生成列表",
     "generatingItems": "正在生成条目…",
@@ -224,13 +216,9 @@
     "versions": "版本",
     "trace": "追踪",
     "resizeAria": "调整面板大小",
-    "stateConnected": "已连接",
     "stateDisconnected": "已断开"
   },
   "ui": {
-    "openAction": "打开",
-    "vastAi": "Vast.ai",
-    "duplicateName": "名称重复",
     "creditsUnavailable": "额度不可用",
     "newFlow": "新建流程",
     "failedToResolveAuthSession": "登录会话解析失败",

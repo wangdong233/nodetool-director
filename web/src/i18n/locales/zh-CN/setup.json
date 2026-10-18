@@ -222,7 +222,6 @@
     "waitFilesFinishUploading": "请等待你的文件完成上传",
     "waitCurrentUploadThenDropAgain": "请等当前上传完成后再拖放。",
     "mediaOnTimelinePlanHere": "你的媒体已在这条时间线上，转走会丢下它们。请在这里规划节拍。",
-    "refKind_product": "产品",
     "refKind_character": "角色",
     "refKind_style": "风格"
   },
@@ -243,7 +242,6 @@
     "notStartedGraphDidNotValidate": "未启动：图谱未通过校验",
     "notStartedPlanUnwired": "未启动：部分计划未接线",
     "notStartedBuildStopped": "未启动：构建先停了",
-    "pill_checking": "检查中",
     "pill_failed": "失败",
     "pill_unknown": "未知",
     "pill_completed": "已完成",

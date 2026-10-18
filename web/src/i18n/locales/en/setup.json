@@ -222,7 +222,6 @@
     "waitFilesFinishUploading": "Wait for your files to finish uploading",
     "waitCurrentUploadThenDropAgain": "Wait for the current upload to finish, then drop again.",
     "mediaOnTimelinePlanHere": "Your media is on this timeline and would be left behind. Plan the beats here instead.",
-    "refKind_product": "product",
     "refKind_character": "character",
     "refKind_style": "style"
   },
@@ -243,7 +242,6 @@
     "notStartedGraphDidNotValidate": "Not started, the graph did not validate",
     "notStartedPlanUnwired": "Not started, part of the plan is unwired",
     "notStartedBuildStopped": "Not started, the build stopped first",
-    "pill_checking": "checking",
     "pill_failed": "failed",
     "pill_unknown": "unknown",
     "pill_completed": "completed",

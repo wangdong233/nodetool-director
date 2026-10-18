@@ -8,10 +8,7 @@
     "videoList": "Video List"
   },
   "menus": {
-    "recheck": "Recheck",
     "register": "Register",
-    "extensionNotConnected": "Extension not connected",
-    "connectToChrome": "Connect to Chrome",
     "addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider": "Add a base URL and an API key to use any OpenAI-compatible provider.",
     "addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage": "Add a command or a URL. Its tools join the agent's toolbelt on the next message.",
     "aiAgentForProcessing": "AI agent for processing",
@@ -114,7 +111,6 @@
       },
       "HIGGSFIELD_API_KEY_ID": {
         "credentialLabel": "API key",
-        "credentialPlaceholder": "Paste key-id:secret",
         "description": "Curated image and video generation models."
       },
       "JINA_API_KEY": {

@@ -1,5 +1,4 @@
 {
-  "wholeClip": "whole clip",
   "common": {
     "paste": "Paste"
   },
@@ -65,7 +64,6 @@
     "disableAll": "Disable All"
   },
   "workflow": {
-    "planDrafting": "drafting",
     "runEntireWorkflow": "Run entire workflow",
     "removeFav": "Remove from favorites",
     "addFav": "Add to favorites",
@@ -73,7 +71,6 @@
     "edit": "Edit",
     "runStopping": "Stopping",
     "runStarting": "Starting",
-    "runRunning": "Running",
     "runErrorRetry": "Error · Retry"
   },
   "asset": {
@@ -150,11 +147,6 @@
     "connectableNodes": "Connectable nodes"
   },
   "nodeBody": {
-    "runImage": "Run to generate",
-    "runVideo": "Run to generate video",
-    "runText": "Run to generate text",
-    "runAudio": "Run to generate audio",
-    "run3d": "Run to generate 3D",
     "noMask": "No mask yet",
     "runList": "Run to generate a list",
     "generatingItems": "Generating items…",
@@ -224,13 +216,9 @@
     "versions": "Versions",
     "trace": "Trace",
     "resizeAria": "Resize panel",
-    "stateConnected": "connected",
     "stateDisconnected": "disconnected"
   },
   "ui": {
-    "openAction": "Open",
-    "vastAi": "Vast.ai",
-    "duplicateName": "Duplicate name",
     "creditsUnavailable": "Credits unavailable",
     "newFlow": "New flow",
     "failedToResolveAuthSession": "Failed to resolve auth session",

@@ -1,6 +1,5 @@
 {
   "attrs": {
-    "deleteDirection": "删除导演指示",
     "board": "分镜板",
     "generating": "生成中",
     "preparing": "准备中…",
@@ -32,7 +31,6 @@
     "regenerateStaleStills": "重新生成过期静帧",
     "regenerateStaleStill_other": "重新生成 {{count}} 个过期静帧？",
     "regenerateStaleClip_other": "重新生成 {{count}} 个过期片段？",
-    "storyboardPreview": "分镜预览",
     "verificationState": {
 
     },
@@ -176,7 +174,6 @@
     "runMode": "运行模式",
     "runTheDirectorAgain": "再次运行 Director",
     "scene": "场景",
-    "sceneLighting": "场景打光",
     "screenplay": "剧本",
     "screenplayModel": "剧本模型",
     "searchEntities": "搜索实体",
@@ -454,7 +451,6 @@
     "closeCoverageAndLongTakesFacesCarryingTheScene": "近景覆盖镜头与长镜头，靠面孔撑起场面。",
     "darkFramesWithheldRevealsACameraSlowerThanYouWantIt": "暗黑画面、迟迟不揭的悬念，比你想的更慢的镜头。",
     "drawnOrRenderedFramesAndExaggeratedTimingWithNoCameraToObey": "手绘或渲染画面与夸张节奏，不受真实摄影机约束。",
-    "durationSource": "时长来源",
     "fastCutsHandheldWeightMotionAcrossTheFrame": "快切、手持感、画面内运动。",
     "generateFromPrompts": "按提示词生成",
     "genreAction": "动作",
@@ -478,7 +474,6 @@
     "partialViewsAndShadowInformationHeldBackAShotLonger": "局部视角与阴影，信息总是晚一镜才给。",
     "productDescription": "产品描述",
     "productInFocusCleanLightOneClaimPerShot": "产品是主角，光线干净，一镜一个卖点。",
-    "productName": "产品名称",
     "rendering": "正在渲染",
     "stale": "已过期",
     "staleLower": "已过期",
@@ -731,7 +726,6 @@
     "graphics": "图形",
     "editedGraphics": "已编辑的图形",
     "takes": "条",
-    "changeStill": "修改静帧",
     "renderModeKeyframe": "关键帧",
     "renderModeDirect": "直接",
     "renderModeReference": "参考图",

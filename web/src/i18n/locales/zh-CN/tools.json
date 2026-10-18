@@ -8,10 +8,7 @@
     "videoList": "视频列表"
   },
   "menus": {
-    "recheck": "重新检测",
     "register": "注册",
-    "extensionNotConnected": "扩展未连接",
-    "connectToChrome": "连接 Chrome",
     "addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider": "添加 Base URL 和 API 密钥，即可使用任何 OpenAI 兼容的服务商。",
     "addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage": "添加一条命令或一个 URL。其工具会在下一条消息加入智能体的工具箱。",
     "aiAgentForProcessing": "用于处理的 AI 智能体",
@@ -114,7 +111,6 @@
       },
       "HIGGSFIELD_API_KEY_ID": {
         "credentialLabel": "API 密钥",
-        "credentialPlaceholder": "粘贴 key-id:secret",
         "description": "精选的图像与视频生成模型。"
       },
       "JINA_API_KEY": {

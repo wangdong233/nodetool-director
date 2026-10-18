@@ -26,7 +26,6 @@
   },
   "command": {
     "editor": {
-      "blendingOut": "Blending out",
       "commandPalette": "Open command palette",
       "keyboardShortcuts": "Edit keyboard shortcuts",
       "publish": "Publish game"
@@ -160,7 +159,6 @@
     "noMatchTitle": "No lines match the filters"
   },
   "hierarchy": {
-    "noEntitiesMatch": "No entities match.",
     "noEntities": "This scene has no entities.",
     "sceneEntities": "Scene entities"
   },
@@ -183,7 +181,6 @@
     "removeEffect": "Remove effect",
     "hudEffectOrder": "HUD effect order",
     "beforeEffects": "Before effects",
-    "afterEffects": "After effects",
     "assetBindings": "Asset bindings",
     "newAssetSlot": "New asset slot",
     "addBinding": "Add binding",
@@ -192,11 +189,9 @@
     "editScript": "Edit script",
     "removeBehavior": "Remove behavior",
     "addBehavior": "Add behavior",
-    "removeMusic": "Remove music",
     "addMusic": "Add music",
     "removeLight": "Remove light",
     "addLight": "Add light",
-    "removeLighting": "Remove lighting",
     "addLighting": "Add lighting",
     "backgrounds": "Backgrounds",
     "removeBackground": "Remove background",
@@ -254,7 +249,6 @@
   },
   "runtime": {
     "entityStateAria": "Runtime entity state",
-    "inactive": "Inactive",
     "selectEntity": "Select a runtime entity in the viewport"
   },
   "palette": {
@@ -282,7 +276,6 @@
 
   },
   "viewport": {
-    "orbitHint3d": "Drag to orbit. Shift-drag to pan. Scroll to zoom. Shift-click adds to the selection.",
     "gameViewportAria": "Game viewport",
     "editOverlayAria": "Game edit overlay",
     "viewport3dAria": "3D game viewport",

@@ -1,6 +1,5 @@
 {
   "attrs": {
-    "deleteDirection": "Delete direction",
     "board": "Board",
     "generating": "Generating",
     "preparing": "Preparing…",
@@ -34,7 +33,6 @@
     "regenerateStaleStill_other": "Regenerate {{count}} stale stills?",
     "regenerateStaleClip_one": "Regenerate {{count}} stale clip?",
     "regenerateStaleClip_other": "Regenerate {{count}} stale clips?",
-    "storyboardPreview": "Storyboard preview",
     "verificationState": {
 
     },
@@ -178,7 +176,6 @@
     "runMode": "Run mode",
     "runTheDirectorAgain": "Run the Director again",
     "scene": "Scene",
-    "sceneLighting": "Scene lighting",
     "screenplay": "Screenplay",
     "screenplayModel": "Screenplay model",
     "searchEntities": "Search entities",
@@ -458,7 +455,6 @@
     "closeCoverageAndLongTakesFacesCarryingTheScene": "Close coverage and long takes, faces carrying the scene.",
     "darkFramesWithheldRevealsACameraSlowerThanYouWantIt": "Dark frames, withheld reveals, a camera slower than you want it.",
     "drawnOrRenderedFramesAndExaggeratedTimingWithNoCameraToObey": "Drawn or rendered frames and exaggerated timing, with no camera to obey.",
-    "durationSource": "Duration source",
     "fastCutsHandheldWeightMotionAcrossTheFrame": "Fast cuts, handheld weight, motion across the frame.",
     "generateFromPrompts": "Generate from prompts",
     "genreAction": "Action",
@@ -482,7 +478,6 @@
     "partialViewsAndShadowInformationHeldBackAShotLonger": "Partial views and shadow, information held back a shot longer.",
     "productDescription": "Product description",
     "productInFocusCleanLightOneClaimPerShot": "Product in focus, clean light, one claim per shot.",
-    "productName": "Product name",
     "rendering": "Rendering",
     "stale": "Stale",
     "staleLower": "stale",
@@ -735,7 +730,6 @@
     "graphics": "Graphics",
     "editedGraphics": "Edited graphics",
     "takes": "Takes",
-    "changeStill": "Change still",
     "renderModeKeyframe": "Keyframe",
     "renderModeDirect": "Direct",
     "renderModeReference": "Reference",

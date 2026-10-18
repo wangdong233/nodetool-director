@@ -26,7 +26,6 @@
   },
   "command": {
     "editor": {
-      "blendingOut": "淡出中",
       "commandPalette": "打开命令面板",
       "keyboardShortcuts": "编辑键盘快捷键",
       "publish": "发布游戏"
@@ -160,7 +159,6 @@
     "noMatchTitle": "没有符合筛选条件的行"
   },
   "hierarchy": {
-    "noEntitiesMatch": "没有匹配的实体。",
     "noEntities": "此场景没有实体。",
     "sceneEntities": "场景实体"
   },
@@ -183,7 +181,6 @@
     "removeEffect": "移除效果",
     "hudEffectOrder": "HUD 效果顺序",
     "beforeEffects": "效果之前",
-    "afterEffects": "效果之后",
     "assetBindings": "素材绑定",
     "newAssetSlot": "新素材槽位",
     "addBinding": "添加绑定",
@@ -192,11 +189,9 @@
     "editScript": "编辑脚本",
     "removeBehavior": "移除行为",
     "addBehavior": "添加行为",
-    "removeMusic": "移除音乐",
     "addMusic": "添加音乐",
     "removeLight": "移除光源",
     "addLight": "添加光源",
-    "removeLighting": "移除光照",
     "addLighting": "添加光照",
     "backgrounds": "背景",
     "removeBackground": "移除背景",
@@ -254,7 +249,6 @@
   },
   "runtime": {
     "entityStateAria": "运行时实体状态",
-    "inactive": "未启用",
     "selectEntity": "在视口中选择一个运行时实体"
   },
   "palette": {
@@ -282,7 +276,6 @@
 
   },
   "viewport": {
-    "orbitHint3d": "拖动旋转视角。Shift 拖动平移。滚轮缩放。Shift 点击加选。",
     "gameViewportAria": "游戏视口",
     "editOverlayAria": "游戏编辑叠加层",
     "viewport3dAria": "3D 游戏视口",

@@ -27,11 +27,9 @@
     "alpha": "Export with transparency",
     "MP4CarriesNoAlphaChannelChooseWebMOrAPNGSequence": "MP4 carries no alpha channel. Choose WebM or a PNG sequence.",
     "PNGSequenceZip": "PNG sequence (.zip)",
-    "VP9VideoWithOpusAudio": "VP9 video with Opus audio.",
     "compositesOverATransparentGroundAndKeepsTheAlphaChannel": "Composites over a transparent ground and keeps the alpha channel.",
     "everyPNGKeepsItsAlphaChannel": "Every PNG keeps its alpha channel.",
-    "onePNGPerFrameInAZipWithAManifestjsonNamingTheRateAndSizeNoAudio": "One PNG per frame in a zip, with a manifest.json naming the rate and size. No audio.",
-    "playsEverywhereNoTransparency": "Plays everywhere. No transparency."
+    "onePNGPerFrameInAZipWithAManifestjsonNamingTheRateAndSizeNoAudio": "One PNG per frame in a zip, with a manifest.json naming the rate and size. No audio."
   },
   "project": {
     "title": "Project settings",
@@ -97,8 +95,7 @@
     "nextClipBoundary": "Next clip boundary",
     "previewQuality": "Preview quality",
     "showMatteTooltip": "Show the selected clip's subject matte instead of the frame",
-    "showMatte": "Show matte",
-    "exitFullscreen": "Exit fullscreen"
+    "showMatte": "Show matte"
   },
   "tools": {
     "select": "Select",
@@ -147,7 +144,6 @@
     "instrumentTrack": "Instrument track"
   },
   "attrs": {
-    "bypass": "Bypass",
     "keyframes": "Keyframes",
     "addAMIDITrackToChooseAnInstrument": "Add a MIDI track to choose an instrument.",
     "addMIDIClip": "Add MIDI clip",
@@ -652,7 +648,6 @@
     "dropOneAssetAtATimeOntoATrack": "Drop one asset at a time onto a track.",
     "moveThePlayheadInsideTheClipToSplitIt": "Move the playhead inside the clip to split it.",
     "thisBrowserHasNoWebGLSo3DClipsCannotBeDrawnHere": "This browser has no WebGL, so 3D clips cannot be drawn here.",
-    "exitFullscreen": "Exit fullscreen",
     "timelinePreviewFailed": "Timeline preview failed",
     "trackedSubject": "Tracked subject",
     "failedToGet2DCanvasContext": "Failed to get 2D canvas context",
