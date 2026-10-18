@@ -378,13 +378,13 @@ describe("WorkflowEditorSurface workflow setup resume", () => {
     renderSurface();
 
     expect(
-      screen.getByRole("button", { name: "Create Mini App" })
+      screen.getByRole("button", { name: "Create mini app" })
     ).toBeInTheDocument();
     expect(
       screen.getByText("Create and open a Mini App backed by this workflow.")
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Create Mini App" }));
+    await user.click(screen.getByRole("button", { name: "Create mini app" }));
 
     expect(mockCreateApplication).toHaveBeenCalledWith({
       name: "W",
@@ -393,6 +393,19 @@ describe("WorkflowEditorSurface workflow setup resume", () => {
       fromWorkflowId: "w1"
     });
     expect(mockOpenApplication).toHaveBeenCalledWith("app-1", "W", "project-1");
+  });
+
+  it("keeps the build panel in the layout so it never covers a node", () => {
+    settings = writeWorkflowSetup(
+      {},
+      { stage: "done", brief: "summarize the inbox", run_mode: "manual" }
+    );
+    mockPersistedBuild = { status: "completed-with-output" };
+    renderSurface();
+
+    const panel = screen.getByTestId("workflow-landing");
+    expect(panel).toHaveStyle({ position: "relative" });
+    expect(panel).not.toHaveStyle({ position: "absolute" });
   });
 
   it("opens the trigger-node picker for a reopened trigger-mode build", async () => {

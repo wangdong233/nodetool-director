@@ -4,9 +4,11 @@ import SearchErrorBoundary from "../../SearchErrorBoundary";
 import GlobalSearchResults from "../GlobalSearchResults";
 import AssetGridContent from "../AssetGridContent";
 import BreadcrumbNav from "../BreadcrumbNav";
+import AssetTypeFilterBar from "../AssetTypeFilterBar";
 import { useAssetGridStore } from "../../../stores/AssetGridStore";
 import { Asset, AssetWithPath } from "../../../stores/ApiTypes";
 import { useWorkspaceTabsStore } from "../../../stores/WorkspaceTabsStore";
+import { useAssetProjectScope } from "../../../hooks/assets/useAssetProjectScope";
 import { useTheme } from "@mui/material/styles";
 import { i18n } from "../../../i18n";
 
@@ -40,9 +42,10 @@ const AssetFilesPanel: React.FC<AssetFilesPanelProps> = ({
     (state) => state.setCurrentFolderId
   );
   const resetForProject = useAssetGridStore((state) => state.resetForProject);
-  const activeProjectId = useWorkspaceTabsStore(
-    (state) => state.activeProjectId
+  const setProjectFilter = useAssetGridStore(
+    (state) => state.setProjectFilter
   );
+  const { projectId: scopeProjectId } = useAssetProjectScope();
   const setActiveProjectId = useWorkspaceTabsStore(
     (state) => state.setActiveProjectId
   );
@@ -63,9 +66,11 @@ const AssetFilesPanel: React.FC<AssetFilesPanelProps> = ({
 
   const handleNavigateToFolder = useCallback(
     (folderId: string, _folderPath: string, projectId?: string) => {
-      if (projectId && projectId !== activeProjectId) {
+      // Across every project the folder is already in scope.
+      if (scopeProjectId && projectId && projectId !== scopeProjectId) {
         resetForProject(projectId);
         setCurrentFolderIdLocal(folderId);
+        setProjectFilter(null);
         setActiveProjectId(projectId);
       } else {
         setCurrentFolderIdLocal(folderId);
@@ -74,9 +79,10 @@ const AssetFilesPanel: React.FC<AssetFilesPanelProps> = ({
       setIsGlobalSearchModeLocal(false);
     },
     [
-      activeProjectId,
+      scopeProjectId,
       resetForProject,
       setActiveProjectId,
+      setProjectFilter,
       setCurrentFolderIdLocal,
       setIsGlobalSearchActiveLocal,
       setIsGlobalSearchModeLocal
@@ -113,7 +119,7 @@ const AssetFilesPanel: React.FC<AssetFilesPanelProps> = ({
       >
         <BreadcrumbNav />
         {isGlobalSearchModeLocal && isGlobalSearchActiveLocal ? (
-          <SearchErrorBoundary fallbackTitle="Search Results Error">
+          <SearchErrorBoundary fallbackTitle="Search results error">
             <GlobalSearchResults
               results={globalSearchResultsLocal}
               onAssetDoubleClick={handleGlobalSearchAssetDoubleClick}
@@ -122,11 +128,14 @@ const AssetFilesPanel: React.FC<AssetFilesPanelProps> = ({
             />
           </SearchErrorBoundary>
         ) : (
-          <AssetGridContent
-            isHorizontal={isHorizontal}
-            itemSpacing={itemSpacing}
-            onDoubleClick={handleDoubleClick}
-          />
+          <>
+            <AssetTypeFilterBar />
+            <AssetGridContent
+              isHorizontal={isHorizontal}
+              itemSpacing={itemSpacing}
+              onDoubleClick={handleDoubleClick}
+            />
+          </>
         )}
       </div>
     </div>

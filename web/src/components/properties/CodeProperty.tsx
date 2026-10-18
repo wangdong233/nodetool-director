@@ -39,7 +39,6 @@ import { useUndoGroup } from "../../hooks/useUndoGroup";
 import { useNodes } from "../../contexts/NodeContext";
 import { getCodeNodeLanguage, isCodeNode } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 const EDITOR_OPTIONS = {
   minimap: { enabled: false },
@@ -72,7 +71,6 @@ const CodeProperty = ({
   isInspector,
   onPropertyContextMenu
 }: PropertyProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const id = `code-${property.name}-${propertyIndex}`;
   const storeValue = isString(value) ? value : "";
@@ -183,7 +181,7 @@ const CodeProperty = ({
         {showExpandEditor && (
           <ToolbarIconButton
             className="inspector-supplemental-action"
-            tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+            tooltip="Open editor"
             icon={<OpenInFullIcon />}
             onClick={toggleExpand}
             size="small"
@@ -198,7 +196,7 @@ const CodeProperty = ({
         />
       </>
     ),
-    [t, code, inspectorToolbarActionSx, showExpandEditor, toggleExpand]
+    [code, inspectorToolbarActionSx, showExpandEditor, toggleExpand]
   );
 
   useInspectorHeaderSupplementalRegistration(
@@ -291,7 +289,7 @@ const CodeProperty = ({
           <div className="code-action-buttons">
             {showExpandEditor && (
               <ToolbarIconButton
-                tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+                tooltip="Open editor"
                 icon={<OpenInFullIcon />}
                 onClick={toggleExpand}
                 size="small"

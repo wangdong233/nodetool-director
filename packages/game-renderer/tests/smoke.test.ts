@@ -22,7 +22,7 @@ it.each(["2d", "3d"])("smokes 300 rendered frames from an exported %s build", as
   if (dimension === "3d") {
     const document = createNative3DGame("smoke");
     for (const scene of document.scenes) for (const entity of scene.entities) for (const behavior of entity.behaviors) {
-      if (behavior.kind === "script") behavior.maxTickMs = 50;
+      if (behavior.kind === "script") behavior.maxTickMs = 20;
     }
     await buildStandaloneGame3D({ document, outputDir: output, resolveAsset: async () => null });
   } else {
@@ -39,10 +39,24 @@ it.each([
 ])("fails for %s in a player", async (_name, methods, expected) => {
   const path = await directory();
   await writeFile(join(path, "game.json"), JSON.stringify({ schemaVersion: 2, inputActions: [] }));
-  await writeFile(join(path, "index.html"), `<html><body><div id="status">Ready</div><script>
-    let tick = 0; window.nativeGamePlayer = { pause() {}, reset: async () => { tick = 0 }, ${methods} };
+  await writeFile(join(path, "index.html"), `<html><body><canvas id="game" width="2" height="2"></canvas><div id="status">Ready</div><script>
+    let tick = 0; window.nativeGamePlayer = { pause() {}, reset: async () => { tick = 0; return {tick:0,frameNumber:1} }, ${methods} };
   </script></body></html>`);
   const report = await smokeStandaloneGame(path, { frames: 2, timeoutMs: 10_000 });
   expect(report.ok).toBe(false);
   expect(report.errors.join("\n")).toContain(expected);
+}, 30_000);
+
+
+it.each([false, true])("rejects fabricated progress without a completed render (canvas=%s)", async (canvas) => {
+  const path = await directory();
+  await writeFile(join(path, "game.json"), JSON.stringify({ schemaVersion: 2, inputActions: [] }));
+  await writeFile(join(path, "index.html"), `<html><body>${canvas ? '<canvas id="game" width="2" height="2"></canvas>' : ''}<div id="status">Ready</div><script>
+    let tick = 0; window.nativeGamePlayer = { pause() {}, reset: async () => { tick = 0; return {tick:0,frameNumber:1}; },
+      step: async () => {tick++;}, snapshot: () => ({tick}) };
+  </script></body></html>`);
+  const report = await smokeStandaloneGame(path, { frames: 2, timeoutMs: 10_000 });
+  expect(report.ok).toBe(false);
+  expect(report.frames).toBe(0);
+  expect(report.errors.join("\n")).toMatch(canvas ? /render.*receipt|render.*stalled/i : /canvas/i);
 }, 30_000);

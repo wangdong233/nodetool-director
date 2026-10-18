@@ -89,6 +89,7 @@ Everything here fetches a URL somebody else chose, through the protected fetch.
 | chat source images | `packages/websocket/src/websocket-client-session.ts` | chat client |
 | workflow output auto-save | `packages/websocket/src/session/asset-autosave.ts` | workflow |
 | asset ref → bytes on export | `packages/websocket/src/lib/asset-export.ts` | chat client |
+| Openverse import → asset | `packages/websocket/src/lib/openverse.ts` | provider response |
 | `save_asset` / `view_image` | `packages/agents/src/capabilities/assets.ts` | model |
 | `yt_dlp` download | `packages/agents/src/capabilities/media.ts` | model |
 | Apify run artifacts → assets | `packages/agents/src/apify/assets.ts` | provider response |
@@ -105,6 +106,7 @@ Everything here fetches a URL somebody else chose, through the protected fetch.
 | AtlasCloud prediction downloads | `packages/runtime/src/providers/atlascloud-transport.ts` | provider response |
 | Higgsfield uploads and prediction downloads | `packages/runtime/src/providers/higgsfield-transport.ts` | provider response |
 | useapi.net Google Flow and Dreamina result downloads | `packages/runtime/src/providers/useapi-provider.ts` | provider response |
+| vgenv MiniMax H3 result downloads | `packages/runtime/src/providers/vgenv-provider.ts` | provider response |
 | KIE result downloads | `packages/kie-nodes/src/kie-base.ts` | provider response |
 | Topaz result downloads | `packages/topaz-nodes/src/topaz-base.ts` | provider response |
 | MiniMax audio / file downloads | `packages/minimax-nodes/src/minimax-base.ts` | provider response |
@@ -114,6 +116,9 @@ Everything here fetches a URL somebody else chose, through the protected fetch.
 | durable FAL output recovery | `packages/websocket/src/generation-recovery.ts` | provider response |
 | MCP OAuth Client ID Metadata Document fetch | `packages/websocket/src/oauth/cimd.ts` | model/client (an MCP client's self-hosted `client_id` URL) |
 | external MCP server (HTTP transport) | `packages/websocket/src/external-mcp.ts` | operator (a user's own MCP server URL; guarded under the cloud profile, loopback allowed on a local install) |
+| custom OpenAI-compatible provider | `packages/runtime/src/providers/custom-openai-provider.ts`, checked on save in `packages/websocket/src/custom-providers.ts` | operator (a user's own base URL; guarded under the cloud profile, loopback allowed on a local install) |
+| Azure OpenAI provider | `packages/runtime/src/providers/azure-openai-provider.ts` | operator (a user's own Azure resource endpoint; guarded under the cloud profile, private endpoints allowed on a local install) |
+| Amazon Bedrock chat media | `packages/runtime/src/providers/bedrock-provider.ts` | chat client (https URLs on image and document parts; API calls use the fixed regional AWS host) |
 
 The provider row is eleven files, each downloading a URL a provider's response
 named — plus one reading a URL the caller's own message named
@@ -145,6 +150,23 @@ requests inside the user's logged-in Dreamina browser tab. Cookies stay in
 that tab. Server-side result downloads use `fetchExternalMedia`, which checks
 each redirect hop and sends no Dreamina credentials.
 
+**ChatGPT browser requests.**
+`packages/runtime/src/providers/chatgpt-provider.ts` runs every chatgpt.com
+request inside the user's logged-in ChatGPT tab, including generated-image
+downloads. Cookies and the session token stay in that tab. An input image given
+as a URL is fetched server-side with `fetchExternalMedia`, which checks each
+redirect hop and sends no credentials.
+
+**Gemini web browser requests.**
+`packages/runtime/src/providers/gemini-web-provider.ts` runs every
+gemini.google.com request inside the user's logged-in Gemini tab. The browser
+itself loads generated media with the user's Google cookies, through
+`ExtensionTab.download`. It loads only URLs that the Gemini response named: a
+`https://lh3.googleusercontent.com/gg-dl/` image or a
+`https://contribution.usercontent.google.com/download` video. A chat input
+image given as a URL is fetched server-side with `fetchExternalMedia`, which
+checks each redirect hop and sends no credentials.
+
 **Fixed provider hosts.** The URL is a constant in this repo, at most
 with a path or query interpolated — `api.elevenlabs.io`, `fal.run`,
 `generativelanguage.googleapis.com`, the OAuth token endpoints, the codegen
@@ -172,6 +194,10 @@ at 24 hours.
   on the configured server, ignoring response-provided URLs. The cloud profile
   excludes `lib.stable_diffusion_cpp.GenerateImage` by default.
 
+- `packages/runtime/src/providers/sdcpp-provider.ts` — the stable-diffusion.cpp
+  provider calls only the `sd-server` it starts on `127.0.0.1`, at a port it
+  picked. Requests send no credentials and reject redirects. Job polling uses
+  URLs built from the job id. The cloud profile excludes this provider.
 - `packages/runtime/src/comfy-executor.ts` — a ComfyUI server, normally
   localhost or the LAN, so screening private addresses would refuse the ordinary
   case. The address is the node's `endpoint` property, so the graph author picks
@@ -206,9 +232,15 @@ at 24 hours.
   the app on `localhost` is the reason to take one there.
 - `packages/cli/src/nodetool-main.ts` — runs on the operator's machine against their
   own API URL, loopback by default.
+- `packages/websocket/src/mcp-server.ts` — the `nodetool mcp serve` forwarder
+  reaches the local server's `/mcp` mount and refuses any host other than
+  `127.0.0.1` or `localhost`.
 - `packages/deploy/src/admin-client.ts` — the server being deployed.
 
 **Browser-side.** The socket belongs to the viewer's browser, not the server:
+`packages/game-renderer/src/standalone-assets.ts` (only digest-named
+`./assets/` paths with allowed media extensions, redirects rejected and response
+bytes verified against the binding's SHA-256 before use),
 `packages/game-renderer/src/standalone-player.ts` (fixed relative game document
 and bundled `./assets/` paths),
 `packages/game-renderer/src/standalone-player3d.ts` (fixed relative `game.json`
@@ -220,9 +252,9 @@ app, or bundled `./assets/` paths in a standalone export),
 `packages/image-nodes/src/nodes/image-io.ts` (behind `!IS_NODE`),
 `packages/core-nodes/src/nodes/fake-media.ts`,
 `packages/browser/src/capture.ts` (inside `page.evaluate`).
-The standalone 3D export applies `connect-src 'self'` CSP. The browser follows
-redirects subject to that same-origin policy and its own network restrictions.
-These fetches open no server-side socket.
+The standalone 3D export applies `connect-src 'self'` CSP. Where redirects are
+allowed, the browser follows them subject to that policy and its own network
+restrictions. These fetches open no server-side socket.
 
 ## Adding a surface
 

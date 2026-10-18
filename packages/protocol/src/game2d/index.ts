@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { gameEntityProps, gameEntityTags } from "../game-entity-metadata.js";
 import { gameEventPayload, gameEventTarget } from "../game-script-events.js";
+import { gameSaveLoadedFrame } from "../game-saves.js";
 import { gameLightingComponent } from "./components/lighting.js";
 import { gameMusicComponent } from "./components/music.js";
 import { finite, positive, vec2, frame } from "./components/common.js";
@@ -15,9 +16,11 @@ import { gameAudioSettings } from "./components/audio.js";
 import { gameAudioEmitter } from "./components/audioSource.js";
 import { gameInputBindings } from "../game-input.js";
 import { gameUiFrame, gameUiOverrides, gameUiTree } from "../game-ui.js";
+import { gameScreens } from "../game-screens.js";
 
 export * from "../game-input.js";
 export * from "../game-ui.js";
+export * from "../game-screens.js";
 
 export const gameEntity = z.strictObject({
   id: z.string().min(1),
@@ -90,6 +93,7 @@ export const gameDocument = z.strictObject({
   hudEffectOrder: z.enum(["beforeEffects", "afterEffects"]).optional(),
   audio: gameAudioSettings.optional(),
   ui: gameUiTree.optional(),
+  screens: gameScreens.optional(),
   assets: z.record(z.string(), gameAssetBinding),
   scenes: z.array(gameScene).min(1)
 });
@@ -98,7 +102,9 @@ export type GameDocument = z.infer<typeof gameDocument>;
 
 export const gameInputFrame = z.object({
   pressed: z.array(z.string()),
-  justPressed: z.array(z.string()).default([])
+  justPressed: z.array(z.string()).default([]),
+  /** Finished save loads delivered to scripts this tick as `input.loaded`. Absent on frames without one. */
+  loaded: gameSaveLoadedFrame.optional()
 });
 
 export type GameInputFrame = z.infer<typeof gameInputFrame>;
@@ -139,7 +145,11 @@ export const gameRenderFrame = z.object({
   audioEmitters: z.array(z.object({ entityId: z.string(), x: finite, y: finite, previousX: finite, previousY: finite })).optional(),
   sprites: z.array(z.object({ entityId: z.string(), assetId: z.string(), x: finite, y: finite, previousX: finite, previousY: finite, rotation: finite, previousRotation: finite.optional(), scaleX: positive, scaleY: positive, previousScaleX: positive.optional(), previousScaleY: positive.optional(), width: positive, height: positive, frame: frame.optional(), layer: z.number().int(), tint: z.string().optional(), previousTint: z.string().optional(), opacity: finite.min(0).max(1).optional(), previousOpacity: finite.min(0).max(1).optional(), blend: z.enum(["normal", "additive"]).optional(), sampling: z.enum(["nearest", "linear"]).optional(), unlit: z.boolean().optional(), flipX: z.boolean().optional() })),
   backgrounds: z.array(gameBackgroundLayer).optional(),
-  lighting: gameScene.shape.lighting,
+  lighting: gameLightingComponent.unwrap().extend({
+    points: z.array(gameLightingComponent.unwrap().shape.points.element.extend({
+      previousX: finite.optional(), previousY: finite.optional()
+    })).max(32)
+  }).optional(),
   tiles: z.array(z.object({ entityId: z.string(), assetId: z.string(), x: finite, y: finite, width: positive, height: positive, frame: frame.optional(), layer: z.number().int(), tint: z.string().optional(), opacity: finite.min(0).max(1).optional(), sampling: z.enum(["nearest", "linear"]).optional() })),
   hud: z.array(gameHudLabel),
   ui: gameUiFrame.optional(),

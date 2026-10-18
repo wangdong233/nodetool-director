@@ -1,26 +1,22 @@
 import React, { memo } from "react";
 import FolderSpecialOutlinedIcon from "@mui/icons-material/FolderSpecialOutlined";
-import ManagerPageLayout from "../panels/ManagerPageLayout";
+import { PageLayout, ICON_SIZE } from "../ui_primitives";
 import WorkspacesManager from "./WorkspacesManager";
-import { useTranslation } from "react-i18next";
 
 /**
  * Full-screen Workspaces page. Reachable from the logo menu; wraps the
  * workspace manager in the shared manager chrome (header + back button).
  */
-const WorkspacesPage: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-  <ManagerPageLayout
-    icon={<FolderSpecialOutlinedIcon sx={{ fontSize: 22 }} />}
-    title={t("nav:rail.workspaces", { defaultValue: "Workspaces" })}
-    subtitle={t("editor:ui.sandboxedFoldersThatAgentsAndWorkflowsCanReadWriteAndOrganizeFilesIn", { defaultValue: "Sandboxed folders that agents and workflows can read, write, and organize files in." })}
+const WorkspacesPage: React.FC = () => (
+  <PageLayout
+    icon={<FolderSpecialOutlinedIcon sx={{ fontSize: ICON_SIZE.lg }} />}
+    title="Workspaces"
+    subtitle="Sandboxed folders that agents and workflows can read, write, and organize files in."
     docsTopic="workspaces"
   >
     <WorkspacesManager />
-  </ManagerPageLayout>
-)
-  };
+  </PageLayout>
+);
 
 WorkspacesPage.displayName = "WorkspacesPage";
 

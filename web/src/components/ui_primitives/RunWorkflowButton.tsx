@@ -14,7 +14,8 @@
  */
 
 import { forwardRef, memo, useCallback, useMemo } from "react";
-import { Button, ButtonProps, Fab, FabProps, Tooltip } from "@mui/material";
+import { Button, ButtonProps, Fab, FabProps } from "@mui/material";
+import { Tooltip } from "./Tooltip";
 import { LoadingSpinner } from "./LoadingSpinner";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
@@ -24,7 +25,7 @@ import {
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
-import { MOTION, TYPOGRAPHY } from "./tokens";
+import { MOTION, SHADOW } from "./tokens";
 
 export interface RunWorkflowButtonProps {
   /**
@@ -144,23 +145,19 @@ export const RunWorkflowButton = memo(
       const icon = isRunning ? <StopIcon /> : <PlayArrowIcon />;
 
       const getSizeStyles = useMemo(() => {
-        // F-38 (r20): the labeled button sizes are minHeight floors, not fixed
-        // boxes — the label's line box must be able to grow the control under
-        // font inflation (browser minimum font size, surface font blankets)
-        // instead of spilling out of it. FABs stay fixed squares (icon-only).
         switch (size) {
           case "small":
             return variant === "fab"
               ? { width: 36, height: 36 }
-              : { minHeight: 28, minWidth: showLabel ? 80 : 28 };
+              : { height: 28, minWidth: showLabel ? 80 : 28 };
           case "large":
             return variant === "fab"
               ? { width: 56, height: 56 }
-              : { minHeight: 44, minWidth: showLabel ? 120 : 44 };
+              : { height: 44, minWidth: showLabel ? 120 : 44 };
           default:
             return variant === "fab"
               ? { width: 48, height: 48 }
-              : { minHeight: 36, minWidth: showLabel ? 100 : 36 };
+              : { height: 36, minWidth: showLabel ? 100 : 36 };
         }
       }, [size, variant, showLabel]);
 
@@ -226,7 +223,7 @@ export const RunWorkflowButton = memo(
               {...sharedProps}
               sx={{
                 ...sharedSx,
-                boxShadow: "0px 3px 5px -1px rgba(0,0,0,0.2), 0px 6px 10px 0px rgba(0,0,0,0.14), 0px 1px 18px 0px rgba(0,0,0,0.12)"
+                boxShadow: SHADOW(theme).md
               }}
             >
               {content}
@@ -247,11 +244,6 @@ export const RunWorkflowButton = memo(
             variant="contained"
             sx={{
               ...sharedSx,
-              // F-38 (r20): single-line token lineHeight pairs with the
-              // minHeight floor above — without it MUI's 1.75 line box makes
-              // every labeled instance taller than its grid floor.
-              lineHeight: TYPOGRAPHY.sans.label.lineHeight,
-              whiteSpace: "nowrap",
               textTransform: "none"
             }}
           >

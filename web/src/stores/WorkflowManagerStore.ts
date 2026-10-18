@@ -49,11 +49,13 @@ import { useCurrentWorkspaceStore } from "./CurrentWorkspaceStore";
 import { setWorkflowResourceReloader } from "./resourceChangeHandler";
 import { shouldApplyWorkflowRefresh } from "./workflowRefreshPolicy";
 import { isString } from "../utils/typePredicates";
-import type { DocumentOp } from "@nodetool-ai/protocol";
+import { mergeGraphLinks, type DocumentOp } from "@nodetool-ai/protocol";
 import { mergeWorkflowDocuments } from "./workflowMerge";
 import { graphNodeToReactFlowNode } from "./graphNodeToReactFlowNode";
 import { graphEdgeToReactFlowEdge } from "./graphEdgeToReactFlowEdge";
 import { reportDocumentConflicts } from "./documentConflictReporter";
+import { noteWorkflowCreatedHere } from "./workflowsCreatedHere";
+import { trackProductEvent } from "../lib/analytics";
 import type { Node, Edge } from "@xyflow/react";
 import type { NodeData } from "./NodeData";
 import { i18n } from "../i18n";
@@ -105,7 +107,12 @@ function mergeExternalGraph(
   state.applyExternalGraph(
     merged.nodes as Node<NodeData>[],
     merged.edges as Edge[],
-    { etag: fresh.etag ?? undefined, updatedAt: fresh.updated_at }
+    { etag: fresh.etag ?? undefined, updatedAt: fresh.updated_at },
+    mergeGraphLinks(
+      baseWorkflow.graph?.links ?? [],
+      state.links,
+      fresh.graph?.links ?? []
+    )
   );
 
   const listed = conflicts.map((conflict) =>
@@ -353,7 +360,12 @@ export type WorkflowManagerState = {
     fromExamplePackage?: string,
     fromExampleName?: string
   ) => Promise<Workflow>;
-  load: (cursor?: string, limit?: number) => Promise<WorkflowList>;
+  /** Lists workflows; `projectId` limits them to one project, undefined lists every project. */
+  load: (
+    cursor?: string,
+    limit?: number,
+    projectId?: string
+  ) => Promise<WorkflowList>;
   loadTemplates: () => Promise<WorkflowList>;
   searchTemplates: (query: string) => Promise<WorkflowList>;
   copy: (originalWorkflow: Workflow) => Promise<Workflow>;
@@ -628,8 +640,7 @@ export const createWorkflowManagerStore = (queryClient: QueryClient) => {
           const editedDuringSave =
             nodeStore !== nodeStoreBefore ||
             !stateBefore ||
-            current.nodes !== stateBefore.nodes ||
-            current.edges !== stateBefore.edges ||
+            current.editGeneration !== stateBefore.editGeneration ||
             current.workflow !== stateBefore.workflow;
           // Only mark the store clean (and adopt the server's workflow
           // attributes) when nothing changed during the save. If the user
@@ -771,6 +782,7 @@ export const createWorkflowManagerStore = (queryClient: QueryClient) => {
           }
         }));
         get().setCurrentWorkflowId(workflow.id);
+        trackProductEvent({ event: "workflow_created", properties: {} });
         return workflow;
       },
 
@@ -818,6 +830,8 @@ export const createWorkflowManagerStore = (queryClient: QueryClient) => {
         } catch (err) {
           throw createErrorMessage(err, "Failed to create workflow");
         }
+        noteWorkflowCreatedHere(data.id);
+        trackProductEvent({ event: "workflow_created", properties: {} });
         if (data.tags === undefined) {
           data.tags = [];
         }
@@ -836,11 +850,12 @@ export const createWorkflowManagerStore = (queryClient: QueryClient) => {
         return data;
       },
 
-      load: async (cursor?: string, limit?: number) => {
+      load: async (cursor?: string, limit?: number, projectId?: string) => {
         try {
           const data = await trpcClient.workflows.list.query({
             limit: limit ?? 100,
-            cursor: cursor || undefined
+            cursor: cursor || undefined,
+            project_id: projectId
           });
           return data as WorkflowList;
         } catch (err) {
@@ -873,13 +888,12 @@ export const createWorkflowManagerStore = (queryClient: QueryClient) => {
        * Creates a copy of an existing workflow.
        * @param {Workflow} originalWorkflow The workflow to copy
        * @returns {Promise<Workflow>} The copied workflow
-       * @throws {Error} If the original workflow is not found
        */
       copy: async (originalWorkflow: Workflow) => {
-        const workflow = get().getWorkflow(originalWorkflow.id);
-        if (!workflow) {
-          throw new Error("Workflow not found");
-        }
+        // A workflow that is not open in the editor is read from the server.
+        const workflow =
+          get().getWorkflow(originalWorkflow.id) ??
+          (await fetchWorkflowById(originalWorkflow.id));
         const copiedWorkflow: Workflow = {
           id: crypto.randomUUID(),
           name: workflow.name,
@@ -891,7 +905,12 @@ export const createWorkflowManagerStore = (queryClient: QueryClient) => {
           graph: structuredClone(workflow.graph),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          settings: workflow.settings
+          settings: workflow.settings,
+          run_mode: workflow.run_mode,
+          tool_name: workflow.tool_name,
+          workspace_id: workflow.workspace_id,
+          html_app: workflow.html_app,
+          app_doc: workflow.app_doc
         };
         if (workflow.project_id) {
           copiedWorkflow.project_id = workflow.project_id;
@@ -1323,9 +1342,6 @@ export const createWorkflowManagerStore = (queryClient: QueryClient) => {
        */
       reorderWorkflows: (sourceIndex: number, targetIndex: number) => {
         set((state) => {
-          // Reorder the openWorkflows array, then rebuild the nodeStores
-          // map in the same order so consumers iterating either source see
-          // a consistent ordering.
           const reordered = [...state.openWorkflows];
           if (
             sourceIndex < 0 ||
@@ -1338,18 +1354,9 @@ export const createWorkflowManagerStore = (queryClient: QueryClient) => {
           const [moved] = reordered.splice(sourceIndex, 1);
           reordered.splice(targetIndex, 0, moved);
 
-          const newStores: Record<string, NodeStore> = {};
-          for (const wf of reordered) {
-            const store = state.nodeStores[wf.id];
-            if (store) {
-              newStores[wf.id] = store;
-            }
-          }
-
-          return {
-            openWorkflows: reordered,
-            nodeStores: newStores
-          };
+          // nodeStores also holds subgraph stores keyed
+          // `${workflowId}:${nodeId}`, so it is left as is.
+          return { openWorkflows: reordered };
         });
       },
 
@@ -1403,33 +1410,20 @@ export const createWorkflowManagerStore = (queryClient: QueryClient) => {
           }
         };
 
-        // If already have a NodeStore, just set current and ensure query cache is populated.
+        // If already have a NodeStore, just set current. The query cache
+        // holds only server state, so the in-memory draft (which may carry
+        // unsaved edits) is never written into it.
         const existing = get().getWorkflow(workflowId);
         if (existing) {
-          get().queryClient?.setQueryData(
-            workflowQueryKey(workflowId),
-            existing
-          );
           if (makeCurrent) {
             get().setCurrentWorkflowId(workflowId);
           }
           return existing;
         }
 
-        // Check cache first
-        const cached = get().queryClient?.getQueryData<Workflow>(
-          workflowQueryKey(workflowId)
-        );
-        if (cached) {
-          get().addWorkflow(cached);
-          if (makeCurrent) {
-            get().setCurrentWorkflowId(workflowId);
-          }
-          await loadAssetsNonFatal(workflowId);
-          return cached;
-        }
-
-        // Fetch using queryClient.fetchQuery for automatic deduplication of in-flight requests.
+        // fetchQuery returns fresh cached data and refetches stale or
+        // invalidated entries, so a deleted workflow is not loaded from cache.
+        // It also deduplicates in-flight requests.
         // retry: false — NOT_FOUND is permanent; the caller falls back to createNew.
         try {
           const data = await get().queryClient?.fetchQuery({

@@ -1,4 +1,4 @@
-import InfoIcon from "@mui/icons-material/Info";
+import InfoIcon from "@mui/icons-material/InfoOutlined";
 import { useState } from "react";
 import {
   FlexRow,
@@ -9,7 +9,8 @@ import {
   Popover,
   SPACING,
   getSpacingPx,
-  activateOnKey
+  activateOnKey,
+  ICON_SIZE
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
 
@@ -37,7 +38,7 @@ const CollectionHeader = () => {
         aria-haspopup="dialog"
         aria-expanded={Boolean(formatInfoAnchor)}
       >
-        <InfoIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
+        <InfoIcon sx={{ fontSize: ICON_SIZE.sm }} />
         <Text size="small" weight={600}>
           {t("editor:ui.whatAreCollections")}
         </Text>

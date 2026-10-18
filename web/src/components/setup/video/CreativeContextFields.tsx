@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
   creativeContext,
   type CreativeContext,
@@ -7,6 +6,7 @@ import {
 } from "@nodetool-ai/protocol";
 import EntityAssetPickerDialog from "../../entities/EntityAssetPickerDialog";
 import {
+  AlertBanner,
   Caption,
   CollapsibleSection,
   EditorButton,
@@ -15,6 +15,7 @@ import {
   GAP,
   ResponsiveImage,
   SelectField,
+  TextArea,
   TextInput
 } from "../../ui_primitives";
 import { SETUP_FIELD_WIDTH } from "../layout";
@@ -29,11 +30,11 @@ interface CreativeContextFieldsProps {
 }
 
 const TEXT_FIELDS = [
-  ["product_name", "Product name", "storyboard:attrs.productName"],
-  ["product_description", "Product description", "storyboard:attrs.productDescription"],
-  ["audience", "Audience", "storyboard:attrs.audience"],
-  ["objective", "Objective", "storyboard:attrs.objective"],
-  ["tone", "Tone", "storyboard:attrs.tone"]
+  ["product_name", "Product name"],
+  ["product_description", "Product description"],
+  ["audience", "Audience"],
+  ["objective", "Objective"],
+  ["tone", "Tone"]
 ] as const;
 
 interface ContextTextProps {
@@ -45,6 +46,7 @@ interface ContextTextProps {
   /** The field shows the stored value again, so its old draft no longer counts. */
   readonly onMountFromStored: () => void;
   readonly multiline?: boolean;
+  readonly helperText?: string;
   readonly readOnly: boolean;
 }
 
@@ -56,6 +58,7 @@ const ContextText = ({
   onDraft,
   onMountFromStored,
   multiline,
+  helperText,
   readOnly
 }: ContextTextProps) => {
   const [draft, setDraft] = useState(value);
@@ -76,24 +79,42 @@ const ContextText = ({
     },
     []
   );
+  const change = (next: string): void => {
+    if (readOnly) {
+      return;
+    }
+    setDraft(next);
+    onDraft(next);
+  };
+  const commitDraft = (): void => {
+    if (!readOnly) {
+      onCommit(draft);
+    }
+  };
+  if (multiline) {
+    return (
+      <TextArea
+        label={label}
+        value={draft}
+        helperText={helperText}
+        inputProps={{ readOnly }}
+        onChange={change}
+        onAssistApply={(next) => {
+          change(next);
+          onCommit(next);
+        }}
+        onBlur={commitDraft}
+      />
+    );
+  }
   return (
     <TextInput
       label={label}
       value={draft}
-      multiline={multiline}
+      helperText={helperText}
       inputProps={{ readOnly }}
-      onChange={(event) => {
-        if (readOnly) {
-          return;
-        }
-        setDraft(event.target.value);
-        onDraft(event.target.value);
-      }}
-      onBlur={() => {
-        if (!readOnly) {
-          onCommit(draft);
-        }
-      }}
+      onChange={(event) => change(event.target.value)}
+      onBlur={commitDraft}
     />
   );
 };
@@ -113,38 +134,19 @@ const claimsPatch = (
     .filter(Boolean)
 });
 
-/**
- * Reference-kind label keys, written out so each stays a full literal the
- * dead-key guard can see (a dynamic `attrs.${kind}` template hides them).
- */
-const REFERENCE_KIND_LABELS: Record<
-  ProductionReferenceKind,
-  { key: string; en: string }
-> = {
-  product: { key: "storyboard:attrs.product", en: "Product" },
-  character: { key: "storyboard:attrs.character", en: "Character" },
-  location: { key: "storyboard:attrs.location", en: "Location" },
-  style: { key: "storyboard:attrs.style", en: "Style" }
-};
-
 export default function CreativeContextFields({
   value,
   onChange,
   onValidationChange,
   readOnly = false
 }: CreativeContextFieldsProps) {
-  const { t } = useTranslation();
-  const kindLabel = (kind: ProductionReferenceKind): string =>
-    t(REFERENCE_KIND_LABELS[kind].key, {
-      defaultValue: REFERENCE_KIND_LABELS[kind].en
-    });
   const [pickerKind, setPickerKind] = useState<ProductionReferenceKind | null>(
     null
   );
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const error =
     invalidFields.length > 0
-      ? t("storyboard:attrs.contextWasNotSavedUseAtMost64ClaimsPerListAnd32References", { defaultValue: "Context was not saved. Use at most 64 claims per list and 32 references." })
+      ? "Context was not saved. Use at most 64 claims per list and 32 references."
       : undefined;
   useEffect(() => {
     onValidationChange?.(error);
@@ -192,18 +194,16 @@ export default function CreativeContextFields({
   };
   return (
     <CollapsibleSection
-      title={t("storyboard:attrs.creativeContextOptional", { defaultValue: "Creative context (optional)" })}
+      title="Creative context (optional)"
       defaultOpen={false}
       unmountOnExit
     >
       <FlexColumn gap={GAP.comfortable}>
-        <Caption>
-          {t("storyboard:attrs.leaveFieldsBlankWhenTheyDoNotApplyClaimsUseOneLinePerClaim", { defaultValue: "Leave fields blank when they do not apply. Claims use one line per claim." })}
-        </Caption>
-        {TEXT_FIELDS.map(([key, label, labelKey]) => (
+        <Caption>Leave fields blank when they do not apply.</Caption>
+        {TEXT_FIELDS.map(([key, label]) => (
           <ContextText
             key={`${key}:${value?.[key] ?? ""}`}
-            label={t(labelKey, { defaultValue: label })}
+            label={label}
             value={value?.[key] ?? ""}
             multiline={key === "product_description"}
             readOnly={readOnly}
@@ -216,11 +216,12 @@ export default function CreativeContextFields({
           <ContextText
             key={`${key}:${value?.[key]?.join("\n") ?? ""}`}
             multiline
+            helperText="One claim per line."
             readOnly={readOnly}
             label={
               key === "approved_claims"
-                ? t("storyboard:attrs.approvedClaims", { defaultValue: "Approved claims" })
-                : t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })
+                ? "Approved claims"
+                : "Prohibited claims"
             }
             value={value?.[key]?.join("\n") ?? ""}
             onCommit={(text) => update(claimsPatch(key, text))}
@@ -237,10 +238,7 @@ export default function CreativeContextFields({
                 readOnly || (value?.reference_bindings?.length ?? 0) >= 32
               }
             >
-              {t("storyboard:attrs.addKindReference", {
-                defaultValue: "Add {{kind}} reference",
-                kind: kindLabel(kind)
-              })}
+              Add {kind} reference
             </EditorButton>
           ))}
         </FlexRow>
@@ -252,32 +250,23 @@ export default function CreativeContextFields({
             <GalleryFrame
               locator={`asset://${reference.asset_id}`}
               kind="image"
-              caption={t("storyboard:attrs.kindReference", {
-                defaultValue: "{{kind}} reference",
-                kind: kindLabel(reference.kind)
-              })}
+              caption={`${reference.kind} reference`}
               sx={{ width: "100%", maxWidth: SETUP_FIELD_WIDTH }}
             >
               <ResponsiveImage
                 locator={`asset://${reference.asset_id}`}
-                alt={t("storyboard:attrs.kindReference", {
-                  defaultValue: "{{kind}} reference",
-                  kind: kindLabel(reference.kind)
-                })}
+                alt={`${reference.kind} reference`}
                 fit="contain"
                 aspectRatio="1/1"
                 showErrorFallback
               />
             </GalleryFrame>
             <SelectField
-              label={t("storyboard:attrs.referenceIndexRole", { defaultValue: "Reference {{index}} role", index: index + 1 })}
+              label={`Reference ${index + 1} role`}
               value={reference.kind}
               disabled={readOnly}
-              options={(["product", "character", "location", "style"] as const).map(
-                (kind) => ({
-                  value: kind,
-                  label: kindLabel(kind)
-                })
+              options={["product", "character", "location", "style"].map(
+                (kind) => ({ value: kind, label: kind })
               )}
               onChange={(kind) => {
                 if (readOnly) {
@@ -303,25 +292,18 @@ export default function CreativeContextFields({
                 })
               }
             >
-              {t("storyboard:attrs.removeReferenceIndex", { defaultValue: "Remove reference {{index}}", index: index + 1 })}
+              Remove reference {index + 1}
             </EditorButton>
           </FlexColumn>
         ))}
         <Caption>
-          {t("editor:ui.referenceAssetsAreIncludedInReviewedProductionRequests", { defaultValue: "Reference assets are included in reviewed production requests." })}
+          Reference assets are included in reviewed production requests.
         </Caption>
-        {error ? (
-          <Caption role="alert" color="error">
-            {error}
-          </Caption>
-        ) : null}
+        {error ? <AlertBanner severity="error">{error}</AlertBanner> : null}
         {pickerKind && !readOnly ? (
           <EntityAssetPickerDialog
             open
-            title={t("storyboard:attrs.chooseKindReference", {
-              defaultValue: "Choose {{kind}} reference",
-              kind: kindLabel(pickerKind)
-            })}
+            title={`Choose ${pickerKind} reference`}
             onClose={() => setPickerKind(null)}
             onPick={(assetId) => {
               update({

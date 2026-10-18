@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, memo, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { alpha } from "@mui/material/styles";
 import {
   FlexColumn,
   FlexRow,
@@ -9,8 +8,12 @@ import {
   Tooltip,
   ToolbarIconButton,
   Box,
+  MediaThumbnail,
+  ProgressBar,
   MOTION,
-  BORDER_RADIUS
+  BORDER_RADIUS,
+  SPACING,
+  selectableRowStyles
 } from "../../ui_primitives";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import BoltIcon from "@mui/icons-material/Bolt";
@@ -28,7 +31,6 @@ import isEqual from "../../../utils/isEqual";
 import { notifyMutationError } from "../../../utils/notifyMutationError";
 import { formatClockTime } from "../../../utils/formatUtils";
 import ReportBugButton from "../../support/ReportBugButton";
-import { useTranslation } from "react-i18next";
 
 const formatDuration = (ms: number): string => {
   if (ms < 0) {
@@ -148,7 +150,8 @@ const StatusTile = memo(function StatusTile({
         borderRadius: BORDER_RADIUS.lg,
         color: visual.fg,
         backgroundColor: visual.tint
-          ? (theme) => alpha(theme.palette[visual.tint!].main, 0.16)
+          ? (theme) =>
+              `rgb(${theme.vars.palette[visual.tint!].mainChannel} / 0.16)`
           : "action.hover",
         transition: MOTION.all
       }}
@@ -163,12 +166,6 @@ const StatusTile = memo(function StatusTile({
  * everything else as a small type tile. Clicking opens the asset.
  */
 const AssetThumb = memo(function AssetThumb({ asset }: { asset: Asset }) {
-  const { t } = useTranslation();
-  const isVisual =
-    asset.content_type?.startsWith("image/") ||
-    asset.content_type?.startsWith("video/");
-  const src = isVisual ? asset.thumb_url || asset.get_url || undefined : undefined;
-
   const handleOpen = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -198,7 +195,7 @@ const AssetThumb = memo(function AssetThumb({ asset }: { asset: Asset }) {
       <FlexRow
         role="button"
         tabIndex={0}
-        aria-label={t("editor:ui.openJobOutput", { defaultValue: "Open job output" })}
+        aria-label="Open job output"
         onClick={handleOpen}
         onKeyDown={handleKeyDown}
         align="center"
@@ -215,24 +212,22 @@ const AssetThumb = memo(function AssetThumb({ asset }: { asset: Asset }) {
           cursor: asset.get_url ? "pointer" : "default"
         }}
       >
-        {src ? (
-          <Box
-            component="img"
-            src={src}
-            alt={asset.name || "Output"}
-            loading="lazy"
-            sx={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : (
-          <Text size="smaller" color="secondary" truncate sx={{ px: 0.5 }}>{asset.content_type?.split("/")[1] || "file"}</Text>
-        )}
+        <MediaThumbnail
+          asset={asset}
+          alt={asset.name || "Output"}
+          borderRadius={0}
+          icon={
+            <Text size="smaller" color="secondary" truncate sx={{ px: 0.5 }}>
+              {asset.content_type?.split("/")[1] || "file"}
+            </Text>
+          }
+        />
       </FlexRow>
     </Tooltip>
   );
 });
 
 const JobItem = ({ job }: { job: Job }) => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: workflow } = useWorkflow(job.workflow_id);
@@ -299,7 +294,7 @@ const JobItem = ({ job }: { job: Job }) => {
     [cancelling, job.id, job.workflow_id, queryClient]
   );
 
-  const workflowName = job.name || workflow?.name || "Loading...";
+  const workflowName = job.name || workflow?.name || "Loading…";
   const shortId = `#${job.id.slice(0, 4)}`;
   const isActive =
     job.status === "running" ||
@@ -334,7 +329,7 @@ const JobItem = ({ job }: { job: Job }) => {
     job.status === "scheduled" ||
     job.status === "starting"
   ) {
-    metaText = [t("editor:ui.inQueue", { defaultValue: "In queue" }), clockLabel(job.started_at)].filter(Boolean).join(
+    metaText = ["In queue", clockLabel(job.started_at)].filter(Boolean).join(
       " · "
     );
   } else if (job.status === "cancelled") {
@@ -356,19 +351,24 @@ const JobItem = ({ job }: { job: Job }) => {
       tabIndex={0}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      sx={{
-        px: 1,
-        py: 1,
-        mb: 0.5,
-        borderRadius: BORDER_RADIUS.md,
+      sx={(theme) => ({
+        ...selectableRowStyles(theme),
+        position: "relative",
+        overflow: "hidden",
+        px: SPACING.md,
+        py: SPACING.md,
         cursor: "pointer",
-        backgroundColor: isActive ? "action.selected" : "transparent",
-        transition: `background-color ${MOTION.fast}`,
-        "&:hover": { backgroundColor: "action.hover" }
-      }}
+        // Failed runs keep a faint error wash so they stand out in history.
+        ...(isError && {
+          backgroundColor: `rgb(${theme.vars.palette.error.mainChannel} / 0.08)`,
+          "&:hover": {
+            backgroundColor: `rgb(${theme.vars.palette.error.mainChannel} / 0.14)`
+          }
+        })
+      })}
     >
       <StatusTile job={job} cancelling={cancelling} />
-      <FlexColumn gap={0.5} sx={{ flex: "0 1 240px", minWidth: 0 }}>
+      <FlexColumn gap={SPACING.micro} sx={{ flex: "1 1 auto", minWidth: 0 }}>
         <FlexRow align="baseline" gap={1} sx={{ minWidth: 0 }}>
           <Text size="small" weight={500} truncate sx={{ minWidth: 0 }}>
             {workflowName}
@@ -379,12 +379,22 @@ const JobItem = ({ job }: { job: Job }) => {
             sx={{ flex: "0 0 auto" }}>{shortId}</Text>
           </Tooltip>
         </FlexRow>
-        <Text size="smaller" color={isError ? "error" : "secondary"} truncate>{metaText}</Text>
+        {isError ? (
+          <Tooltip title={metaText}>
+            <Text size="smaller" color="error" truncate>
+              {metaText}
+            </Text>
+          </Tooltip>
+        ) : (
+          <Text size="smaller" color="secondary" truncate>
+            {metaText}
+          </Text>
+        )}
       </FlexColumn>
-      {/* All outputs, shown inline across the available width. */}
+      {/* Outputs, right-aligned; scrolls sideways when there are many. */}
       <FlexRow
-        gap={0.5}
-        sx={{ flex: "1 1 auto", minWidth: 0, overflowX: "auto", py: 0.5 }}
+        gap={SPACING.micro}
+        sx={{ flex: "0 1 auto", minWidth: 0, overflowX: "auto" }}
       >
         {assets?.map((asset) => (
           <AssetThumb key={asset.id} asset={asset} />
@@ -406,8 +416,8 @@ const JobItem = ({ job }: { job: Job }) => {
           size="small"
           onClick={handleStop}
           disabled={cancelling}
-          ariaLabel={t("editor:ui.stopJob", { defaultValue: "Stop job" })}
-          tooltip={t("editor:ui.stopJob", { defaultValue: "Stop job" })}
+          ariaLabel="Stop job"
+          tooltip="Stop job"
           icon={
             cancelling ? (
               <LoadingSpinner size="small" />
@@ -417,13 +427,21 @@ const JobItem = ({ job }: { job: Job }) => {
           }
           sx={{
             flex: "0 0 auto",
-            color: "error.main",
-            "&:hover": {
-              backgroundColor: "error.light",
-              color: "error.contrastText"
-            }
+            color: "text.secondary",
+            "&:hover": { color: "error.main" }
           }}
         />
+      )}
+      {job.status === "running" && !cancelling && (
+        <Box sx={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>
+          <ProgressBar
+            value={0}
+            progressVariant="indeterminate"
+            showValue={false}
+            size="small"
+            aria-label={`Running ${workflowName}`}
+          />
+        </Box>
       )}
     </FlexRow>
   );

@@ -14,11 +14,9 @@ import useSelect from "../../hooks/nodes/useSelect";
 import { fuzzyScore } from "../../utils/fuzzyMatch";
 import { Tooltip } from "../ui_primitives";
 import { useTheme } from "@mui/material/styles";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { selectStyles, portalOptionsStyles } from "./selectStyles";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { isString } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 interface Option {
   value: string;
@@ -69,7 +67,6 @@ const Select: React.FC<SelectProps> = ({
   changed,
   onOpenChange
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const selectRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<HTMLUListElement>(null);
@@ -272,7 +269,7 @@ const Select: React.FC<SelectProps> = ({
 
   return (
     <div className="select-container" css={styles}>
-      <Tooltip placement="top" delay={TOOLTIP_ENTER_DELAY} disableInteractive title={label}>
+      <Tooltip placement="top" disableInteractive title={label}>
         <div
           ref={selectRef}
           role="combobox"
@@ -314,8 +311,8 @@ const Select: React.FC<SelectProps> = ({
                 setSearchQuery(e.target.value);
                 setHighlightedIndex(-1);
               }}
-              placeholder={t("ui:attrs.search", { defaultValue: "Search..." })}
-              aria-label={t("editor:ui.searchOptions", { defaultValue: "Search options" })}
+              placeholder="Search"
+              aria-label="Search options"
               onClick={(e) => e.stopPropagation()}
             />
           )}

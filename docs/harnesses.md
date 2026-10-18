@@ -6,6 +6,64 @@ way it is. The index — which harness answers which need — is
 [AGENTS.md § Agent Harnesses & Tooling](https://github.com/nodetool-ai/nodetool/blob/main/AGENTS.md#agent-harnesses--tooling).
 Flag-level reference for the CLI: [cli.md](cli.md).
 
+## Packed CLI smoke
+
+After `npm run build:packages`, prepare and pin the original release artifacts:
+
+```bash
+node scripts/prepare-publish.mjs
+node scripts/publish-packages.mjs --pack-only --tarballs-dir .packed-artifacts
+node scripts/smoke-packed-cli.mjs --core-only --tarballs-dir .packed-artifacts
+node scripts/smoke-packed-cli.mjs --tarballs-dir .packed-artifacts
+```
+
+The smoke requires an existing tarball directory and never rewrites those artifacts.
+Both modes install the actual CLI into isolated project and global consumers.
+The core checks run JSON and TypeScript workflows, execute a workflow through
+local MCP, start the HTTP server, validate an absent FAL pack, and decode audio
+and video through the installed media codecs. The installed-tree audit rejects
+accidental pack or optional-library dependencies before adding packs.
+
+Core mode installs FAL through `packs add`. Full mode installs every catalog
+node pack, retaining the optional coverage formerly provided by `base-nodes`.
+Both execute the installed FAL node with a deterministic queue response fixture.
+The fixture rejects unexpected network requests and never calls the live FAL API.
+
+The compiler exceptions and their range checks are defined in
+[plan D23](cli-pack-system-plan.md#d23-compiler-dependencies-required-by-core-packages).
+
+The smoke prints `du -sk node_modules` for the installed tree. This is the Linux
+measurement used to establish the later size gate. The dedicated
+`packed-core-cli.yml` workflow runs the core smoke on pull requests, including
+stacked branches. Release CI runs it beside the full packed smoke.
+
+## Release catalog pins
+
+After building packages and running `node scripts/prepare-publish.mjs`, run
+`node scripts/publish-packages.mjs --pack-only --tarballs-dir <empty-directory>`
+on Linux x64. It packs the catalog registrar packages and their companion
+libraries, measures each pack in a fresh production install, writes integrity
+and size pins, rebuilds the catalog artifact, and packs the remaining packages.
+It preserves every previously packed tarball and performs no publication.
+The catalog also records original companion hashes, exact npm runtime alias
+identities and shared-library pins. Staging verifies these before promotion.
+
+The install size includes the pack’s production dependency tree. Measurement
+uses local core directory overrides before final core artifacts exist. npm
+packs those directories according to their `files` fields, with scripts
+disabled. Each install has a fresh project and home, with a shared download
+cache inside the release artifact directory.
+
+Run the deterministic pin, measurement and packing-order regressions with:
+
+```bash
+node scripts/run-vitest.mjs run --config vitest.config.ts scripts/__tests__/pin-catalog.test.mjs scripts/__tests__/publish-packages.test.mjs scripts/__tests__/install-pins.test.mjs scripts/__tests__/staging-release.test.mjs scripts/__tests__/publish-tarballs.test.mjs
+```
+
+The
+`release-pins` job in `packed-core-cli.yml` verifies actual Linux measurement
+and packing without publishing.
+
 ## CLI
 
 Two entry points: `nodetool` (management commands) and `nodetool-chat` (interactive chat).
@@ -285,14 +343,17 @@ The harness runs **every** declared operation, not just the first: each resolves
 its own graph, and state is keyed per operation.
 
 The verdict catches app-level failures a workflow-only run can't: bindings that
-reference missing inputs/outputs/variables, apps with no run trigger, and
+reference missing inputs/outputs/variables, apps with operations but no run
+trigger, and
 display widgets that never receive a value from a completed run. It also catches
 what the operation/variable layer makes mis-configurable — an output mapped to
 an undeclared variable, a mapping keyed on a node the workflow lacks, an event
 naming an operation the document never declares, a widget showing execution
 state of an operation nothing can run, and an elapsed `timeoutMs`. A
 `persist: true` variable that is `instance`-scoped warns rather than being
-silently downgraded.
+silently downgraded. Apps that declare no operations can pass after variable
+interactions without executing a workflow. Legacy workflow app documents retain
+their implicit operation.
 
 Three warnings cover the app an agent builds that wires up correctly and still
 fails a user. A run button with no `disabledWhen` on `op:<id>/exec#running` is
@@ -797,9 +858,9 @@ The Blender side has a coverage gap. The sampled producer behind a bake is
 exercised by
 `packages/blender-nodes/tests/render-animation-sampled.test.ts`, which runs
 only where Blender is installed — `BLENDER_PATH`, or `blender` on `PATH` —
-and skips everywhere else; CI sets `NODETOOL_REQUIRE_BLENDER=1`, which turns
-that skip into a failure. It therefore does not run in a plain dev container,
-and two defects in that producer surfaced only on the CI leg: a named animation
+and skips everywhere else, CI included: CI installs no Blender because EEVEE
+timed out on its GPU-less runners. It therefore runs only where a developer
+has Blender. Two defects in that producer surfaced only when CI still ran it: a named animation
 that selected nothing because the glTF importer's active action played over the
 muted NLA tracks, and RGB output where `render_image` and `render_passes` both
 write RGBA, which made a bake frame incomparable to a still.
@@ -981,6 +1042,8 @@ anything carrying one under `document`) or a `js_scripts` row id. A path that
 exists on disk wins over an id; file targets need no database.
 
 ```bash
+npm run dev:nodetool -- jsscript schema
+npm run dev:nodetool -- jsscript example > script.json
 npm run dev:nodetool -- jsscript validate <id|file.json> [--json] [--warnings-as-errors]
 npm run dev:nodetool -- jsscript run <id|file.json> --inputs '{"numbers":[1,2,3]}'
 npm run dev:nodetool -- jsscript run <id|file.json> --input-streams '{"numbers":[1,2,3]}'
@@ -998,6 +1061,9 @@ and returns them instead of emitting them is an **error** — a script has no
 legacy return contract. Zero saved tests and a declared secret this install
 lacks are warnings.
 
+`run` and `test` validate the document before execution. Declared outputs must
+leave through `output` or `emit`. Saved test cases use `expect` for final values
+and `expectedStreamed` for ordered emissions. Unknown case fields are errors.
 `run` executes the body once in the QuickJS sandbox. A body that reads its
 inputs with `stream` is fed with `--input-streams '{handle: [item, …]}'` instead
 of `--inputs`; a staged handle the script does not declare is refused. `test`
@@ -1010,8 +1076,9 @@ imports a shipped sandbox pack. `run` and `test` open the database and install
 the sandbox pack catalog, so a body can import packs and save through
 `nodetool.*`. `debug` replays each
 `--interact` step against the headless `ui_jsscript_*` bridge (tool names with
-or without the prefix; a failing step is recorded and the script continues),
-validates the document the session left behind, and writes
+or without the prefix). A failed run or test result fails the interaction and
+report verdict. The session continues after failed steps, validates the document
+it left behind, and writes
 `nodetool-debug/jsscript-<id>-<ts>/` with `report.json`, `report.md` and
 `jsscript.json`. `versions restore` snapshots the pre-restore state first and
 re-validates against today's schema, so a restore that no longer validates exits
@@ -1280,7 +1347,9 @@ renderer and standalone builds include the runtime and verified media.
 `create_native_game {project_id, name, dimension: "3d"}` starts an exploration
 blockout. The editor provides orbit and fly cameras, picking, transform gizmos,
 snapping, diagnostic overlays, script editing and draft undo. Play pins a cloned
-draft. Later edits require restarting play. `playtest_native_game` accepts
+draft. Existing script source edits compile during play, preserving tick and
+script state. Invalid edits retain the previous source and report a Console
+error. Other edits require **Restart from tick 0**. `playtest_native_game` accepts
 recorded analog `axes` and `look`, spatial and grounded assertions, and snapshot
 replay checks. `autoplay_native_game` returns an unsupported diagnostic for 3D.
 Use a recorded route to verify its completion.
@@ -1425,7 +1494,8 @@ produce a confident-looking BPM from nothing.
 
 The math is pure and lives apart from the capability:
 `packages/agents/src/analysis/audio-dsp.ts` (FFT, spectral features, K-weighted
-gated loudness, silence, onsets, tempo) and `video-frames.ts` (per-frame
+gated loudness, silence) with onsets and tempo in
+`packages/timeline/src/audioOnsets.ts`, and `video-frames.ts` (per-frame
 statistics, histograms, motion, palettes, cuts), both tested on signals whose
 answers are known analytically. `media-decode.ts` is the Mediabunny seam.
 
@@ -1556,7 +1626,7 @@ IS_SANDBOX=1 npm run dev:nodetool -- eval graph-planner -p claude_agent_sdk -m c
 ```
 
 Details on env stripping and the uid=0 blocker:
-[docs/AGENTS.md § Claude Agent SDK](https://github.com/nodetool-ai/nodetool/blob/main/docs/AGENTS.md#claude-agent-sdk).
+[docs/AGENTS.md § Claude Agent provider](https://github.com/nodetool-ai/nodetool/blob/main/docs/AGENTS.md#claude-agent-provider).
 
 A **`graph-e2e`** suite takes the same planner all the way through: it plans a
 workflow, executes it on the kernel with the case's inputs, and has an LLM judge
@@ -1996,12 +2066,20 @@ npm run crap -- --lcov packages/kernel/coverage/lcov.info --json packages/kernel
   `Card`), top-level object-literal members, and every class member. A route
   callback (`app.get("/users", handler)`) is its own entry, `GET /users`.
   Other nested callbacks count toward their enclosing function, so a store
-  built inside `create((set) => …)` is one entry.
+  built inside `create((set) => …)` is one entry, and its score is the sum of
+  every action. A component's score likewise includes its inline handlers.
+  Move an action or handler to a module-level function to score it alone.
 - **Coverage** is LCOV. A function with `BRDA` branch records is scored by
   branches, otherwise by line hits. A function the report leaves out scores
   0%. By default the tool reads `coverage/lcov.info` in each workspace that
   owns an analyzed file. `--run-coverage` first runs that workspace's related
-  tests (`vitest related` or `jest --findRelatedTests`) with LCOV output.
+  tests (`vitest related` or `jest --findRelatedTests`) with LCOV output, and
+  Vitest writes the report even when a test fails. When several reports cover
+  one file, a line or branch counts as covered if any report hit it.
+- Coverage lands on `src/` only when tests load the source. A test that
+  imports its own package by name resolves to `dist/` and records nothing for
+  `src/`. A package whose tests import it by name aliases that name to
+  `src/index.ts` in its `vitest.config.ts`.
 - Test files, declaration files, and `tests/`, `__tests__/`, `dist/`, and
   `node_modules/` are skipped. Rules are pinned by
   `scripts/__tests__/crap-score.test.mjs`.
@@ -2015,6 +2093,11 @@ harnesses cover which surface. An uncovered surface must carry a written gap
 note; one without it fails `audit` and the registry test. Shipping a new
 surface means adding it to `packages/cli/src/harness/registry.ts` — with its
 harness or its debt written down.
+
+`harness list` distinguishes commands available in an installed CLI from
+checks that require a NodeTool checkout. Its JSON entries carry
+`requiresCheckout`. `gate` requires the checkout's Git metadata, scripts, and
+workspace dependencies. Outside a checkout it returns an actionable error.
 
 `gate` makes the registry executable: it maps a diff onto surfaces by path
 and runs the selfcheck of every harness covering a touched surface — keyless,
@@ -2052,6 +2135,13 @@ job's own timeout cutting it off with no verdict. The Quality Gate's
 gate --base origin/main --timeout 900` on every PR and `harness gate --all`
 on push to main, so this is exercised on every diff, not only when an agent
 remembers to run it locally.
+
+On POSIX hosts, timeout cleanup kills the selfcheck's process group before
+starting the next serial check. Serial checks retain live terminal output.
+Their JSON capture keeps the existing per-stream byte limit and fails on
+buffer overflow. Interrupting a serial gate with SIGINT or SIGTERM kills its
+owned process group and exits with code 130 or 143 without starting later
+checks. SIGKILL cannot run this cleanup.
 
 `capabilities` is the same invariant one rung down, over
 `packages/cli/src/harness/capability-table.ts`: every exported agent capability
@@ -2199,6 +2289,11 @@ npm run dev:nodetool -- jobs list --workflow-id <id>             # Filter by wor
 npm run dev:nodetool -- jobs get <job_id>                        # Job details
 npm run dev:nodetool -- jobs get <job_id> --json
 ```
+
+Agents and MCP clients cancel a job with `cancel_job` (`nodetool.jobs.cancel(id)`
+in an action), and the web uses the `jobs.cancel` procedure. Both mark the row
+cancelled and stop a run executing in the server process, so a cancelled job
+is never overwritten as completed.
 
 ### nodetool assets
 
@@ -2487,7 +2582,9 @@ message events emitted by `BaseProvider`.
 
 #### Sinks
 
-Multiple sinks can run simultaneously (each gets its own span processor):
+Multiple sinks can run simultaneously (each gets its own span processor).
+The network sink sends OTLP/HTTP JSON. Configure a collector that accepts JSON
+on its HTTP traces endpoint.
 
 ```bash
 # JSONL log file (analyzer-friendly — one span per line)

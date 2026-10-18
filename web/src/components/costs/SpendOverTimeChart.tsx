@@ -15,6 +15,12 @@ import { useTranslation } from "react-i18next";
 const PLOT_HEIGHT = 240;
 const X_AXIS_HEIGHT = 22;
 const Y_LABEL_WIDTH = 52;
+/** Most date labels the x axis shows, so they fit at any range and width. */
+export const MAX_X_LABELS = 8;
+
+/** Label every `stride`-th day, counted back from the latest day. */
+export const xLabelStride = (dayCount: number): number =>
+  Math.max(1, Math.ceil(dayCount / MAX_X_LABELS));
 
 interface SpendOverTimeChartProps {
   days: DayPoint[];
@@ -48,6 +54,8 @@ const SpendOverTimeChartInternal: React.FC<SpendOverTimeChartProps> = ({
     (id: string) => !activeProviders || activeProviders.has(id),
     [activeProviders]
   );
+
+  const labelStride = xLabelStride(days.length);
 
   const activeStackIds = useMemo(
     () => stackOrder.filter(isActive),
@@ -157,7 +165,7 @@ const SpendOverTimeChartInternal: React.FC<SpendOverTimeChartProps> = ({
                   top: -8,
                   left: 0,
                   width: Y_LABEL_WIDTH - 10,
-                  color: theme.vars.palette.text.disabled
+                  color: theme.vars.palette.text.secondary
                 }}
               >
                 {formatMoney(value)}
@@ -194,6 +202,7 @@ const SpendOverTimeChartInternal: React.FC<SpendOverTimeChartProps> = ({
                 sx={{
                   position: "relative",
                   flex: "1 1 0",
+                  minWidth: 0,
                   maxWidth: 34,
                   height: PLOT_HEIGHT,
                   cursor: "default"
@@ -255,19 +264,29 @@ const SpendOverTimeChartInternal: React.FC<SpendOverTimeChartProps> = ({
           }}
         >
           {days.map((day, index) => (
+            // Labels are centred on their bar without widening its column, so
+            // the axis keeps the bars' width at every range.
             <Box
               key={index}
               sx={{
+                position: "relative",
                 flex: "1 1 0",
-                maxWidth: 34,
-                textAlign: "center"
+                minWidth: 0,
+                maxWidth: 34
               }}
             >
-              {index % 2 === 0 && (
+              {(days.length - 1 - index) % labelStride === 0 && (
                 <Text
                   size="smaller"
                   family="secondary"
-                  sx={{ color: theme.vars.palette.text.disabled }}
+                  data-testid="spend-axis-date"
+                  sx={{
+                    position: "absolute",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    whiteSpace: "nowrap",
+                    color: theme.vars.palette.text.secondary
+                  }}
                 >
                   {formatAxisDate(day.date)}
                 </Text>

@@ -1,15 +1,17 @@
 /** @jsxImportSource @emotion/react */
-import { css } from "@emotion/react";
+import type { CSSObject } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { memo, useMemo } from "react";
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import {
   Caption,
+  Card,
   Chip,
   DeleteButton,
   FlexColumn,
   FlexRow,
+  HoverActionGroup,
   ResponsiveImage,
   Text,
   ToolbarIconButton,
@@ -28,18 +30,11 @@ type Resource = Memory["resources"][number];
 /** Asset thumbnail edge (px), on the 4px grid — a fixed component dimension. */
 const THUMB_SIZE = 56;
 
-const styles = (theme: Theme) =>
-  css({
-    padding: getSpacingPx(SPACING.lg),
-    borderRadius: BORDER_RADIUS.md,
-    border: `1px solid ${theme.vars.palette.divider}`,
-    background: theme.vars.palette.background.paper,
+const styles = (theme: Theme): CSSObject => ({
     transition: MOTION.background,
     "&:hover": {
-      background: `rgb(${theme.vars.palette.common.whiteChannel} / 0.04)`
+      background: theme.vars.palette.action.hover
     },
-    "&:hover .memory-actions": { opacity: 1 },
-    ".memory-actions": { opacity: 0, transition: MOTION.opacity },
     ".memory-content": {
       wordBreak: "break-word",
       lineHeight: 1.45,
@@ -52,7 +47,7 @@ const styles = (theme: Theme) =>
       gap: getSpacingPx(SPACING.sm),
       marginTop: getSpacingPx(SPACING.md)
     }
-  });
+});
 
 /**
  * An asset resource of an image content-type — rendered as a small thumbnail.
@@ -119,7 +114,13 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
   const imageAssets = memory.resources.filter(isImageAsset);
   const otherResources = memory.resources.filter((r) => !isImageAsset(r));
   return (
-    <article className="memory-item" css={cssStyles}>
+    <Card
+      component="article"
+      variant="outlined"
+      padding={SPACING.lg}
+      className="memory-item"
+      sx={cssStyles}
+    >
       <FlexRow align="flex-start" justify="space-between" gap={SPACING.md}>
         <FlexColumn gap={0} sx={{ minWidth: 0 }}>
           <FlexRow align="center" gap={SPACING.sm} sx={{ minWidth: 0 }}>
@@ -132,7 +133,11 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
           </FlexRow>
           <Caption>{formatDate(memory.created_at)}</Caption>
         </FlexColumn>
-        <FlexRow className="memory-actions" align="center" gap={SPACING.xs}>
+        <HoverActionGroup
+          className="memory-actions"
+          triggerSelector=".memory-item:hover"
+          gap={SPACING.xs}
+        >
           <ToolbarIconButton
             tooltip={t("editor:ui.openTheConversationThisCameFrom", { defaultValue: "Open the conversation this came from" })}
             onClick={() => onOpenThread(memory.thread_id)}
@@ -143,7 +148,7 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
             onClick={() => onDelete(memory.id)}
             disabled={deleteDisabled}
           />
-        </FlexRow>
+        </HoverActionGroup>
       </FlexRow>
       {memory.content && (
         <Text size="small" className="memory-content">
@@ -165,7 +170,7 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
           ))}
         </div>
       )}
-    </article>
+    </Card>
   );
 };
 

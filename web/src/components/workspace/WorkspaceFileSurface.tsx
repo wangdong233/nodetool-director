@@ -12,11 +12,10 @@ import VideoViewer from "../asset_viewer/VideoViewer";
 import LazyPDFViewer from "../asset_viewer/LazyPDFViewer";
 import LazyModel3DViewer from "../asset_viewer/LazyModel3DViewer";
 import {
-  Button,
-  Caption,
   FlexColumn,
   SPACING,
-  Text
+  Text,
+  EmptyState
 } from "../ui_primitives";
 import WorkspaceFileText from "./WorkspaceFileText";
 import { isTextKind, workspaceFileKind } from "./workspaceFileKind";
@@ -25,7 +24,6 @@ import {
   workspaceFileDownloadPath,
   workspaceFileName
 } from "./workspaceFileRef";
-import { useTranslation } from "react-i18next";
 
 interface WorkspaceFileSurfaceProps {
   /** `${workspaceId}::${path}` — see workspaceFileRef.ts. */
@@ -35,7 +33,6 @@ interface WorkspaceFileSurfaceProps {
 }
 
 const BinaryFallback = ({ name, url }: { name: string; url: string }) => {
-  const { t } = useTranslation();
   const { handleDownload } = useAssetDownload({ url });
   return (
     <FlexColumn
@@ -45,13 +42,13 @@ const BinaryFallback = ({ name, url }: { name: string; url: string }) => {
       justify="center"
       gap={SPACING.md}
     >
-      <Text size="normal" weight={600}>
-        {name}
-      </Text>
-      <Caption>{t("editor:ui.noPreviewAvailableForThisFileType", { defaultValue: "No preview available for this file type." })}</Caption>
-      <Button variant="outlined" size="small" onClick={handleDownload}>
-        Download
-      </Button>
+      <EmptyState
+        variant="no-data"
+        title={name}
+        description="No preview available for this file type."
+        actionText="Download"
+        onAction={handleDownload}
+      />
     </FlexColumn>
   );
 };
@@ -63,7 +60,6 @@ const BinaryFallback = ({ name, url }: { name: string; url: string }) => {
  * written through the `workspace` tRPC router (see WorkspaceFileText).
  */
 const WorkspaceFileSurface = ({ refId, mode }: WorkspaceFileSurfaceProps) => {
-  const { t } = useTranslation();
   const setTabTitle = useWorkspaceTabsStore((state) => state.setTitle);
   const parsed = useMemo(() => parseWorkspaceFileRef(refId), [refId]);
   const name = parsed ? workspaceFileName(parsed.path) : "";
@@ -78,7 +74,7 @@ const WorkspaceFileSurface = ({ refId, mode }: WorkspaceFileSurfaceProps) => {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
         <Text size="normal" weight={600}>
-          {t("editor:ui.invalidWorkspaceFileReference")}
+          Invalid workspace file reference
         </Text>
       </FlexColumn>
     );

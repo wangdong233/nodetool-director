@@ -1,15 +1,13 @@
 import React, { useCallback, useState, memo } from "react";
-import { Tooltip, Caption, LoadingSpinner, ToolbarIconButton, Box, SPACING, getSpacingPx } from "../../ui_primitives";
+import { Caption, LoadingSpinner, ToolbarIconButton, Box, SPACING, getSpacingPx, ICON_SIZE } from "../../ui_primitives";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { useNodes } from "../../../contexts/NodeContext";
+import { useNodeStoreRef } from "../../../contexts/NodeContext";
 import { BASE_URL } from "../../../stores/BASE_URL";
 import { TypeMetadata } from "../../../stores/ApiTypes";
 import { resolveReplicateSchemaClient } from "../../../utils/replicateDynamicSchema";
 import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
+import { replaceDynamicSlots } from "../../../utils/replaceDynamicSlots";
 import { NodeData } from "../../../stores/NodeData";
-import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 
 export { DYNAMIC_REPLICATE_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -24,8 +22,7 @@ interface ReplicateSchemaLoaderProps {
  */
 export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
   ({ nodeId, data }) => {
-    const { t } = useTranslation();
-    const updateNodeData = useNodes((state) => state.updateNodeData);
+    const nodeStore = useNodeStoreRef();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +40,7 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
 
     const handleLoad = useCallback(async (force = false) => {
       if (!modelInfo) {
-        setError(i18n.t("editor:ui.pasteAReplicateModelIdentifierFirst", { defaultValue: "Paste a Replicate model identifier first." }));
+        setError("Paste a Replicate model identifier first.");
         return;
       }
       setError(null);
@@ -101,7 +98,7 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
         const dynamic_properties = force
           ? resolved.dynamic_properties
           : { ...resolved.dynamic_properties, ...(existingDynamicPropsRef.current ?? {}) };
-        updateNodeData(nodeId, {
+        replaceDynamicSlots(nodeStore, nodeId, {
           dynamic_properties,
           dynamic_inputs:
             Object.keys(dynamic_inputs).length > 0
@@ -114,25 +111,38 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
         });
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadSchema", { defaultValue: "Failed to load schema" })
+          err instanceof Error ? err.message : "Failed to load schema"
         );
       } finally {
         setLoading(false);
       }
-    }, [nodeId, modelInfo, updateNodeData]);
+    }, [nodeId, modelInfo, nodeStore]);
 
+    const previousModelInfoRef = React.useRef(modelInfo);
     React.useEffect(() => {
+      if (!modelInfo) {
+        previousModelInfoRef.current = modelInfo;
+        setAutoLoadAttempted(false);
+        return;
+      }
+      if (loading) {
+        return;
+      }
+      const modelInfoChanged = previousModelInfoRef.current !== modelInfo;
+      previousModelInfoRef.current = modelInfo;
+      if (modelInfoChanged) {
+        // The stored model_id still belongs to the old model, so the
+        // resolved check below would skip the load.
+        setError(null);
+        setAutoLoadAttempted(true);
+        void handleLoad(true); // new model → reset to fresh defaults
+        return;
+      }
       // Need both model_id AND dynamic_inputs — inputs are transient (not persisted) and must be re-fetched
       const isResolved = !!data.model_id && Object.keys(data.dynamic_inputs ?? {}).length > 0;
-      if (
-        modelInfo &&
-        !isResolved &&
-        !loading &&
-        !error &&
-        !autoLoadAttempted
-      ) {
+      if (!isResolved && !error && !autoLoadAttempted) {
         setAutoLoadAttempted(true);
-        handleLoad(false); // auto-load: preserve existing values
+        void handleLoad(false); // auto-load: preserve existing values
       }
     }, [
       modelInfo,
@@ -144,34 +154,28 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
       handleLoad
     ]);
 
-    React.useEffect(() => {
-      setAutoLoadAttempted(false);
-    }, [modelInfo]);
-
     return (
       <Box sx={{ display: "inline-flex", alignItems: "center" }}>
-        <Tooltip title={t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })} arrow delay={TOOLTIP_ENTER_DELAY}>
-          <ToolbarIconButton
-            title={t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })}
-            size="small"
-            disabled={loading}
-            onClick={() => void handleLoad(true)}
-            sx={{
-              padding: getSpacingPx(SPACING.xs),
-              color: "var(--palette-text-secondary)",
-              "&:hover": {
-                color: "var(--palette-text-primary)",
-                backgroundColor: "var(--palette-action-hover)"
-              }
-            }}
-          >
-            {loading ? (
-              <LoadingSpinner size="small" />
-            ) : (
-              <RefreshIcon sx={{ fontSize: 16 }} />
-            )}
-          </ToolbarIconButton>
-        </Tooltip>
+        <ToolbarIconButton
+          title="Reload schema"
+          size="small"
+          disabled={loading}
+          onClick={() => void handleLoad(true)}
+          sx={{
+            padding: getSpacingPx(SPACING.xs),
+            color: "var(--palette-text-secondary)",
+            "&:hover": {
+              color: "var(--palette-text-primary)",
+              backgroundColor: "var(--palette-action-hover)"
+            }
+          }}
+        >
+          {loading ? (
+            <LoadingSpinner size="small" />
+          ) : (
+            <RefreshIcon sx={{ fontSize: ICON_SIZE.sm }} />
+          )}
+        </ToolbarIconButton>
         {error && (
           <Caption
             color="error"

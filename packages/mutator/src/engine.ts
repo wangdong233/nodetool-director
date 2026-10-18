@@ -6,6 +6,7 @@ import { describeSite, type FormResult, type Outcome, type Site, type Status } f
 import { expandCommand, packageDirOf, relativeKey } from "./project.js";
 import type { CommandRunner } from "./runner.js";
 import { applySite } from "./sites.js";
+import { belongsToShard, type MutationObserver, type MutationShard } from "./shards.js";
 import type { History, SnapshotStore } from "./snapshot.js";
 import { mappedPath, workerCount, type WorkerPool } from "./workers.js";
 
@@ -26,12 +27,14 @@ export interface EngineContext {
   lines: Set<number> | null;
   /** Form keys to restrict the run to, from `--base`. */
   changedForms: ((path: string, source: string) => Set<string> | null) | null;
-  testCommand: (packageDir: string) => string;
+  testCommand: (packageDir: string, phase: "baseline" | "mutant") => string;
   timeoutFactor: number;
   mutationWarning: number;
   maxWorkers: number | null;
   baselines: Map<string, Baseline>;
   log: (message: string) => void;
+  shard?: MutationShard | null;
+  observer?: MutationObserver;
 }
 
 export interface RunResult {
@@ -86,6 +89,34 @@ export function selectSites(
     }
     return history.outcomes.get(site.mutationId) !== "killed";
   });
+}
+
+export interface FileSiteSelection {
+  found: Site[];
+  lines: Set<number> | null | undefined;
+  covered: Map<string, boolean>;
+  history: History;
+  digests: Map<string, string>;
+  selected: Site[];
+}
+
+/** Read selection inputs without creating workers, baselines, or snapshots. */
+export function selectFileSites(
+  path: string,
+  source: string,
+  ctx: Pick<EngineContext, "root" | "store" | "coveredLines" | "changedForms" | "mutateAll" | "lines">
+): FileSiteSelection {
+  const fileKey = relativeKey(ctx.root, path);
+  const found = sitesInFile(source, path, fileKey);
+  const lines = ctx.coveredLines === null ? null : ctx.coveredLines(path);
+  const covered = new Map(
+    found.map((site) => [site.mutationId, ctx.coveredLines === null || (lines?.has(site.line) ?? false)])
+  );
+  const history = ctx.store.history(fileKey, formKey);
+  const digests = formDigests(source, findForms(source, path, fileKey));
+  const changed = ctx.changedForms === null ? null : ctx.changedForms(path, source);
+  const selected = selectSites(found, covered, history, digests, ctx.mutateAll, ctx.lines, changed);
+  return { found, lines, covered, history, digests, selected };
 }
 
 /** Prior outcomes of sites whose function text did not change. */
@@ -205,7 +236,9 @@ async function runMutants(
       writeFileSync(target, applySite(source, site));
       try {
         const result = await ctx.runner.run(command, cwd, timeout);
-        outcomes.set(site.mutationId, result.timedOut || result.code !== 0 ? "killed" : "survived");
+        const outcome = result.timedOut || result.code !== 0 ? "killed" : "survived";
+        outcomes.set(site.mutationId, outcome);
+        ctx.observer?.completed(site.mutationId, outcome);
       } finally {
         writeFileSync(target, source);
       }
@@ -227,31 +260,29 @@ export async function mutateFile(path: string, ctx: EngineContext): Promise<RunR
   } catch {
     return emptyResult(fileKey, { skipped: "file is not UTF-8" });
   }
-  const found = sitesInFile(source, path, fileKey);
-  const lines = ctx.coveredLines === null ? null : ctx.coveredLines(path);
-  const covered = new Map(
-    found.map((site) => [site.mutationId, ctx.coveredLines === null || (lines?.has(site.line) ?? false)])
-  );
+  const selection = selectFileSites(path, source, ctx);
+  const { lines, covered, history, digests } = selection;
+  ctx.observer?.selection(fileKey, selection.selected.map((site) => site.mutationId));
+  const shard = ctx.shard;
+  const found = shard ? selection.found.filter((site) => belongsToShard(site.mutationId, shard)) : selection.found;
   if (ctx.coveredLines !== null && lines === undefined && found.length > 0) {
     ctx.log(`No coverage data for ${fileKey}; its sites are uncovered. Pass --no-coverage to run them anyway.`);
   }
-  const history = ctx.store.history(fileKey, formKey);
-  const digests = formDigests(source, findForms(source, path, fileKey));
-  const changed = ctx.changedForms === null ? null : ctx.changedForms(path, source);
-  const selected = selectSites(found, covered, history, digests, ctx.mutateAll, ctx.lines, changed);
+  const selected = shard ? selection.selected.filter((site) => belongsToShard(site.mutationId, shard)) : selection.selected;
   const outcomes = carryForward(found, covered, history, digests);
   if (selected.length > ctx.mutationWarning) {
     ctx.log(`WARNING: ${selected.length} covered mutations selected in ${fileKey}.`);
   }
   if (selected.length > 0) {
-    const command = expandCommand(ctx.testCommand(packageDir), path, packageDir);
+    const command = expandCommand(ctx.testCommand(packageDir, "baseline"), path, packageDir);
     const baseline = await baselineFor(ctx, command, packageDir);
     if (!baseline.ok) {
       const message = `Baseline failed for ${fileKey}: ${command}${baseline.tail ? `\n${baseline.tail}` : ""}`;
       return emptyResult(fileKey, { baselineFailed: true, baselineMessage: message });
     }
     const timeout = Math.max(2, baseline.seconds * ctx.timeoutFactor);
-    await runMutants(ctx, path, source, selected, packageDir, command, timeout, outcomes);
+    const mutantCommand = expandCommand(ctx.testCommand(packageDir, "mutant"), path, packageDir);
+    await runMutants(ctx, path, source, selected, packageDir, mutantCommand, timeout, outcomes);
   }
   const forms = tallyForms(source, path, fileKey, found, covered, outcomes, ctx.lines);
   const written = ctx.store.write(fileKey, forms, outcomes);

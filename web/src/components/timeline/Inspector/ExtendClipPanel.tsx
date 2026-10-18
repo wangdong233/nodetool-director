@@ -1,10 +1,7 @@
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 import React, { memo, useMemo, useState } from "react";
 import MoreTimeOutlinedIcon from "@mui/icons-material/MoreTimeOutlined";
 import { captureExtensionSource } from "@nodetool-ai/timeline";
 import type { ExtensionRequest, ExtensionTiming } from "@nodetool-ai/timeline";
-import type { TFunction } from "i18next";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { useVideoModelsByProvider } from "../../../hooks/useModelsByProvider";
 import {
@@ -12,6 +9,7 @@ import {
   useTimelineExtension
 } from "../../../hooks/timeline/useTimelineExtension";
 import { isElectron, isLocalhost } from "../../../lib/env";
+import ErrorBanner from "../../support/ErrorBanner";
 import {
   Caption,
   CollapsibleSection,
@@ -24,41 +22,22 @@ import {
   LoadingSpinner,
   SelectField,
   SPACING,
+  TextArea,
   TextInput,
+  ThinkingIndicator,
   VideoPlayer
 } from "../../ui_primitives";
 import { INSPECTOR_FORM_SX, InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 
-const TIMING_OPTIONS: ReadonlyArray<{
-  value: ExtensionTiming;
-  label: (t: TFunction) => string;
-}> = [
-  {
-    value: "keep-cut",
-    label: (t) =>
-      t("timeline:attrs.keepCutAndRetainHandles", {
-        defaultValue: "Keep cut and retain handles"
-      })
-  },
-  {
-    value: "available-space",
-    label: (t) =>
-      t("timeline:attrs.extendIntoAvailableSpace", {
-        defaultValue: "Extend into available space"
-      })
-  },
-  {
-    value: "ripple",
-    label: (t) =>
-      t("timeline:attrs.extendAndRippleLaterClips", {
-        defaultValue: "Extend and ripple later clips"
-      })
-  }
-];
+const TIMING_OPTIONS: ReadonlyArray<{ value: ExtensionTiming; label: string }> =
+  [
+    { value: "keep-cut", label: "Keep cut and retain handles" },
+    { value: "available-space", label: "Extend into available space" },
+    { value: "ripple", label: "Extend and ripple later clips" }
+  ];
 
 const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
-  const { t } = useTranslation();
   const [open, setOpen] = usePersistedFold("extend", true);
   const clip = useTimelineStore((state) =>
     state.clips.find((item) => item.id === clipId)
@@ -165,7 +144,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
   return (
     <CollapsibleSection
       title={
-        <InspectorSectionTitle title={t("timeline:attrs.extend", { defaultValue: "Extend" })} icon={<MoreTimeOutlinedIcon />} />
+        <InspectorSectionTitle title="Extend" icon={<MoreTimeOutlinedIcon />} />
       }
       open={open}
       onToggle={setOpen}
@@ -181,17 +160,17 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
               <EmptyState
                 variant="empty"
                 size="small"
-                title={t("timeline:attrs.noExtensionModelAvailable", { defaultValue: "No extension model available" })}
+                title="No extension model available"
                 description={
                   modelError
-                    ? i18n.t("timeline:attrs.couldNotLoadExtensionModelsTryAgainWhenConnected", { defaultValue: "Could not load extension models. Try again when connected." })
-                    : i18n.t("timeline:attrs.connectAProviderWithAVideoExtensionModelToUseExtend", { defaultValue: "Connect a provider with a video extension model to use Extend." })
+                    ? "Could not load extension models. Try again when connected."
+                    : "Connect a provider with a video extension model to use Extend."
                 }
               />
             ) : (
               <>
                 <SelectField
-                  label={t("timeline:attrs.extensionModel", { defaultValue: "Extension model" })}
+                  label="Extension model"
                   size="small"
                   value={`${model.provider}:${model.id}`}
                   options={modelsForTask.map((item) => ({
@@ -204,7 +183,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                 <FlexRow gap={SPACING.sm} align="flex-end" fullWidth>
                   <FlexColumn sx={{ flex: 1, minWidth: 0 }}>
                     <SelectField
-                      label={t("timeline:attrs.extendFrom", { defaultValue: "Extend from" })}
+                      label="Extend from"
                       size="small"
                       value={selectedDirection}
                       options={directionOptions}
@@ -217,7 +196,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                   <FlexColumn sx={{ flex: 1, minWidth: 0 }}>
                     {durationChoices ? (
                       <SelectField
-                        label={t("timeline:attrs.sourceSecondsToAdd", { defaultValue: "Source seconds to add" })}
+                        label="Source seconds to add"
                         size="small"
                         value={selectedDuration}
                         options={durationChoices.map((seconds) => ({
@@ -229,7 +208,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                       />
                     ) : (
                       <TextInput
-                        label={t("timeline:attrs.sourceSecondsToAdd", { defaultValue: "Source seconds to add" })}
+                        label="Source seconds to add"
                         type="number"
                         value={duration}
                         onChange={(event) => setDuration(event.target.value)}
@@ -241,13 +220,12 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                     )}
                   </FlexColumn>
                 </FlexRow>
-                <TextInput
-                  label={t("timeline:attrs.extensionIntent", { defaultValue: "Extension intent" })}
+                <TextArea
+                  label="Extension intent"
                   value={intent}
-                  onChange={(event) => setIntent(event.target.value)}
-                  placeholder={t("timeline:attrs.extensionIntentExample", { defaultValue: "e.g. The camera keeps rising" })}
+                  onChange={(value) => setIntent(value)}
+                  placeholder="e.g. The camera keeps rising"
                   disabled={pending}
-                  multiline
                   minRows={3}
                   maxRows={8}
                   compact
@@ -265,9 +243,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                     !(Number(selectedDuration) > 0)
                   }
                 >
-                  {pending
-                    ? t("timeline:attrs.extending", { defaultValue: "Extending…" })
-                    : t("timeline:attrs.generateExtension", { defaultValue: "Generate extension" })}
+                  {pending ? "Extending…" : "Generate extension"}
                 </EditorButton>
               </>
             )}
@@ -285,18 +261,11 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                 <>
                   <FlexRow justify="space-between" align="center" fullWidth>
                     <Label>
-                      {job.request.direction === "start"
-                        ? t("timeline:attrs.start", { defaultValue: "Start" })
-                        : t("ui2:attrs.end", { defaultValue: "End" })}{" "}
-                      {t("timeline:attrs.extensionSeconds", {
-                        defaultValue: "extension, {{n}}s",
-                        n: job.request.addedSourceDurationMs / 1000
-                      })}
+                      {job.request.direction === "start" ? "Start" : "End"}{" "}
+                      extension, {job.request.addedSourceDurationMs / 1000}s
                     </Label>
                     <Caption color={accepted ? "primary" : "secondary"}>
-                      {accepted
-                        ? t("timeline:attrs.inUse", { defaultValue: "In use" })
-                        : t("timeline:attrs.candidate", { defaultValue: "Candidate" })}
+                      {accepted ? "In use" : "Candidate"}
                     </Caption>
                   </FlexRow>
                   <EditorButton
@@ -307,16 +276,16 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                     }
                   >
                     {preview === take.assetId
-                      ? i18n.t("timeline:attrs.closePreview", { defaultValue: "Close preview" })
-                      : i18n.t("timeline:attrs.previewExtension", { defaultValue: "Preview extension" })}
+                      ? "Close preview"
+                      : "Preview extension"}
                   </EditorButton>
                   {preview === take.assetId && (
                     <VideoPlayer
                       locator={`asset://${take.assetId}`}
-                      label={t("timeline:attrs.extensionCandidate", { defaultValue: "Extension candidate" })}
+                      label="Extension candidate"
                     />
                   )}
-                  <Caption color="secondary">{t("timeline:attrs.applyToTheCut", { defaultValue: "Apply to the cut" })}</Caption>
+                  <Caption color="secondary">Apply to the cut</Caption>
                   {TIMING_OPTIONS.map((option) => (
                     <EditorButton
                       key={option.value}
@@ -327,32 +296,48 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                         handleApplyCandidate(job.request, option.value)
                       }
                     >
-                      {option.label(t)}
+                      {option.label}
                     </EditorButton>
                   ))}
                 </>
               ) : job.status !== "running" ? (
                 <>
-                  {job.error && <Caption color="error">{job.error}</Caption>}
+                  {job.error && (
+                    <ErrorBanner
+                      report={{
+                        source: "job-failure",
+                        summary: "Clip extension failed",
+                        errorText: job.error
+                      }}
+                    >
+                      {job.error}
+                    </ErrorBanner>
+                  )}
                   <EditorButton
                     fullWidth
                     variant="outlined"
                     onClick={() => recover(job.request)}
                   >
-                    {t("timeline:attrs.recoverExtension", { defaultValue: "Recover extension" })}
+                    Recover extension
                   </EditorButton>
                 </>
               ) : (
-                <LoadingSpinner
-                  variant="dots"
-                  size="small"
-                  text={t("timeline:attrs.generatingExtension", { defaultValue: "Generating extension…" })}
-                />
+                <ThinkingIndicator label="Generating extension" announce />
               )}
             </FlexColumn>
           );
         })}
-        {error && <Caption color="error">{error}</Caption>}
+        {error && (
+          <ErrorBanner
+            report={{
+              source: "operation-failure",
+              summary: "Clip extension could not start",
+              errorText: error
+            }}
+          >
+            {error}
+          </ErrorBanner>
+        )}
       </FlexColumn>
     </CollapsibleSection>
   );

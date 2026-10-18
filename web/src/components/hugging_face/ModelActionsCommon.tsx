@@ -1,23 +1,13 @@
 import React from "react";
 import { Tooltip, EditorButton, SPACING, getSpacingPx } from "../ui_primitives";
-import FolderIcon from "@mui/icons-material/Folder";
-import {
-  TOOLTIP_ENTER_DELAY,
-  TOOLTIP_ENTER_NEXT_DELAY
-} from "../../config/constants";
-import { useTranslation } from "react-i18next";
+import FolderIcon from "@mui/icons-material/FolderOutlined";
+import { TOOLTIP_DESCRIPTION_DELAY } from "../../config/constants";
 
 export const ModelShowInExplorerButton: React.FC<{
   onClick: () => void;
   disabled?: boolean;
-}> = ({ onClick, disabled }) => {
-  const { t } = useTranslation();
-  return (
-  <Tooltip
-    title={t("editor:ui.showInFileExplorer", { defaultValue: "Show in File Explorer" })}
-    delay={TOOLTIP_ENTER_DELAY * 2}
-    nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
-  >
+}> = ({ onClick, disabled }) => (
+  <Tooltip title="Show in File Explorer" delay={TOOLTIP_DESCRIPTION_DELAY}>
     <span>
       <EditorButton
         className="show-in-explorer-button"
@@ -31,18 +21,12 @@ export const ModelShowInExplorerButton: React.FC<{
     </span>
   </Tooltip>
 );
-};
 
 export const HuggingFaceLink: React.FC<{
   modelId: string;
-}> = ({ modelId }) => {
-  const { t } = useTranslation();
-  return !modelId.endsWith("safetensors") && (
-    <Tooltip
-      title={t("editor:ui.viewOnHuggingFace", { defaultValue: "View on Hugging Face" })}
-      delay={TOOLTIP_ENTER_DELAY * 2}
-      nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
-    >
+}> = ({ modelId }) =>
+  !modelId.endsWith("safetensors") && (
+    <Tooltip title="View on HuggingFace" delay={TOOLTIP_DESCRIPTION_DELAY}>
       <EditorButton
         density="compact"
         href={`https://huggingface.co/${modelId}`}
@@ -62,18 +46,12 @@ export const HuggingFaceLink: React.FC<{
       </EditorButton>
     </Tooltip>
   );
-};
 
 export const OllamaLink: React.FC<{
   modelId: string;
 }> = ({ modelId }) => {
-  const { t } = useTranslation();
   return (
-    <Tooltip
-      title={t("editor:ui.viewOnOllama", { defaultValue: "View on Ollama" })}
-      delay={TOOLTIP_ENTER_DELAY * 2}
-      nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
-    >
+    <Tooltip title="View on Ollama" delay={TOOLTIP_DESCRIPTION_DELAY}>
       <EditorButton
         density="compact"
         href={`https://ollama.com/library/${modelId.split(":")[0]}`}

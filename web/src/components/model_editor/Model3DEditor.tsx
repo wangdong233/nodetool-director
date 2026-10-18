@@ -1,6 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { i18n, useAppLanguage } from "../../i18n";
-import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import {
   memo,
@@ -30,7 +28,7 @@ import {
 import OpenWithIcon from "@mui/icons-material/OpenWith";
 import ThreeDRotationIcon from "@mui/icons-material/ThreeDRotation";
 import AspectRatioIcon from "@mui/icons-material/AspectRatio";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ViewInArOutlinedIcon from "@mui/icons-material/ViewInArOutlined";
@@ -41,8 +39,9 @@ import PublicIcon from "@mui/icons-material/Public";
 import ControlCameraIcon from "@mui/icons-material/ControlCamera";
 import StraightenIcon from "@mui/icons-material/Straighten";
 import KeyboardIcon from "@mui/icons-material/Keyboard";
-import CircleIcon from "@mui/icons-material/Circle";
 import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import PhotoCameraOutlinedIcon from "@mui/icons-material/PhotoCameraOutlined";
 
 import {
   AlertBanner,
@@ -65,6 +64,7 @@ import {
   PanelHeader,
   BORDER_RADIUS,
   SPACING,
+  StatusDot,
   Z_INDEX,
   getSpacingPx
 } from "../ui_primitives";
@@ -74,13 +74,23 @@ import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
 import SceneOutliner, { type OutlinerAction } from "./SceneOutliner";
 import PropertiesPanel from "./PropertiesPanel";
 import Model3DChatPanel from "./Model3DChatPanel";
+import AiRenderPanel, { type ViewportCapture } from "./AiRenderPanel";
+import type { CapturePass } from "./aiRender";
 import EditorStatusBar from "./EditorStatusBar";
+import ViewportContextMenu from "./ViewportContextMenu";
 import AnimationBar from "./AnimationBar";
 import ViewportHud from "./ViewportHud";
 import { MenuButton } from "./MenuButton";
 import { readViewPrefs, writeViewPrefs, type ViewPrefs } from "./viewPrefs";
 import { createAnimationPreview } from "./animationPreview";
-import { importModelFile, importModelUrl, isModelFileName } from "./importModel";
+import {
+  IMPORT_ACCEPT,
+  MODEL_FORMATS_LABEL,
+  importModelFile,
+  importModelUrl,
+  isModelFileName,
+  modelNameFromFile
+} from "./importModel";
 import ShortcutsDialog from "./ShortcutsDialog";
 import ResizableSideDock from "../chat/assistant/ResizableSideDock";
 import {
@@ -96,6 +106,8 @@ import {
   type PrimitiveKind
 } from "./objectFactory";
 import { exportSceneToGlb } from "./exportGltf";
+import { EXPORT_FORMATS, exportFileName, exportModel, type ExportFormat } from "./exportModel";
+import { saveBlobAsFile } from "../../utils/downloadResponse";
 import {
   bindTracksToUuids,
   cloneObjectDeep,
@@ -123,13 +135,13 @@ import {
 import {
   EDITOR_SHORTCUTS,
   shortcutKeys,
-  shortcutLabel,
   withShortcut,
   type EditorAction
 } from "./editorShortcuts";
 import {
   CameraRig,
   CaptureBridge,
+  FollowSelection,
   GroundAxes,
   LightGizmos,
   SelectionBounds,
@@ -147,10 +159,6 @@ import { useModel3DAgentTools } from "./useModel3DAgentTools";
 type GizmoMode = "translate" | "rotate" | "scale";
 type GizmoSpace = "world" | "local";
 
-/** Localized display label for a primitive kind; stored names stay English. */
-const primitiveLabel = (kind: PrimitiveKind): string =>
-  i18n.t(`editor:ui.primitive.${kind}`, { defaultValue: PRIMITIVE_LABELS[kind] });
-
 const LEFT_PANEL_WIDTH = 260;
 const RIGHT_PANEL_WIDTH = 300;
 // The assistant hosts a chat conversation, so it gets more room than the
@@ -165,6 +173,15 @@ const ASSISTANT_OPEN_KEY = "model3d.assistantOpen";
 const readAssistantOpen = (): boolean => {
   try {
     return localStorage.getItem(ASSISTANT_OPEN_KEY) === "true";
+  } catch {
+    return false;
+  }
+};
+
+const AI_RENDER_OPEN_KEY = "model3d.aiRenderOpen";
+const readAiRenderOpen = (): boolean => {
+  try {
+    return localStorage.getItem(AI_RENDER_OPEN_KEY) === "true";
   } catch {
     return false;
   }
@@ -250,12 +267,8 @@ const styles = (theme: Theme) =>
       // Leave room for the axis widget in the bottom-right corner.
       right: 160,
       bottom: getSpacingPx(SPACING.md),
-      zIndex: Z_INDEX.raised,
-      padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.md)}`,
-      borderRadius: BORDER_RADIUS.md,
-      border: `1px solid ${theme.vars.palette.divider}`,
-      backgroundColor: `rgba(${theme.vars.palette.background.defaultChannel} / 0.72)`,
-      backdropFilter: "blur(8px)"
+      // Position only: FloatingToolbar draws the surface.
+      zIndex: Z_INDEX.raised
     },
     ".drop-hint": {
       position: "absolute",
@@ -265,10 +278,6 @@ const styles = (theme: Theme) =>
       borderRadius: BORDER_RADIUS.lg,
       border: `2px dashed ${theme.vars.palette.primary.main}`,
       backgroundColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.08)`
-    },
-    ".dirty-dot": {
-      fontSize: "var(--fontSizeSmaller)",
-      color: theme.vars.palette.warning.main
     },
     ".overlay": {
       position: "absolute",
@@ -398,8 +407,6 @@ const Model3DEditor = ({
   onReloadExternal,
   onDismissExternal
 }: Model3DEditorProps) => {
-  const { t } = useTranslation();
-  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -448,6 +455,7 @@ const Model3DEditor = ({
   const [isDragging, setIsDragging] = useState(false);
   const [cameraRequest, setCameraRequest] = useState<CameraRequest | null>(null);
   const [showAssistant, setShowAssistant] = useState<boolean>(readAssistantOpen);
+  const [showAiRender, setShowAiRender] = useState<boolean>(readAiRenderOpen);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
@@ -462,6 +470,18 @@ const Model3DEditor = ({
       const next = !open;
       try {
         localStorage.setItem(ASSISTANT_OPEN_KEY, String(next));
+      } catch {
+        // Persistence is best-effort; ignore storage failures.
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleAiRender = useCallback(() => {
+    setShowAiRender((open) => {
+      const next = !open;
+      try {
+        localStorage.setItem(AI_RENDER_OPEN_KEY, String(next));
       } catch {
         // Persistence is best-effort; ignore storage failures.
       }
@@ -557,17 +577,29 @@ const Model3DEditor = ({
 
   // Live render handles published by <CaptureBridge> for screenshot capture.
   const captureRef = useRef<CaptureHandles | null>(null);
-  const captureView = useCallback((): string => {
-    const capture = captureRef.current;
-    if (!capture) {
-      throw new Error("3D viewport is not ready to capture yet.");
-    }
-    return captureModelOnly(
-      capture,
-      root,
-      new THREE.Color(theme.palette.grey[900])
-    );
-  }, [root, theme]);
+  const captureView = useCallback(
+    (pass: CapturePass = "shaded"): string => {
+      const capture = captureRef.current;
+      if (!capture) {
+        throw new Error("3D viewport is not ready to capture yet.");
+      }
+      return captureModelOnly(
+        capture,
+        root,
+        new THREE.Color(theme.palette.grey[900]),
+        pass
+      );
+    },
+    [root, theme]
+  );
+  const captureForAi = useCallback(
+    (pass: CapturePass): ViewportCapture => {
+      const image = captureView(pass);
+      const canvas = captureRef.current?.gl.domElement;
+      return { image, width: canvas?.width ?? 1024, height: canvas?.height ?? 1024 };
+    },
+    [captureView]
+  );
 
   // Load the GLB/GLTF into the editor root once per URL.
   useEffect(() => {
@@ -610,7 +642,7 @@ const Model3DEditor = ({
         setLoadError(
           error instanceof Error
             ? error.message
-            : i18n.t("editor:ui.failedToLoad3DModelOnlyGlbgltfAreSupported", { defaultValue: "Failed to load 3D model. Only .glb/.gltf are supported." })
+            : "Failed to load 3D model. Only .glb/.gltf are supported."
         );
       }
     );
@@ -666,16 +698,7 @@ const Model3DEditor = ({
         obj.position.y += -box.min.y;
       }
       root.add(obj);
-      pushCommand(
-        addObjectCommand(
-          i18n.t("editor:ui.historyAdd", {
-            defaultValue: "Add {{name}}",
-            name: primitiveLabel(kind)
-          }),
-          obj,
-          root
-        )
-      );
+      pushCommand(addObjectCommand(`Add ${PRIMITIVE_LABELS[kind]}`, obj, root));
       setSelectedUuid(obj.uuid);
       return obj;
     },
@@ -687,13 +710,7 @@ const Model3DEditor = ({
       if (obj === root) {
         return;
       }
-      const command = removeObject(
-        i18n.t("editor:ui.historyDelete", {
-          defaultValue: "Delete {{name}}",
-          name: obj.name || obj.type
-        }),
-        obj
-      );
+      const command = removeObject(`Delete ${obj.name || obj.type}`, obj);
       if (command) {
         pushCommand(command);
       }
@@ -719,16 +736,7 @@ const Model3DEditor = ({
       const children = parent.children;
       children.splice(children.indexOf(copy), 1);
       children.splice(children.indexOf(obj) + 1, 0, copy);
-      pushCommand(
-        addObjectCommand(
-          i18n.t("editor:ui.historyDuplicate", {
-            defaultValue: "Duplicate {{name}}",
-            name: obj.name || obj.type
-          }),
-          copy,
-          parent
-        )
-      );
+      pushCommand(addObjectCommand(`Duplicate ${obj.name || obj.type}`, copy, parent));
       setSelectedUuid(copy.uuid);
       return copy;
     },
@@ -756,57 +764,45 @@ const Model3DEditor = ({
         group.position.z += target.z - center.z;
         group.position.y -= box.min.y;
       }
-      pushCommand(
-        addObjectCommand(
-          i18n.t("editor:ui.historyImport", {
-            defaultValue: "Import {{name}}",
-            name: group.name
-          }),
-          group,
-          root
-        )
-      );
+      pushCommand(addObjectCommand(`Import ${group.name}`, group, root));
       setSelectedUuid(group.uuid);
       requestCamera({ kind: "focus", uuid: group.uuid });
     },
     [root, takenNames, pushCommand, requestCamera]
   );
 
+  // Several files import one after another under one overlay, which stays
+  // until the last one is placed.
   const runImport = useCallback(
-    async (load: () => Promise<THREE.Object3D>) => {
+    async (loads: (() => Promise<THREE.Object3D>)[]) => {
       setIsImporting(true);
       setImportError(null);
-      try {
-        placeImport(await load());
-      } catch (error) {
-        setImportError(
-          error instanceof Error
-            ? error.message
-            : i18n.t("editor:ui.theModelCouldNotBeRead", {
-                defaultValue: "The model could not be read."
-              })
-        );
-      } finally {
-        setIsImporting(false);
+      const errors: string[] = [];
+      for (const load of loads) {
+        try {
+          placeImport(await load());
+        } catch (error) {
+          errors.push(error instanceof Error ? error.message : "The model could not be read.");
+        }
       }
+      setImportError(errors.length > 0 ? errors.join(" ") : null);
+      setIsImporting(false);
     },
     [placeImport]
   );
 
+  // Files picked with a model that are not models themselves (an .mtl, a
+  // .bin, textures) are handed to every model so its references resolve.
   const handleImportFiles = useCallback(
     (files: FileList | File[]) => {
-      const models = Array.from(files).filter((file) => isModelFileName(file.name));
+      const all = Array.from(files);
+      const models = all.filter((file) => isModelFileName(file.name));
+      const companions = all.filter((file) => !isModelFileName(file.name));
       if (models.length === 0) {
-        setImportError(
-          i18n.t("editor:ui.onlyGlbandGltfFilesCanBeAddedToTheScene", {
-            defaultValue: "Only .glb and .gltf files can be added to the scene."
-          })
-        );
+        setImportError(`Choose a ${MODEL_FORMATS_LABEL} file to add to the scene.`);
         return;
       }
-      for (const file of models) {
-        void runImport(() => importModelFile(file));
-      }
+      void runImport(models.map((file) => () => importModelFile(file, companions)));
     },
     [runImport]
   );
@@ -837,15 +833,18 @@ const Model3DEditor = ({
         const asset = dragData.payload;
         const assetUrl = resolveStaticMediaUri(asset.get_url);
         if (!assetUrl || !isModelFileName(asset.name)) {
-          setImportError(
-            i18n.t("editor:ui.assetIsNotAGlbOrGltfModel", {
-              defaultValue: "{{name}} is not a .glb or .gltf model.",
-              name: asset.name
-            })
-          );
+          setImportError(`${asset.name} is not a ${MODEL_FORMATS_LABEL} model.`);
           return;
         }
-        void runImport(() => importModelUrl(assetUrl, asset.name));
+        void runImport([() => importModelUrl(assetUrl, asset.name)]);
+        return;
+      }
+      if (dragData?.type === "example-model") {
+        const model = dragData.payload;
+        const modelUrl = resolveStaticMediaUri(model.uri);
+        if (modelUrl) {
+          void runImport([() => importModelUrl(modelUrl, model.file)]);
+        }
         return;
       }
       if (e.dataTransfer.files.length > 0) {
@@ -858,9 +857,7 @@ const Model3DEditor = ({
   const setVisible = useCallback(
     (obj: THREE.Object3D, visible: boolean) =>
       record({
-        label: visible
-          ? i18n.t("editor:ui.show", { defaultValue: "Show" })
-          : i18n.t("editor:ui.hide2", { defaultValue: "Hide" }),
+        label: visible ? "Show" : "Hide",
         get: () => obj.visible,
         set: (v) => {
           obj.visible = v;
@@ -873,7 +870,7 @@ const Model3DEditor = ({
   const renameObject = useCallback(
     (obj: THREE.Object3D, next: string) =>
       record({
-        label: i18n.t("common:action.rename", { defaultValue: "Rename" }),
+        label: "Rename",
         get: () => obj.name,
         set: (v) => {
           obj.name = v;
@@ -892,10 +889,7 @@ const Model3DEditor = ({
       }
       stopPreview();
       const command = reparentObject(
-        i18n.t("editor:ui.historyParent", {
-          defaultValue: "Parent {{name}}",
-          name: obj.name || obj.type
-        }),
+        `Parent ${obj.name || obj.type}`,
         obj,
         parent,
         parent.children.length
@@ -941,7 +935,7 @@ const Model3DEditor = ({
       node.visible = true;
     });
     pushCommand({
-      label: i18n.t("editor:ui.showAll", { defaultValue: "Show all" }),
+      label: "Show all",
       undo: () => hidden.forEach((node) => (node.visible = false)),
       redo: () => hidden.forEach((node) => (node.visible = true))
     });
@@ -1005,6 +999,10 @@ const Model3DEditor = ({
   }, [requestCamera]);
 
   const frameAll = useCallback(() => requestCamera({ kind: "frameAll" }), [requestCamera]);
+  const followSelection = useCallback(
+    (uuid: string) => requestCamera({ kind: "follow", uuid }),
+    [requestCamera]
+  );
   const setView = useCallback(
     (view: ViewPreset) => requestCamera({ kind: "view", view }),
     [requestCamera]
@@ -1033,23 +1031,9 @@ const Model3DEditor = ({
     }
     const after = captureTransform(start.object);
     if (!transformsEqual(start.before, after)) {
-      const verb =
-        gizmoMode === "translate"
-          ? i18n.t("editor:ui.move", { defaultValue: "Move" })
-          : gizmoMode === "rotate"
-            ? i18n.t("editor:ui.rotate", { defaultValue: "Rotate" })
-            : i18n.t("editor:ui.scale", { defaultValue: "Scale" });
+      const verb = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? "Rotate" : "Scale";
       pushCommand(
-        transformCommand(
-          i18n.t("editor:ui.historyTransform", {
-            defaultValue: "{{verb}} {{name}}",
-            verb,
-            name: start.object.name || start.object.type
-          }),
-          start.object,
-          start.before,
-          after
-        )
+        transformCommand(`${verb} ${start.object.name || start.object.type}`, start.object, start.before, after)
       );
     }
   }, [gizmoMode, pushCommand]);
@@ -1068,6 +1052,35 @@ const Model3DEditor = ({
       return;
     }
     setSelectedUuid(e.object.uuid);
+  }, []);
+
+  // A right-click on an object opens the viewport menu. A right-drag pans the
+  // camera, so the menu opens on release, and only when the pointer stayed put.
+  const rightPress = useRef<{ uuid: string; x: number; y: number } | null>(null);
+  const [viewportMenu, setViewportMenu] = useState<{ x: number; y: number } | null>(null);
+  const closeViewportMenu = useCallback(() => setViewportMenu(null), []);
+
+  const handleScenePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
+    if (e.nativeEvent.button !== 2 || !isVisibleInTree(e.object)) {
+      return;
+    }
+    e.stopPropagation();
+    rightPress.current = { uuid: e.object.uuid, x: e.nativeEvent.clientX, y: e.nativeEvent.clientY };
+  }, []);
+
+  const handleScenePointerUp = useCallback((e: ThreeEvent<PointerEvent>) => {
+    const press = rightPress.current;
+    if (e.nativeEvent.button !== 2 || !press || !isVisibleInTree(e.object)) {
+      return;
+    }
+    e.stopPropagation();
+    rightPress.current = null;
+    const { clientX: x, clientY: y } = e.nativeEvent;
+    if (press.uuid !== e.object.uuid || Math.hypot(x - press.x, y - press.y) > 4) {
+      return;
+    }
+    setSelectedUuid(press.uuid);
+    setViewportMenu({ x, y });
   }, []);
 
   const handlePointerMissed = useCallback(() => {
@@ -1100,13 +1113,51 @@ const Model3DEditor = ({
     } catch (error) {
       console.error("[Model3DEditor] Failed to export GLB:", error);
       setSaveError(
-        error instanceof Error ? error.message : i18n.t("editor:ui.failedToExportModel", { defaultValue: "Failed to export model" })
+        error instanceof Error ? error.message : "Failed to export model"
       );
     } finally {
       savingRef.current = false;
       setIsSaving(false);
     }
   }, [root, onSave, history, stopPreview, animationClips, canSave]);
+
+  // --- Export ------------------------------------------------------------------
+
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const handleExport = useCallback(
+    async (format: ExportFormat, onlySelection: boolean) => {
+      const selection = onlySelection ? selectedObject : null;
+      if ((onlySelection && !selection) || !canSave) {
+        return;
+      }
+      setIsExporting(true);
+      setExportError(null);
+      // Export the rest pose, not the animation frame on screen.
+      stopPreview();
+      try {
+        const blob = await exportModel(root, format, { selection, animations: animationClips });
+        saveBlobAsFile(
+          blob,
+          exportFileName(selection?.name || modelNameFromFile(name ?? ""), format)
+        );
+      } catch (error) {
+        console.error("[Model3DEditor] Export failed:", error);
+        setExportError(error instanceof Error ? error.message : "The model could not be exported.");
+      } finally {
+        setIsExporting(false);
+      }
+    },
+    [root, name, animationClips, stopPreview, canSave, selectedObject]
+  );
+  const exportErrorContext = useMemo(
+    () => ({
+      source: "operation-failure" as const,
+      summary: "3D model failed to export from the 3D editor",
+      errorText: exportError ?? undefined
+    }),
+    [exportError]
+  );
 
   const requestClose = useCallback(() => {
     if (isDirty) {
@@ -1204,75 +1255,47 @@ const Model3DEditor = ({
   }, [getContainer]);
 
   // The same actions, listed in the Cmd+K menu while this tab is on screen.
+  const exportRef = useRef(handleExport);
+  exportRef.current = handleExport;
   const menuCommands = useMemo<ContextCommand[]>(
-    () =>
-      EDITOR_SHORTCUTS.filter((shortcut) => shortcut.action !== "deselect").map(
+    () => [
+      ...EDITOR_SHORTCUTS.filter((shortcut) => shortcut.action !== "deselect").map(
         (shortcut) => ({
           id: shortcut.action,
-          label: shortcutLabel(shortcut),
+          label: shortcut.label,
           keywords: [shortcut.group],
           shortcut: shortcut.keys.join("+"),
           run: () => actionsRef.current[shortcut.action]()
         })
       ),
-    // Labels resolve through i18n at memo time; re-resolve on language change.
-    [languageVersion]
+      ...EXPORT_FORMATS.map((info) => ({
+        id: `export-${info.format}`,
+        label: `Export scene as ${info.label}`,
+        keywords: ["download", info.format],
+        run: () => void exportRef.current(info.format, false)
+      }))
+    ],
+    []
   );
-  useContextCommands(
-    t("editor:ui.threeDModel", { defaultValue: "3D Model" }),
-    menuCommands,
-    active && !cameraPose
-  );
+  useContextCommands("3D Model", menuCommands, active && !cameraPose);
 
   // --- Render ------------------------------------------------------------------------
 
   const statusHint = useMemo(() => {
     if (previewActive) {
-      return t("editor:ui.hintAnimationPreview", {
-        defaultValue:
-          "Animation preview · the gizmo is hidden · press stop to return to the rest pose and edit"
-      });
+      return "Animation preview · the gizmo is hidden · press stop to return to the rest pose and edit";
     }
     if (isDragging) {
-      if (snapActive) {
-        const value =
-          gizmoMode === "rotate"
-            ? `${SNAP.rotateDeg}°`
-            : gizmoMode === "scale"
-              ? String(SNAP.scale)
-              : t("editor:ui.unitsValue", {
-                  defaultValue: "{{count}} units",
-                  count: SNAP.translate
-                });
-        return t("editor:ui.hintSnappingTo", {
-          defaultValue: "Snapping to {{value}} · release Ctrl to move freely",
-          value
-        });
-      }
-      return t("editor:ui.hintHoldCtrlToSnap", { defaultValue: "Hold Ctrl to snap" });
+      return snapActive
+        ? `Snapping to ${gizmoMode === "rotate" ? `${SNAP.rotateDeg}°` : gizmoMode === "scale" ? SNAP.scale : `${SNAP.translate} units`} · release Ctrl to move freely`
+        : "Hold Ctrl to snap";
     }
     if (selectedObject) {
-      const tool =
-        gizmoMode === "translate"
-          ? t("editor:ui.move", { defaultValue: "Move" })
-          : gizmoMode === "rotate"
-            ? t("editor:ui.rotate", { defaultValue: "Rotate" })
-            : t("editor:ui.scale", { defaultValue: "Scale" });
-      return t("editor:ui.hintTool", {
-        defaultValue:
-          "{{tool}} ({{space}}) · drag the gizmo, hold Ctrl to snap · F focus · Ctrl+D duplicate · Del delete",
-        tool,
-        space:
-          gizmoSpace === "world"
-            ? t("editor:ui.spaceWorld", { defaultValue: "world" })
-            : t("editor:ui.spaceLocal", { defaultValue: "local" })
-      });
+      const tool = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? "Rotate" : "Scale";
+      return `${tool} (${gizmoSpace}) · drag the gizmo, hold Ctrl to snap · F frame · Ctrl+D duplicate · Del delete`;
     }
-    return t("editor:ui.hintIdle", {
-      defaultValue:
-        "Click to select · drag to orbit · right-drag to pan · scroll to zoom · press ? for shortcuts"
-    });
-  }, [previewActive, isDragging, snapActive, gizmoMode, gizmoSpace, selectedObject, t]);
+    return "Click to select · drag to orbit · right-drag to pan · scroll to zoom · press ? for shortcuts";
+  }, [previewActive, isDragging, snapActive, gizmoMode, gizmoSpace, selectedObject]);
 
   const palette = useMemo(
     () => ({
@@ -1332,14 +1355,11 @@ const Model3DEditor = ({
       <FlexRow className="editor-toolbar" fullWidth>
         <FlexRow align="center" gap={SPACING.xs} sx={{ minWidth: 0 }}>
           <Text size="small" weight={600} className="editor-title" title={name}>
-            {name || t("editor:ui.threeDModel", { defaultValue: "3D Model" })}
+            {name || "3D Model"}
           </Text>
           {isDirty && (
-            <Tooltip title={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })}>
-              <CircleIcon
-                className="dirty-dot"
-                aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })}
-              />
+            <Tooltip title="Unsaved changes">
+              <StatusDot tone="warning" label="Unsaved changes" />
             </Tooltip>
           )}
         </FlexRow>
@@ -1350,18 +1370,8 @@ const Model3DEditor = ({
           onUndo={undo}
           onRedo={redo}
           size="small"
-          undoTooltip={withShortcut(
-            undoLabel
-              ? t("editor:ui.undoAction", { defaultValue: "Undo {{label}}", label: undoLabel })
-              : t("editor:ui.undo", { defaultValue: "Undo" }),
-            "undo"
-          )}
-          redoTooltip={withShortcut(
-            redoLabel
-              ? t("editor:ui.redoAction", { defaultValue: "Redo {{label}}", label: redoLabel })
-              : t("editor:ui.redo", { defaultValue: "Redo" }),
-            "redo"
-          )}
+          undoTooltip={withShortcut(undoLabel ? `Undo ${undoLabel}` : "Undo", "undo")}
+          redoTooltip={withShortcut(redoLabel ? `Redo ${redoLabel}` : "Redo", "redo")}
         />
         <Divider orientation="vertical" flexItem />
         <ToggleGroup
@@ -1370,18 +1380,18 @@ const Model3DEditor = ({
           value={gizmoMode}
           onChange={(_e, value) => value && setGizmoMode(value as GizmoMode)}
         >
-          <ToggleOption value="translate" size="small" aria-label={t("editor:ui.moveTool", { defaultValue: "Move tool" })}>
-            <Tooltip title={withShortcut(t("editor:ui.move", { defaultValue: "Move" }), "translate")}>
+          <ToggleOption value="translate" size="small" aria-label="Move tool">
+            <Tooltip title={withShortcut("Move", "translate")}>
               <OpenWithIcon fontSize="small" />
             </Tooltip>
           </ToggleOption>
-          <ToggleOption value="rotate" size="small" aria-label={t("editor:ui.rotateTool", { defaultValue: "Rotate tool" })}>
-            <Tooltip title={withShortcut(t("editor:ui.rotate", { defaultValue: "Rotate" }), "rotate")}>
+          <ToggleOption value="rotate" size="small" aria-label="Rotate tool">
+            <Tooltip title={withShortcut("Rotate", "rotate")}>
               <ThreeDRotationIcon fontSize="small" />
             </Tooltip>
           </ToggleOption>
-          <ToggleOption value="scale" size="small" aria-label={t("editor:ui.scaleTool", { defaultValue: "Scale tool" })}>
-            <Tooltip title={withShortcut(t("editor:ui.scale", { defaultValue: "Scale" }), "scale")}>
+          <ToggleOption value="scale" size="small" aria-label="Scale tool">
+            <Tooltip title={withShortcut("Scale", "scale")}>
               <AspectRatioIcon fontSize="small" />
             </Tooltip>
           </ToggleOption>
@@ -1389,59 +1399,32 @@ const Model3DEditor = ({
         <ToolbarIconButton
           icon={gizmoSpace === "world" ? <PublicIcon fontSize="small" /> : <ControlCameraIcon fontSize="small" />}
           tooltip={withShortcut(
-            gizmoSpace === "world"
-              ? t("editor:ui.worldSpaceGizmoFollowsTheSceneAxes", {
-                  defaultValue: "World space: gizmo follows the scene axes"
-                })
-              : t("editor:ui.localSpaceGizmoFollowsTheObject", {
-                  defaultValue: "Local space: gizmo follows the object"
-                }),
+            gizmoSpace === "world" ? "World space: gizmo follows the scene axes" : "Local space: gizmo follows the object",
             "toggleSpace"
           )}
           onClick={actions.toggleSpace}
           size="small"
-          ariaLabel={t("editor:ui.transformSpaceAria", {
-            defaultValue: "Transform space: {{space}}",
-            space:
-              gizmoSpace === "world"
-                ? t("editor:ui.spaceWorld", { defaultValue: "world" })
-                : t("editor:ui.spaceLocal", { defaultValue: "local" })
-          })}
+          ariaLabel={`Transform space: ${gizmoSpace}`}
         />
         <ToolbarIconButton
           icon={<StraightenIcon fontSize="small" />}
           tooltip={withShortcut(
-            t("editor:ui.snappingStatusTooltip", {
-              defaultValue:
-                "Snapping {{state}}: {{translate}} units, {{rotate}}°, {{scale}} scale. Hold Ctrl to invert",
-              state: viewPrefs.snap
-                ? t("editor:ui.snapOn", { defaultValue: "on" })
-                : t("editor:ui.snapOff", { defaultValue: "off" }),
-              translate: SNAP.translate,
-              rotate: SNAP.rotateDeg,
-              scale: SNAP.scale
-            }),
+            `Snapping ${viewPrefs.snap ? "on" : "off"}: ${SNAP.translate} units, ${SNAP.rotateDeg}°, ${SNAP.scale} scale. Hold Ctrl to invert`,
             "toggleSnap"
           )}
           onClick={actions.toggleSnap}
           active={viewPrefs.snap}
           size="small"
-          ariaLabel={t("editor:ui.toggleSnapping", { defaultValue: "Toggle snapping" })}
+          ariaLabel="Toggle snapping"
         />
         <Divider orientation="vertical" flexItem />
-        <MenuButton
-          label={t("common:action.add", { defaultValue: "Add" })}
-          icon={<AddIcon />}
-          tooltip={t("editor:ui.addAnObjectAtTheViewCenter", {
-            defaultValue: "Add an object at the view center"
-          })}
-        >
+        <MenuButton label="Add" icon={<AddIcon />} tooltip="Add an object at the view center">
           {(close) =>
             ADD_MENU_GROUPS.flatMap((group, groupIndex) =>
               group.kinds.map((kind, index) => (
                 <MenuItemPrimitive
                   key={kind}
-                  label={primitiveLabel(kind)}
+                  label={PRIMITIVE_LABELS[kind]}
                   dividerBefore={groupIndex > 0 && index === 0}
                   icon={
                     group.title === "Light" ? (
@@ -1459,7 +1442,7 @@ const Model3DEditor = ({
             ).concat(
               <MenuItemPrimitive
                 key="import"
-                label={t("editor:ui.importModel", { defaultValue: "Import model…" })}
+                label="Import model…"
                 dividerBefore
                 icon={<FileUploadOutlinedIcon fontSize="small" />}
                 onClick={() => {
@@ -1473,10 +1456,10 @@ const Model3DEditor = ({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
+          accept={IMPORT_ACCEPT}
           multiple
           hidden
-          aria-label={t("editor:ui.importModelFile", { defaultValue: "Import model file" })}
+          aria-label="Import model file"
           onChange={(e) => {
             if (e.target.files) {
               handleImportFiles(e.target.files);
@@ -1486,7 +1469,7 @@ const Model3DEditor = ({
         />
         <ToolbarIconButton
           icon={<ContentCopyIcon fontSize="small" />}
-          tooltip={t("editor:ui.duplicate", { defaultValue: "Duplicate" })}
+          tooltip="Duplicate"
           shortcut={shortcutKeys("duplicate")}
           onClick={handleDuplicate}
           disabled={!selectedObject}
@@ -1494,7 +1477,7 @@ const Model3DEditor = ({
         />
         <ToolbarIconButton
           icon={<DeleteOutlineIcon fontSize="small" />}
-          tooltip={t("common:action.delete", { defaultValue: "Delete" })}
+          tooltip="Delete"
           shortcut={shortcutKeys("delete")}
           onClick={handleDelete}
           disabled={!selectedObject}
@@ -1503,26 +1486,50 @@ const Model3DEditor = ({
         <FlexRow sx={{ marginLeft: "auto" }} gap={SPACING.xs} align="center">
           <ToolbarIconButton
             icon={<KeyboardIcon fontSize="small" />}
-            tooltip={t("editor:ui.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
-            shortcut={shortcutKeys("showShortcuts")}
+            tooltip="Keyboard shortcuts"
+          shortcut={shortcutKeys("showShortcuts")}
             onClick={actions.showShortcuts}
             size="small"
           />
           <ToolbarIconButton
+            icon={<PhotoCameraOutlinedIcon fontSize="small" />}
+            tooltip={showAiRender ? "Hide AI render" : "Render this view with AI"}
+            onClick={toggleAiRender}
+            active={showAiRender}
+            size="small"
+            ariaLabel="Render with AI"
+          />
+          <ToolbarIconButton
             icon={<AutoAwesomeIcon fontSize="small" />}
-            tooltip={showAssistant ? i18n.t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })}
+            tooltip={showAssistant ? "Hide assistant" : "Show assistant"}
             onClick={toggleAssistant}
             active={showAssistant}
             size="small"
           />
-          <Tooltip
-            title={withShortcut(
-              isDirty
-                ? t("editor:ui.saveChanges", { defaultValue: "Save changes" })
-                : t("editor:ui.noUnsavedChanges", { defaultValue: "No unsaved changes" }),
-              "save"
-            )}
+          <MenuButton
+            label="Export"
+            icon={<FileDownloadOutlinedIcon />}
+            tooltip="Download the scene or the selected object as a file"
           >
+            {(close) =>
+              [false, true].flatMap((onlySelection) =>
+                EXPORT_FORMATS.map((info, index) => (
+                  <MenuItemPrimitive
+                    key={`${onlySelection ? "selection" : "scene"}-${info.format}`}
+                    label={`${onlySelection ? "Selection" : "Scene"} as ${info.label}`}
+                    secondary={info.detail}
+                    dividerBefore={onlySelection && index === 0}
+                    disabled={isExporting || !canSave || (onlySelection && !selectedObject)}
+                    onClick={() => {
+                      void handleExport(info.format, onlySelection);
+                      close();
+                    }}
+                  />
+                ))
+              )
+            }
+          </MenuButton>
+          <Tooltip title={withShortcut(isDirty ? "Save changes" : "No unsaved changes", "save")}>
             <span>
               <EditorButton
                 density="compact"
@@ -1531,24 +1538,19 @@ const Model3DEditor = ({
                 onClick={() => void handleSave()}
                 disabled={isSaving || !canSave}
               >
-                {isSaving
-                  ? t("editor:ui.saving", { defaultValue: "Saving…" })
-                  : t("editor:ui.save", { defaultValue: "Save" })}
+                {isSaving ? "Saving…" : "Save"}
               </EditorButton>
             </span>
           </Tooltip>
-          <CloseButton onClick={requestClose} tooltip={i18n.t("ui2:attrs.closeEditor", { defaultValue: "Close editor" })} />
+          <CloseButton onClick={requestClose} tooltip="Close editor" />
         </FlexRow>
       </FlexRow>
 
       <FlexRow className="editor-body" fullWidth>
         <FlexColumn className="side-panel left" fullHeight>
           <PanelHeader
-            title={t("editor:ui.scene", { defaultValue: "Scene" })}
-            count={t("editor:ui.sceneObjectCount", {
-              defaultValue: "{{count}} object",
-              count: stats.objects
-            })}
+            title="Scene"
+            count={`${stats.objects} ${stats.objects === 1 ? "object" : "objects"}`}
           />
           <div className="panel-body">
             <SceneOutliner
@@ -1583,21 +1585,26 @@ const Model3DEditor = ({
           {importError && (
             <Box className="viewport-banner">
               <AlertBanner severity="warning" compact onClose={() => setImportError(null)}>
-                {t("editor:ui.importFailed", {
-                  defaultValue: "Import failed: {{error}}",
-                  error: importError
-                })}
+                Import failed: {importError}
               </AlertBanner>
             </Box>
           )}
           {dropActive && (
             <FlexColumn className="drop-hint" align="center" justify="center">
-              <Text>
-                {t("editor:ui.dropAGlbOrGltfModelToAddItToTheScene", {
-                  defaultValue: "Drop a .glb or .gltf model to add it to the scene"
-                })}
-              </Text>
+              <Text>Drop a model to add it to the scene</Text>
             </FlexColumn>
+          )}
+          {exportError && (
+            <Box className="viewport-banner">
+              <AlertBanner
+                severity="error"
+                compact
+                onClose={() => setExportError(null)}
+                action={<ReportBugButton context={exportErrorContext} size="small" />}
+              >
+                Export failed: {exportError}
+              </AlertBanner>
+            </Box>
           )}
           {externallyChanged && !saveError && (
             <Box className="viewport-banner">
@@ -1607,18 +1614,15 @@ const Model3DEditor = ({
                 action={
                   <FlexRow gap={SPACING.xs}>
                     <EditorButton density="compact" variant="text" onClick={onDismissExternal}>
-                      {t("editor:ui.keepEditing", { defaultValue: "Keep editing" })}
+                      Keep editing
                     </EditorButton>
                     <EditorButton density="compact" variant="outlined" onClick={onReloadExternal}>
-                      {t("editor:ui.reload", { defaultValue: "Reload" })}
+                      Reload
                     </EditorButton>
                   </FlexRow>
                 }
               >
-                {t("editor:ui.modelWasChangedOutsideTheEditor", {
-                  defaultValue:
-                    "This model was changed outside the editor. Reload to see that change and lose your unsaved edits, or save to replace it."
-                })}
+                This model was changed outside the editor. Reload to see that change and lose your unsaved edits, or save to replace it.
               </AlertBanner>
             </Box>
           )}
@@ -1630,10 +1634,7 @@ const Model3DEditor = ({
                 onClose={() => setSaveError(null)}
                 action={<ReportBugButton context={saveErrorContext} size="small" />}
               >
-                {t("editor:ui.saveFailedWithError", {
-                  defaultValue: "Save failed: {{error}}",
-                  error: saveError
-                })}
+                Save failed: {saveError}
               </AlertBanner>
             </Box>
           )}
@@ -1641,9 +1642,7 @@ const Model3DEditor = ({
             <FlexColumn fullWidth fullHeight align="center" justify="center" gap={SPACING.md}>
               <EmptyState
                 variant="error"
-                title={t("editor:ui.thisModelCouldNotBeOpened", {
-                  defaultValue: "This model could not be opened"
-                })}
+                title="This model could not be opened"
                 description={loadError}
               />
               <ReportBugButton context={loadErrorContext} variant="outlined" />
@@ -1682,7 +1681,12 @@ const Model3DEditor = ({
                   <GroundAxes xColor={palette.x} zColor={palette.z} />
                 </>
               )}
-              <primitive object={root} onClick={handleSceneClick} />
+              <primitive
+                object={root}
+                onClick={handleSceneClick}
+                onPointerDown={interactive ? handleScenePointerDown : undefined}
+                onPointerUp={interactive ? handleScenePointerUp : undefined}
+              />
               {interactive && (
                 <>
                   <SelectionBounds object={selectedObject} color={palette.accent} />
@@ -1721,6 +1725,13 @@ const Model3DEditor = ({
                   <OrbitControls makeDefault enableDamping={false} />
                   <OrbitTargetBridge targetRef={orbitTargetRef} />
                   <CameraRig root={root} request={cameraRequest} />
+                  {interactive && (
+                    <FollowSelection
+                      object={selectedObject}
+                      tick={tick}
+                      onLeftView={followSelection}
+                    />
+                  )}
                   <GizmoHelper alignment="bottom-right" margin={[72, 72]}>
                     <GizmoViewport
                       axisColors={[palette.x, palette.y, palette.z]}
@@ -1740,24 +1751,75 @@ const Model3DEditor = ({
               onActiveChange={setPreviewActive}
             />
           )}
-          {(isSaving || isLoading || isImporting) && (
+          {(isSaving || isLoading || isImporting || isExporting) && (
             <FlexColumn className="overlay" align="center" justify="center" gap={SPACING.md}>
               <LoadingSpinner />
               <Text color="primary">
                 {isSaving
-                  ? t("editor:ui.saving", { defaultValue: "Saving…" })
+                  ? "Saving…"
                   : isImporting
-                    ? t("editor:ui.importingModel", { defaultValue: "Importing model…" })
-                    : t("editor:ui.loadingModel", { defaultValue: "Loading model…" })}
+                    ? "Importing model…"
+                    : isExporting
+                      ? "Exporting…"
+                      : "Loading model…"}
               </Text>
             </FlexColumn>
           )}
         </div>
 
         <FlexColumn className="side-panel right" fullHeight>
-          <PanelHeader title={t("editor:ui.inspector", { defaultValue: "Inspector" })} />
+          <PanelHeader
+            title="Inspector"
+            actions={
+              selectedObject && interactive ? (
+                <FlexRow gap={SPACING.xs} align="center">
+                  <Tooltip title={withShortcut("Duplicate the selected object", "duplicate")}>
+                    <EditorButton
+                      density="compact"
+                      variant="text"
+                      startIcon={<ContentCopyIcon />}
+                      onClick={handleDuplicate}
+                    >
+                      Duplicate
+                    </EditorButton>
+                  </Tooltip>
+                  <Tooltip title={withShortcut("Delete the selected object", "delete")}>
+                    <EditorButton
+                      density="compact"
+                      variant="text"
+                      color="error"
+                      startIcon={<DeleteOutlineIcon />}
+                      onClick={handleDelete}
+                    >
+                      Delete
+                    </EditorButton>
+                  </Tooltip>
+                </FlexRow>
+              ) : undefined
+            }
+          />
           <PropertiesPanel object={selectedObject} tick={tick + dragTick} record={record} />
         </FlexColumn>
+
+        {/* Kept mounted so a render in flight survives hiding the panel. */}
+        <div style={{ display: showAiRender && !loadError ? "contents" : "none" }}>
+          <ResizableSideDock
+            storageKey="model3d_ai_render"
+            defaultWidth={ASSISTANT_PANEL_WIDTH}
+            ariaLabel="Resize AI render panel"
+          >
+            <PanelHeader
+              title="Render with AI"
+              icon={<PhotoCameraOutlinedIcon />}
+              description="Turn the current view into a finished image with an image-edit model"
+              onClose={toggleAiRender}
+              closeLabel="Hide AI render"
+            />
+            <div className="panel-body">
+              <AiRenderPanel capture={captureForAi} />
+            </div>
+          </ResizableSideDock>
+        </div>
 
         {/* Kept mounted (toggled via display) so the chat connection and
             scroll state survive hiding the panel. */}
@@ -1765,13 +1827,13 @@ const Model3DEditor = ({
           <ResizableSideDock
             storageKey="model3d_assistant"
             defaultWidth={ASSISTANT_PANEL_WIDTH}
-            ariaLabel={i18n.t("editor:ui.resize3DAssistant", { defaultValue: "Resize 3D assistant" })}
+            ariaLabel="Resize 3D assistant"
           >
             <PanelHeader
-              title={t("editor:ui.assistant", { defaultValue: "Assistant" })}
+              title="Assistant"
               icon={<AutoAwesomeIcon />}
               onClose={() => toggleAssistant()}
-              closeLabel={i18n.t("ui2:attrs.hideAssistant", { defaultValue: "Hide assistant" })}
+              closeLabel="Hide assistant"
             />
             <div className="panel-body">
               <Model3DChatPanel />
@@ -1790,6 +1852,14 @@ const Model3DEditor = ({
         stats={stats}
       />
 
+      <ViewportContextMenu
+        position={viewportMenu && selectedObject ? viewportMenu : null}
+        onClose={closeViewportMenu}
+        onDuplicate={handleDuplicate}
+        onFrame={focusSelection}
+        onHide={handleToggleHidden}
+        onDelete={handleDelete}
+      />
       <ShortcutsDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       <ConfirmDialog
         open={confirmCloseOpen}
@@ -1798,14 +1868,10 @@ const Model3DEditor = ({
           setConfirmCloseOpen(false);
           onClose();
         }}
-        title={t("editor:ui.discardUnsavedChanges", {
-          defaultValue: "Discard unsaved changes?"
-        })}
-        content={t("editor:ui.closingTheEditorNowLosesTheEdits", {
-          defaultValue: "Closing the editor now loses the edits made since the last save."
-        })}
-        confirmText={t("editor:ui.discardAndClose", { defaultValue: "Discard and close" })}
-        cancelText={t("editor:ui.keepEditing", { defaultValue: "Keep editing" })}
+        title="Discard unsaved changes?"
+        content="Closing the editor now loses the edits made since the last save."
+        confirmText="Discard and close"
+        cancelText="Keep editing"
       />
     </FlexColumn>
   );

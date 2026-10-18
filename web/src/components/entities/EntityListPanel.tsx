@@ -5,7 +5,7 @@
  * opening a workspace tab per row.
  */
 
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import React, { memo, useCallback, useState } from "react";
 import type { Entity } from "@nodetool-ai/protocol";
 
@@ -14,7 +14,7 @@ import {
   AutoGrid,
   EditorButton,
   EmptyState,
-  FlexRow,
+  FlexColumn,
   LoadingSpinner,
   ScrollArea,
   SPACING,
@@ -26,7 +26,6 @@ import EntityAssetPickerDialog from "./EntityAssetPickerDialog";
 import EntityCard from "./EntityCard";
 import EntityEditorDialog from "./EntityEditorDialog";
 import { creationProjectId } from "../../stores/WorkspaceTabsStore";
-import { useTranslation } from "react-i18next";
 
 /** Picks an image asset, then opens the editor to describe it. */
 interface CreateEntityButtonProps {
@@ -42,7 +41,6 @@ export const CreateEntityButton = memo(function CreateEntityButton({
   label,
   onCreated
 }: CreateEntityButtonProps) {
-  const { t } = useTranslation();
   const scopedProjectId = projectId ?? creationProjectId();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [assetId, setAssetId] = useState<string | null>(null);
@@ -73,9 +71,9 @@ export const CreateEntityButton = memo(function CreateEntityButton({
           {label}
         </EditorButton>
       ) : (
-        <Tooltip title={t("editor:ui.newEntity", { defaultValue: "New entity" })} placement="right-start">
+        <Tooltip title="New entity" placement="right-start">
           <ToolbarIconButton
-            ariaLabel={t("editor:ui.newEntity", { defaultValue: "New entity" })}
+            ariaLabel="New entity"
             onClick={() => setPickerOpen(true)}
             tabIndex={-1}
             icon={<AddIcon />}
@@ -111,7 +109,6 @@ interface EntityListPanelProps {
 const EntityListPanelInternal: React.FC<EntityListPanelProps> = ({
   projectId
 }) => {
-  const { t } = useTranslation();
   const { data: entities, isLoading } = useEntities(projectId);
   const deleteEntity = useDeleteEntity();
   const [editing, setEditing] = useState<Entity | null>(null);
@@ -125,9 +122,9 @@ const EntityListPanelInternal: React.FC<EntityListPanelProps> = ({
 
   if (isLoading) {
     return (
-      <FlexRow align="center" justify="center" sx={{ p: 3 }}>
-        <LoadingSpinner />
-      </FlexRow>
+      <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1 }}>
+        <LoadingSpinner size="large" text="Loading entities" />
+      </FlexColumn>
     );
   }
 
@@ -135,8 +132,8 @@ const EntityListPanelInternal: React.FC<EntityListPanelProps> = ({
     return (
       <EmptyState
         variant="empty"
-        title={t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
-        description={t("editor:ui.tagAnImageAsACharacterLocationStyleOrPropWithThe+ButtonAbove")}
+        title="No entities yet"
+        description="Tag an image as a character, location, style, or prop with the + button above, or right-click an image in the Library and choose Use as entity."
         size="small"
       />
     );

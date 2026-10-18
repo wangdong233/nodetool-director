@@ -18,6 +18,7 @@ import type {
 import {
   BaseProvider as BaseProviderClass,
   createPythonBridge,
+  FakeProvider,
   getProvider,
   getProviderSecretKey,
   isProviderConfigured,
@@ -35,11 +36,27 @@ import {
 } from "@nodetool-ai/protocol";
 import { getSecret, Setting } from "@nodetool-ai/models";
 import type { WebSocketChatClient } from "./websocket-client.js";
-import { registerTransformersJsProvider } from "@nodetool-ai/transformers-js-provider";
-import { registerWhisperCppProviders } from "@nodetool-ai/whisper-cpp";
+import { importPack, MissingPackError } from "@nodetool-ai/node-catalog";
 
-registerTransformersJsProvider();
-registerWhisperCppProviders();
+async function registerPackProvider(pack: "transformers-js" | "whisper-cpp"): Promise<void> {
+  if (pack === "transformers-js") {
+    const module = await importPack<typeof import("@nodetool-ai/transformers-js-provider")>(pack, "@nodetool-ai/transformers-js-provider");
+    module.registerTransformersJsProvider();
+  } else {
+    const module = await importPack<typeof import("@nodetool-ai/whisper-cpp")>(pack);
+    module.registerWhisperCppProviders();
+  }
+}
+
+async function registerAvailablePackProviders(): Promise<void> {
+  for (const pack of ["transformers-js", "whisper-cpp"] as const) {
+    try {
+      await registerPackProvider(pack);
+    } catch (error) {
+      if (!(error instanceof MissingPackError)) { throw error; }
+    }
+  }
+}
 
 /**
  * Chat-capable providers surfaced in interactive autocomplete (`/provider <tab>`)
@@ -51,6 +68,7 @@ registerWhisperCppProviders();
 export const KNOWN_PROVIDERS = [
   "anthropic",
   "claude_agent_sdk",
+  "antigravity",
   "openai",
   "codex",
   "gemini",
@@ -82,8 +100,8 @@ export type KnownProvider = (typeof KNOWN_PROVIDERS)[number];
 
 /**
  * Providers reachable without an API key: the local servers plus the Claude
- * Agent SDK (which authenticates with the machine's logged-in `claude` CLI
- * subscription instead of a key).
+ * Agent SDK and Antigravity (which authenticate with the machine's logged-in
+ * `claude` or `agy` CLI instead of a key).
  */
 const LOCAL_PROVIDERS: readonly string[] = [
   "whisper_cpp",
@@ -92,7 +110,9 @@ const LOCAL_PROVIDERS: readonly string[] = [
   "ollama",
   "mlx",
   "claude_agent_sdk",
-  "node_llama_cpp"
+  "antigravity",
+  "node_llama_cpp",
+  "stable_diffusion_cpp"
 ];
 
 /**
@@ -111,6 +131,7 @@ function isAppleSilicon(): boolean {
 export const DEFAULT_MODELS: Record<string, string> = {
   anthropic: "claude-sonnet-4-6",
   claude_agent_sdk: "sonnet",
+  antigravity: "gemini-3.1-pro-high",
   openai: "gpt-5.4",
   codex: "gpt-5.5",
   gemini: "gemini-2.5-flash",
@@ -151,10 +172,12 @@ const resolveForUser1: GetSecret = (key) => getSecret(key, "1");
  * unavailable.
  */
 let pythonProvidersPromise: Promise<void> | null = null;
+let pythonBridge: ReturnType<typeof createPythonBridge> | null = null;
 async function ensurePythonProvidersRegistered(): Promise<void> {
   if (!pythonProvidersPromise) {
     pythonProvidersPromise = (async () => {
       const bridge = createPythonBridge();
+      pythonBridge = bridge;
       await bridge.connect();
       for (const info of await bridge.listProviders()) {
         // Don't shadow a TS-native provider that owns the same id (e.g. the
@@ -168,10 +191,42 @@ async function ensurePythonProvidersRegistered(): Promise<void> {
       }
     })().catch((err) => {
       pythonProvidersPromise = null;
+      pythonBridge?.close();
+      pythonBridge = null;
       throw err;
     });
   }
   return pythonProvidersPromise;
+}
+
+/**
+ * Stop the Python worker if this process started one. The worker is a child
+ * process, so a command that leaves it running never exits.
+ */
+export function closePythonProviders(): void {
+  pythonBridge?.close();
+  pythonBridge = null;
+  pythonProvidersPromise = null;
+}
+
+/**
+ * Start the Python worker for a command that lists every provider, so MLX
+ * and the other Python providers appear. Without a Python environment the
+ * command still lists the rest, with a notice on stderr.
+ */
+async function tryPythonProviders(): Promise<void> {
+  if (PYTHON_ONLY_PROVIDERS.every((id) => listRegisteredProviderIds().includes(id))) {
+    return;
+  }
+  try {
+    await ensurePythonProvidersRegistered();
+  } catch (err) {
+    console.error(
+      `Python providers skipped: the Python worker could not start (${
+        err instanceof Error ? err.message : String(err)
+      }).`
+    );
+  }
 }
 
 /**
@@ -182,6 +237,7 @@ async function ensurePythonProvidersRegistered(): Promise<void> {
  */
 let customProvidersPromise: Promise<void> | null = null;
 export async function ensureCustomProvidersRegistered(): Promise<void> {
+  await registerAvailablePackProviders();
   if (!customProvidersPromise) {
     customProvidersPromise = (async () => {
       const setting = await Setting.find("1", CUSTOM_PROVIDERS_SETTING_KEY);
@@ -198,6 +254,8 @@ export async function createProviderStrict(
   providerId: string
 ): Promise<BaseProvider> {
   const id = providerId.toLowerCase();
+  if (id === "transformers_js") { await registerPackProvider("transformers-js"); }
+  if (id === "whisper_cpp" || id === "whisper_cpp_server") { await registerPackProvider("whisper-cpp"); }
   await ensureCustomProvidersRegistered();
   if (
     PYTHON_ONLY_PROVIDERS.includes(id) &&
@@ -230,6 +288,8 @@ export async function createProvider(
   providerId: string
 ): Promise<BaseProvider> {
   const id = providerId.toLowerCase();
+  if (id === "transformers_js") { await registerPackProvider("transformers-js"); }
+  if (id === "whisper_cpp" || id === "whisper_cpp_server") { await registerPackProvider("whisper-cpp"); }
   await ensureCustomProvidersRegistered();
   if (
     !PYTHON_ONLY_PROVIDERS.includes(id) &&
@@ -255,11 +315,14 @@ export function providerSecretKey(providerId: string): string | null {
  * provider whose required credentials resolve (local providers have none, so
  * they're always present). Construction failures are skipped silently.
  */
-export async function buildConfiguredProviders(): Promise<
-  Record<string, BaseProvider>
-> {
+export async function buildConfiguredProviders(
+  options: { includePython?: boolean } = {}
+): Promise<Record<string, BaseProvider>> {
   const result: Record<string, BaseProvider> = {};
   await ensureCustomProvidersRegistered();
+  if (options.includePython) {
+    await tryPythonProviders();
+  }
   for (const id of listRegisteredProviderIds()) {
     try {
       if (await isProviderConfigured(id, resolveForUser1)) {
@@ -283,7 +346,7 @@ export type ProviderModelKind =
 export async function listConfiguredProviderInfo(): Promise<
   Array<{ provider: string; capabilities: string[] }>
 > {
-  const providers = await buildConfiguredProviders();
+  const providers = await buildConfiguredProviders({ includePython: true });
   return Object.entries(providers).map(([provider, instance]) => ({
     provider,
     capabilities: instance.getCapabilities()
@@ -368,7 +431,10 @@ export async function listProviderModels(
   providerId: string,
   kind: ProviderModelKind
 ): Promise<UnifiedModel[]> {
-  const provider = await createProviderStrict(providerId);
+  // Explicit discovery may show test models without admitting them to automatic selection.
+  const provider = providerId === "fake" && kind === "llm"
+    ? new FakeProvider()
+    : await createProviderStrict(providerId);
   if (kind === "llm") {
     const models = await provider.getAvailableLanguageModels();
     const toolSupport = await Promise.all(
@@ -414,7 +480,7 @@ export async function listProviderModels(
 export async function listAllModels(): Promise<UnifiedModel[]> {
   const all: UnifiedModel[] = [...RECOMMENDED_MODELS];
 
-  const providers = await buildConfiguredProviders();
+  const providers = await buildConfiguredProviders({ includePython: true });
   const perProvider = await Promise.all(
     Object.values(providers).map(async (instance) => {
       try {
@@ -458,6 +524,7 @@ export async function listOllamaModels(): Promise<UnifiedModel[]> {
  * also picks up DB-stored keys (not just env).
  */
 export async function configuredProviderIds(): Promise<Set<string>> {
+  await registerAvailablePackProviders();
   const flags = await Promise.all(
     KNOWN_PROVIDERS.map((id) => {
       // mlx is keyless but registered lazily (via the Python bridge), so

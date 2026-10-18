@@ -8,11 +8,11 @@ import {
   TextInput,
   Text,
   EditorButton,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  type SelectChangeEvent, getSpacingPx, SPACING
+  SelectField,
+  getSpacingPx,
+  SPACING,
+  EmptyState,
+  LoadingSpinner
 } from "../ui_primitives";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import useRemoteSettingsStore, {
@@ -29,8 +29,6 @@ import { formatSettingLabel } from "./settingsLabel";
 import ExternalLink from "../common/ExternalLink";
 import SearchProviderSection from "./SearchProviderSection";
 import { matchesSearch } from "./settingsSearch";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 /**
  * Groups surfaced elsewhere (General tab, Folders panel) or via
@@ -62,13 +60,11 @@ const SEARCH_RELATED_SETTINGS = new Set([
 const META_SECTION_GROUPS: ReadonlyArray<{
   key: string;
   label: string;
-  /** i18n leaf key under `tools:menus.` for this section heading. */
-  labelKey?: string;
   groups: ReadonlyArray<string>;
 }> = [
   {
     key: "local-model-servers",
-    label: "Local Model Servers",
+    label: "Local model servers",
     groups: [
       "vLLM",
       "Ollama",
@@ -84,23 +80,20 @@ const META_SECTION_GROUPS: ReadonlyArray<{
   },
   {
     key: "provider-options",
-    label: "Provider Options",
-    labelKey: "providerOptions",
-    groups: ["ZAI", "KIE"]
+    label: "Provider options",
+    groups: ["ClaudeAgent", "ZAI", "KIE"]
   },
   {
     key: "observability",
     label: "Observability",
-    labelKey: "observability",
     groups: ["Observability", "Traceloop"]
   },
   {
     key: "data-and-storage",
-    label: "Data & Storage",
-    labelKey: "dataStorage",
+    label: "Data & storage",
     groups: ["NodeSupabase", "Supabase"]
   },
-  { key: "other", label: "Other", labelKey: "other", groups: [] }
+  { key: "other", label: "Other", groups: [] }
 ];
 
 /** Inverted, lowercased lookup: registry group (lowercase) → meta-section key. */
@@ -123,13 +116,11 @@ interface MetaSection {
   key: string;
   label: string;
   entries: MetaSectionEntry[];
-  labelKey?: string;
 }
 
 interface DisplayedGroup {
   id: string;
   label: string;
-  labelKey?: string;
 }
 
 /**
@@ -160,7 +151,7 @@ const partitionByMetaSection = (
       }
     }
     if (entries.length > 0) {
-      sections.push({ key: section.key, label: section.label, labelKey: section.labelKey, entries });
+      sections.push({ key: section.key, label: section.label, entries });
     }
   }
   return sections;
@@ -198,12 +189,12 @@ export const getDisplayedSettingGroups = (
   const result: DisplayedGroup[] = [];
   for (const section of META_SECTION_GROUPS) {
     if (presentKeys.has(section.key)) {
-      result.push({ id: section.key, label: section.label, labelKey: section.labelKey });
+      result.push({ id: section.key, label: section.label });
     }
     // SearchProviderSection always renders alongside the registry list, so
     // the sidebar always lists it at this slot (after Local Model Servers).
     if (section.key === "local-model-servers") {
-      result.push({ id: "search-provider", label: i18n.t("editor:ui.searchProvider", { defaultValue: "Search provider" }) });
+      result.push({ id: "search-provider", label: "Search provider" });
     }
   }
   return result;
@@ -233,25 +224,25 @@ const SETTING_LINKS: Record<string, string> = {
 };
 
 const SETTING_BUTTON_TITLES: Record<string, string> = {
-  OPENAI_API_KEY: "Get OpenAI API Key",
-  ANTHROPIC_API_KEY: "Get Anthropic API Key",
-  GEMINI_API_KEY: "Get Gemini API Key",
-  OPENROUTER_API_KEY: "Get OpenRouter API Key",
-  REQUESTY_API_KEY: "Get Requesty API Key",
-  OPPER_API_KEY: "Get Opper API Key",
-  API_ROUTE_API_KEY: "Get API Route Key",
-  HF_TOKEN: "Get Hugging Face Token",
-  REPLICATE_API_TOKEN: "Get Replicate API Token",
-  GOOGLE_APP_PASSWORD: "Get Google App Password",
-  ELEVENLABS_API_KEY: "Get ElevenLabs API Key",
-  FAL_API_KEY: "Get Fal API Key",
-  SERPAPI_API_KEY: "Get SerpAPI API Key",
-  DATA_FOR_SEO_LOGIN: "Get DataForSEO Credentials",
-  BRAVE_API_KEY: "Get Brave API Key",
-  APIFY_API_TOKEN: "Get Apify API Token",
-  KIMI_API_KEY: "Get Moonshot API Key",
+  OPENAI_API_KEY: "Get OpenAI API key",
+  ANTHROPIC_API_KEY: "Get Anthropic API key",
+  GEMINI_API_KEY: "Get Gemini API key",
+  OPENROUTER_API_KEY: "Get OpenRouter API key",
+  REQUESTY_API_KEY: "Get Requesty API key",
+  OPPER_API_KEY: "Get Opper API key",
+  API_ROUTE_API_KEY: "Get API Route key",
+  HF_TOKEN: "Get Hugging Face token",
+  REPLICATE_API_TOKEN: "Get Replicate API token",
+  GOOGLE_APP_PASSWORD: "Get Google app password",
+  ELEVENLABS_API_KEY: "Get ElevenLabs API key",
+  FAL_API_KEY: "Get Fal API key",
+  SERPAPI_API_KEY: "Get SerpAPI API key",
+  DATA_FOR_SEO_LOGIN: "Get DataForSEO credentials",
+  BRAVE_API_KEY: "Get Brave API key",
+  APIFY_API_TOKEN: "Get Apify API token",
+  KIMI_API_KEY: "Get Moonshot API key",
   DASHSCOPE_API_KEY: "Get Alibaba Cloud API Key",
-  AKI_API_KEY: "Get AKI.IO API Key"
+  AKI_API_KEY: "Get AKI.IO API key"
 };
 
 const SETTING_TOOLTIPS: Record<string, string> = {
@@ -287,16 +278,27 @@ const SettingItem = memo(function SettingItem({
   value,
   onChange
 }: SettingItemProps) {
-  const { t } = useTranslation();
   const handleChange = useCallback(
-    (
-      e:
-        | SelectChangeEvent<string>
-        | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       onChange(setting.env_var, e.target.value);
     },
     [setting.env_var, onChange]
+  );
+
+  const handleSelectChange = useCallback(
+    (next: string) => {
+      onChange(setting.env_var, next);
+    },
+    [setting.env_var, onChange]
+  );
+
+  const selectOptions = useMemo(
+    () =>
+      (setting.enum ?? []).map((option: string) => ({
+        value: option,
+        label: option
+      })),
+    [setting.enum]
   );
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -306,43 +308,28 @@ const SettingItem = memo(function SettingItem({
   return (
     <div className="settings-item large">
       {setting.enum && setting.enum.length > 0 ? (
-        <FormControl variant="standard" fullWidth>
-          <InputLabel
-            id={`${setting.env_var.toLowerCase()}-label`}
-          >
-            {t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })}
-          </InputLabel>
-          <Select
-            labelId={`${setting.env_var.toLowerCase()}-label`}
+        <div onKeyDown={handleKeyDown}>
+          <SelectField
             id={`${setting.env_var.toLowerCase()}-select`}
+            label={formatSettingLabel(setting.env_var)}
             value={value || ""}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-          >
-            {setting.enum.map((option: string) => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            onChange={handleSelectChange}
+            options={selectOptions}
+            description={setting.description || undefined}
+          />
+        </div>
       ) : (
         <TextInput
           type={setting.is_secret ? "password" : "text"}
           autoComplete="off"
           id={`${setting.env_var.toLowerCase()}-input`}
-          label={t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })}
+          label={formatSettingLabel(setting.env_var)}
+          helperText={setting.description || undefined}
           value={value || ""}
           onChange={handleChange}
-          variant="standard"
           size="small"
           onKeyDown={handleKeyDown}
         />
-      )}
-      {setting.description && (
-        <Text className="description">
-          {t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description })}
-        </Text>
       )}
       {SETTING_LINKS[setting.env_var] && (
         <div style={{ marginTop: getSpacingPx(SPACING.md) }}>
@@ -369,12 +356,11 @@ interface RemoteSettingsProps {
 
 const settingMatches = (setting: SettingWithValue, search: string): boolean =>
   matchesSearch(
-    `${i18n.t(`settings:remote.${setting.env_var}.label`, { defaultValue: formatSettingLabel(setting.env_var) })} ${setting.env_var} ${i18n.t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description ?? "" })}`,
+    `${formatSettingLabel(setting.env_var)} ${setting.env_var} ${setting.description ?? ""}`,
     search
   );
 
 const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const updateSettings = useRemoteSettingsStore((state) => state.updateSettings);
   const fetchSettings = useRemoteSettingsStore((state) => state.fetchSettings);
@@ -499,10 +485,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
     },
     onError: (error: Error) => {
       addNotification({
-        content: i18n.t("tools:menus.couldNotSaveSettings", {
-          defaultValue: "Could not save settings: {{message}}",
-          message: error.message
-        }),
+        content: `Could not save settings: ${error.message}`,
         type: "error",
         alert: true
       });
@@ -564,9 +547,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
   return (
     <>
       {isLoading && (
-        <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-          {t("editor:ui.loadingSettings", { defaultValue: "Loading settings…" })}
-        </Text>
+        <LoadingSpinner text="Loading settings" />
       )}
       {isSuccess && hasVisibleSettings && (
         <div
@@ -599,11 +580,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                         id={sec.key}
                         className="settings-heading"
                       >
-                        {section.labelKey
-                          ? t(`tools:menus.${section.labelKey}`, {
-                              defaultValue: sec.label
-                            })
-                          : sec.label}
+                        {sec.label}
                       </Text>
                       {visibleSettings.map((setting) => (
                         <SettingItem
@@ -628,15 +605,13 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
 
             {isDirty && (
               <div className="save-button-container">
-                <Text className="save-bar-message">
-                  {t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })}
-                </Text>
+                <Text className="save-bar-message">Unsaved changes</Text>
                 <EditorButton
                   variant="text"
                   onClick={handleDiscard}
                   disabled={updateSettingsMutation.isPending}
                 >
-                  {t("editor:ui.discard2", { defaultValue: "Discard" })}
+                  Discard
                 </EditorButton>
                 <EditorButton
                   variant="contained"
@@ -646,9 +621,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                   startIcon={<SaveIcon />}
                   disabled={updateSettingsMutation.isPending}
                 >
-                  {updateSettingsMutation.isPending
-                    ? t("editor:ui.saving", { defaultValue: "Saving…" })
-                    : t("editor:ui.saveChanges", { defaultValue: "Save changes" })}
+                  {updateSettingsMutation.isPending ? "Saving…" : "Save changes"}
                 </EditorButton>
               </div>
             )}
@@ -656,9 +629,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
         </div>
       )}
       {isSuccess && !hasVisibleSettings && (
-        <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-          {t("editor:ui.noSettingsAvailable")}
-        </Text>
+        <EmptyState variant="no-data" size="small" title="No settings available" />
       )}
     </>
   );

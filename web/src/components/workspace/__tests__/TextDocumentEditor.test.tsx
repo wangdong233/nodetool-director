@@ -7,18 +7,59 @@ import mockTheme from "../../../__mocks__/themeMock";
 import type { Asset, DataframeRef } from "../../../stores/ApiTypes";
 
 // Heavy editor deps that are not exercised by the CSV branch.
+// A one-line editor holding "Heater broken", with the caret on that line.
+const mockExecuteEdits = jest.fn();
+const mockFakeEditor = {
+  getModel: () => ({
+    getValueLength: () => 13,
+    getLineContent: () => "Heater broken",
+    getLineMaxColumn: () => 14,
+    getEOL: () => "\n",
+    getValueInRange: () => "",
+    getAlternativeVersionId: () => 1,
+    getVersionId: () => 1
+  }),
+  getSelection: () => ({
+    startLineNumber: 1,
+    startColumn: 1,
+    endLineNumber: 1,
+    endColumn: 1
+  }),
+  executeEdits: mockExecuteEdits,
+  onDidChangeModelContent: jest.fn(),
+  setPosition: jest.fn(),
+  focus: jest.fn()
+};
 jest.mock("../MonacoPane", () => ({
   __esModule: true,
-  default: () => <div data-testid="monaco" />
+  default: ({
+    onChange,
+    onEditorMount
+  }: {
+    onChange: (value: string) => void;
+    onEditorMount?: (editor: unknown) => void;
+  }) => (
+    <div data-testid="monaco">
+      <button onClick={() => onChange("# Heater\n\nIt stopped working.")}>
+        type draft
+      </button>
+      <button onClick={() => onEditorMount?.(mockFakeEditor)}>mount</button>
+    </div>
+  )
 }));
 jest.mock("../../textEditor/EditorToolbar", () => ({
   __esModule: true,
-  default: () => <div data-testid="editor-toolbar" />
+  default: ({ onHeading }: { onHeading?: () => void }) => (
+    <div data-testid="editor-toolbar">
+      {onHeading && <button onClick={onHeading}>Heading</button>}
+    </div>
+  )
 }));
 
+const mockUpdate = jest.fn();
 jest.mock("../../../stores/AssetStore", () => ({
   useAssetStore: <T,>(selector: (s: { update: unknown }) => T) =>
-    selector({ update: jest.fn() })
+    selector({ update: mockUpdate })
 }));
 jest.mock("../../../stores/NotificationStore", () => ({
   useNotificationStore: <T,>(selector: (s: { addNotification: unknown }) => T) =>
@@ -107,6 +148,57 @@ describe("TextDocumentEditor — markdown edit", () => {
   });
 });
 
+describe("TextDocumentEditor — leaving with an unsaved draft", () => {
+  beforeEach(() => {
+    mockUpdate.mockReset();
+    mockUpdate.mockResolvedValue({});
+  });
+
+  // study-7-I1: switching to View unmounted the editor and dropped the draft.
+  it("saves the draft and hands it to the preview when the editor unmounts", async () => {
+    installGlobal(
+      "fetch",
+      jest.fn().mockResolvedValue({ ok: true, text: async () => "# Untitled" })
+    );
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: Infinity } }
+    });
+    const { unmount } = render(
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={mockTheme}>
+          <TextDocumentEditor asset={markdownAsset()} />
+        </ThemeProvider>
+      </QueryClientProvider>
+    );
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "type draft" })
+    );
+    unmount();
+
+    expect(mockUpdate).toHaveBeenCalledWith({
+      id: "md-1",
+      data: "# Heater\n\nIt stopped working.",
+      content_type: "text/markdown"
+    });
+    expect(queryClient.getQueryData(["textAsset", "md-1"])).toBe(
+      "# Heater\n\nIt stopped working."
+    );
+  });
+
+  it("does not save when nothing changed", async () => {
+    installGlobal(
+      "fetch",
+      jest.fn().mockResolvedValue({ ok: true, text: async () => "# Untitled" })
+    );
+    const { unmount } = renderEditor(markdownAsset());
+    await screen.findByRole("button", { name: "type draft" });
+    unmount();
+
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+});
+
 describe("TextDocumentEditor — CSV add row", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -143,5 +235,42 @@ describe("TextDocumentEditor — CSV add row", () => {
     await userEvent.click(screen.getByRole("button", { name: "add row" }));
 
     expect(screen.getByTestId("row-count")).toHaveTextContent("2");
+  });
+});
+
+describe("TextDocumentEditor — Markdown buttons", () => {
+  beforeEach(() => mockExecuteEdits.mockReset());
+
+  it("turns the caret's line into a heading in a Markdown file", async () => {
+    installGlobal(
+      "fetch",
+      jest.fn().mockResolvedValue({ ok: true, text: async () => "Heater broken" })
+    );
+    renderEditor(markdownAsset());
+    await userEvent.click(await screen.findByText("mount"));
+    await userEvent.click(screen.getByRole("button", { name: "Heading" }));
+
+    expect(mockExecuteEdits).toHaveBeenCalledWith("toolbar", [
+      expect.objectContaining({ text: "# Heater broken" })
+    ]);
+  });
+
+  it("offers no Markdown buttons for other text formats", async () => {
+    installGlobal(
+      "fetch",
+      jest.fn().mockResolvedValue({ ok: true, text: async () => "{}" })
+    );
+    renderEditor(
+      stub<Asset>({
+        id: "json-1",
+        name: "data.json",
+        content_type: "application/json",
+        get_url: "http://localhost/data.json"
+      })
+    );
+    expect(await screen.findByTestId("monaco")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Heading" })
+    ).not.toBeInTheDocument();
   });
 });

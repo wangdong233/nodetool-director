@@ -17,7 +17,6 @@ import { useInStudio } from "../../studio/StudioContext";
 import { STUDIO_VOICES } from "../../studio/curatedModels";
 import { SPACING, getSpacingPx } from "../ui_primitives";
 import { isString } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 interface TTSModelSelectProps {
   onChange: (value: TTSModelValue) => void;
@@ -35,7 +34,6 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
   modelPacks,
   voiceLabel = "Voice"
 }) => {
-  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const addRecent = useModelPreferencesStore((s) => s.addRecent);
@@ -193,9 +191,9 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
         ref={buttonRef}
         active={!!modelId}
         label={
-          currentSelectedModelDetails?.name || modelId || t("editor:ui.selectTTSModel")
+          currentSelectedModelDetails?.name || modelId || "Select TTS model"
         }
-        subLabel={t("editor:ui.selectTextToSpeechModel")}
+        subLabel="Select text-to-speech model"
         onClick={handleClick}
       />
 
@@ -204,7 +202,7 @@ const TTSModelSelect: React.FC<TTSModelSelectProps> = ({
           options={voiceOptions}
           value={selectedVoice || availableVoices[0] || ""}
           onChange={handleVoiceChange}
-          placeholder={t("editor:ui.selectVoice", { defaultValue: "Select voice" })}
+          placeholder="Select voice"
           label={voiceLabel}
         />
       )}

@@ -27,6 +27,9 @@ const COLUMNS: Col[] = [
       { name: "Templates", href: "/templates" },
       { name: "Recipes", href: "/recipes" },
       { name: "Storyboards", href: "/storyboards" },
+      { name: "AI image editor", href: "/ai-image-editor" },
+      { name: "AI video editor", href: "/ai-video-editor" },
+      { name: "MCP server", href: "/mcp" },
       { name: "Tasks", href: "/tasks" },
       { name: "Pricing", href: "/pricing" },
     ],
@@ -38,6 +41,7 @@ const COLUMNS: Col[] = [
       { name: "Developers", href: "/developers" },
       { name: "Marketing", href: "/marketing" },
       { name: "Game development", href: "/gamedev" },
+      { name: "AI game engines compared", href: "/gamedev/ai-game-engines" },
       { name: "Local-first", href: "/solutions/local-first" },
       { name: "Researchers", href: "/solutions/researchers" },
       { name: "All solutions", href: "/solutions" },
@@ -45,7 +49,7 @@ const COLUMNS: Col[] = [
   },
   {
     title: "Compare",
-    links: footerCompareLinks,
+    links: [...footerCompareLinks, { name: "All comparisons", href: "/alternatives" }],
   },
   {
     title: "Resources",
@@ -94,7 +98,7 @@ export default function SiteFooter() {
 
           {COLUMNS.map((col) => (
             <div key={col.title}>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
                 {col.title}
               </h2>
               <ul className="mt-3 space-y-2">
@@ -124,7 +128,7 @@ export default function SiteFooter() {
             </span>
             Built in the open.
           </p>
-          <p className="text-xs text-slate-400">AGPL-3.0 · NodeTool</p>
+          <p className="text-xs text-slate-300">AGPL-3.0 · NodeTool</p>
         </div>
       </div>
     </footer>

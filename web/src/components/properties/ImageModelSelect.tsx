@@ -13,10 +13,11 @@ import {
   type ImageModelTask
 } from "../../hooks/useModelsByProvider";
 import ModelSelectButton from "./shared/ModelSelectButton";
+import { missingKeyWarning } from "./shared/missingKeyWarning";
+import { useProviderKeyMissing } from "../../hooks/useProviderKeyMissing";
 import CuratedModelSelect from "./curated/CuratedModelSelect";
 import { useInStudio } from "../../studio/StudioContext";
 import { forTasks, STUDIO_STILL_MODELS } from "../../studio/curatedModels";
-import { useTranslation } from "react-i18next";
 
 interface ImageModelSelectProps {
   onChange: (value: ImageModelValue) => void;
@@ -37,7 +38,6 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
   modelPacks,
   disabled
 }) => {
-  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const addRecent = useModelPreferencesStore((s) => s.addRecent);
@@ -53,6 +53,9 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
       (m) => m.id === value && (!provider || m.provider === provider)
     );
   }, [fetchedModels, value, provider]);
+
+  const selectedProvider = currentSelectedModelDetails?.provider ?? provider;
+  const missingKey = useProviderKeyMissing(value ? selectedProvider : undefined);
 
   const displayInfo = useMemo(() => {
     if (currentSelectedModelDetails) {
@@ -103,8 +106,8 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
       return { label: value, secondaryLabel: undefined };
     }
 
-    return { label: t("editor:ui.selectImageModel"), secondaryLabel: undefined };
-  }, [t, currentSelectedModelDetails, value]);
+    return { label: "Select image model", secondaryLabel: undefined };
+  }, [currentSelectedModelDetails, value]);
 
   const handleClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -134,11 +137,16 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
     [onChange, addRecent]
   );
 
+  const selectedModel = useMemo(
+    () => (value ? { id: value, provider } : undefined),
+    [value, provider]
+  );
+
   if (inStudio) {
     return (
       <CuratedModelSelect
         capability="text_to_image"
-        label={t("editor:ui.imageModel", { defaultValue: "Image model" })}
+        label="Image model"
         options={forTasks(STUDIO_STILL_MODELS, task)}
         value={value}
         onChange={onChange}
@@ -154,7 +162,10 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
         active={!!value}
         label={displayInfo.label}
         secondaryLabel={displayInfo.secondaryLabel}
-        subLabel={t("editor:ui.selectImageGenerationModel")}
+        warning={
+          missingKey ? missingKeyWarning(selectedProvider, missingKey) : undefined
+        }
+        subLabel="Select image generation model"
         onClick={handleClick}
         disabled={disabled}
       />
@@ -166,6 +177,7 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
         task={task}
         recommendedModels={recommendedModels}
         modelPacks={modelPacks}
+        selectedModel={selectedModel}
       />
     </>
   );

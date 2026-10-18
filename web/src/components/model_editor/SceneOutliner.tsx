@@ -1,6 +1,5 @@
 /** @jsxImportSource @emotion/react */
 import { memo, useCallback, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "@mui/material/styles";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -28,11 +27,11 @@ import {
   MenuItemPrimitive,
   ScrollArea,
   SearchInput,
-  Text,
   TreeRow,
   BORDER_RADIUS,
   MOTION,
-  SPACING
+  SPACING,
+  EmptyState
 } from "../ui_primitives";
 import type { SceneTreeNode } from "./sceneTree";
 import { shortcutKeys } from "./editorShortcuts";
@@ -147,7 +146,6 @@ const OutlinerRow = memo(
     onDropOn,
     onKeyNavigate
   }: OutlinerRowProps) => {
-    const { t } = useTranslation();
     const { node, inheritedHidden } = row;
     const hasChildren = node.children.length > 0;
     const dimmed = !node.visible || inheritedHidden;
@@ -259,10 +257,7 @@ const OutlinerRow = memo(
             editing={editing}
             onEditingChange={(next) => onEditingChange(next ? node.uuid : null)}
             onCommit={(name) => onRename(node.uuid, name)}
-            ariaLabel={t("editor:ui.renameObject", {
-              defaultValue: "Rename {{name}}",
-              name: node.name
-            })}
+            ariaLabel={`Rename ${node.name}`}
             selectOnFocus
             stopPropagation
             title={`${node.name} (${node.type})`}
@@ -280,11 +275,7 @@ const OutlinerRow = memo(
           size="small"
           // One tab stop per tree, not one per row: H toggles the selection.
           tabIndex={-1}
-          aria-label={
-            node.visible
-              ? t("editor:ui.hideObject", { defaultValue: "Hide object" })
-              : t("editor:ui.showObject", { defaultValue: "Show object" })
-          }
+          aria-label={node.visible ? "Hide object" : "Show object"}
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
             onToggleVisible(node.uuid);
@@ -335,7 +326,6 @@ const SceneOutliner = ({
   onReparent,
   onAction
 }: SceneOutlinerProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [query, setQuery] = useState("");
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
@@ -456,8 +446,8 @@ const SceneOutliner = ({
           <SearchInput
             value={query}
             onChange={setQuery}
-            placeholder={t("editor:ui.filterObjects", { defaultValue: "Filter objects" })}
-            ariaLabel={t("editor:ui.filterSceneObjects", { defaultValue: "Filter scene objects" })}
+            placeholder="Filter objects"
+            ariaLabel="Filter scene objects"
             size="small"
             fullWidth
           />
@@ -466,7 +456,7 @@ const SceneOutliner = ({
       <ScrollArea>
         <Box
           role="tree"
-          aria-label={t("editor:ui.sceneObjects", { defaultValue: "Scene objects" })}
+          aria-label="Scene objects"
           onDragOver={(e: React.DragEvent) => {
             if (e.dataTransfer.types.includes(DRAG_TYPE)) {
               e.preventDefault();
@@ -498,18 +488,17 @@ const SceneOutliner = ({
           }}
         >
           {!hasNodes ? (
-            <Text size="small" color="secondary" sx={{ py: SPACING.lg, px: SPACING.md }}>
-              {t("editor:ui.sceneIsEmpty", {
-                defaultValue: "Scene is empty. Use Add to create an object."
-              })}
-            </Text>
+            <EmptyState
+              size="small"
+              title="Scene is empty"
+              description="Use Add to create an object."
+            />
           ) : rows.length === 0 ? (
-            <Text size="small" color="secondary" sx={{ py: SPACING.lg, px: SPACING.md }}>
-              {t("editor:ui.noObjectsMatch", {
-                defaultValue: "No objects match “{{query}}”.",
-                query
-              })}
-            </Text>
+            <EmptyState
+              variant="no-results"
+              size="small"
+              title={`No objects match “${query}”`}
+            />
           ) : (
             rows.map((row) => (
               <OutlinerRow
@@ -538,33 +527,28 @@ const SceneOutliner = ({
         open={menu !== null}
         position={menu}
         onClose={() => setMenu(null)}
-        compact
         minWidth={200}
       >
         <MenuItemPrimitive
-          label={t("common:action.rename", { defaultValue: "Rename" })}
+          label="Rename"
           icon={<DriveFileRenameOutlineIcon fontSize="small" />}
           shortcut="F2"
           onClick={() => runAction("rename")}
         />
         <MenuItemPrimitive
-          label={t("editor:ui.duplicate", { defaultValue: "Duplicate" })}
+          label="Duplicate"
           icon={<ContentCopyIcon fontSize="small" />}
           shortcut={shortcutKeys("duplicate").join("+")}
           onClick={() => runAction("duplicate")}
         />
         <MenuItemPrimitive
-          label={t("editor:ui.focusInViewport", { defaultValue: "Focus in viewport" })}
+          label="Focus in viewport"
           icon={<CenterFocusStrongIcon fontSize="small" />}
           shortcut={shortcutKeys("focusSelection").join("+")}
           onClick={() => runAction("focus")}
         />
         <MenuItemPrimitive
-          label={
-            menuNode?.visible === false
-              ? t("editor:ui.show", { defaultValue: "Show" })
-              : t("editor:ui.hide2", { defaultValue: "Hide" })
-          }
+          label={menuNode?.visible === false ? "Show" : "Hide"}
           icon={
             menuNode?.visible === false ? (
               <VisibilityIcon fontSize="small" />
@@ -577,13 +561,13 @@ const SceneOutliner = ({
         />
         {menuNode && menuNode.depth > 0 && (
           <MenuItemPrimitive
-            label={t("editor:ui.moveToSceneRoot", { defaultValue: "Move to scene root" })}
+            label="Move to scene root"
             icon={<VerticalAlignTopIcon fontSize="small" />}
             onClick={() => runAction("unparent")}
           />
         )}
         <MenuItemPrimitive
-          label={t("common:action.delete", { defaultValue: "Delete" })}
+          label="Delete"
           color="error"
           dividerBefore
           icon={<DeleteOutlineIcon fontSize="small" />}

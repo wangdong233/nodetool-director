@@ -2,6 +2,7 @@
 import { css, keyframes } from "@emotion/react";
 import { colorForType } from "../../config/data_types";
 import { useIsDarkMode } from "../../hooks/useIsDarkMode";
+import { useUndoGroup } from "../../hooks/useUndoGroup";
 
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -121,6 +122,7 @@ const ResizeOverlay = memo(function ResizeOverlay({
 }: {
   minHeight: number;
 }) {
+  const resizeUndoGroup = useUndoGroup();
   return (
     <div className="node-resizer">
       <div className="resizer">
@@ -135,6 +137,8 @@ const ResizeOverlay = memo(function ResizeOverlay({
           minWidth={200}
           maxWidth={MAX_NODE_WIDTH}
           minHeight={minHeight}
+          onResizeStart={resizeUndoGroup.begin}
+          onResizeEnd={resizeUndoGroup.end}
         />
       </div>
     </div>
@@ -798,6 +802,7 @@ const BaseNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
       <ApiKeyValidation nodeNamespace={meta.nodeNamespace} />
       <RequiredSettingsWarning nodeType={type} />
       <InputNodeNameWarning
+        nodeId={id}
         nodeType={type}
         name={data.properties?.name as string | undefined}
       />

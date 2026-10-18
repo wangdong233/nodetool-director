@@ -11,16 +11,14 @@ import React, { memo, useCallback, useMemo, useState } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import ImageIcon from "@mui/icons-material/Image";
 
 import { SPACING,
-  CheckerDropzone,
   FlexColumn,
   FlexRow,
   ToggleGroup,
   ToggleOption, BORDER_RADIUS } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
-import ImageRefPreview from "../../node/ImageRefPreview";
+import ImagePreview from "./ImagePreview";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
 
@@ -31,24 +29,15 @@ import {
   useUpstreamValue
 } from "../../../hooks/nodes/useNodeIO";
 import { MASK_NODE_TYPE } from "../../../constants/nodeTypes";
-import { useTranslation } from "react-i18next";
 
 type MaskTab = "image1" | "image2" | "mask" | "result";
 
 const TAB_PLACEHOLDERS = {
-  image1: "Connect Image 1",
-  image2: "Connect Image 2",
+  image1: "Connect image 1",
+  image2: "Connect image 2",
   mask: "Connect a mask",
   result: "Run the node to composite"
 } satisfies Record<MaskTab, string>;
-
-
-const TAB_PLACEHOLDER_KEYS: Record<MaskTab, string> = {
-  image1: "editor:ui.connectImage1",
-  image2: "editor:ui.connectImage2",
-  mask: "editor:ui.connectAMask",
-  result: "editor:ui.runTheNodeToComposite"
-};
 
 const styles = (theme: Theme) =>
   css({
@@ -103,16 +92,6 @@ const styles = (theme: Theme) =>
     }
   });
 
-const ImagePreview: React.FC<{ value: unknown; placeholder: string }> = memo(
-  ({ value, placeholder }) => (
-    <ImageRefPreview
-      value={value}
-      placeholder={<CheckerDropzone message={placeholder} icon={<ImageIcon />} />}
-    />
-  )
-);
-ImagePreview.displayName = "MaskImagePreview";
-
 interface MaskBodyProps {
   id: string;
   nodeType: string;
@@ -131,7 +110,6 @@ const MaskBodyInner: React.FC<MaskBodyProps> = ({
   status,
   isOutputNode
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -184,7 +162,7 @@ const MaskBodyInner: React.FC<MaskBodyProps> = ({
     <div css={cssStyles} className="mask-body" data-bespoke-body="Mask">
       <HandleColumn id={id} properties={imageHandles} />
       <div className="preview-area">
-        <ImagePreview value={tabValue} placeholder={t(TAB_PLACEHOLDER_KEYS[tab], { defaultValue: TAB_PLACEHOLDERS[tab] })} />
+        <ImagePreview value={tabValue} message={TAB_PLACEHOLDERS[tab]} />
       </div>
 
       <FlexColumn className="controls" gap={0.5}>
@@ -196,18 +174,18 @@ const MaskBodyInner: React.FC<MaskBodyProps> = ({
             value={tab}
             exclusive
             onChange={handleTabChange}
-            aria-label={t("editor:ui.previewTab", { defaultValue: "Preview tab" })}
+            aria-label="Preview tab"
           >
-            <ToggleOption value="image1" aria-label={t("editor:ui.image1", { defaultValue: "Image 1" })}>
-              {t("editor:ui.img1")}
+            <ToggleOption value="image1" aria-label="Image 1">
+              Img 1
             </ToggleOption>
-            <ToggleOption value="image2" aria-label={t("editor:ui.image2", { defaultValue: "Image 2" })}>
-              {t("editor:ui.img2")}
+            <ToggleOption value="image2" aria-label="Image 2">
+              Img 2
             </ToggleOption>
-            <ToggleOption value="mask" aria-label={t("editor:ui.mask", { defaultValue: "Mask" })}>
+            <ToggleOption value="mask" aria-label="Mask">
               Mask
             </ToggleOption>
-            <ToggleOption value="result" aria-label={t("editor:ui.result", { defaultValue: "Result" })}>
+            <ToggleOption value="result" aria-label="Result">
               Result
             </ToggleOption>
           </ToggleGroup>

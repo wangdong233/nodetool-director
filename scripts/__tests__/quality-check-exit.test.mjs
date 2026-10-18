@@ -23,6 +23,61 @@ function matrixRunScript() {
 }
 
 describe("quality check matrix exit status", () => {
+  it("bounds package and file concurrency in the core and game test jobs", () => {
+    const source = readFileSync(WORKFLOW, "utf8");
+    const turboRuns = (check) => {
+      const entry = source.match(new RegExp(`"check": "${check}",\\s*"command": ("(?:\\\\.|[^"\\\\])*")`));
+      expect(entry, check).not.toBeNull();
+      return JSON.parse(entry[1]).split(" && ").filter((part) => part.startsWith("npx turbo run test "));
+    };
+    const game = turboRuns("test-packages-game");
+    expect(game).toHaveLength(1);
+    expect(game[0]).toMatch(/--concurrency=1(?: |$)/);
+    const core = turboRuns("test-packages-core");
+    expect(core).toHaveLength(1);
+    expect(core[0]).toMatch(/--concurrency=2(?: |$)/);
+    const builtJob = source.slice(source.indexOf("\n  built:"));
+    expect(builtJob).toContain("NODETOOL_TEST_WORKERS: ${{ (matrix.check == 'harness-gate' || matrix.check == 'test-packages-core' || matrix.check == 'test-packages-game' || matrix.check == 'test-packages-agents') && '1' || '' }}");
+  });
+
+  it("bounds harness concurrency in both diff and full-run paths", () => {
+    const source = readFileSync(WORKFLOW, "utf8");
+    const entry = source.match(/"check": "harness-gate",\s*"command": ("(?:\\.|[^"\\])*")/);
+    expect(entry).not.toBeNull();
+    const command = JSON.parse(entry[1]);
+    const paths = command.match(/npm run dev:nodetool -- harness gate [^;]+/g);
+    expect(paths).toHaveLength(2);
+    expect(paths[0]).toContain('--base "$CI_BASE_SHA"');
+    expect(paths[1]).toContain("--all");
+    for (const path of paths) {
+      expect(path).toMatch(/--jobs 1(?: |$)/);
+      expect(path).toMatch(/--timeout 900(?: |$)/);
+    }
+    const builtJob = source.slice(source.indexOf("\n  built:"));
+    expect(builtJob).toMatch(/timeout-minutes: 45/);
+    expect(builtJob).toContain("NODETOOL_TEST_WORKERS: ${{ (matrix.check == 'harness-gate' || matrix.check == 'test-packages-core' || matrix.check == 'test-packages-game' || matrix.check == 'test-packages-agents') && '1' || '' }}");
+    expect(builtJob).toContain("NODETOOL_HARNESS_INCLUDE_SUITES: ${{ inputs.skip-tests && '--include-suites' || '' }}");
+    for (const base of ["", "fixture-base"]) {
+      for (const skipTests of [false, true]) {
+        const result = spawnSync("bash", ["-e", "-c", `npm() { printf '%s\\n' "$@"; }\n${command}`], {
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            CI_BASE_SHA: base,
+            NODETOOL_HARNESS_INCLUDE_SUITES: skipTests ? "--include-suites" : ""
+          },
+          timeout: 5000
+        });
+        expect(result.error).toBeUndefined();
+        expect(result.status).toBe(0);
+        const args = result.stdout.trim().split("\n");
+        expect(args.filter((arg) => arg === "--include-suites")).toHaveLength(skipTests ? 1 : 0);
+        expect(args).toContain(base ? "--base" : "--all");
+        expect(args.slice(args.indexOf("--jobs"), args.indexOf("--jobs") + 2)).toEqual(["--jobs", "1"]);
+      }
+    }
+  });
+
   it("runs the offline agentic QA origin checks in the always-selected lint job", () => {
     const source = readFileSync(WORKFLOW, "utf8");
     const guard = source.match(/      - name: Check agentic QA origin restrictions\n        if: (.*)\n        run: (.*)\n/g);
@@ -33,7 +88,7 @@ describe("quality check matrix exit status", () => {
     const install = staticJob.match(/      - name: Install Chromium for agentic QA checks\n        if: matrix.check == 'lint'\n        run: npx playwright install --with-deps chromium\n/g);
     expect(install).toHaveLength(1);
     expect(staticJob.indexOf(install[0])).toBeLessThan(staticJob.indexOf(guard[0]));
-    expect(source).toMatch(/"check": "lint",\s*"command": "npm run lint",\s*"when": "always"/);
+    expect(source).toMatch(/"check": "lint",\s*"command": "npm run lint && npm run lint:anti-slop:check && [^"]*",\s*"when": "always"/);
   });
 
   it.each([

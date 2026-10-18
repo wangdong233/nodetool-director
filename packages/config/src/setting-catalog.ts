@@ -82,6 +82,11 @@ s(
   "Path to the Blender executable used by the nodetool.blender nodes. If not specified, the nodes look for blender on PATH and in the well-known install locations."
 );
 s(
+  "MANIMGX_PATH",
+  "Folders",
+  "Path to the manimgx executable used by the nodetool.manimgx nodes. If not specified, the nodes look for manimgx on PATH and in ~/.local/bin."
+);
+s(
   "VECTORSTORE_DB_PATH",
   "Folders",
   "Location of the sqlite-vec vector database file. Used to store and retrieve embeddings for semantic search and RAG applications."
@@ -237,6 +242,11 @@ s(
   "Directory containing local GGUF model files for in-process llama.cpp inference. Defaults to the platform llama.cpp cache directory."
 );
 s(
+  "SD_CPP_SERVER_PATH",
+  "StableDiffusionCpp",
+  "Path to an sd-server binary for the stable-diffusion.cpp provider. Unset, the provider uses the sd-server the stable-diffusion.cpp package installs, then PATH."
+);
+s(
   "NODE_LLAMA_CPP_GPU_BACKEND",
   "NodeLlamaCpp",
   "GPU backend for in-process llama.cpp inference. 'auto' lets node-llama-cpp detect the best backend.",
@@ -251,6 +261,11 @@ sec(
   "LMSTUDIO_API_KEY",
   "LMStudio",
   "API key for an LM Studio server that requires authentication. Leave empty for a default LM Studio install."
+);
+s(
+  "CLAUDE_CLI_PATH",
+  "ClaudeAgent",
+  "Path to the Claude Code CLI (claude) the Claude Agent provider runs. Leave empty to find it on PATH or in the usual install locations (~/.local/bin, ~/.claude/local, Homebrew, npm)."
 );
 s("WHISPER_CPP_MODELS_DIR", "WhisperCpp", "Additional directory containing local ggml whisper.cpp and VAD model files. The Hugging Face hub cache is always scanned.");
 s("WHISPER_CPP_GPU_BACKEND", "WhisperCpp", "Backend for in-process whisper.cpp inference. 'auto' uses Metal on macOS, and on Windows and Linux tries the CUDA build, then the Vulkan build, then the default CPU build. Restart the backend after changing this setting.", ["auto", "metal", "cuda", "vulkan", "cpu"]);
@@ -398,6 +413,51 @@ sec(
   "xAI API key for accessing Grok models via xAI's OpenAI-compatible API. Get yours at https://console.x.ai/"
 );
 sec(
+  "AZURE_OPENAI_API_KEY",
+  "Azure OpenAI",
+  "Azure OpenAI or Microsoft Foundry resource key. Find it under Keys and Endpoint in the Azure portal"
+);
+sec(
+  "AZURE_OPENAI_ENDPOINT",
+  "Azure OpenAI",
+  "Azure OpenAI or Microsoft Foundry resource endpoint, e.g. https://<resource>.openai.azure.com or https://<resource>.cognitiveservices.azure.com/openai"
+);
+sec(
+  "AZURE_OPENAI_DEPLOYMENTS",
+  "Azure OpenAI",
+  "Comma-separated deployment names to offer as models, e.g. gpt-5.5,gpt-image-2,whisper. Names containing image, tts, whisper/transcribe or embedding are media models. Add :chat, :image, :tts, :asr or :embedding to set the kind explicitly"
+);
+s(
+  "AZURE_OPENAI_API_VERSION",
+  "Azure OpenAI",
+  "Azure OpenAI API version, e.g. 2025-04-01-preview. Leave empty to use the v1 API, which needs no version"
+);
+sec(
+  "BEDROCK_ACCESS_KEY_ID",
+  "Amazon Bedrock",
+  "AWS access key ID of an IAM user or role allowed to call Amazon Bedrock"
+);
+sec(
+  "BEDROCK_SECRET_ACCESS_KEY",
+  "Amazon Bedrock",
+  "AWS secret access key that belongs to BEDROCK_ACCESS_KEY_ID"
+);
+sec(
+  "BEDROCK_SESSION_TOKEN",
+  "Amazon Bedrock",
+  "AWS session token, needed only with temporary credentials"
+);
+sec(
+  "BEDROCK_REGION",
+  "Amazon Bedrock",
+  "AWS region to call Amazon Bedrock in, e.g. eu-central-1 (default: us-east-1)"
+);
+s(
+  "BEDROCK_MODEL_IDS",
+  "Amazon Bedrock",
+  "Comma-separated Bedrock model or inference profile IDs to offer, e.g. eu.anthropic.claude-sonnet-4-6. Leave empty to list every model the region offers"
+);
+sec(
   "GROQ_API_KEY",
   "Groq",
   "Groq API key for accessing ultra-fast LLM inference on Groq's LPU hardware. Get yours at https://console.groq.com/keys"
@@ -505,6 +565,16 @@ sec(
   "Search",
   "Brave Search API key for web search. Get yours at https://api-dashboard.search.brave.com/"
 );
+sec(
+  "OPENVERSE_CLIENT_ID",
+  "Openverse",
+  "Optional Openverse API client id. Openverse search in the asset browser works without it. With it, searches get a higher rate limit. Register an application as described under \"Register and Authenticate\" at https://api.openverse.org/v1/"
+);
+sec(
+  "OPENVERSE_CLIENT_SECRET",
+  "Openverse",
+  "Openverse API client secret, paired with OPENVERSE_CLIENT_ID."
+);
 sec("BROWSER_URL", "Browser", "Browser URL for accessing a browser instance");
 sec(
   "RUNPOD_API_KEY",
@@ -585,6 +655,7 @@ sec(
 sec("USEAPI_API_TOKEN", "useapi.net", "API token for Google Flow and Dreamina through useapi.net. Get yours at https://useapi.net/");
 s("USEAPI_GOOGLE_FLOW_EMAIL", "useapi.net", "Google Flow account email for reference image uploads");
 s("USEAPI_DREAMINA_ACCOUNT", "useapi.net", "Dreamina account ID (region:email) for reference image uploads");
+sec("VGENV_API_KEY", "vgenv", "vgenv API key for MiniMax H3 video generation. Get yours at https://vgenv.com/api-keys");
 sec("MESHY_API_KEY", "Meshy", "Meshy AI API key for 3D model generation. Get yours at https://app.meshy.ai/settings/api-keys");
 sec("RODIN_API_KEY", "Rodin", "Rodin AI API key for 3D model generation. Get yours at https://hyperhuman.deemos.com/");
 sec(

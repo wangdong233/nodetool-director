@@ -27,7 +27,8 @@ import {
   EditorButton,
   ToolbarIconButton,
   LoadingSpinner,
-  SPACING
+  SPACING,
+  ICON_SIZE
 } from "../ui_primitives";
 
 import {
@@ -132,7 +133,7 @@ export const TranscriptPanel: React.FC = memo(() => {
       />
       <FlexColumn gap={SPACING.md} sx={{ p: 0.5, flex: 1, minHeight: 0 }}>
         <FlexRow gap={SPACING.xs} align="center">
-          <GraphicEqIcon sx={{ fontSize: 16, color: "primary.main" }} />
+          <GraphicEqIcon sx={{ fontSize: ICON_SIZE.sm, color: "primary.main" }} />
           <Text size="smaller" sx={{ letterSpacing: "0.1em" }}>
             TRANSCRIPT
           </Text>
@@ -152,7 +153,7 @@ export const TranscriptPanel: React.FC = memo(() => {
             {fillerCount > 0 ? (
               <EditorButton
                 size="small"
-                startIcon={<CleaningServicesIcon fontSize="small" />}
+                startIcon={<CleaningServicesIcon />}
                 onClick={removeFillers}
               >
                 {`Remove fillers (${fillerCount})`}
@@ -161,7 +162,7 @@ export const TranscriptPanel: React.FC = memo(() => {
             <ToolbarIconButton
               icon={
                 importing ? (
-                  <LoadingSpinner size={14} />
+                  <LoadingSpinner inline size={14} />
                 ) : (
                   <UploadFileIcon fontSize="small" />
                 )
@@ -175,7 +176,7 @@ export const TranscriptPanel: React.FC = memo(() => {
               <ToolbarIconButton
                 icon={
                   extracting ? (
-                    <LoadingSpinner size={14} />
+                    <LoadingSpinner inline size={14} />
                   ) : (
                     <EditNoteIcon fontSize="small" />
                   )

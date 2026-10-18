@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 
@@ -12,6 +12,18 @@ const mockOpenApplication = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseDocumentTreeData = useDocumentTreeData as jest.Mock;
 
+// Counts row renders: every row draws one DeleteButton.
+const mockDeleteButtonRender = jest.fn();
+jest.mock("../../ui_primitives/DeleteButton", () => {
+  const actual = jest.requireActual("../../ui_primitives/DeleteButton");
+  const { createElement } = jest.requireActual("react");
+  const CountedDeleteButton = (props: Record<string, unknown>) => {
+    mockDeleteButtonRender(props.ariaLabel);
+    return createElement(actual.DeleteButton, props);
+  };
+  return { ...actual, DeleteButton: CountedDeleteButton };
+});
+
 jest.mock("../../../hooks/useDocumentTreeData", () => ({
   useDocumentTreeData: jest.fn()
 }));
@@ -19,6 +31,16 @@ jest.mock("../../../hooks/useDocumentTreeData", () => ({
 const mockDeleteMutate = jest.fn();
 jest.mock("../../../serverState/useDeleteDocument", () => ({
   useDeleteDocument: () => ({ mutate: mockDeleteMutate })
+}));
+
+const mockDuplicateWorkflow = jest.fn(() => Promise.resolve());
+jest.mock("../../../hooks/useDuplicateWorkflowDocument", () => ({
+  useDuplicateWorkflowDocument: () => mockDuplicateWorkflow
+}));
+
+const mockRenameDocument = jest.fn(() => Promise.resolve());
+jest.mock("../../../hooks/useRenameDocument", () => ({
+  useRenameDocument: () => mockRenameDocument
 }));
 
 jest.mock("../../../hooks/useOpenApplication", () => ({
@@ -253,10 +275,262 @@ it("does not delete when the user cancels", async () => {
   expect(mockDeleteMutate).not.toHaveBeenCalled();
 });
 
-it("points an empty project at the Library, where text files are listed", () => {
+it("says an empty project lists text files here and uploads in the Library", () => {
   mockUseDocumentTreeData.mockReturnValue({ ...data, groups: [] });
   renderTree();
 
   expect(screen.getByText("No documents yet")).toBeInTheDocument();
-  expect(screen.getByText(/Text files and uploads are in the Library/)).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      "Workflows, text files and other documents created in this project will appear here. Uploads are in the Library."
+    )
+  ).toBeInTheDocument();
+});
+
+it("says a search with no match names Chats and the Library (study-7-I5)", async () => {
+  const user = userEvent.setup();
+  renderTree();
+
+  await user.type(
+    screen.getByRole("textbox", { name: "Search documents" }),
+    "release"
+  );
+
+  expect(screen.getByText("No matching documents")).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      "This searches documents only. Conversations are in Chats, and uploads are in the Library."
+    )
+  ).toBeInTheDocument();
+});
+
+const textAndGameData = {
+  ...data,
+  groups: [
+    {
+      id: "creative",
+      label: "Creative documents",
+      children: [
+        {
+          id: "game-1",
+          name: "Platformer",
+          type: "game",
+          typeLabel: "Game",
+          projectId: "project-a"
+        }
+      ]
+    },
+    {
+      id: "text",
+      label: "Text files",
+      children: [
+        {
+          id: "text-1",
+          name: "Notes.md",
+          type: "text",
+          typeLabel: "Text file",
+          projectId: "project-a"
+        }
+      ]
+    }
+  ]
+};
+
+it("lists a saved text file and opens it in its text tab (study-7-I5)", async () => {
+  const user = userEvent.setup();
+  mockUseDocumentTreeData.mockReturnValue(textAndGameData);
+  renderTree();
+
+  expect(screen.getByRole("treeitem", { name: /Text files/ })).toBeInTheDocument();
+  await user.click(screen.getByRole("treeitem", { name: /^Notes\.md Text file$/ }));
+
+  expect(mockOpenTab).toHaveBeenCalledWith({
+    type: "text",
+    ref: "text-1",
+    mode: "edit",
+    title: "Notes.md",
+    projectId: "project-a"
+  });
+  expect(screen.getByRole("button", { name: "Delete Notes.md" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Rename Notes.md" })).toBeInTheDocument();
+});
+
+it("searches text files by name", async () => {
+  const user = userEvent.setup();
+  mockUseDocumentTreeData.mockReturnValue(textAndGameData);
+  renderTree();
+
+  await user.type(
+    screen.getByRole("textbox", { name: "Search documents" }),
+    "notes"
+  );
+
+  expect(screen.getByText("Notes.md")).toBeInTheDocument();
+  expect(screen.queryByText("Platformer")).not.toBeInTheDocument();
+});
+
+it("opens a game in its tab and offers no delete or rename for it", async () => {
+  const user = userEvent.setup();
+  mockUseDocumentTreeData.mockReturnValue(textAndGameData);
+  renderTree();
+
+  await user.click(screen.getByRole("treeitem", { name: /^Platformer Game$/ }));
+
+  expect(mockOpenTab).toHaveBeenCalledWith(
+    expect.objectContaining({ type: "game", ref: "game-1" })
+  );
+  expect(
+    screen.queryByRole("button", { name: "Delete Platformer" })
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Rename Platformer" })
+  ).not.toBeInTheDocument();
+});
+
+it("duplicates a workflow from its row and offers no duplicate for other kinds", async () => {
+  const user = userEvent.setup();
+  renderTree();
+
+  await user.click(
+    screen.getByRole("button", { name: "Duplicate Campaign Generator" })
+  );
+
+  expect(mockDuplicateWorkflow).toHaveBeenCalledWith("workflow-1", [
+    "Campaign Generator"
+  ]);
+  expect(
+    screen.queryByRole("button", { name: "Duplicate Normalize Brief" })
+  ).not.toBeInTheDocument();
+});
+
+it("renames a workflow inline from its row with Enter", async () => {
+  const user = userEvent.setup();
+  renderTree();
+
+  await user.click(
+    screen.getByRole("button", { name: "Rename Campaign Generator" })
+  );
+  const input = screen.getByRole("textbox", {
+    name: "Rename Campaign Generator"
+  });
+  await waitFor(() => expect(input).toHaveFocus());
+  await user.clear(input);
+  await user.type(input, "Launch Generator{Enter}");
+
+  expect(mockRenameDocument).toHaveBeenCalledWith(
+    {
+      type: "workflow",
+      ref: "workflow-1",
+      currentName: "Campaign Generator"
+    },
+    "Launch Generator"
+  );
+  expect(mockOpenTab).not.toHaveBeenCalled();
+});
+
+it("renames a JS script and cancels a rename with Escape", async () => {
+  const user = userEvent.setup();
+  renderTree();
+
+  await user.click(screen.getByRole("button", { name: "Rename Normalize Brief" }));
+  let input = screen.getByRole("textbox", { name: "Rename Normalize Brief" });
+  await waitFor(() => expect(input).toHaveFocus());
+  await user.type(input, " v2{Escape}");
+  expect(mockRenameDocument).not.toHaveBeenCalled();
+  expect(
+    screen.getByRole("treeitem", { name: /^Normalize Brief JS script$/ })
+  ).toBeInTheDocument();
+
+  await user.click(screen.getByRole("button", { name: "Rename Normalize Brief" }));
+  input = screen.getByRole("textbox", { name: "Rename Normalize Brief" });
+  await waitFor(() => expect(input).toHaveFocus());
+  await user.type(input, "{End} v2{Enter}");
+  expect(mockRenameDocument).toHaveBeenCalledWith(
+    { type: "jsscript", ref: "js-1", currentName: "Normalize Brief" },
+    "Normalize Brief v2"
+  );
+});
+
+it("offers no rename for an entity", () => {
+  mockUseDocumentTreeData.mockReturnValue({
+    ...data,
+    groups: [
+      {
+        id: "creative",
+        label: "Creative documents",
+        children: [
+          {
+            id: "entity-1",
+            name: "Mara",
+            type: "entity",
+            typeLabel: "Entity",
+            projectId: "project-a"
+          }
+        ]
+      }
+    ]
+  });
+  renderTree();
+  expect(screen.getByRole("button", { name: "Delete Mara" })).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Rename Mara" })).toBeNull();
+  fireEvent.contextMenu(
+    screen.getByRole("treeitem", { name: /^Mara Entity$/ })
+  );
+  expect(screen.queryByRole("menuitem", { name: "Rename" })).toBeNull();
+});
+
+it("renames a row from its right-click menu", async () => {
+  const user = userEvent.setup();
+  renderTree();
+
+  fireEvent.contextMenu(
+    screen.getByRole("treeitem", { name: /^Campaign Generator Workflow$/ }),
+    { clientX: 20, clientY: 20 }
+  );
+  await user.click(await screen.findByRole("menuitem", { name: "Rename" }));
+  const input = await screen.findByRole("textbox", {
+    name: "Rename Campaign Generator"
+  });
+  await waitFor(() => expect(input).toHaveFocus());
+  await user.clear(input);
+  await user.type(input, "Menu name{Enter}");
+
+  expect(mockRenameDocument).toHaveBeenCalledWith(
+    {
+      type: "workflow",
+      ref: "workflow-1",
+      currentName: "Campaign Generator"
+    },
+    "Menu name"
+  );
+  expect(mockOpenTab).not.toHaveBeenCalled();
+});
+
+it("opens the row menu without a pointer position, as Shift+F10 does", async () => {
+  renderTree();
+  fireEvent.contextMenu(
+    screen.getByRole("treeitem", { name: /^Normalize Brief JS script$/ })
+  );
+  expect(
+    await screen.findByRole("menuitem", { name: "Rename" })
+  ).toBeInTheDocument();
+});
+
+// A save refetches the index. The hook keeps an unchanged document's leaf, so
+// its row must not re-render; a project has hundreds of them.
+it("does not re-render a row whose document a refetch did not change", () => {
+  const { rerender } = renderTree();
+  mockDeleteButtonRender.mockClear();
+
+  mockUseDocumentTreeData.mockReturnValue({
+    ...data,
+    groups: data.groups.map((group) => ({ ...group }))
+  });
+  rerender(
+    <ThemeProvider theme={mockTheme}>
+      <DocumentsTree projectId="project-a" />
+    </ThemeProvider>
+  );
+
+  expect(mockDeleteButtonRender).not.toHaveBeenCalled();
 });

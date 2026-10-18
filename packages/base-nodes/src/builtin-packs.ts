@@ -13,22 +13,13 @@ import { registerTogetherNodes } from "@nodetool-ai/together-nodes";
 import { registerReplicateNodes } from "@nodetool-ai/replicate-nodes";
 import { registerHuggingFaceNodes } from "@nodetool-ai/huggingface-nodes";
 
-import { NodeRegistry } from "@nodetool-ai/node-sdk";
+import { NodeRegistry, builtinPackUnavailableReason, type BuiltinPackPolicy } from "@nodetool-ai/node-sdk";
 import {
   BUILTIN_NODE_PACKS,
-  resolveBuiltinPackEnabled,
-  CLOUD_BUILTIN_PACK_IDS,
-  isCloudNodeType,
   type BuiltinNodePack
 } from "@nodetool-ai/protocol";
 
-export interface BuiltinPackPolicy {
-  includeOptionalPacks?: boolean;
-  excludedPackIds?: readonly string[];
-  enabledOverrides?: Readonly<Record<string, boolean>>;
-  production?: boolean;
-  cloudProfile?: boolean;
-}
+export type { BuiltinPackPolicy } from "@nodetool-ai/node-sdk";
 
 /** CLI harnesses historically expose these packs independently of user toggles. */
 export const CLI_BUILTIN_PACK_POLICY: BuiltinPackPolicy = {
@@ -57,25 +48,7 @@ function hasBuiltinRegistrar(id: string): id is keyof typeof BUILTIN_PACK_REGIST
   return Object.hasOwn(BUILTIN_PACK_REGISTRARS, id);
 }
 
-export function builtinPackUnavailableReason(
-  pack: BuiltinNodePack,
-  policy: BuiltinPackPolicy
-): string | undefined {
-  const override = policy.cloudProfile
-    ? CLOUD_BUILTIN_PACK_IDS.includes(pack.id)
-    : (policy.enabledOverrides?.[pack.id] ??
-      (policy.includeOptionalPacks ? true : undefined));
-  if (
-    (!pack.required && policy.excludedPackIds?.includes(pack.id)) ||
-    !resolveBuiltinPackEnabled(pack, override)
-  ) {
-    return "disabled by built-in pack configuration";
-  }
-  if (policy.production && pack.id === "transformers-js") {
-    return "unavailable in production";
-  }
-  return undefined;
-}
+export { builtinPackUnavailableReason } from "@nodetool-ai/node-sdk";
 
 /** Register classes first. Hosts apply applyBuiltinNodePolicy after loading metadata and third-party packs. */
 export function registerBuiltinPacks(
@@ -116,21 +89,4 @@ export function setBuiltinPackEnabled(
   }
 }
 
-export function applyBuiltinNodePolicy(
-  registry: NodeRegistry,
-  policy: Pick<BuiltinPackPolicy, "production" | "cloudProfile">,
-  onRemoved?: (nodeType: string) => void
-): void {
-  for (const nodeType of registry.list()) {
-    if (
-      (policy.production &&
-        ["transformers.", "vector."].some((prefix) =>
-          nodeType.startsWith(prefix)
-        )) ||
-      (policy.cloudProfile && !isCloudNodeType(nodeType))
-    ) {
-      registry.unregister(nodeType);
-      onRemoved?.(nodeType);
-    }
-  }
-}
+export { applyBuiltinNodePolicy } from "@nodetool-ai/node-sdk";

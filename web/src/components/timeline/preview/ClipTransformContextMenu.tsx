@@ -7,21 +7,18 @@
  */
 
 import React, { memo, useEffect } from "react";
-import { useTheme } from "@mui/material/styles";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import RotateLeftIcon from "@mui/icons-material/RotateLeft";
 import RotateRightIcon from "@mui/icons-material/RotateRight";
 import Rotate90DegreesCwIcon from "@mui/icons-material/Rotate90DegreesCw";
 import FlipIcon from "@mui/icons-material/Flip";
-import TransformIcon from "@mui/icons-material/Transform";
-import { useTranslation } from "react-i18next";
 
 import {
   ContextMenu,
   Divider,
-  FlexRow,
-  MenuItemPrimitive,
-  Text, BORDER_RADIUS } from "../../ui_primitives";
+  ListSubheader,
+  MenuItemPrimitive
+} from "../../ui_primitives";
 
 interface ClipTransformContextMenuProps {
   open: boolean;
@@ -46,9 +43,6 @@ const ClipTransformContextMenu: React.FC<ClipTransformContextMenuProps> = ({
   onFlipHorizontal,
   onFlipVertical
 }) => {
-  const { t } = useTranslation();
-  const theme = useTheme();
-
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -81,66 +75,45 @@ const ClipTransformContextMenu: React.FC<ClipTransformContextMenuProps> = ({
       transformOrigin={{ vertical: "top", horizontal: "left" }}
       disableRestoreFocus
       minWidth={200}
-      paperSx={{
-        maxWidth: 280,
-        borderRadius: BORDER_RADIUS.lg,
-        backgroundImage: "none",
-        backgroundColor: theme.vars.palette.grey[900],
-        backdropFilter: "blur(16px)",
-        boxShadow: theme.shadows[12],
-        py: 0.5
-      }}
+      paperSx={{ maxWidth: 280 }}
     >
-      <FlexRow align="center" gap={1} sx={{ px: 2, py: 1, mb: 0.5 }}>
-        <TransformIcon sx={{ fontSize: 16, color: "primary.light" }} />
-        <Text size="small" weight={600} sx={{ color: "text.primary" }}>
-          Transform
-        </Text>
-      </FlexRow>
-
-      <Divider sx={{ mx: 1, borderColor: theme.vars.palette.grey[800] }} />
+      <ListSubheader>Transform</ListSubheader>
 
       <MenuItemPrimitive
-        label={t("timeline:attrs.reset", { defaultValue: "Reset" })}
-        icon={<RestartAltIcon sx={{ fontSize: 16 }} />}
+        label="Reset"
+        icon={<RestartAltIcon />}
         shortcut="."
-        compact
         onClick={run(onReset)}
       />
 
-      <Divider sx={{ mx: 1, my: 0.5, borderColor: theme.vars.palette.grey[800] }} />
+      <Divider />
 
       <MenuItemPrimitive
-        label={t("ui2:attrs.rotate180", { defaultValue: "Rotate 180°" })}
-        icon={<Rotate90DegreesCwIcon sx={{ fontSize: 16 }} />}
-        compact
+        label="Rotate 180°"
+        icon={<Rotate90DegreesCwIcon />}
         onClick={run(onRotate180)}
       />
       <MenuItemPrimitive
-        label={t("ui2:attrs.rotate90CW", { defaultValue: "Rotate 90° CW" })}
-        icon={<RotateRightIcon sx={{ fontSize: 16 }} />}
-        compact
+        label="Rotate 90° CW"
+        icon={<RotateRightIcon />}
         onClick={run(onRotate90CW)}
       />
       <MenuItemPrimitive
-        label={t("ui2:attrs.rotate90CCW", { defaultValue: "Rotate 90° CCW" })}
-        icon={<RotateLeftIcon sx={{ fontSize: 16 }} />}
-        compact
+        label="Rotate 90° CCW"
+        icon={<RotateLeftIcon />}
         onClick={run(onRotate90CCW)}
       />
 
-      <Divider sx={{ mx: 1, my: 0.5, borderColor: theme.vars.palette.grey[800] }} />
+      <Divider />
 
       <MenuItemPrimitive
-        label={t("ui2:attrs.flipHorizontal", { defaultValue: "Flip Horizontal" })}
-        icon={<FlipIcon sx={{ fontSize: 16 }} />}
-        compact
+        label="Flip horizontal"
+        icon={<FlipIcon />}
         onClick={run(onFlipHorizontal)}
       />
       <MenuItemPrimitive
-        label={t("ui2:attrs.flipVertical", { defaultValue: "Flip Vertical" })}
-        icon={<FlipIcon sx={{ fontSize: 16, transform: "rotate(90deg)" }} />}
-        compact
+        label="Flip vertical"
+        icon={<FlipIcon sx={{ transform: "rotate(90deg)" }} />}
         onClick={run(onFlipVertical)}
       />
     </ContextMenu>

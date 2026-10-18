@@ -1,6 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { i18n } from "./i18n";
-import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 
 import React, { useEffect, useState } from "react";
@@ -175,7 +173,6 @@ const errorBoundaryStyles = (theme: Theme) =>
   });
 
 const ErrorBoundary: React.FC = () => {
-  const { t } = useTranslation();
   const error = useRouteError();
   const theme = useTheme();
   const [showDetails, setShowDetails] = useState(false);
@@ -184,9 +181,9 @@ const ErrorBoundary: React.FC = () => {
   const errorMessage =
     error instanceof Error
       ? error.message
-      : i18n.t("editor:ui.anUnknownErrorOccurred", { defaultValue: "An unknown error occurred" }) + JSON.stringify(error);
+      : "An unknown error occurred" + JSON.stringify(error);
   const stackTrace =
-    error instanceof Error ? error.stack : i18n.t("editor:ui.noStackTraceAvailable", { defaultValue: "No stack trace available" });
+    error instanceof Error ? error.stack : "No stack trace available";
 
   const fullErrorText = `${errorMessage}\n\n${stackTrace}`;
 
@@ -213,8 +210,8 @@ const ErrorBoundary: React.FC = () => {
   return (
     <Box css={errorBoundaryStyles(theme)}>
       <Box className="hero">
-        <img src="/logo192.png" alt={t("editor:ui.nodeToolLogo", { defaultValue: "NodeTool Logo" })} className="logo" />
-        <Text className="heading">{t("editor:ui.somethingWentWrong", { defaultValue: "Something went wrong" })}</Text>
+        <img src="/logo192.png" alt="NodeTool logo" className="logo" />
+        <Text className="heading">Something went wrong</Text>
         <Text className="subtext">
           An unexpected error occurred. You can try reloading the page. If
           this keeps happening, please reach out so we can fix it.
@@ -245,7 +242,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleCopy}
             className="copy-error-button"
           >
-            {copied ? "Copied!" : i18n.t("editor:ui.copyError", { defaultValue: "Copy error" })}
+            {copied ? "Copied!" : "Copy error"}
           </EditorButton>
         </Box>
         <Box className="contact-row">
@@ -269,7 +266,7 @@ const ErrorBoundary: React.FC = () => {
           disableRipple
           onClick={() => setShowDetails((prev) => !prev)}
         >
-          {showDetails ? i18n.t("editor:ui.hideDetails", { defaultValue: "Hide details ▲" }) : i18n.t("editor:ui.showDetails", { defaultValue: "Show details ▼" })}
+          {showDetails ? "Hide details ▲" : "Show details ▼"}
         </EditorButton>
 
         {showDetails && (

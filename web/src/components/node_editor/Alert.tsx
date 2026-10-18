@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import React, { useEffect, useState, useRef, createRef, memo, useCallback } from "react";
+import React, { useEffect, useState, useRef, createRef, memo, useCallback, useMemo } from "react";
 import type { AlertColor } from "@mui/material";
 import { useTheme, type Theme } from "@mui/material/styles";
 import {
@@ -18,8 +18,8 @@ import {
   useNotificationStore,
   Notification
 } from "../../stores/NotificationStore";
+import { useRightPanelStore } from "../../stores/RightPanelStore";
 import { NOTIFICATION_TIMEOUT_DEFAULT } from "../../config/constants";
-import { useTranslation } from "react-i18next";
 
 const TRANSITION_DURATION = 300;
 const ENTER_OFFSET_Y = 12;
@@ -44,11 +44,19 @@ const mapTypeToSeverity = (type: Notification["type"]): AlertColor => {
   return typeMap[type] || "info";
 };
 
-const styles = (theme: Theme) =>
+/**
+ * Toasts keep one place at every desktop width: the top right, left of the
+ * inspector when it is open. A bottom placement covered the run button and a
+ * top-right one over the inspector covered its Model field (UX study 4, D5).
+ */
+export const styles = (theme: Theme, inspectorWidth = 0) =>
   css({
     position: "fixed",
     top: "68px",
-    right: "calc(2em + 24px)",
+    right:
+      inspectorWidth > 0
+        ? `calc(${inspectorWidth}px + ${getSpacingPx(SPACING.lg)})`
+        : "calc(2em + 24px)",
     margin: 0,
     padding: 0,
     zIndex: "var(--zIndex-popover)",
@@ -125,6 +133,7 @@ const styles = (theme: Theme) =>
     // the text at a fixed offset from the right edge.
     [theme.breakpoints.down("sm")]: {
       top: "56px",
+      bottom: "auto",
       left: getSpacingPx(SPACING.md),
       right: getSpacingPx(SPACING.md),
       alignItems: "stretch",
@@ -150,7 +159,6 @@ const NotificationItem = memo(function NotificationItem({
   in: inProp,
   onExited
 }: NotificationItemProps) {
-  const { t } = useTranslation();
   const handleClose = useCallback(() => {
     onClose(notification.id);
   }, [notification.id, onClose]);
@@ -190,7 +198,7 @@ const NotificationItem = memo(function NotificationItem({
                   <CopyButton
                     value={notification.content}
                     className="copy-button"
-                    tooltip={t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
+                    tooltip="Copy message"
                   />
                 )
               )}
@@ -207,7 +215,12 @@ const NotificationItem = memo(function NotificationItem({
 
 NotificationItem.displayName = "NotificationItem";
 
-const Alert: React.FC = memo(() => {
+interface AlertProps {
+  /** True when the workflow editor's inspector can show at the right edge. */
+  inspectorShown?: boolean;
+}
+
+const Alert: React.FC<AlertProps> = memo(({ inspectorShown = false }) => {
   // Use separate selectors to avoid re-rendering when unrelated store values change
   const notifications = useNotificationStore((state) => state.notifications);
   const removeNotification = useNotificationStore((state) => state.removeNotification);
@@ -339,9 +352,16 @@ const Alert: React.FC = memo(() => {
   }, [removeNotification]);
 
   const theme = useTheme();
+  const inspectorWidth = useRightPanelStore((state) =>
+    inspectorShown && state.panel.isVisible ? state.panel.panelSize : 0
+  );
+  const listStyles = useMemo(
+    () => styles(theme, inspectorWidth),
+    [theme, inspectorWidth]
+  );
 
   return (
-    <TransitionGroup component="ul" css={styles(theme)} className="alert-list">
+    <TransitionGroup component="ul" css={listStyles} className="alert-list">
       {visibleNotifications.map((notification: Notification) => {
         if (!nodeRefs.current[notification.id]) {
           nodeRefs.current[notification.id] = createRef<HTMLLIElement>() as React.RefObject<HTMLLIElement>;

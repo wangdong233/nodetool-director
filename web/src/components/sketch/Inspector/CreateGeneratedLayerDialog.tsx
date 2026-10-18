@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { trpcClient } from "../../../trpc/client";
 import type { Workflow } from "../../../stores/ApiTypes";
 import {
+  AlertBanner,
   Caption,
   Dialog,
   EmptyState,
@@ -24,15 +25,13 @@ import {
   FlexRow,
   Label,
   LoadingSpinner,
-  Text,
-  TextInput,
-  Toast
+  SearchInput,
+  SPACING,
+  Text
 } from "../../ui_primitives";
 import { useCreateGeneratedLayer } from "../../../hooks/sketch/useCreateGeneratedLayer";
 import { useAutoFocusEnabled } from "../../../hooks/useAutoFocusEnabled";
 import { isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 
 const IMAGE_OUTPUT_TYPES = new Set([
   "nodetool.output.ImageOutput",
@@ -53,14 +52,6 @@ interface PickerWorkflow {
 }
 
 const ROW_GAP_PX = 4;
-
-const dialogStyles = () =>
-  css({
-    // Never wider than the viewport: the dialog is reachable on phones, where
-    // a hard 560px min forces the page to scroll sideways.
-    minWidth: "min(560px, 100vw - 32px)",
-    maxWidth: 720
-  });
 
 const listStyles = (theme: Theme) =>
   css({
@@ -130,7 +121,6 @@ const CreateGeneratedLayerDialogBody: React.FC<{
   onClose: () => void;
   onCreated?: (layerId: string) => void;
 }> = ({ onClose, onCreated }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const [filter, setFilter] = useState("");
     const autoFocusEnabled = useAutoFocusEnabled();
@@ -209,6 +199,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
       if (!selectedWorkflow) {
         return;
       }
+      setError(null);
       const result = await createGeneratedLayer({
         workflowId: selectedWorkflow.id,
         layerName: selectedWorkflow.name,
@@ -218,9 +209,9 @@ const CreateGeneratedLayerDialogBody: React.FC<{
         onCreated?.(result.layerId);
         handleClose();
       } else if (result.reason === "no-document") {
-        setError(i18n.t("sketch:attrs.noImageDocumentIsOpen", { defaultValue: "No image document is open." }));
+        setError("No image document is open.");
       } else if (result.reason === "error") {
-        setError(result.message ?? i18n.t("sketch:attrs.failedToCreateLayer", { defaultValue: "Failed to create layer." }));
+        setError(result.message ?? "Failed to create layer.");
       }
     }, [
       createGeneratedLayer,
@@ -231,144 +222,138 @@ const CreateGeneratedLayerDialogBody: React.FC<{
     ]);
 
     return (
-      <>
-        <Dialog
-          open
-          onClose={handleClose}
-          title={t("editor:ui.createGeneratedLayer", { defaultValue: "Create generated layer" })}
-          showActions
-          onConfirm={() => void handleConfirm()}
-          onCancel={handleClose}
-          confirmText={isBusy ? t("home:surface.creatingMeta", { defaultValue: "Creating…" }) : t("sketch:attrs.createLayer", { defaultValue: "Create layer" })}
-          confirmDisabled={confirmDisabled}
-          PaperProps={{ css: dialogStyles() }}
-        >
-          <FlexColumn gap={1.5}>
-            <Caption color="secondary">
-              {t("editor:ui.pickAnyWorkflowWhoseGraphHasAnImageOutputNode")}
-            </Caption>
+      <Dialog
+        open
+        onClose={handleClose}
+        title="Create generated layer"
+        maxWidth="sm"
+        fullWidth
+        onConfirm={() => void handleConfirm()}
+        confirmText="Create layer"
+        confirmDisabled={confirmDisabled}
+        isLoading={isBusy}
+      >
+        <FlexColumn gap={SPACING.sm}>
+          <Caption color="secondary">
+            Pick any workflow whose graph has an image output node.
+          </Caption>
 
-            {/* autoFocus is skipped on touch, where the virtual keyboard
-                would cover the workflow list below. */}
-            <TextInput
-              autoFocus={autoFocusEnabled}
-              compact
+          {/* autoFocus is skipped on touch, where the virtual keyboard
+              would cover the workflow list below. */}
+          <SearchInput
+            autoFocus={autoFocusEnabled}
+            placeholder="Search workflows"
+            ariaLabel="Search workflows"
+            value={filter}
+            onChange={setFilter}
+            fullWidth
+          />
+
+          {isLoading && (
+            <FlexRow justify="center" sx={{ py: SPACING.lg }}>
+              <LoadingSpinner size="small" />
+            </FlexRow>
+          )}
+
+          {isError && (
+            <EmptyState
+              variant="error"
               size="small"
-              placeholder={t("editor:ui.searchWorkflows")}
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              fullWidth
+              description="Could not load workflows."
             />
+          )}
 
-            {isLoading && (
-              <FlexRow justify="center" sx={{ py: 3 }}>
-                <LoadingSpinner size="small" />
-              </FlexRow>
-            )}
+          {!isLoading && !isError && pickerWorkflows.length === 0 && (
+            <EmptyState
+              variant="empty"
+              size="small"
+              title="No matching workflows"
+              description="None of your workflows have an image output. Add an ImageOutput, MaskOutput, or Output node to a workflow to use it here."
+            />
+          )}
 
-            {isError && (
-              <EmptyState
-                variant="error"
-                size="small"
-                description={t("editor:ui.couldNotLoadWorkflows")}
-              />
-            )}
-
-            {!isLoading && !isError && pickerWorkflows.length === 0 && (
-              <EmptyState
-                variant="empty"
-                size="small"
-                title={t("editor:ui.noMatchingWorkflows", { defaultValue: "No matching workflows" })}
-                description={t("sketch:attrs.noWorkflowWithImageOutput", { defaultValue: "None of your workflows have an image output. Add an ImageOutput, MaskOutput, or Output node to a workflow to use it here." })}
-              />
-            )}
-
-            {!isLoading && !isError && filteredWorkflows.length > 0 && (
-              <div css={listStyles(theme)}>
-                {filteredWorkflows.map((w) => {
-                  const selected = w.id === selectedWorkflowId;
-                  return (
-                    <div
-                      key={w.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => handleSelect(w)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          handleSelect(w);
-                        }
-                      }}
-                      css={rowStyles(theme, selected)}
-                      data-testid="create-generated-layer-row"
-                    >
-                      <FlexColumn gap={0.5}>
-                        <FlexRow align="center" gap={1}>
-                          <Label noWrap sx={{ flex: 1 }}>
-                            {w.name}
-                          </Label>
-                          <Caption color="secondary">
-                            {w.outputNodes.length} output
-                            {w.outputNodes.length === 1 ? "" : "s"}
-                          </Caption>
-                        </FlexRow>
-                        {w.description && (
-                          <Caption color="secondary" noWrap>
-                            {w.description}
-                          </Caption>
-                        )}
-                      </FlexColumn>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {!isLoading &&
-              !isError &&
-              filter.trim() !== "" &&
-              filteredWorkflows.length === 0 &&
-              pickerWorkflows.length > 0 && (
-                <Caption color="secondary" sx={{ pl: 1 }}>
-                  No workflows match &ldquo;{filter}&rdquo;.
-                </Caption>
-              )}
-
-            {requiresOutputPick && selectedWorkflow && (
-              <FlexColumn gap={1}>
-                <Text size="small">
-                  {t("editor:ui.thisWorkflowHasMultipleImageOutputsPickOne")}
-                </Text>
-                <FlexRow gap={0.5} sx={{ flexWrap: "wrap" }}>
-                  {selectedWorkflow.outputNodes.map((node) => (
-                    <EditorButton
-                      key={node.id}
-                      size="small"
-                      variant={
-                        node.id === selectedOutputNodeId
-                          ? "contained"
-                          : "outlined"
+          {!isLoading && !isError && filteredWorkflows.length > 0 && (
+            <div css={listStyles(theme)}>
+              {filteredWorkflows.map((w) => {
+                const selected = w.id === selectedWorkflowId;
+                return (
+                  <div
+                    key={w.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleSelect(w)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleSelect(w);
                       }
-                      onClick={() => setSelectedOutputNodeId(node.id)}
-                    >
-                      {node.label}
-                    </EditorButton>
-                  ))}
-                </FlexRow>
-              </FlexColumn>
-            )}
-          </FlexColumn>
-        </Dialog>
+                    }}
+                    css={rowStyles(theme, selected)}
+                    data-testid="create-generated-layer-row"
+                  >
+                    <FlexColumn gap={SPACING.micro}>
+                      <FlexRow align="center" gap={SPACING.xs}>
+                        <Label noWrap sx={{ flex: 1 }}>
+                          {w.name}
+                        </Label>
+                        <Caption color="secondary">
+                          {w.outputNodes.length} output
+                          {w.outputNodes.length === 1 ? "" : "s"}
+                        </Caption>
+                      </FlexRow>
+                      {w.description && (
+                        <Caption color="secondary" noWrap>
+                          {w.description}
+                        </Caption>
+                      )}
+                    </FlexColumn>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
-        <Toast
-          open={error !== null}
-          message={error ?? ""}
-          severity="error"
-          onClose={() => setError(null)}
-          vertical="top"
-          horizontal="center"
-        />
-      </>
+          {!isLoading &&
+            !isError &&
+            filter.trim() !== "" &&
+            filteredWorkflows.length === 0 &&
+            pickerWorkflows.length > 0 && (
+              <Caption color="secondary" sx={{ pl: SPACING.xs }}>
+                No workflows match &ldquo;{filter}&rdquo;.
+              </Caption>
+            )}
+
+          {requiresOutputPick && selectedWorkflow && (
+            <FlexColumn gap={SPACING.xs}>
+              <Text size="small">
+                This workflow has multiple image outputs. Pick one:
+              </Text>
+              <FlexRow gap={SPACING.micro} wrap>
+                {selectedWorkflow.outputNodes.map((node) => (
+                  <EditorButton
+                    key={node.id}
+                    size="small"
+                    variant={
+                      node.id === selectedOutputNodeId
+                        ? "contained"
+                        : "outlined"
+                    }
+                    onClick={() => setSelectedOutputNodeId(node.id)}
+                  >
+                    {node.label}
+                  </EditorButton>
+                ))}
+              </FlexRow>
+            </FlexColumn>
+          )}
+
+          {error && (
+            <AlertBanner severity="error" onClose={() => setError(null)}>
+              {error}
+            </AlertBanner>
+          )}
+        </FlexColumn>
+      </Dialog>
     );
 };
 

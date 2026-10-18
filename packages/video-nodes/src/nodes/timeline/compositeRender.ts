@@ -11,6 +11,7 @@
  */
 
 import type { TimelineClip, TimelineSequence } from "@nodetool-ai/timeline";
+import { missingRuntimePackageOf } from "@nodetool-ai/protocol";
 import { ensureGoogleFonts } from "@nodetool-ai/timeline/fonts/google-node";
 import type {
   FrameAdjustment,
@@ -19,7 +20,11 @@ import type {
   FrameSample,
   RasterContext2D
 } from "@nodetool-ai/timeline/render";
-import { computeModel3DBakeHash } from "@nodetool-ai/timeline";
+import {
+  computeModel3DBakeHash,
+  hasTimeRemap,
+  sourceRate
+} from "@nodetool-ai/timeline";
 import {
   HeadlessFrameCompositor,
   clipSourceTimeSec,
@@ -30,6 +35,7 @@ import {
   motionBlurSampleTimes,
   layerShutterTime,
   resolveFrameMotionBlur,
+  resolveSceneMotionBlur,
   shutterWindowIsStatic,
   resolveAnimatedLayerProps,
   resolveTextStaggerContext,
@@ -41,6 +47,7 @@ import { setImmediate } from "node:timers/promises";
 import {
   decodeStillRgba,
   fitWithin,
+  openForwardSourceFrameStream,
   openFrameEncoder,
   openSourceFrameStream,
   probeVideoFrameRate,
@@ -247,6 +254,7 @@ export async function renderTimelineComposited(
   const animCache = createAnimationCompileCache();
 
   const videoSources = new Map<string, ClipVideoSource>();
+  const shutterSampling = resolveSceneMotionBlur(sequence.clips, output.motionBlur).samplesPerFrame > 1;
   const images = new Map<string, RawImage | null>();
   const assetPaths = new Map<string, Promise<string | null>>();
   const skippedClips = new Set<string>();
@@ -321,14 +329,27 @@ export async function renderTimelineComposited(
     // shows at the cut.
     const startSec = clipSourceTimeSec(clip, clip.startMs);
     const endMs = clip.startMs + clip.durationMs;
-    const nativeFps = await probeVideoFrameRate(file);
-    const stream = openSourceFrameStream({
-      filePath: file,
-      size: decodeSize,
-      fps: nativeFps,
-      startSec,
-      nativeSampling: true
-    });
+    const baked = clip.model3dStyle?.bake?.assetId === assetId;
+    // A forward clip at a constant rate streams once, resampled to the
+    // output grid. A remap (which can hold or reverse), a bake (played from 0
+    // whatever the clip's window) and shutter sampling (instants between
+    // output frames) address the source by time.
+    const stream =
+      !baked && !hasTimeRemap(clip) && !shutterSampling
+        ? openForwardSourceFrameStream({
+            filePath: file,
+            size: decodeSize,
+            fps,
+            startSec,
+            speed: sourceRate(clip)
+          })
+        : openSourceFrameStream({
+            filePath: file,
+            size: decodeSize,
+            fps: await probeVideoFrameRate(file),
+            startSec,
+            nativeSampling: true
+          });
     const frameVersions = new WeakMap<Uint8Array, string>();
     let nextFrameVersion = 0;
     const source: ClipVideoSource = {
@@ -336,10 +357,9 @@ export async function renderTimelineComposited(
       height: stream.height,
       endMs,
       async frameAt(timeMs: number): Promise<ClipFrame | null> {
-        const sourceSec =
-          clip.model3dStyle?.bake?.assetId === assetId
-            ? Math.max(0, (timeMs - clip.startMs) / 1000)
-            : clipSourceTimeSec(clip, timeMs);
+        const sourceSec = baked
+          ? Math.max(0, (timeMs - clip.startMs) / 1000)
+          : clipSourceTimeSec(clip, timeMs);
         const rgba = await stream.frameAtSourceSec(sourceSec);
         if (!rgba) return null;
         let version = frameVersions.get(rgba);
@@ -565,7 +585,7 @@ export async function renderTimelineComposited(
         } catch (error) {
           if (
             signal?.aborted ||
-            (error instanceof Error && error.name === "MissingBinaryError")
+            missingRuntimePackageOf(error) === "ffmpeg"
           ) {
             throw error;
           }

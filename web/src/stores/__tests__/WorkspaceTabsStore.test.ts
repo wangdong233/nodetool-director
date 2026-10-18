@@ -498,6 +498,35 @@ describe("creationProjectId", () => {
     expect(opened && isTabInScope(opened, state.activeProjectId)).toBe(true);
   });
 
+  it("hides a background tab opened without a project while a project is active", () => {
+    // How "Open the workflow that made this" used to open a workflow that was
+    // not loaded yet: the tab became active but out of scope, so nothing showed.
+    const store = useWorkspaceTabsStore.getState();
+    store.setActiveProjectId("proj-other");
+    const id = store.openTab({ type: "workflow", ref: "wf-asset", mode: "edit" });
+    store.setActiveTab(id);
+
+    const state = useWorkspaceTabsStore.getState();
+    const opened = state.tabs.find((t) => t.id === id);
+    expect(opened && isTabInScope(opened, state.activeProjectId)).toBe(false);
+  });
+
+  it("shows a foreground tab opened with its project from another project", () => {
+    const store = useWorkspaceTabsStore.getState();
+    store.setActiveProjectId("proj-other");
+    const id = store.openForegroundTab({
+      type: "workflow",
+      ref: "wf-asset",
+      mode: "edit",
+      projectId: "proj-1"
+    });
+
+    const state = useWorkspaceTabsStore.getState();
+    expect(state.activeProjectId).toBe("proj-1");
+    const opened = state.tabs.find((t) => t.id === id);
+    expect(opened && isTabInScope(opened, state.activeProjectId)).toBe(true);
+  });
+
   it("clears a project tab when switching to Personal with no Personal tab", () => {
     useWorkspaceTabsStore.getState().openProject({
       id: "proj-1",
@@ -1001,6 +1030,19 @@ describe("openTab with a project", () => {
       projectId: LOOSE_PROJECT_ID
     });
     expect(useWorkspaceTabsStore.getState().tabs[0].projectId).toBeUndefined();
+  });
+
+  it("scopes to the opened tab's project so the active tab is drawn", () => {
+    // QA round 8: after a reload with no project in scope, opening a saved
+    // workflow from Home set it active but the tab bar did not draw it.
+    reset([tab("workflow", "loose")], "workflow:loose");
+    useWorkspaceTabsStore
+      .getState()
+      .openTab({ type: "workflow", ref: "w1", projectId: "personal:1" });
+    const state = useWorkspaceTabsStore.getState();
+    const opened = state.tabs.find((t) => t.id === state.activeTabId);
+    expect(opened?.ref).toBe("w1");
+    expect(opened && isTabInScope(opened, state.activeProjectId)).toBe(true);
   });
 
   it("leaves an existing tab's project alone when none is given", () => {

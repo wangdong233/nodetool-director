@@ -2,7 +2,7 @@
 import React, { useCallback, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 
-import { EditorButton, Text, Divider, FlexRow, ContextMenu, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
+import { Divider, ContextMenu, ListSubheader } from "../ui_primitives";
 import ContextMenuItem from "./ContextMenuItem";
 //store
 import useContextMenuStore from "../../stores/ContextMenuStore";
@@ -15,7 +15,9 @@ import GroupWorkIcon from "@mui/icons-material/GroupWork";
 import StarIcon from "@mui/icons-material/Star";
 import DataObjectIcon from "@mui/icons-material/DataObject";
 import InputIcon from "@mui/icons-material/Input";
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
+import SchemaIcon from "@mui/icons-material/Schema";
+import AppsIcon from "@mui/icons-material/Apps";
 //behaviours
 import { useCopyPaste } from "../../hooks/handlers/useCopyPaste";
 import { useClipboard } from "../../hooks/browser/useClipboard";
@@ -39,10 +41,8 @@ import {
   CONSTANT_NODE_OPTIONS,
   INPUT_NODE_OPTIONS
 } from "./paneNodeOptions";
-import { useTranslation } from "react-i18next";
 
 const PaneContextMenu: React.FC = () => {
-  const { t } = useTranslation();
   const { handlePaste } = useCopyPaste();
   const reactFlowInstance = useReactFlow();
   const { isClipboardValid } = useClipboard();
@@ -195,10 +195,11 @@ const PaneContextMenu: React.FC = () => {
     []
   );
 
+  // Paste where the menu was opened, not under the clicked menu item.
   const handlePasteAndClose = useCallback(() => {
-    handlePaste();
+    void handlePaste(menuPosition ?? undefined);
     closeAllMenus();
-  }, [handlePaste, closeAllMenus]);
+  }, [handlePaste, closeAllMenus, menuPosition]);
 
   const handleFitViewAndClose = useCallback(
     (event?: React.MouseEvent<HTMLElement>) => {
@@ -254,12 +255,12 @@ const PaneContextMenu: React.FC = () => {
             className: "context-menu pane-context-menu"
           }
         }}
-        paperSx={{ borderRadius: BORDER_RADIUS.lg, width: "240px" }}
+        paperSx={{ width: "240px" }}
       >
         <ContextMenuItem
           onClick={handlePasteAndClose}
-          label={t("editor:common.paste", { defaultValue: "Paste" })}
-          addButtonClassName={`action ${!isClipboardValid ? "disabled" : ""}`}
+          label="Paste"
+          disabled={!isClipboardValid}
           IconComponent={<SouthEastIcon />}
           tooltip={
             !isClipboardValid ? (
@@ -267,7 +268,8 @@ const PaneContextMenu: React.FC = () => {
                 {getShortcutTooltip("paste")}
                 <br />
                 <span className="attention">
-                  {t("editor:pane.noValidData", { defaultValue: "no valid node data in clipboard" })}
+                  no valid node data <br />
+                  in clipboard
                 </span>
               </span>
             ) : (
@@ -277,30 +279,13 @@ const PaneContextMenu: React.FC = () => {
         />
         <ContextMenuItem
           onClick={handleFitViewAndClose}
-          label={t("editor:pane.fitScreen", { defaultValue: "Fit Screen" })}
+          label="Fit screen"
           IconComponent={<FitScreenIcon />}
           tooltip={getShortcutTooltip("fitView")}
         />
         {favorites.length > 0 && [
           <Divider key="favorites-divider" />,
-          <FlexRow
-            key="favorites-header"
-            align="center"
-            sx={{
-              gap: getSpacingPx(SPACING.md),
-              padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`,
-              color: "text.secondary",
-              fontSize: "var(--fontSizeSmaller)",
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.5px"
-            }}
-          >
-            <StarIcon
-              sx={{ fontSize: "var(--fontSizeNormal)", color: "warning.main" }}
-            />
-            <Text>{t("editor:pane.favorites", { defaultValue: "Favorites" })}</Text>
-          </FlexRow>,
+          <ListSubheader key="favorites-header">Favorites</ListSubheader>,
           ...favorites.map((favorite) => {
             const displayName = getNodeDisplayName(favorite.nodeType);
             return (
@@ -308,11 +293,7 @@ const PaneContextMenu: React.FC = () => {
                 key={favorite.nodeType}
                 onClick={addFavoriteNode(favorite.nodeType)}
                 label={displayName}
-                IconComponent={
-                  <StarIcon
-                    sx={{ fontSize: "var(--fontSizeNormal)", color: "warning.main", opacity: 0.7 }}
-                  />
-                }
+                IconComponent={<StarIcon />}
                 tooltip={`Add ${displayName} node`}
               />
             );
@@ -321,56 +302,45 @@ const PaneContextMenu: React.FC = () => {
         <Divider />
         <ContextMenuItem
           onClick={handleOpenConstantMenu}
-          controlElement={
-            <EditorButton
-              className="action"
-              endIcon={<KeyboardArrowRightIcon />}
-              density="normal"
-            >
-              <DataObjectIcon />
-              <span className="label">{t("editor:pane.addConstantNode", { defaultValue: "Add Constant Node" })}</span>
-            </EditorButton>
-          }
+          label="Add constant node"
+          IconComponent={<DataObjectIcon />}
+          hasSubmenu
         />
         <ContextMenuItem
           onClick={handleOpenInputMenu}
-          controlElement={
-            <EditorButton
-              className="action"
-              endIcon={<KeyboardArrowRightIcon />}
-              density="normal"
-            >
-              <InputIcon />
-              <span className="label">{t("editor:pane.addInputNode", { defaultValue: "Add Input Node" })}</span>
-            </EditorButton>
-          }
+          label="Add input node"
+          IconComponent={<InputIcon />}
+          hasSubmenu
         />
         <Divider />
         <ContextMenuItem
           onClick={handleAddCommentAndClose}
-          label={t("editor:pane.addComment", { defaultValue: "Add Comment" })}
+          label="Add comment"
           IconComponent={<AddCommentIcon />}
-          tooltip={t("editor:pane.addCommentTip", { defaultValue: "Hold C key and drag" })}
+          tooltip={"Hold C key and drag"}
         />
         <ContextMenuItem
           onClick={handleAddGroupAndClose}
-          label={t("editor:pane.addGroup", { defaultValue: "Add Group" })}
+          label="Add group"
           IconComponent={<GroupWorkIcon />}
-          tooltip={t("editor:pane.addGroupTip", { defaultValue: "Add a group node" })}
+          tooltip={"Add a group node"}
         />
         <ContextMenuItem
           onClick={handleCreateNode(WORKFLOW_NODE_TYPE)}
-          label={t("editor:pane.addWorkflow", { defaultValue: "Add Workflow" })}
-          tooltip={t("editor:pane.addWorkflowTip", { defaultValue: "Add a workflow node" })}
+          label="Add workflow"
+          IconComponent={<AccountTreeIcon />}
+          tooltip={"Add a workflow node"}
         />
         <ContextMenuItem
           onClick={handleCreateNode(SUBGRAPH_NODE_TYPE)}
-          label={t("editor:pane.addSubgraph", { defaultValue: "Add Subgraph" })}
-          tooltip={t("editor:pane.addSubgraphTip", { defaultValue: "Add an inline subgraph node" })}
+          label="Add subgraph"
+          IconComponent={<SchemaIcon />}
+          tooltip={"Add an inline subgraph node"}
         />
         <ContextMenuItem
           onClick={handleCreateNode(APP_NODE_TYPE)}
-          label={t("editor:ui.addApp")}
+          label="Add app"
+          IconComponent={<AppsIcon />}
           tooltip={"Run a mini app as a node"}
         />
       </ContextMenu>

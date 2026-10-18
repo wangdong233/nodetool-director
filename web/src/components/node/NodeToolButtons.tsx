@@ -1,7 +1,5 @@
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useState } from "react";
-import { useReactFlow, Node } from "@xyflow/react";
+import { useReactFlow } from "@xyflow/react";
 import { shallow } from "zustand/shallow";
 import { useTheme } from "@mui/material/styles";
 
@@ -9,16 +7,12 @@ import {
   Divider,
   ToolbarIconButton,
   EditorMenu,
-  EditorMenuItem,
-  BORDER_RADIUS,
+  MenuItemPrimitive,
   CONTROL,
-  SHADOW,
-  Toolbar,
-  ListItemIcon,
-  ListItemText
+  FloatingToolbar
 } from "../ui_primitives";
 import CopyAllIcon from "@mui/icons-material/CopyAll";
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -27,17 +21,16 @@ import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import DataArrayIcon from "@mui/icons-material/DataArray";
-import EditIcon from "@mui/icons-material/Edit";
+import EditIcon from "@mui/icons-material/EditOutlined";
 
 import { useDuplicateNodes } from "../../hooks/useDuplicate";
 import { useNodes } from "../../contexts/NodeContext";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { getShortcutTooltip } from "../../config/shortcuts";
 import { useNodeContextMenu } from "../../hooks/nodes/useNodeContextMenu";
+import { isMac } from "../../utils/platform";
 import { useRemoveFromGroup } from "../../hooks/nodes/useRemoveFromGroup";
 import { useRunFromHere } from "../../hooks/nodes/useRunFromHere";
 import { openPageTab } from "../workspace/openPageTab";
-import { NodeData } from "../../stores/NodeData";
 
 interface NodeToolbarProps {
   nodeId: string | null;
@@ -51,7 +44,6 @@ const BUTTON_BOX = {
 const ICON_SX = { fontSize: 18 } as const;
 
 const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const { getNode } = useReactFlow();
   const { deleteNode, updateNodeData, selectNodesByType, toggleBypass } = useNodes(
@@ -64,12 +56,16 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
     shallow
   );
 
-  const node = nodeId !== null ? getNode(nodeId) : null;
-  const nodeData = node?.data as NodeData | undefined;
+  // Read the node from the store: `getNode` subscribes to nothing, so the
+  // toolbar would show bypass, comment and group state from one edit earlier.
+  const node = useNodes((state) =>
+    nodeId !== null ? state.findNode(nodeId) ?? null : null
+  );
+  const nodeData = node?.data;
   const duplicateNodes = useDuplicateNodes();
   const removeFromGroup = useRemoveFromGroup();
   const { handlers, conditions } = useNodeContextMenu();
-  const { runFromHere, isWorkflowRunning } = useRunFromHere(node as Node<NodeData> | null);
+  const { runFromHere, isWorkflowRunning } = useRunFromHere(node);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const dropdownOpen = Boolean(anchorEl);
@@ -104,7 +100,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
 
   const handleRemoveFromGroup = useCallback(() => {
     if (node) {
-      removeFromGroup([node as Node<NodeData>]);
+      removeFromGroup([node]);
     }
   }, [node, removeFromGroup]);
 
@@ -133,26 +129,9 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
 
   return (
     <>
-      <Toolbar
-        variant="dense"
-        className="node-toolbar"
-        disableGutters
-        sx={{
-          minHeight: 0,
-          gap: 0.5,
-          padding: 0.5,
-          backgroundColor: theme.vars.palette.grey[900],
-          border: `1px solid ${theme.vars.palette.divider}`,
-          borderRadius: BORDER_RADIUS.lg,
-          boxShadow: SHADOW(theme).md,
-          marginBottom: 2
-        }}
-      >
+      <FloatingToolbar className="node-toolbar" sx={{ marginBottom: 2 }}>
         <ToolbarIconButton
-          title={isWorkflowRunning
-            ? t("editor:ui.runningPlain", { defaultValue: "Running..." })
-            : t("editor:node.runNode", { defaultValue: "Run Node" })}
-          delay={TOOLTIP_ENTER_DELAY}
+          title={isWorkflowRunning ? "Running…" : "Run node"}
           className="nodrag"
           onClick={runFromHere}
           tabIndex={-1}
@@ -184,14 +163,11 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         <ToolbarIconButton
           title={
             <>
-              {isBypassed ? i18n.t("editor:node.enableNode", { defaultValue: "Enable Node" }) : i18n.t("editor:node.disableNode", { defaultValue: "Disable Node" })}{" "}
+              {isBypassed ? "Enable node" : "Disable node"}{" "}
               {getShortcutTooltip("bypassNode", undefined, "combo")}
             </>
           }
-          ariaLabel={isBypassed
-            ? t("editor:node.enableNode", { defaultValue: "Enable Node" })
-            : t("editor:node.disableNode", { defaultValue: "Disable Node" })}
-          delay={TOOLTIP_ENTER_DELAY}
+          ariaLabel={isBypassed ? "Enable node" : "Disable node"}
           className="nodrag"
           onClick={handleToggleBypass}
           tabIndex={-1}
@@ -212,7 +188,6 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
             </>
           }
           ariaLabel="Duplicate"
-          delay={TOOLTIP_ENTER_DELAY}
           className="nodrag"
           onClick={handleDuplicateNodes}
           tabIndex={-1}
@@ -223,8 +198,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         </ToolbarIconButton>
 
         <ToolbarIconButton
-          title={t("editor:ui.moreActions", { defaultValue: "More Actions" })}
-          delay={TOOLTIP_ENTER_DELAY}
+          title="More actions"
           className="nodrag"
           onClick={handleOpenDropdown}
           tabIndex={-1}
@@ -234,7 +208,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         >
           <MoreVertIcon sx={ICON_SX} />
         </ToolbarIconButton>
-      </Toolbar>
+      </FloatingToolbar>
 
       <EditorMenu
         anchorEl={anchorEl}
@@ -248,78 +222,64 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
           vertical: "top",
           horizontal: "right",
         }}
-        paperSx={{
-          borderRadius: BORDER_RADIUS.lg,
-          minWidth: 200
-        }}
+        paperSx={{ minWidth: 200 }}
       >
         {isInGroup && (
-          <EditorMenuItem onClick={handleRemoveFromGroup}>
-            <ListItemIcon>
-              <GroupRemoveIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>{t("ui2:attrs.removeFromGroup", { defaultValue: "Remove from Group" })}</ListItemText>
-          </EditorMenuItem>
+          <MenuItemPrimitive
+            label="Remove from group"
+            icon={<GroupRemoveIcon />}
+            onClick={handleRemoveFromGroup}
+          />
         )}
 
         {conditions.canConvertToInput && (
-          <EditorMenuItem onClick={handlers.handleConvertToInput}>
-            <ListItemIcon>
-              <SwapHorizIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>{t("ui2:attrs.convertToInput", { defaultValue: "Convert to Input" })}</ListItemText>
-          </EditorMenuItem>
+          <MenuItemPrimitive
+            label="Convert to input"
+            icon={<SwapHorizIcon />}
+            onClick={handlers.handleConvertToInput}
+          />
         )}
 
         {conditions.canConvertToConstant && (
-          <EditorMenuItem onClick={handlers.handleConvertToConstant}>
-            <ListItemIcon>
-              <SwapHorizIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>{t("ui2:attrs.convertToConstant", { defaultValue: "Convert to Constant" })}</ListItemText>
-          </EditorMenuItem>
+          <MenuItemPrimitive
+            label="Convert to constant"
+            icon={<SwapHorizIcon />}
+            onClick={handlers.handleConvertToConstant}
+          />
         )}
 
-        <EditorMenuItem onClick={handleToggleComment}>
-          <ListItemIcon>
-            <EditIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>
-            {hasCommentTitle ? i18n.t("editor:node.removeComment", { defaultValue: "Remove Comment" }) : i18n.t("editor:node.addComment", { defaultValue: "Add Comment" })}
-          </ListItemText>
-        </EditorMenuItem>
+        <MenuItemPrimitive
+          label={hasCommentTitle ? "Delete comment" : "Add comment"}
+          icon={<EditIcon />}
+          onClick={handleToggleComment}
+        />
 
-        <EditorMenuItem onClick={handleFindTemplates}>
-          <ListItemIcon>
-            <SearchIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>{t("ui2:attrs.showTemplates", { defaultValue: "Show Templates" })}</ListItemText>
-        </EditorMenuItem>
+        <MenuItemPrimitive
+          label="Show templates"
+          icon={<SearchIcon />}
+          onClick={handleFindTemplates}
+        />
 
-        <EditorMenuItem onClick={handleSelectAllSameType}>
-          <ListItemIcon>
-            <FilterListIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>{t("ui2:attrs.selectAllSameType", { defaultValue: "Select All Same Type" })}</ListItemText>
-        </EditorMenuItem>
+        <MenuItemPrimitive
+          label="Select all of same type"
+          icon={<FilterListIcon />}
+          onClick={handleSelectAllSameType}
+        />
 
-        <EditorMenuItem onClick={handlers.handleCopyMetadataToClipboard}>
-          <ListItemIcon>
-            <DataArrayIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>{t("ui2:attrs.copyNodeAsJSON", { defaultValue: "Copy Node as JSON" })}</ListItemText>
-        </EditorMenuItem>
+        <MenuItemPrimitive
+          label="Copy node as JSON"
+          icon={<DataArrayIcon />}
+          onClick={handlers.handleCopyMetadataToClipboard}
+        />
 
-        <Divider />
-
-        <EditorMenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
-          <ListItemIcon sx={{ color: "error.main" }}>
-            <DeleteIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>
-            Delete {getShortcutTooltip("deleteSelected", undefined, "combo")}
-          </ListItemText>
-        </EditorMenuItem>
+        <MenuItemPrimitive
+          label="Delete"
+          icon={<DeleteIcon />}
+          shortcut={isMac() ? "⌫" : "Del"}
+          color="error"
+          dividerBefore
+          onClick={handleDelete}
+        />
       </EditorMenu>
     </>
   );

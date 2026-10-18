@@ -6,8 +6,11 @@ import {
   useASRModelMenuStore
 } from "../../stores/ModelMenuStore";
 import { useASRModelsByProvider } from "../../hooks/useModelsByProvider";
-import { useTranslation } from "react-i18next";
 import { trpc } from "../../lib/trpc";
+
+/** The provider capability this picker serves, for local providers to install. */
+const LOCAL_CAPABILITIES = ["automatic_speech_recognition"];
+
 interface ASRModelMenuDialogProps {
   open: boolean;
   onClose: () => void;
@@ -25,7 +28,6 @@ function ASRModelMenuDialog({
   recommendedModels: recommendedModelsFromProps,
   modelPacks
 }: ASRModelMenuDialogProps) {
-  const { t } = useTranslation();
   const modelData = useASRModelsByProvider();
   // Local providers such as whisper.cpp list only the files on disk. Without
   // the recommended list a caller that passes none offers nothing to download.
@@ -48,10 +50,11 @@ function ASRModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title={t("editor:ui.selectASRModel", { defaultValue: "Select ASR Model" })}
-      searchPlaceholder={t("editor:ui.searchSpeechToTextModels", { defaultValue: "Search speech-to-text models..." })}
+      title="Select ASR model"
+      searchPlaceholder="Search speech-to-text models"
       storeHook={useASRModelMenuStore}
       modelType="asr_model"
+      localCapabilities={LOCAL_CAPABILITIES}
       recommendedModels={recommendedModels}
       modelPacks={modelPacks}
     />

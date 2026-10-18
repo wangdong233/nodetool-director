@@ -13,6 +13,7 @@ import GradientOutlinedIcon from "@mui/icons-material/GradientOutlined";
 import GraphicEqOutlinedIcon from "@mui/icons-material/GraphicEqOutlined";
 import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
+import QueueMusicOutlinedIcon from "@mui/icons-material/QueueMusicOutlined";
 import { canClipFade } from "@nodetool-ai/timeline";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
@@ -97,18 +98,16 @@ export function ClipContextMenu({
   };
 
   return (
-    <ContextMenu open position={position} onClose={onClose} compact>
+    <ContextMenu open position={position} onClose={onClose}>
       <MenuItemPrimitive
         label={t("timeline:attrs.splitAtPlayhead", { defaultValue: "Split at playhead" })}
         icon={<ContentCutOutlinedIcon fontSize="small" />}
-        compact
         onClick={run(actions.splitAtPlayhead)}
       />
       {actions.isMidi && (
         <MenuItemPrimitive
           label={t("timeline:attrs.editNotes", { defaultValue: "Edit notes" })}
           icon={<MusicNoteOutlinedIcon fontSize="small" />}
-          compact
           onClick={run(actions.editNotes)}
         />
       )}
@@ -116,20 +115,17 @@ export function ClipContextMenu({
         <MenuItemPrimitive
           label={t("timeline:attrs.editVideo", { defaultValue: "Edit video…" })}
           icon={<AutoAwesomeOutlinedIcon fontSize="small" />}
-          compact
           onClick={run(actions.openAiEdit)}
         />
       )}
       <MenuItemPrimitive
         label={t("timeline:attrs.duplicate", { defaultValue: "Duplicate" })}
         icon={<ContentCopyIcon fontSize="small" />}
-        compact
         onClick={run(actions.duplicate)}
       />
       <MenuItemPrimitive
         label={hasTransition ? t("timeline:attrs.removeTransition", { defaultValue: "Remove transition" }) : t("timeline:attrs.crossfadeIn", { defaultValue: "Cross-fade in" })}
         icon={<GradientOutlinedIcon fontSize="small" />}
-        compact
         onClick={run(() =>
           hasTransition
             ? removeTransition(clipId)
@@ -140,7 +136,6 @@ export function ClipContextMenu({
         <MenuItemPrimitive
           label={hasFade ? t("timeline:attrs.removeFades", { defaultValue: "Remove fades" }) : t("timeline:attrs.fadeInAndOut", { defaultValue: "Fade in and out" })}
           icon={<GraphicEqOutlinedIcon fontSize="small" />}
-          compact
           onClick={run(() =>
             hasFade
               ? clearFades(new Set([clipId]))
@@ -148,11 +143,17 @@ export function ClipContextMenu({
           )}
         />
       )}
+      {actions.canDetectBeats && (
+        <MenuItemPrimitive
+          label="Detect beats"
+          icon={<QueueMusicOutlinedIcon fontSize="small" />}
+          onClick={run(actions.detectBeats)}
+        />
+      )}
       {actions.isGenerated && (
         <MenuItemPrimitive
           label={t("timeline:attrs.regenerateAsNewClip", { defaultValue: "Regenerate as new clip" })}
           icon={<AutoAwesomeMotionIcon fontSize="small" />}
-          compact
           onClick={run(actions.regenerateAsCopy)}
         />
       )}
@@ -167,14 +168,12 @@ export function ClipContextMenu({
             <LockOpenIcon fontSize="small" />
           )
         }
-        compact
         onClick={run(actions.toggleLock)}
       />
       {actions.canReplace && (
         <MenuItemPrimitive
           label={t("timeline:attrs.replaceClip", { defaultValue: "Replace clip…" })}
           icon={<ImageIcon fontSize="small" />}
-          compact
           onClick={run(actions.openReplace)}
         />
       )}
@@ -189,7 +188,6 @@ export function ClipContextMenu({
                 })
           }
           icon={<AccountTreeOutlinedIcon fontSize="small" />}
-          compact
           onClick={run(() => onSendToWorkflow(workflowMedia, position))}
         />
       )}
@@ -197,7 +195,6 @@ export function ClipContextMenu({
         <MenuItemPrimitive
           label={t("timeline:attrs.openInNodeEditor", { defaultValue: "Open in node editor" })}
           icon={<OpenInNewIcon fontSize="small" />}
-          compact
           onClick={run(actions.openInNodeEditor)}
         />
       )}
@@ -205,14 +202,14 @@ export function ClipContextMenu({
         <MenuItemPrimitive
           label={t("timeline:attrs.unlink", { defaultValue: "Unlink" })}
           icon={<LinkOffIcon fontSize="small" />}
-          compact
           onClick={run(onUnlink)}
         />
       )}
       <MenuItemPrimitive
         label={t("timeline:attrs.delete", { defaultValue: "Delete" })}
         icon={<DeleteOutlineOutlinedIcon fontSize="small" />}
-        compact
+        color="error"
+        dividerBefore
         onClick={run(onDelete)}
       />
     </ContextMenu>

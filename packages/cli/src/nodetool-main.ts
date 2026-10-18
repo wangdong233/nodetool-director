@@ -12,13 +12,13 @@
  *   nodetool settings show
  */
 
-import { program } from "commander";
+import { program, type Command } from "commander";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { type Intervention } from "@nodetool-ai/protocol";
-import { workflowToDsl } from "@nodetool-ai/dsl";
+import { workflowToDsl, workflowToScript } from "@nodetool-ai/dsl";
 import {
   initDb,
   migrateSqliteDb,
@@ -36,14 +36,14 @@ import { installLocalModelInterfaces } from "./local-model-interfaces.js";
 import { getDefaultDbPath, getDefaultAssetsPath } from "@nodetool-ai/config";
 import {
   ExecutionSession,
-  isExecutionPreflightError,
   type RawGraphInput
 } from "@nodetool-ai/execution";
 import {
   NodeRegistry,
   createGraphNodeTypeResolver
 } from "@nodetool-ai/node-sdk";
-import { registerBuiltinPacks } from "@nodetool-ai/base-nodes/builtin-packs";
+import { registerCliPacks } from "./packs/host.js";
+import { refusePackInstallsInProcess } from "./packs/install-process.js";
 import { CLI_LOCAL_BUILTIN_PACK_POLICY, CLI_DSL_BUILTIN_PACK_POLICY } from "./node-registry.js";
 import { ProcessingContext, createLocalWorkspace, initTelemetry, onPythonBridgeCreated } from "@nodetool-ai/runtime";
 import { FileStorageAdapter } from "@nodetool-ai/storage";
@@ -60,6 +60,8 @@ import {
 } from "./supervisor.js";
 import { registerPackageCommands } from "./commands/package.js";
 import { registerPackCommands } from "./commands/packs.js";
+import { installMissingPacksAndReexec } from "./commands/install-missing-packs.js";
+import { registerRuntimeCommands } from "./commands/runtime.js";
 import { registerDeployCommands } from "./commands/deploy.js";
 import { registerHfCommands } from "./commands/models-hf.js";
 import { registerWorkerCommands } from "./commands/worker.js";
@@ -89,13 +91,23 @@ import { registerCostsCommands } from "./commands/costs.js";
 import { registerErrorsCommands } from "./commands/errors.js";
 import { registerGenerationsCommands } from "./commands/generations.js";
 import { registerRunsCommands } from "./commands/runs.js";
+import { registerProjectCommands } from "./commands/projects.js";
 import { registerGameCommands } from "./commands/game.js";
 import { registerAuthCommands } from "./commands/auth.js";
 import { registerTelegramCommands } from "./commands/telegram.js";
+import { registerAuthoringCommands } from "./commands/tools.js";
+import { registerTelemetryCommands } from "./commands/telemetry.js";
+import {
+  finishCliTelemetry,
+  startCliTelemetry,
+  trackCliEvent
+} from "./telemetry.js";
+import { bucketDuration, bucketNodeCount, categorizeError } from "@nodetool-ai/analytics";
 import { registerResourceReadCommands } from "./commands/resource-read.js";
 import { createApiClient } from "./api-client.js";
 import {
   listAllModels,
+  closePythonProviders,
   listConfiguredProviderInfo,
   listOllamaModels,
   listProviderModels,
@@ -103,7 +115,7 @@ import {
 } from "./providers.js";
 import { isString } from "./predicates.js";
 import { printTable, asJson, readSecretValue } from "./commands/output.js";
-import { printCommandError } from "./command-errors.js";
+import { printCommandError, commandMissingRuntime, commandMissingPack } from "./command-errors.js";
 import { childExitCode } from "./child-exit.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -137,7 +149,9 @@ function ensureDb(): void {
 }
 
 async function setupDb(): Promise<void> {
-  ensureDb();
+  const dbPath = getDefaultDbPath();
+  await migrateSqliteDb(dbPath);
+  initDb(dbPath);
   // Resolve the master encryption key from keychain / env / AWS so that
   // both encryption (Secret.upsert) and decryption (Secret.getDecryptedValue)
   // use the same persistent key. Without this, a fresh process would
@@ -258,15 +272,6 @@ async function makeLocalAssetFetcher(): Promise<
 // installing them before `setupDb()` is safe.
 await installLocalModelInterfaces();
 
-/**
- * What to print when a run command fails. A preflight refusal already reads as
- * a complete explanation — printing the error class in front of it only buries
- * the secret name the user has to go set.
- */
-function describeRunFailure(error: unknown): string {
-  return isExecutionPreflightError(error) ? error.message : String(error);
-}
-
 // ---------------------------------------------------------------------------
 // info
 // ---------------------------------------------------------------------------
@@ -287,7 +292,16 @@ program
     "--no-trace-stdout",
     "Disable stdout span output (overrides NODETOOL_TRACE_STDOUT)"
   )
+  // A command that started the Python worker must stop it, or the worker
+  // child process keeps the CLI alive after the output.
+  .hook("postAction", async () => {
+    closePythonProviders();
+    await finishCliTelemetry();
+  })
   .hook("preAction", async (thisCommand, actionCommand) => {
+    // Anonymous usage analytics, off unless `nodetool telemetry enable` ran.
+    // Only the matched top-level command name is used, never argv.
+    startCliTelemetry(topLevelCommandName(actionCommand));
     // With `--trace`, the `debug` command owns telemetry: it routes spans into
     // its bundle's trace.jsonl via its own initTelemetry call. Initializing here
     // first would win the one-shot init and drop that file sink, so skip it.
@@ -306,6 +320,15 @@ program
       })
     });
   });
+
+/** The name of the top-level command an action belongs to. */
+function topLevelCommandName(command: Command | undefined): string | undefined {
+  let current = command;
+  while (current?.parent && current.parent.parent) {
+    current = current.parent;
+  }
+  return current?.name();
+}
 
 function parseTraceStdout(v: string | boolean): "pretty" | "json" | false {
   if (v === false) return false;
@@ -331,14 +354,15 @@ addSupervisorOptions(
     .command("run <dsl-file>")
     .description("Run a TypeScript/JavaScript DSL workflow file")
     .option("--json", "Output results as JSON (default: pretty-print)")
+    .option("--install-missing", "Authorize missing node pack installation, then re-execute once")
 ).action(
-  async (dslFile: string, opts: { json?: boolean } & SupervisorCliOptions) => {
+  async (dslFile: string, opts: { json?: boolean; installMissing?: boolean } & SupervisorCliOptions) => {
     try {
       const { resolve } = await import("node:path");
       const { runDslFile } = await import("./run-dsl.js");
       const { NodeRegistry } = await import("@nodetool-ai/node-sdk");
 
-      registerBuiltinPacks(NodeRegistry.global, CLI_DSL_BUILTIN_PACK_POLICY);
+      await registerCliPacks(NodeRegistry.global, CLI_DSL_BUILTIN_PACK_POLICY);
 
       const supervisorConfig = parseSupervisorFlags(opts);
       const absolutePath = resolve(dslFile);
@@ -377,8 +401,9 @@ addSupervisorOptions(
         }
       }
     } catch (e) {
-      console.error(describeRunFailure(e));
-      process.exit(1);
+      const exit = await installMissingPacksAndReexec(e, { command: "run", installMissing: opts.installMissing });
+      if (exit !== null) { process.exit(exit); }
+      process.exit(printCommandError(e, opts.json));
     }
   }
 );
@@ -447,10 +472,11 @@ program
   .option("--host <host>", "Host to bind", "127.0.0.1")
   .option("--port <port>", "Port to listen on", "7777")
   .action((opts) => {
-    const serverPath = resolve(__dirname, "../../websocket/dist/server.js");
+    refusePackInstallsInProcess("serve");
+    const serverPath = resolve(__dirname, "../dist/packs/serve.js");
     process.env["HOST"] = opts.host;
     process.env["PORT"] = opts.port;
-    const result = spawnSync("node", [serverPath], {
+    const result = spawnSync(process.execPath, [serverPath], {
       stdio: "inherit",
       env: { ...process.env }
     });
@@ -501,6 +527,7 @@ addSupervisorOptions(
     .description("Run a workflow by ID, JSON file, or TypeScript DSL file")
     .option("--params <json>", "JSON params string")
     .option("--json", "Output as JSON")
+    .option("--install-missing", "Authorize missing node pack installation, then re-execute once")
     .option(
       "--asset-output-mode <mode>",
       "How media outputs are materialized: native | raw | data_uri | workspace | storage_url | temp_url",
@@ -526,6 +553,7 @@ addSupervisorOptions(
       assetOutputMode?: string;
       workspace?: string;
       triggerEvent?: string;
+      installMissing?: boolean;
     } & SupervisorCliOptions
   ) => {
     try {
@@ -581,14 +609,8 @@ addSupervisorOptions(
           params?: Record<string, unknown>;
         };
         if (idOrFile.endsWith(".ts") || idOrFile.endsWith(".tsx")) {
-          // Execute DSL file via tsx and capture JSON output
-          const { execFileSync } = await import("node:child_process");
-          const output = execFileSync("npx", ["tsx", resolve(idOrFile)], {
-            encoding: "utf8",
-            cwd: dirname(resolve(idOrFile)),
-            timeout: 30000
-          });
-          raw = JSON.parse(output.trim());
+          const { readFileTarget } = await import("./debug/target.js");
+          raw = (await readFileTarget(idOrFile)).raw as typeof raw;
         } else {
           const { readFileSync } = await import("node:fs");
           raw = JSON.parse(readFileSync(idOrFile, "utf8"));
@@ -613,7 +635,7 @@ addSupervisorOptions(
       // need to duplicate that here.
 
       const registry = new NodeRegistry();
-      registerBuiltinPacks(registry, CLI_LOCAL_BUILTIN_PACK_POLICY);
+      await registerCliPacks(registry, CLI_LOCAL_BUILTIN_PACK_POLICY);
 
       const jobId = `job-${Date.now()}`;
       // Resolve asset URIs (e.g. /api/storage/<key>) against the local
@@ -718,6 +740,12 @@ addSupervisorOptions(
         sessionOptions.supervisor = supervisor.handle;
         sessionOptions.captureMessages = true;
       }
+      const nodeCountBucket = bucketNodeCount(graph.nodes.length);
+      trackCliEvent({
+        event: "workflow_run",
+        properties: { executionMode: "local", nodeCountBucket }
+      });
+      const runStartedAt = Date.now();
       const session = await ExecutionSession.create(sessionOptions);
 
       const interventionLines = supervisor
@@ -725,6 +753,29 @@ addSupervisorOptions(
         : Promise.resolve();
 
       const result = await session.result;
+      const durationBucket = bucketDuration(Date.now() - runStartedAt);
+      if (result.status === "completed") {
+        trackCliEvent({
+          event: "workflow_run_succeeded",
+          properties: { executionMode: "local", nodeCountBucket, durationBucket }
+        });
+      } else {
+        trackCliEvent({
+          event: "workflow_run_failed",
+          properties: {
+            executionMode: "local",
+            nodeCountBucket,
+            durationBucket,
+            errorCategory:
+              result.status === "cancelled" ? "cancelled" : categorizeError(result.error)
+          }
+        });
+      }
+      if (result.status === "failed" && (commandMissingRuntime(result) || commandMissingPack(result))) {
+        const exit = await installMissingPacksAndReexec(result, { command: "workflows-run", installMissing: opts.installMissing });
+        if (exit !== null) { process.exit(exit); }
+        process.exit(printCommandError(result, opts.json));
+      }
       await interventionLines;
       supervisor?.handle.close();
 
@@ -759,13 +810,80 @@ addSupervisorOptions(
         printSupervisedSummary(interventions);
       }
 
+      await finishCliTelemetry();
       process.exit(result.status === "completed" ? 0 : 1);
     } catch (e) {
-      console.error(describeRunFailure(e));
-      process.exit(1);
+      const exit = await installMissingPacksAndReexec(e, { command: "workflows-run", installMissing: opts.installMissing });
+      if (exit !== null) { process.exit(exit); }
+      process.exit(printCommandError(e, opts.json));
     }
   }
 );
+
+workflows
+  .command("export-script <workflow_id_or_file>")
+  .description(
+    "Convert a workflow into a JavaScript script that calls each node in order (local DB by id, or a JSON file)"
+  )
+  .option(
+    "-t, --target <target>",
+    "sandbox (a JS script document or Code node body) or node (a standalone Node.js .mjs)",
+    "sandbox"
+  )
+  .option("-o, --output <file>", "Write the script to a file")
+  .action(
+    async (idOrFile: string, opts: { target: string; output?: string }) => {
+      try {
+        if (opts.target !== "sandbox" && opts.target !== "node") {
+          throw new Error(
+            `Unknown target "${opts.target}": use "sandbox" or "node"`
+          );
+        }
+        let graph: Parameters<typeof workflowToScript>[0];
+        let name: string | null;
+        if (
+          idOrFile.endsWith(".json") ||
+          idOrFile.includes("/") ||
+          idOrFile.includes("\\")
+        ) {
+          const { readFileSync } = await import("node:fs");
+          const raw = JSON.parse(readFileSync(idOrFile, "utf8")) as Record<
+            string,
+            unknown
+          >;
+          graph = (raw.graph ?? raw) as typeof graph;
+          name = isString(raw.name) ? raw.name : null;
+        } else {
+          ensureDb();
+          const wf = await Workflow.find(LOCAL_USER_ID, idOrFile);
+          if (!wf) throw new Error(`Workflow not found: ${idOrFile}`);
+          graph = wf.getGraph();
+          name = isString(wf.name) ? wf.name : null;
+        }
+
+        const script = workflowToScript(graph, {
+          target: opts.target,
+          workflowName: name
+        });
+        for (const issue of script.unsupported) {
+          console.error(
+            `warning: ${issue.node_type} (${issue.node_id}) ${issue.message}`
+          );
+        }
+
+        if (opts.output) {
+          const { writeFile } = await import("node:fs/promises");
+          await writeFile(opts.output, script.code, "utf8");
+          console.log(opts.output);
+          return;
+        }
+
+        console.log(script.code);
+      } catch (e) {
+        process.exit(printCommandError(e));
+      }
+    }
+  );
 
 workflows
   .command("export-dsl <workflow_id_or_file>")
@@ -824,8 +942,7 @@ workflows
 
         console.log(source);
       } catch (e) {
-        printCommandError(e);
-        process.exit(1);
+        process.exit(printCommandError(e));
       }
     }
   );
@@ -996,8 +1113,7 @@ workflows
         }
         console.log(outPath);
       } catch (e) {
-        printCommandError(e);
-        process.exit(1);
+        process.exit(printCommandError(e));
       }
     }
   );
@@ -1114,8 +1230,7 @@ workflows
         );
         console.log(outPath);
       } catch (e) {
-        printCommandError(e);
-        process.exit(1);
+        process.exit(printCommandError(e));
       }
     }
   );
@@ -1183,8 +1298,7 @@ workflows
         }
       }
     } catch (e) {
-      printCommandError(e, opts.json);
-      process.exit(1);
+      process.exit(printCommandError(e, opts.json));
     }
   });
 
@@ -1263,8 +1377,7 @@ models
       }
       printTable(rows.map(modelRow));
     } catch (e) {
-      printCommandError(e, opts.json);
-      process.exit(1);
+      process.exit(printCommandError(e, opts.json));
     }
   });
 
@@ -1287,8 +1400,7 @@ models
         }))
       );
     } catch (e) {
-      printCommandError(e, opts.json);
-      process.exit(1);
+      process.exit(printCommandError(e, opts.json));
     }
   });
 
@@ -1322,8 +1434,7 @@ models
       }
       printTable(rows.map(modelRow));
     } catch (e) {
-      printCommandError(e, opts.json);
-      process.exit(1);
+      process.exit(printCommandError(e, opts.json));
     }
   });
 
@@ -1377,8 +1488,7 @@ models
       }
       printTable(rows.map(modelRow));
     } catch (e) {
-      printCommandError(e, opts.json);
-      process.exit(1);
+      process.exit(printCommandError(e, opts.json));
     }
   });
 
@@ -1406,8 +1516,7 @@ models
       }
       printTable(rows.map(modelRow));
     } catch (e) {
-      printCommandError(e, opts.json);
-      process.exit(1);
+      process.exit(printCommandError(e, opts.json));
     }
   });
 
@@ -1446,8 +1555,7 @@ storage
       }
       if (report.failed > 0) process.exit(1);
     } catch (e) {
-      printCommandError(e, opts.json);
-      process.exit(1);
+      process.exit(printCommandError(e, opts.json));
     }
   });
 
@@ -1480,8 +1588,7 @@ workflows
       }
       if (report.failed > 0) process.exit(1);
     } catch (e) {
-      printCommandError(e, opts.json);
-      process.exit(1);
+      process.exit(printCommandError(e, opts.json));
     }
   });
 
@@ -1509,8 +1616,7 @@ secrets
         items.map((s) => ({ key: s.key, updated_at: s.updated_at ?? "" }))
       );
     } catch (e) {
-      printCommandError(e);
-      process.exit(1);
+      process.exit(printCommandError(e));
     }
   });
 
@@ -1533,8 +1639,7 @@ secrets
       });
       console.log(`Secret '${key}' stored.`);
     } catch (e) {
-      printCommandError(e);
-      process.exit(1);
+      process.exit(printCommandError(e));
     }
   });
 
@@ -1552,8 +1657,7 @@ secrets
       }
       console.log(value);
     } catch (e) {
-      printCommandError(e);
-      process.exit(1);
+      process.exit(printCommandError(e));
     }
   });
 
@@ -1629,6 +1733,7 @@ mcp
   )
   .action(async () => {
     try {
+      refusePackInstallsInProcess("mcp serve");
       const {
         createMcpServer,
         createMcpStdioTransport,
@@ -1644,7 +1749,10 @@ mcp
       // A local TS-node registry powers list_nodes / search_nodes /
       // validate_workflow without spinning up a Python worker.
       const registry = new NodeRegistry();
-      registerBuiltinPacks(registry, CLI_LOCAL_BUILTIN_PACK_POLICY);
+      await registerCliPacks(registry, CLI_LOCAL_BUILTIN_PACK_POLICY);
+
+      const { installSandboxCatalog } = await import("./sandbox-catalog.js");
+      installSandboxCatalog();
 
       // stdio serves exactly one local user; "1" is the local single-user id.
       const server = createMcpServer({
@@ -1657,8 +1765,7 @@ mcp
       // The stdio transport keeps the event loop alive until the client
       // closes the connection.
     } catch (e) {
-      printCommandError(e);
-      process.exit(1);
+      process.exit(printCommandError(e));
     }
   });
 
@@ -1666,8 +1773,10 @@ mcp
 // package
 // ---------------------------------------------------------------------------
 
+registerProjectCommands(program);
 registerPackageCommands(program);
 registerPackCommands(program);
+registerRuntimeCommands(program);
 registerWorkerCommands(program);
 
 // Any command that opens a remote Python bridge keeps the attached worker's
@@ -1711,6 +1820,8 @@ registerRunsCommands(program, {
 });
 registerAuthCommands(program);
 registerTelegramCommands(program);
+registerAuthoringCommands(program);
+registerTelemetryCommands(program);
 
 // ---------------------------------------------------------------------------
 

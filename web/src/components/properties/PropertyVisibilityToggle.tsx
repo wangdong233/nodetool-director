@@ -14,7 +14,6 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 import { Tooltip, ToolbarIconButton, MOTION } from "../ui_primitives";
 
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 
 import type { ExposedInputPlacement } from "../../utils/exposedInputs";
 import { useTranslation } from "react-i18next";
@@ -162,7 +161,7 @@ const PropertyVisibilityToggle = memo<PropertyVisibilityToggleProps>(
 
     return (
 
-      <Tooltip title={title} placement="top" delay={TOOLTIP_ENTER_DELAY}>
+      <Tooltip title={title} placement="top">
 
         <ToolbarIconButton
 

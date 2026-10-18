@@ -24,7 +24,7 @@ import {
   FlexColumn,
   FlexRow,
   StateIconButton,
-  Text, BORDER_RADIUS } from "../ui_primitives";
+  Text, BORDER_RADIUS, EmptyState } from "../ui_primitives";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import NumberInput from "../inputs/NumberInput";
 import LayerRow from "../node_types/editing/LayerRow";
@@ -34,14 +34,15 @@ import CompositorEditorCanvas, {
   type CanvasLayer
 } from "./CompositorEditorCanvas";
 import LayerTransformFields from "./LayerTransformFields";
-import { useLayerBitmaps } from "./useLayerBitmaps";
+import type { BitmapMap } from "./useLayerBitmaps";
 import { defaultTransform, type CompositorEditorLayer } from "./types";
-import { useTranslation } from "react-i18next";
 
 export interface CompositorEditorProps {
   canvasWidth: number;
   canvasHeight: number;
   layers: CompositorEditorLayer[];
+  /** Decoded layer images keyed by layer id (see `useLayerBitmaps`). */
+  bitmaps: BitmapMap;
   onCanvasSizeChange: (width: number, height: number, complete: boolean) => void;
   onOpacityChange: (index: number, value: number) => void;
   onOpacityComplete: () => void;
@@ -116,13 +117,6 @@ const styles = (theme: Theme) =>
       "&.selected": {
         borderColor: theme.vars.palette.primary.main
       }
-    },
-    ".empty": {
-      color: theme.vars.palette.text.secondary,
-      fontFamily: theme.fontFamily2,
-      fontSize: theme.fontSizeSmaller,
-      textAlign: "center",
-      padding: theme.spacing(1)
     }
   });
 
@@ -130,6 +124,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
   canvasWidth,
   canvasHeight,
   layers,
+  bitmaps,
   onCanvasSizeChange,
   onOpacityChange,
   onOpacityComplete,
@@ -139,7 +134,6 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
   onAddLayer,
   onTransformChange
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -147,13 +141,6 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
     id: string;
     transform: LayerTransform2D;
   } | null>(null);
-
-  const urls = useMemo(() => {
-    const out: Record<string, string | undefined> = {};
-    for (const l of layers) out[l.id] = l.url;
-    return out;
-  }, [layers]);
-  const bitmaps = useLayerBitmaps(urls);
 
   const indexOf = useCallback(
     (id: string) => layers.findIndex((l) => l.id === id),
@@ -246,7 +233,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
   ]);
 
   // Render the stack top-first (lowest index on top of the composite).
-  // `state` and `image` are built here, not in JSX, so LayerRow's memo can
+  // `state` is built here, not in JSX, so LayerRow's memo can
   // bail — otherwise dragging one opacity slider re-rendered every row.
   const stack = useMemo(
     () =>
@@ -257,8 +244,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
           opacity: layer.opacity,
           blend_mode: layer.blendMode,
           visible: layer.visible
-        },
-        image: layer.url ? { uri: layer.url } : undefined
+        }
       })),
     [layers]
   );
@@ -280,15 +266,15 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
 
       <div className="side-panel">
         <FlexColumn gap={0.5}>
-          <Caption>{t("ui2:attrs.canvasSize", { defaultValue: "Canvas size" })}</Caption>
+          <Caption>Canvas size</Caption>
           <FlexRow className="size-row" gap={0.5}>
             <div className="field">
-              <div className="field-label">{t("timeline:project.width", { defaultValue: "Width" })}</div>
+              <div className="field-label">Width</div>
               <NumberInput
                 id="compositor-canvas-width"
                 nodeId=""
                 name="canvas_width"
-                description={t("appbuilder:attrs.canvasWidthPx", { defaultValue: "Canvas width (px)" })}
+                description="Canvas width (px)"
                 value={canvasWidth}
                 min={1}
                 max={16384}
@@ -306,12 +292,12 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
               />
             </div>
             <div className="field">
-              <div className="field-label">{t("timeline:project.height", { defaultValue: "Height" })}</div>
+              <div className="field-label">Height</div>
               <NumberInput
                 id="compositor-canvas-height"
                 nodeId=""
                 name="canvas_height"
-                description={t("appbuilder:attrs.canvasHeightPx", { defaultValue: "Canvas height (px)" })}
+                description="Canvas height (px)"
                 value={canvasHeight}
                 min={1}
                 max={16384}
@@ -336,12 +322,12 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
         {selectedTransform ? (
           <FlexColumn gap={0.5}>
             <FlexRow justify="space-between" align="center">
-              <Text sx={{ fontWeight: 500 }}>{t("ui2:attrs.selectedLayer", { defaultValue: "Selected layer" })}</Text>
+              <Text sx={{ fontWeight: 500 }}>Selected layer</Text>
               <StateIconButton
                 icon={<RestartAltIcon fontSize="small" />}
                 onClick={handleResetTransform}
-                ariaLabel={t("editor:ui.resetTransform", { defaultValue: "Reset transform" })}
-                tooltip={t("editor:ui.resetTransform", { defaultValue: "Reset transform" })}
+                ariaLabel="Reset transform"
+                tooltip="Reset transform"
               />
             </FlexRow>
             <LayerTransformFields
@@ -351,16 +337,20 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
             <Divider />
           </FlexColumn>
         ) : (
-          <Caption>{t("ui2:attrs.selectALayerToTransformIt", { defaultValue: "Select a layer to transform it." })}</Caption>
+          <Caption>Select a layer to transform it.</Caption>
         )}
 
         <FlexColumn gap={0.5}>
-          <Caption>{t("sketch:attrs.layers", { defaultValue: "Layers" })}</Caption>
+          <Caption>Layers</Caption>
           {layers.length === 0 ? (
-            <div className="empty">{t("timeline:attrs.noLayersYetAddOneBelow", { defaultValue: "No layers yet - add one below." })}</div>
+            <EmptyState
+              size="small"
+              title="No layers yet"
+              description="Add one below."
+            />
           ) : (
             <div className="layer-stack">
-              {stack.map(({ layer, index, state, image }) => (
+              {stack.map(({ layer, index, state }) => (
                 <div
                   key={layer.id}
                   className={`layer-slot ${
@@ -372,7 +362,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
                     index={index}
                     propertyKey={layer.id}
                     state={state}
-                    image={image}
+                    imageUrl={layer.url}
                     onOpacityChange={onOpacityChange}
                     onOpacityComplete={onOpacityComplete}
                     onBlendChange={onBlendChange}

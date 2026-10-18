@@ -32,7 +32,8 @@ import {
   FlexColumn,
   LoadingSpinner,
   SPACING,
-  ToolbarIconButton
+  ToolbarIconButton,
+  ICON_SIZE
 } from "../ui_primitives";
 import { EditorActivationCover, editorClassNames, cn } from "../editor_ui";
 import HandleColumn from "../node/HandleColumn";
@@ -53,8 +54,11 @@ import { useCodeEditorActivation } from "../../hooks/editor/useCodeEditorActivat
 import { useBespokePropertyWriter } from "../../hooks/nodes/useBespokePropertyWriter";
 import { useDynamicProperty } from "../../hooks/nodes/useDynamicProperty";
 import { useUndoGroup } from "../../hooks/useUndoGroup";
-import { useNodes } from "../../contexts/NodeContext";
-import { deriveCodeIOUpdates } from "../../utils/codeOutputInference";
+import { useNodes, useNodeStoreRef } from "../../contexts/NodeContext";
+import {
+  connectedSourceHandles,
+  deriveCodeIOUpdates
+} from "../../utils/codeOutputInference";
 import {
   getCodeNodeLanguage,
   codeLanguageLabel,
@@ -65,7 +69,6 @@ import { nodeInputsToCodeGenPorts } from "../../utils/codeGenSubmission";
 import CodeAssistantDialog from "./code_assistant/CodeAssistantDialog";
 import CodeNodeScriptLink from "./CodeNodeScriptLink";
 import { isObjectLike, isString } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 interface CodeBodyProps {
   id: string;
@@ -184,7 +187,6 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
   status,
   isOutputNode
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -249,6 +251,7 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
     }),
     shallow
   );
+  const nodeStore = useNodeStoreRef();
 
   // The universal Code node derives extra handles from the code: names
   // read off `inputs` or `stream(...)` become input slots, keys of the
@@ -320,11 +323,12 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
         deriveCodeIOUpdates(
           code,
           node?.data?.dynamic_properties || {},
-          node?.data?.dynamic_outputs || {}
+          node?.data?.dynamic_outputs || {},
+          connectedSourceHandles(nodeStore.getState().edges, id)
         )
       );
     }
-  }, [id]);
+  }, [id, nodeStore]);
 
   // Typing between focus and blur undoes as one step.
   const { begin: beginUndoGroup, end: endUndoGroup } = useUndoGroup();
@@ -382,12 +386,13 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
           deriveCodeIOUpdates(
             next,
             node?.data?.dynamic_properties || {},
-            node?.data?.dynamic_outputs || {}
+            node?.data?.dynamic_outputs || {},
+            connectedSourceHandles(nodeStore.getState().edges, id)
           )
         );
       }
     },
-    [setProperty, setPropertyComplete, inferIO, findNode, updateNodeData, id]
+    [setProperty, setPropertyComplete, inferIO, findNode, updateNodeData, id, nodeStore]
   );
 
   // AI authoring targets the Code node only. An accepted submission replaces
@@ -435,11 +440,11 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
           <div className="code-actions">
             {supportsCodeGen && (
               <ToolbarIconButton
-                tooltip={t("editor:ui.askAI", { defaultValue: "Ask AI" })}
-                aria-label={t("editor:ui.askAI", { defaultValue: "Ask AI" })}
+                tooltip="Ask AI"
+                aria-label="Ask AI"
                 icon={
                   <AutoAwesomeIcon
-                    sx={{ fontSize: "var(--fontSizeNormal)" }}
+                    sx={{ fontSize: ICON_SIZE.sm }}
                   />
                 }
                 onClick={openCodeGen}
@@ -448,8 +453,8 @@ const CodeBodyInner: React.FC<CodeBodyProps> = ({
             )}
             {!supportsCodeGen && (
               <ToolbarIconButton
-                tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
-                icon={<OpenInFullIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
+                tooltip="Open editor"
+                icon={<OpenInFullIcon sx={{ fontSize: ICON_SIZE.sm }} />}
                 onClick={toggleExpand}
                 size="small"
               />

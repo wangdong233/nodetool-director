@@ -7,9 +7,12 @@ import { build } from "esbuild";
 import { resolvePackageAssetPath } from "@nodetool-ai/config";
 import { gameDocument3D, type GameDocument3D } from "@nodetool-ai/protocol";
 import { validateGame3D, decodePreparedGameCollider3D } from "@nodetool-ai/game-runtime";
+import { prepareGameImage3D } from "./renderer3d/assets/image-preparation.js";
 import { prepareGameModel } from "./renderer3d/preparation.js";
 import type { StandaloneAsset, StandaloneGameBuild } from "./build.js";
+import { validateExportImage, validateExportAudio, validateExportFont } from "./export-media.js";
 import { TOUCH_CONTROLS_CSS } from "./touch-controls.js";
+import { gameBuildFingerprint } from "./build-fingerprint.js";
 
 export interface BuildStandaloneGame3DOptions {
   readonly document: GameDocument3D;
@@ -18,25 +21,32 @@ export interface BuildStandaloneGame3DOptions {
   readonly signal?: AbortSignal;
 }
 const PLAYER_FILE = "game3d-player.js";
-const HTML = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'self\'; connect-src \'self\' blob:; script-src \'self\' \'wasm-unsafe-eval\'; img-src \'self\' blob:; font-src \'self\'; style-src \'self\'"><title>NodeTool 3D Game</title><link rel="stylesheet" href="./style.css"></head><body><main><canvas id="game" aria-label="3D game viewport"></canvas><nav aria-label="Game controls"><button id="pause" type="button">Pause</button><button id="reset" type="button">Reset</button></nav><p id="status" role="status" aria-live="polite">Loading game</p></main><script type="module" src="./game3d-player.js"></script></body></html>';
+const HTML = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'self\'; connect-src \'self\' blob:; script-src \'self\' \'wasm-unsafe-eval\'; img-src \'self\' blob:; media-src \'self\' blob:; font-src \'self\'; style-src \'self\'"><title>NodeTool 3D Game</title><link rel="stylesheet" href="./style.css"></head><body><main><canvas id="game" aria-label="3D game viewport"></canvas><nav aria-label="Game controls"><button id="pause" type="button">Pause</button><button id="reset" type="button">Reset</button></nav><p id="status" role="status" aria-live="polite">Loading game</p></main><script type="module" src="./game3d-player.js"></script></body></html>';
 const CSS = 'html,body{margin:0;background:#202838;color:#fff;font:16px system-ui,sans-serif}main{max-width:1280px;margin:auto}canvas{display:block;width:100%;height:auto;touch-action:none}nav{display:flex;gap:8px;padding:8px;position:relative;z-index:3}button{font:inherit}#status{padding:8px}' +
   // The export CSP allows only same-origin styles, so the touch controls are styled here rather than by the player.
   TOUCH_CONTROLS_CSS;
 
 async function playerBundle(): Promise<Uint8Array> {
   const source = fileURLToPath(new URL("./standalone-player3d.ts", import.meta.url));
-  const compiled = fileURLToPath(new URL("./standalone-player3d.js", import.meta.url));
-  if (!existsSync(source) && !existsSync(compiled)) {
+  if (!existsSync(source)) {
     return readFile(resolvePackageAssetPath({ pkg: "@nodetool-ai/game-renderer", path: PLAYER_FILE }, import.meta.url));
   }
-  const result = await build({ entryPoints: [existsSync(source) ? source : compiled], bundle: true, format: "esm", platform: "browser",
+  const result = await build({ entryPoints: [source], bundle: true, format: "esm", platform: "browser",
     target: "es2022", minify: true, write: false, conditions: ["nodetool-dev"], logLevel: "silent" });
   const player = result.outputFiles?.[0];
   if (!player) { throw new Error("3D player bundle is empty"); }
   return player.contents;
 }
 
-/** Atomically exports verified model/collider content and all runtime code for static HTTP serving. */
+/** Identifies the actual player, VM and export templates used by this installed renderer. */
+export async function standaloneGame3DRuntimeFingerprint(): Promise<string> {
+  return gameBuildFingerprint({
+    format: "nodetool-web-3d-v1", player: await playerBundle(), html: HTML, css: CSS,
+    wasm: await readFile(fileURLToPath(import.meta.resolve("@jitl/quickjs-ng-wasmfile-release-sync/wasm")))
+  });
+}
+
+/** Atomically exports verified asset content and all runtime code for static HTTP serving. */
 export async function buildStandaloneGame3D(options: BuildStandaloneGame3DOptions): Promise<StandaloneGameBuild> {
   options.signal?.throwIfAborted();
   const document = gameDocument3D.parse(options.document);
@@ -67,17 +77,28 @@ export async function buildStandaloneGame3D(options: BuildStandaloneGame3DOption
         const prepared = await prepareGameModel(asset.bytes, { expectedDigest: binding.digest, signal: options.signal });
         if (!prepared.ok) { throw new Error(`Export model ${logicalId} failed preparation: ${prepared.diagnostics.map((entry) => entry.message).join("; ")}`); }
         if (JSON.stringify(prepared.model.nodeIds) !== JSON.stringify(binding.nodeIds) || JSON.stringify(prepared.model.clipIds) !== JSON.stringify(binding.clipIds)) { throw new Error(`Prepared selectors changed for model ${logicalId}`); }
+        if (binding.clipDurations && (Object.keys(binding.clipDurations).length !== prepared.model.clipIds.length || prepared.model.clipIds.some(id => binding.clipDurations?.[id] !== prepared.model.clipDurations[id]))) { throw new Error(`Prepared clip durations changed for model ${logicalId}; reprepare the model`); }
         extension = "glb";
+      } else if (binding.mediaKind === "image") {
+        const prepared = await prepareGameImage3D(asset.bytes, { assetId: binding.assetId, expectedDigest: binding.digest, signal: options.signal });
+        if (!prepared.ok) { throw new Error(`Export image ${logicalId} failed preparation: ${prepared.diagnostics.map((entry) => entry.message).join("; ")}`); }
+        const actual = prepared.image.binding;
+        if (actual.width !== binding.width || actual.height !== binding.height || actual.format !== binding.format || actual.byteLength !== binding.byteLength) { throw new Error(`Export image metadata changed for ${logicalId}`); }
+        await validateExportImage(prepared.image.bytes, binding.format, options.signal);
+        extension = binding.format;
       } else if (binding.mediaKind === "collider") {
         await decodePreparedGameCollider3D(asset.bytes, binding);
         extension = "json";
       } else if (binding.mediaKind === "font") {
         const view = new DataView(asset.bytes.buffer, asset.bytes.byteOffset, asset.bytes.byteLength);
         if (asset.bytes.length < 4 || (binding.fontFormat === "ttf" ? view.getUint32(0) !== 0x00010000 : view.getUint32(0) !== 0x4f54544f)) { throw new Error(`Invalid export font ${logicalId}`); }
+        validateExportFont(asset.bytes, logicalId, options.signal);
         extension = binding.fontFormat;
       } else {
-        extension = asset.mimeType === "audio/wav" ? "wav" : asset.mimeType === "audio/ogg" ? "ogg" : asset.mimeType === "audio/mpeg" ? "mp3" : "";
-        if (!extension) { throw new Error(`Unsupported export audio ${logicalId}`); }
+        const audioFormat = asset.mimeType === "audio/wav" ? "wav" : asset.mimeType === "audio/ogg" ? "ogg" : asset.mimeType === "audio/mpeg" ? "mp3" : "";
+        if (!audioFormat) { throw new Error(`Unsupported export audio ${logicalId}`); }
+        await validateExportAudio(asset.bytes, audioFormat, options.signal);
+        extension = audioFormat;
       }
       const path = `assets/${digest}.${extension}`;
       await stage(path, asset.bytes);

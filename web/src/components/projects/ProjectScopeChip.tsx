@@ -4,7 +4,6 @@ import { ContextMenu, MenuItemPrimitive } from "../ui_primitives";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { useOpenNewProjectTab, useOpenProject, useProjects } from "../../hooks/useProjects";
 import { PROJECT_GLYPH } from "./projectIdentity";
-import { useTranslation } from "react-i18next";
 
 interface ProjectScopeChipProps {
   projectId: string;
@@ -17,7 +16,6 @@ interface ProjectScopeChipProps {
  * menu that switches project, opens editor home, or closes the group.
  */
 const ProjectScopeChip = ({ projectId, fallbackName }: ProjectScopeChipProps) => {
-  const { t } = useTranslation();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const { data: projects } = useProjects();
@@ -57,16 +55,13 @@ const ProjectScopeChip = ({ projectId, fallbackName }: ProjectScopeChipProps) =>
         open={open}
         anchorEl={anchorRef.current}
         onClose={close}
-        compact
       >
         <MenuItemPrimitive
-          label={t("editor:ui.openEditorHome", { defaultValue: "Open editor home" })}
-          compact
+          label="Open editor home"
           onClick={handleOpenHome}
         />
         <MenuItemPrimitive
-          label={t("editor:ui.closeGroup", { defaultValue: "Close group" })}
-          compact
+          label="Close group"
           dividerAfter={(projects?.length ?? 0) > 1}
           onClick={() => {
             close();
@@ -79,8 +74,7 @@ const ProjectScopeChip = ({ projectId, fallbackName }: ProjectScopeChipProps) =>
             <MenuItemPrimitive
               key={entry.id}
               label={entry.name}
-              secondary={t("editor:ui.switchTo", { defaultValue: "Switch to" })}
-              compact
+              secondary="Switch to"
               onClick={() => {
                 close();
                 void openProject(entry);

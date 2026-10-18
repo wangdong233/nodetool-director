@@ -43,7 +43,6 @@ import type { Theme } from "@mui/material/styles";
 import LayersOutlinedIcon from "@mui/icons-material/LayersOutlined";
 import ViewSidebarOutlinedIcon from "@mui/icons-material/ViewSidebarOutlined";
 import {
-  Chip,
   CollapsibleSection,
   ColorSwatch,
   Container,
@@ -53,7 +52,6 @@ import {
   InspectorSectionTitle,
   MobileBottomSheet,
   Tooltip,
-  TYPOGRAPHY,
   Z_INDEX
 } from "../ui_primitives";
 import TransformContextMenu from "./TransformContextMenu";
@@ -64,7 +62,8 @@ import {
   useColorIntentRouter,
   useEditorSession,
   useEditorCommands,
-  useSketchIsMobile
+  useSketchIsMobile,
+  useSketchAssistantCramped
 } from "./hooks";
 import {
   ConnectedStatusBar,
@@ -88,7 +87,6 @@ import { SKETCH_SIZE } from "./sketchStyles";
 import { ColorFieldPicker } from "./ColorFieldPicker";
 import { SKETCH_PRESET_SWATCHES, colorToHex6 } from "./types";
 import { useSketchStore } from "./state/useSketchStore";
-import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -106,6 +104,10 @@ export interface SketchEditorHandle {
   redo: () => void;
   clearLayer: () => void;
   exportPng: () => void;
+  /** Download the document as a layered PSD. */
+  exportPsd: () => void;
+  /** Pick a PSD file and import its layers. */
+  importPsd: () => void;
   flipHorizontal: () => void;
   flipVertical: () => void;
   mergeDown: () => void;
@@ -145,20 +147,9 @@ const ConnectedColorPanel = memo(function ConnectedColorPanel() {
 
 /** Section header that mirrors the active foreground color as a hex chip. */
 const ColorSectionHeader = memo(function ColorSectionHeader() {
-  const { t } = useTranslation();
   const foregroundColor = useSketchStore((s) => s.foregroundColor) || "#ffffff";
   return (
-    <FlexRow
-      align="center"
-      justify="space-between"
-      sx={{ width: "100%", pr: 1 }}
-    >
-      <InspectorSectionTitle title={t("sketch:attrs.color", { defaultValue: "Color" })} />      <Chip
-        compact
-        label={colorToHex6(foregroundColor)}
-        sx={{ fontFamily: TYPOGRAPHY.mono.code.fontFamily, border: "none", backgroundColor: "transparent", color: "text.secondary" }}
-      />
-    </FlexRow>
+    <InspectorSectionTitle title="Color" meta={colorToHex6(foregroundColor)} />
   );
 });
 
@@ -200,7 +191,6 @@ function SketchEditor({
   menuItems,
   ref
 }: SketchEditorProps) {
-  const { t } = useTranslation();
   const theme = useTheme();
   // Tab toggles a fully chrome-less canvas view: hide the left tools
   // column AND the entire right panel column (color / layers / canvas).
@@ -243,6 +233,16 @@ function SketchEditor({
       setAssistantPanelOpen(false, { persist: false });
     }
   }, [isMobile, setAssistantPanelOpen]);
+
+  // A workspace side panel (Chats, Assets) can narrow a desktop editor until
+  // the docked assistant leaves the canvas a few hundred pixels wide. Close
+  // the dock when that happens, keeping the remembered preference.
+  const assistantCramped = useSketchAssistantCramped(containerRef);
+  useEffect(() => {
+    if (assistantCramped) {
+      setAssistantPanelOpen(false, { persist: false });
+    }
+  }, [assistantCramped, setAssistantPanelOpen]);
 
   // Register the agent bridge under this document's id so the `ui_sketch_*`
   // tools can address it whether or not this surface is focused. The session
@@ -414,7 +414,8 @@ function SketchEditor({
 
       <CollapsibleSection
         className="sketch-editor__layers-section"
-        title={<InspectorSectionTitle title={t("sketch:attrs.layers", { defaultValue: "Layers" })} />}        defaultOpen
+        title={<InspectorSectionTitle title="Layers" />}
+        defaultOpen
         compact
         sx={{ ...sectionSx, minHeight: 0 }}
       >
@@ -467,7 +468,7 @@ function SketchEditor({
 
       <CollapsibleSection
         className="sketch-editor__history-section"
-        title={<InspectorSectionTitle title={t("sketch:attrs.history", { defaultValue: "History" })} />}
+        title={<InspectorSectionTitle title="History" />}
         defaultOpen={false}
         compact
         sx={sectionSx}
@@ -480,7 +481,8 @@ function SketchEditor({
 
       <CollapsibleSection
         className="sketch-editor__canvas-section"
-        title={<InspectorSectionTitle title={t("sketch:attrs.canvas", { defaultValue: "Canvas" })} />}        defaultOpen={false}
+        title={<InspectorSectionTitle title="Canvas" />}
+        defaultOpen={false}
         compact
         sx={sectionSx}
       >
@@ -619,11 +621,11 @@ function SketchEditor({
               has no Tab key — keep one always-visible affordance on the bare
               canvas. */}
           {panelsHidden && (
-            <Tooltip title={t("sketch:attrs.showPanels", { defaultValue: "Show panels" })}>
+            <Tooltip title="Show panels">
               <Fab
                 className="sketch-editor__show-panels-fab"
                 size="small"
-                aria-label={t("sketch:attrs.showPanels", { defaultValue: "Show panels" })}
+                aria-label="Show panels"
                 onClick={togglePanelsHidden}
                 sx={{
                   position: "absolute",
@@ -671,7 +673,7 @@ function SketchEditor({
           <ResizableSideDock
             storageKey="sketch_assistant"
             className="sketch-editor__assistant-panel"
-            ariaLabel={t("sketch:attrs.resizeSketchAssistant", { defaultValue: "Resize sketch assistant" })}
+            ariaLabel="Resize sketch assistant"
           >
             <SketchAgentPanel />
           </ResizableSideDock>
@@ -684,12 +686,12 @@ function SketchEditor({
           the panels sheet. Gated on the same panelsHidden chrome toggle. */}
       {isMobile && !panelsHidden && (
         <>
-          <Tooltip title={t("sketch:attrs.layersAndColor", { defaultValue: "Layers & color" })}>
+          <Tooltip title="Layers & color">
             <Fab
               className="sketch-editor__mobile-panels-fab"
               size="medium"
               color="primary"
-              aria-label={t("sketch:attrs.openLayersAndColorPanel", { defaultValue: "Open layers and color panel" })}
+              aria-label="Open layers and color panel"
               onClick={() => {
                 // Last action wins — never stack the two mobile sheets.
                 setAssistantPanelOpen(false);
@@ -710,8 +712,8 @@ function SketchEditor({
             <MobileBottomSheet
               open={mobilePanelsOpen}
               onClose={() => setMobilePanelsOpen(false)}
-              title={t("sketch:attrs.layersAndColor", { defaultValue: "Layers & color" })}
-              ariaLabel={t("sketch:attrs.layersAndColorPanel", { defaultValue: "Layers and color panel" })}
+              title="Layers & color"
+              ariaLabel="Layers and color panel"
             >
               <FlexColumn
                 className="sketch-editor__panel-right sketch-editor__panel-right--mobile"
@@ -727,8 +729,8 @@ function SketchEditor({
             <MobileBottomSheet
               open={assistantPanelOpen}
               onClose={() => setAssistantPanelOpen(false)}
-              title={t("sketch:attrs.assistant", { defaultValue: "Assistant" })}
-              ariaLabel={t("sketch:attrs.aiAssistantPanel", { defaultValue: "AI assistant panel" })}
+              title="Assistant"
+              ariaLabel="AI assistant panel"
               maxHeight="85vh"
             >
               <FlexColumn

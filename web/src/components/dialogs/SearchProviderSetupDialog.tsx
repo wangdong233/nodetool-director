@@ -7,6 +7,7 @@ import {
   TextInput,
   FlexColumn,
   SelectField,
+  SPACING,
   type SelectOption
 } from "../ui_primitives";
 import ExternalLink from "../common/ExternalLink";
@@ -14,13 +15,11 @@ import { useSearchProviderCalloutStore } from "../../stores/SearchProviderCallou
 import useRemoteSettingsStore from "../../stores/RemoteSettingStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { formatSettingLabel } from "../menus/settingsLabel";
-import { i18n } from "../../i18n";
 import {
   SEARCH_PROVIDER_CONFIGS,
   SUGGESTED_SERP_PROVIDER,
   type SerpProviderId
 } from "../../utils/searchProviders";
-import { useTranslation } from "react-i18next";
 
 const PROVIDER_OPTIONS: SelectOption[] = Object.values(
   SEARCH_PROVIDER_CONFIGS
@@ -36,7 +35,6 @@ const PROVIDER_OPTIONS: SelectOption[] = Object.values(
  * Mounted once at the app root; driven by {@link useSearchProviderCalloutStore}.
  */
 const SearchProviderSetupDialog: React.FC = () => {
-  const { t } = useTranslation();
   const open = useSearchProviderCalloutStore((s) => s.open);
   const nodes = useSearchProviderCalloutStore((s) => s.nodes);
   const dismiss = useSearchProviderCalloutStore((s) => s.dismiss);
@@ -96,7 +94,7 @@ const SearchProviderSetupDialog: React.FC = () => {
         content:
           error instanceof Error
             ? error.message
-            : i18n.t("editor:ui.failedToSaveSearchProvider", { defaultValue: "Failed to save search provider" }),
+            : "Failed to save search provider",
         type: "error",
         alert: true
       });
@@ -124,24 +122,22 @@ const SearchProviderSetupDialog: React.FC = () => {
     <Dialog
       open={open}
       onClose={dismiss}
-      title={t("editor:ui.setUpWebSearch", { defaultValue: "Set up web search" })}
+      title="Set up web search"
       onConfirm={handleSave}
-      onCancel={dismiss}
-      confirmText={t("editor:ui.saveContinue", { defaultValue: "Save & continue" })}
-      cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+      confirmText="Save & continue"
       confirmDisabled={!allFilled}
       isLoading={saving}
       content={
-        <FlexColumn gap={2}>
+        <FlexColumn gap={SPACING.lg}>
           <Text>
             {nodeNames
               ? `${nodeNames} uses a web-search tool, but no search provider is configured. `
-              : t("editor:ui.thisAgentUsesAWebsearchToolButNoSearchProviderIsConfigured", { defaultValue: "This agent uses a web-search tool, but no search provider is configured. " })}
+              : "This agent uses a web-search tool, but no search provider is configured. "}
             Add one below to run the workflow.
           </Text>
 
           <SelectField
-            label={t("editor:ui.searchProvider", { defaultValue: "Search provider" })}
+            label="Search provider"
             value={provider}
             onChange={handleProviderChange}
             options={PROVIDER_OPTIONS}
@@ -158,7 +154,6 @@ const SearchProviderSetupDialog: React.FC = () => {
               label={formatSettingLabel(field)}
               value={credentials[field] ?? ""}
               onChange={handleCredentialChange(field)}
-              variant="standard"
               size="small"
               onKeyDown={(e: React.KeyboardEvent) => e.stopPropagation()}
             />

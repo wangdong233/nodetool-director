@@ -6,19 +6,65 @@
  * Heavy deps (registry + runtime) load lazily inside the action.
  */
 import type { Command } from "commander";
-import { printCommandError } from "../command-errors.js";
+import { asJson, printTable } from "./output.js";
+import { printCommandError, commandMissingRuntime, commandMissingPack } from "../command-errors.js";
+import { installMissingPacksAndReexec } from "./install-missing-packs.js";
 
 interface NodeRunCliOptions {
   props?: string;
   // Commander stores `--no-secrets` as `secrets: false` (defaults to true).
   secrets?: boolean;
   json?: boolean;
+  installMissing?: boolean;
 }
 
 export function registerNodeCommands(program: Command): void {
   const node = program
     .command("node")
     .description("Inspect and run individual nodes");
+
+  node
+    .command("list [query]")
+    .description("List installed TypeScript node types (optionally filter by type or title)")
+    .option("--json", "Print complete node metadata as JSON")
+    .action(async (query: string | undefined, opts: { json?: boolean }) => {
+      try {
+        const { buildFullRegistry } = await import("../node-registry.js");
+        const registry = await buildFullRegistry();
+        const search = query?.toLowerCase() ?? "";
+        const nodes = registry.listMetadata()
+          .filter((meta) => registry.has(meta.node_type))
+          .filter((meta) => `${meta.node_type} ${meta.title}`.toLowerCase().includes(search))
+          .sort((a, b) => a.node_type.localeCompare(b.node_type));
+        if (opts.json) {
+          asJson(nodes);
+        } else if (nodes.length === 0) {
+          console.log('No installed node types match. Run "nodetool packs list" to inspect installed packs.');
+        } else {
+          printTable(nodes.map((meta) => ({ type: meta.node_type, title: meta.title })));
+          console.log('Use "nodetool node info <type>" for properties and outputs.');
+        }
+      } catch (error) {
+        process.exitCode = printCommandError(error, opts.json);
+      }
+    });
+
+  node
+    .command("info <node_type>")
+    .description("Show an installed node's properties, defaults, inputs and outputs")
+    .option("--json", "Print complete node metadata as JSON")
+    .action(async (nodeType: string, opts: { json?: boolean }) => {
+      try {
+        const { buildFullRegistry } = await import("../node-registry.js");
+        const registry = await buildFullRegistry();
+        if (!registry.has(nodeType)) {
+          throw new Error(`Node type "${nodeType}" is not installed. Use "nodetool node list" or "nodetool packs list".`);
+        }
+        asJson(registry.getMetadata(nodeType));
+      } catch (error) {
+        process.exitCode = printCommandError(error, opts.json);
+      }
+    });
 
   node
     .command("run <node_type>")
@@ -32,6 +78,7 @@ export function registerNodeCommands(program: Command): void {
     )
     .option("--no-secrets", "Don't resolve secrets/assets (hermetic run)")
     .option("--json", "Print the full run result as JSON")
+    .option("--install-missing", "Authorize missing node pack installation, then re-execute once")
     .action(async (nodeType: string, opts: NodeRunCliOptions) => {
       try {
         const { runSingleNode } = await import("../node/run-node.js");
@@ -68,6 +115,11 @@ export function registerNodeCommands(program: Command): void {
           runOptions.secretResolver = secretResolver;
         }
         const result = await runSingleNode(nodeType, runOptions);
+        if (!result.ok && (commandMissingRuntime(result) || commandMissingPack(result))) {
+          const exit = await installMissingPacksAndReexec(result, { command: "node-run", installMissing: opts.installMissing });
+          if (exit !== null) { process.exit(exit); }
+          process.exit(printCommandError(result, opts.json));
+        }
 
         const { printRunJson, previewJson } = await import("../run-json.js");
         if (opts.json) {
@@ -89,8 +141,9 @@ export function registerNodeCommands(program: Command): void {
         }
         process.exit(result.ok ? 0 : 1);
       } catch (e) {
-        printCommandError(e, opts.json);
-        process.exit(1);
+        const exit = await installMissingPacksAndReexec(e, { command: "node-run", installMissing: opts.installMissing });
+        if (exit !== null) { process.exit(exit); }
+        process.exit(printCommandError(e, opts.json));
       }
     });
 }

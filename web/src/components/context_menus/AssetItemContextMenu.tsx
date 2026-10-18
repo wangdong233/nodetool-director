@@ -2,12 +2,7 @@ import type { MouseEvent } from "react";
 import { useCallback, useMemo, useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 
-import {
-  Text,
-  Divider,
-  ContextMenu,
-  MenuItem, getSpacingPx, SPACING
-} from "../ui_primitives";
+import { Divider, ContextMenu, ListSubheader } from "../ui_primitives";
 import ContextMenuItem from "./ContextMenuItem";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
@@ -21,11 +16,15 @@ import MovieEditIcon from "@mui/icons-material/Movie";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 import useContextMenuStore from "../../stores/ContextMenuStore";
 import { useAssetStore } from "../../stores/AssetStore";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
+import { useEntityLibraryStore } from "../../stores/EntityLibraryStore";
+import { assetToEntity } from "../../serverState/useEntities";
+import { openPageTab } from "../workspace/openPageTab";
 import { assetTabType } from "../workspace/assetTabType";
 import { useEditVideoAsset } from "../../hooks/useEditVideoAsset";
 import { useSetAssetFavorite } from "../../serverState/useAssetFavorite";
@@ -35,11 +34,8 @@ import AssetInfoPanel from "./AssetInfoPanel";
 import { SendToWorkflowMenu } from "../workflows/SendToWorkflowMenu";
 import type { WorkflowMediaItem } from "../../hooks/handlers/useGenerationToCanvas";
 import { useShallow } from "zustand/react/shallow";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 const AssetItemContextMenu = () => {
-  const { t } = useTranslation();
   const menuPosition = useContextMenuStore((state) => state.menuPosition);
   const closeContextMenu = useContextMenuStore((state) => state.closeContextMenu);
 
@@ -91,7 +87,7 @@ const AssetItemContextMenu = () => {
     selectedAssets.length === 2 &&
     selectedAssets.every((asset) => asset.content_type?.startsWith("image/"));
 
-  // Resolve the workspace tab type for a single selected asset ("Open as Tab").
+  // Resolve the workspace tab type for a single selected asset ("Open as tab").
   // Null when nothing is openable as a tab (multi-select, folder, or a content
   // type with no document surface, e.g. video).
   const openableTabType =
@@ -135,28 +131,23 @@ const AssetItemContextMenu = () => {
       await copyAssetToClipboard(asset.content_type, asset.get_url, asset.name || undefined);
 
       const contentTypeLabel = asset.content_type.startsWith("image/")
-        ? i18n.t("ui2:attrs.image", { defaultValue: "Image" })
+        ? "Image"
         : asset.content_type.startsWith("video/")
-        ? i18n.t("editor:ui.videoInfo", { defaultValue: "Video info" })
+        ? "Video info"
         : asset.content_type.startsWith("audio/")
-        ? i18n.t("editor:ui.audioInfo", { defaultValue: "Audio info" })
-        : i18n.t("editor:ui.content", { defaultValue: "Content" });
+        ? "Audio info"
+        : "Content";
 
       addNotification({
         type: "success",
-        content: i18n.t("editor:ui.assetCopiedToClipboard", {
-          defaultValue: "{{label}} copied to clipboard",
-          label: contentTypeLabel
-        }),
+        content: `${contentTypeLabel} copied to clipboard`,
         alert: true
       });
     } catch (error) {
       console.error("Failed to copy to clipboard", error);
       addNotification({
         type: "error",
-        content: i18n.t("editor:ui.failedToCopyToClipboard", {
-          defaultValue: "Failed to copy to clipboard"
-        }),
+        content: "Failed to copy to clipboard",
         alert: true
       });
     }
@@ -165,21 +156,21 @@ const AssetItemContextMenu = () => {
   const handleDownloadAssets = async (selectedAssetIds: string[]) => {
     addNotification({
       type: "info",
-      content: t("editor:asset.downloadStarted", { defaultValue: "Download started. This may take a while." }),
+      content: "Download started. This may take a while.",
       alert: true
     });
     try {
       await download(selectedAssetIds);
       addNotification({
         type: "success",
-        content: t("editor:asset.downloadDone", { defaultValue: "Download finished successfully." }),
+        content: "Download finished successfully.",
         alert: true
       });
     } catch (error) {
       console.error("Download failed", error);
       addNotification({
         type: "error",
-        content: t("editor:asset.downloadFailed", { defaultValue: "Download failed. Please check the console for more details." }),
+        content: "Download failed. Please check the console for more details.",
         alert: true
       });
     }
@@ -218,8 +209,8 @@ const AssetItemContextMenu = () => {
         type: openableTabType,
         ref: asset.id,
         mode: "view",
-        projectId: asset.project_id,
-        title: asset.name || t("editor:asset.untitled", { defaultValue: "Untitled" })
+        title: asset.name || "Untitled",
+        projectId: asset.project_id
       });
       navigate("/workspace");
     }
@@ -241,6 +232,22 @@ const AssetItemContextMenu = () => {
   const singleAsset =
     selectedAssets.length === 1 ? selectedAssets[0] : null;
 
+  // A single image that is not yet an entity can start the guided "Add
+  // entity" flow with itself as the reference (study-7: the Entities empty
+  // state points here).
+  const entityCandidate =
+    singleAsset?.content_type?.startsWith("image/") &&
+    !assetToEntity(singleAsset)
+      ? singleAsset
+      : null;
+
+  const handleUseAsEntity = withMenuClose(() => {
+    if (entityCandidate) {
+      useEntityLibraryStore.getState().requestCreate(entityCandidate.id);
+      openPageTab("entities");
+    }
+  });
+
   if (!menuPosition) {return null;}
   if (sendingToWorkflow) {
     return (
@@ -258,45 +265,40 @@ const AssetItemContextMenu = () => {
         open={menuPosition !== null}
         onClose={closeContextMenu}
         onContextMenu={(event) => event.preventDefault()}
-        style={{ padding: getSpacingPx(SPACING.xl) }}
         position={menuPosition}
         paperSx={singleAsset ? { display: "flex", overflow: "visible" } : undefined}
       >
-        <MenuItem disabled>
-          <Text className="title">
-            {isFolder
-              ? t("editor:ui.folder", { defaultValue: "Folder" })
-              : t("editor:ui.itemCount", {
-                  defaultValue: "{{count}} item",
-                  count: selectedAssetIds.length
-                })}
-          </Text>
-        </MenuItem>
-        <Divider />
+        <ListSubheader className="title">
+          {isFolder
+            ? "Folder"
+            : `${selectedAssetIds.length} item${
+                selectedAssetIds.length > 1 ? "s" : ""
+              }`}
+        </ListSubheader>
         {hasSelectedAssets && (
           <ContextMenuItem
             onClick={toggleFavorite}
-            label={allFavorite ? t("editor:ui.removeFromFavorites") : t("editor:ui.addToFavorites")}
+            label={allFavorite ? "Remove from favorites" : "Add to favorites"}
             IconComponent={allFavorite ? <StarBorderIcon /> : <StarIcon />}
             tooltip={
               allFavorite
-                ? t("editor:ui.unstarTheSelectedAssets")
-                : t("editor:ui.starTheSelectedAssetsToFindThemUnderFavorites")
+                ? "Unstar the selected assets"
+                : "Star the selected assets to find them under Favorites"
             }
           />
         )}
         <ContextMenuItem
           onClick={openRenameDialog}
-          label={t("common:action.rename", { defaultValue: "Rename" })}
+          label="Rename"
           IconComponent={<DriveFileRenameOutlineIcon />}
-          tooltip={t("editor:asset.renameTip", { defaultValue: "Rename selected assets" })}
+          tooltip="Rename selected assets"
         />
         {openableTabType && (
           <ContextMenuItem
             onClick={handleOpenAsTab}
-            label={t("editor:asset.openAsTab", { defaultValue: "Open as Tab" })}
+            label="Open as tab"
             IconComponent={<TabIcon />}
-            tooltip={t("editor:asset.openAsTabTip", { defaultValue: "Open this asset in a new editor tab" })}
+            tooltip="Open this asset in a new editor tab"
           />
         )}
         {workflowMedia.length > 0 && (
@@ -305,90 +307,94 @@ const AssetItemContextMenu = () => {
               event?.stopPropagation();
               setSendingToWorkflow(true);
             }}
-            label={t("editor:ui.sendToWorkflowMenu", { defaultValue: "Send to Workflow" })}
+            label="Send to workflow"
             IconComponent={<AccountTreeOutlinedIcon />}
-            tooltip={t("editor:ui.sendSelectedMediaToWorkflowTooltip", {
-              defaultValue:
-                "Add the selected media to a workflow canvas as constant nodes"
-            })}
+            tooltip="Add the selected media to a workflow canvas as constant nodes"
+          />
+        )}
+        {entityCandidate && (
+          <ContextMenuItem
+            onClick={handleUseAsEntity}
+            label="Use as entity…"
+            IconComponent={<PersonAddAltOutlinedIcon />}
+            tooltip="Tag this image as a character, location, style, or prop to reuse it across shots"
           />
         )}
         {singleVideo && (
           <ContextMenuItem
             onClick={handleEditVideo}
-            label={singleVideo.timeline_id ? t("editor:asset.editTimeline", { defaultValue: "Edit Timeline" }) : t("editor:asset.createTimelineFromVideo", { defaultValue: "Create Timeline from Video" })}
+            label={singleVideo.timeline_id ? "Edit timeline" : "Create timeline from video"}
             IconComponent={<MovieEditIcon />}
             tooltip={
               singleVideo.timeline_id
-                ? t("editor:asset.editTimelineTip", { defaultValue: "Open the timeline this video was rendered from" })
-                : t("editor:asset.createTimelineTip", { defaultValue: "Create a timeline from this video and open it for editing" })
+                ? "Open the timeline this video was rendered from"
+                : "Create a timeline from this video and open it for editing"
             }
           />
         )}
         <Divider />
         <ContextMenuItem
           onClick={openMoveDialog}
-          label={t("editor:asset.moveToExisting", { defaultValue: "Move to existing folder" })}
+          label="Move to existing folder"
           IconComponent={<DriveFileMoveIcon />}
-          tooltip={t("editor:asset.moveToExistingTip", { defaultValue: "Move selected assets to an existing folder" })}
+          tooltip="Move selected assets to an existing folder"
         />
         <ContextMenuItem
           onClick={openCreateFolderDialog}
-          label={hasSelectedAssets ? t("editor:asset.moveToNew", { defaultValue: "Move to new folder" }) : t("editor:asset.createNewFolder", { defaultValue: "Create new folder" })}
+          label={hasSelectedAssets ? "Move to new folder" : "Create new folder"}
           IconComponent={<CreateNewFolderIcon />}
           tooltip={
             hasSelectedAssets
-              ? t("editor:asset.moveToNewTip", { defaultValue: "Create a new folder and move selected assets into it" })
-              : t("editor:asset.createFolderHereTip", { defaultValue: "Create a new folder in the current location" })
+              ? "Create a new folder and move selected assets into it"
+              : "Create a new folder in the current location"
           }
         />
         <Divider />
         <ContextMenuItem
           onClick={downloadSelected}
-          label={t("editor:asset.downloadSelected", { defaultValue: "Download Selected Assets" })}
+          label="Download selected assets"
           IconComponent={<FileDownloadIcon />}
-          tooltip={t("editor:asset.downloadTip", { defaultValue: "Download selected assets to your Downloads folder" })}
+          tooltip="Download selected assets to your Downloads folder"
         />
         {isElectron && isSingleClipboardSupported && (
           <ContextMenuItem
             onClick={copyToClipboard}
             label={
               selectedAssets[0]?.content_type?.startsWith("image/")
-                ? t("editor:asset.copyImage", { defaultValue: "Copy Image" })
+                ? "Copy image"
                 : selectedAssets[0]?.content_type?.startsWith("video/")
-                ? t("editor:asset.copyVideoInfo", { defaultValue: "Copy Video Info" })
+                ? "Copy video info"
                 : selectedAssets[0]?.content_type?.startsWith("audio/")
-                ? t("editor:asset.copyAudioInfo", { defaultValue: "Copy Audio Info" })
-                : t("editor:asset.copyContent", { defaultValue: "Copy Content" })
+                ? "Copy audio info"
+                : "Copy content"
             }
             IconComponent={<ContentCopyIcon />}
             tooltip={
               selectedAssets[0]?.content_type?.startsWith("image/")
-                ? t("editor:asset.copyImageTip", { defaultValue: "Copy image to clipboard" })
+                ? "Copy image"
                 : selectedAssets[0]?.content_type?.startsWith("video/")
-                ? t("editor:asset.copyVideoTip", { defaultValue: "Copy video URL and metadata to clipboard" })
+                ? "Copy video URL and metadata"
                 : selectedAssets[0]?.content_type?.startsWith("audio/")
-                ? t("editor:asset.copyAudioTip", { defaultValue: "Copy audio URL and metadata to clipboard" })
-                : t("editor:asset.copyContentTip", { defaultValue: "Copy content to clipboard" })
+                ? "Copy audio URL and metadata"
+                : "Copy content"
             }
           />
         )}
         {isTwoImages && (
           <ContextMenuItem
             onClick={handleCompareImages}
-            label={t("editor:asset.compareImages", { defaultValue: "Compare Images" })}
+            label="Compare images"
             IconComponent={<CompareIcon />}
-            tooltip={t("editor:asset.compareTip", { defaultValue: "Compare the two selected images side-by-side" })}
+            tooltip="Compare the two selected images side-by-side"
           />
         )}
         <Divider />
-        <div style={{ height: ".5em" }} />
         <ContextMenuItem
           onClick={openDeleteDialog}
-          label={t("common:action.delete", { defaultValue: "Delete" })}
-          addButtonClassName="delete"
+          label="Delete"
+          destructive
           IconComponent={<RemoveCircleIcon />}
-          tooltip={t("editor:asset.deleteTip", { defaultValue: "Delete selected assets" })}
+          tooltip="Delete selected assets"
         />
         {singleAsset && (
           <AssetInfoPanel

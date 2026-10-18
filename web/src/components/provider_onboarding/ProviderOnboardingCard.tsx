@@ -8,8 +8,10 @@ import KeyRoundedIcon from "@mui/icons-material/KeyRounded";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 
 import {
+  AlertBanner,
   Box,
   Caption,
+  Card,
   EditorButton,
   FlexColumn,
   FlexRow,
@@ -243,14 +245,17 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
   const storedStatus = storedCredentialStatus ?? "configured";
 
   return (
-    <FlexColumn
+    <Card
       component="article"
       aria-label={provider.name}
+      padding={SPACING.xl}
       sx={{
-        p: SPACING.xl,
+        display: "flex",
+        flexDirection: "column",
+        // Rows of one framed list: the list owns the frame and corners.
+        borderRadius: 0,
         borderBottom: `1px solid ${theme.vars.palette.divider}`,
-        "&:last-child": { borderBottom: 0 },
-        backgroundColor: theme.vars.palette.background.paper
+        "&:last-child": { borderBottom: 0 }
       }}
     >
       <FlexColumn gap={SPACING.sm}>
@@ -346,7 +351,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                     size="small"
                     startIcon={
                       oauth.isConnecting ? undefined : (
-                        <LoginIcon sx={{ fontSize: "1.2em" }} />
+                        <LoginIcon />
                       )
                     }
                     onClick={oauth.connect}
@@ -362,13 +367,12 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                     size="small"
                     startIcon={
                       provider.oauth ? undefined : (
-                        <KeyRoundedIcon sx={{ fontSize: "1.2em" }} />
+                        <KeyRoundedIcon />
                       )
                     }
                     endIcon={
                       <ExpandMoreRoundedIcon
                         sx={{
-                          fontSize: "1.2em",
                           transition: MOTION.transform,
                           ...reducedMotion({ transition: MOTION.none }),
                           transform: expanded ? "rotate(180deg)" : "none"
@@ -389,7 +393,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
 
         {/* Inline API-key entry */}
         {expanded && (!isConnected || replacing) && !provider.oauthOnly && (
-          <FlexColumn id={keyFieldId} gap={SPACING.md} className="nodrag nowheel" sx={{ pt: SPACING.lg }}>
+          <FlexColumn id={keyFieldId} gap={SPACING.lg} className="nodrag nowheel" sx={{ pt: SPACING.lg }}>
             <FlexRow gap={SPACING.xs} align="center">
               <TextInput
                 size="small"
@@ -405,6 +409,12 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                 }}
                 fullWidth
                 autoFocus
+                errorMessage={rejected ?? undefined}
+                slotProps={
+                  rejected
+                    ? { formHelperText: { role: "alert" } }
+                    : undefined
+                }
               />
               <EditorButton
                 variant="contained"
@@ -432,12 +442,12 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                 density="compact"
                 variant="text"
                 size="small"
-                endIcon={<OpenInNewIcon sx={{ fontSize: "1.2em" }} />}
+                endIcon={<OpenInNewIcon />}
                 onClick={() =>
                   window.open(provider.keyUrl, "_blank", "noopener,noreferrer")
                 }
               >
-                Get a {provider.name} key
+                Get a key from {provider.name}
               </EditorButton>
               <Caption size="smaller" >
                 {t(PROVIDER_COST_HINT_KEYS[provider.id] ?? "", { defaultValue: provider.costHint })}
@@ -445,9 +455,6 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
             </FlexRow>
             {rejected && (
               <FlexRow align="center" gap={SPACING.xs} wrap>
-                <Caption role="alert" size="small" color="error" sx={{ flex: 1 }}>
-                  {rejected}
-                </Caption>
                 <EditorButton
                   density="compact"
                   variant="text"
@@ -460,9 +467,9 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
               </FlexRow>
             )}
             {saveError && (
-              <Caption role="alert" size="small" color="error">
+              <AlertBanner severity="error" compact>
                 {saveError}
-              </Caption>
+              </AlertBanner>
             )}
             {statusDetail && !rejected && (
               <Caption
@@ -493,7 +500,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
         onSubmit={oauth.submitManualCode}
         onCancel={oauth.cancelManual}
       />
-    </FlexColumn>
+    </Card>
   );
 };
 

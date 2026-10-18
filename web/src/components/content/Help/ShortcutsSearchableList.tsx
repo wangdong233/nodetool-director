@@ -1,12 +1,21 @@
 import React, { useMemo, useState } from "react";
 import type { SxProps, Theme } from "@mui/material/styles";
-import { FlexColumn, FlexRow, Text, TextInput, Box, Z_INDEX } from "../../ui_primitives";
+import {
+  Caption,
+  EmptyState,
+  FlexColumn,
+  FlexRow,
+  SectionHeader,
+  Text,
+  TextInput,
+  Box,
+  Z_INDEX
+} from "../../ui_primitives";
 import {
   getShortcutTooltip,
   SHORTCUT_CATEGORIES,
   type Shortcut
 } from "../../../config/shortcuts";
-import { useTranslation } from "react-i18next";
 
 const categories = Object.keys(SHORTCUT_CATEGORIES) as Array<
   keyof typeof SHORTCUT_CATEGORIES
@@ -34,7 +43,6 @@ export const ShortcutsSearchableList: React.FC<ShortcutsSearchableListProps> = (
   scrollSx,
   searchPlaceholder = "Search shortcuts"
 }) => {
-  const { t } = useTranslation();
   const catalog = tooltipCatalog ?? shortcuts;
   const [search, setSearch] = useState("");
 
@@ -56,6 +64,11 @@ export const ShortcutsSearchableList: React.FC<ShortcutsSearchableListProps> = (
     }
     return groups;
   }, [search, shortcuts]);
+
+  const hasResults = useMemo(
+    () => Array.from(groupedShortcuts.values()).some((list) => list.length > 0),
+    [groupedShortcuts]
+  );
 
   return (
     <FlexColumn
@@ -89,6 +102,14 @@ export const ShortcutsSearchableList: React.FC<ShortcutsSearchableListProps> = (
           ...scrollSx
         }}
       >
+        {!hasResults && (
+          <EmptyState
+            variant="no-results"
+            size="small"
+            title="No matching shortcuts"
+            description="Try a different search term."
+          />
+        )}
         {categories.map((cat) => {
           const list = groupedShortcuts.get(cat);
           if (!list || !list.length) {
@@ -96,34 +117,25 @@ export const ShortcutsSearchableList: React.FC<ShortcutsSearchableListProps> = (
           }
           return (
             <Box key={cat} sx={{ mb: 3 }}>
-              <Text size="big" color="secondary" sx={{ mb: 4 }}>{SHORTCUT_CATEGORIES[cat] ??
-                cat.charAt(0).toUpperCase() + cat.slice(1)}</Text>
+              <SectionHeader
+                size="small"
+                title={
+                  SHORTCUT_CATEGORIES[cat] ??
+                  cat.charAt(0).toUpperCase() + cat.slice(1)
+                }
+              />
               {list.map((s) => (
                 <FlexRow
                   key={s.slug}
                   className="help-item"
                   align="center"
                 >
-                  <Text sx={{ minWidth: 200 }}>
-                    {t(`catalog:shortcuts.${s.titleKey ?? ""}`, {
-                      defaultValue: s.title
-                    })}
-                  </Text>
+                  <Text sx={{ minWidth: 200 }}>{s.title}</Text>
                   <Box sx={{ minWidth: 200 }}>
                     {getShortcutTooltip(s.slug, undefined, "combo", false, catalog)}
                   </Box>
                   {s.description ? (
-                    <Text
-                      size="small"
-                      sx={{
-                        color: "var(--palette-grey-200)",
-                        fontWeight: 400
-                      }}
-                    >
-                      {t(`catalog:shortcuts.${s.descriptionKey ?? ""}`, {
-                        defaultValue: s.description
-                      })}
-                    </Text>
+                    <Caption color="secondary">{s.description}</Caption>
                   ) : null}
                 </FlexRow>
               ))}

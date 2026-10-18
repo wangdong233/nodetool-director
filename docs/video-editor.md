@@ -56,7 +56,7 @@ Each timeline (whether a standalone page or a workspace tab) runs in its own iso
 
 | Region        | What it does                                                                         |
 | ------------- | ------------------------------------------------------------------------------------ |
-| **Tab-row actions** | Save, **Export video**, and an overflow menu with **Project settings**, **Adapt format**, **Save as Asset**, and **Export project (.zip)**. A code button appears when the timeline has embedded authoring code |
+| **Tab-row actions** | Save, **Export video**, and an overflow menu with **Project settings**, **Adapt format**, **Save as Asset**, **Export project (.zip)**, **Export for Premiere Pro**, and **Export media (.zip)**. A code button appears when the timeline has embedded authoring code |
 | **Preview**   | The composited video with transport controls, timecode, a preview quality select (Auto, Full, Half, Quarter), and FPS readout |
 | **Tracks**    | The multi-track timeline — a canvas-rendered ruler, the playhead, and the clips      |
 | **Side panel** | Tabs for **Inspector**, **Instruments**, **Source**, **Assistant**, and **History**, plus **Script** and **Code** when the timeline has them |
@@ -78,7 +78,7 @@ The toolbar above the tracks toggles **Select** and **Cut** tools, **Ripple** (t
 
 **Clip operations:**
 
-- **Add** — drag media from the Asset Explorer onto a track, or add a generated clip from the add menu. Images and video fit video and overlay tracks, audio fits audio tracks, and 3D models fit video and overlay tracks. A drop on an incompatible track is refused.
+- **Add** — drag media from the Asset Explorer onto a track, or add a generated clip from the add menu. Images and video fit video and overlay tracks, audio fits audio tracks, and 3D models fit video and overlay tracks. A drop on an incompatible track is refused. A drop in the second half of a clip starts at that clip's end, so the clip keeps its length. In **Overlap** mode, and in a clip's first half, the drop starts where you release it.
 - **Select** — click a clip; `Shift`/`Ctrl`-click to multi-select.
 - **Move / trim** — drag the body to move, drag the edges to trim the in/out points.
 - **Split** — position the playhead and press `S` to cut a clip in two.
@@ -193,7 +193,10 @@ Preview and export sample the same animation resolver, so transforms and opacity
 - Audio is mixed offline and muxed with the encoded video.
 - A progress dialog reports the phase (preparing, audio, video, finalizing) and the export can be cancelled.
 - **Save as Asset** renders the timeline and stores the result in an asset folder you pick. **Export project (.zip)** bundles the timeline project.
-- The `render_timeline` agent tool and the `nodetool.timeline.RenderTimeline` node render the same sequence server-side.
+- **Export for Premiere Pro** downloads a zip with a Final Cut Pro 7 XML sequence, the media its clips use, and `export-report.txt`. In Premiere Pro, choose **File > Import** and pick the XML. Video, image, and audio clips keep their tracks, positions, in and out points, constant speed, opacity, volume, and enabled state. A video's own sound lands on a linked audio track. Text, shapes, captions, effects, animations, transitions, and fades are not carried, and the report lists every clip affected. If Premiere asks to link media, locate one file in the `media` folder and it relinks the rest.
+- **Export media (.zip)** downloads the original file of every video, image, and audio clip under `media/`, untrimmed, with `clips.csv` listing each clip's track, timeline start and end, source in-point, and file.
+- **Import** (the upload button beside **New timeline** in the timeline list) takes a NodeTool project zip or a Premiere Pro sequence. For Premiere, choose **File > Export > Final Cut Pro XML**, zip the XML together with its media files, and import the zip. NodeTool matches media by file name and creates a new timeline with the same tracks, clip positions, in points, constant speed, opacity, volume, enabled state, and markers. Transitions become overlapping cuts. Nested sequences, titles, generators, and effects are left out, and the import says what it skipped.
+- The `render_timeline` agent tool and the `nodetool.timeline.RenderTimeline` node render the same sequence server-side. They run this exporter in headless Chrome or Chromium, so the server render matches the export. Without a browser they fall back to a Node compositor and say so in the job log. `render_timeline` returns a job id: poll it with `get_job` and stop it with `cancel_job`.
 
 Change the sequence width, height, frame rate, and tempo in **Project settings**.
 

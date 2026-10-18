@@ -23,7 +23,6 @@
  * returns to the same scroll position.
  */
 
-import { useTranslation } from "react-i18next";
 import React, {
   memo,
   Suspense,
@@ -37,12 +36,13 @@ import {
   shotRenderMode,
   requiredVideoTasksForShots
 } from "@nodetool-ai/protocol";
+import { effectiveShotDuration } from "@nodetool-ai/timeline";
 import type {
   SceneClipDirection,
   Shot,
   ShotModelRef
 } from "@nodetool-ai/protocol";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import TuneIcon from "@mui/icons-material/Tune";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import SlideshowIcon from "@mui/icons-material/Slideshow";
@@ -51,7 +51,7 @@ import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
 import { useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
-import { ASPECT_OPTIONS, aspectOptionLabel } from "./aspectOptions";
+import { ASPECT_OPTIONS } from "./aspectOptions";
 import {
   CLIP_TASK_LABELS,
   STILL_MODEL_TASKS,
@@ -62,7 +62,9 @@ import {
 } from "./shotRenderModels";
 import RenderCostSummary from "./RenderCostSummary";
 
+import ErrorBanner from "../support/ErrorBanner";
 import {
+  AlertBanner,
   Box,
   Card,
   Caption,
@@ -80,10 +82,12 @@ import {
   LoadingSpinner,
   Panel,
   ScrollArea,
+  SearchInput,
   SectionHeader,
   SelectField,
   Skeleton,
   Text,
+  TextArea,
   TextInput,
   ToolbarIconButton,
   Tooltip,
@@ -123,6 +127,7 @@ import {
   useRenderBatchCostEstimate,
   type RenderBatchCostEstimate
 } from "../../hooks/storyboard/useRenderBatchCostEstimate";
+import { useBoardScriptLines } from "../../hooks/storyboard/useShotDuration";
 import { sceneOrder, type SceneGroup } from "../../lib/storyboard/sceneOrder";
 import BoardGenreChip from "./BoardGenreChip";
 import BoardLineageChip from "./BoardLineageChip";
@@ -148,6 +153,8 @@ import ShotEditPanel from "./ShotEditPanel";
 import OneTakePanel from "./OneTakePanel";
 const SceneClipDialog = React.lazy(() => import("./SceneClipDialog"));
 import ShotInsertPoint, { SHOT_INSERT_POINT_CLASS } from "./ShotInsertPoint";
+import { searchSceneGroups } from "./shotSearch";
+import { useGlobalCombo } from "../../stores/KeyPressedStore";
 import ShotInspector from "./ShotInspector";
 import StoryboardEntitiesField from "./StoryboardEntitiesField";
 import { sceneDropTarget } from "./sceneDrop";
@@ -194,7 +201,10 @@ export interface StoryboardReviewRequest {
   requestId: string;
 }
 
-const SHOT_COUNT_VALUES = [3, 4, 5, 6, 8, 10, 12];
+const SHOT_COUNT_OPTIONS = [3, 4, 5, 6, 8, 10, 12].map((n) => ({
+  value: n,
+  label: `${n} shots`
+}));
 
 const FORM_STACK_BELOW = 860;
 
@@ -246,20 +256,12 @@ const shotSlotSx = {
  * `StoryboardBoard.test.tsx` pins these captions against `displayNumber`.
  */
 const captionsByShotId = (
-  groups: readonly SceneGroup[],
-  t: ReturnType<typeof useTranslation>["t"]
+  groups: readonly SceneGroup[]
 ): Map<string, string> => {
   const captions = new Map<string, string>();
   groups.forEach((group, sceneIndex) => {
     group.shots.forEach((shot, shotIndex) => {
-      captions.set(
-        shot.id,
-        t("storyboard:attrs.sceneShotCaption", {
-          defaultValue: "Scene {{scene}} | Shot {{shot}}",
-          scene: sceneIndex + 1,
-          shot: shotIndex + 1
-        })
-      );
+      captions.set(shot.id, `Scene ${sceneIndex + 1} | Shot ${shotIndex + 1}`);
     });
   });
   return captions;
@@ -292,7 +294,6 @@ const RenderBatchButton: React.FC<RenderBatchButtonProps> = ({
   onClick,
   fullWidth
 }) => {
-  const { t } = useTranslation();
   const { requestCount, cost, pricedRequestCount, reasons, notes } = estimate;
   const priced = pricedRequestCount > 0 && cost > 0;
   const partial = priced && pricedRequestCount < requestCount;
@@ -304,23 +305,12 @@ const RenderBatchButton: React.FC<RenderBatchButtonProps> = ({
         <FlexColumn gap={SPACING.micro}>
           <Text size="small">
             {priced
-              ? `${
-                  requestCount === 1
-                    ? t("storyboard:attrs.oneRequestAboutCost", { defaultValue: "1 request · about {{cost}}", cost: formatUsd(cost) })
-                    : t("storyboard:attrs.nRequestsAboutCost", { defaultValue: "{{count}} requests · about {{cost}}", count: requestCount, cost: formatUsd(cost) })
-                }${
+              ? `${requestCount} request${requestCount === 1 ? "" : "s"} · about ${formatUsd(cost)}${
                   partial
-                    ? t("storyboard:attrs.partialPricedSuffix", {
-                        defaultValue:
-                          " ({{priced}} of {{total}} priced — the rest are not in any catalog)",
-                        priced: pricedRequestCount,
-                        total: requestCount
-                      })
+                    ? ` (${pricedRequestCount} of ${requestCount} priced — the rest are not in any catalog)`
                     : ""
                 }`
-              : requestCount === 1
-                ? t("storyboard:attrs.oneRequestNonePriced", { defaultValue: "1 request, none of them priced." })
-                : t("storyboard:attrs.nRequestsNonePriced", { defaultValue: "{{count}} requests, none of them priced.", count: requestCount })}
+              : `${requestCount} request${requestCount === 1 ? "" : "s"}, none of them priced.`}
           </Text>
           {reasons.map((reason) => (
             <Caption key={reason} color="secondary">
@@ -335,10 +325,8 @@ const RenderBatchButton: React.FC<RenderBatchButtonProps> = ({
             ))}
           {priced && (
             <Caption color="secondary">
-              {t("storyboard:attrs.listPriceFromTheProviderCatalog", {
-                defaultValue:
-                  "List price from the provider catalog. The render is billed by the provider at its own rates."
-              })}
+              List price from the provider catalog. The render is billed by the
+              provider at its own rates.
             </Caption>
           )}
         </FlexColumn>
@@ -380,7 +368,6 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   assistantOpen = false,
   onToggleAssistant
 }) => {
-  const { t } = useTranslation();
   const {
     title,
     brief,
@@ -527,28 +514,46 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   // the captions, and the scene a drop resolves against all read it.
   const scenes = screenplay?.scenes;
   const sceneGroups = useMemo(() => sceneOrder(shots, scenes), [shots, scenes]);
-  const captions = useMemo(
-    () => captionsByShotId(sceneGroups, t),
-    [sceneGroups, t]
+  const captions = useMemo(() => captionsByShotId(sceneGroups), [sceneGroups]);
+  // Each card shows the length its clip renders at: the takes of a linked
+  // script when they time the shot, the shot's own seconds otherwise.
+  const scriptLines = useBoardScriptLines(boardId);
+  const durations = useMemo(() => {
+    const seconds = new Map<string, number>();
+    for (const shot of shots) {
+      const duration = effectiveShotDuration(shot, scriptLines).seconds;
+      if (duration != null && duration > 0) {
+        seconds.set(shot.id, duration);
+      }
+    }
+    return seconds;
+  }, [shots, scriptLines]);
+  // Quick search narrows the cards shown. Reordering and inserting act on the
+  // full board, so both are off while a query hides shots.
+  const [shotQuery, setShotQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+  const searching = shotQuery.trim() !== "";
+  const visibleGroups = useMemo(
+    () => searchSceneGroups(sceneGroups, shotQuery, captions),
+    [sceneGroups, shotQuery, captions]
   );
+  const visibleShotIds = useMemo(
+    () => visibleGroups.flatMap((group) => group.shots.map((shot) => shot.id)),
+    [visibleGroups]
+  );
+  useGlobalCombo("/", () => searchRef.current?.focus(), {
+    target: () => searchRef.current
+  });
   const sceneClips =
     useStoryboardStore((state) => state.boards[boardId]?.sceneClips) ??
     NO_SCENE_CLIPS;
   const sceneClipTags = useMemo(() => {
     const tags = new Map<string, string>();
     for (const [shotId, part] of sceneClipParts(shots, sceneClips)) {
-      tags.set(
-        shotId,
-        t("storyboard:attrs.sceneClipTag", {
-          defaultValue: "Clip {{position}}/{{count}} \u00B7 {{window}}",
-          position: part.position,
-          count: part.count,
-          window: part.window
-        })
-      );
+      tags.set(shotId, `Clip ${part.position}/${part.count} \u00B7 ${part.window}`);
     }
     return tags;
-  }, [shots, sceneClips, t]);
+  }, [shots, sceneClips]);
   const sceneClipsByGroup = useMemo(
     () =>
       new Map(
@@ -656,11 +661,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
       if (!isShotNavigationKey(event.key)) {
         return;
       }
-      const next = navigateShots(
-        shots.map((s) => s.id),
-        activeShotId,
-        event.key
-      );
+      const next = navigateShots(visibleShotIds, activeShotId, event.key);
       if (!next) {
         return;
       }
@@ -672,8 +673,22 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
         ?.querySelector<HTMLElement>(`[data-shot-id="${next}"]`)
         ?.focus();
     },
-    [shots, activeShotId, selectShot, boardId]
+    [visibleShotIds, activeShotId, selectShot, boardId]
   );
+
+  // Enter in the search field opens the first match: it is selected and
+  // focused, so the arrow keys continue from there.
+  const handleSearchSubmit = useCallback(() => {
+    const first = visibleShotIds[0];
+    if (!first || !searching) {
+      return;
+    }
+    selectShot(boardId, first);
+    // Focus also scrolls the card into view.
+    gridRef.current
+      ?.querySelector<HTMLElement>(`[data-shot-id="${first}"]`)
+      ?.focus();
+  }, [visibleShotIds, searching, selectShot, boardId]);
 
   // Drag one card onto another: the dragged shot takes the target's slot.
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -865,19 +880,13 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
       .map((e) => e.name)
       .filter((name): name is string => !!name);
     return [
-      shots.length === 1
-        ? t("storyboard:attrs.oneShot", { defaultValue: "1 shot" })
-        : t("storyboard:attrs.nShots", { defaultValue: "{{count}} shots", count: shots.length }),
-      style.trim().length > 0
-        ? t("storyboard:attrs.styleSummary", { defaultValue: "{{style}} style", style: style.trim() })
-        : null,
-      entityNames.length > 0
-        ? t("storyboard:attrs.entitySummary", { defaultValue: "entity: {{names}}", names: entityNames.join(", ") })
-        : null
+      `${shots.length} shot${shots.length === 1 ? "" : "s"}`,
+      style.trim().length > 0 ? `${style.trim()} style` : null,
+      entityNames.length > 0 ? `entity: ${entityNames.join(", ")}` : null
     ]
       .filter((part): part is string => part !== null)
       .join(" · ");
-  }, [shots.length, style, entityIds, allEntities, t]);
+  }, [shots.length, style, entityIds, allEntities]);
 
   const { generateKeyframe, generateClip } = useGenerateShot();
   const resolveImageModel = useCallback(
@@ -1073,16 +1082,15 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           type: "error",
           alert: true,
           dismissable: true,
-          content: t("storyboard:attrs.storyboardDownloadFailed", {
-            defaultValue: "Storyboard download failed. {{error}}",
-            error: error instanceof Error ? error.message : String(error)
-          })
+          content: `Storyboard download failed. ${
+            error instanceof Error ? error.message : String(error)
+          }`
         });
       } finally {
         setDownloading(false);
       }
     },
-    [boardId, title, t]
+    [boardId, title]
   );
 
   const handleDownloadZip = useCallback(() => {
@@ -1125,16 +1133,14 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
       canRedo={canRedo}
       onUndo={onUndo}
       onRedo={onRedo}
-      undoTooltip={t("storyboard:attrs.undoCmdZ", { defaultValue: "Undo (⌘Z)" })}
-      redoTooltip={t("storyboard:attrs.redoCmdZ", { defaultValue: "Redo (⌘⇧Z)" })}
+      undoTooltip="Undo (⌘Z)"
+      redoTooltip="Redo (⌘⇧Z)"
     />
   );
   const downloadingStatus = downloading && (
     <FlexRow align="center" gap={SPACING.xs} role="status">
-      <LoadingSpinner size={16} />
-      <Caption color="secondary">
-        {t("storyboard:attrs.preparingZip", { defaultValue: "Preparing ZIP…" })}
-      </Caption>
+      <LoadingSpinner inline size={16} />
+      <Caption color="secondary">Preparing ZIP…</Caption>
     </FlexRow>
   );
   const actionsMenu = (
@@ -1148,7 +1154,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   );
   const renderStillsButton = (
     <RenderBatchButton
-      label={t("storyboard:attrs.renderStills", { defaultValue: "Render stills" })}
+      label="Render stills"
       estimate={stillsCost}
       disabled={pendingStills.length === 0 || !!directing}
       highlighted={stillStepActive}
@@ -1158,7 +1164,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
   );
   const renderClipsButton = (
     <RenderBatchButton
-      label={t("storyboard:attrs.renderClips", { defaultValue: "Render clips" })}
+      label="Render clips"
       estimate={clipsCost}
       disabled={pendingClips.length === 0 || !!directing}
       highlighted={clipStepActive}
@@ -1187,9 +1193,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           }}
         >
           <FlexRow align="center" gap={SPACING.lg} wrap>
-            <Text size="big">
-              {title || t("storyboard:attrs.untitledFilm", { defaultValue: "Untitled film" })}
-            </Text>
+            <Text size="big">{title || "Untitled film"}</Text>
             <BoardGenreChip
               boardId={boardId}
               genre={genre}
@@ -1204,7 +1208,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                   <FlexRow align="center" gap={SPACING.md}>
                     <BoardCardSizeSlider />
                     <EditorButton variant="outlined" onClick={openSlideshow}>
-                      {t("storyboard:attrs.slideshow", { defaultValue: "Slideshow" })}
+                      Slideshow
                     </EditorButton>
                   </FlexRow>
                 )}
@@ -1213,47 +1217,45 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                     {undoRedo}
                     <EditorButton
                       variant="outlined"
-                      startIcon={<AddIcon fontSize="small" />}
+                      startIcon={<AddIcon />}
                       onClick={handleAddShot}
                       disabled={directing}
                     >
-                      {t("storyboard:attrs.addShot", { defaultValue: "Add shot" })}
+                      Add shot
                     </EditorButton>
                     <EditorButton
                       variant="outlined"
                       onClick={togglePreview}
                       disabled={!hasPlayableShot}
                     >
-                      {previewOpen
-                        ? t("storyboard:attrs.hidePreview", { defaultValue: "Hide preview" })
-                        : t("storyboard:attrs.preview", { defaultValue: "Preview" })}
+                      {previewOpen ? "Hide preview" : "Preview"}
                     </EditorButton>
                     <EditorButton
                       variant={settingsVisible ? "contained" : "outlined"}
-                      startIcon={<TuneIcon fontSize="small" />}
+                      startIcon={<TuneIcon />}
                       onClick={toggleSettings}
                       aria-expanded={settingsVisible}
                       aria-controls={settingsPanelId}
                     >
-                      {t("storyboard:attrs.boardSettings", { defaultValue: "Board settings" })}
+                      Board settings
                     </EditorButton>
                     <EditorButton
                       variant={oneTakeOpen ? "contained" : "outlined"}
-                      startIcon={<MovieOutlinedIcon fontSize="small" />}
+                      startIcon={<MovieOutlinedIcon />}
                       onClick={toggleOneTake}
                       aria-expanded={oneTakeOpen}
                       aria-controls={oneTakePanelId}
                     >
-                      {t("storyboard:attrs.oneTake", { defaultValue: "One take" })}
+                      One take
                     </EditorButton>
                     {onToggleAssistant && (
                       <EditorButton
                         variant={assistantOpen ? "contained" : "outlined"}
-                        startIcon={<AutoAwesomeIcon fontSize="small" />}
+                        startIcon={<AutoAwesomeIcon />}
                         onClick={onToggleAssistant}
                         aria-pressed={assistantOpen}
                       >
-                        {t("editor:ui.assistant", { defaultValue: "Assistant" })}
+                        Assistant
                       </EditorButton>
                     )}
                     {downloadingStatus}
@@ -1278,7 +1280,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 {!readOnly && (
                   <ToolbarIconButton
                     icon={<AddIcon />}
-                    tooltip={t("storyboard:attrs.addShot", { defaultValue: "Add shot" })}
+                    tooltip="Add shot"
                     onClick={handleAddShot}
                     disabled={directing}
                   />
@@ -1286,18 +1288,14 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 {hasShots && (
                   <ToolbarIconButton
                     icon={<SlideshowIcon />}
-                    tooltip={t("storyboard:attrs.slideshow", { defaultValue: "Slideshow" })}
+                    tooltip="Slideshow"
                     onClick={openSlideshow}
                   />
                 )}
                 {!readOnly && (
                   <ToolbarIconButton
                     icon={<PlayCircleOutlineIcon />}
-                    tooltip={
-                      previewOpen
-                        ? t("storyboard:attrs.hidePreview", { defaultValue: "Hide preview" })
-                        : t("storyboard:attrs.preview", { defaultValue: "Preview" })
-                    }
+                    tooltip={previewOpen ? "Hide preview" : "Preview"}
                     onClick={togglePreview}
                     disabled={!hasPlayableShot}
                     active={previewOpen}
@@ -1307,7 +1305,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 {!readOnly && (
                   <ToolbarIconButton
                     icon={<TuneIcon />}
-                    tooltip={t("storyboard:attrs.boardSettings", { defaultValue: "Board settings" })}
+                    tooltip="Board settings"
                     onClick={toggleSettings}
                     active={settingsVisible}
                     aria-expanded={settingsVisible}
@@ -1317,7 +1315,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 {!readOnly && (
                   <ToolbarIconButton
                     icon={<MovieOutlinedIcon />}
-                    tooltip={t("storyboard:attrs.oneTake", { defaultValue: "One take" })}
+                    tooltip="One take"
                     onClick={toggleOneTake}
                     active={oneTakeOpen}
                     aria-expanded={oneTakeOpen}
@@ -1355,41 +1353,37 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
               >
                 <FlexColumn gap={SPACING.xl}>
                   <SectionHeader
-                    title={t("storyboard:attrs.boardSettings", { defaultValue: "Board settings" })}
+                    title="Board settings"
                     size="medium"
                     action={
                       <CloseButton
-                        tooltip={t("storyboard:attrs.closeBoardSettings", { defaultValue: "Close board settings" })}
+                        tooltip="Close board settings"
                         onClick={closeSettings}
                       />
                     }
                   />
                   <FormGrid stackBelow={FORM_STACK_BELOW}>
-                    <FormSection label={t("storyboard:attrs.screenplay", { defaultValue: "Screenplay" })}>
-                      <FormField label={t("storyboard:attrs.title", { defaultValue: "Title" })}>
-                        <TextInput
-                          value={title}
-                          placeholder={t("storyboard:attrs.untitledFilm", { defaultValue: "Untitled film" })}
-                          onChange={(e) => setTitle(boardId, e.target.value)}
-                        />
-                      </FormField>
-                      <FormField label={t("storyboard:attrs.brief", { defaultValue: "Brief" })}>
-                        <TextInput
-                          value={brief}
-                          placeholder={t("storyboard:attrs.yourFilmInOneOrTwoSentences", { defaultValue: "Your film in one or two sentences" })}
-                          onChange={(e) => setBrief(boardId, e.target.value)}
-                          multiline
-                          rows={3}
-                        />
-                      </FormField>
-                      <FormField label={t("storyboard:attrs.style", { defaultValue: "Style" })}>
-                        <TextInput
-                          value={style}
-                          placeholder={t("storyboard:attrs.paletteLightLensTexture", { defaultValue: "Palette, light, lens, texture" })}
-                          onChange={(e) => setStyle(boardId, e.target.value)}
-                        />
-                      </FormField>
-                      <FormField label={t("storyboard:attrs.entities", { defaultValue: "Entities" })}>
+                    <FormSection label="Screenplay">
+                      <TextInput
+                        label="Title"
+                        value={title}
+                        placeholder="Untitled film"
+                        onChange={(e) => setTitle(boardId, e.target.value)}
+                      />
+                      <TextArea
+                        label="Brief"
+                        value={brief}
+                        placeholder="Your film in one or two sentences"
+                        onChange={(value) => setBrief(boardId, value)}
+                        minRows={3}
+                      />
+                      <TextInput
+                        label="Style"
+                        value={style}
+                        placeholder="Palette, light, lens, texture"
+                        onChange={(e) => setStyle(boardId, e.target.value)}
+                      />
+                      <FormField label="Entities">
                         <StoryboardEntitiesField
                           boardId={boardId}
                           entityIds={entityIds}
@@ -1398,11 +1392,11 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       </FormField>
                     </FormSection>
 
-                    <FormSection label={t("storyboard:attrs.direction", { defaultValue: "Direction" })} sx={settingsRailSx}>
+                    <FormSection label="Direction" sx={settingsRailSx}>
                       {/* The Studio shell pins the director model — a beginner
                           picks what the film looks like, not which LLM writes it. */}
                       {!inStudio && (
-                        <FormField label={t("storyboard:attrs.screenplayModel", { defaultValue: "Screenplay model" })} sx={modelFieldSx}>
+                        <FormField label="Screenplay model" sx={modelFieldSx}>
                           <LanguageModelSelect
                             value={directorModel?.id ?? ""}
                             onChange={(value) =>
@@ -1411,31 +1405,18 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                           />
                         </FormField>
                       )}
-                      <FormField label={t("storyboard:attrs.aspectRatio", { defaultValue: "Aspect ratio" })}>
-                        <SelectField
-                          label={t("storyboard:attrs.aspectRatio", { defaultValue: "Aspect ratio" })}
-                          value={aspectRatio}
-                          onChange={(value) => setAspectRatio(boardId, value)}
-                          options={ASPECT_OPTIONS.map((option) => ({
-                            value: option.value,
-                            label: aspectOptionLabel(option)
-                          }))}
-                        />
-                      </FormField>
-                      <FormField label={t("storyboard:attrs.shots", { defaultValue: "Shots" })}>
-                        <SelectField
-                          label={t("storyboard:attrs.shots", { defaultValue: "Shots" })}
-                          value={shotCount}
-                          onChange={(value) => setShotCount(Number(value))}
-                          options={SHOT_COUNT_VALUES.map((n) => ({
-                            value: n,
-                            label:
-                              n === 1
-                                ? t("storyboard:attrs.oneShot", { defaultValue: "1 shot" })
-                                : t("storyboard:attrs.nShots", { defaultValue: "{{count}} shots", count: n })
-                          }))}
-                        />
-                      </FormField>
+                      <SelectField
+                        label="Aspect ratio"
+                        value={aspectRatio}
+                        onChange={(value) => setAspectRatio(boardId, value)}
+                        options={ASPECT_OPTIONS}
+                      />
+                      <SelectField
+                        label="Shots"
+                        value={shotCount}
+                        onChange={(value) => setShotCount(Number(value))}
+                        options={SHOT_COUNT_OPTIONS}
+                      />
                     </FormSection>
                   </FormGrid>
 
@@ -1455,14 +1436,8 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       {directError ??
                         assembleError ??
                         (hasShots
-                          ? t("storyboard:attrs.reDirectingRewritesTheScreenplayAndReplacesEveryShot", {
-                              defaultValue:
-                                "Re-directing rewrites the screenplay and replaces every shot."
-                            })
-                          : t("storyboard:attrs.directWritesTheScreenplayAndSeedsYourShots", {
-                              defaultValue:
-                                "Direct writes the screenplay and seeds your shots."
-                            }))}
+                          ? "Re-directing rewrites the screenplay and replaces every shot."
+                          : "Direct writes the screenplay and seeds your shots.")}
                     </Caption>
                     <EditorButton
                       variant="contained"
@@ -1471,10 +1446,10 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       disabled={!onDirect || directing}
                     >
                       {directing
-                        ? t("storyboard:attrs.directing", { defaultValue: "Directing…" })
+                        ? "Directing…"
                         : hasShots
-                          ? t("editor:ui.reDirect", { defaultValue: "Re-direct" })
-                          : t("storyboard:attrs.direct", { defaultValue: "Direct" })}
+                          ? "Re-direct"
+                          : "Direct"}
                     </EditorButton>
                   </FlexRow>
                 </FlexColumn>
@@ -1495,11 +1470,9 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           <Dialog
             open={renderDialog === "stills"}
             onClose={() => setRenderDialog(null)}
-            title={t("storyboard:attrs.renderStills", { defaultValue: "Render stills" })}
+            title="Render stills"
             onConfirm={handleGenerateAllStills}
-            confirmText={`${
-              t("storyboard:attrs.renderStills", { defaultValue: "Render stills" })
-            }${
+            confirmText={`Render stills${
               stillsCost.pricedRequestCount > 0 && stillsCost.cost > 0
                 ? ` · ~${formatUsd(stillsCost.cost)}`
                 : ""
@@ -1508,12 +1481,10 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           >
             <FlexColumn gap={SPACING.md}>
               <Caption color="secondary">
-                {t("storyboard:attrs.pickTheModelForThisBatch", {
-                  defaultValue:
-                    "Pick the model for this batch. The choice is remembered on every shot for one-click regeneration."
-                })}
+                Pick the model for this batch. The choice is remembered on every
+                shot for one-click regeneration.
               </Caption>
-              <FormField label={t("storyboard:attrs.stillModel", { defaultValue: "Still model" })} sx={modelFieldSx}>
+              <FormField label="Still model" sx={modelFieldSx}>
                 <ImageModelSelect
                   value={stillSelection?.id ?? ""}
                   provider={stillSelection?.provider}
@@ -1531,12 +1502,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
               {followUpClipsCost.pricedRequestCount > 0 &&
                 followUpClipsCost.cost > 0 && (
                   <Caption color="secondary">
-                    {t("storyboard:attrs.renderingClipsForTheseShotsAfterwardsAdds", {
-                      defaultValue:
-                        "Rendering clips for these shots afterwards adds about {{clips}}, so stills and clips together come to about {{total}}.",
-                      clips: formatUsd(followUpClipsCost.cost),
-                      total: formatUsd(stillsCost.cost + followUpClipsCost.cost)
-                    })}
+                    {`Rendering clips for these shots afterwards adds about ${formatUsd(followUpClipsCost.cost)}, so stills and clips together come to about ${formatUsd(stillsCost.cost + followUpClipsCost.cost)}.`}
                   </Caption>
                 )}
             </FlexColumn>
@@ -1545,11 +1511,9 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           <Dialog
             open={renderDialog === "clips"}
             onClose={() => setRenderDialog(null)}
-            title={t("storyboard:attrs.renderClips", { defaultValue: "Render clips" })}
+            title="Render clips"
             onConfirm={handleGenerateAllClips}
-            confirmText={`${
-              t("storyboard:attrs.renderClips", { defaultValue: "Render clips" })
-            }${
+            confirmText={`Render clips${
               clipsCost.pricedRequestCount > 0 && clipsCost.cost > 0
                 ? ` · ~${formatUsd(clipsCost.cost)}`
                 : ""
@@ -1560,10 +1524,8 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           >
             <FlexColumn gap={SPACING.md}>
               <Caption color="secondary">
-                {t("storyboard:attrs.pickAModelForEachKindOfClip", {
-                  defaultValue:
-                    "Pick a model for each kind of clip in this batch. Each shot keeps its choice for fast re-renders."
-                })}
+                Pick a model for each kind of clip in this batch. Each shot
+                keeps its choice for fast re-renders.
               </Caption>
               {clipModelTasks.map((task) => (
                 <FormField
@@ -1591,29 +1553,18 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           <Dialog
             open={confirmRedirect}
             onClose={() => setConfirmRedirect(false)}
-            title={t("storyboard:attrs.redirectThisStoryboard", { defaultValue: "Re-direct this storyboard?" })}
+            title="Re-direct this storyboard?"
             onConfirm={handleConfirmRedirect}
-            confirmText={t("editor:ui.reDirect", { defaultValue: "Re-direct" })}
+            confirmText="Re-direct"
             destructive
           >
             <FlexColumn gap={SPACING.xs}>
               <Text>
-                {shots.length === 1
-                  ? t("storyboard:attrs.directingWritesANewScreenplayAndReplacesTheShot", {
-                      defaultValue:
-                        "Directing writes a new screenplay and replaces all 1 current shot."
-                    })
-                  : t("storyboard:attrs.directingWritesANewScreenplayAndReplacesAllShots", {
-                      defaultValue:
-                        "Directing writes a new screenplay and replaces all {{count}} current shots.",
-                      count: shots.length
-                    })}
+                {`Directing writes a new screenplay and replaces all ${shots.length} current shot${shots.length === 1 ? "" : "s"}.`}
               </Text>
               <Caption color="secondary">
-                {t("storyboard:attrs.generatedStillsAndClipsStayInYourAssetLibrary", {
-                  defaultValue:
-                    "Generated stills and clips stay in your asset library, but the shots on this board are rebuilt from scratch."
-                })}
+                Generated stills and clips stay in your asset library, but the
+                shots on this board are rebuilt from scratch.
               </Caption>
             </FlexColumn>
           </Dialog>
@@ -1621,45 +1572,21 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           <Dialog
             open={assembleConfirmOpen}
             onClose={() => setAssembleConfirmOpen(false)}
-            title={t("storyboard:attrs.rebuildLinkedTimeline", { defaultValue: "Rebuild linked timeline?" })}
+            title="Rebuild linked timeline?"
             onConfirm={handleConfirmAssemble}
-            confirmText={t("editor:ui.rebuildTimeline", { defaultValue: "Rebuild timeline" })}
+            confirmText="Rebuild timeline"
             destructive
           >
             <FlexColumn gap={SPACING.xs}>
               <Text>
                 {replacedClipCount === null
-                  ? t("storyboard:attrs.thisReplacesEveryClipOwnedByThisStoryboardAndItsLinkedScriptIncludingTrimsAndEditsMadeToThoseClips", {
-                      defaultValue:
-                        "This replaces every clip owned by this storyboard and its linked script, including trims and edits made to those clips."
-                    })
-                  : replacedClipCount === 1
-                    ? t("storyboard:attrs.thisReplacesTheStoryboardOwnedClip", {
-                        defaultValue:
-                          "This replaces 1 storyboard-owned clip, including trims and edits made to those clips."
-                      })
-                    : t("storyboard:attrs.thisReplacesAllStoryboardOwnedClips", {
-                        defaultValue:
-                          "This replaces {{count}} storyboard-owned clips, including trims and edits made to those clips.",
-                        count: replacedClipCount
-                      })}
+                  ? "This replaces every clip owned by this storyboard and its linked script, including trims and edits made to those clips."
+                  : `This replaces ${replacedClipCount} storyboard-owned clip${replacedClipCount === 1 ? "" : "s"}, including trims and edits made to those clips.`}
               </Text>
               <Caption color="secondary">
-                {t("storyboard:attrs.tracksAndClipsAddedOutsideThisStoryboardArePreserved", {
-                  defaultValue:
-                    "Tracks and clips added outside this storyboard are preserved."
-                })}
+                Tracks and clips added outside this storyboard are preserved.
                 {skippedAssemblyCount > 0
-                  ? skippedAssemblyCount === 1
-                    ? t("storyboard:attrs.oneShotWithoutAStillOrClipWillBeSkipped", {
-                        defaultValue:
-                          " 1 shot without a still or clip will be skipped."
-                      })
-                    : t("storyboard:attrs.nShotsWithoutAStillOrClipWillBeSkipped", {
-                        defaultValue:
-                          " {{count}} shots without a still or clip will be skipped.",
-                        count: skippedAssemblyCount
-                      })
+                  ? ` ${skippedAssemblyCount} shot${skippedAssemblyCount === 1 ? "" : "s"} without a still or clip will be skipped.`
                   : ""}
               </Caption>
             </FlexColumn>
@@ -1668,44 +1595,25 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           <Dialog
             open={downloadFallbackError !== null}
             onClose={() => setDownloadFallbackError(null)}
-            title={t("storyboard:attrs.latestChangesCouldNotBeSaved", { defaultValue: "Latest changes could not be saved" })}
-            actions={
-              <FlexRow gap={SPACING.sm} align="center">
-                <EditorButton onClick={() => setDownloadFallbackError(null)}>
-                  {t("storyboard:attrs.cancel", { defaultValue: "Cancel" })}
-                </EditorButton>
-                <EditorButton
-                  variant="contained"
-                  color="primary"
-                  onClick={() => {
-                    setDownloadFallbackError(null);
-                    void downloadZip(false);
-                  }}
-                >
-                  {t("storyboard:attrs.downloadLastSavedVersion", { defaultValue: "Download last saved version" })}
-                </EditorButton>
-              </FlexRow>
-            }
+            title="Latest changes could not be saved"
+            onConfirm={() => {
+              setDownloadFallbackError(null);
+              void downloadZip(false);
+            }}
+            confirmText="Download last saved version"
           >
-            <FlexColumn gap={SPACING.xs}>
+            <FlexColumn gap={SPACING.md}>
               <Text>
-                {t("storyboard:attrs.downloadingNowWouldUseTheOlderVersion", {
-                  defaultValue:
-                    "Downloading now would use the older version currently stored on the server."
-                })}
+                Downloading now would use the older version currently stored on
+                the server.
               </Text>
-              <Caption color="error">{downloadFallbackError}</Caption>
+              <AlertBanner severity="error">{downloadFallbackError}</AlertBanner>
             </FlexColumn>
           </Dialog>
 
           {previewOpen && (
             <React.Suspense
-              fallback={
-                <LoadingSpinner
-                  size="small"
-                  text={t("storyboard:attrs.loadingPreview", { defaultValue: "Loading preview" })}
-                />
-              }
+              fallback={<LoadingSpinner size="small" text="Loading preview" />}
             >
               <LazyStoryboardPreview boardId={boardId} />
             </React.Suspense>
@@ -1714,9 +1622,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           {directing ? (
             <FlexColumn gap={SPACING.md}>
               <Caption color="primary">
-                {t("storyboard:attrs.theDirectorIsWritingYourScreenplay", {
-                  defaultValue: "The director is writing your screenplay."
-                })}
+                The director is writing your screenplay.
               </Caption>
               <Box sx={shotGridSx(cardSize)}>
                 {Array.from({ length: shotCount }).map((_, i) => (
@@ -1738,97 +1644,119 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           ) : shots.length === 0 ? (
             <EmptyState
               variant="empty"
-              title={t("storyboard:attrs.noShotsYet", { defaultValue: "No shots yet" })}
+              title="No shots yet"
               description={
                 readOnly
-                  ? t("storyboard:attrs.thisStoryboardHasNoShots", { defaultValue: "This storyboard has no shots." })
-                  : t("storyboard:attrs.writeABriefAndPressDirectToGenerateAScreenplayOfShots", {
-                      defaultValue:
-                        "Write a brief and press Direct to generate a screenplay of shots."
-                    })
+                  ? "This storyboard has no shots."
+                  : "Write a brief and press Direct to generate a screenplay of shots."
               }
             />
           ) : (
-            <FlexRow
-              ref={gridRef}
-              role="group"
-              aria-label={t("storyboard:attrs.shots", { defaultValue: "Shots" })}
-              onKeyDown={handleGridKeyDown}
-              align="flex-start"
-              wrap
-              gap={SPACING.xl}
-              sx={{ minWidth: 0 }}
-            >
-              {sceneGroups.map((group, sceneIndex) => (
-                // A legacy board has one group with no scene record; it gets the
-                // implicit header, and no `Scene` is written to get it.
-                <Box
-                  key={group.sceneId ?? "unscened"}
+            <FlexColumn gap={SPACING.lg} sx={{ minWidth: 0 }}>
+              <FlexRow align="center" gap={SPACING.md} wrap>
+                <SearchInput
+                  ref={searchRef}
+                  value={shotQuery}
+                  onChange={setShotQuery}
+                  onSubmit={handleSearchSubmit}
+                  placeholder="Search shots by description, dialogue, scene"
+                  ariaLabel="Search shots"
+                  size="small"
+                  sx={{ width: "100%", maxWidth: "40ch" }}
+                />
+                {searching && (
+                  <Caption color="secondary" role="status">
+                    {`${visibleShotIds.length} of ${shots.length} shots`}
+                  </Caption>
+                )}
+              </FlexRow>
+              {visibleGroups.length === 0 ? (
+                <EmptyState
+                  variant="empty"
+                  title="No matching shots"
+                  description="Search looks in shot titles, descriptions, dialogue, sound and scene headings."
+                />
+              ) : (
+                <FlexRow
+                  ref={gridRef}
                   role="group"
-                  aria-label={t("storyboard:attrs.sceneLabel", { defaultValue: "Scene {{n}}", n: sceneIndex + 1 })}
-                  sx={{
-                    ...shotGridSx(cardSize),
-                    minWidth: 0,
-                    flex:
-                      group.shots.length > 1 ? "1 1 100%" : `1 1 ${cardSize}ch`,
-                    maxWidth:
-                      group.shots.length === 1
-                        ? `${Math.max(80, cardSize)}ch`
-                        : undefined
-                  }}
+                  aria-label="Shots"
+                  onKeyDown={handleGridKeyDown}
+                  align="flex-start"
+                  wrap
+                  gap={SPACING.xl}
+                  sx={{ minWidth: 0 }}
                 >
-                  <SceneHeader
-                    number={sceneIndex + 1}
-                    slugline={group.scene?.slugline || undefined}
-                    actions={
-                      readOnly || directing ? undefined : (
-                        <SceneClipControls
-                          sceneId={group.sceneId}
-                          sceneShots={group.shots}
-                          boardShots={shots}
-                          clips={
-                            sceneClipsByGroup.get(group.sceneId) ??
-                            NO_SCENE_CLIPS
-                          }
-                          onOpen={openSceneClip}
-                        />
-                      )
-                    }
-                  />
-                  {group.shots.map((shot) => (
-                    <Box key={shot.id} sx={shotSlotSx}>
-                      <ShotCard
-                        boardId={boardId}
-                        shot={shot}
-                        caption={captions.get(shot.id)}
-                        sceneClipTag={sceneClipTags.get(shot.id)}
-                        renderContext={renderContext}
-                        selected={shot.id === activeShotId}
-                        onSelect={handleSelectShot}
-                        readOnly={readOnly}
-                        draggable={!readOnly && !directing}
-                        dropTarget={shot.id === dropTargetId}
-                        onDragStart={handleDragStart}
-                        onDragEnter={handleDragEnter}
-                        onDragEnd={handleDragEnd}
-                        onDrop={handleDrop}
-                        onEdit={readOnly ? undefined : handleEditShot}
+                  {visibleGroups.map((group) => (
+                    // A legacy board has one group with no scene record; it gets the
+                    // implicit header, and no `Scene` is written to get it.
+                    <Box
+                      key={group.sceneId ?? "unscened"}
+                      role="group"
+                      aria-label={`Scene ${group.number}`}
+                      sx={{
+                        ...shotGridSx(cardSize),
+                        minWidth: 0,
+                        flex:
+                          group.shots.length > 1 ? "1 1 100%" : `1 1 ${cardSize}ch`,
+                        maxWidth:
+                          group.shots.length === 1
+                            ? `${Math.max(80, cardSize)}ch`
+                            : undefined
+                      }}
+                    >
+                      <SceneHeader
+                        number={group.number}
+                        slugline={group.scene?.slugline || undefined}
+                        actions={
+                          readOnly || directing ? undefined : (
+                            <SceneClipControls
+                              sceneId={group.sceneId}
+                              sceneShots={group.shots}
+                              boardShots={shots}
+                              clips={
+                                sceneClipsByGroup.get(group.sceneId) ??
+                                NO_SCENE_CLIPS
+                              }
+                              onOpen={openSceneClip}
+                            />
+                          )
+                        }
                       />
-                      {!readOnly && !directing && (
-                        <ShotInsertPoint
-                          afterShotId={shot.id}
-                          label={t("storyboard:attrs.afterCaption", {
-                            defaultValue: "after {{caption}}",
-                            caption: captions.get(shot.id) ?? ""
-                          })}
-                          onInsert={handleInsertShot}
-                        />
-                      )}
+                      {group.shots.map((shot) => (
+                        <Box key={shot.id} sx={shotSlotSx}>
+                          <ShotCard
+                            boardId={boardId}
+                            shot={shot}
+                            caption={captions.get(shot.id)}
+                            durationSeconds={durations.get(shot.id)}
+                            sceneClipTag={sceneClipTags.get(shot.id)}
+                            renderContext={renderContext}
+                            selected={shot.id === activeShotId}
+                            onSelect={handleSelectShot}
+                            readOnly={readOnly}
+                            draggable={!readOnly && !directing && !searching}
+                            dropTarget={shot.id === dropTargetId}
+                            onDragStart={handleDragStart}
+                            onDragEnter={handleDragEnter}
+                            onDragEnd={handleDragEnd}
+                            onDrop={handleDrop}
+                            onEdit={readOnly ? undefined : handleEditShot}
+                          />
+                          {!readOnly && !directing && !searching && (
+                            <ShotInsertPoint
+                              afterShotId={shot.id}
+                              label={`after ${captions.get(shot.id) ?? ""}`}
+                              onInsert={handleInsertShot}
+                            />
+                          )}
+                        </Box>
+                      ))}
                     </Box>
                   ))}
-                </Box>
-              ))}
-            </FlexRow>
+                </FlexRow>
+              )}
+            </FlexColumn>
           )}
 
           {/* What comes after the board (PRD § 7.4). Both actions already exist
@@ -1845,10 +1773,10 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                   disabled={!onAssemble || assembling || !hasRenderedShot}
                 >
                   {assembling
-                    ? t("storyboard:attrs.assembling", { defaultValue: "Assembling…" })
+                    ? "Assembling…"
                     : timelineId
-                      ? t("storyboard:attrs.rebuildLinkedTimelineEllipsis", { defaultValue: "Rebuild linked timeline…" })
-                      : t("storyboard:attrs.createTimeline", { defaultValue: "Create timeline" })}
+                      ? "Rebuild linked timeline…"
+                      : "Create timeline"}
                 </EditorButton>
                 {timelineId && (
                   <EditorButton
@@ -1856,27 +1784,27 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                     startIcon={<MovieOutlinedIcon />}
                     onClick={handleOpenTimeline}
                   >
-                    {t("storyboard:attrs.openTimeline", { defaultValue: "Open timeline" })}
+                    Open timeline
                   </EditorButton>
                 )}
               </FlexRow>
               {!hasRenderedShot && (
                 <Caption color="secondary">
                   {hasUnselectedClip
-                    ? t("storyboard:attrs.setAClipTakeAsCurrentToCreateATimeline", {
-                        defaultValue:
-                          "Set a clip take as current to create a timeline."
-                      })
-                    : t("storyboard:attrs.generateAStillOrRenderAClipToCreateATimeline", {
-                        defaultValue:
-                          "Generate a still or render a clip to create a timeline."
-                      })}
+                    ? "Set a clip take as current to create a timeline."
+                    : "Generate a still or render a clip to create a timeline."}
                 </Caption>
               )}
               {assembleError && (
-                <Caption role="alert" color="error">
+                <ErrorBanner
+                  report={{
+                    source: "operation-failure",
+                    summary: "Assembling the storyboard timeline failed",
+                    errorText: assembleError
+                  }}
+                >
                   {assembleError}
-                </Caption>
+                </ErrorBanner>
               )}
             </FlexColumn>
           )}

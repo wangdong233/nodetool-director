@@ -14,15 +14,15 @@ import WbSunnyIcon from "@mui/icons-material/WbSunny";
 import PolylineIcon from "@mui/icons-material/Polyline";
 import MovieFilterIcon from "@mui/icons-material/MovieFilter";
 import MusicVideoIcon from "@mui/icons-material/MusicVideo";
+import CollectionsIcon from "@mui/icons-material/Collections";
 import { colorForType } from "../../config/data_types";
 import { IconForType } from "../../config/IconForType";
-import { QUICK_ACTION_NODE_TYPES } from "../../config/quickActionNodeTypes";
+import type { QuickActionNodeType } from "../../config/quickActionNodeTypes";
 
 export type QuickActionDefinition = {
   key: string;
   label: string;
-  labelKey?: string;
-  nodeType: string;
+  nodeType: QuickActionNodeType;
   icon: ReactNode;
   gradient: string;
   hoverGradient: string;
@@ -37,7 +37,7 @@ export type QuickActionDefinition = {
 const buildQuickAction = (
   key: string,
   label: string,
-  nodeType: string,
+  nodeType: QuickActionNodeType,
   icon: ReactNode,
   primary: string,
   secondary: string,
@@ -57,45 +57,37 @@ const buildQuickAction = (
 /** Shorthand: pass rgb values (no alpha) as "rgb(r, g, b)" */
 const rgb = (r: number, g: number, b: number) => `rgba(${r}, ${g}, ${b}`;
 
-const QUICK_ACTION_AI_NODE_TYPES = QUICK_ACTION_NODE_TYPES.slice(0, 17);
-const QUICK_ACTION_CONSTANT_NODE_TYPES = QUICK_ACTION_NODE_TYPES.slice(17);
 
 export const QUICK_ACTION_BUTTONS: QuickActionDefinition[] = [
-  buildQuickAction("agent", "Agent", QUICK_ACTION_AI_NODE_TYPES[0], <SupportAgentIcon />, rgb(79, 70, 229), rgb(99, 102, 241), "#4f46e5"),
-  buildQuickAction("code", "Code", QUICK_ACTION_AI_NODE_TYPES[1], <CodeIcon />, rgb(34, 197, 94), rgb(74, 222, 128), "#16a34a"),
-  buildQuickAction("text-to-image", "Text to Image", QUICK_ACTION_AI_NODE_TYPES[2], <ImageIcon />, rgb(236, 72, 153), rgb(244, 114, 182), "#db2777"),
-  buildQuickAction("image-to-image", "Image to Image", QUICK_ACTION_AI_NODE_TYPES[3], <AutoFixHighIcon />, rgb(16, 185, 129), rgb(52, 211, 153), "#059669"),
-  buildQuickAction("upscale", "Upscale", QUICK_ACTION_AI_NODE_TYPES[4], <HighQualityIcon />, rgb(217, 70, 239), rgb(232, 121, 249), "#c026d3"),
-  buildQuickAction("remove-background", "Remove Background", QUICK_ACTION_AI_NODE_TYPES[5], <LayersClearIcon />, rgb(20, 184, 166), rgb(45, 212, 191), "#0d9488"),
-  buildQuickAction("relight", "Relight", QUICK_ACTION_AI_NODE_TYPES[6], <WbSunnyIcon />, rgb(245, 158, 11), rgb(251, 191, 36), "#d97706"),
-  buildQuickAction("vectorize", "Vectorize", QUICK_ACTION_AI_NODE_TYPES[7], <PolylineIcon />, rgb(132, 204, 22), rgb(163, 230, 53), "#65a30d"),
-  buildQuickAction("text-to-video", "Text to Video", QUICK_ACTION_AI_NODE_TYPES[8], <VideoLibraryIcon />, rgb(168, 85, 247), rgb(192, 132, 252), "#9333ea"),
-  buildQuickAction("image-to-video", "Image to Video", QUICK_ACTION_AI_NODE_TYPES[9], <OndemandVideoIcon />, rgb(249, 115, 22), rgb(251, 146, 60), "#ea580c"),
-  buildQuickAction("video-to-video", "Video to Video", QUICK_ACTION_AI_NODE_TYPES[10], <MovieFilterIcon />, rgb(244, 63, 94), rgb(251, 113, 133), "#e11d48"),
-  buildQuickAction("lip-sync", "Lip Sync", QUICK_ACTION_AI_NODE_TYPES[11], <MusicVideoIcon />, rgb(217, 70, 239), rgb(240, 171, 252), "#c026d3"),
-  buildQuickAction("text-to-speech", "Text to Speech", QUICK_ACTION_AI_NODE_TYPES[12], <RecordVoiceOverIcon />, rgb(6, 182, 212), rgb(34, 211, 238), "#0891b2"),
-  buildQuickAction("speech-to-text", "Speech to Text", QUICK_ACTION_AI_NODE_TYPES[13], <KeyboardVoiceIcon />, rgb(14, 165, 233), rgb(56, 189, 248), "#0284c7"),
-  buildQuickAction("fal-dynamic", "FalAI", QUICK_ACTION_AI_NODE_TYPES[14], <ApiIcon />, rgb(139, 92, 246), rgb(167, 139, 250), "#7c3aed"),
-  buildQuickAction("kie-dynamic", "KieAI", QUICK_ACTION_AI_NODE_TYPES[15], <ApiIcon />, rgb(229, 92, 32), rgb(255, 140, 66), "#d94a12"),
-  buildQuickAction("replicate-dynamic", "Replicate", QUICK_ACTION_AI_NODE_TYPES[16], <ApiIcon />, rgb(59, 130, 246), rgb(129, 140, 248), "#2563eb")
+  buildQuickAction("agent", "Agent", "nodetool.agents.Agent", <SupportAgentIcon />, rgb(79, 70, 229), rgb(99, 102, 241), "#4f46e5"),
+  buildQuickAction("code", "Code", "nodetool.code.Code", <CodeIcon />, rgb(34, 197, 94), rgb(74, 222, 128), "#16a34a"),
+  buildQuickAction("text-to-image", "Text to image", "nodetool.image.TextToImage", <ImageIcon />, rgb(236, 72, 153), rgb(244, 114, 182), "#db2777"),
+  buildQuickAction("image-to-image", "Image to image", "nodetool.image.ImageToImage", <AutoFixHighIcon />, rgb(16, 185, 129), rgb(52, 211, 153), "#059669"),
+  buildQuickAction("upscale", "Upscale", "nodetool.image.Upscale", <HighQualityIcon />, rgb(217, 70, 239), rgb(232, 121, 249), "#c026d3"),
+  buildQuickAction("remove-background", "Remove background", "nodetool.image.RemoveBackground", <LayersClearIcon />, rgb(20, 184, 166), rgb(45, 212, 191), "#0d9488"),
+  buildQuickAction("relight", "Relight", "nodetool.image.Relight", <WbSunnyIcon />, rgb(245, 158, 11), rgb(251, 191, 36), "#d97706"),
+  buildQuickAction("vectorize", "Vectorize", "nodetool.image.Vectorize", <PolylineIcon />, rgb(132, 204, 22), rgb(163, 230, 53), "#65a30d"),
+  buildQuickAction("text-to-video", "Text to video", "nodetool.video.TextToVideo", <VideoLibraryIcon />, rgb(168, 85, 247), rgb(192, 132, 252), "#9333ea"),
+  buildQuickAction("image-to-video", "Image to video", "nodetool.video.ImageToVideo", <OndemandVideoIcon />, rgb(249, 115, 22), rgb(251, 146, 60), "#ea580c"),
+  buildQuickAction("reference-to-video", "Reference to video", "nodetool.video.ReferenceToVideo", <CollectionsIcon />, rgb(234, 88, 12), rgb(251, 146, 60), "#c2410c"),
+  buildQuickAction("video-to-video", "Video to video", "nodetool.video.VideoToVideo", <MovieFilterIcon />, rgb(244, 63, 94), rgb(251, 113, 133), "#e11d48"),
+  buildQuickAction("lip-sync", "Lip sync", "nodetool.video.LipSync", <MusicVideoIcon />, rgb(217, 70, 239), rgb(240, 171, 252), "#c026d3"),
+  buildQuickAction("text-to-speech", "Text to speech", "nodetool.audio.TextToSpeech", <RecordVoiceOverIcon />, rgb(6, 182, 212), rgb(34, 211, 238), "#0891b2"),
+  buildQuickAction("speech-to-text", "Speech to text", "nodetool.text.AutomaticSpeechRecognition", <KeyboardVoiceIcon />, rgb(14, 165, 233), rgb(56, 189, 248), "#0284c7"),
+  buildQuickAction("fal-dynamic", "FalAI", "fal.DynamicFal", <ApiIcon />, rgb(139, 92, 246), rgb(167, 139, 250), "#7c3aed"),
+  buildQuickAction("kie-dynamic", "KieAI", "kie.dynamic_schema.KieAI", <ApiIcon />, rgb(229, 92, 32), rgb(255, 140, 66), "#d94a12"),
+  buildQuickAction("replicate-dynamic", "Replicate", "replicate.DynamicReplicate", <ApiIcon />, rgb(59, 130, 246), rgb(129, 140, 248), "#2563eb")
 ];
 
-export const QUICK_ACTION_LABEL_KEYS: Readonly<Record<string, string>> = {
-  "agent": "editor:ui.agent",
-  "code": "editor:ui.code",
-  "text-to-image": "editor:ui.textToImage",
-  "image-to-image": "editor:ui.imageToImage",
-  "upscale": "editor:ui.upscale",
-  "remove-background": "editor:ui.removeBackground",
-  "relight": "editor:ui.relight",
-  "vectorize": "editor:ui.vectorize",
-  "text-to-video": "editor:ui.textToVideo",
-  "image-to-video": "editor:ui.imageToVideo",
-  "video-to-video": "editor:ui.videoToVideo",
-  "lip-sync": "editor:ui.lipSync",
-  "text-to-speech": "editor:ui.textToSpeech",
-  "speech-to-text": "editor:ui.speechToText"
-};
+/** Task tiles (Text to image, Upscale, …) shown under "AI nodes". */
+export const AI_TASK_ACTIONS = QUICK_ACTION_BUTTONS.filter(
+  (action) => !action.key.endsWith("-dynamic")
+);
+
+/** Provider tiles (FalAI, KieAI, Replicate) that run any model of that provider. */
+export const PROVIDER_ACTIONS = QUICK_ACTION_BUTTONS.filter((action) =>
+  action.key.endsWith("-dynamic")
+);
 
 const hexToRgba = (hex: string, alpha: number) => {
   const cleanHex = hex.replace("#", "");
@@ -111,27 +103,24 @@ const hexToRgba = (hex: string, alpha: number) => {
 const buildConstantNode = ({
   key,
   label,
-  labelKey,
   nodeType,
   iconType
 }: {
   key: string;
   label: string;
-  labelKey?: string;
-  nodeType: string;
+  nodeType: QuickActionNodeType;
   iconType: string;
 }): QuickActionDefinition => {
   const baseColor = colorForType(iconType);
   return {
     key,
     label,
-    labelKey,
     nodeType,
     icon: (
       <IconForType
         iconName={iconType}
         showTooltip={false}
-        iconSize="normal"
+        iconSize="small"
         svgProps={{ style: { color: baseColor } }}
       />
     ),
@@ -155,93 +144,92 @@ const buildConstantNode = ({
 export const CONSTANT_NODES: QuickActionDefinition[] = [
   buildConstantNode({
     key: "constant-bool",
-    label: "Bool", labelKey: "bool",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[0],
+    label: "Bool",
+    nodeType: "nodetool.constant.Bool",
     iconType: "bool"
   }),
   buildConstantNode({
     key: "constant-dataframe",
-    label: "Data Frame", labelKey: "dataFrame",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[1],
+    label: "Data Frame",
+    nodeType: "nodetool.constant.DataFrame",
     iconType: "dataframe"
   }),
   buildConstantNode({
     key: "constant-date",
-    label: "Date", labelKey: "date",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[2],
+    label: "Date",
+    nodeType: "nodetool.constant.Date",
     iconType: "date"
   }),
   buildConstantNode({
     key: "constant-datetime",
-    label: "Date Time", labelKey: "dateTime",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[3],
+    label: "Date Time",
+    nodeType: "nodetool.constant.DateTime",
     iconType: "datetime"
   }),
   buildConstantNode({
     key: "constant-dict",
-    label: "Dict", labelKey: "dict",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[4],
+    label: "Dict",
+    nodeType: "nodetool.constant.Dict",
     iconType: "dict"
   }),
   buildConstantNode({
     key: "constant-audio",
     label: "Audio",
-    labelKey: "audio",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[5],
+    nodeType: "nodetool.constant.Audio",
     iconType: "audio"
   }),
   buildConstantNode({
     key: "constant-document",
-    label: "Document", labelKey: "document",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[6],
+    label: "Document",
+    nodeType: "nodetool.constant.Document",
     iconType: "document"
   }),
   buildConstantNode({
     key: "constant-float",
-    label: "Float", labelKey: "float",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[7],
+    label: "Float",
+    nodeType: "nodetool.constant.Float",
     iconType: "float"
   }),
   buildConstantNode({
     key: "constant-image",
-    label: "Image", labelKey: "image",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[8],
+    label: "Image",
+    nodeType: "nodetool.constant.Image",
     iconType: "image"
   }),
   buildConstantNode({
     key: "constant-integer",
-    label: "Integer", labelKey: "integer",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[9],
+    label: "Integer",
+    nodeType: "nodetool.constant.Integer",
     iconType: "int"
   }),
   buildConstantNode({
     key: "constant-json",
-    label: "JSON", labelKey: "json",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[10],
+    label: "JSON",
+    nodeType: "nodetool.constant.JSON",
     iconType: "json"
   }),
   buildConstantNode({
     key: "constant-list",
-    label: "List", labelKey: "list",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[11],
+    label: "List",
+    nodeType: "nodetool.constant.List",
     iconType: "list"
   }),
   buildConstantNode({
     key: "constant-model-3d",
-    label: "Model 3D", labelKey: "model3D",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[12],
+    label: "Model 3D",
+    nodeType: "nodetool.constant.Model3D",
     iconType: "model_3d"
   }),
   buildConstantNode({
     key: "constant-string",
-    label: "String", labelKey: "string",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[13],
+    label: "String",
+    nodeType: "nodetool.constant.String",
     iconType: "str"
   }),
   buildConstantNode({
     key: "constant-video",
-    label: "Video", labelKey: "video",
-    nodeType: QUICK_ACTION_CONSTANT_NODE_TYPES[14],
+    label: "Video",
+    nodeType: "nodetool.constant.Video",
     iconType: "video"
   })
 ].sort((a, b) => a.label.localeCompare(b.label));

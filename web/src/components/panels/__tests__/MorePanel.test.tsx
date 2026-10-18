@@ -20,7 +20,7 @@ describe("MorePanel", () => {
     expect(screen.getByText("Agent tools")).toBeInTheDocument();
     expect(screen.getAllByText("Workspace")).toHaveLength(2);
     expect(
-      screen.getByRole("button", { name: /Favorite Nodes/ })
+      screen.getByRole("button", { name: /Favorite nodes/ })
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /Workflow Output/ })
@@ -32,7 +32,14 @@ describe("MorePanel", () => {
     expect(
       screen.getByRole("button", { name: /Workspaces/ })
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^Settings$/ })).toBeNull();
+  });
+
+  it("lists Settings and Help once, and leaves Downloads to the logo menu", () => {
+    renderPanel();
+
+    expect(screen.getAllByRole("button", { name: /^Settings$/ })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /^Help$/ })).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: /^Downloads/ })).toBeNull();
   });
 
   it("searches across every section", async () => {
@@ -46,7 +53,7 @@ describe("MorePanel", () => {
 
     expect(screen.getByRole("button", { name: /^Workspace / })).toBeVisible();
     expect(screen.getByRole("button", { name: /^Workspaces$/ })).toBeVisible();
-    expect(screen.queryByRole("button", { name: /Favorite Nodes/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Favorite nodes/ })).toBeNull();
     expect(screen.queryByText("Workflow tools")).toBeNull();
   });
 
@@ -55,7 +62,7 @@ describe("MorePanel", () => {
     const onSelectView = jest.fn();
     renderPanel(onSelectView);
 
-    await user.click(screen.getByRole("button", { name: /Favorite Nodes/ }));
+    await user.click(screen.getByRole("button", { name: /Favorite nodes/ }));
 
     expect(onSelectView).toHaveBeenCalledWith("favorites");
   });

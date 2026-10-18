@@ -12,7 +12,6 @@ import { useQuery } from "@tanstack/react-query";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
 import { isString } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 interface AudioToAudioModelSelectProps {
   onChange: (value: AudioToAudioModelValue) => void;
@@ -27,7 +26,6 @@ const AudioToAudioModelSelect: React.FC<AudioToAudioModelSelectProps> = ({
   recommendedModels,
   modelPacks
 }) => {
-  const { t } = useTranslation();
   const { anchorEl, buttonRef, handleClick, handleClose, handleSelect } =
     useModelSelectMenu("audio_to_audio_model", onChange);
   const { data: models } = useQuery({
@@ -66,9 +64,9 @@ const AudioToAudioModelSelect: React.FC<AudioToAudioModelSelectProps> = ({
         label={
           currentSelectedModelDetails?.name ||
           modelId ||
-          t("editor:ui.selectAudioToAudioModel")
+          "Select audio-to-audio model"
         }
-        subLabel={t("editor:ui.selectAudioToAudioModel2")}
+        subLabel="Select audio-to-audio model"
         onClick={handleClick}
       />
       <AudioToAudioModelMenuDialog

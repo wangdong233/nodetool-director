@@ -4,7 +4,6 @@ import type { Theme } from "@mui/material/styles";
 import { useTheme } from "@mui/material/styles";
 import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useAppLanguage } from "../../i18n";
 import useOnboardingStore, {
   type OnboardingStepId
 } from "../../stores/OnboardingStore";
@@ -13,9 +12,9 @@ import {
   CONTROL,
   MOTION,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  EditorButton
 } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -59,6 +58,11 @@ const styles = (theme: Theme) =>
         color: theme.vars.palette.text.disabled,
         textDecoration: "line-through",
         "&:hover": { borderColor: theme.vars.palette.divider }
+      },
+      // A finished step that still opens its place, such as the provider
+      // dialog where a key is replaced.
+      "&.reopens": {
+        color: theme.vars.palette.text.disabled
       }
     },
     ".checklist-check": {
@@ -78,18 +82,9 @@ const styles = (theme: Theme) =>
     },
     ".checklist-dismiss": {
       marginLeft: 0,
-      background: "none",
-      border: "none",
-      padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)}`,
-      borderRadius: BORDER_RADIUS.md,
-      fontSize: "var(--fontSizeSmaller)",
-      color: theme.vars.palette.text.disabled,
-      cursor: "pointer",
-      "&:hover": {
-        color: theme.vars.palette.text.primary,
-        background: theme.vars.palette.action.hover
-      }
+      color: theme.vars.palette.text.disabled
     },
+
 
     // Phones: the pills wrapped into a ragged centered cloud. Stack the open
     // steps as full-width rows under a label/dismiss header, and drop the
@@ -114,7 +109,7 @@ const styles = (theme: Theme) =>
         height: CONTROL.height.xl,
         padding: `0 ${getSpacingPx(SPACING.lg)}`,
         borderRadius: BORDER_RADIUS.lg,
-        "&:disabled": { display: "none" }
+        "&:disabled, &.reopens": { display: "none" }
       }
     }
   });
@@ -123,6 +118,8 @@ interface ChecklistStep {
   id: OnboardingStepId | "connect-provider";
   label: string;
   done: boolean;
+  /** Stays clickable once done, under this label. */
+  doneLabel?: string;
   onClick: () => void;
 }
 
@@ -150,10 +147,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
   onDescribeIdea,
   onOpenExamples
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
-  // Subscribe so catalog reads re-render on language change.
-  useAppLanguage();
   const { completedSteps, dismissed, dismiss } = useOnboardingStore(
     useShallow((s) => ({
       completedSteps: s.completedSteps,
@@ -165,13 +159,16 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
   const steps: ChecklistStep[] = [
     {
       id: "connect-provider",
-      label: t("home:checklist.connectProvider", { defaultValue: "Connect an AI provider" }),
+      label: "Connect an AI provider",
       done: hasConfiguredProvider,
+      // The dialog is where a key is replaced or another provider added, and
+      // a disabled pill left people hunting for another way back to it.
+      doneLabel: "AI provider connected",
       onClick: onConnectProvider
     },
     {
       id: "start-guided-flow",
-      label: t("home:checklist.startGuidedFlow", { defaultValue: "Start a guided flow" }),
+      label: "Start a guided flow",
       done: completedSteps.includes("start-guided-flow"),
       // The cards live further down this surface; the pill takes the user
       // to them, starting one marks the step.
@@ -179,7 +176,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
     },
     {
       id: "describe-idea",
-      label: t("home:checklist.describeIdea", { defaultValue: "Describe what you want to make" }),
+      label: "Describe what you want to make",
       done: completedSteps.includes("describe-idea"),
       // The composer below the cards is the way there; pressing Start
       // marks the step.
@@ -187,7 +184,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
     },
     {
       id: "keep-creating",
-      label: t("home:checklist.openExamples", { defaultValue: "Open an example or a blank doc" }),
+      label: "Open an example or a blank doc",
       done: completedSteps.includes("keep-creating"),
       onClick: onOpenExamples
     }
@@ -199,19 +196,21 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
   }
 
   return (
-    <section css={styles(theme)} aria-label={t("home:checklist.aria", { defaultValue: "Getting started checklist" })}>
+    <section css={styles(theme)} aria-label="Getting started checklist">
       <div>
         <div className="checklist-inner">
           <span className="checklist-label">
-            {t("home:checklist.title", { defaultValue: "Getting started · {{done}}/{{total}}", done: String(doneCount), total: String(steps.length) })}
+            Getting started · {doneCount}/{steps.length}
           </span>
           {steps.map((step) => (
             <button
               key={step.id}
               type="button"
-              className="checklist-step"
+              className={`checklist-step${
+                step.done && step.doneLabel ? " reopens" : ""
+              }`}
               onClick={step.onClick}
-              disabled={step.done}
+              disabled={step.done && !step.doneLabel}
             >
               <span className={`checklist-check${step.done ? " done" : ""}`}>
                 {step.done && (
@@ -227,17 +226,18 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
                   </svg>
                 )}
               </span>
-              {step.label}
+              {step.done && step.doneLabel ? step.doneLabel : step.label}
             </button>
           ))}
-          <button
-            type="button"
+          <EditorButton
+            variant="text"
+            color="inherit"
             className="checklist-dismiss"
             onClick={dismiss}
-            aria-label={t("home:checklist.dismissAria", { defaultValue: "Dismiss getting started checklist" })}
+            aria-label="Dismiss getting started checklist"
           >
-            {t("common:action.dismiss", { defaultValue: "Dismiss" })}
-          </button>
+            Dismiss
+          </EditorButton>
         </div>
       </div>
     </section>

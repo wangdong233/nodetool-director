@@ -2,7 +2,6 @@
 import { css } from "@emotion/react";
 import React, { useEffect, useRef } from "react";
 import { Command, CommandInput } from "cmdk";
-import { useTranslation } from "react-i18next";
 
 import { useCommandMenuStore } from "../../stores/CommandMenuStore";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
@@ -30,7 +29,6 @@ interface CommandPaletteProps {
  * then the commands that work everywhere.
  */
 const CommandPalette: React.FC<CommandPaletteProps> = ({ children }) => {
-  const { t } = useTranslation();
   const open = useCommandMenuStore((state) => state.open);
   const setOpen = useCommandMenuStore((state) => state.setOpen);
   const input = useRef<HTMLInputElement>(null);
@@ -51,21 +49,16 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ children }) => {
       onClose={() => setOpen(false)}
       className="command-menu-dialog"
       css={styles}
-      aria-label={t("editor:ui.commandMenu", { defaultValue: "Command menu" })}
+      aria-label="Command menu"
     >
-      <Command
-        label={t("editor:ui.commandMenuTitle", { defaultValue: "Command Menu" })}
-        className="command-menu"
-      >
+      <Command label="Command menu" className="command-menu">
         <CommandInput
           ref={input}
-          placeholder={t("editor:ui.typeACommandOrSearch", { defaultValue: "Type a command or search…" })}
-          aria-label={t("editor:ui.commandMenuSearch", { defaultValue: "Command menu search" })}
+          placeholder="Type a command or search"
+          aria-label="Command menu search"
         />
         <Command.List>
-          <Command.Empty>
-            {t("ui2:attrs.noResultsFound", { defaultValue: "No results found." })}
-          </Command.Empty>
+          <Command.Empty>No results found.</Command.Empty>
           <SwitchTabCommands />
           <ContextCommandGroups />
           {children}

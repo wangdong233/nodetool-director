@@ -13,11 +13,12 @@ import {
   isKeyboardConnectionValid
 } from "./keyboardConnection";
 import {
-  Box,
+  Button,
   Caption,
   CONTROL,
   Dialog,
   EditorButton,
+  EmptyState,
   FlexColumn,
   FlexRow,
   SPACING,
@@ -26,7 +27,6 @@ import {
   VirtualList
 } from "../ui_primitives";
 import type { VirtualListHandle } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
 
 type HandleDirection = "source" | "target";
 
@@ -79,7 +79,6 @@ export const KeyboardConnectionPicker = ({
   typeMetadata,
   onClose
 }: KeyboardConnectionPickerProps) => {
-  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const optionListRef = useRef<VirtualListHandle>(null);
@@ -246,9 +245,20 @@ export const KeyboardConnectionPicker = ({
       open={open}
       onClose={handleClose}
       title={`Connect ${titleize(handleId)}`}
-      aria-label={`Connect ${titleize(handleId)}`}
       maxWidth="sm"
       fullWidth
+      actions={
+        connectedEdgeIds.length > 0 ? (
+          <Button
+            variant="text"
+            color="error"
+            onClick={disconnect}
+            sx={{ mr: "auto" }}
+          >
+            Disconnect {connectedEdgeIds.length === 1 ? "edge" : "all edges"}
+          </Button>
+        ) : undefined
+      }
     >
       <FlexColumn
         gap={SPACING.md}
@@ -271,21 +281,16 @@ export const KeyboardConnectionPicker = ({
               focusOption(0);
             }
           }}
-          label={t("editor:ui.findACompatibleNodeOrPort", { defaultValue: "Find a compatible node or port" })}
-          placeholder={t("editor:ui.searchCompatiblePorts", { defaultValue: "Search compatible ports" })}
+          label="Find a compatible node or port"
+          placeholder="Search compatible ports"
         />
-        {connectedEdgeIds.length > 0 ? (
-          <EditorButton color="error" onClick={disconnect}>
-            Disconnect {connectedEdgeIds.length === 1 ? "edge" : "all edges"}
-          </EditorButton>
-        ) : null}
         {filteredOptions.length > 0 ? (
           <VirtualList
             ref={optionListRef}
             items={filteredOptions}
             estimateSize={PORT_OPTION_HEIGHT}
             getItemKey={(option) => option.key}
-            ariaLabel={t("editor:ui.compatiblePorts", { defaultValue: "Compatible ports" })}
+            ariaLabel="Compatible ports"
             scrollToIndex={boundedActiveIndex}
             sx={{ maxHeight: PORT_OPTIONS_MAX_HEIGHT }}
             getItemProps={(_option, index) => ({
@@ -320,16 +325,18 @@ export const KeyboardConnectionPicker = ({
                   <Text>{option.nodeTitle}</Text>
                   <Caption color="muted">{option.handleTitle}</Caption>
                   <Caption color="muted">
-                    {option.kind === "existing" ? t("editor:ui.existingNode", { defaultValue: "Existing node" }) : t("editor:ui.createNode", { defaultValue: "Create node" })}
+                    {option.kind === "existing" ? "Existing node" : "Create node"}
                   </Caption>
                 </FlexRow>
               </EditorButton>
             )}
           />
         ) : (
-          <Box padding={SPACING.md}>
-            <Text color="muted">{t("ui2:attrs.noCompatiblePortsFound", { defaultValue: "No compatible ports found." })}</Text>
-          </Box>
+          <EmptyState
+            variant="no-results"
+            size="small"
+            title="No compatible ports found"
+          />
         )}
       </FlexColumn>
     </Dialog>

@@ -11,17 +11,16 @@ import React, { memo, useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import ImageIcon from "@mui/icons-material/Image";
 
-import { SPACING, CheckerDropzone, NodeSlider, BORDER_RADIUS } from "../../ui_primitives";
+import { SPACING, MediaLabel, NodeSlider, BORDER_RADIUS } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
-import ImageRefPreview from "../../node/ImageRefPreview";
+import ImagePreview from "./ImagePreview";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
 
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
-import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
+import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { SCALE_NODE_TYPE } from "../../../constants/nodeTypes";
 import { useTranslation } from "react-i18next";
@@ -63,18 +62,6 @@ const styles = (theme: Theme) =>
         maxWidth: "100%",
         maxHeight: "100%",
         objectFit: "contain"
-      },
-      ".dimensions-badge": {
-        position: "absolute",
-        bottom: theme.spacing(SPACING.micro),
-        right: theme.spacing(SPACING.micro),
-        padding: `${theme.spacing(SPACING.micro)} ${theme.spacing(SPACING.xs)}`,
-        background: theme.vars.palette.c_scrim,
-        color: theme.vars.palette.common.white,
-        fontFamily: theme.fontFamily2,
-        fontSize: theme.fontSizeSmaller,
-        borderRadius: BORDER_RADIUS.sm,
-        pointerEvents: "none"
       }
     },
     ".controls": {
@@ -120,15 +107,6 @@ const extractImageRef = (
   };
 };
 
-const ImagePreview: React.FC<{ value: unknown }> = ({ value }) => (
-  <ImageRefPreview
-    value={value}
-    placeholder={
-      <CheckerDropzone message="Connect an image, then run" icon={<ImageIcon />} />
-    }
-  />
-);
-
 interface ScaleBodyProps {
   id: string;
   nodeType: string;
@@ -170,7 +148,7 @@ const ScaleBodyInner: React.FC<ScaleBodyProps> = ({
   const previewValue = useNodeOutput(workflowId, id);
   const previewDims = useMemo(() => extractImageRef(previewValue), [previewValue]);
 
-  const { setProperty, setPropertyComplete } = useBespokePropertyWriter({
+  const { setProperty, setPropertyComplete } = useLiveSliderWriter({
     nodeId: id,
     nodeType
   });
@@ -194,9 +172,9 @@ const ScaleBodyInner: React.FC<ScaleBodyProps> = ({
       <div className="preview-area">
         <ImagePreview value={previewValue} />
         {previewDims.width != null && previewDims.height != null && (
-          <span className="dimensions-badge">
+          <MediaLabel corner="bottom-right">
             {previewDims.width} × {previewDims.height}
-          </span>
+          </MediaLabel>
         )}
       </div>
 

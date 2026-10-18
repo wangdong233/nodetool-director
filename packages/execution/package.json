@@ -4,7 +4,7 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "version": "0.8.2",
+  "version": "0.8.4",
   "description": "ExecutionSession facade: the one place that constructs WorkflowRunner",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,16 +21,25 @@
     "@nodetool-ai/kernel": "*",
     "@nodetool-ai/model-pricing": "*",
     "@nodetool-ai/models": "*",
+    "@nodetool-ai/node-catalog": "*",
     "@nodetool-ai/node-sdk": "*",
     "@nodetool-ai/protocol": "*",
     "@nodetool-ai/runtime": "*",
     "@nodetool-ai/storage": "*",
-    "@nodetool-ai/timeline": "*",
-    "typescript": "npm:@typescript/typescript6@6.0.2"
+    "@nodetool-ai/timeline": "*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "vitest": "^5.0.1"
+  },
+  "peerDependencies": {
+    "typescript": "npm:@typescript/typescript6@6.0.2"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   },
   "exports": {
     ".": {
@@ -74,6 +83,12 @@
       "types": "./dist/sketch-debug/index.d.ts",
       "import": "./dist/sketch-debug/index.js",
       "default": "./dist/sketch-debug/index.js"
+    },
+    "./missing-packs": {
+      "nodetool-dev": "./src/missing-packs.ts",
+      "types": "./dist/missing-packs.d.ts",
+      "import": "./dist/missing-packs.js",
+      "default": "./dist/missing-packs.js"
     }
   },
   "license": "MIT",

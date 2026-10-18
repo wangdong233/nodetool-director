@@ -1,5 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import type { Theme } from "@mui/material/styles";
 import { useTheme } from "@mui/material/styles";
@@ -15,7 +14,9 @@ import {
   EditorButton,
   getSpacingPx,
   MOTION,
+  PageHeader,
   SPACING,
+  Text,
   VideoPlayer,
   SHADOW
 } from "../ui_primitives";
@@ -37,50 +38,6 @@ const styles = (theme: Theme) =>
     background: theme.vars.palette.background.paper,
     color: theme.vars.palette.text.primary,
     overflow: "hidden",
-
-    ".tut-header": {
-      display: "flex",
-      alignItems: "center",
-      gap: theme.spacing(1.5),
-      padding: `${getSpacingPx(4)} ${getSpacingPx(6)}`,
-      borderBottom: `1px solid ${theme.vars.palette.divider}`,
-      flexShrink: 0,
-      [theme.breakpoints.down("md")]: {
-        padding: `${getSpacingPx(SPACING.lg)} ${getSpacingPx(SPACING.lg)}`
-      }
-    },
-    ".tut-header .titles": {
-      display: "flex",
-      flexDirection: "column",
-      gap: 2,
-      minWidth: 0
-    },
-    ".tut-header h1": {
-      margin: 0,
-      fontSize: "var(--fontSizeBig)",
-      fontWeight: 600,
-      letterSpacing: "-0.012em"
-    },
-    ".tut-header .sub": {
-      fontSize: "var(--fontSizeSmall)",
-      color: theme.vars.palette.text.secondary,
-      [theme.breakpoints.down("md")]: { display: "none" }
-    },
-    ".tut-header .spacer": { flex: 1 },
-    ".back": {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: theme.spacing(0.5),
-      fontSize: "var(--fontSizeSmall)",
-      color: theme.vars.palette.text.secondary,
-      background: "none",
-      border: "none",
-      cursor: "pointer",
-      transition: `color ${MOTION.fast}`,
-      "&:hover": { color: theme.vars.palette.text.primary },
-      "& svg": { fontSize: 18 },
-      "@media (pointer: coarse)": { minHeight: 44, paddingLeft: 0 }
-    },
 
     ".tut-body": {
       flex: 1,
@@ -196,8 +153,6 @@ const styles = (theme: Theme) =>
     },
     ".tut-title": {
       margin: `${getSpacingPx(2)} 0 0`,
-      fontSize: "var(--fontSizeBig)",
-      fontWeight: 600,
       letterSpacing: "-0.012em"
     },
     ".tut-desc": {
@@ -214,12 +169,6 @@ const styles = (theme: Theme) =>
       display: "flex",
       flexDirection: "column",
       gap: getSpacingPx(2)
-    },
-    ".tut-learn h2": {
-      margin: 0,
-      fontSize: "var(--fontSizeNormal)",
-      fontWeight: 600,
-      color: theme.vars.palette.text.primary
     },
     ".tut-learn ul": { listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: getSpacingPx(1.5) },
     ".tut-learn li": {
@@ -240,12 +189,6 @@ const styles = (theme: Theme) =>
       marginTop: getSpacingPx(6),
       [theme.breakpoints.down("md")]: { marginTop: getSpacingPx(SPACING.xl) }
     },
-    ".tut-task h2": {
-      margin: 0,
-      fontSize: "var(--fontSizeNormal)",
-      fontWeight: 600,
-      color: theme.vars.palette.text.primary
-    },
     ".tut-task-grid": {
       display: "grid",
       gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
@@ -255,12 +198,6 @@ const styles = (theme: Theme) =>
         gridTemplateColumns: "1fr",
         gap: getSpacingPx(SPACING.md)
       }
-    },
-    ".tut-task-grid h3": {
-      margin: 0,
-      fontSize: "var(--fontSizeSmall)",
-      fontWeight: 600,
-      color: theme.vars.palette.text.primary
     },
     ".tut-task-grid p": {
       margin: `${getSpacingPx(SPACING.xs)} 0 0`,
@@ -282,7 +219,6 @@ const styles = (theme: Theme) =>
   });
 
 const TutorialsPage: React.FC = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -374,16 +310,25 @@ const TutorialsPage: React.FC = () => {
 
   return (
     <div className="page-enter" css={styles(theme)}>
-      <header className="tut-header">
-        <Logo small width="26px" height="26px" fontSize="1em" borderRadius={BORDER_RADIUS.sm} />
-        <div className="titles">
-          <h1>{t("nav:rail.tutorials", { defaultValue: "Tutorials" })}</h1>
-          <span className="sub">{t("tools:tutorials.subtitle", { defaultValue: "Short, beginner-friendly walkthroughs of NodeTool" })}</span>
-        </div>
-        <span className="spacer" />
-        <button type="button" className="back" onClick={() => navigate("/workspace")}>
-          <ArrowBackRoundedIcon />{t("tools:tutorials.backToWorkspace", { defaultValue: "Workspace" })}</button>
-      </header>
+      <PageHeader
+        variant="bar"
+        icon={
+          <Logo small width="26px" height="26px" fontSize="1em" borderRadius={BORDER_RADIUS.sm} />
+        }
+        title="Tutorials"
+        subtitle="Short, beginner-friendly walkthroughs of NodeTool"
+        hideSubtitleOnMobile
+        actions={
+          <EditorButton
+            variant="text"
+            color="inherit"
+            startIcon={<ArrowBackRoundedIcon />}
+            onClick={() => navigate("/workspace")}
+          >
+            Workspace
+          </EditorButton>
+        }
+      />
 
       <div className="tut-body" ref={bodyRef}>
         <aside className="tut-sidebar">
@@ -412,6 +357,7 @@ const TutorialsPage: React.FC = () => {
                 poster={resolveStaticMediaUri(active.poster) ?? undefined}
                 autoplay={started}
                 muted
+                label={active.title}
               />
               {!started && (
                 <button
@@ -432,11 +378,15 @@ const TutorialsPage: React.FC = () => {
               <span className="dur">{active.durationLabel}</span>
             </div>
 
-            <h2 className="tut-title">{active.title}</h2>
+            <Text component="h2" size="big" className="tut-title">
+              {active.title}
+            </Text>
             <p className="tut-desc">{active.description}</p>
 
             <section className="tut-learn">
-              <h2>What you'll learn</h2>
+              <Text component="h2" size="normal" weight={600}>
+                What you'll learn
+              </Text>
               <ul>
                 {active.learn.map((point) => (
                   <li key={point}>
@@ -449,18 +399,26 @@ const TutorialsPage: React.FC = () => {
 
             {active.startingState && active.task && active.result && (
               <section className="tut-task" aria-labelledby="tut-task-heading">
-                <h2 id="tut-task-heading">{t("ui2:attrs.tryItYourself", { defaultValue: "Try it yourself" })}</h2>
+                <Text component="h2" id="tut-task-heading" size="normal" weight={600}>
+                  Try it yourself
+                </Text>
                 <div className="tut-task-grid">
                   <div>
-                    <h3>{t("ui2:attrs.startHere", { defaultValue: "Start here" })}</h3>
+                    <Text component="h3" size="small" weight={600}>
+                      Start here
+                    </Text>
                     <p>{active.startingState}</p>
                   </div>
                   <div>
-                    <h3>{t("ui2:attrs.yourTask", { defaultValue: "Your task" })}</h3>
+                    <Text component="h3" size="small" weight={600}>
+                      Your task
+                    </Text>
                     <p>{active.task}</p>
                   </div>
                   <div>
-                    <h3>{t("ui2:attrs.checkTheResult", { defaultValue: "Check the result" })}</h3>
+                    <Text component="h3" size="small" weight={600}>
+                      Check the result
+                    </Text>
                     <p>{active.result}</p>
                   </div>
                 </div>
@@ -475,10 +433,12 @@ const TutorialsPage: React.FC = () => {
                   disabled={openingTask}
                   aria-busy={openingTask}
                 >
-                  {openingTask ? t("tools:tutorials.openingTask", { defaultValue: "Opening task…" }) : t("editor:ui.openTask", { defaultValue: "Open task" })}
+                  {openingTask ? "Opening task…" : "Open task"}
                 </EditorButton>
               ) : (
-                <EditorButton variant="contained" onClick={() => navigate("/workspace")}>{t("tools:tutorials.startBuilding", { defaultValue: "Start building" })}</EditorButton>
+                <EditorButton variant="contained" onClick={() => navigate("/workspace")}>
+                  Start building
+                </EditorButton>
               )}
               <EditorButton variant="outlined" onClick={() => openPageTab("examples")}>
                 Browse examples

@@ -37,9 +37,11 @@ import {
 } from "@nodetool-ai/protocol/api-schemas";
 import {
   isModelSelected,
+  isReasoningEffort,
   NO_MODEL_SELECTED_MESSAGE,
   noMediaModelSelectedMessage
 } from "@nodetool-ai/protocol";
+import type { ReasoningEffort } from "@nodetool-ai/protocol";
 import { DEFAULT_MODEL } from "../config/constants";
 import { ConnectionState } from "../lib/websocket/WebSocketManager";
 import { globalWebSocketManager } from "../lib/websocket/GlobalWebSocketManager";
@@ -59,9 +61,13 @@ import {
   type ThreadRuntime
 } from "../core/chat/threadRuntime";
 import { isObjectLike, isString } from "../utils/typePredicates";
-import { creationProjectId } from "./WorkspaceTabsStore";
-import { i18n } from "../i18n";
+import {
+  creationProjectId,
+  tabId,
+  useWorkspaceTabsStore
+} from "./WorkspaceTabsStore";
 import useAuth from "./useAuth";
+
 // Include additional runtime statuses used during message streaming
 type ChatStatus =
   | ConnectionState
@@ -300,6 +306,11 @@ export interface GlobalChatState {
   getPermissionMode: (threadId: string | null) => PermissionMode;
   setPermissionMode: (threadId: string | null, mode: PermissionMode) => void;
 
+  // Reasoning level sent with every chat turn. Null keeps the provider
+  // default. The server drops it for models that do not accept it.
+  reasoningEffort: ReasoningEffort | null;
+  setReasoningEffort: (effort: ReasoningEffort | null) => void;
+
   // Inline tool-approval prompts awaiting a user decision, keyed by approval_id.
   pendingApprovals: Record<string, PendingApproval>;
   addPendingApproval: (req: ToolApprovalRequest) => void;
@@ -475,6 +486,7 @@ interface PersistedChatState {
   threadModel?: Record<string, LanguageModel>;
   permissionMode: Record<string, PermissionMode>;
   lastPermissionMode?: PermissionMode;
+  reasoningEffort?: ReasoningEffort | null;
 }
 
 const useGlobalChatStore = create<GlobalChatState>()(
@@ -651,6 +663,10 @@ const useGlobalChatStore = create<GlobalChatState>()(
         }
       },
 
+      reasoningEffort: null,
+      setReasoningEffort: (effort: ReasoningEffort | null) =>
+        set({ reasoningEffort: effort }),
+
       // Inline tool-approval prompts
       pendingApprovals: {},
       addPendingApproval: (req: ToolApprovalRequest) =>
@@ -778,7 +794,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
           } catch (error) {
             console.error("Failed to establish WebSocket connection:", error);
             set({
-              error: i18n.t("editor:ui.failedToConnectToChatService", { defaultValue: "Failed to connect to chat service" }),
+              error: "Failed to connect to chat service",
               status: "failed"
             });
             throw error;
@@ -1153,7 +1169,10 @@ const useGlobalChatStore = create<GlobalChatState>()(
           collections: _collections,
           ...messageWithoutTools
         } = message;
-        const chatMessageData = {
+        const reasoningEffort = isMediaGeneration
+          ? null
+          : get().reasoningEffort;
+        const chatMessageData: Record<string, unknown> = {
           ...messageWithoutTools,
           id: messageId,
           workflow_id: message.workflow_id ?? boundWorkflowId,
@@ -1170,6 +1189,9 @@ const useGlobalChatStore = create<GlobalChatState>()(
             : selectedModel?.provider,
           media_generation: mediaGeneration
         };
+        if (reasoningEffort) {
+          chatMessageData.reasoning_effort = reasoningEffort;
+        }
 
         // Wrap in chat_message command structure as per unified WebSocket API
         const commandMessage = {
@@ -1227,7 +1249,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
           // ChatSendOutcome).
           console.error("Failed to send message:", error);
           const errorMessage =
-            error instanceof Error ? error.message : i18n.t("editor:ui.failedToSendMessage", { defaultValue: "Failed to send message" });
+            error instanceof Error ? error.message : "Failed to send message";
           set((state) => ({
             error: errorMessage,
             ...threadRuntimeUpdate(state, tid, {
@@ -1293,7 +1315,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
           const message =
             error instanceof Error
               ? error.message
-              : i18n.t("editor:ui.failedToLoadChatThreads", { defaultValue: "Failed to load chat threads" });
+              : "Failed to load chat threads";
           set({
             threadsLoaded: false,
             threadsError: message,
@@ -1463,6 +1485,9 @@ const useGlobalChatStore = create<GlobalChatState>()(
       deleteThread: async (threadId: string) => {
         try {
           await trpcClient.threads.delete.mutate({ id: threadId });
+          // An open tab for the deleted thread would recreate it as an empty
+          // "New conversation" on the next load.
+          useWorkspaceTabsStore.getState().closeTab(tabId("chat", threadId));
 
           // Update local state
           set((state) => {
@@ -1632,6 +1657,11 @@ const useGlobalChatStore = create<GlobalChatState>()(
                 ? existingMessages.slice(0, overlapIndex)
                 : [];
               const existingIds = new Set(existingMessages.map((m) => m.id));
+              // A finished reply keeps its local placeholder id (the final
+              // frame carries no id), and the page above already holds it.
+              const runtimeStatus = getThreadRuntime(state, threadId).status;
+              const replyInFlight =
+                runtimeStatus !== "idle" && runtimeStatus !== "error";
               const updatedMessages = cursor
                 ? [
                     ...messages.filter((m) => !existingIds.has(m.id)),
@@ -1642,6 +1672,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
                     ...messages,
                     ...existingMessages.filter(
                       (m) =>
+                        replyInFlight &&
                         isString(m.id) &&
                         m.id.startsWith("local-stream-")
                     )
@@ -1668,7 +1699,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
               error:
                 error instanceof Error
                   ? error.message
-                  : i18n.t("editor:ui.failedToLoadMessages", { defaultValue: "Failed to load messages" })
+                  : "Failed to load messages"
             });
             return get().messageCache[threadId] || [];
           }
@@ -1865,9 +1896,9 @@ const useGlobalChatStore = create<GlobalChatState>()(
         } catch (error) {
           console.error("Failed to send stop signal:", error);
           set((state) => ({
-            error: i18n.t("editor:ui.failedToStopGeneration", { defaultValue: "Failed to stop generation" }),
+            error: "Failed to stop generation",
             ...threadRuntimeUpdate(state, tid, {
-              error: i18n.t("editor:ui.failedToStopGeneration", { defaultValue: "Failed to stop generation" }),
+              error: "Failed to stop generation",
               status: "error",
               statusMessage: null,
               sendMessageTimeoutId: null
@@ -1888,7 +1919,8 @@ const useGlobalChatStore = create<GlobalChatState>()(
         selectedModel: state.selectedModel,
         threadModel: state.threadModel,
         permissionMode: state.permissionMode,
-        lastPermissionMode: state.lastPermissionMode
+        lastPermissionMode: state.lastPermissionMode,
+        reasoningEffort: state.reasoningEffort
       }),
       // Default persist merge is shallow, so a rehydrate that finishes after
       // a thread was created would replace the per-thread maps.
@@ -1958,7 +1990,7 @@ const useGlobalChatStore = create<GlobalChatState>()(
         };
       },
       // `merge` above already guarantees every persisted map is an object and
-      // leaves the unpersisted fields at their initial values, so only the two
+      // leaves the unpersisted fields at their initial values, so only the
       // persisted scalars that can carry a bad value are re-checked here.
       onRehydrateStorage: () => (state) => {
         if (!state) {
@@ -1970,6 +2002,9 @@ const useGlobalChatStore = create<GlobalChatState>()(
           state.lastPermissionMode !== "default"
         ) {
           state.lastPermissionMode = DEFAULT_PERMISSION_MODE;
+        }
+        if (!isReasoningEffort(state.reasoningEffort)) {
+          state.reasoningEffort = null;
         }
         if (!state.selectedModel) {
           state.selectedModel = buildDefaultLanguageModel();

@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { Text, FlexRow, EditorButton } from "../ui_primitives";
+import { Text, FlexRow, EditorButton, FormField } from "../ui_primitives";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
 import LanguageModelSelect from "../properties/LanguageModelSelect";
 import ImageModelSelect from "../properties/ImageModelSelect";
@@ -8,11 +8,6 @@ import TTSModelSelect from "../properties/TTSModelSelect";
 import ASRModelSelect from "../properties/ASRModelSelect";
 import VideoModelSelect from "../properties/VideoModelSelect";
 import { CODE_MODEL_PREFERENCE } from "../../hooks/useCodeAuthoringModel";
-import { i18n, useAppLanguage } from "../../i18n";
-import { useTranslation } from "react-i18next";
-
-const dm = (key: string, fallback: string) =>
-  i18n.t(`settings:defModels.${key}`, { defaultValue: fallback });
 import type { ImageModelValue } from "../../stores/ApiTypes";
 import { IMAGE_TASK_DEFAULTS } from "../../utils/applyDefaultModels";
 
@@ -32,51 +27,45 @@ const RemoveBackgroundModelSelect = React.memo(
     return <ImageModelSelect {...props} task="remove_background" />;
   }
 );
+
 const MODEL_TYPE_CONFIG = [
   {
     type: "language_model",
-    label: "Language Model",
-    labelKey: "mLanguage",
+    label: "Language model",
     Select: LanguageModelSelect
   },
-  { type: "image_model", label: "Image Model", labelKey: "mImage", Select: ImageModelSelect },
+  { type: "image_model", label: "Image model", Select: ImageModelSelect },
   {
     type: IMAGE_TASK_DEFAULTS["nodetool.image.Upscale"],
-    label: "Upscale Model",
-    labelKey: "mUpscale",
+    label: "Upscale model",
     Select: UpscaleModelSelect,
     hint: "Fills Upscale nodes. Falls back to the image model when unset."
   },
   {
     type: IMAGE_TASK_DEFAULTS["nodetool.image.RemoveBackground"],
-    label: "Remove Background Model",
-    labelKey: "mRemoveBackground",
+    label: "Remove background model",
     Select: RemoveBackgroundModelSelect,
     hint: "Fills Remove Background nodes. Falls back to the image model when unset."
   },
   {
     type: "embedding_model",
-    label: "Embedding Model",
-    labelKey: "mEmbedding",
+    label: "Embedding model",
     Select: EmbeddingModelSelect
   },
   {
     type: "tts_model",
-    label: "Text-to-Speech Model",
-    labelKey: "mTts",
+    label: "Text-to-speech model",
     Select: TTSModelSelect
   },
   {
     type: "asr_model",
-    label: "Speech Recognition Model",
-    labelKey: "mAsr",
+    label: "Speech recognition model",
     Select: ASRModelSelect
   },
-  { type: "video_model", label: "Video Model", labelKey: "mVideo", Select: VideoModelSelect },
+  { type: "video_model", label: "Video model", Select: VideoModelSelect },
   {
     type: CODE_MODEL_PREFERENCE,
-    label: "Code Generation",
-    labelKey: "mCode",
+    label: "Code generation",
     Select: LanguageModelSelect,
     // The submission is a tool call, so non-tool-capable models are hidden.
     selectProps: { placeholder: "Use chat model", requireToolSupport: true },
@@ -85,8 +74,6 @@ const MODEL_TYPE_CONFIG = [
 ] as const;
 
 function DefaultModelsMenu() {
-  // Subscribe so catalog reads re-render on language change.
-  useAppLanguage();
   const defaults = useModelPreferencesStore((s) => s.defaults);
   const setDefault = useModelPreferencesStore((s) => s.setDefault);
   const clearDefault = useModelPreferencesStore((s) => s.clearDefault);
@@ -94,13 +81,11 @@ function DefaultModelsMenu() {
   return (
     <div>
       <Text size="big" id="default-models" className="settings-heading">
-        {dm("title", "Default Models")}
+        Default models
       </Text>
       <Text className="description" sx={{ mb: 2 }}>
-        {dm(
-          "desc",
-          "Set default models for each type. These will auto-fill when you create new nodes."
-        )}
+        Set default models for each type. These will auto-fill when you create
+        new nodes.
       </Text>
 
       <div className="default-models-list">
@@ -108,15 +93,10 @@ function DefaultModelsMenu() {
           <DefaultModelRow
             key={config.type}
             modelType={config.type}
-            label={dm(config.labelKey, config.label)}
+            label={config.label}
             Select={config.Select}
             selectProps={"selectProps" in config ? config.selectProps : undefined}
-            placeholder={
-              "selectProps" in config
-                ? dm("useChatPlaceholder", config.selectProps.placeholder)
-                : undefined
-            }
-            hint={"hint" in config ? dm("codeHint", config.hint) : undefined}
+            hint={"hint" in config ? config.hint : undefined}
             current={defaults[config.type]}
             onSelect={setDefault}
             onClear={clearDefault}
@@ -142,7 +122,6 @@ interface DefaultModelRowProps {
     } & ModelSelectExtraProps
   >;
   selectProps?: ModelSelectExtraProps;
-  placeholder?: string;
   hint?: string;
   current?: { provider: string; id: string; name: string };
   onSelect: (
@@ -157,13 +136,11 @@ function DefaultModelRow({
   label,
   Select,
   selectProps,
-  placeholder,
   hint,
   current,
   onSelect,
   onClear
 }: DefaultModelRowProps) {
-  const { t } = useTranslation();
   const handleChange = useCallback(
     (value: unknown) => {
       const v = value as { provider?: string; id?: string; name?: string };
@@ -184,23 +161,20 @@ function DefaultModelRow({
 
   return (
     <div className="default-model-row" id={`default-model-${modelType}`}>
-      <div>
-        <Text weight={600}>{label}</Text>
-        {hint && <Text className="description">{hint}</Text>}
-      </div>
-      <FlexRow align="center" gap={1}>
-        <Select
-          onChange={handleChange}
-          value={current?.id || ""}
-          {...selectProps}
-          placeholder={placeholder}
-        />
-        {current && (
-          <EditorButton size="small" onClick={handleClear}>
-            {t("common:action.clear", { defaultValue: "Clear" })}
-          </EditorButton>
-        )}
-      </FlexRow>
+      <FormField label={label} helperText={hint}>
+        <FlexRow align="center" gap={1}>
+          <Select
+            onChange={handleChange}
+            value={current?.id || ""}
+            {...selectProps}
+          />
+          {current && (
+            <EditorButton size="small" onClick={handleClear}>
+              Clear
+            </EditorButton>
+          )}
+        </FlexRow>
+      </FormField>
     </div>
   );
 }

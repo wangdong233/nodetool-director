@@ -15,7 +15,8 @@
  */
 
 import { forwardRef, memo, useCallback } from "react";
-import { Button, ButtonProps, Box, Typography, Tooltip } from "@mui/material";
+import { Button, ButtonProps, Box, Typography } from "@mui/material";
+import { Tooltip } from "./Tooltip";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import IndeterminateCheckBoxIcon from "@mui/icons-material/IndeterminateCheckBox";
@@ -100,7 +101,7 @@ export const SelectionControls = memo(
         onSelectAll,
         onClear,
         showCount = true,
-        selectAllLabel = "Select All",
+        selectAllLabel = "Select all",
         clearLabel = "Clear",
         variant = "buttons",
         size = "small",
@@ -249,7 +250,7 @@ export const SelectionControls = memo(
               onClick={onClear}
               disabled={!hasSelection}
               size={size}
-              startIcon={<ClearIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
+              startIcon={<ClearIcon />}
               sx={buttonSx}
             >
               {clearLabel}

@@ -69,14 +69,21 @@ NodeTool uses manual thinking on models that accept `budget_tokens`:
 { "thinking": { "type": "enabled", "budget_tokens": 4096 } }
 ```
 
-This shape is not valid for every current model. The provider uses adaptive
-thinking for models that require it. Anthropic's
+This shape is not valid for every current model. `thinkingPolicy()` in
+`anthropic-provider.ts` matches model ids by substring:
+
+| Policy | Models | Behavior |
+|---|---|---|
+| `adaptive_required` | Fable 5 and 5.1, Mythos 5 and Preview, Opus 5.5, Sonnet 5.5 | Thinks on every request. `thinking: disabled` and a forced tool choice throw. |
+| `adaptive_default` | Opus 5, Sonnet 5, Haiku 5.5 | Thinks unless the caller disables it or forces a tool. |
+| `adaptive_optional` | Opus 4.7 and 4.8 | Thinks only when the caller asks for adaptive thinking. |
+| `manual` | Every other id | Takes a `budget_tokens` budget. |
+
+The 5.5 ids contain the 5 ids as substrings, so they are checked first. Add a
+new model family to that function before recommending it. Anthropic's
 [extended thinking guide](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
-requires adaptive configuration for Claude Fable 5, Claude Mythos 5 and
-Preview, Claude Opus 5, Claude Opus 4.8 and 4.7, and Claude Sonnet 5. Opus 5 and
-Sonnet 5 enable adaptive thinking by default; Opus 5 only accepts disabled
-thinking at effort `high` or lower, and Fable and Mythos do not allow thinking to
-be disabled at all.
+lists the rules per model. Opus 5 only accepts disabled thinking at effort `high`
+or lower, which the provider does not check.
 Manual `budget_tokens` is deprecated but still accepted for Claude Opus 4.6 and
 Claude Sonnet 4.6. Claude Haiku 4.5 also accepts manual thinking. Manual budgets
 must be at least 1,024 tokens and less than `max_tokens`.
@@ -87,9 +94,9 @@ tools must preserve signed thinking blocks unchanged across the tool-result turn
 ### Sampling parameters
 
 Anthropic rejects non-default `temperature`, `top_p`, and `top_k` on current
-adaptive-only/default model families, including Claude Opus 4.7 and later,
-Sonnet 5, Fable 5, and Mythos. The provider omits incompatible sampling
-parameters according to Anthropic's
+adaptive-only/default model families. The provider omits them for every model
+whose `thinkingPolicy()` is not `manual` (`rejectsCustomSampling()`), following
+Anthropic's
 [parameter deprecation table](https://platform.claude.com/docs/en/about-claude/model-deprecations#api-parameter-deprecations).
 
 ### Stop reasons

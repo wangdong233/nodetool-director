@@ -20,10 +20,8 @@
  * it is replaced.
  */
 
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 import React, { useCallback, useMemo } from "react";
-import { STYLE_DESCRIPTIONS, STYLE_DESCRIPTION_KEYS } from "../styleDescriptions";
+import { STYLE_DESCRIPTIONS } from "../styleDescriptions";
 import { formatUsd } from "@nodetool-ai/model-pricing";
 import { composeImagePrompt } from "@nodetool-ai/protocol/api-schemas/sketch.js";
 
@@ -32,6 +30,7 @@ import {
   EditorButton,
   FlexColumn,
   FlexRow,
+  FormField,
   GAP,
   LoadingSpinner,
   Text
@@ -45,6 +44,7 @@ import {
 } from "../../../serverState/useStylePresets";
 import { useImageModelsByProvider } from "../../../hooks/useModelsByProvider";
 import { useLastModelStore } from "../../../stores/lastModelStore";
+import useModelPreferencesStore from "../../../stores/ModelPreferencesStore";
 import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore";
 import { estimateGenerationCost } from "../../../utils/generationCostEstimate";
 import { useGenerateVariations } from "../../../hooks/sketch/useGenerateVariations";
@@ -54,7 +54,6 @@ import ImageModelSelect from "../../properties/ImageModelSelect";
 import ReportBugButton from "../../support/ReportBugButton";
 import { SetupFooterField } from "../SetupFooterField";
 import {
-  SIZE_PRESET_LABEL_KEYS,
   sizePresetFor,
   sizePresetsForAspectRatios,
   type SizePreset
@@ -114,11 +113,13 @@ export interface LookStepControls {
  * path to fill it in.
  */
 export function useLookStep(): LookStepControls {
-  const { t } = useTranslation();
   const setup = useSketchStore((state) => state.document.setup);
   const setSetup = useSketchStore((state) => state.setSetup);
   const remembered = useLastModelStore((state) => state.byKind.image);
   const remember = useLastModelStore((state) => state.remember);
+  const imageDefault = useModelPreferencesStore(
+    (state) => state.defaults["image_model"]
+  );
   // The tiles are shipped presets filed under project "default", so the
   // active project's entities alone would never find the chosen one.
   const { data: projectEntities, isLoading: entitiesLoading } = useEntities();
@@ -137,8 +138,11 @@ export function useLookStep(): LookStepControls {
   const persisted = useMemo(() => readLookSelection(setup), [setup]);
   // The document wins over the remembered pick: it is what this image was set
   // up with, while `lastModelStore` is what the creator used somewhere else.
-  const provider = persisted.provider || (remembered?.provider ?? "");
-  const model = persisted.model || (remembered?.model ?? "");
+  // With neither, the Settings default image model applies, which connecting
+  // a provider fills in.
+  const provider =
+    persisted.provider || remembered?.provider || imageDefault?.provider || "";
+  const model = persisted.model || remembered?.model || imageDefault?.id || "";
 
   const setStyleChoice = useCallback(
     (choice: string) => setSetup(styleChoicePatch(choice)),
@@ -242,38 +246,33 @@ export function useLookStep(): LookStepControls {
   // PRD § 6.2: nothing shows when nothing was measured.
   const primaryDetail =
     estimate && estimate.total > 0
-      ? t("setup:image.variationsAbout", {
-          defaultValue: "{{count}} images · about {{cost}}",
-          count: variations,
-          cost: formatUsd(estimate.total)
-        })
+      ? `${variations} image${variations === 1 ? "" : "s"} · about ${formatUsd(
+          estimate.total
+        )}`
       : undefined;
   const perImageDetail =
     estimate && estimate.total > 0
-      ? t("setup:image.aboutCost", {
-          defaultValue: "about {{cost}}",
-          cost: formatUsd(estimate.total / variations)
-        })
+      ? `about ${formatUsd(estimate.total / variations)}`
       : undefined;
 
   const blockedReason =
     availability === "loading"
-      ? t("setup:image.loadingTheImageModels", { defaultValue: "Loading the image models" })
+      ? "Loading the image models"
       : availability === "error"
-        ? i18n.t("storyboard:attrs.theImageModelsCouldNotBeLoaded2", { defaultValue: "The image models could not be loaded" })
+        ? "The image models could not be loaded"
         : availability === "no-provider"
-          ? i18n.t("storyboard:attrs.connectAnImageProviderFirst", { defaultValue: "Connect an image provider first" })
+          ? "Connect an image provider first"
           : availability === "no-model"
-            ? i18n.t("storyboard:attrs.noImageModelCanRenderAPictureYet", { defaultValue: "No image model can render a picture yet" })
+            ? "No image model can render a picture yet"
             : modelMissing
-              ? i18n.t("storyboard:attrs.thatModelIsNoLongerOfferedPickAnother", { defaultValue: "That model is no longer offered — pick another" })
+              ? "That model is no longer offered — pick another"
               : sizePresets.length === 0
-                ? i18n.t("storyboard:attrs.thatModelHasNoSizeSupportedByThisGuidedFlow", { defaultValue: "That model has no size supported by this guided flow" })
+                ? "That model has no size supported by this guided flow"
                 : sizeUnsupported
-                  ? i18n.t("storyboard:attrs.pickASizeSupportedByThisImageModel", { defaultValue: "Pick a size supported by this image model" })
+                  ? "Pick a size supported by this image model"
                   : styleLoading
-                    ? t("setup:image.loadingTheChosenStyle", { defaultValue: "Loading the chosen style" })
-                    : i18n.t("storyboard:attrs.pickAnImageModel", { defaultValue: "Pick an image model" });
+                    ? "Loading the chosen style"
+                    : "Pick an image model";
 
   return {
     styleChoice: persisted.styleChoice,
@@ -304,10 +303,7 @@ export function useLookStep(): LookStepControls {
 const connectImageProvider = (): void => {
   openProviderOnboarding({
     capability: "text_to_image",
-    reason: i18n.t("setup:image.connectAProviderThatMakesImages", {
-      defaultValue:
-        "Connect a provider that makes images to generate this picture."
-    })
+    reason: "Connect a provider that makes images to generate this picture."
   });
 };
 
@@ -316,15 +312,12 @@ const ModelListState: React.FC<{
   availability: ModelAvailability;
   onRetry: () => void;
 }> = ({ availability, onRetry }) => {
-  const { t } = useTranslation();
   if (availability === "loading") {
     return (
       <FlexRow gap={GAP.normal} align="center">
         <LoadingSpinner size="small" inline />
         <Text size="small" color="secondary">
-          {t("setup:image.loadingTheImageModelsEllipsis", {
-            defaultValue: "Loading the image models…"
-          })}
+          Loading the image models…
         </Text>
       </FlexRow>
     );
@@ -336,7 +329,7 @@ const ModelListState: React.FC<{
         action={
           <FlexRow gap={GAP.tight} align="center">
             <EditorButton variant="text" onClick={onRetry}>
-              {t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}
+              Try again
             </EditorButton>
             <ReportBugButton
               context={{
@@ -347,9 +340,7 @@ const ModelListState: React.FC<{
           </FlexRow>
         }
       >
-        {t("setup:image.theImageModelsCouldNotBeLoadedPeriod", {
-          defaultValue: "The image models could not be loaded."
-        })}
+        The image models could not be loaded.
       </AlertBanner>
     );
   }
@@ -359,14 +350,12 @@ const ModelListState: React.FC<{
         severity="warning"
         action={
           <EditorButton variant="text" onClick={connectImageProvider}>
-            {t("storyboard:attrs.connectAProvider", { defaultValue: "Connect a provider" })}
+            Connect a provider
           </EditorButton>
         }
       >
-        {t("setup:image.noImageProviderConnected", {
-          defaultValue:
-            "No image provider is connected. Connect one to generate — your brief and look are saved with the document."
-        })}
+        No image provider is connected. Connect one to generate — your brief
+        and look are saved with the document.
       </AlertBanner>
     );
   }
@@ -375,14 +364,12 @@ const ModelListState: React.FC<{
       severity="warning"
       action={
         <EditorButton variant="text" onClick={onRetry}>
-          {t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}
+          Try again
         </EditorButton>
       }
     >
-      {t("setup:image.noneOfTheConnectedProvidersRenders", {
-        defaultValue:
-          "None of the connected providers offers a model that renders a picture from text."
-      })}
+      None of the connected providers offers a model that renders a picture from
+      text.
     </AlertBanner>
   );
 };
@@ -399,7 +386,6 @@ export const ImageModelFooterField: React.FC<{
   look: LookStepControls;
   readOnly?: boolean;
 }> = ({ look, readOnly = false }) => {
-  const { t } = useTranslation();
   const canvas = useSketchStore((state) => state.document.canvas);
   const resizeCanvas = useSketchStore((state) => state.resizeCanvas);
   const { setModel } = look;
@@ -427,7 +413,7 @@ export const ImageModelFooterField: React.FC<{
     return null;
   }
   return (
-    <SetupFooterField label={t("ui2:attrs.model", { defaultValue: "Model" })}>
+    <SetupFooterField label="Image model">
       <ImageModelSelect
         value={look.model}
         provider={look.provider}
@@ -440,7 +426,6 @@ export const ImageModelFooterField: React.FC<{
 };
 
 export const LookStep: React.FC<LookStepProps> = ({ look }) => {
-  const { t } = useTranslation();
   const canvas = useSketchStore((state) => state.document.canvas);
   const resizeCanvas = useSketchStore((state) => state.resizeCanvas);
   const { data: presets } = useStylePresets();
@@ -450,12 +435,10 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
     () =>
       look.sizePresets.map((preset) => ({
         id: preset.id,
-        title: t(SIZE_PRESET_LABEL_KEYS[preset.id] ?? "", {
-          defaultValue: preset.label
-        }),
+        title: preset.label,
         description: `${preset.width} × ${preset.height}`
       })),
-    [look.sizePresets, t]
+    [look.sizePresets]
   );
 
   const selectedSizeId = sizePresetFor(canvas.width, canvas.height)?.id ?? null;
@@ -475,13 +458,11 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
       (presets ?? []).map((preset) => ({
         id: preset.entityId,
         title: preset.name,
-        description: t(STYLE_DESCRIPTION_KEYS[preset.presetId] ?? "", {
-          defaultValue:
-            STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim()
-        }),
+        description:
+          STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim(),
         image: preset.thumbnail
       })),
-    [presets, t]
+    [presets]
   );
 
   const handleStyle = useCallback(
@@ -494,60 +475,47 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
   return (
     <FlexColumn gap={GAP.spacious}>
       <Text size="big" component="h2">
-        {t("storyboard:attrs.chooseTheLook", { defaultValue: "Choose the look" })}
+        Choose the look
       </Text>
 
-      <FlexColumn gap={GAP.normal}>
-        <Text size="small" component="h3">
-          {t("storyboard:attrs.size", { defaultValue: "Size" })}
-        </Text>
+      <FormField label="Size">
         <OptionCardGrid
-          label={t("storyboard:attrs.size", { defaultValue: "Size" })}
+          label="Size"
           options={sizeOptions}
           selectedId={selectedSizeId}
           onSelect={handleSize}
           minColumnWidth={160}
         />
-      </FlexColumn>
+      </FormField>
 
-      <FlexColumn gap={GAP.normal}>
-        <Text size="small" component="h3">
-          {t("storyboard:attrs.style", { defaultValue: "Style" })}
-        </Text>
+      <FormField label="Style">
         <PresetTileGrid
-          label={t("storyboard:attrs.style", { defaultValue: "Style" })}
+          label="Style"
           presets={styleTiles}
           selectedId={look.styleChoice}
           onSelect={handleStyle}
           onAddOwn={noop}
           addOwnOptionId={NO_STYLE_ID}
-          addOwnLabel={t("storyboard:attrs.noStyle", { defaultValue: "No style" })}
-          addOwnDescription={t("storyboard:attrs.renderExactlyWhatTheBriefSays", { defaultValue: "Render exactly what the brief says" })}
+          addOwnLabel="No style"
+          addOwnDescription="Render exactly what the brief says"
         />
-      </FlexColumn>
+      </FormField>
 
       {/* A ready list is picked from the shell's footer; what is wrong with
           the list or the pick is said here, where there is room for it. */}
       {availability === "ready" ? (
         modelMissing ? (
           <AlertBanner severity="warning">
-            {t("setup:image.modelNotOfferedPickAnother", {
-              defaultValue:
-                "{{model}} is not offered by any connected provider. Pick another model.",
-              model: look.model
-            })}
+            {`${look.model} is not offered by any connected provider. Pick another model.`}
           </AlertBanner>
         ) : null
       ) : (
-        <FlexColumn gap={GAP.normal}>
-          <Text size="small" component="h3">
-            {t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}
-          </Text>
+        <FormField label="Image model">
           <ModelListState
             availability={availability}
             onRetry={look.refetchModels}
           />
-        </FlexColumn>
+        </FormField>
       )}
     </FlexColumn>
   );

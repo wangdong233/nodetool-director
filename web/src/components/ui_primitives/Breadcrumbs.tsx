@@ -6,16 +6,16 @@ import type { Theme } from "@mui/material/styles";
 import {
   Breadcrumbs as MuiBreadcrumbs,
   Link,
-  Typography,
-  Tooltip
+  Typography
 } from "@mui/material";
+import { Tooltip } from "./Tooltip";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import HomeIcon from "@mui/icons-material/Home";
-import FolderIcon from "@mui/icons-material/Folder";
+import FolderIcon from "@mui/icons-material/FolderOutlined";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { BORDER_RADIUS, MOTION } from "./tokens";
-import { useTranslation } from "react-i18next";
+import { SPACING, getSpacingPx } from "./spacing";
 
 export interface BreadcrumbItem {
   /** Label to display */
@@ -49,11 +49,11 @@ const styles = (theme: Theme) => css`
   .breadcrumb-link {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: ${getSpacingPx(SPACING.xs)};
     color: ${theme.vars.palette.text.secondary};
     text-decoration: none;
     font-size: var(--fontSizeSmall);
-    padding: 4px 8px;
+    padding: ${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)};
     border-radius: ${BORDER_RADIUS.sm};
     transition: ${MOTION.all};
     cursor: pointer;
@@ -71,11 +71,11 @@ const styles = (theme: Theme) => css`
   .breadcrumb-current {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: ${getSpacingPx(SPACING.xs)};
     color: ${theme.vars.palette.text.primary};
     font-size: var(--fontSizeSmall);
     font-weight: 500;
-    padding: 4px 8px;
+    padding: ${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)};
     
     .breadcrumb-icon {
       font-size: var(--fontSizeBig);
@@ -88,7 +88,7 @@ const styles = (theme: Theme) => css`
   }
   
   .home-button {
-    padding: 4px;
+    padding: ${getSpacingPx(SPACING.xs)};
     color: ${theme.vars.palette.text.secondary};
     
     &:hover {
@@ -119,7 +119,6 @@ const BreadcrumbsInternal: React.FC<BreadcrumbsProps> = ({
   maxItems,
   className
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
@@ -149,7 +148,7 @@ const BreadcrumbsInternal: React.FC<BreadcrumbsProps> = ({
       <MuiBreadcrumbs
         separator={getSeparator(separator)}
         maxItems={maxItems}
-        aria-label={t("ui:attrs.breadcrumb", { defaultValue: "breadcrumb" })}
+        aria-label="breadcrumb"
       >
         {items.map((item, index) => {
           const isLast = index === items.length - 1;

@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { BuildUiContextOptions } from "../../lib/chat/uiContext";
 import { getPuckAgentHandler } from "./puck/puckAgentBridge";
-import { tAttr } from "./i18nAttrs";
 
 import ChatView from "../chat/containers/ChatView";
 import ChatPanelHeader from "../chat/containers/ChatPanelHeader";
@@ -181,15 +180,13 @@ const AppBuilderAgentPanel: React.FC<AppBuilderAgentPanelProps> = ({
       }}
     >
       <ChatPanelHeader
-        title={tAttr("App Builder Agent")}
-        description={tAttr(
-          "Build the app layout and bind widgets to workflow inputs and outputs."
-        )}
+        title="App builder agent"
+        description="Build the app layout and bind widgets to workflow inputs and outputs."
         onNewChat={handleNewChat}
         onSelectThread={selectThread}
         threadId={threadId}
         docsTopic="appBuilder"
-        docsLabel={tAttr("App builder")}
+        docsLabel="App builder"
       />
       <Box sx={{ flex: 1, minHeight: 0 }}>
         <ChatView
@@ -213,9 +210,7 @@ const AppBuilderAgentPanel: React.FC<AppBuilderAgentPanelProps> = ({
           chatSource="app_builder"
           uiContext={appBuilderUiContext}
           hideModePicker
-          composerPlaceholder={tAttr(
-            "Ask the agent to build your app or edit the workflow…"
-          )}
+          composerPlaceholder="Ask the agent to build your app or edit the workflow…"
           threadId={threadId}
           key={threadId ?? "no-thread"}
         />

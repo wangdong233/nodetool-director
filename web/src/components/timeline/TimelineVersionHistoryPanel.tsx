@@ -15,8 +15,6 @@
  * diff, and the metadata plus a restore is what the history is for.
  */
 
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -32,6 +30,7 @@ import {
 } from "../../serverState/useTimelineVersions";
 import { relativeTime } from "../../utils/formatDateAndTime";
 import { notifyMutationError } from "../../utils/notifyMutationError";
+import ErrorBanner from "../support/ErrorBanner";
 import {
   Caption,
   Chip,
@@ -54,7 +53,7 @@ import {
 const SAVE_TYPE_LABEL = {
   manual: "Manual",
   autosave: "Auto",
-  restore: i18n.t("timeline:history.restore", { defaultValue: "Restore" })
+  restore: "Restore"
 } satisfies Record<TimelineVersionSaveType, string>;
 
 const SAVE_TYPE_COLOR = {
@@ -92,7 +91,6 @@ interface VersionRowProps {
 
 const VersionRow: React.FC<VersionRowProps> = memo(
   ({ version, busy, onRestore, onDelete }) => {
-    const { t } = useTranslation();
     const handleRestore = useCallback(
       () => onRestore(version),
       [onRestore, version]
@@ -130,9 +128,9 @@ const VersionRow: React.FC<VersionRowProps> = memo(
               variant="text"
               disabled={busy}
               onClick={handleRestore}
-              aria-label={t("timeline:history.restoreVersion", { defaultValue: "Restore version {{n}}", n: version.version })}
+              aria-label={`Restore version ${version.version}`}
             >
-              {t("timeline:attrs.restore", { defaultValue: "Restore" })}
+              Restore
             </EditorButton>
             <EditorButton
               density="compact"
@@ -167,7 +165,6 @@ interface TimelineVersionHistoryPanelProps {
 export const TimelineVersionHistoryPanel: React.FC<
   TimelineVersionHistoryPanelProps
 > = ({ sequenceId }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const store = useTimelineStoreApi();
   const {
@@ -273,16 +270,16 @@ export const TimelineVersionHistoryPanel: React.FC<
         onClick={openSaveDialog}
         disabled={!sequenceId || isCreatingVersion}
       >
-        {isCreatingVersion ? i18n.t("timeline:history.saving", { defaultValue: "Saving…" }) : i18n.t("timeline:history.saveVersion", { defaultValue: "Save version" })}
+        {isCreatingVersion ? "Saving…" : "Save version"}
       </EditorButton>
     ),
-    [openSaveDialog, sequenceId, isCreatingVersion, t]
+    [openSaveDialog, sequenceId, isCreatingVersion]
   );
 
   return (
     <FlexColumn fullWidth fullHeight sx={{ minHeight: 0, overflow: "hidden" }}>
       <PanelHeader
-        title={t("timeline:history.title", { defaultValue: "History" })}
+        title="History"
         count={ordered.length}
         actions={toolbarActions}
       />
@@ -290,20 +287,26 @@ export const TimelineVersionHistoryPanel: React.FC<
       <ScrollArea css={listStyles(theme)} sx={{ flex: 1, minHeight: 0 }}>
         {isLoading ? (
           <FlexColumn align="center" justify="center" sx={{ py: 4 }}>
-            <LoadingSpinner size="small" text={t("timeline:history.loading", { defaultValue: "Loading versions…" })} />
+            <LoadingSpinner size="small" text="Loading versions" />
           </FlexColumn>
         ) : error ? (
           <FlexColumn gap={0.5} sx={{ p: 2 }}>
-            <Text color="error">{t("timeline:attrs.failedToLoadVersions", { defaultValue: "Failed to load versions" })}</Text>
-            <Caption size="smaller" color="secondary">
+            <ErrorBanner
+              title="Could not load versions"
+              report={{
+                source: "operation-failure",
+                summary: "Timeline versions failed to load",
+                errorText: error instanceof Error ? error.message : String(error)
+              }}
+            >
               {error instanceof Error ? error.message : String(error)}
-            </Caption>
+            </ErrorBanner>
           </FlexColumn>
         ) : ordered.length === 0 ? (
           <FlexColumn align="center" sx={{ py: 4, px: 2 }}>
             <EmptyState
-              title={t("timeline:history.noneYet", { defaultValue: "No versions yet" })}
-              description={t("timeline:history.noneYetDesc", { defaultValue: "Save a version to snapshot the sequence you can come back to." })}
+              title="No versions yet"
+              description="Save a version to snapshot the sequence you can come back to."
             />
           </FlexColumn>
         ) : (
@@ -322,14 +325,13 @@ export const TimelineVersionHistoryPanel: React.FC<
       <Dialog
         open={saveDialogOpen}
         onClose={closeSaveDialog}
-        title={t("timeline:history.saveTitle", { defaultValue: "Save a version" })}
+        title="Save a version"
         onConfirm={handleConfirmSave}
-        onCancel={closeSaveDialog}
-        confirmText={t("timeline:history.saveVersion", { defaultValue: "Save version" })}
+        confirmText="Save version"
       >
-        <FlexColumn gap={1} sx={{ py: 1 }}>
+        <FlexColumn gap={SPACING.xs}>
           <TextInput
-            label={t("timeline:history.nameOptional", { defaultValue: "Name (optional)" })}
+            label="Name (optional)"
             value={saveName}
             onChange={handleSaveNameChange}
             size="small"
@@ -345,15 +347,13 @@ export const TimelineVersionHistoryPanel: React.FC<
         open={restoreTarget !== null}
         onClose={clearRestoreTarget}
         title={
-          restoreTarget
-            ? t("timeline:history.restoreConfirm", { defaultValue: "Restore v{{n}}?", n: restoreTarget.version })
-            : t("timeline:history.restoreGeneric", { defaultValue: "Restore?" })
+          restoreTarget ? `Restore v${restoreTarget.version}?` : "Restore?"
         }
         onConfirm={handleConfirmRestore}
-        onCancel={clearRestoreTarget}
-        confirmText={t("timeline:attrs.restore", { defaultValue: "Restore" })}
+        confirmText="Restore"
+        maxWidth="xs"
       >
-        <FlexColumn gap={1} sx={{ maxWidth: 420 }}>
+        <FlexColumn gap={SPACING.xs}>
           <Text color="secondary">
             This replaces the current tracks, clips, and markers with that
             snapshot.
@@ -370,11 +370,10 @@ export const TimelineVersionHistoryPanel: React.FC<
         onClose={clearDeleteTarget}
         title={deleteTarget ? `Delete v${deleteTarget.version}?` : "Delete?"}
         onConfirm={handleConfirmDelete}
-        onCancel={clearDeleteTarget}
-        confirmText={t("timeline:attrs.delete", { defaultValue: i18n.t("common:action.delete", { defaultValue: "Delete" }) })}
+        confirmText="Delete"
         destructive
       >
-        <Text color="secondary">{t("ui2:attrs.thisActionCannotBeUndone", { defaultValue: "This action cannot be undone." })}</Text>
+        <Text color="secondary">This action cannot be undone.</Text>
       </Dialog>
     </FlexColumn>
   );

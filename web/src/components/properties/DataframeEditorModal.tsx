@@ -4,7 +4,7 @@ import ReactDOM from "react-dom";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { css } from "@emotion/react";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import TableRowsIcon from "@mui/icons-material/TableRows";
@@ -17,12 +17,13 @@ import {
   SPACING,
   Z_INDEX,
   getSpacingPx,
-  InputAdornment
+  InputAdornment,
+  ResizeHandle
 } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
+import { removeDataframeColumn } from "../../utils/csvDataframe";
 import Markdown from "react-markdown";
 
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { useCombo } from "../../stores/KeyPressedStore";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -32,7 +33,6 @@ import { ColumnDef, DataframeRef } from "../../stores/ApiTypes";
 import DataTable from "../node/DataTable/DataTable";
 import ColumnsManager from "../node/ColumnsManager";
 import { NavButton, NodeTextField, CloseButton as CloseButtonPrimitive } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
 
 interface DataframeEditorModalProps {
   value: DataframeRef;
@@ -364,34 +364,6 @@ const styles = (theme: Theme) =>
       fontSize: "var(--fontSizeNormal)",
       marginRight: getSpacingPx(SPACING.sm)
     },
-    ".resize-handle": {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: "12px",
-      cursor: "ns-resize",
-      backgroundColor: "transparent",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      transition: MOTION.background,
-      "&:hover": {
-        backgroundColor: `rgba(${theme.vars.palette.common.whiteChannel} / 0.05)`
-      },
-      "&:hover .resize-handle-thumb": {
-        opacity: 1,
-        width: "60px"
-      }
-    },
-    ".resize-handle-thumb": {
-      width: "40px",
-      height: "4px",
-      opacity: 0.5,
-      backgroundColor: theme.vars.palette.grey[600],
-      borderRadius: BORDER_RADIUS.pill,
-      transition: MOTION.all
-    },
     "@media (max-width: 1200px)": {
       ".modal-content": {
         width: "96%"
@@ -433,7 +405,6 @@ const DataframeEditorModal = ({
   propertyDescription,
   readOnly = false
 }: DataframeEditorModalProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const modalStyles = useMemo(() => styles(theme), [theme]);
   const modalOverlayRef = useRef<HTMLDivElement>(null);
@@ -442,7 +413,7 @@ const DataframeEditorModal = ({
     storageKey: "dataframeEditorModal_fullscreen"
   });
 
-  const { modalHeight, handleResizeMouseDown } = useModalResize({
+  const { modalHeight, resizeBy, minHeight, maxHeight } = useModalResize({
     storageKey: "dataframeEditorModal_height",
     defaultHeight: Math.min(500, window.innerHeight - 200)
   });
@@ -479,6 +450,13 @@ const DataframeEditorModal = ({
         ...localValue,
         columns
       });
+    },
+    [localValue, handleDataframeChange]
+  );
+
+  const onDeleteColumn = useCallback(
+    (index: number) => {
+      handleDataframeChange(removeDataframeColumn(localValue, index));
     },
     [localValue, handleDataframeChange]
   );
@@ -551,27 +529,26 @@ const DataframeEditorModal = ({
             <div className="actions">
               <div className="toolbar-group">
                 <Tooltip
-                  delay={TOOLTIP_ENTER_DELAY}
-                  title={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
+                  title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
                 >
                   <button
                     type="button"
                     className="button"
                     onClick={toggleFullscreen}
-                    aria-label={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
+                    aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
                   >
                     {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
                   </button>
                 </Tooltip>
                 <Tooltip
-                  delay={TOOLTIP_ENTER_DELAY}
-                  title={t("editor:ui.closeEditorEsc", { defaultValue: "Close Editor | Esc" })}
+                  title="Close editor"
+                  shortcut={["Esc"]}
                 >
                   <button
                     type="button"
                     className="button button-close"
                     onClick={onClose}
-                    aria-label={t("editor:ui.closeEditor", { defaultValue: "Close Editor" })}
+                    aria-label="Close editor"
                   >
                     <CloseIcon />
                   </button>
@@ -589,19 +566,20 @@ const DataframeEditorModal = ({
                       className="add-column" 
                       onClick={addColumn}
                       icon={<TableRowsIcon style={{ rotate: "90deg" }} />}
-                      label={t("editor:ui.addColumn", { defaultValue: "Add Column" })}
+                      label="Add column"
                     />
                   </div>
                   <ColumnsManager
                     columns={localValue.columns || []}
                     onChange={onChangeColumns}
+                    onDeleteColumn={onDeleteColumn}
                                       />
                 </div>
               )}
               <div className="table-section">
                 <div className="search-bar">
                   <NodeTextField
-                    placeholder={t("editor:ui.searchInTable", { defaultValue: "Search in table..." })}
+                    placeholder="Search in table"
                     value={searchFilter}
                     onChange={handleSearchChange}
                     InputProps={{
@@ -615,7 +593,7 @@ const DataframeEditorModal = ({
                           <CloseButtonPrimitive
                             buttonSize="small"
                             onClick={handleClearSearch}
-                            tooltip={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
+                            tooltip="Clear search"
                           />
                         </InputAdornment>
                       )
@@ -633,9 +611,17 @@ const DataframeEditorModal = ({
             </div>
           </div>
 
-          <div className="resize-handle" onMouseDown={handleResizeMouseDown}>
-            <span className="resize-handle-thumb"></span>
-          </div>
+          <ResizeHandle
+            orientation="horizontal"
+            edge="end"
+            value={modalHeight}
+            min={minHeight}
+            max={maxHeight}
+            thickness={SPACING.md}
+            grip
+            ariaLabel="Resize dataframe editor height"
+            onResize={resizeBy}
+          />
         </div>
       </div>
     </div>

@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo, useRef } from "react";
-import { useTranslation } from "react-i18next";
 import isEqual from "../../utils/isEqual";
 import HuggingFaceModelMenuDialog from "../model_menu/HuggingFaceModelMenuDialog";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
@@ -8,7 +7,6 @@ import { useHuggingFaceImageModelsByProvider } from "../../hooks/useModelsByProv
 import { trpc } from "../../lib/trpc";
 import { useQuery } from "@tanstack/react-query";
 import ModelSelectButton from "./shared/ModelSelectButton";
-import { i18n } from "../../i18n";
 
 interface HuggingFaceModelSelectProps {
   modelType: string;
@@ -36,7 +34,6 @@ const HuggingFaceModelSelect: React.FC<HuggingFaceModelSelectProps> = ({
   recommendedModels: recommendedModelsFromProps,
   modelPacks
 }) => {
-  const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const addRecent = useModelPreferencesStore((s) => s.addRecent);
@@ -154,7 +151,7 @@ const HuggingFaceModelSelect: React.FC<HuggingFaceModelSelectProps> = ({
     }
 
     return {
-      repoId: "Select HuggingFace Model",
+      repoId: "Select HuggingFace model",
       path: undefined
     };
   }, [currentSelectedModelDetails, value]);
@@ -198,7 +195,7 @@ const HuggingFaceModelSelect: React.FC<HuggingFaceModelSelectProps> = ({
         active={!!(value?.repo_id || value?.id)}
         label={displayInfo.repoId}
         secondaryLabel={displayInfo.path}
-        subLabel={t("editor:ui.selectHuggingFaceModel", { defaultValue: "Select HuggingFace Model" })}
+        subLabel="Select HuggingFace model"
         onClick={handleClick}
       />
       <HuggingFaceModelMenuDialog

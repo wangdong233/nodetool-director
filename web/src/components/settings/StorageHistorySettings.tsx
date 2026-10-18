@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import type { StorageRetentionPolicy } from "@nodetool-ai/protocol/api-schemas/settings.js";
 import { useStorageHistory } from "../../serverState/useStorageHistory";
 import { useNotificationStore } from "../../stores/NotificationStore";
-import { ConfirmDialog } from "../ui_primitives";
+import { ConfirmDialog, LoadingSpinner } from "../ui_primitives";
 import { NumberSetting } from "../menus/NumberSetting";
 import {
   AlertBanner,
@@ -11,14 +11,9 @@ import {
   LabeledSwitch,
   Text
 } from "../ui_primitives";
-import { i18n, useAppLanguage } from "../../i18n";
-import { useTranslation } from "react-i18next";
-
-const st = (key: string, fallback: string, options?: Record<string, string>) =>
-  i18n.t(`settings:storage.${key}`, { defaultValue: fallback, ...options });
 
 function formatBytes(bytes: number | null): string {
-  if (bytes === null) return st("bytesNA", "Not available");
+  if (bytes === null) return "Not available";
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   if (bytes < 1024 * 1024 * 1024) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -27,9 +22,6 @@ function formatBytes(bytes: number | null): string {
 }
 
 export default function StorageHistorySettings() {
-  const { t } = useTranslation();
-  // Subscribe so catalog reads re-render on language change.
-  useAppLanguage();
   const history = useStorageHistory();
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -46,7 +38,7 @@ export default function StorageHistorySettings() {
       void history.updatePolicy({ ...policy, ...changes }).catch((error) => {
         addNotification({
           type: "error",
-          content: st("notifUpdateFail", "Could not update history limits: {{error}}", { error: String(error) })
+          content: `Could not update history limits: ${String(error)}`
         });
       });
     },
@@ -63,14 +55,14 @@ export default function StorageHistorySettings() {
             type: "success",
             content:
               redactedPredictions > 0
-                ? st("notifCleanSome", "Removed {{total}} old history records and cleared prompt data from {{redact}} generation records.", { total: String(total), redact: String(redactedPredictions) })
-                : st("notifCleanAll", "Removed {{total}} old history records.", { total: String(total) })
+                ? `Removed ${total} old history records and cleared prompt data from ${redactedPredictions} generation records.`
+                : `Removed ${total} old history records.`
           });
         })
         .catch((error) => {
           addNotification({
             type: "error",
-            content: st("notifCleanFail", "History cleanup failed: {{error}}", { error: String(error) })
+            content: `History cleanup failed: ${String(error)}`
           });
         });
     } else if (confirmation === "compact") {
@@ -79,25 +71,25 @@ export default function StorageHistorySettings() {
         .then(() => {
           addNotification({
             type: "success",
-            content: st("notifCompactDone", "Database compaction completed.")
+            content: "Database compaction completed."
           });
         })
         .catch((error) => {
           addNotification({
             type: "error",
-            content: st("notifCompactFail", "Database compaction failed: {{error}}", { error: String(error) })
+            content: `Database compaction failed: ${String(error)}`
           });
         });
     }
   }, [addNotification, confirmation, history]);
 
   if (history.isLoading) {
-    return <Text className="description">{st("loading", "Loading history status…")}</Text>;
+    return <LoadingSpinner size="small" text="Loading history status" />;
   }
   if (history.error || !policy || !status) {
     return (
       <AlertBanner severity="error" compact>
-        {st("loadError", "Could not load database history settings.")}
+        Could not load database history settings.
       </AlertBanner>
     );
   }
@@ -115,8 +107,8 @@ export default function StorageHistorySettings() {
     <>
       <div className="settings-item">
         <NumberSetting
-          label={st("lblAutosavesPer", "Autosaves per workflow")}
-          description={st("descAutosavesPer", "Maximum recent autosaves kept for each workflow. Manual versions do not count toward this limit.")}
+          label="Autosaves per workflow"
+          description="Maximum recent autosaves kept for each workflow. Manual versions do not count toward this limit."
           value={policy.maxAutosavesPerWorkflow}
           onCommit={(value) => updatePolicy({ maxAutosavesPerWorkflow: value })}
           min={1}
@@ -127,8 +119,8 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label={st("lblKeepDays", "Keep autosaves (days)")}
-          description={st("descKeepDays", "Autosaves older than this are removed even when the workflow is below its count limit.")}
+          label="Keep autosaves (days)"
+          description="Autosaves older than this are removed even when the workflow is below its count limit."
           value={policy.autosaveRetentionDays}
           onCommit={(value) => updatePolicy({ autosaveRetentionDays: value })}
           min={1}
@@ -139,8 +131,8 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label={st("lblKeepManual", "Keep manual versions (days)")}
-          description={st("descKeepManual", "Manual workflow snapshots older than this are removed. Checkpoints are always preserved.")}
+          label="Keep manual versions (days)"
+          description="Manual workflow snapshots older than this are removed. Checkpoints are always preserved."
           value={policy.manualVersionRetentionDays}
           onCommit={(value) =>
             updatePolicy({ manualVersionRetentionDays: value })
@@ -153,8 +145,8 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label={st("lblKeepRuns", "Keep completed runs (days)")}
-          description={st("descKeepRuns", "Completed, failed, and cancelled run records older than this are removed. Active runs are preserved.")}
+          label="Keep completed runs (days)"
+          description="Completed, failed, and cancelled run records older than this are removed. Active runs are preserved."
           value={policy.terminalJobRetentionDays}
           onCommit={(value) =>
             updatePolicy({ terminalJobRetentionDays: value })
@@ -167,8 +159,8 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label={st("lblKeepRunLogs", "Keep run event logs (days)")}
-          description={st("descKeepRunLogs", "Per-node event logs from a run are removed after this many days. The run record itself follows the limit above.")}
+          label="Keep run event logs (days)"
+          description="Per-node event logs from a run are removed after this many days. The run record itself follows the limit above."
           value={policy.runEventRetentionDays ?? 30}
           onCommit={(value) => updatePolicy({ runEventRetentionDays: value })}
           min={1}
@@ -179,8 +171,8 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label={st("lblKeepRunTrace", "Keep app run inputs and outputs (days)")}
-          description={st("descKeepRunTrace", "After this many days, inputs, outputs, and document snapshots expire. Status, timing, and cost remain until the completed run record expires.")}
+          label="Keep app run inputs and outputs (days)"
+          description="After this many days, inputs, outputs, and document snapshots expire. Status, timing, and cost remain until the completed run record expires."
           value={policy.runTraceRetentionDays ?? 30}
           onCommit={(value) => updatePolicy({ runTraceRetentionDays: value })}
           min={1}
@@ -191,8 +183,8 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <NumberSetting
-          label={st("lblKeepGen", "Keep generation details (days)")}
-          description={st("descKeepGen", "After this many days, prompts, parameters, and logs are cleared from generation records. The billing record — model, provider, tokens, cost, and date — is kept.")}
+          label="Keep generation details (days)"
+          description="After this many days, prompts, parameters, and logs are cleared from generation records. The billing record — model, provider, tokens, cost, and date — is kept."
           value={policy.predictionRetentionDays ?? 400}
           onCommit={(value) => updatePolicy({ predictionRetentionDays: value })}
           min={1}
@@ -203,33 +195,28 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <LabeledSwitch
-          label={st("lblAutoClean", "Automatic history cleanup")}
+          label="Automatic history cleanup"
           checked={policy.automaticCleanup}
           onChange={(checked) => updatePolicy({ automaticCleanup: checked })}
-          description={st("descAutoClean", "Apply these limits in the background once per day. Database compaction remains manual.")}
+          description="Apply these limits in the background once per day. Database compaction remains manual."
           disabled={disabled}
         />
       </div>
       <div className="settings-item">
         <Text>
-          {st("dbLine", "Database: {{size}} · {{versions}} workflow versions · {{runs}} runs · {{events}} run events", {
-            size: formatBytes(status.databaseBytes),
-            versions: String(status.workflowVersions),
-            runs: String(status.jobs),
-            events: String(status.runEvents)
-          })}
+          Database: {formatBytes(status.databaseBytes)} ·{" "}
+          {status.workflowVersions} workflow versions · {status.jobs} runs ·{" "}
+          {status.runEvents} run events
         </Text>
         <Text className="description">
-          {st("pendingLine", "{{count}} records exceed the current limits. Deleted SQLite pages currently use {{size}} and are returned to disk only after compaction.", {
-            count: String(cleanupCount),
-            size: formatBytes(status.unusedBytes)
-          })}
+          {cleanupCount} records exceed the current limits. Deleted SQLite pages
+          currently use {formatBytes(status.unusedBytes)} and are returned to
+          disk only after compaction.
         </Text>
         <Text className="description">
-          {st("redactedLine", "{{count}} of {{total}} generation records still holding prompts and parameters are past the limit. Cleaning clears that text and keeps the billing record.", {
-            count: String(redactionCount),
-            total: String(status.predictionsWithPayload)
-          })}
+          {redactionCount} of {status.predictionsWithPayload} generation records
+          still holding prompts and parameters are past the limit. Cleaning
+          clears that text and keeps the billing record.
         </Text>
         <FlexRow gap={2} wrap sx={{ marginTop: 2 }}>
           <EditorButton
@@ -237,7 +224,7 @@ export default function StorageHistorySettings() {
             onClick={() => setConfirmation("cleanup")}
             disabled={disabled || pendingCount === 0}
           >
-            {history.isCleaning ? st("cleaning", "Cleaning…") : st("cleanNow", "Clean now ({{count}})", { count: String(pendingCount) })}
+            {history.isCleaning ? "Cleaning…" : `Clean now (${pendingCount})`}
           </EditorButton>
           {isSqlite && (
             <EditorButton
@@ -245,7 +232,7 @@ export default function StorageHistorySettings() {
               onClick={() => setConfirmation("compact")}
               disabled={disabled}
             >
-              {history.isCompacting ? st("compacting", "Compacting…") : st("compact", "Compact database")}
+              {history.isCompacting ? "Compacting…" : "Compact database"}
             </EditorButton>
           )}
         </FlexRow>
@@ -256,19 +243,16 @@ export default function StorageHistorySettings() {
         onConfirm={runConfirmedAction}
         title={
           confirmation === "compact"
-            ? st("confirmCompactTitle", "Compact database?")
-            : st("confirmCleanTitle", "Clean old history?")
+            ? "Compact database?"
+            : "Clean old history?"
         }
         content={
           confirmation === "compact"
-            ? st("confirmCompactBody", "Compaction returns unused SQLite pages to disk. It can pause database writes while it rebuilds a large local database.")
-            : st("confirmCleanBody", "Remove {{clean}} old workflow-history, completed-run, and run-event records, and clear prompts and parameters from {{redact}} generation records? The billing record for each generation is kept. Current workflows, assets, checkpoints, and active runs are not changed.", {
-                clean: String(cleanupCount),
-                redact: String(redactionCount)
-              })
+            ? "Compaction returns unused SQLite pages to disk. It can pause database writes while it rebuilds a large local database."
+            : `Remove ${cleanupCount} old workflow-history, completed-run, and run-event records, and clear prompts and parameters from ${redactionCount} generation records? The billing record for each generation is kept. Current workflows, assets, checkpoints, and active runs are not changed.`
         }
-        confirmText={confirmation === "compact" ? st("confirmCompact", "Compact") : st("confirmClean", "Clean")}
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText={confirmation === "compact" ? "Compact" : "Clean"}
+        cancelText="Cancel"
       />
     </>
   );

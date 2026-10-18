@@ -184,14 +184,17 @@ export const projectDocumentPreview = z.discriminatedUnion("kind", [
 export type ProjectDocumentPreview = z.infer<typeof projectDocumentPreview>;
 
 /**
- * The kinds a project overview lists: every {@link projectDocumentType} plus
- * `workflow`. A saved workflow is one of the project's documents to whoever
- * saved it there, but copying a document into another project does not cover
- * workflows, so it stays out of {@link projectDocumentType}.
+ * What counts as a project document: every kind that opens in a workspace tab.
+ * The project overview, the home documents strip and the Documents panel all
+ * list these. It is every {@link projectDocumentType} plus `workflow` and
+ * `text` (a text file asset, such as a Markdown note). Copying a document into
+ * another project covers neither of those, so they stay out of
+ * {@link projectDocumentType}.
  */
 export const projectSummaryDocumentType = z.enum([
   ...projectDocumentType.options,
-  "workflow"
+  "workflow",
+  "text"
 ]);
 export type ProjectSummaryDocumentType = z.infer<
   typeof projectSummaryDocumentType
@@ -274,6 +277,23 @@ export const projectDetail = z.object({
   spend: projectSpend
 });
 export type ProjectDetail = z.infer<typeof projectDetail>;
+
+/** One page of a project's document cards, newest first. */
+export const projectDocumentPageInput = z.object({
+  id: z.string(),
+  offset: z.number().int().min(0).default(0),
+  limit: z.number().int().min(1).max(50).default(12)
+});
+export type ProjectDocumentPageInput = z.infer<typeof projectDocumentPageInput>;
+
+export const projectDocumentPage = z.object({
+  documents: z.array(projectDocumentSummary),
+  /** Every document in the project, not only this page. */
+  total: z.number(),
+  /** True when a document table hit its per-type cap, so documents are missing. */
+  partial: z.boolean()
+});
+export type ProjectDocumentPage = z.infer<typeof projectDocumentPage>;
 
 /**
  * What a project holds. `entity` is not a {@link projectDocumentType}: nothing

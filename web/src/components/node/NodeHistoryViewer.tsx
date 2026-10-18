@@ -33,7 +33,9 @@ import { serializeDragData } from "../../lib/dragdrop/serialization";
 import { useDragDropStore } from "../../lib/dragdrop/store";
 import {
   CopyButton,
+  CountBadge,
   Dialog,
+  ScrollArea,
   StatusIndicator,
   ToolbarIconButton,
   MOTION,
@@ -44,13 +46,19 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import type { StatusType } from "../ui_primitives";
+
+/** Pins the pick-order badge to the tile's top-left corner. */
+const PICK_BADGE_SX = {
+  position: "absolute",
+  top: getSpacingPx(SPACING.micro),
+  left: getSpacingPx(SPACING.micro)
+} as const;
 import { relativeTime } from "../../utils/formatDateAndTime";
 import { MediaOverlaySuppressProvider } from "./MediaOverlayContext";
 import OutputQuickActionButtons from "./OutputQuickActionButtons";
 import { TextRenderer } from "./output/TextRenderer";
 import { extractTextValue } from "../../utils/extractTextValue";
 import { isString } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 interface NodeHistoryViewerProps {
   workflowId: string;
@@ -98,7 +106,7 @@ const formatDuration = (seconds: number | null | undefined): string => {
 /** Map a run's aggregate status onto the StatusIndicator's vocabulary. Completed
  *  runs render no indicator (the common, quiet case). */
 const runStatusType = (status: RunGroup["status"]): StatusType | null => {
-  if (status === "running") return "info";
+  if (status === "running") return "running";
   if (status === "error") return "error";
   return null;
 };
@@ -262,24 +270,6 @@ const styles = (theme: Theme) =>
     ".thumb.selected.in-set": {
       boxShadow: `0 0 0 2px ${theme.vars.palette.primary.main}, inset 0 0 0 2px ${theme.vars.palette.secondary.main}`
     },
-    // Pick-order badge: the 1-based position of a tile within the export set.
-    ".pick-badge": {
-      position: "absolute",
-      top: 2,
-      left: 2,
-      minWidth: 16,
-      height: 16,
-      padding: `0 ${getSpacingPx(SPACING.xs)}`,
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      borderRadius: BORDER_RADIUS.sm,
-      backgroundColor: theme.vars.palette.secondary.main,
-      color: theme.vars.palette.secondary.contrastText,
-      fontSize: theme.fontSizeSmaller,
-      fontVariantNumeric: "tabular-nums",
-      lineHeight: 1
-    },
     ".downstream-caption": {
       position: "absolute",
       zIndex: Z_INDEX.dropdown,
@@ -304,7 +294,6 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
   renderSingle,
   output
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   // Generation timeline drives selection (oldest→newest, current = selected ?? latest).
@@ -787,7 +776,18 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
           <div style={fallbackThumbStyle}>{kind || "asset"}</div>
         )}
         {label ? <span className="thumb-label">{label}</span> : null}
-        {inSet ? <span className="pick-badge">{pick}</span> : null}
+        {inSet ? (
+          // Pick-order badge: the 1-based position of the tile in the export set.
+          <CountBadge
+            className="pick-badge"
+            count={pick}
+            showZero
+            size="small"
+            color="secondary"
+            ariaLabel={`Pick ${pick}`}
+            sx={PICK_BADGE_SX}
+          />
+        ) : null}
       </div>
     );
   };
@@ -810,7 +810,7 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
             className="grid nodrag nopan nowheel"
             role="listbox"
             aria-multiselectable={hasDownstream || undefined}
-            aria-label={t("editor:ui.generations", { defaultValue: "Generations" })}
+            aria-label="Generations"
             onPointerDown={stopNodeSelection}
             onClick={handleGridClick}
             onKeyDown={handleGridKeyDown}
@@ -857,22 +857,22 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
       <div className="node-history-overlay overlay-top-left">
         <div className="overlay-cluster">
           <ToolbarIconButton
-            title={effectiveView === "single" ? t("editor:ui.showGrid", { defaultValue: "Show grid" }) : t("editor:ui.showSingle", { defaultValue: "Show single" })}
+            title={effectiveView === "single" ? "Show grid" : "Show single"}
             size="small"
             onClick={handleToggleView}
             className="overlay-icon-btn"
-            aria-label={t("editor:ui.toggleView", { defaultValue: "Toggle view" })}
+            aria-label="Toggle view"
           >
             {effectiveView === "single" ? <GridViewIcon /> : <CropSquareIcon />}
           </ToolbarIconButton>
           {showPagination ? (
             <>
               <ToolbarIconButton
-                title={t("editor:ui.previous", { defaultValue: "Previous" })}
+                title="Previous"
                 size="small"
                 onClick={handlePrev}
                 className="overlay-icon-btn"
-                aria-label={t("editor:ui.previousOutput", { defaultValue: "Previous output" })}
+                aria-label="Previous output"
               >
                 <KeyboardArrowLeftIcon />
               </ToolbarIconButton>
@@ -880,11 +880,11 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
                 {`${currentIndex + 1} / ${generations.length}`}
               </span>
               <ToolbarIconButton
-                title={t("home:docs.next", { defaultValue: "Next" })}
+                title="Next"
                 size="small"
                 onClick={handleNext}
                 className="overlay-icon-btn"
-                aria-label={t("editor:ui.nextOutput", { defaultValue: "Next output" })}
+                aria-label="Next output"
               >
                 <KeyboardArrowRightIcon />
               </ToolbarIconButton>
@@ -904,22 +904,22 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
             />
           ) : null}
           <ToolbarIconButton
-            title={hasTextToOpen ? t("editor:ui.openFullText", { defaultValue: "Open full text" }) : t("editor:ui.openInViewer", { defaultValue: "Open in viewer" })}
+            title={hasTextToOpen ? "Open full text" : "Open in viewer"}
             size="small"
             onClick={handleOpenViewer}
             disabled={!canOpen}
             className="overlay-icon-btn"
-            aria-label={hasTextToOpen ? t("editor:ui.openFullText", { defaultValue: "Open full text" }) : t("editor:ui.openInViewer", { defaultValue: "Open in viewer" })}
+            aria-label={hasTextToOpen ? "Open full text" : "Open in viewer"}
           >
             <OpenInFullIcon />
           </ToolbarIconButton>
           <ToolbarIconButton
-            title={t("editor:ui.download", { defaultValue: "Download" })}
+            title="Download"
             size="small"
             onClick={handleDownload}
             disabled={!currentAsset || showingLive}
             className="overlay-icon-btn"
-            aria-label={t("editor:ui.downloadCurrentOutput", { defaultValue: "Download current output" })}
+            aria-label="Download current output"
           >
             <DownloadIcon />
           </ToolbarIconButton>
@@ -962,16 +962,14 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
         <Dialog
           open={viewerOpen}
           onClose={handleCloseViewer}
-          title={t("editor:ui.generatedText", { defaultValue: "Generated text" })}
-          minWidth="min(720px, 90vw)"
-          titleActions={<CopyButton value={currentText} tooltip={t("editor:ui.copyText", { defaultValue: "Copy text" })} />}
+          title="Generated text"
+          maxWidth="md"
+          fullWidth
+          titleActions={<CopyButton value={currentText} tooltip="Copy text" />}
         >
-          <div
-            className="text-popup nowheel"
-            style={{ maxHeight: "70vh", overflow: "auto" }}
-          >
+          <ScrollArea className="text-popup nowheel" maxHeight="70vh">
             <TextRenderer text={currentText} showActions={false} />
-          </div>
+          </ScrollArea>
         </Dialog>
       ) : null}
     </div>

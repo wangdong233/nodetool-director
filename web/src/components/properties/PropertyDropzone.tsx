@@ -4,7 +4,8 @@ import type { Theme } from "@mui/material/styles";
 import { memo, useCallback, useMemo, useState, useRef, ChangeEvent } from "react";
 import { Asset } from "../../stores/ApiTypes";
 import { useFileDrop } from "../../hooks/handlers/useFileDrop";
-import { Tooltip, ToolbarIconButton, MOTION, SPACING, BORDER_RADIUS, Z_INDEX, getSpacingPx } from "../ui_primitives";
+import { useDragOverState } from "../../hooks/handlers/useDragOverState";
+import { Tooltip, ToolbarIconButton, MOTION, SPACING, BORDER_RADIUS, Z_INDEX, getSpacingPx, dropZoneSurfaceStyle } from "../ui_primitives";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import ImageDimensions from "../node/ImageDimensions";
 import { useTheme } from "@mui/material/styles";
@@ -16,10 +17,10 @@ import { PropertyProps } from "../node/PropertyInput";
 import isEqual from "../../utils/isEqual";
 import { isElectron } from "../../utils/browser";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
+import { useNotificationStore } from "../../stores/NotificationStore";
 import { CopyAssetButton } from "../common/CopyAssetButton";
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
-import { useTranslation } from "react-i18next";
 
 interface PropertyDropzoneProps {
   asset: Asset | undefined;
@@ -38,7 +39,6 @@ const PropertyDropzone = ({
   contentType,
   showRecorder = true
 }: PropertyDropzoneProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const emitRef = useCallback(
     (next: Asset) => onChange(mediaRefFromAsset(next, contentType)),
@@ -80,21 +80,8 @@ const PropertyDropzone = ({
         border: "0",
         maxWidth: "none",
         textAlign: "left",
-        transition: MOTION.all,
-        outline: `1px dashed ${theme.vars.palette.divider}`,
-        margin: `${theme.spacing(SPACING.sm)} 0`,
-        backgroundColor: theme.vars.palette.Paper.overlay,
-        borderRadius: BORDER_RADIUS.md,
-
-        "&:hover": {
-          outline: `1px dashed ${theme.vars.palette.text.secondary}`,
-          backgroundColor: theme.vars.palette.action.selected
-        },
-        "&.drag-over": {
-          backgroundColor: theme.vars.palette.action.selected,
-          outline: `2px dashed ${theme.vars.palette.primary.main}`,
-          outlineOffset: "-2px"
-        }
+        ...dropZoneSurfaceStyle(theme),
+        margin: `${theme.spacing(SPACING.sm)} 0`
       },
       ".dropzone.dropped": {
         width: "100%",
@@ -163,7 +150,7 @@ const PropertyDropzone = ({
       },
       ".asset-action-button": {
         backgroundColor: theme.vars.palette.c_scrim,
-        color: theme.vars.palette.grey[100],
+        color: theme.vars.palette.common.white,
         padding: getSpacingPx(SPACING.xs),
         width: "28px",
         height: "28px",
@@ -174,26 +161,27 @@ const PropertyDropzone = ({
       }
     });
 
-  const [isDragOver, setIsDragOver] = useState(false);
+  const {
+    isOver: isDragOver,
+    onDragOver: markDragOver,
+    onDragLeave: handleDragLeave,
+    reset: resetDragOver
+  } = useDragOverState();
 
   const handleDragOver = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       onDragOver(e);
-      setIsDragOver(true);
+      markDragOver(e);
     },
-    [onDragOver]
+    [onDragOver, markDragOver]
   );
-
-  const handleDragLeave = useCallback(() => {
-    setIsDragOver(false);
-  }, []);
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       onDrop(e);
-      setIsDragOver(false);
+      resetDragOver();
     },
-    [onDrop]
+    [onDrop, resetDragOver]
   );
 
   const handleImageLoad = useCallback(() => {
@@ -229,7 +217,28 @@ const PropertyDropzone = ({
     e.currentTarget.volume = 1;
   }, []);
 
-  const { uploadAsset: uploadAssetFn } = useAssetUpload();
+  const uploadAssetFn = useAssetUpload((state) => state.uploadAsset);
+  const addNotification = useNotificationStore((state) => state.addNotification);
+  const [pickerUploading, setPickerUploading] = useState(false);
+
+  // Picked files report failures like dropped ones do (useFileDrop).
+  const uploadPickedFile = useCallback(
+    (file: File) => {
+      setPickerUploading(true);
+      uploadAssetFn({
+        file,
+        onCompleted: (next) => {
+          setPickerUploading(false);
+          emitRef(next);
+        },
+        onFailed: (error) => {
+          setPickerUploading(false);
+          addNotification({ type: "error", alert: true, content: error });
+        }
+      });
+    },
+    [uploadAssetFn, emitRef, addNotification]
+  );
 
   const getAcceptAttribute = useCallback(() => {
     const type = contentType.split("/")[0];
@@ -257,22 +266,13 @@ const PropertyDropzone = ({
       return;
     }
 
-    const file = files[0];
-    uploadAssetFn({
-      file,
-      onCompleted: (next) => {
-        emitRef(next);
-      },
-      onFailed: (error) => {
-        console.error("Failed to upload asset:", error);
-      }
-    });
+    uploadPickedFile(files[0]);
 
     // Reset input so same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  }, [emitRef, uploadAssetFn]);
+  }, [uploadPickedFile]);
 
   const handleNativeFilePicker = useCallback(async () => {
     if (!window.api?.dialog?.openFile) {
@@ -329,20 +329,12 @@ const PropertyDropzone = ({
 
         const file = new File([fileData.buffer as BlobPart], fileName, { type: fileData.mimeType });
 
-        uploadAssetFn({
-          file,
-          onCompleted: (next) => {
-            emitRef(next);
-          },
-          onFailed: (error) => {
-            console.error("Failed to upload asset:", error);
-          }
-        });
+        uploadPickedFile(file);
       }
     } catch (error) {
       console.error("Error opening file picker:", error);
     }
-  }, [contentType, emitRef, uploadAssetFn]);
+  }, [contentType, uploadPickedFile]);
 
   const handleDropzoneClick = useCallback(() => {
     if (isElectron && window.api?.dialog?.openFile) {
@@ -383,7 +375,7 @@ const PropertyDropzone = ({
                 style={imageError ? { display: "none" } : undefined}
               />
               {imageError && (
-                <p className="centered uppercase">{t("ui2:attrs.imageCouldNotBeLoaded", { defaultValue: "Image could not be loaded" })}</p>
+                <p className="centered uppercase">Image could not be loaded</p>
               )}
               {imageDimensions && (
                 <ImageDimensions
@@ -413,13 +405,13 @@ const PropertyDropzone = ({
                   src={uri as string}
                   aria-label={filename || "Audio"}
                 >
-                  {t("editor:ui.yourBrowserDoesNotSupportTheAudioElement")}
+                  Your browser does not support the audio element.
                 </audio>
                 <p className="centered uppercase">{filename}</p>
                 <AudioPlayer filename={filename} source={uri as string} />
               </div>
             ) : (
-              <p className="centered uppercase">{t("ui2:attrs.dropAudio", { defaultValue: "Drop audio" })}</p>
+              <p className="centered uppercase">Drop audio</p>
             )}
           </>
         );
@@ -443,12 +435,12 @@ const PropertyDropzone = ({
                   src={uri}
                   aria-label={filename || "Video"}
                 >
-                  {t("editor:ui.yourBrowserDoesNotSupportTheVideoElement")}
+                  Your browser does not support the video element.
                 </video>
                 <p className="centered uppercase">{filename}</p>
               </>
             ) : (
-              <p className="centered uppercase">{t("ui2:attrs.dropVideo", { defaultValue: "Drop video" })}</p>
+              <p className="centered uppercase">Drop video</p>
             )}
           </>
         );
@@ -461,7 +453,7 @@ const PropertyDropzone = ({
               src={uri}
               style={{ width: "100%", height: "400px", border: "none" }}
               allow="fullscreen; clipboard-write"
-              title={t("editor:ui.pdfViewer", { defaultValue: "PDF viewer" })}
+              title="PDF viewer"
             />
           );
         }
@@ -478,7 +470,7 @@ const PropertyDropzone = ({
               sandbox=""
               style={{ width: "100%", height: "400px", border: "none" }}
               allow="fullscreen"
-              title={t("editor:ui.textViewer", { defaultValue: "Text viewer" })}
+              title="Text viewer"
             />
           );
         }
@@ -488,7 +480,7 @@ const PropertyDropzone = ({
       default:
         return null;
     }
-  }, [t, contentType, uri, openViewer, asset, id, filename, handleImageLoad, handleImageError, imageError, handleDoubleClick, handleCloseViewer, imageDimensions, handleVolumeChange]);
+  }, [contentType, uri, openViewer, asset, id, filename, handleImageLoad, handleImageError, imageError, handleDoubleClick, handleCloseViewer, imageDimensions, handleVolumeChange]);
 
   return (
     <div css={styles(theme)}>
@@ -535,7 +527,7 @@ const PropertyDropzone = ({
                     }}
                   />
                   <ToolbarIconButton
-                    tooltip={t("editor:ui.replaceFile", { defaultValue: "Replace file" })}
+                    tooltip="Replace file"
                     icon={<FolderOpenIcon fontSize="small" />}
                     className="asset-action-button"
                     onClick={handleReplaceClick}
@@ -545,8 +537,10 @@ const PropertyDropzone = ({
               )}
             </>
           ) : (
-            <Tooltip title={t("editor:ui.clickToSelectAFileOrDragAndDrop", { defaultValue: "Click to select a file or drag and drop" })}>
-              <p className="prop-drop centered uppercase">Click or drop {contentType}</p>
+            <Tooltip title="Click to select a file or drag and drop">
+              <p className="prop-drop centered uppercase">
+                {pickerUploading ? "Uploading…" : `Click or drop ${contentType}`}
+              </p>
             </Tooltip>
           )}
         </div>

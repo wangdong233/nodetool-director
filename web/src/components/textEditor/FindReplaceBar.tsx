@@ -6,8 +6,16 @@ import { memo, useState, useEffect, useCallback } from "react";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ReplaceIcon from "@mui/icons-material/FindReplace";
-import { CloseButton, NodeTextField, ToolbarIconButton, Box, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
+import {
+  CloseButton,
+  NodeTextField,
+  Toolbar,
+  ToolbarGroup,
+  ToolbarIconButton,
+  SPACING,
+  TYPOGRAPHY,
+  getSpacingPx
+} from "../ui_primitives";
 
 const MAX_SEARCH_LENGTH = 1000;
 
@@ -32,19 +40,8 @@ interface FindReplaceBarProps {
 }
 
 const styles = (theme: Theme) =>
+  // Only the fields inside: the bar's surface, rule and layout are Toolbar's.
   css({
-    display: "flex",
-    alignItems: "center",
-    padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xl)}`,
-    justifyContent: "start",
-    backgroundColor: theme.vars.palette.grey[800],
-    gap: getSpacingPx(SPACING.md),
-    ".search-group": {
-      display: "flex",
-      alignItems: "center",
-      margin: "0",
-      gap: getSpacingPx(SPACING.xs)
-    },
     ".search-input": {
       "& .MuiInputBase-root": {
         backgroundColor: theme.vars.palette.grey[600],
@@ -100,21 +97,11 @@ const styles = (theme: Theme) =>
       }
     },
     ".match-info": {
-      fontSize: theme.fontSizeSmaller,
-      color: theme.vars.palette.grey[200],
+      ...TYPOGRAPHY.mono.caption,
+      color: theme.vars.palette.text.disabled,
       minWidth: "4em",
-      textAlign: "center"
-    },
-    ".toolbar-button": {
-      padding: getSpacingPx(SPACING.xs),
-      marginRight: "0",
-      color: `${theme.vars.palette.grey[200]} !important`,
-      backgroundColor: "transparent !important",
-      borderRadius: `${BORDER_RADIUS.sm} !important`,
-      "&:hover": {
-        backgroundColor: `${theme.vars.palette.grey[600]} !important`,
-        color: `${theme.vars.palette.grey[0]} !important`
-      }
+      textAlign: "center",
+      "&.has-matches": { color: theme.vars.palette.text.primary }
     }
   });
 
@@ -128,7 +115,6 @@ const FindReplaceBar = ({
   totalMatches = 0,
   isVisible = true
 }: FindReplaceBarProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
@@ -197,11 +183,18 @@ const FindReplaceBar = ({
   const isValidSearch = isValidInput(searchTerm);
 
   return (
-    <Box className="find-replace-bar" css={styles(theme)}>
-      <div className="search-group">
+    <Toolbar
+      className="find-replace-bar"
+      role="toolbar"
+      aria-label="Find and replace"
+      density="compact"
+      css={styles(theme)}
+      sx={{ flexWrap: "wrap", py: SPACING.xs, pl: SPACING.xl }}
+    >
+      <ToolbarGroup className="search-group">
         <NodeTextField
           className="search-input"
-          placeholder={t("editor:ui.find", { defaultValue: "Find..." })}
+          placeholder="Find"
           value={searchTerm}
           onChange={handleSearchChange}
           onKeyDown={handleKeyDown}
@@ -214,18 +207,13 @@ const FindReplaceBar = ({
           }}
         />
 
-        <div
-          className="match-info"
-          style={{
-            color: totalMatches > 0 ? "var(--c-white)" : "var(--c-gray5)"
-          }}
-        >
+        <div className={`match-info${totalMatches > 0 ? " has-matches" : ""}`}>
           {totalMatches > 0 ? `${currentMatch}/${totalMatches}` : "0/0"}
         </div>
 
         <ToolbarIconButton
           icon={<KeyboardArrowUpIcon fontSize="small" />}
-          tooltip={t("editor:ui.previous", { defaultValue: "Previous" })}
+          tooltip="Previous"
           onClick={onPrevious}
           disabled={totalMatches === 0}
           className="toolbar-button"
@@ -233,7 +221,7 @@ const FindReplaceBar = ({
 
         <ToolbarIconButton
           icon={<KeyboardArrowDownIcon fontSize="small" />}
-          tooltip={t("home:docs.next", { defaultValue: "Next" })}
+          tooltip="Next"
           onClick={onNext}
           disabled={totalMatches === 0}
           className="toolbar-button"
@@ -241,17 +229,17 @@ const FindReplaceBar = ({
 
         <ToolbarIconButton
           icon={<ReplaceIcon fontSize="small" />}
-          tooltip={t("editor:ui.toggleReplace", { defaultValue: "Toggle Replace" })}
+          tooltip="Toggle replace"
           onClick={handleToggleReplace}
           className="toolbar-button"
         />
-      </div>
+      </ToolbarGroup>
 
       {showReplace && (
-        <div className="search-group">
+        <ToolbarGroup className="search-group">
           <NodeTextField
             className="replace-input"
-            placeholder={t("editor:ui.replaceWith", { defaultValue: "Replace with..." })}
+            placeholder="Replace with…"
             value={replaceTerm}
             onChange={handleReplaceChange}
             onKeyDown={handleKeyDown}
@@ -265,8 +253,8 @@ const FindReplaceBar = ({
 
           <span>
             <ToolbarIconButton
-              icon={<span style={{ fontSize: 'var(--fontSizeSmaller)', fontWeight: 600 }}>{t("ui2:attrs.replace", { defaultValue: "Replace" })}</span>}
-              tooltip={t("editor:ui.replace", { defaultValue: "Replace" })}
+              icon={<span style={TYPOGRAPHY.sans.label}>Replace</span>}
+              tooltip="Replace"
               onClick={handleReplace}
               disabled={!isValidSearch || totalMatches === 0}
               className="toolbar-button"
@@ -275,18 +263,18 @@ const FindReplaceBar = ({
 
           <span>
             <ToolbarIconButton
-              icon={<span style={{ fontSize: 'var(--fontSizeSmaller)', fontWeight: 600 }}>{t("common:sizeFilters.all", { defaultValue: "All" })}</span>}
-              tooltip={t("editor:ui.replaceAll", { defaultValue: "Replace All" })}
+              icon={<span style={TYPOGRAPHY.sans.label}>All</span>}
+              tooltip="Replace all"
               onClick={handleReplaceAll}
               disabled={!isValidSearch || totalMatches === 0}
               className="toolbar-button"
             />
           </span>
-        </div>
+        </ToolbarGroup>
       )}
 
-      <CloseButton onClick={handleClose} buttonSize="small" tooltip={t("editor:ui.closeFindReplace", { defaultValue: "Close Find/Replace" })} className="toolbar-button" />
-    </Box>
+      <CloseButton onClick={handleClose} buttonSize="small" tooltip="Close Find/Replace" className="toolbar-button" />
+    </Toolbar>
   );
 };
 

@@ -10,20 +10,33 @@ import DataObjectIcon from "@mui/icons-material/DataObject";
 import TableChartIcon from "@mui/icons-material/TableChart";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import { Asset } from "../../stores/ApiTypes";
-import { DeleteButton, FavoriteButton, StatusPill, Text, MOTION, BORDER_RADIUS, FONT_WEIGHT, SPACING, getSpacingPx, Z_INDEX } from "../ui_primitives";
+import {
+  DeleteButton,
+  FavoriteButton,
+  StatusPill,
+  Text,
+  MOTION,
+  BORDER_RADIUS,
+  FONT_WEIGHT,
+  SHADOW,
+  SPACING,
+  getSpacingPx,
+  Z_INDEX,
+  focusRing,
+  reducedMotion,
+  selectedTileStyles
+} from "../ui_primitives";
 import { secondsToHMS } from "../../utils/formatDateAndTime";
 import { formatFileSize } from "../../utils/formatUtils";
 import { useSettingsStore } from "../../stores/SettingsStore";
-import { systemPresetAssetInfo } from "../../serverState/useEntities";
-import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
 import { useAssetActions } from "./useAssetActions";
 import { useSetAssetFavorite } from "../../serverState/useAssetFavorite";
 import { useActivateOnKey } from "../../hooks/useActivateOnKey";
 import { useVideoThumbnail } from "../../hooks/useVideoThumbnail";
+import { useImageThumbnail } from "../../hooks/useImageThumbnail";
 import { isCoarsePointer } from "../../utils/isCoarsePointer";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { useTranslation } from "react-i18next";
 
 
 const styles = (theme: Theme) =>
@@ -41,10 +54,12 @@ const styles = (theme: Theme) =>
       // Without this a phone waits for a second tap before dispatching the
       // first click, and double-tap zooms the panel instead of opening.
       touchAction: "manipulation",
+      borderRadius: BORDER_RADIUS.md,
       boxSizing: "border-box",
       WebkitBoxSizing: "border-box",
       MozBoxSizing: "border-box"
     },
+    "&:focus-visible": focusRing(theme, 2),
     ".asset": {
       position: "relative",
       width: "100%",
@@ -53,17 +68,15 @@ const styles = (theme: Theme) =>
       top: 0,
       bottom: 0,
       background: `linear-gradient(180deg, rgb(${theme.vars.palette.common.whiteChannel} / 0.045) 0%, rgb(${theme.vars.palette.common.blackChannel} / 0.18) 100%), ${theme.vars.palette.grey[800]}`,
-      borderRadius: BORDER_RADIUS.lg,
+      borderRadius: BORDER_RADIUS.md,
       overflow: "hidden",
       contain: "layout style paint",
-      border: `1px solid rgb(${theme.vars.palette.common.whiteChannel} / 0.06)`,
-      boxShadow: `0 8px 18px ${theme.vars.palette.c_scrim_soft}`,
-      transition: `${MOTION.shadow}, ${MOTION.border}`
+      border: `1px solid ${theme.vars.palette.divider}`,
+      boxShadow: "none",
+      transition: `${MOTION.shadow}, ${MOTION.border}`,
+      ...reducedMotion({ transition: MOTION.none })
     },
-    "&.selected .asset": {
-      border: `2px solid ${theme.vars.palette.primary.main}`,
-      boxShadow: `0 8px 18px rgb(${theme.vars.palette.primary.mainChannel} / 0.25)`
-    },
+    "&.selected .asset": selectedTileStyles(theme),
     "&.selected::before": {
       content: '""',
       position: "absolute",
@@ -78,15 +91,17 @@ const styles = (theme: Theme) =>
       backgroundSize: "70% 70%",
       backgroundPosition: "center",
       backgroundRepeat: "no-repeat",
-      zIndex: Z_INDEX.tooltip,
-      boxShadow: `0 2px 6px ${theme.vars.palette.c_scrim}`
+      zIndex: Z_INDEX.raised,
+      boxShadow: SHADOW(theme).sm
     },
     ".asset::after": {
       content: '""',
       position: "absolute",
       inset: 0,
       pointerEvents: "none",
-      background: `linear-gradient(180deg, ${theme.vars.palette.c_overlay}, transparent 32%)`
+      background: `linear-gradient(180deg, ${theme.vars.palette.c_overlay}, transparent 32%)`,
+      transition: MOTION.background,
+      ...reducedMotion({ transition: MOTION.none })
     },
     ".asset .image, .asset .image-aspect-ratio": {
       position: "absolute",
@@ -104,9 +119,8 @@ const styles = (theme: Theme) =>
       backgroundColor: theme.vars.palette.grey[800],
       willChange: "opacity"
     },
-    "&:hover .asset": {
-      boxShadow: `0 16px 30px ${theme.vars.palette.c_scrim_soft}`,
-      borderColor: `rgb(${theme.vars.palette.common.whiteChannel} / 0.1)`
+    "&:not(.selected):hover .asset::after": {
+      backgroundColor: theme.vars.palette.action.hover
     },
     "&:hover .asset .image": {
       opacity: 1,
@@ -136,7 +150,7 @@ const styles = (theme: Theme) =>
       position: "absolute",
       pointerEvents: "none",
       fontSize: theme.fontSizeSmaller,
-      fontWeight: 600,
+      fontWeight: FONT_WEIGHT.normal,
       letterSpacing: "0.02em",
       color: theme.vars.palette.grey[0],
       margin: "0",
@@ -149,7 +163,6 @@ const styles = (theme: Theme) =>
       padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.sm)}`,
       width: "100%",
       height: "auto",
-      maxHeight: "2.6em",
       // Clamp to two lines so near-identical names (inpaint-result.png vs
       // inpaint-result-1.png) keep their distinguishing tail instead of being
       // cut to "inpaint-r…" on a single line.
@@ -168,7 +181,6 @@ const styles = (theme: Theme) =>
     ".name.large": {
       fontSize: theme.fontSizeSmall,
       lineHeight: "1.25em",
-      maxHeight: "2.6em",
       marginTop: 0
     },
     ".date": {
@@ -200,14 +212,15 @@ const styles = (theme: Theme) =>
       borderBottomLeftRadius: BORDER_RADIUS.xs,
       backgroundColor: theme.vars.palette.c_scrim,
       backdropFilter: "blur(4px)",
-      color: theme.vars.palette.grey[100],
+      // Fixed light text: the scrim is dark in both schemes.
+      color: theme.vars.palette.common.white,
       fontSize: theme.fontSizeSmaller,
-      fontWeight: FONT_WEIGHT.medium
+      fontWeight: FONT_WEIGHT.normal
     },
     ".duration": {
       bottom: "2px",
       right: "0.25em",
-      color: "white"
+      color: theme.vars.palette.common.white
     },
     "img, video": {
       position: "absolute",
@@ -243,9 +256,10 @@ const styles = (theme: Theme) =>
       position: "absolute",
       bottom: getSpacingPx(SPACING.micro),
       left: getSpacingPx(SPACING.micro),
-      zIndex: Z_INDEX.modal,
+      zIndex: Z_INDEX.raised,
       opacity: 0,
-      transition: MOTION.opacity
+      transition: MOTION.opacity,
+      ...reducedMotion({ transition: MOTION.none })
     },
     "&:hover .asset-favorite, &:focus-within .asset-favorite, .asset-favorite.is-favorite":
       {
@@ -304,10 +318,10 @@ const styles = (theme: Theme) =>
     },
     // FOLDER UP BUTTON
     ".folder-up-button.enabled": {
-      color: "var(--palette-primary-main)"
+      color: theme.vars.palette.primary.main
     },
     ".folder-up-button.disabled": {
-      color: "gray"
+      color: theme.vars.palette.text.disabled
     },
     // DRAG HOVER
     "&.drag-hover": {
@@ -325,7 +339,7 @@ const styles = (theme: Theme) =>
       lineHeight: "1.1em",
       fontSize: theme.fontSizeSmaller,
       color: theme.vars.palette.error.main,
-      borderBottom: "1px solid" + theme.vars.palette.error.main,
+      borderBottom: `1px solid ${theme.vars.palette.error.main}`,
       width: "100%",
       height: "100%"
     }
@@ -336,7 +350,7 @@ const videoIconOverlayStyle: React.CSSProperties = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  color: "white",
+  color: "var(--palette-common-white)",
   fontSize: "3em",
   opacity: 0.8,
   filter: "drop-shadow(0px 0px 4px var(--palette-c_scrim))",
@@ -368,16 +382,12 @@ const deleteButtonOverlayStyle = css({
   position: "absolute",
   top: 4,
   right: 4,
-  zIndex: Z_INDEX.modal
+  zIndex: Z_INDEX.raised
 });
 
 const AssetItem: React.FC<AssetItemProps> = (props) => {
   const theme = useTheme();
   const assetStyles = useMemo(() => styles(theme), [theme]);
-  // Own subscription anchor: the tile name renders language-dependent
-  // content (catalog:styles overlay for seeded presets), and memo only
-  // blocks parent-driven re-renders, not this hook's own signal.
-  const { t } = useTranslation();
   const {
     asset,
     draggable = true,
@@ -459,18 +469,13 @@ const AssetItem: React.FC<AssetItemProps> = (props) => {
     isVideo ? asset?.get_url : null
   );
 
-  // Seeded style presets are marker rows with no stored bytes: `get_url` 404s,
-  // so the tile paints black. Their shipped `package://` tile art resolves
-  // statically (same ref shape the entity library renders), and their names
-  // read through the catalog:styles overlay (EntityCard F-26 pattern).
-  const preset = useMemo(() => systemPresetAssetInfo(asset), [asset]);
-  const presetThumbUrl = preset?.thumbnail
-    ? resolveStaticMediaUri(preset.thumbnail)
-    : null;
-  const presetImageUrl = presetThumbUrl || null;
-  const displayName = preset
-    ? t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name })
-    : asset.name;
+  // A fresh upload can be listed before its thumbnail is written. The hook
+  // shows the full image until the thumbnail loads, instead of a black tile.
+  const rasterThumbUrl = useImageThumbnail(
+    isImage && !isSvg ? asset?.thumb_url : null,
+    isImage && !isSvg ? asset?.get_url : null
+  );
+  const imageUrl = isSvg ? asset.get_url : rasterThumbUrl;
 
   const handleAudioClick = useCallback(() => {
     onSetCurrentAudioAsset?.(asset);
@@ -516,7 +521,7 @@ const AssetItem: React.FC<AssetItemProps> = (props) => {
       onClick={handleItemClick}
       role="button"
       tabIndex={0}
-      aria-label={displayName}
+      aria-label={asset.name}
       onKeyDown={handleItemKeyDown}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
@@ -531,23 +536,23 @@ const AssetItem: React.FC<AssetItemProps> = (props) => {
         </div>
       )}
       <div className={`asset ${isImage ? "alpha-surface" : ""}`}>
-        {!asset.get_url && !presetImageUrl && <div className="asset-missing" />}
+        {!asset.get_url && <div className="asset-missing" />}
         {isImage && (
           <>
-            {!asset.get_url && !presetImageUrl && <ImageIcon className="placeholder" />}
-            {(asset.get_url || presetImageUrl) && (
+            {!asset.get_url && <ImageIcon className="placeholder" />}
+            {asset.get_url && (
               <>
                 <div
                   className="image"
                   style={{
-                    backgroundImage: `url(${presetImageUrl ?? (isSvg ? asset.get_url : asset.thumb_url || asset.get_url)})`
+                    backgroundImage: `url(${imageUrl})`
                   }}
                   aria-label={asset.id}
                 />
                 <div
                   className="image-aspect-ratio"
                   style={{
-                    backgroundImage: `url(${presetImageUrl ?? (isSvg ? asset.get_url : asset.thumb_url || asset.get_url)})`
+                    backgroundImage: `url(${imageUrl})`
                   }}
                   aria-label={asset.id}
                 />
@@ -587,7 +592,7 @@ const AssetItem: React.FC<AssetItemProps> = (props) => {
             ) : (
               <VideoFileIcon
                 className="placeholder"
-                style={{ color: `var(--c_${assetType})`, zIndex: Z_INDEX.modal }}
+                style={{ color: `var(--c_${assetType})`, zIndex: Z_INDEX.raised }}
                 titleAccess={asset.content_type || "Video file"}
               />
             )}
@@ -665,7 +670,7 @@ const AssetItem: React.FC<AssetItemProps> = (props) => {
               position: "absolute",
               top: getSpacingPx(SPACING.xs),
               left: getSpacingPx(SPACING.xs),
-              zIndex: Z_INDEX.modal
+              zIndex: Z_INDEX.raised
             }}
           >
             Media offline
@@ -680,9 +685,9 @@ const AssetItem: React.FC<AssetItemProps> = (props) => {
               size="smaller"
               title={asset.content_type || "Unknown content type"}
               style={{
-                color: `var(--c_${assetType}, var(--palette-grey-100))`,
+                color: `var(--c_${assetType}, var(--palette-common-white))`,
                 textTransform: "uppercase",
-                zIndex: Z_INDEX.modal
+                zIndex: Z_INDEX.raised
               }}
             >
               {assetFileEnding}
@@ -702,12 +707,12 @@ const AssetItem: React.FC<AssetItemProps> = (props) => {
             )}
           {showName && assetItemSize > 1 && (
             <Text
-              aria-label={displayName}
+              aria-label={asset.name}
               data-microtip-position="bottom"
               role="tooltip"
               className={`name info ${assetItemSize > 4 ? "large" : ""}`}
             >
-              {displayName}
+              {asset.name}
             </Text>
           )}
           {assetsOrder === "date" && asset.created_at && assetItemSize > 2 && (

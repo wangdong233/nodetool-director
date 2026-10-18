@@ -1,7 +1,5 @@
-import { lazy, Suspense, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { lazy, Suspense, useState } from "react";
 import { LoadingSpinner, TabGroup } from "../ui_primitives";
-import { useAppLanguage } from "../../i18n";
 import DashboardExampleApps from "../portal/DashboardExampleApps";
 
 const DashboardTemplates = lazy(() => import("../portal/DashboardTemplates"));
@@ -23,57 +21,33 @@ const DashboardExampleGames = lazy(
 
 interface StartExamplesProps {
   onBrowseAll: () => void;
+  /** Opens the Game guided flow from the Games tab. */
+  onMakeGame?: () => void;
 }
 
-const EXAMPLE_TAB_VALUES = [
-  "apps",
-  "workflows",
-  "storyboards",
-  "timelines",
-  "sketches",
-  "models",
-  "games"
-] as const;
+const EXAMPLE_TABS = [
+  { value: "apps", label: "Apps" },
+  { value: "workflows", label: "Workflows" },
+  { value: "storyboards", label: "Storyboards" },
+  { value: "timelines", label: "Timelines" },
+  { value: "sketches", label: "Sketches" },
+  { value: "models", label: "3D models" },
+  { value: "games", label: "Games" }
+];
 
-/** Tab label i18n keys — pure data, resolved at render time. */
-const TAB_LABELS: Record<
-  (typeof EXAMPLE_TAB_VALUES)[number],
-  { key: string; defaultValue: string }
-> = {
-  apps: { key: "nav:qa.apps.label", defaultValue: "Apps" },
-  workflows: { key: "editor:ui.workflows", defaultValue: "Workflows" },
-  storyboards: { key: "editor:ui.storyboards", defaultValue: "Storyboards" },
-  timelines: { key: "editor:ui.timelines", defaultValue: "Timelines" },
-  sketches: { key: "editor:ui.sketches", defaultValue: "Sketches" },
-  models: { key: "editor:ui.models3d", defaultValue: "3D models" },
-  games: { key: "editor:ui.games", defaultValue: "Games" }
-};
-
-const StartExamples = ({ onBrowseAll }: StartExamplesProps) => {
-  const { t } = useTranslation();
-  // Subscribe so tab labels re-render on language change.
-  const language = useAppLanguage();
+const StartExamples = ({ onBrowseAll, onMakeGame }: StartExamplesProps) => {
   const [activeTab, setActiveTab] = useState("apps");
 
-  const exampleTabs = useMemo(
-    () =>
-      EXAMPLE_TAB_VALUES.map((value) => {
-        const { key, defaultValue } = TAB_LABELS[value];
-        return { value, label: t(key, { defaultValue }) };
-      }),
-    [t, language.version]
-  );
-
   return (
-    <section aria-label={t("editor:ui.examples", { defaultValue: "Examples" })}>
+    <section aria-label="Examples">
       <TabGroup
-        tabs={exampleTabs}
+        tabs={EXAMPLE_TABS}
         value={activeTab}
         onChange={setActiveTab}
-        aria-label={t("editor:ui.exampleTypes", { defaultValue: "Example types" })}
+        aria-label="Example types"
         size="small"
       />
-      <Suspense fallback={<LoadingSpinner size="medium" text={t("editor:ui.loadingExamples", { defaultValue: "Loading examples" })} />}>
+      <Suspense fallback={<LoadingSpinner size="medium" text="Loading examples" />}>
         {activeTab === "apps" ? (
           <DashboardExampleApps compact onBrowseAll={onBrowseAll} />
         ) : activeTab === "workflows" ? (
@@ -87,7 +61,7 @@ const StartExamples = ({ onBrowseAll }: StartExamplesProps) => {
         ) : activeTab === "models" ? (
           <DashboardExampleModels />
         ) : (
-          <DashboardExampleGames />
+          <DashboardExampleGames onMakeGame={onMakeGame} />
         )}
       </Suspense>
     </section>

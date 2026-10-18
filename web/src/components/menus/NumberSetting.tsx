@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { TextInput, Text } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { NumberField } from "../ui_primitives";
 
 interface NumberSettingProps {
   label: string;
@@ -73,25 +72,25 @@ export const NumberSetting = React.memo(function NumberSetting({
   );
 
   return (
-    <>
-      <TextInput
-        type="number"
-        autoComplete="off"
-        slotProps={{ htmlInput: { min, max, step } }}
-        id={id}
-        label={label}
-        value={local}
-        onChange={handleChange}
-        onBlur={commit}
-        onKeyDown={handleKeyDown}
-        variant="standard"
-        size="small"
-        disabled={disabled}
-      />
-      <Text className="description">
-        {description} {formatRangeHint(min, max, fallback)}
-      </Text>
-    </>
+    <NumberField
+      autoComplete="off"
+      min={min}
+      max={max}
+      step={step}
+      id={id}
+      label={label}
+      helperText={
+        <>
+          {description} {formatRangeHint(min, max, fallback)}
+        </>
+      }
+      value={local}
+      onChange={handleChange}
+      onBlur={commit}
+      onKeyDown={handleKeyDown}
+      size="small"
+      disabled={disabled}
+    />
   );
 });
 

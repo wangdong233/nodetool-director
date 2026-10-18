@@ -1,6 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 
 import { useTheme } from "@mui/material/styles";
@@ -26,6 +24,7 @@ import {
 import { NodeData } from "../../stores/NodeData";
 import { debounce } from "../../utils/lodashAlternatives";
 import isEqual from "../../utils/isEqual";
+import { runAsOneUndoEntry } from "../../utils/runAsOneUndoEntry";
 import {
   parse,
   alpha,
@@ -37,6 +36,7 @@ import {
 import { hexToRgba } from "../../utils/ColorUtils";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { useWebsocketRunner } from "../../stores/WorkflowRunner";
+import { useRunSelectedNodes } from "../../hooks/nodes/useRunSelectedNodes";
 import ColorPicker from "../inputs/ColorPicker";
 import NodeResizer from "./NodeResizer";
 import NodeResizeHandle from "./NodeResizeHandle";
@@ -225,7 +225,6 @@ const styles = (theme: Theme, minWidth: number, minHeight: number) =>
   });
 
 const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme, MIN_WIDTH, MIN_HEIGHT), [theme]);
   const controlKeyPressed = useKeyPressed((state) =>
@@ -339,26 +338,17 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
   const isWorkflowRunning = useWebsocketRunner(
     (state) => state.state === "running"
   );
-  const run = useWebsocketRunner((state) => state.run);
+  const { runSelectedNodes } = useRunSelectedNodes();
 
+  // Runs the group's children through the Run selected path, so inputs wired
+  // from outside the group are seeded from cache or block the run.
   const runWorkflow = useCallback(() => {
-    // Access state imperatively to avoid re-renders
-    const state = store.getState();
-    const { nodes, edges, workflow } = state;
-
-    const groupNodes = nodes.filter(
-      (node) => node.id === props.id || node.parentId === props.id
-    );
-
-    const groupNodeIds = new Set(groupNodes.map((n) => n.id));
-    const groupEdges = edges.filter(
-      (edge) =>
-        groupNodeIds.has(edge.source) &&
-        groupNodeIds.has(edge.target)
-    );
-
-    run({}, workflow, groupNodes, groupEdges);
-  }, [run, props.id, store]);
+    const childIds = store
+      .getState()
+      .nodes.filter((node) => node.parentId === props.id)
+      .map((node) => node.id);
+    void runSelectedNodes(1, childIds);
+  }, [runSelectedNodes, props.id, store]);
 
   const toggleBypassChildren = useCallback(() => {
     const state = store.getState();
@@ -367,8 +357,10 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
     const isBypassed = childNodes.some((n) => n.data.bypassed);
     const shouldBypass = !isBypassed;
 
-    childNodes.forEach((node) => {
-      setBypass(node.id, shouldBypass);
+    runAsOneUndoEntry(store, () => {
+      childNodes.forEach((node) => {
+        setBypass(node.id, shouldBypass);
+      });
     });
   }, [props.id, setBypass, store]);
 
@@ -424,7 +416,24 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
       }, 500),
     [props.id, updateNodeData]
   );
-  useEffect(() => () => debouncedHeadlineSave.cancel(), [debouncedHeadlineSave]);
+  // Write a pending rename instead of dropping it when the node unmounts.
+  useEffect(() => () => debouncedHeadlineSave.flush(), [debouncedHeadlineSave]);
+
+  // Follow outside changes (undo, agent edits) while the title isn't being
+  // edited.
+  const storedHeadline =
+    (props.data.properties.headline as string | undefined) || "Group";
+  useEffect(() => {
+    if (document.activeElement !== headerInputRef.current) {
+      setHeadline(storedHeadline);
+    }
+  }, [storedHeadline]);
+  const storedColor = props.data.properties.group_color as string | undefined;
+  useEffect(() => {
+    if (storedColor) {
+      setColor(storedColor);
+    }
+  }, [storedColor]);
 
   const handleHeadlineChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -476,8 +485,10 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
   useEffect(() => {
     // Selectable group when ctrl/meta is held AND this group owns a
     // selected child — enables drag-out and selection rectangle inside.
-    updateNode(props.id, { selectable: modifierActive });
-  }, [updateNode, props.id, modifierActive]);
+    if ((props.selectable ?? true) !== modifierActive) {
+      updateNode(props.id, { selectable: modifierActive });
+    }
+  }, [updateNode, props.id, props.selectable, modifierActive]);
 
   // Bound the label to the group body width. Only reserve room for the
   // action cluster when it's actually visible — otherwise the label can use
@@ -572,10 +583,10 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         nextDelay={TOOLTIP_ENTER_DELAY * 5}
         title={
           <span>
-            <b>{t("editor:ui.selectGroupNode", { defaultValue: "SELECT GROUP NODE:" })}</b> <br />
+            <b>SELECT GROUP NODE:</b> <br />
             Hold CTRL or ⌘ key + click <br />
             <br />
-            <b>{t("editor:ui.editGroupTitleLabel", { defaultValue: "EDIT GROUP TITLE:" })}</b> <br />
+            <b>EDIT GROUP TITLE:</b> <br />
             Double click the label
           </span>
         }
@@ -590,10 +601,11 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
             spellCheck={false}
             className="nodrag"
             type="text"
-            aria-label={t("editor:ui.groupHeadline", { defaultValue: "Group headline" })}
+            aria-label="Group headline"
             value={headline}
             onChange={handleHeadlineChange}
-            placeholder={t("editor:ui.groupPlaceholder", { defaultValue: "Group" })}
+            onBlur={debouncedHeadlineSave.flush}
+            placeholder="Group"
             style={inputStyle}
           />
           <span
@@ -610,7 +622,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         className="group-actions nodrag"
         style={actionsStyle}
       >
-        <Tooltip title={t("editor:ui.groupOptions", { defaultValue: "Group options" })} delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title="Group options">
           <ToolbarIconButton
             ref={menuButtonRef}
             title=""
@@ -639,7 +651,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           {hasChildren && (
             <div style={POPOVER_ROW_STYLE}>
               <span style={menuTextStyle}>
-                {someChildrenBypassed ? i18n.t("editor:ui.enableAllNodes", { defaultValue: "Enable all nodes" }) : i18n.t("editor:ui.disableAllNodes", { defaultValue: "Disable all nodes" })}
+                {someChildrenBypassed ? "Enable all nodes" : "Disable all nodes"}
               </span>
               <BypassGroupButton
                 isBypassed={someChildrenBypassed}
@@ -665,11 +677,11 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           nodes hovering over it, not every group on the canvas. */}
       <div className={`help-text ${nodeHovered ? "visible" : "none"}`}>
         <div>
-          <b>{t("editor:ui.removeNodesFromGroup", { defaultValue: "REMOVE NODES FROM GROUP" })}</b>
+          <b>REMOVE NODES FROM GROUP</b>
         </div>
         <ul>
-          <li>{t("editor:ui.dragOutWhileHoldingCTRLKey", { defaultValue: "Drag out while holding CTRL | ⌘ key" })}</li>
-          <li>{t("ui2:attrs.shakeRapidlyThenDragOut", { defaultValue: "Shake rapidly, then drag out" })}</li>
+          <li>Drag out while holding CTRL | ⌘ key</li>
+          <li>Shake rapidly, then drag out</li>
         </ul>
       </div>
 

@@ -1,17 +1,19 @@
 import React, { useCallback } from "react";
 
 import {
-  Chip,
-  Text,
   ToolbarIconButton,
   Box,
-  MOTION,
   BORDER_RADIUS,
+  EYEBROW,
   SPACING,
+  TYPOGRAPHY,
+  selectableRowStyles,
+  selectedRowStyles,
   getSpacingPx,
   List,
   ListItem,
   ListItemButton,
+  Text,
   ListItemText
 } from "../../ui_primitives";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -20,12 +22,8 @@ import { prettifyModelType } from "../../../utils/modelFormatting";
 import { useModels } from "./useModels";
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
 import { useTheme } from "@mui/material/styles";
-import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
-import { humanizeModelType } from "../../../utils/modelFormatting";
 
 const ModelTypeSidebar: React.FC = () => {
-  const { t } = useTranslation();
   const scope = useModelManagerStore((state) => state.scope);
   const { modelTypes, availableModelTypes, modelCountsByType } =
     useModels(scope);
@@ -38,23 +36,17 @@ const ModelTypeSidebar: React.FC = () => {
   }, [setSelectedModelType]);
 
   // Plain-text label for the hover title (prettifyModelType returns JSX with a
-  // leading icon, which can't be used as a title attribute). Resolves through
-  // the catalog so it follows the language switcher; an untranslated type
-  // falls back to its humanized slug.
-  const plainLabel = useCallback(
-    (type: string) => {
-      if (type.startsWith("hf.")) {
-        return i18n.t(`catalog:hfTask.${type.slice(3).replace(/_/g, "-")}`, {
-          defaultValue: humanizeModelType(type)
-        });
-      }
-      if (type === "All") {
-        return i18n.t("editor:ui.catAll", { defaultValue: "All" });
-      }
-      return humanizeModelType(type);
-    },
-    []
-  );
+  // leading icon, which can't be used as a title attribute).
+  const plainLabel = useCallback((type: string) => {
+    if (type === "All") {
+      return "All";
+    }
+    return type
+      .replace(/^(hf|tjs)\./, "")
+      .split(/[._]/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }, []);
 
   const getHuggingFaceLink = useCallback((type: string) => {
     if (!type.startsWith("hf.")) {
@@ -71,21 +63,16 @@ const ModelTypeSidebar: React.FC = () => {
 
   return (
     <Box>
-      <Text
-        size="small"
-        color="secondary"
+      <Box
         sx={{
+          ...EYEBROW,
+          color: "text.secondary",
           px: 1.5,
-          pb: 1,
-          fontSize: "var(--fontSizeSmaller)",
-          fontWeight: 600,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          opacity: 0.7
+          pb: 1
         }}
       >
-        {t("editor:ui.modelCategories")}
-      </Text>
+        Model categories
+      </Box>
     <List className="model-type-list" sx={{ padding: 0 }}>
       {modelTypes
         .filter((type) => availableModelTypes.has(type))
@@ -99,21 +86,21 @@ const ModelTypeSidebar: React.FC = () => {
               key={type}
               sx={{
                 mb: 0.25,
-                borderRadius: BORDER_RADIUS.lg,
+                borderRadius: BORDER_RADIUS.md,
                 overflow: "hidden"
               }}
               secondaryAction={
                 href ? (
                   <ToolbarIconButton
                     icon={<OpenInNewIcon fontSize="small" />}
-                    tooltip={t("editor:ui.viewOnHuggingFace", { defaultValue: "View on Hugging Face" })}
+                    tooltip="View on Hugging Face"
                     edge="end"
                     component="a"
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={handleLinkClick}
-                    ariaLabel={t("editor:ui.viewTypeModelsOnHuggingFace", { defaultValue: "View {{type}} models on Hugging Face", type: plainLabel(type) })}
+                    ariaLabel={`View ${prettifyModelType(type)} models on Hugging Face`}
                     sx={{
                       color: isSelected ? theme.vars.palette.text.primary : "inherit",
                       opacity: 0.7,
@@ -128,23 +115,16 @@ const ModelTypeSidebar: React.FC = () => {
               selected={isSelected}
               onClick={createModelTypeChangeHandler(type)}
               sx={{
-                  borderRadius: BORDER_RADIUS.lg,
+                  ...selectableRowStyles(theme, { selected: isSelected }),
+                  "&.Mui-selected": selectedRowStyles(theme),
+                  "&.Mui-focusVisible": {
+                    backgroundColor: isSelected
+                      ? theme.vars.palette.action.selected
+                      : theme.vars.palette.action.hover
+                  },
                   padding: `${getSpacingPx(SPACING.sm)} ${getSpacingPx(SPACING.lg)}`,
                   minWidth: 0,
                   gap: 1,
-                  transition: `${MOTION.background}, color ${MOTION.fast}`,
-                  "&.Mui-selected": {
-                    backgroundColor:
-                      "rgba(var(--palette-primary-main-channel) / 0.12)",
-                    border: "none",
-                    "&:hover": {
-                      backgroundColor:
-                        "rgba(var(--palette-primary-main-channel) / 0.18)"
-                    }
-                  },
-                  "&:hover": {
-                    backgroundColor: theme.vars.palette.action.hover
-                  },
                   // Provider logos (HF, Ollama) sit inline in the label; keep
                   // them monochrome so the rail reads as one list.
                   "& img": { filter: "saturate(0)" }
@@ -162,9 +142,8 @@ const ModelTypeSidebar: React.FC = () => {
                       style: {
                         width: "20px",
                         height: "20px",
-                        opacity: isSelected ? 1 : 0.6,
                         color: isSelected
-                          ? theme.vars.palette.primary.main
+                          ? theme.vars.palette.text.primary
                           : theme.vars.palette.text.secondary
                       }
                     }}
@@ -178,34 +157,16 @@ const ModelTypeSidebar: React.FC = () => {
                   primaryTypographyProps={{
                     noWrap: true,
                     sx: {
+                      ...TYPOGRAPHY.sans.label,
                       "& img": { verticalAlign: "middle" }
                     },
-                    fontSize: "var(--fontSizeNormal)",
-                    fontWeight: isSelected ? 600 : 400,
-                    color: isSelected
-                      ? theme.vars.palette.primary.main
-                      : "text.secondary"
+                    color: isSelected ? "text.primary" : "text.secondary"
                   }}
                 />
                 {modelCountsByType[type] !== undefined && (
-                  <Chip
-                    label={modelCountsByType[type]}
-                    size="small"
-                    sx={{
-                      height: 20,
-                      minWidth: 28,
-                      fontSize: "var(--fontSizeSmall)",
-                      fontWeight: 600,
-                      ml: 1,
-                      backgroundColor: "transparent",
-                      color: isSelected
-                        ? theme.vars.palette.primary.main
-                        : theme.vars.palette.text.secondary,
-                      "& .MuiChip-label": {
-                        px: 1
-                      }
-                    }}
-                  />
+                  <Text size="smaller" color="secondary" sx={{ ml: 1 }}>
+                    {modelCountsByType[type]}
+                  </Text>
                 )}
               </ListItemButton>
             </ListItem>

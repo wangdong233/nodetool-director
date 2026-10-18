@@ -9,15 +9,13 @@ import {
   nodeErrorToDisplayString,
   hasNodeError,
 } from "../../stores/ErrorStore";
-import useLogsStore, {
-  nodeLogKey,
-  type LogFilter
-} from "../../stores/LogStore";
+import useLogsStore, { nodeLogKey } from "../../stores/LogStore";
 import useWorkflowRunsStore from "../../stores/WorkflowRunsStore";
 import { useBottomPanelStore } from "../../stores/BottomPanelStore";
 import { useNodeError } from "../../hooks/nodes/useNodeExecState";
+import { useRunInspection } from "../../hooks/useRunInspection";
 import isEqual from "../../utils/isEqual";
-import { CopyButton, ExternalLink, Tooltip, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
+import { CopyButton, ExternalLink, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, EditorButton } from "../ui_primitives";
 import { extractKieTaskId, KIE_LOGS_URL } from "../../utils/kieTaskId";
 import { useNodeStoreRef } from "../../contexts/NodeContext";
 import type { NodeStoreState } from "../../stores/NodeStore";
@@ -27,7 +25,6 @@ import {
   type InputConnection
 } from "../../utils/bugReport";
 import { openBugReport } from "../../stores/BugReportStore";
-import { useTranslation } from "react-i18next";
 
 /** Collect the upstream connections feeding a node from the graph state. */
 function collectInputConnections(
@@ -82,30 +79,14 @@ const errorStyles = (theme: Theme) =>
       marginTop: getSpacingPx(SPACING.sm),
       paddingRight: getSpacingPx(18),
     },
+    // In the flow above the text: absolutely placed, the buttons covered the
+    // first line of the error on a narrow node.
     ".error-actions": {
       display: "flex",
       alignItems: "center",
+      justifyContent: "flex-end",
+      flexWrap: "wrap",
       gap: getSpacingPx(SPACING.xs),
-      position: "absolute",
-      top: 10,
-      right: 10,
-    },
-    ".report-button": {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: getSpacingPx(SPACING.xs),
-      padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.md)}`,
-      borderRadius: BORDER_RADIUS.sm,
-      border: `1px solid ${theme.vars.palette.grey[1000]}44`,
-      backgroundColor: "transparent",
-      color: theme.vars.palette.grey[1000],
-      fontSize: theme.fontSizeSmaller,
-      cursor: "pointer",
-      textDecoration: "none",
-      lineHeight: "1.4",
-      "&:hover": {
-        backgroundColor: `${theme.vars.palette.grey[1000]}22`,
-      },
     },
   });
 
@@ -114,7 +95,6 @@ const NodeErrorsImpl: React.FC<{
   workflow_id: string;
   nodeType?: string;
 }> = ({ id, workflow_id, nodeType = "unknown" }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const memoizedErrorStyles = useMemo(() => errorStyles(theme), [theme]);
   const error = useNodeError(workflow_id, id);
@@ -122,7 +102,7 @@ const NodeErrorsImpl: React.FC<{
   const focusedJobId = useWorkflowRunsStore(
     (state) => state.focusedJob[workflow_id]
   );
-  const setLogFilter = useLogsStore((state) => state.setFilter);
+  const { openRunInspection } = useRunInspection();
   const setBottomPanelView = useBottomPanelStore(
     (state) => state.setActiveView
   );
@@ -174,23 +154,26 @@ const NodeErrorsImpl: React.FC<{
     [errorDisplay]
   );
 
+  // The runs reader resolves a job id to its run. Without a job the panel
+  // opens on this workflow's latest run.
   const handleViewLogs = useCallback(() => {
-    const filter: LogFilter = {
-      workflowId: workflow_id,
-      nodeId: id
-    };
     if (focusedJobId) {
-      filter.jobId = focusedJobId;
+      openRunInspection({
+        runId: focusedJobId,
+        view: "logs",
+        workflowId: workflow_id,
+        nodeId: id
+      });
+      return;
     }
-    setLogFilter(filter);
     setBottomPanelView("logs");
     setBottomPanelVisibility(true);
   }, [
     focusedJobId,
     id,
+    openRunInspection,
     setBottomPanelView,
     setBottomPanelVisibility,
-    setLogFilter,
     workflow_id
   ]);
 
@@ -201,31 +184,31 @@ const NodeErrorsImpl: React.FC<{
   return (
     <div css={memoizedErrorStyles} className="node-error nodrag nowheel">
       <div className="error-actions">
-        <Tooltip title={t("editor:ui.showLogsForThisNodeAndRun", { defaultValue: "Show logs for this node and run" })}>
-          <button
-            type="button"
-            className="report-button nodrag"
-            onClick={handleViewLogs}
-            aria-label={t("editor:ui.viewLogsForThisNodeAndRun", { defaultValue: "View logs for this node and run" })}
-          >
-            <ListAltIcon sx={{ fontSize: "0.9em" }} />
-            {t("editor:ui.viewLogs")}
-          </button>
-        </Tooltip>
-        <Tooltip title={t("editor:ui.reportThisAsABug", { defaultValue: "Report this as a bug" })}>
-          <button
-            type="button"
-            className="report-button nodrag"
-            onClick={handleReport}
-            aria-label={t("editor:ui.reportThisAsABug", { defaultValue: "Report this as a bug" })}
-          >
-            <BugReportIcon sx={{ fontSize: "0.9em" }} />
-            Report
-          </button>
-        </Tooltip>
+        <EditorButton
+          variant="outlined"
+          color="inherit"
+          startIcon={<ListAltIcon />}
+          className="nodrag"
+          onClick={handleViewLogs}
+          tooltip="Show logs for this node and run"
+          aria-label="View logs for this node and run"
+        >
+          View logs
+        </EditorButton>
+        <EditorButton
+          variant="outlined"
+          color="inherit"
+          startIcon={<BugReportIcon />}
+          className="nodrag"
+          onClick={handleReport}
+          tooltip="Report this as a bug"
+          aria-label="Report this as a bug"
+        >
+          Report
+        </EditorButton>
         <CopyButton
           value={errorDisplay}
-          tooltip={t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
+          tooltip="Copy error"
         />
       </div>
       <div className="error-text">{errorDisplay}</div>

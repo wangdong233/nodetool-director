@@ -1,4 +1,3 @@
-import { i18n } from "../../../i18n";
 /**
  * ConnectedEditorActions — the trailing action cluster of the tool bar.
  *
@@ -12,27 +11,21 @@ import { i18n } from "../../../i18n";
  * the document or viewport.
  */
 
-import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useRef, useState } from "react";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import FitScreenIcon from "@mui/icons-material/FitScreen";
 import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
 import ViewSidebarOutlinedIcon from "@mui/icons-material/ViewSidebarOutlined";
-import CheckIcon from "@mui/icons-material/Check";
 
 import {
-  Caption,
   Divider,
   EditorButton,
   EditorMenu,
-  EditorMenuItem,
   FlexRow,
   IconButton,
-  ListItemIcon,
-  ListItemText,
-  Tooltip,
-  BORDER_RADIUS
+  MenuItemPrimitive,
+  Tooltip
 } from "../../ui_primitives";
 import { useSketchStore, SKETCH_ZOOM_MIN, SKETCH_ZOOM_MAX } from "../state";
 import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
@@ -41,8 +34,7 @@ import { ConnectedGeneratePopover } from "./ConnectedGeneratePopover";
 import { displayCombo } from "../shortcuts";
 import type { SketchActionId } from "../shortcuts";
 
-interface ViewToggleItemProps
-  extends Omit<React.ComponentProps<typeof EditorMenuItem>, "onClick"> {
+interface ViewToggleItemProps {
   label: string;
   checked: boolean;
   actionId: SketchActionId;
@@ -56,22 +48,16 @@ const ViewToggleItem: React.FC<ViewToggleItemProps> = ({
   checked,
   actionId,
   onClick,
-  testId,
-  ...menuItemProps
+  testId
 }) => (
-  <EditorMenuItem
-    {...menuItemProps}
+  <MenuItemPrimitive
+    label={label}
+    checkable="checkbox"
+    checked={checked}
+    shortcut={displayCombo(actionId)}
     onClick={onClick}
-    role="menuitemcheckbox"
-    aria-checked={checked}
     data-testid={testId}
-  >
-    <ListItemIcon>
-      {checked ? <CheckIcon fontSize="small" /> : null}
-    </ListItemIcon>
-    <ListItemText>{label}</ListItemText>
-    <Caption sx={{ ml: 2, opacity: 0.7 }}>{displayCombo(actionId)}</Caption>
-  </EditorMenuItem>
+  />
 );
 
 export interface ConnectedEditorActionsProps {
@@ -114,7 +100,6 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
   inlineActions,
   menuItems
 }: ConnectedEditorActionsProps) {
-  const { t } = useTranslation();
   const assistantPanelOpen = useSketchStore((s) => s.assistantPanelOpen);
   const toggleAssistantPanel = useSketchStore((s) => s.toggleAssistantPanel);
   const togglePanelsHidden = useSketchStore((s) => s.togglePanelsHidden);
@@ -166,7 +151,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
 
       {documentId && (
         <>
-          <Tooltip title={t("editor:ui.generateAnImageFromAPrompt", { defaultValue: "Generate an image from a prompt" })}>
+          <Tooltip title="Generate an image from a prompt">
             <span>
               <EditorButton
                 ref={generateAnchorRef}
@@ -177,7 +162,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
                   setGenerateOpen(true);
                 }}
                 startIcon={<AutoAwesomeIcon fontSize="small" />}
-                aria-label={t("editor:ui.generateAnImage", { defaultValue: "Generate an image" })}
+                aria-label="Generate an image"
                 sx={{
                   "@container sketch-workspace (max-width: 400px)": {
                     minWidth: 44,
@@ -187,7 +172,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
                 }}
                 data-testid="sketch-open-generate"
               >
-                <span className="sketch-generate-label">{t("ui2:attrs.generate", { defaultValue: "Generate" })}</span>
+                <span className="sketch-generate-label">Generate</span>
               </EditorButton>
             </span>
           </Tooltip>
@@ -201,15 +186,11 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         </>
       )}
 
-      <Tooltip title={assistantPanelOpen ? i18n.t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : i18n.t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })}>
+      <Tooltip title={assistantPanelOpen ? "Hide assistant" : "Show assistant"}>
         <IconButton
           size="small"
           onClick={handleAssistant}
-          aria-label={
-            assistantPanelOpen
-              ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" })
-              : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })
-          }
+          aria-label={assistantPanelOpen ? "Hide assistant" : "Show assistant"}
           aria-pressed={assistantPanelOpen}
           data-testid="sketch-assistant-toggle"
         >
@@ -217,11 +198,11 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         </IconButton>
       </Tooltip>
 
-      <Tooltip title={t("editor:ui.editorActions", { defaultValue: "Editor actions" })}>
+      <Tooltip title="Editor actions">
         <IconButton
           size="small"
           onClick={(e) => setMenuAnchor(e.currentTarget)}
-          aria-label={t("editor:ui.editorActions", { defaultValue: "Editor actions" })}
+          aria-label="Editor actions"
           aria-haspopup="menu"
           data-testid="sketch-editor-menu"
         >
@@ -235,28 +216,24 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         onClose={closeMenu}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
-        paperSx={{ borderRadius: BORDER_RADIUS.lg, minWidth: 220 }}
+        paperSx={{ minWidth: 220 }}
       >
-        <EditorMenuItem onClick={handleFit} data-testid="sketch-fit-view">
-          <ListItemIcon>
-            <FitScreenIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>{t("ui2:attrs.fitToViewport", { defaultValue: "Fit to viewport" })}</ListItemText>
-        </EditorMenuItem>
-
-        <EditorMenuItem
+        <MenuItemPrimitive
+          label="Fit to viewport"
+          icon={<FitScreenIcon fontSize="small" />}
+          onClick={handleFit}
+          data-testid="sketch-fit-view"
+        />
+        <MenuItemPrimitive
+          label="Hide panels"
+          icon={<ViewSidebarOutlinedIcon fontSize="small" />}
           onClick={handleHidePanels}
           data-testid="sketch-hide-panels"
-        >
-          <ListItemIcon>
-            <ViewSidebarOutlinedIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>{t("ui2:attrs.hidePanels", { defaultValue: "Hide panels" })}</ListItemText>
-        </EditorMenuItem>
+        />
 
         <Divider key="view-divider" />
         <ViewToggleItem
-          label={t("sketch:attrs.rulers", { defaultValue: "Rulers" })}
+          label="Rulers"
           checked={rulersVisible}
           actionId="toggle-rulers"
           onClick={() => {
@@ -266,7 +243,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
           testId="sketch-toggle-rulers"
         />
         <ViewToggleItem
-          label={t("sketch:attrs.guides", { defaultValue: "Guides" })}
+          label="Guides"
           checked={guidesVisible}
           actionId="toggle-guides"
           onClick={() => {
@@ -276,7 +253,7 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
           testId="sketch-toggle-guides"
         />
         <ViewToggleItem
-          label={t("ui2:attrs.snap", { defaultValue: "Snap" })}
+          label="Snap"
           checked={snapEnabled}
           actionId="toggle-snap"
           onClick={() => {
@@ -285,19 +262,15 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
           }}
           testId="sketch-toggle-snap"
         />
-        <EditorMenuItem
+        <MenuItemPrimitive
+          label="Clear guides"
           onClick={() => {
             closeMenu();
             useSketchStore.getState().clearGuides();
           }}
           disabled={!hasGuides}
           data-testid="sketch-clear-guides"
-        >
-          <ListItemIcon />
-          <ListItemText>
-            {t("sketch:attrs.clearGuides", { defaultValue: "Clear guides" })}
-          </ListItemText>
-        </EditorMenuItem>
+        />
 
         {menuItems ? <Divider key="host-divider" /> : null}
         {menuItems?.(closeMenu)}

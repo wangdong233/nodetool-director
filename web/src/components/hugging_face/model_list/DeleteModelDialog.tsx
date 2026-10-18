@@ -1,16 +1,5 @@
 import React, { useCallback } from "react";
-import { useTheme } from "@mui/material/styles";
-import {
-  Dialog,
-  EditorButton,
-  FlexRow,
-  LoadingSpinner,
-  BORDER_RADIUS,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle
-} from "../../ui_primitives";
+import { Button, Dialog, LoadingSpinner, Text } from "../../ui_primitives";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   isFileExplorerAvailable,
@@ -21,7 +10,6 @@ import { trpc } from "../../../lib/trpc";
 import { useNotificationStore } from "../../../stores/NotificationStore";
 import { useModels } from "./useModels";
 import type { ModelScope } from "../../../stores/ModelManagerStore";
-import { useTranslation } from "react-i18next";
 
 interface DeleteModelDialogProps {
   modelId: string | null;
@@ -34,8 +22,6 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
   onClose,
   scope = "local"
 }) => {
-  const { t } = useTranslation();
-  const theme = useTheme();
   const { allModels } = useModels(scope);
   const queryClient = useQueryClient();
   const addNotification = useNotificationStore(
@@ -58,10 +44,7 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
     const deleted = await trpc.models.ollamaDelete.mutate({ model: modelName });
     if (!deleted) {
       throw new Error(
-        t("editor:ui.ollamaDidNotDelete", {
-          defaultValue: "Ollama did not delete {{name}} — the server may be unreachable or the model already gone.",
-          name: modelName
-        })
+        `Ollama did not delete ${modelName} — the server may be unreachable or the model already gone.`
       );
     }
     return modelName;
@@ -76,10 +59,7 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
     onSuccess: (modelName) => {
       addNotification({
         type: "success",
-        content: t("editor:ui.deletedOllamaModel", {
-          defaultValue: "Deleted Ollama model {{name}}",
-          name: modelName
-        }),
+        content: `Deleted Ollama model ${modelName}`,
         dismissable: true
       });
       queryClient.invalidateQueries({ queryKey: ["ollamaModels"] });
@@ -87,29 +67,33 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
     }
   });
 
-  const handleShowInExplorer = useCallback(async (modelId: string) => {
-    if (!modelId) { return; }
+  const handleShowInExplorer = useCallback(
+    async (modelId: string) => {
+      if (!modelId) {
+        return;
+      }
 
-    const model = allModels?.find((m) => m.id === modelId);
-    if (!model) { return; }
+      const model = allModels?.find((m) => m.id === modelId);
+      if (!model) {
+        return;
+      }
 
-    const isOllama = model?.type === "llama_model";
+      const isOllama = model?.type === "llama_model";
 
-    if (isOllama) {
-      await openOllamaPath();
-    } else if (model?.path) {
-      await openInExplorer(model.path);
-    } else {
-      addNotification({
-        type: "warning",
-        content: t("editor:ui.couldNotDeterminePathForModel", {
-          defaultValue: "Could not determine path for model {{id}}",
-          id: modelId
-        }),
-        dismissable: true
-      });
-    }
-  }, [allModels, addNotification, t]);
+      if (isOllama) {
+        await openOllamaPath();
+      } else if (model?.path) {
+        await openInExplorer(model.path);
+      } else {
+        addNotification({
+          type: "warning",
+          content: `Could not determine path for model ${modelId}`,
+          dismissable: true
+        });
+      }
+    },
+    [allModels, addNotification]
+  );
 
   const modelForExplorer = modelId
     ? allModels?.find((m) => m.id === modelId)
@@ -134,7 +118,8 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
       } catch (error: unknown) {
         console.error("Deletion error:", error);
 
-        const errorMessage = error instanceof Error ? error.message : t("editor:ui.unknownError", { defaultValue: "Unknown error" });
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
 
         const isNotFound =
           errorMessage.includes("Not Found") || errorMessage.includes("404");
@@ -176,50 +161,43 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
     <Dialog
       open={!!modelId}
       onClose={onClose}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
-      slotProps={{
-        backdrop: {
-          sx: {
-            backdropFilter: "blur(4px)",
-            backgroundColor: `rgba(${theme.vars.palette.background.defaultChannel} / 0.4)`
-          }
-        },
-        paper: {
-          sx: {
-            borderRadius: BORDER_RADIUS.xxl,
-            backgroundImage: "none"
-          }
-        }
-      }}
+      title="Delete model?"
+      actions={
+        <>
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={handleShowInExplorerClick}
+            disabled={isExplorerDisabled || isDeleting}
+            sx={{ mr: "auto" }}
+          >
+            Show in Explorer
+          </Button>
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={onClose}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmDelete}
+            disabled={isDeleting}
+            aria-label="Delete"
+          >
+            {isDeleting ? (
+              <LoadingSpinner inline size="small" color="inherit" />
+            ) : (
+              "Delete"
+            )}
+          </Button>
+        </>
+      }
     >
-      <DialogTitle id="alert-dialog-title">{t("editor:ui.confirmDeletion", { defaultValue: "Confirm Deletion" })}</DialogTitle>
-      <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          {t("editor:ui.deleteModelId", { defaultValue: "Delete {{id}}?", id: modelId ?? "" })}
-        </DialogContentText>
-        {isDeleting && (
-          <FlexRow justify="center" sx={{ mt: 2 }}>
-            <LoadingSpinner size="medium" />
-          </FlexRow>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <EditorButton
-          density="compact"
-          variant="text"
-          onClick={handleShowInExplorerClick}
-          disabled={isExplorerDisabled || isDeleting}
-        >
-          {t("editor:ui.showInExplorer", { defaultValue: "Show in Explorer" })}
-        </EditorButton>
-        <EditorButton density="compact" variant="text" onClick={onClose} disabled={isDeleting}>
-          {t("common:action.cancel", { defaultValue: "Cancel" })}
-        </EditorButton>
-        <EditorButton density="compact" variant="text" onClick={handleConfirmDelete} disabled={isDeleting}>
-          {t("common:action.delete", { defaultValue: "Delete" })}
-        </EditorButton>
-      </DialogActions>
+      <Text>This will delete {modelId}.</Text>
     </Dialog>
   );
 };

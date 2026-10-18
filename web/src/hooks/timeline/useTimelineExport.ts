@@ -214,6 +214,7 @@ export function useTimelineExport(): UseTimelineExportResult {
             fps: state.fps,
             durationMs: exportDurationMs,
             tempo: state.tempo,
+            master: state.master,
             camera2d: state.camera2d,
             format: options?.format,
             alpha: options?.alpha,
@@ -232,6 +233,10 @@ export function useTimelineExport(): UseTimelineExportResult {
               `${degradations.length === 1 ? "" : "s"} could not be decoded ` +
               "in this browser and rendered from the live 3D layer instead."
           });
+        }
+        // No sink was passed to the renderer, so the file came back whole.
+        if (bytes === null) {
+          throw new Error("The export produced no file.");
         }
         await sink(
           bytes,
@@ -259,6 +264,10 @@ export function useTimelineExport(): UseTimelineExportResult {
       runExport(
         (bytes, mimeType, name, extension) => {
           downloadBlob(bytes, mimeType, `${name}.${extension}`);
+          useNotificationStore.getState().addNotification({
+            type: "success",
+            content: `Exported ${name}.${extension}.`
+          });
         },
         filename,
         options

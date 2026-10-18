@@ -62,16 +62,16 @@ These primitives exist but are barely adopted:
 `Text` | `Label` | `Caption` | `TruncatedText` | `TextLink` | `ExternalLink`
 
 ### Inputs (replace raw TextField/Select/Switch)
-`NodeTextField` | `TextInput` | `NumericField` | `InspectorValueInput` | `NodeSelect` | `SelectField` | `InspectorSelect` | `NodeSwitch` | `LabeledSwitch` | `NodeSlider` | `Checkbox` | `Autocomplete` | `AutocompleteTagInput` | `TagInput` | `SearchInput`
+`NodeTextField` | `TextInput` | `TextArea` | `NumericField` | `InspectorValueInput` | `NodeSelect` | `SelectField` | `InspectorSelect` | `NodeSwitch` | `LabeledSwitch` | `NodeSlider` | `Checkbox` | `Autocomplete` | `AutocompleteTagInput` | `TagInput` | `SearchInput`
 
 ### Buttons (replace raw Button/IconButton)
-`EditorButton` | `ToolbarIconButton` | `StateIconButton` | `CircularActionButton` | `NavButton` | `CreateFab` | `PlaybackButton` | `RunWorkflowButton` | `ExpandCollapseButton` | `RefreshButton` | `ViewModeToggle` | `LabeledToggle`
+`EditorButton` | `ToolbarIconButton` | `StateIconButton` | `CircularActionButton` | `NavButton` | `CreateFab` | `PlaybackButton` | `RunWorkflowButton` | `ExpandCollapseButton` | `RefreshButton` | `LabeledToggle`
 
 ### Semantic Action Buttons (replace custom icon+tooltip combos)
 `CopyButton` | `CloseButton` | `DeleteButton` | `DownloadButton` | `UploadButton` | `EditButton` | `SettingsButton` | `FavoriteButton` | `HelpButton` | `DocsHelpLink` | `UndoRedoButtons`
 
 ### Feedback & Status (replace raw CircularProgress/Alert)
-`LoadingSpinner` | `ProgressBar` | `Skeleton` | `StatusIndicator` | `StatusPill` | `EmptyState` | `AlertBanner` | `WarningBanner` | `Toast` | `NotificationBadge` | `ConflictBanner`
+`LoadingSpinner` | `ProgressBar` | `Skeleton` | `StatusIndicator` | `StatusPill` | `EmptyState` | `AlertBanner` | `CountBadge` | `ConflictBanner`
 
 Media that is being generated shows `MagicGenerationFill` over its host: the sketch canvas and layer thumbnails, timeline clips and preview, storyboard shots, chat's pending media tiles and the contact sheet. Do not build a separate generating animation.
 
@@ -79,7 +79,7 @@ Media that is being generated shows `MagicGenerationFill` over its host: the ske
 `ConflictBanner` — the one document-level notice listing the external values a dirty draft refused, with per-value Accept/Discard and an optional viewer. A string `detail` shows the external value; with `draftDetail` too, the viewer is a two-pane Your-edit / External view (JS script `code`). Mounted by every document editor shell; fed by `useDocumentConflicts`.
 
 ### Composite (replace manual layout combos)
-`FormField` | `InspectorSection` | `InspectorFieldRow` | `InspectorToggleRow` | `SectionHeader` | `PanelHeader` | `CollapsibleSection` | `TabGroup` / `TabPanel` | `ActionButtonGroup` | `ButtonGroup` | `ToggleGroup` | `SelectionControls` | `ListGroup` / `ListItemRow` | `TreeRow` | `DataTable`
+`FormField` | `InspectorSection` | `InspectorFieldRow` | `InspectorToggleRow` | `InspectorStaticValue` | `SectionHeader` | `PanelHeader` | `CollapsibleSection` | `TabGroup` / `TabPanel` | `ActionButtonGroup` | `ButtonGroup` | `ToggleGroup` | `SelectionControls` | `ListGroup` / `ListItemRow` | `TreeRow` | `DataTable`
 
 ### Menus & Navigation
 `EditorMenu` | `EditorMenuItem` | `MenuItemPrimitive` | `ContextMenu` | `Breadcrumbs` | `Tooltip` | `Popover`
@@ -87,8 +87,14 @@ Media that is being generated shows `MagicGenerationFill` over its host: the ske
 ### Media (the media-locator rendering boundary)
 `ResponsiveImage` | `VideoPlayer` | `AudioPlayback`
 
+### Docking
+`DockTabStrip` (the tab strip on a docked panel group: tabs name the panels, report drag past a 4 px threshold, close by button, middle click or Delete, and open a menu on right click or Shift+F10) | `DockDropOverlay` with `dockZoneAt` (the drop preview over a group: center adds a tab, an edge splits). The host owns the layout; these primitives only report gestures and draw previews. The game editor's dock is the reference host (`components/game/shell/`).
+
 ### Keyframe editors
 `CurveEditor` (piecewise-linear `{ t, value }` keys) | `GradientEditor` (`{ t, color }` stops). Both edit the particle `*OverLifetime` shapes, keep keys sorted, and are keyboard operable.
+
+### Audio controls
+`Knob` (rotary `role="slider"`, drag or arrow keys, `bipolar` for pan) | `Fader` (vertical `role="slider"` with a `toPosition`/`fromPosition` taper and a mark scale) | `LevelMeter` (multi-channel peak meter with peak hold and a latching clip light; reads its levels on its own animation frame and writes the DOM directly, so it never re-renders React per frame). `Knob` and `Fader` bracket a gesture with `onChangeStart`/`onChangeEnd` for one undo entry. The timeline mixer (`components/timeline/daw/mixer/`) is the reference host.
 
 ### Misc
 `Dialog` | `DialogActionButtons` | `ColorSwatch` | `ShortcutHint` | `Chip` | `Divider` | `SkipLinks` | `ZoomControls` | `HoverActionGroup` | `SelectableListItem`
@@ -151,15 +157,19 @@ Need a button?
 ├── Standard button → EditorButton
 ├── Icon-only in toolbar → ToolbarIconButton
 ├── Specific action (copy/delete/close/etc.) → Semantic action button
-├── Toggle on/off → LabeledToggle / ViewModeToggle
+├── Toggle on/off → LabeledToggle
+├── Pick one mode of several (grid/list, scope) → ToggleGroup `segmented exclusive`
 └── Floating action → CreateFab / CircularActionButton
 
 Need an input?
 ├── Text → NodeTextField (in nodes) / TextInput (elsewhere)
+│   └── Multiline prose → TextArea (writing assistant built in, `assist={false}` turns it off)
 ├── Number → NumericField (commit on edit, clamp on blur) / NumberInput (components/inputs/NumberInput.tsx)
 ├── Boolean → NodeSwitch / LabeledSwitch / Checkbox
 ├── Select from options → NodeSelect / SelectField
 ├── Slider → NodeSlider
+├── Rotary control in a dense audio surface → Knob
+├── Vertical level with a taper (a channel fader) → Fader
 ├── Search → SearchInput
 ├── Tags → TagInput / AutocompleteTagInput
 └── Label + input + help → FormField (wraps any input)
@@ -169,13 +179,23 @@ A properties panel (an inspector beside a canvas or timeline) builds from one se
 - `InspectorSection` for each collapsible group, or `InspectorSectionTitle` as a `CollapsibleSection` title when the body needs its own layout.
 - `InspectorFieldRow` for a label and its controls. Give each control its own accessible name when a row holds several.
 - `InspectorValueInput` for numbers, `InspectorSelect` for choices and `InspectorToggleRow` for booleans.
+- `InspectorStaticValue` for a value the row shows but does not edit (a type, an id): mono, muted, truncated with the full text as its tooltip.
+- Group labels are the `EYEBROW` token. `InspectorSectionTitle` and `SectionHeader size="small"` both draw it, so never hand-set an uppercase caption; pass `meta` to `InspectorSectionTitle` for a passive readout beside the label.
+
+The timeline's `timeline/Inspector/InspectorPrimitives.tsx` only adds undo batching (`InspectorPillInput`, `InspectorSliderRow`) and timeline layout constants on top of these; it re-exports or wraps the primitives and defines no look of its own.
 
 See [Properties panels](../../../../docs/DESIGN.md#11-properties-panels).
 
+A list row or grid tile takes its hover, selected and focus states from
+`selectableRowStyles` / `selectableTileStyles` and `focusRing`, and a grid lays
+out with `AutoGrid`. See [Lists and grids](../../../../docs/DESIGN.md#12-lists-and-grids).
+
 Need a container/surface?
 ├── Content card → Card
-├── Panel with header/footer → Panel
+├── Panel with header/footer → Panel (its title row is a PanelHeader)
 ├── Title strip of a docked or floating panel → PanelHeader
+├── Views over one surface → TabGroup (`count` per tab, `orientation="vertical"` for a rail)
+├── Tabs that close (docked panels, subgraph canvases) → DockTabStrip (+ DockDropOverlay while dragging)
 ├── Generic surface → Surface
 ├── Modal → Dialog
 ├── Backdrop → Overlay
@@ -184,12 +204,14 @@ Need a container/surface?
 Need feedback?
 ├── Loading → LoadingSpinner
 ├── Progress → ProgressBar
+├── Waiting on a model → ThinkingIndicator
 ├── Placeholder → Skeleton
 ├── Media being generated → MagicGenerationFill
 ├── Nothing to show → EmptyState
-├── Warning/error → AlertBanner / WarningBanner
-├── Temporary message → Toast
-├── Status dot/badge → StatusIndicator / NotificationBadge
+├── Warning/error → AlertBanner
+├── Temporary message → useNotificationStore().addNotification (or useAlertNotifier)
+├── Status dot/badge → StatusIndicator / CountBadge
+├── Tag, count or filter pill → Chip (`active` for a selected filter)
 └── Render state on a thumbnail or card → StatusPill
 
 Need a menu/nav?

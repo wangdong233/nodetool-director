@@ -3,7 +3,7 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { memo } from "react";
-import { Box, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
+import { BORDER_RADIUS, Chip, getSpacingPx, SPACING, StatusBar } from "../ui_primitives";
 import LockIcon from "@mui/icons-material/Lock";
 import { useTranslation } from "react-i18next";
 
@@ -24,29 +24,6 @@ interface EditorStatusBarProps {
 
 const styles = (theme: Theme) =>
   css({
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: `${getSpacingPx(SPACING.sm)} ${getSpacingPx(SPACING.xl)}`,
-    backgroundColor: `rgba(${theme.vars.palette.background.defaultChannel} / 0.7)`,
-    backdropFilter: "blur(8px)",
-    fontSize: theme.fontSizeSmaller,
-    color: theme.vars.palette.grey[300],
-    fontFamily: theme.fontFamily2,
-    height: "2em",
-    position: "relative",
-    "&::before": {
-      content: "''",
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      height: "1px",
-      background: `linear-gradient(90deg,
-        rgba(${theme.vars.palette.common.whiteChannel} / 0.06),
-        rgba(${theme.vars.palette.common.whiteChannel} / 0.03) 50%,
-        transparent 100%)`
-    },
     ".stats": {
       display: "flex",
       gap: getSpacingPx(SPACING.md),
@@ -64,7 +41,7 @@ const styles = (theme: Theme) =>
         opacity: 0.7
       },
       ".value": {
-        color: theme.vars.palette.grey[100],
+        color: theme.vars.palette.text.primary,
         fontWeight: 600
       }
     },
@@ -72,34 +49,15 @@ const styles = (theme: Theme) =>
       width: "3px",
       height: "3px",
       borderRadius: BORDER_RADIUS.circle,
-      backgroundColor: `rgba(${theme.vars.palette.common.whiteChannel} / 0.15)`,
+      backgroundColor: theme.vars.palette.text.disabled,
       flexShrink: 0
     },
     ".status-info": {
       display: "flex",
       alignItems: "center",
       gap: getSpacingPx(SPACING.lg),
-      color: theme.vars.palette.grey[400],
-      fontSize: theme.fontSizeSmaller,
       ".info-item": {
         whiteSpace: "nowrap"
-      }
-    },
-    ".read-only-badge": {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: getSpacingPx(SPACING.xs),
-      padding: theme.spacing(0.5, 2),
-      borderRadius: BORDER_RADIUS.md,
-      fontSize: theme.fontSizeSmaller,
-      fontWeight: 500,
-      letterSpacing: "0.03em",
-      textTransform: "uppercase",
-      color: theme.vars.palette.warning.main,
-      backgroundColor: `rgba(${theme.vars.palette.warning.mainChannel} / 0.08)`,
-      border: `1px solid rgba(${theme.vars.palette.warning.mainChannel} / 0.15)`,
-      svg: {
-        fontSize: "var(--fontSizeSmaller)"
       }
     }
   });
@@ -121,7 +79,11 @@ const EditorStatusBar = ({
   const lineCount = text === "" ? 1 : text.split("\n").length;
 
   return (
-    <Box className="editor-status-bar" css={styles(theme)}>
+    <StatusBar
+      className="editor-status-bar"
+      css={styles(theme)}
+      sx={{ justifyContent: "space-between" }}
+    >
       <div className="stats">
         <div className="stat-item">
           <span className="label">{t("editor:ui.words", { defaultValue: "Words:" })}</span>
@@ -149,10 +111,7 @@ const EditorStatusBar = ({
       </div>
       <div className="status-info">
         {readOnly && (
-          <span className="read-only-badge">
-            <LockIcon />
-            Read-only
-          </span>
+          <Chip compact color="warning" icon={<LockIcon />} label="Read-only" />
         )}
         {cursor && (
           <span className="info-item">
@@ -163,7 +122,7 @@ const EditorStatusBar = ({
         <span className="info-item">Spaces: {indentSize}</span>
         <span className="info-item">{encoding}</span>
       </div>
-    </Box>
+    </StatusBar>
   );
 };
 

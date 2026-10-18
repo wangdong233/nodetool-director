@@ -18,6 +18,7 @@ import type { NodeStoreState } from "../../stores/NodeStore";
 import { findBuiltinPackForNodeType } from "@nodetool-ai/protocol";
 import usePacksStore from "../../stores/PacksStore";
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
+import { isCloudProfile } from "../../lib/runtimeConfig";
 import {
   Box,
   EditorButton,
@@ -37,7 +38,6 @@ import {
   isObjectLike,
   isString
 } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 const humanizeType = (type: string) => {
   return type.replace(/([A-Z])/g, " $1").trim();
@@ -110,8 +110,7 @@ const styles = (theme: Theme) =>
         left: "-150%",
         width: "50%",
         height: "100%",
-        background:
-          `linear-gradient(120deg, transparent, ${theme.vars.palette.c_overlay_strong}, transparent)`,
+        background: `linear-gradient(120deg, transparent, ${theme.vars.palette.c_overlay_strong}, transparent)`,
         transform: "skewX(-20deg)",
         transition: `left ${MOTION.slow}`,
         ...reducedMotion({ transition: MOTION.none })
@@ -155,7 +154,6 @@ const typeForValue = (value: unknown) => {
 };
 
 const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const placeholderStyles = useMemo(() => styles(theme), [theme]);
   const nodeType = props.type;
@@ -234,8 +232,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
 
   const mockProperties = useMemo(() => {
     const safeProperties =
-      nodeData?.properties &&
-      typeof nodeData.properties === "object"
+      nodeData?.properties && typeof nodeData.properties === "object"
         ? nodeData.properties
         : {};
     const props = Object.entries(safeProperties).map(([key, value]) => ({
@@ -260,21 +257,20 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
   // Compute a better header title for missing node
   const computedHeaderTitle = useMemo(() => {
     const originalType = nodeData?.originalType;
-    const sourceType =
-      originalType || nodeType || nodeData?.node_type || "";
+    const sourceType = originalType || nodeType || nodeData?.node_type || "";
     const preferredTitle = nodeData?.title;
     const raw =
       preferredTitle && preferredTitle.trim().length > 0
         ? preferredTitle
         : sourceType;
     const lastSegment = raw?.split(".").pop() || "";
-    return humanizeType(lastSegment) || "Missing Node";
+    return humanizeType(lastSegment) || "Missing node";
   }, [nodeType, nodeData]);
 
   const mockMetadata: NodeMetadata = useMemo(
     () => ({
-      title: computedHeaderTitle || nodeTitle || "Missing Node",
-      description: t("editor:ui.thisNodeIsMissing", { defaultValue: "This node is missing" }),
+      title: computedHeaderTitle || nodeTitle || "Missing node",
+      description: "This node is missing",
       namespace: resolvedNamespace,
       node_type: resolvedType || "unknown",
       layout: "default",
@@ -285,7 +281,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
         {
           name: "output",
           type: { type: "any", optional: true, type_args: [] },
-          description: t("editor:ui.defaultOutput", { defaultValue: "Default output" }),
+          description: "Default output",
           stream: false
         }
       ],
@@ -297,7 +293,6 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
       required_settings: []
     }),
     [
-      t,
       computedHeaderTitle,
       nodeTitle,
       resolvedNamespace,
@@ -329,58 +324,51 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
         selected={props.selected}
         workflowId={nodeData?.workflow_id}
       />
-      <Tooltip title={t("editor:ui.thisNodeTypeIsMissingSearchTheNodeMenuForAReplacementOrInstallThePackageThatProvidesIt", { defaultValue: "This node type is missing. Search the node menu for a replacement or install the package that provides it." })}>
+      <Tooltip title="This node type is missing. Search the node menu for a replacement or install the package that provides it.">
         <Text size="big" className="missing-node-text">
-          {t("editor:ui.missingNode")}
+          Missing node
         </Text>
       </Tooltip>
 
-      <FlexColumn gap={1} align="center" className="node-actions" sx={{ margin: `${getSpacingPx(SPACING.md)} 0` }}>
-        {disabledPack ? (
-          <Tooltip
-            title={t("editor:ui.thisNodeIsPartOfThePackWhichIsCurrentlyDisabledEnableItToLoadTheNode", {
-              defaultValue:
-                "This node is part of the {{name}} pack, which is currently disabled. Enable it to load the node.",
-              name: disabledPack.name
-            })}
-          >
-            <EditorButton
-              variant="contained"
-              density="compact"
-              className="install-button"
-              onClick={enablePack}
-              disabled={enabling}
-              startIcon={<ExtensionIcon />}
+      {/* Enabling and installing packs changes the server's own process, which
+          the cloud does not offer. */}
+      {!isCloudProfile() && (
+        <FlexColumn
+          gap={1}
+          align="center"
+          className="node-actions"
+          sx={{ margin: `${getSpacingPx(SPACING.md)} 0` }}
+        >
+          {disabledPack ? (
+            <Tooltip
+              title={`This node is part of the ${disabledPack.name} pack, which is currently disabled. Enable it to load the node.`}
             >
-              {enabling
-                ? t("editor:ui.enabling", { defaultValue: "Enabling…" })
-                : t("editor:ui.enablePackNodes", {
-                    defaultValue: "Enable {{name}} Nodes",
-                    name: disabledPack.name
-                  })}
-            </EditorButton>
-          </Tooltip>
-        ) : (
-          <Tooltip
-            title={t("editor:ui.searchForTypeInPackageManager", {
-              defaultValue: "Search for {{type}} in Package Manager",
-              type: resolvedType
-            })}
-          >
-            <EditorButton
-              variant="contained"
-              density="compact"
-              className="install-button"
-              onClick={openPackageManager}
-              startIcon={<CloudDownloadIcon />}
-            >
-              {t("editor:ui.searchPackageManager", {
-                defaultValue: "Search Package Manager"
-              })}
-            </EditorButton>
-          </Tooltip>
-        )}
-      </FlexColumn>
+              <EditorButton
+                variant="contained"
+                density="compact"
+                className="install-button"
+                onClick={enablePack}
+                disabled={enabling}
+                startIcon={<ExtensionIcon />}
+              >
+                {enabling ? "Enabling…" : `Enable ${disabledPack.name} Nodes`}
+              </EditorButton>
+            </Tooltip>
+          ) : (
+            <Tooltip title={`Search for ${resolvedType} in Package Manager`}>
+              <EditorButton
+                variant="contained"
+                density="compact"
+                className="install-button"
+                onClick={openPackageManager}
+                startIcon={<CloudDownloadIcon />}
+              >
+                Search package manager
+              </EditorButton>
+            </Tooltip>
+          )}
+        </FlexColumn>
+      )}
 
       {mockProperties.length > 0 && (
         <NodeInputs

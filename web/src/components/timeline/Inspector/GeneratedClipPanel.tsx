@@ -20,8 +20,8 @@ import { useWorkflow } from "../../../serverState/useWorkflow";
 import { useWorkflowManager } from "../../../contexts/WorkflowManagerContext";
 import { NodeContext } from "../../../contexts/NodeContext";
 import { createNodeStore, type NodeStore } from "../../../stores/NodeStore";
+import ErrorBanner from "../../support/ErrorBanner";
 import {
-  Caption,
   CollapsibleSection,
   EditorButton,
   EmptyState,
@@ -49,7 +49,6 @@ import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipVersionHistory } from "./ClipVersionHistory";
-import { useTranslation } from "react-i18next";
 
 interface GeneratedClipPanelProps {
   clipId: string;
@@ -97,7 +96,6 @@ const inputsContainerStyles = (theme: Theme) =>
 
 export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
   ({ clipId, additionalSections }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const clip = useTimelineStore((s) => findClipById(s.clips, clipId));
     const setParamOverride = useTimelineStore((s) => s.setParamOverride);
@@ -184,9 +182,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
     }
 
     const paramOverrides = clip.paramOverrides ?? EMPTY_PARAM_OVERRIDES;
-    const generateLabel = clip.currentAssetId
-      ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })
-      : t("ui2:attrs.generate", { defaultValue: "Generate" });
+    const generateLabel = clip.currentAssetId ? "Regenerate" : "Generate";
 
     return (
       <Panel background="default" bordered={false} sx={panelSx}>
@@ -197,7 +193,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
             <EmptyState
               variant="empty"
               size="small"
-              description={t("editor:ui.noWorkflowIsBoundToThisClip")}
+              description="No workflow is bound to this clip."
             />
           )}
 
@@ -205,7 +201,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
             <CollapsibleSection
               title={
                 <InspectorSectionTitle
-                  title={t("timeline:attrs.inputs", { defaultValue: "Inputs" })}
+                  title="Inputs"
                   icon={<TuneOutlinedIcon />}
                 />
               }
@@ -217,7 +213,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                 <EmptyState
                   variant="error"
                   size="small"
-                  description={t("editor:ui.failedToLoadWorkflowInputs")}
+                  description="Failed to load workflow inputs."
                 />
               )}
               {!isLoading && !isError && workflow && (
@@ -226,7 +222,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                     <EmptyState
                       variant="empty"
                       size="small"
-                      description={t("editor:ui.thisWorkflowHasNoEditableInputParameters")}
+                      description="This workflow has no editable input parameters."
                     />
                   ) : nodeStoreForForm ? (
                     <NodeContext.Provider value={nodeStoreForForm}>
@@ -252,7 +248,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
               <FlexRow justify="flex-end" fullWidth>
                 <CostEstimateLine
                   estimate={workflowCostLine(costEstimate)}
-                  title={t("timeline:attrs.estimatedCostOfOneRunOfThisWorkflow", { defaultValue: "Estimated cost of one run of this workflow" })}
+                  title="Estimated cost of one run of this workflow"
                 />
               </FlexRow>
               <EditorButton
@@ -266,10 +262,17 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                 onClick={handleGenerateClick}
                 data-testid="generated-clip-generate"
               >
-                {isActive ? t("timeline:attrs.cancel", { defaultValue: "Cancel" }) : generateLabel}
+                {isActive ? "Cancel" : generateLabel}
               </EditorButton>
               {isFailed && (
-                <Caption color="error" sx={{ textAlign: "center" }}>{t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}</Caption>
+                <ErrorBanner
+                  report={{
+                    source: "job-failure",
+                    summary: "Generated clip failed"
+                  }}
+                >
+                  Generation failed.
+                </ErrorBanner>
               )}
             </FlexColumn>
           )}

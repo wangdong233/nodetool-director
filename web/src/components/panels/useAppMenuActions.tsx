@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from "react";
-import { useAppLanguage } from "../../i18n";
 import { useShallow } from "zustand/react/shallow";
 import SettingsIcon from "@mui/icons-material/Settings";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
@@ -15,18 +14,22 @@ import PermMediaOutlinedIcon from "@mui/icons-material/PermMediaOutlined";
 import PsychologyOutlinedIcon from "@mui/icons-material/PsychologyOutlined";
 
 import { isProduction } from "../../lib/env";
+import { isCloudProfile } from "../../lib/runtimeConfig";
 import { useAppHeaderStore } from "../../stores/AppHeaderStore";
 import { useModelDownloadStore } from "../../stores/ModelDownloadStore";
 import { openPageTab } from "../workspace/openPageTab";
 import { type PageTabKey } from "../workspace/pageTabs";
-import { useTranslation } from "react-i18next";
 
 export interface AppMenuAction {
   key: string;
   label: string;
   icon: React.ReactNode;
   onClick: () => void;
-  placement: "logo" | "sidebar";
+  /**
+   * Where the entry shows on desktop: the logo menu, the rail's More panel,
+   * or both. Mobile and the command palette show every entry once.
+   */
+  placement: "logo" | "sidebar" | "both";
   /** Trailing text, e.g. live download progress. */
   secondary?: string;
   /** Group separator after this entry. */
@@ -41,7 +44,6 @@ export interface AppMenuAction {
  * App-level dialog hosts own Help and Downloads independently of menu lifetime.
  */
 export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
-  const { t } = useTranslation();
   const handleOpenHelp = useAppHeaderStore((state) => state.handleOpenHelp);
   const { downloads, openDownloadsDialog } = useModelDownloadStore(
     useShallow((state) => ({
@@ -71,45 +73,50 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     return total > 0 ? Math.round((done / total) * 100) : 0;
   }, [downloads]);
 
-  const { language } = useAppLanguage(); // live language for the memo dep (R5-2)
-
   return useMemo(() => {
     const actions: AppMenuAction[] = [
       {
         key: "tutorials",
-        label: t("nav:rail.tutorials"),
+        label: "Tutorials",
         icon: <SchoolOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("tutorials")
       },
       {
         key: "examples",
-        label: t("nav:rail.examples"),
+        label: "Examples",
         icon: <AutoAwesomeOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("examples")
       },
       {
         key: "costs",
-        label: t("nav:rail.costs"),
+        label: "Costs",
         icon: <PaidOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("costs"),
         dividerAfter: true
-      },
-      {
+      }
+    ];
+
+    // The Model Manager and Downloads fill the server's model caches, which
+    // the cloud does not offer (see LOCAL_ONLY_PAGES in PageSurface).
+    const cloud = isCloudProfile();
+
+    if (!cloud) {
+      actions.push({
         key: "models",
-        label: t("nav:rail.models"),
+        label: "Model manager",
         icon: <ViewInArOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("models")
-      }
-    ];
+      });
+    }
 
     if (!isProduction) {
       actions.push({
         key: "packages",
-        label: t("nav:rail.packages"),
+        label: "Package manager",
         icon: <Inventory2OutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("packages")
@@ -119,28 +126,28 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     actions.push(
       {
         key: "assets",
-        label: t("nav:rail.assets"),
+        label: "Assets",
         icon: <PermMediaOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("assets")
       },
       {
         key: "collections",
-        label: t("nav:rail.collections"),
+        label: "Collections",
         icon: <LibraryBooksOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("collections")
       },
       {
         key: "workspaces",
-        label: t("nav:rail.workspaces"),
+        label: "Workspaces",
         icon: <FolderSpecialOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("workspaces")
       },
       {
         key: "memory",
-        label: t("nav:rail.memory"),
+        label: "Memory",
         icon: <PsychologyOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("memory"),
@@ -148,24 +155,27 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
       },
       {
         key: "settings",
-        label: t("nav:rail.settings"),
+        label: "Settings",
         icon: <SettingsIcon />,
-        placement: "logo",
+        placement: "both",
         onClick: () => openPage("settings")
       },
       {
         key: "help",
-        label: t("nav:rail.help"),
+        label: "Help",
         icon: <HelpOutlineIcon />,
-        placement: "logo",
+        placement: "both",
         onClick: () => {
           handleOpenHelp();
           finish();
         }
-      },
-      {
+      }
+    );
+
+    if (!cloud) {
+      actions.push({
         key: "downloads",
-        label: t("nav:rail.downloads"),
+        label: "Downloads",
         icon: <DownloadIcon />,
         placement: "logo",
         onClick: () => {
@@ -173,17 +183,9 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
           finish();
         },
         secondary: downloadProgress != null ? `${downloadProgress}%` : undefined
-      }
-    );
+      });
+    }
 
     return actions;
-  }, [
-    t,
-    openPage,
-    finish,
-    handleOpenHelp,
-    openDownloadsDialog,
-    downloadProgress,
-    language
-  ]);
+  }, [openPage, finish, handleOpenHelp, openDownloadsDialog, downloadProgress]);
 };

@@ -22,7 +22,6 @@ import type { Layer } from "./types";
 import { summarizeLayerImageReference } from "./types";
 import { getLayerDataImageUrl } from "./serialization";
 import { useResolvedMediaUri } from "../../hooks/useResolvedMediaUri";
-import { SKETCH_TOOLTIP_DELAY_MS } from "./sketchStyles";
 import {
   FlexColumn,
   FlexRow,
@@ -38,7 +37,8 @@ import {
   InlineEditableText,
   MagicGenerationFill,
   ResponsiveImage,
-  TreeRow
+  TreeRow,
+  ICON_SIZE
 } from "../ui_primitives";
 import type { LayerStatus } from "@nodetool-ai/image-editor";
 import { LAYER_STATUS_MAP } from "./Inspector/layerStatusMapping";
@@ -261,9 +261,9 @@ const LayerItem: React.FC<LayerItemProps> = ({
             sx={GROUP_LAYER_ICON_BUTTON_SX}
           >
             {layer.collapsed ? (
-              <ChevronRightIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
+              <ChevronRightIcon sx={{ fontSize: ICON_SIZE.sm }} />
             ) : (
-              <ExpandMoreIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
+              <ExpandMoreIcon sx={{ fontSize: ICON_SIZE.sm }} />
             )}
           </IconButton>
         ) : null}
@@ -273,7 +273,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
           layer.collapsed ? (
             <FolderOutlinedIcon
               sx={{
-                fontSize: "var(--fontSizeNormal)",
+                fontSize: ICON_SIZE.sm,
                 color: isPaintTarget ? "primary.contrastText" : "grey.500",
                 flexShrink: 0,
                 mr: getSpacingPx(SPACING.micro),
@@ -283,7 +283,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
           ) : (
             <FolderOpenOutlinedIcon
               sx={{
-                fontSize: "var(--fontSizeNormal)",
+                fontSize: ICON_SIZE.sm,
                 color: isPaintTarget ? "primary.contrastText" : "grey.400",
                 flexShrink: 0,
                 mr: getSpacingPx(SPACING.micro),
@@ -327,8 +327,6 @@ const LayerItem: React.FC<LayerItemProps> = ({
           <Tooltip
             title={isIsolated ? t("sketch:attrs.showAllLayers", { defaultValue: "Show all layers" }) : t("sketch:attrs.soloThisLayer", { defaultValue: "Solo this layer" })}
             placement="top"
-            enterDelay={SKETCH_TOOLTIP_DELAY_MS}
-            enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
           >
             <IconButton
               size="small"
@@ -348,7 +346,7 @@ const LayerItem: React.FC<LayerItemProps> = ({
                 }
               }}
             >
-              <CenterFocusStrongIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
+              <CenterFocusStrongIcon sx={{ fontSize: ICON_SIZE.md }} />
             </IconButton>
           </Tooltip>
         )}
@@ -377,12 +375,10 @@ const LayerItem: React.FC<LayerItemProps> = ({
                 <Tooltip
                   title={summarizeLayerImageReference(layer.imageReference)}
                   placement="left"
-                  enterDelay={SKETCH_TOOLTIP_DELAY_MS}
-                  enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
                 >
                   <LinkIcon
                     sx={{
-                      fontSize: "var(--fontSizeSmall)",
+                      fontSize: ICON_SIZE.xs,
                       color: "info.light",
                       flexShrink: 0,
                       opacity: 0.85
@@ -394,12 +390,10 @@ const LayerItem: React.FC<LayerItemProps> = ({
                 <Tooltip
                   title={t("sketch:attrs.lockTransparency", { defaultValue: "Lock Transparency" })}
                   placement="top"
-                  enterDelay={SKETCH_TOOLTIP_DELAY_MS}
-                  enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
                 >
                   <LockIcon
                     sx={{
-                      fontSize: "var(--fontSizeNormal)",
+                      fontSize: ICON_SIZE.sm,
                       color: "info.main",
                       flexShrink: 0,
                       opacity: 0.95
@@ -459,8 +453,6 @@ const LayerItem: React.FC<LayerItemProps> = ({
               title={layer.exposedAsInput === false ? t("sketch:attrs.inputHidden", { defaultValue: "Input hidden" }) : ""}
               placement="left"
               disableHoverListener={layer.exposedAsInput !== false}
-              enterDelay={SKETCH_TOOLTIP_DELAY_MS}
-              enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
             >
               <Box
                 sx={{
@@ -479,8 +471,6 @@ const LayerItem: React.FC<LayerItemProps> = ({
               title={layer.exposedAsOutput === false ? t("sketch:attrs.outputHidden", { defaultValue: "Output hidden" }) : ""}
               placement="left"
               disableHoverListener={layer.exposedAsOutput !== false}
-              enterDelay={SKETCH_TOOLTIP_DELAY_MS}
-              enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
             >
               <Box
                 sx={{

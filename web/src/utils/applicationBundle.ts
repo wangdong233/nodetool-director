@@ -1,7 +1,10 @@
 /**
  * Client helpers for the application bundle endpoints:
  *   GET  /api/applications/:id/export-bundle  → download an app + its workflows
+ *   GET  /api/applications/:id/export-project → download it as a standalone JS project (.zip)
  *   POST /api/applications/import-bundle      → create the app and its workflows
+ *
+ * Building an app from a description is `applicationBuild.ts`.
  *
  * The workflow equivalents live in `workflowBundle.ts`; an application bundle
  * is plain JSON rather than a zip, because it carries graphs, not asset bytes.
@@ -46,12 +49,39 @@ export async function exportApplicationBundle(
   await saveResponseAsFile(res, `${sanitizeBundleName(fallbackName)}.app.json`);
 }
 
+/**
+ * Download one app as a standalone JavaScript project: a zip holding a Vite UI
+ * and a Node server that runs the app's workflows without NodeTool.
+ */
+export async function exportApplicationProject(
+  applicationId: string,
+  fallbackName: string
+): Promise<void> {
+  const res = await restFetch(
+    `/api/applications/${encodeURIComponent(applicationId)}/export-project`,
+    { method: "GET" }
+  );
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(detail || `Export failed (${res.status})`);
+  }
+  await saveResponseAsFile(res, `${sanitizeBundleName(fallbackName)}.zip`);
+}
+
 /** Upload a bundle file; the server creates the workflows, then the app. */
 export async function importApplicationBundle(
   file: File,
   projectId = "default"
 ): Promise<ImportedApplication> {
   const bundle: unknown = JSON.parse(await file.text());
+  return installApplicationBundle(bundle, projectId);
+}
+
+/** Install a bundle already in memory, such as a green app build's. */
+export async function installApplicationBundle(
+  bundle: unknown,
+  projectId = "default"
+): Promise<ImportedApplication> {
   const res = await restFetch("/api/applications/import-bundle", {
     method: "POST",
     headers: { "content-type": "application/json" },

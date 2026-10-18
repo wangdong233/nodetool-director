@@ -6,15 +6,13 @@
  * shot's selected take, and the Shot tab works on that shot.
  */
 
-import React, { memo, useCallback, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { memo, useCallback, useMemo, useState } from "react";
 import type { Shot } from "@nodetool-ai/protocol";
 
 import {
   Caption,
   Dialog,
   FlexColumn,
-  FormField,
   SelectField,
   SPACING
 } from "../../ui_primitives";
@@ -34,7 +32,6 @@ const shotLabel = (shot: Shot): string =>
   }`;
 
 const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
-  const { t } = useTranslation();
   const timeline = useTimelineStoreApi();
   const history = useTimelineHistoryBatch();
   const { data: boards, isLoading: boardsLoading } = useStoryboards();
@@ -51,17 +48,17 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
       {
         value: "",
         label: boardsLoading
-          ? t("timeline:shot.loadingStoryboards", { defaultValue: "Loading storyboards…" })
+          ? "Loading storyboards…"
           : (boards?.length ?? 0) === 0
-            ? t("timeline:shot.noStoryboardsYet", { defaultValue: "No storyboards yet" })
-            : t("timeline:shot.chooseAStoryboard", { defaultValue: "Choose a storyboard" })
+            ? "No storyboards yet"
+            : "Choose a storyboard"
       },
       ...(boards ?? []).map((item) => ({
         value: item.id,
-        label: item.name || t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" })
+        label: item.name || "Untitled storyboard"
       }))
     ],
-    [boards, boardsLoading, t]
+    [boards, boardsLoading]
   );
   const shotOptions = useMemo(() => {
     // SAFETY: the wire document's `shots` is the passthrough zod mirror of
@@ -70,15 +67,13 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
     return [
       {
         value: "",
-        label: boardId
-          ? t("timeline:shot.chooseAShot", { defaultValue: "Choose a shot" })
-          : t("timeline:shot.chooseAStoryboardFirst", { defaultValue: "Choose a storyboard first" })
+        label: boardId ? "Choose a shot" : "Choose a storyboard first"
       },
       ...[...shots]
         .sort((a, b) => a.index - b.index)
         .map((shot) => ({ value: shot.id, label: shotLabel(shot) }))
     ];
-  }, [board, boardId, t]);
+  }, [board, boardId]);
 
   const handleBoardChange = useCallback((value: string) => {
     setBoardId(value);
@@ -122,35 +117,30 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
     <Dialog
       open
       onClose={onClose}
-      title={t("timeline:shot.linkToAStoryboardShot", { defaultValue: "Link to a storyboard shot" })}
+      title="Link to a storyboard shot"
       onConfirm={handleConfirm}
-      confirmText={t("editor:ui.link", { defaultValue: "Link" })}
+      confirmText="Link"
       confirmDisabled={!boardId || !shotId}
     >
-      <FlexColumn gap={SPACING.md}>
+      <FlexColumn gap={SPACING.lg}>
         <Caption color="secondary">
-          {t("timeline:shot.theClipKeepsItsFootage", { defaultValue: "The clip keeps its footage. When the shot's selected take changes, the clip plays the new one." })}
+          The clip keeps its footage. When the shot&apos;s selected take
+          changes, the clip plays the new one.
         </Caption>
-        <FormField label={t("editor:ui.storyboard", { defaultValue: "Storyboard" })}>
-          <SelectField
-            label={t("editor:ui.storyboard", { defaultValue: "Storyboard" })}
-            hideLabel
-            value={boardId}
-            onChange={handleBoardChange}
-            options={boardOptions}
-            disabled={boardsLoading}
-          />
-        </FormField>
-        <FormField label={t("editor:ui.shot", { defaultValue: "Shot" })}>
-          <SelectField
-            label={t("editor:ui.shot", { defaultValue: "Shot" })}
-            hideLabel
-            value={shotId}
-            onChange={setShotId}
-            options={shotOptions}
-            disabled={!boardId || boardLoading}
-          />
-        </FormField>
+        <SelectField
+          label="Storyboard"
+          value={boardId}
+          onChange={handleBoardChange}
+          options={boardOptions}
+          disabled={boardsLoading}
+        />
+        <SelectField
+          label="Shot"
+          value={shotId}
+          onChange={setShotId}
+          options={shotOptions}
+          disabled={!boardId || boardLoading}
+        />
       </FlexColumn>
     </Dialog>
   );

@@ -13,17 +13,21 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import {
   BORDER_RADIUS,
+  Box,
+  CodeBlock,
   FlexColumn,
   FlexRow,
+  LoadingSpinner,
   MOTION,
+  ProgressBar,
   reducedMotion,
   SPACING,
+  StatusDot,
   Z_INDEX
 } from "../ui_primitives";
 import type {
@@ -35,7 +39,6 @@ import type {
 } from "../../hooks/useExecutionTreeState";
 import { formatJavaScriptForDisplay } from "../../utils/formatJavaScript";
 import { isString } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 type NodeStatus = "waiting" | "running" | "completed" | "failed";
 
@@ -49,16 +52,6 @@ const treeStyles = (theme: Theme) =>
     fontSize: "var(--fontSizeSmall)",
     lineHeight: 1.5,
     userSelect: "text",
-
-    "@keyframes tlSpin": {
-      from: { transform: "rotate(0deg)" },
-      to: { transform: "rotate(360deg)" }
-    },
-
-    "@keyframes tlPulse": {
-      "0%, 100%": { opacity: 1 },
-      "50%": { opacity: 0.4 }
-    },
 
     ".plan-card": {
       border: `1px solid ${theme.vars.palette.divider}`,
@@ -82,22 +75,6 @@ const treeStyles = (theme: Theme) =>
       whiteSpace: "nowrap"
     },
 
-    ".plan-progress-track": {
-      flex: 1,
-      height: 6,
-      borderRadius: BORDER_RADIUS.pill,
-      background: theme.vars.palette.action.hover,
-      overflow: "hidden"
-    },
-
-    ".plan-progress-fill": {
-      height: "100%",
-      borderRadius: BORDER_RADIUS.pill,
-      background: theme.vars.palette.text.primary,
-      transition: `width ${MOTION.slow}`,
-      ...reducedMotion({ transition: MOTION.none })
-    },
-
     ".plan-count": {
       fontFamily: theme.fontFamily2,
       fontSize: "var(--fontSizeSmaller)",
@@ -118,21 +95,7 @@ const treeStyles = (theme: Theme) =>
       gap: theme.spacing(0.5),
       fontSize: "var(--fontSizeSmaller)",
       color: theme.vars.palette.text.secondary,
-      whiteSpace: "nowrap",
-      "&::before": {
-        content: '""',
-        width: 6,
-        height: 6,
-        borderRadius: BORDER_RADIUS.circle,
-        background: "currentColor"
-      }
-    },
-
-    ".plan-dot.completed::before": { background: theme.vars.palette.success.main },
-    ".plan-dot.running::before": { background: theme.vars.palette.info.main },
-    ".plan-dot.failed::before": { background: theme.vars.palette.error.main },
-    ".plan-dot.waiting::before": {
-      background: theme.vars.palette.action.disabled
+      whiteSpace: "nowrap"
     },
 
     ".plan-body": {
@@ -180,11 +143,7 @@ const treeStyles = (theme: Theme) =>
     ".tl-badge.running": {
       background: theme.vars.palette.info.main,
       color: theme.vars.palette.info.contrastText,
-      boxShadow: `0 0 0 4px rgb(${theme.vars.palette.info.mainChannel} / 0.2)`,
-      "& svg": {
-        animation: `tlSpin ${MOTION.spin} infinite`,
-        ...reducedMotion({ animation: "none" })
-      }
+      boxShadow: `0 0 0 4px rgb(${theme.vars.palette.info.mainChannel} / 0.2)`
     },
 
     ".tl-badge.waiting": {
@@ -301,16 +260,7 @@ const treeStyles = (theme: Theme) =>
 
     ".tl-meta.running": {
       fontFamily: theme.fontFamily1,
-      color: theme.vars.palette.info.main,
-      "&::before": {
-        content: '""',
-        width: 6,
-        height: 6,
-        borderRadius: BORDER_RADIUS.circle,
-        background: "currentColor",
-        animation: `tlPulse ${MOTION.pulse} infinite`,
-        ...reducedMotion({ animation: "none" })
-      }
+      color: theme.vars.palette.info.main
     },
 
     ".tl-meta.waiting": {
@@ -395,20 +345,6 @@ const treeStyles = (theme: Theme) =>
       fontSize: "var(--fontSizeSmall)"
     },
 
-    ".tl-inspector-code": {
-      margin: 0,
-      color: theme.vars.palette.text.primary,
-      whiteSpace: "pre-wrap",
-      wordBreak: "break-word",
-      fontFamily: theme.fontFamily2,
-      fontSize: "var(--fontSizeSmall)",
-      background: theme.vars.palette.background.default,
-      padding: theme.spacing(0.75, 1),
-      borderRadius: BORDER_RADIUS.sm,
-      maxHeight: "20rem",
-      overflow: "auto"
-    },
-
     ".tl-inspector-tool": {
       display: "flex",
       flexDirection: "column",
@@ -458,8 +394,8 @@ function stringifyResult(v: unknown): string {
 const StatusBadge: React.FC<{ status: NodeStatus }> = memo(({ status }) => (
   <div className={`tl-badge ${status}`} aria-hidden>
     {status === "completed" && <CheckRoundedIcon />}
-    {status === "failed" && <CloseRoundedIcon />}
-    {status === "running" && <AutorenewRoundedIcon />}
+    {status === "failed" && <CloseOutlinedIcon />}
+    {status === "running" && <LoadingSpinner inline size={14} color="inherit" />}
   </div>
 ));
 
@@ -497,9 +433,9 @@ const StepToolCallRow: React.FC<{ call: StepToolCallEntry }> = memo(({ call }) =
       {/* A CodeAct action's one argument is a JavaScript program — show the
           program, not its JSON-escaped string. */}
       {codeArg !== null ? (
-        <pre className="tl-inspector-code">{codeArg}</pre>
+        <CodeBlock>{codeArg}</CodeBlock>
       ) : argsText !== null ? (
-        <pre className="tl-inspector-code">{argsText}</pre>
+        <CodeBlock>{argsText}</CodeBlock>
       ) : null}
     </div>
   );
@@ -508,21 +444,20 @@ const StepToolCallRow: React.FC<{ call: StepToolCallEntry }> = memo(({ call }) =
 StepToolCallRow.displayName = "StepToolCallRow";
 
 const StepInspector: React.FC<{ step: StepState }> = memo(({ step }) => {
-  const { t } = useTranslation();
   const resultText = useMemo(() => stringifyResult(step.rawResult), [step.rawResult]);
 
   return (
     <div className="tl-inspector">
       {step.instructions ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label">{t("ui2:attrs.instructions", { defaultValue: "Instructions" })}</span>
+          <span className="tl-inspector-label">Instructions</span>
           <span className="tl-inspector-body">{step.instructions}</span>
         </div>
       ) : null}
 
       {step.duration !== undefined ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label">{t("ui2:attrs.duration", { defaultValue: "Duration" })}</span>
+          <span className="tl-inspector-label">Duration</span>
           <span className="tl-inspector-body">
             {formatDuration(step.duration)}
           </span>
@@ -542,17 +477,15 @@ const StepInspector: React.FC<{ step: StepState }> = memo(({ step }) => {
 
       {resultText ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label">{t("editor:ui.result", { defaultValue: "Result" })}</span>
-          <pre className="tl-inspector-code">{resultText}</pre>
+          <span className="tl-inspector-label">Result</span>
+          <CodeBlock>{resultText}</CodeBlock>
         </div>
       ) : null}
 
       {step.error ? (
         <div className="tl-inspector-section">
-          <span className="tl-inspector-label tl-inspector-error">{t("ui2:attrs.error", { defaultValue: "Error" })}</span>
-          <pre className="tl-inspector-code tl-inspector-error">
-            {step.error}
-          </pre>
+          <span className="tl-inspector-label tl-inspector-error">Error</span>
+          <CodeBlock tone="error">{step.error}</CodeBlock>
         </div>
       ) : null}
     </div>
@@ -569,7 +502,6 @@ const StepNode: React.FC<{
   step: StepState;
   isLast: boolean;
 }> = memo(({ step, isLast }) => {
-  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   const displayName = step.toolName
@@ -623,7 +555,10 @@ const StepNode: React.FC<{
             <span className={`tl-name ${step.status}`}>{displayName}</span>
           </FlexRow>
           {step.status === "running" ? (
-            <span className="tl-meta running">{t("ui2:attrs.inProgress", { defaultValue: "In progress" })}</span>
+            <span className="tl-meta running">
+              <StatusDot tone="info" pulse />
+              In progress
+            </span>
           ) : step.duration !== undefined ? (
             <span className="tl-meta">
               <AccessTimeRoundedIcon aria-hidden />
@@ -654,7 +589,6 @@ const TaskNode: React.FC<{
   isLast: boolean;
   onToggleTask: (taskId: string) => void;
 }> = memo(({ task, isLast, onToggleTask }) => {
-  const { t } = useTranslation();
   const stepCount = task.steps.length;
   const completedSteps = task.steps.filter(
     (s) => s.status === "completed"
@@ -704,7 +638,10 @@ const TaskNode: React.FC<{
             )}
           </FlexRow>
           {task.status === "running" ? (
-            <span className="tl-meta running">{t("ui2:attrs.inProgress", { defaultValue: "In progress" })}</span>
+            <span className="tl-meta running">
+              <StatusDot tone="info" pulse />
+              In progress
+            </span>
           ) : task.status === "waiting" ? (
             <span className="tl-meta waiting">waiting</span>
           ) : (
@@ -745,7 +682,6 @@ const PlanningLog: React.FC<{
   entries: PlanningEntry[];
   isActive: boolean;
 }> = memo(({ entries, isActive }) => {
-  const { t } = useTranslation();
   if (entries.length === 0) {
     if (isActive) {
       return (
@@ -756,8 +692,11 @@ const PlanningLog: React.FC<{
             </div>
             <div className="tl-content">
               <div className="tl-row">
-                <span className="planning-phase">{t("ui2:attrs.planning", { defaultValue: "Planning" })}</span>
-                <span className="tl-meta running">{t("ui2:attrs.inProgress", { defaultValue: "In progress" })}</span>
+                <span className="planning-phase">Planning</span>
+                <span className="tl-meta running">
+              <StatusDot tone="info" pulse />
+              In progress
+            </span>
               </div>
             </div>
           </div>
@@ -791,7 +730,10 @@ const PlanningLog: React.FC<{
             <div className="tl-content">
               <div className="tl-row">
                 <span className="planning-phase">{entry.phase}</span>
-                {isRunning && <span className="tl-meta running">{t("ui2:attrs.inProgress", { defaultValue: "In progress" })}</span>}
+                {isRunning && <span className="tl-meta running">
+              <StatusDot tone="info" pulse />
+              In progress
+            </span>}
               </div>
               {entry.content ? (
                 <div className="planning-content">{entry.content}</div>
@@ -816,7 +758,6 @@ interface ExecutionTreeProps {
 }
 
 const ExecutionTree: React.FC<ExecutionTreeProps> = ({ state, onToggleTask }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const rootStyles = useMemo(() => treeStyles(theme), [theme]);
 
@@ -843,35 +784,41 @@ const ExecutionTree: React.FC<ExecutionTreeProps> = ({ state, onToggleTask }) =>
       {hasTasks && (
         <div className="plan-card">
           <FlexRow className="plan-header" align="center" gap={2}>
-            <span className="plan-title">{t("ui2:attrs.executionPlanLower", { defaultValue: "Execution plan" })}</span>
-            <div
-              className="plan-progress-track"
-              role="progressbar"
-              aria-valuenow={counts.completed}
-              aria-valuemin={0}
-              aria-valuemax={total}
-              aria-label={t("editor:ui.completedTasks", { defaultValue: "Completed tasks" })}
-            >
-              <div
-                className="plan-progress-fill"
-                style={{ width: `${progressPct}%` }}
+            <span className="plan-title">Execution plan</span>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <ProgressBar
+                value={progressPct}
+                showValue={false}
+                aria-label="Completed tasks"
               />
-            </div>
+            </Box>
             <span className="plan-count">
               {counts.completed}/{total}
             </span>
             <div className="plan-dots">
               {counts.completed > 0 && (
-                <span className="plan-dot completed">{counts.completed}</span>
+                <span className="plan-dot">
+                  <StatusDot tone="success" />
+                  {counts.completed}
+                </span>
               )}
               {counts.running > 0 && (
-                <span className="plan-dot running">{counts.running}</span>
+                <span className="plan-dot">
+                  <StatusDot tone="info" />
+                  {counts.running}
+                </span>
               )}
               {counts.failed > 0 && (
-                <span className="plan-dot failed">{counts.failed}</span>
+                <span className="plan-dot">
+                  <StatusDot tone="error" />
+                  {counts.failed}
+                </span>
               )}
               {counts.waiting > 0 && (
-                <span className="plan-dot waiting">{counts.waiting}</span>
+                <span className="plan-dot">
+                  <StatusDot sx={{ bgcolor: "action.disabled" }} />
+                  {counts.waiting}
+                </span>
               )}
             </div>
           </FlexRow>

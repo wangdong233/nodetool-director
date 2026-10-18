@@ -2,16 +2,27 @@
 import { css } from "@emotion/react";
 import { useTheme, type Theme } from "@mui/material/styles";
 import AutoStoriesOutlinedIcon from "@mui/icons-material/AutoStoriesOutlined";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import type { ExampleStoryboardSummary } from "@nodetool-ai/protocol/api-schemas/storyboards.js";
 import { useExampleStoryboards, useInstallExampleStoryboard } from "../../hooks/storyboard/useStoryboards";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { BASE_URL } from "../../stores/BASE_URL";
 import { creationProjectId, useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
-import { BORDER_RADIUS, EmptyState, LoadingSpinner, MOTION, SPACING, getSpacingPx } from "../ui_primitives";
-import { SectionHeader, useSectionWrap } from "./dashboardChrome";
+import useOnboardingStore from "../../stores/OnboardingStore";
+import {
+  AutoGrid,
+  EmptyState,
+  LoadingSpinner,
+  SPACING,
+  TYPOGRAPHY,
+  getSpacingPx,
+  selectableTileStyles,
+  Tooltip
+} from "../ui_primitives";
+import { runsAsIsFirst, storyboardNeeds } from "../../utils/exampleNeeds";
+import { DashboardSectionHeader, useSectionWrap } from "./dashboardChrome";
+import ExampleNeedsPill from "./ExampleNeedsPill";
 
 const styles = (theme: Theme) =>
   css({
@@ -19,15 +30,11 @@ const styles = (theme: Theme) =>
     paddingBottom: getSpacingPx(SPACING.xxxl),
     ".boards-lede": {
       margin: `0 0 ${getSpacingPx(SPACING.sm)}`,
-      fontSize: "var(--fontSizeSmall)",
+      ...TYPOGRAPHY.sans.caption,
       color: theme.vars.palette.text.secondary
     },
-    ".boards-grid": {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
-      gap: getSpacingPx(SPACING.md)
-    },
     ".board-card": {
+      ...selectableTileStyles(theme),
       display: "flex",
       flexDirection: "column",
       minWidth: 0,
@@ -35,15 +42,8 @@ const styles = (theme: Theme) =>
       textAlign: "left",
       color: theme.vars.palette.text.primary,
       background: theme.vars.palette.c_node_bg,
-      border: `1px solid ${theme.vars.palette.divider}`,
-      borderRadius: BORDER_RADIUS.lg,
       overflow: "hidden",
       cursor: "pointer",
-      transition: `border-color ${MOTION.fast}, background ${MOTION.fast}`,
-      "&:hover": {
-        borderColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.5)`,
-        background: theme.vars.palette.action.hover
-      },
       "&.installing": { cursor: "wait", pointerEvents: "none" }
     },
     ".board-hero": {
@@ -75,17 +75,17 @@ const styles = (theme: Theme) =>
       gap: getSpacingPx(SPACING.xs),
       padding: getSpacingPx(SPACING.md)
     },
-    ".board-name": { fontSize: "var(--fontSizeNormal)" },
+    ".board-name": TYPOGRAPHY.sans.label,
     ".board-description": {
       display: "-webkit-box",
       WebkitLineClamp: 2,
       WebkitBoxOrient: "vertical",
       overflow: "hidden",
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.sans.caption,
       color: theme.vars.palette.text.secondary
     },
     ".board-meta": {
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.sans.caption,
       color: theme.vars.palette.text.disabled
     },
     ".boards-state": {
@@ -109,55 +109,49 @@ const StoryboardCard = memo(function StoryboardCard({
   installing,
   onInstall
 }: StoryboardCardProps) {
-  const { t } = useTranslation();
   const stills = storyboard.stillUrls;
   return (
-    <button
-      type="button"
-      className={installing ? "board-card installing" : "board-card"}
-      aria-busy={installing}
-      title={t("editor:ui.addToYourStoryboardsAria", {
-        defaultValue: "Add {{name}} to your storyboards",
-        name: storyboard.name
-      })}
-      onClick={() => onInstall(storyboard)}
-    >
-      <span className="board-hero" aria-hidden>
-        {installing ? (
-          <LoadingSpinner size="medium" />
-        ) : storyboard.thumbnailUrl ? (
-          <img src={imageSrc(storyboard.thumbnailUrl)} alt="" loading="lazy" />
-        ) : (
-          <AutoStoriesOutlinedIcon />
+    <Tooltip title={`Add ${storyboard.name} to your storyboards`} describeChild>
+      <button
+        type="button"
+        className={installing ? "board-card installing" : "board-card"}
+        aria-busy={installing}
+        onClick={() => onInstall(storyboard)}
+      >
+        <span className="board-hero" aria-hidden>
+          {installing ? (
+            <LoadingSpinner size="medium" />
+          ) : storyboard.thumbnailUrl ? (
+            <img src={imageSrc(storyboard.thumbnailUrl)} alt="" loading="lazy" />
+          ) : (
+            <AutoStoriesOutlinedIcon />
+          )}
+        </span>
+        {stills.length > 1 && (
+          <span
+            className="board-stills"
+            css={{ gridTemplateColumns: `repeat(${Math.min(stills.length - 1, 3)}, minmax(0, 1fr))` }}
+            aria-hidden
+          >
+            {stills.slice(1, 4).map((url) => (
+              <img key={url} src={imageSrc(url)} alt="" loading="lazy" />
+            ))}
+          </span>
         )}
-      </span>
-      {stills.length > 1 && (
-        <span
-          className="board-stills"
-          css={{ gridTemplateColumns: `repeat(${Math.min(stills.length - 1, 3)}, minmax(0, 1fr))` }}
-          aria-hidden
-        >
-          {stills.slice(1, 4).map((url) => (
-            <img key={url} src={imageSrc(url)} alt="" loading="lazy" />
-          ))}
+        <span className="board-body">
+          <span className="board-name">{storyboard.name}</span>
+          <span className="board-description">{storyboard.description}</span>
+          <ExampleNeedsPill needs={storyboardNeeds(storyboard)} />
+          <span className="board-meta">
+            {storyboard.shotCount} shot{storyboard.shotCount === 1 ? "" : "s"} · Stills included
+          </span>
         </span>
-      )}
-      <span className="board-body">
-        <span className="board-name">{storyboard.name}</span>
-        <span className="board-description">{storyboard.description}</span>
-        <span className="board-meta">
-          {t("editor:ui.shotsAndStills", {
-            defaultValue: "{{count}} shots · Stills included",
-            count: String(storyboard.shotCount)
-          })}
-        </span>
-      </span>
-    </button>
+      </button>
+    </Tooltip>
   );
 });
 
 const DashboardExampleStoryboards = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const navigate = useNavigate();
@@ -181,50 +175,44 @@ const DashboardExampleStoryboards = () => {
               projectId: created.projectId
             });
             navigate("/workspace");
+            useOnboardingStore.getState().markStep("keep-creating");
           },
           onError: (error) => {
             addNotification({
               type: "error",
               alert: true,
-              content: t("editor:ui.couldntAddNameError", {
-                defaultValue: "Couldn't add {{name}}: {{error}}",
-                name: storyboard.name,
-                error: error.message
-              })
+              content: `Couldn't add ${storyboard.name}: ${error.message}`
             });
           }
         }
       );
     },
-    [addNotification, install, navigate, openTab, t]
+    [addNotification, install, navigate, openTab]
   );
 
-  const storyboards = data ?? [];
+  const storyboards = useMemo(
+    () => runsAsIsFirst(data ?? [], storyboardNeeds),
+    [data]
+  );
   return (
-    <section css={styles(theme)} aria-label={t("editor:ui.exampleStoryboards", { defaultValue: "Example storyboards" })}>
+    <section css={styles(theme)} aria-label="Example storyboards">
       <div css={sectionWrap}>
-        <SectionHeader
-          title={t("editor:ui.startFromAStoryboard", { defaultValue: "Start from a storyboard" })}
-          count={t("editor:ui.boardsCount", { defaultValue: "{{count}} boards", count: String(storyboards.length) })}
-        />
+        <DashboardSectionHeader title="Start from a storyboard" count={`${storyboards.length} boards`} />
         <p className="boards-lede">
-          {t("editor:ui.exampleStoryboardsLede", {
-            defaultValue:
-              "Explore a shot sequence with rendered stills. Open a board to make your own copy."
-          })}
+          Explore a shot sequence with rendered stills. Open a board to make your own copy.
         </p>
         {isLoading ? (
-          <div className="boards-state"><LoadingSpinner size="medium" text={t("editor:ui.loadingStoryboards", { defaultValue: "Loading storyboards" })} /></div>
+          <div className="boards-state"><LoadingSpinner size="medium" text="Loading storyboards" /></div>
         ) : isError ? (
           <div className="boards-state">
-            <EmptyState variant="error" title={t("editor:ui.couldntLoadStoryboards", { defaultValue: "Couldn't load storyboards" })} description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })} actionText={t("editor:explorer.retry", { defaultValue: "Retry" })} onAction={() => refetch()} />
+            <EmptyState variant="error" title="Couldn't load storyboards" description="Try again in a moment." actionText="Retry" onAction={() => refetch()} />
           </div>
         ) : storyboards.length === 0 ? (
           <div className="boards-state">
-            <EmptyState variant="no-data" title={t("editor:ui.noStoryboardsAvailable", { defaultValue: "No storyboards available" })} description={t("editor:ui.exampleStoryboardsWillAppearHereWhenThisInstallShipsThem", { defaultValue: "Example storyboards will appear here when this install ships them." })} />
+            <EmptyState variant="no-data" title="No storyboards available" description="Example storyboards will appear here when this install ships them." />
           </div>
         ) : (
-          <div className="boards-grid">
+          <AutoGrid minItemWidth={280} fill="fit">
             {storyboards.map((storyboard) => (
               <StoryboardCard
                 key={storyboard.slug}
@@ -233,7 +221,7 @@ const DashboardExampleStoryboards = () => {
                 onInstall={handleInstall}
               />
             ))}
-          </div>
+          </AutoGrid>
         )}
       </div>
     </section>

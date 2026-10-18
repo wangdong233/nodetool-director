@@ -12,13 +12,13 @@ import {
   Checkbox,
   FormControlLabel,
   Slider,
-  TYPOGRAPHY
+  TYPOGRAPHY,
+  ICON_SIZE
 } from "../../ui_primitives";
 import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import {
-  sketchSliderSx,
   sketchButtonSmallSx,
   sketchHintTextSx,
   SKETCH_COLORS
@@ -26,7 +26,6 @@ import {
 import { SketchModeToggle, SketchModeOption } from "./SketchModeToggle";
 import { TransformMode } from "../types";
 import { getToolbarTransformModes } from "../transform/modes";
-import { useTranslation } from "react-i18next";
 
 interface AdjustmentsSettingsPanelProps {
   brightness: number;
@@ -49,14 +48,12 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
   onApply,
   onCancel
 }: AdjustmentsSettingsPanelProps) {
-  const { t } = useTranslation();
   const hasChanges = brightness !== 0 || contrast !== 0 || saturation !== 0;
   return (
     <>
       <Box className="setting-row">
-        <Text className="setting-label">{t("ui2:attrs.brightness", { defaultValue: "Brightness" })}</Text>
+        <Text className="setting-label">Brightness</Text>
         <Slider
-          sx={sketchSliderSx}
           size="small"
           min={-100}
           max={100}
@@ -66,9 +63,8 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
         <Text className="setting-value">{brightness}</Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">{t("ui2:attrs.contrast", { defaultValue: "Contrast" })}</Text>
+        <Text className="setting-label">Contrast</Text>
         <Slider
-          sx={sketchSliderSx}
           size="small"
           min={-100}
           max={100}
@@ -78,9 +74,8 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
         <Text className="setting-value">{contrast}</Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">{t("ui2:attrs.saturation", { defaultValue: "Saturation" })}</Text>
+        <Text className="setting-label">Saturation</Text>
         <Slider
-          sx={sketchSliderSx}
           size="small"
           min={-100}
           max={100}
@@ -98,7 +93,7 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
           onClick={onApply}
           sx={{ ...sketchButtonSmallSx, flex: 1 }}
         >
-          {t("common:action.apply", { defaultValue: "Apply" })}
+          Apply
         </EditorButton>
         <EditorButton
           size="small"
@@ -107,7 +102,9 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
           disabled={!hasChanges}
           onClick={onCancel}
           sx={{ ...sketchButtonSmallSx, flex: 1 }}
-        >{t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
+        >
+          Cancel
+        </EditorButton>
       </FlexRow>
     </>
   );
@@ -122,7 +119,6 @@ export const MoveSettingsPanel = memo(function MoveSettingsPanel({
   autoSelect,
   onAutoSelectChange
 }: MoveSettingsPanelProps) {
-  const { t } = useTranslation();
   return (
     <FormControlLabel
       control={
@@ -137,7 +133,7 @@ export const MoveSettingsPanel = memo(function MoveSettingsPanel({
         <Text
           sx={{ ...TYPOGRAPHY.sans.label, userSelect: "none" }}
         >
-          {t("sketch:attrs.autoSelect", { defaultValue: "Auto-Select" })}
+          Auto-Select
         </Text>
       }
       sx={{ mr: 2, ml: 0 }}
@@ -170,7 +166,6 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
   onCancel,
   onReset
 }: TransformSettingsPanelProps) {
-  const { t } = useTranslation();
   const rotDeg = Math.round(((rotation * 180) / Math.PI) * 10) / 10;
   return (
     <>
@@ -187,13 +182,13 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
           <Text
             sx={{ ...TYPOGRAPHY.sans.label, userSelect: "none" }}
           >
-            {t("sketch:attrs.autoSelect", { defaultValue: "Auto-Select" })}
+            Auto-Select
           </Text>
         }
         sx={{ mr: 2, ml: 0 }}
       />
       <Box className="setting-row">
-        <Text className="setting-label">{t("ui2:attrs.mode", { defaultValue: "Mode" })}</Text>
+        <Text className="setting-label">Mode</Text>
         <SketchModeToggle
           value={mode}
           onChange={(_, nextMode: TransformMode | null) => {
@@ -205,11 +200,7 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
           {getToolbarTransformModes().map((modeHandler) => {
             const button = (
               <SketchModeOption key={modeHandler.id} value={modeHandler.id}>
-                {modeHandler.labelKey
-                  ? t(modeHandler.labelKey, {
-                      defaultValue: modeHandler.label
-                    })
-                  : modeHandler.label}
+                {modeHandler.label}
               </SketchModeOption>
             );
             return modeHandler.tooltip ? (
@@ -223,39 +214,41 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
         </SketchModeToggle>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">{t("ui2:attrs.scaleX", { defaultValue: "Scale X" })}</Text>
+        <Text className="setting-label">Scale X</Text>
         <Text className="setting-value">
           {(scaleX * 100).toFixed(0)}%
         </Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">{t("ui2:attrs.scaleY", { defaultValue: "Scale Y" })}</Text>
+        <Text className="setting-label">Scale Y</Text>
         <Text className="setting-value">
           {(scaleY * 100).toFixed(0)}%
         </Text>
       </Box>
       <Box className="setting-row">
-        <Text className="setting-label">{t("ui2:attrs.rotation", { defaultValue: "Rotation" })}</Text>
+        <Text className="setting-label">Rotation</Text>
         <Text className="setting-value">{rotDeg}°</Text>
       </Box>
       <FlexRow sx={{ gap: getSpacingPx(SPACING.micro), ml: 1 }}>
         <ToolbarIconButton
-          icon={<CheckIcon sx={{ fontSize: 18 }} />}
-          tooltip={t("editor:ui.commitEnter", { defaultValue: "Commit (Enter)" })}
+          icon={<CheckIcon sx={{ fontSize: ICON_SIZE.md }} />}
+          tooltip="Commit"
+          shortcut={["Enter"]}
           tooltipPlacement="bottom"
           onClick={onCommit}
           sx={{ padding: 1, color: "success.main" }}
         />
         <ToolbarIconButton
-          icon={<CloseIcon sx={{ fontSize: 18 }} />}
-          tooltip={t("editor:ui.cancelEsc", { defaultValue: "Cancel (Esc)" })}
+          icon={<CloseIcon sx={{ fontSize: ICON_SIZE.md }} />}
+          tooltip="Cancel"
+          shortcut={["Esc"]}
           tooltipPlacement="bottom"
           onClick={onCancel}
           sx={{ padding: 1, color: "error.main" }}
         />
         <ToolbarIconButton
-          icon={<RestartAltIcon sx={{ fontSize: 18 }} />}
-          tooltip={t("sketch:attrs.reset", { defaultValue: "Reset" })}
+          icon={<RestartAltIcon sx={{ fontSize: ICON_SIZE.md }} />}
+          tooltip="Reset"
           tooltipPlacement="bottom"
           onClick={onReset}
           sx={{ padding: 1, color: SKETCH_COLORS.textSecondary }}
@@ -266,10 +259,9 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
 });
 
 export const NoSettingsMessage = memo(function NoSettingsMessage() {
-  const { t } = useTranslation();
   return (
     <Text sx={{ ...sketchHintTextSx }}>
-      {t("editor:ui.noSettingsForThisTool")}
+      No settings for this tool.
     </Text>
   );
 });
@@ -283,27 +275,26 @@ export const CropSettingsPanel = memo(function CropSettingsPanel({
   onApply: () => void;
   onCancel: () => void;
 }) {
-  const { t } = useTranslation();
   return (
     <>
       <Text sx={{ ...sketchHintTextSx }}>
-        {t("sketch:attrs.cropHint", {
-          defaultValue:
-            "Drag to outline the crop. Drag edges or corners to adjust. Press Enter or Apply to crop the canvas."
-        })}
+        Drag to outline the crop. Drag edges or corners to adjust. Press Enter
+        or Apply to crop the canvas.
       </Text>
       <FlexRow sx={{ gap: getSpacingPx(SPACING.micro), ml: 1 }}>
         <ToolbarIconButton
-          icon={<CheckIcon sx={{ fontSize: 18 }} />}
-          tooltip={t("editor:ui.applyCropEnter", { defaultValue: "Apply crop (Enter)" })}
+          icon={<CheckIcon sx={{ fontSize: ICON_SIZE.md }} />}
+          tooltip="Apply crop"
+          shortcut={["Enter"]}
           tooltipPlacement="bottom"
           disabled={!hasPendingCrop}
           onClick={onApply}
           sx={{ padding: 1, color: "success.main" }}
         />
         <ToolbarIconButton
-          icon={<CloseIcon sx={{ fontSize: 18 }} />}
-          tooltip={t("editor:ui.cancelCropPreviewEsc", { defaultValue: "Cancel crop preview (Esc)" })}
+          icon={<CloseIcon sx={{ fontSize: ICON_SIZE.md }} />}
+          tooltip="Cancel crop preview"
+          shortcut={["Esc"]}
           tooltipPlacement="bottom"
           disabled={!hasPendingCrop}
           onClick={onCancel}

@@ -9,13 +9,13 @@
  * live on the binding itself.
  */
 
-import React, { memo, useCallback, useMemo } from "react";
-import { useTheme } from "@mui/material/styles";
+import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import TvIcon from "@mui/icons-material/Tv";
 import TuneIcon from "@mui/icons-material/Tune";
 import LayersIcon from "@mui/icons-material/Layers";
 import type { Layer } from "../types";
 import type { LayerWorkflowBinding } from "@nodetool-ai/image-editor";
+import ErrorBanner from "../../support/ErrorBanner";
 import {
   Caption,
   FlexColumn,
@@ -23,8 +23,7 @@ import {
   Panel,
   SPACING,
   SelectField,
-  Text,
-  TextInput
+  TextArea
 } from "../../ui_primitives";
 import { sketchFieldSx } from "../sketchStyles";
 import { EditorButton } from "../../editor_ui";
@@ -54,8 +53,8 @@ import {
 import { useLayerCostEstimate } from "../../../hooks/sketch/useLayerCostEstimate";
 import CostEstimateLine from "../../costs/CostEstimateLine";
 import { generationCostLine } from "../../costs/costLine";
-import { useTranslation } from "react-i18next";
 import { directGenSourceLayers } from "./directGenSources";
+
 // Defaults for image-to-image controls when the binding has no explicit
 // value yet — same as the media chat composer's image_edit defaults.
 const DEFAULT_STRENGTH = 0.65;
@@ -70,11 +69,29 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
   layer,
   binding
 }) => {
-  const { t } = useTranslation();
-  const theme = useTheme();
   const patchBinding = useSketchSessionStore((s) => s.patchBinding);
   const layers = useSketchStore((s) => s.document.layers);
   const { start, cancel } = useDirectGenJob();
+  // The inspector can put Generate below its fold, where the tool bar's own
+  // Generate (a separate text-to-image form) is the one in sight.
+  const generateRef = useRef<HTMLButtonElement>(null);
+  const revealGenerate = useCallback(() => {
+    generateRef.current?.scrollIntoView({ block: "nearest" });
+  }, []);
+  // A layer just made from "From image" or "From text" opens with its
+  // Generate below the fold at 1440 × 900, so bring it into view once.
+  const isFreshDraft =
+    binding.status === "draft" &&
+    !binding.prompt &&
+    !binding.currentAssetId &&
+    binding.versions.length === 0;
+  const isFreshDraftRef = useRef(isFreshDraft);
+  isFreshDraftRef.current = isFreshDraft;
+  useEffect(() => {
+    if (isFreshDraftRef.current) {
+      revealGenerate();
+    }
+  }, [layer.id, revealGenerate]);
   // Written before the status flips to failed, so this render already has it.
   const failure =
     binding.status === "failed" ? directGenFailure(layer.id) : null;
@@ -147,6 +164,15 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
     !!binding.model &&
     (binding.prompt ?? "").trim().length > 0 &&
     (!isImageToImage || !!binding.sourceLayerId);
+  // Tells the user what still blocks Generate, in the order they fill the panel.
+  let generateBlocker: string | undefined;
+  if (!binding.provider || !binding.model) {
+    generateBlocker = "Pick a model first";
+  } else if ((binding.prompt ?? "").trim().length === 0) {
+    generateBlocker = "Write a prompt first";
+  } else if (isImageToImage && !binding.sourceLayerId) {
+    generateBlocker = "Pick a source layer first";
+  }
 
   return (
     <Panel
@@ -167,13 +193,13 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
           onChange={handleModelChange}
         />
 
-        <TextInput
+        <TextArea
           value={binding.prompt ?? ""}
-          onChange={(e) => patchBinding(layer.id, { prompt: e.target.value })}
-          placeholder={t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" })}
-          aria-label={t("editor:ui.imagePrompt", { defaultValue: "Image prompt" })}
+          onChange={(value) => patchBinding(layer.id, { prompt: value })}
+          onFocus={revealGenerate}
+          placeholder="Describe the image…"
+          aria-label="Image prompt"
           sx={{ "& .MuiOutlinedInput-root": sketchFieldSx }}
-          multiline
           minRows={3}
           maxRows={8}
           compact
@@ -182,7 +208,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
         <FlexRow gap={0.5} align="center" sx={{ flexWrap: "wrap" }}>
           <MediaOptionChip
             icon={<TvIcon fontSize="small" />}
-            header={t("editor:ui.resolution", { defaultValue: "Resolution" })}
+            header="Resolution"
             value={resolution}
             options={resolutionOptions}
             onChange={(r) => applySize(r, aspectRatio)}
@@ -196,16 +222,16 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
             <>
               <MediaOptionChip
                 icon={<TuneIcon fontSize="small" />}
-                label={t("sketch:attrs.strengthValue", { defaultValue: "Strength {{v}}", v: (binding.strength ?? DEFAULT_STRENGTH).toFixed(2) })}
-                header={t("editor:ui.editStrength", { defaultValue: "Edit Strength" })}
+                label={`Strength ${(binding.strength ?? DEFAULT_STRENGTH).toFixed(2)}`}
+                header="Edit strength"
                 value={binding.strength ?? DEFAULT_STRENGTH}
                 options={strengthOptions}
                 onChange={(s) => patchBinding(layer.id, { strength: s })}
               />
               <MediaOptionChip
                 icon={<LayersIcon fontSize="small" />}
-                label={t("sketch:attrs.stepsValue", { defaultValue: "{{v}} steps", v: String(binding.numInferenceSteps ?? DEFAULT_STEPS) })}
-                header={t("editor:ui.inferenceSteps", { defaultValue: "Inference Steps" })}
+                label={`${binding.numInferenceSteps ?? DEFAULT_STEPS} steps`}
+                header="Inference steps"
                 value={binding.numInferenceSteps ?? DEFAULT_STEPS}
                 options={stepsOptions}
                 onChange={(n) =>
@@ -219,11 +245,11 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
         {isImageToImage &&
           (sourceLayerOptions.length === 0 ? (
             <Caption color="secondary">
-              {t("editor:ui.noSourceLayersAvailablePaintSomethingOnALayerFirst")}
+              No source layers available - paint something on a layer first.
             </Caption>
           ) : (
             <SelectField
-              label={t("timeline:editor.source", { defaultValue: "Source" })}
+              label="Source"
               value={binding.sourceLayerId ?? ""}
               onChange={(v) =>
                 patchBinding(layer.id, { sourceLayerId: v ? v : null })
@@ -236,7 +262,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
         <FlexRow justify="flex-end" fullWidth>
           <CostEstimateLine
             estimate={generationCostLine(costEstimate)}
-            title={t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
+            title="Estimated cost of this generation"
           />
         </FlexRow>
 
@@ -246,33 +272,36 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
             variant="text"
             color="inherit"
             onClick={() => cancel(layer.id)}
-          >{t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
+          >
+            Cancel
+          </EditorButton>
         ) : (
           <EditorButton
             size="small"
             variant="contained"
+            ref={generateRef}
             disabled={!canGenerate}
+            disabledReason={generateBlocker}
             onClick={() => void start(layer.id)}
             data-testid="direct-gen-generate"
           >
-            {binding.currentAssetId
-              ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })
-              : t("editor:ui.generate", { defaultValue: "Generate" })}
+            {binding.currentAssetId ? "Regenerate" : "Generate"}
           </EditorButton>
         )}
         {binding.status === "failed" && (
-          <Text size="small" sx={{ color: theme.vars.palette.error.main }}>
-            {failure
-              ? describeDirectGenFailure(failure)
-              : t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}
-          </Text>
+          <ErrorBanner
+            report={{
+              source: "job-failure",
+              summary: "Sketch layer generation failed",
+              errorText: failure ? describeDirectGenFailure(failure) : undefined
+            }}
+          >
+            {failure ? describeDirectGenFailure(failure) : "Generation failed."}
+          </ErrorBanner>
         )}
         {binding.status === "generated" && binding.currentAssetId && (
           <Caption color="secondary">
-            {t("sketch:attrs.directGenDone", {
-              defaultValue: "Done. Asset {{id}}.",
-              id: binding.currentAssetId.slice(0, 8)
-            })}
+            Done. Asset {binding.currentAssetId.slice(0, 8)}.
           </Caption>
         )}
       </FlexColumn>

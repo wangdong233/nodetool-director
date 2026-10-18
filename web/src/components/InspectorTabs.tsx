@@ -1,16 +1,17 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
+import React, { useMemo } from "react";
+import { TabGroup, type TabItem } from "./ui_primitives";
 
 /** The tabs shown at the top of the Inspector panel. */
 export type InspectorTab = "params" | "io" | "help";
 
-// Labels resolve per call (tabLabel) — module-level i18n.t would freeze
-// before the async zh bundle lands at boot.
-const TAB_DEFS: { value: InspectorTab; labelKey: string; labelDefault: string; hasCount: boolean }[] = [
-  { value: "params", labelKey: "editor:inspector.tabParams", labelDefault: "Params", hasCount: true },
-  { value: "io", labelKey: "editor:inspector.tabIO", labelDefault: "I/O", hasCount: true },
-  { value: "help", labelKey: "editor:inspector.tabHelp", labelDefault: "Help", hasCount: false }
+const TAB_DEFS: { value: InspectorTab; label: string; hasCount: boolean }[] = [
+  { value: "params", label: "Params", hasCount: true },
+  { value: "io", label: "I/O", hasCount: true },
+  { value: "help", label: "Help", hasCount: false }
 ];
+
+const isInspectorTab = (value: string): value is InspectorTab =>
+  TAB_DEFS.some((tab) => tab.value === value);
 
 interface InspectorTabsProps {
   active: InspectorTab;
@@ -24,28 +25,27 @@ export const InspectorTabs: React.FC<InspectorTabsProps> = ({
   onChange,
   counts
 }) => {
-  const { t } = useTranslation();
+  const tabs = useMemo<TabItem[]>(
+    () =>
+      TAB_DEFS.map((tab) => ({
+        value: tab.value,
+        label: tab.label,
+        count: tab.hasCount ? counts[tab.value] : undefined
+      })),
+    [counts]
+  );
   return (
-    <div className="inspector-tabs" role="tablist">
-      {TAB_DEFS.map((tab) => {
-        const count = counts[tab.value];
-        const isActive = active === tab.value;
-        return (
-          <button
-            key={tab.value}
-            type="button"
-            role="tab"
-            aria-selected={isActive}
-            className={`inspector-tab${isActive ? " is-active" : ""}`}
-            onClick={() => onChange(tab.value)}
-          >
-            {t(tab.labelKey, { defaultValue: tab.labelDefault })}
-            {tab.hasCount && count != null ? (
-              <span className="tab-count">{count}</span>
-            ) : null}
-          </button>
-        );
-      })}
-    </div>
+    <TabGroup
+      className="inspector-tabs"
+      size="small"
+      aria-label="Inspector sections"
+      tabs={tabs}
+      value={active}
+      onChange={(next) => {
+        if (isInspectorTab(next)) {
+          onChange(next);
+        }
+      }}
+    />
   );
 };

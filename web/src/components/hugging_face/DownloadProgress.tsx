@@ -1,6 +1,5 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import { keyframes } from "@emotion/react";
 
 import React, { useCallback, useMemo, useState, useEffect, memo } from "react";
 import { Tooltip, Text, Caption, EditorButton, LoadingSpinner, Chip, CloseButton, FlexRow, FlexColumn, CopyButton, Box, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
@@ -10,7 +9,6 @@ import { useModelDownloadStore } from "../../stores/ModelDownloadStore";
 import { useShallow } from "zustand/react/shallow";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { useTranslation } from "react-i18next";
 
 // Threshold in ms to consider a download stalled (30 seconds)
 const STALL_THRESHOLD_MS = 30000;
@@ -47,23 +45,8 @@ const styles = (theme: Theme) =>
       fontSize: theme.fontSizeSmall,
       // Color is handled via dynamic style prop or class
     },
-    ".progress-bar-container": {
-      height: "8px",
-      borderRadius: BORDER_RADIUS.sm,
-      overflow: "hidden",
-      position: "relative",
-      background: theme.vars.palette.action.hover,
+    ".download-progress": {
       marginTop: getSpacingPx(SPACING.lg)
-    },
-    ".progress-bar": {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: `linear-gradient(90deg, ${theme.vars.palette.primary.light}, ${theme.vars.palette.primary.dark})`,
-      backgroundSize: "200% 100%",
-      transformOrigin: "right center"
     },
     ".download-details": {
       minHeight: "120px",
@@ -85,32 +68,10 @@ const styles = (theme: Theme) =>
     }
   });
 
-const pulse = keyframes`
-  0% {
-    opacity: 0.8;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.8;
-  }
-`;
-
-const moveRight = keyframes`
-  0% {
-    background-position: 0% 0;
-  }
-  100% {
-    background-position: 100% 0;
-  }
-`;
-
 export const DownloadProgress: React.FC<{
   name: string;
   minimal?: boolean;
 }> = memo(({ name, minimal }) => {
-  const { t } = useTranslation();
   const download = useModelDownloadStore((state) => state.downloads[name]);
   const {
     cancelDownload,
@@ -209,19 +170,19 @@ export const DownloadProgress: React.FC<{
   // Display speed - show as stalled/disconnected if no recent updates
   const displaySpeed = useMemo(() => {
     if (isDisconnected) {
-      return t("editor:ui.disconnected", { defaultValue: "Disconnected" });
+      return "Disconnected";
     }
     if (isReconnecting) {
-      return t("editor:ui.reconnectingPlain", { defaultValue: "Reconnecting..." });
+      return "Reconnecting…";
     }
     if (isStalled) {
-      return t("editor:ui.stalled", { defaultValue: "Stalled" });
+      return "Stalled";
     }
     if (download.speed) {
       return `${(download.speed / 1024 / 1024).toFixed(2)} MB/s`;
     }
     return "-";
-  }, [download.speed, isStalled, isDisconnected, isReconnecting, t]);
+  }, [download.speed, isStalled, isDisconnected, isReconnecting]);
 
   const showDetails =
     download.status === "start" ||
@@ -255,11 +216,11 @@ export const DownloadProgress: React.FC<{
         : 0;
     const label =
       download.status === "completed"
-        ? t("editor:ui.done", { defaultValue: "Done" })
+        ? "Done"
         : download.status === "error"
-        ? t("ui2:attrs.error", { defaultValue: "Error" })
+        ? "Error"
         : download.status === "cancelled"
-        ? t("ui2:attrs.cancelled", { defaultValue: "Cancelled" })
+        ? "Cancelled"
         : totalBytes > 0
         ? `${percent.toFixed(0)}%`
         : "…";
@@ -309,15 +270,14 @@ export const DownloadProgress: React.FC<{
             <ProgressBar
               value={download.status === "completed" ? 100 : percent}
               showValue={false}
-              barHeight={4}
-              sx={{ width: "100%" }}
+              size="small"
             />
           </FlexColumn>
           {canCancel && (
             <CloseButton
               onClick={handleCancelAndDismiss}
               buttonSize="small"
-              tooltip={t("editor:ui.cancelDownload", { defaultValue: "Cancel download" })}
+              tooltip="Cancel download"
               nodrag={false}
               sx={{ flexShrink: 0 }}
             />
@@ -371,7 +331,7 @@ export const DownloadProgress: React.FC<{
           </Box>
           <CopyButton
             value={download.message}
-            tooltip={t("editor:ui.copyFullMessage", { defaultValue: "Copy full message" })}
+            tooltip="Copy full message"
             buttonSize="small"
             nodrag={false}
             sx={{ flexShrink: 0, mt: `-${getSpacingPx(SPACING.micro)}` }}
@@ -379,19 +339,19 @@ export const DownloadProgress: React.FC<{
         </FlexRow>
       )}
       {(download.status === "start" || download.status === "pending") && (
-        <FlexRow align="center">
-          <LoadingSpinner size="small" />
+        <FlexRow align="center" gap={SPACING.sm}>
+          <LoadingSpinner inline size={14} />
           <Text size="small">
             {download.status === "start"
-              ? t("editor:ui.startingDownload", { defaultValue: "Starting download..." })
-              : t("editor:ui.pendingDownload", { defaultValue: "Pending download..." })}
+              ? "Starting download…"
+              : "Waiting to download…"}
           </Text>
         </FlexRow>
       )}
       {download.status === "completed" && (
-        <Tooltip title={t("editor:ui.downloadHasFinishedSuccessfully", { defaultValue: "Download has finished successfully" })}>
+        <Tooltip title="Download has finished successfully">
           <Chip
-            label={t("editor:ui.completed", { defaultValue: "Completed" })}
+            label="Completed"
             size="small"
             color="success"
             className="download-status"
@@ -399,9 +359,9 @@ export const DownloadProgress: React.FC<{
         </Tooltip>
       )}
       {download.status === "cancelled" && (
-        <Tooltip title={t("editor:ui.downloadWasCancelledYouCanRestartItFromTheModelBrowser")}>
+        <Tooltip title="Download was cancelled. You can restart it from the model browser.">
           <Chip
-            label={t("editor:ui.cancelled", { defaultValue: "Cancelled" })}
+            label="Cancelled"
             size="small"
             color="warning"
             className="download-status"
@@ -411,7 +371,7 @@ export const DownloadProgress: React.FC<{
       {download.status === "error" && (
         <Tooltip title={download.message || "Download failed"}>
           <Chip
-            label={t("editor:ui.failed", { defaultValue: "Failed" })}
+            label="Failed"
             size="small"
             color="error"
             className="download-status"
@@ -428,26 +388,18 @@ export const DownloadProgress: React.FC<{
               <Tooltip
                 title={
                   isDisconnected
-                    ? t("editor:ui.websocketConnectionLostTheDownloadMayStillBeRunningOnTheServerClickReconnectToRestoreProgressUpdates", { defaultValue: "WebSocket connection lost. The download may still be running on the server. Click Reconnect to restore progress updates." })
-                    : t("editor:ui.noProgressReceivedForTheDownloadMayHaveStalledOrTheConnectionWasLostTryCancellingAndRestartingTheDownload", {
-                        defaultValue:
-                          "No progress received for {{time}}. The download may have stalled or the connection was lost. Try cancelling and restarting the download.",
-                        time: timeSinceUpdate
-                      })
+                    ? "WebSocket connection lost. The download may still be running on the server. Click Reconnect to restore progress updates."
+                    : `No progress received for ${timeSinceUpdate}. The download may have stalled or the connection was lost. Try cancelling and restarting the download.`
                 }
               >
                 <FlexRow align="center" gap={0.5} sx={{ color: "var(--palette-warning-main)" }}>
                   <WarningAmberIcon fontSize="small" />
                   <Caption sx={{ fontWeight: 500 }}>
                     {isDisconnected
-                      ? t("editor:ui.disconnected", { defaultValue: "Disconnected" })
+                      ? "Disconnected"
                       : isReconnecting
-                        ? t("editor:ui.reconnectingPlain", { defaultValue: "Reconnecting..." })
-                        : t("editor:ui.stalledFor", {
-                            defaultValue:
-                              "Stalled ({{time}} since last update)",
-                            time: timeSinceUpdate
-                          })}
+                        ? "Reconnecting…"
+                        : `Stalled (${timeSinceUpdate} since last update)`}
                   </Caption>
                   {isDisconnected && !isReconnecting && (
                     <EditorButton
@@ -461,30 +413,22 @@ export const DownloadProgress: React.FC<{
                         fontSize: "var(--fontSizeSmall)"
                       }}
                     >
-                      {t("editor:ui.reconnect", { defaultValue: "Reconnect" })}
+                      Reconnect
                     </EditorButton>
                   )}
                 </FlexRow>
               </Tooltip>
             )}
           </FlexRow>
-          <Box className="progress-bar-container">
-            <Box
-              className="progress-bar"
-              sx={{
-                width: `${percent}%`,
-                animation: isStalled
-                  ? "none"
-                  : `${pulse} 3s ease-in-out infinite, ${moveRight} 8s linear infinite`,
-                opacity: isStalled ? 0.5 : 1,
-                background: isStalled
-                  ? "var(--palette-warning-main)"
-                  : undefined
-              }}
-            />
-          </Box>
+          <ProgressBar
+            className="download-progress"
+            value={percent}
+            showValue={false}
+            color={isStalled ? "warning" : "primary"}
+            aria-label={`Downloading ${name}`}
+          />
           <Box className="download-details">
-            <Tooltip title={t("editor:ui.totalSizeOfFilesBeingDownloaded", { defaultValue: "Total size of files being downloaded" })}>
+            <Tooltip title="Total size of files being downloaded">
               <Text
                 className="download-progress-text download-size"
                 size="small"
@@ -497,7 +441,7 @@ export const DownloadProgress: React.FC<{
                 {(download.totalBytes / 1024 / 1024).toFixed(2)} MB
               </Text>
             </Tooltip>
-            <Tooltip title={t("editor:ui.numberOfFilesDownloadedVsTotalFiles", { defaultValue: "Number of files downloaded vs total files" })}>
+            <Tooltip title="Number of files downloaded vs total files">
               <Text
                 className="download-progress-text download-files"
                 size="small"
@@ -530,10 +474,10 @@ export const DownloadProgress: React.FC<{
                 color: isStalled ? "var(--palette-warning-main)" : undefined
               }}
             >
-              ETA: {isStalled ? t("editor:ui.unknownStalled", { defaultValue: "Unknown (stalled)" }) : eta || "-"}
+              ETA: {isStalled ? "Unknown (stalled)" : eta || "-"}
             </Text>
           </Box>
-          <Tooltip title={t("editor:ui.stopTheCurrentDownloadYouCanRestartItLater", { defaultValue: "Stop the current download. You can restart it later." })}>
+          <Tooltip title="Stop the current download. You can restart it later.">
             <EditorButton
               onClick={handleCancelDownload}
               variant="contained"
@@ -544,7 +488,7 @@ export const DownloadProgress: React.FC<{
               }}
               className="cancel-button"
             >
-              {t("editor:ui.cancelDownload")}
+              Cancel download
             </EditorButton>
           </Tooltip>
         </>

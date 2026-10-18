@@ -1,8 +1,7 @@
 import React, { memo, useCallback } from "react";
-import { Text, DeleteButton } from "../../ui_primitives";
+import { Caption, DeleteButton, TruncatedText } from "../../ui_primitives";
 import { ThreadItemProps } from "../types/thread.types";
 import { formatClockTime24 } from "../../../utils/formatUtils";
-import { resolveSeededChatTitle } from "../utils/threadUtils";
 
 const ThreadItemBase: React.FC<ThreadItemProps> = ({
   threadId,
@@ -11,12 +10,8 @@ const ThreadItemBase: React.FC<ThreadItemProps> = ({
   isDeleting,
   onSelect,
   onRequestDelete,
-  previewText,
-  languageVersion
+  previewText
 }) => {
-  // Language anchor: the title resolves through the catalog at render time
-  // (resolveSeededChatTitle); the version rides the props to bust the memo.
-  void languageVersion;
   const handleSelect = useCallback(() => {
     onSelect(threadId);
   }, [threadId, onSelect]);
@@ -35,16 +30,12 @@ const ThreadItemBase: React.FC<ThreadItemProps> = ({
         aria-current={isSelected ? "true" : undefined}
         onClick={handleSelect}
       >
-        <Text component="span" className="thread-title">
-          {/* A stored title that is still the creation-time seeded default
-              ("New conversation") resolves through the catalog at render time
-              — same guarded-default discipline as threadPreview and the tab
-              bar; a user rename renders verbatim. */}
-          {thread.title ? resolveSeededChatTitle(thread.title) : previewText}
-        </Text>
-        <Text component="span" className="thread-time">
+        <TruncatedText component="span" className="thread-title">
+          {thread.title || previewText}
+        </TruncatedText>
+        <Caption component="span" color="secondary" className="thread-time">
           {formatClockTime24(thread.updatedAt)}
-        </Text>
+        </Caption>
       </button>
       <DeleteButton onClick={handleDeleteClick} />
     </li>
@@ -58,10 +49,7 @@ export const ThreadItem = memo(ThreadItemBase, (prevProps, nextProps) => {
     prevProps.isDeleting === nextProps.isDeleting &&
     prevProps.previewText === nextProps.previewText &&
     prevProps.thread.title === nextProps.thread.title &&
-    prevProps.thread.updatedAt === nextProps.thread.updatedAt &&
-    // Titles localize at render time (resolveSeededChatTitle); a language
-    // switch with identical thread props must still re-render the row.
-    prevProps.languageVersion === nextProps.languageVersion
+    prevProps.thread.updatedAt === nextProps.thread.updatedAt
   );
 });
 

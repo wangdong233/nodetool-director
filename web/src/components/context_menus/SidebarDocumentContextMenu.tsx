@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 
-import { Text, ContextMenu, MenuItem } from "../ui_primitives";
+import { ContextMenu, Divider, ListSubheader } from "../ui_primitives";
 import ContextMenuItem from "./ContextMenuItem";
 import useContextMenuStore from "../../stores/ContextMenuStore";
 import {
@@ -8,9 +8,8 @@ import {
   type SidebarDocumentItem
 } from "../../stores/SidebarDocumentActionsStore";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import { useTranslation } from "react-i18next";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
+import EditIcon from "@mui/icons-material/EditOutlined";
 
 /**
  * Right-click menu for sidebar document list items (timelines, sketches,
@@ -19,7 +18,6 @@ import { useTranslation } from "react-i18next";
  * row, which is the only one of the three a shipped document accepts.
  */
 const SidebarDocumentContextMenu: React.FC = () => {
-  const { t } = useTranslation();
   const menuPosition = useContextMenuStore((state) => state.menuPosition);
   const closeContextMenu = useContextMenuStore(
     (state) => state.closeContextMenu
@@ -64,26 +62,25 @@ const SidebarDocumentContextMenu: React.FC = () => {
       position={menuPosition}
       disableRestoreFocus
     >
-      <MenuItem disabled>
-        <Text>{payload.name}</Text>
-      </MenuItem>
+      <ListSubheader>{payload.name}</ListSubheader>
       {!payload.readOnly && (
         <ContextMenuItem
           onClick={handleRename}
-          label={t("common:action.rename", { defaultValue: "Rename" })}
+          label="Rename"
           IconComponent={<EditIcon />}
         />
       )}
       <ContextMenuItem
         onClick={handleDuplicate}
-        label={t("common:action.duplicate", { defaultValue: "Duplicate" })}
+        label="Duplicate"
         IconComponent={<ContentCopyIcon />}
       />
+      {!payload.readOnly && <Divider />}
       {!payload.readOnly && (
         <ContextMenuItem
           onClick={handleDelete}
-          label={t("common:action.delete", { defaultValue: "Delete" })}
-          addButtonClassName="delete"
+          label="Delete"
+          destructive
           IconComponent={<DeleteIcon />}
         />
       )}

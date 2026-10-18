@@ -5,19 +5,18 @@
  * never widen what the script reaches.
  */
 import { memo, useCallback } from "react";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 
 import {
   DeleteButton,
   EditorButton,
   FlexColumn,
   FlexRow,
-  Label,
+  SectionHeader,
   Text,
   TextInput,
   SPACING
 } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
 
 interface JsScriptSecretsEditorProps {
   secrets: readonly string[];
@@ -30,7 +29,6 @@ const JsScriptSecretsEditor = ({
   readOnly = false,
   onChange
 }: JsScriptSecretsEditorProps) => {
-  const { t } = useTranslation();
   const patch = useCallback(
     (index: number, value: string) => {
       onChange(secrets.map((name, i) => (i === index ? value : name)));
@@ -47,21 +45,24 @@ const JsScriptSecretsEditor = ({
 
   return (
     <FlexColumn gap={SPACING.sm}>
-      <FlexRow align="center" justify="space-between">
-        <Label>{t("ui2:attrs.secrets", { defaultValue: "Secrets" })}</Label>
-        {!readOnly && (
-          <EditorButton
-            density="compact"
-            startIcon={<AddIcon fontSize="small" />}
-            onClick={() => onChange([...secrets, ""])}
-          >
-            Add
-          </EditorButton>
-        )}
-      </FlexRow>
+      <SectionHeader
+        size="small"
+        title="Secrets"
+        action={
+          readOnly ? undefined : (
+            <EditorButton
+              density="compact"
+              startIcon={<AddIcon />}
+              onClick={() => onChange([...secrets, ""])}
+            >
+              Add
+            </EditorButton>
+          )
+        }
+      />
       {secrets.length === 0 ? (
         <Text size="small" color="secondary">
-          {t("editor:ui.theBodyReadsNoSecrets")}
+          The body reads no secrets.
         </Text>
       ) : (
         secrets.map((name, index) => (

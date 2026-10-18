@@ -8,12 +8,13 @@
  */
 
 import React, { memo, forwardRef, useCallback } from "react";
-import { IconButton, Tooltip } from "@mui/material";
+import { IconButton } from "@mui/material";
+import { Tooltip } from "./Tooltip";
 import SettingsIcon from "@mui/icons-material/Settings";
 import TuneIcon from "@mui/icons-material/Tune";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import { useTheme, SxProps, Theme, alpha } from "@mui/material/styles";
+import { useTheme, SxProps, Theme } from "@mui/material/styles";
 import {
   TOOLTIP_ENTER_DELAY,
   TOOLTIP_ENTER_NEXT_DELAY
@@ -142,7 +143,7 @@ export const SettingsButton = memo(
               color: theme.vars.palette.grey[300],
               "&:hover": {
                 color: theme.vars.palette.grey[100],
-                backgroundColor: alpha(theme.palette.background.paper, 0.08)
+                backgroundColor: `rgb(${theme.vars.palette.background.paperChannel} / 0.08)`
               },
               ...sx
             }}

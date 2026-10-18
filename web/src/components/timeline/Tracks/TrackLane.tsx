@@ -27,7 +27,7 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import CompressOutlinedIcon from "@mui/icons-material/CompressOutlined";
 import { findGap } from "@nodetool-ai/timeline";
 import TitleIcon from "@mui/icons-material/Title";
@@ -54,7 +54,7 @@ import { useStoreWithEqualityFn } from "zustand/traditional";
 import { Clip } from "./Clip";
 import {
   ContextMenu,
-  WarningBanner,
+  AlertBanner,
   MOTION,
   MenuItemPrimitive,
   SPACING,
@@ -72,13 +72,13 @@ import { useVideoAudioImport } from "../../../hooks/timeline/useVideoAudioImport
 import { useLongPress } from "../../../hooks/timeline/useLongPress";
 import type { LongPressPoint } from "../../../hooks/timeline/useLongPress";
 import { layoutTrackRows } from "./trackWindow";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
+import { trackRowHeightPx } from "./trackHeight";
+import { useTimelineLayoutStore } from "../../../stores/timeline/TimelineLayoutStore";
+import { snapAssetDropMs } from "./dropSnap";
 
 /** Two bars of 4/4 at 120 BPM — what an empty midi clip is sized to. */
 const DEFAULT_MIDI_CLIP_DURATION_MS = 4000;
 
-const DEFAULT_TRACK_HEIGHT_PX = 64;
 const NO_CLIP_IDS: string[] = [];
 /** Duration (ms) the mismatch warning banner remains visible. */
 const WARNING_DISMISS_MS = 3000;
@@ -146,7 +146,6 @@ interface TrackLaneProps {
 const CLIP_OVERSCAN_PX = 320;
 
 export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClips = false, collapsedFolderIds }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const timelineStore = useTimelineStoreApi();
   const msPerPx = useTimelineUIStore((s) => s.msPerPx);
@@ -196,7 +195,8 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
   const resolveDropInStore = useTimelineStore((s) => s.resolveDrop);
   const importVideoWithAudio = useVideoAudioImport();
 
-  const heightPx = (track.heightPx ?? DEFAULT_TRACK_HEIGHT_PX) * verticalZoom;
+  const dawMode = useTimelineLayoutStore((s) => s.dawMode);
+  const heightPx = trackRowHeightPx(track, dawMode) * verticalZoom;
 
   const laneRef = useRef<HTMLDivElement>(null);
   const pinClipDuringPointerGesture = useCallback(
@@ -374,7 +374,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
 
       // Multi-asset drags are not supported for clip creation — guide the user.
       if (dragData.type === "assets-multiple") {
-        showWarning(i18n.t("timeline:attrs.dropOneAssetAtATimeOntoATrack", { defaultValue: "Drop one asset at a time onto a track." }), true);
+        showWarning("Drop one asset at a time onto a track.", true);
         return;
       }
 
@@ -396,11 +396,9 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
 
       if (!isCompatibleWithTrack(mediaType, track.type)) {
         const expected =
-          mediaType === "audio"
-            ? i18n.t("timeline:attrs.anAudioTrack", { defaultValue: "an audio" })
-            : i18n.t("timeline:attrs.aVideoOrOverlayTrack", { defaultValue: "a video or overlay" });
+          mediaType === "audio" ? "an audio" : "a video or overlay";
         showWarning(
-          i18n.t("timeline:attrs.cannotDropAssetOntoTrack", { defaultValue: "Cannot drop {{mediaType}} asset onto this {{trackType}} track — use {{expected}} track.", mediaType, trackType: track.type, expected }),
+          `Cannot drop ${mediaType} asset onto this ${track.type} track — use ${expected} track.`,
           true
         );
         return;
@@ -410,11 +408,17 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
       // coordinates are already content-space — no scroll offset needed.
       const rect = e.currentTarget.getBoundingClientRect();
       const dropX = e.clientX - rect.left;
-      const startMs = Math.max(0, Math.round(dropX * msPerPx));
+      const pointerMs = Math.max(0, Math.round(dropX * msPerPx));
+      const dropMode = useTimelineUIStore.getState().dropMode;
+      // Overlap mode stacks clips on purpose, so only the other modes snap a
+      // drop in a clip's second half to its end.
+      const startMs =
+        dropMode === "overlap"
+          ? pointerMs
+          : snapAssetDropMs(timelineStore.getState().clips, track.id, pointerMs);
 
       // Video dropped on a video track: also create a linked audio clip from
       // the video's audio track. Everything else imports as a single clip.
-      const dropMode = useTimelineUIStore.getState().dropMode;
       if (mediaType === "video" && track.type === "video") {
         void importVideoWithAudio(asset, track.id, startMs, dropMode);
       } else {
@@ -540,7 +544,8 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
           useTimelineUIStore.getState().expandedFxTrackId,
           useTimelineUIStore.getState().verticalZoom,
           document.trackFolders,
-          collapsedFolderIds
+          collapsedFolderIds,
+          useTimelineLayoutStore.getState().dawMode
         );
         rows.forEach((row) => {
           if (row.kind === "track") {
@@ -548,7 +553,8 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
               top: row.top,
               bottom:
                 row.top +
-                (row.track.heightPx ?? DEFAULT_TRACK_HEIGHT_PX) * verticalZoom
+                trackRowHeightPx(row.track, useTimelineLayoutStore.getState().dawMode) *
+                  verticalZoom
             });
           }
         });
@@ -751,12 +757,12 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
       trackId: track.id,
       startMs: contextMenuPos.startMs,
       durationMs: DEFAULT_TEXT_CLIP_DURATION_MS,
-      name: i18n.t("editor:ui.text", { defaultValue: "Text" }),
+      name: "Text",
       mediaType: "text",
       sourceType: "imported",
       status: "generated",
       textStyle: {
-        text: i18n.t("editor:ui.text", { defaultValue: "Text" }),
+        text: "Text",
         fontSizePx: DEFAULT_TEXT_CLIP_FONT_SIZE_PX,
         color: DEFAULT_TEXT_CLIP_COLOR
       }
@@ -844,40 +850,35 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
             : null
         }
         onClose={() => setContextMenuPos(null)}
-        compact
       >
         {/* Text is the one clip you can author outright — no workflow, no
             generation — so it sits at the top level rather than behind the
             generated-clip picker. */}
         {(track.type === "overlay" || track.type === "video") && (
           <MenuItemPrimitive
-            label={t("timeline:attrs.addText", { defaultValue: "Add text" })}
+            label="Add text"
             icon={<TitleIcon fontSize="small" />}
             onClick={handleAddText}
-            compact
           />
         )}
         {track.type === "midi" ? (
           <MenuItemPrimitive
-            label={t("timeline:attrs.addMIDIClip", { defaultValue: "Add MIDI clip" })}
+            label="Add MIDI clip"
             icon={<AddIcon fontSize="small" />}
             onClick={handleAddMidi}
-            compact
           />
         ) : (
           <MenuItemPrimitive
-            label={t("timeline:attrs.addGeneratedClipHere", { defaultValue: "Add generated clip here…" })}
+            label="Add generated clip here…"
             icon={<AddIcon fontSize="small" />}
             onClick={handleAddClipFromMenu}
-            compact
           />
         )}
         {menuGap && (
           <MenuItemPrimitive
-            label={t("timeline:attrs.closeGap", { defaultValue: "Close gap" })}
+            label="Close gap"
             icon={<CompressOutlinedIcon fontSize="small" />}
             onClick={handleCloseGap}
-            compact
           />
         )}
       </ContextMenu>
@@ -922,11 +923,9 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
           }}
           aria-live="polite"
         >
-          <WarningBanner
-            message={dropWarning}
-            variant="warning"
-            compact
-          />
+          <AlertBanner severity="warning" compact>
+            {dropWarning}
+          </AlertBanner>
         </div>
       )}
     </div>

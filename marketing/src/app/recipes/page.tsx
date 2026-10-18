@@ -6,6 +6,7 @@ import JsonLd from "@/components/JsonLd";
 import TrackedLink from "@/components/TrackedLink";
 import RecipeCard from "@/components/RecipeCard";
 import { recipeEntries } from "@/data/recipes";
+import { DEFAULT_OG_IMAGES } from "@/lib/defaultOgImage";
 
 const BASE_URL = "https://nodetool.ai";
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
     "Make product ads, multilingual videos, catalogue images, and storyboards with NodeTool's guided flows. Follow each step with real UI examples.",
   alternates: { canonical: `${BASE_URL}/recipes` },
   openGraph: {
+    images: DEFAULT_OG_IMAGES,
     title: "Guided AI recipes | NodeTool",
     description:
       "Make product ads, multilingual videos, catalogue images, and storyboards with NodeTool's guided flows. Follow each step with real UI examples.",
@@ -70,6 +72,17 @@ export default function RecipesHub() {
                 Keep characters and products consistent with entities. Review
                 pictures in a storyboard, tune the script line by line, and
                 bring everything together in the timeline.
+              </p>
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-400">
+                Browse the{" "}
+                <a href="/storyboards" className="focus-ring rounded text-amber-300 underline underline-offset-2 hover:text-amber-200">
+                  example AI storyboards
+                </a>{" "}
+                with every shot shown, or start from one of the{" "}
+                <a href="/ad-library" className="focus-ring rounded text-amber-300 underline underline-offset-2 hover:text-amber-200">
+                  editable video ad templates
+                </a>
+                .
               </p>
               <TrackedLink
                 href="https://app.nodetool.ai/workspace"

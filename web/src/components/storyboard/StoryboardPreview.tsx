@@ -16,11 +16,11 @@ import {
   FlexColumn,
   FlexRow,
   PADDING,
-  SPACING
+  SPACING,
+  EmptyState
 } from "../ui_primitives";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
 import { buildPreviewSequence, previewSignature } from "./previewSequence";
-import { useTranslation } from "react-i18next";
 
 /** Grows with the window, so the player stays the board's main picture. */
 const PREVIEW_HEIGHT = "max(400px, 60vh)";
@@ -60,7 +60,6 @@ const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
   boardId,
   height = PREVIEW_HEIGHT
 }) => {
-  const { t } = useTranslation();
   // Subscribe to a signature string, not the board: a board object is replaced
   // on every edit (typing in the brief, changing selection), and a fresh
   // `sequence` prop resets playback in TimelineRenderer.
@@ -76,9 +75,11 @@ const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
   if (!preview) {
     return (
       <Box sx={emptySx} className="storyboard-preview storyboard-preview--empty">
-        <Caption color="secondary">
-          {t("editor:ui.nothingToPreviewYetGenerateStillsOrClipsFirst")}
-        </Caption>
+        <EmptyState
+          size="small"
+          title="Nothing to preview yet"
+          description="Generate stills or clips first."
+        />
       </Box>
     );
   }
@@ -89,7 +90,7 @@ const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
         <TimelineRenderer
           sequence={preview.sequence}
           showMetadata={false}
-          ariaLabel={t("storyboard:attrs.storyboardPreview", { defaultValue: "Storyboard preview" })}
+          ariaLabel="Storyboard preview"
         />
       </Box>
       <FlexRow gap={SPACING.sm} align="center">

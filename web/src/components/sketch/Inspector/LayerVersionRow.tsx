@@ -6,10 +6,9 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import RestoreIcon from "@mui/icons-material/Restore";
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
 
 import type { LayerVersion } from "@nodetool-ai/image-editor";
-import { useTranslation } from "react-i18next";
 import {
   FlexRow,
   FlexColumn,
@@ -19,7 +18,7 @@ import {
   FavoriteButton,
   Dialog,
   ToolbarIconButton,
-  MOTION
+  HoverActionGroup
 } from "../../ui_primitives";
 
 const rowStyles = (theme: Theme) =>
@@ -29,13 +28,6 @@ const rowStyles = (theme: Theme) =>
     cursor: "default",
     "&:hover": {
       backgroundColor: theme.vars.palette.action.hover
-    },
-    "&:hover .row-actions": {
-      opacity: 1
-    },
-    ".row-actions": {
-      opacity: 0,
-      transition: MOTION.opacity
     }
   });
 
@@ -86,7 +78,6 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
     isFavoriting = false,
     isDeleting = false
   }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -138,7 +129,7 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
             </FlexRow>
           </FlexColumn>
 
-          <FlexRow gap={0.5} align="center" className="row-actions">
+          <HoverActionGroup className="row-actions">
             <FavoriteButton
               isFavorite={version.favorite ?? false}
               onToggle={handleFavoriteToggle}
@@ -151,33 +142,34 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
             {canRestore && (
               <ToolbarIconButton
                 icon={<RestoreIcon fontSize="small" />}
-                tooltip={t("editor:ui.restoreThisVersion", { defaultValue: "Restore this version" })}
+                tooltip="Restore this version"
                 onClick={handleRestoreClick}
                 disabled={isRestoring}
-                aria-label={t("editor:ui.restoreVersion", { defaultValue: "Restore version" })}
+                aria-label="Restore version"
               />
             )}
             <ToolbarIconButton
               icon={<DeleteIcon fontSize="small" />}
-              tooltip={t("editor:ui.deleteVersion", { defaultValue: "Delete version" })}
+              tooltip="Delete version"
               onClick={handleDeleteClick}
               disabled={isDeleting}
-              aria-label={t("editor:ui.deleteVersion", { defaultValue: "Delete version" })}
+              aria-label="Delete version"
             />
-          </FlexRow>
+          </HoverActionGroup>
         </FlexRow>
 
         <Dialog
           open={deleteDialogOpen}
           onClose={handleDeleteCancel}
-          title={t("editor:ui.deleteVersion")}
+          title="Delete version?"
           onConfirm={handleDeleteConfirm}
-          confirmText={t("common:action.delete", { defaultValue: "Delete" })}
-          cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+          confirmText="Delete"
           destructive
         >
-          This version will be permanently removed. The underlying job and asset
-          are not deleted.
+          <Text size="small">
+            This version will be permanently removed. The underlying job and
+            asset are not deleted.
+          </Text>
         </Dialog>
       </>
     );

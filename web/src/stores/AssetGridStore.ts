@@ -56,6 +56,12 @@ interface AssetGridState {
 
   foldersVisible: boolean;
   toggleFoldersVisible: () => void;
+  setFoldersVisible: (visible: boolean) => void;
+
+  /** Type groups the user collapsed in the grid and list views. */
+  collapsedAssetGroups: string[];
+  toggleAssetGroupCollapsed: (group: string) => void;
+  setCollapsedAssetGroups: (groups: string[]) => void;
 
   isRenaming: string | null;
   setIsRenaming: (isRenaming: string | null) => void;
@@ -82,6 +88,12 @@ interface AssetGridState {
   /** Project whose folder and selection state this explorer currently represents. */
   scopeProjectId: string | null;
   resetForProject: (projectId: string) => void;
+  /**
+   * Project the explorer lists instead of the workspace's active project.
+   * Null follows the active project, {@link ALL_PROJECTS} lists every project.
+   */
+  projectFilter: string | null;
+  setProjectFilter: (projectId: string | null) => void;
   setWorkflowFilter: (workflowId: string | null) => void;
 
   /** Show only starred assets, from every folder. */
@@ -95,6 +107,9 @@ interface AssetGridState {
 export type AssetGridStoreApi = StoreApi<AssetGridState>;
 
 const PERSIST_VERSION = 1;
+
+/** {@link AssetGridState.projectFilter} value that lists every project. */
+export const ALL_PROJECTS = "*all";
 
 /**
  * Build a fresh AssetGrid store bound to its own persistence key. Each surface
@@ -193,8 +208,17 @@ const createAssetGridStore = (
   setCreateFolderDialogOpen: (open) => set({ createFolderDialogOpen: open }),
 
   foldersVisible: false,
+  collapsedAssetGroups: [],
+  toggleAssetGroupCollapsed: (group) =>
+    set((state) => ({
+      collapsedAssetGroups: state.collapsedAssetGroups.includes(group)
+        ? state.collapsedAssetGroups.filter((g) => g !== group)
+        : [...state.collapsedAssetGroups, group]
+    })),
+  setCollapsedAssetGroups: (groups) => set({ collapsedAssetGroups: groups }),
   toggleFoldersVisible: () =>
     set((state) => ({ foldersVisible: !state.foldersVisible })),
+  setFoldersVisible: (visible) => set({ foldersVisible: visible }),
   isRenaming: null,
   setIsRenaming: (isRenaming) => set({ isRenaming }),
 
@@ -244,6 +268,8 @@ const createAssetGridStore = (
           }
     ),
   setWorkflowFilter: (workflowId) => set({ workflowFilter: workflowId }),
+  projectFilter: null,
+  setProjectFilter: (projectId) => set({ projectFilter: projectId }),
 
   favoritesOnly: false,
   setFavoritesOnly: (favoritesOnly) => set({ favoritesOnly }),
@@ -256,6 +282,7 @@ const createAssetGridStore = (
         storage: createJSONStorage(() => localStorage),
         partialize: (state) => ({
           foldersVisible: state.foldersVisible,
+          collapsedAssetGroups: state.collapsedAssetGroups,
           viewMode: state.viewMode,
           typeFilter: state.typeFilter,
           sizeFilter: state.sizeFilter,

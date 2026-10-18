@@ -7,7 +7,6 @@
  */
 
 /** @jsxImportSource @emotion/react */
-import { css } from "@emotion/react";
 import React, { memo } from "react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -17,6 +16,7 @@ import {
   FlexRow,
   IconButton,
   Text,
+  Toolbar,
   Tooltip,
   SPACING,
   TYPOGRAPHY,
@@ -44,16 +44,12 @@ import { settingRowChildrenSx } from "./sketchStyles";
 import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
-  css({
+  ({
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr) auto",
     alignItems: "flex-start",
     columnGap: getSpacingPx(SPACING.lg),
     padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.lg)}`,
-    backgroundColor: theme.vars.palette.background.paper,
-    borderBottom: `1px solid ${theme.vars.palette.divider}`,
-    minHeight: "40px",
-    flexShrink: 0,
     rowGap: getSpacingPx(SPACING.xs),
     // The bar is chrome: a drag that starts on a label must not start a
     // text selection that then sweeps across the whole page.
@@ -228,7 +224,7 @@ const SketchToolTopBar: React.FC<SketchToolTopBarProps> = ({
   const theme = useTheme();
 
   return (
-    <FlexRow className="sketch-tool-top-bar" css={styles(theme)}>
+    <Toolbar className="sketch-tool-top-bar" sx={styles(theme)}>
       <FlexRow
         align="center"
         gap={0.5}
@@ -329,7 +325,7 @@ const SketchToolTopBar: React.FC<SketchToolTopBarProps> = ({
           />
         </div>
       )}
-    </FlexRow>
+    </Toolbar>
   );
 };
 

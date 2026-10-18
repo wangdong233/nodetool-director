@@ -125,7 +125,6 @@ export const EntityMentionChip: React.FC<{
   return (
     <Tooltip
       placement="top"
-      delay={250}
       title={
         <div css={previewCardStyles(theme)}>
           {previewUrl && <img src={previewUrl} alt={displayLabel} />}

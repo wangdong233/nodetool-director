@@ -1,4 +1,5 @@
-import { gameAudioMixer, type GameAssetBinding, type GameAssetBinding3D, type GameAudioEmitter, type GameAudioMixerInput, type GameEvent, type GameEvent3D, type GameSnapshot } from "@nodetool-ai/protocol";
+import { gameAudioMixer, type GameAssetBinding, type GameAssetBinding3D, type GameAudioEmitter, type GameAudioMixerInput, type GameEvent, type GameEvent3D, type GameSnapshot, type GameScene } from "@nodetool-ai/protocol";
+import { GameStreamingMusicVoice } from "./music.js";
 import { GameAudioMixer, type GameAudioMixerState } from "./mixer.js";
 import {
   createGameAudioPanner, gameAudioDopplerRate, gameAudioVelocity, placeGameAudioListener, placeGameAudioPanner, setGameAudioDopplerRate,
@@ -20,6 +21,8 @@ const MAX_VOICES = 32;
 export interface GameAudioOptions {
   readonly assets: Readonly<Record<string, GameAssetBinding | GameAssetBinding3D>>;
   readonly tickRate: number;
+  /** Scene music settings are presentation configuration, separate from snapshots. */
+  readonly scenes?: ReadonlyArray<Pick<GameScene, "id" | "music">>;
   readonly resolveAsset: (binding: GameAssetBinding | GameAssetBinding3D) => Promise<string | null>;
   readonly status: (message: string) => void;
   readonly context?: AudioContext;
@@ -33,6 +36,12 @@ export interface GameAudioOptions {
 export class GameAudioPlayer {
   private readonly context: AudioContext;
   private readonly mixer: GameAudioMixer;
+  private readonly failedStreams = new Set<string>();
+  private readonly failedBuffers = new Set<string>();
+  private readonly streamed = new Map<string, { voice: GameStreamingMusicVoice; assetId: string }>();
+  private readonly deferredDecodedFades = new Map<Voice, number>();
+  private readonly deferredFades = new Map<GameStreamingMusicVoice, number>();
+  private readonly streamingFades = new Map<GameStreamingMusicVoice, string>();
   private readonly buffers = new Map<string, Promise<AudioBuffer | null>>();
   private readonly voices = new Map<string, Voice>();
   private readonly fading = new Set<Voice>();
@@ -68,6 +77,20 @@ export class GameAudioPlayer {
     this.mixer.update(this.mixerSettings(settings));
   }
 
+  /** Updates scene presentation settings without replacing the audio context. */
+  updateScenes(scenes: GameAudioOptions["scenes"]): void {
+    if (this.disposed) return;
+    const before = this.streamingSettings();
+    this.options = { ...this.options, scenes };
+    for (const scene of scenes ?? []) {
+      if (scene.music?.streaming) this.buffers.delete(scene.music.assetId);
+    }
+    if (JSON.stringify(before) !== JSON.stringify(this.streamingSettings()) && this.desiredMusic) {
+      this.stop(this.desiredMusic.voiceId, 0);
+      this.startDesiredMusic();
+    }
+  }
+
   /** Player-facing bus volume, for example from a settings screen. */
   setBusVolume(busId: string, volume: number): void {
     if (!this.disposed) this.mixer.setUserVolume(busId, volume);
@@ -84,18 +107,23 @@ export class GameAudioPlayer {
   private buffer(assetId: string): Promise<AudioBuffer | null> {
     const cached = this.buffers.get(assetId);
     if (cached) return cached;
+    if (this.failedBuffers.has(assetId)) return Promise.resolve(null);
     const binding = this.options.assets[assetId];
     if (!binding) {
       this.options.status(`Audio asset ${assetId} is missing`);
       return Promise.resolve(null);
     }
-    const pending = this.options.resolveAsset(binding).then(async (url) => {
+    const pending: Promise<AudioBuffer | null> = this.options.resolveAsset(binding).then(async (url) => {
       if (!url) throw new Error("asset URL is unavailable");
-      const response = await fetch(url, { cache: "force-cache" });
+      const response = await fetch(url, { cache: "no-cache" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return this.context.decodeAudioData(await response.arrayBuffer());
     }).catch((error: unknown) => {
-      this.options.status(`Audio ${assetId} could not be decoded: ${error instanceof Error ? error.message : String(error)}`);
+      if (this.buffers.get(assetId) === pending) {
+        this.buffers.delete(assetId);
+        this.failedBuffers.add(assetId);
+        this.options.status(`Audio ${assetId} could not be decoded: ${error instanceof Error ? error.message : String(error)}`);
+      }
       return null;
     });
     this.buffers.set(assetId, pending);
@@ -105,6 +133,7 @@ export class GameAudioPlayer {
   /** Keeps decoded audio for unchanged bindings when the editor document changes. */
   updateAssets(assets: GameAudioOptions["assets"]): void {
     if (this.disposed) return;
+    this.failedBuffers.clear();
     const changed = new Set<string>();
     for (const slot of new Set([...Object.keys(this.options.assets), ...Object.keys(assets)])) {
       if (JSON.stringify(this.options.assets[slot]) !== JSON.stringify(assets[slot])) {
@@ -124,20 +153,30 @@ export class GameAudioPlayer {
         this.fading.delete(voice);
       }
     }
+    for (const [id, stream] of this.streamed) {
+      if (changed.has(stream.assetId)) this.stop(id, 0);
+    }
+    for (const [voice, assetId] of this.streamingFades) {
+      if (changed.has(assetId)) voice.dispose();
+    }
+    if (this.desiredMusic && changed.has(this.desiredMusic.assetId)) this.failedStreams.delete(this.desiredMusic.voiceId);
     this.options = { ...this.options, assets };
     this.preload();
     this.startDesiredMusic();
   }
 
   preload(): void {
+    const streamedSlots = new Set((this.options.scenes ?? []).flatMap((scene) => scene.music?.streaming ? [scene.music.assetId] : []));
     for (const [id, binding] of Object.entries(this.options.assets)) {
-      if (binding.mediaKind === "audio" && !binding.assetId.startsWith("builtin:")) void this.buffer(id);
+      if (binding.mediaKind === "audio" && !binding.assetId.startsWith("builtin:") && !streamedSlots.has(id)) void this.buffer(id);
     }
   }
 
   async unlock(): Promise<void> {
     if (this.disposed || this.paused) return;
     try {
+      this.failedStreams.clear();
+      this.failedBuffers.clear();
       await this.context.resume();
       this.startDesiredMusic();
     } catch {
@@ -148,12 +187,19 @@ export class GameAudioPlayer {
   pause(): void {
     if (this.disposed || this.paused) return;
     this.paused = true;
+    for (const stream of this.streamed.values()) stream.voice.pause();
+    for (const voice of this.streamingFades.keys()) voice.pause();
     void this.context.suspend().catch(() => this.options.status("Audio could not pause"));
   }
 
   resume(): void {
     this.paused = false;
-    void this.unlock();
+    void this.unlock().then(() => {
+      if (!this.paused && !this.disposed && this.context.state === "running") {
+        for (const stream of this.streamed.values()) stream.voice.resume();
+        for (const voice of this.streamingFades.keys()) voice.resume();
+      }
+    });
   }
 
   sync(snapshot: Pick<GameSnapshot, "tick" | "music" | "sceneId">): void {
@@ -173,7 +219,26 @@ export class GameAudioPlayer {
     if (this.desiredMusic?.voiceId !== next?.voiceId || this.desiredMusic?.startTick !== next?.startTick ||
       this.desiredMusic?.assetId !== next?.assetId || this.desiredMusic?.volume !== next?.volume ||
       this.desiredMusic?.fadeInTicks !== next?.fadeInTicks || this.desiredMusic?.fadeOutTicks !== next?.fadeOutTicks) {
-      if (this.desiredMusic) this.stop(this.desiredMusic.voiceId, this.desiredMusic.fadeOutTicks);
+      if (this.desiredMusic) {
+        const outgoing = this.streamed.get(this.desiredMusic.voiceId);
+        const decoded = this.voices.get(this.desiredMusic.voiceId);
+        const incomingStream = next && this.options.scenes?.find(scene => scene.id === snapshot.sceneId)?.music?.streaming;
+        if (incomingStream && (outgoing || decoded)) {
+          if (decoded) {
+            this.voices.delete(decoded.id);
+            this.fading.add(decoded);
+            this.deferredDecodedFades.set(decoded, this.desiredMusic.fadeOutTicks);
+          }
+          this.pending.delete(this.desiredMusic.voiceId);
+          if (outgoing) {
+            this.streamed.delete(this.desiredMusic.voiceId);
+            this.failedStreams.delete(this.desiredMusic.voiceId);
+            this.streamingFades.set(outgoing.voice, outgoing.assetId);
+            this.deferredFades.set(outgoing.voice, this.desiredMusic.fadeOutTicks);
+          }
+        } else { this.stop(this.desiredMusic.voiceId, this.desiredMusic.fadeOutTicks); }
+      }
+      if (!next) { this.finishDeferredFades(); }
       this.desiredMusic = next;
     }
     this.startDesiredMusic();
@@ -181,13 +246,73 @@ export class GameAudioPlayer {
 
   private startDesiredMusic(): void {
     const music = this.desiredMusic;
-    if (!music || !this.options.assets[music.assetId] || this.paused || this.context.state !== "running" || this.voices.has(music.voiceId) || this.pending.has(music.voiceId)) return;
+    if (!music || !this.options.assets[music.assetId] || this.paused || this.context.state !== "running" || this.voices.has(music.voiceId) || this.streamed.has(music.voiceId) || this.failedStreams.has(music.voiceId) || this.pending.has(music.voiceId)) return;
+    const streaming = this.streamingSettings() !== undefined;
     const token = Symbol();
     this.pending.set(music.voiceId, { token, assetId: music.assetId });
     void this.start(music.voiceId, music.assetId, true, music.volume, music.fadeInTicks, music.fadeOutTicks,
       token, music.startTick)
-      .catch((error: unknown) => this.options.status(`Music could not start: ${error instanceof Error ? error.message : String(error)}`))
+      .catch((error: unknown) => {
+        if (this.pending.get(music.voiceId)?.token !== token) return;
+        if (streaming) this.failedStreams.add(music.voiceId);
+        this.options.status(`Music could not start: ${error instanceof Error ? error.message : String(error)}`);
+      })
       .finally(() => { if (this.pending.get(music.voiceId)?.token === token) this.pending.delete(music.voiceId); });
+  }
+
+  private streamingSettings(): NonNullable<GameScene["music"]>["streaming"] {
+    const music = this.options.scenes?.find((scene) => scene.id === this.sceneId)?.music;
+    return music?.assetId === this.desiredMusic?.assetId ? music?.streaming : undefined;
+  }
+
+  private voiceCount(): number {
+    return this.voices.size + this.fading.size + this.streamed.size + this.streamingFades.size;
+  }
+
+  private makeVoiceRoom(): boolean {
+    if (this.voiceCount() < MAX_VOICES) return true;
+    const stream = this.streamingFades.keys().next().value;
+    if (stream) stream.dispose();
+    else {
+      const fade = this.fading.values().next().value;
+      if (fade) {
+        fade.source.stop();
+        this.fading.delete(fade);
+      } else {
+        const effect = [...this.voices.values()].find((voice) => !voice.loop);
+        if (!effect) return false;
+        this.stop(effect.id, 0);
+      }
+    }
+    return this.voiceCount() < MAX_VOICES;
+  }
+
+  private async startStream(id: string, assetId: string, volume: number, fadeInTicks: number, logicalStartTick: number, token: symbol,
+    settings: NonNullable<NonNullable<GameScene["music"]>["streaming"]>): Promise<void> {
+    const generation = this.generation;
+    const binding = this.options.assets[assetId];
+    if (!binding) return;
+    const url = await this.options.resolveAsset(binding);
+    if (this.disposed || this.paused || generation !== this.generation || this.context.state !== "running" ||
+      this.pending.get(id)?.token !== token || this.streamed.has(id)) return;
+    if (!url) throw new Error("asset URL is unavailable");
+    if (!this.makeVoiceRoom()) return;
+    const bus = this.mixer.busFor(assetId, true);
+    const voice = new GameStreamingMusicVoice(this.context, url, this.mixer.input(bus), settings, volume, fadeInTicks / this.options.tickRate,
+      () => Math.max(0, this.tick - logicalStartTick) / this.options.tickRate, (message) => {
+        if (this.streamed.get(id)?.voice === voice) { this.failedStreams.add(id); }
+        this.options.status(message);
+      }, () => {
+        this.mixer.voiceEnded(bus);
+        if (this.streamed.get(id)?.voice === voice) this.streamed.delete(id);
+        this.streamingFades.delete(voice);
+        this.deferredFades.delete(voice);
+      }, () => {
+        if (this.streamed.get(id)?.voice === voice) { this.finishDeferredFades(); }
+      });
+    this.streamed.set(id, { voice, assetId });
+    this.mixer.voiceStarted(bus);
+    voice.load();
   }
 
   /**
@@ -264,21 +389,15 @@ export class GameAudioPlayer {
       }
       return;
     }
+    const streaming = logicalStartTick === undefined ? undefined : this.streamingSettings();
+    if (streaming && logicalStartTick !== undefined) {
+      await this.startStream(id, assetId, volume, fadeInTicks, logicalStartTick, token, streaming);
+      return;
+    }
     const buffer = await this.buffer(assetId);
     if (!buffer || this.disposed || this.paused || this.context.state !== "running" || generation !== this.generation ||
       this.pending.get(id)?.token !== token || this.voices.has(id)) return;
-    if (this.voices.size + this.fading.size >= MAX_VOICES && this.fading.size > 0) {
-      const fading = this.fading.values().next().value;
-      if (fading) {
-        fading.source.stop();
-        this.fading.delete(fading);
-      }
-    }
-    if (this.voices.size + this.fading.size >= MAX_VOICES) {
-      const oldestEffect = [...this.voices.values()].find((voice) => !voice.loop);
-      if (!oldestEffect) return;
-      this.stop(oldestEffect.id, 0);
-    }
+    if (!this.makeVoiceRoom()) return;
     const source = this.context.createBufferSource();
     const gain = this.context.createGain();
     source.buffer = buffer;
@@ -300,16 +419,35 @@ export class GameAudioPlayer {
       }
       if (this.voices.get(id) === voice) this.voices.delete(id);
       this.fading.delete(voice);
+      this.deferredDecodedFades.delete(voice);
       source.disconnect();
       gain.disconnect();
       output.release();
     };
     const offset = logicalStartTick === undefined ? 0 : Math.max(0, this.tick - logicalStartTick) / this.options.tickRate;
     source.start(0, loop && buffer.duration > 0 ? offset % buffer.duration : 0);
+    if (logicalStartTick !== undefined) { this.finishDeferredFades(); }
+  }
+
+  private finishDeferredFades(): void {
+    const outgoing = [...this.deferredFades];
+    this.deferredFades.clear();
+    for (const [voice, ticks] of outgoing) { voice.stop(ticks / this.options.tickRate); }
+    for (const [voice, ticks] of this.deferredDecodedFades) {
+      if (this.fading.has(voice)) { stopGameVoice(voice, this.context, ticks, this.options.tickRate, this.fading); }
+    }
+    this.deferredDecodedFades.clear();
   }
 
   private stop(id: string, fadeTicks: number): void {
     this.pending.delete(id);
+    this.failedStreams.delete(id);
+    const stream = this.streamed.get(id);
+    if (stream) {
+      this.streamed.delete(id);
+      this.streamingFades.set(stream.voice, stream.assetId);
+      stream.voice.stop(fadeTicks / this.options.tickRate);
+    }
     const voice = this.voices.get(id);
     if (!voice) return;
     this.voices.delete(id);
@@ -319,9 +457,14 @@ export class GameAudioPlayer {
   reset(snapshot: Pick<GameSnapshot, "tick" | "music" | "sceneId">): void {
     this.generation += 1;
     this.pending.clear();
+    this.failedStreams.clear();
+    this.failedBuffers.clear();
+    for (const id of this.streamed.keys()) this.stop(id, 0);
+    for (const voice of this.streamingFades.keys()) voice.dispose();
     for (const id of this.voices.keys()) this.stop(id, 0);
     for (const voice of this.fading) voice.source.stop();
     this.fading.clear();
+    this.deferredDecodedFades.clear();
     this.desiredMusic = null;
     this.mixer.reset(snapshot.sceneId);
     this.sync(snapshot);
@@ -332,9 +475,14 @@ export class GameAudioPlayer {
     this.disposed = true;
     this.generation += 1;
     this.pending.clear();
+    this.failedStreams.clear();
+    this.failedBuffers.clear();
+    for (const id of this.streamed.keys()) this.stop(id, 0);
+    for (const voice of this.streamingFades.keys()) voice.dispose();
     for (const id of this.voices.keys()) this.stop(id, 0);
     for (const voice of this.fading) voice.source.stop();
     this.fading.clear();
+    this.deferredDecodedFades.clear();
     this.buffers.clear();
     this.mixer.dispose();
     void this.context.close();

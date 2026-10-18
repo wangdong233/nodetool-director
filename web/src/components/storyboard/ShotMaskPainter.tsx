@@ -12,7 +12,6 @@
  */
 
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   Box,
@@ -118,7 +117,6 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
   onCancel,
   onDone
 }) => {
-  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const last = useRef<{ x: number; y: number } | null>(null);
@@ -231,23 +229,11 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
     <Dialog
       open
       onClose={onCancel}
-      title={t("storyboard:attrs.paintTheAreaToChange", { defaultValue: "Paint the area to change" })}
+      title="Paint the area to change"
       maxWidth="lg"
-      actions={
-        <FlexRow align="center" gap={SPACING.sm}>
-          <EditorButton onClick={onCancel}>
-            {t("storyboard:attrs.cancel", { defaultValue: "Cancel" })}
-          </EditorButton>
-          <EditorButton
-            variant="contained"
-            color="primary"
-            onClick={handleDone}
-            disabled={!ready}
-          >
-            {t("storyboard:attrs.useThisArea", { defaultValue: "Use this area" })}
-          </EditorButton>
-        </FlexRow>
-      }
+      onConfirm={handleDone}
+      confirmText="Use this area"
+      confirmDisabled={!ready}
     >
       <FlexColumn gap={SPACING.md} align="center">
         <FlexRow align="center" gap={SPACING.md} wrap sx={{ alignSelf: "stretch" }}>
@@ -261,18 +247,14 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
                 setTool(next);
               }
             }}
-            aria-label={t("storyboard:attrs.paintingTool", { defaultValue: "Painting tool" })}
+            aria-label="Painting tool"
           >
-            <ToggleOption value="brush">
-              {t("editor:ui.brush", { defaultValue: "Brush" })}
-            </ToggleOption>
-            <ToggleOption value="eraser">
-              {t("editor:ui.eraser", { defaultValue: "Eraser" })}
-            </ToggleOption>
+            <ToggleOption value="brush">Brush</ToggleOption>
+            <ToggleOption value="eraser">Eraser</ToggleOption>
           </ToggleGroup>
           <FlexRow align="center" gap={SPACING.sm}>
             <Caption color="secondary" id="shot-mask-brush-label">
-              {t("storyboard:attrs.brushSize", { defaultValue: "Brush size" })}
+              Brush size
             </Caption>
             <Slider
               density="compact"
@@ -287,7 +269,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
             />
           </FlexRow>
           <EditorButton size="small" onClick={handleClear}>
-            {t("storyboard:attrs.clear", { defaultValue: "Clear" })}
+            Clear
           </EditorButton>
         </FlexRow>
         <Box sx={frameSx}>
@@ -296,7 +278,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
             component="img"
             ref={imageRef}
             src={stillUrl}
-            alt={t("storyboard:attrs.stillToPaintOn", { defaultValue: "Still to paint on" })}
+            alt="Still to paint on"
             crossOrigin="anonymous"
             onLoad={handleImageLoad}
             sx={{ maxWidth: "100%", maxHeight: "65vh", display: "block" }}
@@ -304,7 +286,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
           <Box
             component="canvas"
             ref={canvasRef}
-            aria-label={t("storyboard:attrs.maskPaintingArea", { defaultValue: "Mask painting area" })}
+            aria-label="Mask painting area"
             data-testid="shot-mask-canvas"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -314,9 +296,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
           />
         </Box>
         <Caption color="secondary">
-          {t("storyboard:attrs.paintOverWhatShouldChange", {
-            defaultValue: "Paint over what should change. The rest of the still is kept."
-          })}
+          Paint over what should change. The rest of the still is kept.
         </Caption>
       </FlexColumn>
     </Dialog>

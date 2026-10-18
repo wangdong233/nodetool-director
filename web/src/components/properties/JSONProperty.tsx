@@ -14,7 +14,6 @@ import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
 import { useCodeEditorActivation } from "../../hooks/editor/useCodeEditorActivation";
 import { EditorActivationCover, cn } from "../editor_ui";
 import { useInspectorHeaderSupplementalRegistration } from "../../hooks/useInspectorHeaderSupplemental";
-import { useTranslation } from "react-i18next";
 
 interface JSONValue {
   type: "json";
@@ -81,7 +80,6 @@ const rootStyles = (theme: Theme) =>
   });
 
 const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const id = `json-${props.property.name}-${props.propertyIndex}`;
   const rootCss = useMemo(() => rootStyles(theme), [theme]);
@@ -201,7 +199,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
       <>
         <ToolbarIconButton
           className="inspector-supplemental-action"
-          tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+          tooltip="Open editor"
           icon={<OpenInFullIcon />}
           onClick={toggleExpand}
           size="small"
@@ -215,7 +213,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
         />
       </>
     ),
-    [t, inspectorToolbarActionSx, toggleExpand, value]
+    [inspectorToolbarActionSx, toggleExpand, value]
   );
 
   useInspectorHeaderSupplementalRegistration(
@@ -242,7 +240,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
         {!props.isInspector && isHovered ? (
           <div className="json-action-buttons">
             <ToolbarIconButton
-              tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+              tooltip="Open editor"
               icon={<OpenInFullIcon />}
               onClick={toggleExpand}
               size="small"

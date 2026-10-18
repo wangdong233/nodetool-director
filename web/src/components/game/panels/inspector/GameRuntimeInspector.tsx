@@ -1,21 +1,23 @@
 import type { GameSnapshot } from "@nodetool-ai/protocol/game.js";
-import { useTranslation } from "react-i18next";
 
-import { Caption, FlexColumn, SPACING, Text } from "../../../ui_primitives";
+import { Caption, FlexColumn, InspectorFieldRow, SPACING, Text, TYPOGRAPHY } from "../../../ui_primitives";
 
 interface GameRuntimeInspectorProps {
   tick: number;
   entity: GameSnapshot["entities"][number] | null;
 }
 
+const VALUE_SX = { ...TYPOGRAPHY.mono.code, color: "text.primary", minWidth: 0, overflowWrap: "anywhere" } as const;
+
 export default function GameRuntimeInspector({ tick, entity }: GameRuntimeInspectorProps) {
-  const { t } = useTranslation();
-  return <FlexColumn gap={SPACING.xs} role="status" aria-label={t("game:runtime.entityStateAria", { defaultValue: "Runtime entity state" })}>
-    <Text>{t("game:runtime.stateLine", { tick, defaultValue: `Runtime state · tick ${tick}` })}</Text>
+  return <FlexColumn gap={SPACING.micro} role="status" aria-label="Runtime entity state"
+    sx={{ px: SPACING.lg, py: SPACING.sm, borderBottom: 1, borderColor: "divider" }}>
+    <Text weight={500}>Runtime state · tick {tick}</Text>
     {entity ? <>
-      <Caption>{entity.id} · {entity.active ? t("editor:ui.active", { defaultValue: "Active" }) : t("game:runtime.inactive", { defaultValue: "Inactive" })}</Caption>
-      <Caption>{t("game:runtime.positionVelocity", { x: entity.x.toFixed(2), y: entity.y.toFixed(2), vx: entity.velocityX.toFixed(2), vy: entity.velocityY.toFixed(2), defaultValue: `Position ${entity.x.toFixed(2)}, ${entity.y.toFixed(2)} · Velocity ${entity.velocityX.toFixed(2)}, ${entity.velocityY.toFixed(2)}` })}</Caption>
-      {entity.health !== undefined && <Caption>{t("game:runtime.health", { health: entity.health, defaultValue: `Health ${entity.health}` })}</Caption>}
-    </> : <Caption>{t("game:runtime.selectEntity", { defaultValue: "Select a runtime entity in the viewport" })}</Caption>}
+      <InspectorFieldRow label="Entity"><Caption sx={VALUE_SX}>{entity.id} · {entity.active ? "Active" : "Inactive"}</Caption></InspectorFieldRow>
+      <InspectorFieldRow label="Position"><Caption sx={VALUE_SX}>{entity.x.toFixed(2)}, {entity.y.toFixed(2)}</Caption></InspectorFieldRow>
+      <InspectorFieldRow label="Velocity"><Caption sx={VALUE_SX}>{entity.velocityX.toFixed(2)}, {entity.velocityY.toFixed(2)}</Caption></InspectorFieldRow>
+      {entity.health !== undefined && <InspectorFieldRow label="Health"><Caption sx={VALUE_SX}>{entity.health}</Caption></InspectorFieldRow>}
+    </> : <Caption>Select a runtime entity in the viewport</Caption>}
   </FlexColumn>;
 }

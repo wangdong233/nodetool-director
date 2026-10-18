@@ -5,10 +5,10 @@ import type { Theme } from "@mui/material/styles";
 import { memo, useCallback, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { CSSProperties, DragEvent as ReactDragEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
-import { EmptyState, Tooltip, Text, ToolbarIconButton, thinScrollbarStyles, Box, MOTION, BORDER_RADIUS, FONT_WEIGHT, SPACING, getSpacingPx } from "../ui_primitives";
-import CloseIcon from "@mui/icons-material/Close";
+import { ConfirmDialog, EmptyState, Tooltip, Text, ToolbarIconButton, thinScrollbarStyles, Box, MOTION, BORDER_RADIUS, FONT_WEIGHT, SPACING, getSpacingPx } from "../ui_primitives";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import ClearIcon from "@mui/icons-material/Clear";
-import { TOOLTIP_ENTER_DELAY, NOTIFICATION_TIMEOUT_MEDIUM, NOTIFICATION_TIMEOUT_SHORT } from "../../config/constants";
+import { NOTIFICATION_TIMEOUT_MEDIUM, NOTIFICATION_TIMEOUT_SHORT } from "../../config/constants";
 import useNodeMenuStore from "../../stores/NodeMenuStore";
 import useMetadataStore from "../../stores/MetadataStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
@@ -16,11 +16,6 @@ import usePendingNodeCreateStore from "../../stores/PendingNodeCreateStore";
 import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
 import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
-import ConfirmDialog from "../dialogs/ConfirmDialog";
-import { i18n } from "../../i18n";
-import { useAppLanguage } from "../../i18n";
-import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
-import { useTranslation } from "react-i18next";
 
 const tooltipHintStyle: CSSProperties = {
   fontSize: "var(--fontSizeSmaller)",
@@ -150,8 +145,6 @@ const FavoritesTiles = memo(function FavoritesTiles({
   showEmpty = false,
   hideHeader = false
 }: FavoritesTilesProps = {}) {
-  const { t } = useTranslation();
-  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => tileStyles(theme), [theme]);
 
@@ -258,7 +251,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
       removeFavorite(nodeType);
       addNotification({
         type: "info",
-        content: i18n.t("editor:ui.nodeRemovedFromFavorites", { defaultValue: "Node removed from favorites" }),
+        content: "Node removed from favorites",
         timeout: NOTIFICATION_TIMEOUT_SHORT
       });
     },
@@ -275,14 +268,13 @@ const FavoritesTiles = memo(function FavoritesTiles({
     (nodeType: string) => {
       const metadata = getMetadata(nodeType);
       if (metadata) {
-        return nodeMenuTitle(
-          nodeType,
+        return (
           metadata.title || metadata.node_type.split(".").pop() || nodeType
         );
       }
       return nodeType.split(".").pop() || nodeType;
     },
-    [getMetadata, languageVersion]
+    [getMetadata]
   );
 
   if (favorites.length === 0) {
@@ -294,14 +286,14 @@ const FavoritesTiles = memo(function FavoritesTiles({
         {!hideHeader && (
           <div className="tiles-header">
             <Text size="normal" weight={600}>
-              {t("editor:ui.favorites", { defaultValue: "Favorites" })}
+              Favorites
             </Text>
           </div>
         )}
         <EmptyState
           size="small"
-          title={t("editor:ui.noFavoritesYet", { defaultValue: "No favorites yet" })}
-          description={t("editor:ui.clickTheStarNextToAnyNodeToAddItHere")}
+          title="No favorites yet"
+          description="Click the star next to any node to add it here."
         />
       </Box>
     );
@@ -312,16 +304,16 @@ const FavoritesTiles = memo(function FavoritesTiles({
       {!hideHeader && (
         <div className="tiles-header">
           <Text size="normal" weight={600}>
-            {t("editor:ui.favorites", { defaultValue: "Favorites" })}
+            Favorites
           </Text>
           <ToolbarIconButton
             icon={<ClearIcon fontSize="small" />}
-            tooltip={t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
+            tooltip="Clear all favorites"
             tooltipPlacement="top"
             size="small"
             className="clear-button"
             onClick={() => setClearConfirmOpen(true)}
-            aria-label={t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
+            aria-label="Clear all favorites"
           />
         </div>
       )}
@@ -337,13 +329,11 @@ const FavoritesTiles = memo(function FavoritesTiles({
                 <div>
                   <div>{displayName}</div>
                   <div style={tooltipHintStyle}>
-                    {t("editor:ui.clickToPlaceDragToCanvas")}
+                    Click to place · Drag to canvas
                   </div>
                 </div>
               }
               placement="top"
-              enterDelay={TOOLTIP_ENTER_DELAY}
-              enterNextDelay={TOOLTIP_ENTER_DELAY}
             >
               <div
                 className="favorite-tile"
@@ -384,10 +374,11 @@ const FavoritesTiles = memo(function FavoritesTiles({
         open={clearConfirmOpen}
         onClose={() => setClearConfirmOpen(false)}
         onConfirm={handleClearFavorites}
-        title={t("editor:ui.clearAllFavorites")}
+        title="Clear all favorites?"
         content={`This removes all ${favorites.length} favorite nodes. This cannot be undone.`}
-        confirmText={t("editor:ui.clearFavorites", { defaultValue: "Clear favorites" })}
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText="Clear favorites"
+        destructive
+        cancelText="Cancel"
         notificationMessage="Favorites cleared"
         notificationType="success"
       />

@@ -6,7 +6,9 @@ import {
   TextInput,
   Popover,
   DialogTitle,
-  DialogContent
+  DialogContent,
+  LoadingSpinner,
+  ICON_SIZE
 } from "../ui_primitives";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import { AssetList } from "../../stores/ApiTypes";
@@ -20,7 +22,6 @@ import dialogStyles from "../../styles/DialogStyles";
 import isEqual from "../../utils/isEqual";
 import Select from "../inputs/Select";
 import { FlexRow, DialogActionButtons } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
 import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore
@@ -32,7 +33,6 @@ interface FolderValue {
 }
 
 const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
-  const { t } = useTranslation();
   const id = `folder-${props.property.name}-${props.propertyIndex}`;
   const load = useAssetStore((state) => state.load);
   const createFolder = useAssetStore((state) => state.createFolder);
@@ -140,14 +140,14 @@ const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
         description={props.property.description}
         id={id}
       />
-      {isLoading && <p>{t("common:status.loading", { defaultValue: "Loading…" })}</p>}
+      {isLoading && <LoadingSpinner size="small" />}
       {error && <p>Error: {error.message}</p>}
       <FlexRow align="center" gap={0.5}>
         <Select
           options={folderOptions}
           value={selectValue}
           onChange={handleFolderSelect}
-          placeholder={t("editor:ui.selectAFolder", { defaultValue: "Select a folder" })}
+          placeholder="Select a folder"
         />
         <EditorButton
           onClick={handleOpenMenu}
@@ -157,7 +157,7 @@ const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
             margin: "0"
           }}
         >
-          <CreateNewFolderIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
+          <CreateNewFolderIcon sx={{ fontSize: ICON_SIZE.md }} />
         </EditorButton>
       </FlexRow>
       <Popover
@@ -170,13 +170,13 @@ const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle className="dialog-title" id="alert-dialog-title">
-          {"Create Folder"}
+          {"Create folder"}
         </DialogTitle>
         <DialogContent className="dialog-content">
           <TextInput
             className="input-field"
             inputRef={inputRef}
-            placeholder={t("editor:ui.folderName", { defaultValue: "Folder Name" })}
+            placeholder="Folder name"
             autoFocus
             spellCheck={false}
             autoComplete="off"
@@ -187,7 +187,7 @@ const FolderProperty = (props: PropertyProps<FolderValue | null>) => {
         <DialogActionButtons
           onCancel={handleCloseMenu}
           onConfirm={handleCreateFolder}
-          confirmText={t("editor:ui.createFolder", { defaultValue: "Create Folder" })}
+          confirmText="Create folder"
         />
       </Popover>
     </>

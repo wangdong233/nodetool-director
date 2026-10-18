@@ -13,7 +13,8 @@ import {
   Dialog,
   EditorButton,
   FlexRow,
-  Label,
+  FormField,
+  TextArea,
   TextInput,
   ToggleGroup,
   ToggleOption,
@@ -22,9 +23,9 @@ import {
 } from "../ui_primitives";
 import { useSaveEntity } from "../../serverState/useEntities";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
+import { entityAssistContext } from "../../utils/textAssist";
 import ImageRefPreview from "../node/ImageRefPreview";
 import EntityAssetPickerDialog from "./EntityAssetPickerDialog";
-import { useTranslation } from "react-i18next";
 
 interface EntityEditorDialogProps {
   open: boolean;
@@ -54,7 +55,6 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
   projectId,
   onSaved
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const saveEntity = useSaveEntity();
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -131,24 +131,16 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title={
-        entity
-          ? t("editor:ui.editEntity", { defaultValue: "Edit entity" })
-          : t("editor:ui.newEntity", { defaultValue: "New entity" })
-      }
-      showActions
+      title={entity ? "Edit entity" : "New entity"}
+      maxWidth="xs"
+      fullWidth
       onConfirm={handleConfirm}
-      confirmText={
-        entity
-          ? t("storyboard:attrs.save", { defaultValue: "Save" })
-          : t("common:action.create", { defaultValue: "Create" })
-      }
+      confirmText={entity ? "Save" : "Create"}
       confirmDisabled={!canSave}
       isLoading={saveEntity.isPending}
     >
-      <FlexColumn gap={SPACING.md} sx={{ pt: 1, minWidth: 360 }}>
-        <FlexColumn gap={SPACING.xs}>
-          <Label>{t("ui2:attrs.image", { defaultValue: "Image" })}</Label>
+      <FlexColumn gap={SPACING.lg}>
+        <FormField label="Image">
           <FlexRow gap={SPACING.md} align="center">
             <div
               style={{
@@ -164,14 +156,16 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
                 value={mediaRefFromAsset({ id: referenceAssetId }, "image")}
               />
             </div>
-            <EditorButton variant="outlined" onClick={() => setPickerOpen(true)}>
-              {t("editor:ui.changeImage")}
+            <EditorButton
+              variant="outlined"
+              onClick={() => setPickerOpen(true)}
+            >
+              Change image
             </EditorButton>
           </FlexRow>
-        </FlexColumn>
+        </FormField>
 
-        <FlexColumn gap={SPACING.xs}>
-          <Label>{t("ui2:attrs.kind", { defaultValue: "Kind" })}</Label>
+        <FormField label="Kind">
           <ToggleGroup
             value={kind}
             exclusive
@@ -181,34 +175,36 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
           >
             {KINDS.map((k) => (
               <ToggleOption key={k} value={k}>
-                {t(`storyboard:attrs.${k}`, { defaultValue: k })}
+                {k}
               </ToggleOption>
             ))}
           </ToggleGroup>
-        </FlexColumn>
+        </FormField>
 
         <TextInput
-          label={t("editor:asset.info.name", { defaultValue: "Name" })}
+          label="Name"
+          required
           value={name}
           onChange={(e) => setName(e.target.value)}
           size="small"
           compact
         />
 
-        <TextInput
-          label={t("editor:ui.descriptor", { defaultValue: "Descriptor" })}
-          helperText={t("editor:ui.pastedVerbatimIntoEveryPrompt", { defaultValue: "Pasted verbatim into every prompt that uses this entity." })}
+        <TextArea
+          label="Descriptor"
+          required
+          helperText="How it looks, in a sentence. Every prompt that uses this entity gets it word for word."
           value={descriptor}
-          onChange={(e) => setDescriptor(e.target.value)}
-          multiline
-          rows={3}
+          onChange={setDescriptor}
+          minRows={3}
           size="small"
           compact
+          assistContext={entityAssistContext(kind, name)}
         />
 
         {kind === "character" && (
           <TextInput
-            label={t("editor:ui.voiceIdOptional", { defaultValue: "Voice id (optional)" })}
+            label="Voice id (optional)"
             value={voiceId}
             onChange={(e) => setVoiceId(e.target.value)}
             size="small"
@@ -217,7 +213,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         )}
 
         <TextInput
-          label={t("editor:ui.tagsCommaseparated", { defaultValue: "Tags (comma-separated)" })}
+          label="Tags (comma-separated)"
           value={tags}
           onChange={(e) => setTags(e.target.value)}
           size="small"

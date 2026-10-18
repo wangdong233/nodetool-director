@@ -2,14 +2,16 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import type * as monaco from "monaco-editor";
 
 import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
-import { Caption, FlexColumn, LoadingSpinner } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
+import ErrorBanner from "../support/ErrorBanner";
+import { FlexColumn, LoadingSpinner } from "../ui_primitives";
 
 interface MonacoPaneProps {
   value: string;
   language: string;
   readOnly?: boolean;
   wordWrap?: boolean;
+  /** Shown while the document is empty. */
+  placeholder?: string;
   onChange?: (value: string) => void;
   /** Registers Cmd/Ctrl+S inside the editor when provided. */
   onSave?: () => void;
@@ -30,11 +32,11 @@ const MonacoPane = ({
   language,
   readOnly = false,
   wordWrap = true,
+  placeholder,
   onChange,
   onSave,
   onEditorMount
 }: MonacoPaneProps) => {
-  const { t } = useTranslation();
   const {
     MonacoEditor,
     monacoLoadError,
@@ -76,6 +78,7 @@ const MonacoPane = ({
   const options = useMemo(
     () => ({
       readOnly,
+      placeholder,
       automaticLayout: true,
       minimap: { enabled: true },
       scrollBeyondLastLine: false,
@@ -86,7 +89,7 @@ const MonacoPane = ({
       smoothScrolling: true,
       scrollbar: { verticalScrollbarSize: 10, horizontalScrollbarSize: 10 }
     }),
-    [readOnly, wordWrap]
+    [readOnly, wordWrap, placeholder]
   );
 
   if (monacoLoadError) {
@@ -96,7 +99,15 @@ const MonacoPane = ({
         fullHeight
         sx={{ alignItems: "center", justifyContent: "center" }}
       >
-        <Caption sx={{ color: "error.main" }}>{monacoLoadError}</Caption>
+        <ErrorBanner
+          report={{
+            source: "panel-crash",
+            summary: "Code editor could not start",
+            errorText: monacoLoadError
+          }}
+        >
+          {monacoLoadError}
+        </ErrorBanner>
       </FlexColumn>
     );
   }
@@ -108,8 +119,7 @@ const MonacoPane = ({
         fullHeight
         sx={{ alignItems: "center", justifyContent: "center" }}
       >
-        <LoadingSpinner />
-        {isMonacoLoading && <Caption>{t("editor:ui.loadingEditor", { defaultValue: "Loading editor…" })}</Caption>}
+        <LoadingSpinner text={isMonacoLoading ? "Loading editor" : undefined} />
       </FlexColumn>
     );
   }

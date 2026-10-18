@@ -13,21 +13,17 @@ import {
 import { NodeMetadata } from "../../stores/ApiTypes";
 import { rankSearchNodes } from "../../utils/nodeSearch";
 
-import ClearIcon from "@mui/icons-material/Clear";
-import SearchIcon from "@mui/icons-material/Search";
 import NodeItem from "../node_menu/NodeItem";
 import {
   Text,
-  ToolbarIconButton,
   Box,
   MOTION,
+  Z_INDEX,
   ContextMenu,
   BORDER_RADIUS,
   SPACING,
   getSpacingPx,
-  MenuItem,
-  TextField,
-  InputAdornment,
+  SearchInput,
   VirtualList
 } from "../ui_primitives";
 import { useNodes } from "../../contexts/NodeContext";
@@ -40,25 +36,20 @@ import type {
   ConnectionMatchMenuPayload,
   ConnectionMatchOption
 } from "./ConnectionMatchMenu";
-import { useTranslation } from "react-i18next";
 
 const NODE_ROW_HEIGHT = 34;
 
-const menuStyles = (theme: Theme) =>
-  css({
-    "& .MuiPaper-root": {
-      height: "70vh",
-      display: "flex",
-      flexDirection: "column",
-      width: "320px",
-      borderRadius: BORDER_RADIUS.xl,
-      backgroundColor: theme.vars.palette.background.paper,
-      border: `1px solid ${theme.vars.palette.divider}`,
-      boxShadow: theme.shadows[8],
-      overflow: "hidden"
-    }
-  });
+// Layout only: the theme gives the menu its surface (`menuStyles.ts`).
+const menuPaperSx = {
+  height: "70vh",
+  display: "flex",
+  flexDirection: "column",
+  width: "320px",
+  overflow: "hidden"
+} as const;
 
+// The node rows are `NodeItem`s, not MUI menu rows, so they take the menu row
+// geometry here: inset from the frame, `BORDER_RADIUS.sm`, `action.hover`.
 const scrollableContentStyles = (theme: Theme) =>
   css({
     flex: 1,
@@ -66,59 +57,29 @@ const scrollableContentStyles = (theme: Theme) =>
     "&.connectable-nodes-content": {
       minHeight: 0,
       maxHeight: "calc(70vh - 78px)",
-      padding: "0"
+      padding: `${getSpacingPx(SPACING.xs)} 0`
     },
     ".node-item-container": {
-      padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.sm)}`
+      padding: `0 ${getSpacingPx(SPACING.xs)}`
     },
     ".node": {
       display: "flex",
       alignItems: "center",
       margin: 0,
       padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.sm)}`,
-      borderRadius: BORDER_RADIUS.md,
+      borderRadius: BORDER_RADIUS.sm,
       cursor: "pointer",
       transition: MOTION.background,
       ".node-button": {
         padding: `0 ${getSpacingPx(SPACING.sm)}`,
-        flexGrow: 1,
-        "& .MuiTypography-root": {
-          fontSize: theme.fontSizeSmall,
-          fontWeight: 400
-        }
-      },
-      ".icon-bg": {
-        backgroundColor: `${theme.vars.palette.c_overlay} !important`,
-        borderRadius: BORDER_RADIUS.sm,
-        padding: getSpacingPx(SPACING.micro),
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      },
-      ".icon-bg svg": {
-        color: theme.vars.palette.grey[400],
-        fontSize: "var(--fontSizeNormal)"
+        flexGrow: 1
       }
     },
     ".node:hover": {
       backgroundColor: theme.vars.palette.action.hover
     },
     ".node.focused": {
-      color: "var(--palette-primary-main)",
-      backgroundColor: "action.selected",
-      borderRadius: BORDER_RADIUS.md,
-      boxShadow: `inset 0 0 0 1px ${theme.vars.palette.action.selected}`
-    },
-    ".Mui-disabled": {
-      opacity: 1,
-      color: "text.primary"
-    },
-    h4: {
-      padding: "0",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-      fontWeight: 600,
-      opacity: 0.7
+      backgroundColor: theme.vars.palette.action.selected
     }
   });
 
@@ -126,8 +87,8 @@ const fixedHeaderStyles = (theme: Theme) =>
   css({
     position: "sticky",
     top: 0,
-    backgroundColor: theme.vars.palette.background.paper,
-    zIndex: theme.zIndex.modal + 1,
+    backgroundColor: theme.vars.palette.Paper.overlay,
+    zIndex: Z_INDEX.sticky,
     borderBottom: `1px solid ${theme.vars.palette.divider}`,
     "&.connectable-nodes-header": {
       padding: `${getSpacingPx(SPACING.lg)} ${getSpacingPx(SPACING.xl)}`
@@ -190,7 +151,6 @@ export const getCompatibleConnectableOutputs = (
 };
 
 const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const reactFlowInstance = useReactFlow();
@@ -413,21 +373,13 @@ const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
     ]
   );
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  }, []);
-
-  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent) => {
+  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
       hideMenu();
     } else {
       e.stopPropagation();
     }
   }, [hideMenu]);
-
-  const handleClearSearch = useCallback(() => {
-    setSearchTerm("");
-  }, []);
 
   const handleNodeClick = useCallback((nodeMetadata: NodeMetadata) => {
     createConnectableNode(nodeMetadata);
@@ -473,66 +425,27 @@ const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
 
   return (
     <ContextMenu
-      css={menuStyles}
       open={isVisible}
       onContextMenu={(event) => event.preventDefault()}
       position={menuPosition}
       onClose={hideMenu}
       transitionDuration={200}
-      slotProps={{
-        paper: {
-            elevation: 0
-        }
-      }}
+      paperSx={menuPaperSx}
     >
       <Box css={fixedHeaderStyles} className="connectable-nodes-header">
-        <MenuItem sx={{ p: 0, "&:hover": { bgcolor: "transparent" }, cursor: "default" }} disableRipple>
-          <TextField
-            className="connectable-nodes-search"
-            size="small"
-            fullWidth
-            placeholder={t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
-            value={searchTerm}
-            onChange={handleSearchChange}
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={handleSearchKeyDown}
-            autoFocus={isVisible && autoFocusEnabled}
-            inputRef={searchInputRef}
-            aria-label={t("editor:io.searchNodesAria", { defaultValue: "Search nodes" })}
-            sx={{
-                "& .MuiOutlinedInput-root": {
-                    backgroundColor: "action.disabledBackground",
-                    borderRadius: BORDER_RADIUS.lg,
-                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "action.selected" },
-                    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "action.focus" },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: theme.vars.palette.primary.main },
-                }
-            }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon
-                      fontSize="small"
-                      sx={{ color: "action.disabled" }}
-                    />
-                  </InputAdornment>
-                ),
-                endAdornment: searchTerm ? (
-                  <InputAdornment position="end">
-                    <ToolbarIconButton
-                      aria-label={t("editor:io.clearSearch", { defaultValue: "clear search" })}
-                      onClick={handleClearSearch}
-                      size="small"
-                      icon={<ClearIcon sx={{ fontSize: 16 }} />}
-                      nodrag={false}
-                    />
-                  </InputAdornment>
-                ) : null
-              }
-            }}
-          />
-        </MenuItem>
+          <div onClick={(e) => e.stopPropagation()}>
+            <SearchInput
+              ref={searchInputRef}
+              className="connectable-nodes-search"
+              value={searchTerm}
+              onChange={setSearchTerm}
+              onKeyDown={handleSearchKeyDown}
+              escapeClears={false}
+              placeholder="Search nodes"
+              autoFocus={isVisible}
+              fullWidth
+            />
+          </div>
       </Box>
 
       {totalCount === 0 ? (
@@ -556,7 +469,7 @@ const ConnectableNodes: React.FC = React.memo(function ConnectableNodes() {
           overscan={theme.virtualScroll.overscan.normal}
           getItemKey={(node, index) => node?.node_type ?? index}
           getItemProps={itemProps}
-          ariaLabel={t("editor:io.connectableNodes", { defaultValue: "Connectable nodes" })}
+          ariaLabel="Connectable nodes"
           renderItem={renderNode}
         />
       )}

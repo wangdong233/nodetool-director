@@ -32,6 +32,59 @@ npx --package=@nodetool-ai/cli nodetool-chat
 - `nodetool <group> --help` — list sub-commands for grouped tooling (e.g. `nodetool workflows --help`).
 - `nodetool help [command]` — the same output as `--help`, as a command (e.g. `nodetool help serve`). With no argument it lists the top-level commands.
 
+## Authoring tools and guides
+
+Use the installed tool catalog and guides to start a document from the terminal.
+No agent session or MCP client is needed. These commands run locally against the
+same tool implementations as CLI agent sessions.
+
+```bash
+nodetool tools list timeline
+nodetool tools info create_timeline
+nodetool skills list motion
+nodetool skills read motion-graphics
+nodetool tools call create_timeline --args @arguments.json
+```
+
+`tools list [query]` prints names and descriptions. `tools info <name>` prints
+its current input schema. `tools call <name> --args <json|@file>` executes it
+with a JSON object. Results are JSON. Tool failures exit nonzero. Calls can save
+work, execute jobs, or incur provider charges. The local database, secret store,
+installed packs, current working directory, and agent budget settings are used
+as in CLI agent sessions. Generation costs are recorded in the local ledger.
+
+`skills list [query]` searches installed guides and user skills.
+`skills read <name>` reads the full guide, including its examples and creation instructions.
+Start with these guides and then inspect the named tools:
+
+| Document | Guide | Tool discovery |
+| --- | --- | --- |
+| Timeline or storyboard | `storyboard-core` | `tools list timeline` |
+| Animated text and shapes | `motion-graphics` | `tools list timeline` |
+| Reusable workflow | `nodetool-workflow-builder` | `tools list workflow` |
+| Interactive mini app | `nodetool-app-builder` | `tools list app` |
+| Playable game | `native-game` | `tools list game` |
+
+Call `nodetool tools call list_projects` to obtain an owned project id for
+project-scoped documents. Local tool calls initialize the Personal project
+(`personal:1`) on a fresh installation.
+
+For a deterministic mini app build without provider charges, run:
+
+```bash
+nodetool packs add audio --yes
+nodetool app build "greeting fixture" --provider fake --model fake-app-greeting --no-judge
+```
+
+The audio pack supplies the required `nodetool.output.Output` node.
+`fake-app-greeting` builds a fixed greeting app and ignores the prompt. It tests
+the build pipeline and interaction checks, not general app generation.
+
+For games, `list_example_games` and `get_example_game` expose shipped starting
+documents. Follow the guide's installation instructions when a bundled example
+uses packaged assets. For other documents, read the guide's minimal example and
+inspect the creation tool's schema before saving it.
+
 ## Global Options
 
 These flags work on any `nodetool` command and control [OpenTelemetry tracing](https://github.com/nodetool-ai/nodetool/blob/main/docs/AGENTS.md):
@@ -152,6 +205,32 @@ nodetool workflows export-dsl workflow_abc123 -o workflow.ts
 
 # Export from JSON file
 nodetool workflows export-dsl ./my_workflow.json
+```
+
+### `nodetool workflows export-script <workflow_id_or_file>`
+
+Converts a workflow into a JavaScript script that calls each node in
+dependency order, one awaited call per node. The editor's workflow menu and
+the `workflows.exportScript` tRPC call produce the same script.
+
+**Options:**
+
+- `-t, --target <target>` — `sandbox` (default) writes a body for a JS script
+  document or a Code node, calling nodes through
+  `@nodetool-ai/sandbox-nodetool/flow`. `node` writes a standalone `.mjs` that
+  calls nodes in process through `@nodetool-ai/dsl/flow`, takes the workflow
+  inputs as a JSON argument, reads provider keys from the environment, and
+  prints the outputs as JSON.
+- `-o, --output <file>` — write to file instead of stdout.
+
+A node a script cannot express (a node that runs once per streamed item, a
+control edge, a live input stream) is listed on stderr, and the script throws
+before running any node. A graph with a cycle, such as a `Loop`, is refused.
+
+```bash
+nodetool workflows export-script workflow_abc123 --target node -o flow.mjs
+npm install @nodetool-ai/dsl
+node flow.mjs '{"prompt": "a red fox"}'
 ```
 
 ### `nodetool run <dsl-file>`
@@ -342,7 +421,7 @@ nodetool chat --url ws://localhost:7777/ws
 
 Manage workflows. Reads the local database by default; `--api-url` targets a remote server.
 
-**Subcommands:** `list` and `get` (both take `--api-url <url>` and `--json`, and `list` takes `--limit <n>`, default 100), `run`, `export-dsl`, `export-example`, `export-bundle`, `import-bundle`,
+**Subcommands:** `list` and `get` (both take `--api-url <url>` and `--json`, and `list` takes `--limit <n>`, default 100), `run`, `export-dsl`, `export-script`, `export-example`, `export-bundle`, `import-bundle`,
 `migrate-code-inputs`
 
 ```bash
@@ -532,6 +611,23 @@ The bundle holds `report.json` and `report.md`, the resolved `workflow.json`,
 and `server/messages.jsonl`. `--trace` adds `server/trace.jsonl`; `--browser`
 adds `browser/record.json`, a canvas screenshot, and `browser/console-errors.log`.
 
+### `nodetool node list [query]`, `nodetool node info <node_type>`
+
+List executable TypeScript nodes from installed packs, optionally filtering by
+node type or title. `--json` returns complete metadata. `info` prints the exact
+node type's properties, defaults, inputs and outputs as JSON. These commands
+use the same installed pack registry as `node run` and work outside a checkout.
+Catalog entries for missing packs are excluded.
+
+```bash
+nodetool node list text
+nodetool node list --json
+nodetool node info nodetool.text.Concat --json
+```
+
+Use `nodetool packs list` to inspect pack installation state. Python package
+metadata is inspected separately through `nodetool package list`.
+
 ### `nodetool node run <node_type>`
 
 Instantiate one node, hand it a property bag, and print what it emits — no
@@ -568,7 +664,7 @@ Emitted 1 record(s):
 
 Move mini apps between installs. Reads and writes the local database directly — no running server.
 
-**Subcommands:** `list`, `export-bundle`, `import-bundle`
+**Subcommands:** `list`, `export-bundle`, `export-project`, `import-bundle`
 
 ```bash
 # List applications with their operation count
@@ -596,6 +692,30 @@ warning.
 ```bash
 nodetool apps export-bundle <application_id>
 nodetool apps export-bundle <application_id> -o my.app.json --released
+```
+
+#### `nodetool apps export-project <application_id|bundle_file>`
+
+Export an application as a standalone JavaScript project that runs without NodeTool: a Vite + React UI and a Node
+server that runs the app's workflows and JS scripts in process, with no database. Takes an application id from the local
+database or an exported `.app.json` bundle. See [`@nodetool-ai/app-export`](https://github.com/nodetool-ai/nodetool/blob/main/packages/app-export/README.md) for what
+the project contains.
+
+**Options:**
+
+- `-o, --output <dir>` — output folder (default `./<app-name>`).
+- `--released` — export the released snapshot and the graphs it pinned, not the draft.
+- `--force` — write into an output folder that is not empty.
+
+`.env.example` lists the credentials the graphs and scripts need. When a graph leaves a model for the person to pick, it also lists
+every provider key, commented out. Sample inputs referenced as `package://` are copied under `assets/`. What the
+exported app cannot do (resource documents, editor-only widgets) is printed as warnings and listed
+in the project's README.
+
+```bash
+nodetool apps export-project <application_id> -o ./my-app
+nodetool apps export-project my.app.json
+cd my-app && npm install && cp .env.example .env && npm run dev
 ```
 
 #### `nodetool apps import-bundle <bundle_file>`
@@ -1034,11 +1154,27 @@ nodetool sketch versions delete <image_document_id> 3 --yes
 ### `nodetool jsscript`
 
 A JS script is a named, versioned script document: a body plus declared ports,
-secrets, a timeout, and saved test cases. The target of every
-subcommand is a script JSON file (a bare `JsScriptDocument` or anything carrying
-one under `document`) or a `js_scripts` row id.
+secrets, a timeout, and saved test cases. Commands that take a script target
+accept a script JSON file (a bare `JsScriptDocument` or anything carrying one
+under `document`) or a `js_scripts` row id.
 
-**Subcommands:** `validate`, `run`, `test`, `debug`, `versions`
+**Subcommands:** `schema`, `example`, `validate`, `run`, `test`, `debug`, `versions`
+
+#### `nodetool jsscript schema` and `example`
+
+Print the document JSON Schema or a runnable document with a saved test. Both
+write JSON to stdout and need no database or provider credentials.
+
+```bash
+nodetool jsscript schema
+nodetool jsscript example > script.json
+nodetool jsscript validate script.json --warnings-as-errors
+nodetool jsscript test script.json
+```
+
+Saved cases use `expect` for final output values and `expectedStreamed` for
+ordered `{name, value}` emissions. Unknown case fields, including `expected`,
+are errors so a misspelled assertion cannot pass without being graded.
 
 #### `nodetool jsscript validate <script_id_or_file>`
 
@@ -1061,10 +1197,11 @@ nodetool jsscript validate <js_script_id> --warnings-as-errors
 
 #### `nodetool jsscript run <script_id_or_file>`
 
-Execute the body once in the QuickJS sandbox and print its outputs, streamed
-emits, logs, and error. A body that reads its inputs with `stream` is fed with
-`--input-streams` instead of `--inputs`; a staged handle the script does not
-declare is refused.
+Validate the document, then execute the body once in the QuickJS sandbox and
+print its outputs, streamed emits, logs, and error. Declared outputs must use
+`await output(name, value)` or `await emit(name, value)`. A body that reads its
+inputs with `stream` is fed with `--input-streams` instead of `--inputs`. A
+staged handle the script does not declare is refused.
 
 **Options:**
 
@@ -1085,8 +1222,8 @@ nodetool jsscript run script.json --input-streams '{"numbers":[1,2,3]}'
 
 #### `nodetool jsscript test <script_id_or_file>`
 
-Run the document's own saved test cases and grade each one. Exits non-zero when
-any case fails, which makes it the regression check after an edit.
+Validate the document, then run its saved test cases and grade each one. Exit
+non-zero when validation or any case fails.
 
 **Options:**
 
@@ -1106,8 +1243,9 @@ nodetool jsscript test <js_script_id> --json
 #### `nodetool jsscript debug <script_id_or_file>`
 
 Replay each scripted step against the headless `ui_jsscript_*` bridge (the
-prefix is optional) and validate the document the session left behind. The
-editor, persistence of a debug session, and secret values are not simulated.
+prefix is optional) and validate the document the session left behind. A failed
+run or test result fails the interaction, report verdict, and command exit status.
+The editor, persistence of a debug session, and secret values are not simulated.
 
 **Options:**
 
@@ -1143,15 +1281,16 @@ nodetool game simulate game.json --ticks 120 --inputs inputs.json --assertions a
 nodetool game capture game.json --ticks 120 --inputs inputs.json --out frame.png
 nodetool game capture game.json --ticks 120 --out frame.png --backend webgpu
 nodetool game build game.json --out game-build --assets-dir game-assets
+nodetool game build game.json --out game-desktop --assets-dir game-assets --target tauri --name "Cave Run" --compile
 nodetool game smoke game-build --json
 ```
 
 **Subcommands and options:**
 
 - `game validate <game_file>` — `--json`.
-- `game simulate <game_file>` — `--ticks <count>` (required), `--seed <integer>` (default `1`), `--inputs <file>`, `--assets-dir <directory>` (prepared 3D collider files named `<full-asset-id>.json`), `--expect-score <score>`, `--expect-win`, `--assertions <file>`, `--verify-replay`, `--json`.
+- `game simulate <game_file>` — `--ticks <count>` (required), `--seed <integer>` (default `1`), `--inputs <file>`, `--assets-dir <directory>` (prepared 3D collider files named `<full-asset-id>.json`), `--expect-score <score>`, `--expect-win`, `--assertions <file>`, `--verify-replay`, `--saves <file>`, `--json`.
 - `game capture <game_file>` — `--ticks <count>` and `--out <file>` (both required), `--seed <integer>`, `--inputs <file>`, `--scale <factor>` (default `1`), `--backend <canvas2d|webgpu|webgl2>`, `--assets-dir <directory>`, `--json`. A schema version 3 (3D) document defaults to `webgl2`. A 2D document accepts `canvas2d` (default) or `webgpu`.
-- `game build <game_file>` — `--out <directory>` (required), `--assets-dir <directory>`, `--json`.
+- `game build <game_file>` — `--out <directory>` (required), `--assets-dir <directory>`, `--target <web|tauri>` (default `web`), `--json`. `--target tauri` writes a [Tauri](https://tauri.app) desktop app project: the web player in `dist/` and a native shell in `src-tauri/`. It accepts `--name <name>`, `--identifier <reverse-dns>`, `--app-version <MAJOR.MINOR.PATCH>`, `--icon <png|jpeg|webp>`, and `--compile`, which runs `cargo build --release` and reports the executable path. Run `npm install && npm run build` in the project for installers.
 - `game smoke <directory>` — `--json`. Serves an exported build in headless Chromium with outside network access blocked, renders 300 scripted frames, and checks tick progress. Console errors, page errors, failed requests, and stalled ticks return a nonzero exit status. Install Chromium with `npx playwright install chromium`.
 
 Schema version 2 adds sprite `visualAnimation` tracks and scene `backgrounds`.
@@ -1204,6 +1343,13 @@ and compares snapshots and ordered events after each remaining tick. The JSON
 report includes `replay.resumeTick`, `replay.verified`, and the first divergent
 tick and path when it fails. This check excludes script execution timing.
 
+Script `save` and `load` commands use in-memory storage during `simulate`.
+`--saves <file>` seeds it from `{progress?, settings?}`, each mapping a slot name
+to its data object. A load result reaches scripts on the next tick's input frame,
+and the replay session steps the same frame, so `--verify-replay` covers loads.
+When a script saved or loaded, the JSON report lists each slot's data under
+`saves` with any storage errors.
+
 `--assets-dir` supplies media files named `<full-asset-id>.<extension>` for
 capture and export. The build copies media into a content-addressed folder and
 includes a standalone browser player. Built-in sample art needs no media files.
@@ -1229,6 +1375,44 @@ and triggered effects can overlap up to the browser player's 32-voice cap.
 Music position is saved as a scene start tick; loading seeks within the decoded
 loop. Audio starts after a browser gesture. The CLI simulation and image capture
 record logical audio events and state without producing audio samples.
+
+## Project Files
+
+### `nodetool projects`
+
+List projects and move whole projects between installs as `.nodetool-project`
+files. Runs against the local database, asset store, and workspaces. The
+server serves the same format at `GET /api/projects/:id/export` and
+`POST /api/projects/import`, so a file from either side imports on the other.
+
+**Subcommands:**
+
+- `list [--archived] [--json]` — projects, newest first.
+- `export <project_id> [-o <file>] [--json]` — write the project to a file.
+  The default name is `<project name>.nodetool-project`.
+- `import <file> [--name <name>] [--json]` — create a new project from a file
+  and print its id.
+
+A project file holds every row filed under the project: workflows and their
+versions, storyboards, scripts, timelines, sketches, mini apps, JavaScript
+scripts, and games, each with its version history. It also holds chats with
+their messages, assets with their stored bytes, and every file in the
+project's workspaces. Jobs, run traces, and spend records stay behind.
+
+Import never overwrites. It creates a new project and gives every row a new
+id, then rewrites each reference to an exported id: id columns, document JSON,
+`asset://` locators, workspace file paths, and JSON files in workspaces.
+Imported workflows are private. Workspaces become managed folders, because the
+exporting machine's paths mean nothing on another one. The Personal project
+imports as an ordinary named project.
+
+**Examples:**
+
+```bash
+nodetool projects list
+nodetool projects export 6f1c2e... -o launch-spot.nodetool-project
+nodetool projects import launch-spot.nodetool-project --name "Launch spot (copy)"
+```
 
 ## Job Management
 
@@ -1664,11 +1848,30 @@ nodetool settings show
 nodetool settings show --json
 ```
 
+### `nodetool telemetry`
+
+Control anonymous usage analytics for the CLI. Telemetry is off until you run
+`enable`, and the CLI never asks. `NODETOOL_TELEMETRY=0` and `DO_NOT_TRACK=1`
+turn it off whatever was stored. The decision lives in
+`~/.nodetool/telemetry.json` and applies to the CLI only. What is sent and what
+is never sent is in [Product Analytics](analytics.md).
+
+- `enable` — start sending anonymous usage events.
+- `disable` — stop, and delete the anonymous ID and unsent events.
+- `status [--json]` — show whether telemetry is on, why, and where it is stored.
+- `inspect [--json]` — print the events waiting to be sent, exactly as they would be sent.
+
+```bash
+nodetool telemetry status
+nodetool telemetry enable
+nodetool telemetry inspect --json
+```
+
 ## Model Management
 
 ### `nodetool models`
 
-List models and providers. Queries local providers and caches by default. `--api-url <url>` (default `NODETOOL_API_URL`) targets a remote server on `list`, `ollama`, and `huggingface`. Every subcommand takes `--json`.
+List models and providers. Queries local providers and caches by default. `providers`, `list` and `by-provider mlx` start the local Python worker for MLX when the Python environment exists, and stop it when the command ends. Without that environment the other providers still list. `--api-url <url>` (default `NODETOOL_API_URL`) targets a remote server on `list`, `ollama`, and `huggingface`. Every subcommand takes `--json`.
 
 **Subcommands:**
 
@@ -1781,6 +1984,20 @@ nodetool models download-hf --repo-id Qwen/Qwen3-0.6B-GGUF -a "*.gguf"
 
 ### `nodetool generate <provider> <model> <prompt...>`
 
+Local and self-hosted installs expose `fake-image` and `fake-video` on provider
+`fake` for no-cost tests without credentials. They produce a fixed PNG or a
+two-second MP4. Select fake explicitly with `find_model({provider_hint: "fake", ...})`.
+Automatic model selection excludes fake media. `generate` accepts image models.
+For a video fixture, use the video tool:
+
+```bash
+nodetool tools info generate_video
+nodetool tools call generate_video --args '{"provider":"fake","model":"fake-video","prompt":"test fixture"}'
+nodetool skills read storyboard-core
+```
+
+Storyboards can use these refs as `image_model` and `video_model` board defaults.
+
 Generate an image from any registered provider straight to a file, with no
 workflow in between. Use it to try a model, check that a provider's key resolves,
 or produce one image from a script.
@@ -1812,6 +2029,9 @@ environment; when it is missing the error names the variable to set.
 
 ```bash
 # Discover model ids for a provider
+nodetool generate fake --list-models
+nodetool generate fake fake-image "test fixture" -o fixture.png
+
 nodetool generate fal-ai --list-models
 
 # Text to image
@@ -2272,6 +2492,27 @@ Invalid Telegram bridge environment:
 setting `TELEGRAM_WEBHOOK_URL` makes `serve` refuse to start rather than
 silently polling. Design notes: [telegram-bot-design.md](telegram-bot-design.md).
 
+## Browser Extension
+
+### `nodetool extension`
+
+Set up and check the bridge between NodeTool and the [Chrome extension](chrome-extension.md). The bridge needs no server: Chrome starts the native messaging host when the extension connects, and local clients reach it over a unix socket.
+
+**Subcommands:** `install`, `status`
+
+Neither subcommand takes options.
+
+- `install` registers the native messaging host with Chrome, Chromium, Brave, Edge and Arc. It prints the wrapper path, each manifest it registered, and the extension ID.
+- `status` prints `connected` or `not connected`, followed by one `socket: <path>` line for each bridge socket it finds. It exits with code 1 when the extension is not connected.
+
+```bash
+# Register the native host, then load or reload the extension in chrome://extensions
+nodetool extension install
+
+# Check the connection
+nodetool extension status
+```
+
 ## Development Tooling
 
 ### `nodetool affected [files...]`
@@ -2317,7 +2558,10 @@ the registry with its harness — or with its debt written down.
 
 #### `nodetool harness list`
 
-List every harness and its capabilities. Takes `--json` to print the registry.
+List every harness and its capabilities. Each command is marked as available
+in the installed CLI or requiring a NodeTool checkout. `--json` adds a
+`requiresCheckout` flag to each registry entry. Repository checks need the
+checkout's scripts and workspace dependencies.
 
 ```bash
 nodetool harness list
@@ -2397,6 +2641,10 @@ covers the new contract.
 
 #### `nodetool harness gate [files...]`
 
+Run from a NodeTool Git checkout. Outside a checkout, the command exits with an
+explanation and supports `--json` errors. For local documents in an installed
+CLI, use `validate`, `jsscript test`, `app debug`, or `timeline debug`.
+
 Map a diff onto surfaces by path and run the selfcheck of every harness covering
 a touched surface. The diff selects the checks, not the author. Harnesses that
 need a target or a key are printed as manual work rather than silently skipped.
@@ -2412,7 +2660,8 @@ need a target or a key are printed as manual work rather than silently skipped.
 - `--deps` — also touch surfaces whose paths sit in a workspace downstream of a
   changed one.
 - `--include-suites` — also run `suiteOnly` selfchecks, which only re-run
-  suites `npm run test:affected` runs for the same diff.
+  suites `npm run test:affected` runs for the same diff, and the workspace
+  test steps dropped because `test:affected` runs their whole suite.
 - `--jobs <n>` — run cheap selfchecks `n` at a time (default 1). Each check's
   output prints as one block when it finishes. Expensive checks run serially
   afterwards.
@@ -2422,6 +2671,21 @@ A changed root manifest, lockfile, root `tsconfig*.json`, `turbo.json`,
 `.nvmrc`, or shared `scripts/run-*.mjs` launcher selects every selfcheck. The
 plan step loads no built package, so `--dry-run` works before
 `npm run build:packages`.
+
+A workspace test step (`npm run test --workspace=<pkg> [-- filters]`) is
+dropped from a selfcheck's `&&` chain when `test:affected` runs that
+workspace's whole suite for the diff: any workspace on a global-file diff,
+otherwise an affected backend package. The JSON output lists the dropped
+steps as `prunedSuites`. Steps with other work, shell syntax, or unknown
+workspaces still run. This assumes `test:affected` runs for the same diff.
+`--all` alone does not enable these skips.
+CI adds `--include-suites` when its `skip-tests` input disables package tests.
+
+Check starts and completions print to stderr, including with `--json`.
+Each result includes `durationMs`, while stdout keeps the JSON output.
+CI uses `--jobs 1` and `NODETOOL_TEST_WORKERS=1` to run selfchecks and their
+test files serially. This prevents competing selfchecks from exhausting
+the game runtime’s wall-clock script batch budgets. Timeouts still apply.
 
 ```bash
 nodetool harness gate --base main
@@ -2443,21 +2707,23 @@ Manual harnesses (need a target/key — run yourself):
 
 ### `nodetool package`
 
-Manage TypeScript **node** packages — the packs that contribute node types to
-the registry. Not to be confused with `nodetool packs`, which handles the
-sandbox packs a Code node imports; the names are one letter apart and the
-subjects are unrelated.
+Scaffold TypeScript node packages and inspect local Python package metadata.
+`init` scaffolds a TypeScript package. `list`, `docs` and `node-docs` read
+Python package metadata files. `workflow-docs` reads workflow JSON files.
 
-Reach for it when you are authoring a node pack: `init` scaffolds one, `list`
-tells you what this install has, and the three `*-docs` commands generate the
-Markdown that ships with a pack.
+[`nodetool packs`](#nodetool-packs) installs, removes and diagnoses published
+node packs and runtime libraries, and compiles sandbox packs. Use
+`nodetool node list` and `nodetool node info <type>` to discover the TypeScript
+nodes available to this CLI.
 
 **Subcommands:** `list`, `init`, `docs`, `node-docs`, `workflow-docs`
 
 #### `nodetool package list`
 
-List the installed packages with their node counts, or the registry's catalog
-with `-a, --available`. `--json` prints the rows as JSON.
+List Python package metadata in the current directory and its workspaces,
+with node counts. `-a, --available` lists the shipped Python pack catalog.
+`--json` prints the rows as JSON. For installed TypeScript runtime packs use
+`nodetool packs list`. For executable node types use `nodetool node list`.
 
 ```bash
 nodetool package list
@@ -2486,9 +2752,11 @@ nodetool package init
 
 #### `nodetool package docs`, `node-docs`, `workflow-docs`
 
-Generate Markdown from the current package: `docs` writes one overview,
-`node-docs` writes a page per node, and `workflow-docs` documents the workflow
-JSONs a pack ships. Each takes `-v, --verbose`.
+Generate Markdown from local Python package metadata: `docs` writes one
+overview and `node-docs` writes a page per node. `workflow-docs` documents
+workflow JSON files. Each takes `-v, --verbose`. An empty `node-docs` result
+points to `nodetool node list` and `nodetool node info <type>` for installed
+TypeScript node metadata, including properties and outputs.
 
 **Options:**
 
@@ -2504,6 +2772,41 @@ JSONs a pack ships. Each takes `-v, --verbose`.
 nodetool package docs --compact
 nodetool package node-docs --package-name nodetool.text
 ```
+
+### `nodetool packs`
+
+The npm CLI includes core, text, data, LLM, and code nodes. Install other node
+packs and npm runtime libraries with `nodetool packs` in a global CLI
+installation or an npm project. Temporary npx installations and development
+checkouts support diagnostics but refuse installation changes.
+
+| Command | Behavior |
+|---|---|
+| `packs compile [--json] [--force]` | Compile installed sandbox pack modules. See [sandbox compilation](#nodetool-packs-compile). |
+| `packs list [--json]` | Show available packs, installation state and size estimates. |
+| `packs add <ids...> [--yes]` | Install the pinned packs or runtime libraries and their requirements. |
+| `packs add --restore [--yes]` | Restore the desired set recorded for this install root. |
+| `packs add --for <workflow-or-file> [--yes]` | Install missing requirements of a saved workflow or an explicitly named local file. |
+| `packs remove <ids...>` | Remove packages owned exclusively by the selection while preserving retained requirements. |
+| `packs doctor [--json] [--installed] [--pack <ids...>]` | Check the mode, versions, integrity and installation state. Registration checks use a fresh child process. |
+| `packs doctor --repair` | Repair a dirty installation after verifying its pinned cohort. |
+| `packs why <node_type-or-id>` | Explain ownership, requirements and installation state. |
+
+Add commands prompt with package versions, size estimates, approved scripts
+and local manifest changes. Use `--yes` in a non-interactive terminal. Local
+installation updates package.json and package-lock.json. Restart running
+servers after adding or removing packs. After upgrading the CLI, use
+`nodetool packs add --restore` to reinstall the recorded pack and runtime set
+for that installation root.
+
+`run`, `debug`, `node run` and `workflows run` accept `--install-missing`.
+`NODETOOL_AUTO_INSTALL=1` also authorizes those commands. They install missing
+npm requirements and re-execute once, forwarding the child exit code. Serve,
+MCP and agent tools do not install packages automatically. External runtimes
+such as ffmpeg and Python require their own setup.
+
+See the [pack-system design](cli-pack-system-design.md#15-command-surface)
+for installation boundaries and the platform matrix.
 
 ### `nodetool packs compile`
 
@@ -2573,7 +2876,7 @@ nodetool reliability list --json
 
 ```
 linear-text-pipeline
-  Journey #1 (docs/RELIABILITY_ARCHITECTURE.md §5): input -> transform -> output.
+  Journey #1: input -> transform -> output.
   The baseline — if this diverges across surfaces, everything is suspect.
   surfaces: kernel, ws-server
   invariants: lifecycle-pairing, terminal-uniqueness

@@ -16,8 +16,13 @@ import { useRunWarningStore } from "../../stores/RunWarningStore";
 import useRemoteSettingsStore from "../../stores/RemoteSettingStore";
 import { useSearchProviderCalloutStore } from "../../stores/SearchProviderCalloutStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
+import useMetadataStore from "../../stores/MetadataStore";
 import { selectFrom } from "../../__mocks__/fixtures";
-import type { SettingWithValue, Workflow } from "../../stores/ApiTypes";
+import type {
+  NodeMetadata,
+  SettingWithValue,
+  Workflow
+} from "../../stores/ApiTypes";
 import type { NodeData } from "../../stores/NodeData";
 import type { NodeStore, NodeStoreState } from "../../stores/NodeStore";
 import type { WorkflowManagerState } from "../../stores/WorkflowManagerStore";
@@ -270,6 +275,39 @@ describe("useFloatingToolbarActions", () => {
       ]);
     });
 
+    it("says which node needs a model when it blocks the run", async () => {
+      useNotificationStore.getState().clearNotifications();
+      useMetadataStore.getState().setMetadata({
+        "nodetool.agents.Agent": {
+          node_type: "nodetool.agents.Agent",
+          title: "Agent",
+          properties: [
+            { name: "model", type: { type: "language_model", type_args: [] } }
+          ]
+        } as unknown as NodeMetadata
+      });
+      mockNodeStoreWith([
+        {
+          ...searchNode,
+          data: { ...searchNode.data, properties: { model: {} } }
+        }
+      ]);
+
+      const { result } = renderHook(() => useFloatingToolbarActions());
+      await act(async () => {
+        await result.current.handleRun();
+      });
+
+      expect(mockRun).not.toHaveBeenCalled();
+      expect(useNotificationStore.getState().notifications).toEqual([
+        expect.objectContaining({
+          type: "warning",
+          content: "Pick a model on Agent before running."
+        })
+      ]);
+      useMetadataStore.getState().setMetadata({});
+    });
+
     it("runs normally when the search provider is configured", async () => {
       mockNodeStoreWith([searchNode]);
       useRemoteSettingsStore.setState({
@@ -458,7 +496,7 @@ describe("useFloatingToolbarActions", () => {
       expect(notifications).toHaveLength(1);
       expect(notifications[0]).toMatchObject({
         type: "success",
-        content: expect.stringContaining("saved")
+        content: expect.stringMatching(/^Workflow ".+" saved$/)
       });
     });
 
@@ -615,6 +653,29 @@ describe("useFloatingToolbarActions", () => {
       const { result } = renderHook(() => useFloatingToolbarActions());
 
       expect(result.current.isWorkflowRunning).toBe(true);
+    });
+
+    it("drops Error · Retry once the graph is edited after a failed run", () => {
+      mockUseWebsocketRunner.mockImplementation(runnerInState("error"));
+      let editGeneration = 4;
+      mockUseNodes.mockImplementation((selector) =>
+        selectFrom<NodeStoreState>({
+          workflow: mockWorkflow,
+          autoLayout: mockAutoLayout,
+          workflowJSON: mockWorkflowJSON,
+          editGeneration
+        })(selector)
+      );
+
+      const { result, rerender } = renderHook(() =>
+        useFloatingToolbarActions()
+      );
+      expect(result.current.runControlLabel).toBe("Error · Retry");
+
+      editGeneration = 5;
+      rerender();
+
+      expect(result.current.runControlLabel).toBe("Run entire workflow");
     });
 
     it("exposes idle state", () => {

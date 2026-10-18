@@ -84,6 +84,7 @@ export interface ExtensionCdpClientApi {
   Emulation: DomainNamespace;
   Console: DomainNamespace;
   Fetch: DomainNamespace;
+  IO: DomainNamespace;
   /** Close the underlying transport. Mirrors `chrome-remote-interface`'s `close`. */
   close(): Promise<void>;
 }
@@ -200,7 +201,11 @@ export class ExtensionCdpClient {
     if (this.closed) return;
     this.closed = true;
     this.stopHeartbeat();
-    this.rejectAll(new Error("Extension CDP connection closed"));
+    const error = new Error("Extension CDP connection closed");
+    this.attachReject?.(error);
+    this.attachReject = null;
+    this.attachResolve = null;
+    this.rejectAll(error);
     try {
       this.channel.close();
     } catch {
@@ -220,6 +225,7 @@ export class ExtensionCdpClient {
       Emulation: this.buildDomain("Emulation"),
       Console: this.buildDomain("Console"),
       Fetch: this.buildDomain("Fetch"),
+      IO: this.buildDomain("IO"),
       close: () => this.close()
     };
   }

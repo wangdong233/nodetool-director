@@ -12,12 +12,13 @@ import {
   FlexRow,
   Text,
   BORDER_RADIUS,
-  SPACING
+  SPACING,
+  ICON_SIZE
 } from "../../ui_primitives";
 import type { UnifiedModel } from "../../../stores/ApiTypes";
 import { formatBytes } from "../../../utils/modelFormatting";
 import { ModelStat } from "../ModelStat";
-import { useTranslation } from "react-i18next";
+import { isInstalledModel, isManageableModel } from "./useModels";
 
 const DOCS_URL = "https://docs.nodetool.ai/models-and-providers";
 
@@ -27,11 +28,12 @@ interface LocalModelsHeroProps {
 
 /** What this machine currently holds: how many models, and how much disk. */
 const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
 
   const stats = useMemo(() => {
-    const installed = models.filter((m) => m.downloaded);
+    const installed = models.filter(
+      (m) => isManageableModel(m) && isInstalledModel(m)
+    );
     return {
       count: installed.length,
       size: formatBytes(
@@ -64,33 +66,33 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
               color: theme.vars.palette.primary.main
             }}
           >
-            <ComputerIcon sx={{ fontSize: 20 }} />
+            <ComputerIcon sx={{ fontSize: ICON_SIZE.lg }} />
           </FlexRow>
           <Text size="normal" weight={600}>
-            {t("editor:ui.localModelsTitle", { defaultValue: "Local Models" })}
+            Local models
           </Text>
         </FlexRow>
 
         <Caption sx={{ opacity: 0.7, lineHeight: 1.5 }}>
-          {t("editor:ui.runModelsLocallyForPrivacySpeedAndOfflineAccess", { defaultValue: "Run models locally for privacy, speed, and offline access." })}
+          Run models locally for privacy, speed, and offline access.
         </Caption>
 
         <FlexRow gap={SPACING.xl} align="flex-start">
           <ModelStat
             value={String(stats.count)}
-            label={t("editor:ui.installed", { defaultValue: "Installed" })}
+            label="Installed"
             icon={
               <CheckCircleOutlineIcon
-                sx={{ fontSize: 14, color: theme.vars.palette.success.main }}
+                sx={{ fontSize: ICON_SIZE.xs, color: theme.vars.palette.success.main }}
               />
             }
           />
           <ModelStat
             value={stats.size}
-            label={t("editor:ui.onDisk", { defaultValue: "On disk" })}
+            label="On disk"
             icon={
               <StorageOutlinedIcon
-                sx={{ fontSize: 14, color: theme.vars.palette.text.secondary }}
+                sx={{ fontSize: ICON_SIZE.xs, color: theme.vars.palette.text.secondary }}
               />
             }
           />
@@ -101,10 +103,10 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
           variant="outlined"
           size="small"
           fullWidth
-          endIcon={<OpenInNewIcon sx={{ fontSize: 14 }} />}
+          endIcon={<OpenInNewIcon />}
           onClick={() => window.open(DOCS_URL, "_blank", "noopener,noreferrer")}
         >
-          {t("editor:ui.learnMore", { defaultValue: "Learn more" })}
+          Learn more
         </EditorButton>
       </FlexColumn>
     </Card>

@@ -19,7 +19,7 @@ import type { Command } from "commander";
 import type { JsScriptDebugReport } from "@nodetool-ai/execution/js-script-debug";
 import type { JsScriptRecord } from "../js-script-debug/target.js";
 import type { JsScriptTestReport } from "../js-script-debug/harness.js";
-import { printCommandError } from "../command-errors.js";
+import { commandMissingRuntime, printCommandError } from "../command-errors.js";
 import { printDebugSummary } from "./debug-summary-output.js";
 import { renderJsScriptValidation } from "./js-script-validation-output.js";
 import { registerJsScriptVersionsCommands } from "./js-script-versions.js";
@@ -111,9 +111,40 @@ export function registerJsScriptCommands(program: Command): void {
     .description("Work with JS script documents");
 
   jsscript
+    .command("schema")
+    .description("Print the JS script document JSON Schema, including saved test fields")
+    .action(async () => {
+      const { z } = await import("zod");
+      const { jsScriptDocument } =
+        await import("@nodetool-ai/protocol/api-schemas/js-scripts.js");
+      console.log(JSON.stringify(z.toJSONSchema(jsScriptDocument), null, 2));
+    });
+
+  jsscript
+    .command("example")
+    .description("Print a runnable script JSON document with final and streamed test expectations")
+    .action(async () => {
+      const { jsScriptDocument } =
+        await import("@nodetool-ai/protocol/api-schemas/js-scripts.js");
+      console.log(JSON.stringify(jsScriptDocument.parse({
+        schemaVersion: 1,
+        description: "Adds one and emits the input value.",
+        code: 'await emit("received", inputs.n);\nawait output("total", inputs.n + 1);',
+        inputs: [{ name: "n", type: "int" }],
+        outputs: [{ name: "received", type: "int" }, { name: "total", type: "int" }],
+        tests: [{
+          name: "adds one",
+          inputs: { n: 1 },
+          expect: { total: 2 },
+          expectedStreamed: [{ name: "received", value: 1 }]
+        }]
+      }), null, 2));
+    });
+
+  jsscript
     .command("validate <script_id_or_file>")
     .description(
-      "Validate a JS script without running it: body syntax, imports against the declared packages, undeclared inputs, outputs nothing emits, tests naming ports the script lacks. Takes a script JSON file or a js_scripts row id"
+      "Validate a JS script without running it: body syntax, imports against the installed catalog, undeclared inputs, outputs nothing emits, tests naming ports the script lacks. Takes a script JSON file or a js_scripts row id"
     )
     .option("--json", "Print the full JsScriptValidation as JSON")
     .option(
@@ -139,8 +170,7 @@ export function registerJsScriptCommands(program: Command): void {
           (opts.warningsAsErrors === true && validation.warnings.length > 0);
         process.exit(failed ? 1 : 0);
       } catch (e) {
-        printCommandError(e, opts.json);
-        process.exit(1);
+        process.exit(printCommandError(e, opts.json));
       }
     });
 
@@ -170,6 +200,10 @@ export function registerJsScriptCommands(program: Command): void {
           inputStreams
         );
 
+        if (!result.ok && commandMissingRuntime(result)) {
+          process.exit(printCommandError(result, opts.json));
+        }
+
         if (opts.json) {
           // process.exit below drops what a pipe has not taken yet, so a
           // result past the pipe buffer (64 KB) arrived cut off.
@@ -183,8 +217,7 @@ export function registerJsScriptCommands(program: Command): void {
         }
         ok = result.ok;
       } catch (e) {
-        printCommandError(e, opts.json);
-        process.exit(1);
+        process.exit(printCommandError(e, opts.json));
       }
       process.exit(ok ? 0 : 1);
     });
@@ -204,6 +237,10 @@ export function registerJsScriptCommands(program: Command): void {
           loadScript: await scriptLoader()
         });
 
+        if (!report.ok && commandMissingRuntime(report)) {
+          process.exit(printCommandError(report, opts.json));
+        }
+
         if (opts.json) {
           console.log(JSON.stringify(report, null, 2));
         } else {
@@ -211,8 +248,7 @@ export function registerJsScriptCommands(program: Command): void {
         }
         ok = report.ok;
       } catch (e) {
-        printCommandError(e, opts.json);
-        process.exit(1);
+        process.exit(printCommandError(e, opts.json));
       }
       process.exit(ok ? 0 : 1);
     });
@@ -266,8 +302,7 @@ export function registerJsScriptCommands(program: Command): void {
         }
         process.exit(report.verdict.ok ? 0 : 1);
       } catch (e) {
-        printCommandError(e, opts.json);
-        process.exit(1);
+        process.exit(printCommandError(e, opts.json));
       }
     });
 

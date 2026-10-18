@@ -7,6 +7,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import SketchLayersPanel from "../SketchLayersPanel";
 import { createDefaultLayer } from "../types";
 import type { BlendMode } from "../types";
+import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
 
 // Media sources resolve through TanStack Query; these suites render no
 // QueryClientProvider, so use the manual mock (resolution itself is covered
@@ -101,6 +102,57 @@ function renderPanel(options: {
   return { layer, layers, props };
 }
 
+describe("SketchLayersPanel imported layer source line", () => {
+  it("names the image by its layer, not by its storage path", () => {
+    const { theme, layer, props } = buildPanelProps();
+    layer.name = "Variation 1";
+    layer.imageReference = {
+      uri: "/api/storage/1/188b129a59e34295b5f58b9f7dfca44c.png",
+      naturalWidth: 1536,
+      naturalHeight: 1024,
+      objectFit: "contain"
+    };
+    const { container } = render(
+      <ThemeProvider theme={theme}>
+        <SketchLayersPanel {...props} />
+      </ThemeProvider>
+    );
+    const line = container.querySelector(
+      ".sketch-layers-panel__active-layer-ref"
+    );
+    expect(line).toHaveTextContent("Variation 1 · source 1536×1024 · contain");
+    expect(line).not.toHaveTextContent("/api/storage");
+    expect(line).not.toHaveTextContent(".png");
+  });
+});
+
+describe("SketchLayersPanel From image layer", () => {
+  it("defaults the output aspect to the source photo's ratio", () => {
+    useSketchSessionStore.getState().reset();
+    const { theme, layer, props } = buildPanelProps();
+    layer.name = "holiday-photo.jpg";
+    layer.imageReference = {
+      uri: "/api/storage/1/holiday-photo.jpg",
+      naturalWidth: 1200,
+      naturalHeight: 800,
+      objectFit: "contain"
+    };
+    render(
+      <ThemeProvider theme={theme}>
+        <SketchLayersPanel {...props} />
+      </ThemeProvider>
+    );
+
+    fireEvent.click(screen.getByTestId("layers-panel-add-image-to-image"));
+
+    const binding = Object.values(useSketchSessionStore.getState().bindings)[0];
+    expect(binding.kind).toBe("image-to-image");
+    expect(binding.sourceLayerId).toBe(layer.id);
+    expect(binding.aspectRatio).toBe("3:2");
+    expect(binding.width! / binding.height!).toBeCloseTo(1.5, 2);
+  });
+});
+
 describe("SketchLayersPanel blend mode quick cycling", () => {
   it("cycles blend mode directly with arrow keys without opening the menu", () => {
     const { layer, props } = renderPanel();
@@ -162,7 +214,7 @@ describe("SketchLayersPanel merge selected affordances", () => {
     // Merge actions now live in the layer right-click context menu (the bottom
     // toolbar was trimmed to a single-row essential set).
     fireEvent.contextMenu(screen.getByText("Layer 3"));
-    await user.click(screen.getByRole("menuitem", { name: "Merge Selected" }));
+    await user.click(screen.getByRole("menuitem", { name: "Merge selected" }));
 
     expect(props.onMergeSelectedLayers).toHaveBeenCalledTimes(1);
   });
@@ -183,7 +235,7 @@ describe("SketchLayersPanel merge selected affordances", () => {
 
     fireEvent.contextMenu(screen.getByText("Layer 2"));
 
-    expect(screen.getByRole("menuitem", { name: "Merge Selected" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Merge selected" })).toBeInTheDocument();
   });
 });
 

@@ -1,13 +1,18 @@
+import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createServer } from "node:http";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import { promisify } from "node:util";
+import { build as bundle } from "esbuild";
 import { chromium } from "@playwright/test";
 import { createCanvas } from "@napi-rs/canvas";
 import { afterEach, describe, expect, it } from "vitest";
 import { gameModel3D, gameAnimator3D, gameNonSpatialBehavior } from "@nodetool-ai/protocol";
 import { createGameSession3D, createNative3DGame } from "@nodetool-ai/game-runtime";
+import { prepareGameImage3D } from "../src/renderer3d/assets/image-preparation.js";
 import { normalizeGameModel3D } from "../src/preparation3d.js";
 import { skinnedGlb } from "./fixtures/game3d.js";
 import { buildStandaloneGame3D } from "../src/build3d.js";
@@ -17,6 +22,27 @@ afterEach(async () => { await Promise.all(created.splice(0).map((path) => rm(pat
 async function root(): Promise<string> { const path = await mkdtemp(join(tmpdir(), "game3d-export-")); created.push(path); return path; }
 
 describe("offline 3D export", () => {
+  it.each(["png", "jpeg", "webp"] as const)("exports verified %s images through local manifest paths", async (format) => {
+    const canvas = createCanvas(2, 3);
+    const bytes = new Uint8Array(format === "png" ? canvas.toBuffer("image/png") : format === "jpeg" ? canvas.toBuffer("image/jpeg") : canvas.toBuffer("image/webp"));
+    const result = await prepareGameImage3D(bytes, { assetId: "image" });
+    if (!result.ok) { throw new Error("Image preparation failed"); }
+    const document = createNative3DGame("image-export");
+    document.assets.texture = result.image.binding;
+    const output = join(await root(), "game");
+    const built = await buildStandaloneGame3D({ document, outputDir: output, resolveAsset: async () => ({ bytes, mimeType: `image/${format}` }) });
+    expect(built.assetPaths.texture).toBe(`./assets/${result.image.binding.digest}.${format}`);
+    expect(new Uint8Array(await readFile(join(output, built.assetPaths.texture!)))).toEqual(bytes);
+  }, 30_000);
+  it.each(["width", "digest"] as const)("rejects mismatched image %s at export", async (field) => {
+    const bytes = new Uint8Array(createCanvas(2, 3).toBuffer("image/png"));
+    const result = await prepareGameImage3D(bytes, { assetId: "image" });
+    if (!result.ok) { throw new Error("Image preparation failed"); }
+    const document = createNative3DGame("image-export");
+    document.assets.texture = { ...result.image.binding, ...(field === "width" ? { width: 4 } : { digest: "0".repeat(64) }) };
+    await expect(buildStandaloneGame3D({ document, outputDir: join(await root(), "game"), resolveAsset: async () => ({ bytes, mimeType: "image/png" }) })).rejects.toThrow(field === "width" ? "metadata changed" : "digest changed");
+  }, 30_000);
+
   it("hashes runtime files and refuses to overwrite a nonempty destination", async () => {
     const directory = await root();
     const output = join(directory, "game");
@@ -35,7 +61,7 @@ describe("offline 3D export", () => {
     const directory = await root(); const output = join(directory, "game");
     const document = createNative3DGame("offline-replay");
     document.inputActions.push("e");
-    for (const scene of document.scenes) { for (const entity of scene.entities) { for (const behavior of entity.behaviors) { if (behavior.kind === "script") { behavior.maxTickMs = 50; } } } }
+    for (const scene of document.scenes) { for (const entity of scene.entities) { for (const behavior of entity.behaviors) { if (behavior.kind === "script") { behavior.maxTickMs = 20; } } } }
     const texture = createCanvas(2, 2);
     const context = texture.getContext("2d");
     context.fillStyle = "#ff6633";
@@ -49,10 +75,10 @@ describe("offline 3D export", () => {
     visual.transform3d.position.y = -0.8;
     visual.model = gameModel3D.parse({ assetId: "character", castShadow: true, receiveShadow: true });
     visual.animator3d = gameAnimator3D.parse({ clips: { idle: "clip:0", run: "clip:1", jump: "clip:2" }, initialClip: "idle" });
-    visual.behaviors.push(gameNonSpatialBehavior.parse({ kind: "script", maxTickMs: 50, source: `(input) => {
+    visual.behaviors.push(gameNonSpatialBehavior.parse({ kind: "script", maxTickMs: 20, source: `(input) => {
       const clip = input.justPressed.includes("jump") ? "jump" : Math.abs(input.axes.moveX || 0) + Math.abs(input.axes.moveZ || 0) > 0 ? "run" : "idle";
       const customPresses = (input.state && input.state.customPresses || 0) + Number(input.justPressed.includes("e"));
-      return { state: { clip, customPresses }, commands: [{ kind: "playAnimation", clip }] };
+      return { state: { clip, customPresses }, commands: [{ kind: "playAnimation", clip }, ...(input.tick === 0 ? [{ kind: "save", slot: "replay", data: { written: true } }, { kind: "load", slot: "replay" }] : [])] };
     }` }));
     document.scenes[0].environment.shadows.enabled = true;
     await buildStandaloneGame3D({ document, outputDir: output, resolveAsset: async (assetId) => assetId === "acceptance-rig" ? { bytes: prepared.bytes, mimeType: "model/gltf-binary" } : null });
@@ -88,6 +114,7 @@ describe("offline 3D export", () => {
       expect(await page.evaluate(() => window.nativeGame3DPlayer.snapshot().entities.find((entity) => entity.id === "player-visual")?.animation?.clipId)).toBe("clip:0");
       await page.evaluate(() => window.nativeGame3DPlayer.step({ pressed: ["jump"], justPressed: ["jump"], axes: {}, look: { x: 0, y: 0 } }));
       expect(await page.evaluate(() => window.nativeGame3DPlayer.snapshot().entities.find((entity) => entity.id === "player-visual")?.animation?.clipId)).toBe("clip:2");
+      expect(await page.evaluate(() => window.nativeGame3DPlayer.saves.load("progress", "replay"))).toBeNull();
       await page.evaluate(() => window.nativeGame3DPlayer.step({ pressed: [], justPressed: [], axes: { moveZ: -1 }, look: { x: 0, y: 0 } }));
       expect(await page.evaluate(() => window.nativeGame3DPlayer.snapshot().entities.find((entity) => entity.id === "player-visual")?.animation?.clipId)).toBe("clip:1");
       await page.evaluate(() => window.nativeGame3DPlayer.reset());
@@ -99,9 +126,11 @@ describe("offline 3D export", () => {
       expect(await page.evaluate(() => Object.values(window.nativeGame3DPlayer.snapshot().scriptState).some((state) => state !== null && typeof state === "object" && !Array.isArray(state) && state.customPresses === 1))).toBe(true);
       await page.keyboard.up("e");
       await page.evaluate(() => window.nativeGame3DPlayer.reset());
+      await page.evaluate(() => window.nativeGame3DPlayer.saves.remove("progress", "replay"));
       const inputs = Array.from({ length: 195 }, () => ({ pressed: [], justPressed: [], axes: { moveZ: -1 }, look: { x: 0, y: 0 } }));
       inputs.forEach((input) => session.step(input));
       const snapshot = await page.evaluate(async (route) => { await window.nativeGame3DPlayer.advance(route); return window.nativeGame3DPlayer.snapshot(); }, inputs);
+      expect(await page.evaluate(() => window.nativeGame3DPlayer.saves.load("progress", "replay"))).toBeNull();
       expect(snapshot.won).toBe(true);
       expect(snapshot.score).toBe(2);
       expect(snapshot).toEqual(session.snapshot());
@@ -113,3 +142,23 @@ describe("offline 3D export", () => {
     }
   }, 60_000);
 });
+
+
+it("exports the staged 3D player without rebuilding a compiled entry", async () => {
+  const directory = await root();
+  const document = createNative3DGame("installed-export");
+  const staged = await buildStandaloneGame3D({ document, outputDir: join(directory, "staged"), resolveAsset: async () => null });
+  await copyFile(staged.playerPath, join(directory, "game3d-player.js"));
+  await writeFile(join(directory, "standalone-player3d.js"), 'import "@nodetool-ai/absent-development-source";');
+  await symlink(resolve("../../node_modules"), join(directory, "node_modules"), "junction");
+  const backend = join(directory, "server.mjs");
+  await bundle({ entryPoints: [resolve("src/build3d.ts")], outfile: backend,
+    bundle: true, platform: "node", format: "esm", packages: "external" });
+  const output = join(directory, "export");
+  const script = `import { readFile } from "node:fs/promises";
+    import { buildStandaloneGame3D } from ${JSON.stringify(pathToFileURL(backend).href)};
+    const document = JSON.parse(await readFile(${JSON.stringify(staged.gamePath)}, "utf8"));
+    await buildStandaloneGame3D({ document, outputDir: ${JSON.stringify(output)}, resolveAsset: async () => null });`;
+  await promisify(execFile)(process.execPath, ["--conditions=nodetool-dev", "--import=tsx", "--input-type=module", "-e", script]);
+  expect(await readFile(join(output, "game3d-player.js"))).toEqual(await readFile(staged.playerPath));
+}, 30_000);

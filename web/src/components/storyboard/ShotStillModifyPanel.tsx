@@ -17,7 +17,6 @@
  */
 
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import type { Shot, ShotModelRef } from "@nodetool-ai/protocol";
 import { entitiesForShot } from "@nodetool-ai/protocol";
 import { formatUsd } from "@nodetool-ai/model-pricing";
@@ -35,6 +34,7 @@ import {
   SelectField,
   Slider,
   TabGroup,
+  TextArea,
   TextInput,
   ToggleGroup,
   ToggleOption,
@@ -43,7 +43,7 @@ import {
 } from "../ui_primitives";
 import ImageModelSelect from "../properties/ImageModelSelect";
 import ShotMaskPainter, { maskFileFromStrokes } from "./ShotMaskPainter";
-import { ASPECT_OPTIONS, aspectOptionLabel } from "./aspectOptions";
+import { ASPECT_OPTIONS } from "./aspectOptions";
 import { imageValue, modelFieldSx } from "./shotRenderModels";
 import {
   adjustedStill,
@@ -77,13 +77,11 @@ import type { ImageModelValue } from "../../stores/ApiTypes";
 
 type ModifyTab = "edit" | "upscale" | "reframe" | "adjust";
 
-type Translate = ReturnType<typeof useTranslation>["t"];
-
-const TABS = (t: Translate): { value: ModifyTab; label: string }[] => [
-  { value: "edit", label: t("storyboard:attrs.stillTabEdit", { defaultValue: "Edit" }) },
-  { value: "upscale", label: t("storyboard:attrs.stillTabUpscale", { defaultValue: "Upscale" }) },
-  { value: "reframe", label: t("storyboard:attrs.stillTabReframe", { defaultValue: "Reframe" }) },
-  { value: "adjust", label: t("storyboard:attrs.stillTabAdjust", { defaultValue: "Adjust" }) }
+const TABS: { value: ModifyTab; label: string }[] = [
+  { value: "edit", label: "Edit" },
+  { value: "upscale", label: "Upscale" },
+  { value: "reframe", label: "Reframe" },
+  { value: "adjust", label: "Adjust" }
 ];
 
 /**
@@ -100,10 +98,10 @@ const TASK_FOR_MODE: Record<StillVariantMode, ImageModelTask> = {
 
 const NEUTRAL: StillAdjustment = { brightness: 100, contrast: 100, saturation: 100 };
 
-const ADJUSTMENTS: { key: keyof StillAdjustment; labelKey: string; labelEn: string }[] = [
-  { key: "brightness", labelKey: "storyboard:attrs.brightness", labelEn: "Brightness" },
-  { key: "contrast", labelKey: "storyboard:attrs.contrast", labelEn: "Contrast" },
-  { key: "saturation", labelKey: "storyboard:attrs.saturation", labelEn: "Saturation" }
+const ADJUSTMENTS: { key: keyof StillAdjustment; label: string }[] = [
+  { key: "brightness", label: "Brightness" },
+  { key: "contrast", label: "Contrast" },
+  { key: "saturation", label: "Saturation" }
 ];
 
 const previewSx = {
@@ -173,7 +171,6 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
   boardId,
   shot
 }) => {
-  const { t } = useTranslation();
   const [tab, setTab] = useState<ModifyTab>("edit");
   const [editModel, setEditModel] = useState<ImageModelValue | null>(
     () => rememberedFor("image_to_image") ?? rememberedFor("inpainting")
@@ -330,7 +327,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
         setStrokes(null);
       }
     } catch (error) {
-      reportFailure(error, t("storyboard:attrs.theEditDidNotStart", { defaultValue: "The edit did not start." }));
+      reportFailure(error, "The edit did not start.");
     } finally {
       setBusy(false);
       // The mask is an input to this one request, not a take: drop it once the
@@ -345,18 +342,18 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
         });
       }
     }
-  }, [prompt, includeCast, cast, strokes, stillName, run, editMode, editModel, shot.id, t]);
+  }, [prompt, includeCast, cast, strokes, stillName, run, editMode, editModel, shot.id]);
 
   const handleUpscale = useCallback(async () => {
     setBusy(true);
     try {
       await run("upscale", upscaleModel, { scale });
     } catch (error) {
-      reportFailure(error, t("storyboard:attrs.theUpscaleDidNotStart", { defaultValue: "The upscale did not start." }));
+      reportFailure(error, "The upscale did not start.");
     } finally {
       setBusy(false);
     }
-  }, [run, upscaleModel, scale, t]);
+  }, [run, upscaleModel, scale]);
 
   const handleReframe = useCallback(async () => {
     if (!stillUrl) {
@@ -371,11 +368,11 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
         padding: outpaintPadding(size.width, size.height, aspect)
       });
     } catch (error) {
-      reportFailure(error, t("storyboard:attrs.theReframeDidNotStart", { defaultValue: "The reframe did not start." }));
+      reportFailure(error, "The reframe did not start.");
     } finally {
       setBusy(false);
     }
-  }, [stillUrl, run, reframeModel, reframePrompt, aspect, t]);
+  }, [stillUrl, run, reframeModel, reframePrompt, aspect]);
 
   const handleSaveAdjustment = useCallback(async () => {
     if (!stillUrl) {
@@ -401,14 +398,14 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
         },
         onFailed: (error) => {
           setBusy(false);
-          reportFailure(error, t("storyboard:attrs.theAdjustedStillCouldNotBeSaved", { defaultValue: "The adjusted still could not be saved." }));
+          reportFailure(error, "The adjusted still could not be saved.");
         }
       });
     } catch (error) {
       setBusy(false);
-      reportFailure(error, t("storyboard:attrs.theStillCouldNotBeAdjusted", { defaultValue: "The still could not be adjusted." }));
+      reportFailure(error, "The still could not be adjusted.");
     }
-  }, [stillUrl, stillName, adjustment, uploadAsset, appendShotKeyframeVersion, boardId, shot.id, t]);
+  }, [stillUrl, stillName, adjustment, uploadAsset, appendShotKeyframeVersion, boardId, shot.id]);
 
   const handlePainted = useCallback((next: HTMLCanvasElement | null) => {
     setStrokes(next);
@@ -418,9 +415,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
   if (!still) {
     return (
       <Caption color="muted">
-        {t("storyboard:attrs.renderOrUploadAStillFirstEditsStartFromTheCurrentStill", {
-          defaultValue: "Render or upload a still first. Edits start from the current still."
-        })}
+        Render or upload a still first. Edits start from the current still.
       </Caption>
     );
   }
@@ -433,17 +428,17 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
   return (
     <FlexColumn gap={SPACING.md} data-testid="shot-still-modify">
       <TabGroup
-        tabs={TABS(t)}
+        tabs={TABS}
         value={tab}
         onChange={(value) => setTab(value as ModifyTab)}
         size="small"
         fullWidth
-        aria-label={t("storyboard:attrs.changeTheCurrentStill", { defaultValue: "Change the current still" })}
+        aria-label="Change the current still"
       />
 
       {tab === "edit" && (
         <FlexColumn gap={SPACING.md}>
-          <FormField label={t("storyboard:attrs.editModel", { defaultValue: "Edit model" })} sx={modelFieldSx}>
+          <FormField label="Edit model" sx={modelFieldSx}>
             <ImageModelSelect
               value={editModel?.id ?? ""}
               provider={editModel?.provider}
@@ -457,43 +452,33 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               onClick={() => setPainting(true)}
               disabled={!stillUrl}
             >
-              {strokes
-                ? t("storyboard:attrs.repaintArea", { defaultValue: "Repaint area" })
-                : t("storyboard:attrs.paintArea", { defaultValue: "Paint area" })}
+              {strokes ? "Repaint area" : "Paint area"}
             </EditorButton>
             {strokes ? (
               <Chip
                 compact
-                label={t("storyboard:attrs.onlyThePaintedAreaChanges", { defaultValue: "Only the painted area changes" })}
+                label="Only the painted area changes"
                 onDelete={() => setStrokes(null)}
               />
             ) : (
               <Caption color="secondary">
-                {t("storyboard:attrs.withoutAPaintedAreaTheWholeStillCanChange", {
-                  defaultValue: "Without a painted area the whole still can change."
-                })}
+                Without a painted area the whole still can change.
               </Caption>
             )}
           </FlexRow>
-          <TextInput
-            label={t("storyboard:attrs.whatToChange", { defaultValue: "What to change" })}
-            placeholder={t("storyboard:attrs.makeHerScarfDeepRed", { defaultValue: "Make her scarf deep red" })}
-            multiline
+          <TextArea
+            label="What to change"
+            placeholder="Make her scarf deep red"
             rows={3}
             value={prompt}
-            onChange={(event) => setPrompt(event.target.value)}
+            onChange={(value) => setPrompt(value)}
           />
           {cast.length > 0 && (
             <LabeledSwitch
               id={`shot-modify-cast-${shot.id}`}
               size="small"
-              label={t("storyboard:attrs.keepNamesOnModel", {
-                defaultValue: "Keep {{names}} on model",
-                names: cast.map((entity) => entity.name).join(", ")
-              })}
-              description={t("storyboard:attrs.sendsTheCastsReferenceImagesWithTheEdit", {
-                defaultValue: "Sends the cast's reference images with the edit."
-              })}
+              label={`Keep ${cast.map((entity) => entity.name).join(", ")} on model`}
+              description="Sends the cast's reference images with the edit."
               checked={includeCast}
               onChange={setIncludeCast}
             />
@@ -501,19 +486,10 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
           {editModel && !editModelFits && (
             <Caption color="error">
               {strokes
-                ? t("storyboard:attrs.thisModelCannotChangeOnlyAPaintedArea", {
-                    defaultValue:
-                      "This model cannot change only a painted area. Pick an inpainting model, or clear the area."
-                  })
+                ? "This model cannot change only a painted area. Pick an inpainting model, or clear the area."
                 : supports(editModel, "inpainting")
-                  ? t("storyboard:attrs.thisModelOnlyChangesAPaintedArea", {
-                      defaultValue:
-                        "This model only changes a painted area. Paint an area, or pick an editing model."
-                    })
-                  : t("storyboard:attrs.thisModelCannotEditAnExistingImage", {
-                      defaultValue:
-                        "This model cannot edit an existing image. Pick an editing model."
-                    })}
+                  ? "This model only changes a painted area. Paint an area, or pick an editing model."
+                  : "This model cannot edit an existing image. Pick an editing model."}
             </Caption>
           )}
           <EditorButton
@@ -522,14 +498,14 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
             onClick={() => void handleEdit()}
             disabled={!canSpend || !editModel || !editModelFits || !prompt.trim()}
           >
-            {`${t("storyboard:attrs.generateEdit", { defaultValue: "Generate edit" })}${priceSuffix(asRef(editModel))}`}
+            {`Generate edit${priceSuffix(asRef(editModel))}`}
           </EditorButton>
         </FlexColumn>
       )}
 
       {tab === "upscale" && (
         <FlexColumn gap={SPACING.md}>
-          <FormField label={t("storyboard:attrs.upscaleModel", { defaultValue: "Upscale model" })} sx={modelFieldSx}>
+          <FormField label="Upscale model" sx={modelFieldSx}>
             <ImageModelSelect
               value={upscaleModel?.id ?? ""}
               provider={upscaleModel?.provider}
@@ -537,7 +513,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               onChange={setUpscaleModel}
             />
           </FormField>
-          <FormField label={t("storyboard:attrs.scale", { defaultValue: "Scale" })}>
+          <FormField label="Scale">
             <ToggleGroup
               exclusive
               size="small"
@@ -548,7 +524,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
                   setScale(next);
                 }
               }}
-              aria-label={t("storyboard:attrs.upscaleFactor", { defaultValue: "Upscale factor" })}
+              aria-label="Upscale factor"
             >
               <ToggleOption value={2}>2×</ToggleOption>
               <ToggleOption value={4}>4×</ToggleOption>
@@ -560,27 +536,24 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
             onClick={() => void handleUpscale()}
             disabled={!canSpend || !upscaleModel}
           >
-            {`${t("storyboard:attrs.stillTabUpscale", { defaultValue: "Upscale" })}${priceSuffix(asRef(upscaleModel))}`}
+            {`Upscale${priceSuffix(asRef(upscaleModel))}`}
           </EditorButton>
         </FlexColumn>
       )}
 
       {tab === "reframe" && (
         <FlexColumn gap={SPACING.md}>
-          <FormField label={t("storyboard:attrs.newAspectRatio", { defaultValue: "New aspect ratio" })}>
+          <FormField label="New aspect ratio">
             <SelectField
-              label={t("storyboard:attrs.newAspectRatio", { defaultValue: "New aspect ratio" })}
+              label="New aspect ratio"
               hideLabel
               size="small"
               value={aspect}
               onChange={(value) => setAspect(String(value))}
-              options={ASPECT_OPTIONS.map((option) => ({
-                value: option.value,
-                label: aspectOptionLabel(option)
-              }))}
+              options={[...ASPECT_OPTIONS]}
             />
           </FormField>
-          <FormField label={t("storyboard:attrs.reframeModel", { defaultValue: "Reframe model" })} sx={modelFieldSx}>
+          <FormField label="Reframe model" sx={modelFieldSx}>
             <ImageModelSelect
               value={reframeModel?.id ?? ""}
               provider={reframeModel?.provider}
@@ -589,8 +562,8 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
             />
           </FormField>
           <TextInput
-            label={t("storyboard:attrs.whatFillsTheNewSpaceOptional", { defaultValue: "What fills the new space (optional)" })}
-            placeholder={t("storyboard:attrs.leaveEmptyToContinueTheScene", { defaultValue: "Leave empty to continue the scene" })}
+            label="What fills the new space (optional)"
+            placeholder="Leave empty to continue the scene"
             value={reframePrompt}
             onChange={(event) => setReframePrompt(event.target.value)}
           />
@@ -600,7 +573,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
             onClick={() => void handleReframe()}
             disabled={!canSpend || !reframeModel || !stillUrl}
           >
-            {`${t("storyboard:attrs.reframeToAspect", { defaultValue: "Reframe to {{aspect}}", aspect })}${priceSuffix(asRef(reframeModel))}`}
+            {`Reframe to ${aspect}${priceSuffix(asRef(reframeModel))}`}
           </EditorButton>
         </FlexColumn>
       )}
@@ -613,16 +586,12 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               filter: adjustmentFilter(adjustment)
             }}
           >
-            <ResponsiveImage
-              locator={still}
-              alt={t("storyboard:attrs.adjustedStillPreview", { defaultValue: "Adjusted still preview" })}
-              fit="contain"
-            />
+            <ResponsiveImage locator={still} alt="Adjusted still preview" fit="contain" />
           </Box>
-          {ADJUSTMENTS.map(({ key, labelKey, labelEn }) => (
+          {ADJUSTMENTS.map(({ key, label }) => (
             <FlexRow key={key} align="center" gap={SPACING.md}>
               <Caption color="secondary" sx={{ minWidth: "6rem" }} id={`shot-adjust-${key}-${shot.id}`}>
-                {t(labelKey, { defaultValue: labelEn })}
+                {label}
               </Caption>
               <Slider
                 density="compact"
@@ -647,27 +616,23 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               onClick={() => setAdjustment(NEUTRAL)}
               disabled={!adjusted}
             >
-              {t("storyboard:attrs.reset", { defaultValue: "Reset" })}
+              Reset
             </EditorButton>
             <EditorButton
               variant="contained"
               color="primary"
               onClick={() => void handleSaveAdjustment()}
               disabled={!adjusted || busy || !stillUrl}
-              title={t("storyboard:attrs.madeInYourBrowserNoProviderInvolved", {
-                defaultValue: "Made in your browser, no provider involved"
-              })}
+              tooltip="Made in your browser, no provider involved"
             >
-              {t("storyboard:attrs.saveAsNewTake", { defaultValue: "Save as new take" })}
+              Save as new take
             </EditorButton>
           </FlexRow>
         </FlexColumn>
       )}
 
       <Caption color="secondary">
-        {t("storyboard:attrs.eachChangeArrivesAsANewTake", {
-          defaultValue: "Each change arrives as a new take. Use Set current to put it on the shot."
-        })}
+        Each change arrives as a new take. Use Set current to put it on the shot.
       </Caption>
 
       {painting && stillUrl && (

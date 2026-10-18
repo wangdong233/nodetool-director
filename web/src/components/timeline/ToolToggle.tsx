@@ -8,7 +8,7 @@
  * shortcut of the active keyboard layout and a one-line description. The
  * three drop modes are one exclusive choice, announced as a radio group.
  */
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -21,6 +21,7 @@ import LinkOutlinedIcon from "@mui/icons-material/LinkOutlined";
 import LinkOffOutlinedIcon from "@mui/icons-material/LinkOffOutlined";
 import GridGoldenratioOutlinedIcon from "@mui/icons-material/GridGoldenratioOutlined";
 import StraightenOutlinedIcon from "@mui/icons-material/StraightenOutlined";
+import MyLocationOutlinedIcon from "@mui/icons-material/MyLocationOutlined";
 import type { TempoGridDivision } from "@nodetool-ai/timeline";
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 
@@ -37,11 +38,10 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
-import { localizedGridDivisionOptions } from "./Tracks/tempoGrid";
-import { useTranslation } from "react-i18next";
 import { useSettingsStore } from "../../stores/SettingsStore";
 import { GRID_DIVISION_OPTIONS } from "./Tracks/tempoGrid";
 import { formatActionShortcut } from "./timelineKeymap";
+
 /** Custom pointer cursor — monoline, 1.6px stroke. */
 const PointerIcon: React.FC = () => (
   <svg
@@ -114,17 +114,21 @@ const tooltipDescriptionStyles = css({
 
 /**
  * The phone toolbar is one 44px row on a 390px viewport, and this strip now
- * carries eight toggles plus the grid select — more than fits. Scroll it
+ * carries nine toggles plus the grid select — more than fits. Scroll it
  * rather than clip it, the way the track header's control row does: a control
  * pushed past the edge of a `overflow: hidden` toolbar cannot be reached at all.
  */
-const compactRowStyles = css({
-  overflowX: "auto",
-  scrollbarWidth: "none",
-  minWidth: 0,
-  "&::-webkit-scrollbar": { display: "none" },
-  "& > *": { flexShrink: 0 }
-});
+const compactRowStyles = (theme: Theme) =>
+  css({
+    overflowX: "auto",
+    scrollbarWidth: "none",
+    minWidth: 0,
+    "&::-webkit-scrollbar": { display: "none" },
+    "& > *": { flexShrink: 0 },
+    // Fade the trailing edge so a strip that runs on reads as scrollable
+    // rather than cut off.
+    maskImage: `linear-gradient(to right, ${theme.vars.palette.background.default} calc(100% - ${getSpacingPx(SPACING.xl)}), transparent)`
+  });
 
 /** The drop-mode radio group sits inside the scrolling phone strip. */
 const compactGroupStyles = css({
@@ -203,7 +207,8 @@ interface ToolToggleProps {
 }
 
 export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) => {
-  const { t } = useTranslation();
+  const theme = useTheme();
+  const compactRowCss = useMemo(() => compactRowStyles(theme), [theme]);
   const activeTool = useTimelineUIStore((s) => s.activeTool);
   const setActiveTool = useTimelineUIStore((s) => s.setActiveTool);
   const rippleMode = useTimelineUIStore((s) => s.rippleMode);
@@ -212,6 +217,10 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
   const setDropMode = useTimelineUIStore((s) => s.setDropMode);
   const snapEnabled = useTimelineUIStore((s) => s.snapEnabled);
   const toggleSnap = useTimelineUIStore((s) => s.toggleSnap);
+  const followPlayhead = useTimelineUIStore((s) => s.followPlayhead);
+  const toggleFollowPlayhead = useTimelineUIStore(
+    (s) => s.toggleFollowPlayhead
+  );
   const rulerMode = useTimelineUIStore((s) => s.rulerMode);
   const toggleRulerMode = useTimelineUIStore((s) => s.toggleRulerMode);
   const gridDivision = useTimelineUIStore((s) => s.gridDivision);
@@ -251,27 +260,30 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
     <FlexRow
       gap={0.5}
       align="center"
-      css={compact ? compactRowStyles : undefined}
+      css={compact ? compactRowCss : undefined}
     >
       <ToolButton
-        label={t("timeline:tools.select", { defaultValue: "Select" })}
-        shortcut={formatActionShortcut(preset, "selectTool")}        active={activeTool === "select"}
+        label="Select"
+        shortcut={formatActionShortcut(preset, "selectTool")}
+        active={activeTool === "select"}
         compact={compact}
         onClick={() => setActiveTool("select")}
       >
         <PointerIcon />
       </ToolButton>
       <ToolButton
-        label={t("common:action.cut", { defaultValue: "Cut" })}
-        shortcut={formatActionShortcut(preset, "cutTool")}        active={activeTool === "cut"}
+        label="Cut"
+        shortcut={formatActionShortcut(preset, "cutTool")}
+        active={activeTool === "cut"}
         compact={compact}
         onClick={() => setActiveTool("cut")}
       >
         <ContentCutOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label={t("timeline:tools.ripple", { defaultValue: "Ripple" })}
-        description={t("timeline:tools.rippleDesc", { defaultValue: "Trims and deletes close the gap" })}        active={rippleMode}
+        label="Ripple"
+        description="Trims and deletes close the gap"
+        active={rippleMode}
         compact={compact}
         onClick={toggleRippleMode}
       >
@@ -282,32 +294,35 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         gap={0.5}
         align="center"
         role="radiogroup"
-        aria-label={t("timeline:tools.dropMode", { defaultValue: "Drop mode" })}
+        aria-label="Drop mode"
         onKeyDown={handleDropModeKeyDown}
         css={compact ? compactGroupStyles : undefined}
       >
       <ToolButton
-        label={t("timeline:tools.overwrite", { defaultValue: "Overwrite" })}
+        label="Overwrite"
         role="radio"
-        description={t("timeline:tools.overwriteDesc", { defaultValue: "A drop replaces what it covers" })}        active={dropMode === "overwrite"}
+        description="A drop replaces what it covers"
+        active={dropMode === "overwrite"}
         compact={compact}
         onClick={() => setDropMode("overwrite")}
       >
         <FlipToFrontOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label={t("timeline:tools.insert", { defaultValue: "Insert" })}
+        label="Insert"
         role="radio"
-        description={t("timeline:tools.insertDesc", { defaultValue: "A drop pushes later clips right (or Ctrl+drag in any mode)" })}        active={dropMode === "insert"}
+        description="A drop pushes later clips right (or Ctrl+drag in any mode)"
+        active={dropMode === "insert"}
         compact={compact}
         onClick={() => setDropMode("insert")}
       >
         <KeyboardTabOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label={t("timeline:tools.overlap", { defaultValue: "Overlap" })}
+        label="Overlap"
         role="radio"
-        description={t("timeline:tools.overlapDesc", { defaultValue: "A drop stacks and cross-fades" })}        active={dropMode === "overlap"}
+        description="A drop stacks and cross-fades"
+        active={dropMode === "overlap"}
         compact={compact}
         onClick={() => setDropMode("overlap")}
       >
@@ -316,39 +331,51 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       </FlexRow>
       <span css={dividerStyles} aria-hidden />
       <ToolButton
-        label={t("ui2:attrs.snap", { defaultValue: "Snap" })}
+        label="Snap"
         shortcut={formatActionShortcut(preset, "toggleSnap")}
-        description={t("timeline:tools.snapDesc", { defaultValue: "Hold Alt while dragging to bypass" })}        active={snapEnabled}
+        description="Hold Alt while dragging to bypass"
+        active={snapEnabled}
         compact={compact}
         onClick={toggleSnap}
       >
         <GridGoldenratioOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label={t("editor:ui.bars", { defaultValue: "Bars" })}
-        description={t("timeline:tools.barsDesc", { defaultValue: "The ruler counts bars and beats, not seconds" })}        active={rulerMode === "bars"}
+        label="Bars"
+        description="The ruler counts bars and beats, not seconds"
+        active={rulerMode === "bars"}
         compact={compact}
         onClick={toggleRulerMode}
       >
         <StraightenOutlinedIcon />
       </ToolButton>
       <SelectField
-        label={t("timeline:tools.gridDivision", { defaultValue: "Grid division" })}
+        label="Grid division"
         hideLabel
         size="small"
         value={gridDivision}
-        options={localizedGridDivisionOptions(t)}
+        options={GRID_DIVISION_OPTIONS}
         onChange={handleGridChange}
         css={gridSelectStyles}
       />
       <span css={dividerStyles} aria-hidden />
       <ToolButton
-        label={t("timeline:tools.linked", { defaultValue: "Linked" })}
-        description={t("timeline:tools.linkedDesc", { defaultValue: "Video and its audio move together" })}        active={linkedSelection}
+        label="Linked"
+        description="Video and its audio move together"
+        active={linkedSelection}
         compact={compact}
         onClick={() => setLinkedSelection(!linkedSelection)}
       >
         {linkedSelection ? <LinkOutlinedIcon /> : <LinkOffOutlinedIcon />}
+      </ToolButton>
+      <ToolButton
+        label="Follow"
+        description="The tracks scroll to keep the playhead in view during playback"
+        active={followPlayhead}
+        compact={compact}
+        onClick={toggleFollowPlayhead}
+      >
+        <MyLocationOutlinedIcon />
       </ToolButton>
     </FlexRow>
   );

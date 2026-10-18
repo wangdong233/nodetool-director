@@ -39,6 +39,7 @@ import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import FolderCopyOutlinedIcon from "@mui/icons-material/FolderCopyOutlined";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import ExploreOutlinedIcon from "@mui/icons-material/ExploreOutlined";
 
 import type { NodeMetadata } from "../stores/ApiTypes";
 import {
@@ -115,21 +116,21 @@ const LEFT_PANEL_CATEGORY_BY_ID: Readonly<
   },
   favorites: {
     id: "favorites",
-    label: "Favorite Nodes",
+    label: "Favorite nodes",
     description: "Find nodes that you saved as favorites.",
     docsTopic: "nodes",
     icon: <StarIcon />
   },
   history: {
     id: "history",
-    label: "Recent Nodes",
+    label: "Recent nodes",
     description: "Reuse nodes that you added recently.",
     docsTopic: "nodes",
     icon: <HistoryIcon />
   },
   settings: {
     id: "settings",
-    label: "Workflow Settings",
+    label: "Workflow settings",
     description: "Edit settings for the current workflow.",
     docsTopic: "workflows",
     icon: <SettingsIcon />
@@ -184,6 +185,14 @@ const LEFT_PANEL_CATEGORY_BY_ID: Readonly<
     docsTopic: "storyboards",
     icon: <PersonOutlineOutlinedIcon />
   },
+  examples: {
+    id: "examples",
+    label: "Examples",
+    description:
+      "Open shipped examples, or drag 3D models, sketches and timelines into your work.",
+    docsTopic: "templates",
+    icon: <ExploreOutlinedIcon />
+  },
   timelines: {
     id: "timelines",
     label: "Timelines",
@@ -193,7 +202,7 @@ const LEFT_PANEL_CATEGORY_BY_ID: Readonly<
   },
   jsscripts: {
     id: "jsscripts",
-    label: "JS Scripts",
+    label: "JS scripts",
     description: "Create and manage reusable JavaScript code.",
     docsTopic: "scripts",
     icon: <DataObjectOutlinedIcon />
@@ -242,6 +251,7 @@ export const LEFT_PANEL_DIRECT: readonly LeftPanelTopLevelCategory[] = [
   LEFT_PANEL_CATEGORY_BY_ID.chats,
   LEFT_PANEL_CATEGORY_BY_ID.library,
   LEFT_PANEL_CATEGORY_BY_ID.entities,
+  LEFT_PANEL_CATEGORY_BY_ID.examples,
   LEFT_PANEL_CATEGORY_BY_ID.nodes
 ];
 

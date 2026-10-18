@@ -1,5 +1,4 @@
 import React, { memo, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   isMediaTrackStale,
@@ -11,12 +10,13 @@ import {
 
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import {
+  AlertBanner,
   Caption,
   Checkbox,
   Dialog,
   FlexColumn,
   FlexRow,
-  Label,
+  FormField,
   Radio,
   RadioSet,
   SelectField,
@@ -49,7 +49,6 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
   sequence,
   mediaTracks
 }) => {
-  const { t } = useTranslation();
   const [formats, setFormats] = useState<Set<string>>(new Set(["9:16"]));
   const [strategy, setStrategy] = useState<AdaptFormatStrategy>("smart");
   const [safeMarginPercent, setSafeMarginPercent] = useState(10);
@@ -137,100 +136,99 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
     isCreating ||
     (strategy === "track" && trackId === "");
 
+  const strategyHelp =
+    [
+      readyTracks.length === 0
+        ? "Track a subject first to use “Follow selected object.”"
+        : undefined,
+      smartUnavailable
+        ? "Smart reframe needs a current subject track or authored framing for every visual clip. Use Center until those signals exist."
+        : undefined
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
+
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      title={t("timeline:adapt.title", { defaultValue: "Adapt format" })}
+      title="Adapt format"
       onConfirm={() => void handleCreate()}
-      onCancel={onClose}
       confirmText={
-        formats.size > 1 ? t("timeline:adapt.createMany", { defaultValue: "Create adaptations" }) : t("timeline:adapt.createOne", { defaultValue: "Create adaptation" })
+        formats.size > 1 ? "Create adaptations" : "Create adaptation"
       }
-      cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       confirmDisabled={cannotCreate}
       isLoading={isCreating}
     >
-      <FlexColumn gap={SPACING.lg} sx={{ py: SPACING.md }}>
-        <FlexColumn gap={SPACING.xs}>
-          <Label>{t("timeline:attrs.original", { defaultValue: "Original" })}</Label>
+      <FlexColumn gap={SPACING.lg}>
+        <FormField label="Original">
           <Text size="small">
             {sequence ? `${sequence.width} × ${sequence.height}` : "—"}
           </Text>
-        </FlexColumn>
+        </FormField>
 
-        <FlexColumn gap={SPACING.xs}>
-          <Label>{t("timeline:attrs.targetFormats", { defaultValue: "Target formats" })}</Label>
-          {FORMAT_OPTIONS.map((format) => (
-            <Checkbox
-              key={format.value}
-              size="small"
-              checked={formats.has(format.value)}
-              onChange={() => toggleFormat(format.value)}
-              label={`${format.label} — ${format.dimensions}`}
-            />
-          ))}
-        </FlexColumn>
+        <FormField label="Target formats">
+          <FlexColumn gap={SPACING.xs}>
+            {FORMAT_OPTIONS.map((format) => (
+              <Checkbox
+                key={format.value}
+                size="small"
+                checked={formats.has(format.value)}
+                onChange={() => toggleFormat(format.value)}
+                label={`${format.label} — ${format.dimensions}`}
+              />
+            ))}
+          </FlexColumn>
+        </FormField>
 
-        <FlexColumn gap={SPACING.xs}>
-          <Label>{t("timeline:attrs.strategy", { defaultValue: "Strategy" })}</Label>
+        <FormField label="Strategy" helperText={strategyHelp}>
           <RadioSet value={strategy} onChange={handleStrategyChange}>
-            <Radio value="center" label={t("timeline:adapt.center", { defaultValue: "Center" })} size="small" />
+            <Radio value="center" label="Center" size="small" />
             <Radio
               value="smart"
-              label={t("timeline:attrs.smartReframe", { defaultValue: "Smart reframe" })}
+              label="Smart reframe"
               size="small"
               disabled={smartUnavailable}
             />
             <Radio
               value="track"
-              label={t("timeline:adapt.followObject", { defaultValue: "Follow selected object" })}
+              label="Follow selected object"
               size="small"
               disabled={readyTracks.length === 0}
             />
           </RadioSet>
-          {strategy === "track" && (
-            <SelectField
-              label={t("timeline:adapt.reframeSubject", { defaultValue: "Reframe subject" })}
-              value={trackId}
-              onChange={setTrackId}
-              options={trackOptions}
-              size="small"
-            />
-          )}
-          {readyTracks.length === 0 && (
-            <Caption color="muted">
-              {t("editor:ui.trackASubjectFirstToUseFollowSelectedObject")}
-            </Caption>
-          )}
-          {smartUnavailable && (
-            <Caption color="muted">
-              Smart reframe needs a current subject track or authored framing
-              for every visual clip. Use Center until those signals exist.
-            </Caption>
-          )}
-        </FlexColumn>
+        </FormField>
+        {strategy === "track" && (
+          <SelectField
+            label="Reframe subject"
+            value={trackId}
+            onChange={setTrackId}
+            options={trackOptions}
+            size="small"
+          />
+        )}
 
-        <FlexColumn gap={SPACING.xs}>
-          <FlexRow justify="space-between" align="center">
-            <Label>{t("timeline:attrs.safeMargin", { defaultValue: "Safe margin" })}</Label>
+        <FormField label="Safe margin">
+          <FlexRow gap={SPACING.lg} align="center">
+            <Slider
+              value={safeMarginPercent}
+              min={0}
+              max={30}
+              step={1}
+              onChange={(_event, value) =>
+                setSafeMarginPercent(Array.isArray(value) ? value[0] : value)
+              }
+              aria-label="Safe margin"
+              sx={{ flex: 1 }}
+            />
             <Text size="small">{safeMarginPercent}%</Text>
           </FlexRow>
-          <Slider
-            value={safeMarginPercent}
-            min={0}
-            max={30}
-            step={1}
-            onChange={(_event, value) =>
-              setSafeMarginPercent(Array.isArray(value) ? value[0] : value)
-            }
-            aria-label={t("timeline:adapt.safeMargin", { defaultValue: "Safe margin" })}
-          />
-        </FlexColumn>
+        </FormField>
 
-        {error && <Caption color="error">{error}</Caption>}
+        {error && <AlertBanner severity="error">{error}</AlertBanner>}
         <Caption color="muted">
-          {t("timeline:adapt.newSequencesShareMedia", { defaultValue: "New sequences share the source media. The original edit is not resized or changed." })}
+          New sequences share the source media. The original edit is not resized
+          or changed.
         </Caption>
       </FlexColumn>
     </Dialog>

@@ -3,7 +3,6 @@ import { css } from "@emotion/react";
 import { useTheme, type Theme } from "@mui/material/styles";
 import { lazy, memo, Suspense, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import type { ExampleGameSummary } from "@nodetool-ai/protocol/game.js";
 import {
   useExampleGames,
@@ -14,7 +13,9 @@ import {
   creationProjectId,
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
+import useOnboardingStore from "../../stores/OnboardingStore";
 import {
+  AutoGrid,
   Box,
   FlexRow,
   BORDER_RADIUS,
@@ -27,9 +28,12 @@ import {
   ResponsiveImage,
   SPACING,
   Text,
+  TYPOGRAPHY,
   getSpacingPx
 } from "../ui_primitives";
-import { SectionHeader, useSectionWrap } from "./dashboardChrome";
+import { NO_EXAMPLE_NEEDS } from "../../utils/exampleNeeds";
+import { DashboardSectionHeader, useSectionWrap } from "./dashboardChrome";
+import ExampleNeedsPill from "./ExampleNeedsPill";
 
 const ExampleGamePlayView = lazy(() => import("./ExampleGamePlayView"));
 
@@ -37,16 +41,11 @@ const styles = (theme: Theme) =>
   css({
     paddingTop: getSpacingPx(SPACING.xxl),
     paddingBottom: getSpacingPx(SPACING.xxxl),
-    ".game-grid": {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))",
-      gap: getSpacingPx(SPACING.md)
-    },
     ".game-card": {
       minWidth: 0,
       overflow: "hidden",
       border: `1px solid ${theme.vars.palette.divider}`,
-      borderRadius: BORDER_RADIUS.lg,
+      borderRadius: BORDER_RADIUS.md,
       background: theme.vars.palette.c_node_bg
     },
     ".game-poster": { background: theme.vars.palette.common.black }
@@ -65,22 +64,24 @@ const GameCard = memo(function GameCard({
   onInstall,
   onPlay
 }: GameCardProps) {
-  const { t } = useTranslation();
   const handleClick = useCallback(() => onInstall(game), [game, onInstall]);
   return (
     <article className="game-card">
       <ResponsiveImage
         className="game-poster"
         locator={game.posterUri}
-        alt={t("editor:ui.gameplayAria", { defaultValue: "{{name}} gameplay", name: game.name })}
+        alt={`${game.name} gameplay`}
         aspectRatio="16/9"
         loading="lazy"
+        showSkeleton
+        preferThumbnail
       />
       <FlexColumn gap={SPACING.xs} padding={PADDING.normal}>
-        <Text size="normal">{game.name}</Text>
+        <Text sx={TYPOGRAPHY.sans.label}>{game.name}</Text>
         <Caption size="smaller" color="secondary">
           {game.description}
         </Caption>
+        <ExampleNeedsPill needs={NO_EXAMPLE_NEEDS} />
         <Caption size="smaller" color="muted">
           {game.controls}
         </Caption>
@@ -90,7 +91,7 @@ const GameCard = memo(function GameCard({
             variant="contained"
             onClick={() => onPlay(game)}
           >
-            {t("game:toolbar.play", { defaultValue: "Play" })}
+            Play
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -99,9 +100,7 @@ const GameCard = memo(function GameCard({
             onClick={handleClick}
             sx={{ alignSelf: "flex-start" }}
           >
-            {installing
-              ? t("editor:ui.addingGame", { defaultValue: "Adding game…" })
-              : t("editor:ui.installGame", { defaultValue: "Install game" })}
+            {installing ? "Adding game…" : "Install game"}
           </EditorButton>
         </FlexRow>
       </FlexColumn>
@@ -109,13 +108,21 @@ const GameCard = memo(function GameCard({
   );
 });
 
-const DashboardExampleGames = () => {
-  const { t } = useTranslation();
+interface DashboardExampleGamesProps {
+  /** Opens the Game guided flow. The home screen passes it, so a person
+   *  looking for the game maker under Games finds it (study-6-I6). */
+  onMakeGame?: () => void;
+}
+
+const DashboardExampleGames = ({ onMakeGame }: DashboardExampleGamesProps) => {
   const [playingGame, setPlayingGame] = useState<ExampleGameSummary | null>(
     null
   );
   const handlePlay = useCallback(
-    (game: ExampleGameSummary) => setPlayingGame(game),
+    (game: ExampleGameSummary) => {
+      setPlayingGame(game);
+      useOnboardingStore.getState().markStep("keep-creating");
+    },
     []
   );
   const theme = useTheme();
@@ -143,41 +150,45 @@ const DashboardExampleGames = () => {
               projectId: created.game.projectId
             });
             navigate("/workspace");
+            useOnboardingStore.getState().markStep("keep-creating");
           },
           onError: (error) => {
             addNotification({
               type: "error",
               alert: true,
-              content: t("editor:ui.couldntAddNameError", {
-                defaultValue: "Couldn't add {{name}}: {{error}}",
-                name: game.name,
-                error: error.message
-              })
+              content: `Couldn't add ${game.name}: ${error.message}`
             });
           }
         }
       );
     },
-    [addNotification, install, navigate, openTab, t]
+    [addNotification, install, navigate, openTab]
   );
 
   const games = data ?? [];
   return (
-    <section css={styles(theme)} aria-label={t("editor:ui.exampleGames", { defaultValue: "Example games" })}>
+    <section css={styles(theme)} aria-label="Example games">
       <div css={sectionWrap}>
-        <SectionHeader
-          title={t("editor:ui.startFromAGame", { defaultValue: "Start from a game" })}
-          count={t("editor:ui.gamesCount", { defaultValue: "{{count}} games", count: String(games.length) })}
-        />
+        <DashboardSectionHeader
+          title="Start from a game"
+          count={`${games.length} games`}
+        >
+          {onMakeGame && (
+            <EditorButton
+              variant="contained"
+              density="compact"
+              onClick={onMakeGame}
+            >
+              Make a game
+            </EditorButton>
+          )}
+        </DashboardSectionHeader>
         <Caption
-          size="small"
           color="secondary"
           sx={{ marginBottom: getSpacingPx(SPACING.sm) }}
         >
-          {t("editor:ui.playAGameDirectlyOrInstallACopyToChangeItsArtLevelsAndRules", {
-            defaultValue:
-              "Play a game directly, or install a copy to change its art, levels and rules."
-          })}
+          Play a game directly, or install a copy to change its art, levels and
+          rules.
         </Caption>
         {playingGame && (
           <FlexColumn gap={SPACING.md} sx={{ mb: SPACING.xl }}>
@@ -185,11 +196,11 @@ const DashboardExampleGames = () => {
               onClick={() => setPlayingGame(null)}
               sx={{ alignSelf: "flex-end" }}
             >
-              {t("editor:ui.closeGame", { defaultValue: "Close game" })}
+              Close game
             </EditorButton>
             <Box sx={{ aspectRatio: "16 / 9", position: "relative" }}>
               <Box sx={{ position: "absolute", inset: 0 }}>
-                <Suspense fallback={<LoadingSpinner text={t("editor:ui.loadingGame", { defaultValue: "Loading game" })} />}>
+                <Suspense fallback={<LoadingSpinner text="Loading game" />}>
                   <ExampleGamePlayView
                     key={playingGame.slug}
                     slug={playingGame.slug}
@@ -201,26 +212,26 @@ const DashboardExampleGames = () => {
         )}
         {playingGame ? null : isLoading ? (
           <FlexColumn align="center" padding={PADDING.spacious}>
-            <LoadingSpinner size="medium" text={t("editor:ui.loadingGames", { defaultValue: "Loading games" })} />
+            <LoadingSpinner size="medium" text="Loading games" />
           </FlexColumn>
         ) : isError ? (
           <EmptyState
             variant="error"
-            title={t("editor:ui.couldntLoadGames", { defaultValue: "Couldn't load games" })}
-            description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })}
-            actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
+            title="Couldn't load games"
+            description="Try again in a moment."
+            actionText="Retry"
             onAction={() => refetch()}
           />
         ) : games.length === 0 ? (
           <EmptyState
             variant="no-data"
-            title={t("editor:ui.noGamesAvailable", { defaultValue: "No games available" })}
-            description={t("editor:ui.exampleGamesWillAppearHereWhenThisInstallShipsThem", {
-              defaultValue: "Example games will appear here when this install ships them."
-            })}
+            title="No games available"
+            description="Example games will appear here when this install ships them."
+            actionText={onMakeGame ? "Make a game" : undefined}
+            onAction={onMakeGame}
           />
         ) : (
-          <div className="game-grid">
+          <AutoGrid minItemWidth={360} fill="fit">
             {games.map((game) => (
               <GameCard
                 key={game.slug}
@@ -232,7 +243,7 @@ const DashboardExampleGames = () => {
                 onPlay={handlePlay}
               />
             ))}
-          </div>
+          </AutoGrid>
         )}
       </div>
     </section>

@@ -11,6 +11,9 @@ import {
   type Modality,
 } from "@/data/modelEntries";
 import { modelComparisonEntries } from "@/data/modelComparisonEntries";
+import { modelDirectoryCounts } from "@/data/modelDirectory";
+import ModelDirectorySection from "@/components/models/ModelDirectorySection";
+import { DEFAULT_OG_IMAGES } from "@/lib/defaultOgImage";
 
 const BASE_URL = "https://nodetool.ai";
 
@@ -21,6 +24,7 @@ export const metadata: Metadata = {
   description: hub.description,
   alternates: { canonical: "/models" },
   openGraph: {
+    images: DEFAULT_OG_IMAGES,
     title: hub.title,
     description: hub.description,
     url: `${BASE_URL}/models`,
@@ -71,10 +75,20 @@ export default function ModelsHubPage() {
             visual workflow, put them one after another, or give two the same
             prompt and compare. You use your own keys at provider prices.
           </p>
+          <Link
+            href="#all-models"
+            className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-blue-300 hover:text-blue-200 focus-ring"
+          >
+            See all {modelDirectoryCounts().models.toLocaleString()} supported
+            models
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </section>
 
         <ModelGroup title="Video models" models={video} />
         <ModelGroup title="Image models" models={image} />
+
+        <ModelDirectorySection />
 
         {/* Comparisons */}
         <section

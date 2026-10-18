@@ -7,37 +7,47 @@ import { useMediaQuery } from "@mui/material";
 import {
   Tooltip,
   Caption,
-  Divider,
   LoadingSpinner,
   ToolbarIconButton,
   FlexRow,
   FlexColumn,
   Box,
   Collapse,
-  BORDER_RADIUS,
-  List,
-  ListItemButton,
   Popover,
   Text,
   EditorButton,
-  SPACING
+  EmptyState,
+  ListItemButton,
+  SPACING,
+  menuPaperStyles
 } from "../../ui_primitives";
+import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore";
+import {
+  getProviderDisplayName,
+  isLocalProvider
+} from "../../../utils/providerDisplay";
 import { capabilityForModelType, useModelProviderSetup } from "../../../hooks/useModelProviderSetup";
 import type { OnboardingCapability } from "../../../stores/ProviderOnboardingStore";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
+import KeyIcon from "@mui/icons-material/VpnKey";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 
-import StarIcon from "@mui/icons-material/Star"; // Favorite
+import StarIcon from "@mui/icons-material/StarBorder"; // Favorite
 import HistoryIcon from "@mui/icons-material/History"; // Recent
 import SearchInput from "../../search/SearchInput";
 import ModelFiltersBar from "../ModelFiltersBar";
 import ProviderList from "../ProviderList";
+import ModelMenuNavItem from "./ModelMenuNavItem";
 import ModelList from "../ModelList";
 import type { DownloadableModel } from "../ModelList";
+import { downloadMatchesProvider } from "./downloadMatchesProvider";
 import ModelPackCard from "../../hugging_face/ModelPackCard";
-import { useModelDownloadStore } from "../../../stores/ModelDownloadStore";
+import {
+  ACTIVE_DOWNLOAD_STATUSES,
+  useModelDownloadStore
+} from "../../../stores/ModelDownloadStore";
 import { useHfCacheStatusStore } from "../../../stores/HfCacheStatusStore";
 import { useWorkerCachedModelIds } from "../../../hooks/useWorkerCachedModels";
 import { useModelDownloadTarget } from "../../../hooks/useModelDownloadTarget";
@@ -50,21 +60,26 @@ import {
 import useModelFiltersStore from "../../../stores/ModelFiltersStore";
 import {
   applyAdvancedModelFilters,
-  modelDownloadTarget,
+  modelDownloadId,
+  modelDownloadTargets,
+  modelRowKey,
   ModelSelectorModel
 } from "../../../utils/modelNormalization";
 import {
   ModelMenuStoreHook,
+  requiredSecretForProvider,
   useModelMenuData
 } from "../../../stores/ModelMenuStore";
 import { useModelAvailability } from "../../../hooks/useModelAvailability";
+import {
+  useLocalProviderInstalls,
+  type LocalProviderInstallInfo
+} from "../../../hooks/useLocalProviderInstalls";
 import {
   firstAvailableIndex,
   nextAvailableIndex
 } from "../../../utils/modelMenuNavigation";
 import type { ModelPack, UnifiedModel } from "../../../stores/ApiTypes";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 
 interface ModelMenuBaseProps<TModel extends ModelSelectorModel> {
   open: boolean;
@@ -95,72 +110,29 @@ interface ModelMenuBaseProps<TModel extends ModelSelectorModel> {
   modelType?: string;
   setupCapability?: OnboardingCapability;
   setupProviderIds?: readonly string[];
+  /** The model the control holds now. Its row is marked in the list. */
+  selectedModel?: { id: string; provider?: string };
+  /**
+   * Show an "Add an API key" row above the list while no API provider has a
+   * usable model, so the route to a key is not only the footer link.
+   */
+  promptForApiKey?: boolean;
+  /**
+   * The provider capabilities this picker serves. A local provider that
+   * serves one of them is listed even before its package is installed, and
+   * offers the install in place.
+   */
+  localCapabilities?: readonly string[];
 }
-
-interface QuickViewButtonProps {
-  icon: React.ReactNode;
-  label: string;
-  active: boolean;
-  horizontal: boolean;
-  onClick: () => void;
-}
-
-/** Favorites / Recent entry in the model menu's provider rail. */
-const QuickViewButton: React.FC<QuickViewButtonProps> = ({
-  icon,
-  label,
-  active,
-  horizontal,
-  onClick
-}) => (
-  <ListItemButton
-    disableRipple
-    selected={active}
-    onClick={onClick}
-    sx={{
-      py: 1,
-      px: 0,
-      borderRadius: BORDER_RADIUS.xs,
-      justifyContent: "center",
-      minHeight: 40,
-      minWidth: horizontal ? 76 : undefined
-    }}
-  >
-    <Tooltip title={label} placement={horizontal ? "bottom" : "right"}>
-      <FlexColumn align="center" gap={0.5}>
-        <FlexRow
-          align="center"
-          justify="center"
-          sx={{
-            width: 36,
-            height: 36,
-            borderRadius: BORDER_RADIUS.circle,
-            bgcolor: active ? "primary.main" : "action.selected",
-            border: (t) =>
-              `1px solid ${active ? "transparent" : t.vars.palette.divider}`,
-            color: active ? "primary.contrastText" : "text.primary"
-          }}
-        >
-          {icon}
-        </FlexRow>
-        {horizontal && (
-          <Caption
-            sx={{
-              maxWidth: 76,
-              textAlign: "center",
-              lineHeight: 1.15,
-              fontSize: "var(--fontSizeSmaller)"
-            }}
-          >
-            {label}
-          </Caption>
-        )}
-      </FlexColumn>
-    </Tooltip>
-  </ListItemButton>
-);
 
 const EMPTY_MODELS: never[] = [];
+
+const POPOVER_WIDTH = 640;
+const POPOVER_HEIGHT = 560;
+const SIDEBAR_WIDTH = 176;
+
+const modelKey = (model: ModelSelectorModel): string =>
+  `${model.provider ?? ""}:${model.id ?? ""}`;
 
 function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
   open,
@@ -168,16 +140,18 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
   anchorEl,
   modelData,
   onModelChange,
-  title = i18n.t("editor:ui.selectModel", { defaultValue: "Select Model" }),
-  searchPlaceholder = i18n.t("editor:ui.searchModels", { defaultValue: "Search models..." }),
+  title = "Select model",
+  searchPlaceholder = "Search models",
   storeHook,
   recommendedModels = [],
   modelPacks = [],
   modelType,
   setupCapability,
-  setupProviderIds
+  setupProviderIds,
+  selectedModel,
+  promptForApiKey = false,
+  localCapabilities
 }: ModelMenuBaseProps<TModel>) {
-  const { t } = useTranslation();
   const {
     models,
     isLoading,
@@ -197,7 +171,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
   });
   const isError = !!fetchedError;
   const theme = useTheme();
-  // Below `sm` the 600x560 popover no longer fits, so the menu takes over the
+  // Below `sm` the 640x560 popover no longer fits, so the menu takes over the
   // whole viewport and the provider rail becomes a horizontal strip.
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -232,10 +206,60 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
     recentModels
   } = useModelMenuData<TModel>(models ?? EMPTY_MODELS, storeHook);
 
-  const providers = modelData.providers ?? providersFromModels;
+  // Local providers for this picker whose package is not installed yet.
+  const localInstalls = useLocalProviderInstalls();
+  const pendingInstalls = useMemo(() => {
+    const pending = new Map<string, LocalProviderInstallInfo>();
+    if (!localCapabilities) {
+      return pending;
+    }
+    for (const [provider, info] of localInstalls) {
+      if (
+        info.status !== "installed" &&
+        info.spec.capabilities.some((c) => localCapabilities.includes(c))
+      ) {
+        pending.set(provider, info);
+      }
+    }
+    return pending;
+  }, [localInstalls, localCapabilities]);
 
-  const selectedTypes = useModelFiltersStore((s) => s.selectedTypes);
-  const sizeBucket = useModelFiltersStore((s) => s.sizeBucket);
+  // Providers that list at least one model. A provider chip with no models
+  // gets an empty state instead of a list, and a change in this set clears a
+  // stale provider filter.
+  const providersWithModels = useMemo(
+    () => new Set((models ?? EMPTY_MODELS).map((m) => m.provider ?? "")),
+    [models]
+  );
+
+  const listedProviders = modelData.providers ?? providersFromModels;
+  const providers = useMemo(() => {
+    // A local provider with no models and nothing to install offers nothing
+    // to pick, such as a llama-server or Ollama that is not set up or not
+    // running. A cloud provider stays, because its empty state asks for a key.
+    // While models load, every provider stays, so the list does not jump.
+    const shown = listedProviders.filter(
+      (provider) =>
+        modelData.isLoading ||
+        !isLocalProvider(provider) ||
+        providersWithModels.has(provider) ||
+        pendingInstalls.has(provider)
+    );
+    const missing = [...pendingInstalls.keys()].filter(
+      (provider) => !shown.includes(provider)
+    );
+    return missing.length > 0 ? [...shown, ...missing] : shown;
+  }, [listedProviders, providersWithModels, pendingInstalls, modelData.isLoading]);
+
+  const providerSetKey = useMemo(
+    () => [...providersWithModels].sort().join("|"),
+    [providersWithModels]
+  );
+
+  const storedSizeBucket = useModelFiltersStore((s) => s.sizeBucket);
+  // The cloud version hides the size filter, so a bucket persisted from a
+  // local session must not silently filter its list.
+  const sizeBucket = isProduction ? null : storedSizeBucket;
 
   const baseModels = useMemo(() => {
     if (customView === "favorites") {
@@ -249,7 +273,6 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
 
   const filteredModelsAdvanced = useMemo(() => {
     const filtered = applyAdvancedModelFilters<TModel>(baseModels, {
-      selectedTypes,
       sizeBucket,
       families: []
     });
@@ -262,7 +285,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
             : 0;
       return rank(left) - rank(right);
     });
-  }, [baseModels, selectedTypes, sizeBucket]);
+  }, [baseModels, sizeBucket]);
 
   const handleSelectModel = useCallback(
     (model: TModel) => {
@@ -308,16 +331,23 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
   // list refreshes when the download completes and the row turns selectable.
   const handleModelDownload = useCallback(
     (model: TModel) => {
-      const target = modelDownloadTarget(model);
-      if (!target) return;
-      startDownload(
-        target.repoId,
-        target.modelType ?? model.type ?? "",
-        target.path,
-        target.allowPatterns,
-        target.ignorePatterns,
-        downloadScope
-      );
+      // A model can load files from several repositories; fetch each one,
+      // skipping a repository another model is already downloading.
+      const { downloads, markModelRequested } =
+        useModelDownloadStore.getState();
+      markModelRequested(modelRowKey(model));
+      for (const target of modelDownloadTargets(model)) {
+        const status = downloads[modelDownloadId(target)]?.status;
+        if (status && ACTIVE_DOWNLOAD_STATUSES.has(status)) continue;
+        startDownload(
+          target.repoId,
+          target.modelType ?? model.type ?? "",
+          target.path,
+          target.allowPatterns,
+          target.ignorePatterns,
+          downloadScope
+        );
+      }
     },
     [startDownload, downloadScope]
   );
@@ -333,11 +363,18 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
     return set;
   }, [models]);
 
+  // A provider filter or the Favorites and Recent views show only their own
+  // models, so downloads from other providers stay out of them.
   const downloadCandidates = useMemo<UnifiedModel[]>(() => {
-    if (!hasDownloads) return [];
+    if (!hasDownloads || customView !== null) return [];
     const q = search.trim().toLowerCase();
     return recommendedModels
       .filter((m) => isHfModel(m) || m.type === "llama_model")
+      .filter(
+        (m) =>
+          selectedProvider === null ||
+          downloadMatchesProvider(m, selectedProvider)
+      )
       .filter(
         (m) =>
           !selectableIds.has((m.repo_id || m.id || "").toLowerCase()) &&
@@ -352,7 +389,14 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
           (m.tags?.some((tag) => tag.toLowerCase().includes(q)) ?? false)
         );
       });
-  }, [hasDownloads, recommendedModels, selectableIds, search]);
+  }, [
+    hasDownloads,
+    customView,
+    recommendedModels,
+    selectableIds,
+    search,
+    selectedProvider
+  ]);
 
   React.useEffect(() => {
     const requests = downloadCandidates
@@ -390,36 +434,63 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
   );
 
   // Keyboard navigation: the search input forwards arrow/enter keys here so the
-  // list can be driven without the mouse. activeIndex points into
-  // filteredModelsAdvanced; navigation skips unavailable rows.
+  // list can be driven without the mouse. The highlight is held by
+  // `provider:id` so it survives the list re-sorting or refetching; with no
+  // highlighted model (or one no longer listed) the first available row is
+  // highlighted, so Enter selects the top-ranked match right after typing.
   const getAvailability = useModelAvailability();
-  const [activeIndex, setActiveIndex] = useState(-1);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
 
   const isRowAvailable = useCallback(
-    (index: number) => getAvailability(filteredModelsAdvanced[index]).available,
-    [filteredModelsAdvanced, getAvailability]
+    (index: number) => {
+      const model = filteredModelsAdvanced[index];
+      return (
+        getAvailability(model).available &&
+        !pendingInstalls.has(model?.provider ?? "")
+      );
+    },
+    [filteredModelsAdvanced, getAvailability, pendingInstalls]
   );
 
-  // Highlight the first available row whenever the visible list changes so that
-  // Enter selects the top-ranked match right after typing.
-  React.useEffect(() => {
-    setActiveIndex(
-      firstAvailableIndex(filteredModelsAdvanced.length, isRowAvailable)
-    );
-  }, [filteredModelsAdvanced.length, isRowAvailable]);
+  const activeIndex = useMemo(() => {
+    if (activeKey !== null) {
+      const index = filteredModelsAdvanced.findIndex(
+        (model) => modelKey(model) === activeKey
+      );
+      if (index >= 0 && isRowAvailable(index)) {
+        return index;
+      }
+    }
+    return firstAvailableIndex(filteredModelsAdvanced.length, isRowAvailable);
+  }, [activeKey, filteredModelsAdvanced, isRowAvailable]);
 
   const stepActiveIndex = useCallback(
     (dir: 1 | -1) => {
-      setActiveIndex((current) =>
-        nextAvailableIndex(
-          filteredModelsAdvanced.length,
-          current,
-          dir,
-          isRowAvailable
-        )
+      const next = nextAvailableIndex(
+        filteredModelsAdvanced.length,
+        activeIndex,
+        dir,
+        isRowAvailable
       );
+      const model = filteredModelsAdvanced[next];
+      if (model) {
+        setActiveKey(modelKey(model));
+      }
     },
-    [filteredModelsAdvanced.length, isRowAvailable]
+    [filteredModelsAdvanced, activeIndex, isRowAvailable]
+  );
+
+  // A new search term re-highlights the top match, and typing leaves the
+  // Favorites or Recent view, which does not filter by the term.
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearch(value);
+      setActiveKey(null);
+      if (value.trim() !== "") {
+        setCustomView(null);
+      }
+    },
+    [setSearch]
   );
 
   const handleArrowDown = useCallback(() => {
@@ -432,10 +503,24 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
 
   const handleEnter = useCallback(() => {
     const model = filteredModelsAdvanced[activeIndex];
-    if (model && getAvailability(model).available) {
+    if (model && isRowAvailable(activeIndex)) {
       handleSelectModel(model);
     }
-  }, [filteredModelsAdvanced, activeIndex, getAvailability, handleSelectModel]);
+  }, [filteredModelsAdvanced, activeIndex, isRowAvailable, handleSelectModel]);
+
+  // Footer "Add providers" and the empty-state button share this path. A
+  // provider with a known key name highlights that key in the dialog.
+  const handleConnectProvider = useCallback(
+    (provider: string | null) => {
+      const secret = provider ? requiredSecretForProvider(provider) : null;
+      onClose();
+      openProviderOnboarding({
+        capability: setupCapability ?? capabilityForModelType(modelType),
+        highlightSecretKey: secret ?? undefined
+      });
+    },
+    [onClose, setupCapability, modelType]
+  );
 
   const handleRefresh = useCallback(async () => {
     if (!refetch || isFetching) {
@@ -475,7 +560,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
       return;
     }
     const rect = anchorEl.getBoundingClientRect();
-    const height = 480; // Height of the menu (popover paper)
+    const height = POPOVER_HEIGHT;
     const spaceBelow = window.innerHeight - rect.bottom;
 
     if (spaceBelow < height && rect.top > height) {
@@ -493,6 +578,55 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
     }
   }, [anchorEl]);
 
+  React.useEffect(() => {
+    if (open) {
+      setCustomView(null);
+      setActiveKey(null);
+    }
+  }, [open]);
+
+  // The provider filter is remembered between openings. Connecting a key
+  // changes which providers have models, and a filter left on one provider
+  // would hide the new one, so a changed provider set starts on All models.
+  // A filter whose provider has no models is cleared as well.
+  const lastProviderSetKey = React.useRef<string | null>(null);
+  const wasOpen = React.useRef(false);
+  React.useEffect(() => {
+    if (!open) {
+      wasOpen.current = false;
+      return;
+    }
+    if (isLoading || models === undefined) {
+      return;
+    }
+    const justOpened = !wasOpen.current;
+    wasOpen.current = true;
+    const changed =
+      lastProviderSetKey.current !== null &&
+      lastProviderSetKey.current !== providerSetKey;
+    lastProviderSetKey.current = providerSetKey;
+    // Only the opening moment checks for an empty provider: clicking one while
+    // the menu is open must keep showing its empty state.
+    // A local provider waiting for its install keeps its install state.
+    const emptyFilter =
+      justOpened &&
+      selectedProvider !== null &&
+      !providersWithModels.has(selectedProvider) &&
+      !pendingInstalls.has(selectedProvider);
+    if (changed || emptyFilter) {
+      setSelectedProvider(null);
+    }
+  }, [
+    open,
+    isLoading,
+    models,
+    providerSetKey,
+    providersWithModels,
+    pendingInstalls,
+    selectedProvider,
+    setSelectedProvider
+  ]);
+
   React.useLayoutEffect(() => {
     if (open) {
       updatePosition();
@@ -502,91 +636,84 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
     }
   }, [open, updatePosition, setSearch]);
 
+  const railOrientation = isMobile ? "horizontal" : "vertical";
+  // Runs before an entry's own click, so picking All models or a provider
+  // leaves Favorites or Recent, and picking Favorites or Recent sets it again.
+  const handleRailClickCapture = useCallback(() => {
+    setCustomView(null);
+  }, []);
   const quickViews = (
-    <List
-      dense
-      className="model-menu__quick-views"
-      sx={{
-        py: isMobile ? 0 : 1,
-        px: 0.5,
-        // Keep the icons aligned with the provider icons when the provider
-        // list shows a scrollbar.
-        pr: isMobile ? 0.5 : 1.5,
-        width: isMobile ? "auto" : "100%",
-        display: "flex",
-        flexDirection: isMobile ? "row" : "column",
-        gap: 0.5,
-        flexShrink: 0
-      }}
-    >
-      <QuickViewButton
-        icon={
-          <StarIcon
-            fontSize="small"
-            sx={{ fontSize: "var(--fontSizeBig)", color: "inherit" }}
-          />
-        }
-        label={t("editor:ui.favorites", { defaultValue: "Favorites" })}
-        active={customView === "favorites"}
-        horizontal={isMobile}
+    <>
+      <ModelMenuNavItem
+        className="model-menu__quick-view model-menu__quick-view--favorites"
+        orientation={railOrientation}
+        label="Favorites"
+        icon={<StarIcon />}
+        selected={customView === "favorites"}
         onClick={handleSetFavoritesView}
+        count={favoriteModels.length}
       />
-      <QuickViewButton
-        icon={
-          <HistoryIcon
-            fontSize="small"
-            sx={{ fontSize: "var(--fontSizeBig)", color: "inherit" }}
-          />
-        }
-        label={t("editor:ui.recent", { defaultValue: "Recent" })}
-        active={customView === "recent"}
-        horizontal={isMobile}
+      <ModelMenuNavItem
+        className="model-menu__quick-view model-menu__quick-view--recent"
+        orientation={railOrientation}
+        label="Recent"
+        icon={<HistoryIcon />}
+        selected={customView === "recent"}
         onClick={handleSetRecentView}
+        count={recentModels.length}
       />
-    </List>
+    </>
   );
 
   const providerRail = (
-    <Box
-      sx={
-        isMobile
-          ? { flex: 1, minWidth: 0, overflow: "hidden" }
-          : { flex: 1, overflow: "hidden", width: "100%" }
-      }
-      onClickCapture={() => {
-        // If user clicks anywhere in provider list, we assume they want to stick to filtered view
-        if (customView) {
-          setCustomView(null);
-        }
-      }}
-    >
-      <ProviderList
-        providers={providers}
-        models={models ?? EMPTY_MODELS}
-        isLoading={!!isLoading}
-        isError={!!isError}
-        storeHook={storeHook}
-        forceUnselect={!!customView}
-        iconOnly
-        orientation={isMobile ? "horizontal" : "vertical"}
-      />
-    </Box>
+    <ProviderList
+      providers={providers}
+      models={models ?? EMPTY_MODELS}
+      isLoading={!!isLoading}
+      isError={!!isError}
+      storeHook={storeHook}
+      forceUnselect={!!customView}
+      orientation={railOrientation}
+      quickViews={quickViews}
+    />
   );
+
+  const providerLabel = selectedProvider
+    ? getProviderDisplayName(selectedProvider)
+    : "";
+  const selectedInstall = selectedProvider
+    ? pendingInstalls.get(selectedProvider)
+    : undefined;
+  const showProviderEmpty =
+    !isLoading &&
+    !customView &&
+    selectedProvider !== null &&
+    !providersWithModels.has(selectedProvider);
+
+  // Any ready API model means a key or sign-in is already connected.
+  const hasApiModel = (models ?? EMPTY_MODELS).some(
+    (m) => m.execution?.state === "ready" && m.execution.kind === "api"
+  );
+  const showAddKeyRow =
+    promptForApiKey &&
+    !hasApiModel &&
+    !isLoading &&
+    !isError &&
+    models !== undefined;
 
   const modelPane = (
     <FlexColumn
       sx={{
         flex: 1,
         minWidth: 0,
-        minHeight: 0,
-        bgcolor: "background.paper"
+        minHeight: 0
       }}
     >
       {modelPacks.length > 0 && (
         <Box
           sx={{
-            px: 2,
-            pt: 1.5,
+            px: SPACING.lg,
+            pt: SPACING.md,
             maxHeight: 180,
             overflowY: "auto",
             flexShrink: 0,
@@ -603,6 +730,35 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
         </Box>
       )}
       <Box sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+        {selectedInstall && !customView ? (
+          selectedInstall.status === "installing" ? (
+            <EmptyState
+              variant="empty"
+              size="small"
+              icon={<LoadingSpinner size="small" />}
+              title={`Installing ${selectedInstall.spec.installLabel}`}
+              description="The models appear here when the install finishes."
+            />
+          ) : (
+            <EmptyState
+              variant="empty"
+              size="small"
+              title={`Install ${selectedInstall.spec.installLabel}`}
+              description={`${providerLabel} runs models on this computer. Install it once, then download a model here.`}
+              actionText={`Install ${selectedInstall.spec.installLabel}`}
+              onAction={() => void selectedInstall.install()}
+            />
+          )
+        ) : showProviderEmpty ? (
+          <EmptyState
+            variant="empty"
+            size="small"
+            title={`${providerLabel} has no models yet`}
+            description={`Connect ${providerLabel} to see its models here.`}
+            actionText={`Connect ${providerLabel}`}
+            onAction={() => handleConnectProvider(selectedProvider)}
+          />
+        ) : (
         <ModelList<TModel>
           models={filteredModelsAdvanced}
           onSelect={handleSelectModel}
@@ -615,46 +771,48 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
           onModelDownload={handleModelDownload}
           modelType={modelType}
           downloadTargetLabel={downloadTargetLabel}
+          onClose={onClose}
+          selectedModel={selectedModel}
+          pendingInstalls={pendingInstalls}
         />
+        )}
       </Box>
     </FlexColumn>
   );
 
-  // Mobile stacks the rail above the list; desktop keeps it as a left sidebar.
+  // Mobile stacks a chip strip above the list; desktop keeps a sidebar. A
+  // click in either leaves the Favorites or Recent view for the provider.
   const body = isMobile ? (
     <FlexColumn sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-      <FlexRow
-        align="stretch"
+      <Box
+        onClickCapture={handleRailClickCapture}
         sx={{
           flexShrink: 0,
-          borderBottom: `1px solid ${theme.vars.palette.divider}`,
-          bgcolor: theme.vars.palette.background.default
+          borderBottom: `1px solid ${theme.vars.palette.divider}`
         }}
       >
-        {quickViews}
-        <Divider orientation="vertical" flexItem sx={{ my: 1, opacity: 0.6 }} />
         {providerRail}
-      </FlexRow>
+      </Box>
       {modelPane}
     </FlexColumn>
   ) : (
-    <FlexRow sx={{ flex: 1, overflow: "hidden" }}>
+    <FlexRow sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
       <FlexColumn
+        onClickCapture={handleRailClickCapture}
         sx={{
-          width: 88,
+          width: SIDEBAR_WIDTH,
           flexShrink: 0,
-          borderRight: `1px solid ${theme.vars.palette.divider}`,
-          bgcolor: theme.vars.palette.background.default,
-          alignItems: "center"
+          minHeight: 0,
+          borderRight: `1px solid ${theme.vars.palette.divider}`
         }}
       >
-        {quickViews}
-        <Divider sx={{ mx: 2, mb: 1, opacity: 0.6 }} />
         {providerRail}
       </FlexColumn>
       {modelPane}
     </FlexRow>
   );
+
+  const hasProviderErrors = !!providerErrors && providerErrors.length > 0;
 
   return (
     <Popover
@@ -670,17 +828,16 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
       transitionDuration={0}
       slotProps={{
         paper: {
-          elevation: 24,
+          // The picker is a menu with a search box: it shares the menu
+          // surface, frame and shadow.
+          sx: isMobile
+            ? { borderRadius: 0, backgroundImage: "none" }
+            : menuPaperStyles(theme),
           style: {
-            width: isMobile ? "100vw" : "600px",
-            height: isMobile ? "100dvh" : "560px",
+            width: isMobile ? "100vw" : `${POPOVER_WIDTH}px`,
+            height: isMobile ? "100dvh" : `${POPOVER_HEIGHT}px`,
             maxHeight: isMobile ? "100dvh" : "90vh",
             maxWidth: "100vw",
-            borderRadius: isMobile ? 0 : theme.vars.rounded.dialog,
-            background: theme.vars.palette.background.paper,
-            border: isMobile
-              ? "none"
-              : `1px solid ${theme.vars.palette.divider}`,
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
@@ -694,22 +851,22 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
     >
       {isMobile && (
         <FlexRow
-          gap={1}
+          gap={SPACING.md}
           align="center"
           justify="space-between"
           sx={{
-            px: 2,
-            py: 1.5,
+            px: SPACING.lg,
+            py: SPACING.md,
             flexShrink: 0,
             borderBottom: `1px solid ${theme.vars.palette.divider}`
           }}
         >
-          <Text weight={600} truncate>
+          <Text weight={500} truncate>
             {title}
           </Text>
           <ToolbarIconButton
             icon={<CloseIcon fontSize="small" />}
-            tooltip={t("sketch:attrs.close", { defaultValue: "Close" })}
+            tooltip="Close"
             onClick={onClose}
             size="small"
             nodrag={false}
@@ -718,101 +875,90 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
       )}
 
       <FlexRow
-        gap={isMobile ? 1 : 2}
+        gap={SPACING.xs}
         align="center"
         sx={{
-          p: 1.5,
-          pl: 2,
+          px: SPACING.lg,
+          py: SPACING.md,
           borderBottom: `1px solid ${theme.vars.palette.divider}`,
-          flexShrink: 0,
-          background: theme.vars.palette.background.paper
+          flexShrink: 0
         }}
       >
-        <FlexRow gap={isMobile ? 1 : 2} align="center" sx={{ flex: 1 }}>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <SearchInput
-              onSearchChange={setSearch}
-              placeholder={searchPlaceholder}
-              debounceTime={150}
-              // Autofocusing on mobile raises the keyboard over the list.
-              focusSearchInput={!isMobile}
-              focusOnTyping={!isMobile}
-              onPressArrowDown={handleArrowDown}
-              onPressArrowUp={handleArrowUp}
-              onPressEnter={handleEnter}
-              width="100%"
-            />
-          </Box>
-          <ToolbarIconButton
-            icon={<RefreshIcon fontSize="small" />}
-            tooltip={t("editor:ui.refreshModels", { defaultValue: "Refresh models" })}
-            onClick={handleRefresh}
-            disabled={!refetch || !!isFetching}
-            size="small"
-            nodrag={false}
+        <Box sx={{ flex: 1, minWidth: 0, mr: SPACING.sm }}>
+          <SearchInput
+            onSearchChange={handleSearchChange}
+            placeholder={searchPlaceholder}
+            debounceTime={150}
+            // Autofocusing on mobile raises the keyboard over the list.
+            focusSearchInput={!isMobile}
+            focusOnTyping={!isMobile}
+            onPressArrowDown={handleArrowDown}
+            onPressArrowUp={handleArrowUp}
+            onPressEnter={handleEnter}
+            width="100%"
           />
-          <ModelFiltersBar />
-        </FlexRow>
+        </Box>
+        <ToolbarIconButton
+          icon={<RefreshIcon fontSize="small" />}
+          tooltip="Refresh models"
+          onClick={handleRefresh}
+          disabled={!refetch || !!isFetching}
+          size="small"
+          nodrag={false}
+        />
+        <ModelFiltersBar />
       </FlexRow>
 
-      <Collapse
-        in={
-          !!(
-            isLoading ||
-            isFetching ||
-            (providerErrors && providerErrors.length > 0)
-          )
-        }
-      >
+      <Collapse in={!!(isLoading || isFetching || hasProviderErrors)}>
         <FlexRow
-          gap={1}
+          gap={SPACING.md}
           align="center"
           sx={{
-            px: 2,
-            py: 1,
-            borderBottom: `1px solid ${theme.vars.palette.divider}`,
-            bgcolor:
-              providerErrors && providerErrors.length > 0
-                ? theme.vars.palette.warning.main + "15"
-                : theme.vars.palette.action.hover,
-            fontSize: "var(--fontSizeSmall)"
+            px: SPACING.lg,
+            py: SPACING.sm,
+            borderBottom: `1px solid ${theme.vars.palette.divider}`
           }}
         >
           {(isLoading || isFetching) && (
-            <>
-              <LoadingSpinner size="small" />
-              <Caption sx={{ color: "text.secondary" }}>
-                {loadingProgress
-                  ? `Loading models: ${loadingProgress.loaded}/${loadingProgress.total} providers...`
-                  : "Loading models..."}
-              </Caption>
-            </>
+            <LoadingSpinner
+              size="small"
+              text={
+                loadingProgress
+                  ? `Loading models from ${loadingProgress.loaded} of ${loadingProgress.total} providers`
+                  : "Loading models"
+              }
+            />
           )}
-          {providerErrors && providerErrors.length > 0 && !isLoading && (
+          {hasProviderErrors && !isLoading && (
             <Tooltip
               title={
-                <Box sx={{ maxWidth: 300 }}>
-                  <Caption size="small">
-                    {t("editor:ui.failedToLoadModelsFrom")}
-                  </Caption>
+                <FlexColumn gap={SPACING.xs}>
+                  <Caption>Failed to load models from:</Caption>
                   {providerErrors.map((pe) => (
-                    <Caption key={pe.provider} component="div" sx={{ mt: 0.5 }}>
-                      • {pe.provider}:{" "}
+                    <Caption key={pe.provider} component="div">
+                      {pe.provider}:{" "}
                       {pe.error instanceof Error
                         ? pe.error.message
-                        : t("editor:ui.unknownError", { defaultValue: "Unknown error" })}
+                        : "Unknown error"}
                     </Caption>
                   ))}
-                </Box>
+                </FlexColumn>
               }
             >
-              <FlexRow gap={0.5} align="center" sx={{ cursor: "help" }}>
+              <FlexRow
+                gap={SPACING.xs}
+                align="center"
+                tabIndex={0}
+                sx={{ cursor: "help" }}
+              >
                 <WarningAmberIcon
-                  sx={{ fontSize: "1.2em", color: "warning.main" }}
+                  fontSize="small"
+                  sx={{ color: "warning.main" }}
                 />
                 <Caption sx={{ color: "warning.main" }}>
-                  {providerErrors.length} provider
-                  {providerErrors.length > 1 ? "s" : ""} failed to load
+                  {providerErrors.length === 1
+                    ? "1 provider failed to load"
+                    : `${providerErrors.length} providers failed to load`}
                 </Caption>
               </FlexRow>
             </Tooltip>
@@ -820,11 +966,47 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
         </FlexRow>
       </Collapse>
 
+      {showAddKeyRow && (
+        <ListItemButton
+          className="model-menu__add-key"
+          onClick={() => handleConnectProvider(null)}
+          sx={{
+            flexShrink: 0,
+            gap: SPACING.md,
+            px: SPACING.lg,
+            py: SPACING.sm,
+            borderBottom: `1px solid ${theme.vars.palette.divider}`
+          }}
+        >
+          <KeyIcon fontSize="small" sx={{ color: "primary.main" }} />
+          <FlexColumn sx={{ flex: 1, minWidth: 0 }}>
+            <Text weight={500}>Add an API key</Text>
+            <Caption sx={{ color: "text.secondary" }}>
+              Use cloud models from OpenAI, Anthropic, Google and others.
+            </Caption>
+          </FlexColumn>
+        </ListItemButton>
+      )}
+
       {body}
-      <FlexRow justify="space-between" align="center" sx={{ px: SPACING.lg, py: SPACING.md, flexShrink: 0, borderTop: `1px solid ${theme.vars.palette.divider}` }}>
-        <Caption>{t("editor:ui.missingAProvider", { defaultValue: "Missing a provider?" })}</Caption>
-        <EditorButton variant="text" size="small" startIcon={<AddIcon />} onClick={openSetup}>
-          {t("editor:ui.addProviders", { defaultValue: "Add providers" })}
+      <FlexRow
+        justify="space-between"
+        align="center"
+        sx={{
+          px: SPACING.lg,
+          py: SPACING.sm,
+          flexShrink: 0,
+          borderTop: `1px solid ${theme.vars.palette.divider}`
+        }}
+      >
+        <Caption sx={{ color: "text.secondary" }}>Missing a provider?</Caption>
+        <EditorButton
+          variant="text"
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={openSetup}
+        >
+          Add providers
         </EditorButton>
       </FlexRow>
     </Popover>

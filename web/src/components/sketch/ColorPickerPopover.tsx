@@ -24,12 +24,14 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   TextField,
+  NumberField,
   Slider,
   IconButton,
   Popover,
-  FONT_SIZE_SANS
+  FONT_SIZE_SANS,
+  ICON_SIZE
 } from "../ui_primitives";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import {
   ColorMode,
   parseColorToRgba,
@@ -43,32 +45,18 @@ import {
 import {
   SKETCH_Z_INDEX,
   SKETCH_COLORS,
-  SKETCH_TOOLTIP_DELAY_MS,
   toggleButtonSmallSx,
   colorPickerSliderThumbSx
 } from "./sketchStyles";
-import { useTranslation } from "react-i18next";
 
 const SV_SIZE = 160;
 const HUE_HEIGHT = 12;
 
-// English fallbacks for the channel a11y labels; resolved through the keys at
-// render time so they follow the language switcher (r12).
 const RGB_LABELS = { r: "Red", g: "Green", b: "Blue" } as const;
-const RGB_LABEL_KEYS = {
-  r: "sketch:attrs.redChannel",
-  g: "sketch:attrs.greenChannel",
-  b: "sketch:attrs.blueChannel"
-} as const;
 const HSL_LABELS = {
   h: "Hue (degrees)",
   s: "Saturation (percent)",
   l: "Lightness (percent)"
-} as const;
-const HSL_LABEL_KEYS = {
-  h: "sketch:attrs.hueDegrees",
-  s: "sketch:attrs.saturationPercent",
-  l: "sketch:attrs.lightnessPercent"
 } as const;
 
 interface ColorPickerPopoverProps {
@@ -86,7 +74,6 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
   onColorChange,
   onClose
 }) => {
-  const { t } = useTranslation();
   const open = Boolean(anchorEl);
   const [mode, setMode] = useState<ColorMode>("hex");
 
@@ -97,12 +84,17 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
 
   // Local hue state — prevents hue jump when dragging in desaturated areas
   const [localHue, setLocalHue] = useState<number>(hsv.h);
+  // What the hex field shows while it is being typed. Every partial value
+  // ("#", "#f", ...) is invalid, so a field bound only to `color` threw each
+  // keystroke away and a typed hex never arrived.
+  const [hexDraft, setHexDraft] = useState<string | null>(null);
   const prevOpenRef = useRef(false);
 
   // Sync hue when picker opens (don't do it on every color change)
   useEffect(() => {
     if (open && !prevOpenRef.current) {
       setLocalHue(rgbToHsv(r, g, b).h);
+      setHexDraft(null);
     }
     prevOpenRef.current = open;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,6 +120,7 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
     const s = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     const v = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
     const { r: nr, g: ng, b: nb } = hsvToRgb(localHue, s, v);
+    setHexDraft(null);
     onColorChange(rgbaToCss({ r: nr, g: ng, b: nb, a }));
   }, [localHue, a, onColorChange]);
 
@@ -152,6 +145,7 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
   const handleHueChange = (_: Event, val: number | number[]) => {
     const h = val as number;
     setLocalHue(h);
+    setHexDraft(null);
     const { r: nr, g: ng, b: nb } = hsvToRgb(h, hsv.s, hsv.v);
     onColorChange(rgbaToCss({ r: nr, g: ng, b: nb, a }));
   };
@@ -225,13 +219,14 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
       }}
     >
       <FlexRow className="color-picker__header" align="center" justify="flex-end" sx={{ minHeight: "22px", mt: `-${getSpacingPx(SPACING.sm)}`, mr: `-${getSpacingPx(SPACING.sm)}`, mb: getSpacingPx(SPACING.micro) }}>
-        <Tooltip title={t("sketch:attrs.cancelKeepPreviousColor", { defaultValue: "Cancel — keep previous color" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+        <Tooltip title="Cancel — keep previous color">
           <IconButton
             size="small"
             onClick={handleCancel}
-            aria-label={t("sketch:attrs.cancelColorChange", { defaultValue: "Cancel color change" })}
-            sx={{ p: getSpacingPx(SPACING.micro), color: SKETCH_COLORS.textSecondary, "&:hover": { color: SKETCH_COLORS.textPrimary, bgcolor: "rgba(255,255,255,0.06)" } }}          >
-            <CloseIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
+            aria-label="Cancel color change"
+            sx={{ p: getSpacingPx(SPACING.micro), color: SKETCH_COLORS.textSecondary, "&:hover": { color: SKETCH_COLORS.textPrimary, bgcolor: "rgba(255,255,255,0.06)" } }}
+          >
+            <CloseIcon sx={{ fontSize: ICON_SIZE.sm }} />
           </IconButton>
         </Tooltip>
       </FlexRow>
@@ -364,12 +359,13 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
       {mode === "hex" && (
         <TextField
           size="small"
-          value={fgHex6}
-          onChange={(e) => handleHex(e.target.value)}
-          inputProps={{
-            maxLength: 7,
-            "aria-label": t("sketch:attrs.hexColor", { defaultValue: "Hex color" })
+          value={hexDraft ?? fgHex6}
+          onChange={(e) => {
+            setHexDraft(e.target.value);
+            handleHex(e.target.value);
           }}
+          onBlur={() => setHexDraft(null)}
+          inputProps={{ maxLength: 7, "aria-label": "Hex color" }}
           sx={{
             "& .MuiInputBase-root": { fontSize: FONT_SIZE_SANS.label, height: "22px" },
             "& .MuiInputBase-input": { padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.xs)}`, textAlign: "center" }
@@ -382,16 +378,14 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
           {(["r", "g", "b"] as const).map((ch) => (
             <FlexColumn key={ch} align="center" sx={{ flex: 1 }}>
               <Text sx={{ fontSize: FONT_SIZE_SANS.caption, color: SKETCH_COLORS.textMuted }}>{ch.toUpperCase()}</Text>
-              <TextField
+              <NumberField
                 size="small"
-                type="number"
                 value={ch === "r" ? r : ch === "g" ? g : b}
                 onChange={(e) => handleRgb(ch, e.target.value)}
-                inputProps={{
-                  min: 0,
-                  max: 255,
-                  "aria-label": t(RGB_LABEL_KEYS[ch], { defaultValue: RGB_LABELS[ch] })
-                }}
+                min={0}
+                max={255}
+                ariaLabel={RGB_LABELS[ch]}
+                align="center"
                 sx={numSx}
               />
             </FlexColumn>
@@ -406,16 +400,14 @@ const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
               <Text sx={{ fontSize: FONT_SIZE_SANS.caption, color: SKETCH_COLORS.textMuted }}>
                 {ch === "h" ? "H°" : ch === "s" ? "S%" : "L%"}
               </Text>
-              <TextField
+              <NumberField
                 size="small"
-                type="number"
                 value={ch === "h" ? hsl.h : ch === "s" ? hsl.s : hsl.l}
                 onChange={(e) => handleHsl(ch, e.target.value)}
-                inputProps={{
-                  min: 0,
-                  max: ch === "h" ? 360 : 100,
-                  "aria-label": t(HSL_LABEL_KEYS[ch], { defaultValue: HSL_LABELS[ch] })
-                }}
+                min={0}
+                max={ch === "h" ? 360 : 100}
+                ariaLabel={HSL_LABELS[ch]}
+                align="center"
                 sx={numSx}
               />
             </FlexColumn>

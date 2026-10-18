@@ -1,14 +1,12 @@
 import React, { memo, useCallback, useMemo } from "react";
 import type { Theme } from "@mui/material/styles";
 import { Tooltip, EditorButton, FlexRow, getSpacingPx, SPACING } from "../../ui_primitives";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { CopyButton } from "../../ui_primitives";
 import { CopyAssetButton } from "../../common/CopyAssetButton";
 import { useNotificationStore } from "../../../stores/NotificationStore";
 import { isObjectLike, isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 
 type PreviewActionsProps = {
   onDownload: () => void;
@@ -72,7 +70,6 @@ const PreviewActions: React.FC<PreviewActionsProps> = memo(({
   onAddToAssets,
   copyValue
 }) => {
-  const { t } = useTranslation();
   const addNotification = useNotificationStore(
     (state) => state.addNotification
   );
@@ -82,7 +79,7 @@ const PreviewActions: React.FC<PreviewActionsProps> = memo(({
   const handleCopyError = useCallback((_err: Error) => {
     addNotification({
       type: "error",
-      content: i18n.t("editor:notify.copyFailed", { defaultValue: "Failed to copy to clipboard" })
+      content: "Failed to copy to clipboard"
     });
   }, [addNotification]);
 
@@ -95,20 +92,20 @@ const PreviewActions: React.FC<PreviewActionsProps> = memo(({
         margin: `0 0 ${getSpacingPx(SPACING.xs)} 0`
       }}
     >
-      <Tooltip title={t("editor:ui.download", { defaultValue: "Download" })}>
+      <Tooltip title="Download">
         <EditorButton
           onClick={onDownload}
           className="action-button download"
-          aria-label={t("editor:ui.download", { defaultValue: "Download" })}
+          aria-label="Download"
         >
           <FileDownloadIcon />
         </EditorButton>
       </Tooltip>
-      <Tooltip title={t("editor:ui.addToAssets", { defaultValue: "Add to Assets" })}>
+      <Tooltip title="Add to assets">
         <EditorButton
           onClick={onAddToAssets}
           className="action-button"
-          aria-label={t("editor:ui.addToAssets", { defaultValue: "Add to Assets" })}
+          aria-label="Add to assets"
         >
           <AddIcon />
         </EditorButton>
@@ -120,7 +117,7 @@ const PreviewActions: React.FC<PreviewActionsProps> = memo(({
           onCopyError={handleCopyError}
           className="action-button copy"
           sx={COPY_BUTTON_SX}
-          aria-label={t("editor:ui.copyAssetToClipboard", { defaultValue: "Copy asset to clipboard" })}
+          aria-label="Copy asset"
         />
       ) : (
         <CopyButton
@@ -128,7 +125,7 @@ const PreviewActions: React.FC<PreviewActionsProps> = memo(({
           onCopyError={handleCopyError}
           className="action-button copy"
           sx={COPY_BUTTON_SX}
-          aria-label={t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" })}
+          aria-label="Copy output"
         />
       )}
     </FlexRow>

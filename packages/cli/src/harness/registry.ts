@@ -223,7 +223,7 @@ const CAPABILITY_SUITES =
   "npm run test --workspace=packages/agents -- capabilities capability " +
   "mcp-tools memory-tools workflow-version-tools nodetool-api-workflows " +
   "sandbox-package-docs sandbox-package-listing browser-tools " +
-  "timelines-op-input timeline-video-flow";
+  "timelines-op-input timeline-video-flow game-asset-pipeline";
 
 /**
  * The pure derivations behind the graph-resource nodes plus the node suites
@@ -300,6 +300,23 @@ export const HARNESSES: HarnessEntry[] = [
       // the Blender binary, so the default gate skips it without --expensive.
       command:
         'npm run dev:nodetool -- node run nodetool.blender.RenderImage --props "$(cat packages/blender-nodes/tests/fixtures/render-image-props.json)" --no-secrets',
+      cost: "expensive"
+    }
+  },
+  {
+    id: "manimgx",
+    title: "ManimGX scene inspection and render (nodetool.manimgx.* nodes)",
+    command:
+      "npm run test:real --workspace=packages/manimgx-nodes",
+    kind: "execution",
+    capabilities: ["no-db"],
+    docs: "packages/manimgx-nodes/README.md",
+    selfcheck: {
+      // Renders and inspects real scenes through the nodes, with an image
+      // input. It needs manimgx installed (Python 3.13+, GPU or lavapipe),
+      // so the default gate skips it without --expensive.
+      command:
+        "npm run test:real --workspace=packages/manimgx-nodes",
       cost: "expensive"
     }
   },
@@ -751,6 +768,30 @@ export const HARNESSES: HarnessEntry[] = [
     selfcheck: { command: "npm run backend:smoke", cost: "expensive" }
   },
   {
+    id: "packed-core-cli",
+    title: "Core-only packed CLI install and execution smoke",
+    command: "node scripts/smoke-packed-cli.mjs --core-only",
+    kind: "meta",
+    capabilities: ["gated:pr"],
+    docs: "docs/harnesses.md § Packed CLI smoke",
+    selfcheck: {
+      command: "node scripts/smoke-packed-cli.mjs --core-only",
+      cost: "expensive"
+    }
+  },
+  {
+    id: "release-pins",
+    title: "Release catalog integrity, install measurement and packing order",
+    command: "node scripts/run-vitest.mjs run --config vitest.config.ts scripts/__tests__/pin-catalog.test.mjs scripts/__tests__/publish-packages.test.mjs scripts/__tests__/install-pins.test.mjs scripts/__tests__/staging-release.test.mjs scripts/__tests__/publish-tarballs.test.mjs",
+    kind: "meta",
+    capabilities: ["gated:pr"],
+    docs: "docs/harnesses.md § Release catalog pins",
+    selfcheck: {
+      command: "node scripts/run-vitest.mjs run --config vitest.config.ts scripts/__tests__/pin-catalog.test.mjs scripts/__tests__/publish-packages.test.mjs scripts/__tests__/install-pins.test.mjs scripts/__tests__/staging-release.test.mjs scripts/__tests__/publish-tarballs.test.mjs",
+      cost: "cheap"
+    }
+  },
+  {
     id: "docker-smoke",
     title: "Deploy-image smoke (build, boot, load app in a browser)",
     command: "node scripts/docker-smoke.mjs http://localhost:7777",
@@ -941,6 +982,18 @@ export const HARNESSES: HarnessEntry[] = [
     }
   },
   {
+    id: "node-catalog",
+    title: "Node catalog ownership and metadata drift",
+    command: "npm run check:node-catalog",
+    kind: "static",
+    capabilities: ["no-db", "gated:pr"],
+    docs: "docs/cli-pack-system-plan.md § A1. The node catalog",
+    selfcheck: {
+      command: "npm run check:node-catalog && node scripts/run-vitest.mjs run --config vitest.config.ts scripts/__tests__/node-catalog.test.mjs scripts/__tests__/bump-version.test.mjs tools/oxlint/pack-boundaries/tests/no-direct-pack-imports.test.ts",
+      cost: "cheap"
+    }
+  },
+  {
     id: "mutator",
     title: "Mutation testing (nodetool-mutator)",
     command: "npm run mutate -- --base origin/main packages/<name>/src",
@@ -985,6 +1038,22 @@ export const HARNESSES: HarnessEntry[] = [
     capabilities: ["json", "no-db"],
     docs: "AGENTS.md § Build, Lint & Test Commands",
     selfcheck: { command: "npm run test:scripts", cost: "cheap" }
+  },
+  {
+    id: "workflow-contracts",
+    title: "GitHub workflow contracts (release gates, scheduled agent routines)",
+    // Parses the workflow YAML and pins the shape the release and agent
+    // routines depend on, and unit-tests the scripts they call.
+    command:
+      "node --test .github/tests/docker-deploy.test.mjs .github/tests/agent-workflows.test.mjs",
+    kind: "static",
+    capabilities: ["no-db"],
+    docs: ".github/workflows/README.md § Scheduled agent workflows",
+    selfcheck: {
+      command:
+        "node --test .github/tests/docker-deploy.test.mjs .github/tests/agent-workflows.test.mjs",
+      cost: "cheap"
+    }
   },
   {
     id: "tutorial-rendering",
@@ -1042,6 +1111,19 @@ export const HARNESSES: HarnessEntry[] = [
     docs: "packages/models/AGENTS.md",
     selfcheck: {
       command: "npm run test --workspace=packages/models",
+      cost: "cheap",
+      suiteOnly: true
+    }
+  },
+  {
+    id: "analytics",
+    title: "Product analytics (event schema, privacy validation, consent client)",
+    command: "npm run test --workspace=packages/analytics",
+    kind: "static",
+    capabilities: ["no-db"],
+    docs: "docs/analytics.md",
+    selfcheck: {
+      command: "npm run test --workspace=packages/analytics",
       cost: "cheap",
       suiteOnly: true
     }
@@ -1286,6 +1368,9 @@ export const SURFACES: SurfaceEntry[] = [
       "packages/protocol/src/game-design.ts",
       "packages/protocol/src/game-graph.ts",
       "packages/protocol/src/game-flow-prompt.ts",
+      "packages/protocol/src/game-screens.ts",
+      "packages/protocol/src/game2d/index.ts",
+      "packages/protocol/src/game3d/index.ts",
       "packages/protocol/src/native-game-templates.ts",
       "packages/protocol/src/style-presets.ts",
       "packages/game-nodes/",
@@ -1422,6 +1507,7 @@ export const SURFACES: SurfaceEntry[] = [
     harnesses: ["app-debug", "app-build", "eval"],
     paths: [
       "packages/app-runtime/",
+      "packages/app-export/",
       "packages/agents/src/app-build/",
       "packages/execution/src/app-debug/",
       "packages/base-nodes/nodetool/examples/apps/",
@@ -1695,6 +1781,12 @@ export const SURFACES: SurfaceEntry[] = [
     paths: ["packages/blender-nodes/"]
   },
   {
+    id: "manimgx",
+    title: "ManimGX scenes (runner, nodes, authoring skill)",
+    harnesses: ["manimgx"],
+    paths: ["packages/manimgx-nodes/"]
+  },
+  {
     id: "entities",
     title: "Entity library (ingredients, prompt injection, ui_entity_* tools)",
     harnesses: ["capability-suites"],
@@ -1774,7 +1866,9 @@ export const SURFACES: SurfaceEntry[] = [
       "demo/scripts/render-tutorials.ts",
       "demo/scripts/render-marketing.ts",
       "demo/scripts/encode-hero.mjs",
-      "demo/scripts/vibe-track.ts"
+      "demo/scripts/vibe-track.ts",
+      "demo/scripts/build-pattern-cast-media.mjs",
+      "demo/webpack-stubs/"
     ]
   },
   {
@@ -1782,9 +1876,77 @@ export const SURFACES: SurfaceEntry[] = [
     title: "Packaged Electron backend (bundled server.mjs)",
     harnesses: ["backend-smoke"],
     paths: [
+      "packages/server/",
       "scripts/bundle-backend.mjs",
       "scripts/verify-backend-bundle.mjs",
       "packages/config/src/package-asset-registry.ts"
+    ]
+  },
+  {
+    id: "packed-core-cli",
+    title: "Isolated core CLI package installation",
+    harnesses: ["packed-core-cli"],
+    paths: [
+      "scripts/smoke-packed-cli.mjs",
+      "scripts/fixtures/codec-identity.mp4",
+      ".github/workflows/packed-core-cli.yml"
+    ]
+  },
+  {
+    id: "release-pins",
+    title: "Release tarball catalog pins",
+    harnesses: ["release-pins"],
+    paths: [
+      "scripts/release/",
+      "scripts/publish-packages.mjs",
+      "scripts/prepare-publish.mjs",
+      "scripts/__tests__/pin-catalog.test.mjs",
+      "scripts/__tests__/publish-packages.test.mjs",
+      "scripts/__tests__/install-pins.test.mjs",
+      "scripts/__tests__/staging-release.test.mjs",
+      "scripts/__tests__/publish-tarballs.test.mjs"
+    ]
+  },
+  {
+    id: "node-catalog",
+    title: "Exact node pack ownership and catalog metadata",
+    harnesses: ["node-catalog"],
+    paths: [
+      "packages/node-catalog/",
+      "packages/node-sdk/src/",
+      "scripts/node-catalog/",
+      "tools/oxlint/pack-boundaries/",
+      "scripts/generate-node-catalog.mjs",
+      "scripts/__tests__/node-catalog.test.mjs",
+      "scripts/bump-version.mjs",
+      "scripts/__tests__/bump-version.test.mjs",
+      "packages/atlascloud-nodes/",
+      "packages/audio-nodes/",
+      "packages/automation-nodes/",
+      "packages/blender-nodes/",
+      "packages/code-nodes/",
+      "packages/core-nodes/",
+      "packages/data-nodes/",
+      "packages/document-nodes/",
+      "packages/elevenlabs-nodes/",
+      "packages/fal-nodes/",
+      "packages/game-nodes/",
+      "packages/higgsfield-nodes/",
+      "packages/huggingface-nodes/",
+      "packages/image-nodes/",
+      "packages/integration-nodes/",
+      "packages/kie-nodes/",
+      "packages/llm-nodes/",
+      "packages/manimgx-nodes/",
+      "packages/minimax-nodes/",
+      "packages/replicate-nodes/",
+      "packages/reve-nodes/",
+      "packages/text-nodes/",
+      "packages/together-nodes/",
+      "packages/topaz-nodes/",
+      "packages/transformers-js-nodes/",
+      "packages/video-nodes/",
+      "packages/whisper-cpp/"
     ]
   },
   {
@@ -1878,6 +2040,12 @@ export const SURFACES: SurfaceEntry[] = [
     paths: ["packages/models/"]
   },
   {
+    id: "analytics",
+    title: "Product analytics (shared schema and client core)",
+    harnesses: ["analytics"],
+    paths: ["packages/analytics/"]
+  },
+  {
     id: "storage-and-security",
     title: "Storage, secrets, auth middleware, and config loading",
     harnesses: ["storage-and-security"],
@@ -1944,6 +2112,12 @@ export const SURFACES: SurfaceEntry[] = [
     paths: ["scripts/"]
   },
   {
+    id: "workflow-contracts",
+    title: "GitHub workflow scripts and contract tests (.github/)",
+    harnesses: ["workflow-contracts"],
+    paths: [".github/scripts/", ".github/tests/"]
+  },
+  {
     id: "recipes",
     title: "Recipes (ordered chains of shipped examples)",
     harnesses: ["recipes"],
@@ -2006,6 +2180,10 @@ export const SURFACES: SurfaceEntry[] = [
  * one that is in neither.
  */
 export const UNCLAIMED_PATHS: Record<string, string> = {
+  ".design-sync/":
+    "Preview stubs and config for syncing ui_primitives into the external " +
+    "design tool; nothing in the repo builds or runs them. The primitives " +
+    "they render are covered by the web surface.",
   "examples/nextjs-vercel/":
     "Deployment example app. CI typechecks it (`npm run typecheck:examples`); " +
     "its `next build` costs minutes and belongs to deploys, not the PR gate. " +

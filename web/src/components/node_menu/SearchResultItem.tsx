@@ -12,7 +12,11 @@ import {
   FONT_WEIGHT,
   Z_INDEX,
   SPACING,
-  getSpacingPx
+  TYPOGRAPHY,
+  focusRing,
+  getSpacingPx,
+  selectedRowStyles,
+  Tooltip
 } from "../ui_primitives";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { NodeMetadata } from "../../stores/ApiTypes";
@@ -26,11 +30,6 @@ import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { FavoriteButton } from "../ui_primitives";
 import { NOTIFICATION_TIMEOUT_SHORT } from "../../config/constants";
-import { i18n } from "../../i18n";
-import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
-import { nodeDocumentation } from "../../i18n/nodeDocs";
-import { useAppLanguage } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 const COMPACT_SVG_PROPS = { width: "14px", height: "14px" } as const;
 const EXPANDED_SVG_PROPS = { width: "16px", height: "16px" } as const;
@@ -85,11 +84,8 @@ const searchResultStyles = (theme: Theme, compact: boolean) =>
         border: `1px solid ${theme.vars.palette.divider}`,
         zIndex: Z_INDEX.dropdown
       },
-      "&.keyboard-selected": {
-        backgroundColor: "rgba(var(--palette-primary-mainChannel) / 0.15)",
-        border: `1px solid rgba(var(--palette-primary-mainChannel) / 0.4)`,
-        boxShadow: "0 0 0 2px rgba(var(--palette-primary-mainChannel) / 0.1)"
-      },
+      "&:focus-visible": focusRing(theme),
+      "&.keyboard-selected": selectedRowStyles(theme),
       ".result-header": {
         display: "flex",
         alignItems: "flex-start",
@@ -130,9 +126,8 @@ const searchResultStyles = (theme: Theme, compact: boolean) =>
         }
       },
       ".result-description": {
-        fontSize: "var(--fontSizeSmall)",
+        ...TYPOGRAPHY.sans.caption,
         color: theme.vars.palette.text.secondary,
-        lineHeight: 1.4,
         marginTop: theme.spacing(1),
         whiteSpace: "nowrap",
         overflow: "hidden",
@@ -150,6 +145,7 @@ const searchResultStyles = (theme: Theme, compact: boolean) =>
         borderRadius: BORDER_RADIUS.sm,
         color: theme.vars.palette.text.secondary,
         transition: `${MOTION.transform}, color ${MOTION.fast}`,
+        "&:focus-visible": focusRing(theme),
         "&.expanded": {
           transform: "rotate(180deg)",
           color: "var(--palette-primary-main)"
@@ -239,8 +235,6 @@ const SearchResultItem = memo(function SearchResultItem({
   compact = false,
   ref
 }: SearchResultItemProps) {
-  const { t } = useTranslation();
-  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const outputType = node.outputs.length > 0 ? node.outputs[0].type.type : "";
   const providerKind = getProviderKindForNamespace(node.namespace);
@@ -259,7 +253,7 @@ const SearchResultItem = memo(function SearchResultItem({
       addNotification({
         type: "info",
         content: next
-          ? i18n.t("editor:ui.nodeAddedToFavorites", { defaultValue: "Node added to favorites" })
+          ? "Node added to favorites"
           : "Node removed from favorites",
         timeout: NOTIFICATION_TIMEOUT_SHORT
       });
@@ -269,16 +263,8 @@ const SearchResultItem = memo(function SearchResultItem({
 
   const { description, tags } = useMemo(
     () =>
-      // nodeDocumentation overlays the zh doc (parser-shaped, r17) at render
-      // time; languageVersion re-resolves on a language switch. Tags stay
-      // English (758-entry vocabulary, reported r17) so tag↔searchTerm
-      // matching against the English index keeps working.
-      formatNodeDocumentation(
-        nodeDocumentation(node.node_type, node.description),
-        searchTerm,
-        node.searchInfo
-      ),
-    [node.description, node.node_type, searchTerm, node.searchInfo, languageVersion]
+      formatNodeDocumentation(node.description, searchTerm, node.searchInfo),
+    [node.description, searchTerm, node.searchInfo]
   );
 
   const matchingTags = useMemo(() => {
@@ -398,7 +384,7 @@ const SearchResultItem = memo(function SearchResultItem({
         />
         <Text className="result-title" component="div" sx={COMPACT_TITLE_SX}>
           <HighlightText
-            text={nodeMenuTitle(node.node_type, node.title)}
+            text={node.title}
             query={searchTerm}
             matchStyle="primary"
           />
@@ -439,7 +425,7 @@ const SearchResultItem = memo(function SearchResultItem({
             />
             <Text className="result-title" component="div">
               <HighlightText
-                text={nodeMenuTitle(node.node_type, node.title)}
+                text={node.title}
                 query={searchTerm}
                 matchStyle="primary"
               />
@@ -474,18 +460,19 @@ const SearchResultItem = memo(function SearchResultItem({
             onToggle={handleFavoriteToggle}
             buttonSize="small"
           />
-          <div
-            className={`expand-indicator ${isExpanded ? "expanded" : ""}`}
-            role="button"
-            tabIndex={0}
-            onClick={handleToggleExpand}
-            onKeyDown={handleExpandKeyDown}
-            aria-expanded={isExpanded}
-            aria-label={isExpanded ? t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : t("editor:ui.showDetails", { defaultValue: "Show details" })}
-            title={isExpanded ? t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : t("editor:ui.showDetails", { defaultValue: "Show details" })}
-          >
-            <ExpandMoreIcon />
-          </div>
+          <Tooltip title={isExpanded ? "Collapse details" : "Show details"}>
+            <div
+              className={`expand-indicator ${isExpanded ? "expanded" : ""}`}
+              role="button"
+              tabIndex={0}
+              onClick={handleToggleExpand}
+              onKeyDown={handleExpandKeyDown}
+              aria-expanded={isExpanded}
+              aria-label={isExpanded ? "Collapse details" : "Show details"}
+            >
+              <ExpandMoreIcon />
+            </div>
+          </Tooltip>
         </div>
       </div>
 
@@ -504,7 +491,7 @@ const SearchResultItem = memo(function SearchResultItem({
         <Box className="io-info">
           {node.properties.length > 0 && (
             <Box className="io-row">
-              <span className="io-label">{t("editor:ui.input", { defaultValue: "Input:" })}</span>
+              <span className="io-label">Input:</span>
               <Box className="io-items">
                 {node.properties.slice(0, 6).map((prop) => (
                   <span
@@ -530,7 +517,7 @@ const SearchResultItem = memo(function SearchResultItem({
           )}
           {node.outputs.length > 0 && (
             <Box className="io-row">
-              <span className="io-label">{t("editor:ui.output", { defaultValue: "Output:" })}</span>
+              <span className="io-label">Output:</span>
               <Box className="io-items">
                 {node.outputs.map((output) => (
                   <span

@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ThemeProvider } from "@mui/material/styles";
 import mockTheme from "../../../__mocks__/themeMock";
 import AssetItem from "../AssetItem";
@@ -185,72 +185,36 @@ describe("AssetItem", () => {
     expect(container.querySelector(".asset-item")?.className).toContain("svg");
   });
 
-  describe("seeded style-preset rows", () => {
-    // The seeder writes marker rows with no bytes: get_url 404s, so the tile
-    // must paint the marker's package:// tile art instead (F-27, library path).
-    const presetAsset: Asset = {
-      ...baseImageAsset,
-      id: "cfcb1c08e67e95a530e2c137e9052d31",
-      name: "Painted 2D",
-      get_url: "/api/storage/404-path.jpg",
-      thumb_url: null,
-      metadata: {
-        nodetool_entity: {
-          kind: "style",
-          name: "Painted 2D",
-          descriptor: "Hand-painted 2D game art.",
-          system: true,
-          preset_id: "painted-2d",
-          thumbnail: "package://nodetool-base/styles/game-painted-2d.png"
-        }
-      }
-    };
-
-    it("paints the package thumbnail, not the dangling get_url", () => {
-      const { container } = renderWithTheme(
-        <AssetItem asset={presetAsset} isSelected={false} showDeleteButton={false} />
-      );
-      const tile = container.querySelector(".asset .image") as HTMLElement;
-      expect(tile).toBeTruthy();
-      expect(tile.style.backgroundImage).toContain(
-        "/api/assets/packages/nodetool-base/styles/game-painted-2d.png"
-      );
-      expect(tile.style.backgroundImage).not.toContain("404-path");
-    });
-
-    it("resolves the tile name through the catalog:styles overlay", async () => {
-      const { i18n, ensureLanguageLoaded, resetI18nForTest } = require("../../../i18n");
-      await i18n.changeLanguage("zh-CN");
-      await ensureLanguageLoaded("zh-CN");
-      try {
-        renderWithTheme(
-          <AssetItem asset={presetAsset} isSelected={false} showDeleteButton={false} />
+  it("paints the full image while a fresh upload's thumbnail is still missing", async () => {
+    // The grid can list an upload before the server has written its
+    // thumbnail, so the first thumbnail request is a 404.
+    const OriginalImage = global.Image;
+    class MissingThumbImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      set src(url: string) {
+        void Promise.resolve().then(() =>
+          url.includes("thumb") ? this.onerror?.() : this.onload?.()
         );
-        expect(screen.getByText("手绘二维")).toBeInTheDocument();
-      } finally {
-        await resetI18nForTest();
       }
-    });
-
-    it("keeps the stored name for a swapped system entity", () => {
-      const swapped: Asset = {
-        ...presetAsset,
-        metadata: {
-          nodetool_entity: {
-            ...((presetAsset.metadata as Record<string, unknown>)
-              .nodetool_entity as Record<string, unknown>),
-            reference_asset_id: "a8472a47faa84c989e45089b5789d9df"
-          }
-        }
-      };
+    }
+    global.Image = MissingThumbImage as unknown as typeof Image;
+    try {
       const { container } = renderWithTheme(
-        <AssetItem asset={swapped} isSelected={false} showDeleteButton={false} />
+        <AssetItem
+          asset={baseImageAsset}
+          isSelected={false}
+          showDeleteButton={false}
+        />
       );
       const tile = container.querySelector(".asset .image") as HTMLElement;
-      expect(tile).toBeTruthy();
-      // No preset thumb: falls back to the asset's own (swapped) ref.
-      expect(tile.style.backgroundImage).not.toContain("/api/assets/packages/");
-    });
+      await waitFor(() =>
+        expect(tile.style.backgroundImage).toContain("/img/a1.jpg")
+      );
+      expect(tile.style.backgroundImage).not.toContain("thumb");
+    } finally {
+      global.Image = OriginalImage;
+    }
   });
 
   it("calls onDoubleClick with asset on double click", () => {

@@ -1,11 +1,9 @@
-import { i18n } from "../../../i18n";
 /**
  * The storyboard setup's consistency step. Entities are reusable reference
  * images plus canonical descriptions. The selection is stored on the board,
  * while every shot gets an explicit selection the creator can refine here.
  */
 
-import { useTranslation } from "react-i18next";
 import {
   Suspense,
   lazy,
@@ -49,6 +47,7 @@ import {
   ResponsiveImage,
   ScrollArea,
   SearchInput,
+  SectionHeader,
   SPACING,
   SPACING_PX,
   Text,
@@ -115,14 +114,14 @@ interface EntitiesStepProps {
 const EMPTY_ENTITY_IDS: string[] = [];
 const ENTITY_PREVIEW_SIZE = SPACING_PX.xxxl * 4;
 const ENTITY_GROUPS = [
-  { kind: "character", label: "Characters", labelKey: "storyboard:attrs.characters" },
-  { kind: "location", label: "Locations", labelKey: "storyboard:attrs.locations" },
-  { kind: "prop", label: "Props", labelKey: "storyboard:attrs.props" },
-  { kind: "style", label: "Styles", labelKey: "storyboard:attrs.styles" }
+  { kind: "character", label: "Characters" },
+  { kind: "location", label: "Locations" },
+  { kind: "prop", label: "Props" },
+  { kind: "style", label: "Styles" }
 ] as const;
 
 const REFERENCE_MODEL_HELPER =
-  i18n.t("storyboard:attrs.usedOnlyForMissingEntities", { defaultValue: "Used only for missing entities you choose to create. The same model carries into the Look step." });
+  "Used only for missing entities you choose to create. The same model carries into the Look step.";
 
 const editOnlyMessage = (name: string): string =>
   `${name} only edits images, so it cannot draw a reference from a description. Pick a model that creates images from text.`;
@@ -155,7 +154,6 @@ export const EntitiesStep = ({
   readOnly = false,
   onCreationStart
 }: EntitiesStepProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const {
     data: entities,
@@ -282,11 +280,8 @@ export const EntitiesStep = ({
     createPrice === null
       ? null
       : createPrice.cost === null
-        ? i18n.t("editor:ui.priceUnknown", { defaultValue: "Price unknown" })
-        : t("setup:image.aboutCost", {
-            defaultValue: "About {{cost}}",
-            cost: formatUsd(createPrice.cost)
-          });
+        ? "Price unknown"
+        : `About ${formatUsd(createPrice.cost)}`;
 
   const handleCreated = (entity: Entity | null): void => {
     if (entity) {
@@ -307,7 +302,7 @@ export const EntitiesStep = ({
     if (!screenplay || !model?.id) {
       setAssistFailure("find");
       setAssistError(
-        i18n.t("storyboard:attrs.theStoryboardNeedsAScreenplayAndDirectorModelFirst", { defaultValue: "The storyboard needs a screenplay and Director model first." })
+        "The storyboard needs a screenplay and Director model first."
       );
       return;
     }
@@ -340,7 +335,7 @@ export const EntitiesStep = ({
       setAssistError(
         error instanceof Error
           ? error.message
-          : i18n.t("storyboard:attrs.couldNotFindEntitiesInTheStory", { defaultValue: "Could not find entities in the story." })
+          : "Could not find entities in the story."
       );
     } finally {
       if (finishEntityFind(boardId, controller, found) && mountedRef.current) {
@@ -375,7 +370,7 @@ export const EntitiesStep = ({
       useStoryboardStore.getState().getBoard(boardId)?.imageModel ?? null;
     if (!selected?.id) {
       setAssistFailure("create");
-      setAssistError(i18n.t("storyboard:attrs.pickAReferenceImageModelFirst", { defaultValue: "Pick a reference image model first." }));
+      setAssistError("Pick a reference image model first.");
       return;
     }
     const resolved = referenceImageModel(selected, imageModels);
@@ -411,7 +406,7 @@ export const EntitiesStep = ({
         ? answer.asset_ids.find((id): id is string => typeof id === "string")
         : undefined;
       if (!assetId) {
-        throw new Error(i18n.t("storyboard:attrs.theImageModelReturnedNoReferenceImage", { defaultValue: "The image model returned no reference image." }));
+        throw new Error("The image model returned no reference image.");
       }
       const entity = await saveEntity.mutateAsync({
         assetId,
@@ -422,7 +417,7 @@ export const EntitiesStep = ({
         reference_asset_id: assetId
       });
       if (!entity) {
-        throw new Error(i18n.t("storyboard:attrs.theEntityCouldNotBeSaved", { defaultValue: "The entity could not be saved." }));
+        throw new Error("The entity could not be saved.");
       }
       // A creation canceled while it was being saved stays off the board: the
       // creator asked for it to stop (F10).
@@ -439,7 +434,7 @@ export const EntitiesStep = ({
       if (!mountedRef.current || signal?.aborted) return;
       setAssistFailure("create");
       setAssistError(
-        error instanceof Error ? error.message : i18n.t("storyboard:attrs.theEntityCouldNotBeMade", { defaultValue: "The entity could not be made." })
+        error instanceof Error ? error.message : "The entity could not be made."
       );
     } finally {
       creation?.done();
@@ -475,10 +470,7 @@ export const EntitiesStep = ({
   const visibleEntities = availableEntities.filter(
     (entity) =>
       (!onlySelected || selectedSet.has(entity.id)) &&
-      `${entity.name} ${entity.kind} ${entity.descriptor} ${t(
-        `storyboard:attrs.${entity.kind}`,
-        { defaultValue: entity.kind }
-      )}`
+      `${entity.name} ${entity.kind} ${entity.descriptor}`
         .toLocaleLowerCase()
         .includes(query)
   );
@@ -490,10 +482,11 @@ export const EntitiesStep = ({
     >
       <FlexColumn gap={SPACING.xs}>
         <Text size="big" component="h1">
-          {t("storyboard:attrs.keepPeopleAndPlacesConsistent", { defaultValue: "Keep people and places consistent" })}
+          Keep people and places consistent
         </Text>
         <Text color="secondary" sx={{ maxWidth: "65ch" }}>
-          {t("storyboard:attrs.chooseTheCharactersPlacesAndPropsThatNeedToLookConsistentAcrossShots", { defaultValue: "Choose the characters, places, and props that need to look consistent across shots." })}
+          Choose the characters, places, and props that need to look consistent
+          across shots.
         </Text>
       </FlexColumn>
 
@@ -508,9 +501,15 @@ export const EntitiesStep = ({
             gap={SPACING.xs}
             sx={{ flexGrow: 1, flexShrink: 1, flexBasis: SETUP_MEDIA_WIDTH }}
           >
-            <Label component="h2">{t("storyboard:attrs.suggestedFromYourStory", { defaultValue: "Suggested from your story" })}</Label>
+            <SectionHeader
+              size="small"
+              title="Suggested from your story"
+              role="heading"
+              aria-level={2}
+            />
             <Caption>
-              {t("storyboard:attrs.findRecurringReferencesInYourScreenplayCreateOnlyTheOnesYouWantToUse", { defaultValue: "Find recurring references in your screenplay. Create only the ones you want to use." })}
+              Find recurring references in your screenplay. Create only the ones
+              you want to use.
             </Caption>
           </FlexColumn>
           <FlexColumn gap={SPACING.xs} align="flex-end">
@@ -522,10 +521,10 @@ export const EntitiesStep = ({
                 disabled={readOnly || suggesting}
               >
                 {suggesting
-                  ? i18n.t("storyboard:attrs.findingEntities", { defaultValue: "Finding entities" })
+                  ? "Finding entities"
                   : suggestions.length > 0
-                    ? i18n.t("storyboard:attrs.refreshSuggestions", { defaultValue: "Refresh suggestions" })
-                    : i18n.t("storyboard:attrs.findEntities", { defaultValue: "Find entities" })}
+                    ? "Refresh suggestions"
+                    : "Find entities"}
               </EditorButton>
               {suggesting ? (
                 // Named apart from the footer's Cancel, which stops entity
@@ -533,28 +532,27 @@ export const EntitiesStep = ({
                 <EditorButton
                   variant="text"
                   onClick={cancelFind}
-                  aria-label={t("storyboard:attrs.cancelFindingEntities", { defaultValue: "Cancel finding entities" })}
+                  aria-label="Cancel finding entities"
                 >
-                  {t("storyboard:attrs.cancel", { defaultValue: "Cancel" })}
+                  Cancel
                 </EditorButton>
               ) : null}
             </FlexRow>
             {foundNone && !suggesting ? (
               <Caption role="status">
-                {t("storyboard:attrs.noRecurringCharactersPlacesOrPropsWereFoundInYourScreenplay", { defaultValue: "No recurring characters, places or props were found in your screenplay." })}
+                No recurring characters, places or props were found in your
+                screenplay.
               </Caption>
             ) : null}
             {readOnly ? null : (
               <Suspense
                 fallback={
-                  <Caption color="secondary">
-                    {t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}
-                  </Caption>
+                  <Caption color="secondary">Loading estimate…</Caption>
                 }
               >
                 <GenerationEstimateLine
-                  result={t("storyboard:attrs.findTheCharactersPlacesAndPropsInYourScreenplay", { defaultValue: "Find the characters, places, and props in your screenplay" })}
-                  next={t("storyboard:attrs.nothingIsCreatedUntilYouChoose", { defaultValue: "Nothing is created until you choose." })}
+                  result="Find the characters, places, and props in your screenplay"
+                  next="Nothing is created until you choose."
                   model={board?.directorModel ?? null}
                   brief={`${ENTITY_SUGGESTIONS_SYSTEM_PROMPT}\n${suggestionsPrompt}`}
                   maxOutputTokens={SUGGESTIONS_MAX_OUTPUT_TOKENS}
@@ -569,8 +567,8 @@ export const EntitiesStep = ({
             severity="error"
             title={
               assistFailure === "find"
-                ? i18n.t("storyboard:attrs.couldNotFindEntities", { defaultValue: "Could not find entities" })
-                : i18n.t("storyboard:attrs.couldNotCreateEntities", { defaultValue: "Could not create entities" })
+                ? "Could not find entities"
+                : "Could not create entities"
             }
             action={
               <ReportBugButton
@@ -601,7 +599,7 @@ export const EntitiesStep = ({
                 )
             ) ? (
               <FormField
-                label={t("storyboard:attrs.referenceImageModel", { defaultValue: "Reference image model" })}
+                label="Reference image model"
                 helperText={referenceModelHelperText(referenceModel)}
                 sx={{ maxWidth: SETUP_FIELD_WIDTH }}
               >
@@ -646,11 +644,7 @@ export const EntitiesStep = ({
                     <FlexColumn gap={SPACING.xs} sx={{ flex: "1 1 320px" }}>
                       <FlexRow gap={SPACING.sm} align="baseline">
                         <Label component="h3">{suggestion.name}</Label>
-                        <Caption>
-                          {t(`storyboard:attrs.${suggestion.kind}`, {
-                            defaultValue: suggestion.kind
-                          })}
-                        </Caption>
+                        <Caption>{suggestion.kind}</Caption>
                       </FlexRow>
                       <Text color="secondary">{suggestion.descriptor}</Text>
                     </FlexColumn>
@@ -676,21 +670,12 @@ export const EntitiesStep = ({
                       >
                         {creating ? (
                           <ThinkingIndicator
-                            label={t("setup:storyboard.creatingName", {
-                              defaultValue: "Creating {{name}}",
-                              name: suggestion.name
-                            })}
+                            label={`Creating ${suggestion.name}`}
                           />
                         ) : existing ? (
-                          t("setup:storyboard.useName", {
-                            defaultValue: "Use {{name}}",
-                            name: suggestion.name
-                          })
+                          `Use ${suggestion.name}`
                         ) : (
-                          t("setup:storyboard.createName", {
-                            defaultValue: "Create {{name}}",
-                            name: suggestion.name
-                          })
+                          `Create ${suggestion.name}`
                         )}
                       </EditorButton>
                     </FlexRow>
@@ -704,9 +689,14 @@ export const EntitiesStep = ({
 
       <FlexRow gap={SPACING.xl} wrap align="center">
         <FlexRow gap={SPACING.md} wrap align="baseline">
-          <Label component="h2">{t("storyboard:attrs.yourEntityLibrary", { defaultValue: "Your entity library" })}</Label>
+          <SectionHeader
+            size="small"
+            title="Your entity library"
+            role="heading"
+            aria-level={2}
+          />
           <Caption role="status">
-            {t("storyboard:attrs.countSelectedForThisStoryboard", { defaultValue: "{{count}} selected for this storyboard", count: selectedEntities.length })}
+            {selectedEntities.length} selected for this storyboard
           </Caption>
         </FlexRow>
         <EditorButton
@@ -715,18 +705,18 @@ export const EntitiesStep = ({
           onClick={() => setPickerOpen(true)}
           disabled={readOnly}
         >
-          {t("storyboard:attrs.createEntityFromAnImage", { defaultValue: "Create entity from an image" })}
+          Create entity from an image
         </EditorButton>
       </FlexRow>
 
       {isLoading ? (
-        <LoadingSpinner text={t("editor:ui.loadingEntities")} />
+        <LoadingSpinner text="Loading entities" />
       ) : entitiesFailed && !entities ? (
         // A failed load is not an empty library: saying "No entities yet"
         // would send the creator to make again what they already have.
         <AlertBanner
           severity="error"
-          title={t("storyboard:attrs.couldNotLoadYourEntities", { defaultValue: "Could not load your entities" })}
+          title="Could not load your entities"
           action={
             <FlexRow gap={SPACING.sm}>
               <EditorButton
@@ -734,7 +724,7 @@ export const EntitiesStep = ({
                 size="small"
                 onClick={() => void refetchEntities()}
               >
-                {t("storyboard:attrs.tryAgain")}
+                Try again
               </EditorButton>
               <ReportBugButton
                 context={{
@@ -747,13 +737,13 @@ export const EntitiesStep = ({
           }
         >
           {entitiesError?.message ??
-            t("storyboard:attrs.theEntityLibraryDidNotLoadTryAgainOrSkipThisStep", { defaultValue: "The entity library did not load. Try again, or skip this step." })}
+            "The entity library did not load. Try again, or skip this step."}
         </AlertBanner>
       ) : !entities || entities.length === 0 ? (
         <EmptyState
           variant="no-data"
-          title={t("storyboard:attrs.noEntitiesYet", { defaultValue: "No entities yet" })}
-          description={t("editor:ui.createOneFromAGeneratedOrUploadedImageOrSkipThisStep")}
+          title="No entities yet"
+          description="Create one from a generated or uploaded image, or skip this step."
           size="small"
         />
       ) : (
@@ -775,7 +765,7 @@ export const EntitiesStep = ({
               <SearchInput
                 value={search}
                 onChange={setSearch}
-                placeholder={t("storyboard:attrs.searchEntities", { defaultValue: "Search entities" })}
+                placeholder="Search entities"
                 fullWidth
               />
             </FlexColumn>
@@ -784,7 +774,7 @@ export const EntitiesStep = ({
               aria-pressed={onlySelected}
               onClick={() => setOnlySelected(!onlySelected)}
             >
-              {t("storyboard:attrs.selectedOnly", { defaultValue: "Selected only" })}
+              Selected only
             </EditorButton>
           </FlexRow>
           <ScrollArea maxHeight="min(48vh, 480px)">
@@ -794,32 +784,36 @@ export const EntitiesStep = ({
                   variant="no-data"
                   title={
                     onlySelected && !query
-                      ? i18n.t("storyboard:attrs.noEntitiesSelected", { defaultValue: "No entities selected" })
-                      : i18n.t("storyboard:attrs.noMatchingEntities", { defaultValue: "No matching entities" })
+                      ? "No entities selected"
+                      : "No matching entities"
                   }
                   description={
                     onlySelected && !query
-                      ? i18n.t("storyboard:attrs.browseYourLibraryToChooseReferencesForThisStoryboard", { defaultValue: "Browse your library to choose references for this storyboard." })
-                      : i18n.t("storyboard:attrs.tryAnotherNameOrChangeTheSelectedFilter", { defaultValue: "Try another name or change the selected filter." })
+                      ? "Browse your library to choose references for this storyboard."
+                      : "Try another name or change the selected filter."
                   }
                   size="small"
                 />
               ) : (
-                ENTITY_GROUPS.map(({ kind, label, labelKey }) => {
+                ENTITY_GROUPS.map(({ kind, label }) => {
                   const group = visibleEntities.filter(
                     (entity) => entity.kind === kind
                   );
                   if (group.length === 0) return null;
-                  const heading = t(labelKey, { defaultValue: label });
                   return (
                     <FlexColumn
                       key={kind}
                       gap={SPACING.md}
                       component="section"
-                      aria-label={heading}
+                      aria-label={label}
                     >
                       <FlexRow gap={SPACING.md} align="baseline">
-                        <Label component="h3">{heading}</Label>
+                        <SectionHeader
+                          size="small"
+                          title={label}
+                          role="heading"
+                          aria-level={3}
+                        />
                         <Caption>{group.length}</Caption>
                       </FlexRow>
                       <FlexColumn
@@ -858,7 +852,7 @@ export const EntitiesStep = ({
                             {entity.reference_images?.[0] ? (
                               <EditorButton
                                 variant="text"
-                                aria-label={t("storyboard:attrs.viewNameReferenceImage", { defaultValue: "View {{name}} reference image", name: entity.name })}
+                                aria-label={`View ${entity.name} reference image`}
                                 onClick={() =>
                                   openGallery?.(entity.reference_images?.[0])
                                 }
@@ -916,7 +910,7 @@ export const EntitiesStep = ({
                               }}
                               slotProps={{
                                 input: {
-                                  "aria-label": `${t(`catalog:styles.${entity.name}.name`, { defaultValue: entity.name })} · ${t(`storyboard:attrs.${entity.kind}`, { defaultValue: entity.kind })}`
+                                  "aria-label": `${entity.name} · ${entity.kind}`
                                 }
                               }}
                               labelProps={{
@@ -943,7 +937,7 @@ export const EntitiesStep = ({
                                       overflowWrap: "anywhere"
                                     }}
                                   >
-                                    {t(`catalog:styles.${entity.name}.name`, { defaultValue: entity.name })}
+                                    {entity.name}
                                   </Label>
                                   <Caption
                                     sx={{
@@ -954,9 +948,7 @@ export const EntitiesStep = ({
                                       overflowWrap: "anywhere"
                                     }}
                                   >
-                                    {entity.descriptor
-                                      ? t(`catalog:styles.${entity.name}.description`, { defaultValue: entity.descriptor })
-                                      : t("storyboard:attrs.noDescription", { defaultValue: "No description" })}
+                                    {entity.descriptor || "No description"}
                                   </Caption>
                                 </FlexColumn>
                               }
@@ -977,10 +969,10 @@ export const EntitiesStep = ({
         <FlexColumn gap={SPACING.xl}>
           <FlexColumn gap={SPACING.xs}>
             <Text size="big" component="h2">
-              {t("storyboard:attrs.assignEachShot", { defaultValue: "Assign each shot" })}
+              Assign each shot
             </Text>
             <Text color="secondary">
-              {t("storyboard:attrs.removeAnEntityFromShotsWhereItShouldNotAppear", { defaultValue: "Remove an entity from shots where it should not appear." })}
+              Remove an entity from shots where it should not appear.
             </Text>
           </FlexColumn>
           <FlexColumn
@@ -999,10 +991,7 @@ export const EntitiesStep = ({
                 <FlexColumn
                   key={shot.id}
                   component="section"
-                  aria-label={t("setup:storyboard.shotN", {
-                    defaultValue: "Shot {{index}}",
-                    index: shot.index + 1
-                  })}
+                  aria-label={`Shot ${shot.index + 1}`}
                   gap={SPACING.xl}
                   justify="space-between"
                   sx={{
@@ -1015,12 +1004,7 @@ export const EntitiesStep = ({
                   }}
                 >
                   <FlexColumn gap={SPACING.sm}>
-                    <Label component="h3">
-                      {t("setup:storyboard.shotN", {
-                        defaultValue: "Shot {{index}}",
-                        index: shot.index + 1
-                      })}
-                    </Label>
+                    <Label component="h3">Shot {shot.index + 1}</Label>
                     <Text>{shot.slug ?? shot.action}</Text>
                   </FlexColumn>
                   <FlexRow gap={SPACING.md} wrap>

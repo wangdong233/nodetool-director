@@ -3,14 +3,26 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import React, { memo, useCallback, useMemo } from "react";
-import { Text, BORDER_RADIUS, ListGroup, MOTION, SPACING, getSpacingPx } from "../ui_primitives";
+import {
+  Text,
+  BORDER_RADIUS,
+  EYEBROW,
+  ListGroup,
+  MOTION,
+  SPACING,
+  TYPOGRAPHY,
+  getSpacingPx,
+  reducedMotion,
+  selectableRowStyles,
+  selectedRowStyles,
+  thinScrollbarStyles
+} from "../ui_primitives";
 import RenderNamespaces from "./RenderNamespaces";
 import useNodeMenuStore from "../../stores/NodeMenuStore";
 import { useShallow } from "zustand/react/shallow";
 import { NamespaceTree } from "../../hooks/useNamespaceTree";
 import { HomeNamespaceIcon } from "./NamespaceIcon";
 import OptionalPacksSection from "./OptionalPacksSection";
-import { useTranslation } from "react-i18next";
 
 interface NamespacePanelProps {
   namespaceTree: NamespaceTree;
@@ -44,22 +56,11 @@ const namespacePanelStyles = (theme: Theme) =>
       padding: getSpacingPx(SPACING.md),
       borderRadius: BORDER_RADIUS.xl,
       border: `1px solid ${theme.vars.palette.divider}`,
-      backgroundColor: "transparent"
-    },
-    "& .namespace-list::-webkit-scrollbar": { width: "6px" },
-    "& .namespace-list::-webkit-scrollbar-track": { background: "transparent" },
-    "& .namespace-list::-webkit-scrollbar-thumb": {
-      backgroundColor: theme.vars.palette.action.disabledBackground,
-      borderRadius: BORDER_RADIUS.lg
-    },
-    "& .namespace-list::-webkit-scrollbar-thumb:hover": {
-      backgroundColor: theme.vars.palette.action.disabled
+      backgroundColor: "transparent",
+      ...thinScrollbarStyles(theme)
     },
     "& .namespace-section-title": {
-      fontSize: theme.fontSizeSmaller,
-      fontWeight: 600,
-      textTransform: "uppercase",
-      letterSpacing: "0.6px",
+      ...EYEBROW,
       color: theme.vars.palette.text.secondary,
       padding: `${getSpacingPx(SPACING.xl)} 0 ${getSpacingPx(SPACING.sm)} ${getSpacingPx(SPACING.md)}`,
       margin: 0,
@@ -106,26 +107,18 @@ const namespacePanelStyles = (theme: Theme) =>
     "& .namespace-item .namespace-icon": {
       color: theme.vars.palette.text.secondary
     },
-    "& .list-item.selected .namespace-item .namespace-icon": {
-      color: "var(--palette-primary-main)",
-      borderColor: "rgba(var(--palette-primary-mainChannel) / 0.4)",
-      backgroundColor: "rgba(var(--palette-primary-mainChannel) / 0.12)"
-    },
     "& .disabled .namespace-item": {
       color: theme.vars.palette.text.disabled
     },
     "& .namespaces .list-item": {
+      ...selectableRowStyles(theme),
       cursor: "pointer",
       padding: `${getSpacingPx(SPACING.sm)} ${getSpacingPx(SPACING.md)}`,
-      backgroundColor: "transparent",
-      fontFamily: theme.fontFamily1,
-      fontSize: theme.fontSizeSmall,
-      fontWeight: 400,
-      lineHeight: 1.2,
+      ...TYPOGRAPHY.sans.label,
       transition: `${MOTION.background}, ${MOTION.opacity}`,
+      ...reducedMotion({ transition: MOTION.none }),
       overflow: "hidden",
-      margin: `${getSpacingPx(SPACING.micro)} 0`, // was 1px 0
-      borderRadius: BORDER_RADIUS.md
+      margin: `${getSpacingPx(SPACING.micro)} 0` // was 1px 0
     },
     "& .namespaces .list-item.disabled": {
       backgroundColor: "transparent",
@@ -138,9 +131,6 @@ const namespacePanelStyles = (theme: Theme) =>
       borderTop: `1px solid ${theme.vars.palette.divider}`,
       marginTop: getSpacingPx(SPACING.md)
     },
-    "& .namespaces .list-item:hover": {
-      backgroundColor: theme.vars.palette.action.hover
-    },
     "& .namespaces .list-item.expanded": {
       opacity: 1
     },
@@ -152,14 +142,7 @@ const namespacePanelStyles = (theme: Theme) =>
       margin: "0",
       overflow: "hidden"
     },
-    "& .namespaces .list-item.selected": {
-      backgroundColor: "rgba(var(--palette-primary-mainChannel) / 0.12)",
-      fontWeight: 600,
-      color: "var(--palette-primary-main)"
-    },
-    "& .namespaces .list-item.selected .namespace-item": {
-      color: "var(--palette-primary-main)"
-    },
+    "& .namespaces .list-item.selected": selectedRowStyles(theme),
     "& .namespaces .list-item.disabled.selected": {
       backgroundColor: theme.vars.palette.action.selected
     },
@@ -177,7 +160,6 @@ const namespacePanelStyles = (theme: Theme) =>
   });
 
 const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const panelStyles = useMemo(() => namespacePanelStyles(theme), [theme]);
   const { searchTerm, selectedPath, setSelectedPath } = useNodeMenuStore(
@@ -261,25 +243,20 @@ const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
             }}
             role="button"
             tabIndex={0}
-            title={
-              searchTerm.length > minSearchTermLength
-                ? t("editor:ui.showAllResults", { defaultValue: "Show all results" })
-                : t("editor:ui.home", { defaultValue: "Home" })
-            }
           >
             <div className="namespace-item">
               <HomeNamespaceIcon />
               <span className="namespace-label">
                 {searchTerm.length > minSearchTermLength
-                  ? t("editor:ui.allResults", { defaultValue: "All results" })
-                  : t("editor:ui.home", { defaultValue: "Home" })}
+                  ? "All results"
+                  : "Home"}
               </span>
             </div>
           </div>
         </div>
         {Object.keys(localTree).length > 0 && (
           <>
-            <Text className="namespace-section-title">{t("ui2:attrs.local", { defaultValue: "Local" })}</Text>
+            <Text className="namespace-section-title">Local</Text>
             <div className="namespace-list-local">
               <RenderNamespaces tree={localTree} />
             </div>
@@ -288,7 +265,7 @@ const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
         {Object.keys(providerTree).length > 0 && (
           <>
             <Text className="namespace-section-title providers">
-              {t("editor:ui.nodeProviders", { defaultValue: "Providers" })}
+              Providers
             </Text>
             <div className="namespace-list-providers">
               <RenderNamespaces tree={providerTree} />

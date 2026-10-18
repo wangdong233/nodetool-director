@@ -10,11 +10,10 @@ import React, { memo, useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import ImageIcon from "@mui/icons-material/Image";
 
-import { SPACING, CheckerDropzone, BORDER_RADIUS } from "../../ui_primitives";
+import { SPACING, BORDER_RADIUS } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
-import ImageRefPreview from "../../node/ImageRefPreview";
+import ImagePreview from "./ImagePreview";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
 import ColorPicker from "../../inputs/ColorPicker";
@@ -23,7 +22,6 @@ import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
-import { useTranslation } from "react-i18next";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
@@ -89,15 +87,6 @@ const styles = (theme: Theme) =>
     }
   });
 
-const ImagePreview: React.FC<{ value: unknown }> = ({ value }) => (
-  <ImageRefPreview
-    value={value}
-    placeholder={
-      <CheckerDropzone message="Connect an image, then run" icon={<ImageIcon />} />
-    }
-  />
-);
-
 interface ChromaKeyBodyProps {
   id: string;
   nodeType: string;
@@ -117,7 +106,6 @@ const ChromaKeyBodyInner: React.FC<ChromaKeyBodyProps> = ({
   status,
   isOutputNode
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(
     () => [styles(theme), adjustmentSliderStyles(theme)],
@@ -167,7 +155,7 @@ const ChromaKeyBodyInner: React.FC<ChromaKeyBodyProps> = ({
       </div>
 
       <div className="controls">
-        <span className="ctrl-label">{t("ui2:attrs.keyColor", { defaultValue: "Key Color" })}</span>
+        <span className="ctrl-label">Key color</span>
         <span style={{ gridColumn: "2 / 4", display: "flex", alignItems: "center" }}>
           <ColorPicker
             color={hexColor}

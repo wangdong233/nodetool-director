@@ -5,6 +5,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import { Asset } from "../../stores/ApiTypes";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import ErrorBanner from "../support/ErrorBanner";
 import {
   FlexColumn,
   FlexRow,
@@ -24,7 +25,6 @@ import ZoomIn from "@mui/icons-material/ZoomIn";
 import ZoomOut from "@mui/icons-material/ZoomOut";
 import RestartAlt from "@mui/icons-material/RestartAlt";
 import { ActionButtonGroup } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -159,11 +159,10 @@ const styles = (theme: Theme) =>
   });
 
 const PDFViewer: React.FC<PDFViewerProps> = ({ asset, url }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState<number>(1);
-  const [, setError] = useState<Error | null>(null);
+  const [loadError, setError] = useState<Error | null>(null);
   const [scale, setScale] = useState(1);
 
   const pdfUrl = asset?.get_url || url;
@@ -227,14 +226,24 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ asset, url }) => {
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={onDocumentLoadError}
           loading={<LoadingSpinner />}
-          error={<Text color="error">{t("ui2:attrs.failedToLoadPDF", { defaultValue: "Failed to load PDF" })}</Text>}
+          error={
+            <ErrorBanner
+              report={{
+                source: "operation-failure",
+                summary: "PDF failed to load",
+                errorText: loadError?.message
+              }}
+            >
+              Could not load this PDF.
+            </ErrorBanner>
+          }
         >
           {pageComponent}
         </Document>
         <FlexRow className="page-controls" align="center" gap={SPACING.xs} sx={{ position: "sticky", bottom: "1em", background: theme.vars.palette.grey[600], padding: `${getSpacingPx(SPACING.lg)} ${getSpacingPx(SPACING.xl)}`, borderRadius: BORDER_RADIUS.sm, zIndex: Z_INDEX.sticky, minWidth: "200px", userSelect: "none" }}>
           <ToolbarIconButton
             icon={<NavigateBefore />}
-            tooltip={t("ui2:attrs.previousPage", { defaultValue: "Previous page" })}
+            tooltip="Previous page"
             onClick={goToPrevPage}
             disabled={pageNumber <= 1}
             size="small"
@@ -244,7 +253,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ asset, url }) => {
           </Text>
           <ToolbarIconButton
             icon={<NavigateNext />}
-            tooltip={t("ui2:attrs.nextPage", { defaultValue: "Next page" })}
+            tooltip="Next page"
             onClick={goToNextPage}
             disabled={pageNumber >= (numPages || 1)}
             size="small"
@@ -254,24 +263,24 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ asset, url }) => {
       <ActionButtonGroup
         className="zoom-controls"
         spacing={0.25}
-        aria-label={t("ui2:attrs.zoomControls", { defaultValue: "Zoom controls" })}
+        aria-label="Zoom controls"
         nodrag={false}
       >
         <ToolbarIconButton
           icon={<ZoomIn fontSize="small" />}
-          tooltip={t("ui2:attrs.zoomIn", { defaultValue: "Zoom in" })}
+          tooltip="Zoom in"
           onClick={zoomIn}
           size="small"
         />
         <ToolbarIconButton
           icon={<ZoomOut fontSize="small" />}
-          tooltip={t("ui2:attrs.zoomOut", { defaultValue: "Zoom out" })}
+          tooltip="Zoom out"
           onClick={zoomOut}
           size="small"
         />
         <ToolbarIconButton
           icon={<RestartAlt fontSize="small" />}
-          tooltip={t("ui2:attrs.resetZoom", { defaultValue: "Reset zoom" })}
+          tooltip="Reset zoom"
           onClick={resetZoom}
           size="small"
         />
@@ -286,7 +295,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ asset, url }) => {
           marks
           density="compact"
           orientation="vertical"
-          aria-label={t("ui2:attrs.pageNavigationSlider", { defaultValue: "Page navigation slider" })}
+          aria-label="Page navigation slider"
         />
       </FlexRow>
     </FlexRow>

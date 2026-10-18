@@ -2,29 +2,26 @@ import { isProduction } from "../../lib/env";
 
 interface SidebarSection {
   category: string;
-  categoryKey?: string;
-  items: Array<{ id: string; label: string; labelKey?: string }>;
+  items: Array<{ id: string; label: string }>;
 }
 
 export const getAboutSidebarSections = (): SidebarSection[] => {
   return [
     {
       category: "Application",
-      categoryKey: "aboutCatApplication",
       items: [
-        { id: "application", label: "Application", labelKey: "aboutApplication" },
-        { id: "operating-system", label: "Operating System", labelKey: "aboutOperatingSystem" },
-        { id: "features", label: "Features & Versions", labelKey: "aboutFeaturesVersions" }
+        { id: "application", label: "Application" },
+        { id: "operating-system", label: "Operating system" },
+        { id: "features", label: "Features & versions" }
       ]
     },
     {
       category: "Resources",
-      categoryKey: "aboutCatResources",
       items: [
         ...(!isProduction
-          ? [{ id: "installation-paths", label: "Installation Paths", labelKey: "aboutInstallationPaths" }]
+          ? [{ id: "installation-paths", label: "Installation paths" }]
           : []),
-        { id: "links", label: "Links", labelKey: "aboutLinks" }
+        { id: "links", label: "Links" }
       ]
     }
   ];

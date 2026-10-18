@@ -14,7 +14,8 @@ import {
   Tooltip,
   BORDER_RADIUS,
   SPACING,
-  createPadding
+  createPadding,
+  ICON_SIZE
 } from "../../ui_primitives";
 import { useModelDownloadStore } from "../../../stores/ModelDownloadStore";
 import { DownloadProgress } from "../DownloadProgress";
@@ -77,7 +78,7 @@ const OnboardingModelRow: React.FC<OnboardingModelRowProps> = ({
               <Chip label={t("editor:ui.popular", { defaultValue: "Popular" })} compact color="primary" variant="outlined" />
             )}
             {engine && (
-              <Tooltip title={engine.description} delay={400}>
+              <Tooltip title={engine.description}>
                 <Chip label={engine.name} compact variant="outlined" />
               </Tooltip>
             )}
@@ -105,13 +106,12 @@ const OnboardingModelRow: React.FC<OnboardingModelRowProps> = ({
             label={t(FIT_LABEL_KEYS[fit], { defaultValue: FIT_LABELS[fit] })}
             compact
             color={FIT_COLOR[fit]}
-            variant={fit === "unknown" ? "outlined" : "filled"}
           />
           {downloaded ? (
             <FlexRow gap={SPACING.micro} align="center">
               <CheckCircleIcon
                 sx={{
-                  fontSize: 16,
+                  fontSize: ICON_SIZE.sm,
                   color: theme.vars.palette.success.main
                 }}
               />
@@ -122,7 +122,7 @@ const OnboardingModelRow: React.FC<OnboardingModelRowProps> = ({
               variant={fit === "over" ? "outlined" : "contained"}
               density="compact"
               size="small"
-              startIcon={<DownloadIcon sx={{ fontSize: 16 }} />}
+              startIcon={<DownloadIcon />}
               onClick={handleDownload}
             >
               Download

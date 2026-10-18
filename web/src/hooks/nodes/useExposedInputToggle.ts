@@ -1,15 +1,18 @@
 import { useCallback } from "react";
 import { useNodes, useNodeStoreRef } from "../../contexts/NodeContext";
 import useMetadataStore from "../../stores/MetadataStore";
+import { rendersExposedInputHandles } from "../../components/node_types/editing/bespokeRegistry";
 import {
   applyExposedPlacementTarget,
   canConfigureExposedPlacement,
+  canPlaceOnTopHandle,
   getEffectiveExposedPlacement,
   nextExposedInputPlacement,
   type ExposedInputPlacement
 } from "../../utils/exposedInputs";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { runAsOneUndoEntry } from "../../utils/runAsOneUndoEntry";
+import { requestConfirm } from "../../stores/ConfirmStore";
 
 interface UseExposedInputToggleResult {
   canToggleExposed: (nodeId: string, propertyName: string) => boolean;
@@ -101,38 +104,66 @@ export function useExposedInputToggle(): UseExposedInputToggleResult {
     [findNode, getMetadata, updateNodeData]
   );
 
-  const confirmDisconnectIfNeeded = useCallback(
-    (nodeIds: readonly string[], propertyName: string): boolean => {
-      const edges = nodeStore.getState().edges;
-      const hasConnectedEdge = nodeIds.some((nodeId) =>
-        edges.some(
+  /** Ids of the edges feeding `propertyName` on any of `nodeIds`. */
+  const collectInputEdgeIds = useCallback(
+    (nodeIds: readonly string[], propertyName: string): string[] =>
+      nodeStore
+        .getState()
+        .edges.filter(
           (edge) =>
-            edge.target === nodeId && edge.targetHandle === propertyName
+            nodeIds.includes(edge.target) && edge.targetHandle === propertyName
         )
-      );
-      if (
-        hasConnectedEdge &&
-        !window.confirm(
-          i18n.t("editor:notify.hideInputConfirm", { defaultValue: 'Hide input for "{{name}}"? The connected edge will be removed.', name: propertyName })
-        )
-      ) {
-        return false;
+        .map((edge) => edge.id),
+    [nodeStore]
+  );
+
+  /**
+   * Ask before removing edges into a property that loses its handle, then
+   * call `proceed` with the edge ids to delete. Nothing happens when the user
+   * cancels. Without connected edges `proceed` runs immediately.
+   */
+  const confirmDisconnect = useCallback(
+    (
+      nodeIds: readonly string[],
+      propertyName: string,
+      proceed: (edgeIds: string[]) => void
+    ): void => {
+      if (collectInputEdgeIds(nodeIds, propertyName).length === 0) {
+        proceed([]);
+        return;
       }
-      if (hasConnectedEdge) {
-        const edgeIds = edges
-          .filter(
-            (edge) =>
-              nodeIds.includes(edge.target) &&
-              edge.targetHandle === propertyName
-          )
-          .map((edge) => edge.id);
-        if (edgeIds.length > 0) {
-          deleteEdges(edgeIds);
+      void requestConfirm({
+        title: "Hide input?",
+        content: `Hide input for "${propertyName}"? The connected edge will be removed.`,
+        confirmText: "Hide input",
+        cancelText: "Cancel",
+        destructive: true
+      }).then((confirmed) => {
+        if (confirmed) {
+          // Re-read: the graph may have changed while the dialog was open.
+          proceed(collectInputEdgeIds(nodeIds, propertyName));
         }
-      }
-      return true;
+      });
     },
-    [deleteEdges, nodeStore]
+    [collectInputEdgeIds]
+  );
+
+  /** Edge removal and placement on every node land as one undo step. */
+  const commitPlacement = useCallback(
+    (
+      nodeIds: readonly string[],
+      propertyName: string,
+      placement: ExposedInputPlacement | null,
+      edgeIds: readonly string[]
+    ): void => {
+      runAsOneUndoEntry(nodeStore, () => {
+        if (edgeIds.length > 0) {
+          deleteEdges([...edgeIds]);
+        }
+        applyPlacementPatch(nodeIds, propertyName, placement);
+      });
+    },
+    [applyPlacementPatch, deleteEdges, nodeStore]
   );
 
   /** Cycle placement: off → top handle → bottom labeled → off (inspector arrow). */
@@ -144,15 +175,25 @@ export function useExposedInputToggle(): UseExposedInputToggleResult {
       }
 
       const current = getPlacement(ids[0], propertyName);
-      const next = nextExposedInputPlacement(current);
+      const firstType = findNode(ids[0])?.type;
+      const firstMeta = firstType ? getMetadata(firstType) : undefined;
+      const allowHandle =
+        !firstMeta ||
+        canPlaceOnTopHandle(
+          firstMeta,
+          propertyName,
+          rendersExposedInputHandles(firstMeta)
+        );
+      const next = nextExposedInputPlacement(current, allowHandle);
       if (current !== null && next === null) {
-        if (!confirmDisconnectIfNeeded(ids, propertyName)) {
-          return;
-        }
+        confirmDisconnect(ids, propertyName, (edgeIds) =>
+          commitPlacement(ids, propertyName, next, edgeIds)
+        );
+        return;
       }
-      applyPlacementPatch(ids, propertyName, next);
+      commitPlacement(ids, propertyName, next, []);
     },
-    [applyPlacementPatch, confirmDisconnectIfNeeded, getPlacement]
+    [commitPlacement, confirmDisconnect, findNode, getMetadata, getPlacement]
   );
 
   const toggleExposedInput = cycleExposedInputPlacement;
@@ -166,15 +207,14 @@ export function useExposedInputToggle(): UseExposedInputToggleResult {
 
       const placement = getPlacement(ids[0], propertyName);
       if (placement === "labeled") {
-        if (!confirmDisconnectIfNeeded(ids, propertyName)) {
-          return;
-        }
-        applyPlacementPatch(ids, propertyName, null);
+        confirmDisconnect(ids, propertyName, (edgeIds) =>
+          commitPlacement(ids, propertyName, null, edgeIds)
+        );
       } else {
-        applyPlacementPatch(ids, propertyName, "labeled");
+        commitPlacement(ids, propertyName, "labeled", []);
       }
     },
-    [applyPlacementPatch, confirmDisconnectIfNeeded, getPlacement]
+    [commitPlacement, confirmDisconnect, getPlacement]
   );
 
   const setExposedInputPlacement = useCallback(
@@ -188,18 +228,15 @@ export function useExposedInputToggle(): UseExposedInputToggleResult {
         return;
       }
       const current = getPlacement(ids[0], propertyName);
-      if (current !== null && placement === null) {
-        if (!confirmDisconnectIfNeeded(ids, propertyName)) {
-          return;
-        }
-      } else if (current !== null && current !== placement) {
-        if (!confirmDisconnectIfNeeded(ids, propertyName)) {
-          return;
-        }
+      if (current !== null && current !== placement) {
+        confirmDisconnect(ids, propertyName, (edgeIds) =>
+          commitPlacement(ids, propertyName, placement, edgeIds)
+        );
+        return;
       }
-      applyPlacementPatch(ids, propertyName, placement);
+      commitPlacement(ids, propertyName, placement, []);
     },
-    [applyPlacementPatch, confirmDisconnectIfNeeded, getPlacement]
+    [commitPlacement, confirmDisconnect, getPlacement]
   );
 
   return {

@@ -3,7 +3,7 @@ import { css } from "@emotion/react";
 import React, { useState, useCallback, useMemo, memo, useRef, useEffect } from "react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckIcon from "@mui/icons-material/Check";
 import {
@@ -13,6 +13,7 @@ import {
   FlexColumn,
   FlexRow,
   NodeSlider,
+  NumberField,
   TextInput,
   ToggleGroup,
   ToggleOption,
@@ -22,7 +23,6 @@ import {
   GradientStop,
   gradientToCss
 } from "../../stores/ColorPickerStore";
-import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -91,7 +91,6 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
   onChange,
   currentColor
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const builderStyles = useMemo(() => styles(theme), [theme]);
   const [selectedStopIndex, setSelectedStopIndex] = useState<number | null>(0);
@@ -303,8 +302,8 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
           }
         }}
       >
-        <ToggleOption value="linear">{t("ui2:attrs.linear", { defaultValue: "Linear" })}</ToggleOption>
-        <ToggleOption value="radial">{t("ui2:attrs.radial", { defaultValue: "Radial" })}</ToggleOption>
+        <ToggleOption value="linear">Linear</ToggleOption>
+        <ToggleOption value="radial">Radial</ToggleOption>
       </ToggleGroup>
 
       {gradient.type === "linear" && (
@@ -325,7 +324,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
 
       <div>
         <Caption color="secondary">
-          {t("editor:ui.colorStops")}
+          Color stops
         </Caption>
         <div className="stops-container" style={{ background: cssOutput }}>
           {gradient.stops.map((stop, index) => (
@@ -351,23 +350,22 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
         <FlexRow align="center" gap={1} wrap>
           <TextInput
             size="small"
-            label={t("timeline:attrs.color", { defaultValue: "Color" })}
+            label="Color"
             value={selectedStop.color}
             onChange={handleStopColorInputChange}
             sx={{ width: "100px" }}
           />
-          <TextInput
+          <NumberField
             size="small"
-            label={t("editor:ui.position", { defaultValue: "Position" })}
-            type="number"
+            label="Position"
             value={selectedStop.position}
             onChange={handleStopPositionInputChange}
-            InputProps={{
-              endAdornment: <Caption>%</Caption>
-            }}
+            min={0}
+            max={100}
+            unit="%"
             sx={{ width: "80px" }}
           />
-          <Tooltip title={t("editor:ui.useCurrentColor", { defaultValue: "Use current color" })}>
+          <Tooltip title="Use current color">
             <EditorButton
               variant="outlined"
               data-stop-index={selectedStopIndex}
@@ -379,7 +377,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
           </Tooltip>
           <DeleteButton
             onClick={handleRemoveStopButtonClick}
-            tooltip={t("editor:ui.removeStop", { defaultValue: "Remove stop" })}
+            tooltip="Delete stop"
             disabled={gradient.stops.length <= 2}
             nodrag={false}
           />
@@ -392,16 +390,14 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
           onClick={addStop}
           variant="outlined"
         >
-          Add Stop
+          Add stop
         </EditorButton>
         <EditorButton
           startIcon={copied ? <CheckIcon /> : <ContentCopyIcon />}
           onClick={copyToClipboard}
           variant="outlined"
         >
-          {copied
-            ? t("editor:ui.copied", { defaultValue: "Copied!" })
-            : t("editor:ui.copyCss", { defaultValue: "Copy CSS" })}
+          {copied ? "Copied!" : "Copy CSS"}
         </EditorButton>
       </FlexRow>
 

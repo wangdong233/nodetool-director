@@ -11,7 +11,7 @@ import { useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import {
   AlertBanner,
   FlexColumn,
@@ -19,14 +19,14 @@ import {
   LoadingSpinner,
   NavButton,
   SPACING,
-  Text
+  PageHeader,
+  Text,
+  EmptyState
 } from "../ui_primitives";
 import { trpcClient } from "../../trpc/client";
 import { navigateToRedirect } from "./navigate";
-import { useTranslation } from "react-i18next";
 
 const OAuthConsentPage = () => {
-  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const requestId = searchParams.get("request_id") ?? "";
 
@@ -68,16 +68,11 @@ const OAuthConsentPage = () => {
   if (!requestId) {
     return (
       <FlexColumn align="center" justify="center" sx={{ minHeight: "60vh", padding: `${SPACING.xl}px` }}>
-        <FlexColumn
-          gap={2}
-          align="center"
-          sx={{ maxWidth: "480px", textAlign: "center" }}
-        >
-          <Text sx={{ fontWeight: 500 }}>{t("ui2:attrs.noAuthorizationRequest", { defaultValue: "No authorization request" })}</Text>
-          <Text className="description">
-            {t("ui2:attrs.thisPageNeedsARequestIdRestartTheConnectionFromYourMCPClient", { defaultValue: "This page needs a request_id. Restart the connection from your MCP client." })}
-          </Text>
-        </FlexColumn>
+        <EmptyState
+          variant="no-data"
+          title="No authorization request"
+          description="This page needs a request_id. Restart the connection from your MCP client."
+        />
       </FlexColumn>
     );
   }
@@ -99,10 +94,11 @@ const OAuthConsentPage = () => {
           sx={{ maxWidth: "480px", textAlign: "center" }}
         >
           <Text sx={{ fontWeight: 500 }}>
-            {t("ui2:attrs.requestExpiredOrAlreadyHandled", { defaultValue: "Request expired or already handled" })}
+            Request expired or already handled
           </Text>
           <Text className="description">
-            {t("ui2:attrs.thisAuthorizationRequestIsNoLongerValidRestartTheConnectionFromYourMCPClient", { defaultValue: "This authorization request is no longer valid. Restart the connection from your MCP client." })}
+            This authorization request is no longer valid. Restart the
+            connection from your MCP client.
           </Text>
         </FlexColumn>
       </FlexColumn>
@@ -112,27 +108,27 @@ const OAuthConsentPage = () => {
   return (
     <FlexColumn align="center" justify="center" sx={{ minHeight: "60vh", padding: `${SPACING.xl}px` }}>
       <FlexColumn gap={2} sx={{ width: "100%", maxWidth: "480px" }}>
-        <Text size="big" sx={{ fontWeight: 500 }}>
-          {request.client_name}
-        </Text>
-        <Text className="description">
-          {t("ui2:attrs.wantsToConnectToYourNodeToolAccount", { defaultValue: "wants to connect to your NodeTool account." })}
-        </Text>
+        <PageHeader
+          variant="plain"
+          title={request.client_name}
+          subtitle="wants to connect to your NodeTool account."
+        />
 
         <FlexColumn gap={1} sx={{ mt: 1 }}>
           <FlexRow justify="space-between">
-            <Text className="description">{t("ui2:attrs.redirectsTo", { defaultValue: "Redirects to" })}</Text>
+            <Text className="description">Redirects to</Text>
             <Text>{request.redirect_host}</Text>
           </FlexRow>
           <FlexRow justify="space-between">
-            <Text className="description">{t("ui2:attrs.access", { defaultValue: "Access" })}</Text>
+            <Text className="description">Access</Text>
             <Text>{request.scope}</Text>
           </FlexRow>
         </FlexColumn>
 
         {request.loopback_only && (
           <AlertBanner severity="warning">
-            {t("ui2:attrs.thisClientOnlyRedirectsToLocalhostMakeSureYouStartedThisConnectionYourself", { defaultValue: "This client only redirects to localhost. Make sure you started this connection yourself." })}
+            This client only redirects to localhost. Make sure you started
+            this connection yourself.
           </AlertBanner>
         )}
 
@@ -140,21 +136,21 @@ const OAuthConsentPage = () => {
           <AlertBanner severity="error">
             {mutationError instanceof Error
               ? mutationError.message
-              : t("editor:ui.couldNotCompleteThisRequest", { defaultValue: "Could not complete this request." })}
+              : "Could not complete this request."}
           </AlertBanner>
         )}
 
         <FlexRow gap={1} justify="flex-end" sx={{ mt: 1 }}>
           <NavButton
             icon={<CloseIcon />}
-            label={t("ui2:attrs.deny", { defaultValue: "Deny" })}
+            label="Deny"
             disabled={busy}
             onClick={handleDeny}
             sx={{ padding: `${SPACING.sm}px ${SPACING.xl}px` }}
           />
           <NavButton
             icon={<CheckIcon />}
-            label={t("ui2:attrs.approve", { defaultValue: "Approve" })}
+            label="Approve"
             color="primary"
             disabled={busy}
             onClick={handleApprove}

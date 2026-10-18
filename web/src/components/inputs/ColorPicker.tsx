@@ -13,7 +13,6 @@ import {
   Popover
 } from "../ui_primitives";
 import { colorPickerColors } from "../../constants/colors";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import ColorPickerModal from "../color_picker/ColorPickerModal";
 import { useTranslation } from "react-i18next";
 
@@ -152,7 +151,6 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
       <Tooltip
         title={t("editor:ui.setColor", { defaultValue: "Set color" })}
         placement="bottom"
-        delay={TOOLTIP_ENTER_DELAY}
       >
         <Button
           className="open-colors-button"

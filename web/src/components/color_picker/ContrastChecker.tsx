@@ -3,7 +3,7 @@ import { css } from "@emotion/react";
 import React, { useMemo, memo } from "react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { Text, Caption, Box, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
+import { Text, Caption, Box, BORDER_RADIUS, SPACING, getSpacingPx, ICON_SIZE } from "../ui_primitives";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import {
@@ -12,7 +12,6 @@ import {
   rgbToHex,
   simulateColorBlindness
 } from "../../utils/colorConversion";
-import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -120,7 +119,6 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
   foregroundColor,
   backgroundColor
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
 
   const foregroundRgb = useMemo(() => hexToRgb(foregroundColor), [foregroundColor]);
@@ -136,23 +134,17 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
       {
         type: "protanopia" as const,
         label: "Protanopia",
-        labelKey: "editor:ui.protanopia",
-        description: "Red-blind",
-        descriptionKey: "editor:ui.redBlind"
+        description: "Red-blind"
       },
       {
         type: "deuteranopia" as const,
         label: "Deuteranopia",
-        labelKey: "editor:ui.deuteranopia",
-        description: "Green-blind",
-        descriptionKey: "editor:ui.greenBlind"
+        description: "Green-blind"
       },
       {
         type: "tritanopia" as const,
         label: "Tritanopia",
-        labelKey: "editor:ui.tritanopia",
-        description: "Blue-blind",
-        descriptionKey: "editor:ui.blueBlind"
+        description: "Blue-blind"
       }
     ],
     []
@@ -168,9 +160,9 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
 
   const ComplianceIcon = ({ passed }: { passed: boolean }) =>
     passed ? (
-      <CheckCircleIcon sx={{ fontSize: 16, color: "success.main" }} />
+      <CheckCircleIcon sx={{ fontSize: ICON_SIZE.sm, color: "success.main" }} />
     ) : (
-      <CancelIcon sx={{ fontSize: 16, color: "error.main" }} />
+      <CancelIcon sx={{ fontSize: ICON_SIZE.sm, color: "error.main" }} />
     );
 
   return (
@@ -180,18 +172,18 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
           className="preview-box"
           style={{ backgroundColor: backgroundColor, color: foregroundColor }}
         >
-          <span className="preview-label">{t("ui2:attrs.previewOnBackground", { defaultValue: "Preview on Background" })}</span>
-          <span className="preview-text">{t("ui2:attrs.normalTextSample", { defaultValue: "Normal text sample" })}</span>
-          <span className="preview-text-large">{t("ui2:attrs.largeTextSample", { defaultValue: "Large text sample" })}</span>
+          <span className="preview-label">Preview on background</span>
+          <span className="preview-text">Normal text sample</span>
+          <span className="preview-text-large">Large text sample</span>
         </div>
 
         <div
           className="preview-box"
           style={{ backgroundColor: foregroundColor, color: backgroundColor }}
         >
-          <span className="preview-label">{t("ui2:attrs.inversePreview", { defaultValue: "Inverse Preview" })}</span>
-          <span className="preview-text">{t("ui2:attrs.normalTextSample", { defaultValue: "Normal text sample" })}</span>
-          <span className="preview-text-large">{t("ui2:attrs.largeTextSample", { defaultValue: "Large text sample" })}</span>
+          <span className="preview-label">Inverse preview</span>
+          <span className="preview-text">Normal text sample</span>
+          <span className="preview-text-large">Large text sample</span>
         </div>
       </div>
 
@@ -212,7 +204,7 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
         <Caption
           sx={{ textAlign: "center", display: "block", color: "grey.500" }}
         >
-          {t("editor:ui.contrastRatio")}
+          Contrast ratio
         </Caption>
       </div>
 
@@ -237,12 +229,12 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
 
       <div className="color-blindness-section">
         <Text className="color-blindness-title">
-          {t("editor:ui.colorBlindnessPreview")}
+          Color blindness preview
         </Text>
         <div className="color-blindness-grid">
           {colorBlindnessSimulations.map((sim) => (
             <div key={sim.type} className="color-blindness-preview">
-              <span className="cb-label">{t(sim.labelKey, { defaultValue: sim.label })}</span>
+              <span className="cb-label">{sim.label}</span>
               <div className="cb-colors">
                 <div
                   className="cb-swatch"
@@ -255,7 +247,7 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
                   title={`Background: ${sim.background}`}
                 />
               </div>
-              <span className="cb-label">{t(sim.descriptionKey, { defaultValue: sim.description })}</span>
+              <span className="cb-label">{sim.description}</span>
             </div>
           ))}
         </div>

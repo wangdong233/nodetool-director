@@ -21,7 +21,7 @@ import React, {
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 
@@ -43,7 +43,7 @@ import {
   useWheelBatch
 } from "../../../hooks/timeline/useBatchedGesture";
 import {
-  DEVICE_WIDTHS,
+  effectDeviceWidth,
   EFFECT_LABELS,
   KNOBS,
   type Knob,
@@ -58,7 +58,7 @@ import {
   Tooltip,
   LabeledSwitch,
   SelectField,
-  NodeMenuItem,
+  MenuItemPrimitive,
   EditorMenu,
   MOTION,
   BORDER_RADIUS,
@@ -67,7 +67,16 @@ import {
   FONT_SIZE_SANS
 } from "../../ui_primitives";
 import { FX_PANEL_HEIGHT_PX } from "./trackHeight";
-import { useTranslation } from "react-i18next";
+import {
+  FABLE_FX_KINDS,
+  FABLE_FX_LABELS,
+  makeFableEffect
+} from "../daw/fx/fableFxParams";
+import { FableFxInline } from "../daw/fx/FableFxInline";
+
+/** The name an effect's card shows: a FableSynth insert goes by its kind. */
+const effectLabel = (effect: TrackEffect): string =>
+  effect.type === "fable" ? FABLE_FX_LABELS[effect.kind] : EFFECT_LABELS[effect.type];
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -807,7 +816,6 @@ const Eq3Editor: React.FC<EffectEditorProps<TrackEq3Effect>> = ({
   onPatch,
   disabled
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   // Dragging a band re-renders this per frame; the row style alone was
   // serialized seven times each render.
@@ -830,21 +838,21 @@ const Eq3Editor: React.FC<EffectEditorProps<TrackEq3Effect>> = ({
       <FlexRow gap={0.5}>
         <div css={lowCss}>
           <div css={rowCss}>
-            <span>{t("timeline:attrs.lowShelf", { defaultValue: "Low shelf" })}</span>
+            <span>Low shelf</span>
             <b>{effect.lowGainDb >= 0 ? "+" : ""}{effect.lowGainDb.toFixed(1)} dB</b>
           </div>
           <div css={rowCss}>
-            <span>{t("timeline:attrs.freq", { defaultValue: "Freq" })}</span>
+            <span>Freq</span>
             <b>{formatHz(effect.lowFreq)}</b>
           </div>
         </div>
         <div css={midCss}>
           <div css={rowCss}>
-            <span>{t("timeline:attrs.midPeak", { defaultValue: "Mid peak" })}</span>
+            <span>Mid peak</span>
             <b>{effect.midGainDb >= 0 ? "+" : ""}{effect.midGainDb.toFixed(1)} dB</b>
           </div>
           <div css={rowCss}>
-            <span>{t("timeline:attrs.freq", { defaultValue: "Freq" })}</span>
+            <span>Freq</span>
             <b>{formatHz(effect.midFreq)}</b>
           </div>
           <div css={rowCss}>
@@ -854,17 +862,19 @@ const Eq3Editor: React.FC<EffectEditorProps<TrackEq3Effect>> = ({
         </div>
         <div css={highCss}>
           <div css={rowCss}>
-            <span>{t("timeline:attrs.highShelf", { defaultValue: "High shelf" })}</span>
+            <span>High shelf</span>
             <b>{effect.highGainDb >= 0 ? "+" : ""}{effect.highGainDb.toFixed(1)} dB</b>
           </div>
           <div css={rowCss}>
-            <span>{t("timeline:attrs.freq", { defaultValue: "Freq" })}</span>
+            <span>Freq</span>
             <b>{formatHz(effect.highFreq)}</b>
           </div>
         </div>
       </FlexRow>
-      <Tooltip title={t("timeline:attrs.dragHandlesToSetFrequencyAndGainScrollOnTheMidHandleToChangeQ", { defaultValue: "Drag handles to set frequency & gain. Scroll on the mid handle to change Q." })}>
-        <Text size="smaller" color="secondary">{t("timeline:attrs.dragBands·ScrollMidForQ", { defaultValue: "Drag bands · scroll mid for Q" })}</Text>
+      <Tooltip title="Drag handles to set frequency & gain. Scroll on the mid handle to change Q.">
+        <Text size="smaller" color="secondary">
+          Drag bands · scroll mid for Q
+        </Text>
       </Tooltip>
     </FlexColumn>
   );
@@ -874,31 +884,30 @@ const FilterEditor: React.FC<EffectEditorProps<TrackFilterEffect>> = ({
   effect,
   onPatch,
   disabled
-}) => {
-  const { t } = useTranslation();
-  return (
-    <FlexColumn gap={0.5}>
-      <SelectField
-        label={t("ui2:attrs.mode", { defaultValue: "Mode" })}
-        value={effect.mode}
-        onChange={(v) => onPatch({ mode: v as TrackFilterEffect["mode"] })}
-        options={[
-          { value: "lowpass", label: "Low-pass" },
-          { value: "highpass", label: "High-pass" },
-          { value: "bandpass", label: "Band-pass" }
-        ]}
-        size="small"
-        disabled={disabled}
-      />
-      <KnobList
-        effect={effect}
-        knobs={KNOBS.filter}
-        onPatch={onPatch}
-        disabled={disabled}
-      />
-    </FlexColumn>
-  );
-};
+}) => (
+  <FlexColumn gap={0.5}>
+    <SelectField
+      label="Mode"
+      value={effect.mode}
+      onChange={(v) =>
+        onPatch({ mode: v as TrackFilterEffect["mode"] })
+      }
+      options={[
+        { value: "lowpass", label: "Low-pass" },
+        { value: "highpass", label: "High-pass" },
+        { value: "bandpass", label: "Band-pass" }
+      ]}
+      size="small"
+      disabled={disabled}
+    />
+    <KnobList
+      effect={effect}
+      knobs={KNOBS.filter}
+      onPatch={onPatch}
+      disabled={disabled}
+    />
+  </FlexColumn>
+);
 
 // Compressor visualizer (Logic-style transfer curve)
 const COMP_DB_MIN = -60;
@@ -1304,7 +1313,6 @@ const CompressorEditor: React.FC<EffectEditorProps<TrackCompressorEffect>> = ({
   onPatch,
   disabled
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   // Dragging the transfer curve re-renders this per frame; the four tiles cost
   // thirteen serializations each time.
@@ -1330,25 +1338,25 @@ const CompressorEditor: React.FC<EffectEditorProps<TrackCompressorEffect>> = ({
         />
         <div css={gridCss}>
           <div css={threshTileCss}>
-            <span css={tileLabelCss}>{t("timeline:attrs.threshold", { defaultValue: "Threshold" })}</span>
+            <span css={tileLabelCss}>Threshold</span>
             <span css={tileValueCss}>
               {effect.thresholdDb.toFixed(1)} dB
             </span>
           </div>
           <div css={accentTileCss}>
-            <span css={tileLabelCss}>{t("timeline:attrs.ratio", { defaultValue: "Ratio" })}</span>
+            <span css={tileLabelCss}>Ratio</span>
             <span css={tileValueCss}>
               {effect.ratio.toFixed(1)}:1
             </span>
           </div>
           <div css={plainTileCss}>
-            <span css={tileLabelCss}>{t("timeline:attrs.knee", { defaultValue: "Knee" })}</span>
+            <span css={tileLabelCss}>Knee</span>
             <span css={tileValueCss}>
               {effect.kneeDb.toFixed(1)} dB
             </span>
           </div>
           <div css={plainTileCss}>
-            <span css={tileLabelCss}>{t("timeline:attrs.attack", { defaultValue: "Attack" })}</span>
+            <span css={tileLabelCss}>Attack</span>
             <span css={tileValueCss}>
               {formatMs(effect.attackMs)}
             </span>
@@ -1363,9 +1371,9 @@ const CompressorEditor: React.FC<EffectEditorProps<TrackCompressorEffect>> = ({
           disabled={disabled}
         />
       </FlexColumn>
-      <Tooltip title={t("timeline:attrs.dragTToSetThresholdRToSetRatioScrollOnTToChangeKneeWidth", { defaultValue: "Drag T to set threshold, R to set ratio. Scroll on T to change knee width." })}>
+      <Tooltip title="Drag T to set threshold, R to set ratio. Scroll on T to change knee width.">
         <Text size="smaller" color="secondary">
-          {t("editor:ui.dragT=ThresholdR=RatioScrollT=Knee")}
+          Drag T = threshold · R = ratio · scroll T = knee
         </Text>
       </Tooltip>
     </FlexColumn>
@@ -1466,19 +1474,18 @@ const VignetteEditor: React.FC<
 const ChromaKeyEditor: React.FC<
   EffectEditorProps<TrackChromaKeyEffect>
 > = ({ effect, onPatch, disabled }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <FlexColumn gap={0.5}>
       <FlexRow gap={1} align="center">
         <span css={paramLabelStyles(theme)}>
-          {t("timeline:attrs.keyColor", { defaultValue: "Key color" })}
+          Key color
         </span>
         <BatchedColorInput
           value={effect.keyColor}
           disabled={disabled}
           onChange={(keyColor) => onPatch({ keyColor })}
-          ariaLabel={t("timeline:attrs.chromaKeyColor", { defaultValue: "Chroma key color" })}
+          ariaLabel="Chroma key color"
         />
         <span
           css={{
@@ -1500,6 +1507,45 @@ const ChromaKeyEditor: React.FC<
   );
 };
 
+interface TrackEffectParamsProps {
+  effect: TrackEffect;
+  onPatch: (patch: Partial<TrackEffect>) => void;
+  disabled?: boolean;
+}
+
+/**
+ * The parameter controls of one effect, without its card chrome. The DAW
+ * device chain shows these for an effect that has no device view of its own.
+ */
+export const TrackEffectParams: React.FC<TrackEffectParamsProps> = ({
+  effect,
+  onPatch,
+  disabled = false
+}) => {
+  switch (effect.type) {
+    case "gain":
+      return <GainEditor effect={effect} onPatch={onPatch} disabled={disabled} />;
+    case "eq3":
+      return <Eq3Editor effect={effect} onPatch={onPatch} disabled={disabled} />;
+    case "filter":
+      return <FilterEditor effect={effect} onPatch={onPatch} disabled={disabled} />;
+    case "compressor":
+      return <CompressorEditor effect={effect} onPatch={onPatch} disabled={disabled} />;
+    case "colorCorrection":
+      return <ColorCorrectionEditor effect={effect} onPatch={onPatch} disabled={disabled} />;
+    case "videoBlur":
+      return <VideoBlurEditor effect={effect} onPatch={onPatch} disabled={disabled} />;
+    case "sharpen":
+      return <SharpenEditor effect={effect} onPatch={onPatch} disabled={disabled} />;
+    case "vignette":
+      return <VignetteEditor effect={effect} onPatch={onPatch} disabled={disabled} />;
+    case "chromaKey":
+      return <ChromaKeyEditor effect={effect} onPatch={onPatch} disabled={disabled} />;
+    default:
+      return null;
+  }
+};
+
 interface EffectCardProps {
   trackId: string;
   effect: TrackEffect;
@@ -1510,7 +1556,6 @@ const DRAG_MIME = "application/x-nodetool-effect-index";
 
 const EffectCard: React.FC<EffectCardProps> = memo(
   ({ trackId, effect, index }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const updateTrackEffect = useTimelineStore((s) => s.updateTrackEffect);
     const removeTrackEffect = useTimelineStore((s) => s.removeTrackEffect);
@@ -1605,11 +1650,11 @@ const EffectCard: React.FC<EffectCardProps> = memo(
 
     // `effect` is a new object every knob frame, so the card re-renders; none
     // of these three styles read a parameter value.
-    const effectType = effect.type;
+    const width = effectDeviceWidth(effect);
+    const label = effectLabel(effect);
     const cardCss = useMemo(
-      () =>
-        effectCardStyles(theme, DEVICE_WIDTHS[effectType], dragOver, dragging),
-      [theme, effectType, dragOver, dragging]
+      () => effectCardStyles(theme, width, dragOver, dragging),
+      [theme, width, dragOver, dragging]
     );
     const gripCss = useMemo(() => dragHandleStyles(theme), [theme]);
     const removeButtonCss = useMemo(() => iconButtonStyles(theme), [theme]);
@@ -1624,13 +1669,13 @@ const EffectCard: React.FC<EffectCardProps> = memo(
       >
         <FlexRow css={effectHeaderStyles} sx={{ mb: 0.5 }}>
           <FlexRow gap={0.5} align="center">
-            <Tooltip title={t("timeline:attrs.dragToReorderOrUseAltArrowKeys", { defaultValue: "Drag to reorder, or use Alt + arrow keys" })}>
+            <Tooltip title="Drag to reorder, or use Alt + arrow keys">
               <div
                 css={gripCss}
                 draggable
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                aria-label={t("timeline:attrs.reorderEffect", { defaultValue: "Reorder {{effect}} effect", effect: EFFECT_LABELS[effect.type] })}
+                aria-label={`Reorder ${label} effect`}
                 aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight"
                 role="button"
                 tabIndex={0}
@@ -1640,19 +1685,19 @@ const EffectCard: React.FC<EffectCardProps> = memo(
               </div>
             </Tooltip>
             <LabeledSwitch
-              label={EFFECT_LABELS[effect.type]}
+              label={label}
               checked={effect.enabled}
               onChange={handleEnabledChange}
               size="small"
             />
           </FlexRow>
           <FlexRow gap={0.5}>
-            <Tooltip title={t("timeline:attrs.removeEffectTooltip", { defaultValue: "Remove effect" })}>
+            <Tooltip title="Remove effect">
               <button
                 type="button"
                 css={removeButtonCss}
                 onClick={handleRemove}
-                aria-label={t("timeline:attrs.removeEffect", { defaultValue: "Remove {{effect}} effect", effect: EFFECT_LABELS[effect.type] })}
+                aria-label={`Remove ${label} effect`}
               >
                 <DeleteOutlineIcon />
               </button>
@@ -1660,64 +1705,10 @@ const EffectCard: React.FC<EffectCardProps> = memo(
           </FlexRow>
         </FlexRow>
 
-        {effect.type === "gain" && (
-          <GainEditor
-            effect={effect}
-            onPatch={patch}
-            disabled={disabled}
-          />
-        )}
-        {effect.type === "eq3" && (
-          <Eq3Editor effect={effect} onPatch={patch} disabled={disabled} />
-        )}
-        {effect.type === "filter" && (
-          <FilterEditor
-            effect={effect}
-            onPatch={patch}
-            disabled={disabled}
-          />
-        )}
-        {effect.type === "compressor" && (
-          <CompressorEditor
-            effect={effect}
-            onPatch={patch}
-            disabled={disabled}
-          />
-        )}
-        {effect.type === "colorCorrection" && (
-          <ColorCorrectionEditor
-            effect={effect}
-            onPatch={patch}
-            disabled={disabled}
-          />
-        )}
-        {effect.type === "videoBlur" && (
-          <VideoBlurEditor
-            effect={effect}
-            onPatch={patch}
-            disabled={disabled}
-          />
-        )}
-        {effect.type === "sharpen" && (
-          <SharpenEditor
-            effect={effect}
-            onPatch={patch}
-            disabled={disabled}
-          />
-        )}
-        {effect.type === "vignette" && (
-          <VignetteEditor
-            effect={effect}
-            onPatch={patch}
-            disabled={disabled}
-          />
-        )}
-        {effect.type === "chromaKey" && (
-          <ChromaKeyEditor
-            effect={effect}
-            onPatch={patch}
-            disabled={disabled}
-          />
+        {effect.type === "fable" ? (
+          <FableFxInline trackId={trackId} effectId={effect.id} kind={effect.kind} />
+        ) : (
+          <TrackEffectParams effect={effect} onPatch={patch} disabled={disabled} />
         )}
       </div>
     );
@@ -1731,10 +1722,9 @@ interface TrackEffectsPanelProps {
 
 export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
   ({ trackId }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const track = useTimelineStore((s) =>
-      s.tracks.find((tr) => tr.id === trackId)
+      s.tracks.find((t) => t.id === trackId)
     );
     const addTrackEffect = useTimelineStore((s) => s.addTrackEffect);
 
@@ -1756,6 +1746,14 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
       [trackId, addTrackEffect]
     );
 
+    const handleAddFable = useCallback(
+      (kind: (typeof FABLE_FX_KINDS)[number]) => {
+        addTrackEffect(trackId, makeFableEffect(kind));
+        setAddAnchor(null);
+      },
+      [trackId, addTrackEffect]
+    );
+
     const effects = useMemo(() => track?.effects ?? [], [track?.effects]);
 
     if (!track) {
@@ -1766,7 +1764,7 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
     const availableTypes = isVideo
       ? VIDEO_EFFECT_TYPES
       : AUDIO_EFFECT_TYPES;
-    const chainLabel = isVideo ? t("timeline:attrs.fxChain", { defaultValue: "FX Chain" }) : t("timeline:attrs.dspChain", { defaultValue: "DSP Chain" });
+    const chainLabel = isVideo ? "FX chain" : "DSP chain";
 
     return (
       <div css={containerStyles(theme)} data-testid="track-effects-panel">
@@ -1779,7 +1777,7 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
           </Text>
           <button type="button" css={addButtonStyles(theme)} onClick={handleOpenAdd}>
             <AddIcon />
-            {t("ui2:attrs.add", { defaultValue: "Add" })}
+            Add
           </button>
           <EditorMenu
             anchorEl={addAnchor}
@@ -1788,17 +1786,27 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
-            {availableTypes.map((type) => (
-              <NodeMenuItem key={type} onClick={() => handleAdd(type)}>
-                {EFFECT_LABELS[type]}
-              </NodeMenuItem>
+            {availableTypes.map((t) => (
+              <MenuItemPrimitive
+                key={t}
+                label={EFFECT_LABELS[t]}
+                onClick={() => handleAdd(t)}
+              />
             ))}
+            {!isVideo &&
+              FABLE_FX_KINDS.map((kind) => (
+                <MenuItemPrimitive
+                  key={`fable:${kind}`}
+                  label={FABLE_FX_LABELS[kind]}
+                  onClick={() => handleAddFable(kind)}
+                />
+              ))}
           </EditorMenu>
         </FlexRow>
 
         {effects.length === 0 ? (
           <Text size="small" color="secondary">
-            No effects. Click <strong>{t("ui2:attrs.add", { defaultValue: "Add" })}</strong> to insert one.
+            No effects. Click <strong>Add</strong> to insert one.
           </Text>
         ) : (
           <div css={deviceRackStyles(theme)}>

@@ -1,6 +1,6 @@
 {
   "name": "@nodetool-ai/game-runtime",
-  "version": "0.8.2",
+  "version": "0.8.4",
   "description": "Deterministic built-in game simulation",
   "type": "module",
   "engines": {
@@ -14,7 +14,7 @@
     "lint": "node ../../scripts/run-tsc.mjs --noEmit"
   },
   "dependencies": {
-    "@dimforge/rapier3d-compat": "0.19.3",
+    "@nodetool-ai/config": "*",
     "@jitl/quickjs-ng-wasmfile-release-sync": "^0.31.0",
     "@nodetool-ai/protocol": "*",
     "quickjs-emscripten-core": "^0.31.0",
@@ -23,7 +23,8 @@
   },
   "devDependencies": {
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.1",
+    "@dimforge/rapier3d-compat": "0.19.3"
   },
   "exports": {
     ".": {
@@ -34,7 +35,20 @@
     }
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nodetool-ai/nodetool.git",
+    "directory": "packages/game-runtime"
+  },
   "files": [
     "dist"
-  ]
+  ],
+  "peerDependencies": {
+    "@dimforge/rapier3d-compat": "0.19.3"
+  },
+  "peerDependenciesMeta": {
+    "@dimforge/rapier3d-compat": {
+      "optional": true
+    }
+  }
 }

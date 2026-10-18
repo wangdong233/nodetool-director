@@ -12,25 +12,23 @@ import React, { memo, useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import ImageIcon from "@mui/icons-material/Image";
 
-import { SPACING, CheckerDropzone, FlexRow, BORDER_RADIUS } from "../../ui_primitives";
+import { SPACING, MediaLabel, FlexRow, BORDER_RADIUS } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
-import ImageRefPreview from "../../node/ImageRefPreview";
+import ImagePreview from "./ImagePreview";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
 import NumberInput from "../../inputs/NumberInput";
 
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
-import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
+import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import {
   useNodeOutput,
   useUpstreamValue
 } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
 import { PASTE_NODE_TYPE } from "../../../constants/nodeTypes";
-import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -71,18 +69,6 @@ const styles = (theme: Theme) =>
         border: `1px dashed ${theme.vars.palette.primary.main}`,
         background: `color-mix(in srgb, ${theme.vars.palette.primary.main} 12%, transparent)`,
         pointerEvents: "none"
-      },
-      ".dimensions-badge": {
-        position: "absolute",
-        bottom: theme.spacing(SPACING.micro),
-        right: theme.spacing(SPACING.micro),
-        padding: `${theme.spacing(SPACING.micro)} ${theme.spacing(SPACING.xs)}`,
-        background: theme.vars.palette.c_scrim,
-        color: theme.vars.palette.common.white,
-        fontFamily: theme.fontFamily2,
-        fontSize: theme.fontSizeSmaller,
-        borderRadius: BORDER_RADIUS.sm,
-        pointerEvents: "none"
       }
     },
     ".controls-row": {
@@ -99,16 +85,6 @@ const styles = (theme: Theme) =>
       flex: "0 0 auto"
     }
   });
-
-const PreviewImage: React.FC<{ value: unknown; placeholder: string }> = ({
-  value,
-  placeholder
-}) => (
-  <ImageRefPreview
-    value={value}
-    placeholder={<CheckerDropzone message={placeholder} icon={<ImageIcon />} />}
-  />
-);
 
 interface PasteBodyProps {
   id: string;
@@ -129,7 +105,6 @@ const PasteBodyInner: React.FC<PasteBodyProps> = ({
   status,
   isOutputNode
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -189,7 +164,7 @@ const PasteBodyInner: React.FC<PasteBodyProps> = ({
     };
   }, [baseRef?.width, baseRef?.height, pasteRef?.width, pasteRef?.height, left, top]);
 
-  const { setProperties, setPropertyComplete } = useBespokePropertyWriter({
+  const { setProperties, setPropertyComplete } = useLiveSliderWriter({
     nodeId: id,
     nodeType
   });
@@ -211,9 +186,9 @@ const PasteBodyInner: React.FC<PasteBodyProps> = ({
     <div css={cssStyles} className="paste-body" data-bespoke-body="Paste">
       <HandleColumn id={id} properties={imageHandles} />
       <div className="preview-area">
-        <PreviewImage
+        <ImagePreview
           value={previewValue ?? baseValue}
-          placeholder={t("editor:ui.connectImageAndPasteThenRun", { defaultValue: "Connect Image and Paste, then run" })}
+          message="Connect Image and Paste, then run"
         />
         {overlayRect && (
           <div
@@ -227,9 +202,9 @@ const PasteBodyInner: React.FC<PasteBodyProps> = ({
           />
         )}
         {previewRef?.width != null && previewRef.height != null && (
-          <span className="dimensions-badge">
+          <MediaLabel corner="bottom-right">
             {previewRef.width} × {previewRef.height}
-          </span>
+          </MediaLabel>
         )}
       </div>
 
@@ -259,7 +234,7 @@ const PasteBodyInner: React.FC<PasteBodyProps> = ({
               id={`paste-top-${id}`}
               nodeId={id}
               name="top"
-              description={topProperty.description ?? t("editor:ui.topOffset", { defaultValue: "Top offset" })}
+              description={topProperty.description ?? "Top offset"}
               value={top}
               min={topProperty.min ?? 0}
               max={topProperty.max ?? 4096}

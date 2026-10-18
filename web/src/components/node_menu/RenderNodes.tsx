@@ -15,7 +15,6 @@ import ApiKeyValidation from "../node/ApiKeyValidation";
 import usePendingNodeCreateStore from "../../stores/PendingNodeCreateStore";
 import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
-import { useTranslation } from "react-i18next";
 
 interface RenderNodesProps {
   nodes: NodeMetadata[];
@@ -82,7 +81,6 @@ const RenderNodes: React.FC<RenderNodesProps> = ({
   onToggleSelection,
   showFavoriteButton = true
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const { setDragToCreate, groupedSearchResults, searchTerm } =
     useNodeMenuStore(
@@ -285,21 +283,21 @@ const RenderNodes: React.FC<RenderNodesProps> = ({
         <div className="no-selection">
           <div className="explanation">
             <Text size="normal" weight={600} style={{ marginTop: 0 }}>
-              Browse Nodes
+              Browse nodes
             </Text>
             <ul>
-              <li>{t("editor:ui.clickOnTheNamespacesToTheLeft", { defaultValue: "Click on the namespaces to the left" })}</li>
+              <li>Click on the namespaces to the left</li>
             </ul>
 
-            <Text size="normal" weight={600}>{t("ui2:attrs.searchNodes", { defaultValue: "Search Nodes" })}</Text>
+            <Text size="normal" weight={600}>Search nodes</Text>
             <ul>
-              <li>{t("editor:ui.typeInTheSearchBarToSearchForNodes", { defaultValue: "Type in the search bar to search for nodes." })}</li>
+              <li>Type in the search bar to search for nodes.</li>
             </ul>
 
-            <Text size="normal" weight={600}>{t("ui2:attrs.createNodes", { defaultValue: "Create Nodes" })}</Text>
+            <Text size="normal" weight={600}>Create nodes</Text>
             <ul>
-              <li>{t("ui2:attrs.clickOnANode", { defaultValue: "Click on a node" })}</li>
-              <li>{t("ui2:attrs.dragANodeOntoTheCanvas", { defaultValue: "Drag a node onto the canvas" })}</li>
+              <li>Click on a node</li>
+              <li>Drag a node onto the canvas</li>
             </ul>
           </div>
         </div>

@@ -1,14 +1,13 @@
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 import React, { memo, useMemo, useState } from "react";
 import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
+import ErrorBanner from "../../support/ErrorBanner";
 import {
   Caption,
   CollapsibleSection,
   EditorButton,
   EmptyState,
   FlexColumn,
-  TextInput,
+  TextArea,
   SPACING
 } from "../../ui_primitives";
 import { findClipById } from "../../../stores/timeline/clipLookup";
@@ -25,7 +24,6 @@ interface LineDeliveryPanelProps {
 
 /** Revise a Script-linked voiceover without replacing its accepted take. */
 const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
-  const { t } = useTranslation();
   const clip = useTimelineStore((state) => findClipById(state.clips, clipId));
   const sequenceId = useTimelineStore((state) => state.sequenceId);
   const script = useScriptStore((state) =>
@@ -56,15 +54,15 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
   if (!script || !line) {
     return (
       <CollapsibleSection
-        title={<InspectorSectionTitle title={t("timeline:attrs.changeLineDelivery", { defaultValue: "Change line delivery" })} icon={<AutoAwesomeOutlinedIcon />} />}
+        title={<InspectorSectionTitle title="Change line delivery" icon={<AutoAwesomeOutlinedIcon />} />}
         open={open}
         onToggle={setOpen}
       >
         <EmptyState
           variant="empty"
           size="small"
-          title={t("timeline:attrs.lineContextUnavailable", { defaultValue: "Line context unavailable" })}
-          description={t("timeline:attrs.reopenTheLinkedScriptBeforeRevisingThisVoiceover", { defaultValue: "Reopen the linked Script before revising this voiceover." })}
+          title="Line context unavailable"
+          description="Reopen the linked Script before revising this voiceover."
         />
       </CollapsibleSection>
     );
@@ -78,7 +76,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
       instructions: instructions.trim() || undefined
     });
     if (!requestId) {
-      setError(i18n.t("timeline:attrs.theLineDeliveryCouldNotBeSubmittedCheckTheScriptVoiceAndConnection", { defaultValue: "The line delivery could not be submitted. Check the Script voice and connection." }));
+      setError("The line delivery could not be submitted. Check the Script voice and connection.");
     } else {
       setInstructions("");
     }
@@ -86,7 +84,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
 
   return (
     <CollapsibleSection
-      title={<InspectorSectionTitle title={t("timeline:attrs.changeLineDelivery", { defaultValue: "Change line delivery" })} icon={<AutoAwesomeOutlinedIcon />} />}
+      title={<InspectorSectionTitle title="Change line delivery" icon={<AutoAwesomeOutlinedIcon />} />}
       open={open}
       onToggle={setOpen}
     >
@@ -99,11 +97,10 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
         {line.direction && (
           <Caption color="secondary">Direction: {line.direction}</Caption>
         )}
-        <TextInput
+        <TextArea
           value={instructions}
-          onChange={(event) => setInstructions(event.target.value)}
-          placeholder={t("timeline:attrs.optionalDeliveryDirection", { defaultValue: "Optional delivery direction…" })}
-          multiline
+          onChange={(value) => setInstructions(value)}
+          placeholder="Optional delivery direction…"
           minRows={2}
           maxRows={5}
           compact
@@ -118,9 +115,19 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
           onClick={() => void handleSubmit()}
           startIcon={<AutoAwesomeOutlinedIcon />}
         >
-          {pending ? i18n.t("timeline:attrs.generatingDelivery", { defaultValue: "Generating delivery…" }) : i18n.t("timeline:attrs.changeLineDelivery", { defaultValue: "Change line delivery" })}
+          {pending ? "Generating delivery…" : "Change line delivery"}
         </EditorButton>
-        {error && <Caption color="error">{error}</Caption>}
+        {error && (
+          <ErrorBanner
+            report={{
+              source: "operation-failure",
+              summary: "Changing line delivery failed",
+              errorText: error
+            }}
+          >
+            {error}
+          </ErrorBanner>
+        )}
       </FlexColumn>
     </CollapsibleSection>
   );

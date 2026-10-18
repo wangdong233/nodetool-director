@@ -1,6 +1,6 @@
 {
   "name": "@nodetool-ai/protocol",
-  "version": "0.8.2",
+  "version": "0.8.4",
   "description": "Shared message types and protocol definitions for the NodeTool workflow runtime",
   "type": "module",
   "engines": {
@@ -26,6 +26,7 @@
   "devDependencies": {
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
+    "semver": "^7.8.5",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vitest": "^5.0.1"
   },
@@ -53,6 +54,12 @@
       "types": "./dist/game.d.ts",
       "import": "./dist/game.js",
       "default": "./dist/game.js"
+    },
+    "./runtime-npm-packages": {
+      "nodetool-dev": "./src/runtime-npm-packages.ts",
+      "types": "./dist/runtime-npm-packages.d.ts",
+      "import": "./dist/runtime-npm-packages.js",
+      "default": "./dist/runtime-npm-packages.js"
     },
     "./missing-runtime-package": {
       "nodetool-dev": "./src/missing-runtime-package.ts",

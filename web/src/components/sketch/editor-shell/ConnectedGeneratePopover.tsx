@@ -15,8 +15,6 @@
  * sketch modal has no session, same gate as SelectionActionBar).
  */
 
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 import React, {
   memo,
   useCallback,
@@ -37,8 +35,7 @@ import {
   FlexRow,
   LoadingSpinner,
   Popover,
-  TextInput,
-  Toast,
+  TextArea,
   BORDER_RADIUS,
   SPACING,
   getSpacingPx
@@ -62,6 +59,7 @@ import { useMediaOptions } from "../../../hooks/useModelsByProvider";
 import { useLayerCostEstimate } from "../../../hooks/sketch/useLayerCostEstimate";
 import CostEstimateLine from "../../costs/CostEstimateLine";
 import { generationCostLine } from "../../costs/costLine";
+import { useAlertNotifier } from "../../../hooks/useAlertNotifier";
 
 /** Most recent direct-gen binding's model, to seed the form's picker. */
 function seedModelFromBindings() {
@@ -94,7 +92,6 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
   anchorEl,
   onClose
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
 
   const docW = useSketchStore((s) => s.document.canvas.width);
@@ -121,7 +118,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
   const imageModelAnchorRef = useRef<HTMLButtonElement>(null);
   const [imageModelOpen, setImageModelOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const reportError = useAlertNotifier("warning");
 
   // Generated-image size — aspect ratio + resolution, mirroring the media
   // composer. These shape the generation output only; the artboard size is
@@ -223,7 +220,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
       await start(layerId);
       setPrompt("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : i18n.t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." }));
+      reportError(e instanceof Error ? e.message : "Generation failed.");
     } finally {
       setGenerating(false);
     }
@@ -266,12 +263,11 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
           gap={1}
           sx={{ padding: getSpacingPx(SPACING.md) }}
         >
-          <TextInput
+          <TextArea
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder={t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" })}
+            onChange={(value) => setPrompt(value)}
+            placeholder="Describe the image…"
             autoFocus
-            multiline
             minRows={2}
             maxRows={6}
             fullWidth
@@ -298,7 +294,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
             <MediaControlChip
               ref={imageModelAnchorRef}
               icon={<ImageIcon fontSize="small" />}
-              label={modelName || i18n.t("editor:ui.selectModel", { defaultValue: "Select Model" })}
+              label={modelName || "Select model"}
               active={imageModelOpen}
               onClick={() => setImageModelOpen(true)}
               truncate
@@ -326,7 +322,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
               anchorEl={resolutionAnchor}
               open={!!resolutionAnchor}
               onClose={() => setResolutionAnchor(null)}
-              header={t("editor:ui.resolution", { defaultValue: "Resolution" })}
+              header="Resolution"
               value={resolution}
               options={resolutionOptions}
               onChange={handleResolutionChange}
@@ -353,7 +349,7 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
           <FlexRow justify="flex-end" fullWidth>
             <CostEstimateLine
               estimate={generationCostLine(costEstimate)}
-              title={t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
+              title="Estimated cost of this generation"
             />
           </FlexRow>
 
@@ -367,25 +363,16 @@ const ConnectedGeneratePopoverInner: React.FC<ConnectedGeneratePopoverProps> = (
               generating ? (
                 <LoadingSpinner inline size={14} color="inherit" />
               ) : (
-                <AutoAwesomeIcon fontSize="small" />
+                <AutoAwesomeIcon />
               )
             }
             data-testid="sketch-gen-submit"
             sx={{ alignSelf: "flex-end", height: 34 }}
           >
-            {t("editor:ui.generate", { defaultValue: "Generate" })}
+            Generate
           </EditorButton>
         </FlexColumn>
       </Popover>
-
-      <Toast
-        open={error !== null}
-        message={error ?? ""}
-        severity="warning"
-        onClose={() => setError(null)}
-        vertical="top"
-        horizontal="center"
-      />
     </>
   );
 };

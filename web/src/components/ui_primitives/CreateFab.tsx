@@ -14,15 +14,16 @@
  */
 
 import React, { forwardRef, memo } from "react";
-import { Fab, FabProps, Tooltip } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
+import { Fab, FabProps } from "@mui/material";
+import { Tooltip } from "./Tooltip";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import { useTheme } from "@mui/material/styles";
 import {
   TOOLTIP_ENTER_DELAY,
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
-import { useTranslation } from "react-i18next";
+import { SHADOW } from "./tokens";
 
 export interface CreateFabProps extends Omit<FabProps, "children"> {
   /**
@@ -87,10 +88,9 @@ export const CreateFab = memo(
       },
       ref
     ) => {
-      const { t } = useTranslation();
       const theme = useTheme();
 
-      const tooltipText = tooltip ?? label ?? t("editor:ui.createNew", { defaultValue: "Create new" });
+      const tooltipText = tooltip ?? label ?? "Create new";
 
       const getColorStyles = () => {
         switch (fabColor) {
@@ -143,9 +143,9 @@ export const CreateFab = memo(
               ...colorStyles,
               textTransform: "none",
               fontWeight: 500,
-              boxShadow: "0px 3px 5px -1px rgba(0,0,0,0.2), 0px 6px 10px 0px rgba(0,0,0,0.14), 0px 1px 18px 0px rgba(0,0,0,0.12)",
+              boxShadow: SHADOW(theme).md,
               "&:active": {
-                boxShadow: "0px 5px 5px -3px rgba(0,0,0,0.2), 0px 8px 10px 1px rgba(0,0,0,0.14), 0px 3px 14px 2px rgba(0,0,0,0.12)"
+                boxShadow: SHADOW(theme).lg
               },
               ...sx
             }}

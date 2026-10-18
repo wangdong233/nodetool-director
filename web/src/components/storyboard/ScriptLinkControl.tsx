@@ -61,10 +61,10 @@ const ScriptLinkControlInner = ({
     <FlexColumn gap={SPACING.xs}>
       <EditorButton
         variant="outlined"
-        startIcon={<DescriptionOutlinedIcon fontSize="small" />}
+        startIcon={<DescriptionOutlinedIcon />}
         onClick={scriptId ? onOpen : onExtract}
         disabled={disabled || extracting || (!scriptId && !hasShots)}
-        title={
+        tooltip={
           scriptId
             ? t("storyboard:attrs.openTheScriptThisBoardsWordsComeFrom", { defaultValue: "Open the script this board's words come from" })
             : t("storyboard:attrs.projectThisBoardsDialogueAndNarrationIntoAScript", { defaultValue: "Project this board's dialogue and narration into a script" })

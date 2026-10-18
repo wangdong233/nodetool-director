@@ -1,9 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { memo, useState, useCallback, useMemo } from "react";
 import { useTheme } from "@mui/material/styles";
-import type { Theme } from "@mui/material/styles";
-import DeleteIcon from "@mui/icons-material/Delete";
-import LockIcon from "@mui/icons-material/Lock";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import LoginIcon from "@mui/icons-material/Login";
 import LinkOffIcon from "@mui/icons-material/LinkOff";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -33,11 +31,11 @@ import {
   Box,
   EmptyState,
   CollapsibleSection,
+  SectionHeader,
   BORDER_RADIUS,
-  MOTION,
-  reducedMotion,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  selectableRowStyles
 } from "../ui_primitives";
 import { ToolbarIconButton } from "../ui_primitives";
 import { ConfirmDialog } from "../ui_primitives";
@@ -52,8 +50,6 @@ import {
 } from "./providerCatalog";
 
 import { docsLink, docsUrl } from "../../config/docsLinks";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 // For multi-field credentials, find the parent provider (the one with fields array)
 const getParentProviderMeta = (key: string): ProviderMeta | undefined => {
@@ -98,7 +94,6 @@ export const ProviderCard = memo(function ProviderCard({
   onManage,
   onDelete
 }: ProviderCardProps) {
-  const { t } = useTranslation();
   const theme = useTheme();
   const oauth = useOAuthConnection(meta.oauth ?? null);
   const validateSecret = useSecretsStore((s) => s.validateSecret);
@@ -144,10 +139,10 @@ export const ProviderCard = memo(function ProviderCard({
 
   const statusTone = isUnavailable ? "warning" : "secondary";
   const statusLabel = isUnavailable
-    ? t("editor:ui.unavailable")
+    ? "Unavailable"
     : isConnected
-      ? t("editor:ui.connected")
-      : t("editor:ui.notConnected", { defaultValue: "Not connected" });
+      ? "Connected"
+      : "Not connected";
 
   const handleConnect = useCallback(() => {
     onConnect(secret);
@@ -226,28 +221,18 @@ export const ProviderCard = memo(function ProviderCard({
           }}
         >
           <FlexRow align="center" gap={SPACING.md} wrap>
-            <Text>
-              {t(`tools:menus.providers.${meta.key}.name`, {
-                defaultValue: meta.name
-              })}
-            </Text>
+            <Text>{meta.name}</Text>
             {meta.tag && (
               <Chip
-                label={t("tools:menus.tags." + meta.tag, { defaultValue: meta.tag })}
+                label={meta.tag}
                 compact
                 variant="outlined"
                 color="primary"
-                sx={{
-                  height: 18,
-                  borderColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.4)`
-                }}
               />
             )}
           </FlexRow>
           <Caption size="small" sx={{ lineHeight: 1.5 }}>
-            {t(`tools:menus.providers.${meta.key}.description`, {
-              defaultValue: meta.description
-            })}
+            {meta.description}
           </Caption>
           {meta.note && (
             <Caption
@@ -256,7 +241,7 @@ export const ProviderCard = memo(function ProviderCard({
                 lineHeight: 1.4
               }}
             >
-              {t(`tools:menus.providers.${meta.key}.note`, { defaultValue: meta.note })}
+              {meta.note}
             </Caption>
           )}
         </FlexColumn>
@@ -302,10 +287,7 @@ export const ProviderCard = memo(function ProviderCard({
             </Caption>
             {hasKey && !isUnavailable && secret.updated_at && (
               <Caption size="smaller" sx={{ whiteSpace: "nowrap" }}>
-                {t("editor:ui.updatedOn", {
-                  defaultValue: "Updated {{date}}",
-                  date: new Date(secret.updated_at).toLocaleDateString()
-                })}
+                Updated {new Date(secret.updated_at).toLocaleDateString()}
               </Caption>
             )}
           </FlexRow>
@@ -325,7 +307,7 @@ export const ProviderCard = memo(function ProviderCard({
                   whiteSpace: "nowrap"
                 }}
               >
-                {t("editor:ui.connectedViaOAuth")}
+                Connected via OAuth
               </Caption>
             </FlexRow>
           )}
@@ -339,13 +321,8 @@ export const ProviderCard = memo(function ProviderCard({
                 overflowWrap: "anywhere"
               }}
             >
-              {t("editor:ui.keyStoredButThisServerDoesNotOffer", {
-                defaultValue: "{{state}}, but this server does not offer {{name}}. Its models stay out of the model menu.",
-                state: hasKey
-                  ? t("editor:ui.keyStored", { defaultValue: "Key stored" })
-                  : t("editor:ui.signedIn", { defaultValue: "Signed in" }),
-                name: meta.name
-              })}
+              {hasKey ? "Key stored" : "Signed in"}, but this server does not
+              offer {meta.name}. Its models stay out of the model menu.
             </Caption>
           )}
           {testResult && (
@@ -379,12 +356,12 @@ export const ProviderCard = memo(function ProviderCard({
             density="compact"
             variant="text"
             size="small"
-            endIcon={<OpenInNewIcon sx={{ fontSize: "1.2em" }} />}
+            endIcon={<OpenInNewIcon />}
             onClick={() =>
               window.open(meta.docsUrl, "_blank", "noopener,noreferrer")
             }
           >
-            {t("editor:ui.docs")}
+            Docs
           </EditorButton>
 
           {meta.oauth &&
@@ -394,10 +371,10 @@ export const ProviderCard = memo(function ProviderCard({
                   density="compact"
                   variant="text"
                   size="small"
-                  startIcon={<LinkOffIcon sx={{ fontSize: "1.2em" }} />}
+                  startIcon={<LinkOffIcon />}
                   onClick={oauth.disconnect}
                 >
-                  {t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
+                  Disconnect
                 </EditorButton>
               )
             ) : (
@@ -405,13 +382,13 @@ export const ProviderCard = memo(function ProviderCard({
                 density="compact"
                 variant="outlined"
                 size="small"
-                startIcon={<LoginIcon sx={{ fontSize: "1.2em" }} />}
+                startIcon={<LoginIcon />}
                 onClick={oauth.connect}
                 disabled={oauth.isConnecting}
               >
                 {oauth.isConnecting
-                  ? t("editor:ui.connecting", { defaultValue: "Connecting…" })
-                  : t("editor:ui.signInWith", { defaultValue: "Sign in with {{account}}", account: meta.name })}
+                  ? "Connecting…"
+                  : `Sign in with ${meta.name}`}
               </EditorButton>
             ))}
 
@@ -424,7 +401,7 @@ export const ProviderCard = memo(function ProviderCard({
                 onClick={handleTest}
                 disabled={testing}
               >
-                {testing ? t("editor:ui.testing", { defaultValue: "Testing…" }) : t("editor:ui.test", { defaultValue: "Test" })}
+                {testing ? "Testing…" : "Test"}
               </EditorButton>
               <EditorButton
                 density="compact"
@@ -432,15 +409,15 @@ export const ProviderCard = memo(function ProviderCard({
                 size="small"
                 onClick={handleManage}
               >
-                {t("editor:ui.manage")}
+                Manage
               </EditorButton>
               <ToolbarIconButton
-                tooltip={t("editor:ui.deleteKey", { defaultValue: "Delete key" })}
+                tooltip="Delete key"
                 icon={<DeleteIcon fontSize="small" />}
                 size="small"
                 color="error"
                 onClick={handleDelete}
-                aria-label={t("editor:ui.deleteNameApiKey", { defaultValue: "Delete {{name}} API key", name: meta.name })}
+                aria-label={`Delete ${meta.name} API key`}
               />
             </>
           ) : (
@@ -450,7 +427,7 @@ export const ProviderCard = memo(function ProviderCard({
               size="small"
               onClick={handleConnect}
             >
-              {t("editor:ui.connect2")}
+              Connect
             </EditorButton>
           )}
         </FlexRow>
@@ -467,14 +444,13 @@ export const ProviderCard = memo(function ProviderCard({
 });
 
 const ProviderHero = memo(function ProviderHero() {
-  const { t } = useTranslation();
   return (
     <FlexColumn gap={SPACING.md}>
       <Text component="h2" size="big">
-        {t("editor:ui.modelsProviders")}
+        Models &amp; Providers
       </Text>
       <Text color="secondary" sx={{ maxWidth: "65ch" }}>
-        {t("editor:ui.connectYourAccountsOrAddAPIKeysToUseModelsInYourWorkflows")}
+        Connect your accounts or add API keys to use models in your workflows.
       </Text>
     </FlexColumn>
   );
@@ -486,31 +462,19 @@ const ProviderHero = memo(function ProviderHero() {
 
 const SectionTitle = memo(function SectionTitle({
   title,
-  count,
-  theme
+  count
 }: {
   title: string;
   count: number;
-  theme: Theme;
 }) {
   return (
-    <FlexRow
-      align="center"
-      gap={SPACING.md}
-      sx={{ marginBottom: theme.spacing(3) }}
-    >
-      <Text component="h3" size="big">
-        {title}
-      </Text>
-      <Caption
-        size="small"
-        sx={{
-          fontVariantNumeric: "tabular-nums"
-        }}
-      >
-        {count}
-      </Caption>
-    </FlexRow>
+    <SectionHeader
+      title={title}
+      titleComponent="h3"
+      size="large"
+      count={count}
+      sx={{ justifyContent: "flex-start", py: SPACING.none, mb: SPACING.lg }}
+    />
   );
 });
 
@@ -525,25 +489,13 @@ const STATUS_DOT_PX = 6;
 const SECTION_ORDER = ["popular", "language", "media", "gateways", "search", "compute", "advanced"] as const;
 const SECTION_TITLES = {
   popular: "Popular",
-  language: "Language Models",
-  media: "Media Generation",
-  gateways: "Gateways & Hubs",
-  search: "Web Search",
-  compute: "Compute & Local",
-  advanced: "Services & Advanced"
+  language: "Language models",
+  media: "Media generation",
+  gateways: "Gateways & hubs",
+  search: "Web search",
+  compute: "Compute & local",
+  advanced: "Services & advanced"
 } satisfies Record<string, string>;
-
-// labelKey pattern (registry §5): the English table stays as the defaultValue
-// anchor; the consumer resolves per-language at render time.
-const SECTION_TITLE_KEYS: Record<keyof typeof SECTION_TITLES, string> = {
-  popular: "editor:ui.popular",
-  language: "tools:menus.languageModels",
-  media: "tools:menus.mediaGeneration",
-  gateways: "tools:menus.gatewaysAndHubs",
-  search: "tools:menus.webSearch",
-  compute: "tools:menus.computeAndLocal",
-  advanced: "tools:menus.servicesAndAdvanced"
-};
 
 /* ------------------------------------------------------------------ */
 //  Main content
@@ -556,7 +508,6 @@ interface APIKeysTabContentProps {
 export const APIKeysTabContent = memo(function APIKeysTabContent({
   searchTerm = ""
 }: APIKeysTabContentProps) {
-  const { t } = useTranslation();
   const theme = useTheme();
   const secrets = useSecretsStore((state) => state.secrets);
   const safeSecrets = useMemo(() => secrets ?? [], [secrets]);
@@ -565,6 +516,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
   const [editingSecret, setEditingSecret] = useState<SecretResponse | null>(null);
   const [formValue, setFormValue] = useState("");
   const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [secretToDelete, setSecretToDelete] = useState<SecretResponse | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -680,6 +632,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
     const meta = getParentProviderMeta(secret.key);
     setEditingSecret(secret);
     setFormValue("");
+    setFormError(null);
     if (meta?.fields) {
       setFormValues({});
     }
@@ -690,6 +643,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
     const meta = getParentProviderMeta(secret.key);
     setEditingSecret(secret);
     setFormValue("");
+    setFormError(null);
     if (meta?.fields) {
       setFormValues({});
     }
@@ -711,24 +665,14 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
         // Multi-field provider: update all fields
         const combinedValues = meta.combinedCredential?.parse(formValue);
         if (meta.combinedCredential && !combinedValues) {
-          addNotification({
-            type: "error",
-            content: meta.combinedCredential.errorMessage,
-            dismissable: true
-          });
+          setFormError(meta.combinedCredential.errorMessage);
           return;
         }
         if (
           !combinedValues &&
           !meta.fields.every((f) => formValues[f.key])
         ) {
-          addNotification({
-            type: "error",
-            content: i18n.t("tools:menus.allFieldsAreRequired", {
-              defaultValue: "All fields are required"
-            }),
-            dismissable: true
-          });
+          setFormError("All fields are required");
           return;
         }
         for (const field of meta.fields) {
@@ -740,13 +684,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
       } else {
         // Single-field provider
         if (!formValue) {
-          addNotification({
-            type: "error",
-            content: i18n.t("tools:menus.secretValueIsRequired", {
-              defaultValue: "Secret value is required"
-            }),
-            dismissable: true
-          });
+          setFormError("Secret value is required");
           return;
         }
         await updateSecret(editingSecret.key, formValue);
@@ -754,10 +692,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
 
       addNotification({
         type: "success",
-        content: i18n.t("tools:menus.nameApiKeyUpdated", {
-            defaultValue: "{{name}} API key updated",
-            name: meta?.name || editingSecret.key
-          }),
+        content: `${meta?.name || editingSecret.key} API key updated`,
         alert: true
       });
       setDialogOpen(false);
@@ -767,10 +702,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
     } catch (err) {
       addNotification({
         type: "error",
-        content: i18n.t("tools:menus.failedToUpdateSecret", {
-            defaultValue: "Failed to update secret: {{error}}",
-            error: err instanceof Error ? err.message : String(err)
-          }),
+        content: `Failed to update secret: ${err instanceof Error ? err.message : String(err)}`,
         dismissable: true
       });
     }
@@ -794,19 +726,13 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
       }
       addNotification({
         type: "success",
-        content: i18n.t("tools:menus.nameApiKeyDeleted", {
-            defaultValue: "{{name}} API key deleted",
-            name: meta?.name || secretToDelete.key
-          }),
+        content: `${meta?.name || secretToDelete.key} API key deleted`,
         alert: true
       });
     } catch (err) {
       addNotification({
         type: "error",
-        content: i18n.t("tools:menus.failedToDeleteSecret", {
-            defaultValue: "Failed to delete secret: {{error}}",
-            error: err instanceof Error ? err.message : String(err)
-          }),
+        content: `Failed to delete secret: ${err instanceof Error ? err.message : String(err)}`,
         dismissable: true
       });
     }
@@ -819,6 +745,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
     setEditingSecret(null);
     setFormValue("");
     setFormValues({});
+    setFormError(null);
   }, []);
 
   const handleCloseDelete = useCallback(() => {
@@ -850,17 +777,16 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
       {!hasContent && lowerSearch && (
         <EmptyState
           variant="no-results"
-          title={t("editor:ui.noProvidersFound", { defaultValue: "No providers found" })}
-          description={t("editor:ui.noProvidersMatch", { defaultValue: 'No providers match "{{term}}"', term: searchTerm })}
+          title="No providers found"
+          description={`No providers match "${searchTerm}"`}
         />
       )}
 
       {connected.length > 0 && (
         <div>
           <SectionTitle
-            title={t("editor:ui.connectedProviders", { defaultValue: "Connected Providers" })}
+            title="Connected providers"
             count={connected.length}
-            theme={theme}
           />
           <FlexColumn
             sx={{
@@ -904,7 +830,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
 
         if (allInSection.length === 0) return null;
 
-        const sectionTitle = t(`tools:menus.sections.${sectionKey}`, { defaultValue: SECTION_TITLES[sectionKey] });
+        const sectionTitle = SECTION_TITLES[sectionKey];
         const isAdvanced = sectionKey === "advanced";
 
         const section = (
@@ -912,7 +838,6 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
             <SectionTitle
               title={sectionTitle}
               count={allInSection.length}
-              theme={theme}
             />
             <FlexColumn
               sx={{
@@ -944,7 +869,6 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                 <SectionTitle
                   title={sectionTitle}
                   count={allInSection.length}
-                  theme={theme}
                 />
               }
               open={forceAdvancedOpen || advancedOpen}
@@ -995,96 +919,81 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
               open={dialogOpen}
               onClose={handleCloseDialog}
               fullWidth
-              title={
-                <FlexRow align="center" gap={1}>
-                  <LockIcon
-                    sx={{
-                      color: "var(--palette-primary-main)",
-                      fontSize: "1.2em"
-                    }}
-                  />
-                  <Text size="big">
-                    {editingSecret?.is_configured ? t("editor:ui.update2") : t("editor:ui.connect2")}{" "}
-                    {meta?.name || editingSecret.key}
-                  </Text>
-                </FlexRow>
-              }
+              title={`${editingSecret?.is_configured ? "Update" : "Connect"} ${
+                meta?.name || editingSecret.key
+              }`}
               onConfirm={handleSave}
-              onCancel={handleCloseDialog}
-              confirmText={editingSecret?.is_configured ? t("editor:ui.update2") : t("editor:ui.connect2")}
-              cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+              confirmText={editingSecret?.is_configured ? "Update" : "Connect"}
               confirmDisabled={!allFieldsFilled}
             >
-              <FlexColumn
-                sx={{ marginTop: theme.spacing(4), gap: theme.spacing(3) }}
-              >
+              <FlexColumn gap={SPACING.lg}>
                 {meta?.combinedCredential ? (
-                  <>
-                    <TextInput
-                      label={t(
-                        `tools:menus.providers.${meta.key}.credentialLabel`,
-                        { defaultValue: meta.combinedCredential.label }
-                      )}
-                      type="password"
-                      value={formValue}
-                      onChange={(e) => setFormValue(e.target.value)}
-                      fullWidth
-                      placeholder={t(
-                        `tools:menus.providers.${meta.key}.credentialPlaceholder`,
-                        { defaultValue: meta.combinedCredential.placeholder }
-                      )}
-                      autoFocus
-                      variant="outlined"
-                      size="small"
-                    />
-                    <Caption>
-                      {t("editor:ui.pasteTheCompleteValueCopiedFromHiggsfield", { defaultValue: "Paste the complete value copied from Higgsfield. The key ID and secret will be encrypted and stored separately." })}
-                    </Caption>
-                  </>
+                  <TextInput
+                    label={meta.combinedCredential.label}
+                    type="password"
+                    value={formValue}
+                    onChange={(e) => {
+                      setFormValue(e.target.value);
+                      setFormError(null);
+                    }}
+                    fullWidth
+                    placeholder={meta.combinedCredential.placeholder}
+                    autoFocus
+                    variant="outlined"
+                    size="small"
+                    helperText="Paste the complete value copied from Higgsfield. The key ID and secret will be encrypted and stored separately."
+                    errorMessage={formError ?? undefined}
+                  />
                 ) : isMultiField ? (
                   <>
-                    {meta?.fields?.map((field) => (
+                    {meta?.fields?.map((field, index, fields) => (
                       <TextInput
                         key={field.key}
                         label={field.label}
                         type={field.secret ? "password" : "text"}
                         value={formValues[field.key] || ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setFormValues((prev) => ({
                             ...prev,
                             [field.key]: e.target.value
-                          }))
-                        }
+                          }));
+                          setFormError(null);
+                        }}
                         fullWidth
-                        placeholder={t("editor:ui.enterLabel", { defaultValue: "Enter {{label}}", label: field.label.toLowerCase() })}
+                        placeholder={`Enter ${field.label.toLowerCase()}`}
                         autoFocus={field.key === meta.fields?.[0]?.key}
                         variant="outlined"
                         size="small"
+                        helperText={
+                          index === fields.length - 1
+                            ? "All fields will be encrypted and stored securely. Never share them publicly."
+                            : undefined
+                        }
+                        errorMessage={
+                          formError && !formValues[field.key]
+                            ? formError
+                            : undefined
+                        }
                       />
                     ))}
-                    <Caption sx={{}}>
-                      {t("editor:ui.allFieldsWillBeEncryptedAndStoredSecurely", { defaultValue: "All fields will be encrypted and stored securely. Never share them publicly." })}
-                    </Caption>
                   </>
                 ) : (
-                  <>
-                    <TextInput
-                      label={t("tools:menus.apiKey", {
-                        defaultValue: "API Key"
-                      })}
-                      type="password"
-                      value={formValue}
-                      onChange={(e) => setFormValue(e.target.value)}
-                      fullWidth
-                      placeholder={t("editor:ui.pasteYourAPIKeyHere", { defaultValue: "Paste your API key here" })}
-                      autoFocus
-                      variant="outlined"
-                      size="small"
-                    />
-                    <Caption sx={{}}>
-                      {t("editor:ui.yourKeyWillBeEncryptedAndStoredSecurely", { defaultValue: "Your key will be encrypted and stored securely. Never share it publicly." })}
-                    </Caption>
-                  </>
+                  <TextInput
+                    label="API key"
+                    type="password"
+                    value={formValue}
+                    onChange={(e) => {
+                      setFormValue(e.target.value);
+                      setFormError(null);
+                    }}
+                    fullWidth
+                    placeholder="Paste your API key here"
+                    autoFocus
+                    variant="outlined"
+                    size="small"
+                    helperText="Your key will be encrypted and stored securely. Never share it publicly."
+                    errorMessage={formError ?? undefined}
+                  />
                 )}
               </FlexColumn>
             </Dialog>
@@ -1096,13 +1005,11 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
         open={deleteDialogOpen}
         onClose={handleCloseDelete}
         onConfirm={confirmDelete}
-        title={t("editor:ui.deleteAPIKey", { defaultValue: "Delete API Key" })}
-        content={t("editor:ui.areYouSureYouWantToDeleteTheApiKey", {
-          defaultValue: "Are you sure you want to delete the {{name}} API key?",
-          name: secretToDelete ? getParentProviderMeta(secretToDelete.key)?.name || secretToDelete.key : ""
-        })}
-        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+        title="Delete API key?"
+        content={`The ${secretToDelete ? getParentProviderMeta(secretToDelete.key)?.name || secretToDelete.key : ""} API key will be removed and its models will stop working until you add a key again.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        destructive
       />
     </FlexColumn>
   );
@@ -1113,7 +1020,6 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
 /* ------------------------------------------------------------------ */
 
 export const SecurityNotice = memo(function SecurityNotice() {
-  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <Card
@@ -1135,18 +1041,18 @@ export const SecurityNotice = memo(function SecurityNotice() {
           }}
         />
         <FlexColumn sx={{ minWidth: 0 }}>
-          <Text size="small">{t("ui2:attrs.yourSecretsAreSafe", { defaultValue: "Your secrets are safe" })}</Text>
+          <Text size="small">Your secrets are safe</Text>
           <Caption
             size="smaller"
             sx={{ lineHeight: 1.4, marginTop: theme.spacing(0.5) }}
           >
-            {t("editor:ui.allAPIKeysAreEncryptedInTheDatabaseAndNeverExposed", { defaultValue: "All API keys are encrypted in the database and never exposed." })}
+            All API keys are encrypted in the database and never exposed.
           </Caption>
           <EditorButton
             density="compact"
             variant="text"
             size="small"
-            endIcon={<OpenInNewIcon sx={{ fontSize: "1.2em" }} />}
+            endIcon={<OpenInNewIcon />}
             onClick={() =>
               window.open(
                 "https://github.com/nodetool-ai/nodetool/blob/main/docs/security.md",
@@ -1156,7 +1062,7 @@ export const SecurityNotice = memo(function SecurityNotice() {
             }
             sx={{ alignSelf: "flex-start", marginTop: theme.spacing(1) }}
           >
-            {t("editor:ui.learnMore", { defaultValue: "Learn more" })}
+            Learn more
           </EditorButton>
         </FlexColumn>
       </FlexRow>
@@ -1169,36 +1075,25 @@ export const SecurityNotice = memo(function SecurityNotice() {
 /* ------------------------------------------------------------------ */
 
 export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
-  const { t } = useTranslation();
   const theme = useTheme();
 
   const quickLinks = [
     {
       icon: <ModelTrainingIcon sx={{ fontSize: "1.2em" }} />,
-      title: t("tools:menus.supportedModels", {
-        defaultValue: "Supported Models"
-      }),
-      subtitle: t("tools:menus.seeModelsByProvider", {
-        defaultValue: "See models by provider"
-      }),
+      title: "Supported models",
+      subtitle: "See models by provider",
       href: docsLink("providers")
     },
     {
       icon: <MenuBookIcon sx={{ fontSize: "1.2em" }} />,
-      title: t("tools:menus.apiDocumentation", {
-        defaultValue: "API Documentation"
-      }),
-      subtitle: t("tools:menus.providerGuidesLinks", {
-        defaultValue: "Provider guides & links"
-      }),
+      title: "API documentation",
+      subtitle: "Provider guides & links",
       href: docsUrl("providers")
     },
     {
       icon: <HelpOutlineIcon sx={{ fontSize: "1.2em" }} />,
-      title: t("nav:settings.docsTopics.troubleshooting", { defaultValue: "Troubleshooting" }),
-      subtitle: t("tools:menus.commonIssuesFixes", {
-        defaultValue: "Common issues & fixes"
-      }),
+      title: "Troubleshooting",
+      subtitle: "Common issues & fixes",
       href: docsLink("troubleshooting")
     }
   ];
@@ -1224,30 +1119,27 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
         }}
       >
         <Text size="small" sx={{ marginBottom: theme.spacing(3) }}>
-          {t("editor:ui.quickLinks")}
+          Quick links
         </Text>
         <FlexColumn sx={{ gap: theme.spacing(0.5) }}>
           {quickLinks.map((link) => (
-            <FlexRow
+            // A real link, so Tab reaches it, Enter opens it and the
+            // browser's own open-in-new-tab gestures work.
+            <Box
               key={link.title}
-              align="center"
-              gap={SPACING.md}
+              component="a"
+              href={link.href}
+              {...(link.href.startsWith("http")
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
               sx={{
+                ...selectableRowStyles(theme),
+                display: "flex",
+                alignItems: "center",
+                gap: getSpacingPx(SPACING.md),
                 padding: theme.spacing(2, 2),
-                borderRadius: BORDER_RADIUS.md,
-                cursor: "pointer",
-                transition: MOTION.background,
-                ...reducedMotion({ transition: MOTION.none }),
-                "&:hover": {
-                  backgroundColor: theme.vars.palette.action.hover
-                }
-              }}
-              onClick={() => {
-                if (link.href.startsWith("http")) {
-                  window.open(link.href, "_blank", "noopener,noreferrer");
-                } else {
-                  window.location.href = link.href;
-                }
+                color: "inherit",
+                textDecoration: "none"
               }}
             >
               <FlexRow
@@ -1279,7 +1171,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
               >
                 ›
               </Text>
-            </FlexRow>
+            </Box>
           ))}
         </FlexColumn>
       </Card>
@@ -1298,17 +1190,17 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
           <CardGiftcardIcon
             sx={{ color: theme.vars.palette.primary.main, fontSize: "1.2em" }}
           />
-          <Text size="small">{t("editor:ui.needAPICredits", { defaultValue: "Need API credits?" })}</Text>
+          <Text size="small">Need API credits?</Text>
         </FlexRow>
         <Caption sx={{ lineHeight: 1.5, marginBottom: theme.spacing(3) }}>
-          {t("editor:ui.getFreeCreditsAndOffersFromOurPartnerProviders", { defaultValue: "Get free credits and offers from our partner providers." })}
+          Get free credits and offers from our partner providers.
         </Caption>
         <EditorButton
           density="compact"
           variant="outlined"
           size="small"
           fullWidth
-          endIcon={<OpenInNewIcon sx={{ fontSize: "1.2em" }} />}
+          endIcon={<OpenInNewIcon />}
           onClick={() =>
             window.open(
               "https://openrouter.ai/",
@@ -1317,7 +1209,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
             )
           }
         >
-          {t("editor:ui.viewOffers")}
+          View offers
         </EditorButton>
       </Card>
     </FlexColumn>

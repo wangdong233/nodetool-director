@@ -1,25 +1,21 @@
-/** @jsxImportSource @emotion/react */
-import { css } from "@emotion/react";
-
 import {
+  Box,
   FlexRow,
-  EditorButton,
   Dialog,
-  TextField,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  MenuItem
+  TextInput,
+  SelectField,
+  SPACING
 } from "../ui_primitives";
-import { useCallback, useState, memo, useId } from "react";
+import { useCallback, useState, memo } from "react";
 import { TypeMetadata } from "../../stores/ApiTypes";
 import { validateIdentifierName } from "../../utils/identifierValidation";
-import { useTranslation } from "react-i18next";
 
 interface AddDynamicOutputDialogProps {
   open: boolean;
   onClose: () => void;
   onAdd: (name: string, type: TypeMetadata) => void;
+  /** Static and dynamic output names on the node; adding one would replace it. */
+  takenNames?: readonly string[];
 }
 
 const TYPE_OPTIONS = [
@@ -32,10 +28,9 @@ const TYPE_OPTIONS = [
 const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
   open,
   onClose,
-  onAdd
+  onAdd,
+  takenNames = []
 }) => {
-  const { t } = useTranslation();
-  const titleId = useId();
   const [name, setName] = useState("");
   const [type, setType] = useState("str");
   const [nameError, setNameError] = useState<string | undefined>();
@@ -58,10 +53,14 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
       setNameError(validation.error);
       return;
     }
+    if (takenNames.includes(trimmed)) {
+      setNameError(`An output named "${trimmed}" already exists`);
+      return;
+    }
     onAdd(trimmed, { type, type_args: [], optional: false });
     reset();
     onClose();
-  }, [name, type, onAdd, reset, onClose]);
+  }, [name, type, takenNames, onAdd, reset, onClose]);
 
   return (
     <Dialog
@@ -69,55 +68,42 @@ const AddDynamicOutputDialog: React.FC<AddDynamicOutputDialogProps> = ({
       onClose={handleClose}
       maxWidth="xs"
       fullWidth
-      aria-labelledby={titleId}
+      title="Add output"
+      onConfirm={handleSubmit}
+      confirmText="Add output"
     >
-      <DialogTitle id={titleId}>{t("ui2:attrs.addOutput", { defaultValue: "Add Output" })}</DialogTitle>
-      <DialogContent>
-        <FlexRow css={css({ gap: 8, marginTop: 8 })}>
-          <TextField
-            autoFocus
-            label={t("editor:asset.info.name", { defaultValue: "Name" })}
-            size="small"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              if (nameError) {
-                setNameError(undefined);
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleSubmit();
-              }
-            }}
-            error={!!nameError}
-            helperText={nameError || "Cannot start with a number"}
-            sx={{ flex: 1 }}
-          />
-          <TextField
-            select
-            label={t("editor:asset.info.type", { defaultValue: "Type" })}
+      <FlexRow gap={SPACING.lg} align="flex-start">
+        <TextInput
+          autoFocus
+          label="Name"
+          size="small"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (nameError) {
+              setNameError(undefined);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
+          errorMessage={nameError}
+          helperText="Cannot start with a number"
+          sx={{ flex: 1 }}
+        />
+        <Box sx={{ width: 140, flexShrink: 0 }}>
+          <SelectField
+            label="Type"
             size="small"
             value={type}
-            onChange={(e) => setType(e.target.value)}
-            sx={{ width: 140 }}
-          >
-            {TYPE_OPTIONS.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </MenuItem>
-            ))}
-          </TextField>
-        </FlexRow>
-      </DialogContent>
-      <DialogActions>
-        <EditorButton onClick={handleClose} variant="text" size="small">
-          {t("common:action.cancel", { defaultValue: "Cancel" })}
-        </EditorButton>
-        <EditorButton onClick={handleSubmit} variant="contained" size="small">
-          {t("common:action.add", { defaultValue: "Add" })}
-        </EditorButton>
-      </DialogActions>
+            onChange={setType}
+            options={TYPE_OPTIONS}
+          />
+        </Box>
+      </FlexRow>
     </Dialog>
   );
 };

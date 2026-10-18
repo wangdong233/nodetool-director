@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from "react";
 import { Text, EditorButton, FlexColumn, SPACING } from "../ui_primitives";
 import { openSettingsTab } from "../workspace/openPageTab";
 import { useRequiredSettings } from "../../hooks/useRequiredSettings";
-import { useTranslation } from "react-i18next";
 
 interface RequiredSettingsWarningProps {
   nodeType: string;
@@ -10,7 +9,6 @@ interface RequiredSettingsWarningProps {
 
 const RequiredSettingsWarning: React.FC<RequiredSettingsWarningProps> = React.memo(
   ({ nodeType }) => {
-    const { t } = useTranslation();
     const missingSettings = useRequiredSettings(nodeType);
 
     const handleOpenSettings = useCallback(() => {
@@ -25,8 +23,8 @@ const RequiredSettingsWarning: React.FC<RequiredSettingsWarningProps> = React.me
       const settingsList = missingSettings.join(", ");
       const message =
         missingSettings.length === 1
-          ? t("editor:nodeBody.requiredOne", { defaultValue: "Required setting {{names}} is not configured!", names: settingsList })
-          : t("editor:nodeBody.requiredMany", { defaultValue: "Required settings {{names}} are not configured!", names: settingsList });
+          ? `Required setting ${settingsList} is not configured!`
+          : `Required settings ${settingsList} are not configured!`;
 
       return (
         <FlexColumn gap={SPACING.xs} sx={{ px: SPACING.md, py: SPACING.xs }}>
@@ -55,11 +53,11 @@ const RequiredSettingsWarning: React.FC<RequiredSettingsWarningProps> = React.me
               minHeight: 24
             }}
           >
-            {t("editor:nodeBody.configureInSettings", { defaultValue: "Configure in Settings" })}
+            Configure in settings
           </EditorButton>
         </FlexColumn>
       );
-    }, [t, missingSettings, handleOpenSettings]);
+    }, [missingSettings, handleOpenSettings]);
 
     return content;
   }

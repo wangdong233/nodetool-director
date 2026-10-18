@@ -30,6 +30,46 @@ const plan = (files) => buildPlan(files, PACKAGES, computeAffected);
 const labels = (files) => plan(files).steps.map((s) => s.label);
 
 describe("buildPlan", () => {
+  it.each([
+    "scripts/test-affected.mjs",
+    "scripts/__tests__/test-affected.test.mjs",
+    "scripts/__tests__/desktop-release-recovery.test.mjs",
+    "scripts/__tests__/smoke-backend-bundle.test.mjs"
+  ])("selects script regressions for %s", (file) => {
+    expect(plan([file]).globalFiles).toEqual([]);
+    expect(plan([file]).steps).toEqual([
+      { label: "script regressions", command: "npm", args: ["run", "test:scripts"] }
+    ]);
+  });
+
+  it("checks smoke behavior and the real bundle when the backend smoke changes", () => {
+    expect(plan(["scripts/smoke-backend-bundle.mjs"]).globalFiles).toEqual([]);
+    expect(labels([
+      "scripts/smoke-backend-bundle.mjs",
+      "scripts/__tests__/smoke-backend-bundle.test.mjs",
+      "scripts/__tests__/desktop-release-recovery.test.mjs"
+    ])).toEqual(["script regressions", "backend:smoke"]);
+    expect(labels(["scripts/unknown-release-utility.mjs"])).toEqual([
+      "packages", "web", "electron", "mobile"
+    ]);
+  });
+
+  it.each(["scripts/bump-version.mjs", "scripts/__tests__/bump-version.test.mjs"])("selects the catalog version fixture for %s", (file) => {
+    expect(labels([file])).toEqual(["catalog version bump"]);
+    expect(plan([file]).globalFiles).toEqual([]);
+  });
+
+  it.each([
+    "scripts/node-catalog/packs.mjs",
+    "scripts/node-catalog/tiers.mjs",
+    "scripts/node-catalog/generate.mjs",
+    "scripts/generate-node-catalog.mjs",
+    "scripts/__tests__/node-catalog.test.mjs"
+  ])("selects generator fixtures and catalog drift for %s", (file) => {
+    expect(labels([file])).toEqual(["node catalog generator", "node catalog drift"]);
+    expect(plan([file]).globalFiles).toEqual([]);
+  });
+
   it("selects the browser tracing shim regression for its standalone test", () => {
     const { steps, globalFiles } = plan(["scripts/__tests__/browser-tracing-stub.test.mjs"]);
     expect(globalFiles).toEqual([]);

@@ -38,14 +38,16 @@ import {
   responseToolChoice,
   responseTools,
   responseUsage,
-  streamResponsesEvents
+  streamResponsesEvents,
+  type ResponsesInputOptions
 } from "./responses-api.js";
 import {
   PROVIDER_IDS,
   isCallable,
   isNumber,
   isRecord,
-  isString
+  isString,
+  supportsReasoningEffort
 } from "@nodetool-ai/protocol";
 import {
   isProviderMessageEvent,
@@ -223,6 +225,10 @@ const RESPONSE_WEB_SEARCH_TOOL = {
 
 const RESPONSE_IMAGE_GENERATION_TOOL = {
   type: "image_generation"
+} satisfies Record<string, unknown>;
+
+const RESPONSE_TOOL_SEARCH_TOOL = {
+  type: "tool_search"
 } satisfies Record<string, unknown>;
 
 const RESPONSE_HOSTED_TOOL_CHOICES: Readonly<Record<string, string>> = {
@@ -798,29 +804,21 @@ export class OpenAIProvider extends BaseProvider {
     durationSeconds?: number | null;
     numFrames?: number | null;
   }): number | null {
-    const durationSeconds = params.durationSeconds;
-    if (
-      durationSeconds != null &&
-      Number.isFinite(durationSeconds) &&
-      durationSeconds > 0
-    ) {
-      return SORA_VIDEO_DURATIONS.reduce(
-        (duration, candidate) =>
-          candidate <= durationSeconds ? candidate : duration,
+    const isPositive = (n: number | null | undefined): n is number =>
+      n != null && Number.isFinite(n) && n > 0;
+    const snap = (seconds: number): number =>
+      SORA_VIDEO_DURATIONS.reduce(
+        (duration, candidate) => (candidate <= seconds ? candidate : duration),
         SORA_VIDEO_DURATIONS[0]
       );
-    }
 
-    const numFrames = params.numFrames;
-    if (!numFrames || !Number.isFinite(numFrames) || numFrames <= 0) {
-      return null;
+    if (isPositive(params.durationSeconds)) {
+      return snap(params.durationSeconds);
     }
-
-    const estimated = Math.ceil(numFrames / 24);
-    return SORA_VIDEO_DURATIONS.reduce(
-      (duration, candidate) => (candidate <= estimated ? candidate : duration),
-      SORA_VIDEO_DURATIONS[0]
-    );
+    if (isPositive(params.numFrames)) {
+      return snap(Math.ceil(params.numFrames / 24));
+    }
+    return null;
   }
 
   static snapToValidVideoDimensions(width: number, height: number): string {
@@ -1361,24 +1359,60 @@ export class OpenAIProvider extends BaseProvider {
   // Responses API path (used for OpenAI models matched by isOpenAIResponsesModel)
   // ---------------------------------------------------------------------------
 
+  /**
+   * Media parts beyond text and images that this endpoint's Responses input
+   * accepts. OpenAI's accepts neither video nor audio.
+   */
+  protected responsesInputOptions(): ResponsesInputOptions {
+    return {};
+  }
+
+  /**
+   * Whether this endpoint's Responses API hosts `tool_search`: a function
+   * marked `deferLoading` is sent with `defer_loading: true`, so its schema
+   * stays out of the prompt until the server's search loads it. Off for
+   * OpenAI, which sends every schema up front.
+   */
+  protected get supportsNativeToolSearch(): boolean {
+    return false;
+  }
+
   /** Responses uses native equivalents by default, caller dispatch when restricted. */
   private formatResponsesTools(
     tools: ProviderTool[],
     providedToolsOnly = false
   ): Array<Record<string, unknown>> {
     const formatted: Array<Record<string, unknown>> = [];
+    const deferLoading = !providedToolsOnly && this.supportsNativeToolSearch;
+    let deferred = false;
     for (const tool of tools) {
-      if (!providedToolsOnly && tool.name === WEB_SEARCH_TOOL_NAME) {
+      if (
+        !providedToolsOnly &&
+        this.supportsNativeWebSearch &&
+        tool.name === WEB_SEARCH_TOOL_NAME
+      ) {
         formatted.push(RESPONSE_WEB_SEARCH_TOOL);
         continue;
       }
-      if (!providedToolsOnly && tool.name === IMAGE_GENERATION_TOOL_NAME) {
+      if (
+        !providedToolsOnly &&
+        this.supportsNativeImageGeneration &&
+        tool.name === IMAGE_GENERATION_TOOL_NAME
+      ) {
         formatted.push(RESPONSE_IMAGE_GENERATION_TOOL);
         continue;
       }
       const [functionTool] = responseTools([tool]);
-      if (functionTool) formatted.push(functionTool);
+      if (!functionTool) continue;
+      if (deferLoading && tool.deferLoading) {
+        functionTool.defer_loading = true;
+        deferred = true;
+      }
+      formatted.push(functionTool);
     }
+    // The server rejects a deferred function without a `tool_search` tool to
+    // load it, and a `tool_search` tool with nothing deferred.
+    if (deferred) formatted.push(RESPONSE_TOOL_SEARCH_TOOL);
     return formatted;
   }
 
@@ -1386,8 +1420,10 @@ export class OpenAIProvider extends BaseProvider {
     args: Parameters<BaseProvider["generateMessage"]>[0]
   ): Promise<Message> {
     const request = await this.buildResponsesRequest(args, {
-      input: await messagesToResponsesInput(args.messages, (uri) =>
-        this.resolveUri(uri)
+      input: await messagesToResponsesInput(
+        args.messages,
+        (uri) => this.resolveUri(uri),
+        this.responsesInputOptions()
       ),
       stream: false,
       store: false
@@ -1428,8 +1464,10 @@ export class OpenAIProvider extends BaseProvider {
   private async *generateMessagesResponses(
     args: Parameters<BaseProvider["generateMessages"]>[0]
   ): AsyncGenerator<ProviderStreamItem> {
-    const input = await messagesToResponsesInput(args.messages, (uri) =>
-      this.resolveUri(uri)
+    const input = await messagesToResponsesInput(
+      args.messages,
+      (uri) => this.resolveUri(uri),
+      this.responsesInputOptions()
     );
     const request = await this.buildResponsesRequest(args, {
       input,
@@ -1554,7 +1592,13 @@ export class OpenAIProvider extends BaseProvider {
   private async buildResponsesRequest(
     args: Pick<
       Parameters<BaseProvider["generateMessages"]>[0],
-      "model" | "tools" | "toolChoice" | "maxTokens" | "temperature" | "topP"
+      | "model"
+      | "tools"
+      | "toolChoice"
+      | "maxTokens"
+      | "temperature"
+      | "topP"
+      | "effort"
     >,
     config: {
       input: Array<Record<string, unknown>>;
@@ -1577,6 +1621,16 @@ export class OpenAIProvider extends BaseProvider {
     if (args.maxTokens != null) request.max_output_tokens = args.maxTokens;
     if (args.temperature != null) request.temperature = args.temperature;
     if (args.topP != null) request.top_p = args.topP;
+    // `reasoning.effort` tops out at "high" on gpt-5, and the `-chat` models
+    // take no reasoning at all.
+    if (args.effort && supportsReasoningEffort(PROVIDER_IDS.OPENAI, args.model)) {
+      request.reasoning = {
+        effort:
+          args.effort === "xhigh" || args.effort === "max"
+            ? "high"
+            : args.effort
+      };
+    }
 
     const tools = this.formatResponsesTools(
       args.tools ?? [],
@@ -1664,7 +1718,8 @@ export class OpenAIProvider extends BaseProvider {
     ): Promise<Array<Record<string, unknown>>> =>
       messagesToResponsesInput(
         config.resolveMedia ? await config.resolveMedia(messages) : messages,
-        (uri) => this.resolveUri(uri)
+        (uri) => this.resolveUri(uri),
+        this.responsesInputOptions()
       );
     let input = await toInput(config.firstMessages);
     let state = config.firstTurnState;
@@ -2065,6 +2120,11 @@ export class OpenAIProvider extends BaseProvider {
     throw new Error("OpenAI image editing returned no image data.");
   }
 
+  /** Resolve model capabilities separately from the ID sent to the API. */
+  protected mediaModelIdentity(model: string): string {
+    return model;
+  }
+
   async *textToSpeech(args: {
     text: string;
     model: string;
@@ -2091,7 +2151,7 @@ export class OpenAIProvider extends BaseProvider {
         speed,
         response_format: "pcm"
       };
-      if (args.model === "gpt-4o-mini-tts" && (args.language || args.instructions)) {
+      if (this.mediaModelIdentity(args.model) === "gpt-4o-mini-tts" && (args.language || args.instructions)) {
         request.instructions = [
           args.language ? `Speak in ${args.language}.` : undefined,
           args.instructions
@@ -2127,7 +2187,7 @@ export class OpenAIProvider extends BaseProvider {
       speed,
       response_format: "pcm"
     };
-    if (args.model === "gpt-4o-mini-tts" && (args.language || args.instructions)) {
+    if (this.mediaModelIdentity(args.model) === "gpt-4o-mini-tts" && (args.language || args.instructions)) {
       request.instructions = [
         args.language ? `Speak in ${args.language}.` : undefined,
         args.instructions
@@ -2188,7 +2248,7 @@ export class OpenAIProvider extends BaseProvider {
       speed,
       response_format: fmt
     };
-    if (args.model === "gpt-4o-mini-tts" && (args.language || args.instructions)) {
+    if (this.mediaModelIdentity(args.model) === "gpt-4o-mini-tts" && (args.language || args.instructions)) {
       request.instructions = [
         args.language ? `Speak in ${args.language}.` : undefined,
         args.instructions
@@ -2234,10 +2294,10 @@ export class OpenAIProvider extends BaseProvider {
             name: audioName
           });
 
-    const isDiarizationModel = args.model.startsWith(
+    const isDiarizationModel = this.mediaModelIdentity(args.model).startsWith(
       "gpt-4o-transcribe-diarize"
     );
-    if (args.word_timestamps && args.model !== "whisper-1") {
+    if (args.word_timestamps && this.mediaModelIdentity(args.model) !== "whisper-1") {
       throw new Error("Word timestamps are only supported by whisper-1");
     }
 

@@ -23,13 +23,17 @@ export interface GameScriptInput3D extends GameInputFrame3D {
 export type GameScriptRunner3D = IsolatedScriptRunner<GameScriptCall3D, GameScriptInput3D, GameScriptCommand3D>;
 
 export function prepareGameScripts3D(document: GameDocument3D): Promise<GameScriptRunner3D> {
-  return prepareIsolatedGameScripts<GameScriptCall3D, GameScriptInput3D, GameScriptCommand3D>(document, gameScriptCommand3D, `{
+  return prepareIsolatedGameScripts<GameScriptCall3D, GameScriptInput3D, GameScriptCommand3D>({ ...document, scenes: [
+    ...document.scenes.map(scene => ({ ...scene, sourceScope: "scene" as const })),
+    ...Object.entries(document.prefabs).map(([prefabId, prefab]) => ({ id: prefabId, sourceScope: "prefab" as const, entities: prefab.entities }))
+  ] }, gameScriptCommand3D, `{
     contractVersion: 3, tick: data.input.tick, pressed: data.input.pressed, justPressed: data.input.justPressed,
     axes: data.input.axes, look: data.input.look, camera: data.input.camera, events: data.input.events,
     queries: data.input.queries, world: data.input.world, state: data.call.state, random: __gameRandom,
     entity: { id: data.call.entityId, source: data.call.source, position: data.call.position,
       velocity: data.call.velocity, grounded: data.call.grounded,
       tags: data.call.tags, props: data.call.props, rotation: data.call.rotation, active: data.call.active },
+    ...(data.input.loaded === undefined ? undefined : { loaded: data.input.loaded }),
     ...(data.params === undefined ? undefined : { params: data.params })
   }`);
 }

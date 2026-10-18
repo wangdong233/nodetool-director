@@ -35,13 +35,11 @@ import { newScriptSetupDocument } from "../setup/script/useScriptSetupFlow";
 import { newVideoSetupDocument } from "../setup/video/useVideoSetupFlow";
 import { startImageFlow } from "../setup/image/startImageFlow";
 import { openPageTab } from "./openPageTab";
-import { i18n } from "../../i18n";
+import { openSpeechChat } from "../chat/openSpeechChat";
 
 export interface GuidedFlowStarter {
   id: EntryFlowId;
   title: string;
-  /** i18n leaf key under editor:ui for the localized description. */
-  descriptionKey?: string;
   description: string;
   icon: ReactNode;
   /**
@@ -52,14 +50,15 @@ export interface GuidedFlowStarter {
 }
 
 /**
- * What the menu names two of the cards. The app's document lists read
- * "Timelines" and "Sketches" (the left panel, quick access, the panels'
- * own create buttons), so the menu does too — the entry cards keep their
- * own copy for the New Project surface and Studio.
+ * What the menu names one of the cards. The app's document lists read
+ * "Timelines" (the left panel, quick access, the panel's own create button),
+ * so the menu does too — the entry cards keep their own copy for the New
+ * Project surface and Studio. The picture flow stays "Image" everywhere (home
+ * card, menu, flow header, new tab). "Sketch" names only the editor document
+ * the flow ends in, which has its own entry in the menu's document section.
  */
 const MENU_TITLES: Partial<Record<EntryFlowId, string>> = {
-  video: "Timeline",
-  image: "Sketch"
+  video: "Timeline"
 };
 
 export interface GuidedFlowStarters {
@@ -69,7 +68,7 @@ export interface GuidedFlowStarters {
 }
 
 /**
- * The seven guided starters, each reporting failure as a toast rather than a
+ * The nine guided starters, each reporting failure as a toast rather than a
  * dead click. `onStarted` lets the caller close its own menu when one lands.
  *
  * Clicking a starter creates its document in the selected project.
@@ -118,7 +117,7 @@ export const useGuidedFlowStarters = (
       runStart("storyboard", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const created = await createStoryboard.mutateAsync({
-          name: i18n.t("storyboard:attrs.untitledStoryboard", { defaultValue: "Untitled storyboard" }),
+          name: "Untitled storyboard",
           projectId,
           document: newStoryboardSetupDocument("")
         });
@@ -138,7 +137,7 @@ export const useGuidedFlowStarters = (
       runStart("video", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const sequence = await createTimeline.mutateAsync({
-          name: i18n.t("timeline:attrs.untitledTimeline", { defaultValue: "Untitled timeline" }),
+          name: "Untitled timeline",
           projectId
         });
         // `timeline.create` takes no document, so the setup lands as one
@@ -164,11 +163,7 @@ export const useGuidedFlowStarters = (
           type: "timeline",
           ref: sequence.id,
           mode: "edit",
-          title:
-            sequence.name ||
-            i18n.t("timeline:attrs.untitledTimeline", {
-              defaultValue: "Untitled timeline"
-            }),
+          title: sequence.name || "Untitled timeline",
           projectId: sequence.projectId
         });
       }),
@@ -180,7 +175,7 @@ export const useGuidedFlowStarters = (
       runStart("script", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const created = await createScript.mutateAsync({
-          name: i18n.t("editor:ui.untitledScript", { defaultValue: "Untitled script" }),
+          name: "Untitled script",
           projectId,
           document: newScriptSetupDocument("")
         });
@@ -195,12 +190,20 @@ export const useGuidedFlowStarters = (
     [runStart, createScript, openTab]
   );
 
+  const startSpeech = useCallback(
+    (projectIdOverride?: string) =>
+      runStart("speech", () =>
+        openSpeechChat(projectIdOverride ?? creationProjectId())
+      ),
+    [runStart]
+  );
+
   const startImage = useCallback(
     (projectIdOverride?: string) =>
       runStart("image", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const started = await startImageFlow({
-          name: i18n.t("editor:ui.untitledSketch", { defaultValue: "Untitled sketch" }),
+          name: "New image",
           projectId,
           brief: ""
         });
@@ -220,7 +223,7 @@ export const useGuidedFlowStarters = (
       runStart("workflow", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const created = await createWorkflow({
-          name: i18n.t("editor:ui.untitledWorkflow", { defaultValue: "Untitled workflow" }),
+          name: "Untitled workflow",
           description: "",
           tags: [],
           access: "private",
@@ -231,11 +234,7 @@ export const useGuidedFlowStarters = (
           type: "workflow",
           ref: created.id,
           mode: "edit",
-          title:
-            created.name ||
-            i18n.t("editor:ui.untitledWorkflow", {
-              defaultValue: "Untitled workflow"
-            }),
+          title: created.name || "Untitled workflow",
           projectId
         });
       }),
@@ -249,7 +248,7 @@ export const useGuidedFlowStarters = (
       runStart("game", async () => {
         const projectId = projectIdOverride ?? creationProjectId();
         const created = await createWorkflow({
-          name: i18n.t("editor:ui.untitledGame", { defaultValue: "Untitled game" }),
+          name: "Untitled game",
           description: "",
           tags: [],
           access: "private",
@@ -263,15 +262,35 @@ export const useGuidedFlowStarters = (
           type: "workflow",
           ref: created.id,
           mode: "edit",
-          title:
-            created.name ||
-            i18n.t("editor:ui.untitledGame", {
-              defaultValue: "Untitled game"
-            }),
+          title: created.name || "Untitled game",
           projectId
         });
       }),
     [runStart, createWorkflow, openTab]
+  );
+
+  // The App flow creates nothing until its build is green, so the menu opens
+  // the flow itself in a guided tab rather than a document.
+  const startApp = useCallback(
+    (projectIdOverride?: string) =>
+      runStart("app", async () => {
+        const projectId = projectIdOverride ?? creationProjectId();
+        openTab({
+          type: "guided-flow",
+          ref: crypto.randomUUID(),
+          mode: "edit",
+          title: "New app",
+          projectId,
+          setupTarget: {
+            kind: "app",
+            id: crypto.randomUUID(),
+            projectId,
+            name: "New app",
+            ownsProject: false
+          }
+        });
+      }),
+    [runStart, openTab]
   );
 
   // Entities have no document tab — the library is their surface — so the
@@ -294,16 +313,17 @@ export const useGuidedFlowStarters = (
       storyboard: startStoryboard,
       video: startVideo,
       script: startScript,
+      speech: startSpeech,
       image: startImage,
       workflow: startWorkflow,
-      game: startGame
+      game: startGame,
+      app: startApp
     };
     return ENTRY_CARDS.map((card) => {
       const title = MENU_TITLES[card.id] ?? card.title;
       return {
         id: card.id,
         title,
-        descriptionKey: card.descriptionKey,
         description: card.description ?? "",
         icon: GUIDED_FLOW_ICONS[card.id],
         start: (projectId?: string) => startById[card.id](projectId)
@@ -311,10 +331,12 @@ export const useGuidedFlowStarters = (
     });
   }, [
     onStarted,
+    startApp,
     startEntity,
     startGame,
     startImage,
     startScript,
+    startSpeech,
     startStoryboard,
     startVideo,
     startWorkflow

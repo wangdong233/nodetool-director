@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import {
   memo,
   useCallback,
@@ -9,7 +8,7 @@ import {
 } from "react";
 import { useMutation } from "@tanstack/react-query";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import {
   parseApplicationDocument,
   type AppDocument
@@ -104,7 +103,6 @@ const ApplicationSurface = ({
   selectedRunId,
   mode = "view"
 }: ApplicationSurfaceProps) => {
-  const { t } = useTranslation();
   const {
     data: application,
     isLoading,
@@ -293,14 +291,14 @@ const ApplicationSurface = ({
   }, [application, refId, instanceId, setTabTitle]);
 
   if (isLoading) {
-    return <LoadingSpinner size="large" text={t("editor:ui.loadingApp", { defaultValue: "Loading app" })} />;
+    return <LoadingSpinner size="large" text="Loading app" />;
   }
 
   if (isError || !application) {
     return (
       <EmptyState
         variant="error"
-        title={t("ui2:attrs.couldNotLoadApp", { defaultValue: "Could not load app" })}
+        title="Could not load app"
         description={error?.message ?? "The app may have been deleted."}
       />
     );
@@ -357,16 +355,12 @@ const ApplicationSurface = ({
                 exclusive
                 value={view}
                 onChange={handleViewChange}
-                aria-label={t("ui2:attrs.appView", { defaultValue: "App view" })}
+                aria-label="App view"
               >
-                <ToggleOption value="design">
-                  {t("ui2:attrs.design", { defaultValue: "Design" })}
-                </ToggleOption>
-                <ToggleOption value="run">
-                  {t("ui2:attrs.run", { defaultValue: "Run" })}
-                </ToggleOption>
-                <ToggleOption value="preview">{t("ui2:attrs.previewDraft", { defaultValue: "Preview draft" })}</ToggleOption>
-                <ToggleOption value="settings">{t("nav:rail.settings", { defaultValue: "Settings" })}</ToggleOption>
+                <ToggleOption value="design">Design</ToggleOption>
+                <ToggleOption value="run">Run</ToggleOption>
+                <ToggleOption value="preview">Preview draft</ToggleOption>
+                <ToggleOption value="settings">Settings</ToggleOption>
               </ToggleGroup>
             </FlexRow>
           </FlexRow>
@@ -440,7 +434,7 @@ const ApplicationSurface = ({
             <Box
               ref={narrowAgentPanelRef}
               role="dialog"
-              aria-label={t("ui2:attrs.appBuilderAssistant", { defaultValue: "App builder assistant" })}
+              aria-label="App builder assistant"
               tabIndex={-1}
               sx={{
                 ...overlayPanelSx,
@@ -456,7 +450,7 @@ const ApplicationSurface = ({
         <ResizableSideDock
           storageKey="app_builder"
           defaultWidth={420}
-          ariaLabel={t("ui2:attrs.resizeAppBuilderAssistant", { defaultValue: "Resize app builder assistant" })}
+          ariaLabel="Resize app builder assistant"
         >
           {assistant}
         </ResizableSideDock>
@@ -466,16 +460,8 @@ const ApplicationSurface = ({
           ref={narrowAgentButtonRef}
           icon={narrowAgentOpen ? <CloseIcon /> : <AutoAwesomeIcon />}
           onClick={toggleNarrowAgent}
-          ariaLabel={
-            narrowAgentOpen
-              ? t("editor:ui.closeAgent", { defaultValue: "Close agent" })
-              : t("editor:ui.askAgent", { defaultValue: "Ask Agent" })
-          }
-          tooltip={
-            narrowAgentOpen
-              ? t("editor:ui.closeAgent", { defaultValue: "Close agent" })
-              : t("editor:ui.askAgent", { defaultValue: "Ask Agent" })
-          }
+          ariaLabel={narrowAgentOpen ? "Close agent" : "Ask agent"}
+          tooltip={narrowAgentOpen ? "Close agent" : "Ask agent"}
           tooltipPlacement="top"
           size={48}
           position="absolute"

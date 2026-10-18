@@ -1,13 +1,18 @@
-import { i18n } from "../../i18n";
 import { FC, useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { WorkflowAttributes } from "../../stores/ApiTypes";
 import { useNotificationStore } from "../../stores/NotificationStore";
-import { Dialog } from "../ui_primitives";
+import {
+  Dialog,
+  FlexColumn,
+  ScrollArea,
+  SPACING,
+  Text
+} from "../ui_primitives";
+
 interface WorkflowDeleteDialogProps {
   open: boolean;
   onClose: () => void;
@@ -19,7 +24,6 @@ const WorkflowDeleteDialog: FC<WorkflowDeleteDialogProps> = ({
   onClose,
   workflowsToDelete
 }) => {
-  const { t } = useTranslation();
   const { removeWorkflow, openWorkflows } = useWorkflowManager(
     useShallow((state) => ({
       removeWorkflow: state.removeWorkflow,
@@ -75,7 +79,7 @@ const WorkflowDeleteDialog: FC<WorkflowDeleteDialogProps> = ({
       if (failure?.status === "rejected") {
         throw failure.reason;
       }
-      addNotification({ content: i18n.t("editor:ui.workflowsDeleted", { defaultValue: "Workflows deleted" }), type: "success" });
+      addNotification({ content: "Workflows deleted", type: "success" });
       onClose();
     } catch (error) {
       addNotification({
@@ -99,28 +103,38 @@ const WorkflowDeleteDialog: FC<WorkflowDeleteDialogProps> = ({
     addNotification
   ]);
 
+  const single = workflowsToDelete.length === 1;
+
   return (
     <Dialog
       open={open}
       onClose={handleClose}
-      onCancel={handleClose}
       isLoading={isDeleting}
       cancelDisabled={isDeleting}
       showCloseButton={!isDeleting}
       destructive
       onConfirm={handleDelete}
-      confirmText={t("common:action.delete", { defaultValue: "Delete" })}
-      cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
-      title={t("editor:ui.deleteWorkflows", { defaultValue: "Delete Workflows" })}
+      confirmText="Delete"
+      title={single ? "Delete workflow?" : "Delete workflows?"}
+      maxWidth="xs"
+      fullWidth
       content={
-        <>
-          <p>{t("editor:ui.areYouSureYouWantToDeleteTheFollowingWorkflows", { defaultValue: "Are you sure you want to delete the following workflows?" })}</p>
-          <ul className="asset-names">
-            {pendingWorkflows.map((workflow) => (
-              <li key={workflow.id}>{workflow.name}</li>
-            ))}
-          </ul>
-        </>
+        <FlexColumn gap={SPACING.md}>
+          <Text color="secondary">
+            {single
+              ? "This workflow and its graph are permanently deleted. This cannot be undone."
+              : "These workflows and their graphs are permanently deleted. This cannot be undone."}
+          </Text>
+          <ScrollArea maxHeight="40vh">
+            <FlexColumn gap={SPACING.xs}>
+              {pendingWorkflows.map((workflow) => (
+                <Text key={workflow.id} size="small">
+                  {workflow.name}
+                </Text>
+              ))}
+            </FlexColumn>
+          </ScrollArea>
+        </FlexColumn>
       }
     />
   );

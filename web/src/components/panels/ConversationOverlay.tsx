@@ -17,7 +17,7 @@ import AddCommentOutlinedIcon from "@mui/icons-material/AddCommentOutlined";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 
 import {
@@ -28,21 +28,24 @@ import {
   SearchInput,
   MOTION,
   BORDER_RADIUS,
-  Z_INDEX
+  Z_INDEX,
+  SPACING,
+  getSpacingPx,
+  ResizeHandle
 } from "../ui_primitives";
 import useGlobalChatStore from "../../stores/GlobalChatStore";
 import useCanvasChatDockStore from "../../stores/CanvasChatDockStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
-import { useCanvasDockResize } from "../../hooks/handlers/useCanvasDockResize";
+import {
+  useCanvasDockResize,
+  useCanvasDockEdgeResize
+} from "../../hooks/handlers/useCanvasDockResize";
 import ChatThreadView from "../chat/thread/ChatThreadView";
 import ThreadList from "../chat/thread/ThreadList";
 import type { ThreadInfo } from "../chat/types/thread.types";
 import { threadPreview } from "../chat/utils/threadUtils";
 import type { Message } from "../../stores/ApiTypes";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 type ThreadStatus = React.ComponentProps<typeof ChatThreadView>["status"];
 
@@ -57,20 +60,17 @@ const styles = (theme: Theme) =>
     minHeight: 0,
     borderRadius: BORDER_RADIUS.xxl,
     overflow: "hidden",
-    background:
-      theme.palette.mode === "light"
-        ? theme.vars.palette.background.paper
-        : theme.vars.palette.grey[900],
+    // theme.palette.mode is fixed to the default scheme under the CSS-vars
+    // theme, so the dark look goes through the `.dark` color-scheme selector.
+    background: theme.vars.palette.background.paper,
     backdropFilter: "blur(16px)",
-    border: `1px solid ${
-      theme.palette.mode === "light"
-        ? theme.vars.palette.grey[600]
-        : theme.vars.palette.divider
-    }`,
-    boxShadow:
-      theme.palette.mode === "light"
-        ? "0 1px 2px rgba(26,23,21,0.04), 0 8px 24px rgba(26,23,21,0.08)"
-        : "0 10px 40px rgba(0,0,0,0.45)",
+    border: `1px solid ${theme.vars.palette.grey[600]}`,
+    boxShadow: `0 1px 2px rgb(${theme.vars.palette.common.blackChannel} / 0.04), 0 8px 24px rgb(${theme.vars.palette.common.blackChannel} / 0.08)`,
+    [theme.getColorSchemeSelector("dark")]: {
+      background: theme.vars.palette.grey[900],
+      border: `1px solid ${theme.vars.palette.divider}`,
+      boxShadow: `0 10px 40px rgb(${theme.vars.palette.common.blackChannel} / 0.45)`
+    },
 
     ".convo-overlay-header": {
       display: "flex",
@@ -147,34 +147,13 @@ const styles = (theme: Theme) =>
       }
     },
 
-    // Resize handles around the overlay edges. The overlay grows upward from
-    // the composer, so only the top edge / top corners resize height; the side
-    // edges resize the whole dock width.
+    // Corner resize handles. The overlay grows upward from the composer, so
+    // only the top corners resize height; they also resize the dock width.
+    // The edges use ResizeHandle.
     ".convo-resize": {
       position: "absolute",
       zIndex: Z_INDEX.raised + 1,
       touchAction: "none"
-    },
-    ".convo-resize-top": {
-      top: 0,
-      left: 10,
-      right: 10,
-      height: 8,
-      cursor: "ns-resize"
-    },
-    ".convo-resize-left": {
-      top: 10,
-      bottom: 0,
-      left: 0,
-      width: 8,
-      cursor: "ew-resize"
-    },
-    ".convo-resize-right": {
-      top: 10,
-      bottom: 0,
-      right: 0,
-      width: 8,
-      cursor: "ew-resize"
     },
     ".convo-resize-tl": {
       top: 0,
@@ -198,10 +177,10 @@ const styles = (theme: Theme) =>
       zIndex: Z_INDEX.overlay,
       display: "flex",
       flexDirection: "column",
-      background:
-        theme.palette.mode === "light"
-          ? theme.vars.palette.background.paper
-          : theme.vars.palette.grey[900]
+      background: theme.vars.palette.background.paper,
+      [theme.getColorSchemeSelector("dark")]: {
+        background: theme.vars.palette.grey[900]
+      }
     },
     ".convo-threads-head": {
       display: "flex",
@@ -218,6 +197,13 @@ interface ConversationOverlayProps {
   onCollapse: () => void;
 }
 
+/** Side edges stop short of the top corners, which have their own handles. */
+const sideEdgeSx = {
+  top: getSpacingPx(SPACING.lg),
+  bottom: 0,
+  zIndex: Z_INDEX.raised + 1
+};
+
 /**
  * Floating, auto-updating view of the active chat thread, shown above the
  * canvas composer. Reuses {@link ChatThreadView} so messages, media output and
@@ -230,11 +216,11 @@ interface ConversationOverlayProps {
 const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
   onCollapse
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const overlayRef = useRef<HTMLDivElement>(null);
   const startResize = useCanvasDockResize(overlayRef);
+  const edgeResize = useCanvasDockEdgeResize(overlayRef);
 
   const overlayHeight = useCanvasChatDockStore((s) => s.overlayHeight);
   const { threadsOpen, setThreadsOpen } = useCanvasChatDockStore(
@@ -347,7 +333,7 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
         console.error("Failed to delete conversation:", err);
         addNotification({
           type: "error",
-          content: i18n.t("editor:chat.deleteFailed", { defaultValue: "Could not delete the conversation. Please try again." })
+          content: "Could not delete the conversation. Please try again."
         });
       });
     },
@@ -418,21 +404,38 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
       style={{ height: `clamp(160px, ${overlayHeight}px, 78vh)` }}
     >
       {/* Edge / corner resize handles */}
-      <div
-        className="convo-resize convo-resize-top"
-        onMouseDown={startResize("top")}
-        role="separator"
-        aria-label={t("editor:ui.resizeConversationHeight", { defaultValue: "Resize conversation height" })}
+      <ResizeHandle
+        orientation="horizontal"
+        edge="start"
+        invert
+        invisible
+        thickness={SPACING.md}
+        ariaLabel="Resize conversation height"
+        sx={{
+          left: getSpacingPx(SPACING.lg),
+          right: getSpacingPx(SPACING.lg),
+          zIndex: Z_INDEX.raised + 1
+        }}
+        {...edgeResize.top}
       />
-      <div
-        className="convo-resize convo-resize-left"
-        onMouseDown={startResize("left")}
-        aria-hidden
+      <ResizeHandle
+        orientation="vertical"
+        edge="start"
+        invert
+        invisible
+        thickness={SPACING.md}
+        ariaLabel="Resize conversation width from the left"
+        sx={sideEdgeSx}
+        {...edgeResize.side}
       />
-      <div
-        className="convo-resize convo-resize-right"
-        onMouseDown={startResize("right")}
-        aria-hidden
+      <ResizeHandle
+        orientation="vertical"
+        edge="end"
+        invisible
+        thickness={SPACING.md}
+        ariaLabel="Resize conversation width from the right"
+        sx={sideEdgeSx}
+        {...edgeResize.side}
       />
       <div
         className="convo-resize convo-resize-tl"
@@ -462,43 +465,43 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
           {title || "Conversation"}
         </Text>
         <FlexRow gap={0.5} align="center" sx={{ ml: "auto" }}>
-          <Tooltip title={t("editor:ui.showThreads", { defaultValue: "Show threads" })} delay={TOOLTIP_ENTER_DELAY}>
+          <Tooltip title="Show threads">
             <button
               type="button"
               className={`convo-icon-btn${threadsOpen ? " active" : ""}`}
               onClick={() => setThreadsOpen(!threadsOpen)}
-              aria-label={t("editor:ui.showThreads", { defaultValue: "Show threads" })}
+              aria-label="Show threads"
               aria-pressed={threadsOpen}
             >
               <FormatListBulletedIcon />
             </button>
           </Tooltip>
-          <Tooltip title={t("editor:ui.openInAWorkspaceTab", { defaultValue: "Open in a workspace tab" })} delay={TOOLTIP_ENTER_DELAY}>
+          <Tooltip title="Open in a workspace tab">
             <button
               type="button"
               className="convo-icon-btn"
               onClick={handleExpand}
-              aria-label={t("editor:ui.openInAWorkspaceTab", { defaultValue: "Open in a workspace tab" })}
+              aria-label="Open in a workspace tab"
             >
               <OpenInNewIcon />
             </button>
           </Tooltip>
-          <Tooltip title={t("editor:ui.newConversation", { defaultValue: "New conversation" })} delay={TOOLTIP_ENTER_DELAY}>
+          <Tooltip title="New conversation">
             <button
               type="button"
               className="convo-icon-btn"
               onClick={() => void handleNewConversation()}
-              aria-label={t("editor:ui.newConversation", { defaultValue: "New conversation" })}
+              aria-label="New conversation"
             >
               <AddCommentOutlinedIcon />
             </button>
           </Tooltip>
-          <Tooltip title={t("editor:ui.hideConversation", { defaultValue: "Hide conversation" })} delay={TOOLTIP_ENTER_DELAY}>
+          <Tooltip title="Hide conversation">
             <button
               type="button"
               className="convo-icon-btn"
               onClick={onCollapse}
-              aria-label={t("editor:ui.hideConversation", { defaultValue: "Hide conversation" })}
+              aria-label="Hide conversation"
             >
               <KeyboardArrowDownIcon />
             </button>
@@ -538,18 +541,18 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
           <div className="convo-threads-panel">
             <div className="convo-threads-head">
               <SearchInput
-                placeholder={t("editor:ui.searchThreads", { defaultValue: "Search threads…" })}
+                placeholder="Search threads"
                 value={searchQuery}
                 onChange={setSearchQuery}
                 fullWidth
                 showClear={false}
               />
-              <Tooltip title={t("editor:ui.closeThreads", { defaultValue: "Close threads" })} delay={TOOLTIP_ENTER_DELAY}>
+              <Tooltip title="Close threads">
                 <button
                   type="button"
                   className="convo-icon-btn"
                   onClick={() => setThreadsOpen(false)}
-                  aria-label={t("editor:ui.closeThreads", { defaultValue: "Close threads" })}
+                  aria-label="Close threads"
                 >
                   <CloseIcon />
                 </button>

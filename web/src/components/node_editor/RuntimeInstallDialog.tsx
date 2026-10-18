@@ -10,6 +10,7 @@
  */
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "@mui/material/styles";
+import ErrorBanner from "../support/ErrorBanner";
 import {
   Dialog,
   FlexColumn,
@@ -17,9 +18,11 @@ import {
   Text,
   Chip,
   LoadingSpinner,
+  AlertBanner,
   BORDER_RADIUS,
   SPACING,
   getSpacingPx,
+  ICON_SIZE
 } from "../ui_primitives";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
@@ -32,8 +35,6 @@ import {
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
 import { createErrorMessage } from "../../utils/errorHandling";
 import type { MissingRuntime } from "../../hooks/useWorkflowRuntimeCheck";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 type RuntimeStatus = "pending" | "installing" | "installed" | "failed";
 
@@ -76,7 +77,7 @@ async function installAll(
     } catch (err: unknown) {
       setRowState(rt.id, {
         status: "failed",
-        error: createErrorMessage(err, i18n.t("editor:ui.installFailed", { defaultValue: "Install failed" })).message,
+        error: createErrorMessage(err, "Install failed").message,
       });
       allInstalled = false;
     }
@@ -84,20 +85,12 @@ async function installAll(
   return allInstalled;
 }
 
-// Resolved per-render so the labels follow the active language (the plain
-// map captured English at module load).
-const statusLabel = (t: ReturnType<typeof useTranslation>["t"], status: RuntimeStatus): string => {
-  switch (status) {
-    case "pending":
-      return t("editor:ui.requiredLabel", { defaultValue: "Required" });
-    case "installing":
-      return t("editor:ui.installing", { defaultValue: "Installing…" });
-    case "installed":
-      return t("editor:ui.installed", { defaultValue: "Installed" });
-    case "failed":
-      return t("editor:ui.failed", { defaultValue: "Failed" });
-  }
-};
+const STATUS_LABEL = {
+  pending: "Required",
+  installing: "Installing…",
+  installed: "Installed",
+  failed: "Failed",
+} satisfies Record<RuntimeStatus, string>;
 
 const STATUS_COLOR: Record<
   RuntimeStatus,
@@ -114,7 +107,6 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
   open,
   onClose,
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const openPackageManager = useOpenPackageManager();
   const [installing, setInstalling] = useState(false);
@@ -181,26 +173,27 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
     .join(", ");
 
   const confirmText = allInstalled
-    ? t("editor:ui.done", { defaultValue: "Done" })
+    ? "Done"
     : installing
-      ? t("editor:ui.installing", { defaultValue: "Installing…" })
+      ? "Installing…"
       : failedCount > 0
-        ? t("editor:explorer.retry", { defaultValue: "Retry" })
-        : t("editor:ui.installAll2", { defaultValue: "Install all" });
+        ? "Retry"
+        : "Install all";
 
   return (
     <Dialog
       open={open}
       onClose={handleDialogClose}
-      title={t("editor:ui.installRequiredRuntimes", { defaultValue: "Install required runtimes" })}
-      minWidth="min(440px, 100vw - 32px)"
+      title="Install required runtimes"
+      maxWidth="xs"
+      fullWidth
       onConfirm={allInstalled ? onClose : handleInstall}
-      onCancel={onClose}
       confirmText={confirmText}
-      cancelText={t("editor:ui.later", { defaultValue: "Later" })}
+      cancelText="Later"
       isLoading={installing}
+      cancelDisabled={installing}
     >
-      <FlexColumn gap={2}>
+      <FlexColumn gap={SPACING.md}>
         <Text size="smaller" color="secondary">
           This workflow uses nodes that need{" "}
           <Text component="span" weight={500} color="inherit">
@@ -210,7 +203,7 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
         </Text>
 
         <FlexColumn
-          gap={0.5}
+          gap={SPACING.micro}
           sx={{
             backgroundColor: theme.vars.palette.action.disabledBackground,
             borderRadius: BORDER_RADIUS.md,
@@ -231,17 +224,9 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
         </FlexColumn>
 
         {allInstalled && (
-          <FlexRow gap={1} align="center">
-            <CheckCircleOutlineIcon
-              sx={{
-                fontSize: "var(--fontSizeNormal)",
-                color: theme.vars.palette.success.main,
-              }}
-            />
-            <Text size="smaller" color="success">
-              {t("editor:ui.allRuntimesInstalledYouCanRunThisWorkflowNow", { defaultValue: "All runtimes installed. You can run this workflow now." })}
-            </Text>
-          </FlexRow>
+          <AlertBanner severity="success" compact>
+            All runtimes installed. You can run this workflow now.
+          </AlertBanner>
         )}
 
         {!allInstalled && (
@@ -260,7 +245,7 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
               opacity: installing ? 0.5 : 1,
             }}
           >
-            {t("editor:ui.openPackageManagerInstead")}
+            Open package manager instead
           </Text>
         )}
       </FlexColumn>
@@ -275,10 +260,9 @@ interface RuntimeRowProps {
 }
 
 const RuntimeRow: React.FC<RuntimeRowProps> = ({ name, status, error }) => {
-  const { t } = useTranslation();
   return (
     <FlexRow
-      gap={1}
+      gap={SPACING.xs}
       align="center"
       justify="space-between"
       fullWidth
@@ -287,21 +271,21 @@ const RuntimeRow: React.FC<RuntimeRowProps> = ({ name, status, error }) => {
         borderRadius: BORDER_RADIUS.sm,
       }}
     >
-      <FlexColumn gap={0.25}>
-        <FlexRow gap={1} align="center">
+      <FlexColumn gap={SPACING.micro}>
+        <FlexRow gap={SPACING.xs} align="center">
           {status === "installing" ? (
             <LoadingSpinner inline size={16} />
           ) : status === "installed" ? (
             <CheckCircleOutlineIcon
-              sx={{ fontSize: 16, color: "var(--palette-success-main)" }}
+              sx={{ fontSize: ICON_SIZE.sm, color: "var(--palette-success-main)" }}
             />
           ) : status === "failed" ? (
             <ErrorOutlineIcon
-              sx={{ fontSize: 16, color: "var(--palette-error-main)" }}
+              sx={{ fontSize: ICON_SIZE.sm, color: "var(--palette-error-main)" }}
             />
           ) : (
             <DownloadOutlinedIcon
-              sx={{ fontSize: 16, color: "var(--palette-text-secondary)" }}
+              sx={{ fontSize: ICON_SIZE.sm, color: "var(--palette-text-secondary)" }}
             />
           )}
           <Text size="small" weight={500}>
@@ -309,18 +293,22 @@ const RuntimeRow: React.FC<RuntimeRowProps> = ({ name, status, error }) => {
           </Text>
         </FlexRow>
         {error && (
-          <Text size="smaller" color="error" sx={{ pl: 3 }}>{error}</Text>
+          <ErrorBanner
+            report={{
+              source: "operation-failure",
+              summary: `Installing the ${name} runtime failed`,
+              errorText: error
+            }}
+          >
+            {error}
+          </ErrorBanner>
         )}
       </FlexColumn>
       <Chip
         compact
         color={STATUS_COLOR[status]}
         active={status !== "pending"}
-        label={
-          error
-            ? t("editor:ui.failed", { defaultValue: "Failed" })
-            : statusLabel(t, status)
-        }
+        label={error ? "Failed" : STATUS_LABEL[status]}
       />
     </FlexRow>
   );

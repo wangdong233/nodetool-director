@@ -8,9 +8,10 @@ import {
   Chip,
   EditorButton,
   Box,
-  EditorMenu,
+  Popover,
   MOTION,
   BORDER_RADIUS,
+  ICON_SIZE,
   FONT_WEIGHT,
   SPACING,
   getSpacingPx,
@@ -23,8 +24,6 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import useMetadataStore from "../../stores/MetadataStore";
 import useNodeMenuStore from "../../stores/NodeMenuStore";
 import { useShallow } from "zustand/react/shallow";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 interface TypeFilterChipsProps {
   selectedInputType: string;
@@ -41,31 +40,25 @@ const TYPE_CATEGORIES = [
   { value: "float", label: "Number", icon: "float" }
 ];
 
-const TYPE_CHIP_ICON_CONTAINER_STYLE = { width: 16, height: 16 } as const;
+const TYPE_CHIP_ICON_CONTAINER_STYLE = { width: 14, height: 14 } as const;
+
+/** One height for every control in the toolbar row so their edges line up. */
+const CONTROL_HEIGHT = "28px";
 
 type TypeOption = {
   value: string;
   label: string;
-  labelKey?: string;
 };
 
 const ALL_INPUT_OPTION: TypeOption = {
   value: "",
-  label: "All input types",
-  labelKey: "editor:ui.allInputTypes"
+  label: "All input types"
 };
 
 const ALL_OUTPUT_OPTION: TypeOption = {
   value: "",
-  label: "All output types",
-  labelKey: "editor:ui.allOutputTypes"
+  label: "All output types"
 };
-
-/** Resolve a type option's label at render so zh lands (module consts stay pure data). */
-const typeOptionLabel = (option: TypeOption): string =>
-  option.labelKey
-    ? i18n.t(option.labelKey, { defaultValue: option.label })
-    : option.label;
 
 const typeFilterChipsStyles = (theme: Theme) =>
   css({
@@ -76,13 +69,13 @@ const typeFilterChipsStyles = (theme: Theme) =>
       justifyContent: "flex-end",
       width: "100%",
       flex: "1 1 100%",
-      gap: theme.spacing(1.5),
+      gap: getSpacingPx(SPACING.md),
       minWidth: 0
     },
     ".quick-filters": {
       display: "flex",
       alignItems: "center",
-      gap: theme.spacing(1),
+      gap: getSpacingPx(SPACING.md),
       minWidth: 0,
       flex: "0 1 auto",
       marginLeft: "auto",
@@ -91,20 +84,21 @@ const typeFilterChipsStyles = (theme: Theme) =>
     ".provider-quick": {
       display: "flex",
       alignItems: "center",
-      gap: theme.spacing(0.5),
-      paddingRight: theme.spacing(1),
+      gap: getSpacingPx(SPACING.micro),
+      paddingRight: getSpacingPx(SPACING.md),
       borderRight: `1px solid ${theme.vars.palette.divider}`
     },
     ".provider-quick-chip": {
-      height: "26px",
-      fontSize: theme.fontSizeSmaller,
+      height: CONTROL_HEIGHT,
+      fontSize: theme.fontSizeSmall,
+      fontWeight: FONT_WEIGHT.medium,
       borderRadius: BORDER_RADIUS.md,
       border: "1px solid transparent",
       backgroundColor: "transparent",
       color: theme.vars.palette.text.secondary,
       transition: MOTION.all,
       "& .MuiChip-label": {
-        paddingInline: theme.spacing(1)
+        paddingInline: getSpacingPx(SPACING.md)
       },
       "&:hover": {
         backgroundColor: theme.vars.palette.action.hover,
@@ -121,12 +115,14 @@ const typeFilterChipsStyles = (theme: Theme) =>
       textTransform: "uppercase",
       letterSpacing: "0.5px",
       whiteSpace: "nowrap",
-      fontWeight: FONT_WEIGHT.medium
+      fontWeight: FONT_WEIGHT.medium,
+      lineHeight: 1,
+      marginLeft: getSpacingPx(SPACING.xs)
     },
     ".filter-section": {
       display: "flex",
       alignItems: "center",
-      gap: theme.spacing(1),
+      gap: getSpacingPx(SPACING.micro),
       flexWrap: "nowrap"
     },
     ".filter-label": {
@@ -139,13 +135,13 @@ const typeFilterChipsStyles = (theme: Theme) =>
     },
     ".type-chips": {
       display: "flex",
-      flexWrap: "nowrap",
-      gap: theme.spacing(1)
+      flexWrap: "nowrap"
     },
     ".type-chip": {
-      height: "26px",
-      padding: theme.spacing(0, 0.5),
-      fontSize: theme.fontSizeSmaller,
+      height: CONTROL_HEIGHT,
+      padding: 0,
+      fontSize: theme.fontSizeSmall,
+      fontWeight: FONT_WEIGHT.medium,
       borderRadius: BORDER_RADIUS.md,
       backgroundColor: "transparent",
       border: "1px solid transparent",
@@ -153,11 +149,13 @@ const typeFilterChipsStyles = (theme: Theme) =>
       cursor: "pointer",
       transition: MOTION.all,
       "& .MuiChip-label": {
-        paddingInline: theme.spacing(0.5)
+        paddingLeft: getSpacingPx(SPACING.xs),
+        paddingRight: getSpacingPx(SPACING.sm)
       },
       "& .MuiChip-icon": {
-        marginLeft: theme.spacing(SPACING.xs),
-        marginRight: theme.spacing(SPACING.micro),
+        marginLeft: getSpacingPx(SPACING.sm),
+        marginRight: 0,
+        color: "inherit",
         display: "inline-flex",
         alignItems: "center"
       },
@@ -173,7 +171,9 @@ const typeFilterChipsStyles = (theme: Theme) =>
     ".filter-actions": {
       display: "flex",
       alignItems: "center",
-      gap: theme.spacing(1.5),
+      gap: getSpacingPx(SPACING.md),
+      paddingLeft: getSpacingPx(SPACING.md),
+      borderLeft: `1px solid ${theme.vars.palette.divider}`,
       flexShrink: 0
     },
     ".node-count": {
@@ -184,16 +184,23 @@ const typeFilterChipsStyles = (theme: Theme) =>
     },
     ".more-filters-button": {
       textTransform: "none",
-      borderRadius: BORDER_RADIUS.xl,
+      height: CONTROL_HEIGHT,
+      borderRadius: BORDER_RADIUS.md,
       fontSize: theme.fontSizeSmall,
+      fontWeight: FONT_WEIGHT.medium,
       lineHeight: 1.2,
-      padding: theme.spacing(1, 1),
+      padding: `0 ${getSpacingPx(SPACING.md)}`,
       minWidth: "unset",
-      color: theme.vars.palette.text.primary,
-      borderColor: theme.vars.palette.text.secondary,
+      color: theme.vars.palette.text.secondary,
+      borderColor: theme.vars.palette.divider,
+      "& .MuiButton-startIcon": {
+        marginRight: getSpacingPx(SPACING.xs),
+        "& svg": { fontSize: ICON_SIZE.sm }
+      },
       "&:hover": {
         backgroundColor: theme.vars.palette.action.hover,
-        borderColor: theme.vars.palette.primary.main
+        borderColor: theme.vars.palette.text.secondary,
+        color: theme.vars.palette.text.primary
       }
     },
     ".menu-header": {
@@ -245,7 +252,6 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
     selectedOutputType,
     setSelectedOutputType
   }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const chipsStyles = useMemo(() => typeFilterChipsStyles(theme), [theme]);
     const { selectedProviderType, setSelectedProviderType } = useNodeMenuStore(
@@ -314,7 +320,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
           return options;
         }
         return options.filter((option) =>
-          `${typeOptionLabel(option)} ${option.value}`
+          `${option.label} ${option.value}`
             .toLowerCase()
             .includes(normalizedQuery)
         );
@@ -375,7 +381,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
             <Chip
               className={`provider-quick-chip ${selectedProviderType === "local" ? "selected" : ""}`}
               size="small"
-              label={t("ui2:attrs.local", { defaultValue: "Local" })}
+              label="Local"
               onClick={handleLocalProviderClick}
             />
             <Chip
@@ -385,7 +391,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
               onClick={handleApiProviderClick}
             />
           </Box>
-          <span className="quick-label">{t("editor:ui.output", { defaultValue: "Output:" })}</span>
+          <span className="quick-label">Output</span>
           <Box className="type-chips filter-section">
             {TYPE_CATEGORIES.map((type) => (
               <Tooltip
@@ -420,35 +426,26 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
           <EditorButton
             variant="outlined"
             className="more-filters-button"
-            startIcon={<FilterListIcon fontSize="small" />}
+            startIcon={<FilterListIcon />}
             onClick={handleOpenMenu}
           >
-            {t("editor:ui.filters")}
+            Filters
           </EditorButton>
           <span className="node-count">
             {totalNodeCount} {totalNodeCount === 1 ? "node" : "nodes"}
           </span>
         </Box>
 
-        <EditorMenu
+        <Popover
           anchorEl={menuAnchor}
           open={menuOpen}
           onClose={handleCloseMenu}
-          paperSx={{
-            borderRadius: BORDER_RADIUS.xxl,
-            backgroundImage: "none",
-            overflow: "visible",
-            border: (muiTheme) =>
-              `1px solid ${muiTheme.vars.palette.divider}`
-          }}
+          placement="bottom-left"
+          paperSx={{ overflow: "visible" }}
         >
           <Box
             className="filter-menu-content"
-            sx={{
-              padding: getSpacingPx(SPACING.xl),
-              backgroundColor: theme.vars.palette.background.paper,
-              fontSize: theme.fontSizeSmaller
-            }}
+            sx={{ padding: getSpacingPx(SPACING.xl) }}
           >
             <Box className="menu-header">
               <Text
@@ -458,7 +455,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                   marginBottom: getSpacingPx(SPACING.xl)
                 }}
               >
-                {t("editor:ui.filterNodesByInputAndOutputDataTypes")}
+                Filter nodes by input and output data types
               </Text>
             </Box>
 
@@ -467,7 +464,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 marginBottom: getSpacingPx(SPACING.xs)
               }}
             >
-              {t("editor:ui.inputType")}
+              Input type
             </Text>
             <Autocomplete<TypeOption, false, false, false>
               className="filter-select"
@@ -477,7 +474,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
               isOptionEqualToValue={(option, value) =>
                 option.value === value.value
               }
-              getOptionLabel={(option) => typeOptionLabel(option)}
+              getOptionLabel={(option) => option.label}
               filterOptions={(options, state) =>
                 filterTypeOptions(options, state.inputValue)
               }
@@ -488,7 +485,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 <TextField
                   {...params}
                   size="small"
-                  placeholder={t("editor:ui.searchInputType", { defaultValue: "Search input type..." })}
+                  placeholder="Search input type"
                   inputProps={{
                     ...params.inputProps,
                     "aria-label": "Search input type"
@@ -500,14 +497,6 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                   sx: {
                     zIndex: (muiTheme) => muiTheme.zIndex.modal + 10
                   }
-                },
-                listbox: {
-                  sx: {
-                    "& .MuiAutocomplete-option": {
-                      minHeight: "30px",
-                      py: SPACING.micro
-                    }
-                  }
                 }
               }}
               sx={{ marginBottom: getSpacingPx(SPACING.xl) }}
@@ -518,7 +507,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 marginBottom: getSpacingPx(SPACING.xs)
               }}
             >
-              {t("editor:ui.outputType")}
+              Output type
             </Text>
             <Autocomplete<TypeOption, false, false, false>
               className="filter-select"
@@ -528,7 +517,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
               isOptionEqualToValue={(option, value) =>
                 option.value === value.value
               }
-              getOptionLabel={(option) => typeOptionLabel(option)}
+              getOptionLabel={(option) => option.label}
               filterOptions={(options, state) =>
                 filterTypeOptions(options, state.inputValue)
               }
@@ -539,7 +528,7 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 <TextField
                   {...params}
                   size="small"
-                  placeholder={t("editor:ui.searchOutputType", { defaultValue: "Search output type..." })}
+                  placeholder="Search output type"
                   inputProps={{
                     ...params.inputProps,
                     "aria-label": "Search output type"
@@ -551,19 +540,11 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                   sx: {
                     zIndex: (muiTheme) => muiTheme.zIndex.modal + 10
                   }
-                },
-                listbox: {
-                  sx: {
-                    "& .MuiAutocomplete-option": {
-                      minHeight: "30px",
-                      py: SPACING.micro
-                    }
-                  }
                 }
               }}
             />
           </Box>
-        </EditorMenu>
+        </Popover>
       </Box>
     );
   }

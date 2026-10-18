@@ -17,7 +17,6 @@ import { Workflow } from "../../stores/ApiTypes";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import FrontendToolRuntimeSync from "../panels/FrontendToolRuntimeSync";
 import { createEmptyData, type AppDocument } from "./appData";
-import { tAttr } from "./i18nAttrs";
 import {
   getPuckAgentHandler,
   hasPuckAgentHandler
@@ -242,9 +241,9 @@ const AppBuilderShell: React.FC<AppBuilderShellProps> = ({
         </Box>
       </FlexColumn>
       {dataOpen && (
-        <FlexColumn role="complementary" aria-label={tAttr("App Data")} sx={panelSx}>
+        <FlexColumn role="complementary" aria-label="App data" sx={panelSx}>
           {narrow && (
-            <EditorButton onClick={toggleData}>{tAttr("Back to canvas")}</EditorButton>
+            <EditorButton onClick={toggleData}>Back to canvas</EditorButton>
           )}
           <AppDataPanel
             meta={meta}

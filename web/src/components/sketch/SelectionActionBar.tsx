@@ -32,17 +32,17 @@ import {
   CloseButton,
   EditorButton,
   FlexRow,
+  FloatingToolbar,
   LoadingSpinner,
+  MagicGenerationFill,
   MOTION,
   reducedMotion,
   TextInput,
-  Toast,
   Tooltip,
   Box
 } from "../ui_primitives";
 import ImageModelSelect from "../properties/ImageModelSelect";
 import type { ImageModelValue } from "../../stores/ApiTypes";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { useSketchStore } from "./state";
 import { useSketchSessionStore } from "../../stores/sketch/SketchSessionStore";
 import { getRememberedModel } from "../../stores/lastModelStore";
@@ -56,8 +56,7 @@ import { getSelectionBounds } from "./selection";
 import type { Point } from "./types";
 import { SKETCH_Z_INDEX } from "./sketchStyles";
 import { RefineSelectionPopover } from "./tool-settings-panels/refine-selection";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
+import { useAlertNotifier } from "../../hooks/useAlertNotifier";
 
 /** Gap in CSS px between the selection edge and the bar. */
 const BAR_GAP = 12;
@@ -117,7 +116,6 @@ function docToCss(
 const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
   containerRef
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
 
   const selection = useSketchStore((s) => s.selection);
@@ -157,7 +155,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
   const [model, setModel] = useState(seed.model);
   const [provider, setProvider] = useState(seed.provider);
   const [generating, setGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const reportError = useAlertNotifier("warning");
 
   // start() resolves as soon as the RPC is sent — the actual generation runs
   // for seconds afterwards and only surfaces through the binding status. Track
@@ -228,19 +226,16 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
         setJobLayerId(null);
         switch (result.reason) {
           case "no-selection":
-            setError(i18n.t("sketch:attrs.makeASelectionFirst", { defaultValue: "Make a selection first." }));
+            reportError("Make a selection first.");
             break;
           case "no-document":
-            setError(i18n.t("sketch:attrs.noImageDocumentIsOpen", { defaultValue: "No image document is open." }));
+            reportError("No image document is open.");
             break;
           case "no-canvas":
-            setError(i18n.t("sketch:attrs.canvasIsNotReadyYet", { defaultValue: "Canvas is not ready yet." }));
+            reportError("Canvas is not ready yet.");
             break;
           case "error":
-            setError(
-              result.message ??
-              i18n.t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })
-            );
+            reportError(result.message ?? "Generation failed.");
             break;
         }
         return;
@@ -249,15 +244,11 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
       await start(result.layerId);
       setPrompt("");
     } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : i18n.t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })
-      );
+      reportError(e instanceof Error ? e.message : "Generation failed.");
     } finally {
       setGenerating(false);
     }
-  }, [inpaintHere, start, prompt, provider, model, mode]);
+  }, [inpaintHere, start, prompt, provider, model, mode, reportError]);
 
   const handleRemove = useCallback(() => {
     if (clearActiveLayer) {
@@ -350,8 +341,8 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
     };
   }
 
-  // Gently pulsing glow ring shared by the action bar and the selection region
-  // while a generation is in flight. Reduced motion holds it at a steady glow.
+  // Gently pulsing glow ring around the action bar while a generation is in
+  // flight. The selection region itself draws the shared generation fill. Reduced motion holds it at a steady glow.
   const ch = theme.vars.palette.primary.mainChannel;
   const generatingRing = {
     content: '""',
@@ -367,7 +358,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
 
   return (
     <>
-      {/* In-progress glow over the region being generated. Sits above the
+      {/* Generation fill over the region being generated. Sits above the
           marching-ants overlay (which still outlines the exact selection) and
           just below the action bar. */}
       {isBusy && regionStyle && (
@@ -385,18 +376,15 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
             minHeight: 8,
             pointerEvents: "none",
             zIndex: SKETCH_Z_INDEX.overlay + 4,
-            borderRadius: BORDER_RADIUS.sm,
-            backgroundColor: `rgba(${ch} / 0.1)`,
-            boxShadow: `inset 0 0 0 1px rgba(${ch} / 0.45)`,
-            "&::after": generatingRing
+            borderRadius: BORDER_RADIUS.sm
           }}
-        />
+        >
+          <MagicGenerationFill framed borderRadius={BORDER_RADIUS.sm} />
+        </Box>
       )}
-      <FlexRow
+      <FloatingToolbar
         className="sketch-selection-action-bar"
         data-testid="sketch-selection-action-bar"
-        align="center"
-        gap={0.5}
         sx={{
           position: "absolute",
           left: leftCss,
@@ -404,11 +392,6 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
           transform: `translate(-50%, ${placeAbove ? "-100%" : "0"})`,
           zIndex: SKETCH_Z_INDEX.overlay + 5,
           pointerEvents: "auto",
-          padding: theme.spacing(0.5),
-          borderRadius: BORDER_RADIUS.md,
-          backgroundColor: theme.vars.palette.grey[900],
-          border: `1px solid ${theme.vars.palette.grey[700]}`,
-          boxShadow: theme.shadows[6],
           whiteSpace: "nowrap",
           // Glowing rotating border while a generation is running. zIndex -1
           // keeps it behind the opaque bar so only the outset frame shows.
@@ -424,8 +407,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
             as a mask). The picked mode drives the model filter and the run. */}
         <FlexRow gap={0} sx={{ flexShrink: 0, mr: 0.5 }}>
           <Tooltip
-            title={t("sketch:attrs.editTransformTheWholeFrameFromYourPrompt(imagetoimageNoMask)", { defaultValue: "Edit — transform the whole frame from your prompt (image-to-image, no mask)." })}
-            delay={TOOLTIP_ENTER_DELAY}
+            title="Edit — transform the whole frame from your prompt (image-to-image, no mask)."
             placement={placeAbove ? "top" : "bottom"}
           >
             <EditorButton
@@ -433,11 +415,12 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               size="small"
               onClick={() => handleModeChange("edit")}
               data-testid="sketch-selection-mode-edit"
-            >{t("sketch:attrs.edit", { defaultValue: "Edit" })}</EditorButton>
+            >
+              Edit
+            </EditorButton>
           </Tooltip>
           <Tooltip
-            title={t("sketch:attrs.inpaintRegenerateOnlyTheSelectedRegionUsingTheSelectionAsAMask", { defaultValue: "Inpaint — regenerate only the selected region, using the selection as a mask." })}
-            delay={TOOLTIP_ENTER_DELAY}
+            title="Inpaint — regenerate only the selected region, using the selection as a mask."
             placement={placeAbove ? "top" : "bottom"}
           >
             <EditorButton
@@ -445,7 +428,9 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               size="small"
               onClick={() => handleModeChange("inpaint")}
               data-testid="sketch-selection-mode-inpaint"
-            >{t("sketch:attrs.inpaint", { defaultValue: "Inpaint" })}</EditorButton>
+            >
+              Inpaint
+            </EditorButton>
           </Tooltip>
         </FlexRow>
 
@@ -455,11 +440,11 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
           onChange={(e) => setPrompt(e.target.value)}
           placeholder={
             mode === "inpaint"
-              ? t("sketch:attrs.replaceSelectionWith", { defaultValue: "Replace selection with…" })
-              : t("sketch:attrs.describeTheEdit", { defaultValue: "Describe the edit…" })
+              ? "Replace selection with…"
+              : "Describe the edit…"
           }
           compact
-          aria-label={mode === "inpaint" ? t("sketch:attrs.inpaintPrompt", { defaultValue: "Inpaint prompt" }) : t("sketch:attrs.editPrompt", { defaultValue: "Edit prompt" })}
+          aria-label={mode === "inpaint" ? "Inpaint prompt" : "Edit prompt"}
           data-testid="sketch-selection-inpaint-prompt"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !generateDisabled) {
@@ -492,10 +477,9 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
         <Tooltip
           title={
             mode === "inpaint"
-              ? t("sketch:attrs.inpaintRegenerateTheSelectedRegionUsingYourPromptAndTheSelectionAsAMask", { defaultValue: "Inpaint — regenerate the selected region using your prompt and the selection as a mask." })
-              : t("sketch:attrs.editTransformTheWholeFrameFromYourPrompt", { defaultValue: "Edit — transform the whole frame from your prompt." })
+              ? "Inpaint — regenerate the selected region using your prompt and the selection as a mask."
+              : "Edit — transform the whole frame from your prompt."
           }
-          delay={TOOLTIP_ENTER_DELAY}
           placement={placeAbove ? "top" : "bottom"}
         >
           <span>
@@ -508,21 +492,18 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
                 isBusy ? (
                   <LoadingSpinner inline size={14} color="inherit" />
                 ) : (
-                  <AutoAwesomeIcon fontSize="small" />
+                  <AutoAwesomeIcon />
                 )
               }
               data-testid="sketch-selection-generate"
             >
-              {mode === "inpaint"
-                ? t("sketch:attrs.inpaint", { defaultValue: "Inpaint" })
-                : t("sketch:attrs.edit", { defaultValue: "Edit" })}
+              {mode === "inpaint" ? "Inpaint" : "Edit"}
             </EditorButton>
           </span>
         </Tooltip>
 
         <Tooltip
-          title={t("sketch:attrs.removeClearTheSelectedPixelsFromTheActiveLayer", { defaultValue: "Remove — clear the selected pixels from the active layer." })}
-          delay={TOOLTIP_ENTER_DELAY}
+          title="Remove — clear the selected pixels from the active layer."
           placement={placeAbove ? "top" : "bottom"}
         >
           <span>
@@ -531,9 +512,11 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               size="small"
               onClick={handleRemove}
               disabled={!clearActiveLayer}
-              startIcon={<DeleteOutlineIcon fontSize="small" />}
+              startIcon={<DeleteOutlineIcon />}
               data-testid="sketch-selection-remove"
-            >{t("sketch:attrs.remove", { defaultValue: "Remove" })}</EditorButton>
+            >
+              Remove
+            </EditorButton>
           </span>
         </Tooltip>
 
@@ -542,8 +525,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
             them there. */}
         {mode === "inpaint" && (
           <Tooltip
-            title={t("sketch:attrs.refineMaskFeatherSmoothGrowShrinkOrBorderTheSelectionUsedForInpainting", { defaultValue: "Refine mask — feather, smooth, grow / shrink, or border the selection used for inpainting." })}
-            delay={TOOLTIP_ENTER_DELAY}
+            title="Refine mask — feather, smooth, grow / shrink, or border the selection used for inpainting."
             placement={placeAbove ? "top" : "bottom"}
           >
             <EditorButton
@@ -551,20 +533,22 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               variant="outlined"
               size="small"
               onClick={() => setRefineOpen((v) => !v)}
-              startIcon={<TuneIcon fontSize="small" />}
+              startIcon={<TuneIcon />}
               data-testid="sketch-selection-refine-edge"
-            >{t("sketch:attrs.refineMask", { defaultValue: "Refine mask" })}</EditorButton>
+            >
+              Refine mask
+            </EditorButton>
           </Tooltip>
         )}
 
         <CloseButton
-          tooltip={t("sketch:attrs.dismissSelection", { defaultValue: "Dismiss selection" })}
+          tooltip="Dismiss selection"
           tooltipPlacement={placeAbove ? "top" : "bottom"}
           onClick={handleClose}
           buttonSize="small"
           className="sketch-selection-close"
         />
-      </FlexRow>
+      </FloatingToolbar>
 
       {mode === "inpaint" && (
         <RefineSelectionPopover
@@ -578,15 +562,6 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
           onConvertSelectionToBorder={convertSelectionToBorderOutline}
         />
       )}
-
-      <Toast
-        open={error !== null}
-        message={error ?? ""}
-        severity="warning"
-        onClose={() => setError(null)}
-        vertical="top"
-        horizontal="center"
-      />
     </>
   );
 };

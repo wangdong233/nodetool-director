@@ -51,6 +51,7 @@ import {
 import {
   assertProductionGenerationAllowed,
   compileOneTake,
+  isAspectRatio,
   isFullResourceId,
   isShortResourceId,
   productionRequirement
@@ -77,6 +78,7 @@ import {
   renderStoryboardClipsSpec,
   reviseStoryboardClipSpec,
   assembleStoryboardTimelineSpec,
+  deriveShotFromClipSpec,
   editStoryboardSpec,
   directStoryboardSpec,
   extractScriptFromStoryboardSpec,
@@ -231,6 +233,9 @@ async function scriptLinkSummary(
 
 /** Resolve a shot reference: shot id, 0-based index, or a slug. */
 function findShot(shots: Shot[], target: string): Shot | undefined {
+  if (!target.trim()) {
+    return undefined;
+  }
   const byId = shots.find((s) => s.id === target);
   if (byId) return byId;
   const index = Number(target);
@@ -1424,7 +1429,7 @@ type BoardOpName = (typeof BOARD_OPS)[number];
  *
  * The browser tool that casts entities is `ui_storyboard_set_entities`, so a
  * script written against it calls `{op: "set_entities", entity_ids: [...]}`
- * here and was refused — the rejection listed the five real ops without
+ * here and was refused — the rejection listed the real ops without
  * saying which one takes `entity_ids`, and the caller had to go read the tool
  * catalogue mid-task. The alias resolves to the op that already does the work.
  */
@@ -1717,6 +1722,17 @@ function assertKnownShotFields(
   );
 }
 
+/** Targeted edits must identify a shot before index coercion can run. */
+function shotTarget(args: Record<string, unknown>, op: string): string {
+  const target = args["target"];
+  if ("shot_id" in args ||
+      !(isString(target) && target.trim() ||
+        isNumber(target) && Number.isInteger(target) && target >= 0)) {
+    throw new Error(`${op} requires target: a shot id, slug or non-negative 0-based index. Use target instead of shot_id.`);
+  }
+  return String(target).trim();
+}
+
 /** The board fields `set_board` may set. */
 const BOARD_EDIT_FIELDS = new Set([
   "brief",
@@ -1986,7 +2002,7 @@ function applyBoardOp(
 
     case "update_shot": {
       assertKnownShotFields("update_shot", args);
-      const target = String(args["target"] ?? "");
+      const target = shotTarget(args, op);
       const shot = findShot(doc.shots, target);
       if (!shot) throw new Error(`No shot matches "${target}".`);
       const updated = applyShotFields(shot, args, doc.shots);
@@ -1995,7 +2011,7 @@ function applyBoardOp(
     }
 
     case "remove_shot": {
-      const target = String(args["target"] ?? "");
+      const target = shotTarget(args, op);
       const shot = findShot(doc.shots, target);
       if (!shot) throw new Error(`No shot matches "${target}".`);
       // Coverage pointing at a shot that is gone would read as a picture that
@@ -2023,7 +2039,7 @@ function applyBoardOp(
     }
 
     case "reorder_shot": {
-      const target = String(args["target"] ?? "");
+      const target = shotTarget(args, op);
       const shot = findShot(doc.shots, target);
       if (!shot) throw new Error(`No shot matches "${target}".`);
       const to = Number(args["index"]);
@@ -2041,7 +2057,7 @@ function applyBoardOp(
     }
 
     case "move_shot": {
-      const target = String(args["target"] ?? "");
+      const target = shotTarget(args, op);
       const shot = findShot(doc.shots, target);
       if (!shot) throw new Error(`No shot matches "${target}".`);
       const seeded = materializeLegacyScene(doc);
@@ -2084,7 +2100,7 @@ function applyBoardOp(
     }
 
     case "duplicate_shot": {
-      const target = String(args["target"] ?? "");
+      const target = shotTarget(args, op);
       const shot = findShot(doc.shots, target);
       if (!shot) throw new Error(`No shot matches "${target}".`);
       const ordered = [...doc.shots].sort((a, b) => a.index - b.index);
@@ -2250,7 +2266,7 @@ function applyBoardOp(
     }
 
     case "select_version": {
-      const target = String(args["target"] ?? "");
+      const target = shotTarget(args, op);
       const shot = findShot(doc.shots, target);
       if (!shot) throw new Error(`No shot matches "${target}".`);
       const { kind, index, versions } = readVersionTarget(shot, args);
@@ -2272,7 +2288,7 @@ function applyBoardOp(
     }
 
     case "delete_version": {
-      const target = String(args["target"] ?? "");
+      const target = shotTarget(args, op);
       const shot = findShot(doc.shots, target);
       if (!shot) throw new Error(`No shot matches "${target}".`);
       const { kind, index, versions } = readVersionTarget(shot, args);
@@ -2307,7 +2323,7 @@ function applyBoardOp(
     }
 
     case "add_keyframe_version": {
-      const target = String(args["target"] ?? "");
+      const target = shotTarget(args, op);
       const shot = findShot(doc.shots, target);
       if (!shot) throw new Error(`No shot matches "${target}".`);
       const assetId = optionalString(args["asset_id"]);
@@ -2355,7 +2371,14 @@ function applyBoardOp(
       if (args["brief"] !== undefined) doc.brief = String(args["brief"]);
       if (args["style"] !== undefined) doc.style = String(args["style"]);
       if (args["aspect_ratio"] !== undefined) {
-        doc.aspectRatio = String(args["aspect_ratio"]);
+        // The editor sizes every still from this, and a value that is not a
+        // ratio leaves its select blank and the media boxes with no height.
+        if (!isAspectRatio(args["aspect_ratio"])) {
+          throw new Error(
+            `set_board aspect_ratio must be "W:H", such as "16:9"; got ${JSON.stringify(args["aspect_ratio"])}`
+          );
+        }
+        doc.aspectRatio = args["aspect_ratio"].trim();
       }
       if (Array.isArray(args["entity_ids"])) {
         doc.entityIds = args["entity_ids"].map(String);
@@ -2607,6 +2630,237 @@ const editStoryboard: CapabilityExport = {
 };
 
 // ---------------------------------------------------------------------------
+// derive_shot_from_clip
+// ---------------------------------------------------------------------------
+
+const DEFAULT_DERIVED_FRAMES = 3;
+
+const formatSeconds = (ms: number): string => `${(ms / 1000).toFixed(1)}s`;
+
+/**
+ * The headless twin of the editor's Derived shot section
+ * (`useDeriveShotFromClip`): frames → assets → a shot after the source shot
+ * → a clip following it on a new track above the source clip. The board is
+ * written before the timeline, so a timeline conflict leaves the shot on the
+ * board and says so.
+ */
+const deriveShotFromClip: CapabilityExport = {
+  spec: deriveShotFromClipSpec,
+  impl: async (run, params) => {
+    const timelineId = params["timeline_id"];
+    if (!isNonBlankString(timelineId)) {
+      return {
+        error: "timeline_id is required (use list_timelines to find one)."
+      };
+    }
+    if (!isNonBlankString(params["clip_id"])) {
+      return { error: "clip_id is required (a clip id or name)." };
+    }
+    const { MAX_DERIVED_FRAMES } = await import("@nodetool-ai/timeline");
+    const frameCount =
+      params["frame_count"] === undefined
+        ? DEFAULT_DERIVED_FRAMES
+        : params["frame_count"];
+    if (
+      !isNumber(frameCount) ||
+      !Number.isInteger(frameCount) ||
+      frameCount < 1 ||
+      frameCount > MAX_DERIVED_FRAMES
+    ) {
+      return {
+        error: `frame_count must be a whole number from 1 to ${MAX_DERIVED_FRAMES}.`
+      };
+    }
+    const actionParam = params["action"];
+    if (actionParam !== undefined && !isString(actionParam)) {
+      return { error: "action must be a string." };
+    }
+
+    const { TimelineSequence, Storyboard } = await import(
+      "@nodetool-ai/models"
+    );
+    const sequence = await TimelineSequence.findById(timelineId);
+    if (!sequence || sequence.user_id !== run.context.userId) {
+      return { error: `Timeline ${timelineId} was not found.` };
+    }
+    const { findDocumentClip, captureDerivedFrames, placeDerivedShotClip } =
+      await import("./derive-shot.js");
+    const source = findDocumentClip(
+      sequence.toDocument().clips,
+      params["clip_id"]
+    );
+    if (!source) {
+      return {
+        error: `No clip matching "${params["clip_id"]}" in timeline ${timelineId}.`
+      };
+    }
+    const boardId = source.storyboardBoardId;
+    const sourceShotId = source.storyboardShotId;
+    if (!boardId || !sourceShotId) {
+      return {
+        error: `Clip "${source.name}" is not linked to a storyboard shot.`
+      };
+    }
+    if (source.mediaType !== "video" || !source.currentAssetId) {
+      return {
+        error: "Reference frames come from a video clip with footage."
+      };
+    }
+    const board = await loadBoard(run, boardId);
+    if (isError(board)) return board;
+    const sourceShot = board.doc.shots.find((shot) => shot.id === sourceShotId);
+    if (!sourceShot) {
+      return {
+        error: `The shot clip "${source.name}" follows is no longer on its board.`
+      };
+    }
+
+    const label = sourceShot.slug ?? `Shot ${sourceShot.index + 1}`;
+    let frames: Awaited<ReturnType<typeof captureDerivedFrames>>;
+    try {
+      frames = await captureDerivedFrames(run.context, source, frameCount);
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : String(error) };
+    }
+    const bindings: Array<{ kind: "style"; asset_id: string; label: string }> =
+      [];
+    for (const [index, frame] of frames.entries()) {
+      const created = await run.context.createAsset({
+        name: `${label}-frame-${index + 1}.png`,
+        contentType: "image/png",
+        content: frame.png
+      });
+      const assetId =
+        isRecord(created) && isString(created["id"]) ? created["id"] : null;
+      if (!assetId) {
+        return { error: "A reference frame was saved without an asset id." };
+      }
+      bindings.push({
+        kind: "style",
+        asset_id: assetId,
+        label: `${label} at ${formatSeconds(frame.sourceTimeMs)}`
+      });
+    }
+
+    const action = actionParam?.trim() || sourceShot.action;
+    const shotArgs: Record<string, unknown> = {
+      after_shot_id: sourceShot.id,
+      action,
+      slug: `${label} (derived)`,
+      duration_seconds: source.durationMs / 1000,
+      duration_source: "manual",
+      render_mode: "reference",
+      production: {
+        schema_version: 1,
+        speech_mode: "none",
+        requested_take_count: 1,
+        reference_bindings: bindings
+      }
+    };
+    if (sourceShot.camera !== undefined) shotArgs["camera"] = sourceShot.camera;
+    if (sourceShot.motion !== undefined) shotArgs["motion"] = sourceShot.motion;
+    if (sourceShot.entity_ids !== undefined) {
+      shotArgs["entity_ids"] = sourceShot.entity_ids;
+    }
+    if (sourceShot.location_id !== undefined) {
+      shotArgs["location_id"] = sourceShot.location_id;
+    }
+
+    let shot: Shot | undefined;
+    for (let attempt = 0; attempt < CAS_ATTEMPTS && !shot; attempt++) {
+      const current = await loadBoard(run, boardId);
+      if (isError(current)) return current;
+      const { row, doc } = current;
+      let shotId: string;
+      try {
+        const added = applyBoardOp(doc, { op: "add_shot", args: shotArgs }) as {
+          id: string;
+        };
+        shotId = added.id;
+      } catch (error) {
+        return {
+          error: error instanceof Error ? error.message : String(error)
+        };
+      }
+      const index = doc.shots.findIndex((candidate) => candidate.id === shotId);
+      if (sourceShot.clip_model !== undefined) {
+        doc.shots[index] = {
+          ...doc.shots[index],
+          clip_model: sourceShot.clip_model
+        };
+      }
+      if (doc.screenplay) {
+        doc.screenplay.shots = doc.shots;
+      }
+      const saved = await Storyboard.updateFieldsIfUnchanged(
+        row.id,
+        row.updated_at,
+        { document: JSON.stringify(doc) },
+        { ops: [{ tool: "add_shot", input: { ...shotArgs, id: shotId } }] }
+      );
+      if (saved) shot = doc.shots[index];
+    }
+    if (!shot) {
+      return {
+        error: `Storyboard ${boardId} is being modified concurrently; nothing was saved. Retry the call.`
+      };
+    }
+
+    for (let attempt = 0; attempt < CAS_ATTEMPTS; attempt++) {
+      const current = await TimelineSequence.findById(timelineId);
+      if (!current) break;
+      const document = current.toDocument();
+      const latest = document.clips.find((clip) => clip.id === source.id);
+      if (!latest) break;
+      const placed = placeDerivedShotClip(document, latest, {
+        boardId,
+        shotId: shot.id,
+        name: shot.slug ?? "Derived shot"
+      });
+      const saved = await TimelineSequence.updateDocumentIfUnchanged(
+        current.id,
+        current.updated_at,
+        { ...document, tracks: placed.tracks, clips: placed.clips },
+        {
+          ops: [
+            {
+              tool: "ui_timeline_add_track",
+              input: { id: placed.trackId, type: "video" }
+            },
+            {
+              tool: "ui_timeline_add_media_clip",
+              input: { id: placed.clipId, track_id: placed.trackId }
+            }
+          ]
+        }
+      );
+      if (saved) {
+        return {
+          storyboard_id: boardId,
+          shot_id: shot.id,
+          shot_index: shot.index,
+          slug: shot.slug,
+          reference_asset_ids: bindings.map((binding) => binding.asset_id),
+          timeline_id: timelineId,
+          track_id: placed.trackId,
+          clip_id: placed.clipId,
+          next:
+            "Render the shot with render_storyboard_clips, targets " +
+            `["${shot.id}"]. The clip plays the take once it lands.`
+        };
+      }
+    }
+    return {
+      error:
+        `Shot ${shot.id} was added to storyboard ${boardId}, but timeline ` +
+        `${timelineId} changed or its source clip was removed, so no clip ` +
+        "was placed. Add a clip for the shot with edit_timeline, or remove " +
+        "the shot with edit_storyboard."
+    };
+  }
+};
+
+// ---------------------------------------------------------------------------
 // direct_storyboard
 // ---------------------------------------------------------------------------
 
@@ -2752,7 +3006,13 @@ const directStoryboard: CapabilityExport = {
         next.screenplay.motion_design = previousMotionDesign;
       }
       next.style = screenplay.style_bible ?? next.style;
-      next.aspectRatio = screenplay.aspect_ratio ?? next.aspectRatio;
+      // The board's ratio was the Director's input. An answer whose ratio is
+      // not "W:H" (the fake provider's "fake") does not replace it.
+      if (isAspectRatio(screenplay.aspect_ratio)) {
+        next.aspectRatio = screenplay.aspect_ratio.trim();
+      } else {
+        next.screenplay.aspect_ratio = next.aspectRatio;
+      }
       if (screenplay.genre) next.genre = screenplay.genre;
 
       const saved = await Storyboard.updateFieldsIfUnchanged(
@@ -3256,6 +3516,7 @@ export const STORYBOARD_CAPABILITIES: readonly CapabilityExport[] = [
   renderStoryboardClips,
   reviseStoryboardClip,
   assembleStoryboardTimeline,
+  deriveShotFromClip,
   editStoryboard,
   directStoryboard,
   extractScriptFromStoryboard,
@@ -3280,6 +3541,7 @@ export {
   renderStoryboardClips,
   reviseStoryboardClip,
   assembleStoryboardTimeline,
+  deriveShotFromClip,
   editStoryboard,
   directStoryboard,
   extractScriptFromStoryboard,

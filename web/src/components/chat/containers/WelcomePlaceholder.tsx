@@ -10,7 +10,6 @@ import {
   Box,
   EditorButton,
   BORDER_RADIUS,
-  MOTION,
   SPACING,
   SPACING_PX,
   getSpacingPx
@@ -22,11 +21,14 @@ import { useLanguageModelProviders } from "../../../hooks/useProviders";
 import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore";
 import { isElectron, isLocalhost } from "../../../lib/env";
 
+import { CHAT_COLUMN_MAX_WIDTH } from "../types/chat.types";
+
 import openaiIcon from "../../../icons/providers/openai.svg";
 import anthropicIcon from "../../../icons/providers/anthropic.svg";
 import geminiColorIcon from "../../../icons/providers/gemini-color.svg";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
+
+/** Keeps the subtitle to a readable line length on a wide column. */
+const WELCOME_TEXT_MAX_WIDTH = 520;
 
 const styles = (theme: Theme) =>
   css({
@@ -45,7 +47,8 @@ const styles = (theme: Theme) =>
 
     ".welcome-inner": {
       width: "100%",
-      maxWidth: "900px",
+      // The composer's column, so the welcome and the input share edges.
+      maxWidth: `${CHAT_COLUMN_MAX_WIDTH}px`,
       display: "flex",
       flexDirection: "column",
       alignItems: "stretch",
@@ -75,7 +78,8 @@ const styles = (theme: Theme) =>
     ".welcome-subtitle": {
       color: theme.vars.palette.text.secondary,
       fontSize: "var(--fontSizeNormal)",
-      lineHeight: 1.6
+      lineHeight: 1.6,
+      maxWidth: WELCOME_TEXT_MAX_WIDTH
     },
 
     ".suggestions": {
@@ -115,11 +119,11 @@ const styles = (theme: Theme) =>
 // per job the studio is built for: a product spot, a creator-style cut, a
 // narrated explainer, a whole campaign, and the pipeline that repeats it.
 const SUGGESTIONS = [
-  { key: "suggestionStoryboardAd", text: "Storyboard a 30-second ad for …" },
-  { key: "suggestionUgcTestimonial", text: "Direct a UGC-style testimonial for …" },
-  { key: "suggestionExplainer", text: "Narrate a 60-second explainer about …" },
-  { key: "suggestionLaunchCampaign", text: "Turn this brief into a launch campaign: …" },
-  { key: "suggestionWorkflowAd", text: "Build a workflow that renders an ad for every …" }
+  "Storyboard a 30-second ad for …",
+  "Direct a UGC-style testimonial for …",
+  "Narrate a 60-second explainer about …",
+  "Turn this brief into a launch campaign: …",
+  "Build a workflow that renders an ad for every …"
 ];
 
 // Cloud LLM providers we point first-time users at. Each maps to an API key
@@ -135,6 +139,10 @@ const SETUP_PROVIDERS = [
  * gets offered the sign-in first. A hosted deployment cannot, and is pointed
  * at an API key instead.
  */
+const SETUP_SUBTITLE =
+  isElectron || isLocalhost
+    ? "Sign in with Claude or OpenAI to use a subscription you already pay for, or add an API key. Your credentials are encrypted and stored securely."
+    : "Add an API key for OpenAI, Anthropic, or Gemini to start chatting. Your keys are encrypted and stored securely.";
 
 interface WelcomePlaceholderProps {
   onSuggestionClick?: (suggestion: string) => void;
@@ -149,7 +157,6 @@ interface WelcomePlaceholderProps {
 const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
   onSuggestionClick
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const { providers, isLoading, error } = useLanguageModelProviders();
@@ -166,8 +173,8 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
       capability: "generate_message",
       reason:
         isElectron || isLocalhost
-          ? i18n.t("editor:ui.chatNeedsALanguageModelSignInWithClaudeOrOpenAIOrConnectAnyProviderWithAnAPIKey", { defaultValue: "Chat needs a language model. Sign in with Claude or OpenAI, or connect any provider with an API key." })
-          : i18n.t("editor:ui.chatNeedsALanguageModelConnectAProviderToStart", { defaultValue: "Chat needs a language model. Connect a provider to start." })
+          ? "Chat needs a language model. Sign in with Claude or OpenAI, or connect any provider with an API key."
+          : "Chat needs a language model. Connect a provider to start."
     });
   }, []);
 
@@ -180,17 +187,15 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
     <div css={cssStyles} className="chat-welcome">
       <div className="welcome-inner">
         {noProvider ? (
-          <FlexColumn align="center" gap={SPACING.sm} sx={{ textAlign: "center" }}>
+          <FlexColumn align="center" gap={SPACING.lg} sx={{ textAlign: "center" }}>
             <KeyRoundedIcon className="welcome-icon" />
             <Text className="welcome-title">
-              {t("editor:ui.connectAnAIProviderToGetStarted")}
+              Connect an AI provider to get started
             </Text>
-            <Text className="welcome-subtitle" sx={{ maxWidth: 520 }}>
-              {isElectron || isLocalhost
-                ? t("editor:chat.setupSubtitleDesktop", { defaultValue: "Sign in with Claude or OpenAI to use a subscription you already pay for, or add an API key. Your credentials are encrypted and stored securely." })
-                : t("editor:chat.setupSubtitleWeb", { defaultValue: "Add an API key for OpenAI, Anthropic, or Gemini to start chatting. Your keys are encrypted and stored securely." })}
+            <Text className="welcome-subtitle">
+              {SETUP_SUBTITLE}
             </Text>
-            <FlexRow gap={SPACING.xs} justify="center" wrap sx={{ mt: SPACING.micro }}>
+            <FlexRow gap={SPACING.xs} justify="center" wrap>
               {SETUP_PROVIDERS.map((provider) => (
                 <FlexRow
                   key={provider.name}
@@ -227,42 +232,26 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
               variant="contained"
               color="primary"
               size="small"
-              startIcon={<KeyRoundedIcon sx={{ fontSize: "1.2em" }} />}
+              startIcon={<KeyRoundedIcon />}
               onClick={handleConnectProvider}
-              sx={{ mt: SPACING.xs }}
             >
-              {t("editor:ui.connectAProvider", { defaultValue: "Connect a provider" })}
+              Connect a provider
             </EditorButton>
           </FlexColumn>
         ) : (
           <div className="chat-suggestions-block">
             <AutoAwesomeIcon className="welcome-icon" />
-            <Text className="welcome-title">{t("editor:ui.howCanIHelpYouToday", { defaultValue: "How can I help you today?" })}</Text>
+            <Text className="welcome-title">How can I help you today?</Text>
             <Text className="welcome-subtitle">
-              {t("editor:chat.askAnythingDropInFilesOrStartWithOneOfThese", { defaultValue: "Ask anything, drop in files, or start with one of these:" })}
+              Ask anything, drop in files, or start with one of these:
             </Text>
             <div className="suggestions">
               {SUGGESTIONS.map((suggestion) => (
                 <Chip
-                  key={suggestion.key}
-                  label={t(`editor:ui.${suggestion.key}`, { defaultValue: suggestion.text })}
+                  key={suggestion}
+                  label={suggestion}
                   variant="outlined"
-                  onClick={() => handleClick(t(`editor:ui.${suggestion.key}`, { defaultValue: suggestion.text }))}
-                  sx={{
-                    borderColor: theme.vars.palette.divider,
-                    color: theme.vars.palette.text.secondary,
-                    cursor: "pointer",
-                    transition: MOTION.all,
-                    // Mouse only. iOS Safari reads a tap on an element whose
-                    // :hover style changes as the hover and drops the click.
-                    "@media (hover: hover)": {
-                      "&:hover": {
-                        borderColor: theme.vars.palette.primary.main,
-                        color: theme.vars.palette.primary.main,
-                        backgroundColor: `rgb(${theme.vars.palette.primary.mainChannel} / 0.06)`
-                      }
-                    }
-                  }}
+                  onClick={() => handleClick(suggestion)}
                 />
               ))}
             </div>

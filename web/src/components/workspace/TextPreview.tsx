@@ -10,6 +10,7 @@ import { languageFromAsset, previewKind } from "../../utils/assetLanguage";
 import { csvDelimiterFor, parseCsvToDataframe } from "../../utils/csvDataframe";
 import MarkdownRenderer from "../../utils/MarkdownRenderer";
 import MonacoPane from "./MonacoPane";
+import ErrorBanner from "../support/ErrorBanner";
 import {
   Caption,
   CopyButton,
@@ -18,9 +19,9 @@ import {
   FlexRow,
   LoadingSpinner,
   ScrollArea,
-  Text, getSpacingPx, SPACING
+  Text, Toolbar, getSpacingPx, SPACING,
+  EmptyState
 } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
 
 interface TextPreviewProps {
   asset: Asset;
@@ -36,13 +37,6 @@ const styles = (theme: Theme) =>
     width: "100%",
     height: "100%",
     backgroundColor: theme.vars.palette.grey[900],
-    ".preview-header": {
-      flex: "0 0 auto",
-      height: "2.5em",
-      padding: `0 ${getSpacingPx(SPACING.md)} 0 ${getSpacingPx(SPACING.lg)}`,
-      borderBottom: `1px solid ${theme.vars.palette.divider}`,
-      backgroundColor: theme.vars.palette.grey[800]
-    },
     ".filename": {
       color: theme.vars.palette.text.primary,
       fontWeight: 500
@@ -67,7 +61,6 @@ const styles = (theme: Theme) =>
   });
 
 const CsvTableView = ({ text, name }: { text: string; name: string }) => {
-  const { t } = useTranslation();
   const { columns, rows, truncated } = useMemo(() => {
     const df = parseCsvToDataframe(text, csvDelimiterFor(name));
     const cols = (df.columns ?? []).map((c, i) => ({
@@ -92,7 +85,7 @@ const CsvTableView = ({ text, name }: { text: string; name: string }) => {
   if (columns.length === 0) {
     return (
       <FlexColumn className="status">
-        <Caption>{t("ui2:attrs.emptyTable", { defaultValue: "Empty table" })}</Caption>
+        <EmptyState size="small" variant="no-data" title="This table is empty" />
       </FlexColumn>
     );
   }
@@ -116,7 +109,6 @@ const CsvTableView = ({ text, name }: { text: string; name: string }) => {
  * with TextDocumentEditor, so toggling view ↔ edit reuses the cached text.
  */
 const TextPreview = ({ asset }: TextPreviewProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const getUrl = asset.get_url ?? undefined;
   const language = useMemo(() => languageFromAsset(asset), [asset]);
@@ -145,9 +137,15 @@ const TextPreview = ({ asset }: TextPreviewProps) => {
     if (error) {
       return (
         <FlexColumn className="status">
-          <Text size="normal" weight={600} sx={{ color: "error.main" }}>
-            {t("editor:ui.failedToLoadTextContent")}
-          </Text>
+          <ErrorBanner
+            report={{
+              source: "operation-failure",
+              summary: "Text preview failed to load",
+              errorText: error.message
+            }}
+          >
+            Could not load this text file.
+          </ErrorBanner>
         </FlexColumn>
       );
     }
@@ -183,11 +181,9 @@ const TextPreview = ({ asset }: TextPreviewProps) => {
 
   return (
     <FlexColumn css={styles(theme)} sx={{ width: "100%", height: "100%" }}>
-      <FlexRow
+      <Toolbar
         className="preview-header"
-        align="center"
-        justify="space-between"
-        gap={1}
+        sx={{ justifyContent: "space-between", pl: SPACING.lg }}
       >
         <FlexRow align="center" gap={1} sx={{ minWidth: 0 }}>
           <Text className="filename" size="small">
@@ -198,7 +194,7 @@ const TextPreview = ({ asset }: TextPreviewProps) => {
           </Caption>
         </FlexRow>
         {text !== undefined && <CopyButton value={text} buttonSize="small" />}
-      </FlexRow>
+      </Toolbar>
       <div className="preview-body">{body()}</div>
     </FlexColumn>
   );

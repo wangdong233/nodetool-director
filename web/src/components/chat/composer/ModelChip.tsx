@@ -43,6 +43,8 @@ export type ModelPicker =
   | { kind: "tts"; onPick: (model: TTSModel) => void }
   | {
       kind: "language";
+      /** The model the composer holds. The picker marks its row with a check. */
+      selected?: { id: string; provider?: string };
       allowedProviders?: string[];
       requireToolSupport?: boolean;
       onPick: (model: LanguageModel) => void;
@@ -176,6 +178,7 @@ export function ModelChip({
         }}
         allowedProviders={picker.allowedProviders}
         requireToolSupport={picker.requireToolSupport}
+        selectedModel={picker.selected}
       />
     </>
   );

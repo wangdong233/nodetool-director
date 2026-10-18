@@ -1,20 +1,35 @@
-import { useCallback, useMemo, useState, type DragEvent } from "react";
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent
+} from "react";
+
+import AddIcon from "@mui/icons-material/AddOutlined";
 
 import {
-  BORDER_RADIUS,
+  AutoGrid,
   Box,
+  CONTROL,
   Caption,
-  Divider,
   EditorButton,
+  EmptyState,
   FlexColumn,
   FlexRow,
   Label,
   LoadingSpinner,
+  PageHeader,
   SPACING,
   ScrollArea,
   SearchInput,
-  Text,
-  TYPOGRAPHY
+  SectionHeader,
+  TruncatedText,
+  TYPOGRAPHY,
+  activateOnKey,
+  selectableRowStyles,
+  selectableTileStyles
 } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { isRecord, isString } from "../../utils/typePredicates";
@@ -27,16 +42,18 @@ import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
 import {
   useAssignDocument,
   useArchivedProjects,
-  useOpenNewProjectTab,
+  useImportProject,
   useOpenProject,
   useProjectSummaries,
   useUnassignedDocuments
 } from "../../hooks/useProjects";
 import ProjectCard from "./ProjectCard";
 import ProjectLifecycleActions from "./ProjectLifecycleActions";
-import { PROJECT_COLOR, personalDisplayName } from "./projectIdentity";
+import NewProjectDialog from "./NewProjectDialog";
+import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
+import { relativeTime } from "../../utils/formatDateAndTime";
 import type { ProjectDetail } from "./projectStatus";
-import { useTranslation } from "react-i18next";
+import { PROJECT_FILE_EXTENSION } from "../../utils/projectArchive";
 
 /**
  * How many loose documents the strip lists. Every document a user has ever
@@ -44,6 +61,18 @@ import { useTranslation } from "react-i18next";
  * is showing only those.
  */
 const LOOSE_STRIP_LIMIT = 12;
+
+/**
+ * Narrowest project card: one column on a phone, two on a tablet, three on a
+ * laptop-wide screen.
+ */
+const PROJECT_CARD_MIN_WIDTH = 360;
+
+/** A loose document's name is cut short so one long title keeps its row. */
+const LOOSE_TILE_MAX_WIDTH = 280;
+
+/** The search box's width beside the title on a tablet or wider. */
+const SEARCH_WIDTH = 280;
 
 /** Page gutter: the desktop margin wastes a phone's width. */
 const PAGE_PX = { xs: SPACING.lg, sm: SPACING.xxl };
@@ -89,7 +118,6 @@ const parseDragPayload = (payload: string): LooseDocument | null => {
  * that belong to none. Dragging one of those onto a card moves it in.
  */
 const ProjectListSurface = () => {
-  const { t } = useTranslation();
   const [search, setSearch] = useState("");
 
   const summaries = useProjectSummaries();
@@ -97,10 +125,50 @@ const ProjectListSurface = () => {
   const unassigned = useUnassignedDocuments();
   const assignDocument = useAssignDocument();
   const openProject = useOpenProject();
-  const openNewProject = useOpenNewProjectTab();
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const openNewProject = useCallback(() => setNewProjectOpen(true), []);
+  const closeNewProject = useCallback(() => setNewProjectOpen(false), []);
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const addNotification = useNotificationStore(
     (state) => state.addNotification
+  );
+  const importProject = useImportProject();
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const chooseImportFile = useCallback(
+    () => importInputRef.current?.click(),
+    []
+  );
+  const handleImportFile = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      // Clear the input so choosing the same file again fires a change.
+      event.target.value = "";
+      if (!file) {
+        return;
+      }
+      importProject.mutate(file, {
+        onSuccess: (result) => {
+          const problems =
+            result.missing.length + result.checksum_mismatches.length;
+          addNotification({
+            type: problems > 0 ? "warning" : "success",
+            alert: true,
+            content:
+              problems > 0
+                ? `Imported ${result.project.name}, but ${problems} file(s) were missing or damaged`
+                : `Imported ${result.project.name}`
+          });
+          void openProject(result.project);
+        },
+        onError: (error) =>
+          addNotification({
+            type: "error",
+            alert: true,
+            content: `Could not import ${file.name}: ${error.message}`
+          })
+      });
+    },
+    [addNotification, importProject, openProject]
   );
 
   const matches = useMemo(() => {
@@ -147,6 +215,17 @@ const ProjectListSurface = () => {
     [addNotification, assignDocument]
   );
 
+  const handleOpenLoose = useCallback(
+    (document: LooseDocument) =>
+      openTab({
+        type: document.type,
+        ref: document.ref,
+        title: document.name,
+        projectId: LOOSE_PROJECT_ID
+      }),
+    [openTab]
+  );
+
   const handleDragStart = useCallback(
     (event: DragEvent<HTMLDivElement>, document: LooseDocument) => {
       event.dataTransfer.effectAllowed = "move";
@@ -167,54 +246,75 @@ const ProjectListSurface = () => {
           rowGap: SPACING.md,
           px: PAGE_PX,
           pt: { xs: SPACING.xl, sm: SPACING.xxl },
-          pb: SPACING.md
+          pb: SPACING.lg
         }}
       >
-        <Text size="big">{t("nav:tabs.projects", { defaultValue: "Projects" })}</Text>
-        <Caption color="secondary" sx={{ display: { xs: "none", md: "block" } }}>
-          {t("editor:ui.onePieceOfWorkTheDocumentsAnAgentBuiltForItWhatItCostWhereItStands", { defaultValue: "One piece of work — the documents an agent built for it, what it cost, where it stands." })}
-        </Caption>
+        <PageHeader
+          variant="plain"
+          title="Projects"
+          subtitle="One piece of work: the documents an agent built for it, what it cost, where it stands."
+          hideSubtitleOnMobile
+        />
         <Box sx={{ flex: 1 }} />
         <Box
           sx={{
             order: { xs: 1, sm: 0 },
-            flexBasis: { xs: "100%", sm: "auto" }
+            flexBasis: { xs: "100%", sm: SEARCH_WIDTH }
           }}
         >
           <SearchInput
             value={search}
             onChange={setSearch}
-            placeholder={t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
+            placeholder="Search projects"
             fullWidth
           />
         </Box>
         <EditorButton
+          variant="outlined"
+          onClick={chooseImportFile}
+          disabled={importProject.isPending}
+          sx={{ whiteSpace: "nowrap" }}
+        >
+          {importProject.isPending ? "Importing…" : "Import project"}
+        </EditorButton>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept={`${PROJECT_FILE_EXTENSION},application/zip`}
+          aria-label="Project file"
+          onChange={handleImportFile}
+          style={{ display: "none" }}
+        />
+        <EditorButton
           variant="contained"
           color="primary"
           onClick={openNewProject}
+          startIcon={<AddIcon />}
           sx={{ whiteSpace: "nowrap" }}
         >
-          {"+ "}
-          {t("editor:ui.newProject", { defaultValue: "New project" })}
+          New project
         </EditorButton>
       </FlexRow>
 
-      <ScrollArea fullHeight sx={{ px: PAGE_PX, py: SPACING.xl }}>
+      <ScrollArea fullHeight sx={{ px: PAGE_PX, pt: SPACING.md, pb: SPACING.xxl }}>
         {summaries.isPending ? (
           <LoadingSpinner />
         ) : summaries.error ? (
-          <Caption color="error">{t("ui2:attrs.couldNotLoadProjects", { defaultValue: "Could not load projects" })}</Caption>
+          <EmptyState
+            variant="error"
+            title="Could not load projects"
+            description={summaries.error.message}
+          />
+        ) : search.trim() && matches.length === 0 ? (
+          <EmptyState
+            variant="no-results"
+            title="No matching projects"
+            description="Try a different search term."
+          />
         ) : (
-          <Box
-            sx={{
-              display: "grid",
-              gap: { xs: SPACING.lg, sm: SPACING.xl },
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "repeat(2, minmax(0, 1fr))",
-                lg: "repeat(3, minmax(0, 1fr))"
-              }
-            }}
+          <AutoGrid
+            minItemWidth={PROJECT_CARD_MIN_WIDTH}
+            sx={{ gap: { xs: SPACING.lg, sm: SPACING.xl } }}
           >
             {matches.map((detail) => (
               <ProjectCard
@@ -224,117 +324,137 @@ const ProjectListSurface = () => {
                 onDropDocument={handleDropDocument}
               />
             ))}
-            <Box
+            <FlexColumn
               component="button"
-              type="button"
               onClick={openNewProject}
-              sx={{
-                minHeight: { xs: "160px", sm: "268px" },
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: SPACING.lg,
-                border: (theme) => `1px dashed ${theme.vars.palette.divider}`,
-                borderRadius: BORDER_RADIUS.lg,
+              align="center"
+              justify="center"
+              gap={SPACING.sm}
+              sx={(theme) => ({
+                ...selectableTileStyles(theme),
+                minHeight: { xs: 160, sm: 268 },
+                px: SPACING.xl,
+                borderStyle: "dashed",
                 background: "transparent",
                 color: "text.secondary",
                 cursor: "pointer"
-              }}
+              })}
             >
-              <Box sx={{ color: PROJECT_COLOR, fontSize: "var(--fontSizeBig)" }}>
-                +
-              </Box>
-              <Label>{t("ui2:attrs.startAProject", { defaultValue: "Start a project" })}</Label>
+              <AddIcon sx={{ color: PROJECT_COLOR, mb: SPACING.xs }} />
+              <Label>Start a project</Label>
               <Caption color="muted">
-                {t("editor:ui.sayWhatYouWantMadeAndAnAgentBuildsItsDocuments", { defaultValue: "Say what you want made, and an agent builds its documents" })}
+                Say what you want made, and an agent builds its documents
               </Caption>
-            </Box>
-          </Box>
+            </FlexColumn>
+          </AutoGrid>
         )}
-      </ScrollArea>
 
-      {loose.length > 0 && (
-        <Box sx={{ px: PAGE_PX, pb: SPACING.xl }}>
-          <Divider />
-          <FlexRow
-            align="center"
-            gap={SPACING.lg}
-            sx={{ pt: SPACING.lg, pb: SPACING.md }}
-          >
-            <Caption
-              color="muted"
-              sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}
-            >
-              {t("editor:ui.notInAProject")}
-            </Caption>
-            {looseTotal > loose.length && (
-              <Caption color="muted">
-                {t("editor:ui.mostRecentOf", { shown: String(loose.length), total: String(looseTotal) })}
-              </Caption>
-            )}
-            <Box sx={{ flex: 1 }} />
-            <Caption color="muted" sx={{ display: { xs: "none", sm: "block" } }}>
-              Drag onto a project card to move it in
-            </Caption>
-          </FlexRow>
-          <FlexRow gap={SPACING.lg} wrap>
-            {loose.map((document) => (
+        {loose.length > 0 && (
+          <FlexColumn gap={SPACING.md} sx={{ mt: SPACING.xxl }}>
+            <SectionHeader
+              size="small"
+              title={
+                looseTotal > loose.length
+                  ? `Not in a project · ${loose.length} most recent of ${looseTotal}`
+                  : "Not in a project"
+              }
+              action={
+                <Caption
+                  color="muted"
+                  sx={{ display: { xs: "none", sm: "block" } }}
+                >
+                  Drag onto a project card to move it in
+                </Caption>
+              }
+            />
+            <FlexRow gap={SPACING.md} wrap>
+              {loose.map((document) => (
+                <FlexRow
+                  key={`${document.type}:${document.ref}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open ${document.name}`}
+                  align="center"
+                  gap={SPACING.md}
+                  draggable
+                  onDragStart={(event: DragEvent<HTMLDivElement>) =>
+                    handleDragStart(event, document)
+                  }
+                  onClick={() => handleOpenLoose(document)}
+                  onKeyDown={activateOnKey(() => handleOpenLoose(document))}
+                  sx={(theme) => ({
+                    ...selectableTileStyles(theme),
+                    px: SPACING.lg,
+                    height: CONTROL.height.md,
+                    maxWidth: LOOSE_TILE_MAX_WIDTH,
+                    cursor: "grab",
+                    bgcolor: "background.paper"
+                  })}
+                >
+                  <Box
+                    component="span"
+                    aria-hidden
+                    sx={{
+                      color: TYPE_COLOR[document.type],
+                      ...TYPOGRAPHY.sans.caption
+                    }}
+                  >
+                    {TYPE_GLYPH[document.type]}
+                  </Box>
+                  <TruncatedText
+                    showTooltip
+                    sx={{ ...TYPOGRAPHY.sans.label, color: "text.secondary" }}
+                  >
+                    {document.name}
+                  </TruncatedText>
+                </FlexRow>
+              ))}
+            </FlexRow>
+          </FlexColumn>
+        )}
+
+        {(archived.data?.length ?? 0) > 0 && (
+          <FlexColumn gap={SPACING.sm} sx={{ mt: SPACING.xxl }}>
+            <SectionHeader
+              size="small"
+              title={`Archived · ${archived.data?.length ?? 0}`}
+            />
+            {archived.data?.map((project) => (
               <FlexRow
-                key={`${document.type}:${document.ref}`}
+                key={project.id}
                 align="center"
                 gap={SPACING.md}
-                draggable
-                onDragStart={(event: DragEvent<HTMLDivElement>) =>
-                  handleDragStart(event, document)
-                }
-                onClick={() =>
-                  openTab({
-                    type: document.type,
-                    ref: document.ref,
-                    title: document.name,
-                    projectId: LOOSE_PROJECT_ID
-                  })
-                }
-                sx={{
-                  px: SPACING.lg,
-                  height: "30px",
-                  cursor: "grab",
-                  bgcolor: "background.paper",
-                  border: (theme) => `1px solid ${theme.vars.palette.divider}`,
-                  borderRadius: BORDER_RADIUS.md
-                }}
+                sx={(theme) => ({
+                  ...selectableRowStyles(theme),
+                  px: SPACING.md,
+                  minHeight: CONTROL.height.lg
+                })}
               >
                 <Box
                   component="span"
                   aria-hidden
-                  sx={{
-                    color: TYPE_COLOR[document.type],
-                    ...TYPOGRAPHY.sans.caption
-                  }}
+                  sx={{ color: "text.disabled", ...TYPOGRAPHY.sans.caption }}
                 >
-                  {TYPE_GLYPH[document.type]}
+                  {PROJECT_GLYPH}
                 </Box>
-                <Label color="secondary">{document.name}</Label>
+                <TruncatedText
+                  showTooltip
+                  sx={{ flex: 1, minWidth: 0, ...TYPOGRAPHY.sans.label, color: "text.secondary" }}
+                >
+                  {project.name}
+                </TruncatedText>
+                {project.archivedAt && (
+                  <Caption color="muted" sx={{ whiteSpace: "nowrap" }}>
+                    {`Archived ${relativeTime(project.archivedAt)}`}
+                  </Caption>
+                )}
+                <ProjectLifecycleActions project={project} />
               </FlexRow>
             ))}
-          </FlexRow>
-        </Box>
-      )}
-      {(archived.data?.length ?? 0) > 0 && (
-        <FlexColumn gap={SPACING.md} sx={{ px: PAGE_PX, pb: SPACING.xl }}>
-          <Divider />
-          <Caption color="muted" sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            {t("editor:ui.archivedProjects")}
-          </Caption>
-          {archived.data?.map((project) => (
-            <FlexRow key={project.id} align="center" gap={SPACING.md}>
-              <Label sx={{ flex: 1 }}>{personalDisplayName(project, t)}</Label>
-              <ProjectLifecycleActions project={project} />
-            </FlexRow>
-          ))}
-        </FlexColumn>
-      )}
+          </FlexColumn>
+        )}
+      </ScrollArea>
+      <NewProjectDialog open={newProjectOpen} onClose={closeNewProject} />
     </FlexColumn>
   );
 };

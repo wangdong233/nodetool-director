@@ -9,7 +9,6 @@
  */
 
 import React, { memo, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import type { ImageModelValue } from "../../../stores/ApiTypes";
 import type { ImageModelTask } from "../../../hooks/useModelsByProvider";
@@ -18,15 +17,17 @@ import {
   Box,
   Caption,
   FlexColumn,
+  FormField,
   GAP,
   Text,
-  TextInput
+  TextInput,
+  LoadingSpinner
 } from "../../ui_primitives";
 import ImageModelSelect from "../../properties/ImageModelSelect";
 import { PresetTileGrid, type PresetTile } from "../PresetTileGrid";
 import { SetupFooterField } from "../SetupFooterField";
 import { SETUP_FIELD_WIDTH } from "../layout";
-import { STYLE_DESCRIPTIONS, STYLE_DESCRIPTION_KEYS } from "../styleDescriptions";
+import { STYLE_DESCRIPTIONS } from "../styleDescriptions";
 import { NO_GAME_STYLE_ID } from "./gameSetupModel";
 
 const IMAGE_MODEL_TASKS: ImageModelTask[] = ["text_to_image"];
@@ -53,74 +54,61 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
   imageSlots,
   readOnly = false
 }) => {
-  const { t } = useTranslation();
   const tiles = useMemo<PresetTile[]>(
     () =>
       presets.map((preset) => ({
         id: preset.entityId,
         title: preset.name,
-        description: t(STYLE_DESCRIPTION_KEYS[preset.presetId] ?? "", {
-          defaultValue:
-            STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim()
-        }),
+        description:
+          STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim(),
         image: preset.thumbnail,
         disabled: readOnly
       })),
-    [presets, readOnly, t]
+    [presets, readOnly]
   );
 
   return (
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          {t("storyboard:attrs.chooseTheLook", { defaultValue: "Choose the look" })}
+          Choose the look
         </Text>
         <Text size="normal" color="secondary">
-          {t("setup:game.styleIsAddedToEveryPiece", {
-            defaultValue:
-              "The style is added to every piece of art, so the game reads as one."
-          })}
+          The style is added to every piece of art, so the game reads as one.
         </Text>
       </FlexColumn>
 
       <Box sx={{ maxWidth: SETUP_FIELD_WIDTH }}>
         <TextInput
-          label={t("setup:game.gameName", { defaultValue: "Game name" })}
+          label="Game name"
           value={name}
-          placeholder={t("editor:ui.untitledGame", { defaultValue: "Untitled game" })}
+          placeholder="Untitled game"
           onChange={(event) => onNameChange(event.target.value)}
           disabled={readOnly}
         />
       </Box>
 
-      <FlexColumn gap={GAP.normal}>
-        <Text size="small" component="h3">
-          {t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
-        </Text>
+      <FormField label="Art style">
         {presetsLoading && presets.length === 0 ? (
-          <Caption color="secondary">
-            {t("setup:game.loadingTheStyles", { defaultValue: "Loading the styles" })}
-          </Caption>
+          <LoadingSpinner size="small" text="Loading the styles" />
         ) : (
           <PresetTileGrid
-            label={t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
+            label="Art style"
             presets={tiles}
             selectedId={styleEntityId}
             onSelect={onStyleSelect}
             onAddOwn={() => onStyleSelect(NO_GAME_STYLE_ID)}
             addOwnOptionId={NO_GAME_STYLE_ID}
-            addOwnLabel={t("storyboard:attrs.noStyle", { defaultValue: "No style" })}
-            addOwnDescription={t("setup:game.artFollowsDesignWords", {
-              defaultValue: "The art follows the design's words alone"
-            })}
+            addOwnLabel="No style"
+            addOwnDescription="The art follows the design's words alone"
             addOwnDisabled={readOnly}
           />
         )}
-      </FlexColumn>
+      </FormField>
 
       <FlexColumn gap={GAP.tight}>
         <Text size="small" component="h3">
-          {t("setup:game.whatTheBuildDraws", { defaultValue: "What the build draws" })}
+          What the build draws
         </Text>
         <FlexColumn
           gap={GAP.tight}
@@ -134,10 +122,8 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
           ))}
         </FlexColumn>
         <Caption color="secondary" component="p">
-          {t("setup:game.soundsKeepBuiltInEffects", {
-            defaultValue:
-              "Sounds keep the template's built-in effects. You can replace any asset in the game editor."
-          })}
+          Sounds keep the template&apos;s built-in effects. You can replace any
+          asset in the game editor.
         </Caption>
       </FlexColumn>
     </FlexColumn>
@@ -155,10 +141,8 @@ export const ImageModelFooterField: React.FC<ImageModelFooterFieldProps> = ({
   model,
   onModelChange,
   readOnly = false
-}) => {
-  const { t } = useTranslation();
-  return (
-  <SetupFooterField label={t("setup:game.artLabel", { defaultValue: "Art" })}>
+}) => (
+  <SetupFooterField label="Art">
     <ImageModelSelect
       value={model?.id ?? ""}
       provider={model?.provider}
@@ -169,8 +153,7 @@ export const ImageModelFooterField: React.FC<ImageModelFooterFieldProps> = ({
       }
     />
   </SetupFooterField>
-  );
-};
+);
 
 export const GameLookStep = memo(LookStepInternal);
 GameLookStep.displayName = "GameLookStep";

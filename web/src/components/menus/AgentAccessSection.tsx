@@ -17,21 +17,24 @@ import type { agentAccess } from "@nodetool-ai/protocol/api-schemas";
 import {
   AlertBanner,
   Caption,
+  Code,
+  CodeBlock,
   CopyButton,
   Dialog,
   FlexColumn,
   FlexRow,
+  FormField,
   NavButton,
+  SectionHeader,
   SelectField,
   Text,
   TextInput,
-  BORDER_RADIUS,
   getSpacingPx,
-  SPACING
+  SPACING,
+  LoadingSpinner
 } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
-import { useTranslation } from "react-i18next";
 
 type Connection = agentAccess.McpConnectionOutput;
 type TokenSummary = agentAccess.AccessTokenSummary;
@@ -40,10 +43,10 @@ type OauthGrant = agentAccess.OauthGrantSummary;
 /** Lifetimes the UI offers. "Never" is the default: a token in a config file
  * that silently stops working months later is a bad afternoon. */
 const EXPIRY_OPTIONS = [
-  { value: "never", label: "No expiry", labelKey: "editor:ui.noExpiry" },
-  { value: "30", label: "30 days", labelKey: "editor:ui.30Days" },
-  { value: "90", label: "90 days", labelKey: "editor:ui.90Days" },
-  { value: "365", label: "1 year", labelKey: "editor:ui.1Year" }
+  { value: "never", label: "No expiry" },
+  { value: "30", label: "30 days" },
+  { value: "90", label: "90 days" },
+  { value: "365", label: "1 year" }
 ] as const;
 
 /**
@@ -72,15 +75,14 @@ function configSnippets(url: string, token: string | null) {
   return { cli, json };
 }
 
-function formatStamp(value: string | null, neverLabel = "never"): string {
-  if (!value) return neverLabel;
+function formatStamp(value: string | null): string {
+  if (!value) return "never";
   const parsed = Date.parse(value);
   if (!Number.isFinite(parsed)) return value;
   return new Date(parsed).toLocaleDateString();
 }
 
 const AgentAccessSection = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const queryClient = useQueryClient();
   const addNotification = useNotificationStore(
@@ -119,10 +121,7 @@ const AgentAccessSection = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: t("editor:notify.couldNotCreateToken", {
-          defaultValue: "Could not create the token: {{error}}",
-          error: String(err)
-        })
+        content: `Could not create the token: ${err}`
       });
     }
   });
@@ -132,7 +131,7 @@ const AgentAccessSection = () => {
       trpcClient.agentAccess.revokeToken.mutate({ id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["access-tokens"] });
-      addNotification({ type: "info", alert: true, content: t("editor:ui.tokenRevoked", { defaultValue: "Token revoked" }) });
+      addNotification({ type: "info", alert: true, content: "Token revoked" });
     }
   });
 
@@ -150,19 +149,14 @@ const AgentAccessSection = () => {
       addNotification({
         type: "info",
         alert: true,
-        content: t("tools:menus.clientDisconnected", {
-          defaultValue: "Client disconnected"
-        })
+        content: "Client disconnected"
       });
     },
     onError: (err) => {
       addNotification({
         type: "error",
         alert: true,
-        content: t("editor:notify.couldNotDisconnectClient", {
-          defaultValue: "Could not disconnect the client: {{error}}",
-          error: String(err)
-        })
+        content: `Could not disconnect the client: ${err}`
       });
     },
     onSettled: () => setGrantToRevoke(null)
@@ -185,69 +179,55 @@ const AgentAccessSection = () => {
     [url, freshToken]
   );
 
-  const codeBox = {
-    fontFamily: "var(--fontFamily2)",
-    fontSize: theme.fontSizeSmall,
-    background: theme.palette.background.default,
-    border: `1px solid ${theme.palette.divider}`,
-    borderRadius: BORDER_RADIUS.sm,
-    padding: getSpacingPx(SPACING.sm),
-    whiteSpace: "pre-wrap" as const,
-    wordBreak: "break-all" as const,
-    overflowX: "auto" as const
-  };
-
   return (
     <div className="settings-section" style={{ marginTop: getSpacingPx(SPACING.xxl) }}>
-      <Text sx={{ fontWeight: 500, mb: 0.5 }}>{t("ui2:attrs.connectAnAgentRemotely", { defaultValue: "Connect an agent remotely" })}</Text>
+      <SectionHeader size="small" title="Connect an agent remotely" />
       <Text className="description" sx={{ mb: 1 }}>
-        {t("editor:ui.pointClaudeCodeClaudeDesktopOrAnyMcpClientAtThisServerOverHttp")}
+        Point Claude Code, Claude Desktop, or any MCP client at this server over
+        HTTP. Create a token below and paste the configuration it produces.
       </Text>
 
       {connection && !connection.enabled && (
         <AlertBanner severity="warning" sx={{ mb: 1 }}>
-          {t("editor:ui.mcpNotServedA", { defaultValue: "This server does not serve" })}{" "}
-          <code>/mcp</code>
-          {t("editor:ui.mcpNotServedB", { defaultValue: ". Set" })}{" "}
-          <code>{connection.enable_flag}=1</code>
-          {t("editor:ui.mcpNotServedC", { defaultValue: " in its environment and restart it." })}
+          This server does not serve <Code>/mcp</Code>. Set{" "}
+          <Code>{connection.enable_flag}=1</Code> in its environment and restart
+          it.
         </AlertBanner>
       )}
 
       {connection?.auth_mode === "none" && (
         <AlertBanner severity="info" sx={{ mb: 1 }}>
-          {t("editor:ui.thisServerChecksNoCredentialItTrustsItsOwnNetwork")}
+          This server checks no credential — it trusts its own network. A token
+          still works and is the safer choice if you reach it from anywhere but
+          this machine.
         </AlertBanner>
       )}
 
-      <FlexColumn gap={1} sx={{ mb: 2 }}>
-        <Caption>{t("ui2:attrs.serverURL", { defaultValue: "Server URL" })}</Caption>
+      <FormField label="Server URL" sx={{ mb: 2 }}>
         <FlexRow align="center" gap={1}>
-          <div css={codeBox} style={{ flex: 1 }}>
-            {url}
-          </div>
-          <CopyButton value={url} tooltip={t("editor:ui.copyTheServerURL", { defaultValue: "Copy the server URL" })} />
+          <CodeBlock sx={{ flex: 1 }}>{url}</CodeBlock>
+          <CopyButton value={url} tooltip="Copy server URL" />
         </FlexRow>
-      </FlexColumn>
+      </FormField>
 
-      <FlexRow align="flex-end" gap={1} sx={{ mb: 1 }}>
+      <FlexRow align="flex-end" gap={SPACING.lg} sx={{ mb: 1 }}>
         <TextInput
-          label={t("editor:ui.tokenName", { defaultValue: "Token name" })}
-          placeholder={t("editor:ui.claudeCodeOnMyLaptop", { defaultValue: "Claude Code on my laptop" })}
+          label="Token name"
+          placeholder="Claude Code on my laptop"
           value={name}
           size="small"
           onChange={(event) => setName(event.target.value)}
         />
         <SelectField
-          label={t("editor:ui.expires", { defaultValue: "Expires" })}
+          label="Expires"
           value={expiry}
-          options={EXPIRY_OPTIONS.map((o) => ({ ...o, label: t(o.labelKey, { defaultValue: o.label }) }))}
+          options={EXPIRY_OPTIONS}
           size="small"
           onChange={setExpiry}
         />
         <NavButton
           icon={<AddCircleOutlineIcon />}
-          label={t("editor:ui.createToken", { defaultValue: "Create token" })}
+          label="Create token"
           color="primary"
           disabled={!name.trim() || createToken.isPending}
           onClick={handleCreate}
@@ -258,63 +238,51 @@ const AgentAccessSection = () => {
       {freshToken && (
         <FlexColumn gap={1} sx={{ mb: 2 }}>
           <AlertBanner severity="success">
-            {t("editor:ui.copyThisNowItIsShownOnceAndCannotBeRetrievedAgain")}
+            Copy this now — it is shown once and cannot be retrieved again.
           </AlertBanner>
           <FlexRow align="center" gap={1}>
-            <div css={codeBox} style={{ flex: 1 }}>
-              {freshToken}
-            </div>
-            <CopyButton value={freshToken} tooltip={t("editor:ui.copyTheToken", { defaultValue: "Copy the token" })} />
+            <CodeBlock sx={{ flex: 1 }}>{freshToken}</CodeBlock>
+            <CopyButton value={freshToken} tooltip="Copy token" />
           </FlexRow>
 
-          <Caption>{t("editor:ui.claudeCodeRunThis", { defaultValue: "Claude Code — run this" })}</Caption>
+          <Caption>Claude Code — run this</Caption>
           <FlexRow align="center" gap={1}>
-            <div css={codeBox} style={{ flex: 1 }}>
-              {snippets.cli}
-            </div>
-            <CopyButton value={snippets.cli} tooltip={t("editor:ui.copyTheCommand", { defaultValue: "Copy the command" })} />
+            <CodeBlock sx={{ flex: 1 }}>{snippets.cli}</CodeBlock>
+            <CopyButton value={snippets.cli} tooltip="Copy command" />
           </FlexRow>
 
-          <Caption>{t("editor:ui.orPasteIntoAnMCPClientConfigFile", { defaultValue: "Or paste into an MCP client config file" })}</Caption>
+          <Caption>Or paste into an MCP client config file</Caption>
           <FlexRow align="flex-start" gap={1}>
-            <div css={codeBox} style={{ flex: 1 }}>
-              {snippets.json}
-            </div>
+            <CodeBlock sx={{ flex: 1 }}>{snippets.json}</CodeBlock>
             <CopyButton
               value={snippets.json}
-              tooltip={t("editor:ui.copyTheConfiguration", { defaultValue: "Copy the configuration" })}
+              tooltip="Copy configuration"
             />
           </FlexRow>
         </FlexColumn>
       )}
 
-      {tokensLoading && <Text sx={{ padding: `${SPACING.md}px` }}>{t("editor:ui.loadingTokens", { defaultValue: "Loading tokens…" })}</Text>}
+      {tokensLoading && <LoadingSpinner size="small" text="Loading tokens" />}
 
       {tokens.length > 0 && (
         <FlexColumn gap={0}>
-          <Caption sx={{ mb: 0.5 }}>{t("ui2:attrs.yourTokens", { defaultValue: "Your tokens" })}</Caption>
+          <Caption sx={{ mb: 0.5 }}>Your tokens</Caption>
           {tokens.map((token: TokenSummary) => (
             <div key={token.id} className="settings-item">
               <FlexRow align="center" justify="space-between" fullWidth>
                 <FlexColumn gap={0}>
                   <Text sx={{ fontWeight: 500 }}>{token.name}</Text>
-                  <Text
-                    className="description"
-                    sx={{ fontSize: "var(--fontSizeSmall) !important" }}
-                  >
-                    {t("editor:ui.tokenMetaCreated", { defaultValue: "Created {{date}}", date: formatStamp(token.created_at) })} ·{" "}
-                    {t("editor:ui.tokenMetaLastUsed", {
-                      defaultValue: "Last used {{date}}",
-                      date: formatStamp(token.last_used_at, t("editor:ui.never", { defaultValue: "never" }))
-                    })} ·{" "}
+                  <Text className="description">
+                    Created {formatStamp(token.created_at)} · Last used{" "}
+                    {formatStamp(token.last_used_at)} ·{" "}
                     {token.expires_at
-                      ? t("editor:ui.tokenMetaExpires", { defaultValue: "Expires {{date}}", date: formatStamp(token.expires_at) })
-                      : t("editor:ui.noExpiry", { defaultValue: "No expiry" })}
+                      ? `Expires ${formatStamp(token.expires_at)}`
+                      : "No expiry"}
                   </Text>
                 </FlexColumn>
                 <NavButton
                   icon={<RemoveCircleOutlineIcon />}
-                  label={t("editor:ui.revoke", { defaultValue: "Revoke" })}
+                  label="Revoke"
                   disabled={revokeToken.isPending}
                   onClick={() => revokeToken.mutate(token.id)}
                   navSize="small"
@@ -331,26 +299,23 @@ const AgentAccessSection = () => {
       )}
 
       <FlexColumn gap={0} sx={{ mt: 2 }}>
-        <Caption sx={{ mb: 0.5 }}>{t("ui2:attrs.connectedMCPClients", { defaultValue: "Connected MCP clients" })}</Caption>
-        {grantsLoading && <Text sx={{ padding: `${SPACING.md}px` }}>{t("common:status.loading", { defaultValue: "Loading…" })}</Text>}
+        <Caption sx={{ mb: 0.5 }}>Connected MCP clients</Caption>
+        {grantsLoading && <LoadingSpinner size="small" />}
         {!grantsLoading && grants.length === 0 && (
-          <Text className="description">{t("ui2:attrs.noMCPClientHasConnectedYet", { defaultValue: "No MCP client has connected yet." })}</Text>
+          <Text className="description">No MCP client has connected yet.</Text>
         )}
         {grants.map((grant: OauthGrant) => (
           <div key={grant.id} className="settings-item">
             <FlexRow align="center" justify="space-between" fullWidth>
               <FlexColumn gap={0}>
                 <Text sx={{ fontWeight: 500 }}>{grant.client_name}</Text>
-                <Text
-                  className="description"
-                  sx={{ fontSize: "var(--fontSizeSmall) !important" }}
-                >
-                  {t("editor:ui.connectedOn", { defaultValue: "Connected {{date}}", date: formatStamp(grant.created_at) })} · {grant.client_id}
+                <Text className="description">
+                  Connected {formatStamp(grant.created_at)} · {grant.client_id}
                 </Text>
               </FlexColumn>
               <NavButton
                 icon={<RemoveCircleOutlineIcon />}
-                label={t("editor:ui.revoke", { defaultValue: "Revoke" })}
+                label="Revoke"
                 disabled={revokeGrant.isPending}
                 onClick={() => setGrantToRevoke(grant)}
                 navSize="small"
@@ -368,22 +333,17 @@ const AgentAccessSection = () => {
       <Dialog
         open={grantToRevoke !== null}
         onClose={() => setGrantToRevoke(null)}
-        title={t("editor:ui.disconnectThisClient", { defaultValue: "Disconnect this client?" })}
-        showActions
-        confirmText={t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+        title="Disconnect this client?"
+        confirmText="Disconnect"
+        destructive
         isLoading={revokeGrant.isPending}
-        onCancel={() => setGrantToRevoke(null)}
         onConfirm={() => {
           if (grantToRevoke) revokeGrant.mutate(grantToRevoke.id);
         }}
       >
         <Text>
-          {t("editor:ui.disconnectClientBody", {
-            defaultValue:
-              "{{name}} will no longer be able to reach this server. It will need to reconnect and be approved again.",
-            name: grantToRevoke?.client_name ?? ""
-          })}
+          {grantToRevoke?.client_name} will no longer be able to reach this
+          server. It will need to reconnect and be approved again.
         </Text>
       </Dialog>
     </div>

@@ -37,7 +37,6 @@ function nodetoolStubPlugin(): Plugin {
     "@nodetool-ai/fal-nodes",
     "@nodetool-ai/replicate-nodes",
     "@nodetool-ai/dsl",
-    "@nodetool-ai/protocol",
     "@nodetool-ai/config",
     "@nodetool-ai/deploy",
     "@nodetool-ai/vectorstore",
@@ -73,6 +72,17 @@ function nodetoolStubPlugin(): Plugin {
 
 // Tests that need real workspace packages run without the stub plugin.
 const realPackageTests = [
+  "tests/app-build-fake.test.ts",
+  "tests/tools-cli.test.ts",
+  "tests/js-script-cli.test.ts",
+  "tests/packs/npm-matrix.test.ts",
+  "tests/packs/command-service.test.ts",
+  "tests/packs/pack-management-command.test.ts",
+  "tests/packs/reexec.test.ts",
+  "tests/packs/node-run-lazy.test.ts",
+  "tests/command-errors-runtime.test.ts",
+  "tests/runtime-env.test.ts",
+  "tests/missing-runtime-cli.test.ts",
   "tests/runs-integration.test.ts",
   "tests/app-debug-harness.test.ts",
   "tests/app-debug-target.test.ts",
@@ -94,8 +104,10 @@ const realPackageTests = [
   "tests/local-model-interface-parity.test.ts",
   "src/commands/__tests__/timeline-render-audio.test.ts",
   "src/commands/__tests__/timeline-render-completeness.test.ts",
+  "src/commands/__tests__/runtime.test.ts",
   "tests/game-command-input-bindings.test.ts",
-  "tests/game-command-hud-ui.test.ts"
+  "tests/game-command-hud-ui.test.ts",
+  "tests/game-command-saves.test.ts"
 ];
 
 export default defineConfig({
@@ -110,12 +122,22 @@ export default defineConfig({
         resolve: {
           // app-runtime is dependency-free source, so tests exercise the real
           // runtime core rather than a stub.
-          alias: {
-            "@nodetool-ai/app-runtime": resolve(
-              __dirname,
-              "../app-runtime/src/index.ts"
-            )
-          }
+          alias: [
+            {
+              find: /^@nodetool-ai\/app-runtime$/,
+              replacement: resolve(__dirname, "../app-runtime/src/index.ts")
+            },
+            // The analytics package is dependency-free source; the telemetry
+            // tests exercise the real consent and validation code.
+            {
+              find: /^@nodetool-ai\/analytics$/,
+              replacement: resolve(__dirname, "../analytics/src/index.ts")
+            },
+            {
+              find: /^@nodetool-ai\/analytics\/node$/,
+              replacement: resolve(__dirname, "../analytics/src/node/index.ts")
+            }
+          ]
         },
         test: {
           name: "unit",

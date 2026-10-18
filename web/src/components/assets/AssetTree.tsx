@@ -13,7 +13,8 @@ import {
   ListItemIcon,
   ListItemText,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  EmptyState
 } from "../ui_primitives";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
@@ -22,11 +23,7 @@ import { Asset } from "../../stores/ApiTypes";
 import { IconForType } from "../../config/IconForType";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { useTranslation } from "react-i18next";
-import {
-  LOOSE_PROJECT_ID,
-  useWorkspaceTabsStore
-} from "../../stores/WorkspaceTabsStore";
+import { useAssetProjectScope } from "../../hooks/assets/useAssetProjectScope";
 
 const styles = (_theme: Theme) =>
   css({
@@ -49,16 +46,12 @@ const AssetTree: React.FC<AssetTreeProps> = ({
   onTotalAssetsCalculated,
   onLoading
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [assetTree, setAssetTree] = useState<AssetTreeNode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [closedFolders, setClosedFolders] = useState<string[]>([]);
   const getAssetsRecursive = useAssetStore((state) => state.getAssetsRecursive);
-  const projectId = useWorkspaceTabsStore(
-    (state) =>
-      state.activeProjectId ?? state.personalProjectId ?? LOOSE_PROJECT_ID
-  );
+  const { projectId } = useAssetProjectScope();
 
   const folderIcon = useMemo(() => <IconForType iconName="folder" />, []);
   const imageIcon = useMemo(() => <IconForType iconName="image" />, []);
@@ -285,7 +278,7 @@ const AssetTree: React.FC<AssetTreeProps> = ({
       {renderAssetTree(assetTree)}
     </Box>
   ) : (
-    <Text>{t("ui2:attrs.noAssetsFound", { defaultValue: "No assets found" })}</Text>
+    <EmptyState size="small" title="No assets found" />
   );
 };
 

@@ -1,6 +1,11 @@
 import { ROOT_CONTEXT, propagation, trace, isSpanContextValid } from "@opentelemetry/api";
+import { missingPackDetailsOf, type JobUpdate } from "@nodetool-ai/protocol";
 import { getRegisteredRunTrace } from "@nodetool-ai/models";
 import { ensureRunTraceTelemetry, openAppRunTrace, registerWorkflowRunTrace } from "@nodetool-ai/execution";
+import {
+  trackExecutionFinished,
+  trackExecutionStarted
+} from "../backend-analytics.js";
 /**
  * Everything between "run_job arrived" and "terminal status persisted": the
  * admission gates, the concurrency queue, run start-up, the message stream,
@@ -639,6 +644,7 @@ export class JobExecutionManager {
     persistJob: boolean
   ): Promise<void> {
     const errorMessage = err instanceof Error ? err.message : String(err);
+    const missingPack = missingPackDetailsOf(err);
     const appRun = await findAppRunByInvocation(
       this.session.requireUserId(),
       jobId
@@ -655,13 +661,18 @@ export class JobExecutionManager {
       userId: this.session.userId,
       context: { job_id: jobId, workflow_id: workflowId ?? "" }
     });
-    await this.session.send({
+    const update: JobUpdate = {
       type: "job_update",
       status: "failed",
       job_id: jobId,
       workflow_id: workflowId,
       error: errorMessage
-    });
+    };
+    if (missingPack) {
+      update.missing_pack = missingPack;
+      update.error_code = "missing_pack";
+    }
+    await this.session.send(update);
     if (!persistJob) return;
     try {
       const job = (await Job.get(jobId)) as Job | null;
@@ -1752,7 +1763,10 @@ export class JobExecutionManager {
             name: req.job_name ?? "",
             started_at: new Date().toISOString(),
             params: req.params ?? {},
-            graph,
+            // The graph as submitted, not the hydrated one: hydration drops
+            // editor-only nodes (groups, comments), and "Open as it was when
+            // made" reopens this graph in the editor.
+            graph: rawGraph,
             project_id: projectId ?? "default",
             runner_instance: instanceId
           });
@@ -1863,6 +1877,7 @@ export class JobExecutionManager {
       ...(appRun && { appRunFold: createAppRunFold(appRun) }),
       ...(finishAppTrace && { finishAppTrace })
     };
+    trackExecutionStarted(active.applicationId ? "app" : "workflow");
     // Decouple the run from this socket: from here on every frame carrying
     // this job_id is stamped with `job_seq` and buffered, so a client that
     // drops mid-run can `reconnect_job` from a fresh connection and replay
@@ -1992,6 +2007,14 @@ export class JobExecutionManager {
       // window, so a client reconnecting shortly after still gets the tail
       // (and the outcome) before the persisted row becomes the only source.
       active.runSession?.finish(active.status);
+      if (active.status !== "running") {
+        trackExecutionFinished(
+          active.applicationId ? "app" : "workflow",
+          active.status,
+          performance.now() - active.timings.acceptedAt,
+          active.error
+        );
+      }
       this.activeJobs.delete(active.jobId);
       this.drainQueue();
     }

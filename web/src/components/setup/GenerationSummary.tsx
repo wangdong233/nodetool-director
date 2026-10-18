@@ -6,7 +6,6 @@ import {
   FlexColumn,
   FlexRow,
   GAP,
-  Label,
   Text,
   Tooltip
 } from "../ui_primitives";
@@ -136,7 +135,11 @@ export default function GenerationSummary({
       role="region"
       aria-label={compact ? result : i18n.t("storyboard:attrs.beforeYouGenerate", { defaultValue: "Before you generate" })}
     >
-      {!compact ? <Label>{result}</Label> : null}
+      {!compact ? (
+        <Text size="normal" weight={500}>
+          {result}
+        </Text>
+      ) : null}
       <Text size="small" color="secondary">
         {next}
       </Text>

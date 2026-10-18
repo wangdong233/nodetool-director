@@ -20,6 +20,7 @@
  */
 
 import React, {
+  type ReactNode,
   memo,
   useCallback,
   useEffect,
@@ -30,6 +31,7 @@ import React, {
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
+import KeyboardOutlinedIcon from "@mui/icons-material/KeyboardOutlined";
 
 import {
   addNote,
@@ -38,6 +40,8 @@ import {
   beatDurationMs,
   divisionToTicks,
   duplicateNotes,
+  expandClipHarmony,
+  isHarmonyActive,
   moveNotes,
   msToTicks,
   notesInRect,
@@ -58,7 +62,7 @@ import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { useTimelinePlaybackStoreApi } from "../../../stores/timeline/TimelinePlaybackStore";
 import { useTimelineHistoryBatch } from "../../../stores/timeline/useTimelineHistoryBatch";
 import { findClipById } from "../../../stores/timeline/clipLookup";
-import { Button, Caption, Dialog, FlexColumn, FlexRow, Slider, SPACING } from "../../ui_primitives";
+import { Caption, Dialog, FlexColumn, FlexRow, Slider, SPACING, ToolbarIconButton } from "../../ui_primitives";
 import { playAuditionNote } from "../preview/audition";
 import { partitionTimelineWheel } from "../Tracks/timelineWheel";
 import { visibleTempoGrid } from "../Tracks/tempoGrid";
@@ -86,10 +90,9 @@ import {
 
 import { decodeNoteClipboard, encodeNoteClipboard, pasteNotes } from "./noteClipboard";
 import { NoteSelectionInspector } from "./NoteSelectionInspector";
-import { useTranslation } from "react-i18next";
 
 const isNoteControl = (target: EventTarget) => target instanceof HTMLElement &&
-  target.closest("input, select, textarea, button, [role=combobox], [role=dialog], [contenteditable=true]") !== null;
+  target.closest("input, select, textarea, button, [role=combobox], [role=listbox], [role=option], [role=dialog], [contenteditable=true]") !== null;
 
 /** Height of one semitone row. */
 const ROW_HEIGHT_PX = 16;
@@ -106,7 +109,6 @@ const rootStyles = (theme: Theme) =>
     width: "100%",
     minHeight: 0,
     backgroundColor: theme.vars.palette.background.default,
-    borderTop: `1px solid ${theme.vars.palette.divider}`,
     outline: "none",
     "&:focus-visible": {
       boxShadow: `inset 0 0 0 2px ${theme.vars.palette.primary.main}`
@@ -177,11 +179,14 @@ interface PianoRollProps {
   clipId: string;
   /** Closes the panel — Escape with nothing selected. */
   onClose: () => void;
+  /** Controls placed first in the toolbar row (the panel's clip name, grid and snap). */
+  toolbarStart?: ReactNode;
+  /** Controls pinned to the right end of the toolbar row (the panel's Close). */
+  toolbarEnd?: ReactNode;
 }
 
 export const PianoRoll: React.FC<PianoRollProps> = memo(
-  ({ clipId, onClose }) => {
-    const { t } = useTranslation();
+  ({ clipId, onClose, toolbarStart, toolbarEnd }) => {
     const theme = useTheme();
     const clip = useTimelineStore((s) => findClipById(s.clips, clipId));
     const tempo = useTimelineStore((s) => resolveTempo(s));
@@ -197,6 +202,15 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
     const history = useTimelineHistoryBatch();
 
     const notes = useMemo(() => clip?.notes ?? [], [clip?.notes]);
+    const tracks = useTimelineStore((s) => s.tracks);
+    // A clip with harmony plays its arp or comp expansion: drawn read-only.
+    const ghostNotes = useMemo(
+      () =>
+        clip && isHarmonyActive(clip.harmony)
+          ? expandClipHarmony(clip, { tracks, tempo })
+          : undefined,
+      [clip, tracks, tempo]
+    );
     const notesRef = useRef<ReadonlyArray<MidiNote>>(notes);
     notesRef.current = notes;
 
@@ -851,10 +865,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
         data-testid="piano-roll"
         tabIndex={0}
         role="application"
-        aria-label={t("timeline:attrs.noteEditorForName", {
-          defaultValue: "Note editor for {{name}}",
-          name: clip.name || "midi clip"
-        })}
+        aria-label={`Note editor for ${clip.name || "midi clip"}`}
         onKeyDown={handleKeyDown}
         onCopy={event => copySelection(event, false)}
         onCut={event => copySelection(event, true)}
@@ -863,30 +874,50 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
         fullWidth
         sx={{ flex: 1, minHeight: 0 }}
       >
-        <FlexRow gap={SPACING.md} sx={{ px: SPACING.sm, py: SPACING.xs, flexShrink: 0, flexWrap: "wrap" }}>
-          <Caption aria-live="polite">
-            {selectedNotes.map(note => `${pitchName(note.pitch)} · velocity ${note.velocity}`).slice(0, 1).join("") || "Click to add a note"}
-            {selectedNotes.length > 1 ? ` · ${selectedNotes.length} selected` : ""}
-          </Caption>
-          <Caption color="muted">{t("timeline:attrs.velocity2", { defaultValue: "Velocity ±" })}</Caption>
-          <Slider aria-label={t("editor:ui.selectedNoteVelocity", { defaultValue: "Selected note velocity" })} min={1} max={127} step={1}
-            density="compact" sx={{ width: 96 }} disabled={selectedNotes.length === 0}
-            value={selectedVelocity} valueLabelDisplay="auto"
-            onPointerDown={handleVelocityStart}
-            onChange={(_, value) => {
-              const baseline = velocityBaseline.current ?? notesRef.current;
-              const selected = baseline.filter(note => selectedIdsRef.current.has(note.id));
-              const mean = selected.reduce((sum, note) => sum + note.velocity, 0) / selected.length;
-              changeRelativeVelocity(baseline, selectedIdsRef.current, (value as number) - Math.round(mean));
-            }}
-            onChangeCommitted={handleVelocityEnd} onPointerCancel={handleVelocityEnd} />
-          <Caption color="muted">{t("timeline:attrs.pianoRollShortcutHint", { defaultValue: "⌘C/V copy/paste · ⌘R repeat · Q quantize" })}</Caption>
-          <Button size="small" variant="text" onClick={() => setShortcutsOpen(true)} aria-label={t("editor:ui.noteEditingShortcuts", { defaultValue: "Note editing shortcuts" })}>{t("ui2:attrs.shortcuts", { defaultValue: "Shortcuts" })}</Button>
+        <FlexRow
+          fullWidth
+          align="flex-start"
+          gap={SPACING.sm}
+          sx={{
+            px: SPACING.sm,
+            py: SPACING.xs,
+            flexShrink: 0,
+            borderBottom: `1px solid ${theme.vars.palette.divider}`
+          }}
+        >
+          <FlexRow align="center" gap={SPACING.md} sx={{ flex: 1, minWidth: 0, flexWrap: "wrap", rowGap: SPACING.xs }}>
+            {toolbarStart && (
+              <FlexRow align="center" gap={SPACING.sm} sx={{ minWidth: 0 }}>
+                {toolbarStart}
+              </FlexRow>
+            )}
+            <Caption aria-live="polite" sx={{ whiteSpace: "nowrap" }}>
+              {selectedNotes.map(note => `${pitchName(note.pitch)} · velocity ${note.velocity}`).slice(0, 1).join("") || "Click to add a note"}
+              {selectedNotes.length > 1 ? ` · ${selectedNotes.length} selected` : ""}
+            </Caption>
+            <NoteSelectionInspector notes={notes} selectedIds={selectedIds}
+              beatTicks={msToTicks(beatDurationMs(tempo), tempo.bpm)}
+              onChange={next => setClipNotes(clipId, next)}
+              velocityAdjust={
+                <Slider aria-label="Selected note velocity" min={1} max={127} step={1}
+                  density="compact" sx={{ width: 64 }} disabled={selectedNotes.length === 0}
+                  value={selectedVelocity} valueLabelDisplay="auto"
+                  onPointerDown={handleVelocityStart}
+                  onChange={(_, value) => {
+                    const baseline = velocityBaseline.current ?? notesRef.current;
+                    const selected = baseline.filter(note => selectedIdsRef.current.has(note.id));
+                    const mean = selected.reduce((sum, note) => sum + note.velocity, 0) / selected.length;
+                    changeRelativeVelocity(baseline, selectedIdsRef.current, (value as number) - Math.round(mean));
+                  }}
+                  onChangeCommitted={handleVelocityEnd} onPointerCancel={handleVelocityEnd} />
+              } />
+          </FlexRow>
+          <ToolbarIconButton onClick={() => setShortcutsOpen(true)} tooltip="Note editing shortcuts (?)" aria-label="Note editing shortcuts">
+            <KeyboardOutlinedIcon fontSize="small" />
+          </ToolbarIconButton>
+          {toolbarEnd}
         </FlexRow>
-        <NoteSelectionInspector notes={notes} selectedIds={selectedIds}
-          beatTicks={msToTicks(beatDurationMs(tempo), tempo.bpm)}
-          onChange={next => setClipNotes(clipId, next)} />
-        <Dialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} title={t("editor:ui.noteEditingShortcuts", { defaultValue: "Note editing shortcuts" })}>
+        <Dialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} title="Note editing shortcuts">
           <FlexColumn gap={SPACING.sm}>
             {[
               "⌘C / ⌘X / ⌘V — Copy / cut / paste at the playhead",
@@ -902,6 +933,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
               "⌘Z / ⇧⌘Z — Undo / redo",
               "Shift-click — Toggle selection · Drag empty space — Select notes",
               "Option-drag — Duplicate selection · ⌘/Ctrl-drag — Bypass snapping",
+              "Note fields — Pitch and Start move the selection as a group; Length and Velocity set every selected note",
               "Ctrl substitutes for ⌘ on Windows."
             ].map(shortcut => <Caption key={shortcut}>{shortcut}</Caption>)}
           </FlexColumn>
@@ -941,6 +973,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
                 widthPx={size.width}
                 heightPx={size.height}
                 notes={notes}
+                ghostNotes={ghostNotes}
                 selectedIds={selectedIds}
                 gridTicks={gridTicks}
                 barTicks={barTicks}

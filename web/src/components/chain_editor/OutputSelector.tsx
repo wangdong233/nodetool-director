@@ -10,7 +10,8 @@ import {
   BORDER_RADIUS,
   ListItemIcon,
   ListItemText,
-  activateOnKey
+  activateOnKey,
+  ICON_SIZE
 } from "../ui_primitives";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 import CheckIcon from "@mui/icons-material/Check";
@@ -64,12 +65,12 @@ export const OutputSelector: React.FC<OutputSelectorProps> = React.memo(function
           transition: MOTION.all,
         }}
       >
-        <AccountTreeOutlinedIcon sx={{ fontSize: 14, color: theme.vars.palette.primary.main }} />
+        <AccountTreeOutlinedIcon sx={{ fontSize: ICON_SIZE.xs, color: theme.vars.palette.primary.main }} />
         <Text size="smaller" weight={600} sx={{ color: theme.vars.palette.primary.main }}>
           Output: {selected?.name ?? selectedOutput}
         </Text>
         <Text size="smaller" sx={{ color: `${theme.vars.palette.primary.main}99` }}>{selected ? formatType(selected.type) : ""}</Text>
-        <ExpandMoreIcon sx={{ fontSize: 14, color: theme.vars.palette.primary.main }} />
+        <ExpandMoreIcon sx={{ fontSize: ICON_SIZE.xs, color: theme.vars.palette.primary.main }} />
       </Box>
 
       <EditorMenu
@@ -89,8 +90,8 @@ export const OutputSelector: React.FC<OutputSelectorProps> = React.memo(function
               secondary={formatType(o.type)}
             />
             {o.name === selectedOutput && (
-              <ListItemIcon sx={{ minWidth: "auto", ml: 1 }}>
-                <CheckIcon sx={{ fontSize: 18, color: theme.vars.palette.primary.main }} />
+              <ListItemIcon>
+                <CheckIcon />
               </ListItemIcon>
             )}
           </EditorMenuItem>

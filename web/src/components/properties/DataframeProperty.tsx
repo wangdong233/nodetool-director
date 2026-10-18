@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import { useTheme, alpha } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { memo, useCallback, useState, DragEvent } from "react";
 import { PropertyProps } from "../node/PropertyInput";
@@ -8,18 +8,17 @@ import { ColumnDef, DataframeRef } from "../../stores/ApiTypes";
 import DataTable from "../node/DataTable/DataTable";
 import ColumnsManager from "../node/ColumnsManager";
 import DataframeEditorModal from "./DataframeEditorModal";
-import { ToolbarIconButton, EditorButton, ButtonGroup, MOTION, SPACING, BORDER_RADIUS, Z_INDEX, getSpacingPx } from "../ui_primitives";
+import { ToolbarIconButton, EditorButton, ButtonGroup, SPACING, Z_INDEX, getSpacingPx, dropZoneSurfaceStyle } from "../ui_primitives";
 import TableRowsIcon from "@mui/icons-material/TableRows";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import isEqual from "../../utils/isEqual";
+import { removeDataframeColumn } from "../../utils/csvDataframe";
 import {
   parseDataframeFile,
   isSupportedDataframeFile
 } from "../../utils/dataframeParsers";
 import { useNotificationStore } from "../../stores/NotificationStore";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -86,25 +85,13 @@ const styles = (theme: Theme) =>
       width: "100%",
       border: "0",
       textAlign: "center",
-      transition: MOTION.all,
-      outline: `1px dashed ${theme.vars.palette.grey[600]}`,
+      ...dropZoneSurfaceStyle(theme),
       margin: `${theme.spacing(SPACING.sm)} 0`,
-      backgroundColor: alpha(theme.palette.common.black, 0.2),
-      borderRadius: BORDER_RADIUS.md,
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      cursor: "pointer",
-      "&:hover": {
-        outline: `1px dashed ${theme.vars.palette.grey[400]}`,
-        backgroundColor: alpha(theme.palette.common.black, 0.3)
-      },
-      "&.drag-over": {
-        backgroundColor: theme.vars.palette.grey[600],
-        outline: `2px dashed ${theme.vars.palette.grey[100]}`,
-        outlineOffset: "-2px"
-      }
+      cursor: "pointer"
     },
     ".dropzone-content": {
       display: "flex",
@@ -138,7 +125,6 @@ const DataframeProperty = ({
   nodeType: _nodeType,
   property
 }: PropertyProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -170,6 +156,13 @@ const DataframeProperty = ({
         ...value,
         columns
       });
+    },
+    [value, onChange]
+  );
+
+  const onDeleteColumn = useCallback(
+    (index: number) => {
+      onChange(removeDataframeColumn(value, index));
     },
     [value, onChange]
   );
@@ -234,7 +227,7 @@ const DataframeProperty = ({
         addNotification({
           type: "error",
           alert: true,
-          content: `Failed to parse file: ${error instanceof Error ? error.message : i18n.t("editor:ui.unknownError", { defaultValue: "Unknown error" })}`
+          content: `Failed to parse file: ${error instanceof Error ? error.message : "Unknown error"}`
         });
       } finally {
         setIsLoading(false);
@@ -262,7 +255,7 @@ const DataframeProperty = ({
         </ButtonGroup>
         {isHovered && (
           <div className="dataframe-action-buttons">
-            <ToolbarIconButton tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })} icon={<OpenInFullIcon />} onClick={toggleExpand} size="small" />
+            <ToolbarIconButton tooltip="Open editor" icon={<OpenInFullIcon />} onClick={toggleExpand} size="small" />
           </div>
         )}
       </div>
@@ -276,9 +269,9 @@ const DataframeProperty = ({
         <div className="dropzone-content">
           <UploadFileIcon />
           <span className="dropzone-text">
-            {isLoading ? t("editor:ui.loading2", { defaultValue: "Loading..." }) : t("editor:ui.dropCSVOrExcelFile", { defaultValue: "Drop CSV or Excel file" })}
+            {isLoading ? "Loading…" : "Drop CSV or Excel file"}
           </span>
-          <span className="dropzone-subtext">{t("editor:ui.supportedCsvXlsxXls", { defaultValue: "Supported: CSV, XLSX, XLS" })}</span>
+          <span className="dropzone-subtext">Supported: CSV, XLSX, XLS</span>
         </div>
       </div>
 
@@ -287,6 +280,7 @@ const DataframeProperty = ({
           <ColumnsManager
             columns={value.columns || []}
             onChange={onChangeColumns}
+            onDeleteColumn={onDeleteColumn}
                       />
           <DataTable
             dataframe={value}

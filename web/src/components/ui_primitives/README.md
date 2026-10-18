@@ -55,7 +55,6 @@ The UI primitives provide:
 - **ExpandCollapseButton** - Toggle button for expand/collapse content
 - **RefreshButton** - Refresh/reset button with loading state
 - **SelectionControls** - Bulk selection controls (select all/clear)
-- **ViewModeToggle** - Toggle button group for view mode switching
 
 ### State & Toggle Buttons (New)
 
@@ -398,6 +397,7 @@ ui_primitives/
 ├── index.ts                    # Re-exports every primitive and utility
 ├── NodeSlider.tsx              # Slider primitive
 ├── TextInput.tsx               # Standalone text input
+├── TextArea.tsx                # Multiline text input with the writing assistant
 ├── SelectField.tsx             # Standalone select
 ├── tokens.ts                   # TYPOGRAPHY, MOTION, Z_INDEX, BORDER_RADIUS
 ├── spacing.ts                  # SPACING, GAP, PADDING, MARGIN

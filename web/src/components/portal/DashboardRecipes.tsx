@@ -11,12 +11,14 @@ import {
   BORDER_RADIUS,
   EmptyState,
   LoadingSpinner,
-  MOTION,
   SPACING,
-  getSpacingPx
+  TYPOGRAPHY,
+  getSpacingPx,
+  selectableRowStyles,
+  Tooltip,
+  EditorButton
 } from "../ui_primitives";
-import { useSectionWrap, SectionHeader } from "./dashboardChrome";
-import { useTranslation } from "react-i18next";
+import { useSectionWrap, DashboardSectionHeader } from "./dashboardChrome";
 
 type Recipe = recipeSchemas.ExampleRecipeSummary;
 type RecipeStep = recipeSchemas.ExampleRecipeStep;
@@ -38,7 +40,7 @@ const styles = (theme: Theme) =>
     paddingTop: getSpacingPx(SPACING.xxl),
     ".rcp-lede": {
       margin: `0 0 ${getSpacingPx(SPACING.sm)}`,
-      fontSize: "var(--fontSizeSmall)",
+      ...TYPOGRAPHY.sans.caption,
       color: theme.vars.palette.text.secondary
     },
     ".rcp-list": {
@@ -48,7 +50,7 @@ const styles = (theme: Theme) =>
     },
     ".rcp": {
       border: `1px solid ${theme.vars.palette.divider}`,
-      borderRadius: BORDER_RADIUS.lg,
+      borderRadius: BORDER_RADIUS.md,
       background: theme.vars.palette.c_node_bg,
       overflow: "hidden"
     },
@@ -59,6 +61,7 @@ const styles = (theme: Theme) =>
       padding: getSpacingPx(SPACING.md)
     },
     ".rcp-toggle": {
+      ...selectableRowStyles(theme),
       display: "flex",
       alignItems: "center",
       gap: getSpacingPx(SPACING.md),
@@ -67,12 +70,9 @@ const styles = (theme: Theme) =>
       textAlign: "left",
       padding: getSpacingPx(SPACING.xs),
       margin: `-${getSpacingPx(SPACING.xs)}`,
-      background: "transparent",
       border: "none",
-      borderRadius: BORDER_RADIUS.sm,
-      cursor: "pointer",
-      transition: `background ${MOTION.fast}`,
-      "&:hover": { background: theme.vars.palette.action.hover }
+      color: "inherit",
+      cursor: "pointer"
     },
     ".rcp-thumb": {
       flexShrink: 0,
@@ -85,12 +85,12 @@ const styles = (theme: Theme) =>
     ".rcp-text": { flex: 1, minWidth: 0 },
     ".rcp-name": {
       display: "block",
-      fontSize: "var(--fontSizeNormal)",
+      ...TYPOGRAPHY.sans.label,
       color: theme.vars.palette.text.primary
     },
     ".rcp-outcome": {
       display: "block",
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.sans.caption,
       color: theme.vars.palette.text.secondary,
       overflow: "hidden",
       textOverflow: "ellipsis",
@@ -98,26 +98,11 @@ const styles = (theme: Theme) =>
     },
     ".rcp-meta": {
       flexShrink: 0,
-      fontFamily: theme.fontFamily2,
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.mono.caption,
       color: theme.vars.palette.text.disabled,
       [theme.breakpoints.down("sm")]: { display: "none" }
     },
-    ".rcp-add": {
-      flexShrink: 0,
-      padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)}`,
-      borderRadius: BORDER_RADIUS.pill,
-      border: `1px solid rgba(${theme.vars.palette.primary.mainChannel} / 0.5)`,
-      background: `rgba(${theme.vars.palette.primary.mainChannel} / 0.12)`,
-      color: theme.vars.palette.primary.main,
-      fontSize: "var(--fontSizeSmaller)",
-      cursor: "pointer",
-      transition: `background ${MOTION.fast}`,
-      "&:hover": {
-        background: `rgba(${theme.vars.palette.primary.mainChannel} / 0.22)`
-      },
-      "&:disabled": { cursor: "wait", opacity: 0.6 }
-    },
+    ".rcp-add": { flexShrink: 0 },
     // The header button sits in a row; the one under the open chain sits in a
     // column, where a stretched button would read as a banner.
     ".rcp-add.inline": { alignSelf: "flex-start" },
@@ -132,18 +117,17 @@ const styles = (theme: Theme) =>
     },
     ".rcp-app-name": {
       display: "block",
-      fontSize: "var(--fontSizeSmall)",
+      ...TYPOGRAPHY.sans.label,
       color: theme.vars.palette.text.primary
     },
     ".rcp-app-role": {
       display: "block",
-      fontSize: "var(--fontSizeSmaller)",
-      lineHeight: 1.6,
+      ...TYPOGRAPHY.sans.caption,
       color: theme.vars.palette.text.secondary
     },
     ".rcp-steps-lede": {
       margin: 0,
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.sans.caption,
       color: theme.vars.palette.text.disabled
     },
     ".rcp-body": {
@@ -156,41 +140,36 @@ const styles = (theme: Theme) =>
     ".rcp-summary": {
       margin: 0,
       maxWidth: "72ch",
-      fontSize: "var(--fontSizeSmall)",
-      lineHeight: 1.6,
+      ...TYPOGRAPHY.sans.body,
       color: theme.vars.palette.text.secondary
     },
     ".rcp-step": {
+      ...selectableRowStyles(theme),
       display: "flex",
       alignItems: "flex-start",
       gap: getSpacingPx(SPACING.md),
       width: "100%",
       textAlign: "left",
       padding: getSpacingPx(SPACING.sm),
-      background: "transparent",
       border: "none",
-      borderRadius: BORDER_RADIUS.sm,
+      color: "inherit",
       cursor: "pointer",
-      transition: `background ${MOTION.fast}`,
-      "&:hover": { background: theme.vars.palette.action.hover },
       "&.loading": { cursor: "wait", pointerEvents: "none" }
     },
     ".rcp-index": {
       flexShrink: 0,
       width: 24,
-      fontFamily: theme.fontFamily2,
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.mono.caption,
       color: theme.vars.palette.primary.main
     },
     ".rcp-step-title": {
       display: "block",
-      fontSize: "var(--fontSizeSmall)",
+      ...TYPOGRAPHY.sans.label,
       color: theme.vars.palette.text.primary
     },
     ".rcp-step-text": {
       display: "block",
-      fontSize: "var(--fontSizeSmaller)",
-      lineHeight: 1.6,
+      ...TYPOGRAPHY.sans.caption,
       color: theme.vars.palette.text.secondary
     },
     ".rcp-models": {
@@ -200,8 +179,7 @@ const styles = (theme: Theme) =>
       paddingTop: getSpacingPx(SPACING.xs)
     },
     ".rcp-model": {
-      fontFamily: theme.fontFamily2,
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.mono.caption,
       color: theme.vars.palette.text.disabled,
       border: `1px solid ${theme.vars.palette.divider}`,
       borderRadius: BORDER_RADIUS.sm,
@@ -209,8 +187,7 @@ const styles = (theme: Theme) =>
     },
     ".rcp-caveat": {
       margin: 0,
-      fontSize: "var(--fontSizeSmaller)",
-      lineHeight: 1.6,
+      ...TYPOGRAPHY.sans.caption,
       color: theme.vars.palette.text.disabled
     },
     ".rcp-loading, .rcp-empty": {
@@ -235,43 +212,43 @@ const RecipeStepRow = memo(function RecipeStepRow({
   copyingStep,
   onOpen
 }: RecipeStepRowProps) {
-  const { t } = useTranslation();
   const loading = copyingStep === `${slug}:${step.example}`;
   return (
-    <button
-      type="button"
-      className={loading ? "rcp-step loading" : "rcp-step"}
-      onClick={() => onOpen(slug, step)}
-      title={t("editor:ui.openNamedItem", { defaultValue: "Open {{name}}", name: step.example })}
-    >
-      <span className="rcp-index">
-        {loading ? (
-          <LoadingSpinner size="small" />
-        ) : (
-          String(index + 1).padStart(2, "0")
-        )}
-      </span>
-      <span className="rcp-text">
-        <span className="rcp-step-title">
-          {step.role} — {step.example}
-        </span>
-        <span className="rcp-step-text">{step.handoff}</span>
-        <span className="rcp-models">
-          {step.models.length > 0 ? (
-            step.models.map((model) => (
-              <span
-                key={`${model.provider}:${model.model}`}
-                className="rcp-model"
-              >
-                {model.model}
-              </span>
-            ))
+    <Tooltip title={`Open ${step.example}`} describeChild>
+      <button
+        type="button"
+        className={loading ? "rcp-step loading" : "rcp-step"}
+        onClick={() => onOpen(slug, step)}
+      >
+        <span className="rcp-index">
+          {loading ? (
+            <LoadingSpinner size="small" />
           ) : (
-            <span className="rcp-model">{t("editor:ui.runsLocallyNoKeyNeeded", { defaultValue: "Runs locally — no key needed" })}</span>
+            String(index + 1).padStart(2, "0")
           )}
         </span>
-      </span>
-    </button>
+        <span className="rcp-text">
+          <span className="rcp-step-title">
+            {step.role} — {step.example}
+          </span>
+          <span className="rcp-step-text">{step.handoff}</span>
+          <span className="rcp-models">
+            {step.models.length > 0 ? (
+              step.models.map((model) => (
+                <span
+                  key={`${model.provider}:${model.model}`}
+                  className="rcp-model"
+                >
+                  {model.model}
+                </span>
+              ))
+            ) : (
+              <span className="rcp-model">Runs locally — no key needed</span>
+            )}
+          </span>
+        </span>
+      </button>
+    </Tooltip>
   );
 });
 
@@ -286,17 +263,12 @@ const RecipeAppRow = memo(function RecipeAppRow({
   installingApp,
   onInstall
 }: RecipeAppRowProps) {
-  const { t } = useTranslation();
   const installing = installingApp === app.slug;
   return (
     <div className="rcp-app">
       <span className="rcp-text">
         <span className="rcp-app-name">
-          {t("editor:ui.appStepsOnOnePage", {
-            defaultValue: "{{name}} — {{count}} steps on one page",
-            name: app.name,
-            count: String(app.operationCount)
-          })}
+          {app.name} — {app.operationCount} steps on one page
         </span>
         <span className="rcp-app-role">{app.role}</span>
         <span className="rcp-models">
@@ -307,14 +279,14 @@ const RecipeAppRow = memo(function RecipeAppRow({
           ))}
         </span>
       </span>
-      <button
-        type="button"
+      <EditorButton
+        variant="outlined"
         className="rcp-add"
         disabled={installing}
         onClick={() => onInstall(app.slug)}
       >
-        {installing ? t("editor:ui.installing", { defaultValue: "Installing…" }) : t("editor:ui.installApp", { defaultValue: "Install app" })}
-      </button>
+        {installing ? "Installing…" : "Install app"}
+      </EditorButton>
     </div>
   );
 });
@@ -330,7 +302,6 @@ const RecipeCard = memo(function RecipeCard({
   expanded,
   onToggle
 }: RecipeCardProps) {
-  const { t } = useTranslation();
   const { copyingStep, addingSlug, installingApp, openStep, installApp, addRecipe } =
     useRecipeActions();
   const thumb = thumbSrc(recipe.thumbnailUrl);
@@ -357,20 +328,19 @@ const RecipeCard = memo(function RecipeCard({
             <span className="rcp-outcome">{recipe.outcome}</span>
           </span>
           <span className="rcp-meta">
-                        {t("editor:ui.nWorkflowsNodes", { apps: t(recipe.apps.length === 1 ? "editor:ui.oneApp" : "editor:ui.nApps", { n: recipe.apps.length }), steps: recipe.steps.length, nodes: recipe.nodeCount })}
+            {recipe.apps.length} {recipe.apps.length === 1 ? "app" : "apps"} ·{" "}
+            {recipe.steps.length} workflows · {recipe.nodeCount} nodes
           </span>
         </button>
         {primaryApp && (
-          <button
-            type="button"
+          <EditorButton
+            variant="outlined"
             className="rcp-add"
             disabled={installingPrimary}
             onClick={() => void installApp(primaryApp.slug)}
           >
-            {installingPrimary
-              ? t("editor:ui.installing", { defaultValue: "Installing…" })
-              : t("editor:ui.installNamedApp", { defaultValue: "Install {{name}}", name: primaryApp.name })}
-          </button>
+            {installingPrimary ? "Installing…" : `Install ${primaryApp.name}`}
+          </EditorButton>
         )}
       </div>
 
@@ -390,10 +360,8 @@ const RecipeCard = memo(function RecipeCard({
             />
           ))}
           <p className="rcp-steps-lede">
-            {t("editor:ui.recipeStepsLede", {
-              defaultValue:
-                "The workflows behind those apps. Open one to change how a step works, or add the whole chain as graphs."
-            })}
+            The workflows behind those apps. Open one to change how a step
+            works, or add the whole chain as graphs.
           </p>
           {recipe.steps.map((step, index) => (
             <RecipeStepRow
@@ -405,16 +373,16 @@ const RecipeCard = memo(function RecipeCard({
               onOpen={openStep}
             />
           ))}
-          <button
-            type="button"
+          <EditorButton
+            variant="outlined"
             className="rcp-add inline"
             disabled={adding}
             onClick={() => void addRecipe(recipe)}
           >
             {adding
-              ? t("editor:ui.adding", { defaultValue: "Adding…" })
-              : t("editor:ui.addAllNAsWorkflows", { n: recipe.steps.length })}
-          </button>
+              ? "Adding…"
+              : `Add all ${recipe.steps.length} as workflows`}
+          </EditorButton>
           {recipe.caveats.map((caveat) => (
             <p key={caveat} className="rcp-caveat">
               {caveat}
@@ -433,7 +401,6 @@ const RecipeCard = memo(function RecipeCard({
  * the workflows behind them, each openable as a graph.
  */
 const DashboardRecipes: React.FC = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -450,24 +417,22 @@ const DashboardRecipes: React.FC = () => {
   return (
     <section css={styles(theme)}>
       <div css={sectionWrap}>
-        <SectionHeader title={t("editor:ui.recipes", { defaultValue: "Recipes" })} count={`${recipes.length}`} />
+        <DashboardSectionHeader title="Recipes" count={`${recipes.length}`} />
         <p className="rcp-lede">
-          {t("editor:ui.recipesLede", {
-            defaultValue:
-              "Each one installs as an app that runs the whole chain, with the example workflows behind it in your library to edit."
-          })}
+          Each one installs as an app that runs the whole chain, with the
+          example workflows behind it in your library to edit.
         </p>
         {isLoading ? (
           <div className="rcp-loading">
-            <LoadingSpinner size="medium" text={t("editor:ui.loadingRecipes")} />
+            <LoadingSpinner size="medium" text="Loading recipes" />
           </div>
         ) : isError ? (
           <div className="rcp-empty">
             <EmptyState
               variant="error"
-              title={t("editor:ui.couldntLoadRecipes", { defaultValue: "Couldn't load recipes" })}
-              description={t("editor:ui.tryAgainInAMoment")}
-              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
+              title="Couldn't load recipes"
+              description="Try again in a moment."
+              actionText="Retry"
               onAction={() => refetch()}
             />
           </div>

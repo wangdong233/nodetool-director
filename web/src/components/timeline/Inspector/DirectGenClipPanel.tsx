@@ -12,8 +12,6 @@
  * happens in `TimelineInspector`.
  */
 
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { css } from "@emotion/react";
@@ -62,9 +60,9 @@ import {
 } from "../../../stores/MediaGenerationStore";
 import { useMediaOptions } from "../../../hooks/useModelsByProvider";
 
+import ErrorBanner from "../../support/ErrorBanner";
 import {
   SPACING,
-  Caption,
   CollapsibleSection,
   EditorButton,
   EmptyState,
@@ -72,7 +70,7 @@ import {
   FlexRow,
   Panel,
   SelectField,
-  TextInput,
+  TextArea,
   ToggleGroup,
   ToggleOption
 } from "../../ui_primitives";
@@ -130,7 +128,6 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
   clipId,
   additionalSections
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [promptOpen, setPromptOpen] = usePersistedFold("direct-gen-prompt", true);
 
@@ -335,8 +332,8 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
   }, [promptHistory]);
 
   const handlePromptChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setClipPrompt(clipId, e.target.value);
+    (value: string) => {
+      setClipPrompt(clipId, value);
       promptHistory.mark();
     },
     [clipId, setClipPrompt, promptHistory]
@@ -380,16 +377,14 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
 
   const promptPlaceholder =
     kind === "video"
-      ? i18n.t("timeline:attrs.describeTheVideo", { defaultValue: "Describe the video…" })
+      ? "Describe the video…"
       : kind === "music"
-        ? i18n.t("timeline:attrs.describeTheMusic", { defaultValue: "Describe the music…" })
+        ? "Describe the music…"
         : kind === "audio"
-          ? i18n.t("timeline:attrs.typeTextToSpeak", { defaultValue: "Type text to speak…" })
-          : i18n.t("timeline:attrs.describeTheImage", { defaultValue: "Describe the image…" });
+          ? "Type text to speak…"
+          : "Describe the image…";
 
-  const generateLabel = clip.currentAssetId
-    ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })
-    : t("ui2:attrs.generate", { defaultValue: "Generate" });
+  const generateLabel = clip.currentAssetId ? "Regenerate" : "Generate";
 
   return (
     <Panel background="default" bordered={false} sx={panelSx}>
@@ -399,7 +394,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title={t("timeline:attrs.prompt", { defaultValue: "Prompt" })}
+              title="Prompt"
               icon={<AutoAwesomeOutlinedIcon />}
             />
           }
@@ -479,19 +474,18 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               />
             )}
 
-            <TextInput
+            <TextArea
               value={clip.prompt ?? ""}
               onChange={handlePromptChange}
               onFocus={handlePromptFocus}
               onBlur={handlePromptBlur}
               placeholder={promptPlaceholder}
-              multiline
               minRows={2}
               maxRows={10}
               compact
               fullWidth
               inputProps={{
-                "aria-label": t("timeline:attrs.prompt", { defaultValue: "Prompt" }),
+                "aria-label": "Prompt",
                 "data-testid": "direct-gen-prompt"
               }}
             />
@@ -501,11 +495,11 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                 <EmptyState
                   variant="empty"
                   size="small"
-                  description={t("timeline:attrs.noSourceClipsWithRenderedAsset", { defaultValue: "No source clips with a rendered asset are available." })}
+                  description="No source clips with a rendered asset are available."
                 />
               ) : (
                 <SelectField
-                  label={isImageToVideo ? i18n.t("timeline:attrs.sourceImage", { defaultValue: "Source image" }) : i18n.t("timeline:attrs.sourceClip", { defaultValue: "Source clip" })}
+                  label={isImageToVideo ? "Source image" : "Source clip"}
                   value={clip.sourceClipId ?? ""}
                   onChange={handleSourceChange}
                   options={sourceOptions}
@@ -520,7 +514,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               <FlexRow gap={0.5} align="center" sx={{ flexWrap: "wrap" }}>
                 <MediaOptionChip
                   icon={<TvIcon fontSize="small" />}
-                  header={t("editor:ui.resolution", { defaultValue: "Resolution" })}
+                  header="Resolution"
                   value={imageResolution}
                   options={resolutionOptions}
                   onChange={(r) => applyImageSize(r, imageAspect)}
@@ -561,7 +555,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                 <MediaOptionChip
                   icon={<AccessTimeIcon fontSize="small" />}
                   label={`${videoDuration} Sec`}
-                  header={t("timeline:attrs.duration", { defaultValue: "Duration" })}
+                  header="Duration"
                   value={videoDuration}
                   options={durationOptions}
                   onChange={handleDurationChange}
@@ -592,7 +586,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
             <FlexRow justify="flex-end" fullWidth>
               <CostEstimateLine
                 estimate={generationCostLine(costEstimate)}
-                title={t("timeline:attrs.estimatedCostOfThisGeneration", { defaultValue: "Estimated cost of this generation" })}
+                title="Estimated cost of this generation"
               />
             </FlexRow>
 
@@ -607,12 +601,17 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               onClick={handleGenerateClick}
               data-testid="direct-gen-generate"
             >
-              {isActive ? t("timeline:attrs.cancel", { defaultValue: "Cancel" }) : generateLabel}
+              {isActive ? "Cancel" : generateLabel}
             </EditorButton>
             {isFailed && (
-              <Caption color="error" sx={{ textAlign: "center" }}>
-                {t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}
-              </Caption>
+              <ErrorBanner
+                report={{
+                  source: "job-failure",
+                  summary: "Clip generation failed"
+                }}
+              >
+                Generation failed.
+              </ErrorBanner>
             )}
           </FlexColumn>
         </CollapsibleSection>

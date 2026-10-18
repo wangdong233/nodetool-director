@@ -1,3 +1,5 @@
+import { findMissingPacks } from "./missing-packs.js";
+import { MissingPackError } from "@nodetool-ai/protocol";
 import { withRegisteredRunTrace, settleRegisteredRunTrace } from "./service/run-trace-lifecycle.js";
 /** Canonical lifecycle for top-level Node/server workflow runs. */
 import { randomUUID } from "node:crypto";
@@ -261,6 +263,15 @@ export class ExecutionSession {
 
     try {
       const normalized = normalizeGraph(options.graph);
+      if (registry) {
+        const missing = await findMissingPacks(normalized, registry, {
+          loadWorkflow: options.loadWorkflow ?? (async (id) => {
+            const { Workflow } = await import("@nodetool-ai/models");
+            return Workflow.find(context.userId, id);
+          })
+        });
+        if (missing) { throw new MissingPackError(missing); }
+      }
       if (options.preflight !== false) {
         await assertPreflight(normalized, {
           catalogs: options.catalogs,

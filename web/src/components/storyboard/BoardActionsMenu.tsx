@@ -6,7 +6,6 @@
  */
 
 import React, { memo, useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 import DownloadIcon from "@mui/icons-material/Download";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -38,7 +37,6 @@ const BoardActionsMenu: React.FC<BoardActionsMenuProps> = ({
   hasShots,
   workflowMedia
 }) => {
-  const { t } = useTranslation();
   const inStudio = useInStudio();
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -65,8 +63,8 @@ const BoardActionsMenu: React.FC<BoardActionsMenuProps> = ({
       <ToolbarIconButton
         ref={setButton}
         icon={<MoreVertIcon fontSize="small" />}
-        tooltip={t("storyboard:attrs.moreBoardActions", { defaultValue: "More board actions" })}
-        ariaLabel={t("storyboard:attrs.moreBoardActions", { defaultValue: "More board actions" })}
+        tooltip="More board actions"
+        ariaLabel="More board actions"
         aria-haspopup="menu"
         aria-expanded={menuOpen}
         onClick={openMenu}
@@ -77,32 +75,25 @@ const BoardActionsMenu: React.FC<BoardActionsMenuProps> = ({
         onClose={closeMenu}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{ list: { "aria-label": t("storyboard:attrs.boardActions", { defaultValue: "Board actions" }) } }}
+        slotProps={{ list: { "aria-label": "Board actions" } }}
       >
         <MenuItemPrimitive
-          compact
-          label={t("storyboard:attrs.changeStyleEllipsis", { defaultValue: "Change style…" })}
+          label="Change style…"
           icon={<PaletteOutlinedIcon fontSize="small" />}
           onClick={changeStyle}
         />
         <MenuItemPrimitive
-          compact
-          label={
-            downloading
-              ? t("storyboard:attrs.preparingZip", { defaultValue: "Preparing ZIP…" })
-              : t("storyboard:attrs.downloadZip", { defaultValue: "Download ZIP" })
-          }
+          label={downloading ? "Preparing ZIP…" : "Download ZIP"}
           icon={<DownloadIcon fontSize="small" />}
           disabled={!hasShots || downloading}
           onClick={downloadZip}
         />
         {!inStudio && (
           <MenuItemPrimitive
-            compact
-            label={t("storyboard:attrs.sendToWorkflowEllipsis", { defaultValue: "Send to workflow…" })}
+            label="Send to workflow…"
             secondary={
               workflowMedia.length === 0
-                ? t("storyboard:attrs.renderAStillOrClipFirst", { defaultValue: "Render a still or clip first" })
+                ? "Render a still or clip first"
                 : undefined
             }
             icon={<AccountTreeOutlinedIcon fontSize="small" />}

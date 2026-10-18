@@ -1,5 +1,6 @@
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback, useMemo, useState } from "react";
 import { DynamicInputButton } from "../ui_primitives";
+import useMetadataStore from "../../stores/MetadataStore";
 import { useDynamicOutput } from "../../hooks/nodes/useDynamicOutput";
 import { TypeMetadata } from "../../stores/ApiTypes";
 import AddDynamicOutputDialog from "./AddDynamicOutputDialog";
@@ -7,6 +8,7 @@ import { useTranslation } from "react-i18next";
 
 interface AddDynamicOutputButtonProps {
   id: string;
+  nodeType: string;
   dynamicOutputs: Record<string, TypeMetadata>;
 }
 
@@ -19,11 +21,22 @@ interface AddDynamicOutputButtonProps {
  */
 const AddDynamicOutputButton: React.FC<AddDynamicOutputButtonProps> = ({
   id,
+  nodeType,
   dynamicOutputs
 }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { handleAddOutput } = useDynamicOutput(id, dynamicOutputs);
+  const staticOutputs = useMetadataStore(
+    (state) => state.metadata[nodeType]?.outputs
+  );
+  const takenNames = useMemo(
+    () => [
+      ...(staticOutputs ?? []).map((output) => output.name),
+      ...Object.keys(dynamicOutputs)
+    ],
+    [staticOutputs, dynamicOutputs]
+  );
 
   const handleOpen = useCallback(() => setOpen(true), []);
   const handleClose = useCallback(() => setOpen(false), []);
@@ -35,6 +48,7 @@ const AddDynamicOutputButton: React.FC<AddDynamicOutputButtonProps> = ({
         open={open}
         onClose={handleClose}
         onAdd={handleAddOutput}
+        takenNames={takenNames}
       />
     </>
   );

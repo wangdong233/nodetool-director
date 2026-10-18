@@ -20,6 +20,7 @@ import {
   EditorButton,
   FlexColumn,
   FlexRow,
+  ProgressBar,
   ScrollArea,
   Text,
   ToolbarIconButton,
@@ -28,14 +29,15 @@ import {
   SPACING,
   Z_INDEX,
   getSpacingPx,
-  reducedMotion
+  reducedMotion,
+  StatusDot
 } from "../ui_primitives";
 import type { SxProps } from "@mui/material/styles";
 import TheatersIcon from "@mui/icons-material/Theaters";
 import PlayArrowOutlinedIcon from "@mui/icons-material/PlayArrowOutlined";
 import RemoveIcon from "@mui/icons-material/Remove";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import {
   sameMediaRef,
   useStoryboardStore
@@ -48,7 +50,6 @@ import {
   type ShotRequestRecord
 } from "../../stores/storyboard/StoryboardGenerationStore";
 import { useGenerateShot } from "../../hooks/storyboard/useGenerateShot";
-import { useTranslation } from "react-i18next";
 
 export interface StoryboardQueueOverlayProps {
   boardId: string;
@@ -95,68 +96,26 @@ const KIND_LABEL = {
   clip: "Clip"
 } satisfies Record<ShotJobKind, string>;
 
-const sweep = keyframes`
-  0% { transform: translateX(-110%); }
-  100% { transform: translateX(320%); }
-`;
-
 const panelEnter = keyframes`
   from { opacity: 0; transform: translateY(6px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 `;
-
-const progressStyles = (theme: Theme) =>
-  css({
-    position: "relative",
-    height: "4px",
-    borderRadius: BORDER_RADIUS.pill,
-    overflow: "hidden",
-    backgroundColor: theme.vars.palette.c_overlay,
-    "&::after": {
-      content: '""',
-      position: "absolute",
-      inset: 0,
-      width: "35%",
-      borderRadius: "inherit",
-      background: `linear-gradient(90deg, ${theme.vars.palette.primary.main}, ${theme.vars.palette.secondary.main})`,
-      animation: `${sweep} ${MOTION.pulse} infinite`
-    },
-    ...reducedMotion({
-      "&::after": { animation: "none", width: "100%", opacity: 0.5 }
-    })
-  });
 
 /**
  * Progress bar under a rendering job: determinate when the run reports
  * progress, an indeterminate sweep otherwise.
  */
 const RenderBar = memo(function RenderBar({ progress }: { progress?: number }) {
-  const theme = useTheme();
-  if (progress != null && progress > 0 && progress < 100) {
-    return (
-      <Box
-        sx={{
-          position: "relative",
-          height: "4px",
-          borderRadius: BORDER_RADIUS.pill,
-          overflow: "hidden",
-          backgroundColor: theme.vars.palette.c_overlay
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            width: `${progress}%`,
-            borderRadius: "inherit",
-            background: `linear-gradient(90deg, ${theme.vars.palette.primary.main}, ${theme.vars.palette.secondary.main})`,
-            transition: `width ${MOTION.normal}`
-          }}
-        />
-      </Box>
-    );
-  }
-  return <Box css={progressStyles(theme)} />;
+  const determinate = progress != null && progress > 0 && progress < 100;
+  return (
+    <ProgressBar
+      value={determinate ? progress : 0}
+      progressVariant={determinate ? "determinate" : "indeterminate"}
+      showValue={false}
+      size="small"
+      aria-label="Rendering"
+    />
+  );
 });
 
 const cardSx: SxProps<Theme> = {
@@ -167,18 +126,6 @@ const cardSx: SxProps<Theme> = {
   px: SPACING.sm,
   py: SPACING.xs
 };
-
-const Dot = ({ color = "primary.main" }: { color?: string }) => (
-  <Box
-    sx={{
-      width: getSpacingPx(SPACING.md),
-      height: getSpacingPx(SPACING.md),
-      flex: "0 0 auto",
-      borderRadius: BORDER_RADIUS.circle,
-      backgroundColor: color
-    }}
-  />
-);
 
 const KindTag = ({ kind }: { kind: ShotJobKind }) => (
   <Caption
@@ -200,26 +147,25 @@ const RequestCard = memo(function RequestCard({
   row: JobRow;
   onStopTracking?: (requestId: string) => void;
 }) {
-  const { t } = useTranslation();
   const statusLabel =
     row.status === "stopped"
-      ? t("storyboard:attrs.stoppedTrackingProviderMayStillFinishAndCharge", { defaultValue: "Stopped tracking; provider may still finish and charge" })
+      ? "Stopped tracking; provider may still finish and charge"
       : row.awaitingReview
-        ? t("storyboard:attrs.completedAwaitingReview", { defaultValue: "Completed · awaiting review" })
+        ? "Completed · awaiting review"
         : row.status;
   return (
     <Box sx={cardSx}>
       <FlexRow align="center" gap={SPACING.xs} sx={{ minWidth: 0 }}>
-        <Dot color={row.status === "failed" ? "error.main" : "primary.main"} />
+        <StatusDot tone={row.status === "failed" ? "error" : "primary"} size="medium" />
         <Text size="small" truncate sx={{ flex: 1, minWidth: 0 }}>
           {row.name}
         </Text>
         <KindTag kind={row.kind} />
         {row.status === "running" && onStopTracking && (
           <ToolbarIconButton
-            icon={<CloseIcon sx={{ fontSize: "1em" }} />}
-            tooltip={t("storyboard:attrs.stopTrackingTheProviderRequestMayStillFinishAndCharge", { defaultValue: "Stop tracking. The provider request may still finish and charge." })}
-            ariaLabel={t("storyboard:attrs.stopTrackingRender", { defaultValue: "Stop tracking render" })}
+            icon={<CloseIcon fontSize="inherit" />}
+            tooltip="Stop tracking. The provider request may still finish and charge."
+            ariaLabel="Stop tracking render"
             variant="error"
             onClick={() => onStopTracking(row.jobId)}
           />
@@ -279,7 +225,6 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
   readOnly = false,
   onReviewCompleted
 }: StoryboardQueueOverlayProps) {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
 
@@ -385,14 +330,14 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
       <Box css={overlayStyles(theme)}>
         <FlexColumn gap={SPACING.xs} sx={{ p: SPACING.sm }}>
           <FlexRow align="center" gap={SPACING.xs} sx={{ minWidth: 0 }}>
-            <Dot color={counts.failed > 0 ? "error.main" : "primary.main"} />
+            <StatusDot tone={counts.failed > 0 ? "error" : "primary"} size="medium" />
             <Text size="small" truncate sx={{ flex: 1, minWidth: 0 }}>
               {summary}
             </Text>
             <ToolbarIconButton
-              icon={<KeyboardArrowUpIcon sx={{ fontSize: "1em" }} />}
-              tooltip={t("storyboard:attrs.expandRenderQueue", { defaultValue: "Expand render queue" })}
-              ariaLabel={t("storyboard:attrs.expandRenderQueue", { defaultValue: "Expand render queue" })}
+              icon={<KeyboardArrowUpIcon fontSize="inherit" />}
+              tooltip="Expand render queue"
+              ariaLabel="Expand render queue"
               onClick={() => setExpanded(true)}
             />
           </FlexRow>
@@ -409,25 +354,27 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
         gap={SPACING.xs}
         sx={{ px: SPACING.md, py: SPACING.sm, flex: "0 0 auto" }}
       >
-        <TheatersIcon sx={{ fontSize: "1em", color: "text.secondary" }} />
-        <Text size="small" sx={{ flex: 1 }}>{t("storyboard:attrs.renderQueue", { defaultValue: "Render queue" })}</Text>
+        <TheatersIcon sx={{ fontSize: "inherit", color: "text.secondary" }} />
+        <Text size="small" sx={{ flex: 1 }}>
+          Render queue
+        </Text>
         <HeaderCount
-          icon={<PlayArrowOutlinedIcon sx={{ fontSize: "1em" }} />}
+          icon={<PlayArrowOutlinedIcon fontSize="inherit" />}
           count={counts.running}
         />
         {counts.running > 0 && !readOnly && (
           <ToolbarIconButton
-            icon={<CloseIcon sx={{ fontSize: "1em" }} />}
-            tooltip={t("storyboard:attrs.stopTrackingAllProviderRequestsMayStillFinishAndCharge", { defaultValue: "Stop tracking all. Provider requests may still finish and charge." })}
-            ariaLabel={t("storyboard:attrs.stopTrackingAllRenders", { defaultValue: "Stop tracking all renders" })}
+            icon={<CloseIcon fontSize="inherit" />}
+            tooltip="Stop tracking all. Provider requests may still finish and charge."
+            ariaLabel="Stop tracking all renders"
             variant="error"
             onClick={handleStopAll}
           />
         )}
         <ToolbarIconButton
-          icon={<RemoveIcon sx={{ fontSize: "1em" }} />}
-          tooltip={t("storyboard:attrs.collapseRenderQueue", { defaultValue: "Collapse render queue" })}
-          ariaLabel={t("storyboard:attrs.collapseRenderQueue", { defaultValue: "Collapse render queue" })}
+          icon={<RemoveIcon fontSize="inherit" />}
+          tooltip="Collapse render queue"
+          ariaLabel="Collapse render queue"
           onClick={() => setExpanded(false)}
         />
       </FlexRow>
@@ -457,16 +404,22 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
                   requestId: reviewTarget.jobId
                 })
               }
-            >{t("storyboard:attrs.reviewCompletedTakes", { defaultValue: "Review completed takes" })}</EditorButton>
+            >
+              Review completed takes
+            </EditorButton>
           )}
           {counts.stopped > 0 && !readOnly && (
-            <EditorButton variant="outlined" onClick={handleResumeTracking}>{t("storyboard:attrs.resumeTracking", { defaultValue: "Resume tracking" })}</EditorButton>
+            <EditorButton variant="outlined" onClick={handleResumeTracking}>
+              Resume tracking
+            </EditorButton>
           )}
           {counts.running === 0 && !readOnly && (
             <EditorButton
               variant="outlined"
               onClick={() => dismissBatch(batch.id)}
-            >{t("storyboard:attrs.dismissReceipt", { defaultValue: "Dismiss receipt" })}</EditorButton>
+            >
+              Dismiss receipt
+            </EditorButton>
           )}
         </FlexRow>
       </FlexColumn>

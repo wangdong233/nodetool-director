@@ -7,7 +7,7 @@ import { Asset } from "../../stores/ApiTypes";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { listDropzoneStyles } from "./shared/listDropzoneStyles";
-import { Tooltip, Text, CloseButton, MOTION, SPACING, BORDER_RADIUS, getSpacingPx } from "../ui_primitives";
+import { Tooltip, Text, CloseButton, MOTION, SPACING, BORDER_RADIUS, getSpacingPx, ICON_SIZE } from "../ui_primitives";
 import DescriptionIcon from "@mui/icons-material/Description";
 import isEqual from "../../utils/isEqual";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
@@ -21,14 +21,35 @@ import {
 } from "../../lib/dragdrop";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
+import { useAsset } from "../../serverState/useAsset";
 
 interface TextItem {
   uri: string;
   type: string;
   asset_id?: string;
 }
+
+const filenameFromUri = (uri: string): string | undefined => {
+  try {
+    const filename = new URL(uri).pathname.split("/").pop();
+    return filename ? decodeURIComponent(filename) : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/** `asset://<id>` has no path, so asset refs take the asset's own name. */
+const TextItemName = memo(function TextItemName({ text }: { text: TextItem }) {
+  const { asset } = useAsset({
+    document: { type: "document", uri: text.uri, asset_id: text.asset_id }
+  });
+  const name = asset?.name || filenameFromUri(text.uri) || "text file";
+  return (
+    <Text className="text-filename" title={name}>
+      {name}
+    </Text>
+  );
+});
 
 const styles = (theme: Theme) =>
   css({
@@ -97,7 +118,7 @@ const styles = (theme: Theme) =>
       }
     },
     ".remove-button .MuiSvgIcon-root": {
-      fontSize: "var(--fontSizeNormal)"
+      fontSize: ICON_SIZE.sm
     },
     ...listDropzoneStyles(theme)
   });
@@ -144,7 +165,6 @@ const flattenTextItems = (items: unknown): TextItem[] => {
 };
 
 const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const id = `text-list-${props.property.name}-${props.propertyIndex}`;
   const { uploadAsset } = useAssetUpload();
@@ -190,17 +210,6 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
       texts.map((_, index) => () => handleRemoveText(index)),
     [texts, handleRemoveText]
   );
-
-  const getFilename = useCallback((uri: string) => {
-    try {
-      const url = new URL(uri);
-      const pathname = url.pathname;
-      const filename = pathname.split("/").pop() || "text file";
-      return decodeURIComponent(filename);
-    } catch {
-      return "text file";
-    }
-  }, []);
 
   // Handles both internal nodetool asset drops and external file drops.
   const onDrop = useCallback(
@@ -296,9 +305,9 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
 
     try {
       const result = await window.api.dialog.openFile({
-        title: i18n.t("editor:ui.selectTextFiles", { defaultValue: "Select text files" }),
+        title: "Select text files",
         filters: [
-          { name: i18n.t("editor:ui.textFiles", { defaultValue: "Text Files" }), extensions: ["txt", "md", "json", "csv", "xml", "html", "htm", "yaml", "yml", "log", "ini", "cfg", "conf"] }
+          { name: "Text files", extensions: ["txt", "md", "json", "csv", "xml", "html", "htm", "yaml", "yml", "log", "ini", "cfg", "conf"] }
         ],
         multiSelections: true
       });
@@ -415,22 +424,20 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
             <div key={text.uri} className="text-item">
               <DescriptionIcon className="text-icon" />
               <div className="text-content">
-                <Text className="text-filename" title={getFilename(text.uri)}>
-                  {getFilename(text.uri)}
-                </Text>
+                <TextItemName text={text} />
               </div>
               <CloseButton
                 className="remove-button"
                 onClick={removeButtonClickHandlers[index]}
                 buttonSize="small"
-                tooltip={t("editor:ui.removeTextFile", { defaultValue: "Remove text file" })}
+                tooltip="Remove text file"
               />
             </div>
           ))}
         </div>
       )}
 
-      <Tooltip title={t("editor:ui.clickToSelectTextFilesOrDragAndDrop", { defaultValue: "Click to select text files or drag and drop" })}>
+      <Tooltip title="Click to select text files or drag and drop">
         <div
           role="button"
           tabIndex={0}
@@ -441,7 +448,7 @@ const TextListProperty = (props: PropertyProps<TextItem[] | null>) => {
           onDragLeave={handleDragLeave}
           onDrop={onDrop}
         >
-          <p>{t("ui2:attrs.clickOrDropTextFilesHere", { defaultValue: "Click or drop text files here" })}</p>
+          <p>Click or drop text files here</p>
         </div>
       </Tooltip>
     </div>

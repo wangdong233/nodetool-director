@@ -21,15 +21,14 @@ import {
   Dialog,
   FlexColumn,
   FlexRow,
+  FormSection,
   SelectField,
-  SPACING,
-  Text,
-  TextInput
+  NumberField,
+  SPACING
 } from "../ui_primitives";
 import type { SelectOption } from "../ui_primitives";
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import { useTimelineProjectSettings } from "../../hooks/timeline/useTimelineProjectSettings";
-import { useTranslation } from "react-i18next";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -109,7 +108,6 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
   open,
   onClose
 }) => {
-  const { t } = useTranslation();
   const { fps, width, height } = useTimelineStore(
     useShallow((s) => ({ fps: s.fps, width: s.width, height: s.height }))
   );
@@ -230,45 +228,31 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
     <Dialog
       open={open}
       onClose={() => onClose()}
-      title={t("timeline:project.title", { defaultValue: "Project settings" })}
+      title="Project settings"
       onConfirm={() => void handleApply()}
-      onCancel={onClose}
-      confirmText={t("timeline:project.apply", { defaultValue: "Apply" })}
-      cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+      confirmText="Apply"
       isLoading={isSaving}
       confirmDisabled={!allValid || !dirty || isSaving}
-      minWidth="min(440px, 100vw - 32px)"
+      maxWidth="xs"
+      fullWidth
     >
-      <FlexColumn gap={SPACING.xl} sx={{ py: SPACING.xs }}>
+      <FlexColumn gap={SPACING.xl}>
         {/* ── Canvas size ─────────────────────────────────────────── */}
-        <FlexColumn gap={SPACING.sm}>
-          <Text size="small" weight={600} sx={{ mb: SPACING.sm }}>
-            {t("timeline:attrs.canvasSize", { defaultValue: "Canvas size" })}
-          </Text>
+        <FormSection label="Canvas size">
           {/* Label hidden — the section header names it; an outlined variant
               keeps it consistent with the Width/Height fields below. */}
           <SelectField
-            label={t("timeline:project.canvasPreset", { defaultValue: "Canvas preset" })}
+            label="Canvas preset"
             hideLabel
             variant="outlined"
             value={resolutionPreset}
             onChange={handleResolutionPreset}
-            options={RESOLUTION_OPTIONS.map((o) =>
-              o.value === CUSTOM
-                ? {
-                    ...o,
-                    label: t("timeline:project.custom", {
-                      defaultValue: o.label
-                    })
-                  }
-                : o
-            )}
+            options={RESOLUTION_OPTIONS}
             size="small"
           />
-          <FlexRow gap={SPACING.sm} align="flex-start" sx={{ mt: SPACING.md }}>
-            <TextInput
-              label={t("timeline:project.width", { defaultValue: "Width" })}
-              type="number"
+          <FlexRow gap={SPACING.lg} align="flex-start">
+            <NumberField
+              label="Width"
               size="small"
               value={widthText}
               onChange={(e) => setWidthText(e.target.value)}
@@ -277,12 +261,13 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
                   ? `${MIN_DIM}–${MAX_DIM}`
                   : undefined
               }
-              inputProps={{ min: MIN_DIM, max: MAX_DIM, step: 2 }}
+              min={MIN_DIM}
+              max={MAX_DIM}
+              step={2}
               sx={{ flex: 1 }}
             />
-            <TextInput
-              label={t("timeline:project.height", { defaultValue: "Height" })}
-              type="number"
+            <NumberField
+              label="Height"
               size="small"
               value={heightText}
               onChange={(e) => setHeightText(e.target.value)}
@@ -291,41 +276,30 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
                   ? `${MIN_DIM}–${MAX_DIM}`
                   : undefined
               }
-              inputProps={{ min: MIN_DIM, max: MAX_DIM, step: 2 }}
+              min={MIN_DIM}
+              max={MAX_DIM}
+              step={2}
               sx={{ flex: 1 }}
             />
           </FlexRow>
-        </FlexColumn>
+        </FormSection>
 
         {/* ── Frame rate ──────────────────────────────────────────── */}
-        <FlexColumn gap={SPACING.sm}>
-          <Text size="small" weight={600} sx={{ mb: SPACING.sm }}>
-            {t("timeline:attrs.frameRate", { defaultValue: "Frame rate" })}
-          </Text>
-          <FlexRow gap={SPACING.sm} align="flex-start">
-            <FlexColumn sx={{ flex: 1 }}>
+        <FormSection label="Frame rate">
+          <FlexRow gap={SPACING.lg} align="flex-start">
+            <FlexColumn sx={{ flex: 2 }}>
               <SelectField
-                label={t("timeline:project.frameRate", { defaultValue: "Frame rate preset" })}
+                label="Frame rate preset"
                 hideLabel
                 variant="outlined"
                 value={fpsPreset}
                 onChange={handleFpsPreset}
-                options={FPS_OPTIONS.map((o) =>
-                  o.value === CUSTOM
-                    ? {
-                        ...o,
-                        label: t("timeline:project.custom", {
-                          defaultValue: o.label
-                        })
-                      }
-                    : o
-                )}
+                options={FPS_OPTIONS}
                 size="small"
               />
             </FlexColumn>
-            <TextInput
-              label={t("timeline:attrs.fps", { defaultValue: "fps" })}
-              type="number"
+            <NumberField
+              label="FPS"
               size="small"
               value={fpsText}
               onChange={(e) => setFpsText(e.target.value)}
@@ -334,33 +308,32 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
                   ? `${MIN_FPS}–${MAX_FPS}`
                   : undefined
               }
-              inputProps={{ min: MIN_FPS, max: MAX_FPS, step: 1 }}
-              sx={{ width: 120 }}
+              min={MIN_FPS}
+              max={MAX_FPS}
+              step={1}
+              sx={{ flex: 1 }}
             />
           </FlexRow>
-        </FlexColumn>
+        </FormSection>
 
         {/* ── Tempo ───────────────────────────────────────────────── */}
-        <FlexColumn gap={SPACING.sm}>
-          <Text size="small" weight={600} sx={{ mb: SPACING.sm }}>
-            {t("timeline:attrs.tempo", { defaultValue: "Tempo" })}
-          </Text>
-          <FlexRow gap={SPACING.sm} align="flex-start">
-            <TextInput
+        <FormSection label="Tempo">
+          <FlexRow gap={SPACING.lg} align="flex-start">
+            <NumberField
               label="BPM"
-              type="number"
               size="small"
               value={bpmText}
               onChange={(e) => setBpmText(e.target.value)}
               errorMessage={
                 bpmText !== "" && !bpmValid ? `${MIN_BPM}–${MAX_BPM}` : undefined
               }
-              inputProps={{ min: MIN_BPM, max: MAX_BPM, step: 1 }}
+              min={MIN_BPM}
+              max={MAX_BPM}
+              step={1}
               sx={{ flex: 1 }}
             />
-            <TextInput
-              label={t("timeline:project.beatsPerBar", { defaultValue: "Beats per bar" })}
-              type="number"
+            <NumberField
+              label="Beats per bar"
               size="small"
               value={beatsPerBarText}
               onChange={(e) => setBeatsPerBarText(e.target.value)}
@@ -369,16 +342,14 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
                   ? `${MIN_BEATS_PER_BAR}–${MAX_BEATS_PER_BAR}`
                   : undefined
               }
-              inputProps={{
-                min: MIN_BEATS_PER_BAR,
-                max: MAX_BEATS_PER_BAR,
-                step: 1
-              }}
+              min={MIN_BEATS_PER_BAR}
+              max={MAX_BEATS_PER_BAR}
+              step={1}
               sx={{ flex: 1 }}
             />
             <FlexColumn sx={{ flex: 1 }}>
               <SelectField
-                label={t("timeline:project.beatUnit", { defaultValue: "Beat unit" })}
+                label="Beat unit"
                 variant="outlined"
                 value={beatUnit}
                 onChange={setBeatUnit}
@@ -387,28 +358,29 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
               />
             </FlexColumn>
           </FlexRow>
-          <TextInput
-            label={t("timeline:attrs.beatOneAt", { defaultValue: "Beat one at" })}
-            type="number"
+          <NumberField
+            label="Beat one at"
             size="small"
             value={offsetText}
             onChange={(e) => setOffsetText(e.target.value)}
             errorMessage={
-              offsetText !== "" && !offsetValid ? t("timeline:attrs.zeroOrMore", { defaultValue: "0 or more" }) : undefined
+              offsetText !== "" && !offsetValid ? "0 or more" : undefined
             }
-            inputProps={{ min: 0, step: 1 }}
-            sx={{ mt: SPACING.md, width: 160 }}
+            min={0}
+            step={1}
+            fullWidth={false}
+            sx={{ alignSelf: "flex-start" }}
           />
           {midiClipCount > 0 && (
-            <Caption sx={{ color: "text.secondary" }}>
+            <Caption color="secondary">
               Your {midiClipCount === 1 ? "part" : "parts"} keep the same notes
               and play at the new speed — the {midiClipCount === 1 ? "clip" : "clips"}{" "}
               stretch around beat one. Picture and audio clips stay where they are.
             </Caption>
           )}
-        </FlexColumn>
+        </FormSection>
 
-        <Caption sx={{ color: "text.secondary" }}>
+        <Caption color="secondary">
           Applies to the preview and the exported video. Existing clips keep
           their own source resolution and are scaled to fit the canvas.
         </Caption>

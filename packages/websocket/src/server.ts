@@ -23,12 +23,9 @@ import {
   configureLogging,
   getDefaultDbPath,
   getPostgresDatabaseUrl,
-  loadEnvironment
+  loadEnvironment,
+  applyRuntimeEnv
 } from "@nodetool-ai/config";
-import { registerTransformersJsProvider } from "@nodetool-ai/transformers-js-provider";
-import { registerWhisperCppProviders } from "@nodetool-ai/whisper-cpp";
-import { setCodeNodeAgentsModule } from "@nodetool-ai/base-nodes";
-import * as agentsModule from "@nodetool-ai/agents";
 import {
   bootstrapNodeRegistry,
   mergePythonBridgeMetadata
@@ -59,9 +56,15 @@ import {
   isLoopbackAddress,
   parseTrustedProxies,
   parseTrustedLocalNetworks,
-  isTrustedLocalAddress
+  isTrustedLocalAddress,
+  parseAllowedHosts,
+  isLocalHostHeader
 } from "./lib/localhost-trust.js";
 import { registerHttpTracing } from "./lib/http-tracing.js";
+import {
+  LOCAL_CLIENT_TOKEN_HEADER,
+  isLocalClientRequest
+} from "./lib/local-client-origin.js";
 import {
   shutdownTelemetry,
   createPythonBridge,
@@ -155,6 +158,7 @@ import {
 import websocketPlugin from "./plugins/websocket.js";
 import healthRoute, { getVersion } from "./routes/health.js";
 import configRoute, { describeMissingAnonKey } from "./routes/config.js";
+import { createAnalyticsRoute } from "./routes/analytics.js";
 import assetsRoutes from "./routes/assets.js";
 import timelineFontRoutes from "./routes/timeline-fonts.js";
 import sdkV1Routes from "./routes/sdk-v1.js";
@@ -204,7 +208,9 @@ import timelineAudioBakeRoutes from "./routes/timeline-audio-bake.js";
 import timelineIsolateSubjectRoutes from "./routes/timeline-isolate-subject.js";
 import timelineTrackObjectRoutes from "./routes/timeline-track-object.js";
 import storyboardsRoutes from "./routes/storyboards.js";
+import gamesRoutes from "./routes/games.js";
 import timelinesRoutes from "./routes/timelines.js";
+import projectArchiveRoutes from "./routes/project-archive.js";
 import documentsRoutes from "./routes/documents.js";
 import sandboxModulesRoutes from "./routes/sandbox-modules.js";
 import falCreditsRoute from "./routes/fal-credits.js";
@@ -224,7 +230,14 @@ import {
 import { captureError, startErrorTraceMaintenance } from "./error-traces.js";
 import { detectPipMetadataRoots } from "./lib/python-metadata-roots.js";
 import { getSetting } from "./settings-registry.js";
+import { loadBundledPackSource, setDefaultPackSource, type PackSource } from "./pack-source.js";
 
+export interface StartServerOptions {
+  readonly packSource?: PackSource;
+}
+
+/** Start the HTTP/WebSocket host with the caller's node-pack source. */
+export async function startServer(options: StartServerOptions = {}): Promise<FastifyInstance> {
 /** The Node `process` as Electron extends it. `type` is absent elsewhere. */
 type ElectronProcess = typeof process & { readonly type?: string };
 
@@ -256,6 +269,12 @@ type ElectronProcess = typeof process & { readonly type?: string };
 }
 
 loadEnvironment(resolve(dirname(fileURLToPath(import.meta.url)), "../../.."));
+process.env["NODETOOL_HOST"] ??= "source";
+process.env["NODETOOL_SERVER_PROCESS"] = "1";
+applyRuntimeEnv();
+const packSource = options.packSource ?? await loadBundledPackSource();
+setDefaultPackSource(packSource);
+const isProduction = process.env["NODETOOL_ENV"] === "production";
 
 const log = createLogger("nodetool.websocket.server");
 // Apply log level from NODETOOL_LOG_LEVEL / LOG_LEVEL env vars (the module
@@ -384,7 +403,22 @@ try {
   // that need provider credentials bind their own `(key) => getSecret(key,
   // userId)` closure when invoking provider APIs — there is no shared
   // global resolver.
-  await initMasterKey();
+  //
+  // A machine with no keychain (a container, CI, a server without a D-Bus
+  // session) cannot unlock the store. The server still starts, the way the
+  // CLI commands do: provider keys from the environment keep working, and
+  // only reading or writing a stored secret fails. Exiting here made
+  // `npx @nodetool-ai/cli serve` unusable on every headless machine.
+  try {
+    await initMasterKey();
+  } catch (err) {
+    log.warn(
+      "Secret store is locked: stored secrets are unavailable, and provider " +
+        "keys are read from the environment. Set SECRETS_MASTER_KEY to a " +
+        "base64-encoded 32-byte key to enable the store.",
+      { error: err instanceof Error ? err.message : String(err) }
+    );
+  }
 
   // Transformers.js fixes its cache directory on first import, which happens
   // after this point, so a directory saved in Settings must be applied now.
@@ -533,22 +567,13 @@ log.info(`Metadata roots detected [${startupMs()}]`, {
 // ---------------------------------------------------------------------------
 
 const registry = await bootstrapNodeRegistry({
+  packSource,
   metadataRoots,
   log
 });
 log.info(`Node registry ready [${startupMs()}]`);
 
-// The Code node reaches the toolbelt and its `@nodetool-ai/sandbox-nodetool/*`
-// imports through the agents package, which it resolves by bare specifier.
-// That specifier resolves in a checkout and nowhere in the bundled backend —
-// esbuild inlines the workspace packages into server.mjs — so hand it the copy
-// this module already holds. Without it, a Code node body in the desktop app
-// and in the Docker image runs with an empty `nodetool.capabilities()`.
-setCodeNodeAgentsModule(agentsModule);
-if (process.env["NODETOOL_ENV"] !== "production") {
-  registerTransformersJsProvider();
-  registerWhisperCppProviders();
-}
+await packSource.registerProviders({ production: isProduction });
 
 // ---------------------------------------------------------------------------
 // Python bridge
@@ -764,7 +789,7 @@ if (tlsEnabled && tlsCertPath && tlsKeyPath) {
 // ---------------------------------------------------------------------------
 
 const port = Number(process.env["PORT"] ?? 7777);
-const isProduction = process.env["NODETOOL_ENV"] === "production";
+
 // In production, bind to all interfaces unless HOST is explicitly set
 const host = process.env["HOST"] ?? (isProduction ? "0.0.0.0" : "127.0.0.1");
 
@@ -957,6 +982,17 @@ const trustLocalNetworks = enforceAuth
   ? []
   : parseTrustedLocalNetworks(process.env["NODETOOL_TRUST_LOCAL_NETWORKS"]);
 
+// Extra `Host` names (beyond loopback names and IP literals) under which the
+// trust bypasses above still apply, e.g. a LAN name for a compose install.
+const allowedHosts = parseAllowedHosts(process.env["NODETOOL_ALLOWED_HOSTS"]);
+let warnedForeignHost = false;
+// The secret the desktop app adds to its own windows' requests (see
+// lib/local-client-origin.ts). Unset outside Electron.
+const localClientToken = resolveServerAuthToken(
+  process.env["NODETOOL_LOCAL_CLIENT_TOKEN"]
+);
+let warnedForeignOrigin = false;
+
 // The bearer token `nodetool deploy` starts a container with. Local mode only,
 // like the trusted networks above: Supabase mode needs a real login.
 const serverAuthToken = enforceAuth
@@ -1071,12 +1107,45 @@ app.addHook("onRequest", async (req, reply) => {
   // auth is enforced). Docker's bridge NAT means the peer is the gateway rather
   // than loopback, so NODETOOL_TRUST_LOCAL_NETWORKS additionally trusts that
   // source range (Local mode only).
+  //
+  // The bypass also requires a `Host` that names this machine. Under DNS
+  // rebinding a website's own domain resolves to 127.0.0.1, so its requests
+  // arrive from loopback but carry its domain as `Host`. It also requires that
+  // a browser caller be the user's own client, judged by `Origin` or the
+  // desktop app's launch token, since any open page can reach loopback. Both
+  // failures fall through to token auth below.
   if (
     (trustLocalhost && isLoopbackAddress(clientIp)) ||
     isTrustedLocalAddress(clientIp, trustLocalNetworks)
   ) {
-    req.userId = "1";
-    return;
+    const presented = req.headers[LOCAL_CLIENT_TOKEN_HEADER];
+    const fromLocalClient = isLocalClientRequest({
+      origin: req.headers.origin,
+      host: req.headers.host,
+      presentedToken: typeof presented === "string" ? presented : undefined,
+      expectedToken: localClientToken
+    });
+    const localHost = isLocalHostHeader(req.headers.host, allowedHosts);
+    if (localHost && fromLocalClient) {
+      req.userId = "1";
+      return;
+    }
+    if (localHost && !warnedForeignOrigin) {
+      warnedForeignOrigin = true;
+      log.warn(
+        "Refused the local trust bypass for a browser page from another origin. " +
+          "Add the origin to NODETOOL_ALLOWED_ORIGINS if it is your own client.",
+        { origin: req.headers.origin?.slice(0, 255) }
+      );
+    }
+    if (!localHost && !warnedForeignHost) {
+      warnedForeignHost = true;
+      log.warn(
+        "Refused the local trust bypass for a Host that is not this machine. " +
+          "Add the name to NODETOOL_ALLOWED_HOSTS if you reach this server by it.",
+        { host: req.headers.host?.slice(0, 255) }
+      );
+    }
   }
 
   // Extract token from the appropriate source
@@ -1631,6 +1700,8 @@ const stopJobCancelPoller = startJobCancelPoller();
 
 await app.register(healthRoute);
 await app.register(configRoute);
+// Anonymous product analytics: validate, then relay or ingest. Auth-exempt.
+await app.register(createAnalyticsRoute());
 
 // All HTTP API routes receive apiOptions
 const routeOpts = { apiOptions };
@@ -1670,7 +1741,9 @@ await app.register(timelineAudioBakeRoutes, routeOpts);
 await app.register(timelineIsolateSubjectRoutes, routeOpts);
 await app.register(timelineTrackObjectRoutes, routeOpts);
 await app.register(storyboardsRoutes, routeOpts);
+await app.register(gamesRoutes, routeOpts);
 await app.register(timelinesRoutes, routeOpts);
+await app.register(projectArchiveRoutes, routeOpts);
 // PDF/DOCX text extraction for script and screenplay imports. Stores
 // nothing and needs no apiOptions.
 await app.register(documentsRoutes);
@@ -1876,20 +1949,13 @@ if (tlsEnabled) {
 // ---------------------------------------------------------------------------
 
 const proto = tlsEnabled ? "https" : "http";
-app.listen({ port, host }, (err) => {
-  if (err) {
-    log.error("Failed to start server", err);
-    process.exit(1);
-  }
-  log.info(`Server listening on ${proto}://${host}:${port} [${startupMs()}]`);
-  log.info(
-    `WebSocket endpoint: ${tlsEnabled ? "wss" : "ws"}://${host}:${port}/ws`
-  );
-  // When the launcher sets NODE_COMPILE_CACHE, Node writes the V8 code cache
-  // only on a clean exit. Writing it once startup has compiled the server keeps
-  // it for the next start even when this process is killed. No-op otherwise.
-  flushCompileCache();
-});
+await app.listen({ port, host });
+log.info(`Server listening on ${proto}://${host}:${port} [${startupMs()}]`);
+log.info(
+  `WebSocket endpoint: ${tlsEnabled ? "wss" : "ws"}://${host}:${port}/ws`
+);
+// Persist compiled code once startup finishes, including launches later killed.
+flushCompileCache();
 
 // ---------------------------------------------------------------------------
 // Triggers — durable wakeup service, dispatcher, and ingestion adapters
@@ -2110,4 +2176,14 @@ if (pythonBridge.isAvailable() && pythonOnDemand) {
       ? "Python bridge disabled in production — Python nodes will not be available; set NODETOOL_ALLOW_PYTHON_BRIDGE_IN_PRODUCTION=1 to enable (the image ships no Python worker: install nodetool-core and point NODETOOL_PYTHON at that interpreter)"
       : "Python not found — Python nodes will not be available"
   );
+}
+
+return app;
+}
+
+// This entry remains the CLI's standalone server. Bundled server.mjs starts
+// through @nodetool-ai/server/main, so it must not also run this main block.
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url) &&
+    /[/\\]server\.(?:ts|js)$/.test(fileURLToPath(import.meta.url))) {
+  await startServer();
 }

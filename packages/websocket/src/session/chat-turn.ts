@@ -2,6 +2,7 @@ import { registerChatRunTrace, registerWorkflowRunTrace, withRegisteredRunTrace,
 import { getRunTraceScope, suppressRunTraceContent } from "@nodetool-ai/runtime";
 import {
   TRACE_RESTRICTED_CAPABILITY_MODULES,
+  missingPackDetailsOf,
   isFullResourceId
 } from "@nodetool-ai/protocol";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
@@ -14,6 +15,7 @@ import {
   repairOrphanedToolCalls
 } from "../chat-tool-call-repair.js";
 import { attachChatPredictionForwarder } from "../chat-prediction-forwarder.js";
+import { dispatchClientTool } from "./client-tool-gate.js";
 import { admitSpend } from "../credit-gate.js";
 import { isGoogleWorkspaceEnabled } from "@nodetool-ai/config";
 import {
@@ -93,6 +95,8 @@ import {
 } from "@nodetool-ai/runtime";
 import {
   isModelSelection,
+  isReasoningEffort,
+  supportsReasoningEffort,
   PROVIDER_IDS,
   NO_MODEL_SELECTED_MESSAGE,
   noMediaModelSelectedMessage
@@ -1355,6 +1359,10 @@ export class ChatTurnHandler {
     try {
       graph = await this.deps.hydrateGraph(rawGraph);
     } catch (err) {
+      const missing = missingPackDetailsOf(err);
+      if (missing) {
+        return missing;
+      }
       return {
         error: `Failed to prepare node '${nodeType}': ${
           err instanceof Error ? err.message : String(err)
@@ -1366,6 +1374,10 @@ export class ChatTurnHandler {
       try {
         await this.deps.beforeRunJob(graph);
       } catch (err) {
+        const missing = missingPackDetailsOf(err);
+        if (missing) {
+          return missing;
+        }
         return {
           error: `Node prerequisites failed: ${
             err instanceof Error ? err.message : String(err)
@@ -1429,6 +1441,10 @@ export class ChatTurnHandler {
         validateNode: this.session.validateNode
       });
     } catch (err) {
+      const missing = missingPackDetailsOf(err);
+      if (missing) {
+        return missing;
+      }
       if (!isExecutionPreflightError(err)) throw err;
       return { error: err.message };
     }
@@ -1450,6 +1466,9 @@ export class ChatTurnHandler {
     }
 
     if (result.status === "failed") {
+      if (result.missingPack) {
+        return result.missingPack;
+      }
       return { error: result.error ?? `Node '${nodeType}' failed` };
     }
     if (nodeResult === undefined) {
@@ -1633,6 +1652,14 @@ export class ChatTurnHandler {
       data.permission_mode === "default"
         ? data.permission_mode
         : "default";
+
+    // The composer's reasoning level. Only models that accept it receive it,
+    // so a stale pick from another model is dropped rather than sent.
+    const reasoningEffort =
+      isReasoningEffort(data.reasoning_effort) &&
+      supportsReasoningEffort(providerId, model)
+        ? data.reasoning_effort
+        : undefined;
 
     // A surface can send a context-specific system-prompt addendum (e.g. the
     // App Builder's build-an-app-UI guidance), layered after the base prompt.
@@ -2342,20 +2369,27 @@ export class ChatTurnHandler {
         }
       } else if (this.deps.clientTools()[toolCall.name]) {
         // Client-side tool — round-trip through the UI via the ToolBridge.
-        await this.session.send({
-          type: "tool_call",
-          thread_id: threadId,
-          tool_call_id: toolCall.id,
-          name: toolCall.name,
-          args: toolCall.args
-        });
-        const clientResult = await this.deps.toolBridge.createWaiter(
-          toolCall.id,
-          300_000,
-          threadId
+        // A tool that spends money passes the turn's permission gate first.
+        toolResult = await dispatchClientTool(
+          this.chatCapabilityRun,
+          toolCall.name,
+          toolCall.args ?? {},
+          async () => {
+            await this.session.send({
+              type: "tool_call",
+              thread_id: threadId,
+              tool_call_id: toolCall.id,
+              name: toolCall.name,
+              args: toolCall.args
+            });
+            const clientResult = await this.deps.toolBridge.createWaiter(
+              toolCall.id,
+              300_000,
+              threadId
+            );
+            return clientResult.result ?? clientResult.content ?? clientResult;
+          }
         );
-        toolResult =
-          clientResult.result ?? clientResult.content ?? clientResult;
       } else {
         toolResult = { error: `Tool "${toolCall.name}" not available` };
       }
@@ -2741,6 +2775,7 @@ export class ChatTurnHandler {
         executeTool: useTools ? effectiveExecuteTool : undefined,
         maxIterations: MAX_TOOL_ROUNDS,
         turnBudget,
+        effort: reasoningEffort,
         sequentialTools: session ? true : undefined,
         workspaceDir: chatWorkspace?.localDir ?? undefined,
         skills: skillsForProvider,

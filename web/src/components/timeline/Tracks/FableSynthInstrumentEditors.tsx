@@ -23,12 +23,12 @@ import {
   EditorButton,
   FlexRow,
   Label,
-  SPACING
+  SPACING,
+  Tooltip
 } from "../../ui_primitives";
 import { useBatchedGesture } from "../../../hooks/timeline/useBatchedGesture";
 
 import "./fablesynth-editor.css";
-import { useTranslation } from "react-i18next";
 
 type FableInstrument = Exclude<MidiInstrument, { type: "subtractive" | "sampler" }>;
 type KnobSize = "lg" | "md" | "sm" | "xs";
@@ -115,7 +115,6 @@ const Knob: React.FC<KnobProps> = ({
   size = "md",
   accent = "n"
 }) => {
-  const { t } = useTranslation();
   const drag = useRef<{ y: number; norm: number } | null>(null);
   // A drag is one undo entry, however many pointermoves it takes.
   const gesture = useBatchedGesture(onChange);
@@ -138,57 +137,61 @@ const Knob: React.FC<KnobProps> = ({
             transform={`rotate(${degrees} 40 40)`}
           />
         </svg>
-        <input
-          type="range"
-          aria-label={def.label}
-          aria-valuetext={def.fmt?.(value) ?? String(value)}
-          title={t("timeline:attrs.dragUpOrDownShiftForFineAdjustmentDoubleclickToReset", { defaultValue: "Drag up or down. Shift for fine adjustment. Double-click to reset." })}
-          min="0"
-          max="1"
-          step={def.curve === "int" ? 1 / (def.max - def.min) : 0.01}
-          value={norm}
-          onChange={(event) =>
-            onChange(normToValue(def, Number(event.target.value)))
-          }
-          onPointerDown={(event) => {
-            if (event.button !== 0) return;
-            event.preventDefault();
-            event.currentTarget.focus();
-            event.currentTarget.setPointerCapture(event.pointerId);
-            drag.current = { y: event.clientY, norm };
-            gesture.begin();
-          }}
-          onPointerMove={(event) => {
-            if (!drag.current) return;
-            const next = Math.min(
-              1,
-              Math.max(
-                0,
-                drag.current.norm +
-                  (drag.current.y - event.clientY) *
-                    (event.shiftKey ? 0.001 : 0.005)
-              )
-            );
-            drag.current = { y: event.clientY, norm: next };
-            gesture.schedule(normToValue(def, next));
-          }}
-          onPointerUp={(event) => {
-            drag.current = null;
-            gesture.commit();
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-              event.currentTarget.releasePointerCapture(event.pointerId);
+        <Tooltip
+          title="Drag up or down. Shift for fine adjustment. Double-click to reset."
+          describeChild
+        >
+          <input
+            type="range"
+            aria-label={def.label}
+            aria-valuetext={def.fmt?.(value) ?? String(value)}
+            min="0"
+            max="1"
+            step={def.curve === "int" ? 1 / (def.max - def.min) : 0.01}
+            value={norm}
+            onChange={(event) =>
+              onChange(normToValue(def, Number(event.target.value)))
             }
-          }}
-          onLostPointerCapture={() => {
-            drag.current = null;
-            gesture.commit();
-          }}
-          onPointerCancel={() => {
-            drag.current = null;
-            gesture.commit();
-          }}
-          onDoubleClick={() => onChange(def.def)}
-        />
+            onPointerDown={(event) => {
+              if (event.button !== 0) return;
+              event.preventDefault();
+              event.currentTarget.focus();
+              event.currentTarget.setPointerCapture(event.pointerId);
+              drag.current = { y: event.clientY, norm };
+              gesture.begin();
+            }}
+            onPointerMove={(event) => {
+              if (!drag.current) return;
+              const next = Math.min(
+                1,
+                Math.max(
+                  0,
+                  drag.current.norm +
+                    (drag.current.y - event.clientY) *
+                      (event.shiftKey ? 0.001 : 0.005)
+                )
+              );
+              drag.current = { y: event.clientY, norm: next };
+              gesture.schedule(normToValue(def, next));
+            }}
+            onPointerUp={(event) => {
+              drag.current = null;
+              gesture.commit();
+              if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                event.currentTarget.releasePointerCapture(event.pointerId);
+              }
+            }}
+            onLostPointerCapture={() => {
+              drag.current = null;
+              gesture.commit();
+            }}
+            onPointerCancel={() => {
+              drag.current = null;
+              gesture.commit();
+            }}
+            onDoubleClick={() => onChange(def.def)}
+          />
+        </Tooltip>
       </span>
       <span className="fs-k-label">{def.label}</span>
       <span className="fs-k-value">{def.fmt?.(value) ?? value.toFixed(2)}</span>
@@ -299,13 +302,11 @@ export const InstrumentKeyboard = ({
 }: {
   start: number;
   onPlay: (pitch: number) => void;
-}) => {
-  const { t } = useTranslation();
-  return (
+}) => (
   <Panel
     title="KEYS"
     className="fs-keys-panel"
-    head={<Caption>{t("timeline:attrs.clickOrFocusAKeyAndPressEnter", { defaultValue: "Click or focus a key and press Enter" })}</Caption>}
+    head={<Caption>Click or focus a key and press Enter</Caption>}
   >
     <div className="fs-keys">
       <div className="fs-white-keys">
@@ -335,7 +336,6 @@ export const InstrumentKeyboard = ({
     </div>
   </Panel>
 );
-};
 
 interface EditorProps<T extends FableInstrument> {
   instrument: T;
@@ -516,9 +516,7 @@ const Oscillator = ({
 const BassEditor = ({
   instrument,
   onChange
-}: EditorProps<BassMidiInstrument>) => {
-  const { t } = useTranslation();
-  return (
+}: EditorProps<BassMidiInstrument>) => (
   <>
     <div className="fs-voice-grid">
       <Panel
@@ -579,7 +577,7 @@ const BassEditor = ({
         </FlexRow>
       </Panel>
       <Filter instrument={instrument} onChange={onChange} />
-      <Panel title="ENV" className="fs-panel-inline" head={<Caption>{t("timeline:attrs.filterEnvelope", { defaultValue: "Filter envelope" })}</Caption>}>
+      <Panel title="ENV" className="fs-panel-inline" head={<Caption>Filter envelope</Caption>}>
         <div className="fs-knob-row">
           <Knob
             def={P("fattack", "F·ATT", 0, 500, 1, (v) => sec(v / 1000), "time")}
@@ -642,7 +640,6 @@ const BassEditor = ({
     </div>
   </>
 );
-};
 
 const WavetableEditor = ({
   instrument,
@@ -706,7 +703,6 @@ const DrumEditor = ({
   instrument,
   onChange
 }: EditorProps<DrumMidiInstrument>) => {
-  const { t } = useTranslation();
   const [selected, setSelected] = useState(0);
   const pad = instrument.pads[selected];
   if (!pad) return null;
@@ -734,7 +730,7 @@ const DrumEditor = ({
         title="PADS"
         accent="b"
         className="fs-pad-panel"
-        head={<Caption>{t("timeline:attrs.selectToEditAndAudition", { defaultValue: "Select to edit and audition" })}</Caption>}
+        head={<Caption>Select to edit and audition</Caption>}
       >
         <div className="fs-pad-grid">
           {DRUM_PAD_ORDER.filter((index) => index < instrument.pads.length).map(
@@ -877,7 +873,7 @@ const DrumEditor = ({
             head={
               <Power
                 on={Boolean(filter)}
-                label={t("timeline:attrs.filter", { defaultValue: "Filter" })}
+                label="Filter"
                 onChange={() =>
                   commit({
                     ...pad,
@@ -924,7 +920,7 @@ const DrumEditor = ({
                 </div>
               </>
             ) : (
-              <Caption>{t("timeline:attrs.filterBypassedEnableToShapeThisPad", { defaultValue: "Filter bypassed. Enable to shape this pad." })}</Caption>
+              <Caption>Filter bypassed. Enable to shape this pad.</Caption>
             )}
           </Panel>
           <Panel title="OUTPUT" accent="b">
@@ -959,7 +955,6 @@ const FableSynthInstrumentEditor = ({
   instrument,
   onChange
 }: FableSynthInstrumentEditorProps) => {
-  const { t } = useTranslation();
   const model =
     instrument.type === "bass"
       ? "BL-1"
@@ -976,10 +971,10 @@ const FableSynthInstrumentEditor = ({
         <Label>{model}</Label>
         <Caption className="fs-description">
           {instrument.type === "bass"
-            ? t("timeline:attrs.bassSynthesizer", { defaultValue: "Bass synthesizer" })
+            ? "Bass synthesizer"
             : instrument.type === "wavetable"
-              ? t("timeline:attrs.wavetableSynthesizer", { defaultValue: "Wavetable synthesizer" })
-              : t("timeline:attrs.drumSynthesizer", { defaultValue: "Drum synthesizer" })}
+              ? "Wavetable synthesizer"
+              : "Drum synthesizer"}
         </Caption>
         <EditorButton
           size="small"
@@ -989,7 +984,9 @@ const FableSynthInstrumentEditor = ({
               instrument.type === "drum" ? instrument.baseNote : 60
             )
           }
-        >{t("timeline:attrs.audition", { defaultValue: "Audition" })}</EditorButton>
+        >
+          Audition
+        </EditorButton>
         <Knob
           def={P(
             "output",

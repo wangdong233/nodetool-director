@@ -19,18 +19,13 @@ import FrontendToolRuntimeSync from "./FrontendToolRuntimeSync";
 import { WorkflowCostEstimatePanel } from "../costs/WorkflowCostEstimatePanel";
 import { useSubgraphTabsStore } from "../../stores/SubgraphTabsStore";
 
-import {
-  HEADER_HEIGHT,
-  PANEL_RESIZE_HANDLE_WIDTH
-} from "../../config/constants";
+import { HEADER_HEIGHT } from "../../config/constants";
 import ContextMenus from "../context_menus/ContextMenus";
-import { useTranslation } from "react-i18next";
 import {
   MobileBottomSheet,
   FlexColumn,
   MOTION,
   reducedMotion,
-  Z_INDEX,
   ResizeHandle
 } from "../ui_primitives";
 
@@ -62,31 +57,6 @@ const styles = (theme: Theme, bottomOffset: number, isVisible: boolean) =>
       flexDirection: "column"
     },
 
-    ".panel-button": {
-      width: `${PANEL_RESIZE_HANDLE_WIDTH}px`,
-      position: "absolute",
-      left: 0,
-      top: 0,
-      height: "100%",
-      backgroundColor: "transparent",
-      border: 0,
-      borderRadius: 0,
-      cursor: "ew-resize",
-      zIndex: Z_INDEX.dropdown,
-      transition: MOTION.all,
-
-      "&:hover": {
-        backgroundColor: theme.vars.palette.primary.main,
-        boxShadow: `0 0 8px ${theme.vars.palette.primary.main}40`,
-        transform: "scaleX(1.5)"
-      },
-      "&:active": {
-        backgroundColor: theme.vars.palette.primary.main,
-        boxShadow: `0 0 12px ${theme.vars.palette.primary.main}60`,
-        transform: "scaleX(2)"
-      }
-    },
-
     // Stack the inspector on top and the cost estimate panel underneath it.
     ".panel-inner-content": {
       display: "flex",
@@ -111,7 +81,6 @@ const styles = (theme: Theme, bottomOffset: number, isVisible: boolean) =>
 
 
 const PanelRight: React.FC = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const {
@@ -194,8 +163,8 @@ const PanelRight: React.FC = () => {
         <MobileBottomSheet
           open={isVisible}
           onClose={handleMobileSheetClose}
-          title={t("editor:ui.inspector", { defaultValue: "Inspector" })}
-          ariaLabel={t("editor:ui.inspectorPanel", { defaultValue: "Inspector panel" })}
+          title="Inspector"
+          ariaLabel="Inspector panel"
         >
           <FlexColumn
             sx={{
@@ -225,13 +194,13 @@ const PanelRight: React.FC = () => {
           style={{ width: `${panelSize}px` }}
         >
           <ResizeHandle
-            className="panel-button"
             orientation="vertical"
+            edge="start"
             value={panelSize}
             min={130}
             max={600}
             invert
-            ariaLabel={t("editor:ui.resizeInspectorPanel", { defaultValue: "Resize Inspector panel" })}
+            ariaLabel="Resize inspector panel"
             onResize={handlePanelResize}
             onResizeStart={() => setPanelDragging(true)}
             onResizeEnd={() => {

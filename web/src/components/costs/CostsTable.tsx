@@ -1,9 +1,8 @@
 import React, { memo } from "react";
 import { useTheme } from "@mui/material/styles";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { Box, FlexRow, FlexColumn, Text, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
+import { Box, FlexRow, FlexColumn, Text, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, ICON_SIZE, EmptyState } from "../ui_primitives";
 import { CostNodeIcon } from "./CostNodeIcon";
-import { useTranslation } from "react-i18next";
 import {
   groupExecutions,
   providerColor,
@@ -106,7 +105,7 @@ const ExecutionRows: React.FC<{ rows: Execution[] }> = ({ rows }) => {
                 color: theme.vars.palette.text.secondary
               }}
             >
-              <CostNodeIcon category={e.category} sx={{ fontSize: 16 }} />
+              <CostNodeIcon category={e.category} sx={{ fontSize: ICON_SIZE.sm }} />
             </FlexRow>
             <FlexColumn sx={{ minWidth: 0 }}>
               <Text
@@ -316,7 +315,6 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
   executions,
   groupBy
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const isExecution = groupBy === "execution";
 
@@ -340,37 +338,37 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
       <Box sx={headerSx}>
         {isExecution ? (
           <>
-            <HeaderText>{t("ui2:attrs.node", { defaultValue: "Node" })}</HeaderText>
-            <HeaderText>{t("home:entry.workflow.title", { defaultValue: "Workflow" })}</HeaderText>
-            <HeaderText>{t("ui2:attrs.providerModel", { defaultValue: "Provider / Model" })}</HeaderText>
-            <HeaderText align="right">{t("ui2:attrs.tokensInOut", { defaultValue: "Tokens (in/out)" })}</HeaderText>
-            <HeaderText align="right">{t("ui2:attrs.runtime", { defaultValue: "Runtime" })}</HeaderText>
-            <HeaderText>{t("editor:ui.status", { defaultValue: "Status" })}</HeaderText>
+            <HeaderText>Node</HeaderText>
+            <HeaderText>Workflow</HeaderText>
+            <HeaderText>Provider / model</HeaderText>
+            <HeaderText align="right">Tokens (in/out)</HeaderText>
+            <HeaderText align="right">Runtime</HeaderText>
+            <HeaderText>Status</HeaderText>
             <FlexRow align="center" justify="flex-end" gap={SPACING.micro}>
-              <HeaderText align="right">{t("ui2:attrs.when", { defaultValue: "When" })}</HeaderText>
+              <HeaderText align="right">When</HeaderText>
               <ArrowDropDownIcon
                 sx={{
-                  fontSize: 16,
+                  fontSize: ICON_SIZE.sm,
                   color: theme.vars.palette.text.secondary
                 }}
               />
             </FlexRow>
-            <HeaderText align="right">{t("ui2:attrs.cost", { defaultValue: "Cost" })}</HeaderText>
+            <HeaderText align="right">Cost</HeaderText>
           </>
         ) : (
           <>
             <HeaderText>
               {groupBy === "nodeType"
-                ? t("editor:ui.nodeType", { defaultValue: "Node type" })
+                ? "Node type"
                 : groupBy === "workflow"
                   ? "Workflow"
                   : groupBy === "provider"
                     ? "Provider"
                     : "Model"}
             </HeaderText>
-            <HeaderText align="right">{t("ui2:attrs.executions", { defaultValue: "Executions" })}</HeaderText>
-            <HeaderText>{t("ui2:attrs.shareOfSpend", { defaultValue: "Share of spend" })}</HeaderText>
-            <HeaderText align="right">{t("ui2:attrs.cost", { defaultValue: "Cost" })}</HeaderText>
+            <HeaderText align="right">Executions</HeaderText>
+            <HeaderText>Share of spend</HeaderText>
+            <HeaderText align="right">Cost</HeaderText>
           </>
         )}
       </Box>
@@ -385,11 +383,11 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
       )}
 
       {executions.length === 0 && (
-        <Box sx={{ padding: `${getSpacingPx(SPACING.xxxl)} ${getSpacingPx(SPACING.xxl)}`, textAlign: "center" }}>
-          <Text size="small" color="secondary">
-            {t("editor:ui.noExecutionsMatchTheCurrentFilters")}
-          </Text>
-        </Box>
+        <EmptyState
+          variant="no-results"
+          size="small"
+          title="No executions match the current filters"
+        />
       )}
     </Box>
   );

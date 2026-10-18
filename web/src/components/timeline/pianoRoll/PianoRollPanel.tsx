@@ -31,16 +31,13 @@ import {
   EditorButton,
   CloseButton,
   FlexColumn,
-  FlexRow,
   MOTION,
-  SPACING,
   ToolbarIconButton,
   TruncatedText
 } from "../../ui_primitives";
 import type { TempoGridDivision } from "@nodetool-ai/timeline";
-import { localizedGridDivisionOptions } from "../Tracks/tempoGrid";
+import { GRID_DIVISION_OPTIONS } from "../Tracks/tempoGrid";
 import { PianoRoll } from "./PianoRoll";
-import { useTranslation } from "react-i18next";
 
 const HANDLE_HEIGHT_PX = 6;
 /** Arrow-key step for keyboard resizing. */
@@ -72,22 +69,18 @@ const panelStyles = (theme: Theme) =>
     backgroundColor: theme.vars.palette.background.default
   });
 
-const headerStyles = (theme: Theme) =>
-  css({
-    flexShrink: 0,
-    minHeight: 36,
-    flexWrap: "wrap",
-    borderBottom: `1px solid ${theme.vars.palette.divider}`
-  });
-
 interface PianoRollPanelProps {
   /** Phone layout: the panel takes the tracks region's place, full height. */
   fullHeight?: boolean;
+  /**
+   * Inside the DAW dock: fills the dock, which owns the height and the
+   * divider, and keeps its Close control.
+   */
+  docked?: boolean;
 }
 
 export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
-  ({ fullHeight = false }) => {
-    const { t } = useTranslation();
+  ({ fullHeight = false, docked = false }) => {
     const theme = useTheme();
     const clipId = useTimelineUIStore((s) => s.pianoRollClipId);
     const heightPx = useTimelineUIStore((s) => s.pianoRollHeightPx);
@@ -163,12 +156,12 @@ export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
 
     return (
       <>
-        {!fullHeight && (
+        {!fullHeight && !docked && (
           <div
             ref={handleRef}
             role="separator"
             aria-orientation="horizontal"
-            aria-label={t("editor:ui.resizeNoteEditor", { defaultValue: "Resize note editor" })}
+            aria-label="Resize note editor"
             aria-valuenow={heightPx}
             aria-valuemin={MIN_PIANO_ROLL_HEIGHT_PX}
             aria-valuemax={MAX_PIANO_ROLL_HEIGHT_PX}
@@ -183,46 +176,46 @@ export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
           css={panelStyles(theme)}
           data-testid="piano-roll-panel"
           sx={
-            fullHeight
+            fullHeight || docked
               ? { flex: "1 1 0", minHeight: 0 }
               : { height: heightPx }
           }
         >
-          <FlexRow
-            fullWidth
-            align="center"
-            gap={SPACING.sm}
-            css={headerStyles(theme)}
-            sx={{ px: SPACING.sm }}
-          >
-            {fullHeight && (
-              <ToolbarIconButton
-                onClick={closePianoRoll}
-                tooltip={t("editor:ui.backToTracks", { defaultValue: "Back to tracks" })}
-                aria-label={t("editor:ui.backToTracks", { defaultValue: "Back to tracks" })}
-              >
-                <ArrowBackIosNewIcon fontSize="small" />
-              </ToolbarIconButton>
-            )}
-            <TruncatedText maxWidth={220}>
-              {clip.name || "Midi clip"}
-            </TruncatedText>
-            <Caption color="muted">
-              {clip.notes?.length ?? 0} {(clip.notes?.length ?? 0) === 1 ? "note" : "notes"}
-            </Caption>
-            <SelectField label={t("editor:ui.noteGrid", { defaultValue: "Note grid" })} hideLabel size="small" value={gridDivision}
-              options={localizedGridDivisionOptions(t)} css={css({ width: 96 })}
-              onChange={(value) => setGridDivision(value as TempoGridDivision)} />
-            <EditorButton variant={snapEnabled ? "contained" : "text"} onClick={toggleSnap} aria-label={t("editor:ui.snapNotes", { defaultValue: "Snap notes" })} aria-pressed={snapEnabled}>{t("ui2:attrs.snap", { defaultValue: "Snap" })}</EditorButton>
-            <FlexRow sx={{ flex: 1 }} />
-            {!fullHeight && (
-              <CloseButton
-                onClick={closePianoRoll}
-                tooltip={t("editor:ui.closeNoteEditor", { defaultValue: "Close note editor" })}
-              />
-            )}
-          </FlexRow>
-          <PianoRoll clipId={clipId} onClose={closePianoRoll} />
+          <PianoRoll
+            clipId={clipId}
+            onClose={closePianoRoll}
+            toolbarStart={
+              <>
+                {fullHeight && !docked && (
+                  <ToolbarIconButton
+                    onClick={closePianoRoll}
+                    tooltip="Back to tracks"
+                    aria-label="Back to tracks"
+                  >
+                    <ArrowBackIosNewIcon fontSize="small" />
+                  </ToolbarIconButton>
+                )}
+                <TruncatedText maxWidth={180}>
+                  {clip.name || "Midi clip"}
+                </TruncatedText>
+                <Caption color="muted" sx={{ whiteSpace: "nowrap" }}>
+                  {clip.notes?.length ?? 0} {(clip.notes?.length ?? 0) === 1 ? "note" : "notes"}
+                </Caption>
+                <SelectField label="Note grid" hideLabel size="small" value={gridDivision}
+                  options={GRID_DIVISION_OPTIONS} css={css({ width: 96 })}
+                  onChange={(value) => setGridDivision(value as TempoGridDivision)} />
+                <EditorButton variant={snapEnabled ? "contained" : "text"} onClick={toggleSnap} aria-label="Snap notes" aria-pressed={snapEnabled}>Snap</EditorButton>
+              </>
+            }
+            toolbarEnd={
+              (!fullHeight || docked) && (
+                <CloseButton
+                  onClick={closePianoRoll}
+                  tooltip="Close note editor"
+                />
+              )
+            }
+          />
         </FlexColumn>
       </>
     );

@@ -11,9 +11,7 @@
  * Scene placement, lighting, graphics and script lines stay on the board.
  */
 
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useAppLanguage } from "../../../i18n";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Shot } from "@nodetool-ai/protocol";
 
 import {
@@ -21,8 +19,8 @@ import {
   EditorButton,
   FlexColumn,
   FlexRow,
-  FormField,
   SelectField,
+  TextArea,
   TextInput,
   SPACING
 } from "../../ui_primitives";
@@ -42,10 +40,10 @@ import {
 } from "../../storyboard/shotDraft";
 import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
 
-const RENDER_MODE_OPTIONS = (t: ReturnType<typeof useTranslation>["t"]) => [
-  { value: "keyframe", label: t("timeline:shot.renderModeAnimateAStill", { defaultValue: "Animate a still" }) },
-  { value: "direct", label: t("timeline:shot.renderModeFromThePrompt", { defaultValue: "From the prompt" }) },
-  { value: "reference", label: t("timeline:shot.renderModeFromReferences", { defaultValue: "From references" }) }
+const RENDER_MODE_OPTIONS = [
+  { value: "keyframe", label: "Animate a still" },
+  { value: "direct", label: "From the prompt" },
+  { value: "reference", label: "From references" }
 ];
 
 interface TimelineShotFormProps {
@@ -59,10 +57,6 @@ const TimelineShotFormInner = ({
   shot,
   readOnly
 }: TimelineShotFormProps) => {
-  const { t } = useTranslation();
-  // The shared camera option labels resolve through i18n; this dep recomputes
-  // the memoized option lists when the language changes.
-  const { version: languageVersion } = useAppLanguage();
   const applyShotDraft = useStoryboardStore((state) => state.applyShotDraft);
   const scene = useStoryboardStore(
     (state) =>
@@ -121,130 +115,116 @@ const TimelineShotFormInner = ({
 
   const framingOptions = useMemo(
     () => cameraOptions(FRAMING_OPTIONS, draft.framing),
-    [draft.framing, languageVersion]
+    [draft.framing]
   );
   const angleOptions = useMemo(
     () => cameraOptions(ANGLE_OPTIONS, draft.angle),
-    [draft.angle, languageVersion]
+    [draft.angle]
   );
   const movementOptions = useMemo(
     () => cameraOptions(MOVEMENT_OPTIONS, draft.movement),
-    [draft.movement, languageVersion]
+    [draft.movement]
   );
 
   return (
-    <FlexColumn gap={SPACING.sm} data-testid="timeline-shot-form">
+    <FlexColumn gap={SPACING.lg} data-testid="timeline-shot-form">
       <TextInput
-        label={t("timeline:shot.name", { defaultValue: "Name" })}
+        label="Name"
         value={draft.slug}
         onChange={(event) => set({ slug: event.target.value })}
         disabled={readOnly}
         compact
         fullWidth
       />
-      <TextInput
-        label={t("storyboard:attrs.description", { defaultValue: "Description" })}
+      <TextArea
+        label="Description"
         value={draft.action}
-        onChange={(event) => set({ action: event.target.value })}
+        onChange={(value) => set({ action: value })}
         disabled={readOnly}
-        placeholder={t("storyboard:attrs.whatTheShotShows", { defaultValue: "What the shot shows" })}
-        multiline
-        minRows={2}
+        placeholder="What the shot shows"
+        minRows={1}
         maxRows={8}
         compact
         fullWidth
       />
-      <TextInput
-        label={t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" })}
+      <TextArea
+        label="Dialogue"
         value={draft.dialogue}
-        onChange={(event) => set({ dialogue: event.target.value })}
+        onChange={(value) => set({ dialogue: value })}
         disabled={readOnly}
-        multiline
         maxRows={4}
         compact
         fullWidth
       />
-      <TextInput
-        label={t("editor:ui.motion", { defaultValue: "Motion" })}
+      <TextArea
+        label="Motion"
         value={draft.motion}
-        onChange={(event) => set({ motion: event.target.value })}
+        onChange={(value) => set({ motion: value })}
         disabled={readOnly}
-        placeholder={t("timeline:shot.whatMoves", { defaultValue: "What moves, and how the camera moves" })}
-        multiline
+        placeholder="What moves, and how the camera moves"
         maxRows={4}
         compact
         fullWidth
       />
       <TextInput
-        label={t("storyboard:attrs.sound", { defaultValue: "Sound" })}
+        label="Sound"
         value={draft.sound}
         onChange={(event) => set({ sound: event.target.value })}
         disabled={readOnly}
         compact
         fullWidth
       />
-      <FormField label={t("storyboard:attrs.size", { defaultValue: "Size" })}>
-        <SelectField
-          size="small"
-          label={t("storyboard:attrs.size", { defaultValue: "Size" })}
-          hideLabel
-          disabled={readOnly}
-          value={draft.framing}
-          onChange={(value) => set({ framing: value })}
-          options={framingOptions}
-        />
-      </FormField>
-      <FormField label={t("storyboard:attrs.perspective", { defaultValue: "Perspective" })}>
-        <SelectField
-          size="small"
-          label={t("storyboard:attrs.perspective", { defaultValue: "Perspective" })}
-          hideLabel
-          disabled={readOnly}
-          value={draft.angle}
-          onChange={(value) => set({ angle: value })}
-          options={angleOptions}
-        />
-      </FormField>
-      <FormField label={t("storyboard:attrs.movement", { defaultValue: "Movement" })}>
-        <SelectField
-          size="small"
-          label={t("storyboard:attrs.movement", { defaultValue: "Movement" })}
-          hideLabel
-          disabled={readOnly}
-          value={draft.movement}
-          onChange={(value) => set({ movement: value })}
-          options={movementOptions}
-        />
-      </FormField>
-      <FormField label={t("timeline:shot.renderFrom", { defaultValue: "Render from" })}>
-        <SelectField
-          size="small"
-          label={t("timeline:shot.renderFrom", { defaultValue: "Render from" })}
-          hideLabel
-          disabled={readOnly}
-          value={draft.renderMode}
-          onChange={(value) =>
-            set({ renderMode: value as ShotDraft["renderMode"] })
-          }
-          options={RENDER_MODE_OPTIONS(t)}
-        />
-      </FormField>
+      <SelectField
+        size="small"
+        label="Size"
+        disabled={readOnly}
+        value={draft.framing}
+        onChange={(value) => set({ framing: value })}
+        options={framingOptions}
+      />
+      <SelectField
+        size="small"
+        label="Perspective"
+        disabled={readOnly}
+        value={draft.angle}
+        onChange={(value) => set({ angle: value })}
+        options={angleOptions}
+      />
+      <SelectField
+        size="small"
+        label="Movement"
+        disabled={readOnly}
+        value={draft.movement}
+        onChange={(value) => set({ movement: value })}
+        options={movementOptions}
+      />
+      <SelectField
+        size="small"
+        label="Render from"
+        disabled={readOnly}
+        value={draft.renderMode}
+        onChange={(value) =>
+          set({ renderMode: value as ShotDraft["renderMode"] })
+        }
+        options={RENDER_MODE_OPTIONS}
+      />
       <TextInput
-        label={t("timeline:shot.lengthS", { defaultValue: "Length (s)" })}
+        label="Length (s)"
         value={draft.durationSeconds}
         onChange={(event) => set({ durationSeconds: event.target.value })}
         disabled={readOnly}
-        error={durationInvalid}
-        helperText={durationInvalid ? t("timeline:shot.enterLengthSeconds", { defaultValue: "Enter a length in seconds." }) : undefined}
+        errorMessage={
+          durationInvalid ? "Enter a length in seconds." : undefined
+        }
         inputProps={{ inputMode: "decimal" }}
         compact
         fullWidth
       />
       {!readOnly && (
         <FlexRow gap={SPACING.sm} justify="flex-end" align="center">
-          {dirty && <Caption color="secondary">{t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })}</Caption>}
+          {dirty && <Caption color="secondary">Unsaved changes</Caption>}
           <EditorButton onClick={handleRevert} disabled={!dirty}>
-            {t("timeline:shot.revert", { defaultValue: "Revert" })}
+            Revert
           </EditorButton>
           <EditorButton
             variant="contained"
@@ -252,7 +232,7 @@ const TimelineShotFormInner = ({
             disabled={!dirty || durationInvalid}
             data-testid="timeline-shot-form-save"
           >
-            {t("common:action.save", { defaultValue: "Save" })}
+            Save
           </EditorButton>
         </FlexRow>
       )}

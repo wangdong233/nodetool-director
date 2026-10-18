@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import React, { useCallback, useEffect, useMemo, memo } from "react";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import {
   Text,
   Tooltip,
@@ -10,7 +10,8 @@ import {
   EditorButton,
   SPACING,
   getSpacingPx,
-  ToolbarIconButton
+  ToolbarIconButton,
+  ICON_SIZE
 } from "../ui_primitives";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -70,10 +71,16 @@ const SelectedItemsInfo: React.FC<{
     }, 0);
   }, [selectedAssetIds, assets]);
 
-  if (selectedAssetIds.length === 0) return null;
+  // The row keeps its height while nothing is selected: selecting an asset
+  // as a drag starts must not push the folder list under the pointer.
+  const hidden = selectedAssetIds.length === 0;
 
   return (
-    <div className="header-info">
+    <div
+      className="header-info"
+      aria-hidden={hidden}
+      style={hidden ? { visibility: "hidden" } : undefined}
+    >
       <div className="selected-asset-info">
         <Text className="selected-info">
           {selectedAssetIds.length}{" "}
@@ -94,7 +101,7 @@ const SelectedItemsInfo: React.FC<{
           tooltipPlacement="top"
           onClick={onClear}
           size="small"
-          sx={{ ml: SPACING.micro, "& .MuiSvgIcon-root": { fontSize: 14 } }}
+          sx={{ ml: SPACING.micro, "& .MuiSvgIcon-root": { fontSize: ICON_SIZE.xs } }}
         />
       </div>
     </div>
@@ -134,6 +141,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({
     folderFilesFiltered,
     folderTree,
     navigateToFolderId,
+    projectId,
     refetchAssetsAndFolders
   } = useAssets();
   const {
@@ -181,9 +189,9 @@ const AssetGrid: React.FC<AssetGridProps> = ({
 
   const theme = useTheme();
 
-  // Folders are shown by default on the wide fullscreen page; elsewhere they
-  // follow the user's toggle. Either way, hide the tree entirely when there
-  // are no folders to show.
+  // The sidebar hides an empty folder tree until the user creates a folder.
+  // The fullscreen page always docks it: it also holds the Workflows browser
+  // and is where people expect to create and pick folders.
   const hasFolders = useMemo(
     () => !!folderTree && Object.keys(folderTree).length > 0,
     [folderTree]
@@ -202,7 +210,8 @@ const AssetGrid: React.FC<AssetGridProps> = ({
   const isNarrow = useMediaQuery(theme.breakpoints.down("sm"));
   const foldersDocked = Boolean(isFullscreenAssets) && !isNarrow;
   const effectiveFoldersVisible =
-    !isWorkflowOutputScope && hasFolders && (foldersDocked || foldersVisible);
+    !isWorkflowOutputScope &&
+    (foldersDocked || (hasFolders && foldersVisible));
 
   const user = useAuth((state) => state.user);
 
@@ -258,11 +267,12 @@ const AssetGrid: React.FC<AssetGridProps> = ({
       files.forEach((file: File) => {
         uploadAsset({
           file: file,
-          parent_id: currentFolderId || undefined
+          parent_id: currentFolderId || undefined,
+          project_id: projectId
         });
       });
     },
-    [currentFolderId, uploadAsset]
+    [currentFolderId, projectId, uploadAsset]
   );
 
   if (selectedFolderId === null) {

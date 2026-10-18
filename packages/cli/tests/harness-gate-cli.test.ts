@@ -1,20 +1,25 @@
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { Command } from "commander";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   collectChangedFiles,
   readChangedFiles,
-  isGateRelevantCodeFile
+  isGateRelevantCodeFile,
+  isGlobalGateFile
 } from "../src/harness/changed-files.js";
 import {
   executeChecks,
+  registerHarnessCommands,
   printGatePlan,
   selectChecks,
   type ExecuteChecksOptions
 } from "../src/commands/harness.js";
-import type { GateCheck, GatePlan } from "../src/harness/registry.js";
+import { HARNESSES, SURFACES, planGate, type GateCheck, type GatePlan } from "../src/harness/registry.js";
+import { computeAffected, readWorkspacePackages } from "../src/affected/affected.js";
 
 describe("collectChangedFiles", () => {
   it.each([" M", "M ", "A ", "D ", " D", "??", "UU"])(
@@ -207,6 +212,12 @@ const runOpts = (
 });
 
 describe("selectChecks", () => {
+  const workspaces = [
+    { name: "@nodetool-ai/runtime", dir: "packages/runtime", internalDeps: [] },
+    { name: "@nodetool-ai/models", dir: "packages/models", internalDeps: [] },
+    { name: "nodetool", dir: "web", internalDeps: [] },
+    { name: "demo", dir: "demo", internalDeps: [] }
+  ];
   const checks = [
     check("plain", "true"),
     check("suite", "true", { suiteOnly: true }),
@@ -225,10 +236,211 @@ describe("selectChecks", () => {
     expect(r.toRun.map((c) => c.harnessId)).toEqual(["plain", "suite", "big"]);
     expect(r.skippedSuites).toEqual([]);
   });
+
+  it("skips only known workspace test commands covered by a global full pass", () => {
+    const cases = [
+      check("single", "npm run test --workspace=packages/runtime -- tests/example.test.ts"),
+      check("multiple", "npm run test --workspace=packages/runtime --workspace=@nodetool-ai/models -- example"),
+      check("chain", "npm test --workspace=web -- --runInBand --testPathPattern='one|two' && npm run test --workspace=packages/models"),
+      check("mixed", "npm run test --workspace=packages/runtime && npm run lint"),
+      check("unknown", "npm run test --workspace=packages/missing"),
+      check("demo", "npm run test --workspace=demo"),
+      check("other-script", "npm run test:journeys --workspace=web"),
+      check("substitution", "npm run test --workspace=web -- $(touch marker)"),
+      check("config", "npm run test --workspace=web -- --config other.json"),
+      check("project", "npm run test --workspace=web -- --project alternate"),
+      check("broken-quote", "npm run test --workspace=web -- 'unterminated"),
+      check("empty-segment", "npm run test --workspace=web &&"),
+      check("env", "CI=1 npm run test --workspace=web"),
+      check("redirect", "npm run test --workspace=web > marker"),
+      check("cmd-env", "npm run test --workspace=web -- %FLAGS%"),
+      check("cmd-delayed-env", "npm run test --workspace=web -- !FLAGS!"),
+      check("cmd-escape", "npm run test --workspace=web -- ^--config alternate.json"),
+      check("quoted-operator", "npm run test --workspace=web '--' '; echo done'"),
+      check("operator", "npm run test --workspace=web; echo done")
+    ];
+    const opts = { globalFiles: ["package-lock.json"], workspaces };
+    expect(selectChecks(cases, opts).skippedSuites.map(c => c.harnessId)).toEqual(["single", "multiple", "chain"]);
+    expect(selectChecks(cases, opts).toRun.map(c => c.harnessId)).toEqual([
+      "mixed", "unknown", "demo", "other-script", "substitution", "config", "project", "broken-quote", "empty-segment", "env", "redirect", "cmd-env", "cmd-delayed-env", "cmd-escape", "quoted-operator", "operator"
+    ]);
+    expect(selectChecks(cases, opts).toRun.find(c => c.harnessId === "mixed")?.command).toBe("npm run lint");
+    expect(selectChecks(cases, opts).prunedSuites).toEqual([
+      { harnessId: "mixed", commands: ["npm run test --workspace=packages/runtime"] }
+    ]);
+    expect(selectChecks(cases, { ...opts, globalFiles: [] }).toRun).toEqual(cases);
+    expect(selectChecks(cases, { ...opts, globalFiles: ["README.md"] }).toRun).toEqual(cases);
+    expect(selectChecks(cases, { ...opts, includeSuites: true }).toRun).toEqual(cases);
+  });
+
+  it("prunes the backend suite steps the diff's affected packages already run in full", () => {
+    const graph = [
+      { name: "@nodetool-ai/protocol", dir: "packages/protocol", internalDeps: [] },
+      { name: "@nodetool-ai/runtime", dir: "packages/runtime", internalDeps: ["@nodetool-ai/protocol"] },
+      { name: "@nodetool-ai/models", dir: "packages/models", internalDeps: [] },
+      { name: "nodetool", dir: "web", internalDeps: ["@nodetool-ai/runtime"] }
+    ];
+    const flow = check(
+      "flow",
+      "npm run test --workspace=packages/protocol -- game && " +
+        "npm run test --workspace=packages/runtime && " +
+        "npm run test --workspace=packages/models -- durable && " +
+        "npm run test --workspace=web -- src/stores/game"
+    );
+    const r = selectChecks([flow], { changedFiles: ["packages/protocol/src/game.ts"], workspaces: graph });
+    expect(r.toRun.map(c => c.command)).toEqual([
+      "npm run test --workspace=packages/models -- durable && npm run test --workspace=web -- src/stores/game"
+    ]);
+    expect(r.prunedSuites).toEqual([{
+      harnessId: "flow",
+      commands: ["npm run test --workspace=packages/protocol -- game", "npm run test --workspace=packages/runtime"]
+    }]);
+    expect(r.skippedSuites).toEqual([]);
+
+    const own = selectChecks([check("own", "npm run test --workspace=packages/models -- durable")], {
+      changedFiles: ["packages/models/src/a.ts"],
+      workspaces: graph
+    });
+    expect(own.toRun).toEqual([]);
+    expect(own.skippedSuites.map(c => c.harnessId)).toEqual(["own"]);
+
+    // A web file makes web affected, but test:affected may run only its related tests.
+    expect(selectChecks([flow], { changedFiles: ["web/src/stores/game.ts"], workspaces: graph }).toRun).toEqual([flow]);
+    expect(selectChecks([flow], { changedFiles: ["docs/x.md"], workspaces: graph }).toRun).toEqual([flow]);
+    expect(selectChecks([flow], { changedFiles: ["packages/protocol/src/game.ts"], workspaces: graph, includeSuites: true }).toRun).toEqual([flow]);
+  });
+
+  it("prunes a step only when test:affected and the CI shards run that package for every surface path", async () => {
+    const root = fileURLToPath(new URL("../../../", import.meta.url));
+    const { buildPlan } = await import(new URL("../../../scripts/test-affected.mjs", import.meta.url).href);
+    const { buildCiPlan, shardOf } = await import(new URL("../../../scripts/ci-plan.mjs", import.meta.url).href);
+    const packages = readWorkspacePackages(root);
+    const dirOf = new Map(packages.map(p => [p.name, p.dir]));
+    const nameOf = new Map(packages.flatMap(p => [[p.name, p.name], [p.dir, p.name]]));
+    const legOf: Record<string, string> = {
+      "test-packages-websocket": "packages_websocket",
+      "test-packages-agents": "packages_agents",
+      "test-packages-nodes": "packages_nodes",
+      "test-packages-core": "packages_core",
+      "test-packages-game": "packages_game"
+    };
+    const files = [...new Set(SURFACES.flatMap(s => s.paths))]
+      .map(p => (p.endsWith("/") ? `${p}index.ts` : p));
+    expect(files.length).toBeGreaterThan(100);
+    let pruned = 0;
+    for (const file of files) {
+      const plan = planGate([file]);
+      const r = selectChecks(plan.checks, { changedFiles: [file], globalFiles: plan.globalFiles, workspaces: packages });
+      const steps = r.prunedSuites.flatMap(p => p.commands);
+      if (steps.length === 0) continue;
+      const testPlan = buildPlan([file], packages, computeAffected);
+      const ciPlan = buildCiPlan([file], packages, computeAffected);
+      const turboArgs: string[] = testPlan.steps
+        .filter((s: { args: string[] }) => s.args.includes("test") && s.args.some(a => a.startsWith("--filter=")))
+        .flatMap((s: { args: string[] }) => s.args);
+      for (const step of steps) {
+        for (const [, ws] of step.matchAll(/--workspace=(\S+)/g)) {
+          const name = nameOf.get(ws!);
+          expect(name, `${file}: ${step}`).toBeDefined();
+          expect(turboArgs, `${file}: test:affected runs ${name}`).toContain(`--filter=${name}`);
+          const leg = legOf[shardOf(name, dirOf.get(name!) ?? "")];
+          expect(leg, `${file}: ${name} has a CI shard`).toBeDefined();
+          expect(ciPlan[leg!], `${file}: CI starts the ${leg} shard`).toBe(true);
+          pruned++;
+        }
+      }
+    }
+    expect(pruned).toBeGreaterThan(0);
+  }, 120_000);
+
+  it("keeps the web step of game-flow and drops the game package suites for a game-runtime diff", () => {
+    const root = fileURLToPath(new URL("../../../", import.meta.url));
+    const file = "packages/game-runtime/src/scripts.ts";
+    const plan = planGate([file]);
+    const r = selectChecks(plan.checks, { changedFiles: [file], globalFiles: plan.globalFiles, workspaces: readWorkspacePackages(root) });
+    const flow = r.toRun.find(c => c.harnessId === "game-flow");
+    expect(flow?.command).toContain("--workspace=web");
+    expect(flow?.command).not.toContain("--workspace=packages/game-runtime");
+    expect(flow?.command).not.toContain("--workspace=packages/game-renderer");
+    expect(r.prunedSuites.find(p => p.harnessId === "game-flow")?.commands).toEqual(
+      expect.arrayContaining([
+        "npm run test --workspace=packages/game-runtime",
+        "npm run test --workspace=packages/game-renderer"
+      ])
+    );
+  });
+
+  it("selects a large global plan without changing check order", () => {
+    const checks = Array.from({ length: 10_000 }, (_, index) =>
+      check(`suite-${index}`, "npm run test --workspace=packages/runtime")
+    );
+    const selected = selectChecks(checks, { globalFiles: ["package-lock.json"], workspaces });
+    expect(selected.toRun).toEqual([]);
+    expect(selected.skippedSuites).toEqual(checks);
+  });
+
+  it("infers full coverage only for gate global files that select the canonical full plan", async () => {
+    const root = fileURLToPath(new URL("../../../", import.meta.url));
+    const moduleUrl = new URL("../../../scripts/test-affected.mjs", import.meta.url).href;
+    const { buildPlan, fullPlan } = await import(moduleUrl);
+    const packages = readWorkspacePackages(root);
+    expect(packages.length).toBeGreaterThan(0);
+    expect(fullPlan()).toEqual([
+      { label: "packages", command: "npm", args: ["run", "test:packages"] },
+      { label: "web", command: "npm", args: ["test", "--workspace=web"] },
+      { label: "electron", command: "npm", args: ["test", "--workspace=electron"] },
+      { label: "mobile", command: "npm", args: ["--prefix", "mobile", "test"] }
+    ]);
+    const rootManifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+    expect(rootManifest.scripts["test:packages"]).toContain('--filter="./packages/*"');
+    expect(rootManifest.scripts["test:packages"]).toContain('--filter="./reliability/*"');
+    const globalFiles = [
+      ...readdirSync(root),
+      ...readdirSync(join(root, "scripts")).map(file => `scripts/${file}`)
+    ].filter(isGlobalGateFile);
+    expect(globalFiles.length).toBeGreaterThan(0);
+    for (const file of globalFiles) {
+      const plan = planGate([file]);
+      expect(plan.globalFiles).toEqual([file]);
+      expect(buildPlan([file], packages, computeAffected).steps).toEqual(fullPlan());
+    }
+  });
+
+  it("does not infer a full test pass from --all and lets --include-suites override a global diff", async () => {
+    const output = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    try {
+      const program = new Command();
+      registerHarnessCommands(program);
+      await program.parseAsync(["node", "nodetool", "harness", "gate", "--all", "--dry-run", "--json"]);
+      const all = JSON.parse(String(output.mock.calls.at(-1)?.[0]));
+      expect(all.plan.globalFiles).toEqual([]);
+      expect(all.skippedSuites).toEqual(HARNESSES.filter(h => h.selfcheck?.suiteOnly).map(h => h.id));
+      const overrideProgram = new Command();
+      registerHarnessCommands(overrideProgram);
+      await overrideProgram.parseAsync(["node", "nodetool", "harness", "gate", "package-lock.json", "--include-suites", "--dry-run", "--json"]);
+      const explicit = JSON.parse(String(output.mock.calls.at(-1)?.[0]));
+      expect(explicit.plan.globalFiles).toEqual(["package-lock.json"]);
+      expect(explicit.skippedSuites).toEqual([]);
+    } finally {
+      output.mockRestore();
+    }
+  });
 });
 
 describe("executeChecks", () => {
   afterEach(() => vi.restoreAllMocks());
+
+  it.each([1, 2])("reports progress on stderr and durations without contaminating JSON output with jobs=%s", async (jobs) => {
+    const stderr = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const results = await executeChecks([check("timed", node("process.exit(0)"))], runOpts({ jobs }));
+    expect(results[0].durationMs).toBeGreaterThanOrEqual(0);
+    expect(Number.isFinite(results[0].durationMs)).toBe(true);
+    expect(stderr.mock.calls.map(([chunk]) => String(chunk)).join("")).toMatch(/START timed[\s\S]*PASS timed.*\d+ms/);
+    expect(stderr.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain(`PASS timed (${results[0].durationMs}ms)`);
+    expect(stdout).not.toHaveBeenCalled();
+    expect(JSON.parse(JSON.stringify({ results })).results[0].durationMs).toBe(results[0].durationMs);
+  });
 
   it("runs serially in plan order by default", async () => {
     vi.spyOn(process.stderr, "write").mockImplementation(() => true);
@@ -310,6 +522,164 @@ describe("executeChecks", () => {
       runOpts({ timeoutMs: 500, timeoutSeconds: 0.5 })
     );
     expect(r).toMatchObject({ ok: false, exitCode: 124, timedOut: true });
+  });
+
+  it.each([
+    { jobs: 1, json: true, cost: "cheap" as const },
+    { jobs: 1, json: false, cost: "cheap" as const },
+    { jobs: 2, json: true, cost: "expensive" as const },
+    { jobs: 2, json: true, cost: "cheap" as const }
+  ])("stops descendants before continuing after timeout ($jobs, $json, $cost)", async ({ jobs, json, cost }) => {
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const dir = mkdtempSync(join(tmpdir(), "gate-descendant-"));
+    const pidPath = join(dir, "pid");
+    const parentPidPath = join(dir, "parent-pid");
+    const releasePath = join(dir, "release");
+    const escapedPath = join(dir, "escaped");
+    const childCode =
+      `const fs=require("node:fs");` +
+      `fs.writeFileSync(${JSON.stringify(pidPath)},String(process.pid));` +
+      `setInterval(()=>{if(fs.existsSync(${JSON.stringify(releasePath)})){` +
+      `fs.writeFileSync(${JSON.stringify(escapedPath)},"still running");}},10);`;
+    const parentCode =
+      `require("node:fs").writeFileSync(${JSON.stringify(parentPidPath)},String(process.pid));` +
+      `require("node:child_process").spawn(process.execPath,["-e",${JSON.stringify(childCode)}],{stdio:"ignore"});` +
+      `setInterval(()=>{},1000);`;
+    try {
+      const parallel = jobs > 1 && cost === "cheap";
+      const continueCode = parallel ? "process.exit(0)" : `require("node:fs").writeFileSync(${JSON.stringify(releasePath)},"continue");setTimeout(()=>{},150);`;
+      const [result, next] = await executeChecks(
+        [check("descendant", node(parentCode), { cost }), check("next", node(continueCode), { cost })],
+        runOpts({ jobs, json, timeoutMs: 1000, timeoutSeconds: 1 })
+      );
+      expect(existsSync(pidPath)).toBe(true);
+      expect(result).toMatchObject({ ok: false, exitCode: 124, timedOut: true, killed: true });
+      expect(next.ok).toBe(true);
+      if (parallel) {
+        writeFileSync(releasePath, "continue");
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
+      expect(existsSync(releasePath)).toBe(true);
+      expect(existsSync(escapedPath)).toBe(false);
+    } finally {
+      for (const ownedPidPath of [pidPath, parentPidPath]) {
+        if (!existsSync(ownedPidPath)) {
+          continue;
+        }
+        const pid = Number(readFileSync(ownedPidPath, "utf8"));
+        try { process.kill(pid, "SIGKILL"); } catch (error) {
+          if (!(error instanceof Error) || !("code" in error) || error.code !== "ESRCH") {
+            throw error;
+          }
+        }
+      }
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it.each([
+    { signal: "SIGINT" as const, exitCode: 130 },
+    { signal: "SIGTERM" as const, exitCode: 143 }
+  ])("cleans up a serial gate on $signal and does not start its next check", async ({ signal, exitCode }) => {
+    const dir = mkdtempSync(join(tmpdir(), "gate-interrupt-"));
+    const pidPath = join(dir, "pid");
+    const parentPidPath = join(dir, "parent-pid");
+    const releasePath = join(dir, "release");
+    const escapedPath = join(dir, "escaped");
+    const nextPath = join(dir, "next");
+    const entry = join(dir, "check.mts");
+    const childCode = `const fs=require("node:fs");fs.writeFileSync(${JSON.stringify(pidPath)},String(process.pid));setInterval(()=>{if(fs.existsSync(${JSON.stringify(releasePath)}))fs.writeFileSync(${JSON.stringify(escapedPath)},"escaped");},10);`;
+    const parentCode = `require("node:fs").writeFileSync(${JSON.stringify(parentPidPath)},String(process.pid));require("node:child_process").spawn(process.execPath,["-e",${JSON.stringify(childCode)}],{stdio:"ignore"});setInterval(()=>{},1000);`;
+    const harnessUrl = new URL("../src/commands/harness.ts", import.meta.url).href;
+    writeFileSync(entry, `import { executeChecks } from ${JSON.stringify(harnessUrl)};
+await executeChecks(${JSON.stringify([
+      check("interrupted", node(parentCode)),
+      check("next", node(`require("node:fs").writeFileSync(${JSON.stringify(nextPath)},"started")`))
+    ])}, ${JSON.stringify(runOpts())});`);
+    const gate = spawn(process.execPath, ["--import", import.meta.resolve("tsx"), entry], { stdio: "ignore" });
+    const closed = new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve, reject) => {
+      gate.once("error", reject);
+      gate.once("close", (code, signal) => resolve({ code, signal }));
+    });
+    try {
+      const deadline = Date.now() + 5000;
+      while (!existsSync(pidPath) && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      expect(existsSync(pidPath)).toBe(true);
+      gate.kill(signal);
+      expect(await closed).toEqual({ code: exitCode, signal: null });
+      writeFileSync(releasePath, "continue");
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      expect(existsSync(escapedPath)).toBe(false);
+      expect(existsSync(nextPath)).toBe(false);
+    } finally {
+      gate.kill("SIGKILL");
+      for (const ownedPidPath of [pidPath, parentPidPath]) {
+        if (!existsSync(ownedPidPath)) {
+          continue;
+        }
+        try { process.kill(Number(readFileSync(ownedPidPath, "utf8")), "SIGKILL"); } catch (error) {
+          if (!(error instanceof Error) || !("code" in error) || error.code !== "ESRCH") {
+            throw error;
+          }
+        }
+      }
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("enforces the serial JSON byte limit and cleans up descendants on overflow", async () => {
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const dir = mkdtempSync(join(tmpdir(), "gate-overflow-"));
+    const pidPath = join(dir, "pid");
+    const parentPidPath = join(dir, "parent-pid");
+    const releasePath = join(dir, "release");
+    const escapedPath = join(dir, "escaped");
+    const childCode = `const fs=require("node:fs");fs.writeFileSync(${JSON.stringify(pidPath)},String(process.pid));setInterval(()=>{if(fs.existsSync(${JSON.stringify(releasePath)}))fs.writeFileSync(${JSON.stringify(escapedPath)},"escaped");},10);`;
+    const parentCode = `const fs=require("node:fs");fs.writeFileSync(${JSON.stringify(parentPidPath)},String(process.pid));require("node:child_process").spawn(process.execPath,["-e",${JSON.stringify(childCode)}],{stdio:"ignore"});const ready=setInterval(()=>{if(!fs.existsSync(${JSON.stringify(pidPath)}))return;clearInterval(ready);const chunk=Buffer.alloc(65536,"é");for(let n=0;n<4097;n++)fs.writeSync(1,chunk);setInterval(()=>{},1000);},10);`;
+    try {
+      const [result] = await executeChecks([check("overflow", node(parentCode))], runOpts());
+      expect(existsSync(pidPath)).toBe(true);
+      expect(result).toMatchObject({ ok: false, exitCode: 1, timedOut: false, killed: true });
+      writeFileSync(releasePath, "continue");
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      expect(existsSync(escapedPath)).toBe(false);
+    } finally {
+      for (const ownedPidPath of [pidPath, parentPidPath]) {
+        if (!existsSync(ownedPidPath)) {
+          continue;
+        }
+        try { process.kill(Number(readFileSync(ownedPidPath, "utf8")), "SIGKILL"); } catch (error) {
+          if (!(error instanceof Error) || !("code" in error) || error.code !== "ESRCH") {
+            throw error;
+          }
+        }
+      }
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("retains live stdout and stderr for serial checks", () => {
+    const dir = mkdtempSync(join(tmpdir(), "gate-live-output-"));
+    try {
+      const entry = join(dir, "check.mts");
+      const harnessUrl = new URL("../src/commands/harness.ts", import.meta.url).href;
+      const command = node('process.stdout.write("child stdout");process.stderr.write("child stderr")');
+      writeFileSync(entry, `import { executeChecks } from ${JSON.stringify(harnessUrl)};
+const results = await executeChecks([${JSON.stringify(check("live", command))}], ${JSON.stringify(runOpts({ json: false }))});
+process.stdout.write("RESULT " + JSON.stringify(results));`);
+      const output = spawnSync(process.execPath, ["--import", import.meta.resolve("tsx"), entry], {
+        encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"]
+      });
+      expect(output.error).toBeUndefined();
+      expect(output.status).toBe(0);
+      expect(output.stdout).toContain("child stdout");
+      expect(output.stderr).toContain("child stderr");
+      expect(output.stdout).toContain('"ok":true');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("buffers a check's output into one block in parallel mode", async () => {

@@ -19,7 +19,7 @@
  *   tags={tags}
  *   onTagsChange={setTags}
  *   placeholder="Add a tag..."
- *   label={i18n.t("editor:ui.tags", { defaultValue: "Tags" })}
+ *   label="Tags"
  * />
  */
 
@@ -33,11 +33,10 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import { CONTROL, MOTION } from "./tokens";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
+import { Tooltip } from "./Tooltip";
 
 const styles = (theme: Theme) =>
   css({
@@ -144,7 +143,7 @@ export const TagInput: React.FC<TagInputProps> = memo(
   function TagInput({
     tags,
     onTagsChange,
-    placeholder = i18n.t("ui:attrs.typeAndPressEnterToAddATag", { defaultValue: "Type and press Enter to add a tag..." }),
+    placeholder = "Type and press Enter to add a tag…",
     label,
     allowDuplicates = false,
     maxTags,
@@ -155,7 +154,6 @@ export const TagInput: React.FC<TagInputProps> = memo(
     chipSize = "small",
     className,
   }) {
-    const { t } = useTranslation();
     const theme = useTheme();
     const [inputValue, setInputValue] = useState("");
     const [validationError, setValidationError] = useState<string>("");
@@ -181,12 +179,12 @@ export const TagInput: React.FC<TagInputProps> = memo(
         const trimmedTag = tag.trim();
 
         if (trimmedTag === "") {
-          setValidationError(i18n.t("editor:ui.tagCannotBeEmpty", { defaultValue: "Tag cannot be empty" }));
+          setValidationError("Tag cannot be empty");
           return false;
         }
 
         if (!allowDuplicates && tags.includes(trimmedTag)) {
-          setValidationError(i18n.t("editor:ui.thisTagAlreadyExists", { defaultValue: "This tag already exists" }));
+          setValidationError("This tag already exists");
           return false;
         }
 
@@ -327,20 +325,21 @@ export const TagInput: React.FC<TagInputProps> = memo(
             onKeyDown={handleInputKeyDown}
             placeholder={tags.length === 0 ? placeholder : ""}
             disabled={disabled || isMaxReached}
-            aria-label={t("ui:attrs.addNewTag", { defaultValue: "Add new tag" })}
+            aria-label="Add new tag"
             aria-invalid={hasError}
             aria-describedby={displayHelperText ? `${label || "tag"}-helper-text` : undefined}
           />
           {!disabled && !isMaxReached && inputValue.trim() && (
-            <IconButton
-              className="add-button"
-              size="small"
-              onClick={handleAddButtonClick}
-              aria-label={t("ui:attrs.addTag", { defaultValue: "Add tag" })}
-              title={t("ui:attrs.addTag", { defaultValue: "Add tag" })}
-            >
-              <AddIcon fontSize="small" />
-            </IconButton>
+            <Tooltip title="Add tag">
+              <IconButton
+                className="add-button"
+                size="small"
+                onClick={handleAddButtonClick}
+                aria-label="Add tag"
+              >
+                <AddIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           )}
         </Box>
         {displayHelperText && (

@@ -3,11 +3,10 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import React, { useMemo, memo } from "react";
-import { Box } from "../ui_primitives";
+import { Box, StatCard } from "../ui_primitives";
 import { useLocation } from "react-router-dom";
 import { Asset } from "../../stores/ApiTypes";
 import { formatFileSize } from "../../utils/formatUtils";
-import { useTranslation } from "react-i18next";
 
 interface StorageAnalyticsProps {
   assets: Asset[];
@@ -28,29 +27,10 @@ const styles = (theme: Theme) =>
       display: "flex",
       alignItems: "flex-end",
       gap: theme.spacing(3)
-    },
-    ".stat-item": {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "flex-start",
-      gap: theme.spacing(0.5)
-    },
-    ".stat-label": {
-      color: theme.vars.palette.grey[400],
-      fontSize: theme.fontSizeSmaller,
-      textTransform: "uppercase",
-      letterSpacing: "0.06em",
-      lineHeight: 1
-    },
-    ".stat-value": {
-      color: theme.vars.palette.grey[0],
-      fontSize: theme.fontSizeSmall,
-      lineHeight: 1.1
     }
   });
 
 const StorageAnalytics: React.FC<StorageAnalyticsProps> = ({ assets }) => {
-  const { t } = useTranslation();
   const location = useLocation();
   const theme = useTheme();
   const analyticsStyles = useMemo(() => styles(theme), [theme]);
@@ -82,22 +62,13 @@ const StorageAnalytics: React.FC<StorageAnalyticsProps> = ({ assets }) => {
   return (
     <Box css={analyticsStyles} className="storage-analytics">
       <div className="storage-stats">
-        <div className="stat-item">
-          <span className="stat-label">{t("ui2:attrs.totalSize", { defaultValue: "Total Size" })}</span>
-          <span className="stat-value">{formatFileSize(totalSize)}</span>
-        </div>
+        <StatCard layout="plain" label="Total size" value={formatFileSize(totalSize)} />
 
         {folderCount > 0 && (
-          <div className="stat-item">
-            <span className="stat-label">{t("ui2:attrs.folders", { defaultValue: "Folders" })}</span>
-            <span className="stat-value">{folderCount}</span>
-          </div>
+          <StatCard layout="plain" label="Folders" value={folderCount} />
         )}
 
-        <div className="stat-item">
-          <span className="stat-label">{t("ui2:attrs.files", { defaultValue: "Files" })}</span>
-          <span className="stat-value">{fileCount}</span>
-        </div>
+        <StatCard layout="plain" label="Files" value={fileCount} />
       </div>
     </Box>
   );

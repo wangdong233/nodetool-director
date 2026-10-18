@@ -16,7 +16,6 @@
  * take record for it.
  */
 
-import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
@@ -46,7 +45,8 @@ import {
   BORDER_RADIUS,
   MOTION,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  ICON_SIZE
 } from "../../ui_primitives";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
@@ -153,7 +153,7 @@ const actionIconSx = {
   width: 18,
   height: 18,
   padding: 0,
-  "& .MuiSvgIcon-root": { fontSize: 12 }
+  "& .MuiSvgIcon-root": { fontSize: ICON_SIZE.xs }
 } as const;
 
 const renameRowStyles = (theme: Theme) =>
@@ -193,7 +193,6 @@ const VersionTile: React.FC<VersionTileProps> = memo(
     onDelete
   }) => {
     const theme = useTheme();
-    const { t } = useTranslation();
     const getAsset = useAssetStore((s) => s.get);
     const [url, setUrl] = useState<string | undefined>(undefined);
 
@@ -213,12 +212,10 @@ const VersionTile: React.FC<VersionTileProps> = memo(
 
     // Newest first → label by recency ("Latest", then "2 ago", "3 ago"…),
     // unless the take has been given a display label.
-    const ordinal = index === 0 ? t("timeline:attrs.latest", { defaultValue: "Latest" }) : `#${total - index}`;
+    const ordinal = index === 0 ? "Latest" : `#${total - index}`;
     const displayName = version.label?.trim() ? version.label : ordinal;
     const when = relativeTime(version.createdAt);
-    const tooltip = active
-      ? `${t("timeline:attrs.current", { defaultValue: "Current" })} · ${displayName} · ${when}`
-      : `${displayName} · ${when}`;
+    const tooltip = active ? `Current · ${displayName} · ${when}` : `${displayName} · ${when}`;
 
     const isImage = mediaType === "image" || mediaType === "overlay";
     const isVideo = mediaType === "video";
@@ -254,11 +251,7 @@ const VersionTile: React.FC<VersionTileProps> = memo(
               isImage && url ? { backgroundImage: `url(${url})` } : undefined
             }
             onClick={handleClick}
-            aria-label={`${tooltip} — ${
-              active
-                ? t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" })
-                : t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })
-            }`}
+            aria-label={`${tooltip} — Preview ${active ? "Original" : "Candidate"}`}
             aria-current={active}
             aria-pressed={auditioned}
           >
@@ -269,6 +262,8 @@ const VersionTile: React.FC<VersionTileProps> = memo(
                 muted
                 playsInline
                 preload="metadata"
+                // A still for the tile; the button around it carries the name.
+                aria-hidden
               />
             )}
             {isAudio && (
@@ -287,33 +282,29 @@ const VersionTile: React.FC<VersionTileProps> = memo(
           <div className="take-actions" css={takeActionsStyles}>
             <ToolbarIconButton
               icon={<PlayArrowIcon />}
-              tooltip={active
-                ? t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" })
-                : t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
+              tooltip={active ? "Preview original" : "Preview candidate"}
               onClick={(e) => {
                 e.stopPropagation();
                 onPreview(active ? null : version.id);
               }}
-              aria-label={active
-                ? t("timeline:attrs.previewOriginal", { defaultValue: "Preview Original" })
-                : t("timeline:attrs.previewCandidate", { defaultValue: "Preview Candidate" })}
+              aria-label={active ? "Preview original" : "Preview candidate"}
               sx={actionIconSx}
             />
             {!active && (
               <ToolbarIconButton
                 icon={<CheckIcon />}
-                tooltip={t("timeline:attrs.useTakeName", { defaultValue: "Use take {{name}}", name: displayName })}
+                tooltip={`Use take ${displayName}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   onUseTake(version.id);
                 }}
-                aria-label={t("timeline:attrs.useTakeName", { defaultValue: "Use take {{name}}", name: displayName })}
+                aria-label={`Use take ${displayName}`}
                 sx={actionIconSx}
               />
             )}
             <ToolbarIconButton
               icon={<EditOutlinedIcon />}
-              tooltip={t("timeline:attrs.renameName", { defaultValue: "Rename {{name}}", name: displayName })}
+              tooltip={`Rename ${displayName}`}
               onClick={handleRenameClick}
               sx={actionIconSx}
             />
@@ -321,8 +312,8 @@ const VersionTile: React.FC<VersionTileProps> = memo(
               icon={<DeleteOutlineIcon />}
               tooltip={
                 active
-                  ? t("timeline:attrs.thisIsTheActiveTakeSelectADifferentTakeBeforeDeletingIt", { defaultValue: "This is the active take — select a different take before deleting it." })
-                  : t("timeline:attrs.deleteName", { defaultValue: "Delete {{name}}", name: displayName })
+                  ? "This is the active take — select a different take before deleting it."
+                  : `Delete ${displayName}`
               }
               disabled={active}
               onClick={handleDeleteClick}
@@ -342,7 +333,6 @@ interface ClipVersionHistoryProps {
 
 export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
   ({ clipId }) => {
-  const { t } = useTranslation();
     const theme = useTheme();
     const clip = useTimelineStore((s) => findClipById(s.clips, clipId));
     const trackLocked = useTimelineStore(
@@ -437,7 +427,9 @@ export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
         onToggle={setOpen}
       >
         {clip.locked && (
-          <Caption color="secondary" sx={{ px: SPACING.xs, pt: SPACING.micro }}>{t("editor:ui.unlockTheClipToSwapGenerations", { defaultValue: "Unlock the clip to swap generations." })}</Caption>
+          <Caption color="secondary" sx={{ px: SPACING.xs, pt: SPACING.micro }}>
+            Unlock the clip to swap generations.
+          </Caption>
         )}
         <div css={stripStyles(theme)}>
           {successVersions.map((version, index) => (
@@ -462,7 +454,7 @@ export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
         {editingVersion && (
           <div css={renameRowStyles(theme)}>
             <TextInput
-              label={t("timeline:attrs.takeLabel", { defaultValue: "Take label" })}
+              label="Take label"
               hideLabel
               compact
               autoFocus

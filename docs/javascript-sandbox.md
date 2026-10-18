@@ -296,6 +296,13 @@ execution paths, so engines remain reusable. A worker reporting an interpreter
 failure is discarded. Guest exceptions leave the worker reusable. See the
 [reproduction and upstream issue draft](https://github.com/nodetool-ai/nodetool/blob/main/packages/agents/docs/quickjs-descriptor-leak.md).
 
+The agents and sandbox compiler keep `@sebastianwessel/quickjs` in the 3.0 patch
+series with `~3.0.1`. Its 3.1 release uses `quickjs-emscripten-core` 0.32, while
+the selected WASM variant uses the 0.31 ABI. Mixing those versions loses host
+function references and leaves asynchronous callbacks unresolved. Upgrade the
+wrapper, core, and WASM variant together and verify host callbacks on both
+execution paths.
+
 ## Security model
 
 The guest starts with less than plain QuickJS, and every capability past that is
@@ -335,7 +342,9 @@ one the host granted.
   filesystem the process can reach. Both switches exist because `lib.http` and
   `lib.os` nodes always had that reach and a Code node replacing one must match
   it; both default to the restrictive value, and the graph migration sets the
-  filesystem switch only on nodes rewritten from such a node.
+  filesystem switch only on nodes rewritten from such a node. The cloud profile
+  ignores both switches (`isHostAccessEnabled` in `packages/agents`), because
+  on a shared server they would reach the operator's disk and network.
 - **Cancellation.** Once the abort signal fires, every subsequent bridge call
   fails fast and the guest unwinds. A purely CPU-bound loop still runs to its
   execution timeout — QuickJS's wrapper exposes no interrupt input — but

@@ -7,7 +7,7 @@ import type {
   VideoModel,
   EmbeddingModel
 } from "../stores/ApiTypes";
-import type { TypeTag, SizeBucket } from "../stores/ModelFiltersStore";
+import type { SizeBucket } from "../stores/ModelFiltersStore";
 import type { ModelExecutionAvailability } from "@nodetool-ai/protocol";
 import { isLocalhost } from "../lib/env";
 import { i18n } from "../i18n";
@@ -74,15 +74,15 @@ export interface ModelDownloadTarget {
 }
 
 /**
- * Where to download a model that reports `download_required`, or null when it
- * names nothing to download. A local adapter names its own artifact, which can
- * differ from the model id the picker shows.
+ * What to download for a model that reports `download_required`: one target
+ * per repository, empty when it names nothing to download. A local adapter
+ * names its own artifacts, which can differ from the model id the picker shows.
  */
-export function modelDownloadTarget(
+export function modelDownloadTargets(
   model: ModelSelectorModel
-): ModelDownloadTarget | null {
+): ModelDownloadTarget[] {
   if (model.execution?.state !== "download_required") {
-    return null;
+    return [];
   }
   // Picker rows are the server's unified models: the fields beyond the
   // modality type ride along.
@@ -90,10 +90,10 @@ export function modelDownloadTarget(
   const artifact = unified.adapter?.artifact_ref;
   const repoId = artifact?.repo_id ?? unified.repo_id ?? null;
   if (!repoId) {
-    return null;
+    return [];
   }
   const path = artifact ? (artifact.path ?? null) : (unified.path ?? null);
-  return {
+  const primary: ModelDownloadTarget = {
     repoId,
     path,
     allowPatterns: path
@@ -102,6 +102,26 @@ export function modelDownloadTarget(
     ignorePatterns: path ? null : (unified.ignore_patterns ?? null),
     modelType: artifact?.model_type ?? null
   };
+  const extras = (unified.adapter?.extra_artifact_refs ?? []).map(
+    (ref): ModelDownloadTarget => ({
+      repoId: ref.repo_id,
+      path: ref.path ?? null,
+      allowPatterns: ref.path ? null : (ref.allow_patterns ?? null),
+      ignorePatterns: null,
+      modelType: ref.model_type ?? null
+    })
+  );
+  return [primary, ...extras];
+}
+
+/** The key the download store remembers a picker row's Download click under. */
+export function modelRowKey(model: ModelSelectorModel): string {
+  return `${model.provider ?? ""}:${model.id ?? ""}`;
+}
+
+/** The id the download store tracks a target under. */
+export function modelDownloadId(target: ModelDownloadTarget): string {
+  return target.path ? `${target.repoId}/${target.path}` : target.repoId;
 }
 
 export function executionLabelsByProvider(
@@ -126,7 +146,6 @@ export function executionLabelsByProvider(
 type NormalizedModelMeta = {
   sizeB?: number; // billions of params
   sizeBucket?: "1-2B" | "3-7B" | "8-15B" | "16-34B" | "35-70B" | "70B+";
-  typeTags: string[]; // ["instruct","chat","base","sft","dpo","reasoning","code","math"]
   family?: string; // llama, qwen, mistral, gemma, phi, yi, deepseek, qwq, granite
   moe?: string; // e.g., 8x7B
 };
@@ -156,17 +175,6 @@ const bucketSizeByB = (b?: number) => {
 export function normalizeModelMeta(m: ModelSelectorModel): NormalizedModelMeta {
   const text = `${m.name ?? ""} ${m.id ?? ""}`.toLowerCase();
 
-  const typeTags = [
-    /instruct/.test(text) && "instruct",
-    /\bchat\b/.test(text) && "chat",
-    /\bbase\b/.test(text) && "base",
-    /\bsft\b/.test(text) && "sft",
-    /\bdpo\b/.test(text) && "dpo",
-    /(reason|r1|qwq)/.test(text) && "reasoning",
-    /(code|coder)/.test(text) && "code",
-    /\bmath\b/.test(text) && "math"
-  ].filter((v): v is string => Boolean(v));
-
   const sizeMatch = text.match(/(\d+(?:\.\d+)?)\s*(b|m)\b/);
   const sizeB = sizeMatch
     ? sizeMatch[2] === "m"
@@ -185,14 +193,12 @@ export function normalizeModelMeta(m: ModelSelectorModel): NormalizedModelMeta {
   return {
     sizeB,
     sizeBucket: bucketSizeByB(sizeB),
-    typeTags,
     family,
     moe
   };
 }
 
 interface AdvancedModelFilters {
-  selectedTypes: TypeTag[];
   sizeBucket: SizeBucket | null;
   families: string[];
 }
@@ -201,27 +207,14 @@ export function applyAdvancedModelFilters<TModel extends ModelSelectorModel>(
   models: TModel[],
   filters: AdvancedModelFilters
 ): TModel[] {
-  const { selectedTypes, sizeBucket, families } = filters;
+  const { sizeBucket, families } = filters;
 
-  if (
-    selectedTypes.length === 0 &&
-    sizeBucket === null &&
-    families.length === 0
-  ) {
+  if (sizeBucket === null && families.length === 0) {
     return models;
   }
 
   return models.filter((model) => {
     const meta = normalizeModelMeta(model);
-
-    if (selectedTypes.length > 0) {
-      const hasMatchingType = selectedTypes.some((t) =>
-        meta.typeTags.includes(t)
-      );
-      if (!hasMatchingType) {
-        return false;
-      }
-    }
 
     if (sizeBucket !== null) {
       if (meta.sizeBucket !== sizeBucket) {

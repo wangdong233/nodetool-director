@@ -10,7 +10,7 @@ import { scriptSourceKey, type GameScriptCall, type GameScriptInput } from "../s
 
 const NO_TAGS: readonly string[] = Object.freeze([]);
 /** Fields of a removed instance's last call that its onDestroy hook reads. */
-const REMOVED_FIELDS_2D = ["x", "y", "velocityX", "velocityY", "touching", "tags", "rotation"] as const;
+const REMOVED_FIELDS_2D = ["x", "y", "velocityX", "velocityY", "touching", "tags", "rotation", "props"] as const;
 
 interface ScriptMetadata2D { readonly tags: readonly string[]; readonly rotation: number; readonly active: boolean }
 
@@ -36,7 +36,7 @@ export function scriptCall2D(context: GameSystemContext2D, state: EntityState, i
     velocityY: state.velocityY,
     touching: touchingOf(context, state),
     // Entity metadata belongs to schema 4. Older documents keep their exact script input.
-    ...(context.document.schemaVersion === 4 ? scriptMetadata(state, context.tick) : undefined),
+    ...(context.document.schemaVersion === 4 ? { ...scriptMetadata(state, context.tick), props: state.props ?? {} } : undefined),
     maxCommands: behavior.maxCommands,
     maxTickMs: behavior.maxTickMs
   };
@@ -98,14 +98,16 @@ export function stepScripts2D(context: GameSystemContext2D): void {
     if (!metadata) { metadata = scriptMetadata(state, context.tick); metadataByState.set(state, metadata); }
     return metadata;
   };
-  const worldAtStart = hasActiveScripts ? context.states.filter((state) => state.active)
-    .map((state) => ({ id: state.definition.id, source: state.sourceId ?? state.definition.id, x: state.x, y: state.y,
-      velocityX: state.velocityX, velocityY: state.velocityY, grounded: touchingOf(context, state).down, ...metadataOf(state) })) : [];
   const hookSources = context.scriptRunner?.hookSources;
   const eventSources = context.scriptRunner?.eventSources;
   const hasHooks = hookSources !== undefined && hookSources.size > 0;
   if (hasHooks) { context.scriptCalls.push(...destroyCalls2D(context, hookSources)); }
+  const worldAtStart = hasActiveScripts || context.scriptCalls.length > 0 ? context.states.filter((state) => state.active)
+    .map((state) => ({ id: state.definition.id, source: state.sourceId ?? state.definition.id, x: state.x, y: state.y,
+      velocityX: state.velocityX, velocityY: state.velocityY, grounded: touchingOf(context, state).down, ...metadataOf(state) })) : [];
   const sceneEnter = context.tick === 0 || context.previousEvents.some((event) => event.kind === "sceneTransition");
+  // 2D contact events have no scene id. A transition tick's contacts belong to the scene that exited.
+  const sceneContacts = sceneEnter && context.tick > 0 ? [] : context.previousEvents;
   for (const state of context.states) {
     state.previousX = state.x;
     state.previousY = state.y;
@@ -136,7 +138,7 @@ export function stepScripts2D(context: GameSystemContext2D): void {
         const sourceKey = scriptSourceKey(context.scene.id, state.sourceId ?? entity.id, index);
         const stateKey = scriptSourceKey(context.scene.id, entity.id, index);
         const lifecycle = hasHooks && hookSources.has(sourceKey)
-          ? scriptLifecycle(sceneEnter, scriptContacts(entity.id, context.previousEvents, (event) => sensorContact2D(context, event)),
+          ? scriptLifecycle(sceneEnter, scriptContacts(entity.id, sceneContacts, (event) => sensorContact2D(context, event)),
             eventSources?.has(sourceKey) ? scriptEvents(entity.id, entity.tags, context.previousEvents) : [])
           : undefined;
         context.scriptCalls.push({
@@ -168,8 +170,8 @@ export function stepScripts2D(context: GameSystemContext2D): void {
         ...metadataOf(state) }));
     // Each active entity's props travel once; scripts read them on `entity`, `world` and `world.get`.
     const legacyInput: GameScriptInput = { tick: context.tick, pressed: [...context.pressed], justPressed: context.input.justPressed,
-      events: context.previousEvents, world };
-    const props: Record<string, GameEntityProps> = {};
+      events: context.previousEvents, world, ...(context.input.loaded === undefined ? undefined : { loaded: context.input.loaded }) };
+    const props: Record<string, GameEntityProps> = Object.create(null);
     for (const state of context.states) {
       if (supportsMetadata && state.active && state.props !== undefined && Object.keys(state.props).length > 0) { props[state.definition.id] = state.props; }
     }
@@ -180,6 +182,8 @@ export function stepScripts2D(context: GameSystemContext2D): void {
       context.rngState,
       worldAtStart
     );
+    context.scriptLogs = batch.logs;
+    context.scriptSaves = batch.saves;
     const byId = new Map(context.states.map((state) => [state.definition.id, state]));
     for (const [index, item] of batch.results.entries()) {
       if (context.scriptCalls[index].lifecycle?.destroy) { assertDestroyCommands(item.commands, item.entityId, context.tick); }
@@ -216,7 +220,8 @@ export function stepScripts2D(context: GameSystemContext2D): void {
         if (!byId.has(item.entityId)) { delete context.scriptState[call.stateKey]; }
         else { context.scriptState[call.stateKey] = item.state; }
         for (const command of item.commands) {
-          applyGameplayCommand(command as GameplayCommand, item.entityId, context.queues, context.hud, context.emit);
+          if (command.kind === "ui") { applyGameUiCommand(context.ui, command); }
+          else { applyGameplayCommand(command as GameplayCommand, item.entityId, context.queues, context.hud, context.emit); }
         }
         continue;
       }

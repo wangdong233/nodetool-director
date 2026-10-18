@@ -16,6 +16,7 @@ jest.mock("../../stores/WorkspaceTabsStore", () => ({
 }));
 
 import { useAssetUpload } from "../useAssetUpload";
+import { useRecentAssetsStore } from "../../stores/RecentAssetsStore";
 
 describe("useAssetUpload", () => {
   beforeEach(() => {
@@ -105,6 +106,20 @@ describe("useAssetUpload", () => {
       expect(mockCreateAsset).toHaveBeenCalled();
     });
 
+    it("lists a finished upload first in the @ picker's Recent assets", async () => {
+      useRecentAssetsStore.setState({ recentAssets: [] });
+      const uploaded = { id: "photo-1", name: "holiday-photo.jpg" };
+      mockCreateAsset.mockResolvedValue(uploaded);
+
+      await act(async () => {
+        useAssetUpload.getState().uploadAsset({
+          file: new File(["x"], "holiday-photo.jpg", { type: "image/jpeg" })
+        });
+      });
+
+      expect(useRecentAssetsStore.getState().recentAssets[0]).toBe(uploaded);
+    });
+
     it("forwards the project scope to asset creation", () => {
       const mockFile = new File(["test"], "test.txt", {
         type: "text/plain"
@@ -158,7 +173,7 @@ describe("useAssetUpload", () => {
         files: [
           { id: "1", file: new File([""], "a.txt"), progress: 100, status: "completed" },
           { id: "2", file: new File([""], "b.txt"), progress: 0, status: "uploading" }
-        ] as any
+        ]
       });
 
       act(() => {
@@ -173,7 +188,7 @@ describe("useAssetUpload", () => {
         files: [
           { id: "1", file: new File([""], "a.txt"), progress: 100, status: "completed" },
           { id: "2", file: new File([""], "b.txt"), progress: 0, status: "uploading" }
-        ] as any
+        ]
       });
 
       act(() => {
@@ -187,7 +202,7 @@ describe("useAssetUpload", () => {
       useAssetUpload.setState({
         files: [
           { id: "1", file: new File([""], "a.txt"), progress: 100, status: "completed" }
-        ] as any,
+        ],
         isUploading: true
       });
 
@@ -202,7 +217,7 @@ describe("useAssetUpload", () => {
       useAssetUpload.setState({
         files: [
           { id: "1", file: new File([""], "a.txt"), progress: 0, status: "uploading" }
-        ] as any
+        ]
       });
 
       act(() => {
@@ -220,7 +235,7 @@ describe("useAssetUpload", () => {
       useAssetUpload.setState({
         files: [
           { id: "1", file: new File([""], "a.txt"), progress: 0, status: "uploading" }
-        ] as any
+        ]
       });
 
       act(() => {
@@ -236,7 +251,7 @@ describe("useAssetUpload", () => {
       useAssetUpload.setState({
         files: [
           { id: "1", file: new File([""], "a.txt"), progress: 100, status: "completed" }
-        ] as any
+        ]
       });
 
       act(() => {
@@ -245,6 +260,30 @@ describe("useAssetUpload", () => {
 
       expect(useAssetUpload.getState().files).toEqual([]);
       expect(useAssetUpload.getState().isUploading).toBe(false);
+    });
+
+    it("keeps uploading while a concurrent upload is still running", async () => {
+      let finishFirst: (asset: unknown) => void = () => undefined;
+      mockCreateAsset
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            finishFirst = resolve;
+          })
+        )
+        .mockReturnValueOnce(new Promise(() => {}));
+
+      act(() => {
+        useAssetUpload.getState().uploadAsset({ file: new File(["a"], "a.txt") });
+        useAssetUpload.getState().uploadAsset({ file: new File(["b"], "b.txt") });
+      });
+
+      await act(async () => {
+        finishFirst({ id: "a" });
+      });
+
+      const state = useAssetUpload.getState();
+      expect(state.isUploading).toBe(true);
+      expect(state.files).toHaveLength(2);
     });
 
     it("passes workflow_id and parent_id to createAsset", () => {

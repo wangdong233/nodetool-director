@@ -18,10 +18,9 @@ import { ToolbarIconButton, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_p
 import { SxProps, Theme, useTheme } from "@mui/material/styles";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import { copyAssetToClipboard, isClipboardSupported, getClipboardSupportMessage } from "../../utils/clipboardUtils";
 import { isElectron } from "../../utils/browser";
-import { useTranslation } from "react-i18next";
 
 const FEEDBACK_TIMEOUT = 2000;
 
@@ -260,7 +259,6 @@ export const CopyAssetButton = memo<CopyAssetButtonProps>(
     electronOnly = false,
     tabIndex = 0
   }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const [state, setState] = useState<"idle" | "copied" | "error">("idle");
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -315,24 +313,22 @@ export const CopyAssetButton = memo<CopyAssetButtonProps>(
 
     const getDefaultTooltip = () => {
       if (isImageType(contentType)) {
-        return t("editor:ui.copyImage", {
-          defaultValue: "Copy image (paste into any image editor)"
-        });
+        return "Copy image (paste into any image editor)";
       }
       if (isVideoType(contentType)) {
-        return t("editor:ui.copyVideoInfo", { defaultValue: "Copy video info" });
+        return "Copy video info";
       }
       if (isAudioType(contentType)) {
-        return t("editor:ui.copyAudioInfo", { defaultValue: "Copy audio info" });
+        return "Copy audio info";
       }
-      return t("editor:ui.copyToClipboard", { defaultValue: "Copy to clipboard" });
+      return "Copy content";
     };
 
     const tooltipText =
       state === "error"
-        ? t("editor:ui.failedToCopy", { defaultValue: "Failed to copy" })
+        ? "Failed to copy"
         : state === "copied"
-          ? t("editor:ui.copied", { defaultValue: "Copied!" })
+          ? "Copied!"
           : tooltip || getDefaultTooltip();
 
     const fullTooltip = showCompatibilityInfo && state === "idle" 

@@ -16,7 +16,9 @@ import {
   EmptyState,
   LoadingSpinner,
   Text,
+  TextLink,
   BORDER_RADIUS,
+  EYEBROW,
   SPACING,
   getSpacingPx,
   Z_INDEX
@@ -49,7 +51,6 @@ import {
   getHfCacheKey
 } from "../../../utils/hfCache";
 import { isString } from "../../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 /** Width of the category rail. */
 const SIDEBAR_WIDTH = 260;
@@ -149,7 +150,6 @@ type ListItem =
   | { type: "model"; model: UnifiedModel };
 
 const ModelListIndex: React.FC = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);
@@ -427,13 +427,13 @@ const ModelListIndex: React.FC = () => {
       return {
         searchOff: true,
         title: `No models found for \u201C${modelSearchTerm}\u201D`,
-        description: t("editor:ui.tryADifferentSearchTermOrAdjustYourFilters", { defaultValue: "Try a different search term or adjust your filters." })
+        description: "Try a different search term or adjust your filters."
       };
     }
     if (source === "hub") {
       return {
         searchOff: false,
-        title: t("editor:ui.searchTheHuggingfaceHub", { defaultValue: "Search the HuggingFace Hub" }),
+        title: "Search the HuggingFace Hub",
         description:
           "Type a name above, or pick a category, to browse and download any public model from huggingface.co."
       };
@@ -441,7 +441,7 @@ const ModelListIndex: React.FC = () => {
     if (source === "recommended") {
       return {
         searchOff: false,
-        title: t("editor:ui.noRecommendedModels", { defaultValue: "No recommended models" }),
+        title: "No recommended models",
         description:
           "Recommended models are gathered from the nodes you have installed. Add nodes that run models to see suggestions here."
       };
@@ -449,18 +449,26 @@ const ModelListIndex: React.FC = () => {
     if (scope === "worker") {
       return {
         searchOff: false,
-        title: t("editor:ui.noModelsCachedYet", { defaultValue: "No models cached on this worker yet" }),
+        title: "No models cached on this worker yet",
         description:
           "While this worker is attached, any model you download lands on its volume."
       };
     }
+    if ((allModels?.length ?? 0) === 0) {
+      return {
+        searchOff: false,
+        title: "No models installed yet",
+        description:
+          "Download one from Recommended or the Hub, or open Get Started."
+      };
+    }
     return {
       searchOff: true,
-      title: t("editor:ui.noModelsAvailable", { defaultValue: "No models available" }),
+      title: "No models available",
       description:
         "Try adjusting the size filter or selecting a different category."
     };
-  }, [t, modelSearchTerm, source, scope]);
+  }, [modelSearchTerm, source, scope, allModels]);
 
   if (isLoading) {
     return (
@@ -474,7 +482,7 @@ const ModelListIndex: React.FC = () => {
           textAlign: "center"
         }}
       >
-        <LoadingSpinner size="medium" text={t("editor:ui.loadingModels")} />
+        <LoadingSpinner size="medium" text="Loading models" />
       </Box>
     );
   }
@@ -501,33 +509,27 @@ const ModelListIndex: React.FC = () => {
         justify="center"
         fullHeight
         padding={4}
-        sx={{ textAlign: "center" }}
       >
-        <Text size="big" color="error">
-          {t("editor:ui.couldNotLoadModels")}
-        </Text>
-        <Text size="normal" color="secondary" sx={{ maxWidth: 600 }}>
-          {errorMessage}
-        </Text>
-        {isOllamaError && (
-          <FlexColumn gap={1} sx={{ mt: 1 }}>
-            <Text size="small" color="secondary">
-              Ollama is a separate app. Install it from ollama.com and start
-              it, then reopen this list.
-            </Text>
-            <Text
-              size="small"
-              component="a"
-              href="https://ollama.com/download"
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{ textDecoration: "underline" }}
-              color="primary"
-            >
-              Download Ollama →
-            </Text>
-          </FlexColumn>
-        )}
+        <EmptyState
+          variant="error"
+          title="Could not load models"
+          description={
+            <FlexColumn gap={1} align="center" sx={{ maxWidth: 600 }}>
+              <span>{errorMessage}</span>
+              {isOllamaError && (
+                <>
+                  <span>
+                    Ollama is a separate app. Install it from ollama.com and
+                    start it, then reopen this list.
+                  </span>
+                  <TextLink href="https://ollama.com/download" external>
+                    Download Ollama →
+                  </TextLink>
+                </>
+              )}
+            </FlexColumn>
+          }
+        />
       </FlexColumn>
     );
   }
@@ -590,7 +592,7 @@ const ModelListIndex: React.FC = () => {
                         height: 32,
                         borderRadius: BORDER_RADIUS.md,
                         background:
-                          "rgba(var(--palette-primary-main-channel) / 0.12)",
+                          "rgba(var(--palette-primary-mainChannel) / 0.12)",
                         flexShrink: 0
                       }}
                     >
@@ -655,9 +657,16 @@ const ModelListIndex: React.FC = () => {
                             style={itemStyle}
                             sx={{ pt: SPACING.lg, pb: SPACING.md }}
                           >
-                            <Text size="big" weight={600}>
+                            <Box
+                              component="h3"
+                              sx={{
+                                ...EYEBROW,
+                                color: "text.secondary",
+                                m: 0
+                              }}
+                            >
                               {prettifyModelType(item.modelType)}
-                            </Text>
+                            </Box>
                           </Box>
                         );
                       }

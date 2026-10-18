@@ -21,13 +21,16 @@ import type {
   CorrelationLineage,
   NodeDescriptor,
   ControlEvent,
-  NodeErrorDetail
+  NodeErrorDetail,
+  MissingPackDetails
 } from "@nodetool-ai/protocol";
 import {
   EMPTY_LINEAGE,
   LOOP_NODE_TYPE,
   TypeMetadata,
-  missingRuntimePackageOf
+  missingRuntimePackageOf,
+  missingRuntimeDetailsOf,
+  missingPackDetailsOf
 } from "@nodetool-ai/protocol";
 
 // Stryker disable next-line StringLiteral: logger name is a diagnostic label, not a behavioural contract
@@ -82,6 +85,8 @@ import {
  * See runner.ts for the consumer.
  */
 export interface OutputRoutingHints {
+  /** Reject this controlled invocation while keeping the actor available for later calls. */
+  controlError?: MissingPackDetails;
   invocationLineage?: CorrelationLineage;
   perSlotLineage?: Record<string, CorrelationLineage>;
   /**
@@ -190,6 +195,7 @@ export function enumerateAllPendingKeys(
 export interface ActorResult {
   outputs: Record<string, unknown>;
   error?: string;
+  errorDetail?: NodeErrorDetail;
 }
 
 /**
@@ -412,7 +418,10 @@ export class NodeActor {
       // instead of asking them to parse the message.
       const failure = providerFailureDetail(err);
       const runtimePackage = missingRuntimePackageOf(err);
-      if (failure) {
+      const missingPack = missingPackDetailsOf(err);
+      if (missingPack) {
+        errorDetail = { code: "missing_pack", missing_pack: missingPack };
+      } else if (failure) {
         errorDetail = {
           code: failure.code,
           provider: failure.provider,
@@ -422,7 +431,8 @@ export class NodeActor {
         // The editor offers to install the package in place.
         errorDetail = {
           code: "missing_runtime_package",
-          runtime_package: runtimePackage
+          runtime_package: runtimePackage,
+          missing_runtime: missingRuntimeDetailsOf(err)
         };
       }
       // Stryker disable next-line StringLiteral,ObjectLiteral: diagnostic log args only
@@ -444,7 +454,11 @@ export class NodeActor {
 
     if (errorMessage !== undefined) {
       this._emitNodeStatus("error", undefined, errorMessage, errorDetail);
-      return { outputs: {}, error: errorMessage };
+      const result: ActorResult = { outputs: {}, error: errorMessage };
+      if (errorDetail) {
+        result.errorDetail = errorDetail;
+      }
+      return result;
     }
 
     // Stryker disable next-line StringLiteral,ObjectLiteral: diagnostic log args only
@@ -801,15 +815,7 @@ export class NodeActor {
     // entry — unless the handle's declared type is itself a list of lists.
     const aggregateListValues = (h: string, items: unknown[]): unknown[] => {
       if (isNestedListHandle(h)) return items;
-      const out: unknown[] = [];
-      for (const item of items) {
-        if (Array.isArray(item)) {
-          out.push(...item);
-        } else {
-          out.push(item);
-        }
-      }
-      return out;
+      return items.flatMap((item) => (Array.isArray(item) ? item : [item]));
     };
 
     for (const h of dataHandles) {
@@ -854,18 +860,12 @@ export class NodeActor {
             if (!stickyMap.has(parentKey)) return false;
           }
         } else {
-          // empty-scope sticky / list
-          if (isListInput(h)) {
-            // Multi-edge list at empty scope: wait for close to aggregate.
-            if (this.inbox.isOpen(h)) return false;
-          } else if (!emptySticky.has(h)) {
-            // Allow node properties / dynamic_properties to supply defaults:
-            // _executeWithInputs already merges them (and type-checks the
-            // ones with a declared slot in dynamic_inputs). So an empty-scope
-            // handle without an envelope is treated as "use the node's
-            // declared default" if the handle has no open upstream.
-            if (this.inbox.isOpen(h)) return false;
-          }
+          // Empty scope: a multi-edge list waits for close to aggregate. A
+          // sticky handle without an envelope falls back to the node's
+          // declared default (_executeWithInputs merges properties and
+          // dynamic_properties) once it has no open upstream.
+          const awaitsInput = isListInput(h) || !emptySticky.has(h);
+          if (awaitsInput && this.inbox.isOpen(h)) return false;
         }
       }
       return true;
@@ -1319,6 +1319,9 @@ export class NodeActor {
       try {
         return await inInvocationAccount(account, invoke);
       } catch (err) {
+        if (this.node.is_controlled && missingPackDetailsOf(err)) {
+          throw err;
+        }
         if (!this._supervisor) {
           if (!this._degradeOnContentFilter(err, false)) throw err;
           await this._skipInvocation();
@@ -2029,9 +2032,24 @@ export class NodeActor {
           ...this._appendStaticItems(inputs),
           ...this._currentControlProperties
         });
-        const outputs = await this._invokeWithRecovery(merged, () =>
-          this._executor.process(merged, this._executionContext)
-        );
+        let outputs: Record<string, unknown> | typeof SKIPPED;
+        try {
+          outputs = await this._invokeWithRecovery(merged, () =>
+            this._executor.process(merged, this._executionContext)
+          );
+        } catch (error) {
+          const missing = missingPackDetailsOf(error);
+          if (!missing) {
+            throw error;
+          }
+          this._emitNodeStatus("error", undefined, error instanceof Error ? error.message : String(error), { code: "missing_pack", missing_pack: missing });
+          await this._sendOutputs(this.node.id, {}, {
+            controlError: missing,
+            skipInvocation: true,
+            invocationLineage: this._currentInvocationLineage ?? EMPTY_LINEAGE
+          });
+          continue;
+        }
         if (outputs === SKIPPED) continue;
         this._latestResult = outputs;
         await this._sendOutputs(this.node.id, outputs);

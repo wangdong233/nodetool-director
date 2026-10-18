@@ -8,7 +8,6 @@ import {
   disposeAppRuntimeStore
 } from "./runtime/appRuntimeStore";
 import { loadAppInstance } from "./runtime/appInstanceApi";
-import { tAttr, tAttrTpl } from "./i18nAttrs";
 import { useAppRuntimeContext } from "./runtime/AppRuntimeContext";
 import { getAppSessionToken } from "../../lib/appSession";
 import {
@@ -25,6 +24,7 @@ import {
   FlexRow,
   SelectField,
   SPACING,
+  Text,
   TextInput
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
@@ -84,12 +84,12 @@ export default function AppInstanceManager({
     try {
       await flushInstance?.();
       const selected = choices.find((item) => item.id === id);
-      navigate(id, selected?.name ?? tAttr("App instance"));
+      navigate(id, selected?.name ?? "App instance");
     } catch (failure) {
       setError(
         failure instanceof Error
           ? failure.message
-          : tAttr("Could not switch instances.")
+          : "Could not switch instances."
       );
     } finally {
       setBusy(false);
@@ -160,11 +160,13 @@ export default function AppInstanceManager({
   };
   const named =
     action === "new" || action === "rename" || action === "duplicate";
+  // While the dialog is open its own banner shows the action error.
+  const outerError = (action === null ? error : null) ?? list.error?.message;
   return (
     <FlexColumn gap={SPACING.sm} padding={SPACING.lg}>
       <FlexRow gap={SPACING.sm} align="center" sx={{ flexWrap: "wrap" }}>
         <SelectField
-          label={tAttr("App instance")}
+          label="App instance"
           value={instance.id}
           disabled={busy}
           options={[
@@ -177,10 +179,8 @@ export default function AppInstanceManager({
         />
         <Caption>
           {instance.version === null
-            ? tAttr("Draft working copy")
-            : tAttrTpl("pinnedVersion", "Pinned version {{version}}", {
-                version: instance.version
-              })}
+            ? "Draft working copy"
+            : `Pinned version ${instance.version}`}
         </Caption>
         <EditorButton
           variant="outlined"
@@ -188,7 +188,7 @@ export default function AppInstanceManager({
           disabled={busy}
           onClick={() => show("new")}
         >
-          {tAttr("New instance")}
+          New instance
         </EditorButton>
         <EditorButton
           variant="outlined"
@@ -212,7 +212,7 @@ export default function AppInstanceManager({
           disabled={busy}
           onClick={() => show("delete")}
         >
-          {tAttr("Delete instance")}
+          Delete instance
         </EditorButton>
         {latestVersion !== undefined &&
         latestVersion > (instance.version ?? 0) ? (
@@ -222,9 +222,7 @@ export default function AppInstanceManager({
             disabled={busy}
             onClick={() => show("advance")}
           >
-            {tAttrTpl("advanceToVersion", "Advance to version {{version}}", {
-              version: latestVersion
-            })}
+            Advance to version {latestVersion}
           </EditorButton>
         ) : null}
         {pageIndex > 0 ? (
@@ -233,7 +231,7 @@ export default function AppInstanceManager({
             color="inherit"
             onClick={() => setPageIndex((index) => index - 1)}
           >
-            {tAttr("Newer instances")}
+            Newer instances
           </EditorButton>
         ) : null}
         {list.hasNextPage || list.data?.pages[pageIndex + 1] ? (
@@ -243,11 +241,11 @@ export default function AppInstanceManager({
             disabled={list.isFetchingNextPage}
             onClick={() => void older()}
           >
-            {tAttr("Older instances")}
+            Older instances
           </EditorButton>
         ) : null}
       </FlexRow>
-      {error || list.error ? (
+      {outerError ? (
         <AlertBanner
           severity="error"
           action={
@@ -255,12 +253,12 @@ export default function AppInstanceManager({
               context={{
                 source: "operation-failure",
                 summary: "Instance management failed",
-                errorText: error ?? list.error?.message
+                errorText: outerError
               }}
             />
           }
         >
-          {error ?? list.error?.message}
+          {outerError}
         </AlertBanner>
       ) : null}
       <Dialog
@@ -272,38 +270,44 @@ export default function AppInstanceManager({
         }}
         title={
           action === "advance"
-            ? tAttr("Advance instance version")
+            ? "Advance instance version"
             : action === "delete"
-              ? tAttr("Delete instance")
+              ? "Delete instance?"
               : action === "duplicate"
-                ? tAttr("Duplicate instance")
+                ? "Duplicate instance"
                 : action === "rename"
-                  ? tAttr("Rename instance")
-                  : tAttr("New instance")
+                  ? "Rename instance"
+                  : "New instance"
         }
         onConfirm={() => void confirm()}
-        confirmText={action === "delete" ? tAttr("Delete") : tAttr("Save")}
+        confirmText={
+          action === "delete"
+            ? "Delete"
+            : action === "new"
+              ? "Create"
+              : action === "duplicate"
+                ? "Duplicate"
+                : action === "advance"
+                  ? "Advance"
+                  : "Save"
+        }
         isLoading={busy}
         confirmDisabled={named && !name.trim()}
         destructive={action === "delete"}
       >
         {named ? (
           <TextInput
-            label={tAttr("Instance name")}
+            label="Instance name"
             value={name}
             onChange={(event) => setName(event.target.value)}
             autoFocus
           />
         ) : (
-          <Caption>
+          <Text>
             {action === "delete"
-              ? tAttr(
-                  "This removes the instance, its history and associations. Generated media remains in your library. Running work is not cancelled."
-                )
-              : tAttr(
-                  "Future runs will use the selected published version. Historical runs keep their original version. Incompatible state prevents advancement."
-                )}
-          </Caption>
+              ? "This removes the instance, its history and associations. Generated media remains in your library. Running work is not cancelled."
+              : "Future runs will use the selected published version. Historical runs keep their original version. Incompatible state prevents advancement."}
+          </Text>
         )}
         {error ? <AlertBanner severity="error">{error}</AlertBanner> : null}
       </Dialog>

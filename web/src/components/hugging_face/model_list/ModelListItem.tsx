@@ -10,7 +10,8 @@ import {
   TextLink,
   SPACING,
   getSpacingPx,
-  activateOnKey
+  activateOnKey,
+  ICON_SIZE
 } from "../../ui_primitives";
 import { useTheme } from "@mui/material/styles";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -20,8 +21,8 @@ import { DownloadProgress } from "../DownloadProgress";
 import modelListItemStyles from "./ModelListItem.styles";
 import { ModelListItemActions } from "./ModelListItemActions";
 import {
-  TOOLTIP_ENTER_DELAY,
-  TOOLTIP_ENTER_NEXT_DELAY
+  TOOLTIP_ENTER_NEXT_DELAY,
+  TOOLTIP_DESCRIPTION_DELAY
 } from "../../../config/constants";
 import { formatBytes } from "../../../utils/modelFormatting";
 import { getModelUrl } from "../../../utils/providerDisplay";
@@ -31,7 +32,6 @@ import ModelCompatibilityDialog from "./ModelCompatibilityDialog";
 import { classifyModelFit, estimateRequiredGb } from "./modelFit";
 import type { FitLevel } from "../onboarding/onboardingCatalog";
 import { executionForDisplay } from "../../../utils/modelNormalization";
-import { useTranslation } from "react-i18next";
 
 const IMPORTANT_TAGS = new Set(["gguf", "mlx"]);
 
@@ -93,9 +93,11 @@ const ModelName: React.FC<{ model: UnifiedModel; plain: boolean }> = ({
   }
 
   return (
-    <TextLink href={modelUrl} external className="model-name-link" title={full}>
-      {content}
-    </TextLink>
+    <Tooltip title={full} describeChild>
+      <TextLink href={modelUrl} external className="model-name-link">
+        {content}
+      </TextLink>
+    </Tooltip>
   );
 };
 
@@ -124,7 +126,6 @@ const ModelListItem: React.FC<
   isCheckingCache = false,
   fitBudgetGb = null
 }) => {
-  const { t } = useTranslation();
   const baseId = model.repo_id || model.id;
   const downloadId = model.path ? `${baseId}/${model.path}` : baseId;
   const download = useModelDownloadStore(
@@ -202,7 +203,7 @@ const ModelListItem: React.FC<
             </div>
 
             <div className="model-details">
-              <Tooltip title={execution.reason ?? execution.label} delay={400}>
+              <Tooltip title={execution.reason ?? execution.label}>
                 <Chip
                   label={execution.label}
                   compact
@@ -219,15 +220,7 @@ const ModelListItem: React.FC<
                           : "default"
                   }
                   variant="outlined"
-                  sx={{
-                    color:
-                      execution.state === "unavailable"
-                        ? "text.disabled"
-                        : undefined,
-                    borderColor:
-                      execution.state === "unavailable" ? "divider" : undefined,
-                    cursor: "help"
-                  }}
+                  sx={{ cursor: "help" }}
                 />
               </Tooltip>
               {tags.map((tag) => (
@@ -235,8 +228,8 @@ const ModelListItem: React.FC<
               ))}
               {model.pipeline_tag && (
                 <Tooltip
-                  title={t("editor:ui.viewTrendingModelsWithThisTagOnHuggingFace", { defaultValue: "View trending models with this tag on HuggingFace" })}
-                  delay={TOOLTIP_ENTER_DELAY * 2}
+                  title="View trending models with this tag on HuggingFace"
+                  delay={TOOLTIP_DESCRIPTION_DELAY}
                   nextDelay={TOOLTIP_ENTER_NEXT_DELAY * 2}
                 >
                   <TextLink
@@ -258,7 +251,6 @@ const ModelListItem: React.FC<
                   title={`Estimated from the model's ${formatBytes(
                     model.size_on_disk ?? 0
                   )} size against your ${fitBudgetGb} GB memory budget (set it under Get Started).`}
-                  delay={400}
                 >
                   <Chip
                     label={FIT_CHIP[fit].label(estimateRequiredGb(model) ?? 0)}
@@ -279,16 +271,16 @@ const ModelListItem: React.FC<
                   onClick={handleOpenDialog}
                   icon={
                     <VisibilityIcon
-                      style={{ fontSize: "var(--fontSizeNormal)" }}
+                      style={{ fontSize: ICON_SIZE.sm }}
                     />
                   }
                   sx={{
                     background:
-                      "rgba(var(--palette-primary-main-channel) / 0.1)",
+                      "rgba(var(--palette-primary-mainChannel) / 0.1)",
                     cursor: "pointer",
                     "&:hover": {
                       background:
-                        "rgba(var(--palette-primary-main-channel) / 0.2)"
+                        "rgba(var(--palette-primary-mainChannel) / 0.2)"
                     },
                     "& .MuiChip-icon": {
                       color: "inherit",

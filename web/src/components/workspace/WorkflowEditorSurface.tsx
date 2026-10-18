@@ -564,19 +564,23 @@ const WorkflowEditorSurface = ({
               <WorkflowConflictBanner workflowId={workflowId} />
               {visibleLanding && (
                 <Box
+                  data-testid="workflow-landing"
                   sx={{
-                    position: "absolute",
-                    top: SPACING.md,
-                    left: SPACING.md,
-                    right: SPACING.md,
+                    // In flow, above the canvas: the canvas shrinks to make
+                    // room, so the panel never covers a node.
+                    position: "relative",
+                    flexShrink: 0,
+                    alignSelf: "center",
+                    boxSizing: "border-box",
+                    width: `calc(100% - ${SPACING.md * 2}px)`,
                     maxWidth: 720,
-                    margin: "0 auto",
+                    marginTop: SPACING.md,
+                    marginBottom: SPACING.md,
                     padding: SPACING.lg,
                     backgroundColor: "background.paper",
                     border: 1,
                     borderColor: "divider",
-                    borderRadius: BORDER_RADIUS.md,
-                    zIndex: STATUS_MESSAGE_Z_INDEX + 1
+                    borderRadius: BORDER_RADIUS.md
                   }}
                 >
                   <Box
@@ -631,7 +635,11 @@ const WorkflowEditorSurface = ({
                     mounted underneath so returning to it keeps its viewport. */}
                 {activeSubgraph && !showChain && (
                   <div style={{ position: "absolute", inset: 0 }}>
-                    <SubgraphTabContent tab={activeSubgraph} active={active} />
+                    <SubgraphTabContent
+                      key={activeSubgraph.key}
+                      tab={activeSubgraph}
+                      active={active}
+                    />
                   </div>
                 )}
                 {showChain && (

@@ -1,19 +1,37 @@
 import {
   fadeShapeGain,
+  midiClipNoteEvents,
   resolveClipFades,
   sampleFadeShape,
   timeRemapAudioSegments
 } from "@nodetool-ai/timeline";
 import type { ClipFadeShape, TimeRemapAudioSegment } from "@nodetool-ai/timeline";
 import type {
+  MidiInstrument,
   TimelineClip,
+  TimelineMasterChannel,
   TimelineTrack,
-  TrackCompressorEffect,
-  TrackEffect,
-  TrackEq3Effect,
-  TrackFilterEffect,
-  TrackGainEffect
+  TrackEffect
 } from "@nodetool-ai/timeline";
+import {
+  liveDeviceFactory,
+  type LiveInstrumentDevice,
+  type LiveNoteEvent
+} from "../daw/devices/liveDevice";
+import {
+  applyCompressorEffect,
+  applyEq3Effect,
+  applyFilterEffect,
+  applyFableEffect,
+  applyGainEffect,
+  buildClipEffectChain,
+  buildEffectUnit,
+  disconnectNodes,
+  releaseEffectUnit,
+  type ClipEffectChain,
+  type EffectUnit
+} from "./audioEffectNodes";
+import type { FableFxHandle } from "../daw/fx/fableFxUnit";
 
 /**
  * One clip handed to the graph for scheduling, with the PCM it should play:
@@ -38,29 +56,69 @@ export type ScheduledAudioClip =
       assetUrl?: undefined;
       /** Already-rendered PCM — no asset, no decode. */
       buffer: AudioBuffer;
+    }
+  | {
+      /**
+       * A midi clip played by its track's live device: the graph sends the
+       * clip's notes to the device instead of playing a buffer.
+       */
+      clip: TimelineClip;
+      live: { bpm: number };
+      assetUrl?: undefined;
+      buffer?: undefined;
     };
 
-/**
- * Internal state for a single effect's audio nodes. Each effect chains
- * `input → ...internal... → output` so the chain can wire them in series.
- */
-interface EffectUnit {
-  effect: TrackEffect;
-  input: AudioNode;
-  output: AudioNode;
-  /** All allocated nodes — disconnected on rebuild. */
-  nodes: AudioNode[];
+/** A scheduled clip that plays PCM through the graph, not a live device. */
+type PcmScheduledClip = Exclude<ScheduledAudioClip, { live: { bpm: number } }>;
+
+/** Linear gain of a fader position in decibels. */
+export function dbToGain(db: number | undefined): number {
+  return db === undefined || db === 0 ? 1 : Math.pow(10, db / 20);
 }
 
-interface TrackChainState {
-  /** trackGain output is always connected to the head of `units` (or directly to masterGain if empty). */
-  trackGain: GainNode;
+/** A track's live instrument and the instrument type it was made for. */
+interface TrackDeviceState {
+  type: MidiInstrument["type"];
+  device: Promise<LiveInstrumentDevice | null>;
+  /** Set once `device` resolves, for synchronous callers. */
+  ready: LiveInstrumentDevice | null;
+  /** The newest instrument, applied when a device still loading resolves. */
+  instrument: MidiInstrument;
+}
+
+/** An insert chain: the effects last applied and the nodes built for them. */
+interface EffectChainState {
   /** Last applied snapshot — used to skip rebuilds when reference-equal. */
   effects: TrackEffect[];
   units: EffectUnit[];
 }
 
-const DB_TO_LIN = (db: number): number => Math.pow(10, db / 20);
+interface TrackChainState extends EffectChainState {
+  /**
+   * trackGain (mute/solo) → units → fader (volumeDb) → panner → mix bus.
+   * The analyser taps the panner for the mixer's meters.
+   */
+  trackGain: GainNode;
+  fader: GainNode;
+  panner: StereoPannerNode;
+  analyser: AnalyserNode;
+  /** Per-side analysers, made the first time a stereo meter asks. */
+  meter?: StereoMeterTap;
+}
+
+/**
+ * A stereo meter's taps on a channel output: an `AnalyserNode` downmixes to
+ * mono, so each side gets its own after a splitter.
+ */
+export interface StereoMeterTap {
+  left: AnalyserNode;
+  right: AnalyserNode;
+  /** The splitter feeding both, disconnected with the channel. */
+  splitter: ChannelSplitterNode;
+}
+
+/** Analyser window for channel meters: about 43 ms at 48 kHz. */
+const METER_FFT_SIZE = 2048;
 
 /** Sample spacing for a shaped fade, and the bounds that spacing is held to. */
 const FADE_CURVE_STEP_MS = 5;
@@ -180,6 +238,35 @@ interface PlayingSource {
 const DECLICK_SEC = 0.005;
 /** Wall-clock slack past the ramp before its nodes are disconnected. */
 const DECLICK_RELEASE_MS = DECLICK_SEC * 1000 + 20;
+/** Fade-in of a scrub grain. */
+const GRAIN_ATTACK_SEC = 0.012;
+/** Samples in a grain envelope curve. */
+const GRAIN_CURVE_STEPS = 32;
+
+/**
+ * A raised-cosine fade from `from` to `to`. Its slope is zero at both ends,
+ * so a grain edge has no corner that sounds as a click.
+ */
+function raisedCosineCurve(from: number, to: number): Float32Array {
+  const curve = new Float32Array(GRAIN_CURVE_STEPS);
+  for (let i = 0; i < GRAIN_CURVE_STEPS; i += 1) {
+    const progress = i / (GRAIN_CURVE_STEPS - 1);
+    const shape = (1 - Math.cos(Math.PI * progress)) / 2;
+    curve[i] = from + (to - from) * shape;
+  }
+  return curve;
+}
+
+/** Hold `param` at its current value and drop the events after `now`. */
+function holdParam(param: AudioParam, now: number): void {
+  if (typeof param.cancelAndHoldAtTime === "function") {
+    param.cancelAndHoldAtTime(now);
+  } else {
+    const held = param.value;
+    param.cancelScheduledValues(now);
+    param.setValueAtTime(held, now);
+  }
+}
 
 /**
  * Ramp `param` from wherever it is now to silence by `endAt`. Holding the
@@ -317,11 +404,54 @@ export function audioBufferCacheKey(assetId: string, url: string): string {
   return `${assetId}\u0000${url}`;
 }
 
+/**
+ * A media element kept for scrubbing one streamed clip. Each grain seeks and
+ * plays the same element, so the file loads once per scrub, not once per
+ * grain: a fresh element per grain would still be loading when its 90 ms end.
+ */
+interface ScrubVoice {
+  url: string;
+  element: HTMLAudioElement;
+  node: MediaElementAudioSourceNode;
+  gain: GainNode;
+  trackId: string | null;
+  /** Bumped by every grain, so a stale pause leaves a newer grain alone. */
+  grain: number;
+}
+
 export class AudioGraph {
   private ctx: BaseAudioContext | null = null;
   private masterGain: GainNode | null = null;
+  /**
+   * The document's master channel: every track channel sums here, then runs
+   * through the master inserts and the master fader (`masterFader`) into the
+   * listener volume (`masterGain`). The analyser taps the fader's output.
+   */
+  private mixBus: GainNode | null = null;
+  private masterFader: GainNode | null = null;
+  private masterChain: EffectChainState = { effects: [], units: [] };
+  /** Tempo the `fable` inserts sync their echo and LAB stages to. */
+  private fxBpm = 120;
+  /** Context time of the timeline's zero for the current play gesture. */
+  private beatZeroSec = 0;
+  /** The document's master channel, kept so a later context starts with it. */
+  private master: TimelineMasterChannel | undefined;
+  private mixAnalyser: AnalyserNode | null = null;
+  private masterMeter: StereoMeterTap | null = null;
+  private trackDevices = new Map<string, TrackDeviceState>();
+  /** Clips playing through a live device, by clip id, with their track id. */
+  private liveClips = new Map<string, string>();
+  /** Listener volume, linear 0..1. Applied after every mix decision. */
+  private masterVolume = 1;
   private trackChains = new Map<string, TrackChainState>();
   private clipGains = new Map<string, GainNode>();
+  /** Real-time effect chains of playing clips that carry `audioEffects`. */
+  private clipEffectChains = new Map<string, ClipEffectChain>();
+  /**
+   * Chains whose clip has ended but whose echo or reverb tail is still
+   * sounding. Stopping playback silences these too.
+   */
+  private ringingChains = new Set<ClipEffectChain>();
   /**
    * Sources per clip. A clip with a `timeRemap` plays as one source per
    * constant-rate segment of its curve, so this is a list rather than a single
@@ -329,6 +459,8 @@ export class AudioGraph {
    */
   private clipSources = new Map<string, PlayingSource[]>();
   private bufferCache = new Map<string, AudioBuffer>();
+  /** Scrub elements of streamed clips, by clip id. */
+  private scrubVoices = new Map<string, ScrubVoice>();
   private loadingPromises = new Map<string, Promise<AudioBuffer | null>>();
   private readonly createMediaElement: () => HTMLAudioElement;
   private readonly signal: AbortSignal | undefined;
@@ -350,9 +482,61 @@ export class AudioGraph {
     if (!this.ctx) {
       this.ctx = this.injectedContext ?? new AudioContext();
       this.masterGain = this.ctx.createGain();
+      this.masterGain.gain.value = this.masterVolume;
       this.masterGain.connect(this.ctx.destination);
+      this.mixBus = this.ctx.createGain();
+      this.masterFader = this.ctx.createGain();
+      this.masterFader.gain.value = dbToGain(this.master?.volumeDb);
+      this.mixAnalyser = this.ctx.createAnalyser();
+      this.mixAnalyser.fftSize = METER_FFT_SIZE;
+      this.masterChain = { effects: [], units: [] };
+      this.mixBus.connect(this.masterFader);
+      this.masterFader.connect(this.masterGain);
+      this.masterFader.connect(this.mixAnalyser);
+      this.applyEffectChain(
+        this.masterChain,
+        this.mixBus,
+        this.masterFader,
+        this.master?.effects ?? []
+      );
     }
     return this.ctx;
+  }
+
+  /**
+   * Set the document's master channel: its inserts run on the summed mix,
+   * then its fader. Unlike {@link setMasterVolume} this is part of the
+   * document, so the export renders it too. Kept until a context exists.
+   */
+  setMaster(master: TimelineMasterChannel | undefined): void {
+    this.master = master;
+    const ctx = this.ctx;
+    if (!ctx || !this.mixBus || !this.masterFader) return;
+    this.masterFader.gain.setTargetAtTime(
+      dbToGain(master?.volumeDb),
+      ctx.currentTime,
+      0.01
+    );
+    this.applyEffectChain(
+      this.masterChain,
+      this.mixBus,
+      this.masterFader,
+      master?.effects ?? []
+    );
+  }
+
+  /**
+   * Set the listener volume (linear, clamped to 0..1). It scales the whole
+   * mix and does not change the document, so the export is not affected.
+   */
+  setMasterVolume(volume: number): void {
+    this.masterVolume = Math.min(1, Math.max(0, volume));
+    const ctx = this.ctx;
+    const gain = this.masterGain?.gain;
+    if (!ctx || !gain) return;
+    // A short glide avoids a click when the slider moves during playback.
+    gain.cancelScheduledValues(ctx.currentTime);
+    gain.setTargetAtTime(this.masterVolume, ctx.currentTime, 0.01);
   }
 
   get context(): BaseAudioContext | null {
@@ -421,8 +605,19 @@ export class AudioGraph {
 
     const ctx = this.getContext();
     const trackGain = ctx.createGain();
-    trackGain.connect(this.masterGain!);
-    chain = { trackGain, effects: [], units: [] };
+    const fader = ctx.createGain();
+    const panner = ctx.createStereoPanner();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = METER_FFT_SIZE;
+    // Mono input is upmixed before the panner, as the server render does, so
+    // a centred mono channel plays at the level it had before panning.
+    panner.channelCount = 2;
+    panner.channelCountMode = "explicit";
+    trackGain.connect(fader);
+    fader.connect(panner);
+    panner.connect(this.mixBus!);
+    panner.connect(analyser);
+    chain = { trackGain, fader, panner, analyser, effects: [], units: [] };
     this.trackChains.set(trackId, chain);
     return chain;
   }
@@ -430,85 +625,6 @@ export class AudioGraph {
   /** Returns the input node clips on this track should connect into. */
   private getTrackGain(trackId: string): GainNode {
     return this.getOrCreateTrackChain(trackId).trackGain;
-  }
-
-  private buildEffectUnit(effect: TrackEffect): EffectUnit | null {
-    const ctx = this.getContext();
-    switch (effect.type) {
-      case "gain": {
-        const node = ctx.createGain();
-        this.applyGainEffect(node, effect);
-        return { effect, input: node, output: node, nodes: [node] };
-      }
-      case "eq3": {
-        const low = ctx.createBiquadFilter();
-        low.type = "lowshelf";
-        const mid = ctx.createBiquadFilter();
-        mid.type = "peaking";
-        const high = ctx.createBiquadFilter();
-        high.type = "highshelf";
-        this.applyEq3Effect(low, mid, high, effect);
-        low.connect(mid);
-        mid.connect(high);
-        return {
-          effect,
-          input: low,
-          output: high,
-          nodes: [low, mid, high]
-        };
-      }
-      case "filter": {
-        const node = ctx.createBiquadFilter();
-        this.applyFilterEffect(node, effect);
-        return { effect, input: node, output: node, nodes: [node] };
-      }
-      case "compressor": {
-        const node = ctx.createDynamicsCompressor();
-        this.applyCompressorEffect(node, effect);
-        return { effect, input: node, output: node, nodes: [node] };
-      }
-      default:
-        return null;
-    }
-  }
-
-  private applyGainEffect(node: GainNode, e: TrackGainEffect): void {
-    node.gain.value = DB_TO_LIN(e.gainDb);
-  }
-
-  private applyEq3Effect(
-    low: BiquadFilterNode,
-    mid: BiquadFilterNode,
-    high: BiquadFilterNode,
-    e: TrackEq3Effect
-  ): void {
-    low.frequency.value = e.lowFreq;
-    low.gain.value = e.lowGainDb;
-    mid.frequency.value = e.midFreq;
-    mid.Q.value = e.midQ;
-    mid.gain.value = e.midGainDb;
-    high.frequency.value = e.highFreq;
-    high.gain.value = e.highGainDb;
-  }
-
-  private applyFilterEffect(
-    node: BiquadFilterNode,
-    e: TrackFilterEffect
-  ): void {
-    node.type = e.mode;
-    node.frequency.value = e.frequency;
-    node.Q.value = e.q;
-  }
-
-  private applyCompressorEffect(
-    node: DynamicsCompressorNode,
-    e: TrackCompressorEffect
-  ): void {
-    node.threshold.value = e.thresholdDb;
-    node.ratio.value = e.ratio;
-    node.attack.value = e.attackMs / 1000;
-    node.release.value = e.releaseMs / 1000;
-    node.knee.value = e.kneeDb;
   }
 
   /**
@@ -537,10 +653,10 @@ export class AudioGraph {
       const e = nextActive[i];
       switch (e.type) {
         case "gain":
-          this.applyGainEffect(unit.nodes[0] as GainNode, e);
+          applyGainEffect(unit.nodes[0] as GainNode, e);
           break;
         case "eq3":
-          this.applyEq3Effect(
+          applyEq3Effect(
             unit.nodes[0] as BiquadFilterNode,
             unit.nodes[1] as BiquadFilterNode,
             unit.nodes[2] as BiquadFilterNode,
@@ -548,13 +664,16 @@ export class AudioGraph {
           );
           break;
         case "filter":
-          this.applyFilterEffect(unit.nodes[0] as BiquadFilterNode, e);
+          applyFilterEffect(unit.nodes[0] as BiquadFilterNode, e);
           break;
         case "compressor":
-          this.applyCompressorEffect(
+          applyCompressorEffect(
             unit.nodes[0] as DynamicsCompressorNode,
             e
           );
+          break;
+        case "fable":
+          applyFableEffect(unit, e, this.fxBpm);
           break;
       }
       unit.effect = e;
@@ -575,6 +694,21 @@ export class AudioGraph {
       return;
     }
     const chain = this.getOrCreateTrackChain(trackId);
+    this.applyEffectChain(chain, chain.trackGain, chain.fader, effects);
+  }
+
+  /**
+   * Bring an insert chain wired `input → units → output` in line with
+   * `effects`: parameters in place when the structure matches, otherwise a
+   * rebuild. `input` must feed nothing but this chain, since a rebuild
+   * disconnects all of its outputs.
+   */
+  private applyEffectChain(
+    chain: EffectChainState,
+    input: AudioNode,
+    output: AudioNode,
+    effects: TrackEffect[]
+  ): void {
     if (chain.effects === effects) return; // reference-equal — nothing to do
 
     if (this.chainStructureMatches(chain.units, effects)) {
@@ -585,38 +719,30 @@ export class AudioGraph {
 
     // Rebuild: disconnect current chain.
     try {
-      chain.trackGain.disconnect();
+      input.disconnect();
     } catch {
       /* not connected */
     }
-    for (const unit of chain.units) {
-      for (const n of unit.nodes) {
-        try {
-          n.disconnect();
-        } catch {
-          /* not connected */
-        }
-      }
-    }
+    for (const unit of chain.units) releaseEffectUnit(unit);
     chain.units = [];
 
     // Build new chain from enabled effects.
     const newUnits: EffectUnit[] = [];
     for (const effect of effects) {
       if (!effect.enabled) continue;
-      const unit = this.buildEffectUnit(effect);
+      const unit = buildEffectUnit(this.getContext(), effect, { bpm: this.fxBpm });
       if (unit) newUnits.push(unit);
     }
     chain.units = newUnits;
     chain.effects = effects;
 
-    // Wire up: trackGain → unit[0] → unit[1] → ... → masterGain.
-    let prevOutput: AudioNode = chain.trackGain;
+    // Wire up: input → unit[0] → unit[1] → ... → output.
+    let prevOutput: AudioNode = input;
     for (const unit of newUnits) {
       prevOutput.connect(unit.input);
       prevOutput = unit.output;
     }
-    prevOutput.connect(this.masterGain!);
+    prevOutput.connect(output);
   }
 
   /**
@@ -628,20 +754,10 @@ export class AudioGraph {
     const keep = new Set(trackIds);
     for (const [id, chain] of this.trackChains) {
       if (keep.has(id)) continue;
-      try {
-        chain.trackGain.disconnect();
-      } catch {
-        /* not connected */
-      }
-      for (const unit of chain.units) {
-        for (const n of unit.nodes) {
-          try {
-            n.disconnect();
-          } catch {
-            /* not connected */
-          }
-        }
-      }
+      disconnectNodes([chain.trackGain, chain.fader, chain.panner]);
+      if (chain.meter) disconnectNodes([chain.meter.splitter]);
+      this.disposeTrackDevice(id);
+      for (const unit of chain.units) releaseEffectUnit(unit);
       this.trackChains.delete(id);
     }
   }
@@ -669,8 +785,223 @@ export class AudioGraph {
       const muted = track.muted === true || (hasSolo && !track.solo);
       // Use a short ramp instead of a hard cut to avoid clicks.
       chain.trackGain.gain.setTargetAtTime(muted ? 0 : 1, now, 0.01);
+      chain.fader.gain.setTargetAtTime(dbToGain(track.volumeDb), now, 0.01);
+      chain.panner.pan.setTargetAtTime(track.pan ?? 0, now, 0.01);
       this.setTrackEffects(track.id, track.effects ?? []);
+      if (track.type === "midi") this.syncTrackDevice(track);
     }
+  }
+
+  /** The analyser on a track's channel output, or null before the track has played. */
+  getTrackAnalyser(trackId: string): AnalyserNode | null {
+    return this.trackChains.get(trackId)?.analyser ?? null;
+  }
+
+  /**
+   * Set the tempo `fable` inserts sync to (tape echo SYNC, LAB glitch and
+   * shift divisions). Running units update in place.
+   */
+  setTempo(bpm: number): void {
+    if (!Number.isFinite(bpm) || bpm <= 0 || bpm === this.fxBpm) return;
+    this.fxBpm = bpm;
+    for (const state of this.trackDevices.values()) {
+      state.ready?.setTempo(bpm, this.beatZeroSec);
+    }
+    const chains: EffectChainState[] = [this.masterChain, ...this.trackChains.values()];
+    for (const chain of chains) {
+      for (const unit of chain.units) {
+        if (unit.effect.type === "fable") applyFableEffect(unit, unit.effect, bpm);
+      }
+    }
+  }
+
+  /** The running FableSynth stage of a `fable` effect on any track or the master. */
+  getFableFx(effectId: string): FableFxHandle | null {
+    const chains: EffectChainState[] = [this.masterChain, ...this.trackChains.values()];
+    for (const chain of chains) {
+      const unit = chain.units.find((u) => u.effect.id === effectId);
+      if (unit?.fable) return unit.fable;
+    }
+    return null;
+  }
+
+  /** The analyser on the master channel's output. */
+  getMasterAnalyser(): AnalyserNode | null {
+    return this.mixAnalyser;
+  }
+
+  /**
+   * Left and right analysers after a track's panner, or null before the
+   * track has a channel. Made on first request, so a graph nobody meters
+   * carries no splitter.
+   */
+  getTrackMeter(trackId: string): StereoMeterTap | null {
+    const chain = this.trackChains.get(trackId);
+    if (!chain || !this.ctx) return null;
+    chain.meter ??= this.createMeterTap(this.ctx, chain.panner);
+    return chain.meter;
+  }
+
+  /** Left and right analysers after the master fader, or null before the context. */
+  getMasterMeter(): StereoMeterTap | null {
+    if (!this.ctx || !this.masterFader) return null;
+    this.masterMeter ??= this.createMeterTap(this.ctx, this.masterFader);
+    return this.masterMeter;
+  }
+
+  private createMeterTap(ctx: BaseAudioContext, source: AudioNode): StereoMeterTap {
+    const splitter = ctx.createChannelSplitter(2);
+    const left = ctx.createAnalyser();
+    const right = ctx.createAnalyser();
+    left.fftSize = METER_FFT_SIZE;
+    right.fftSize = METER_FFT_SIZE;
+    source.connect(splitter);
+    splitter.connect(left, 0);
+    splitter.connect(right, 1);
+    return { left, right, splitter };
+  }
+
+  /** The master channel's gain node, the input every track channel feeds. */
+  getMixBus(): GainNode | null {
+    return this.mixBus;
+  }
+
+  /** The live device playing a midi track, once it has been created. */
+  getTrackDevice(trackId: string): LiveInstrumentDevice | null {
+    return this.trackDevices.get(trackId)?.ready ?? null;
+  }
+
+  /**
+   * The live device for a midi track, created on demand (the on-screen
+   * keyboard needs one before anything has played). Null when the track's
+   * instrument plays pre-rendered.
+   */
+  async ensureTrackDevice(track: TimelineTrack): Promise<LiveInstrumentDevice | null> {
+    this.getContext();
+    this.getOrCreateTrackChain(track.id);
+    this.syncTrackDevice(track);
+    return (await this.trackDevices.get(track.id)?.device) ?? null;
+  }
+
+  /**
+   * Create, replace or update a midi track's live device to match its
+   * instrument. `events` preloads an offline render's whole score.
+   */
+  private syncTrackDevice(track: TimelineTrack, events?: LiveNoteEvent[]): void {
+    const instrument = track.instrument;
+    const factory = liveDeviceFactory(instrument);
+    const current = this.trackDevices.get(track.id);
+    if (!factory || !instrument) {
+      if (current) this.disposeTrackDevice(track.id);
+      return;
+    }
+    if (current && current.type === instrument.type) {
+      current.instrument = instrument;
+      current.ready?.setInstrument(instrument);
+      return;
+    }
+    if (current) this.disposeTrackDevice(track.id);
+    const ctx = this.getContext();
+    const chain = this.getOrCreateTrackChain(track.id);
+    const state: TrackDeviceState = {
+      type: instrument.type,
+      ready: null,
+      instrument,
+      device: factory(ctx, instrument, { events }).then(
+        (device) => {
+          if (this.trackDevices.get(track.id) !== state) {
+            device.dispose();
+            return null;
+          }
+          device.output.connect(chain.trackGain);
+          device.setTempo(this.fxBpm, this.beatZeroSec);
+          device.setInstrument(state.instrument);
+          state.ready = device;
+          return device;
+        },
+        (error: unknown) => {
+          console.error("[AudioGraph] live device failed to start", error);
+          return null;
+        }
+      )
+    };
+    this.trackDevices.set(track.id, state);
+  }
+
+  private disposeTrackDevice(trackId: string): void {
+    const state = this.trackDevices.get(trackId);
+    if (!state) return;
+    this.trackDevices.delete(trackId);
+    void state.device.then((device) => device?.dispose());
+    for (const [clipId, clipTrackId] of this.liveClips) {
+      if (clipTrackId === trackId) this.liveClips.delete(clipId);
+    }
+  }
+
+  /**
+   * Offline export: create every live device with its whole score, before
+   * rendering starts. Clips handed to `addClips` afterwards are then skipped
+   * for those tracks, since their notes are already queued.
+   */
+  async preloadLiveDevices(
+    tracks: TimelineTrack[],
+    clips: TimelineClip[],
+    bpm: number
+  ): Promise<Set<string>> {
+    const preloaded = new Set<string>();
+    for (const track of tracks) {
+      if (track.type !== "midi" || !liveDeviceFactory(track.instrument)) continue;
+      const events = clips
+        .filter((clip) => clip.trackId === track.id && clip.mediaType === "midi")
+        .flatMap((clip) =>
+          midiClipNoteEvents(clip, bpm).map((event) => ({
+            timeSec: event.timeMs / 1000,
+            pitch: event.pitch,
+            velocity: event.velocity,
+            on: event.on
+          }))
+        );
+      this.getOrCreateTrackChain(track.id);
+      this.syncTrackDevice(track, events);
+      await this.trackDevices.get(track.id)?.device;
+      for (const clip of clips) {
+        if (clip.trackId !== track.id) continue;
+        preloaded.add(clip.id);
+        this.liveClips.set(clip.id, track.id);
+      }
+    }
+    return preloaded;
+  }
+
+  /** Send a live clip's notes from the playhead on to its track's device. */
+  private async scheduleLiveClip(
+    clip: TimelineClip,
+    bpm: number,
+    tracks: TimelineTrack[],
+    currentTimeInput: number | (() => number),
+    globalRate: number,
+    shouldCancel?: () => boolean
+  ): Promise<void> {
+    const track = tracks.find((t) => t.id === clip.trackId);
+    if (!track) return;
+    this.syncTrackDevice(track);
+    const device = await this.trackDevices.get(track.id)?.device;
+    if (!device || shouldCancel?.() || this.liveClips.has(clip.id)) return;
+    const ctx = this.getContext();
+    const currentTimeMs =
+      typeof currentTimeInput === "function" ? currentTimeInput() : currentTimeInput;
+    const now = ctx.currentTime;
+    const g = Math.max(0.0001, globalRate);
+    this.beatZeroSec = now - currentTimeMs / 1000 / g;
+    device.setTempo(bpm, this.beatZeroSec);
+    const events = midiClipNoteEvents(clip, bpm, currentTimeMs).map((event) => ({
+      timeSec: now + (event.timeMs - currentTimeMs) / 1000 / g,
+      pitch: event.pitch,
+      velocity: event.velocity,
+      on: event.on
+    }));
+    this.liveClips.set(clip.id, track.id);
+    device.schedule(events, clip.id);
   }
 
   /**
@@ -689,7 +1020,9 @@ export class AudioGraph {
   ): Promise<void> {
     const activeIds = new Set(clips.map((c) => c.clip.id));
     this.stopClips(
-      [...this.clipSources.keys()].filter((id) => !activeIds.has(id))
+      [...this.clipSources.keys(), ...this.liveClips.keys()].filter(
+        (id) => !activeIds.has(id)
+      )
     );
 
     await this.addClips(clips, tracks, currentTimeMs, shouldCancel, globalRate);
@@ -703,11 +1036,58 @@ export class AudioGraph {
    */
   stopClips(clipIds: Iterable<string>): void {
     for (const id of clipIds) {
+      const liveTrackId = this.liveClips.get(id);
+      if (liveTrackId !== undefined) {
+        this.liveClips.delete(id);
+        this.trackDevices.get(liveTrackId)?.ready?.clear(id);
+        continue;
+      }
       const sources = this.clipSources.get(id);
       if (!sources) continue;
-      this.releaseClip(sources, this.clipGains.get(id));
+      this.releaseClip(
+        sources,
+        this.clipGains.get(id),
+        this.clipEffectChains.get(id)
+      );
       this.clipSources.delete(id);
       this.clipGains.delete(id);
+      this.clipEffectChains.delete(id);
+    }
+  }
+
+  /**
+   * Let an ended clip's effect tail ring out, or (when playback stops) ramp
+   * the chain to silence, then disconnect it. The offline export keeps its
+   * chains connected: rendering runs faster than the wall clock, so a timer
+   * would cut a tail the mixdown has not reached yet.
+   */
+  private releaseEffectChain(chain: ClipEffectChain, letRing: boolean): void {
+    if (!(this.ctx instanceof AudioContext)) {
+      return;
+    }
+    if (letRing) {
+      this.ringingChains.add(chain);
+      setTimeout(() => {
+        if (this.ringingChains.delete(chain)) {
+          disconnectNodes(chain.nodes);
+        }
+      }, chain.tailSec * 1000 + DECLICK_RELEASE_MS);
+      return;
+    }
+    this.ringingChains.delete(chain);
+    const now = this.ctx.currentTime;
+    try {
+      rampToSilence(chain.output.gain, now, now + DECLICK_SEC);
+    } catch {
+      /* the chain is already released */
+    }
+    setTimeout(() => disconnectNodes(chain.nodes), DECLICK_RELEASE_MS);
+  }
+
+  /** Silence every tail still ringing from a clip that already ended. */
+  private silenceRingingChains(): void {
+    for (const chain of [...this.ringingChains]) {
+      this.releaseEffectChain(chain, false);
     }
   }
 
@@ -716,9 +1096,17 @@ export class AudioGraph {
    * the ramp, then disconnect them and its gain — a streamed segment
    * included, whose element node and gate would otherwise stay attached.
    */
-  private releaseClip(sources: PlayingSource[], gain: GainNode | undefined): void {
+  private releaseClip(
+    sources: PlayingSource[],
+    gain: GainNode | undefined,
+    chain?: ClipEffectChain,
+    letRing = false
+  ): void {
     const now = this.ctx?.currentTime ?? 0;
     const endAt = now + DECLICK_SEC;
+    if (chain) {
+      this.releaseEffectChain(chain, letRing);
+    }
     if (gain) {
       try {
         rampToSilence(gain.gain, now, endAt);
@@ -764,6 +1152,28 @@ export class AudioGraph {
     globalRate = 1
   ): Promise<void> {
     const ctx = this.getContext();
+    const live = clips.filter(
+      (scheduled): scheduled is Extract<ScheduledAudioClip, { live: { bpm: number } }> =>
+        "live" in scheduled && scheduled.live !== undefined
+    );
+    if (live.length > 0) {
+      this.updateTracks(tracks);
+      await Promise.all(
+        live.map((scheduled) =>
+          this.scheduleLiveClip(
+            scheduled.clip,
+            scheduled.live.bpm,
+            tracks,
+            currentTimeInput,
+            globalRate,
+            shouldCancel
+          )
+        )
+      );
+    }
+    const pcmClips = clips.filter(
+      (scheduled): scheduled is PcmScheduledClip => !("live" in scheduled && scheduled.live)
+    );
     // Global timeline speed (1 = normal). One wall-clock second covers
     // `g` timeline seconds, so every wall-clock duration below (lead,
     // remaining, fades) is divided by `g`, and the source's playbackRate is
@@ -777,7 +1187,7 @@ export class AudioGraph {
       typeof (ctx as Partial<AudioContext>).createMediaElementSource ===
       "function";
 
-    const bufferPromises = clips.map(
+    const bufferPromises = pcmClips.map(
       async (
         scheduled
       ): Promise<{
@@ -835,7 +1245,7 @@ export class AudioGraph {
         ? currentTimeInput()
         : currentTimeInput;
 
-    for (const { clip } of clips) {
+    for (const { clip } of pcmClips) {
       if (this.clipSources.has(clip.id)) {
         continue;
       }
@@ -941,7 +1351,15 @@ export class AudioGraph {
       }
 
       const trackGain = this.getTrackGain(clip.trackId);
-      clipGain.connect(trackGain);
+      // Clip effects run after the volume and fades, so a fade-out shapes the
+      // dry sound and an echo or reverb tail decays on its own past it.
+      const effectChain = buildClipEffectChain(ctx, clip.audioEffects);
+      if (effectChain) {
+        clipGain.connect(effectChain.input);
+        effectChain.output.connect(trackGain);
+      } else {
+        clipGain.connect(trackGain);
+      }
 
       const sources: PlayingSource[] = [];
       for (const segment of segments) {
@@ -999,12 +1417,16 @@ export class AudioGraph {
         }
         this.clipSources.delete(clip.id);
         this.clipGains.delete(clip.id);
-        this.releaseClip(sources, clipGain);
+        this.clipEffectChains.delete(clip.id);
+        this.releaseClip(sources, clipGain, effectChain ?? undefined, true);
       };
       for (const src of sources) src.onended = onSourceEnded;
 
       this.clipSources.set(clip.id, sources);
       this.clipGains.set(clip.id, clipGain);
+      if (effectChain) {
+        this.clipEffectChains.set(clip.id, effectChain);
+      }
     }
   }
 
@@ -1043,12 +1465,204 @@ export class AudioGraph {
     return segment;
   }
 
+  /**
+   * Start a scrub grain: the mix of `clips` at `atMs`, faded in on the master
+   * gain along a raised cosine, so a grain that starts mid-waveform does not
+   * click. The caller fades it out with {@link releaseGrain}, then stops it
+   * with {@link stopAll}. A streamed clip plays through a scrub element that
+   * later grains reuse.
+   */
+  async playGrain(
+    clips: ScheduledAudioClip[],
+    tracks: TimelineTrack[],
+    atMs: number,
+    shouldCancel?: () => boolean
+  ): Promise<void> {
+    const ctx = this.getContext();
+    if (typeof AudioContext !== "undefined" && ctx instanceof AudioContext) {
+      await ctx.resume();
+    }
+    if (shouldCancel?.()) return;
+    this.stopAll();
+    const streamingAvailable =
+      typeof (ctx as Partial<AudioContext>).createMediaElementSource ===
+      "function";
+    const decoded: ScheduledAudioClip[] = [];
+    const streamed: Array<{ clip: TimelineClip; url: string }> = [];
+    for (const scheduled of clips) {
+      if (
+        streamingAvailable &&
+        scheduled.assetUrl !== undefined &&
+        prefersStreamedPlayback(scheduled.assetSize, scheduled.assetDurationSec)
+      ) {
+        streamed.push({ clip: scheduled.clip, url: scheduled.assetUrl });
+      } else {
+        decoded.push(scheduled);
+      }
+    }
+    await this.addClips(decoded, tracks, atMs, shouldCancel);
+    if (shouldCancel?.()) return;
+    for (const { clip, url } of streamed) {
+      this.playStreamedGrain(ctx as AudioContext, clip, url, atMs);
+    }
+    const master = this.masterGain?.gain;
+    if (!master) return;
+    const now = ctx.currentTime;
+    master.cancelScheduledValues(now);
+    master.setValueCurveAtTime(
+      raisedCosineCurve(0, this.masterVolume),
+      now,
+      GRAIN_ATTACK_SEC
+    );
+  }
+
+  /** Fade the sounding grain out along a raised cosine over `fadeSec`. */
+  releaseGrain(fadeSec: number): void {
+    const ctx = this.ctx;
+    const master = this.masterGain?.gain;
+    if (!ctx || !master) return;
+    const now = ctx.currentTime;
+    master.cancelScheduledValues(now);
+    master.setValueCurveAtTime(
+      raisedCosineCurve(this.masterVolume, 0),
+      now,
+      fadeSec
+    );
+  }
+
+  /**
+   * Seek the clip's scrub element to its source position at `atMs` and play
+   * it through the clip volume and the track chain. Clip fades and clip
+   * effects are left out of a streamed grain.
+   */
+  private playStreamedGrain(
+    ctx: AudioContext,
+    clip: TimelineClip,
+    url: string,
+    atMs: number
+  ): void {
+    const segment = timeRemapAudioSegments(clip).find(
+      (s) =>
+        !s.reverse && s.timelineStartMs <= atMs && atMs < s.timelineEndMs
+    );
+    if (!segment) return;
+    let voice = this.scrubVoices.get(clip.id);
+    if (voice && voice.url !== url) {
+      this.releaseScrubVoice(clip.id);
+      voice = undefined;
+    }
+    if (!voice) {
+      const element = this.createMediaElement();
+      element.crossOrigin = "anonymous";
+      element.preload = "auto";
+      element.preservesPitch = false;
+      element.src = url;
+      const node = ctx.createMediaElementSource(element);
+      const gain = ctx.createGain();
+      gain.gain.value = 0;
+      node.connect(gain);
+      voice = { url, element, node, gain, trackId: null, grain: 0 };
+      this.scrubVoices.set(clip.id, voice);
+    }
+    if (voice.trackId !== clip.trackId) {
+      try {
+        voice.gain.disconnect();
+      } catch {
+        /* not connected yet */
+      }
+      voice.gain.connect(this.getTrackGain(clip.trackId));
+      voice.trackId = clip.trackId;
+    }
+    voice.grain += 1;
+    const grain = voice.grain;
+    const rate = Math.min(
+      MEDIA_ELEMENT_MAX_RATE,
+      Math.max(MEDIA_ELEMENT_MIN_RATE, segment.rate)
+    );
+    const volume = clip.volumeDb ? Math.pow(10, clip.volumeDb / 20) : 1;
+    const gain = voice.gain.gain;
+    holdParam(gain, ctx.currentTime);
+    gain.setValueAtTime(0, ctx.currentTime);
+    // The element sounds only once its seek completes. Opening the gain at
+    // once would let the first samples after the seek start at full volume.
+    const open = (): void => {
+      if (voice.grain !== grain) return;
+      const now = ctx.currentTime;
+      gain.cancelScheduledValues(now);
+      gain.setValueCurveAtTime(
+        raisedCosineCurve(0, volume),
+        now,
+        GRAIN_ATTACK_SEC
+      );
+    };
+    const element = voice.element;
+    element.addEventListener("seeked", open, { once: true });
+    element.playbackRate = rate;
+    element.currentTime =
+      segment.sourceStartMs / 1000 +
+      ((atMs - segment.timelineStartMs) / 1000) * segment.rate;
+    void element.play().catch(() => {
+      // A stop that races the start: the grain stays silent.
+    });
+  }
+
+  /** Ramp every scrub element to silence, then pause it. */
+  private silenceScrubVoices(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    for (const voice of this.scrubVoices.values()) {
+      try {
+        rampToSilence(voice.gain.gain, now, now + DECLICK_SEC);
+      } catch {
+        /* the gain is already released */
+      }
+      const grain = voice.grain;
+      setTimeout(() => {
+        if (voice.grain === grain) voice.element.pause();
+      }, DECLICK_RELEASE_MS);
+    }
+  }
+
+  private releaseScrubVoice(clipId: string): void {
+    const voice = this.scrubVoices.get(clipId);
+    if (!voice) return;
+    this.scrubVoices.delete(clipId);
+    voice.element.pause();
+    voice.element.removeAttribute("src");
+    voice.element.load();
+    try {
+      voice.node.disconnect();
+      voice.gain.disconnect();
+    } catch {
+      /* not connected */
+    }
+  }
+
   stopAll(): void {
+    this.liveClips.clear();
+    for (const state of this.trackDevices.values()) state.ready?.clear();
     for (const [id, sources] of this.clipSources) {
-      this.releaseClip(sources, this.clipGains.get(id));
+      this.releaseClip(
+        sources,
+        this.clipGains.get(id),
+        this.clipEffectChains.get(id)
+      );
     }
     this.clipSources.clear();
     this.clipGains.clear();
+    this.clipEffectChains.clear();
+    this.silenceRingingChains();
+    this.silenceScrubVoices();
+    // A released grain leaves the master at silence. Restore it once the
+    // sources above have ramped out, so playback starts at full volume.
+    const ctx = this.ctx;
+    const master = this.masterGain?.gain;
+    if (ctx && master) {
+      const now = ctx.currentTime;
+      holdParam(master, now);
+      master.setValueAtTime(this.masterVolume, now + DECLICK_SEC * 2);
+    }
   }
 
   /**
@@ -1072,25 +1686,26 @@ export class AudioGraph {
 
   dispose(): void {
     this.stopAll();
+    for (const clipId of [...this.scrubVoices.keys()]) {
+      this.releaseScrubVoice(clipId);
+    }
+    for (const trackId of [...this.trackDevices.keys()]) {
+      this.disposeTrackDevice(trackId);
+    }
     for (const chain of this.trackChains.values()) {
-      try {
-        chain.trackGain.disconnect();
-      } catch {
-        /* not connected */
-      }
-      for (const unit of chain.units) {
-        for (const n of unit.nodes) {
-          try {
-            n.disconnect();
-          } catch {
-            /* not connected */
-          }
-        }
-      }
+      disconnectNodes([chain.trackGain, chain.fader, chain.panner]);
+      if (chain.meter) disconnectNodes([chain.meter.splitter]);
+      for (const unit of chain.units) releaseEffectUnit(unit);
     }
     this.trackChains.clear();
+    this.masterChain.units.forEach(releaseEffectUnit);
+    this.masterChain = { effects: [], units: [] };
     if (this.ctx instanceof AudioContext) void this.ctx.close();
     this.ctx = null;
     this.masterGain = null;
+    this.mixBus = null;
+    this.masterFader = null;
+    this.mixAnalyser = null;
+    this.masterMeter = null;
   }
 }

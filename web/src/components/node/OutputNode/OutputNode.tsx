@@ -32,8 +32,7 @@ import { useSyncEdgeSelection } from "../../../hooks/nodes/useSyncEdgeSelection"
 import useMetadataStore from "../../../stores/MetadataStore";
 import { NODE_COLLAPSED_LAYOUT } from "../../../styles/collapsedNodeTokens";
 import { isObjectLike } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
+import { emptyOutputMessage } from "./emptyOutputMessage";
 
 const styles = (theme: Theme) =>
   css([
@@ -233,7 +232,6 @@ const CONTENT_DIV_STYLE = {
  * This displays streaming outputs accumulated via output_update messages.
  */
 const OutputNode: React.FC<OutputNodeProps> = (props) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const addNotification = useNotificationStore(
@@ -277,6 +275,9 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
     [current]
   );
   const result = streamBuffer !== undefined ? streamBuffer : settledValue;
+  const focusedRunState = useWorkflowRunsStore((s) =>
+    focusedJob ? s.runs[workflowId]?.[focusedJob]?.state : undefined
+  );
 
   const outputValue = useMemo(() => getOutputFromResult(result), [result]);
 
@@ -311,7 +312,7 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
       console.error("Error in handleAddToAssets:", error);
       addNotification({
         type: "error",
-        content: i18n.t("editor:ui.failedToAddOutputToAssets", { defaultValue: "Failed to add output to assets" })
+        content: "Failed to add output to assets"
       });
     }
   }, [outputValue, props.id, createAsset, addNotification]);
@@ -325,13 +326,13 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
       });
       addNotification({
         type: "success",
-        content: i18n.t("editor:ui.downloadStartedSuccessfully", { defaultValue: "Download started successfully" })
+        content: "Download started successfully"
       });
     } catch (error) {
       console.error("Error in handleDownload:", error);
       addNotification({
         type: "error",
-        content: i18n.t("editor:ui.failedToStartDownload", { defaultValue: "Failed to start download" })
+        content: "Failed to start download"
       });
     }
   }, [outputValue, result, props.id, addNotification]);
@@ -444,7 +445,7 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
           className={`content ${isScrollable ? "scrollable nowheel" : "noscroll"
             }`}
           role="region"
-          aria-label={t("editor:ui.nodeOutput", { defaultValue: "Node output" })}
+          aria-label="Node output"
           style={CONTENT_DIV_STYLE}
           tabIndex={0}
           onFocus={handleContentFocus}
@@ -453,7 +454,7 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
         >
           {result === null || result === undefined ? (
             <CheckerDropzone
-              message="Run to see the output"
+              message={emptyOutputMessage(focusedRunState)}
               icon={<OutputIcon />}
             />
           ) : (

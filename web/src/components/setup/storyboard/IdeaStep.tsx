@@ -34,7 +34,7 @@ import {
   FlexRow,
   GAP,
   Text,
-  TextInput
+  TextArea
 } from "../../ui_primitives";
 import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
 import { useImportSource } from "../../../hooks/storyboard/useImportSource";
@@ -126,9 +126,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   }, [boardId, readOnly]);
 
   const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    (value: string) => {
       if (!readOnly) {
-        setSetup(boardId, { brief: event.target.value });
+        setSetup(boardId, { brief: value });
       }
     },
     [boardId, readOnly, setSetup]
@@ -282,10 +282,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           </AlertBanner>
         ) : null}
 
-        <TextInput
+        <TextArea
           value={brief}
           autoFocus={!locked && !readOnly}
-          multiline
           rows={5}
           label={t("storyboard:attrs.yourStory", { defaultValue: "Your story" })}
           hideLabel

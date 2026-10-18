@@ -15,17 +15,16 @@
  */
 
 import React, { memo, useCallback, useMemo } from "react";
-import { useTheme } from "@mui/material/styles";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import RemoveIcon from "@mui/icons-material/Remove";
 
 import {
   ColorSwatch,
   FlexRow,
+  SPACING,
+  StatusBar,
   ToolbarIconButton,
-  Tooltip,
-  FONT_SIZE_SANS,
-  TYPOGRAPHY
+  Tooltip
 } from "../../ui_primitives";
 import CostEstimateLine from "../../costs/CostEstimateLine";
 import { useSketchCostEstimate } from "../../../hooks/sketch/useSketchCostEstimate";
@@ -35,7 +34,6 @@ import { useSketchCanvasRefStore } from "../../../stores/sketch/SketchCanvasRefS
 import { getSelectionBounds } from "../selection";
 import { displayCombo } from "../shortcuts";
 import { colorToHex6 } from "../types";
-import { useTranslation } from "react-i18next";
 
 /** OS-aware combo for the fit-to-screen action ("⌘0" on Mac, "Ctrl+0" elsewhere). */
 const FIT_LABEL = `Fit to screen (${displayCombo("zoom-fit")})`;
@@ -70,8 +68,6 @@ const StatusCursorReadout = memo(function StatusCursorReadout() {
 });
 
 const ConnectedStatusBarInner: React.FC = () => {
-  const { t } = useTranslation();
-  const theme = useTheme();
   const documentId = useSketchSessionStore((s) => s.documentId);
   const panelsHidden = useSketchStore((s) => s.panelsHidden);
   const docW = useSketchStore((s) => s.document.canvas.width);
@@ -101,25 +97,10 @@ const ConnectedStatusBarInner: React.FC = () => {
   const fgHex = colorToHex6(foregroundColor);
 
   return (
-    <FlexRow
+    <StatusBar
       className="sketch-status-bar"
       data-testid="sketch-status-bar"
-      align="center"
-      sx={{
-        flexShrink: 0,
-        width: "100%",
-        height: 24,
-        gap: 1.5,
-        px: 1,
-        backgroundColor: theme.vars.palette.grey[900],
-        borderTop: `1px solid ${theme.vars.palette.grey[800]}`,
-        color: theme.vars.palette.text.secondary,
-        fontFamily: TYPOGRAPHY.mono.code.fontFamily,
-        fontSize: FONT_SIZE_SANS.label,
-        userSelect: "none",
-        overflow: "hidden",
-        whiteSpace: "nowrap"
-      }}
+      sx={{ width: "100%", gap: SPACING.sm, userSelect: "none" }}
     >
       <FlexRow align="center" gap={0.5}>
         <span>
@@ -180,14 +161,14 @@ const ConnectedStatusBarInner: React.FC = () => {
       <FlexRow align="center" gap={1.5} sx={{ marginLeft: "auto" }}>
         <CostEstimateLine
           estimate={costEstimate}
-          title={t("editor:ui.estimatedCostOfRegeneratingEveryGeneratedLayer", { defaultValue: "Estimated cost of regenerating every generated layer" })}
+          title="Estimated cost of regenerating every generated layer"
           ariaPrefix="Estimated document cost"
         />
         <span>
           {layerCount} {layerCount === 1 ? "layer" : "layers"}
         </span>
       </FlexRow>
-    </FlexRow>
+    </StatusBar>
   );
 };
 

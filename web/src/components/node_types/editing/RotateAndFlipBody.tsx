@@ -2,7 +2,7 @@
 /**
  * RotateAndFlipBody — bespoke body for `nodetool.image.RotateAndFlip`.
  *
- * Top: preview of the server output. Bottom: free-rotate slider
+ * Top: live preview of the node's output. Bottom: free-rotate slider
  * (0/90/180/270 snap marks), Flip H and Flip V toggles, Reset.
  */
 
@@ -10,24 +10,22 @@ import React, { memo, useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import ImageIcon from "@mui/icons-material/Image";
 import FlipIcon from "@mui/icons-material/Flip";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 
 import { SPACING,
-  CheckerDropzone,
   FlexColumn,
   FlexRow,
   NodeSlider,
   StateIconButton, BORDER_RADIUS } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
-import ImageRefPreview from "../../node/ImageRefPreview";
+import ImagePreview from "./ImagePreview";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
 
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
-import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
+import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { ROTATE_AND_FLIP_NODE_TYPE } from "../../../constants/nodeTypes";
 import { useTranslation } from "react-i18next";
@@ -104,15 +102,6 @@ const styles = (theme: Theme) =>
     }
   });
 
-const ImagePreview: React.FC<{ value: unknown }> = ({ value }) => (
-  <ImageRefPreview
-    value={value}
-    placeholder={
-      <CheckerDropzone message="Connect an image, then run" icon={<ImageIcon />} />
-    }
-  />
-);
-
 interface RotateAndFlipBodyProps {
   id: string;
   nodeType: string;
@@ -150,7 +139,7 @@ const RotateAndFlipBodyInner: React.FC<RotateAndFlipBodyProps> = ({
   const previewValue = useNodeOutput(workflowId, id);
 
   const { setProperty, setProperties, setPropertyComplete } =
-    useBespokePropertyWriter({ nodeId: id, nodeType });
+    useLiveSliderWriter({ nodeId: id, nodeType });
 
   const handleAngleChange = useCallback(
     (_: Event, v: number | number[]) => {

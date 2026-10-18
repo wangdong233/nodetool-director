@@ -21,7 +21,6 @@
  * imperative path.
  */
 
-import { useTranslation } from "react-i18next";
 import React, {
   memo,
   useCallback,
@@ -56,9 +55,12 @@ const HIT_AREA_WIDTH_PX = 16;
 const PILL_HEIGHT_PX = 20;
 
 /**
- * Outer hit area — invisibly wider than the line so the user can grab the
- * playhead anywhere along its full height. The visible line is centred via
- * `::before`. The pill sits as a positioned child on top.
+ * Outer element — it spans the full height and draws the line (`::before`)
+ * and the pill, but takes no pointer events itself. The grab zone below,
+ * invisibly wider than the line, takes the pointer. Over the ruler it leaves
+ * a band free, so the markers there stay clickable: a click on a marker parks
+ * the playhead on it, and a full-height hit area would then cover the marker.
+ * The ruler scrubs on its own, so the band loses no gesture.
  */
 const hitAreaStyles = (theme: Theme, dragging: boolean) =>
   css({
@@ -72,9 +74,7 @@ const hitAreaStyles = (theme: Theme, dragging: boolean) =>
     // transform is folded into that same imperative translateX.
     left: 0,
     width: HIT_AREA_WIDTH_PX,
-    cursor: dragging ? "grabbing" : "ew-resize",
-    touchAction: "none",
-    pointerEvents: "auto",
+    pointerEvents: "none",
     zIndex: Z_INDEX.dropdown,
     "&::before": {
       content: '""',
@@ -92,6 +92,17 @@ const hitAreaStyles = (theme: Theme, dragging: boolean) =>
       outline: `2px solid ${theme.vars.palette.secondary.main}`,
       outlineOffset: 2
     }
+  });
+
+const grabZoneStyles = (dragging: boolean) =>
+  css({
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    cursor: dragging ? "grabbing" : "ew-resize",
+    touchAction: "none",
+    pointerEvents: "auto"
   });
 
 const pillStyles = (theme: Theme, dragging: boolean, hovered: boolean) =>
@@ -121,6 +132,25 @@ const pillStyles = (theme: Theme, dragging: boolean, hovered: boolean) =>
     pointerEvents: "none"
   });
 
+/**
+ * How far the pill moves off-centre so it stays whole inside the lanes'
+ * viewport while the line is near an edge (at 0:00 the line sits on the
+ * left edge and a centred pill would be cut in half). A line outside the
+ * viewport takes its pill with it.
+ */
+export function pillShiftPx(
+  lineLeftPx: number,
+  pillWidthPx: number,
+  viewportWidthPx: number
+): number {
+  if (pillWidthPx <= 0 || viewportWidthPx <= 0) return 0;
+  if (lineLeftPx < 0 || lineLeftPx > viewportWidthPx) return 0;
+  const half = pillWidthPx / 2;
+  if (lineLeftPx < half) return half - lineLeftPx;
+  if (lineLeftPx > viewportWidthPx - half) return viewportWidthPx - half - lineLeftPx;
+  return 0;
+}
+
 interface PlayheadProps {
   /** Left offset of the scrollable track area (header width). */
   trackAreaOffsetPx?: number;
@@ -128,11 +158,15 @@ interface PlayheadProps {
   heightPx: number;
   /** Content end (last clip end or project duration). Defaults to the store's durationMs. */
   endMs?: number;
+  /**
+   * Height of the band at the top that does not grab the playhead (the ruler
+   * with its markers). The line and pill still draw over it.
+   */
+  grabTopPx?: number;
 }
 
 export const Playhead: React.FC<PlayheadProps> = memo(
-  ({ trackAreaOffsetPx = 0, heightPx, endMs }) => {
-  const { t } = useTranslation();
+  ({ trackAreaOffsetPx = 0, heightPx, endMs, grabTopPx = 0 }) => {
     const theme = useTheme();
 
     // Geometry inputs that DO change reactively (zoom/scroll). We keep them in
@@ -158,6 +192,7 @@ export const Playhead: React.FC<PlayheadProps> = memo(
       () => hitAreaStyles(theme, dragging),
       [theme, dragging]
     );
+    const grabZoneCss = useMemo(() => grabZoneStyles(dragging), [dragging]);
     const pillCss = useMemo(
       () => pillStyles(theme, dragging, hovered),
       [theme, dragging, hovered]
@@ -180,6 +215,11 @@ export const Playhead: React.FC<PlayheadProps> = memo(
     // only fire when the displayed value actually changes.
     const lastAriaBucketRef = useRef<number | null>(null);
     const lastPillTextRef = useRef<string | null>(null);
+    // Pill and viewport widths, kept by a ResizeObserver so placing the pill
+    // never reads layout during playback.
+    const pillWidthRef = useRef(0);
+    const viewportWidthRef = useRef(0);
+    const lastPillShiftRef = useRef<number | null>(null);
 
     // Imperatively position the element + pill text from a time in ms.
     // Position updates every call (needed every frame during playback) via
@@ -209,8 +249,32 @@ export const Playhead: React.FC<PlayheadProps> = memo(
           lastPillTextRef.current = text;
           pill.textContent = text;
         }
+        const shift = Math.round(
+          pillShiftPx(leftPx, pillWidthRef.current, viewportWidthRef.current)
+        );
+        if (shift !== lastPillShiftRef.current) {
+          lastPillShiftRef.current = shift;
+          pill.style.transform = `translateX(calc(-50% + ${shift}px))`;
+        }
       }
     }, []);
+
+    useEffect(() => {
+      const pill = pillRef.current;
+      const viewport = hitAreaRef.current?.parentElement;
+      if (!pill || !viewport || typeof ResizeObserver === "undefined") return;
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const width = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
+          if (entry.target === pill) pillWidthRef.current = width;
+          else viewportWidthRef.current = width;
+        }
+        applyTimeMs(playbackStoreApi.getState().getTimeMs());
+      });
+      observer.observe(pill);
+      observer.observe(viewport);
+      return () => observer.disconnect();
+    }, [applyTimeMs, playbackStoreApi]);
 
     // Subscribe once to the transient playhead channel. Updates the DOM
     // directly — no React re-render per frame. Also initialise from the live
@@ -236,7 +300,11 @@ export const Playhead: React.FC<PlayheadProps> = memo(
     const handlePointerDown = useCallback(
       (e: React.PointerEvent<HTMLDivElement>) => {
         e.preventDefault();
-        e.currentTarget.setPointerCapture(e.pointerId);
+        // Capture on the grab zone: the root takes no pointer events, and the
+        // captured events still bubble to the handlers here.
+        if (e.target instanceof Element) {
+          e.target.setPointerCapture(e.pointerId);
+        }
         dragStartXRef.current = e.clientX;
         dragStartMsRef.current = playbackStoreApi.getState().getTimeMs();
         setDragging(true);
@@ -296,7 +364,7 @@ export const Playhead: React.FC<PlayheadProps> = memo(
         data-testid="playhead"
         role="slider"
         tabIndex={0}
-        aria-label={t("timeline:attrs.playhead", { defaultValue: "Playhead" })}
+        aria-label="Playhead"
         aria-valuemin={0}
         aria-valuemax={Math.round(durationMs)}
         onPointerEnter={() => setHovered(true)}
@@ -307,6 +375,11 @@ export const Playhead: React.FC<PlayheadProps> = memo(
         onPointerCancel={handlePointerUp}
         onKeyDown={handleKeyDown}
       >
+        <div
+          css={grabZoneCss}
+          style={{ top: grabTopPx }}
+          data-testid="playhead-grab"
+        />
         <div
           ref={pillRef}
           css={pillCss}

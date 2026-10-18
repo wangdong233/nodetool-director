@@ -17,6 +17,7 @@ import {
   Box,
   FlexRow,
   FlexColumn,
+  PageHeader,
   Text,
   ToggleGroup,
   ToggleOption,
@@ -28,7 +29,9 @@ import {
   BORDER_RADIUS,
   SPACING,
   getSpacingPx,
-  SHADOW
+  SHADOW,
+  EmptyState,
+  ICON_SIZE
 } from "../ui_primitives";
 import { CostStatCard } from "./CostStatCard";
 import { SpendOverTimeChart } from "./SpendOverTimeChart";
@@ -47,15 +50,14 @@ import {
   type Execution
 } from "./costsData";
 import { useCostsDashboard } from "./useCostsDashboard";
-import { useTranslation } from "react-i18next";
 
 const RANGE_OPTIONS: DateRange[] = ["7d", "14d", "30d", "90d"];
-const GROUP_OPTIONS: { value: GroupByKey; label: string; labelKey: string }[] = [
-  { value: "execution", label: "Execution", labelKey: "editor:ui.execution" },
-  { value: "nodeType", label: "Node type", labelKey: "editor:ui.nodeType" },
-  { value: "workflow", label: "Workflow", labelKey: "editor:ui.workflow" },
-  { value: "provider", label: "Provider", labelKey: "editor:ui.provider" },
-  { value: "model", label: "Model", labelKey: "editor:asset.info.model" }
+const GROUP_OPTIONS: { value: GroupByKey; label: string }[] = [
+  { value: "execution", label: "Execution" },
+  { value: "nodeType", label: "Node type" },
+  { value: "workflow", label: "Workflow" },
+  { value: "provider", label: "Provider" },
+  { value: "model", label: "Model" }
 ];
 
 const segmentedSx = (theme: Theme): SxProps<Theme> => ({
@@ -112,7 +114,6 @@ const matchesSearch = (
 };
 
 const CostsDashboard: React.FC = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
 
   const [range, setRange] = useState<DateRange>("14d");
@@ -225,43 +226,35 @@ const CostsDashboard: React.FC = () => {
         }}
       >
         {/* header */}
-        <FlexRow
-          justify="space-between"
-          align="flex-start"
-          wrap
-          sx={{ rowGap: 2, mb: 3 }}
-        >
-          <FlexColumn gap={0.5}>
-            <Text
-              component="h1"
-              sx={{
-                fontSize: "var(--fontSizeBig)",
-                fontWeight: 600,
-                lineHeight: 1.1,
-                color: theme.vars.palette.text.primary
-              }}
-            >
-              {t("editor:ui.costsTitle")}
-            </Text>
-            {view ? (
-              <Text size="normal" color="secondary">
-                {t("editor:ui.spendPerNodeExecution")} {t("editor:ui.across2")}
+        <PageHeader
+          variant="plain"
+          title="Costs"
+          subtitle={
+            view ? (
+              <>
+                Spend per node execution across{" "}
                 <Text
                   component="span"
+                  size="small"
                   weight={600}
                   sx={{ color: theme.vars.palette.text.primary }}
                 >
                   {view.stats.workflowCount} workflows
                 </Text>{" "}
                 · {rangeLabel}
-              </Text>
+              </>
             ) : (
-              <Text size="normal" color="secondary">
-                {t("editor:ui.spendPerNodeExecution")}
-              </Text>
-            )}
-          </FlexColumn>
-
+              "Spend per node execution"
+            )
+          }
+          sx={{
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            rowGap: 2,
+            mb: 3
+          }}
+          actions={
           <FlexRow gap={1.5} align="center" wrap sx={{ rowGap: 1 }}>
             <ToggleGroup
               exclusive
@@ -279,8 +272,8 @@ const CostsDashboard: React.FC = () => {
             {view && (
               <>
                 <FilterDropdown
-                  icon={<FilterListIcon sx={{ fontSize: 16 }} />}
-                  label={providersAllSelected ? t("editor:ui.allProviders") : t("editor:ui.providers")}
+                  icon={<FilterListIcon sx={{ fontSize: ICON_SIZE.sm }} />}
+                  label={providersAllSelected ? "All providers" : "Providers"}
                   count={
                     providersAllSelected
                       ? String(providerUniverse.length)
@@ -304,8 +297,8 @@ const CostsDashboard: React.FC = () => {
                 />
 
                 <FilterDropdown
-                  icon={<AccountTreeIcon sx={{ fontSize: 15 }} />}
-                  label={workflowsAllSelected ? t("editor:ui.allWorkflows") : t("editor:ui.workflows2")}
+                  icon={<AccountTreeIcon sx={{ fontSize: ICON_SIZE.sm }} />}
+                  label={workflowsAllSelected ? "All workflows" : "Workflows"}
                   count={
                     workflowsAllSelected
                       ? undefined
@@ -352,13 +345,14 @@ const CostsDashboard: React.FC = () => {
                     }
                   }}
                 >
-                  <FileDownloadIcon sx={{ fontSize: 17 }} />
-                  {t("editor:ui.exportCsv")}
+                  <FileDownloadIcon sx={{ fontSize: ICON_SIZE.md }} />
+                  Export CSV
                 </Box>
               </>
             )}
           </FlexRow>
-        </FlexRow>
+          }
+        />
 
         {isLoading ? (
           <StateMessage>
@@ -367,7 +361,7 @@ const CostsDashboard: React.FC = () => {
         ) : isError ? (
           <StateMessage>
             <Text color="secondary">
-              {t("editor:ui.couldntLoadCostDataPleaseTryAgain")}
+              Couldn&apos;t load cost data. Please try again.
             </Text>
           </StateMessage>
         ) : view ? (
@@ -385,7 +379,7 @@ const CostsDashboard: React.FC = () => {
           />
         ) : (
           <StateMessage>
-            <Text color="secondary">{t("ui2:attrs.noCostDataForThisPeriod", { defaultValue: "No cost data for this period." })}</Text>
+            <EmptyState variant="no-data" title="No cost data for this period" />
           </StateMessage>
         )}
       </Box>
@@ -418,7 +412,6 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   visibleCount,
   totalCount
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const segmentedStyles = useMemo(() => segmentedSx(theme), [theme]);
   const stats = view.stats;
@@ -437,11 +430,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       {/* stat cards */}
       <FlexRow gap={2} wrap sx={{ mb: 3 }}>
         <CostStatCard
-          label={t("editor:ui.totalSpend", { defaultValue: "Total spend" })}
+          label="Total spend"
           icon={AttachMoneyIcon}
           value={total.whole}
           decimal={total.decimal}
-          caption={`${t("editor:ui.vsPrior")} ${range}`}
+          caption={`vs prior ${range}`}
           badge={
             delta === null ? undefined : (
               <FlexRow
@@ -456,9 +449,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                 }}
               >
                 {deltaUp ? (
-                  <NorthIcon sx={{ fontSize: 12, color: deltaColor }} />
+                  <NorthIcon sx={{ fontSize: ICON_SIZE.xs, color: deltaColor }} />
                 ) : (
-                  <SouthIcon sx={{ fontSize: 12, color: deltaColor }} />
+                  <SouthIcon sx={{ fontSize: ICON_SIZE.xs, color: deltaColor }} />
                 )}
                 <Text size="smaller" weight={600} sx={{ color: deltaColor }}>
                   {formatPercent(Math.abs(delta))}
@@ -468,19 +461,19 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           }
         />
         <CostStatCard
-          label={t("editor:ui.nodeExecutions", { defaultValue: "Node executions" })}
+          label="Node executions"
           icon={GridViewIcon}
           value={String(stats.executionCount)}
-          caption={`${stats.failedCount} ${t("editor:ui.failed2")} · ${stats.workflowCount} ${t("editor:ui.workflows3")}`}
+          caption={`${stats.failedCount} failed · ${stats.workflowCount} workflows`}
         />
         <CostStatCard
-          label={t("editor:ui.avgExecution", { defaultValue: "Avg / execution" })}
+          label="Avg / execution"
           icon={ShowChartIcon}
           value={formatMoney(stats.avgPerExecution)}
-          caption={t("editor:ui.acrossAllNodeTypes")}
+          caption="across all node types"
         />
         <CostStatCard
-          label={t("editor:ui.topCostDriver", { defaultValue: "Top cost driver" })}
+          label="Top cost driver"
           icon={BarChartIcon}
           value={driver ? driver.label : "—"}
           valueVariant="label"
@@ -490,7 +483,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               ? `${formatMoney(driver.cost)} · ${formatPercent(
                   driverShare
                 )} of spend`
-              : t("editor:ui.noSpendYet")
+              : "no spend yet"
           }
         />
       </FlexRow>
@@ -502,7 +495,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           providers={view.providers}
           stackOrder={view.stackOrder}
           activeProviders={providerSel ?? undefined}
-          rangeLabel={`${t("editor:ui.dailyLast")} ${view.days.length} ${t("editor:ui.days")}`}
+          rangeLabel={`daily · last ${view.days.length} days`}
         />
       </Box>
 
@@ -523,7 +516,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               color: theme.vars.palette.text.disabled
             }}
           >
-            {t("editor:ui.groupBy")}
+            Group by
           </Text>
           <ToggleGroup
             exclusive
@@ -533,7 +526,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           >
             {GROUP_OPTIONS.map((o) => (
               <ToggleOption key={o.value} value={o.value}>
-                {t(o.labelKey, { defaultValue: o.label })}
+                {o.label}
               </ToggleOption>
             ))}
           </ToggleGroup>
@@ -544,7 +537,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder={t("editor:ui.filterNodesModels", { defaultValue: "Filter nodes, models…" })}
+              placeholder="Filter nodes, models"
               fullWidth
             />
           </Box>
@@ -552,7 +545,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             size="smaller"
             family="secondary"
             sx={{
-              color: theme.vars.palette.text.disabled,
+              color: theme.vars.palette.text.secondary,
               whiteSpace: "nowrap"
             }}
           >
@@ -605,7 +598,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
   onSelectAll,
   onClear
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -645,14 +637,14 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
           <Text
             size="smaller"
             family="secondary"
-            sx={{ color: theme.vars.palette.text.disabled }}
+            sx={{ color: theme.vars.palette.text.secondary }}
           >
             {count}
           </Text>
         )}
         <ExpandMoreIcon
           sx={{
-            fontSize: 16,
+            fontSize: ICON_SIZE.sm,
             color: theme.vars.palette.text.secondary,
             transition: MOTION.transform,
             transform: open ? "rotate(180deg)" : "none"
@@ -685,7 +677,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
               onClick={onSelectAll}
               sx={linkButtonSx(theme)}
             >
-              {t("editor:ui.selectAll", { defaultValue: "Select all" })}
+              Select all
             </Box>
             <Box
               component="button"
@@ -693,7 +685,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
               onClick={onClear}
               sx={linkButtonSx(theme)}
             >
-              {t("common:action.clear", { defaultValue: "Clear" })}
+              Clear
             </Box>
           </FlexRow>
           {options.map((o) => (
@@ -723,7 +715,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
           ))}
           {options.length === 0 && (
             <Text size="small" color="secondary" sx={{ px: 1, py: 0.5 }}>
-              {t("editor:ui.noOptions", { defaultValue: "No options" })}
+              No options
             </Text>
           )}
         </FlexColumn>

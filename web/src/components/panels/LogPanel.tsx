@@ -1,6 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 import { useMemo, useState, useCallback, memo } from "react";
 import { css } from "@emotion/react";
 import { useNavigate } from "react-router-dom";
@@ -25,7 +23,8 @@ import {
   ToggleOption,
   ToolbarIconButton,
   getSpacingPx,
-  PanelHeader
+  PanelHeader,
+  Tooltip
 } from "../ui_primitives";
 
 type Row = LogRow & { workflowId: string; workflowName: string; key: string };
@@ -72,7 +71,6 @@ const LogPanel: React.FC = memo(function LogPanel() {
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setActiveTab = useWorkspaceTabsStore((state) => state.setActiveTab);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const { t } = useTranslation();
 
   // Map workflow id -> name for quick lookup
   const wfName = useMemo(() => {
@@ -197,7 +195,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
       className={isFullscreen ? "fullscreen" : undefined}
     >
       <PanelHeader
-        title={t("editor:bottom.logs", { defaultValue: "Logs" })}
+        title="Logs"
         count={filteredRows.length}
         actions={
           <ToolbarIconButton
@@ -208,9 +206,9 @@ const LogPanel: React.FC = memo(function LogPanel() {
                 <FullscreenIcon fontSize="small" />
               )
             }
-            tooltip={isFullscreen ? i18n.t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
+            tooltip={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
             onClick={handleFullscreenToggle}
-            ariaLabel={i18n.t("editor:ui.toggleFullscreen", { defaultValue: "Toggle fullscreen" })}
+            ariaLabel="Toggle fullscreen"
           />
         }
       >
@@ -218,7 +216,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
           value={selectedSeverities}
           onChange={handleSeverityChange}
           compact
-          aria-label={i18n.t("editor:ui.filterBySeverity", { defaultValue: "Filter by severity" })}
+          aria-label="Filter by severity"
         >
           {SEVERITIES.map((s) => (
             <ToggleOption key={s} value={s} aria-label={s}>
@@ -227,13 +225,18 @@ const LogPanel: React.FC = memo(function LogPanel() {
           ))}
         </ToggleGroup>
         {filter?.nodeId && filteredNodeName ? (
-          <Chip
-            compact
-            color="info"
-            label={`Node: ${filteredNodeName}`}
-            onDelete={clearFilter}
-            title={filter.jobId ? `Run ${filter.jobId}` : undefined}
-          />
+          <Tooltip
+            title={filter.jobId ? `Run ${filter.jobId}` : ""}
+            disabled={!filter.jobId}
+            describeChild
+          >
+            <Chip
+              compact
+              color="info"
+              label={`Node: ${filteredNodeName}`}
+              onDelete={clearFilter}
+            />
+          </Tooltip>
         ) : null}
       </PanelHeader>
 

@@ -7,6 +7,8 @@ import { importOptionalModule, resolvePackageAssetPath } from "@nodetool-ai/conf
 import { gameRenderFrame3D, type GameRenderFrame3D } from "@nodetool-ai/protocol";
 import type { GameModelSource3D } from "./renderer3d/index.js";
 import type { GameCapturePageInput3D, GameCapturePageReport3D } from "./renderer3d/capture-page.js";
+import { gameParticleSamples3D } from "./particles/particles3d.js";
+import type { GameParticleField } from "./particles/render2d.js";
 
 export class GameRendererUnavailableError3D extends Error {
   readonly code = "renderer_unavailable";
@@ -25,6 +27,8 @@ export interface CaptureGameFrame3DOptions {
   readonly benchmarkFrames?: number;
   readonly timeoutMs?: number;
   readonly executablePath?: string;
+  /** Particles to draw, such as a `GameParticles3D` ticked beside the session up to the captured tick. */
+  readonly particles?: GameParticleField;
 }
 export interface CapturedGameFrame3D extends GameCapturePageReport3D {
   readonly png: Uint8Array;
@@ -37,11 +41,10 @@ async function loadCaptureBundle(): Promise<string> {
   if (!captureBundle) {
     captureBundle = (async () => {
       const source = fileURLToPath(new URL("./renderer3d/capture-page.ts", import.meta.url));
-      const compiled = fileURLToPath(new URL("./renderer3d/capture-page.js", import.meta.url));
-      if (!existsSync(source) && !existsSync(compiled)) {
+      if (!existsSync(source)) {
         return readFile(resolvePackageAssetPath({ pkg: "@nodetool-ai/game-renderer", path: "game3d-capture-page.js" }, import.meta.url), "utf8");
       }
-      const bundle = await build({ entryPoints: [existsSync(source) ? source : compiled], bundle: true,
+      const bundle = await build({ entryPoints: [source], bundle: true,
         format: "iife", platform: "browser", target: "es2022", minify: true, write: false,
         conditions: ["nodetool-dev"], logLevel: "silent" });
       const output = bundle.outputFiles?.[0];
@@ -79,8 +82,23 @@ export async function captureGameFrame3D(value: GameRenderFrame3D, options: Capt
       const bundle = await loadCaptureBundle();
       const assets: Record<string, { readonly base64: string; readonly digest?: string }> = {};
       let totalBytes = 0;
-      for (const logicalId of new Set([...frame.entities.flatMap((entity) => entity.model ? [entity.model.assetId] : []), ...Object.keys(frame.fonts ?? {})])) {
+      const imageIds = new Set<string>();
+      for (const entity of frame.entities) {
+        if (entity.decal3d) { imageIds.add(entity.decal3d.assetId); }
+        const component = entity.primitive ?? entity.model;
+        if (!component) { continue; }
+        let material = component.material;
+        if (component.materialId) {
+          if (!frame.materials || !Object.hasOwn(frame.materials, component.materialId)) { throw new Error(`Missing capture material ${component.materialId}`); }
+          material = frame.materials[component.materialId];
+        }
+        for (const slot of [material?.baseColorTexture, material?.normalTexture, material?.ormTexture, material?.emissiveTexture]) {
+          if (slot) { imageIds.add(slot.assetId); }
+        }
+      }
+      for (const logicalId of new Set([...frame.entities.flatMap((entity) => entity.model ? [entity.model.assetId] : []), ...Object.keys(frame.fonts ?? {}), ...imageIds])) {
         controller.signal.throwIfAborted();
+        if (imageIds.has(logicalId) && (!frame.images || !Object.hasOwn(frame.images, logicalId))) { throw new Error(`Missing capture image binding ${logicalId}`); }
         const source = await options.resolveAsset?.(logicalId, controller.signal);
         if (!source) {
           if (frame.fonts?.[logicalId]?.required === false) { continue; }
@@ -119,6 +137,7 @@ export async function captureGameFrame3D(value: GameRenderFrame3D, options: Capt
       if (options.camera) { input.camera = options.camera; }
       if (options.benchmarkFrames) { input.benchmarkFrames = options.benchmarkFrames; }
       if (options.boundsOverlay) { input.boundsOverlay = true; }
+      if (options.particles) { input.particles = gameParticleSamples3D(options.particles); }
       const report = await page.evaluate(async (request) => window.captureNativeGame3D(request), input);
       const png = await page.locator("canvas").screenshot({ type: "png" });
       return { ...report, png: new Uint8Array(png), tick: frame.tick, stateHash: options.stateHash ?? null };

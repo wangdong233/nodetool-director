@@ -139,7 +139,7 @@ const RecommendedDownloadRow: React.FC<RecommendedDownloadRowProps> = ({
             gap={0.5}
             sx={{ flexShrink: 0, color: "text.secondary" }}
           >
-            <LoadingSpinner inline size={12} thickness={5} color="inherit" />
+            <LoadingSpinner inline size={14} color="inherit" />
             <Text sx={{ fontSize: theme.vars.fontSizeSmall, color: "text.secondary" }}>
               {t("editor:ui.checking")}
             </Text>
@@ -152,7 +152,7 @@ const RecommendedDownloadRow: React.FC<RecommendedDownloadRowProps> = ({
                 e.stopPropagation();
                 onSelect();
               }}
-              startIcon={<Check sx={{ fontSize: "1.1em" }} />}
+              startIcon={<Check />}
               sx={{ flexShrink: 0 }}
             >
               {t("editor:ui.use")}
@@ -169,7 +169,7 @@ const RecommendedDownloadRow: React.FC<RecommendedDownloadRowProps> = ({
             <EditorButton
               variant="outlined"
               onClick={handleDownloadClick}
-              startIcon={<DownloadIcon sx={{ fontSize: "1.1em" }} />}
+              startIcon={<DownloadIcon />}
               sx={{ flexShrink: 0 }}
             >
               Download

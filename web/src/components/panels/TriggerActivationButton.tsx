@@ -15,6 +15,7 @@
  * never been enabled before.
  */
 import React, { useCallback, useMemo, useState } from "react";
+import ErrorBanner from "../support/ErrorBanner";
 import {
   Popover,
   ToolbarIconButton,
@@ -33,6 +34,7 @@ import {
   BORDER_RADIUS,
   getSpacingPx
 } from "../ui_primitives";
+import type { StatusType } from "../ui_primitives";
 import BoltIcon from "@mui/icons-material/Bolt";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -51,8 +53,6 @@ import {
   isTriggerNodeType
 } from "@nodetool-ai/protocol";
 import { formatSchedule } from "../../utils/triggerSchedule";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 /** Stable empty fallback, so a pending query doesn't hand every render a new
  * array identity and re-create the callbacks that close over it. */
@@ -79,18 +79,10 @@ const KIND_LABELS: Readonly<Record<string, string>> = {
   manual: "Manual"
 };
 
-const KIND_LABEL_KEYS: Readonly<Record<string, string>> = {
-  webhook: "editor:ui.webhook",
-  schedule: "editor:ui.schedule",
-  file_watch: "editor:ui.fileWatch",
-  manual: "timeline:history.manual"
-};
-
-const kindLabel = (kind: string): string =>
-  KIND_LABELS[kind] ? i18n.t(KIND_LABEL_KEYS[kind] ?? kind, { defaultValue: KIND_LABELS[kind] }) : kind;
+const kindLabel = (kind: string): string => KIND_LABELS[kind] ?? kind;
 
 const formatLastFired = (iso: string | null): string => {
-  if (!iso) return i18n.t("editor:ui.neverFired", { defaultValue: "Never" });
+  if (!iso) return "Never";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
   return date.toLocaleString();
@@ -107,15 +99,6 @@ const SWITCH_DESCRIPTIONS = {
   active: "Listens for events and starts a run per event."
 } satisfies Readonly<Record<ActivationState, string>>;
 
-const SWITCH_DESCRIPTION_KEYS: Record<ActivationState, string> = {
-  loading: "editor:ui.checkingTriggerStatus",
-  error: "editor:ui.couldNotLoadTriggerStatusCheckYourConnectionAndRetry",
-  unregistered: "editor:ui.saveTheWorkflowFirstActivationNeedsASavedTriggerRegistration",
-  inactive: "editor:ui.listensForEventsAndStartsARunPerEvent",
-  mixed: "editor:ui.someTriggersAreArmedTurnThisOnToArmTheRest",
-  active: "editor:ui.listensForEventsAndStartsARunPerEvent"
-};
-
 const STATUS_LABELS = {
   loading: "Loading",
   error: "Unavailable",
@@ -125,25 +108,14 @@ const STATUS_LABELS = {
   active: "Active"
 } satisfies Readonly<Record<ActivationState, string>>;
 
-const STATUS_LABEL_KEYS: Record<ActivationState, string> = {
-  loading: "editor:ui.loading",
-  error: "editor:ui.unavailable",
-  unregistered: "editor:ui.notRegistered",
-  inactive: "editor:ui.inactive",
-  mixed: "editor:ui.partlyActive",
-  active: "editor:ui.active"
-};
-
 const STATUS_KINDS = {
-  loading: "pending",
+  loading: "running",
   error: "error",
   unregistered: "default",
   inactive: "default",
   mixed: "warning",
   active: "success"
-} satisfies Readonly<
-  Record<ActivationState, "success" | "error" | "warning" | "pending" | "default">
->;
+} satisfies Readonly<Record<ActivationState, StatusType>>;
 
 interface WebhookDeliveryDetailsProps {
   webhookToken: string;
@@ -156,7 +128,6 @@ const WebhookDeliveryDetails: React.FC<WebhookDeliveryDetailsProps> = ({
   webhookToken,
   webhookSecret
 }) => {
-  const { t } = useTranslation();
   const [revealed, setRevealed] = useState(false);
   const url = webhookDeliveryUrl(webhookToken);
 
@@ -164,18 +135,18 @@ const WebhookDeliveryDetails: React.FC<WebhookDeliveryDetailsProps> = ({
     <FlexColumn gap={SPACING.xs}>
       <FlexRow gap={SPACING.xs} align="center">
         <TextInput
-          label={t("editor:ui.webhookURL", { defaultValue: "Webhook URL" })}
+          label="Webhook URL"
           hideLabel
           value={url}
           size="small"
           fullWidth
           slotProps={{ input: { readOnly: true } }}
         />
-        <CopyButton value={url} tooltip={t("editor:ui.copyWebhookURL", { defaultValue: "Copy webhook URL" })} />
+        <CopyButton value={url} tooltip="Copy webhook URL" />
       </FlexRow>
       <FlexRow gap={SPACING.xs} align="center">
         <TextInput
-          label={t("editor:ui.webhookSecret", { defaultValue: "Webhook secret" })}
+          label="Webhook secret"
           hideLabel
           type={revealed ? "text" : "password"}
           value={webhookSecret}
@@ -191,19 +162,18 @@ const WebhookDeliveryDetails: React.FC<WebhookDeliveryDetailsProps> = ({
               <VisibilityIcon fontSize="small" />
             )
           }
-          tooltip={revealed ? t("editor:ui.hideSecret", { defaultValue: "Hide secret" }) : t("editor:ui.showSecret", { defaultValue: "Show secret" })}
-          ariaLabel={revealed ? t("editor:ui.hideWebhookSecret", { defaultValue: "Hide webhook secret" }) : t("editor:ui.showWebhookSecret", { defaultValue: "Show webhook secret" })}
+          tooltip={revealed ? "Hide secret" : "Show secret"}
+          ariaLabel={revealed ? "Hide webhook secret" : "Show webhook secret"}
           onClick={() => setRevealed((r) => !r)}
         />
-        <CopyButton value={webhookSecret} tooltip={t("editor:ui.copyWebhookSecret", { defaultValue: "Copy webhook secret" })} />
+        <CopyButton value={webhookSecret} tooltip="Copy webhook secret" />
       </FlexRow>
-      <Caption>{t("editor:ui.sendThisValueAsTheXWebhookSecretHeader", { defaultValue: "Send this value as the x-webhook-secret header." })}</Caption>
+      <Caption>Send this value as the x-webhook-secret header.</Caption>
     </FlexColumn>
   );
 };
 
 const TriggerActivationButton: React.FC = () => {
-  const { t } = useTranslation();
   const workflowId = useNodes((state) => state.workflow?.id || null);
   // This button sits in the always-mounted floating toolbar, and a node drag
   // pushes a fresh `nodes` array ~60x/s. Collect in one pass rather than
@@ -340,20 +310,20 @@ const TriggerActivationButton: React.FC = () => {
             width: `min(360px, calc(100vw - ${getSpacingPx(SPACING.xxxl)}))`
           }}
           role="region"
-          aria-label={t("editor:ui.triggerStatus", { defaultValue: "Trigger status" })}
+          aria-label="Trigger status"
         >
           <FlexRow justify="space-between" align="center">
-            <Text size="big">{t("ui2:attrs.triggers", { defaultValue: "Triggers" })}</Text>
+            <Text size="big">Triggers</Text>
             <StatusIndicator
               status={STATUS_KINDS[state]}
-              label={t(STATUS_LABEL_KEYS[state], { defaultValue: STATUS_LABELS[state] })}
+              label={STATUS_LABELS[state]}
               size="small"
             />
           </FlexRow>
 
           <LabeledSwitch
-            label={t("editor:ui.workflowActive", { defaultValue: "Workflow active" })}
-            description={t(SWITCH_DESCRIPTION_KEYS[state], { defaultValue: SWITCH_DESCRIPTIONS[state] })}
+            label="Workflow active"
+            description={SWITCH_DESCRIPTIONS[state]}
             checked={state === "active"}
             onChange={(next) => {
               void handleToggle(next);
@@ -400,35 +370,37 @@ const TriggerActivationButton: React.FC = () => {
                       }
                       label={
                         reg?.enabled
-                          ? t("editor:ui.active", { defaultValue: "Active" })
+                          ? "Active"
                           : stoppedBecause
-                            ? t("editor:ui.stopped", { defaultValue: "Stopped" })
-                            : t("editor:ui.inactive", { defaultValue: "Inactive" })
+                            ? "Stopped"
+                            : "Inactive"
                       }
                       size="small"
                     />
                   </FlexRow>
                   <LabeledSwitch
                     size="small"
-                    label={t("editor:ui.enabled", { defaultValue: "Enabled" })}
+                    label="Enabled"
                     checked={Boolean(reg?.enabled)}
                     disabled={!reg}
                     onChange={(next) => reg && handleRowToggle(reg.id, next)}
                     id={`trigger-enabled-${nodeId}`}
                   />
-                  {isLoading && <Caption>{t("editor:ui.checkingStatus", { defaultValue: "Checking status…" })}</Caption>}
+                  {isLoading && <Caption>Checking status…</Caption>}
                   {isError && (
-                    <Caption color="error">
-                      {t("editor:ui.couldNotLoadTriggerStatus")}
-                    </Caption>
+                    <ErrorBanner
+                      report={{
+                        source: "operation-failure",
+                        summary: "Trigger status failed to load"
+                      }}
+                    >
+                      Could not load trigger status.
+                    </ErrorBanner>
                   )}
                   {schedule && <Caption>{schedule}</Caption>}
                   {!isLoading && !isError && (
                     <Caption>
-                      {t("editor:ui.lastFired", {
-                        defaultValue: "Last fired: {{time}}",
-                        time: formatLastFired(reg?.last_fired_at ?? null)
-                      })}
+                      Last fired: {formatLastFired(reg?.last_fired_at ?? null)}
                     </Caption>
                   )}
                   {stoppedBecause && (
@@ -437,7 +409,15 @@ const TriggerActivationButton: React.FC = () => {
                     </Caption>
                   )}
                   {reg?.last_error && (
-                    <Caption color="error">Last error: {reg.last_error}</Caption>
+                    <ErrorBanner
+                      report={{
+                        source: "operation-failure",
+                        summary: "Trigger run failed",
+                        errorText: reg.last_error
+                      }}
+                    >
+                      Last error: {reg.last_error}
+                    </ErrorBanner>
                   )}
                   {kind === "webhook" &&
                     reg?.webhook_token &&
@@ -453,7 +433,7 @@ const TriggerActivationButton: React.FC = () => {
                       disabled={!reg?.enabled || fireTrigger.isPending}
                       onClick={() => reg && handleFire(reg.id)}
                     >
-                      {t("editor:ui.fireNow")}
+                      Fire now
                     </EditorButton>
                   </FlexRow>
                 </FlexColumn>

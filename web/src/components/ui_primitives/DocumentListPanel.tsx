@@ -7,7 +7,6 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
-import { useAppLanguage } from "../../i18n";
 import { groupByDate } from "../../utils/groupByDate";
 import CategorySearchBar from "../node_menu/CategorySearchBar";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -15,8 +14,6 @@ import { EmptyState } from "./EmptyState";
 import { FlexColumn } from "./FlexColumn";
 import { listPanelStyles } from "./listPanelStyles";
 import { LoadingSpinner } from "./LoadingSpinner";
-import { Text } from "./Text";
-import { useTranslation } from "react-i18next";
 
 export interface DocumentListPanelDocument {
   id: string;
@@ -37,18 +34,13 @@ export interface DocumentListPanelProps<T extends DocumentListPanelDocument> {
   errorAction?: ReactNode;
   /** Shown under "No <plural> yet" when the user has not created any. */
   emptyDescription: string;
-  /**
-   * Extra searchable text per document, appended to the name in the filter
-   * (bilingual search): the localized display name of a shipped document
-   * joins as an alias while the stored English name keeps its index weight
-   * (nodeSearchAlias precedent). Return "" when there is no alias.
-   */
-  getSearchAlias?: (document: T) => string;
   /** The document awaiting delete confirmation; `null` keeps the dialog closed. */
   deleteTarget: { name: string } | null;
   onCancelDelete: () => void;
   onConfirmDelete: () => void;
   renderItem: (document: T) => ReactNode;
+  /** Extra match for the search box, e.g. a description. The name always matches. */
+  matches?: (document: T, needle: string) => boolean;
 }
 
 export function DocumentListPanel<T extends DocumentListPanelDocument>({
@@ -60,16 +52,12 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
   errorMessage,
   errorAction,
   emptyDescription,
-  getSearchAlias,
   deleteTarget,
   onCancelDelete,
   onConfirmDelete,
-  renderItem
+  renderItem,
+  matches
 }: DocumentListPanelProps<T>) {
-  const { t } = useTranslation();
-  // Re-runs the filter below when the language changes so a zh alias stays
-  // in step with the localized rows it mirrors (F-26 discipline).
-  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const [filterValue, setFilterValue] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -87,10 +75,10 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
     const all = documents ?? [];
     const needle = filterValue.trim().toLowerCase();
     const filtered = needle
-      ? all.filter((item) =>
-          `${item.name} ${getSearchAlias ? getSearchAlias(item) : ""}`
-            .toLowerCase()
-            .includes(needle)
+      ? all.filter(
+          (item) =>
+            item.name.toLowerCase().includes(needle) ||
+            (matches?.(item, needle) ?? false)
         )
       : all;
     // Parsed once per row instead of twice per comparison — this whole pass
@@ -109,7 +97,7 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
       currentGroup = group;
       return { item, group, showHeader };
     });
-  }, [documents, filterValue, getSearchAlias, languageVersion]);
+  }, [documents, filterValue, matches]);
 
   return (
     <FlexColumn fullHeight fullWidth gap={0} css={listPanelStyles(theme)}>
@@ -117,23 +105,23 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
         open={deleteTarget !== null}
         onClose={onCancelDelete}
         onConfirm={onConfirmDelete}
-        title={t("common:list.deleteTitle", { defaultValue: "Delete {{singular}}", singular })}
-        content={t("common:list.deleteContent", { defaultValue: 'Delete "{{name}}"? This cannot be undone.', name: deleteTarget?.name ?? "" })}
-        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+        title={`Delete ${singular}`}
+        content={`Delete "${deleteTarget?.name ?? ""}"? This cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
       />
       <div className="list-panel-search">
         <CategorySearchBar
           ref={searchRef}
           value={filterValue}
           onChange={setFilterValue}
-          placeholder={t("common:list.searchPlaceholder", { defaultValue: "Search {{plural}}...", plural })}
+          placeholder={`Search ${plural}`}
         />
       </div>
 
       {isLoading ? (
         <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1 }}>
-          <LoadingSpinner size="large" text={t("common:list.loadingPlural", { defaultValue: "Loading {{plural}}", plural })} />
+          <LoadingSpinner size="large" text={`Loading ${plural}`} />
         </FlexColumn>
       ) : isError ? (
         <FlexColumn
@@ -144,8 +132,8 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
         >
           <EmptyState
             variant="error"
-            title={t("common:list.couldNotLoad", { defaultValue: "Could not load {{plural}}", plural })}
-            description={errorMessage ?? t("common:list.tryAgainLater", { defaultValue: "Try again later." })}
+            title={`Could not load ${plural}`}
+            description={errorMessage ?? "Try again later."}
           />
           {errorAction}
         </FlexColumn>
@@ -157,9 +145,9 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
           sx={{ flex: 1, px: 2 }}
         >
           <EmptyState
-            title={filterValue ? t("common:list.noMatching", { defaultValue: "No matching {{plural}}", plural }) : t("common:list.noneYet", { defaultValue: "No {{plural}} yet", plural })}
+            title={filterValue ? `No matching ${plural}` : `No ${plural} yet`}
             description={
-              filterValue ? t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." }) : emptyDescription
+              filterValue ? "Try a different search term." : emptyDescription
             }
           />
         </FlexColumn>
@@ -169,14 +157,7 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
             <Fragment key={item.id}>
               {showHeader && (
                 <div className="date-header-row">
-                  <Text
-                    className="date-header"
-                    size="small"
-                    color="secondary"
-                    weight={400}
-                  >
-                    {group}
-                  </Text>
+                  <span className="date-header">{group}</span>
                 </div>
               )}
               {renderItem(item)}

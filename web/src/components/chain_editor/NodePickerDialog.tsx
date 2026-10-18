@@ -17,11 +17,13 @@ import {
   InputAdornment,
   Box,
   Dialog,
+  EmptyState,
   FlexColumn,
   Text,
   TextInput,
   HighlightText,
-  SHADOW
+  SHADOW,
+  ICON_SIZE
 } from "../ui_primitives";
 import SearchIcon from "@mui/icons-material/Search";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -30,10 +32,9 @@ import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { computeSearchResults } from "../../utils/nodeSearch";
 import {
   QUICK_ACTION_BUTTONS,
-  type QuickActionDefinition,
+  type QuickActionDefinition
 } from "../node_menu/QuickActionTiles.constants";
 import type { NodeMetadata } from "../../stores/ApiTypes";
-import { useTranslation } from "react-i18next";
 
 interface NodePickerDialogProps {
   open: boolean;
@@ -45,15 +46,15 @@ const quickTileStyles = (theme: Theme) =>
   css({
     display: "grid",
     gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-    gap: theme.spacing(1),
-    padding: theme.spacing(0.5),
+    gap: theme.spacing(SPACING.xs),
+    padding: theme.spacing(SPACING.micro),
 
     ".quick-tile": {
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      padding: theme.spacing(1.5, 1),
+      padding: theme.spacing(SPACING.sm, SPACING.xs),
       borderRadius: theme.spacing(1.5),
       cursor: "pointer",
       border: "1px solid transparent",
@@ -64,40 +65,36 @@ const quickTileStyles = (theme: Theme) =>
         borderColor: theme.vars.palette.divider,
         background: theme.vars.palette.action.selected,
         transform: "translateY(-1px)",
-        boxShadow: SHADOW(theme).md,
-      },
+        boxShadow: SHADOW(theme).md
+      }
     },
     ".tile-icon": {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: theme.spacing(0.5),
-      "& svg": { fontSize: "var(--fontSizeBig)" },
+      marginBottom: theme.spacing(SPACING.micro),
+      "& svg": { fontSize: "var(--fontSizeBig)" }
     },
     ".tile-label": {
       fontSize: theme.fontSizeSmaller,
       fontWeight: 500,
       textAlign: "center",
-      color: theme.vars.palette.text.primary,
-    },
+      color: theme.vars.palette.text.primary
+    }
   });
 
 export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
   open,
   onSelect,
-  onClose,
+  onClose
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const autoFocusEnabled = useAutoFocusEnabled();
   const allMetadata = useMetadataStore((s) => s.metadata);
   const getMetadata = useMetadataStore((s) => s.getMetadata);
 
-  const metadataList = useMemo(
-    () => Object.values(allMetadata),
-    [allMetadata]
-  );
+  const metadataList = useMemo(() => Object.values(allMetadata), [allMetadata]);
 
   const hasSearch = searchQuery.trim().length > 0;
 
@@ -144,23 +141,24 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
     count: searchResults.length,
     getScrollElement: () => listScrollRef.current,
     estimateSize: () => ROW_HEIGHT,
-    overscan: theme.virtualScroll.overscan.small,
+    overscan: theme.virtualScroll.overscan.small
   });
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      title={t("editor:ui.addNode")}
-      minWidth="min(520px, 100vw - 32px)"
+      title="Add node"
+      maxWidth="sm"
+      fullWidth
     >
-      <FlexColumn gap={2} sx={{ minHeight: 400, maxHeight: "70vh" }}>
+      <FlexColumn gap={SPACING.md} sx={{ minHeight: 400 }}>
         {/* autoFocus is skipped on touch, where the virtual keyboard would
             cover the node list the dialog just opened to show. */}
         <TextInput
           fullWidth
           size="small"
-          placeholder={t("editor:ui.searchNodes")}
+          placeholder="Search nodes"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           autoFocus={autoFocusEnabled}
@@ -170,21 +168,21 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
                 <InputAdornment position="start">
                   <SearchIcon
                     sx={{
-                      fontSize: 18,
-                      color: theme.vars.palette.text.secondary,
+                      fontSize: ICON_SIZE.md,
+                      color: theme.vars.palette.text.secondary
                     }}
                   />
                 </InputAdornment>
-              ),
-            },
+              )
+            }
           }}
         />
 
         <Box sx={{ flex: 1 }}>
           {!hasSearch ? (
-            <FlexColumn gap={2}>
+            <FlexColumn gap={SPACING.md}>
               <Text size="small" weight={600} color="secondary">
-                {t("editor:ui.quickActions")}
+                Quick actions
               </Text>
               <div css={tileStyles}>
                 {QUICK_ACTION_BUTTONS.map((action) => (
@@ -194,7 +192,10 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
                     role="button"
                     tabIndex={0}
                     onClick={() => handleQuickAction(action)}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleQuickAction(action); }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ")
+                        handleQuickAction(action);
+                    }}
                   >
                     <div
                       className="tile-icon"
@@ -208,15 +209,21 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
               </div>
             </FlexColumn>
           ) : searchResults.length === 0 ? (
-            <FlexColumn align="center" justify="center" sx={{ py: 6 }}>
-              <Text size="small" color="secondary">
-                {t("editor:ui.noNodesFound", { defaultValue: "No nodes found" })}
-              </Text>
-            </FlexColumn>
+            <EmptyState
+              variant="no-results"
+              size="small"
+              title="No nodes found"
+            />
           ) : (
-            <FlexColumn gap={0}>
-              <Text size="smaller" color="secondary" sx={{ mb: 0.5, px: 0.5, opacity: 0.5 }}>{searchResults.length}{" "}
-              {searchResults.length === 1 ? "result" : "results"}</Text>
+            <FlexColumn gap={SPACING.none}>
+              <Text
+                size="smaller"
+                color="secondary"
+                sx={{ mb: SPACING.micro, px: SPACING.micro }}
+              >
+                {searchResults.length}{" "}
+                {searchResults.length === 1 ? "result" : "results"}
+              </Text>
               <div
                 ref={listScrollRef}
                 style={{
@@ -225,14 +232,14 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
                     searchResults.length * ROW_HEIGHT
                   ),
                   width: "100%",
-                  overflow: "auto",
+                  overflow: "auto"
                 }}
               >
                 <div
                   style={{
                     height: resultsVirtualizer.getTotalSize(),
                     width: "100%",
-                    position: "relative",
+                    position: "relative"
                   }}
                 >
                   {resultsVirtualizer.getVirtualItems().map((vi) => {
@@ -254,15 +261,18 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
-                          borderRadius: BORDER_RADIUS.sm,
+                          borderRadius: BORDER_RADIUS.sm
                         }}
                         role="button"
                         tabIndex={0}
                         onClick={() => handleSelect(node)}
-                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleSelect(node); }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ")
+                            handleSelect(node);
+                        }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = theme.vars
-                            .palette.action.hover;
+                          e.currentTarget.style.backgroundColor =
+                            theme.vars.palette.action.hover;
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = "transparent";

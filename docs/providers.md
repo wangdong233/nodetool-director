@@ -18,6 +18,8 @@ Checked against each provider's implementation in `packages/runtime/src/provider
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | OpenAI | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | |
 | Anthropic | ✅ | | | | | | |
+| Azure OpenAI | ✅ | ✅ | | ✅ | ✅ | ✅ | |
+| Amazon Bedrock | ✅ | ✅ | | | | | |
 | Google Gemini | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | |
 | xAI (Grok) | ✅ | ✅ | ✅ | | | | |
 | DeepSeek | ✅ | | | | | | |
@@ -32,15 +34,17 @@ Checked against each provider's implementation in `packages/runtime/src/provider
 | API Route | ✅ | | | | | | |
 | Together AI | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | |
 | Moonshot (Kimi) | ✅ | | | | | | |
-| Meta AI | ✅ | | | | | | |
+| Meta AI | ✅ | ✅ | | | ✅ | | |
 | MiniMax | ✅ | ✅ | ✅ | ✅ | | | |
 | Codex (OpenAI OAuth) | ✅ | ✅ | | | | | |
 | Claude Agent SDK | ✅ | | | | | | |
+| Antigravity | ✅ | | | | | | |
 | Evolink | ✅ | ✅ | ✅ | | | | |
 | kie.ai | ✅¹ | ✅ | ✅ | ✅ | | | |
 | AKI | ✅ | ✅ | | | | | |
 | Higgsfield | | ✅ | ✅ | | | | |
 | UseAPI | | ✅ | ✅ | | | | |
+| vgenv | | | ✅ | | | | |
 | Replicate | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | |
 | FAL | ✅ | ✅ | ✅ | ✅ | | | |
 | Comfy Cloud | | ⁵ | ⁵ | | | | |
@@ -50,6 +54,7 @@ Checked against each provider's implementation in `packages/runtime/src/provider
 | LM Studio | ✅ | | | | | | |
 | llama.cpp | ✅ | | | | | | |
 | llama.cpp local | ✅ | | | | | ✅ | |
+| stable-diffusion.cpp | | ✅ | | | | | |
 | Transformers.js | ✅ | | | ✅ | ✅ | ✅ | |
 | ElevenLabs | | | | ✅ | ✅³ | | |
 | Topaz | | ✅⁴ | | | | | |
@@ -78,6 +83,18 @@ OpenAI covers chat (GPT), image generation (GPT-Image), Sora 2 Pro video, TTS, W
 ## Anthropic
 
 Anthropic runs Claude chat models with tool calling and image input for vision tasks. It doesn't generate images, video, or audio. Cloud only, keyed by `ANTHROPIC_API_KEY`; models are fetched live from the Anthropic API. See the [Anthropic provider guide](developer/providers/anthropic.md).
+
+## Azure OpenAI
+
+Azure OpenAI runs OpenAI models deployed in your own Azure OpenAI or Microsoft Foundry resource: chat, GPT Image generation and editing, TTS, Whisper transcription, and embeddings. Requests use OpenAI's wire format, so each call behaves like the OpenAI provider with the deployment name as the model. Cloud only, keyed by `AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_ENDPOINT` (for example `https://<resource>.openai.azure.com`, with or without a trailing `/openai`).
+
+Azure does not report what a deployment serves, so the models are the names in `AZURE_OPENAI_DEPLOYMENTS`, separated by commas. A name containing `image` or `dall-e` is an image model, `tts` a speech model, `whisper` or `transcribe` a transcription model, and `embedding` an embedding model. Any other name is a chat model. Add `:chat`, `:image`, `:tts`, `:asr`, or `:embedding` to a name to set its kind, for example `my-painter:image`. For custom deployment names, append `=underlying-model`, for example `speech-prod=gpt-4o-mini-tts` or `transcription-prod=whisper-1`. The underlying model controls media capabilities, including speech instructions and word timestamps, while requests still route to the deployment name. An explicit kind may precede the mapping, such as `speech-prod:tts=gpt-4o-mini-tts`. Without `AZURE_OPENAI_API_VERSION` the provider calls the v1 API at `<endpoint>/openai/v1`. Set a dated version such as `2025-04-01-preview` to use the `/openai/deployments/<name>` routes. Under the cloud profile the endpoint must be a public https host. A deployment named after its model, such as `gpt-5.5`, is priced from the Azure rates in `@pydantic/genai-prices`.
+
+## Amazon Bedrock
+
+Amazon Bedrock runs chat through the Converse API, which covers every Bedrock chat model: Claude, Llama, Mistral, Amazon Nova, and others. It streams text and tool calls, accepts images and documents, and passes Claude extended thinking through. Image generation runs Amazon Nova Canvas, Titan Image, and Stability models. Cloud only, keyed by an IAM access key in `BEDROCK_ACCESS_KEY_ID` and `BEDROCK_SECRET_ACCESS_KEY`, with `BEDROCK_SESSION_TOKEN` for temporary credentials. The keys are separate from the `AWS_*` variables so an S3 storage key is never used for Bedrock.
+
+`BEDROCK_REGION` picks the region (default `us-east-1`). Models are listed from that region: on-demand foundation models plus the system-defined cross-region inference profiles such as `eu.anthropic.claude-sonnet-4-6`, which Claude needs in most regions. The IAM user needs `bedrock:ListFoundationModels`, `bedrock:ListInferenceProfiles`, `bedrock:InvokeModel`, and `bedrock:InvokeModelWithResponseStream`. Set `BEDROCK_MODEL_IDS` to a comma-separated list of model or inference profile IDs to offer only those and skip the listing calls. Costs are priced from the AWS rates in `@pydantic/genai-prices`.
 
 ## Google Gemini
 
@@ -141,7 +158,12 @@ MiniMax covers chat, image (Image-01), video (Hailuo 2.3), TTS, and music genera
 
 ## Meta AI
 
-Meta AI serves the Muse Spark chat models through an OpenAI-compatible endpoint (`https://api.meta.ai/v1`) with tool calling. If the model list cannot be fetched, the picker falls back to three built-in Muse Spark ids. Text only. Cloud only, keyed by `META_API_KEY`.
+Meta AI serves the Muse family at `https://api.meta.ai/v1`. Cloud only, keyed by `META_API_KEY`.
+
+- **Chat.** Muse Spark runs on Meta's Responses API with tool calling. A `web_search` tool is answered by Meta's hosted search grounding, and tools marked `deferLoading` are loaded on demand by Meta's hosted tool search. Messages can carry images, video and audio, which Muse Spark reads natively. If the model list cannot be fetched, the picker falls back to four built-in Muse Spark ids.
+- **Images.** Muse Image (`muse-image-1.0`) generates and edits images, with up to 10 source images per edit.
+- **Speech to text.** Muse Voice Transcribe (`muse-voice-transcribe-1.0`) returns the transcript and timed turns. Audio that is not mono 16-bit WAV at 16 or 24 kHz is converted with ffmpeg first. It has no word-level timestamps.
+- **Segmentation.** SAM 3.1 (`sam-3.1`) segments an image from a short noun phrase, a box, or points, and returns one full-frame mask per object.
 
 ## Codex (OpenAI OAuth)
 
@@ -149,7 +171,13 @@ Codex reaches GPT chat models and GPT Image generation (GPT Image 2 and 1.5) thr
 
 ## Claude Agent SDK
 
-Claude Agent SDK reaches Claude by spawning your local, logged-in `claude` CLI instead of calling the Anthropic API directly, billing against your Claude subscription rather than per-token API spend. It supports tool calls through an in-process MCP bridge. Images in the prompt are forwarded when they are inline PNG, JPEG, GIF, or WebP data. A remote image URL is rejected, so resolve media references before the call. There is no API key. Sign in with the **Claude Code** card in Settings → Models & Providers or run `nodetool auth claude login` (add `--manual` on a headless host). The provider is not available in NodeTool's hosted cloud because it needs a local executable. See the [Anthropic provider guide](developer/providers/anthropic.md).
+Claude Agent SDK reaches Claude by running your local, logged-in `claude` CLI in headless mode instead of calling the Anthropic API directly, billing against your Claude subscription rather than per-token API spend. Install [Claude Code](https://claude.com/claude-code) first. NodeTool finds `claude` on your PATH or in the usual install locations, or set **CLAUDE_CLI_PATH** in Settings → Integrations to point at it. It supports tool calls, which run inside NodeTool while the CLI drives the loop. Images in the prompt are forwarded when they are inline PNG, JPEG, GIF, or WebP data. A remote image URL is rejected, so resolve media references before the call. There is no API key. Sign in with the **Claude Code** card in Settings → Models & Providers or run `nodetool auth claude login` (add `--manual` on a headless host). The provider is not available in NodeTool's hosted cloud because it needs a local executable. See the [Anthropic provider guide](developer/providers/anthropic.md).
+
+## Antigravity
+
+Antigravity reaches the models in Google's Antigravity CLI (`agy`), including Gemini, by running the CLI in [headless mode](https://antigravity.google/docs/cli/headless/) on your signed-in Antigravity account. There is no API key. Install `agy` and run it once in a terminal to sign in. NodeTool also looks for the CLI in `~/.local/bin`, where the official installer puts it. The model list is whatever `agy models` prints, and effort is part of each model id (for example `gemini-3.1-pro-high`).
+
+Each turn spawns `agy` in an empty scratch directory under the system temp folder, so the CLI's own file tools cannot touch your files. Shell commands stay blocked because NodeTool never passes `--dangerously-skip-permissions`. NodeTool tools are not offered to the model, and prompts must be text: a message with images fails instead of losing them. A forced single tool call (structured output) uses the CLI's `--json-schema`. Follow-up turns in a chat resume the same Antigravity conversation with `--conversation`. The provider is not available in NodeTool's hosted cloud because it needs a local executable.
 
 ## Evolink
 
@@ -170,6 +198,10 @@ Higgsfield generates image and video from a manifest of models (text-to-image, i
 ## UseAPI
 
 UseAPI generates image and video through your own Google Flow and Dreamina accounts on useapi.net: Nano Banana and Veo models through Google Flow, Seedream, Seedance, and Sora 2 through Dreamina. No chat. Cloud only, keyed by `USEAPI_API_TOKEN`. Set `USEAPI_GOOGLE_FLOW_EMAIL` (Google Flow account email) and `USEAPI_DREAMINA_ACCOUNT` (`region:email`) so reference image uploads use the right account.
+
+## vgenv
+
+vgenv is an independent API for MiniMax H3 video, not affiliated with MiniMax. It runs text-to-video, image-to-video with a first and optional last frame, and reference-to-video with up to nine ordered images. Models are the Fast, Standard, Enhanced, and Quality tiers at 480p or 768p, 4 to 15 seconds. Prompts are sent as written, with vgenv's prompt rewriting turned off. No chat. Cloud only, keyed by `VGENV_API_KEY`. vgenv bills each video from a prepaid balance at creation and releases the hold when a preparing or queued job is cancelled or the platform fails it. NodeTool cancels the job when a run is stopped or times out.
 
 ## Replicate
 
@@ -207,6 +239,8 @@ llama.cpp points NodeTool at a local `llama-server` instance for chat. `llama-se
 
 llama.cpp local (provider id `node_llama_cpp`) runs GGUF models inside the NodeTool backend through the `node-llama-cpp` binding, with no separate server. It serves chat and embeddings. Models are GGUF files in `NODE_LLAMA_CPP_MODELS_DIR`, which defaults to the shared llama.cpp cache. `NODE_LLAMA_CPP_GPU_BACKEND` selects `auto`, `metal`, `cuda`, `vulkan`, or `cpu`. No key. Local only.
 
+The model picker also offers GGUF models to download: a curated list in `node-llama-cpp-models.ts`, then the trending models in `node-llama-cpp-trending.generated.ts`. A nightly workflow (`.github/workflows/gguf-trending-sync.yml`) runs `npm run sync:gguf-trending`, which reads the [trending GGUF repos](https://huggingface.co/models?library=gguf&sort=trending) and opens a PR when the list changes. It keeps chat models from the trusted publishers in `scripts/gguf/sources.json`, skips uncensored and merged variants, and picks one Q4 file of 20 GB or less from each repo. It keeps up to 50 models, one repo for each base model.
+
 whisper.cpp (`whisper_cpp`) transcribes audio inside the backend through the
 optional `@fugood/whisper.node@1.1.3` package. Install it from Package Manager.
 GGML models use the Hugging Face hub cache. `WHISPER_CPP_MODELS_DIR` adds a
@@ -219,13 +253,25 @@ whisper.cpp server (`whisper_cpp_server`) posts audio to a user-run
 `whisper-server` at `WHISPER_CPP_SERVER_URL`. Its model id is `default`.
 It requires no native package. Local only.
 
+## stable-diffusion.cpp
+
+stable-diffusion.cpp (provider id `stable_diffusion_cpp`) generates images locally: text-to-image and image-to-image. It starts the `sd-server` binary from the `sd-cpp` runtime package on the first generation and keeps it running while the same model is in use. Install the package in **Settings › Packages**, or run `nodetool runtime add sd-cpp`. `SD_CPP_SERVER_PATH` selects another `sd-server`. The model picker offers each model with a Download button. A model can load files from several Hugging Face repositories, and one click downloads all of them into the Hugging Face cache. Text encoders and VAEs that several models share download once.
+
+The catalog is in `packages/runtime/src/providers/sdcpp-models.ts`:
+
+- Text-to-image: SD-Turbo, Stable Diffusion 1.5 and 3.5 Medium, FLUX.1 schnell and dev, Z-Image and Z-Image Turbo, Z-Image L2P, Krea 2 Raw and Turbo, Ideogram 4, Iris 3B.
+- Text-to-image and editing with a reference image: FLUX.2 dev, FLUX.2 klein 4B and 9B (distilled and base), FLUX.3 Image Klein and Klein Base, Qwen Image 2.1, LLaDA-Image Turbo.
+- Editing only: FLUX.1 Kontext dev, Qwen Image Edit 2509 and 2511, LongCat Image Edit, Boogu Image Edit, Mage-Flow Edit Turbo, and the PiD 4× upscaler.
+
+An edit model receives the source image as a reference. Other models denoise from it, controlled by `strength`. Some weights have a non-commercial license, for example FLUX.1 dev, FLUX.2 klein 9B and PiD. The macOS build needs macOS 26 or later. Windows and Linux use the Vulkan build. No key. Local only. The `lib.stable_diffusion_cpp.GenerateImage` node is separate: it calls an `sd-server` that you start yourself.
+
 ## Transformers.js
 
-Transformers.js (provider id `transformers_js`) runs small ONNX models in-process: chat, TTS, ASR, and embeddings. Models download from the Hugging Face Hub on first use into `<data-dir>/transformers-js-cache`, or the directory in `TRANSFORMERS_JS_CACHE_DIR`. Tool calling is off. No key. Local only. The matching workflow nodes are the `transformers.*` nodes in [HuggingFace Integration](huggingface.md#transformersjs-nodes-local-onnx).
+Transformers.js (provider id `transformers_js`) runs small ONNX models in-process: chat, TTS, music (MusicGen, instrumental only), ASR, and embeddings. Models download from the Hugging Face Hub on first use into `<data-dir>/transformers-js-cache`, or the directory in `TRANSFORMERS_JS_CACHE_DIR`. Tool calling is off. No key. Local only. The matching workflow nodes are the `transformers.*` nodes in [HuggingFace Integration](huggingface.md#transformersjs-nodes-local-onnx).
 
 ## Local Python providers
 
-When the Python worker runs with the matching pack installed, it registers its own providers over the stdio bridge, such as MLX on Apple Silicon and local Hugging Face execution. Install the packs from **Package Manager → Python packs**, or see [Python nodes without the desktop app](installation.md#python-nodes-without-the-desktop-app). With `NODETOOL_PYTHON_ON_DEMAND=true`, these providers appear only after a workflow has started the worker. The worker's `huggingface` provider appears as `huggingface-local` because the TypeScript runtime already owns the `huggingface` id for the hosted API. These providers offer image, video, TTS, music, ASR, and embedding models from the worker's pack.
+When the Python worker runs with the matching pack installed, it registers its own providers over the stdio bridge, such as MLX on Apple Silicon and local Hugging Face execution. Install the packs from **Package Manager → Python nodes**, or see [Python nodes without the desktop app](installation.md#python-nodes-without-the-desktop-app). With `NODETOOL_PYTHON_ON_DEMAND=true`, these providers appear only after a workflow has started the worker. The worker's `huggingface` provider appears as `huggingface-local` because the TypeScript runtime already owns the `huggingface` id for the hosted API. These providers offer image, video, TTS, music, ASR, and embedding models from the worker's pack.
 
 ## NodeTool managed models
 

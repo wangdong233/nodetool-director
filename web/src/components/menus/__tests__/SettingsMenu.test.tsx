@@ -1,9 +1,9 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import mockTheme from "../../../__mocks__/themeMock";
 import { useSettingsPageStore } from "../../../stores/SettingsPageStore";
-import { changeAppLanguage, resetI18nForTest } from "../../../i18n";
+import { useSettingsStore } from "../../../stores/SettingsStore";
 
 jest.mock("../../../lib/env", () => ({
   isLocalhost: true,
@@ -81,6 +81,16 @@ jest.mock("../../../stores/NotificationStore", () => ({
     selector({ addNotification: jest.fn() })
 }));
 
+const mockSetMode = jest.fn();
+jest.mock("@mui/material/styles", () => ({
+  ...jest.requireActual("@mui/material/styles"),
+  useColorScheme: () => ({
+    mode: "dark",
+    systemMode: "dark",
+    setMode: mockSetMode
+  })
+}));
+
 import SettingsPage from "../SettingsMenu";
 
 const renderSettings = () =>
@@ -108,7 +118,7 @@ describe("SettingsPage", () => {
       screen.getByRole("textbox", { name: "Search settings" })
     ).toBeInTheDocument();
     expect(
-      screen.queryByPlaceholderText("Search providers...")
+      screen.queryByPlaceholderText("Search providers")
     ).not.toBeInTheDocument();
   });
 
@@ -117,7 +127,7 @@ describe("SettingsPage", () => {
     renderSettings();
     const search = screen.getByRole("textbox", { name: "Search settings" });
     await user.type(search, "openai");
-    await user.click(screen.getByRole("tab", { name: "Models & Providers" }));
+    await user.click(screen.getByRole("tab", { name: "Models & providers" }));
     expect(search).toHaveValue("openai");
     expect(screen.getByText("providers openai")).toBeInTheDocument();
   });
@@ -131,24 +141,39 @@ describe("SettingsPage", () => {
     );
     expect(screen.getByText("No matches in General.")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Models & Providers" })
+      screen.getByRole("button", { name: "Models & providers" })
     ).toBeInTheDocument();
   });
 
-  it("localizes general section descriptions in zh", async () => {
+  // UX research study 2: people looking for a way to make the app easier to
+  // read opened Appearance and found only the time format.
+  it("lets people choose the theme under Appearance", async () => {
+    const user = userEvent.setup();
     renderSettings();
-    await act(async () => {
-      await changeAppLanguage("zh-CN");
-    });
-    try {
-      // A catalog-backed description flips with the language switcher that
-      // lives inside this same page.
-      expect(
-        screen.getByText("按固定间隔自动保存工作流。")
-      ).toBeInTheDocument();
-    } finally {
-      await resetI18nForTest();
-    }
+    const theme = screen.getByRole("combobox", { name: "Theme" });
+    expect(theme).toHaveTextContent("Dark");
+    await user.click(theme);
+    await user.click(screen.getByRole("option", { name: "Light" }));
+    expect(mockSetMode).toHaveBeenCalledWith("light");
+  });
+
+  // UX research study 2: people asked for larger text to read the app.
+  it("lets people pick a text size under Appearance", async () => {
+    const user = userEvent.setup();
+    useSettingsStore.getState().setTextSize("default");
+    renderSettings();
+    const textSize = screen.getByRole("combobox", { name: "Text size" });
+    expect(textSize).toHaveTextContent("Default");
+    await user.click(textSize);
+    await user.click(screen.getByRole("option", { name: "Larger" }));
+    expect(useSettingsStore.getState().settings.textSize).toBe("larger");
+  });
+
+  it("finds the text size setting by searching for font size", async () => {
+    const user = userEvent.setup();
+    renderSettings();
+    await user.type(screen.getByRole("textbox", { name: /search/i }), "font size");
+    expect(screen.getByRole("combobox", { name: "Text size" })).toBeVisible();
   });
 
   it("lists only sections that match the search in the sidebar", async () => {
@@ -176,7 +201,7 @@ describe("SettingsPage", () => {
       );
 
       expect(
-        within(sidebar).getByRole("button", { name: "Canvas & Navigation" })
+        within(sidebar).getByRole("button", { name: "Canvas & navigation" })
       ).toBeInTheDocument();
       expect(
         within(sidebar).queryByRole("button", { name: "Execution" })

@@ -5,7 +5,9 @@ import {
   useTTSModelMenuStore
 } from "../../stores/ModelMenuStore";
 import { useTTSModelsByProvider } from "../../hooks/useModelsByProvider";
-import { useTranslation } from "react-i18next";
+
+/** The provider capability this picker serves, for local providers to install. */
+const LOCAL_CAPABILITIES = ["text_to_speech"];
 
 interface TTSModelMenuDialogProps {
   open: boolean;
@@ -24,7 +26,6 @@ function TTSModelMenuDialog({
   recommendedModels,
   modelPacks
 }: TTSModelMenuDialogProps) {
-  const { t } = useTranslation();
   const modelData = useTTSModelsByProvider();
   return (
     <ModelMenuDialogBase<TTSModel>
@@ -33,10 +34,11 @@ function TTSModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title={t("editor:ui.selectTTSModel", { defaultValue: "Select TTS Model" })}
-      searchPlaceholder={t("editor:ui.searchTextToSpeechModels", { defaultValue: "Search text-to-speech models..." })}
+      title="Select TTS model"
+      searchPlaceholder="Search text-to-speech models"
       storeHook={useTTSModelMenuStore}
       modelType="tts_model"
+      localCapabilities={LOCAL_CAPABILITIES}
       recommendedModels={recommendedModels}
       modelPacks={modelPacks}
     />

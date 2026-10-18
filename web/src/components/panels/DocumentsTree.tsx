@@ -1,9 +1,8 @@
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
-import { useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, MouseEvent } from "react";
 import { useTheme } from "@mui/material/styles";
 import type { SvgIconComponent } from "@mui/icons-material";
+import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import BrushOutlinedIcon from "@mui/icons-material/BrushOutlined";
 import DashboardCustomizeOutlinedIcon from "@mui/icons-material/DashboardCustomizeOutlined";
@@ -12,7 +11,10 @@ import DataObjectOutlinedIcon from "@mui/icons-material/DataObjectOutlined";
 import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import RecordVoiceOverOutlinedIcon from "@mui/icons-material/RecordVoiceOverOutlined";
+import SportsEsportsOutlinedIcon from "@mui/icons-material/SportsEsportsOutlined";
 import WorkflowIcon from "@mui/icons-material/AccountTreeOutlined";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { colorForType } from "../../config/data_types";
@@ -23,7 +25,9 @@ import {
   type DocumentTreeLeafType
 } from "../../hooks/useDocumentTreeData";
 import { useDeleteDocument } from "../../serverState/useDeleteDocument";
+import { useDuplicateWorkflowDocument } from "../../hooks/useDuplicateWorkflowDocument";
 import { useOpenApplication } from "../../hooks/useOpenApplication";
+import { useRenameDocument } from "../../hooks/useRenameDocument";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { usePanelStore } from "../../stores/PanelStore";
 import type { BugReportContext } from "../../utils/bugReportBundle";
@@ -34,23 +38,31 @@ import {
 import { EntityEditorDialog } from "../entities/EntityEditorDialog";
 import ReportBugButton from "../support/ReportBugButton";
 import { TYPE_COLOR } from "../workspace/tabTypeIdentity";
+import { tabCanRename } from "../workspace/tabRename";
 import {
   BORDER_RADIUS,
   Box,
   ConfirmDialog,
+  ContextMenu,
   DeleteButton,
   EmptyState,
   ExpandCollapseButton,
   FlexColumn,
   FlexRow,
+  InlineEditableText,
   LoadingSpinner,
+  MenuItemPrimitive,
   PADDING,
   ScrollArea,
   SearchInput,
   SPACING,
   Text,
   TruncatedText,
-  PanelHeader
+  TYPOGRAPHY,
+  PanelHeader,
+  ToolbarIconButton,
+  selectableRowStyles,
+  ICON_SIZE
 } from "../ui_primitives";
 
 const DOCUMENT_TAB_TYPES = {
@@ -59,17 +71,38 @@ const DOCUMENT_TAB_TYPES = {
   script: "script",
   storyboard: "storyboard",
   timeline: "timeline",
-  jsscript: "jsscript"
+  jsscript: "jsscript",
+  game: "game",
+  text: "text"
 } satisfies Record<
   Exclude<DocumentTreeLeafType, "application" | "entity">,
   WorkspaceTabType
 >;
 
+/** The tab type that opens a leaf, or null for a kind no tab opens. */
+const leafTabType = (type: DocumentTreeLeafType): WorkspaceTabType | null => {
+  if (type === "entity") {
+    return null;
+  }
+  return type === "application" ? "application" : DOCUMENT_TAB_TYPES[type];
+};
+
+const leafCanRename = (type: DocumentTreeLeafType): boolean => {
+  const tabType = leafTabType(type);
+  return tabType !== null && tabCanRename(tabType);
+};
+
+/** Games have no delete route, so their rows offer no delete action. */
+const leafCanDelete = (type: DocumentTreeLeafType): boolean =>
+  type !== "game";
+
 const GROUP_ICONS: Record<DocumentTreeGroup["id"], SvgIconComponent> = {
   workflows: WorkflowIcon,
   apps: DashboardCustomizeOutlinedIcon,
   creative: BrushOutlinedIcon,
-  agents: AutoAwesomeIcon
+  text: ArticleOutlinedIcon,
+  agents: AutoAwesomeIcon,
+  entities: PersonOutlineOutlinedIcon
 };
 
 const LEAF_ICONS: Record<DocumentTreeLeafType, SvgIconComponent> = {
@@ -80,7 +113,9 @@ const LEAF_ICONS: Record<DocumentTreeLeafType, SvgIconComponent> = {
   storyboard: DashboardOutlinedIcon,
   timeline: MovieOutlinedIcon,
   entity: PersonOutlineOutlinedIcon,
-  jsscript: DataObjectOutlinedIcon
+  jsscript: DataObjectOutlinedIcon,
+  game: SportsEsportsOutlinedIcon,
+  text: ArticleOutlinedIcon
 };
 
 const LEAF_ICON_COLORS: Record<DocumentTreeLeafType, string> = {
@@ -91,7 +126,9 @@ const LEAF_ICON_COLORS: Record<DocumentTreeLeafType, string> = {
   storyboard: TYPE_COLOR.storyboard,
   timeline: TYPE_COLOR.timeline,
   entity: colorForType("entity"),
-  jsscript: TYPE_COLOR.jsscript
+  jsscript: TYPE_COLOR.jsscript,
+  game: TYPE_COLOR.game,
+  text: TYPE_COLOR.text
 };
 
 interface DocumentsTreeProps {
@@ -103,18 +140,67 @@ interface DocumentTreeRowProps {
   readonly leaf: DocumentTreeLeaf;
   readonly active: boolean;
   readonly onOpen: (document: DocumentTreeLeaf) => void;
-  readonly onDelete: (document: DocumentTreeLeaf) => void;
+  /** Present only for kinds that can be deleted from the tree. */
+  readonly onDelete?: (document: DocumentTreeLeaf) => void;
+  /** Present only for kinds that can be copied from the tree. */
+  readonly onDuplicate?: (document: DocumentTreeLeaf) => void;
+  /** Present only for kinds that can be renamed. */
+  readonly onRename?: (document: DocumentTreeLeaf, name: string) => void;
 }
 
-const DocumentTreeRow = ({
+const ROW_ACTION_CLASSES = [
+  ".documents-tree-delete",
+  ".documents-tree-duplicate",
+  ".documents-tree-rename"
+];
+
+// Memoized: a save refetches the document index, and a project has hundreds of
+// rows. `useDocumentTreeData` keeps the leaf of an unchanged document.
+const DocumentTreeRow = memo(function DocumentTreeRow({
   leaf,
   active,
   onOpen,
-  onDelete
-}: DocumentTreeRowProps) => {
+  onDelete,
+  onDuplicate,
+  onRename
+}: DocumentTreeRowProps) {
   const Icon = LEAF_ICONS[leaf.type];
+  const [editing, setEditing] = useState(false);
   const handleClick = useCallback(() => onOpen(leaf), [leaf, onOpen]);
-  const handleDelete = useCallback(() => onDelete(leaf), [leaf, onDelete]);
+  const handleDelete = useCallback(() => onDelete?.(leaf), [leaf, onDelete]);
+  const handleDuplicate = useCallback(
+    () => onDuplicate?.(leaf),
+    [leaf, onDuplicate]
+  );
+  const [menuPosition, setMenuPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const handleBeginRename = useCallback(() => {
+    setMenuPosition(null);
+    setEditing(true);
+  }, []);
+  const handleCloseMenu = useCallback(() => setMenuPosition(null), []);
+  const handleContextMenu = useCallback(
+    (event: MouseEvent<HTMLElement>) => {
+      if (!onRename || editing) {
+        return;
+      }
+      event.preventDefault();
+      // Shift+F10 and the context-menu key report no pointer position.
+      if (event.clientX === 0 && event.clientY === 0) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        setMenuPosition({ x: rect.left, y: rect.bottom });
+        return;
+      }
+      setMenuPosition({ x: event.clientX, y: event.clientY });
+    },
+    [editing, onRename]
+  );
+  const handleCommitRename = useCallback(
+    (name: string) => onRename?.(leaf, name),
+    [leaf, onRename]
+  );
 
   return (
     <FlexRow
@@ -122,19 +208,24 @@ const DocumentTreeRow = ({
       fullWidth
       className="documents-tree-row"
       sx={{
-        "& .documents-tree-delete": { opacity: 0 },
-        "&:hover .documents-tree-delete, &:focus-within .documents-tree-delete":
-          { opacity: 1 }
+        [ROW_ACTION_CLASSES.map((name) => `& ${name}`).join(", ")]: {
+          opacity: 0
+        },
+        [ROW_ACTION_CLASSES.flatMap((name) => [
+          `&:hover ${name}`,
+          `&:focus-within ${name}`
+        ]).join(", ")]: { opacity: 1 }
       }}
     >
       <Box
-        component="button"
-        type="button"
+        component={editing ? "div" : "button"}
+        type={editing ? undefined : "button"}
         role="treeitem"
         aria-level={2}
         aria-selected={active}
         aria-current={active ? "page" : undefined}
-        onClick={handleClick}
+        onClick={editing ? undefined : handleClick}
+        onContextMenu={handleContextMenu}
         className="documents-tree-leaf"
         sx={{
           width: "100%",
@@ -153,22 +244,17 @@ const DocumentTreeRow = ({
             minHeight: theme.spacing(8),
             padding: `${theme.spacing(SPACING.xs)} ${theme.spacing(SPACING.sm)}`,
             paddingLeft: theme.spacing(SPACING.xxl),
-            borderRadius: BORDER_RADIUS.md,
             color: active
               ? theme.vars.palette.text.primary
               : theme.vars.palette.text.secondary,
-            backgroundColor: active
-              ? theme.vars.palette.action.selected
-              : "transparent",
             textAlign: "left",
             cursor: "pointer",
+            ...selectableRowStyles(theme, { selected: active }),
             "&:hover": {
-              backgroundColor: theme.vars.palette.action.hover,
+              backgroundColor: active
+                ? theme.vars.palette.action.selected
+                : theme.vars.palette.action.hover,
               color: theme.vars.palette.text.primary
-            },
-            "&:focus-visible": {
-              outline: `2px solid ${theme.vars.palette.primary.main}`,
-              outlineOffset: -2
             }
           })}
         >
@@ -176,31 +262,81 @@ const DocumentTreeRow = ({
             aria-hidden="true"
             sx={(theme) => ({
               color: `color-mix(in srgb, ${LEAF_ICON_COLORS[leaf.type]} 60%, ${theme.vars.palette.text.primary})`,
-              fontSize: "var(--fontSizeBig)"
+              fontSize: ICON_SIZE.md
             })}
           />
-          <TruncatedText
-            component="span"
-            showTooltip
-            sx={{ minWidth: 0, flex: 1 }}
-          >
-            {leaf.name}
-          </TruncatedText>
+          {editing ? (
+            <InlineEditableText
+              ariaLabel={`Rename ${leaf.name}`}
+              value={leaf.name}
+              editing
+              onEditingChange={setEditing}
+              onCommit={handleCommitRename}
+              sx={{
+                ...TYPOGRAPHY.sans.label,
+                minWidth: 0,
+                flex: 1,
+                color: "text.primary",
+                bgcolor: "background.default",
+                border: 1,
+                borderColor: "primary.main"
+              }}
+            />
+          ) : (
+            <TruncatedText
+              component="span"
+              showTooltip
+              sx={{ ...TYPOGRAPHY.sans.label, minWidth: 0, flex: 1 }}
+            >
+              {leaf.name}
+            </TruncatedText>
+          )}
           <Text size="smaller" color="secondary" sx={{ flexShrink: 0 }}>
             {leaf.typeLabel}
           </Text>
         </FlexRow>
       </Box>
-      <DeleteButton
-        onClick={handleDelete}
-        tooltip={`Delete ${leaf.name}`}
-        ariaLabel={`Delete ${leaf.name}`}
-        iconVariant="outline"
-        className="documents-tree-delete"
-      />
+      {onRename && !editing && (
+        <ToolbarIconButton
+          icon={<DriveFileRenameOutlineIcon fontSize="small" />}
+          tooltip={`Rename ${leaf.name}`}
+          aria-label={`Rename ${leaf.name}`}
+          onClick={handleBeginRename}
+          size="small"
+          className="documents-tree-rename"
+        />
+      )}
+      {onDuplicate && (
+        <ToolbarIconButton
+          icon={<ContentCopyIcon fontSize="small" />}
+          tooltip={`Duplicate ${leaf.name}`}
+          aria-label={`Duplicate ${leaf.name}`}
+          onClick={handleDuplicate}
+          size="small"
+          className="documents-tree-duplicate"
+        />
+      )}
+      {onDelete && (
+        <DeleteButton
+          onClick={handleDelete}
+          tooltip={`Delete ${leaf.name}`}
+          ariaLabel={`Delete ${leaf.name}`}
+          iconVariant="outline"
+          className="documents-tree-delete"
+        />
+      )}
+      {onRename && (
+        <ContextMenu
+          open={menuPosition !== null}
+          position={menuPosition}
+          onClose={handleCloseMenu}
+        >
+          <MenuItemPrimitive label="Rename" onClick={handleBeginRename} />
+        </ContextMenu>
+      )}
     </FlexRow>
   );
-};
+});
 
 interface DocumentTreeGroupRowProps {
   readonly group: DocumentTreeGroup;
@@ -209,6 +345,8 @@ interface DocumentTreeGroupRowProps {
   readonly activeTabId: string | null;
   readonly onOpen: (document: DocumentTreeLeaf) => void;
   readonly onDelete: (document: DocumentTreeLeaf) => void;
+  readonly onDuplicate: (document: DocumentTreeLeaf) => void;
+  readonly onRename: (document: DocumentTreeLeaf, name: string) => void;
 }
 
 const DocumentTreeGroupRow = ({
@@ -217,9 +355,10 @@ const DocumentTreeGroupRow = ({
   onToggle,
   activeTabId,
   onOpen,
-  onDelete
+  onDelete,
+  onDuplicate,
+  onRename
 }: DocumentTreeGroupRowProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const Icon = GROUP_ICONS[group.id];
   const handleKeyDown = useCallback(
@@ -241,12 +380,6 @@ const DocumentTreeGroupRow = ({
     },
     [onToggle]
   );
-
-  // Groups carry a stable labelKey when the label is translated (the raw label
-  // doubles as the English default); user-named groups render verbatim.
-  const groupLabel = group.labelKey
-    ? i18n.t(group.labelKey, { defaultValue: group.label })
-    : group.label;
 
   return (
     <FlexColumn
@@ -284,13 +417,13 @@ const DocumentTreeGroupRow = ({
           expanded={expanded}
           iconVariant="chevron"
           onClick={handleDisclosureClick}
-          aria-label={`${expanded ? i18n.t("editor:ui.collapse", { defaultValue: "Collapse" }) : i18n.t("editor:ui.expand", { defaultValue: "Expand" })} ${groupLabel}`}
+          aria-label={`${expanded ? "Collapse" : "Expand"} ${group.label}`}
           tabIndex={-1}
         />
-        <Icon aria-hidden="true" sx={{ fontSize: "var(--fontSizeBig)" }} />
-        <Text size="small" truncate>
-          {groupLabel}
-        </Text>
+        <Icon aria-hidden="true" sx={{ fontSize: ICON_SIZE.md }} />
+        <TruncatedText component="span" sx={TYPOGRAPHY.sans.label}>
+          {group.label}
+        </TruncatedText>
         <Text size="smaller" color="secondary" sx={{ marginLeft: "auto" }}>
           {group.children.length}
         </Text>
@@ -303,7 +436,11 @@ const DocumentTreeGroupRow = ({
               leaf={document}
               active={activeTabId === `${document.type}:${document.id}`}
               onOpen={onOpen}
-              onDelete={onDelete}
+              onDelete={leafCanDelete(document.type) ? onDelete : undefined}
+              onDuplicate={
+                document.type === "workflow" ? onDuplicate : undefined
+              }
+              onRename={leafCanRename(document.type) ? onRename : undefined}
             />
           ))}
         </FlexColumn>
@@ -313,7 +450,6 @@ const DocumentTreeGroupRow = ({
 };
 
 const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const openApplication = useOpenApplication();
@@ -335,7 +471,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
   const errorContext = useMemo<BugReportContext>(
     () => ({
       source: "panel-crash",
-      summary: i18n.t("editor:ui.projectDocumentsFailedToLoad", { defaultValue: "Project documents failed to load" }),
+      summary: "Project documents failed to load",
       errorText: error?.message,
       stackTrace: error?.stack
     }),
@@ -394,6 +530,51 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
     [location.pathname, navigate, openApplication, openTab, setVisibility]
   );
 
+  const duplicateWorkflow = useDuplicateWorkflowDocument();
+  // Read through a ref, so a refetch does not hand every row a new callback.
+  const groupsRef = useRef(groups);
+  groupsRef.current = groups;
+  const handleDuplicate = useCallback(
+    (document: DocumentTreeLeaf) => {
+      const siblingNames =
+        groupsRef.current
+          .find((group) => group.id === "workflows")
+          ?.children.map((child) => child.name) ?? [];
+      duplicateWorkflow(document.id, siblingNames)
+        .then(() => {
+          if (!location.pathname.startsWith("/workspace")) {
+            navigate("/workspace");
+          }
+        })
+        .catch((duplicateError: unknown) =>
+          addNotification({
+            type: "error",
+            content: `Could not duplicate ${document.name}: ${
+              duplicateError instanceof Error
+                ? duplicateError.message
+                : "Unknown error"
+            }`
+          })
+        );
+    },
+    [addNotification, duplicateWorkflow, location.pathname, navigate]
+  );
+
+  const renameDocument = useRenameDocument();
+  const handleRename = useCallback(
+    (document: DocumentTreeLeaf, name: string) => {
+      const type = leafTabType(document.type);
+      if (type === null) {
+        return;
+      }
+      void renameDocument(
+        { type, ref: document.id, currentName: document.name },
+        name
+      );
+    },
+    [renameDocument]
+  );
+
   const handleConfirmDelete = useCallback(() => {
     if (!documentToDelete) {
       return;
@@ -427,24 +608,22 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
     <FlexColumn fullHeight fullWidth gap={0}>
       {!isMobile && (
         <PanelHeader
-          title={t("editor:ui.documents", { defaultValue: "Documents" })}
-          description={t("editor:ui.openDocumentsInTheCurrentProject", {
-            defaultValue: "Open documents in the current project."
-          })}
+          title="Documents"
+          description="Open documents in the current project."
         />
       )}
       <FlexColumn sx={{ py: SPACING.md }}>
         <SearchInput
           value={query}
           onChange={setQuery}
-          ariaLabel={t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
-          placeholder={t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
+          ariaLabel="Search documents"
+          placeholder="Search documents"
           fullWidth
         />
       </FlexColumn>
       {isLoading ? (
         <FlexColumn fullHeight align="center" justify="center">
-          <LoadingSpinner text={t("editor:ui.loadingDocuments", { defaultValue: "Loading documents" })} />
+          <LoadingSpinner text="Loading documents" />
         </FlexColumn>
       ) : isError ? (
         <FlexColumn
@@ -455,7 +634,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         >
           <EmptyState
             variant="error"
-            title={t("editor:ui.couldNotLoadDocuments", { defaultValue: "Could not load documents" })}
+            title="Could not load documents"
             description={
               <FlexColumn align="center" gap={SPACING.sm}>
                 <Text size="small">{error?.message ?? "Try again later."}</Text>
@@ -473,13 +652,14 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         >
           <EmptyState
             variant={query.trim() ? "no-results" : "empty"}
-            title={query.trim() ? i18n.t("editor:ui.noMatchingDocuments", { defaultValue: "No matching documents" }) : i18n.t("editor:ui.noDocumentsYet", { defaultValue: "No documents yet" })}
+            title={query.trim() ? "No matching documents" : "No documents yet"}
             description={
               query.trim()
-                ? i18n.t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })
-                : // A new text file is a Library file, not a document. Say so,
-                  // or the empty panel reads as a lost save.
-                  "Documents created in this project will appear here. Text files and uploads are in the Library."
+                ? // This search covers documents and text files only. Name
+                  // where the rest lives, or an empty result reads as "it
+                  // does not exist" (study-7-I5).
+                  "This searches documents only. Conversations are in Chats, and uploads are in the Library."
+                : "Workflows, text files and other documents created in this project will appear here. Uploads are in the Library."
             }
           />
         </FlexColumn>
@@ -487,7 +667,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         <ScrollArea fullHeight thin sx={{ flex: 1, minHeight: 0 }}>
           <FlexColumn
             role="tree"
-            aria-label={t("editor:ui.projectDocuments", { defaultValue: "Project documents" })}
+            aria-label="Project documents"
             gap={SPACING.xs}
           >
             {filteredGroups.map((group) => (
@@ -499,6 +679,8 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
                 activeTabId={activeTabId}
                 onOpen={handleOpen}
                 onDelete={setDocumentToDelete}
+                onDuplicate={handleDuplicate}
+                onRename={handleRename}
               />
             ))}
           </FlexColumn>

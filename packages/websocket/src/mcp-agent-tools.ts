@@ -63,8 +63,11 @@ import {
 import { FileStorageAdapter } from "@nodetool-ai/storage";
 import type { BaseProvider } from "@nodetool-ai/runtime";
 import { uiToolSchemas } from "@nodetool-ai/protocol";
+import { missingPackDetailsOf } from "@nodetool-ai/protocol";
 import { loadConfiguredProviders } from "./configured-providers.js";
 import { mcpToolHostDeps } from "./mcp-tool-deps.js";
+import { RunNodeTool } from "./agent/run-node-tool.js";
+import { serviceNodeRunner } from "./agent/run-node-workflow.js";
 import type { SketchLoader, TimelineLoader } from "@nodetool-ai/agents";
 import {
   getSecret,
@@ -84,7 +87,7 @@ import { tmpdir } from "node:os";
 import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
-import sharp from "sharp";
+import { loadSharpOrThrow } from "@nodetool-ai/runtime";
 import { getAssetAdapter } from "./lib/storage.js";
 import { normalizeAssetContentType } from "./lib/asset-paths.js";
 import {
@@ -274,7 +277,12 @@ function isErrorResult(result: unknown): boolean {
   return Boolean(r["error"]) || r["success"] === false;
 }
 
-function toToolResponse(result: unknown) {
+export function toToolResponse(result: unknown) {
+  const missing = missingPackDetailsOf(result) ?? (isRecord(result) ? missingPackDetailsOf(result["result"]) : null);
+  if (missing) {
+    const payload = { ...missing, restartRequired: true };
+    return { content: [{ type: "text" as const, text: JSON.stringify(payload) }], isError: true as const, structuredContent: payload };
+  }
   const isObject = isRecord(result);
   const isError = isErrorResult(result);
   const base = {
@@ -313,6 +321,8 @@ async function toImageToolResponse(
 }
 
 function errorResponse(err: unknown) {
+  const missing = missingPackDetailsOf(err);
+  if (missing) { return toToolResponse(missing); }
   return {
     content: [
       {
@@ -950,6 +960,7 @@ export function registerAgentMcpTools(
               ? fileURLToPath(imageId)
               : imageId;
             const bytes = await readFile(path);
+            const sharp = await loadSharpOrThrow();
             await sharp(bytes).metadata();
             const mime = isSvgBytes(bytes)
               ? "image/svg+xml"
@@ -984,9 +995,30 @@ export function registerAgentMcpTools(
   // The belt the sandbox sees. Deduped by name, because the two catalogs
   // overlap and a session must not offer one tool under two instances.
   const hostCapabilities: CapabilityExport[] = [];
+  const hostDeps = mcpToolHostDeps({
+    registry: options.registry,
+    metadataRoots: options.metadataRoots,
+    metadataMaxDepth: options.metadataMaxDepth,
+    examplesDir: options.examplesDir
+  });
+  const workflowEnvironment = hostDeps.workflowEnvironment;
   const legacyEntries = [
     new ImportAssetTool(localFilePathsAllowed, (args) =>
       capabilityRun.invoke("save_asset", args)
+    ),
+    // The chat turn supplies `run_node` itself; this mount has no turn, so it
+    // runs the node through the execution service instead.
+    new RunNodeTool(
+      serviceNodeRunner({
+        userId: scope.userId,
+        registry: options.registry,
+        environment: async () =>
+          workflowEnvironment
+            ? workflowEnvironment()
+            : options.registry
+              ? { registry: options.registry }
+              : null
+      })
     ),
     new RenderDemoSurfaceTool(),
     ...editorSteeringTools(options, scope.userId)
@@ -1075,12 +1107,7 @@ export function registerAgentMcpTools(
     gate,
     availableSecrets: contextSecretAvailability(context),
     nodeRegistry: options.registry,
-    ...mcpToolHostDeps({
-      registry: options.registry,
-      metadataRoots: options.metadataRoots,
-      metadataMaxDepth: options.metadataMaxDepth,
-      examplesDir: options.examplesDir
-    }),
+    ...hostDeps,
     providers: sharedProviders,
     loaders: { timeline: loadTimelineForUser, sketch: loadSketchForUser }
   });

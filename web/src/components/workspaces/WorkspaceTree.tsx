@@ -5,12 +5,11 @@ import isEqual from "../../utils/isEqual";
 import { useQuery } from "@tanstack/react-query";
 import { FileInfo } from "../../stores/ApiTypes";
 import { trpcClient } from "../../trpc/client";
-import { Text, Caption, Box, EditorButton, Skeleton, BORDER_RADIUS, MOTION, SPACING, getSpacingPx, PanelHeader } from "../ui_primitives";
+import { Box, EditorButton, Skeleton, BORDER_RADIUS, MOTION, SPACING, getSpacingPx, PanelHeader, EmptyState } from "../ui_primitives";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
-import AddIcon from "@mui/icons-material/Add";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { RefreshButton, SettingsButton } from "../ui_primitives";
@@ -18,8 +17,6 @@ import { openPageTab } from "../workspace/openPageTab";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { useWorkspaceExplorer } from "../../hooks/useWorkspaceExplorer";
 import WorkspaceSelect from "./WorkspaceSelect";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 /** Props forwarded onto a rendered tree row. */
 interface TreeViewItemSlotProps {
@@ -132,16 +129,6 @@ const workspaceTreeStyles = (theme: Theme) =>
       flexShrink: 0
     },
 
-    ".empty-workspace": {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: getSpacingPx(SPACING.md),
-      padding: `${getSpacingPx(SPACING.xxl)} ${getSpacingPx(SPACING.xl)}`,
-      textAlign: "center"
-    },
-
     ".skeleton-tree": {
       display: "flex",
       flexDirection: "column",
@@ -193,7 +180,7 @@ const treeViewStyles = (theme: Theme) => ({
 
 const createErrorItem = (itemId: string): TreeViewItem => ({
   id: `${itemId}/error`,
-  label: i18n.t("editor:ui.accessDenied", { defaultValue: "⚠️ Access denied" }),
+  label: "⚠️ Access denied",
   children: undefined,
   className: "error-item"
 });
@@ -211,7 +198,7 @@ const fileToTreeItem = (file: FileInfo): TreeViewItem => {
     item.children = [
       {
         id: file.path + "/loading",
-        label: i18n.t("editor:ui.loadingDots", { defaultValue: "loading..." }),
+        label: "Loading…",
         className: "loading-item",
         children: []
       }
@@ -273,9 +260,7 @@ const depthOf = (path: string): number => path.split("/").length;
 
 const shouldLoadChildren = (item: TreeViewItem | undefined): boolean => {
   return Boolean(
-    item?.children?.length === 1 &&
-      item.children[0].label ===
-        i18n.t("editor:ui.loadingDots", { defaultValue: "loading..." })
+    item?.children?.length === 1 && item.children[0].label === "Loading…"
   );
 };
 
@@ -292,7 +277,6 @@ interface WorkspaceTreeProps {
 }
 
 const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [files, setFiles] = useState<TreeViewItem[]>([]);
   const filesRef = useRef<TreeViewItem[]>([]);
@@ -326,7 +310,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
   // The query answers with the root listing; lazily-loaded children are merged
   // into this copy as folders expand.
   //
-  // A refetch replaces the whole tree, which puts a `loading...` placeholder
+  // A refetch replaces the whole tree, which puts a `Loading…` placeholder
   // back under every folder that was open — and nothing would ever replace it,
   // because MUI keeps its expansion state and so fires no expand event. The
   // open folders are therefore re-listed here, which is also what makes a file
@@ -472,12 +456,12 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
   return (
     <Box css={workspaceTreeStyles(theme)}>
       <PanelHeader
-        title={t("editor:ui.workspaceExplorer", { defaultValue: "Workspace Explorer" })}
+        title="Workspace Explorer"
         docsTopic="workspaces"
         actions={
           <RefreshButton
             onClick={handleRefresh}
-            tooltip={t("ui:attrs.refresh", { defaultValue: "Refresh" })}
+            tooltip="Refresh"
             tooltipPlacement="bottom"
           />
         }
@@ -492,7 +476,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
         <SettingsButton
           className="settings-button"
           onClick={handleManageWorkspace}
-          tooltip={t("editor:ui.manageWorkspaces", { defaultValue: "Manage Workspaces" })}
+          tooltip="Manage workspaces"
         />
       </div>
 
@@ -501,7 +485,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
           <span
             className="breadcrumb-segment"
             role="button"
-            aria-label={t("editor:ui.goToWorkspaceRoot", { defaultValue: "Go to workspace root" })}
+            aria-label="Go to workspace root"
             tabIndex={0}
             onClick={() => setSelectedFilePath("")}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { setSelectedFilePath(""); } }}
@@ -525,7 +509,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
             startIcon={<FolderOpenIcon />}
             onClick={handleOpenInFolder}
           >
-            {t("editor:ui.openInFolder")}
+            Open in folder
           </EditorButton>
           {Boolean(window.api?.shell?.openPath) && (
             <EditorButton
@@ -534,7 +518,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
               startIcon={<OpenInNewIcon />}
               onClick={handleOpenExternally}
             >
-              {t("editor:ui.openExternally")}
+              Open externally
             </EditorButton>
           )}
         </div>
@@ -551,24 +535,14 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
             <Skeleton variant="text" width="40%" height={24} />
           </div>
         ) : !workspaceId ? (
-          <div className="empty-workspace">
-            <FolderOpenIcon
-              sx={{ fontSize: 40, opacity: 0.3, color: "text.secondary" }}
-            />
-            <Text size="small" color="secondary">
-              {t("editor:ui.noWorkspaceSelected")}
-            </Text>
-            <Caption color="secondary">
-              Select a workspace above or create one
-            </Caption>
-            <EditorButton
-              startIcon={<AddIcon />}
-              onClick={handleManageWorkspace}
-              sx={{ mt: 1 }}
-            >
-              {t("editor:ui.createWorkspace")}
-            </EditorButton>
-          </div>
+          <EmptyState
+            size="small"
+            icon={<FolderOpenIcon />}
+            title="No workspace selected"
+            description="Select a workspace above or create one."
+            actionText="Create workspace"
+            onAction={handleManageWorkspace}
+          />
         ) : files.length > 0 ? (
           <div onDoubleClick={handleTreeDoubleClick}>
             <RichTreeView
@@ -581,7 +555,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
                 }
               }}
               items={files}
-              aria-label={t("editor:ui.workspaceFileBrowser", { defaultValue: "workspace file browser" })}
+              aria-label="workspace file browser"
               selectedItems={selectedFilePath}
               sx={treeViewStyles(theme)}
               slotProps={{
@@ -594,17 +568,12 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
             />
           </div>
         ) : (
-          <div className="empty-workspace">
-            <FolderOpenIcon
-              sx={{ fontSize: 36, opacity: 0.3, color: "text.secondary" }}
-            />
-            <Text size="small" color="secondary">
-              {t("editor:ui.workspaceIsEmpty")}
-            </Text>
-            <Caption color="secondary">
-              Add files to your workspace folder to see them here
-            </Caption>
-          </div>
+          <EmptyState
+            size="small"
+            icon={<FolderOpenIcon />}
+            title="Workspace is empty"
+            description="Add files to your workspace folder to see them here."
+          />
         )}
       </div>
     </Box>

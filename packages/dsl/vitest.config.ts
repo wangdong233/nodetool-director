@@ -3,6 +3,7 @@ import { resolve } from "path";
 export default defineConfig({
   resolve: {
     alias: {
+      "@nodetool-ai/node-catalog": resolve(__dirname, "../node-catalog/src/index.ts"),
       "@nodetool-ai/execution": resolve(__dirname, "../execution/src"),
       "@nodetool-ai/protocol": resolve(__dirname, "../protocol/src"),
       "@nodetool-ai/kernel": resolve(__dirname, "../kernel/src/index.ts"),
@@ -62,7 +63,10 @@ export default defineConfig({
       "@nodetool-ai/transformers-js-nodes": resolve(
         __dirname,
         "../transformers-js-nodes/src/index.ts"
-      )
+      ),
+      // Tests import this package by name. Resolve it to src/ so coverage
+      // lands on the source, not dist/.
+      "@nodetool-ai/dsl": resolve(__dirname, "src/index.ts")
     }
   },
   test: {

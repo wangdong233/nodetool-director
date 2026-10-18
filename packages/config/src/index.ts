@@ -50,7 +50,32 @@ export {
   type Logger
 } from "./logging.js";
 
-export { importOptionalModule } from "./optional-modules.js";
+export { importOptionalModule, esmExportPath, packageManifestSchema } from "./optional-modules.js";
+
+export {
+  runtimeLocations,
+  runtimeBinPath,
+  applyRuntimeEnv,
+  isNodetoolHost,
+  type NodetoolHost,
+  type RuntimeLocations,
+  type RuntimeLocationOptions
+} from "./runtime-locations.js";
+
+export {
+  SD_CPP_RELEASE_TAG,
+  sdCppAsset,
+  sdCppAssetUrl,
+  sdServerPath,
+  sdCppInstallStatus,
+  installSdCpp,
+  uninstallSdCpp,
+  readZipEntries,
+  type SdCppAsset,
+  type SdCppInstallEvent,
+  type SdCppInstallOptions,
+  type SdCppInstallStatus
+} from "./sd-cpp-runtime.js";
 
 export {
   PACKAGE_RUNTIME_ASSETS,
@@ -66,6 +91,7 @@ export {
 export {
   resolvePackageAssetPath,
   loadPackageAssetJson,
+  loadPackageAssetBytes,
   getPackageAssetResolutions,
   type PackageAssetResolution
 } from "./package-assets.js";

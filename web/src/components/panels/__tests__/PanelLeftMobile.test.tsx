@@ -28,7 +28,9 @@ jest.mock("../../../hooks/handlers/useResizePanel", () => ({
     size: 300,
     isVisible: true,
     isDragging: false,
-    handleMouseDown: jest.fn(),
+    handleResizeStart: jest.fn(),
+    handleResize: jest.fn(),
+    handleResizeEnd: jest.fn(),
     handlePanelToggle: (view: string) =>
       usePanelStore.getState().setActiveView(view as never)
   })
@@ -159,8 +161,7 @@ jest.mock("../../jsScript/JsScriptListPanel", () => ({
 }));
 jest.mock("../../skills/SkillListPanel", () => ({
   __esModule: true,
-  default: () => <div data-testid="skill-list" />,
-  CreateSkillButton: () => <div data-testid="create-skill" />
+  default: () => <div data-testid="skill-list" />
 }));
 jest.mock("../../workspaces/WorkspaceTree", () => ({
   __esModule: true,
@@ -214,7 +215,7 @@ it("keeps the consolidated document tree and utility views in the mobile tab row
       )
     )
   ).toEqual([
-    ["Projects", "Documents", "Chats", "Library", "Entities", "More"]
+    ["Projects", "Documents", "Chats", "Library", "Entities", "Examples", "More"]
   ]);
   expect(screen.queryByLabelText("Workflows")).not.toBeInTheDocument();
   expect(screen.queryByLabelText("Apps")).not.toBeInTheDocument();
@@ -267,7 +268,7 @@ it("searches nested panels and application destinations together", async () => {
   );
 
   expect(screen.getByText("Downloads")).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: /Favorite Nodes/ })).toBeNull();
+  expect(screen.queryByRole("button", { name: /Favorite nodes/ })).toBeNull();
   expect(screen.queryByText("Workflow tools")).toBeNull();
 });
 

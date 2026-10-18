@@ -13,12 +13,17 @@ import LightbulbIcon from "@mui/icons-material/Lightbulb";
 import FlashlightOnIcon from "@mui/icons-material/FlashlightOn";
 
 import { BORDER_RADIUS, SPACING, Z_INDEX, getSpacingPx } from "../ui_primitives";
+import { depthRange, type CapturePass } from "./aiRender";
+import { fitDistance, followPosition, isOutOfView } from "./cameraFollow";
 
 export type ViewPreset = "front" | "back" | "right" | "left" | "top" | "bottom";
 
 export type CameraRequestInput =
   | { kind: "frameAll"; instant?: boolean }
   | { kind: "focus"; uuid: string }
+  // Re-target on an object that left the view, keeping the viewing direction
+  // and, when the object fits, the distance.
+  | { kind: "follow"; uuid: string }
   | { kind: "view"; view: ViewPreset };
 
 /** A camera move; `nonce` makes a repeated request run again. */
@@ -90,7 +95,7 @@ export const CameraRig = memo(({ root, request }: CameraRigProps) => {
       return;
     }
     let sphere: THREE.Sphere;
-    if (request.kind === "focus") {
+    if (request.kind === "focus" || request.kind === "follow") {
       const object = root.getObjectByProperty("uuid", request.uuid);
       if (!object) {
         return;
@@ -119,11 +124,11 @@ export const CameraRig = memo(({ root, request }: CameraRigProps) => {
       }
       direction.normalize();
     }
-    const vFov = THREE.MathUtils.degToRad(camera.fov);
-    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    const fov = Math.min(vFov, hFov);
-    const distance = (sphere.radius / Math.sin(fov / 2)) * 1.4;
-    const toPosition = sphere.center.clone().add(direction.multiplyScalar(distance));
+    const toPosition =
+      request.kind === "follow"
+        ? followPosition(camera, target, sphere)
+        : sphere.center.clone().add(direction.multiplyScalar(fitDistance(sphere.radius, camera)));
+    const distance = toPosition.distanceTo(sphere.center);
     camera.near = Math.max(distance / 1000, 0.01);
     camera.far = Math.max(distance * 100, 1000);
     camera.updateProjectionMatrix();
@@ -176,6 +181,43 @@ export const CameraRig = memo(({ root, request }: CameraRigProps) => {
   return null;
 });
 CameraRig.displayName = "CameraRig";
+
+interface FollowSelectionProps {
+  object: THREE.Object3D | null;
+  /** Changes after every committed edit. */
+  tick: number;
+  onLeftView: (uuid: string) => void;
+}
+
+/**
+ * Calls `onLeftView` when a committed edit moved or resized the selected
+ * object and its centre is now outside the camera's view. A new selection,
+ * or an edit that leaves the bounds unchanged, never moves the camera.
+ */
+export const FollowSelection = memo(({ object, tick, onLeftView }: FollowSelectionProps) => {
+  const { camera } = useThree();
+  const last = useRef<{ uuid: string; sphere: THREE.Sphere } | null>(null);
+
+  useEffect(() => {
+    if (!object) {
+      last.current = null;
+      return;
+    }
+    const sphere = objectBounds(object);
+    const previous = last.current;
+    last.current = { uuid: object.uuid, sphere };
+    if (!previous || previous.uuid !== object.uuid || previous.sphere.equals(sphere)) {
+      return;
+    }
+    camera.updateMatrixWorld();
+    if (isOutOfView(sphere.center, camera)) {
+      onLeftView(object.uuid);
+    }
+  }, [object, tick, camera, onLeftView]);
+
+  return null;
+});
+FollowSelection.displayName = "FollowSelection";
 
 interface SelectionBoundsProps {
   object: THREE.Object3D | null;
@@ -581,11 +623,16 @@ export const CaptureBridge = ({ targetRef }: CaptureBridgeProps) => {
 /**
  * Render the editor root alone: the grid, gizmos and helpers are hidden for
  * the frame, and a solid background replaces the transparent canvas.
+ *
+ * `depth` and `normal` swap every material for a depth or normal material
+ * for that one frame. Depth is drawn with near and far planes fitted to the
+ * scene, nearer surfaces brighter, on a black background.
  */
 export const captureModelOnly = (
   handles: CaptureHandles,
   root: THREE.Object3D,
-  background: THREE.Color
+  background: THREE.Color,
+  pass: CapturePass = "shaded"
 ): string => {
   const { gl, scene, camera } = handles;
   const hidden: THREE.Object3D[] = [];
@@ -596,11 +643,41 @@ export const captureModelOnly = (
     }
   }
   const previousBackground = scene.background;
-  scene.background = background;
+  const previousOverride = scene.overrideMaterial;
+  const projection =
+    camera instanceof THREE.PerspectiveCamera || camera instanceof THREE.OrthographicCamera
+      ? camera
+      : null;
+  const previousPlanes = projection ? { near: projection.near, far: projection.far } : null;
+  let override: THREE.Material | null = null;
+  if (pass === "depth") {
+    override = new THREE.MeshDepthMaterial();
+    scene.background = new THREE.Color(0x000000);
+    const range = depthRange(new THREE.Box3().setFromObject(root), camera);
+    if (projection && range) {
+      projection.near = range.near;
+      projection.far = range.far;
+      projection.updateProjectionMatrix();
+    }
+  } else if (pass === "normal") {
+    override = new THREE.MeshNormalMaterial();
+    // The normal of a surface facing the camera, so empty space reads as flat.
+    scene.background = new THREE.Color(0.5, 0.5, 1);
+  } else {
+    scene.background = background;
+  }
+  scene.overrideMaterial = override;
   try {
     gl.render(scene, camera);
     return gl.domElement.toDataURL("image/png");
   } finally {
+    scene.overrideMaterial = previousOverride;
+    override?.dispose();
+    if (projection && previousPlanes) {
+      projection.near = previousPlanes.near;
+      projection.far = previousPlanes.far;
+      projection.updateProjectionMatrix();
+    }
     scene.background = previousBackground;
     for (const child of hidden) {
       child.visible = true;

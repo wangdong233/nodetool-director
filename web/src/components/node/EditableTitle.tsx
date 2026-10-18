@@ -3,15 +3,16 @@ import { css, keyframes } from "@emotion/react";
 import { memo, useCallback, useMemo, useState } from "react";
 import { useNodes } from "../../contexts/NodeContext";
 import { useTheme } from "@mui/material/styles";
-import CloseIcon from "@mui/icons-material/Close";
-import { useTranslation } from "react-i18next";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import {
+  CountBadge,
   MOTION,
   BORDER_RADIUS,
   reducedMotion,
   SPACING,
   getSpacingPx,
-  Z_INDEX
+  Z_INDEX,
+  Tooltip
 } from "../ui_primitives";
 
 interface EditableTitleProps {
@@ -33,9 +34,17 @@ const EMOJI =
   /[#*0-9]\uFE0F?\u20E3|\p{RI}\p{RI}|\p{Extended_Pictographic}(?:\u200D\p{Extended_Pictographic}|\p{Emoji_Modifier}|\uFE0F)*/u;
 const EMOJI_SPLIT = new RegExp(`(${EMOJI.source})`, "gu");
 
-// A standalone keycap emoji (digit/#/* + keycap). These read as step indices
-// in the example notes, so we promote them to a clean numbered badge.
-const KEYCAP = /^[#*0-9]\uFE0F?\u20E3$/u;
+// A standalone digit keycap emoji (digit + keycap). These read as step indices
+// in the example notes, so we promote them to a clean numbered badge. The #
+// and * keycaps are not numbers and stay emoji.
+const KEYCAP = /^[0-9]\uFE0F?\u20E3$/u;
+
+// A neutral index, not an alert: the note's own muted colors.
+const STEP_BADGE_SX = {
+  mr: SPACING.sm,
+  bgcolor: "grey.700",
+  color: "grey.100"
+} as const;
 
 // Split the title into runs: keycap markers become crisp step badges, other
 // emoji are desaturated so their native colors don't clash, and plain text is
@@ -46,10 +55,17 @@ function renderTitleText(title: string) {
     .filter((part) => part !== "")
     .map((part, i) => {
       if (KEYCAP.test(part)) {
+        const step = Number(part.replace(/[\uFE0F\u20E3]/gu, ""));
         return (
-          <span key={i} className="step-badge">
-            {part.replace(/[\uFE0F\u20E3]/gu, "")}
-          </span>
+          <CountBadge
+            key={i}
+            className="step-badge"
+            count={step}
+            showZero
+            size="small"
+            ariaLabel={`Step ${step}`}
+            sx={STEP_BADGE_SX}
+          />
         );
       }
       if (EMOJI.test(part)) {
@@ -67,7 +83,6 @@ const EditableTitle = memo(function EditableTitle({
   nodeId,
   title
 }: EditableTitleProps) {
-  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const updateNodeData = useNodes((state) => state.updateNodeData);
   const theme = useTheme();
@@ -148,23 +163,6 @@ const EditableTitle = memo(function EditableTitle({
       whiteSpace: "pre-wrap"
     },
 
-    // Numbered step badge promoted from a keycap emoji — a crisp circular index.
-    ".step-badge": {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0,
-      width: "16px",
-      height: "16px",
-      marginRight: getSpacingPx(SPACING.sm),
-      borderRadius: BORDER_RADIUS.circle,
-      background: theme.vars.palette.grey[700],
-      color: theme.vars.palette.grey[100],
-      fontSize: "var(--fontSizeSmaller)",
-      fontWeight: 600,
-      lineHeight: 1
-    },
-
     // Other emoji render in harsh native colors that clash with the muted note.
     // Color glyphs ignore `color`, so desaturate them to a dimmed neutral grey.
     ".note-emoji": {
@@ -221,13 +219,15 @@ const EditableTitle = memo(function EditableTitle({
       e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
 
       if (e.key === "Enter" && !e.shiftKey) {
-        updateNodeData(nodeId, { title: e.currentTarget.value });
+        if (e.currentTarget.value !== title) {
+          updateNodeData(nodeId, { title: e.currentTarget.value });
+        }
         setIsEditing(false);
       } else if (e.key === "Escape") {
         setIsEditing(false);
       }
     },
-    [nodeId, updateNodeData]
+    [nodeId, title, updateNodeData]
   );
 
   const handleInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
@@ -242,10 +242,12 @@ const EditableTitle = memo(function EditableTitle({
 
   const handleBlur = useCallback(
     (e: React.FocusEvent<HTMLTextAreaElement>) => {
-      updateNodeData(nodeId, { title: e.currentTarget.value });
+      if (e.currentTarget.value !== title) {
+        updateNodeData(nodeId, { title: e.currentTarget.value });
+      }
       setIsEditing(false);
     },
-    [nodeId, updateNodeData]
+    [nodeId, title, updateNodeData]
   );
 
   return (
@@ -258,8 +260,8 @@ const EditableTitle = memo(function EditableTitle({
         <textarea
           defaultValue={title}
           autoFocus
-          aria-label={t("editor:ui.noteText", { defaultValue: "Note text" })}
-          placeholder={t("editor:ui.addYourNote", { defaultValue: "Add your note..." })}
+          aria-label="Note text"
+          placeholder="Add your note…"
           onKeyDown={handleKeyDown}
           onInput={handleInput}
           onBlur={handleBlur}
@@ -268,15 +270,16 @@ const EditableTitle = memo(function EditableTitle({
       ) : (
         <>
           <div className="title">{renderTitleText(title)}</div>
-          <button
-            type="button"
-            className="remove-title"
-            onClick={handleRemoveTitle}
-            title={t("editor:ui.removeNote", { defaultValue: "Remove note" })}
-            aria-label={t("editor:ui.removeNote", { defaultValue: "Remove note" })}
-          >
-            <CloseIcon className="icon" />
-          </button>
+          <Tooltip title="Delete note" describeChild>
+            <button
+              type="button"
+              className="remove-title"
+              onClick={handleRemoveTitle}
+              aria-label="Delete note"
+            >
+              <CloseIcon className="icon" />
+            </button>
+          </Tooltip>
         </>
       )}
     </div>

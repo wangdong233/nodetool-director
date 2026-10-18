@@ -16,7 +16,6 @@
  * of document entirely.
  */
 
-import { i18n } from "../../../i18n";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 
 import {
@@ -25,7 +24,7 @@ import {
   FlexColumn,
   GAP,
   Text,
-  TextInput
+  TextArea
 } from "../../ui_primitives";
 import { WORKFLOW_INSPIRATION_CHIPS } from "@nodetool-ai/protocol";
 import { ExampleBriefs } from "../ExampleBriefs";
@@ -35,7 +34,6 @@ import { useWorkflowSetupDocument } from "../../../hooks/workflow/useWorkflowSet
 import type { Workflow } from "../../../stores/ApiTypes";
 import ReportBugButton from "../../support/ReportBugButton";
 import { WorkflowExamplePicker } from "./ExamplePicker";
-import { useTranslation } from "react-i18next";
 
 export interface WorkflowIdeaStepProps {
   workflowId: string;
@@ -82,15 +80,14 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
   importError = null,
   onDismissImportError
 }) => {
-  const { t } = useTranslation();
   const setup = useWorkflowSetupDocument(workflowId);
   const brief = setup?.brief ?? "";
   const importInput = useRef<HTMLInputElement>(null);
   const briefField = useRef<HTMLElement | null>(null);
 
   const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      onBriefChange(event.target.value);
+    (value: string) => {
+      onBriefChange(value);
     },
     [onBriefChange]
   );
@@ -112,34 +109,32 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
     () => [
       {
         id: "example",
-        title: i18n.t("storyboard:attrs.startFromAnExample", { defaultValue: "Start from an example" }),
-        description: i18n.t("editor:ui.browseShippedWorkflowsCopyOne", { defaultValue: "Browse the shipped workflows and copy one" }),
+        title: "Start from an example",
+        description: "Browse the shipped workflows and copy one",
         onSelect: () => onBrowseExamples(true),
         // A file being read lands on this workflow and opens it, so a second
         // way in started meanwhile would be overwritten by it, or overwrite it.
         disabled: importing,
-        disabledReason: i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" })
+        disabledReason: "Reading your file"
       },
       {
         id: "import",
-        title: i18n.t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" }),
-        description: importing
-          ? i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" })
-          : i18n.t("setup:workflow.aWorkflowJSONFile", { defaultValue: "A workflow JSON file" }),
+        title: "Import a workflow",
+        description: importing ? "Reading your file" : "A workflow JSON file",
         onSelect: () => importInput.current?.click(),
         disabled: importing,
-        disabledReason: i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" })
+        disabledReason: "Reading your file"
       },
       {
         id: "blank",
-        title: i18n.t("editor:ui.startWithBlankCanvas", { defaultValue: "Start with a blank canvas" }),
-        description: i18n.t("editor:ui.skipPlanPlaceNodesYourself", { defaultValue: "Skip the plan and place nodes yourself" }),
+        title: "Start with a blank canvas",
+        description: "Skip the plan and place nodes yourself",
         onSelect: onStartBlank,
         disabled: importing,
-        disabledReason: i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" })
+        disabledReason: "Reading your file"
       }
     ],
-    [importing, onBrowseExamples, onStartBlank, t]
+    [importing, onBrowseExamples, onStartBlank]
   );
 
   if (browsingExamples) {
@@ -167,21 +162,23 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
     >
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
-          <Text size="big" component="h2">{t("storyboard:attrs.whatShouldThisWorkflowDo", { defaultValue: "What should this workflow do?" })}</Text>
+          <Text size="big" component="h2">
+            What should this workflow do?
+          </Text>
           <Text size="normal" color="secondary">
-            {t("storyboard:attrs.describeTheTaskWellPlanTheSteps", { defaultValue: "Describe the task. We'll plan the steps and check what it needs before building." })}
+            Describe the task. We&apos;ll plan the steps and check what it needs
+            before building.
           </Text>
         </FlexColumn>
 
-        <TextInput
+        <TextArea
           value={brief}
           autoFocus
-          multiline
           rows={4}
-          label={t("storyboard:attrs.theTask", { defaultValue: "The task" })}
+          label="The task"
           hideLabel
-          placeholder={t("storyboard:attrs.summarizeAPDFAndEmailIt", { defaultValue: "Summarize a PDF and email it" })}
-          helperText={t("editor:ui.onlyDescribeTaskHere", { defaultValue: "Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it." })}
+          placeholder="Make a cover image for each title in a list"
+          helperText="Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it."
           onChange={handleChange}
           inputRef={briefField}
         />
@@ -206,11 +203,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         ) : null}
 
         <ExampleBriefs
-          examples={WORKFLOW_INSPIRATION_CHIPS.map((chip) =>
-            t(`catalog:workflowInspiration.${chip.id}`, {
-              defaultValue: chip.brief
-            })
-          )}
+          examples={WORKFLOW_INSPIRATION_CHIPS.map((chip) => chip.brief)}
           brief={brief}
           onSelect={onBriefChange}
           briefRef={briefField}
@@ -218,7 +211,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
+        label="Other ways to start"
         alternatives={alternatives}
       />
 
@@ -228,7 +221,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         hidden
         ref={importInput}
         accept={WORKFLOW_IMPORT_ACCEPT}
-        aria-label={t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" })}
+        aria-label="Import a workflow"
         onChange={handlePicked}
       />
     </Box>

@@ -8,15 +8,12 @@
  */
 import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import {
-  Caption,
   EditorButton,
   EmptyState,
   FlexColumn,
-  FlexRow,
   LoadingSpinner,
-  Text,
+  PageHeader,
   SPACING
 } from "../ui_primitives";
 import WorkflowGraphPreview from "../version/WorkflowGraphPreview";
@@ -26,12 +23,12 @@ import {
   useDuplicateSharedWorkflow,
   usePublicSharedWorkflow
 } from "../../serverState/useWorkflowSharing";
+import { rememberPostLoginReturn } from "../../utils/postLoginReturn";
 
 /** `graphNodeToReactFlowNode` stamps this onto each node; nothing reads it back. */
 const PREVIEW_WORKFLOW_ID = "public-share-preview";
 
 const PublicWorkflowPage = () => {
-  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const authState = useAuth((auth) => auth.state);
@@ -47,6 +44,8 @@ const PublicWorkflowPage = () => {
       return;
     }
     if (!signedIn) {
+      // Sign-in returns to the start page; bring the user back here.
+      rememberPostLoginReturn(`/view/${token}`);
       navigate("/login");
       return;
     }
@@ -54,18 +53,18 @@ const PublicWorkflowPage = () => {
       const copy = await duplicate.mutateAsync(token);
       addNotification({
         type: "success",
-        content: t("editor:ui.addedToYourWorkflows", { defaultValue: "Added \"{{name}}\" to your workflows", name: copy.name }),
+        content: `Added "${copy.name}" to your workflows`,
         alert: true
       });
       navigate(`/editor/${copy.id}`);
     } catch {
       addNotification({
         type: "error",
-        content: t("editor:ui.couldNotCopyThisWorkflow", { defaultValue: "Could not copy this workflow" }),
+        content: "Could not copy this workflow",
         alert: true
       });
     }
-  }, [token, signedIn, duplicate, addNotification, navigate, t]);
+  }, [token, signedIn, duplicate, addNotification, navigate]);
 
   if (isLoading) {
     return (
@@ -85,8 +84,8 @@ const PublicWorkflowPage = () => {
       >
         <EmptyState
           variant="error"
-          title={t("editor:ui.thisWorkflowIsNotAvailable", { defaultValue: "This workflow is not available" })}
-          description={t("editor:ui.theLinkMayHaveBeenRevoked", { defaultValue: "The link may have been revoked. Ask the person who shared it for a new one." })}
+          title="This workflow is not available"
+          description="The link may have been revoked. Ask the person who shared it for a new one."
         />
       </FlexColumn>
     );
@@ -98,23 +97,22 @@ const PublicWorkflowPage = () => {
       gap={SPACING.md}
       sx={{ height: "100vh", p: SPACING.lg, boxSizing: "border-box" }}
     >
-      <FlexRow gap={SPACING.md} align="center" justify="space-between">
-        <FlexColumn gap={SPACING.xs} sx={{ minWidth: 0 }}>
-          <Text size="big" truncate>
-            {workflow.name}
-          </Text>
-          {workflow.description && (
-            <Caption>{workflow.description}</Caption>
-          )}
-        </FlexColumn>
-        <EditorButton
-          variant="contained"
-          disabled={duplicate.isPending || authState === "loading"}
-          onClick={() => void handleDuplicate()}
-        >
-          {signedIn ? t("editor:ui.duplicateToMyWorkflows", { defaultValue: "Duplicate to my workflows" }) : t("editor:ui.signInToDuplicate", { defaultValue: "Sign in to duplicate" })}
-        </EditorButton>
-      </FlexRow>
+      <PageHeader
+        variant="plain"
+        title={workflow.name}
+        subtitle={workflow.description || undefined}
+        truncateTitle
+        sx={{ justifyContent: "space-between", gap: SPACING.md }}
+        actions={
+          <EditorButton
+            variant="contained"
+            disabled={duplicate.isPending || authState === "loading"}
+            onClick={() => void handleDuplicate()}
+          >
+            {signedIn ? "Duplicate to my workflows" : "Sign in to duplicate"}
+          </EditorButton>
+        }
+      />
       <FlexColumn sx={{ flex: 1, minHeight: 0 }}>
         <WorkflowGraphPreview
           graph={workflow.graph}

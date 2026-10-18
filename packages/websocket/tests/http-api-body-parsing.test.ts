@@ -16,7 +16,7 @@ import {
   WorkflowVersion,
   Asset
 } from "@nodetool-ai/models";
-import type { NodeRegistry } from "@nodetool-ai/node-sdk";
+import { NodeRegistry } from "@nodetool-ai/node-sdk";
 
 vi.mock("../src/lib/workflow-workspace.js", async () => {
   const actual = await vi.importActual<
@@ -47,7 +47,7 @@ const echoExecutor = {
   }
 };
 
-const registry = {
+const registry = Object.assign(new NodeRegistry(), {
   has: (t: string) => t === "test.Echo" || t === "nodetool.output.Output",
   resolve: () => echoExecutor,
   getClass: () => undefined,
@@ -55,7 +55,7 @@ const registry = {
   getMetadata: () => undefined,
   listMetadata: () => [],
   validateNode: () => []
-} as unknown as NodeRegistry;
+});
 
 const GRAPH = {
   nodes: [
@@ -197,6 +197,24 @@ describe("POST /api/workflows — body leniency", () => {
         method: "POST",
         headers: { "x-user-id": "user-1", "content-type": "text/plain" },
         body: "hello"
+      }),
+      {}
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).detail).toBe("Invalid JSON body");
+  });
+
+  // A browser sends this content type cross-site without a CORS preflight,
+  // so accepting it would let any page create workflows on a local server.
+  it("refuses JSON sent as text/plain with application/json in a parameter", async () => {
+    const res = await handleWorkflowsRoot(
+      new Request("http://localhost/x", {
+        method: "POST",
+        headers: {
+          "x-user-id": "user-1",
+          "content-type": "text/plain; x=application/json"
+        },
+        body: JSON.stringify({ name: "A", access: "private", graph: GRAPH })
       }),
       {}
     );

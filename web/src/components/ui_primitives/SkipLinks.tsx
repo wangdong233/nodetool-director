@@ -4,7 +4,7 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { MOTION } from "./tokens";
-import { useTranslation } from "react-i18next";
+import { SPACING, getSpacingPx } from "./spacing";
 
 const skipLinkStyles = (theme: Theme) =>
   css({
@@ -12,8 +12,9 @@ const skipLinkStyles = (theme: Theme) =>
       position: "absolute",
       top: "-100px",
       left: "16px",
-      zIndex: 10000,
-      padding: "8px 16px",
+      // Above every overlay, including MUI tooltips, so the link is always reachable.
+      zIndex: theme.zIndex.tooltip + 1,
+      padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xl)}`,
       backgroundColor: theme.vars.palette.primary.main,
       color: theme.vars.palette.primary.contrastText,
       borderRadius: `0 0 ${theme.rounded.lg} ${theme.rounded.lg}`,
@@ -30,12 +31,11 @@ const skipLinkStyles = (theme: Theme) =>
   });
 
 export const SkipLinks = memo(function SkipLinks() {
-  const { t } = useTranslation();
   const theme = useTheme();
   return (
-    <nav css={skipLinkStyles(theme)} aria-label={t("ui:attrs.skipLinks", { defaultValue: "Skip links" })}>
+    <nav css={skipLinkStyles(theme)} aria-label="Skip links">
       <a className="skip-link" href="#main-content">
-        {t("ui:attrs.skipToMainContent")}
+        Skip to main content
       </a>
     </nav>
   );

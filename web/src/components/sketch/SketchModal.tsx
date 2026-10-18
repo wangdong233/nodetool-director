@@ -6,23 +6,21 @@
  */
 
 /** @jsxImportSource @emotion/react */
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGlobalCombo } from "../../stores/KeyPressedStore";
 import ReactDOM from "react-dom";
-import { alpha, useTheme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 
 import DrawOutlinedIcon from "@mui/icons-material/DrawOutlined";
-import CloseIcon from "@mui/icons-material/Close";
-import TrashIconSvg from "../../icons/trash.svg?react";
-const TrashIcon = TrashIconSvg;
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import UndoIcon from "@mui/icons-material/Undo";
 import RedoIcon from "@mui/icons-material/Redo";
 import FlipIcon from "@mui/icons-material/Flip";
 import SaveAltIcon from "@mui/icons-material/SaveAlt";
+import LayersOutlinedIcon from "@mui/icons-material/LayersOutlined";
+import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
 import CheckIcon from "@mui/icons-material/Check";
 import KeyboardOutlinedIcon from "@mui/icons-material/KeyboardOutlined";
 import SketchEditor, { SketchEditorHandle } from "./SketchEditor";
@@ -55,11 +53,11 @@ import {
   SPACING,
   getSpacingPx,
   IconButton,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Slider
+  ContextMenu,
+  MenuItemPrimitive,
+  Slider,
+  DeleteButton,
+  ICON_SIZE
 } from "../ui_primitives";
 
 function isPressureSketchTool(tool: SketchTool): boolean {
@@ -117,17 +115,41 @@ interface SketchModalProps {
 
 const SketchModal: React.FC<SketchModalProps> = ({
   open,
-  title = i18n.t("ui2:attrs.imageEditor", { defaultValue: "Image Editor" }),
+  title = "Image editor",
   initialDocument,
   onClose,
   onDocumentChange,
   onExportImage,
   onExportMask
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const modalStyles = useMemo(() => styles(theme), [theme]);
   const editorRef = useRef<SketchEditorHandle>(null);
+  const exportMenuItems = useCallback(
+    (close: () => void) => [
+      <MenuItemPrimitive
+        key="export-psd"
+        label="Export PSD"
+        icon={<LayersOutlinedIcon fontSize="small" />}
+        onClick={() => {
+          close();
+          editorRef.current?.exportPsd();
+        }}
+        data-testid="sketch-export-psd"
+      />,
+      <MenuItemPrimitive
+        key="import-psd"
+        label="Import PSD…"
+        icon={<FileUploadOutlinedIcon fontSize="small" />}
+        onClick={() => {
+          close();
+          editorRef.current?.importPsd();
+        }}
+        data-testid="sketch-import-psd"
+      />
+    ],
+    []
+  );
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [symmetryAnchorEl, setSymmetryAnchorEl] = useState<HTMLElement | null>(null);
   const [shortcutsPaneOpen, setShortcutsPaneOpen] = useState(false);
@@ -154,14 +176,14 @@ const SketchModal: React.FC<SketchModalProps> = ({
   const headerPenPressureOn = penPressure.pressureSensitivity !== false;
 
   const symmetryLabels = {
-    off: t("editor:ui.off", { defaultValue: "Off" }),
-    horizontal: i18n.t("sketch:attrs.symmetryHorizontal", { defaultValue: "Horizontal" }),
-    vertical: i18n.t("sketch:attrs.symmetryVertical", { defaultValue: "Vertical" }),
-    dual: i18n.t("sketch:attrs.symmetryDualAxis", { defaultValue: "Dual Axis" }),
-    radial: t("sketch:attrs.symmetryRadial", { defaultValue: "Radial ({{count}})", count: String(symmetryRays) }),
-    mandala: t("sketch:attrs.symmetryMandala", { defaultValue: "Mandala ({{count}})", count: String(symmetryRays) })
+    off: "Off",
+    horizontal: "Horizontal",
+    vertical: "Vertical",
+    dual: "Dual axis",
+    radial: `Radial (${symmetryRays})`,
+    mandala: `Mandala (${symmetryRays})`
   } satisfies Record<SymmetryMode, string>;
-  const symmetryLabel = symmetryLabels[symmetryMode] || t("editor:ui.off", { defaultValue: "Off" });
+  const symmetryLabel = symmetryLabels[symmetryMode] || "Off";
   const symmetryActive = symmetryMode !== "off";
 
   useEffect(() => {
@@ -246,8 +268,8 @@ const SketchModal: React.FC<SketchModalProps> = ({
             <Tooltip
               title={
                 headerPenPressureOn
-                  ? i18n.t("sketch:attrs.turnOffPenPressure", { defaultValue: "Turn off pen pressure" })
-                  : i18n.t("sketch:attrs.turnOnPenPressure", { defaultValue: "Turn on pen pressure" })
+                  ? "Turn off pen pressure"
+                  : "Turn on pen pressure"
               }
               enterDelay={SKETCH_TOOLTIP_DELAY_MS}
               enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -258,7 +280,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                   setPenPressure({ pressureSensitivity: !headerPenPressureOn })
                 }
                 color={headerPenPressureOn ? "primary" : "default"}
-                aria-label={t("sketch:attrs.togglePenPressure", { defaultValue: "Toggle pen pressure" })}
+                aria-label="Toggle pen pressure"
                 aria-expanded={headerPenPressureOn}
                 aria-controls="sketch-modal-pen-pressure-panel"
                 sx={{
@@ -266,7 +288,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                   flexShrink: 0
                 }}
               >
-                <DrawOutlinedIcon sx={{ fontSize: 18 }} />
+                <DrawOutlinedIcon sx={{ fontSize: ICON_SIZE.md }} />
               </IconButton>
             </Tooltip>
             {headerPenPressureOn ? (
@@ -296,69 +318,66 @@ const SketchModal: React.FC<SketchModalProps> = ({
         ) : null}
 
         <FlexRow align="center" sx={{ gap: getSpacingPx(SPACING.micro) }}>
-          <Tooltip title={t("sketch:attrs.undoCombo", { defaultValue: "Undo ({{combo}})", combo: displayCombo("undo") })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+          <Tooltip title={`Undo (${displayCombo("undo")})`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <span style={{ display: 'inline-flex' }}>
-              <IconButton size="small" aria-label={t("editor:ui.undo", { defaultValue: "Undo" })} onClick={() => editorRef.current?.undo()} disabled={!canUndo}>
-                <UndoIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
+              <IconButton size="small" aria-label="Undo" onClick={() => editorRef.current?.undo()} disabled={!canUndo}>
+                <UndoIcon sx={{ fontSize: ICON_SIZE.md }} />
               </IconButton>
             </span>
           </Tooltip>
-          <Tooltip title={t("sketch:attrs.redoCombo", { defaultValue: "Redo ({{combo}})", combo: displayCombo("redo") })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+          <Tooltip title={`Redo (${displayCombo("redo")})`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <span style={{ display: 'inline-flex' }}>
-              <IconButton size="small" aria-label={t("editor:ui.redo", { defaultValue: "Redo" })} onClick={() => editorRef.current?.redo()} disabled={!canRedo}>
-                <RedoIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
+              <IconButton size="small" aria-label="Redo" onClick={() => editorRef.current?.redo()} disabled={!canRedo}>
+                <RedoIcon sx={{ fontSize: ICON_SIZE.md }} />
               </IconButton>
             </span>
           </Tooltip>
 
-          <Tooltip title={t("sketch:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+          <Tooltip title="Keyboard shortcuts" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <IconButton
               size="small"
               onClick={() => setShortcutsPaneOpen((open) => !open)}
-              aria-label={shortcutsPaneOpen ? i18n.t("sketch:attrs.hideKeyboardShortcuts", { defaultValue: "Hide keyboard shortcuts" }) : i18n.t("sketch:attrs.showKeyboardShortcuts", { defaultValue: "Show keyboard shortcuts" })}
+              aria-label={shortcutsPaneOpen ? "Hide keyboard shortcuts" : "Show keyboard shortcuts"}
               aria-expanded={shortcutsPaneOpen}
               color={shortcutsPaneOpen ? "primary" : "default"}
             >
-              <KeyboardOutlinedIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
+              <KeyboardOutlinedIcon sx={{ fontSize: ICON_SIZE.md }} />
             </IconButton>
           </Tooltip>
 
           <Divider orientation="vertical" flexItem sx={{ mx: getSpacingPx(SPACING.xs) }} />
 
-          <Tooltip title={t("sketch:attrs.symmetryTooltip", { defaultValue: "Symmetry: {{mode}}", mode: symmetryLabel })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+          <Tooltip title={`Symmetry: ${symmetryLabel}`} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
             <IconButton
               size="small"
-              aria-label={t("sketch:attrs.symmetryMenu", { defaultValue: "Symmetry menu" })}
+              aria-label="Symmetry menu"
               aria-haspopup="true"
               aria-expanded={Boolean(symmetryAnchorEl)}
               onClick={(e) => setSymmetryAnchorEl(e.currentTarget)}
               color={symmetryActive ? "primary" : "default"}
             >
-              <FlipIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
+              <FlipIcon sx={{ fontSize: ICON_SIZE.md }} />
             </IconButton>
           </Tooltip>
-          <Menu
+          <ContextMenu
             anchorEl={symmetryAnchorEl}
             open={Boolean(symmetryAnchorEl)}
             onClose={() => setSymmetryAnchorEl(null)}
             anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
             transformOrigin={{ vertical: "top", horizontal: "left" }}
-            slotProps={{ paper: { sx: { minWidth: 180 } } }}
           >
             {(["off", "horizontal", "vertical", "dual", "radial", "mandala"] as SymmetryMode[]).map((mode) => (
-              <MenuItem
+              <MenuItemPrimitive
                 key={mode}
+                label={symmetryLabels[mode]}
                 onClick={() => { setSymmetryMode(mode); if (mode !== "radial" && mode !== "mandala") { setSymmetryAnchorEl(null); } }}
                 selected={symmetryMode === mode}
-              >
-                {symmetryMode === mode && <ListItemIcon><CheckIcon fontSize="small" /></ListItemIcon>}
-                <ListItemText inset={symmetryMode !== mode}>{symmetryLabels[mode]}</ListItemText>
-              </MenuItem>
+              />
             ))}
             {(symmetryMode === "radial" || symmetryMode === "mandala") && (
-              <Box sx={{ px: 2, py: 1, minWidth: 160 }}>
-                <Caption sx={{ color: "grey.500" }}>
-                  {t("sketch:attrs.raysLabel", { defaultValue: "Rays: {{count}}", count: String(symmetryRays) })}
+              <Box sx={{ px: SPACING.lg, py: SPACING.md }}>
+                <Caption color="secondary">
+                  Rays: {symmetryRays}
                 </Caption>
                 <Slider
                   value={symmetryRays}
@@ -372,39 +391,43 @@ const SketchModal: React.FC<SketchModalProps> = ({
                 />
               </Box>
             )}
-          </Menu>
+          </ContextMenu>
 
           <Divider orientation="vertical" flexItem sx={{ mx: getSpacingPx(SPACING.xs) }} />
 
           {confirmDiscard ? (
             <>
               <Caption sx={{ color: "warning.main", whiteSpace: "nowrap" }}>
-                {t("sketch:attrs.discardChanges?", { defaultValue: "Discard changes?" })}
+                Discard changes?
               </Caption>
-              <IconButton size="small" aria-label={t("sketch:attrs.confirmDiscard", { defaultValue: "Confirm discard" })} color="error" onClick={() => { editorRef.current?.discardToInitial(); onClose(); }}>
-                <TrashIcon width={16} height={16} />
-              </IconButton>
-              <IconButton size="small" aria-label={t("sketch:attrs.cancelDiscard", { defaultValue: "Cancel discard" })} autoFocus onClick={() => setConfirmDiscard(false)}>
-                <CloseIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
+              <DeleteButton
+                iconVariant="outline"
+                tooltip="Discard changes"
+                ariaLabel="Confirm discard"
+                onClick={() => { editorRef.current?.discardToInitial(); onClose(); }}
+                sx={{ color: "error.main", "& .MuiSvgIcon-root": { fontSize: ICON_SIZE.sm } }}
+              />
+              <IconButton size="small" aria-label="Cancel discard" autoFocus onClick={() => setConfirmDiscard(false)}>
+                <CloseIcon sx={{ fontSize: ICON_SIZE.sm }} />
               </IconButton>
             </>
           ) : (
-            <Tooltip title={t("sketch:attrs.discardAllChangesAndClose", { defaultValue: "Discard all changes and close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
-              <IconButton size="small" aria-label={t("sketch:attrs.discardChanges", { defaultValue: "Discard changes" })} onClick={() => setConfirmDiscard(true)} sx={{ color: "error.light" }}>
+            <Tooltip title="Discard all changes and close" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+              <IconButton size="small" aria-label="Discard changes" onClick={() => setConfirmDiscard(true)} sx={{ color: "error.light" }}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
 
-          <Tooltip title={t("sketch:attrs.exportImage", { defaultValue: "Export Image" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
-            <IconButton size="small" aria-label={t("sketch:attrs.exportImage", { defaultValue: "Export Image" })} onClick={() => editorRef.current?.exportPng()}>
-              <SaveAltIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
+          <Tooltip title="Export image" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+            <IconButton size="small" aria-label="Export image" onClick={() => editorRef.current?.exportPng()}>
+              <SaveAltIcon sx={{ fontSize: ICON_SIZE.md }} />
             </IconButton>
           </Tooltip>
 
           {!confirmDiscard && (
-            <Tooltip title={t("sketch:attrs.saveAndClose", { defaultValue: "Save & Close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
-              <IconButton size="small" aria-label={t("editor:ui.saveAndClose", { defaultValue: "Save and close" })} onClick={handleRequestClose} sx={{ color: "success.light" }}>
+            <Tooltip title="Save & close" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+              <IconButton size="small" aria-label="Save and close" onClick={handleRequestClose} sx={{ color: "success.light" }}>
                 <CheckIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -427,6 +450,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
           onExportImage={onExportImage}
           onExportMask={onExportMask}
           suspendKeyboardShortcuts={shortcutsPaneOpen || confirmDiscard}
+          menuItems={exportMenuItems}
         />
         {shortcutsPaneOpen ? (
           <>
@@ -437,7 +461,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
                 position: "absolute",
                 inset: 0,
                 zIndex: SKETCH_Z_INDEX.overlay,
-                backgroundColor: alpha(theme.palette.common.black, 0.45)
+                backgroundColor: `rgb(${theme.vars.palette.common.blackChannel} / 0.45)`
               }}
             />
             <FlexColumn
@@ -474,15 +498,15 @@ const SketchModal: React.FC<SketchModalProps> = ({
                 }}
               >
                 <Text id="sketch-shortcuts-heading" sx={{ fontWeight: 600 }}>
-                  {t("sketch:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
+                  Keyboard shortcuts
                 </Text>
-                <Tooltip title={t("sketch:attrs.close", { defaultValue: "Close" })} enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
+                <Tooltip title="Close" enterDelay={SKETCH_TOOLTIP_DELAY_MS} enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}>
                   <IconButton
                     size="small"
                     onClick={() => setShortcutsPaneOpen(false)}
-                    aria-label={t("sketch:attrs.closeKeyboardShortcuts", { defaultValue: "Close keyboard shortcuts" })}
+                    aria-label="Close keyboard shortcuts"
                   >
-                    <CloseIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
+                    <CloseIcon sx={{ fontSize: ICON_SIZE.md }} />
                   </IconButton>
                 </Tooltip>
               </FlexRow>
@@ -494,10 +518,10 @@ const SketchModal: React.FC<SketchModalProps> = ({
                 }}
               >
                 <TabGroup
-                  aria-label={t("sketch:attrs.imageEditorShortcuts", { defaultValue: "Image editor shortcuts" })}
+                  aria-label="Image editor shortcuts"
                   tabs={[
-                    { value: "shortcuts", label: i18n.t("sketch:attrs.shortcuts", { defaultValue: "Shortcuts" }) },
-                    { value: "keyboard", label: i18n.t("sketch:attrs.keyboard", { defaultValue: "Keyboard" }) }
+                    { value: "shortcuts", label: "Shortcuts" },
+                    { value: "keyboard", label: "Keyboard" }
                   ]}
                   value={shortcutsSubTab}
                   onChange={(v) =>

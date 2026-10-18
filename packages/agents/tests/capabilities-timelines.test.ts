@@ -12,6 +12,7 @@ import { createTimelineToolBridge } from "../src/evals/surfaces/timeline.js";
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { capabilitySpec } from "../src/capabilities/index.js";
 import type { ProcessingContext } from "@nodetool-ai/runtime";
 import {
   Asset,
@@ -992,6 +993,52 @@ describe("set_timeline_document", () => {
     });
   });
 
+  it("stores every asset ref form as the asset's full id", async () => {
+    const row = await makeTimeline();
+    const asset = (await Asset.create({
+      user_id: "u1",
+      name: "shot-1-still.jpg",
+      content_type: "image/jpeg"
+    })) as Asset;
+    const short = asset.id.slice(0, 12);
+    const refs = [
+      `asset://${short}.jpg`,
+      `asset://${short}`,
+      short,
+      asset.id,
+      "package://nodetool-base/timelines/voltra/street.jpg"
+    ];
+    const base = replacement();
+    const clips = refs.map((ref, i) => ({
+      ...base.clips[0],
+      id: `clip-${i}`,
+      startMs: i * 1000,
+      durationMs: 1000,
+      currentAssetId: ref,
+      versions: i === 0 ? [{
+        id: "v1", createdAt: "", jobId: "", assetId: ref,
+        workflowUpdatedAt: "", dependencyHash: "", paramOverridesSnapshot: {},
+        status: "success"
+      }] : []
+    }));
+
+    const result = await run().invoke("set_timeline_document", {
+      timeline_id: row.id,
+      document: { ...base, clips }
+    });
+
+    expect(result).toMatchObject({ written: true });
+    const stored = (await TimelineSequence.findById(row.id))?.toDocument();
+    expect(stored?.clips.map((c) => c.currentAssetId)).toEqual([
+      asset.id,
+      asset.id,
+      asset.id,
+      asset.id,
+      "package://nodetool-base/timelines/voltra/street.jpg"
+    ]);
+    expect(stored?.clips[0].versions[0].assetId).toBe(asset.id);
+  });
+
   it("writes the document, restamps the duration, and re-validates it", async () => {
     const row = await makeTimeline();
     const result = (await run().invoke("set_timeline_document", {
@@ -1405,5 +1452,13 @@ describe("pure backend track batches", () => {
       track: { id: "0000aaaa000000000000000000000001" }
     });
     uuid.mockRestore();
+  });
+});
+
+describe("spec text the shipped skills rely on", () => {
+  it("edit_timeline: set_markers_from_beats ties count to bpm", () => {
+    const schema = JSON.stringify(capabilitySpec("edit_timeline")?.inputSchema);
+    expect(schema).not.toContain('set_markers_from_beats also needs \\"count\\"');
+    expect(schema).toContain('set_markers_from_beats needs \\"count\\" with \\"bpm\\"');
   });
 });
