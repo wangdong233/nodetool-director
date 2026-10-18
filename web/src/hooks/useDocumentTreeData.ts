@@ -27,6 +27,7 @@ export interface DocumentTreeLeaf {
 export interface DocumentTreeGroup {
   readonly id: "workflows" | "apps" | "creative" | "text" | "agents" | "entities";
   readonly label: string;
+  readonly labelKey?: string;
   readonly children: readonly DocumentTreeLeaf[];
 }
 
@@ -79,6 +80,7 @@ const TYPE_LABELS: Record<DocumentTreeLeafType, string> = {
 const GROUPS: readonly {
   readonly id: DocumentTreeGroup["id"];
   readonly label: string;
+  readonly labelKey?: string;
   readonly types: readonly DocumentTreeLeafType[];
 }[] = [
   { id: "workflows", label: "Workflows", types: ["workflow"] },

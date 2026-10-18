@@ -51,6 +51,8 @@ import {
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
 
+import { i18n } from "../../i18n";
+
 const SAVE_TYPE_LABEL = {
   manual: "Manual",
   autosave: "Auto",

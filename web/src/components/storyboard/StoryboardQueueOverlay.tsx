@@ -51,6 +51,7 @@ import {
 } from "../../stores/storyboard/StoryboardGenerationStore";
 import { useGenerateShot } from "../../hooks/storyboard/useGenerateShot";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 export interface StoryboardQueueOverlayProps {
   boardId: string;
@@ -149,6 +150,7 @@ const RequestCard = memo(function RequestCard({
   row: JobRow;
   onStopTracking?: (requestId: string) => void;
 }) {
+  const { t } = useTranslation();
   const statusLabel =
     row.status === "stopped"
       ? t("storyboard:attrs.stoppedTrackingProviderMayStillFinishAndCharge", { defaultValue: "Stopped tracking; provider may still finish and charge" }) : row.awaitingReview

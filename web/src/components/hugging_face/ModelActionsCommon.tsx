@@ -3,12 +3,13 @@ import { Tooltip, EditorButton, SPACING, getSpacingPx } from "../ui_primitives";
 import FolderIcon from "@mui/icons-material/FolderOutlined";
 import { TOOLTIP_DESCRIPTION_DELAY } from "../../config/constants";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 export const ModelShowInExplorerButton: React.FC<{
   onClick: () => void;
   disabled?: boolean;
 }> = ({ onClick, disabled }) => (
-  <Tooltip title={t("editor:ui.showInFileExplorer", { defaultValue: "Show in File Explorer" })} delay={TOOLTIP_DESCRIPTION_DELAY}>
+  <Tooltip title={i18n.t("editor:ui.showInFileExplorer", { defaultValue: "Show in File Explorer" })} delay={TOOLTIP_DESCRIPTION_DELAY}>
     <span>
       <EditorButton
         className="show-in-explorer-button"
@@ -38,7 +39,7 @@ export const HuggingFaceLink: React.FC<{
       >
         <img
           src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
-          alt={t("appbuilder:attrs.huggingFace", { defaultValue: "Hugging Face" })}
+          alt={i18n.t("appbuilder:attrs.huggingFace", { defaultValue: "Hugging Face" })}
           style={{
             width: "1.25em",
             height: "auto"
@@ -53,7 +54,7 @@ export const OllamaLink: React.FC<{
 }> = ({ modelId }) => {
   const { t } = useTranslation();
   return (
-    <Tooltip title={t("editor:ui.viewOnOllama", { defaultValue: "View on Ollama" })} delay={TOOLTIP_DESCRIPTION_DELAY}>
+    <Tooltip title={i18n.t("editor:ui.viewOnOllama", { defaultValue: "View on Ollama" })} delay={TOOLTIP_DESCRIPTION_DELAY}>
       <EditorButton
         density="compact"
         href={`https://ollama.com/library/${modelId.split(":")[0]}`}
@@ -63,7 +64,7 @@ export const OllamaLink: React.FC<{
       >
         <img
           src="/ollama.png"
-          alt={t("editor:ui.ollama", { defaultValue: "Ollama" })}
+          alt={i18n.t("editor:ui.ollama", { defaultValue: "Ollama" })}
           style={{
             width: "1.25em",
             height: "auto",

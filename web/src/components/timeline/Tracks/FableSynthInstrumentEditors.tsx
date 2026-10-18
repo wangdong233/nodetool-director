@@ -30,6 +30,7 @@ import { useBatchedGesture } from "../../../hooks/timeline/useBatchedGesture";
 
 import "./fablesynth-editor.css";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type FableInstrument = Exclude<MidiInstrument, { type: "subtractive" | "sampler" }>;
 type KnobSize = "lg" | "md" | "sm" | "xs";
@@ -308,7 +309,7 @@ export const InstrumentKeyboard = ({
   <Panel
     title="KEYS"
     className="fs-keys-panel"
-    head={<Caption>{t("timeline:attrs.clickOrFocusAKeyAndPressEnter", { defaultValue: "Click or focus a key and press Enter" })}</Caption>}
+    head={<Caption>{i18n.t("timeline:attrs.clickOrFocusAKeyAndPressEnter", { defaultValue: "Click or focus a key and press Enter" })}</Caption>}
   >
     <div className="fs-keys">
       <div className="fs-white-keys">
@@ -364,11 +365,11 @@ const Filter = <T extends BassMidiInstrument | WavetableMidiInstrument>({
   onChange
 }: EditorProps<T>) => (
   <Panel
-    title={t("timeline:attrs.filter", { defaultValue: "FILTER" })}
+    title={i18n.t("timeline:attrs.filter", { defaultValue: "FILTER" })}
     accent="f"
     head={
       <Stepper
-        label={t("editor:asset.info.typeUpper", { defaultValue: "TYPE" })}
+        label={i18n.t("editor:asset.info.typeUpper", { defaultValue: "TYPE" })}
         options={FILTERS}
         value={filterTypes.indexOf(instrument.filterType)}
         onChange={(index) =>
@@ -466,7 +467,7 @@ const Oscillator = ({
     accent={accent}
     head={
       <Stepper
-        label={t("appbuilder:attrs.table", { defaultValue: "TABLE" })}
+        label={i18n.t("appbuilder:attrs.table", { defaultValue: "TABLE" })}
         options={TABLES}
         value={tableNames.indexOf(osc.table)}
         onChange={(index) => onChange({ ...osc, table: tableNames[index] })}
@@ -527,7 +528,7 @@ const BassEditor = ({
         accent="a"
         head={
           <Stepper
-            label={t("appbuilder:attrs.table", { defaultValue: "TABLE" })}
+            label={i18n.t("appbuilder:attrs.table", { defaultValue: "TABLE" })}
             options={TABLES}
             value={tableNames.indexOf(instrument.table)}
             onChange={(index) =>
@@ -555,7 +556,7 @@ const BassEditor = ({
       <Panel title="SUB">
         <FlexRow className="fs-sub-controls" gap={SPACING.md} wrap>
           <Stepper
-            label={t("timeline:attrs.shapeUpper", { defaultValue: "SHAPE" })}
+            label={i18n.t("timeline:attrs.shapeUpper", { defaultValue: "SHAPE" })}
             options={["SINE", "SQUARE"]}
             value={instrument.subShape === "square" ? 1 : 0}
             onChange={(index) =>
@@ -579,7 +580,7 @@ const BassEditor = ({
         </FlexRow>
       </Panel>
       <Filter instrument={instrument} onChange={onChange} />
-      <Panel title="ENV" className="fs-panel-inline" head={<Caption>{t("timeline:attrs.filterEnvelope", { defaultValue: "Filter envelope" })}</Caption>}>
+      <Panel title="ENV" className="fs-panel-inline" head={<Caption>{i18n.t("timeline:attrs.filterEnvelope", { defaultValue: "Filter envelope" })}</Caption>}>
         <div className="fs-knob-row">
           <Knob
             def={P("fattack", "F·ATT", 0, 500, 1, (v) => sec(v / 1000), "time")}

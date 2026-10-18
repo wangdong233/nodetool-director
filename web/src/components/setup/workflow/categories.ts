@@ -13,6 +13,7 @@ import type { OptionCardItem } from "../OptionCardGrid";
 import { SETUP_STILL_GROUPS, setupStill } from "../stills";
 
 export interface WorkflowCategory extends OptionCardItem {
+  descriptionKey?: string;
   /**
    * Appended to the brief when the planner's candidate node types are ranked,
    * so "media batch" surfaces the image and video nodes a bare brief would not.

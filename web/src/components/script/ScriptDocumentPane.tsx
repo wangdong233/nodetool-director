@@ -89,6 +89,7 @@ import { SendToWorkflowButton } from "../workflows/SendToWorkflowMenu";
 import { useContextCommands } from "../../hooks/useContextCommands";
 import type { ContextCommand } from "../../stores/CommandMenuStore";
 import { useTranslation } from "react-i18next";
+import { i18n, useAppLanguage } from "../../i18n";
 
 interface ScriptDocumentPaneProps {
   scriptId: string;
@@ -161,7 +162,7 @@ const InsertLineGap = ({
       component="button"
       type="button"
       onClick={onInsert}
-      aria-label={t("editor:ui.insertLineHere", { defaultValue: "Insert line here" })}
+      aria-label={i18n.t("editor:ui.insertLineHere", { defaultValue: "Insert line here" })}
       className="insert-line-rule"
       sx={{
         display: "flex",
@@ -392,9 +393,9 @@ const SectionBlockInner = ({
           onChange={(e) =>
             setSectionTitle(scriptId, section.id, e.target.value)
           }
-          placeholder={t("editor:ui.untitledSection", { defaultValue: "Untitled section" })}
+          placeholder={i18n.t("editor:ui.untitledSection", { defaultValue: "Untitled section" })}
           hideLabel
-          label={t("editor:ui.sectionTitle", { defaultValue: "Section title" })}
+          label={i18n.t("editor:ui.sectionTitle", { defaultValue: "Section title" })}
           compact
           fullWidth
           disabled={readOnly}
@@ -1162,7 +1163,7 @@ const ScriptDocumentPane = ({
             disabled={assembling || !hasVoicedLine}
             tooltip={
               storyboardId
-                ? t("editor:ui.cutTheLinkedStoryboardsShotsAndTheseTakesIntoOneTimeline", { defaultValue: "Cut the linked storyboard's shots and these takes into one timeline" }) : undefined
+                ? i18n.t("editor:ui.cutTheLinkedStoryboardsShotsAndTheseTakesIntoOneTimeline", { defaultValue: "Cut the linked storyboard's shots and these takes into one timeline" }) : undefined
             }
             disabledReason={
               hasVoicedLine
@@ -1171,7 +1172,7 @@ const ScriptDocumentPane = ({
             }
           >
             {assembling
-              ? t("storyboard:attrs.assembling", { defaultValue: "Assembling…" }) : storyboardId
+              ? i18n.t("storyboard:attrs.assembling", { defaultValue: "Assembling…" }) : storyboardId
                 ? i18n.t("editor:ui.assembleVideo", { defaultValue: "Assemble video" }) : timelineId
                   ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" }) : "Send to timeline"}
           </EditorButton>
@@ -1179,14 +1180,14 @@ const ScriptDocumentPane = ({
         {hasVoicedLine && (
           <SendToWorkflowButton
             items={workflowMedia}
-            tooltip={t("editor:ui.sendEveryCurrentTakeToAWorkflow", { defaultValue: "Send every current take to a workflow" })}
+            tooltip={i18n.t("editor:ui.sendEveryCurrentTakeToAWorkflow", { defaultValue: "Send every current take to a workflow" })}
           />
         )}
         {!readOnly && <StoryboardLinkControl scriptId={scriptId} />}
         {!readOnly && (
           <>
             <ToolbarIconButton
-              tooltip={t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
+              tooltip={i18n.t("storyboard:attrs.moreActions", { defaultValue: "More actions" })}
               ariaLabel="More actions"
               onClick={(e) => setMoreAnchor(e.currentTarget)}
               icon={<MoreVertIcon fontSize="small" />}
@@ -1198,7 +1199,7 @@ const ScriptDocumentPane = ({
             >
               <MenuItemPrimitive
                 icon={<SubtitlesIcon fontSize="small" />}
-                label={t("editor:ui.exportSRT", { defaultValue: "Export SRT" })}
+                label={i18n.t("editor:ui.exportSRT", { defaultValue: "Export SRT" })}
                 disabled={!hasVoicedLine}
                 tooltip={
                   hasVoicedLine
@@ -1259,8 +1260,8 @@ const ScriptDocumentPane = ({
       >
         {isEmpty && (
           <EmptyState
-            title={t("editor:ui.emptyScript", { defaultValue: "Empty script" })}
-            description={t("editor:ui.addLineToStartWriting", { defaultValue: "Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them." })}
+            title={i18n.t("editor:ui.emptyScript", { defaultValue: "Empty script" })}
+            description={i18n.t("editor:ui.addLineToStartWriting", { defaultValue: "Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them." })}
             actionText={readOnly ? undefined : "Add first line"}
             onAction={readOnly ? undefined : () => addLine(scriptId)}
           />

@@ -49,6 +49,7 @@ interface OpenFolderButtonProps {
 }
 
 const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
+  const { t } = useTranslation();
   const handleClick = useCallback(() => {
     if (settingValue) {
       openInExplorer(settingValue);

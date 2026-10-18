@@ -25,6 +25,7 @@ import AddIcon from "@mui/icons-material/AddOutlined";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { getShortcutTooltip } from "../../config/shortcuts";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface ViewportStatusIndicatorProps {
   visible?: boolean;

@@ -24,6 +24,7 @@ import { useTranslation } from "react-i18next";
 const AVAILABILITY_FILTERS: {
   value: ModelAvailabilityFilter;
   label: string;
+  labelKey?: string;
   color: "default" | "success" | "warning";
 }[] = [
   { value: "all", label: "All", color: "default" },

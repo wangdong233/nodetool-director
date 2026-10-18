@@ -161,6 +161,7 @@ const MobileDocumentSelector = ({
   onClose,
   onCloseAll
 }: MobileDocumentSelectorProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const buttonStyles = useMemo(() => styles(theme), [theme]);
   const listStyles = useMemo(() => sheetStyles(theme), [theme]);

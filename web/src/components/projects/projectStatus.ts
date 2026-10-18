@@ -9,6 +9,8 @@
 
 import type { RouterOutputs } from "../../trpc/client";
 import { relativeTime } from "../../utils/formatDateAndTime";
+import { i18n } from "../../i18n";
+
 
 export type ProjectDetail = RouterOutputs["projects"]["summaries"][number];
 export type ProjectDocument = ProjectDetail["documents"][number];

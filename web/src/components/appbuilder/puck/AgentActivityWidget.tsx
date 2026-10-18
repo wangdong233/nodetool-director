@@ -108,7 +108,8 @@ const prettyResult = (text: string): string => {
   }
 };
 
-type ToolEntry = Extract<ActivityEntry, { kind: "tool" }>;
+type ToolEntry = Extract<ActivityEntry, {
+  descriptionKey?: string; kind: "tool" }>;
 
 /**
  * One tool call, phrased and laid out like the chat's tool-call timeline: a

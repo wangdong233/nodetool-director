@@ -20,6 +20,7 @@ import { useBottomPanelStore } from "../stores/BottomPanelStore";
 import { usePanelStore } from "../stores/PanelStore";
 import { useMiniMapStore } from "../stores/MiniMapStore";
 import { useNotificationStore } from "../stores/NotificationStore";
+import { i18n } from "../i18n";
 
 interface FloatingToolbarActions {
   handleRun: () => Promise<void>;

@@ -66,6 +66,8 @@ import {
 } from "./lookSelection";
 import { useTranslation } from "react-i18next";
 
+import { i18n } from "../../../i18n";
+
 /** Which of the model list's answers the step got (F14). */
 export type ModelAvailability =
   | "loading"
@@ -258,14 +260,14 @@ export function useLookStep(): LookStepControls {
 
   const blockedReason =
     availability === "loading"
-      ? t("setup:image.loadingTheImageModels", { defaultValue: "Loading the image models" }) : availability === "error"
+      ? i18n.t("setup:image.loadingTheImageModels", { defaultValue: "Loading the image models" }) : availability === "error"
         ? i18n.t("storyboard:attrs.theImageModelsCouldNotBeLoaded2", { defaultValue: "The image models could not be loaded" }) : availability === "no-provider"
           ? i18n.t("storyboard:attrs.connectAnImageProviderFirst", { defaultValue: "Connect an image provider first" }) : availability === "no-model"
             ? i18n.t("storyboard:attrs.noImageModelCanRenderAPictureYet", { defaultValue: "No image model can render a picture yet" }) : modelMissing
               ? i18n.t("storyboard:attrs.thatModelIsNoLongerOfferedPickAnother", { defaultValue: "That model is no longer offered — pick another" }) : sizePresets.length === 0
                 ? i18n.t("storyboard:attrs.thatModelHasNoSizeSupportedByThisGuidedFlow", { defaultValue: "That model has no size supported by this guided flow" }) : sizeUnsupported
                   ? i18n.t("storyboard:attrs.pickASizeSupportedByThisImageModel", { defaultValue: "Pick a size supported by this image model" }) : styleLoading
-                    ? t("setup:image.loadingTheChosenStyle", { defaultValue: "Loading the chosen style" }) : "Pick an image model";
+                    ? i18n.t("setup:image.loadingTheChosenStyle", { defaultValue: "Loading the chosen style" }) : "Pick an image model";
 
   return {
     styleChoice: persisted.styleChoice,
@@ -407,7 +409,7 @@ export const ImageModelFooterField: React.FC<{
     return null;
   }
   return (
-    <SetupFooterField label={t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}>
+    <SetupFooterField label={i18n.t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}>
       <ImageModelSelect
         value={look.model}
         provider={look.provider}
@@ -473,9 +475,9 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
         Choose the look
       </Text>
 
-      <FormField label={t("storyboard:attrs.size", { defaultValue: "Size" })}>
+      <FormField label={i18n.t("storyboard:attrs.size", { defaultValue: "Size" })}>
         <OptionCardGrid
-          label={t("storyboard:attrs.size", { defaultValue: "Size" })}
+          label={i18n.t("storyboard:attrs.size", { defaultValue: "Size" })}
           options={sizeOptions}
           selectedId={selectedSizeId}
           onSelect={handleSize}
@@ -483,9 +485,9 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
         />
       </FormField>
 
-      <FormField label={t("storyboard:attrs.style", { defaultValue: "Style" })}>
+      <FormField label={i18n.t("storyboard:attrs.style", { defaultValue: "Style" })}>
         <PresetTileGrid
-          label={t("storyboard:attrs.style", { defaultValue: "Style" })}
+          label={i18n.t("storyboard:attrs.style", { defaultValue: "Style" })}
           presets={styleTiles}
           selectedId={look.styleChoice}
           onSelect={handleStyle}
@@ -505,7 +507,7 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
           </AlertBanner>
         ) : null
       ) : (
-        <FormField label={t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}>
+        <FormField label={i18n.t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}>
           <ModelListState
             availability={availability}
             onRetry={look.refetchModels}

@@ -50,6 +50,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface AppDataPanelProps {
   meta: AppDocMeta;
@@ -217,7 +218,7 @@ const OperationRow: React.FC<{
         onChange={(e) => onPatch({ name: e.target.value })}
       />
       <SelectField
-        label={t("ui2:attrs.runs", { defaultValue: "Runs" })}
+        label={i18n.t("ui2:attrs.runs", { defaultValue: "Runs" })}
         value={target.kind}
         options={TARGET_KIND_OPTIONS}
         onChange={setKind}
@@ -245,7 +246,7 @@ const OperationRow: React.FC<{
         />
       )}
       <SelectField
-        label={t("appbuilder:attrs.whileOneIsRunning", { defaultValue: "While one is running" })}
+        label={i18n.t("appbuilder:attrs.whileOneIsRunning", { defaultValue: "While one is running" })}
         value={operation.policy}
         options={POLICY_OPTIONS}
         onChange={(value) => onPatch({ policy: value as OperationPolicy })}
@@ -329,16 +330,16 @@ const VariableRow: React.FC<{
       onChange={(e) => onPatch({ name: e.target.value })}
     />
     <SelectField
-      label={t("editor:asset.info.type", { defaultValue: "Type" })}
+      label={i18n.t("editor:asset.info.type", { defaultValue: "Type" })}
       value={variable.type?.type ?? ""}
       options={TYPE_OPTIONS}
       onChange={(value) => onPatch({ type: value ? { type: value } : null })}
     />
     <TextInput
-      label={t("storyboard:attrs.default", { defaultValue: "Default" })}
+      label={i18n.t("storyboard:attrs.default", { defaultValue: "Default" })}
       value={formatVariableDefault(variable.default, type)}
       errorMessage={error}
-      helperText={type && type !== "str" ? t("appbuilder:attrs.useJSONForTypedValues", { defaultValue: "Use JSON for typed values." }) : undefined}
+      helperText={type && type !== "str" ? i18n.t("appbuilder:attrs.useJSONForTypedValues", { defaultValue: "Use JSON for typed values." }) : undefined}
       size="small"
       fullWidth
       onChange={(e) => {
@@ -347,7 +348,7 @@ const VariableRow: React.FC<{
       }}
     />
     <SelectField
-      label={t("appbuilder:attrs.scopeCapitalized", { defaultValue: "Scope" })}
+      label={i18n.t("appbuilder:attrs.scopeCapitalized", { defaultValue: "Scope" })}
       value={variable.scope}
       options={SCOPE_OPTIONS}
       onChange={(value) => onPatch({ scope: value as "instance" | "user" })}
@@ -355,7 +356,7 @@ const VariableRow: React.FC<{
     <LabeledSwitch
       // The label associates through `htmlFor`, so the control needs an id.
       id={`persist-${variable.id}`}
-      label={t("appbuilder:attrs.rememberBetweenVisits", { defaultValue: "Remember between visits" })}
+      label={i18n.t("appbuilder:attrs.rememberBetweenVisits", { defaultValue: "Remember between visits" })}
       checked={variable.persist}
       // doc-ops downgrades persist on an instance-scoped variable, so the
       // control says why it will not stick rather than letting it flip back.
@@ -363,7 +364,7 @@ const VariableRow: React.FC<{
       onChange={(checked) => onPatch({ persist: checked })}
     />
     {variable.scope !== "user" ? (
-      <Caption color="secondary">{t("ui2:attrs.onlyPerUserVariablesCanBeRemembered", { defaultValue: "Only per-user variables can be remembered." })}</Caption>
+      <Caption color="secondary">{i18n.t("ui2:attrs.onlyPerUserVariablesCanBeRemembered", { defaultValue: "Only per-user variables can be remembered." })}</Caption>
     ) : null}
   </EntryCard>
   );
@@ -469,7 +470,7 @@ const AddResourceForm: React.FC<{
         onChange={(e) => setName(e.target.value)}
       />
       <SelectField
-        label={t("ui2:attrs.kind", { defaultValue: "Kind" })}
+        label={i18n.t("ui2:attrs.kind", { defaultValue: "Kind" })}
         value={kind}
         options={RESOURCE_KIND_OPTIONS}
         onChange={setKindAndReset}
@@ -572,7 +573,7 @@ const AppDataPanel: React.FC<AppDataPanelProps> = ({
   return (
     <ScrollArea fullHeight>
       <FlexColumn gap={SPACING.lg} padding={SPACING.lg} fullWidth>
-        <CollapsibleSection title={t("appbuilder:attrs.operations", { defaultValue: "Operations" })} defaultOpen compact>
+        <CollapsibleSection title={i18n.t("appbuilder:attrs.operations", { defaultValue: "Operations" })} defaultOpen compact>
           <FlexColumn gap={SPACING.md} fullWidth>
             <Caption color="secondary">
               The workflows and scripts this app runs. A Run action names one of
@@ -605,7 +606,7 @@ const AppDataPanel: React.FC<AppDataPanelProps> = ({
           </FlexColumn>
         </CollapsibleSection>
 
-        <CollapsibleSection title={t("ui2:attrs.variables", { defaultValue: "Variables" })} defaultOpen compact>
+        <CollapsibleSection title={i18n.t("ui2:attrs.variables", { defaultValue: "Variables" })} defaultOpen compact>
           <FlexColumn gap={SPACING.md} fullWidth>
             <Caption color="secondary">
               App state widgets read and write, and operation outputs can land in.

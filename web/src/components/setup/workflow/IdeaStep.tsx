@@ -36,6 +36,8 @@ import ReportBugButton from "../../support/ReportBugButton";
 import { WorkflowExamplePicker } from "./ExamplePicker";
 import { useTranslation } from "react-i18next";
 
+import { i18n } from "../../../i18n";
+
 export interface WorkflowIdeaStepProps {
   workflowId: string;
   /** Writes the brief as it is typed. */

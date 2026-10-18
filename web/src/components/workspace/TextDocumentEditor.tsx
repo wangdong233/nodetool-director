@@ -37,6 +37,7 @@ import {
   Toolbar
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n, useAppLanguage } from "../../i18n";
 
 interface TextDocumentEditorProps {
   asset: Asset;

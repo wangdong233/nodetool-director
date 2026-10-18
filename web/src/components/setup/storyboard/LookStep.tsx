@@ -58,6 +58,7 @@ import { AddStyleDialog } from "./AddStyleDialog";
 import { useCustomStyle, useStyleSaving } from "./useCustomStyle";
 import { setShotlistImport, useShotlistImportSummary } from "./setupChoices";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 export interface LookStepProps {
   boardId: string;
@@ -154,8 +155,8 @@ export function useLookStep(boardId: string): LookStepControls {
   // A style still being saved replaces the board's style when it lands, so
   // generating now would render in the look it is about to replace (F8).
   const blockedReason = savingStyle
-    ? t("setup:storyboard.savingYourStyle", { defaultValue: "Saving your style" }) : style.trim().length === 0
-      ? t("storyboard:attrs.pickAnArtStyle", { defaultValue: "Pick an art style" }) : hasStillModel
+    ? i18n.t("setup:storyboard.savingYourStyle", { defaultValue: "Saving your style" }) : style.trim().length === 0
+      ? i18n.t("storyboard:attrs.pickAnArtStyle", { defaultValue: "Pick an art style" }) : hasStillModel
         ? undefined
         : "Pick a still model";
 
@@ -208,7 +209,7 @@ export const LookFooterControls: React.FC<{
   return inStudio ? (
     <Box sx={{ width: SETUP_FOOTER_CONTROL_WIDTH }}>{select}</Box>
   ) : (
-    <SetupFooterField label={t("storyboard:attrs.stills", { defaultValue: "Stills" })}>{select}</SetupFooterField>
+    <SetupFooterField label={i18n.t("storyboard:attrs.stills", { defaultValue: "Stills" })}>{select}</SetupFooterField>
   );
 };
 
@@ -374,14 +375,14 @@ export const LookStep: React.FC<LookStepProps> = ({
         </Text>
       </FlexColumn>
       {blockedReason && !readOnly ? (
-        <AlertBanner severity="info" title={t("editor:ui.beforeYouGenerate", { defaultValue: "Before you generate" })}>
+        <AlertBanner severity="info" title={i18n.t("editor:ui.beforeYouGenerate", { defaultValue: "Before you generate" })}>
           {blockedReason}
         </AlertBanner>
       ) : null}
       {/* A shotlist import lands here rather than on the story steps, so what
           it wrote is said here — inline, and only expanded on request (F29). */}
       {shotlistImport ? (
-        <AlertBanner severity="info" title={t("storyboard:attrs.shotlistImported", { defaultValue: "Shotlist imported" })}>
+        <AlertBanner severity="info" title={i18n.t("storyboard:attrs.shotlistImported", { defaultValue: "Shotlist imported" })}>
           <FlexColumn gap={GAP.tight}>
             <Caption component="span">
               {`${shotlistImport.shotCount} shot${
@@ -434,7 +435,7 @@ export const LookStep: React.FC<LookStepProps> = ({
       ) : null}
       <Box sx={{ maxWidth: SETUP_FIELD_WIDTH }}>
         <SelectField
-          label={t("storyboard:attrs.aspectRatio", { defaultValue: "Aspect ratio" })}
+          label={i18n.t("storyboard:attrs.aspectRatio", { defaultValue: "Aspect ratio" })}
           value={aspectRatio}
           onChange={handleAspect}
           options={ASPECT_OPTIONS}
@@ -444,9 +445,9 @@ export const LookStep: React.FC<LookStepProps> = ({
       {/* What the board will actually draw in, always — a style the creator
           made themselves and a style bible the Director wrote are both real
           looks, and neither of them used to say anything here (F19). */}
-      <FormField label={t("storyboard:attrs.artStyle", { defaultValue: "Art style" })} helperText={appliedStyle ?? undefined}>
+      <FormField label={i18n.t("storyboard:attrs.artStyle", { defaultValue: "Art style" })} helperText={appliedStyle ?? undefined}>
         <PresetTileGrid
-          label={t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
+          label={i18n.t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
           presets={tiles.map((tile) => ({
             ...tile,
             disabled: readOnly || tile.disabled

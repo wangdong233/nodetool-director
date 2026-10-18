@@ -29,6 +29,7 @@ import { ConfirmDialog } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient, type RouterOutputs } from "../../trpc/client";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 type CustomProviderRow = RouterOutputs["customProviders"]["list"][number];
 type TestResult = RouterOutputs["customProviders"]["test"];
@@ -132,7 +133,7 @@ const ProviderRow = memo(function ProviderRow({
             </Text>
             <Chip label={provider.provider_id} compact variant="outlined" />
             {provider.has_api_key && (
-              <Chip label={t("editor:ui.keySet", { defaultValue: "Key set" })} compact variant="outlined" color="success" />
+              <Chip label={i18n.t("editor:ui.keySet", { defaultValue: "Key set" })} compact variant="outlined" color="success" />
             )}
           </FlexRow>
           <Caption sx={{ opacity: 0.55, wordBreak: "break-all" }}>
@@ -182,7 +183,7 @@ const ProviderRow = memo(function ProviderRow({
           onClick={handleTest}
           disabled={testing}
         >
-          {testing ? t("editor:ui.testing", { defaultValue: "Testing…" }) : "Test"}
+          {testing ? i18n.t("editor:ui.testing", { defaultValue: "Testing…" }) : "Test"}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -433,8 +434,8 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       {rows.length === 0 ? (
         <EmptyState
           variant="no-results"
-          title={t("editor:ui.noEndpointsYet", { defaultValue: "No endpoints yet" })}
-          description={t("tools:menus.addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider", { defaultValue: "Add a base URL and an API key to use any OpenAI-compatible provider." })}
+          title={i18n.t("editor:ui.noEndpointsYet", { defaultValue: "No endpoints yet" })}
+          description={i18n.t("tools:menus.addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider", { defaultValue: "Add a base URL and an API key to use any OpenAI-compatible provider." })}
         />
       ) : (
         <FlexColumn sx={{ gap: theme.spacing(2) }}>
@@ -456,7 +457,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
         open={dialogOpen}
         onClose={handleClose}
         fullWidth
-        title={editingSlug ? t("editor:ui.editEndpoint", { defaultValue: "Edit endpoint" }) : "Add OpenAI-compatible endpoint"}
+        title={editingSlug ? i18n.t("editor:ui.editEndpoint", { defaultValue: "Edit endpoint" }) : "Add OpenAI-compatible endpoint"}
         onConfirm={handleSave}
         confirmText={editingSlug ? "Save" : "Add"}
         confirmDisabled={
@@ -465,17 +466,17 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       >
         <FlexColumn gap={SPACING.lg}>
           <TextInput
-            label={t("editor:asset.info.name", { defaultValue: "Name" })}
+            label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
             value={draft.name}
             onChange={handleNameChange}
             fullWidth
-            placeholder={t("editor:ui.myProxy", { defaultValue: "My Proxy" })}
+            placeholder={i18n.t("editor:ui.myProxy", { defaultValue: "My Proxy" })}
             autoFocus
             variant="outlined"
             size="small"
           />
           <TextInput
-            label={t("editor:ui.slug", { defaultValue: "Slug" })}
+            label={i18n.t("editor:ui.slug", { defaultValue: "Slug" })}
             value={draft.slug}
             onChange={handleSlugChange}
             fullWidth
@@ -485,12 +486,12 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             size="small"
             errorMessage={
               duplicateSlug
-                ? t("editor:ui.thatSlugIsAlreadyInUse", { defaultValue: "That slug is already in use." }) : (slugError ?? undefined)
+                ? i18n.t("editor:ui.thatSlugIsAlreadyInUse", { defaultValue: "That slug is already in use." }) : (slugError ?? undefined)
             }
             helperText={`Provider id: custom_${draft.slug || "…"}`}
           />
           <TextInput
-            label={t("editor:ui.baseURL", { defaultValue: "Base URL" })}
+            label={i18n.t("editor:ui.baseURL", { defaultValue: "Base URL" })}
             value={draft.baseUrl}
             onChange={handleBaseUrlChange}
             fullWidth
@@ -498,50 +499,50 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             variant="outlined"
             size="small"
             errorMessage={urlError ?? undefined}
-            helperText={t("tools:menus.includeTheVersionPathTheEndpointServesUsuallyV1", { defaultValue: "Include the version path the endpoint serves, usually /v1." })}
+            helperText={i18n.t("tools:menus.includeTheVersionPathTheEndpointServesUsuallyV1", { defaultValue: "Include the version path the endpoint serves, usually /v1." })}
           />
           <TextInput
-            label={t("tools:menus.apiKey2", { defaultValue: "API key" })}
+            label={i18n.t("tools:menus.apiKey2", { defaultValue: "API key" })}
             type="password"
             value={draft.apiKey}
             onChange={handleApiKeyChange}
             fullWidth
             placeholder={
-              editingSlug ? t("editor:ui.leaveBlankToKeepTheStoredKey", { defaultValue: "Leave blank to keep the stored key" }) : "Optional"
+              editingSlug ? i18n.t("editor:ui.leaveBlankToKeepTheStoredKey", { defaultValue: "Leave blank to keep the stored key" }) : "Optional"
             }
             variant="outlined"
             size="small"
             helperText={`The URL and key are encrypted and stored per account. The same values can come from the environment instead, as CUSTOM_${envSlug}_BASE_URL and CUSTOM_${envSlug}_API_KEY.`}
           />
           <TextInput
-            label={t("editor:ui.models", { defaultValue: "Models" })}
+            label={i18n.t("editor:ui.models", { defaultValue: "Models" })}
             value={draft.models}
             onChange={handleModelsChange}
             fullWidth
-            placeholder={t("editor:ui.leaveBlankToReadGETModels", { defaultValue: "Leave blank to read GET /models" })}
+            placeholder={i18n.t("editor:ui.leaveBlankToReadGETModels", { defaultValue: "Leave blank to read GET /models" })}
             variant="outlined"
             size="small"
-            helperText={t("tools:menus.commaSeparatedModelIdsForEndpointsWithNoModelsRoute", { defaultValue: "Comma-separated model ids, for endpoints with no /models route." })}
+            helperText={i18n.t("tools:menus.commaSeparatedModelIdsForEndpointsWithNoModelsRoute", { defaultValue: "Comma-separated model ids, for endpoints with no /models route." })}
           />
           <TextInput
-            label={t("editor:ui.imageModels", { defaultValue: "Image models" })}
+            label={i18n.t("editor:ui.imageModels", { defaultValue: "Image models" })}
             value={draft.imageModels}
             onChange={handleImageModelsChange}
             fullWidth
-            placeholder={t("editor:ui.optionalEgFluxdevSeedream4", { defaultValue: "Optional, e.g. flux-dev, seedream-4" })}
+            placeholder={i18n.t("editor:ui.optionalEgFluxdevSeedream4", { defaultValue: "Optional, e.g. flux-dev, seedream-4" })}
             variant="outlined"
             size="small"
-            helperText={t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations", { defaultValue: "Detected from the model list. Add ids that Test misses. Calls go to /images/generations." })}
+            helperText={i18n.t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations", { defaultValue: "Detected from the model list. Add ids that Test misses. Calls go to /images/generations." })}
           />
           <TextInput
-            label={t("editor:ui.videoModels", { defaultValue: "Video models" })}
+            label={i18n.t("editor:ui.videoModels", { defaultValue: "Video models" })}
             value={draft.videoModels}
             onChange={handleVideoModelsChange}
             fullWidth
-            placeholder={t("editor:ui.optionalEgKlingv2Veo3", { defaultValue: "Optional, e.g. kling-v2, veo-3" })}
+            placeholder={i18n.t("editor:ui.optionalEgKlingv2Veo3", { defaultValue: "Optional, e.g. kling-v2, veo-3" })}
             variant="outlined"
             size="small"
-            helperText={t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos", { defaultValue: "Detected from the model list. Add ids that Test misses. Calls go to /videos." })}
+            helperText={i18n.t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos", { defaultValue: "Detected from the model list. Add ids that Test misses. Calls go to /videos." })}
           />
         </FlexColumn>
       </Dialog>

@@ -68,6 +68,8 @@ import { readScriptSource } from "../../../lib/script/importedScript";
 import { GenerationEstimateLine } from "../GenerationSummary";
 import { useTranslation } from "react-i18next";
 
+import { i18n } from "../../../i18n";
+
 /** A duration as the review states it: seconds under a minute, else m:ss. */
 const spokenLength = (seconds: number): string => {
   const rounded = Math.round(seconds);
@@ -278,7 +280,7 @@ const ReviewLine: React.FC<ReviewLineProps> = memo(
             placeholder="Write a line"
             minRows={1}
             hideLabel
-            label={t("editor:ui.scriptLine", { defaultValue: "Line" })}
+            label={i18n.t("editor:ui.scriptLine", { defaultValue: "Line" })}
             compact
             fullWidth
             slotProps={{ input: { readOnly: locked } }}
@@ -303,7 +305,7 @@ const ReviewLine: React.FC<ReviewLineProps> = memo(
             />
             <ToolbarIconButton
               icon={<DeleteOutlineIcon fontSize="small" />}
-              tooltip={t("editor:ui.deleteLine", { defaultValue: "Delete line" })}
+              tooltip={i18n.t("editor:ui.deleteLine", { defaultValue: "Delete line" })}
               ariaLabel={`Delete ${excerpt}`}
               variant="error"
               onClick={remove}
@@ -506,7 +508,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
               <LanguageModelSelect
                 value={writerModel?.id ?? ""}
                 provider={writerModel?.provider}
-                placeholder={t("storyboard:attrs.writerModel", { defaultValue: "Writer model" })}
+                placeholder={i18n.t("storyboard:attrs.writerModel", { defaultValue: "Writer model" })}
                 disabled={readOnly}
                 onChange={setWriterModel}
               />

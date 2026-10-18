@@ -22,6 +22,7 @@ import type { Theme } from "@mui/material/styles";
 import { NodeSlider, FONT_WEIGHT, SPACING } from "../../ui_primitives";
 
 export interface SliderSpec {
+  labelKey?: string;
   name: string;
   label: string;
   min: number;

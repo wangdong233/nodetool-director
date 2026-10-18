@@ -30,6 +30,7 @@ import { SETUP_FIELD_WIDTH } from "../layout";
 import { STYLE_DESCRIPTIONS } from "../styleDescriptions";
 import { NO_GAME_STYLE_ID } from "./gameSetupModel";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const IMAGE_MODEL_TASKS: ImageModelTask[] = ["text_to_image"];
 
@@ -144,7 +145,7 @@ export const ImageModelFooterField: React.FC<ImageModelFooterFieldProps> = ({
   onModelChange,
   readOnly = false
 }) => (
-  <SetupFooterField label={t("setup:game.artLabel", { defaultValue: "Art" })}>
+  <SetupFooterField label={i18n.t("setup:game.artLabel", { defaultValue: "Art" })}>
     <ImageModelSelect
       value={model?.id ?? ""}
       provider={model?.provider}

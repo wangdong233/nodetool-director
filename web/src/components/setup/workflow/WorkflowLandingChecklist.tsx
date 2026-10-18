@@ -23,10 +23,12 @@ import {
 } from "../../ui_primitives";
 import type { BuildFromPlanResult } from "../../../hooks/workflow/useBuildFromPlan";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
+
 
 /** What each run mode leaves to do once the graph runs (PRD § 11.4). */
 const NEXT_STEP: Readonly<
-  Record<WorkflowSetupRunMode, { label: string; detail: string }>
+  Record<WorkflowSetupRunMode, { label: string; detail: string; labelKey?: string }>
 > = {
   manual: {
     label: "Continue on canvas", labelKey: "editor:ui.continueOnCanvas",
@@ -145,7 +147,7 @@ const validationLine = (result: BuildFromPlanResult): LineState => {
       pill: "unknown",
       detail:
         result.status === "unrecorded"
-          ? t("setup:workflow.theChecksResultWasNotRecorded", { defaultValue: "The check's result was not recorded" }) : "Not checked"
+          ? i18n.t("setup:workflow.theChecksResultWasNotRecorded", { defaultValue: "The check's result was not recorded" }) : "Not checked"
     };
   }
   if (result.validationErrors.length > 0) {
@@ -244,14 +246,14 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
       <Line
         tone="done"
         pill="built"
-        label={t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
+        label={i18n.t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
         detail={`${result.nodeCount} node${result.nodeCount === 1 ? "" : "s"} placed`}
       />
-      <Line label={t("storyboard:attrs.validated", { defaultValue: "Validated" })} {...validationLine(result)} />
+      <Line label={i18n.t("storyboard:attrs.validated", { defaultValue: "Validated" })} {...validationLine(result)} />
       {/* The creator was told on the setup step that building would run it
           once, so a missing run is a promise this screen has to account for
           (F1, F8). */}
-      <Line label={t("storyboard:attrs.testRun", { defaultValue: "Test run" })} {...testRunLine(result)} />
+      <Line label={i18n.t("storyboard:attrs.testRun", { defaultValue: "Test run" })} {...testRunLine(result)} />
 
       {failure === null ? (
         <FlexRow gap={GAP.normal} align="center">
@@ -267,7 +269,7 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
       ) : (
         <AlertBanner
           severity="error"
-          title={t("storyboard:attrs.thisNeedsAFixBeforeItWorks", { defaultValue: "This needs a fix before it works" })}
+          title={i18n.t("storyboard:attrs.thisNeedsAFixBeforeItWorks", { defaultValue: "This needs a fix before it works" })}
           action={
             <EditorButton variant="text" onClick={() => onAskAgent(failure)}>
               Ask the agent

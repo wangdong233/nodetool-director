@@ -83,6 +83,8 @@ const ProviderOnboardingDialog = React.lazy(
 );
 
 interface PreviewEntry {
+  labelKey?: string;
+  descriptionKey?: string;
   id: string;
   label: string;
   description: string;

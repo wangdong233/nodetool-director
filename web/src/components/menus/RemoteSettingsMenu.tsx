@@ -30,6 +30,7 @@ import ExternalLink from "../common/ExternalLink";
 import SearchProviderSection from "./SearchProviderSection";
 import { matchesSearch } from "./settingsSearch";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /**
  * Groups surfaced elsewhere (General tab, Folders panel) or via

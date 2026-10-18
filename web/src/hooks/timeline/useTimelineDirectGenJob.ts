@@ -62,6 +62,7 @@ import {
   __resetGenerationCompletionNoticeForTests,
   announceGenerationFinished
 } from "./generationCompletionNotice";
+import { i18n } from "../../i18n";
 
 interface DirectGenRpcResponse extends WebSocketMessage {
   type: "rpc_response";

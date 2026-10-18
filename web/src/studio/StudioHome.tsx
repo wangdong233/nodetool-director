@@ -146,7 +146,7 @@ const BlankStart = ({
   onStart: () => void;
 }) => (
   <EditorButton variant="text" startIcon={icon} onClick={onStart} disabled={disabled}>
-    {busy ? t("home:surface.creatingMeta", { defaultValue: "Creating…" }) : label}
+    {busy ? i18n.t("home:surface.creatingMeta", { defaultValue: "Creating…" }) : label}
   </EditorButton>
 );
 

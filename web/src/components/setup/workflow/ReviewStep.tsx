@@ -70,6 +70,7 @@ import { REVIEW_BLOCK, REVIEW_CONTENT_WIDTH } from "../reviewStyles";
 import type { PlanReviewSection } from "../PlanReview";
 import { MODEL_ROLE_ONBOARDING } from "./modelRoles";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 export interface WorkflowReviewStepProps {
   plan: WorkflowSetupPlan;
@@ -318,7 +319,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
 
         {replanPending ? (
           <FlexRow gap={GAP.normal} align="center" wrap>
-            <ThinkingIndicator label={t("storyboard:attrs.rePlanningTheSteps", { defaultValue: "Re-planning the steps" })} announce />
+            <ThinkingIndicator label={i18n.t("storyboard:attrs.rePlanningTheSteps", { defaultValue: "Re-planning the steps" })} announce />
             {onCancelReplan ? (
               <EditorButton variant="text" onClick={onCancelReplan}>
                 Stop re-planning
@@ -348,7 +349,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
         {planProblems.length > 0 ? (
           <AlertBanner
             severity="warning"
-            title={t("setup:workflow.thisPlanWouldFailWhenItRuns", { defaultValue: "This plan would fail when it runs" })}
+            title={i18n.t("setup:workflow.thisPlanWouldFailWhenItRuns", { defaultValue: "This plan would fail when it runs" })}
             action={
               <EditorButton
                 variant="text"
@@ -586,7 +587,7 @@ const StepRow: React.FC<StepRowProps> = ({
           compact
           label={`Step ${index + 1} description`}
           hideLabel
-          placeholder={t("storyboard:attrs.whatThisStepDoes", { defaultValue: "What this step does" })}
+          placeholder={i18n.t("storyboard:attrs.whatThisStepDoes", { defaultValue: "What this step does" })}
           value={step.summary}
           disabled={readOnly}
           minRows={1}
@@ -596,16 +597,16 @@ const StepRow: React.FC<StepRowProps> = ({
         />
 
         {entry.unknownNodeType ? (
-          <AlertBanner severity="error" title={t("storyboard:attrs.noNodeForThisStep", { defaultValue: "No node for this step" })}>
+          <AlertBanner severity="error" title={i18n.t("storyboard:attrs.noNodeForThisStep", { defaultValue: "No node for this step" })}>
             <FlexColumn gap={GAP.normal}>
               <Caption component="span">
                 {step.node_type === null
-                  ? t("storyboard:attrs.thePlanCouldNotNameANodeForThisStepPickOne", { defaultValue: "The plan could not name a node for this step. Pick one." }) : `"${step.node_type}" is not a node type this install has. Pick one.`}
+                  ? i18n.t("storyboard:attrs.thePlanCouldNotNameANodeForThisStepPickOne", { defaultValue: "The plan could not name a node for this step. Pick one." }) : `"${step.node_type}" is not a node type this install has. Pick one.`}
               </Caption>
               <Autocomplete
                 options={nodeTypeOptions}
                 label={`Node type for step ${index + 1}`}
-                placeholder={t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
+                placeholder={i18n.t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
                 disabled={readOnly}
                 onChange={(_event, value) => pickNodeType(value)}
               />
@@ -665,7 +666,7 @@ const StepRow: React.FC<StepRowProps> = ({
                   ) ?? null
                 }
                 label={`Node type for step ${index + 1}`}
-                placeholder={t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
+                placeholder={i18n.t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
                 disabled={readOnly}
                 onChange={(_event, value) => pickNodeType(value)}
               />

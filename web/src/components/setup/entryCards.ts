@@ -26,6 +26,7 @@ export type EntryFlowId =
   | "app";
 
 export interface EntryCard extends OptionCardItem {
+  descriptionKey?: string;
   id: EntryFlowId;
 }
 

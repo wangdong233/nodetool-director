@@ -93,18 +93,18 @@ function slugify(name: string): string {
 }
 
 function draftFrom(server: McpServerConfig): DraftState {
-  const t = server.transport;
+  const transport = server.transport;
   return {
     id: server.id,
     name: server.name,
     enabled: server.enabled,
-    type: t.type,
-    command: t.type === "stdio" ? t.command : "",
-    args: t.type === "stdio" ? t.args.join("\n") : "",
-    env: t.type === "stdio" ? formatKeyValues(t.env) : "",
-    cwd: t.type === "stdio" ? (t.cwd ?? "") : "",
-    url: t.type === "http" ? t.url : "",
-    headers: t.type === "http" ? formatKeyValues(t.headers) : ""
+    type: transport.type,
+    command: transport.type === "stdio" ? transport.command : "",
+    args: transport.type === "stdio" ? transport.args.join("\n") : "",
+    env: transport.type === "stdio" ? formatKeyValues(transport.env) : "",
+    cwd: transport.type === "stdio" ? (transport.cwd ?? "") : "",
+    url: transport.type === "http" ? transport.url : "",
+    headers: transport.type === "http" ? formatKeyValues(transport.headers) : ""
   };
 }
 
@@ -177,13 +177,14 @@ const ServerRow = memo(function ServerRow({
   probe: ProbeResult | null;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const handleEdit = useCallback(() => onEdit(server), [onEdit, server]);
   const handleDelete = useCallback(() => onDelete(server), [onDelete, server]);
   const handleProbe = useCallback(() => onProbe(server), [onProbe, server]);
   const handleToggle = useCallback(() => onToggle(server), [onToggle, server]);
-  const t = server.transport;
+  const transport = server.transport;
   const summary =
-    t.type === "stdio" ? [t.command, ...t.args].join(" ") : t.url;
+    transport.type === "stdio" ? [transport.command, ...transport.args].join(" ") : transport.url;
 
   return (
     <Card
@@ -220,7 +221,7 @@ const ServerRow = memo(function ServerRow({
             <Text size="small" weight={600}>
               {server.name}
             </Text>
-            <Chip label={t.type} compact variant="outlined" />
+            <Chip label={transport.type} compact variant="outlined" />
             {!server.enabled && (
               <Chip label={t("editor:ui.disabled", { defaultValue: "Disabled" })} compact variant="outlined" />
             )}

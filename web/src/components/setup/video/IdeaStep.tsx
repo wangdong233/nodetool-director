@@ -57,6 +57,8 @@ import { useVideoSetupContext } from "./setupContext";
 import CreativeContextFields from "./CreativeContextFields";
 import { useTranslation } from "react-i18next";
 
+import { i18n } from "../../../i18n";
+
 /** How wide a carried reference thumbnail is drawn. */
 const REFERENCE_THUMBNAIL = getSpacingPx(12);
 

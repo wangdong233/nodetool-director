@@ -29,6 +29,7 @@ interface MediaModeMenuProps {
 }
 
 interface ModeItem {
+  descriptionKey?: string;
   id: MediaMode;
   label: string;
   description?: string;

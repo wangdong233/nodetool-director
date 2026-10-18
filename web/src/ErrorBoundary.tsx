@@ -9,6 +9,7 @@ import type { Theme } from "@mui/material/styles";
 import { openBugReport } from "./stores/BugReportStore";
 import { reportClientError } from "./utils/errorTraceReporting";
 import { useTranslation } from "react-i18next";
+import { i18n } from "./i18n";
 
 const errorBoundaryStyles = (theme: Theme) =>
   css({

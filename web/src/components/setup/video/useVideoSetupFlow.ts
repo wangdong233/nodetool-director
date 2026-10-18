@@ -53,6 +53,8 @@ import {
 } from "./productionAuthoring";
 import { assetIdFromLocator } from "../../../utils/mediaRef";
 
+import { i18n, useAppLanguage } from "../../../i18n";
+
 /**
  * A sequence's stage, with the field's absence read as `done` — an old
  * sequence has no setup and opens as the editor, as it always did.

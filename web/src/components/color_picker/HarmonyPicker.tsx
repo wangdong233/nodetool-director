@@ -131,10 +131,10 @@ const HarmonyPicker: React.FC<HarmonyPickerProps> = ({
           <div className="harmony-header">
             <div>
               <Text className="harmony-title">
-                {t(harmony.nameKey, { defaultValue: harmony.name })}
+                {t(harmony.nameKey ?? harmony.name, { defaultValue: harmony.name })}
               </Text>
               <Text className="harmony-description">
-                {t(harmony.descriptionKey, {
+                {t(harmony.descriptionKey ?? harmony.description, {
                   defaultValue: harmony.description
                 })}
               </Text>

@@ -19,6 +19,7 @@ import { notifyMutationError } from "../../utils/notifyMutationError";
 import type { SkillListItem } from "@nodetool-ai/protocol/api-schemas/skills.js";
 import ReportBugButton from "../support/ReportBugButton";
 import { DocumentListPanel, ListPanelItem } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 /**
  * A shipped skill has no row, so its id carries this prefix (see the skills

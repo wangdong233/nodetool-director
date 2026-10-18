@@ -32,6 +32,7 @@ import usePacksStore, {
 } from "../../stores/PacksStore";
 import { useShallow } from "zustand/react/shallow";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 function statusColor(
   pack: PackInfo
@@ -111,7 +112,7 @@ const PackRow = memo(function PackRow({
         </FlexColumn>
         <FlexRow gap={1.5} align="center" sx={{ flexShrink: 0 }}>
           <LabeledSwitch
-            label={t("editor:ui.trusted", { defaultValue: "Trusted" })}
+            label={i18n.t("editor:ui.trusted", { defaultValue: "Trusted" })}
             checked={trusted}
             onChange={onTrustChange}
           />
@@ -329,7 +330,7 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
                     disabled={busy !== null}
                     sx={{ flexShrink: 0 }}
                   >
-                    {busy === pack.name ? t("editor:ui.verifying", { defaultValue: "Verifying…" }) : "Trust and rebuild"}
+                    {busy === pack.name ? i18n.t("editor:ui.verifying", { defaultValue: "Verifying…" }) : "Trust and rebuild"}
                   </EditorButton>
                 )}
               </FlexRow>
@@ -402,7 +403,7 @@ const InstallPanel = memo(function InstallPanel({
 
   return (
     <FlexColumn gap={SPACING.lg}>
-      <SectionHeader size="small" title={t("editor:ui.installAPack", { defaultValue: "Install a pack" })} />
+      <SectionHeader size="small" title={i18n.t("editor:ui.installAPack", { defaultValue: "Install a pack" })} />
       <Text size="small" color="secondary">
         Installing runs no pack code. A pack that ships sandbox modules is
         active right away, and those modules run inside your workflows with the
@@ -410,7 +411,7 @@ const InstallPanel = memo(function InstallPanel({
         host nodes stays inactive until you approve trust.
       </Text>
       <TextInput
-        label={t("editor:ui.packageToInstall", { defaultValue: "Package to install" })}
+        label={i18n.t("editor:ui.packageToInstall", { defaultValue: "Package to install" })}
         helperText={
           <>
             Paste an npm package name, e.g. <Code>@acme/cool-nodes</Code> or{" "}
@@ -425,7 +426,7 @@ const InstallPanel = memo(function InstallPanel({
             handleInstall();
           }
         }}
-        placeholder={t("tools:menus.packageSpecPlaceholder", { defaultValue: "@scope/package or package@version" })}
+        placeholder={i18n.t("tools:menus.packageSpecPlaceholder", { defaultValue: "@scope/package or package@version" })}
         fullWidth
         disabled={status.kind === "installing"}
       />
@@ -435,7 +436,7 @@ const InstallPanel = memo(function InstallPanel({
           onClick={handleInstall}
           disabled={!spec.trim() || status.kind === "installing"}
         >
-          {status.kind === "installing" ? t("editor:ui.installing", { defaultValue: "Installing…" }) : "Install"}
+          {status.kind === "installing" ? i18n.t("editor:ui.installing", { defaultValue: "Installing…" }) : "Install"}
         </EditorButton>
       </FlexRow>
       {status.kind === "ok" && (
@@ -508,7 +509,7 @@ function PackagesMenu() {
   return (
     <FlexColumn gap={SPACING.xl} sx={{ maxWidth: 880 }}>
       <FlexColumn gap={SPACING.md}>
-        <SectionHeader size="small" title={t("editor:ui.trustDefaults", { defaultValue: "Trust defaults" })} />
+        <SectionHeader size="small" title={i18n.t("editor:ui.trustDefaults", { defaultValue: "Trust defaults" })} />
         <LabeledSwitch
           label="Load packs that are not on the allowlist"
           description="Off in production by default. When off, only packs you've explicitly trusted will load."
@@ -547,7 +548,7 @@ function PackagesMenu() {
               onClick={() => void reload()}
               disabled={isLoading}
             >
-              {isLoading ? t("editor:ui.reloading", { defaultValue: "Reloading…" }) : "Reload"}
+              {isLoading ? i18n.t("editor:ui.reloading", { defaultValue: "Reloading…" }) : "Reload"}
             </EditorButton>
           }
         />

@@ -70,6 +70,7 @@ const buttonStyles = (theme: Theme, compact: boolean) =>
   });
 
 interface TrackTypeOption {
+  labelKey?: string;
   type: TimelineTrack["type"];
   label: string;
   icon: React.ReactNode;

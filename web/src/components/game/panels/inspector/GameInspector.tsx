@@ -20,6 +20,7 @@ import { gameSchemaFields, schemaVariant } from "../../inspector/schemaForm";
 
 import { parentCandidates, reparentTransform } from "../../viewport2d/viewportGeometry";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface GameInspectorProps {
   document: GameDocument;
@@ -107,9 +108,10 @@ function newEffect(kind: typeof EFFECTS[number], document: GameDocument): GameRe
 
 /** Up, down and remove actions for one entry of an ordered list. */
 function OrderActions({ index, count, removeLabel, onMove, onRemove }: { index: number; count: number; removeLabel: string; onMove: (to: number) => void; onRemove: () => void }) {
+  const { t } = useTranslation();
   return <>
-    <RowAction icon={<ArrowUpwardIcon />} label={t("editor:ui.moveUp", { defaultValue: "Move up" })} disabled={index === 0} onClick={() => onMove(index - 1)} />
-    <RowAction icon={<ArrowDownwardIcon />} label={t("editor:ui.moveDown", { defaultValue: "Move down" })} disabled={index === count - 1} onClick={() => onMove(index + 1)} />
+    <RowAction icon={<ArrowUpwardIcon />} label={i18n.t("editor:ui.moveUp", { defaultValue: "Move up" })} disabled={index === 0} onClick={() => onMove(index - 1)} />
+    <RowAction icon={<ArrowDownwardIcon />} label={i18n.t("editor:ui.moveDown", { defaultValue: "Move down" })} disabled={index === count - 1} onClick={() => onMove(index + 1)} />
     <RowAction icon={<CloseIcon />} label={removeLabel} onClick={onRemove} />
   </>;
 }
@@ -148,7 +150,7 @@ export default function GameInspector({ document, activeSceneId, selectedIds, is
     }
   };
 
-  const inspectedName = tab === "game" ? t("game:inspector.gameSettings", { defaultValue: "Game settings" }) : entity?.name || entity?.id || scene?.name || "Scene";
+  const inspectedName = tab === "game" ? i18n.t("game:inspector.gameSettings", { defaultValue: "Game settings" }) : entity?.name || entity?.id || scene?.name || "Scene";
   const inspectedId = tab === "game" ? undefined : entity?.id ?? scene?.id;
 
   return <FlexColumn sx={{ minHeight: 0, height: "100%" }}>
@@ -156,27 +158,27 @@ export default function GameInspector({ document, activeSceneId, selectedIds, is
       <Text weight={500} truncate>{inspectedName}</Text>
       {inspectedId && <Caption title={inspectedId} sx={{ overflowWrap: "anywhere" }}>ID: {inspectedId}</Caption>}
     </FlexColumn>
-    <TabGroup aria-label={t("editor:ui.inspector", { defaultValue: "Inspector" })} size="small" fullWidth value={tab} onChange={(value) => setTab(value === "game" ? "game" : "selection")}
-      tabs={[{ value: "selection", label: entity ? t("editor:ui.entity", { defaultValue: "Entity" }) : "Scene" }, { value: "game", label: "Game" }]} />
+    <TabGroup aria-label={i18n.t("editor:ui.inspector", { defaultValue: "Inspector" })} size="small" fullWidth value={tab} onChange={(value) => setTab(value === "game" ? "game" : "selection")}
+      tabs={[{ value: "selection", label: entity ? i18n.t("editor:ui.entity", { defaultValue: "Entity" }) : "Scene" }, { value: "game", label: "Game" }]} />
     <Divider />
     <FlexColumn gap={SPACING.xs} sx={{ minHeight: 0, overflowY: "auto", px: SPACING.lg, py: SPACING.sm }}>
     {tab === "game" ? <>
       <SchemaFields schema={DOCUMENT_SCHEMA.properties?.pixelsPerUnit ?? { type: "number" }} value={document.pixelsPerUnit} path="pixelsPerUnit"
         issuePath={["pixelsPerUnit"]} issues={issues} onChange={(value) => onOps([{ op: "set_game", pixels_per_unit: Number(value) }])} />
-      <InspectorFieldRow label={t("game:inspector.entryScene", { defaultValue: "Entry scene" })}><InspectorSelect grow label={t("game:inspector.entryScene", { defaultValue: "Entry scene" })} value={document.entrySceneId} options={document.scenes.map((item) => ({ value: item.id, label: item.name }))}
+      <InspectorFieldRow label={i18n.t("game:inspector.entryScene", { defaultValue: "Entry scene" })}><InspectorSelect grow label={i18n.t("game:inspector.entryScene", { defaultValue: "Entry scene" })} value={document.entrySceneId} options={document.scenes.map((item) => ({ value: item.id, label: item.name }))}
         onChange={(value) => onOps([{ op: "set_game", entry_scene_id: value }])} /></InspectorFieldRow>
       {issueAt(issues, ["entrySceneId"]) && <Caption color="error">{issueAt(issues, ["entrySceneId"])}</Caption>}
-      <InspectorSection title={t("game:inspector.inputActions", { defaultValue: "Input actions" })}>
+      <InspectorSection title={i18n.t("game:inspector.inputActions", { defaultValue: "Input actions" })}>
         <SchemaFields schema={DOCUMENT_SCHEMA.properties?.inputActions ?? { type: "array", items: { type: "string" } }} value={document.inputActions}
           path="inputActions" issuePath={["inputActions"]} issues={issues}
           onChange={(value) => onOps([{ op: "set_game", input_actions: value as string[] }])} />
       </InspectorSection>
-      <InspectorSection title={t("game:inspector.collisionLayerNames", { defaultValue: "Collision layer names" })}>
+      <InspectorSection title={i18n.t("game:inspector.collisionLayerNames", { defaultValue: "Collision layer names" })}>
         <SchemaFields schema={DOCUMENT_SCHEMA.properties?.collisionLayers ?? { type: "array", items: { type: "string" } }} value={document.collisionLayers ?? []}
           path="collisionLayers" issuePath={["collisionLayers"]} issues={issues}
           onChange={(value) => onOps([{ op: "set_game", collision_layers: value as string[] }])} />
       </InspectorSection>
-      <InspectorSection title={t("timeline:attrs.effects", { defaultValue: "Effects" })}>
+      <InspectorSection title={i18n.t("timeline:attrs.effects", { defaultValue: "Effects" })}>
         {effects.map((effect, index) => <FieldGroup key={`${effect.kind}:${index}`} title={`${index + 1}. ${displayKind(effect.kind)}`} actions={<OrderActions index={index} count={effects.length} removeLabel="Remove effect"
           onMove={(to) => { const next = [...effects]; [next[to], next[index]] = [next[index], next[to]]; setEffects(next); }}
           onRemove={() => setEffects(effects.filter((_, position) => position !== index))} />}>
@@ -184,14 +186,14 @@ export default function GameInspector({ document, activeSceneId, selectedIds, is
             issuePath={["renderEffects", index]} issues={visibleIssues} assets={document.assets}
             onChange={(value) => setEffects(effects.map((entry, position) => position === index ? value as GameRenderEffect : entry))} />
         </FieldGroup>)}
-        <InspectorFieldRow label={t("game:inspector.hudEffectOrder", { defaultValue: "HUD effect order" })}><InspectorSelect grow label={t("game:inspector.hudEffectOrder", { defaultValue: "HUD effect order" })} value={document.hudEffectOrder ?? "beforeEffects"}
+        <InspectorFieldRow label={i18n.t("game:inspector.hudEffectOrder", { defaultValue: "HUD effect order" })}><InspectorSelect grow label={i18n.t("game:inspector.hudEffectOrder", { defaultValue: "HUD effect order" })} value={document.hudEffectOrder ?? "beforeEffects"}
           options={[{ value: "beforeEffects", label: "Before effects" }, { value: "afterEffects", label: "After effects" }]}
           onChange={(value) => setEffects(effects, value as GameDocument["hudEffectOrder"])} /></InspectorFieldRow>
-        <InspectorAddMenu label={t("timeline:attrs.addEffect", { defaultValue: "Add effect" })} disabled={effects.length >= 8}
+        <InspectorAddMenu label={i18n.t("timeline:attrs.addEffect", { defaultValue: "Add effect" })} disabled={effects.length >= 8}
           options={EFFECTS.map((kind) => ({ value: kind, label: displayKind(kind), disabled: kind === "lut" && !lutReady }))}
           onSelect={(kind) => { const effect = newEffect(kind as typeof EFFECTS[number], document); if (effect) setEffects([...effects, effect]); }} />
       </InspectorSection>
-      <InspectorSection title={t("game:inspector.assetBindings", { defaultValue: "Asset bindings" })}>
+      <InspectorSection title={i18n.t("game:inspector.assetBindings", { defaultValue: "Asset bindings" })}>
         {Object.entries(document.assets).map(([slot, binding]) => <FieldGroup key={slot} title={slot}
           actions={<RowAction icon={<CloseIcon />} label={`Unbind ${slot}`} onClick={() => onOps([{ op: "unbind_asset", slot }])} />}>
           <SchemaFields schema={ASSET_SCHEMA} value={binding} path={`assets.${slot}`} issuePath={["assets", slot]} issues={issues}
@@ -203,25 +205,25 @@ export default function GameInspector({ document, activeSceneId, selectedIds, is
               onOps([{ op: "bind_asset", slot, binding: adjusted }]);
             }} />
         </FieldGroup>)}
-        <InspectorFieldRow label={t("game:inspector.newAssetSlot", { defaultValue: "New asset slot" })}>
+        <InspectorFieldRow label={i18n.t("game:inspector.newAssetSlot", { defaultValue: "New asset slot" })}>
           <FieldDensityContext.Provider value="compact">
-            <TextInput label={t("game:inspector.newAssetSlot", { defaultValue: "New asset slot" })} hideLabel compact value={newSlot} sx={{ flex: 1, minWidth: 0 }} onChange={(event) => setNewSlot(event.target.value)}
+            <TextInput label={i18n.t("game:inspector.newAssetSlot", { defaultValue: "New asset slot" })} hideLabel compact value={newSlot} sx={{ flex: 1, minWidth: 0 }} onChange={(event) => setNewSlot(event.target.value)}
               onKeyDown={(event) => { if (event.key === "Enter") addBinding(); }} />
           </FieldDensityContext.Provider>
-          <RowAction icon={<AddIcon />} label={t("game:inspector.addBinding", { defaultValue: "Add binding" })} disabled={!slotName || Boolean(document.assets[slotName]) || Object.keys(document.assets).length === 0} onClick={addBinding} />
+          <RowAction icon={<AddIcon />} label={i18n.t("game:inspector.addBinding", { defaultValue: "Add binding" })} disabled={!slotName || Boolean(document.assets[slotName]) || Object.keys(document.assets).length === 0} onClick={addBinding} />
         </InspectorFieldRow>
       </InspectorSection>
     </> : entity && target && scene ? <>
       <GameOverrideFields document={document} sceneId={scene.id} entityId={entity.id} onOps={onOps} />
       <SchemaFields schema={ENTITY_SCHEMA.properties?.name ?? { type: "string" }} value={entity.name} path="Name"
         issuePath={[...entityPath, "name"]} issues={issues} onChange={(value) => update({ name: String(value) })} />
-      <InspectorFieldRow label={t("timeline:attrs.parent", { defaultValue: "Parent" })}><InspectorSelect grow label={t("timeline:attrs.parent", { defaultValue: "Parent" })} value={entity.parentId ?? ""}
+      <InspectorFieldRow label={i18n.t("timeline:attrs.parent", { defaultValue: "Parent" })}><InspectorSelect grow label={i18n.t("timeline:attrs.parent", { defaultValue: "Parent" })} value={entity.parentId ?? ""}
         options={[{ value: "", label: "None" }, ...parentCandidates(scene, entity.id).map((entry) => ({ value: entry.id, label: entry.name || entry.id }))]}
         onChange={(value) => update({ parentId: value || null, transform2d: reparentTransform(scene, entity.id, value || undefined) })} /></InspectorFieldRow>
       {issueAt(issues, [...entityPath, "parentId"]) && <Caption color="error">{issueAt(issues, [...entityPath, "parentId"])}</Caption>}
       <SchemaFields schema={ENTITY_SCHEMA.properties?.templateOnly ?? { type: "boolean" }} value={entity.templateOnly} path="Prefab only"
         issuePath={[...entityPath, "templateOnly"]} issues={issues} onChange={(value) => update({ templateOnly: Boolean(value) })} />
-      <InspectorSection title={t("timeline:attrs.transform", { defaultValue: "Transform" })}>
+      <InspectorSection title={i18n.t("timeline:attrs.transform", { defaultValue: "Transform" })}>
         <SchemaFields schema={ENTITY_SCHEMA.properties?.transform2d ?? { type: "object" }} value={entity.transform2d} path="transform2d"
           issuePath={[...entityPath, "transform2d"]} issues={issues} onChange={(value) => update({ transform2d: value as GameEntity["transform2d"] })} />
       </InspectorSection>
@@ -233,15 +235,15 @@ export default function GameInspector({ document, activeSceneId, selectedIds, is
           onChange={(value) => update({ [component]: value } as Extract<GameDocumentOp, { op: "update_entity" }>["set"])} />
       </InspectorSection>)}
       <FlexColumn sx={{ pt: SPACING.xs, pb: SPACING.sm, borderTop: 1, borderColor: "divider" }}>
-        <InspectorAddMenu label={t("game:inspector.addComponent", { defaultValue: "Add component" })} options={COMPONENTS.filter((component) => !entity[component]).map((component) => ({ value: component, label: displayKind(component),
+        <InspectorAddMenu label={i18n.t("game:inspector.addComponent", { defaultValue: "Add component" })} options={COMPONENTS.filter((component) => !entity[component]).map((component) => ({ value: component, label: displayKind(component),
           disabled: (component === "particles" && document.schemaVersion < 2) || ((component === "sprite" || component === "tilemap") && !firstSlot(document, "image")) || (component === "audioSource" && !firstSlot(document, "audio")) }))}
           onSelect={(component) => update({ [component]: newComponent(component as ComponentKind, document) } as Extract<GameDocumentOp, { op: "update_entity" }>["set"])} />
       </FlexColumn>
-      <InspectorSection title={t("game:inspector.behaviors", { defaultValue: "Behaviors" })}>
-        {entity.behaviors.length === 0 && <Caption>{t("game:inspector.noBehaviors", { defaultValue: "No behaviors yet." })}</Caption>}
+      <InspectorSection title={i18n.t("game:inspector.behaviors", { defaultValue: "Behaviors" })}>
+        {entity.behaviors.length === 0 && <Caption>{i18n.t("game:inspector.noBehaviors", { defaultValue: "No behaviors yet." })}</Caption>}
         {entity.behaviors.map((behavior, index) => <FieldGroup key={`${behavior.kind}:${index}`} title={`${index + 1}. ${displayKind(behavior.kind)}`}
           actions={<>
-            {behavior.kind === "script" && <RowAction icon={<CodeIcon />} label={t("game:inspector.editScript", { defaultValue: "Edit script" })} onClick={() => onEditScript(scene.id, entity.id, index)} />}
+            {behavior.kind === "script" && <RowAction icon={<CodeIcon />} label={i18n.t("game:inspector.editScript", { defaultValue: "Edit script" })} onClick={() => onEditScript(scene.id, entity.id, index)} />}
             <OrderActions index={index} count={entity.behaviors.length} removeLabel="Remove behavior"
               onMove={(to) => onOps([{ op: "move_behavior", ...target, index, to_index: to }])} onRemove={() => onOps([{ op: "remove_behavior", ...target, index }])} />
           </>}>
@@ -259,42 +261,42 @@ export default function GameInspector({ document, activeSceneId, selectedIds, is
             issuePath={[...entityPath, "behaviors", index]} issues={issues} assets={document.assets}
             onChange={(value) => onOps([{ op: "update_behavior", ...target, index, behavior: value as Record<string, unknown> }])} />}
         </FieldGroup>)}
-        <InspectorAddMenu label={t("game:inspector.addBehavior", { defaultValue: "Add behavior" })} options={BEHAVIORS.map((kind) => ({ value: kind, label: displayKind(kind),
+        <InspectorAddMenu label={i18n.t("game:inspector.addBehavior", { defaultValue: "Add behavior" })} options={BEHAVIORS.map((kind) => ({ value: kind, label: displayKind(kind),
           disabled: kind === "spawn" && !document.scenes.some((entry) => entry.entities.some((item) => item.templateOnly)) }))}
           onSelect={(kind) => { const behavior = newBehavior(kind, document); if (behavior) onOps([{ op: "add_behavior", ...target, behavior }]); }} />
       </InspectorSection>
     </> : scene ? <>
-      <InspectorFieldRow label={t("storyboard:attrs.scene", { defaultValue: "Scene" })}><InspectorSelect grow label={t("storyboard:attrs.scene", { defaultValue: "Scene" })} value={scene.id} options={document.scenes.map((entry) => ({ value: entry.id, label: entry.name }))} onChange={onSceneChange} /></InspectorFieldRow>
+      <InspectorFieldRow label={i18n.t("storyboard:attrs.scene", { defaultValue: "Scene" })}><InspectorSelect grow label={i18n.t("storyboard:attrs.scene", { defaultValue: "Scene" })} value={scene.id} options={document.scenes.map((entry) => ({ value: entry.id, label: entry.name }))} onChange={onSceneChange} /></InspectorFieldRow>
       <SchemaFields schema={SCENE_SCHEMA.properties?.name ?? { type: "string" }} value={scene.name} path="Name"
         issuePath={[...scenePath, "name"]} issues={issues}
         onChange={(value) => onOps([{ op: "update_scene", scene_id: scene.id, set: { name: String(value) } }])} />
-      <InspectorSection title={t("editor:ui.music", { defaultValue: "Music" })} action={scene.music ? { icon: <CloseIcon />, label: "Remove music",
+      <InspectorSection title={i18n.t("editor:ui.music", { defaultValue: "Music" })} action={scene.music ? { icon: <CloseIcon />, label: "Remove music",
         onClick: () => onOps([{ op: "update_scene", scene_id: scene.id, set: { music: null } }]) } : undefined}>
         {scene.music ? <SchemaFields schema={SCENE_SCHEMA.properties?.music ?? { type: "object" }} value={scene.music} path="music" issuePath={[...scenePath, "music"]}
           issues={issues} assets={document.assets} onChange={(value) => onOps([{ op: "update_scene", scene_id: scene.id, set: { music: value as typeof scene.music } }])} />
           : <AddButton disabled={!firstSlot(document, "audio") || document.schemaVersion < 2} onClick={() => {
             const assetId = firstSlot(document, "audio");
             if (assetId) onOps([{ op: "update_scene", scene_id: scene.id, set: { music: { assetId, volume: 1, fadeInTicks: 0, fadeOutTicks: 0 } } }]);
-          }}>{t("game:inspector.addMusic", { defaultValue: "Add music" })}</AddButton>}
+          }}>{i18n.t("game:inspector.addMusic", { defaultValue: "Add music" })}</AddButton>}
       </InspectorSection>
-      <InspectorSection title={t("timeline:attrs.lighting", { defaultValue: "Lighting" })} action={scene.lighting ? { icon: <CloseIcon />, label: "Remove lighting",
+      <InspectorSection title={i18n.t("timeline:attrs.lighting", { defaultValue: "Lighting" })} action={scene.lighting ? { icon: <CloseIcon />, label: "Remove lighting",
         onClick: () => onOps([{ op: "set_lighting", scene_id: scene.id, lighting: null }]) } : undefined}>
         {scene.lighting ? <>
           <SchemaFields schema={SCENE_SCHEMA.properties?.lighting?.properties?.ambient ?? { type: "object" }} value={scene.lighting.ambient} path="lighting.ambient"
             issuePath={[...scenePath, "lighting", "ambient"]} issues={issues} onChange={(value) => onOps([{ op: "set_lighting", scene_id: scene.id,
               lighting: { required: scene.lighting?.required, points: scene.lighting?.points ?? [], ambient: value as typeof scene.lighting.ambient } }])} />
           {scene.lighting.points.map((light, index) => <FieldGroup key={index} title={`Light ${index + 1}`}
-            actions={<RowAction icon={<CloseIcon />} label={t("game:inspector.removeLight", { defaultValue: "Remove light" })} onClick={() => onOps([{ op: "remove_light", scene_id: scene.id, index }])} />}>
+            actions={<RowAction icon={<CloseIcon />} label={i18n.t("game:inspector.removeLight", { defaultValue: "Remove light" })} onClick={() => onOps([{ op: "remove_light", scene_id: scene.id, index }])} />}>
             <SchemaFields schema={SCENE_SCHEMA.properties?.lighting?.properties?.points?.items ?? { type: "object" }} value={light} path={`lighting.points.${index}`}
               issuePath={[...scenePath, "lighting", "points", index]} issues={issues}
               onChange={(value) => onOps([{ op: "update_light", scene_id: scene.id, index, set: value as typeof light }])} />
           </FieldGroup>)}
           <AddButton disabled={scene.lighting.points.length >= 32} onClick={() => onOps([{ op: "add_light", scene_id: scene.id,
-            light: { x: 0, y: 0, color: DEFAULT_GAME_LIGHT_COLOR, intensity: 1, radius: 4, falloff: 1 } }])}>{t("game:inspector.addLight", { defaultValue: "Add light" })}</AddButton>
+            light: { x: 0, y: 0, color: DEFAULT_GAME_LIGHT_COLOR, intensity: 1, radius: 4, falloff: 1 } }])}>{i18n.t("game:inspector.addLight", { defaultValue: "Add light" })}</AddButton>
         </> : <AddButton disabled={document.schemaVersion < 2} onClick={() => onOps([{ op: "set_lighting", scene_id: scene.id,
-          lighting: { ambient: { color: DEFAULT_GAME_LIGHT_COLOR, intensity: 1 }, points: [] } }])}>{t("game:inspector.addLighting", { defaultValue: "Add lighting" })}</AddButton>}
+          lighting: { ambient: { color: DEFAULT_GAME_LIGHT_COLOR, intensity: 1 }, points: [] } }])}>{i18n.t("game:inspector.addLighting", { defaultValue: "Add lighting" })}</AddButton>}
       </InspectorSection>
-      <InspectorSection title={t("game:inspector.backgrounds", { defaultValue: "Backgrounds" })}>
+      <InspectorSection title={i18n.t("game:inspector.backgrounds", { defaultValue: "Backgrounds" })}>
         {(scene.backgrounds ?? []).map((background, index) => <FieldGroup key={background.id} title={background.id}
           actions={<OrderActions index={index} count={scene.backgrounds?.length ?? 0} removeLabel="Remove background"
             onMove={(to) => onOps([{ op: "move_background", scene_id: scene.id, id: background.id, to_index: to }])}
@@ -309,7 +311,7 @@ export default function GameInspector({ document, activeSceneId, selectedIds, is
           const id = `background-${Math.max(1, ...((scene.backgrounds ?? []).map((background) => Number(background.id.match(/^background-(\d+)$/)?.[1] ?? 0)))) + 1}`;
           onOps([{ op: "add_background", scene_id: scene.id, background: { id, assetId, width: 16, height: 9, layer: -100, origin: { x: 0, y: 0 },
             parallax: { x: 1, y: 1 }, scrollRate: { x: 0, y: 0 }, mode: "repeat" } }]);
-        }}>{t("game:inspector.addBackground", { defaultValue: "Add background" })}</AddButton>
+        }}>{i18n.t("game:inspector.addBackground", { defaultValue: "Add background" })}</AddButton>
       </InspectorSection>
     </> : null}
     </FlexColumn>

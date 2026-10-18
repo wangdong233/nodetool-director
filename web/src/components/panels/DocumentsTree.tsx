@@ -65,6 +65,7 @@ import {
   ICON_SIZE
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const DOCUMENT_TAB_TYPES = {
   workflow: "workflow",

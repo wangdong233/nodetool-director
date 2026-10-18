@@ -19,6 +19,8 @@
  */
 
 interface OptionalNodePack {
+  descriptionKey?: string;
+  labelKey?: string;
   /** Stable id persisted in the enabled list. Never rename. */
   id: string;
   /** Display name shown in the node menu. */

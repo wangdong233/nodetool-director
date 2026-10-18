@@ -41,6 +41,7 @@ import {
 import {
   EASING_HINT
 } from "./InspectorMotionFields";
+import { i18n } from "../../../i18n";
 
 type CustomCurve = CustomClipAnimation["curves"][number];
 type CustomKeyframe = CustomCurve["keyframes"][number];
@@ -167,7 +168,7 @@ const KeyframeRow: React.FC<KeyframeRowProps> = memo(
           />
           <InspectorPillInput
             value={keyframe.easing ?? ""}
-            placeholder={t("ui2:attrs.linear", { defaultValue: "linear" })}
+            placeholder={i18n.t("ui2:attrs.linear", { defaultValue: "linear" })}
             allowEmpty
             minWidth={96}
             onCommit={handleEasingCommit}
@@ -249,7 +250,7 @@ const CurveEditor: React.FC<CurveEditorProps> = memo(
             sx={INSPECTOR_ROW_BUTTON_SX}
           />
         </FlexRow>
-        <InspectorRow label={t("timeline:attrs.property", { defaultValue: "Property" })}>
+        <InspectorRow label={i18n.t("timeline:attrs.property", { defaultValue: "Property" })}>
           <InspectorSelect
             label={`${curveLabel} property`}
             value={curve.property}
@@ -430,8 +431,8 @@ export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
         ))}
         <Caption color="muted">
           {sourceAnchored
-            ? t("timeline:attrs.columnsAreSourceTimeMsReadonlyValueAndEasing", { defaultValue: "Columns are source time (ms, read-only), value, and easing: " })
-            : t("timeline:attrs.columnsAreTime01AcrossTheAnimationValueAndEasing", { defaultValue: "Columns are time (0..1 across the animation), value, and easing: " })}
+            ? i18n.t("timeline:attrs.columnsAreSourceTimeMsReadonlyValueAndEasing", { defaultValue: "Columns are source time (ms, read-only), value, and easing: " })
+            : i18n.t("timeline:attrs.columnsAreTime01AcrossTheAnimationValueAndEasing", { defaultValue: "Columns are time (0..1 across the animation), value, and easing: " })}
           {EASING_HINT}
         </Caption>
         {curvesError && (
@@ -446,7 +447,7 @@ export const ClipCustomCurves: React.FC<ClipCustomCurvesProps> = memo(
           onClick={addCurve}
           disabled={nextProperty === undefined}
         >
-          {t("timeline:attrs.addCurve", { defaultValue: "Add curve" })}
+          {i18n.t("timeline:attrs.addCurve", { defaultValue: "Add curve" })}
         </Button>
       </FlexColumn>
     );

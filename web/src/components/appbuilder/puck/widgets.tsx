@@ -1909,6 +1909,7 @@ export const TabsWidget: React.FC<{
   tab2?: SlotComponent;
   tab3?: SlotComponent;
 }> = ({ tab1Label, tab2Label, tab3Label, tab1, tab2, tab3 }) => {
+  const { t } = useTranslation();
   const panes = [
     { value: "tab1", label: tab1Label, Slot: tab1 },
     { value: "tab2", label: tab2Label, Slot: tab2 },

@@ -104,6 +104,7 @@ interface TransitionAdderProps {
 
 /** Keyboard path for adding a transition: pick the target state, then add. */
 export function AnimationTransitionAdder({ label, targets, onAdd }: TransitionAdderProps) {
+  const { t } = useTranslation();
   const [target, setTarget] = useState("");
   const value = targets.includes(target) ? target : targets[0];
   if (value === undefined) { return null; }
@@ -137,6 +138,7 @@ function BlendPoints({ graph, motion, clips, onChange }: {
   readonly graph: GameAnimationGraph3D; readonly motion: Exclude<GameAnimationMotion3D, { kind: "clip" }>; readonly clips: readonly string[];
   readonly onChange: (motion: GameAnimationMotion3D) => void;
 }) {
+  const { t } = useTranslation();
   if (motion.kind === "blend1d") {
     const points = motion.points;
     return <FlexColumn gap={SPACING.xs}>

@@ -73,6 +73,8 @@ const SANDBOX_TOOL_IDS = [
 interface ToolEntry {
   /** Synthetic id for the menu row. */
   id: string;
+  labelKey?: string;
+  descriptionKey?: string;
   description: string;
   icon: React.JSX.Element;
   /** Underlying tool names this entry expands to. */

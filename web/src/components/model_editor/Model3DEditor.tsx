@@ -156,6 +156,7 @@ import {
 } from "./ViewportHelpers";
 import { useModel3DAgentTools } from "./useModel3DAgentTools";
 import { useTranslation } from "react-i18next";
+import { i18n, useAppLanguage } from "../../i18n";
 
 type GizmoMode = "translate" | "rotate" | "scale";
 type GizmoSpace = "world" | "local";

@@ -16,7 +16,9 @@ import { entityAssistContext } from "../../../utils/textAssist";
 const ENTITY_KINDS: readonly {
   id: EntityKind;
   title: string;
-  description: string;
+  titleKey?: string;
+  description?: string;
+  descriptionKey?: string;
 }[] = [
   {
     id: "character",

@@ -21,6 +21,7 @@ import {
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import LogsTable, { LogRow, Severity } from "../common/LogsTable";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 type NodeLogsProps = {
   id: string;
@@ -133,11 +134,11 @@ export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
         onClose={onClose}
         fullWidth
         maxWidth="md"
-        title={t("editor:ui.nodeLogs", { defaultValue: "Node logs" })}
+        title={i18n.t("editor:ui.nodeLogs", { defaultValue: "Node logs" })}
         titleActions={
           <>
             <Chip size="small" label={`${count}`} />
-            <CopyButton value={logText} tooltip={t("editor:ui.copyLogs", { defaultValue: "Copy logs" })} nodrag={false} />
+            <CopyButton value={logText} tooltip={i18n.t("editor:ui.copyLogs", { defaultValue: "Copy logs" })} nodrag={false} />
           </>
         }
       >
@@ -151,14 +152,14 @@ export const NodeLogsDialog: React.FC<NodeLogsDialogProps> = memo(
             />
             <Chip
               size="small"
-              label={t("game:console.warningMany", { defaultValue: "Warnings" })}
+              label={i18n.t("game:console.warningMany", { defaultValue: "Warnings" })}
               color="warning"
               active={selectedSeverities.includes("warning")}
               onClick={toggleWarningSeverity}
             />
             <Chip
               size="small"
-              label={t("game:console.errorMany", { defaultValue: "Errors" })}
+              label={i18n.t("game:console.errorMany", { defaultValue: "Errors" })}
               color="error"
               active={selectedSeverities.includes("error")}
               onClick={toggleErrorSeverity}
@@ -214,7 +215,7 @@ const NodeLogsImpl: React.FC<NodeLogsProps> = ({ id, workflowId }) => {
           onClick={handleOpen}
           startIcon={<ListAltIcon />}
         >
-          <span>{t("editor:bottom.logs", { defaultValue: "Logs" })}</span>
+          <span>{i18n.t("editor:bottom.logs", { defaultValue: "Logs" })}</span>
           <Chip size="small" label={count} sx={{ ml: 1 }} />
         </EditorButton>
       </div>

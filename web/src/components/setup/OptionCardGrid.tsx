@@ -28,6 +28,8 @@ import type { SetupCardGridMode } from "./SetupCardButton";
 export const OPTION_CARD_CLASS = "option-card";
 
 export interface OptionCardItem {
+  descriptionKey?: string;
+  titleKey?: string;
   id: string;
   title: string;
   /** One line under the title. */

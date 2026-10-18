@@ -50,6 +50,7 @@ import { getRequiredSecretKeyForNamespace } from "../utils/nodeProvider";
 import type { LeftPanelView, NodeCategoryId } from "../stores/PanelStore";
 
 export interface LeftPanelTopLevelCategory {
+  labelKey?: string;
   readonly id: LeftPanelView;
   readonly label: string;
   readonly description: string;

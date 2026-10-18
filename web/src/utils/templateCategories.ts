@@ -1,6 +1,7 @@
 import { Workflow } from "../stores/ApiTypes";
 
 interface TemplateCategory {
+  labelKey?: string;
   id: string;
   label: string;
   tags: string[];

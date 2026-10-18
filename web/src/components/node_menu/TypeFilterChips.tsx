@@ -46,6 +46,7 @@ const TYPE_CHIP_ICON_CONTAINER_STYLE = { width: 14, height: 14 } as const;
 const CONTROL_HEIGHT = "28px";
 
 type TypeOption = {
+  labelKey?: string;
   value: string;
   label: string;
 };

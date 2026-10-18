@@ -59,6 +59,8 @@ import {
 } from "./modelAvailability";
 import { useTranslation } from "react-i18next";
 
+import { i18n } from "../../../i18n";
+
 /** What the button says when no catalog figure covers the plan (PRD § 8.3). */
 export const COST_UNKNOWN_TEXT = "cost unknown until the first clip returns";
 

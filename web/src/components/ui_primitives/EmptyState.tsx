@@ -100,7 +100,7 @@ const defaultContent = {
   }
 } satisfies Record<
   EmptyStateVariant,
-  { icon: React.ReactNode; title: string; description: string }
+  { icon: React.ReactNode; title: string; description: string; titleKey?: string; descriptionKey?: string }
 >;
 
 export const EmptyState: React.FC<EmptyStateProps> = memo(({

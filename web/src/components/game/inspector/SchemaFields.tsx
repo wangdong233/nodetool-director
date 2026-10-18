@@ -107,6 +107,7 @@ function trackCurve(easing: string): string {
 
 /** A label and value row with the field's error under it. */
 function FieldRow({ label, htmlFor, error, trailing, children }: { label: ReactNode; htmlFor?: string; error?: string; trailing?: ReactNode; children: ReactNode }) {
+  const { t } = useTranslation();
   return <FlexColumn gap={SPACING.micro} sx={FIELD_WIDTH}>
     <InspectorFieldRow label={label} htmlFor={htmlFor}>{children}{trailing}</InspectorFieldRow>
     {error && <Caption color="error">{error}</Caption>}
@@ -114,6 +115,7 @@ function FieldRow({ label, htmlFor, error, trailing, children }: { label: ReactN
 }
 
 function StringField({ label, value, schema, error, trailing, onChange }: { label: string; value: string; schema: FieldSchema; error?: string; trailing?: ReactNode; onChange: (value: string) => void }) {
+  const { t } = useTranslation();
   const [local, setLocal] = useState(value);
   useEffect(() => setLocal(value), [value]);
   const validLength = local.length >= (schema.minLength ?? 0);
@@ -138,6 +140,7 @@ function numberAllowed(schema: FieldSchema, value: number): boolean {
 }
 
 function NumberField({ label, value, schema, degrees, error, axis, trailing, onChange }: { label: string; value: number; schema: FieldSchema; degrees: boolean; error?: string; axis?: string; trailing?: ReactNode; onChange: (value: number) => void }) {
+  const { t } = useTranslation();
   const displayed = degrees ? Math.round(value * 180 / Math.PI * 100) / 100 : value;
   const [local, setLocal] = useState(String(displayed));
   useEffect(() => setLocal(String(displayed)), [displayed]);

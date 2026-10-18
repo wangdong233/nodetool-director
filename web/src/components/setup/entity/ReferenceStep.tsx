@@ -35,6 +35,7 @@ import {
 } from "../layout";
 import { GalleryFrame } from "../MediaGallery";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ReferenceStepProps {
   readonly name: string;

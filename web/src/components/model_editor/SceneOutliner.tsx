@@ -36,6 +36,7 @@ import {
 import type { SceneTreeNode } from "./sceneTree";
 import { shortcutKeys } from "./editorShortcuts";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 export type OutlinerAction =
   | "rename"
@@ -276,7 +277,7 @@ const OutlinerRow = memo(
           size="small"
           // One tab stop per tree, not one per row: H toggles the selection.
           tabIndex={-1}
-          aria-label={node.visible ? t("editor:ui.hideObject", { defaultValue: "Hide object" }) : "Show object"}
+          aria-label={node.visible ? i18n.t("editor:ui.hideObject", { defaultValue: "Hide object" }) : "Show object"}
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
             onToggleVisible(node.uuid);
@@ -448,7 +449,7 @@ const SceneOutliner = ({
           <SearchInput
             value={query}
             onChange={setQuery}
-            placeholder={t("editor:ui.filterObjects", { defaultValue: "Filter objects" })}
+            placeholder={i18n.t("editor:ui.filterObjects", { defaultValue: "Filter objects" })}
             ariaLabel="Filter scene objects"
             size="small"
             fullWidth
@@ -458,7 +459,7 @@ const SceneOutliner = ({
       <ScrollArea>
         <Box
           role="tree"
-          aria-label={t("editor:ui.sceneObjects", { defaultValue: "Scene objects" })}
+          aria-label={i18n.t("editor:ui.sceneObjects", { defaultValue: "Scene objects" })}
           onDragOver={(e: React.DragEvent) => {
             if (e.dataTransfer.types.includes(DRAG_TYPE)) {
               e.preventDefault();
@@ -532,19 +533,19 @@ const SceneOutliner = ({
         minWidth={200}
       >
         <MenuItemPrimitive
-          label={t("common:action.rename", { defaultValue: "Rename" })}
+          label={i18n.t("common:action.rename", { defaultValue: "Rename" })}
           icon={<DriveFileRenameOutlineIcon fontSize="small" />}
           shortcut="F2"
           onClick={() => runAction("rename")}
         />
         <MenuItemPrimitive
-          label={t("editor:ui.duplicate", { defaultValue: "Duplicate" })}
+          label={i18n.t("editor:ui.duplicate", { defaultValue: "Duplicate" })}
           icon={<ContentCopyIcon fontSize="small" />}
           shortcut={shortcutKeys("duplicate").join("+")}
           onClick={() => runAction("duplicate")}
         />
         <MenuItemPrimitive
-          label={t("editor:ui.focusInViewport", { defaultValue: "Focus in viewport" })}
+          label={i18n.t("editor:ui.focusInViewport", { defaultValue: "Focus in viewport" })}
           icon={<CenterFocusStrongIcon fontSize="small" />}
           shortcut={shortcutKeys("focusSelection").join("+")}
           onClick={() => runAction("focus")}
@@ -563,13 +564,13 @@ const SceneOutliner = ({
         />
         {menuNode && menuNode.depth > 0 && (
           <MenuItemPrimitive
-            label={t("editor:ui.moveToSceneRoot", { defaultValue: "Move to scene root" })}
+            label={i18n.t("editor:ui.moveToSceneRoot", { defaultValue: "Move to scene root" })}
             icon={<VerticalAlignTopIcon fontSize="small" />}
             onClick={() => runAction("unparent")}
           />
         )}
         <MenuItemPrimitive
-          label={t("common:action.delete", { defaultValue: "Delete" })}
+          label={i18n.t("common:action.delete", { defaultValue: "Delete" })}
           color="error"
           dividerBefore
           icon={<DeleteOutlineIcon fontSize="small" />}

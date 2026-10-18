@@ -81,6 +81,7 @@ import {
   SETUP_WIDE_CONTENT_WIDTH
 } from "../layout";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 // The estimate pulls in the provider price tables, as on the review step.
 const GenerationEstimateLine = lazy(() =>

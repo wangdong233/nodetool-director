@@ -127,7 +127,7 @@ function getSquare(hex: string): string[] {
   ];
 }
 
-export function getHarmonyInfo(): Array<{ type: HarmonyType; name: string; description: string }> {
+export function getHarmonyInfo(): Array<{ type: HarmonyType; name: string; description: string; nameKey?: string; descriptionKey?: string }> {
   return [
     {
       type: "complementary",
