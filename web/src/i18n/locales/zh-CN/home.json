@@ -9,6 +9,7 @@
   },
   "surface": {
     "startGuided": "从引导流程开始",
+    "guidedLede": "每条流程只需几步，每步都以一个可继续编辑的文档收尾。",
     "guidedFlowsLabel": "引导创作流程",
     "creatingMeta": "创建中…",
     "oneFlowStarting": "已有流程正在启动。",
@@ -19,7 +20,9 @@
     "fewerFormats": "收起格式",
     "waitingUploads": "正在等待参考图上传完成。",
     "creatingDraft": "正在创建草稿…",
-    "moreFormats": "更多格式"
+    "moreFormats": "更多格式",
+    "title": "你想做什么？",
+    "intro": "提一个问题得到答案，或者描述你想做的东西。智能体会规划并当着你的面把它做出来，做完的一切都可继续编辑。"
   },
   "flowError": {
     "title": "暂时还打不开",
@@ -62,6 +65,9 @@
       "title": "游戏",
       "desc": "从一句话到可运行的 Godot 项目，素材齐备。",
       "desc3d": "从内置引擎中一个可游玩的 3D 探索场景开始。"
+    },
+    "speech": {
+      "desc": "输入一行文字，听它被读出来。"
     }
   },
   "composer": {
@@ -70,7 +76,8 @@
     "refImagesAria": "参考图",
     "entitiesNone": "实体 · 未选",
     "skillGroup": "从技能开始",
-    "showFewer": "收起"
+    "showFewer": "收起",
+    "placeholder": "输入想法，例如：为台灯做一支 30 秒上市广告片——温暖、极简、夜晚氛围。/ 选技能，@ 选素材或实体，Ctrl+Enter 发送。"
   },
   "docs": {
     "titleEmpty": "文档",
@@ -80,7 +87,8 @@
     "sectionAria": "当前项目文档"
   },
   "apps": {
-    "title": "从小程序开始"
+    "title": "从小程序开始",
+    "useOrEditLede": "打开小程序即可使用，或编辑副本来定制它的工作流。"
   },
   "notices": {
     "checkingModels": "仍在检查语言模型，请稍后再试。",

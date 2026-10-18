@@ -2155,15 +2155,13 @@ const NewProjectSurface = ({
           >
             <FlexColumn gap={SPACING.sm} align="center">
               <Text size="giant" component="h1" sx={{ textAlign: "center" }}>
-                What do you want to make?
+                {t("home:surface.title", { defaultValue: "What do you want to make?" })}
               </Text>
               <Text
                 color="secondary"
                 sx={{ maxWidth: INTRO_TEXT_WIDTH, textAlign: "center" }}
               >
-                Ask a question and get an answer, or describe something to make.
-                An agent plans it and builds it while you watch, and
-                everything it makes stays editable.
+                {t("home:surface.intro", { defaultValue: "Ask a question and get an answer, or describe something to make. An agent plans it and builds it while you watch, and everything it makes stays editable." })}
               </Text>
             </FlexColumn>
 
@@ -2188,7 +2186,7 @@ const NewProjectSurface = ({
                 label={t("home:composer.promptLabel", { defaultValue: "Chat prompt" })}
                 hideLabel
                 inputRef={promptRef}
-                placeholder="Ask a question, or describe what to make: a 30-second launch spot for our desk lamp. Type / for a skill, @ for a file or entity."
+                placeholder={t("home:composer.placeholder", { defaultValue: "Ask a question, or describe what to make: a 30-second launch spot for our desk lamp. Type / for a skill, @ for a file or entity." })}
                 onChange={(event) => setPrompt(event.target.value)}
                 onKeyDown={handlePromptKeyDown}
                 slotProps={{ input: { disableUnderline: true } }}
@@ -2411,11 +2409,10 @@ const NewProjectSurface = ({
             <FlexRow align="flex-end" gap={SPACING.md} wrap>
               <FlexColumn gap={SPACING.xs} sx={{ flex: 1, minWidth: 0 }}>
                 <Text size="big" component="h2">
-                  Start with a guided flow
+                  {t("home:surface.startGuided", { defaultValue: "Start with a guided flow" })}
                 </Text>
                 <Caption color="secondary">
-                  A few short steps, each ending in a document you keep
-                  editing.
+                  {t("home:surface.guidedLede", { defaultValue: "A few short steps, each ending in a document you keep editing." })}
                 </Caption>
               </FlexColumn>
               {showMoreFlows && <FlexRow align="center" gap={SPACING.sm}>

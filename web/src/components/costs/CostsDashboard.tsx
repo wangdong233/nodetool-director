@@ -235,14 +235,14 @@ const CostsDashboard: React.FC = () => {
           subtitle={
             view ? (
               <>
-                Spend per node execution across{" "}
+                {i18n.t("editor:ui.spendPerNodeExecutionAcross", { defaultValue: "Spend per node execution across" })}{" "}
                 <Text
                   component="span"
                   size="small"
                   weight={600}
                   sx={{ color: theme.vars.palette.text.primary }}
                 >
-                  {view.stats.workflowCount} workflows
+                  {view.stats.workflowCount} {i18n.t("editor:bottom.workflows", { defaultValue: "workflows" })}
                 </Text>{" "}
                 · {rangeLabel}
               </>

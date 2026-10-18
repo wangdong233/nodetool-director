@@ -23,6 +23,7 @@ import type { MediaLocator } from "../../hooks/useResolvedMediaUri";
 import { SetupCardButton, useRovingRadioGroup } from "./SetupCardButton";
 import { GalleryExpandButton, MEDIA_GALLERY_HOST_CLASS } from "./MediaGallery";
 import type { SetupCardGridMode } from "./SetupCardButton";
+import { i18n } from "../../i18n";
 
 /** The class every card in the grid carries, for a host that restyles them. */
 export const OPTION_CARD_CLASS = "option-card";
@@ -82,7 +83,7 @@ const CardText: React.FC<{ option: OptionCardItem; onImage: boolean }> = ({
   return (
     <FlexColumn gap={GAP.tight}>
       <Text component="span" sx={{ ...TYPOGRAPHY.sans.label, ...inherit }}>
-        {option.title}
+        {option.titleKey ? i18n.t(option.titleKey, { defaultValue: option.title }) : option.title}
       </Text>
       {option.description ? (
         <Caption
@@ -90,7 +91,7 @@ const CardText: React.FC<{ option: OptionCardItem; onImage: boolean }> = ({
           color={onImage ? undefined : "secondary"}
           sx={inherit}
         >
-          {option.description}
+          {option.descriptionKey ? i18n.t(option.descriptionKey, { defaultValue: option.description }) : option.description}
         </Caption>
       ) : null}
       {option.meta ? (
@@ -211,7 +212,7 @@ const OptionCardGridInternal: React.FC<OptionCardGridProps> = ({
             <GalleryExpandButton
               locator={option.image}
               kind="image"
-              caption={option.title}
+              caption={option.titleKey ? i18n.t(option.titleKey, { defaultValue: option.title }) : option.title}
             />
           </Box>
         );

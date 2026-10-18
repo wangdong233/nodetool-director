@@ -46,7 +46,7 @@ const MODEL_TYPE_CONFIG = [
     type: IMAGE_TASK_DEFAULTS["nodetool.image.RemoveBackground"],
     label: "Remove background model",
     Select: RemoveBackgroundModelSelect,
-    hint: "Fills Remove Background nodes. Falls back to the image model when unset."
+    hint: i18n.t("settings:defModels.removeBgHint", { defaultValue: "Fills Remove Background nodes. Falls back to the image model when unset." })
   },
   {
     type: "embedding_model",
@@ -85,8 +85,7 @@ function DefaultModelsMenu() {
         Default models
       </Text>
       <Text className="description" sx={{ mb: 2 }}>
-        Set default models for each type. These will auto-fill when you create
-        new nodes.
+        {i18n.t("settings:defModels.desc", { defaultValue: "Set default models for each type. These will auto-fill when you create new nodes." })}
       </Text>
 
       <div className="default-models-list">

@@ -216,7 +216,8 @@
     "versions": "版本",
     "trace": "追踪",
     "resizeAria": "调整面板大小",
-    "stateDisconnected": "已断开"
+    "stateDisconnected": "已断开",
+    "workflows": "个工作流"
   },
   "ui": {
     "creditsUnavailable": "额度不可用",
@@ -2756,7 +2757,11 @@
     "turnOnWordWrap": "开启自动换行",
     "setAsDefault2": "设为默认",
     "thisDeploymentManagesYourWorkspaceForYou": "此部署替你管理工作区",
-    "addWorkspace2": "添加工作区"
+    "addWorkspace2": "添加工作区",
+    "noExecutionsMatch": "没有符合当前筛选条件的执行记录",
+    "runModelsLocally": "本地运行模型，保护隐私、提升速度、离线可用。",
+    "spendPerNodeExecutionAcross": "每次节点执行的花费，覆盖",
+    "unexpectedErrorOccurred": "发生了意外错误。你可以尝试重新加载页面。如果反复出现，请联系我们修复。"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

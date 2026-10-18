@@ -37,7 +37,7 @@ export const SkipLinks = memo(function SkipLinks() {
   return (
     <nav css={skipLinkStyles(theme)} aria-label={t("ui:attrs.skipLinks", { defaultValue: "Skip links" })}>
       <a className="skip-link" href="#main-content">
-        Skip to main content
+        {t("ui:attrs.skipToMainContent", { defaultValue: "Skip to main content" })}
       </a>
     </nav>
   );

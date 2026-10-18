@@ -77,21 +77,17 @@ const LABELS: Record<PMCategory, string> = {
 
 /** One line under each rail name, so a first-time user can pick a list. */
 const HINTS: Record<PMCategory, string> = {
-  runtimes: "Local AI, media tools, languages",
-  included: "Show or hide node groups",
-  python: "Extra nodes from PyPI",
-  thirdparty: "Packs from other authors"
+  runtimes: i18n.t("tools:menus.pmHintRuntimes", { defaultValue: "Local AI, media tools, languages" }),
+  included: i18n.t("tools:menus.pmHintIncluded", { defaultValue: "Show or hide node groups" }),
+  python: i18n.t("tools:menus.pmHintPython", { defaultValue: "Extra nodes from PyPI" }),
+  thirdparty: i18n.t("tools:menus.pmHintThirdparty", { defaultValue: "Packs from other authors" }),
 };
 
 const SUBTITLES: Record<PMCategory, string> = {
-  included:
-    "Packs that ship with NodeTool. Turn a pack off to hide its nodes. A pack toggle takes effect after the server restarts. Provider nodes appear when you add their API key.",
-  python:
-    "Node packs from PyPI that run in the Python worker. The server restarts after you install, update or uninstall a pack.",
-  thirdparty:
-    "Third-party packs run in-process as the server user. Only trust packs you know.",
-  runtimes:
-    "Programs that run on this computer: local AI engines such as llama.cpp and stable-diffusion.cpp, media tools such as FFmpeg, and languages. Local models and some nodes need them."
+  included: i18n.t("tools:menus.pmSubIncluded", { defaultValue: "Packs that ship with NodeTool. Turn a pack off to hide its nodes. A pack toggle takes effect after the server restarts. Provider nodes appear when you add their API key." }),
+  python: i18n.t("tools:menus.pmSubPython", { defaultValue: "Node packs from PyPI that run in the Python worker. The server restarts after you install, update or uninstall a pack." }),
+  thirdparty: i18n.t("tools:menus.pmSubThirdparty", { defaultValue: "Third-party packs run in-process as the server user. Only trust packs you know." }),
+  runtimes: i18n.t("tools:menus.pmSubRuntimes", { defaultValue: "Programs that run on this computer: local AI engines such as llama.cpp and stable-diffusion.cpp, media tools such as FFmpeg, and languages. Local models and some nodes need them." }),
 };
 
 /** Filter labels per list. Included packs are switched, not installed. */

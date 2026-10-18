@@ -76,7 +76,7 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
         </FlexRow>
 
         <Caption sx={{ opacity: 0.7, lineHeight: 1.5 }}>
-          Run models locally for privacy, speed, and offline access.
+          {t("editor:ui.runModelsLocally", { defaultValue: "Run models locally for privacy, speed, and offline access." })}
         </Caption>
 
         <FlexRow gap={SPACING.xl} align="flex-start">

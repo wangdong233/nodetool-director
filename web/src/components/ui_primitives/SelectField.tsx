@@ -247,7 +247,7 @@ const SelectFieldInternal = React.forwardRef<HTMLDivElement, SelectFieldProps>(
                 value={option.value}
                 disabled={option.disabled}
               >
-                {option.label}
+                {option.labelKey ? i18n.t(option.labelKey, { defaultValue: option.label }) : option.label}
               </MenuItem>
             ))}
           </Select>

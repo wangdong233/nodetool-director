@@ -6,6 +6,7 @@ import { memo } from "react";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import { Card, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, SHADOW } from "../ui_primitives";
 import type { Tutorial } from "./tutorialsData";
+import { i18n } from "../../i18n";
 
 const styles = (
   theme: Theme,
@@ -164,7 +165,7 @@ const TutorialCardInner: React.FC<TutorialCardProps> = ({
       radius="lg"
       sx={styles(theme, tutorial.accent, active, compact)}
       onClick={() => onClick(tutorial.id)}
-      aria-label={`Play tutorial: ${tutorial.title}`}
+      aria-label={`Play tutorial: ${tutorial.titleKey ? i18n.t(tutorial.titleKey, { defaultValue: tutorial.title }) : tutorial.title}`}
       aria-pressed={active}
     >
       <span className="thumb">
@@ -183,8 +184,8 @@ const TutorialCardInner: React.FC<TutorialCardProps> = ({
             <span className="duration-inline">{tutorial.durationLabel}</span>
           )}
         </span>
-        <h3 className="title">{tutorial.title}</h3>
-        <p className="tagline">{tutorial.tagline}</p>
+        <h3 className="title">{tutorial.titleKey ? i18n.t(tutorial.titleKey, { defaultValue: tutorial.title }) : tutorial.title}</h3>
+        <p className="tagline">{tutorial.taglineKey ? i18n.t(tutorial.taglineKey, { defaultValue: tutorial.tagline }) : tutorial.tagline}</p>
       </span>
     </Card>
   );

@@ -1,5 +1,6 @@
 {
   "general": {
+    "changesApplyImmediately": "Changes on this tab apply immediately.",
     "language": "Language",
     "languageEnglish": "English",
     "languageChinese": "简体中文",
@@ -68,7 +69,16 @@
     },
     "descUpdateChannel": "Stable follows full releases. Nightly follows prerelease nightly builds. Nightly builds default to the Nightly channel.",
     "apiIntTitle": "Nodetool API",
-    "apiIntCopyToken": "Copy token"
+    "apiIntCopyToken": "Copy token",
+    "descMarkNodesAsSelectedAfter": "Mark nodes as selected after changing a node's position. If disabled, nodes can still be selected by clicking on them.",
+    "descWhatHappensWhenYouClose": "What happens when you close the main window. Ask every time shows a dialog with options, Quit application closes the app completely, and Keep running in background keeps it running in the system tray.",
+    "descDarkOrLightColorsFor": "Dark or light colors for the whole app. The sun and moon button in the sidebar switches it too.",
+    "descSizeOfTextAcrossThe": "Size of text across the whole app, including menus and nodes.",
+    "descDrawTheExactFrameFor": "Draw the exact frame for the playhead in the timeline preview. Clips that WebCodecs cannot decode keep using the browser video player.",
+    "descWhatDraggingWithTheLeft": "What dragging with the left mouse button does on empty canvas. Pan canvas moves the view. Select nodes draws a selection box; pan with the right or middle mouse button (and two-finger scroll on a trackpad).",
+    "descWhenDrawingASelectionBox": "When drawing a selection box: Full selects only nodes that are fully enclosed, Partial also selects intersecting nodes.",
+    "lblDecodeTimelinePreview": "Decode timeline preview with WebCodecs",
+    "lblMaxRunsPerWorkflow": "Max concurrent runs per workflow"
   },
   "search": {
     "ariaLabel": "Search settings",
@@ -83,7 +93,8 @@
     "mImage": "Image Model",
     "mEmbedding": "Embedding model",
     "useChatPlaceholder": "Use chat model",
-    "codeHint": "Writes Code Node code. Falls back to the chat model when unset."
+    "codeHint": "Writes Code Node code. Falls back to the chat model when unset.",
+    "removeBgHint": "Fills Remove Background nodes. Falls back to the image model when unset."
   },
   "vaults": {
     "desc": "A vault is a separate, isolated data store with its own database, assets, and RAG collections. Switch vaults to keep different sets of workflows and data apart. Switching restarts the backend and reloads the app.",

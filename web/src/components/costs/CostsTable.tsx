@@ -17,6 +17,7 @@ import {
   type GroupRow
 } from "./costsData";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface CostsTableProps {
   executions: Execution[];
@@ -386,7 +387,7 @@ const CostsTableInternal: React.FC<CostsTableProps> = ({
         <EmptyState
           variant="no-results"
           size="small"
-          title="No executions match the current filters"
+          title={i18n.t("editor:ui.noExecutionsMatch", { defaultValue: "No executions match the current filters" })}
         />
       )}
     </Box>

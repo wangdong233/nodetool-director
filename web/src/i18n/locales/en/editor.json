@@ -216,7 +216,8 @@
     "versions": "Versions",
     "trace": "Trace",
     "resizeAria": "Resize panel",
-    "stateDisconnected": "disconnected"
+    "stateDisconnected": "disconnected",
+    "workflows": "workflows"
   },
   "ui": {
     "creditsUnavailable": "Credits unavailable",
@@ -2761,7 +2762,11 @@
     "turnOnWordWrap": "Turn On Word Wrap",
     "setAsDefault2": "Set as default",
     "thisDeploymentManagesYourWorkspaceForYou": "This deployment manages your workspace for you",
-    "addWorkspace2": "Add Workspace"
+    "addWorkspace2": "Add Workspace",
+    "noExecutionsMatch": "No executions match the current filters",
+    "runModelsLocally": "Run models locally for privacy, speed, and offline access.",
+    "spendPerNodeExecutionAcross": "Spend per node execution across",
+    "unexpectedErrorOccurred": "An unexpected error occurred. You can try reloading the page. If this keeps happening, please reach out so we can fix it."
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

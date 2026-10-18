@@ -216,8 +216,7 @@ const ErrorBoundary: React.FC = () => {
         <img src="/logo192.png" alt={t("editor:ui.nodeToolLogo", { defaultValue: "NodeTool logo" })} className="logo" />
         <Text className="heading">{t("editor:ui.somethingWentWrong", { defaultValue: "Something went wrong" })}</Text>
         <Text className="subtext">
-          An unexpected error occurred. You can try reloading the page. If
-          this keeps happening, please reach out so we can fix it.
+          {t("editor:ui.unexpectedErrorOccurred", { defaultValue: "An unexpected error occurred. You can try reloading the page. If this keeps happening, please reach out so we can fix it." })}
         </Text>
       </Box>
 

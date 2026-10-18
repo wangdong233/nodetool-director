@@ -26,6 +26,7 @@
     "addFavorite": "Add to favorites",
     "removeFavorite": "Remove from favorites",
     "play": "Play",
-    "pause": "Pause"
+    "pause": "Pause",
+    "skipToMainContent": "Skip to main content"
   }
 }

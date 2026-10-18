@@ -16,6 +16,7 @@ import {
   EditorButton
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -229,7 +230,11 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
                   </svg>
                 )}
               </span>
-              {step.done && step.doneLabel ? step.doneLabel : step.label}
+              {step.done && step.doneLabel
+                ? step.doneLabel
+                : step.labelKey
+                  ? i18n.t(step.labelKey, { defaultValue: step.label })
+                  : step.label}
             </button>
           ))}
           <EditorButton

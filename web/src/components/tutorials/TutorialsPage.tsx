@@ -384,7 +384,7 @@ const TutorialsPage: React.FC = () => {
             <Text component="h2" size="big" className="tut-title">
               {active.title}
             </Text>
-            <p className="tut-desc">{active.description}</p>
+            <p className="tut-desc">{active.descriptionKey ? i18n.t(active.descriptionKey, { defaultValue: active.description }) : active.description}</p>
 
             <section className="tut-learn">
               <Text component="h2" size="normal" weight={600}>
@@ -403,26 +403,26 @@ const TutorialsPage: React.FC = () => {
             {active.startingState && active.task && active.result && (
               <section className="tut-task" aria-labelledby="tut-task-heading">
                 <Text component="h2" id="tut-task-heading" size="normal" weight={600}>
-                  Try it yourself
+                  {t("tools:tutorials.tryItYourself", { defaultValue: "Try it yourself" })}
                 </Text>
                 <div className="tut-task-grid">
                   <div>
                     <Text component="h3" size="small" weight={600}>
-                      Start here
+                      {t("tools:tutorials.startHere", { defaultValue: "Start here" })}
                     </Text>
-                    <p>{active.startingState}</p>
+                    <p>{active.startingStateKey ? i18n.t(active.startingStateKey, { defaultValue: active.startingState }) : active.startingState}</p>
                   </div>
                   <div>
                     <Text component="h3" size="small" weight={600}>
-                      Your task
+                      {t("tools:tutorials.yourTask", { defaultValue: "Your task" })}
                     </Text>
-                    <p>{active.task}</p>
+                    <p>{active.taskKey ? i18n.t(active.taskKey, { defaultValue: active.task }) : active.task}</p>
                   </div>
                   <div>
                     <Text component="h3" size="small" weight={600}>
-                      Check the result
+                      {t("tools:tutorials.checkTheResult", { defaultValue: "Check the result" })}
                     </Text>
-                    <p>{active.result}</p>
+                    <p>{active.resultKey ? i18n.t(active.resultKey, { defaultValue: active.result }) : active.result}</p>
                   </div>
                 </div>
               </section>

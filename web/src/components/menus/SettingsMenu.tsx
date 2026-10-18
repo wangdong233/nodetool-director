@@ -747,7 +747,7 @@ function SettingsPage() {
                 {/* Tab 0: General */}
                 <TabPanel section="general" current={section}>
                   <Caption className="settings-autosave-note">
-                    Changes on this tab apply immediately.
+                    {t("settings:general.changesApplyImmediately", { defaultValue: "Changes on this tab apply immediately." })}
                   </Caption>
                   <div className="general-settings">
                     <div className="settings-section">
@@ -762,7 +762,7 @@ function SettingsPage() {
                           label={i18n.t("settings:general.selectNodesOnDrag", { defaultValue: "Select nodes on drag" })}
                           checked={!!settings.selectNodesOnDrag}
                           onChange={handleSelectNodesOnDragChange}
-                          description="Mark nodes as selected after changing a node's position. If disabled, nodes can still be selected by clicking on them."
+                          description={i18n.t("settings:general.descMarkNodesAsSelectedAfter", { defaultValue: "Mark nodes as selected after changing a node's position. If disabled, nodes can still be selected by clicking on them." })}
                         />
                       </SearchItem>
 
@@ -827,7 +827,7 @@ function SettingsPage() {
                               )
                             }
                             options={CLOSE_BEHAVIOR_OPTIONS}
-                            description="What happens when you close the main window. Ask every time shows a dialog with options, Quit application closes the app completely, and Keep running in background keeps it running in the system tray."
+                            description={i18n.t("settings:general.descWhatHappensWhenYouClose", { defaultValue: "What happens when you close the main window. Ask every time shows a dialog with options, Quit application closes the app completely, and Keep running in background keeps it running in the system tray." })}
                           />
                         </SearchItem>
                       </div>
@@ -856,7 +856,7 @@ function SettingsPage() {
                             value={resolvedThemeMode}
                             onChange={handleThemeModeChange}
                             options={THEME_MODE_OPTIONS}
-                            description="Dark or light colors for the whole app. The sun and moon button in the sidebar switches it too."
+                            description={i18n.t("settings:general.descDarkOrLightColorsFor", { defaultValue: "Dark or light colors for the whole app. The sun and moon button in the sidebar switches it too." })}
                           />
                         </SearchItem>
                       )}
@@ -869,7 +869,7 @@ function SettingsPage() {
                           value={settings.textSize}
                           onChange={handleTextSizeChange}
                           options={TEXT_SIZE_OPTIONS}
-                          description="Size of text across the whole app, including menus and nodes."
+                          description={i18n.t("settings:general.descSizeOfTextAcrossThe", { defaultValue: "Size of text across the whole app, including menus and nodes." })}
                         />
                       </SearchItem>
                       <SearchItem
@@ -947,12 +947,12 @@ function SettingsPage() {
                         keywords="timeline preview video decoder webcodecs frame exact"
                       >
                         <LabeledSwitch
-                          label="Decode timeline preview with WebCodecs"
+                          label={i18n.t("settings:general.lblDecodeTimelinePreview", { defaultValue: "Decode timeline preview with WebCodecs" })}
                           checked={settings.timelinePreviewDecoder === "webcodecs"}
                           onChange={(checked) =>
                             updateSettings({ timelinePreviewDecoder: checked ? "webcodecs" : "element" })
                           }
-                          description="Draw the exact frame for the playhead in the timeline preview. Clips that WebCodecs cannot decode keep using the browser video player."
+                          description={i18n.t("settings:general.descDrawTheExactFrameFor", { defaultValue: "Draw the exact frame for the playhead in the timeline preview. Clips that WebCodecs cannot decode keep using the browser video player." })}
                         />
                       </SearchItem>
 
@@ -976,7 +976,7 @@ function SettingsPage() {
                       >
                         <ServerNumberSetting
                           envVar="MAX_CONCURRENT_RUNS_PER_WORKFLOW"
-                          label="Max concurrent runs per workflow"
+                          label={i18n.t("settings:general.lblMaxRunsPerWorkflow", { defaultValue: "Max concurrent runs per workflow" })}
                           defaultValue={4}
                           min={1}
                           max={64}
@@ -1002,7 +1002,7 @@ function SettingsPage() {
                           value={settings.panControls}
                           onChange={handlePanControlsChange}
                           options={PAN_CONTROLS_OPTIONS}
-                          description="What dragging with the left mouse button does on empty canvas. Pan canvas moves the view. Select nodes draws a selection box; pan with the right or middle mouse button (and two-finger scroll on a trackpad)."
+                          description={i18n.t("settings:general.descWhatDraggingWithTheLeft", { defaultValue: "What dragging with the left mouse button does on empty canvas. Pan canvas moves the view. Select nodes draws a selection box; pan with the right or middle mouse button (and two-finger scroll on a trackpad)." })}
                         />
                       </SearchItem>
 
@@ -1015,7 +1015,7 @@ function SettingsPage() {
                           value={settings.selectionMode}
                           onChange={handleSelectionModeChange}
                           options={SELECTION_MODE_OPTIONS}
-                          description="When drawing a selection box: Full selects only nodes that are fully enclosed, Partial also selects intersecting nodes."
+                          description={i18n.t("settings:general.descWhenDrawingASelectionBox", { defaultValue: "When drawing a selection box: Full selects only nodes that are fully enclosed, Partial also selects intersecting nodes." })}
                         />
                       </SearchItem>
 

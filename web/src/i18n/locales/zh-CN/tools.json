@@ -236,11 +236,18 @@
     "tags": {
       "Popular": "热门"
     },
-    "other": "其他"
+    "other": "其他",
+    "pmHintRuntimes": "本地 AI、媒体工具、语言运行时",
+    "pmHintIncluded": "显示或隐藏节点分组",
+    "pmHintPython": "来自 PyPI 的扩展节点",
+    "pmHintThirdparty": "其他作者的节点包",
+    "pmSubIncluded": "NodeTool 自带的节点包。关闭一个包会隐藏其节点，重启服务器后生效。添加对应 API 密钥后会出现服务商节点。",
+    "pmSubPython": "从 PyPI 安装 Python 包，为 NodeTool 扩展社区节点。",
+    "pmSubThirdparty": "内置集合之外、由其他作者分发的节点包。",
+    "pmSubRuntimes": "在这台电脑上运行的程序：本地 AI 引擎，如 llama.cpp 与 stable-diffusion-webui。"
   },
   "misc": {
-    "onboardingPacks": {
-    }
+    "onboardingPacks": {}
   },
   "tutorials": {
     "subtitle": "简短易懂的 NodeTool 上手演示",
@@ -379,6 +386,10 @@
       "tagline": "时间线编辑器 · 修剪、编排、字幕",
       "task": "放两个片段，修剪剪辑点，加字幕，预览成品序列。",
       "description": "看开场片段变短、下一镜贴上剪辑点、字幕落到自己的轨道上，然后预览剪好的成片。"
-    }
+    },
+    "tryItYourself": "亲手试一试",
+    "startHere": "从这里开始",
+    "yourTask": "你的任务",
+    "checkTheResult": "检查结果"
   }
 }

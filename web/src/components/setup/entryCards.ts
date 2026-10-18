@@ -54,7 +54,7 @@ export const ENTRY_CARDS: readonly EntryCard[] = [
   {
     id: "speech",
     title: "Read aloud",
-    description: "Type a line and hear it spoken."
+    description: "Type a line and hear it spoken.", descriptionKey: "home:entry.speech.desc"
   },
   {
     id: "image",

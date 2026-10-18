@@ -759,6 +759,14 @@
     "timeline-edit-ops": {
       "name": "时间线编辑操作",
       "description": "编辑一条已存在的 NodeTool 时间线的参考：分割、修剪、移动与替换。"
+    },
+    "manimgx": {
+      "name": "ManimGX 数学动画",
+      "description": "编写、检查并渲染 ManimGX 场景：用 Manim Community Edition 的 Python API 制作数学与 3D 动画，由 nodetool.manimgx 节点运行。适用于公式、证明、图表、几何、3D 曲面与解说动画。"
+    },
+    "native-game-reference": {
+      "name": "原生游戏字段参考",
+      "description": "原生游戏文档的字段参考：脚本、生命周期钩子、事件、标签与道具、2D 视觉、粒子、光照、特效、3D 渲染、物理层、音频混音、动画图、输入绑定、HUD 部件、性能与编辑器面板。编辑需要这些字段时在 native-game 之后加载。"
     }
   },
   "apps": {

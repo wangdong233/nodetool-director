@@ -241,7 +241,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
           )}
         </DashboardSectionHeader>
         <p className="apps-lede">
-          Open an app to use it, or edit a copy to customize its workflows.
+          {t("home:apps.useOrEditLede", { defaultValue: "Open an app to use it, or edit a copy to customize its workflows." })}
         </p>
         {isLoading ? (
           <div className="apps-loading">
