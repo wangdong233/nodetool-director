@@ -34,6 +34,7 @@ import { NODE_COLLAPSED_LAYOUT } from "../../../styles/collapsedNodeTokens";
 import { isObjectLike } from "../../../utils/typePredicates";
 import { emptyOutputMessage } from "./emptyOutputMessage";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 const styles = (theme: Theme) =>
   css([
@@ -314,7 +315,7 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
       console.error("Error in handleAddToAssets:", error);
       addNotification({
         type: "error",
-        content: "Failed to add output to assets"
+        content: i18n.t("editor:ui.failedToAddOutputToAssets", { defaultValue: "Failed to add output to assets" })
       });
     }
   }, [outputValue, props.id, createAsset, addNotification]);

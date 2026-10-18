@@ -53,6 +53,7 @@ import {
   Z_INDEX
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ApplicationSurfaceProps {
   refId: string;
@@ -452,7 +453,7 @@ const ApplicationSurface = ({
         <ResizableSideDock
           storageKey="app_builder"
           defaultWidth={420}
-          ariaLabel="Resize app builder assistant"
+          ariaLabel={t("ui2:attrs.resizeAppBuilderAssistant", { defaultValue: "Resize app builder assistant" })}
         >
           {assistant}
         </ResizableSideDock>
@@ -462,8 +463,8 @@ const ApplicationSurface = ({
           ref={narrowAgentButtonRef}
           icon={narrowAgentOpen ? <CloseIcon /> : <AutoAwesomeIcon />}
           onClick={toggleNarrowAgent}
-          ariaLabel={narrowAgentOpen ? t("editor:ui.closeAgent", { defaultValue: "Close agent" }) : "Ask agent"}
-          tooltip={narrowAgentOpen ? t("editor:ui.closeAgent", { defaultValue: "Close agent" }) : "Ask agent"}
+          ariaLabel={narrowAgentOpen ? t("editor:ui.closeAgent", { defaultValue: "Close agent" }) : i18n.t("editor:ui.askAgent", { defaultValue: "Ask agent" })}
+          tooltip={narrowAgentOpen ? t("editor:ui.closeAgent", { defaultValue: "Close agent" }) : i18n.t("editor:ui.askAgent", { defaultValue: "Ask agent" })}
           tooltipPlacement="top"
           size={48}
           position="absolute"

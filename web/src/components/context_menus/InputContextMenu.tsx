@@ -148,27 +148,27 @@ const LIST_CONSTANT_PATHS: Record<
   image: {
     constantPath: "nodetool.constant.ImageList",
     inputPath: "nodetool.input.ImageListInput",
-    label: "Image List"
+    label: "Image List", labelKey: "tools:ctx.imageList"
   },
   video: {
     constantPath: "nodetool.constant.VideoList",
     inputPath: "nodetool.input.VideoListInput",
-    label: "Video List"
+    label: "Video List", labelKey: "tools:ctx.videoList"
   },
   audio: {
     constantPath: "nodetool.constant.AudioList",
     inputPath: "nodetool.input.AudioListInput",
-    label: "Audio List"
+    label: "Audio List", labelKey: "tools:ctx.audioList"
   },
   text: {
     constantPath: "nodetool.constant.TextList",
     inputPath: "nodetool.input.TextListInput",
-    label: "Text List"
+    label: "Text List", labelKey: "tools:ctx.textList"
   },
   str: {
     constantPath: "nodetool.constant.TextList",
     inputPath: "nodetool.input.StringListInput",
-    label: "Text List"
+    label: "Text List", labelKey: "tools:ctx.textList"
   }
 };
 
@@ -889,7 +889,7 @@ const InputContextMenu: React.FC = () => {
           inputRef={searchInputRef}
           size="small"
           fullWidth
-          placeholder="Search nodes"
+          placeholder={t("ui2:attrs.searchNodes", { defaultValue: "Search nodes" })}
           value={searchTerm}
           onChange={handleSearchChange}
           onClick={(event) => event.stopPropagation()}

@@ -19,6 +19,7 @@ import {
   createsWorkflowCycle,
   extractDynamicIO
 } from "./WorkflowLoader.helpers";
+import { i18n } from "../../../../i18n";
 
 export { WORKFLOW_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -269,7 +270,7 @@ export const WorkflowLoader: React.FC<WorkflowLoaderProps> = memo(
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Select workflow"
+              label={i18n.t("editor:ui.selectWorkflow", { defaultValue: "Select workflow" })}
               variant="outlined"
               size="small"
               slotProps={{

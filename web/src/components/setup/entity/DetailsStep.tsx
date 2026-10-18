@@ -12,6 +12,7 @@ import { AlternativesColumn } from "../AlternativesColumn";
 import { OptionCardGrid } from "../OptionCardGrid";
 import { SETUP_OPTION_MIN_WIDTH } from "../layout";
 import { entityAssistContext } from "../../../utils/textAssist";
+import { i18n } from "../../../../i18n";
 
 const ENTITY_KINDS: readonly {
   id: EntityKind;
@@ -95,7 +96,7 @@ export const DetailsStep = ({
       </FlexColumn>
 
       <OptionCardGrid
-        label="Entity type"
+        label={i18n.t("storyboard:attrs.entityType", { defaultValue: "Entity type" })}
         options={ENTITY_KINDS}
         selectedId={value.kind}
         onSelect={(kind) => {
@@ -115,19 +116,19 @@ export const DetailsStep = ({
         autoFocus
       />
       <TextArea
-        label="Descriptor"
-        helperText="This text is added to every prompt that uses the entity. Describe only stable visual traits."
+        label={i18n.t("storyboard:attrs.descriptor", { defaultValue: "Descriptor" })}
+        helperText={i18n.t("storyboard:attrs.addedToEveryPromptStableTraits", { defaultValue: "This text is added to every prompt that uses the entity. Describe only stable visual traits." })}
         value={value.descriptor}
         onChange={(descriptor) => onChange({ ...value, descriptor })}
-        placeholder="A young astronaut with cropped black hair and a worn orange flight suit"
+        placeholder={i18n.t("storyboard:attrs.youngAstronautExample", { defaultValue: "A young astronaut with cropped black hair and a worn orange flight suit" })}
         minRows={4}
         assistContext={entityAssistContext(value.kind, value.name)}
       />
       <TextInput
-        label="Tags (optional)"
+        label={i18n.t("storyboard:attrs.tagsOptional", { defaultValue: "Tags (optional)" })}
         value={value.tags}
         onChange={(event) => onChange({ ...value, tags: event.target.value })}
-        placeholder="hero, space"
+        placeholder={i18n.t("storyboard:attrs.heroSpace", { defaultValue: "hero, space" })}
       />
     </FlexColumn>
     {onStartBlank === undefined ? null : (
@@ -136,14 +137,13 @@ export const DetailsStep = ({
         alternatives={[
           {
             id: "blank",
-            title: "Start with a blank reference",
+            title: "Start with a blank reference", titleKey: "storyboard:attrs.startWithBlankReference",
             description:
-              "A plain canvas as the reference image — fill the details yourself",
+              "A plain canvas as the reference image — fill the details yourself", descriptionKey: "storyboard:attrs.aPlainCanvasAsTheReferenceImage",
             onSelect: onStartBlank,
             disabled: startingBlank,
             disabledReason: startingBlank
-              ? "Making your canvas…"
-              : undefined
+              ? i18n.t("storyboard:attrs.makingYourCanvas", { defaultValue: "Making your canvas…" }) : undefined
           }
         ]}
       />

@@ -32,7 +32,7 @@ import {
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { isString } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 export type ImageSource = Uint8Array | string;
 
@@ -524,7 +524,7 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
           onClick={toggleSelectionMode}
           startIcon={selectionMode ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />}
         >
-          {selectionMode ? i18n.t("editor:ui.exitSelect", { defaultValue: "Exit select" }) : "Select"}
+          {selectionMode ? i18n.t("editor:ui.exitSelect", { defaultValue: "Exit select" }) : i18n.t("appbuilder:attrs.select", { defaultValue: "Select" })}
         </EditorButton>
       )}
 

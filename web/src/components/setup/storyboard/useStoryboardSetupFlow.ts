@@ -13,7 +13,7 @@
  * creator can leave a screenplay that is being replaced under them (F2).
  */
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 import {
   createElement,
   useCallback,

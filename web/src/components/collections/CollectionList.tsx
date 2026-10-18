@@ -22,6 +22,7 @@ import {
 } from "../ui_primitives";
 import { CollectionResponse } from "../../stores/ApiTypes";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const CollectionList = () => {
   const { t } = useTranslation();
@@ -147,7 +148,7 @@ const CollectionList = () => {
           {collections?.collections.length ? <CollectionHeader /> : null}
           {isLoading ? (
             <FlexColumn gap={2} justify="center" align="center" sx={{ mt: 4 }}>
-              <LoadingSpinner size="large" text="Loading collections" />
+              <LoadingSpinner size="large" text={i18n.t("editor:ui.loadingCollections", { defaultValue: "Loading collections" })} />
             </FlexColumn>
           ) : error ? (
             <FlexColumn

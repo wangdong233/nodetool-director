@@ -29,6 +29,7 @@ import { notifyMutationError } from "../../utils/notifyMutationError";
 import { NO_EXAMPLE_NEEDS } from "../../utils/exampleNeeds";
 import ExampleNeedsPill from "./ExampleNeedsPill";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const DashboardExampleSketches = () => {
   const { t } = useTranslation();
@@ -78,7 +79,7 @@ const DashboardExampleSketches = () => {
       </FlexColumn>
       <TabGroup
         aria-label={t("editor:ui.sketchCategories", { defaultValue: "Sketch categories" })}
-        tabs={["All", "NodeTool", "Ads", "Movies", "Art studies"].map(
+        tabs={["All", "NodeTool", "Ads", "Movies", i18n.t("editor:ui.sketchCategoryArtStudies", { defaultValue: "Art studies" })].map(
           (label) => ({ value: label, label })
         )}
         value={category}
@@ -114,7 +115,7 @@ const DashboardExampleSketches = () => {
                 onClick={() => install.mutate(example)}
               >
                 {install.isPending && install.variables?.slug === example.slug
-                  ? t("editor:ui.openingSketch", { defaultValue: "Opening sketch…" }) : "Open sketch"}
+                  ? t("editor:ui.openingSketch", { defaultValue: "Opening sketch…" }) : i18n.t("editor:ui.openSketch", { defaultValue: "Open sketch" })}
               </EditorButton>
             </FlexColumn>
           </Card>

@@ -23,6 +23,7 @@ import {
   stringInputMeta,
   textAgentMeta,
 } from "./builders";
+import { i18n } from "../../../i18n";
 
 const STRING_INPUT = "nodetool.input.StringInput";
 const HYBRID_SEARCH = "vector.HybridSearch";
@@ -123,7 +124,7 @@ export const chatWithDocsCast: DemoCast = {
       inline: [],
       properties: [prop("text", "str"), prop("collection", "collection")],
     }),
-    [TEMPLATE]: simpleMeta(TEMPLATE, "Template", "str", {
+    [TEMPLATE]: simpleMeta(TEMPLATE, i18n.t("storyboard:attrs.template", { defaultValue: "Template" }), "str", {
       inputs: ["question", "context"],
       inline: ["template"],
       properties: [prop("template", "str"), prop("question", "str"), prop("context", "str")],

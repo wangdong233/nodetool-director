@@ -11,7 +11,7 @@
 import { strToU8, zipSync } from "fflate";
 import { SECRET_KEY_RE } from "./bugReport";
 import { isObjectLike, isString } from "./typePredicates";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 const REDACTED = "«redacted»";
 

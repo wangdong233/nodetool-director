@@ -349,7 +349,7 @@ const TextDocumentEditor = ({
       );
       commands.push({
         id: "word-wrap",
-        label: wordWrap ? t("editor:ui.turnOffWordWrap", { defaultValue: "Turn off word wrap" }) : "Turn on word wrap",
+        label: wordWrap ? t("editor:ui.turnOffWordWrap", { defaultValue: "Turn off word wrap" }) : i18n.t("editor:ui.turnOnWordWrap", { defaultValue: "Turn on word wrap" }),
         run: () => setWordWrap((wrap) => !wrap)
       });
     }
@@ -439,7 +439,7 @@ const TextDocumentEditor = ({
                   disabled={!isDirty || isSaving}
                   onClick={handleSave}
                 >
-                  {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
+                  {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
                 </EditorButton>
               </>
             }
@@ -493,7 +493,7 @@ const TextDocumentEditor = ({
               disabled={!isDirty || isSaving}
               onClick={handleSave}
             >
-              {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
+              {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
             </EditorButton>
           </FlexRow>
         </Toolbar>

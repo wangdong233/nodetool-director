@@ -9,6 +9,7 @@ import { useTheme } from "@mui/material/styles";
 import { CopyButton, Text, Caption, CountBadge, ToolbarIconButton, Box, MOTION, BORDER_RADIUS, SHADOW } from "../ui_primitives";
 import { useShallow } from "zustand/react/shallow";
 import ReportBugButton from "../support/ReportBugButton";
+import { i18n } from "../../../i18n";
 
 const popoverStyles = css({
   paddingRight: "4em",
@@ -27,10 +28,10 @@ const popoverStyles = css({
  */
 const getNotificationButtonLabel = (unreadCount: number): string => {
   if (unreadCount === 0) {
-    return "Notifications, no unread notifications";
+    return i18n.t("editor:ui.notificationsNoUnread", { defaultValue: "Notifications, no unread notifications" });
   }
   if (unreadCount === 1) {
-    return "Notifications, 1 unread notification";
+    return i18n.t("editor:ui.notificationsOneUnread", { defaultValue: "Notifications, 1 unread notification" });
   }
   return `Notifications, ${unreadCount} unread notifications`;
 };
@@ -118,7 +119,7 @@ const NotificationButton: React.FC = React.memo(() => {
             <EmptyState
               className="notification-empty-message"
               size="small"
-              title="No notifications"
+              title={i18n.t("editor:ui.noNotifications", { defaultValue: "No notifications" })}
             />
           ) : (
             <Box role="list" aria-label={`Notification list, ${notifications.length} item${notifications.length > 1 ? "s" : ""}`}>

@@ -80,6 +80,8 @@ import {
   nextAvailableIndex
 } from "../../../utils/modelMenuNavigation";
 import type { ModelPack, UnifiedModel } from "../../../stores/ApiTypes";
+import { i18n } from "../../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ModelMenuBaseProps<TModel extends ModelSelectorModel> {
   open: boolean;
@@ -636,7 +638,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
     }
   }, [open, updatePosition, setSearch]);
 
-  const railOrientation = isMobile ? "horizontal" : "vertical";
+  const railOrientation = isMobile ? i18n.t("sketch:attrs.symmetryHorizontal", { defaultValue: "horizontal" }) : i18n.t("sketch:attrs.symmetryVertical", { defaultValue: "vertical" });
   // Runs before an entry's own click, so picking All models or a provider
   // leaves Favorites or Recent, and picking Favorites or Recent sets it again.
   const handleRailClickCapture = useCallback(() => {
@@ -866,7 +868,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
           </Text>
           <ToolbarIconButton
             icon={<CloseIcon fontSize="small" />}
-            tooltip="Close"
+            tooltip={i18n.t("ui2:attrs.close", { defaultValue: "Close" })}
             onClick={onClose}
             size="small"
             nodrag={false}
@@ -900,7 +902,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
         </Box>
         <ToolbarIconButton
           icon={<RefreshIcon fontSize="small" />}
-          tooltip="Refresh models"
+          tooltip={i18n.t("editor:ui.refreshModels", { defaultValue: "Refresh models" })}
           onClick={handleRefresh}
           disabled={!refetch || !!isFetching}
           size="small"

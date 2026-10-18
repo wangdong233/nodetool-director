@@ -66,7 +66,7 @@ import {
 } from "./lookSelection";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** Which of the model list's answers the step got (F14). */
 export type ModelAvailability =
@@ -267,7 +267,7 @@ export function useLookStep(): LookStepControls {
               ? i18n.t("storyboard:attrs.thatModelIsNoLongerOfferedPickAnother", { defaultValue: "That model is no longer offered — pick another" }) : sizePresets.length === 0
                 ? i18n.t("storyboard:attrs.thatModelHasNoSizeSupportedByThisGuidedFlow", { defaultValue: "That model has no size supported by this guided flow" }) : sizeUnsupported
                   ? i18n.t("storyboard:attrs.pickASizeSupportedByThisImageModel", { defaultValue: "Pick a size supported by this image model" }) : styleLoading
-                    ? i18n.t("setup:image.loadingTheChosenStyle", { defaultValue: "Loading the chosen style" }) : "Pick an image model";
+                    ? i18n.t("setup:image.loadingTheChosenStyle", { defaultValue: "Loading the chosen style" }) : i18n.t("storyboard:attrs.pickAnImageModel", { defaultValue: "Pick an image model" });
 
   return {
     styleChoice: persisted.styleChoice,
@@ -298,7 +298,7 @@ export function useLookStep(): LookStepControls {
 const connectImageProvider = (): void => {
   openProviderOnboarding({
     capability: "text_to_image",
-    reason: "Connect a provider that makes images to generate this picture."
+    reason: "Connect a provider that makes images to generate this picture.", reasonKey: "setup:image.connectAProviderThatMakesImages"
   });
 };
 
@@ -494,7 +494,7 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
           onAddOwn={noop}
           addOwnOptionId={NO_STYLE_ID}
           addOwnLabel="No style"
-          addOwnDescription="Render exactly what the brief says"
+          addOwnDescription={i18n.t("storyboard:attrs.renderExactlyWhatTheBriefSays", { defaultValue: "Render exactly what the brief says" })}
         />
       </FormField>
 

@@ -26,6 +26,7 @@ import {
 } from "../ui_primitives";
 import { SIZE_FILTERS, SizeFilterKey } from "../../utils/formatUtils";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type AssetsOrder = "name" | "date" | "size";
 
@@ -36,7 +37,7 @@ const SORT_OPTIONS: { key: AssetsOrder; label: string; short: string }[] = [
 ];
 
 const SIZE_LABELS: Record<SizeFilterKey, string> = {
-  all: "Any size",
+  all: i18n.t("editor:ui.anySize", { defaultValue: "Any size" }),
   empty: "Empty files",
   small: "Under 1 MB",
   medium: "1 to 10 MB",
@@ -138,7 +139,7 @@ const AssetActions = ({
         exclusive
         value={viewMode}
         onChange={handleViewMode}
-        aria-label="View"
+        aria-label={i18n.t("editor:ui.cmView", { defaultValue: "View" })}
       >
         {VIEW_OPTIONS.map((option) => (
           <Tooltip key={option.value} title={option.label}>

@@ -72,6 +72,7 @@ import {
   STUDIO_VOICE
 } from "../../studio/curatedModels";
 import { useAlertNotifier } from "../../hooks/useAlertNotifier";
+import { i18n } from "../../../i18n";
 
 const GENERATION_MODES = ["video", "audio", "music"] as const;
 type GenerationMode = (typeof GENERATION_MODES)[number];
@@ -271,7 +272,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
       setPrompt("");
       onGenerated?.();
     } catch (err) {
-      reportError(err instanceof Error ? err.message : "Failed to generate");
+      reportError(err instanceof Error ? err.message : i18n.t("timeline:attrs.failedToGenerate", { defaultValue: "Failed to generate" }));
     } finally {
       setBusy(false);
     }
@@ -337,10 +338,8 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
       onKeyDown={handleKeyDown}
       placeholder={
         mode === "music"
-          ? "Describe the music you want to generate…"
-          : mode === "audio"
-            ? "Enter text to speak…"
-            : "Describe the shot: subject, action, camera, light…"
+          ? i18n.t("timeline:attrs.describeTheMusicYouWantToGenerate", { defaultValue: "Describe the music you want to generate…" }) : mode === "audio"
+            ? i18n.t("timeline:attrs.enterTextToSpeak", { defaultValue: "Enter text to speak…" }) : i18n.t("timeline:attrs.describeTheShot", { defaultValue: "Describe the shot: subject, action, camera, light…" })
       }
       minRows={4}
       maxRows={12}
@@ -387,7 +386,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
       aria-label={`Generate ${mode}`}
       // Native tooltip still fires on a disabled button: say why it is off.
       tooltip={
-        canSubmit ? undefined : "Type a prompt and pick a model to generate"
+        canSubmit ? undefined : i18n.t("timeline:attrs.typeAPromptAndPickAModelToGenerate", { defaultValue: "Type a prompt and pick a model to generate" })
       }
       sx={{ flexShrink: 0 }}
     >

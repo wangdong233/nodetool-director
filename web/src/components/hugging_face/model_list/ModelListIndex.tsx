@@ -52,6 +52,7 @@ import {
 } from "../../../utils/hfCache";
 import { isString } from "../../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 /** Width of the category rail. */
 const SIDEBAR_WIDTH = 260;
@@ -435,7 +436,7 @@ const ModelListIndex: React.FC = () => {
     if (source === "hub") {
       return {
         searchOff: false,
-        title: "Search the HuggingFace Hub",
+        title: i18n.t("editor:ui.searchTheHuggingfaceHub", { defaultValue: "Search the HuggingFace Hub" }),
         description:
           "Type a name above, or pick a category, to browse and download any public model from huggingface.co."
       };
@@ -443,7 +444,7 @@ const ModelListIndex: React.FC = () => {
     if (source === "recommended") {
       return {
         searchOff: false,
-        title: "No recommended models",
+        title: i18n.t("editor:ui.noRecommendedModels", { defaultValue: "No recommended models" }),
         description:
           "Recommended models are gathered from the nodes you have installed. Add nodes that run models to see suggestions here."
       };
@@ -451,7 +452,7 @@ const ModelListIndex: React.FC = () => {
     if (scope === "worker") {
       return {
         searchOff: false,
-        title: "No models cached on this worker yet",
+        title: i18n.t("editor:ui.noModelsCachedYet", { defaultValue: "No models cached on this worker yet" }),
         description:
           "While this worker is attached, any model you download lands on its volume."
       };
@@ -470,7 +471,7 @@ const ModelListIndex: React.FC = () => {
       description:
         "Try adjusting the size filter or selecting a different category."
     };
-  }, [modelSearchTerm, source, scope, allModels]);
+  }, [modelSearchTerm, source, scope, allModels, languageVersion]);
 
   if (isLoading) {
     return (
@@ -484,7 +485,7 @@ const ModelListIndex: React.FC = () => {
           textAlign: "center"
         }}
       >
-        <LoadingSpinner size="medium" text="Loading models" />
+        <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingExampleModels", { defaultValue: "Loading models" })} />
       </Box>
     );
   }

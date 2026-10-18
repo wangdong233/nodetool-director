@@ -31,6 +31,7 @@ import {
 import { RefineSelectionPopover } from "./refine-selection";
 import { useSketchStore } from "../state";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface SelectSettingsPanelProps {
   settings: SelectSettings;
@@ -202,7 +203,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
           <Tooltip
             title={
               showAsMask
-                ? t("sketch:attrs.showingSelectionAsRedOverlayClickToSwitchToMarchingAnts", { defaultValue: "Showing selection as red overlay — click to switch to marching ants" }) : "Showing selection as marching ants — click to switch to red overlay"
+                ? t("sketch:attrs.showingSelectionAsRedOverlayClickToSwitchToMarchingAnts", { defaultValue: "Showing selection as red overlay — click to switch to marching ants" }) : i18n.t("sketch:attrs.showingSelectionAsMarchingAntsClickToSwitchToRedOverlay", { defaultValue: "Showing selection as marching ants — click to switch to red overlay" })
             }
           >
             <span>
@@ -212,7 +213,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
                 }
                 aria-label={
                   showAsMask
-                    ? t("sketch:attrs.switchToMarchingAnts", { defaultValue: "Switch to marching ants" }) : "Switch to mask overlay"
+                    ? t("sketch:attrs.switchToMarchingAnts", { defaultValue: "Switch to marching ants" }) : i18n.t("sketch:attrs.switchToMaskOverlay", { defaultValue: "Switch to mask overlay" })
                 }
                 sx={{
                   ...iconButtonCompactSx,

@@ -62,6 +62,7 @@ import { ScriptSpeakerPicker, SPEAKER_GUTTER } from "./ScriptSpeakerPicker";
 import ScriptTakeWaveform from "./ScriptTakeWaveform";
 import type { ScriptLineShotLink } from "../../hooks/script/useScriptShotLinks";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /**
  * A keyboard intent bubbled up from a line's text field. The pane owns the
@@ -135,10 +136,10 @@ const NARROW_BELOW = 560;
 export const TEXT_INSET = DRAG_RAIL + COLUMN_GAP + GUTTER + COLUMN_GAP;
 
 const PAUSE_AFTER_MS = [
-  { ms: 0, label: "No pause after" },
-  { ms: 500, label: "0.5s pause" },
-  { ms: 1000, label: "1s pause" },
-  { ms: 2000, label: "2s pause" }
+  { ms: 0, label: i18n.t("editor:ui.noPauseAfter", { defaultValue: "No pause after" }) },
+  { ms: 500, label: i18n.t("editor:ui.05sPause", { defaultValue: "0.5s pause" }) },
+  { ms: 1000, label: i18n.t("editor:ui.1sPause", { defaultValue: "1s pause" }) },
+  { ms: 2000, label: i18n.t("editor:ui.2sPause", { defaultValue: "2s pause" }) }
 ] as const;
 
 /**
@@ -467,8 +468,8 @@ const ScriptLineRow = ({
         title={
           voice
             ? status === "stale"
-              ? t("editor:ui.reVoiceLine", { defaultValue: "Re-voice line" }) : "Voice line"
-            : "Assign a voice to this speaker first"
+              ? t("editor:ui.reVoiceLine", { defaultValue: "Re-voice line" }) : i18n.t("editor:ui.voiceLine", { defaultValue: "Voice line" })
+            : i18n.t("editor:ui.assignAVoiceToThisSpeakerFirst", { defaultValue: "Assign a voice to this speaker first" })
         }
       >
         <span>
@@ -556,7 +557,7 @@ const ScriptLineRow = ({
     >
       {!readOnly && (
         <ToolbarIconButton
-          tooltip={showDirection ? "Delete direction" : "Add direction"}
+          tooltip={showDirection ? i18n.t("storyboard:attrs:deleteDirection", { defaultValue: "Delete direction" }) : i18n.t("editor:ui.addDirection", { defaultValue: "Add direction" })}
           onClick={toggleDirection}
           icon={<TheaterComedyIcon fontSize="small" />}
           sx={showDirection ? { color: "primary.main" } : undefined}

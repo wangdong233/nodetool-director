@@ -13,7 +13,7 @@ import {
   markWorkspaceGrantPending,
   syncGoogleProviderToken
 } from "../lib/googleSession";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * `access_type=offline` is what yields a refresh token, and Google only

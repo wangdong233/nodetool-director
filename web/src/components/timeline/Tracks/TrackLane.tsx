@@ -75,6 +75,7 @@ import { layoutTrackRows } from "./trackWindow";
 import { trackRowHeightPx } from "./trackHeight";
 import { useTimelineLayoutStore } from "../../../stores/timeline/TimelineLayoutStore";
 import { snapAssetDropMs } from "./dropSnap";
+import { i18n } from "../../../../i18n";
 
 /** Two bars of 4/4 at 120 BPM — what an empty midi clip is sized to. */
 const DEFAULT_MIDI_CLIP_DURATION_MS = 4000;
@@ -374,7 +375,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
 
       // Multi-asset drags are not supported for clip creation — guide the user.
       if (dragData.type === "assets-multiple") {
-        showWarning("Drop one asset at a time onto a track.", true);
+        showWarning(i18n.t("timeline:attrs.dropOneAssetAtATimeOntoATrack", { defaultValue: "Drop one asset at a time onto a track." }), true);
         return;
       }
 
@@ -396,7 +397,7 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
 
       if (!isCompatibleWithTrack(mediaType, track.type)) {
         const expected =
-          mediaType === "audio" ? "an audio" : "a video or overlay";
+          mediaType === "audio" ? i18n.t("timeline:attrs.anAudioTrack", { defaultValue: "an audio" }) : i18n.t("timeline:attrs.aVideoOrOverlayTrack", { defaultValue: "a video or overlay" });
         showWarning(
           `Cannot drop ${mediaType} asset onto this ${track.type} track — use ${expected} track.`,
           true
@@ -856,27 +857,27 @@ export const TrackLane: React.FC<TrackLaneProps> = memo(({ track, virtualizeClip
             generated-clip picker. */}
         {(track.type === "overlay" || track.type === "video") && (
           <MenuItemPrimitive
-            label="Add text"
+            label={i18n.t("timeline:attrs.addText", { defaultValue: "Add text" })}
             icon={<TitleIcon fontSize="small" />}
             onClick={handleAddText}
           />
         )}
         {track.type === "midi" ? (
           <MenuItemPrimitive
-            label="Add MIDI clip"
+            label={i18n.t("timeline:attrs.addMIDIClip", { defaultValue: "Add MIDI clip" })}
             icon={<AddIcon fontSize="small" />}
             onClick={handleAddMidi}
           />
         ) : (
           <MenuItemPrimitive
-            label="Add generated clip here…"
+            label={i18n.t("timeline:attrs.addGeneratedClipHere", { defaultValue: "Add generated clip here…" })}
             icon={<AddIcon fontSize="small" />}
             onClick={handleAddClipFromMenu}
           />
         )}
         {menuGap && (
           <MenuItemPrimitive
-            label="Close gap"
+            label={i18n.t("timeline:attrs.closeGap", { defaultValue: "Close gap" })}
             icon={<CompressOutlinedIcon fontSize="small" />}
             onClick={handleCloseGap}
           />

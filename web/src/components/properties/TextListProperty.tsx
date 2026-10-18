@@ -23,7 +23,7 @@ import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { useAsset } from "../../serverState/useAsset";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface TextItem {
   uri: string;

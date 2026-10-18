@@ -36,8 +36,10 @@ import {
   type TimelineAction,
   type TimelineKeyboardPreset
 } from "./timelineKeymap";
+import { i18n } from "../../../i18n";
 
 export interface Row {
+  labelKey?: string;
   /** The action whose bindings fill the key column, or fixed keys for a
    *  pointer gesture that has no keyboard binding. */
   action?: TimelineAction;
@@ -46,77 +48,78 @@ export interface Row {
 }
 
 export interface Group {
+  titleKey?: string;
   title: string;
   rows: Row[];
 }
 
 export const TIMELINE_SHORTCUT_GROUPS: readonly Group[] = [
   {
-    title: "Tools",
+    title: "Tools", titleKey: "timeline:shortcuts.tools",
     rows: [
-      { action: "selectTool", label: "Select tool" },
-      { action: "cutTool", label: "Cut (blade) tool" },
-      { action: "toggleSnap", label: "Toggle snapping" },
-      { action: "escape", label: "Clear selection · back to Select" }
+      { action: "selectTool", label: "Select tool", labelKey: "timeline:shortcuts.selectTool" },
+      { action: "cutTool", label: "Cut (blade) tool", labelKey: "timeline:shortcuts.cutBladeTool" },
+      { action: "toggleSnap", label: "Toggle snapping", labelKey: "timeline:shortcuts.toggleSnapping" },
+      { action: "escape", label: "Clear selection · back to Select", labelKey: "timeline:shortcuts.clearSelectionBackToSelect" }
     ]
   },
   {
-    title: "Editing",
+    title: "Editing", titleKey: "timeline:shortcuts.editing",
     rows: [
-      { action: "splitAtPlayhead", label: "Split selected clips at playhead" },
-      { action: "cutAllTracks", label: "Cut all tracks at playhead" },
-      { action: "deleteSelected", label: "Delete selected clips" },
-      { action: "rippleDeleteSelected", label: "Ripple delete (close the gap)" },
-      { keys: ["Ctrl", "drag edge"], label: "Roll the cut with its neighbour" },
-      { keys: ["click edge"], label: "Select the edit point" },
-      { action: "extendEdit", label: "Extend the edit point to the playhead" },
-      { action: "trimEditLeft", label: "Trim edit point one frame back" },
-      { action: "trimEditRight", label: "Trim edit point one frame on" },
-      { action: "trimEditLeftLarge", label: "Trim edit point ten frames back" },
-      { action: "trimEditRightLarge", label: "Trim edit point ten frames on" },
+      { action: "splitAtPlayhead", label: "Split selected clips at playhead", labelKey: "timeline:shortcuts.splitSelectedClipsAtPlayhead" },
+      { action: "cutAllTracks", label: "Cut all tracks at playhead", labelKey: "timeline:shortcuts.cutAllTracksAtPlayhead" },
+      { action: "deleteSelected", label: "Delete selected clips", labelKey: "timeline:shortcuts.deleteSelectedClips" },
+      { action: "rippleDeleteSelected", label: "Ripple delete (close the gap)", labelKey: "timeline:shortcuts.rippleDeleteCloseTheGap" },
+      { keys: ["Ctrl", "drag edge"], label: "Roll the cut with its neighbour", labelKey: "timeline:shortcuts.rollTheCutWithItsNeighbour" },
+      { keys: ["click edge"], label: "Select the edit point", labelKey: "timeline:shortcuts.selectTheEditPoint" },
+      { action: "extendEdit", label: "Extend the edit point to the playhead", labelKey: "timeline:shortcuts.extendTheEditPointToThePlayhead" },
+      { action: "trimEditLeft", label: "Trim edit point one frame back", labelKey: "timeline:shortcuts.trimEditPointOneFrameBack" },
+      { action: "trimEditRight", label: "Trim edit point one frame on", labelKey: "timeline:shortcuts.trimEditPointOneFrameOn" },
+      { action: "trimEditLeftLarge", label: "Trim edit point ten frames back", labelKey: "timeline:shortcuts.trimEditPointTenFramesBack" },
+      { action: "trimEditRightLarge", label: "Trim edit point ten frames on", labelKey: "timeline:shortcuts.trimEditPointTenFramesOn" },
       { action: "duplicate", label: "Duplicate after the selection" },
-      { action: "duplicateWithGap", label: "Duplicate with a 1 s gap" },
-      { action: "applyDefaultTransition", label: "Cross-fade into selected clips" },
-      { action: "applyFades", label: "Fade selected clips in and out" },
-      { action: "selectAll", label: "Select all clips" }
+      { action: "duplicateWithGap", label: "Duplicate with a 1 s gap", labelKey: "timeline:shortcuts.duplicateWithA1SGap" },
+      { action: "applyDefaultTransition", label: "Cross-fade into selected clips", labelKey: "timeline:shortcuts.cross-fadeIntoSelectedClips" },
+      { action: "applyFades", label: "Fade selected clips in and out", labelKey: "timeline:shortcuts.fadeSelectedClipsInAndOut" },
+      { action: "selectAll", label: "Select all clips", labelKey: "timeline:shortcuts.selectAllClips" }
     ]
   },
   {
-    title: "Clipboard",
+    title: "Clipboard", titleKey: "timeline:shortcuts.clipboard",
     rows: [
-      { action: "copy", label: "Copy selected clips" },
-      { action: "cut", label: "Cut selected clips" },
-      { action: "paste", label: "Paste at playhead" }
+      { action: "copy", label: "Copy selected clips", labelKey: "timeline:shortcuts.copySelectedClips" },
+      { action: "cut", label: "Cut selected clips", labelKey: "timeline:shortcuts.cutSelectedClips" },
+      { action: "paste", label: "Paste at playhead", labelKey: "timeline:shortcuts.pasteAtPlayhead" }
     ]
   },
   {
     title: "Move",
     rows: [
-      { action: "nudgeLeft", label: "Nudge one frame back" },
-      { action: "nudgeRight", label: "Nudge one frame on" },
-      { action: "nudgeLeftLarge", label: "Nudge one second back" },
-      { action: "nudgeRightLarge", label: "Nudge one second on" },
-      { keys: ["Alt", "drag"], label: "Disable snapping while moving or trimming" },
-      { keys: ["Ctrl", "drag clip"], label: "Insert on drop (push later clips right)" }
+      { action: "nudgeLeft", label: "Nudge one frame back", labelKey: "timeline:shortcuts.nudgeOneFrameBack" },
+      { action: "nudgeRight", label: "Nudge one frame on", labelKey: "timeline:shortcuts.nudgeOneFrameOn" },
+      { action: "nudgeLeftLarge", label: "Nudge one second back", labelKey: "timeline:shortcuts.nudgeOneSecondBack" },
+      { action: "nudgeRightLarge", label: "Nudge one second on", labelKey: "timeline:shortcuts.nudgeOneSecondOn" },
+      { keys: ["Alt", "drag"], label: "Disable snapping while moving or trimming", labelKey: "timeline:shortcuts.disableSnappingWhileMovingOrTrimming" },
+      { keys: ["Ctrl", "drag clip"], label: "Insert on drop (push later clips right)", labelKey: "timeline:shortcuts.insertOnDropPushLaterClipsRight" }
     ]
   },
   {
-    title: "Playback",
+    title: "Playback", titleKey: "timeline:shortcuts.playback",
     rows: [
-      { keys: ["Space"], label: "Play / pause" },
-      { action: "stepFrameBack", label: "Step back one frame" },
-      { action: "stepFrameForward", label: "Step forward one frame" },
-      { action: "shuttleBack", label: "Shuttle backwards (again: faster)" },
-      { action: "shuttleStop", label: "Stop shuttle" },
-      { action: "shuttleForward", label: "Shuttle forwards (again: faster)" },
-      { action: "markIn", label: "Mark in" },
-      { action: "markOut", label: "Mark out" },
-      { action: "clearRange", label: "Clear in and out" },
-      { action: "prevCut", label: "Previous cut" },
-      { action: "nextCut", label: "Next cut" },
-      { action: "addMarker", label: "Add marker at playhead" },
-      { action: "nextMarker", label: "Next marker" },
-      { action: "prevMarker", label: "Previous marker" }
+      { keys: ["Space"], label: "Play / pause", labelKey: "timeline:shortcuts.playPause" },
+      { action: "stepFrameBack", label: i18n.t("timeline:shortcuts.stepBackOneFrame", { defaultValue: "Step back one frame" }), labelKey: "timeline:editor.stepBackOneFrame" },
+      { action: "stepFrameForward", label: i18n.t("timeline:shortcuts.stepForwardOneFrame", { defaultValue: "Step forward one frame" }), labelKey: "timeline:editor.stepForwardOneFrame" },
+      { action: "shuttleBack", label: "Shuttle backwards (again: faster)", labelKey: "timeline:shortcuts.shuttleBackwardsAgain:Faster" },
+      { action: "shuttleStop", label: "Stop shuttle", labelKey: "timeline:shortcuts.stopShuttle" },
+      { action: "shuttleForward", label: "Shuttle forwards (again: faster)", labelKey: "timeline:shortcuts.shuttleForwardsAgain:Faster" },
+      { action: "markIn", label: "Mark in", labelKey: "timeline:shortcuts.markIn" },
+      { action: "markOut", label: "Mark out", labelKey: "timeline:shortcuts.markOut" },
+      { action: "clearRange", label: "Clear in and out", labelKey: "timeline:shortcuts.clearInAndOut" },
+      { action: "prevCut", label: "Previous cut", labelKey: "timeline:shortcuts.previousCut" },
+      { action: "nextCut", label: "Next cut", labelKey: "timeline:shortcuts.nextCut" },
+      { action: "addMarker", label: "Add marker at playhead", labelKey: "timeline:shortcuts.addMarkerAtPlayhead" },
+      { action: "nextMarker", label: "Next marker", labelKey: "timeline:shortcuts.nextMarker" },
+      { action: "prevMarker", label: "Previous marker", labelKey: "timeline:shortcuts.previousMarker" }
     ]
   },
   {
@@ -124,10 +127,10 @@ export const TIMELINE_SHORTCUT_GROUPS: readonly Group[] = [
     // focused (click it or Tab to it). Fullscreen has no key.
     title: "Preview (focused)",
     rows: [
-      { keys: ["←"], label: "Step back one frame" },
-      { keys: ["→"], label: "Step forward one frame" },
-      { keys: ["Shift", "←"], label: "Previous clip boundary" },
-      { keys: ["Shift", "→"], label: "Next clip boundary" },
+      { keys: ["←"], label: i18n.t("timeline:shortcuts.stepBackOneFrame", { defaultValue: "Step back one frame" }), labelKey: "timeline:editor.stepBackOneFrame" },
+      { keys: ["→"], label: i18n.t("timeline:shortcuts.stepForwardOneFrame", { defaultValue: "Step forward one frame" }), labelKey: "timeline:editor.stepForwardOneFrame" },
+      { keys: ["Shift", "←"], label: i18n.t("ui2:attrs.previousClipBoundary", { defaultValue: "Previous clip boundary" }), labelKey: "timeline:editor.prevClipBoundary" },
+      { keys: ["Shift", "→"], label: i18n.t("ui2:attrs.nextClipBoundary", { defaultValue: "Next clip boundary" }), labelKey: "timeline:editor.nextClipBoundary" },
       { keys: ["Home"], label: "Go to start" },
       { keys: ["End"], label: "Go to end" },
       { keys: ["Esc"], label: "Exit the expanded preview" }
@@ -143,27 +146,27 @@ export const TIMELINE_SHORTCUT_GROUPS: readonly Group[] = [
     ]
   },
   {
-    title: "Keyframes & source",
+    title: "Keyframes & source", titleKey: "timeline:shortcuts.keyframesSource",
     rows: [
-      { action: "addKeyframe", label: "Keyframe the selected clip at the playhead" },
-      { action: "nextKeyframe", label: "Next keyframe" },
-      { action: "prevKeyframe", label: "Previous keyframe" },
-      { action: "sourceAppend", label: "Append source range to the end" },
-      { action: "sourceInsert", label: "Insert source range at playhead" },
-      { action: "sourceOverwrite", label: "Overwrite with source range at playhead" }
+      { action: "addKeyframe", label: "Keyframe the selected clip at the playhead", labelKey: "timeline:shortcuts.keyframeTheSelectedClipAtThePlayhead" },
+      { action: "nextKeyframe", label: "Next keyframe", labelKey: "timeline:shortcuts.nextKeyframe" },
+      { action: "prevKeyframe", label: "Previous keyframe", labelKey: "timeline:shortcuts.previousKeyframe" },
+      { action: "sourceAppend", label: "Append source range to the end", labelKey: "timeline:shortcuts.appendSourceRangeToTheEnd" },
+      { action: "sourceInsert", label: "Insert source range at playhead", labelKey: "timeline:shortcuts.insertSourceRangeAtPlayhead" },
+      { action: "sourceOverwrite", label: "Overwrite with source range at playhead", labelKey: "timeline:shortcuts.overwriteWithSourceRangeAtPlayhead" }
     ]
   },
   {
-    title: "Zoom & view",
+    title: "Zoom & view", titleKey: "timeline:shortcuts.zoomView",
     rows: [
-      { action: "zoomIn", label: "Zoom in" },
-      { action: "zoomOut", label: "Zoom out" },
-      { action: "zoomFit", label: "Zoom to fit content" },
+      { action: "zoomIn", label: "Zoom in", labelKey: "timeline:shortcuts.zoomIn" },
+      { action: "zoomOut", label: "Zoom out", labelKey: "timeline:shortcuts.zoomOut" },
+      { action: "zoomFit", label: "Zoom to fit content", labelKey: "timeline:shortcuts.zoomToFitContent" },
       { action: "toggleDawMode", label: "Switch between the video and DAW layouts" }
     ]
   },
   {
-    title: "History",
+    title: i18n.t("settings:general.catHistory", { defaultValue: "History" }), titleKey: "settings:general.catHistory", titleKey: "timeline:shortcuts.history", titleKey: "timeline:editor.history",
     rows: [
       { action: "undo", label: "Undo" },
       { action: "redo", label: "Redo" }
@@ -244,12 +247,12 @@ export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
       <Dialog
         open={open}
         onClose={onClose}
-        title="Keyboard shortcuts"
+        title={i18n.t("timeline:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
         maxWidth="md"
         fullWidth
       >
         <FlexRow align="center" gap={SPACING.xs} sx={{ pb: SPACING.xs }}>
-          <Caption sx={groupTitleSx}>Layout</Caption>
+          <Caption sx={groupTitleSx}>{i18n.t("timeline:attrs.layout", { defaultValue: "Layout" })}</Caption>
           <ToggleGroup
             value={preset}
             exclusive

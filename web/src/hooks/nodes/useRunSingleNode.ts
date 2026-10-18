@@ -7,7 +7,7 @@ import { buildRunSubgraph } from "../../utils/runSubgraph";
 import { getNodeGenerations } from "../../stores/nodeGenerationAccessor";
 import { computeRunSignatures } from "../../utils/computeRunSignatures";
 import { useNodeStoreRef } from "../../contexts/NodeContext";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface UseRunSingleNodeReturn {
   runSingleNode: () => void;

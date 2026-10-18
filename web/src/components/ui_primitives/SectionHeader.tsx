@@ -10,6 +10,7 @@ import { Box, BoxProps, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { SPACING } from "./spacing";
 import { EYEBROW, TYPOGRAPHY } from "./tokens";
+import { i18n } from "../../../i18n";
 
 export interface SectionHeaderProps extends BoxProps {
   /** Section title text */
@@ -37,7 +38,7 @@ export interface SectionHeaderProps extends BoxProps {
  *
  * @example
  * // With action button
- * <SectionHeader title={i18n.t("nav:rail.settings", { defaultValue: "Settings" })} action={<Button>Reset</Button>} />
+ * <SectionHeader title={i18n.t("nav:rail.settings", { defaultValue: "Settings" })} action={<Button>{t("storyboard:attrs.reset", { defaultValue: "Reset" })}</Button>} />
  *
  * @example
  * // Small uppercase header (for sidebar sections)

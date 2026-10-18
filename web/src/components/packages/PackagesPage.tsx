@@ -2,6 +2,7 @@ import React, { memo } from "react";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import { PageLayout, ICON_SIZE } from "../ui_primitives";
 import PackageManager from "./PackageManager";
+import { i18n } from "../../../i18n";
 
 /**
  * Full-screen Package Manager page: the unified installer (runtimes and node
@@ -11,7 +12,7 @@ const PackagesPage: React.FC = () => (
   <PageLayout
     icon={<Inventory2OutlinedIcon sx={{ fontSize: ICON_SIZE.lg }} />}
     title="Package manager"
-    subtitle="Install runtimes and node packs in one place."
+    subtitle={i18n.t("editor:ui.installRuntimesAndNodePacksInOnePlace", { defaultValue: "Install runtimes and node packs in one place." })}
     docsTopic="nodePacks"
     padded={false}
   >

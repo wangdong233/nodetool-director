@@ -14,6 +14,7 @@ import {
   FormControlLabelProps
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { i18n } from "../../../i18n";
 
 export interface RadioProps extends Omit<MuiRadioProps, "size"> {
   /** Label text displayed next to the radio */
@@ -30,7 +31,7 @@ export interface RadioProps extends Omit<MuiRadioProps, "size"> {
  * Radio - A themed radio button with optional label
  *
  * @example
- * <Radio label="Fast" value="fast" checked={mode === "fast"} onChange={pick} />
+ * <Radio label={i18n.t("setup:script.paceFastLabel", { defaultValue: "Fast" })} value="fast" checked={mode === "fast"} onChange={pick} />
  */
 const RadioInternal = forwardRef<HTMLButtonElement, RadioProps>(
   (

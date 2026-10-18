@@ -28,6 +28,7 @@ import {
 } from "../ui_primitives";
 import { AUDIO_EFFECTS, EFFECT_GROUPS } from "./audioEffects";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface AudioEditorToolbarProps {
   hasSelection: boolean;
@@ -93,7 +94,7 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
     [onEffect]
   );
 
-  const scope = hasSelection ? "selection" : "whole clip";
+  const scope = hasSelection ? t("editor:selection.header", { defaultValue: "selection" }) : i18n.t("editor:audio:wholeClip", { defaultValue: "whole clip" });
 
   return (
     <Toolbar
@@ -101,7 +102,7 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
       aria-label="Audio edits"
       sx={{ flexWrap: "wrap", py: SPACING.xs }}
     >
-      <ToolbarGroup role="group" aria-label="History">
+      <ToolbarGroup role="group" aria-label={t("timeline:editor.history", { defaultValue: "History" })}>
         <ToolbarIconButton
           icon={<UndoIcon fontSize="small" />}
           tooltip={t("timeline:shortcuts.undo", { defaultValue: "Undo" })}
@@ -169,7 +170,7 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
         <ToolbarIconButton
           icon={<VolumeDownOutlinedIcon fontSize="small" />}
           tooltip={`Quieten ${scope}`}
-          ariaLabel="Quieten"
+          ariaLabel={i18n.t("editor:ui.quieten", { defaultValue: "Quieten" })}
           onClick={onQuieten}
         />
         <ToolbarIconButton
@@ -241,7 +242,7 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
           disabled={saving || !canSave}
           disabledReason={canSave ? undefined : "Available once the audio has loaded"}
         >
-          {saving ? "Saving…" : "Save"}
+          {saving ? t("timeline:topbar.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
         </EditorButton>
       </ToolbarGroup>
     </Toolbar>

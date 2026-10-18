@@ -60,7 +60,7 @@ import {
   ICON_SIZE
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 function isPressureSketchTool(tool: SketchTool): boolean {
   return tool === "brush" || tool === "pencil" || tool === "eraser";
@@ -271,7 +271,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
             <Tooltip
               title={
                 headerPenPressureOn
-                  ? i18n.t("sketch:attrs.turnOffPenPressure", { defaultValue: "Turn off pen pressure" }) : "Turn on pen pressure"
+                  ? i18n.t("sketch:attrs.turnOffPenPressure", { defaultValue: "Turn off pen pressure" }) : i18n.t("sketch:attrs.turnOnPenPressure", { defaultValue: "Turn on pen pressure" })
               }
               enterDelay={SKETCH_TOOLTIP_DELAY_MS}
               enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
@@ -339,7 +339,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
             <IconButton
               size="small"
               onClick={() => setShortcutsPaneOpen((open) => !open)}
-              aria-label={shortcutsPaneOpen ? i18n.t("sketch:attrs.hideKeyboardShortcuts", { defaultValue: "Hide keyboard shortcuts" }) : "Show keyboard shortcuts"}
+              aria-label={shortcutsPaneOpen ? i18n.t("sketch:attrs.hideKeyboardShortcuts", { defaultValue: "Hide keyboard shortcuts" }) : i18n.t("sketch:attrs.showKeyboardShortcuts", { defaultValue: "Show keyboard shortcuts" })}
               aria-expanded={shortcutsPaneOpen}
               color={shortcutsPaneOpen ? "primary" : "default"}
             >
@@ -405,7 +405,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
               <DeleteButton
                 iconVariant="outline"
                 tooltip={t("sketch:attrs.discardChanges", { defaultValue: "Discard changes" })}
-                ariaLabel="Confirm discard"
+                ariaLabel={t("sketch:attrs.confirmDiscard", { defaultValue: "Confirm discard" })}
                 onClick={() => { editorRef.current?.discardToInitial(); onClose(); }}
                 sx={{ color: "error.main", "& .MuiSvgIcon-root": { fontSize: ICON_SIZE.sm } }}
               />

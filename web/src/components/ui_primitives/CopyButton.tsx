@@ -26,6 +26,7 @@ import {
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 const FEEDBACK_TIMEOUT = 2000;
 
@@ -162,7 +163,7 @@ export const CopyButton = memo(
       }, [value, disabled, writeClipboard, onCopySuccess, onCopyError]);
 
       const tooltipText =
-        state === "error" ? "Nothing to copy" : state === "copied" ? "Copied!" : tooltip;
+        state === "error" ? i18n.t("editor:ui.nothingToCopy", { defaultValue: "Nothing to copy" }) : state === "copied" ? "Copied!" : tooltip;
 
       const iconSize =
         buttonSize === "small"

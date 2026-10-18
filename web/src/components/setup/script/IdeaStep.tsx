@@ -60,7 +60,7 @@ import {
 } from "./useScriptFileImport";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** The § 9.1 inspiration chips. */
 const INSPIRATIONS = [
@@ -197,7 +197,7 @@ const CarriedContext: React.FC<{
       ]
         .filter((part) => part !== null)
         .join(" · ")}
-      {" — kept on the script for the editor and the agent."}
+      {i18n.t("storyboard:attrs.keptOnTheScriptForTheEditorAndTheAgent", { defaultValue: " — kept on the script for the editor and the agent." })}
     </Caption>
     {attachments.length > 0 ? (
       <FlexColumn
@@ -224,8 +224,7 @@ const replaceNote = (source: ImportedScript): string | null => {
     return null;
   }
   return source.kind === "subtitles"
-    ? "Pasted text replaces your subtitle file, and its cue timings are not kept. Cancel to keep the file."
-    : "Pasted text replaces your Final Draft file, and its speakers are not kept. Cancel to keep the file.";
+    ? t("setup:script.pastedReplacesSubtitles", { defaultValue: "Pasted text replaces your subtitle file, and its cue timings are not kept. Cancel to keep the file." }) : i18n.t("setup:script.pastedReplacesFinalDraft", { defaultValue: "Pasted text replaces your Final Draft file, and its speakers are not kept. Cancel to keep the file." });
 };
 
 const IdeaStepInternal: React.FC<IdeaStepProps> = ({
@@ -301,7 +300,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
     () => [
       {
         id: "paste",
-        title: source ? i18n.t("storyboard:attrs.pasteDifferentWords", { defaultValue: "Paste different words" }) : "Paste your script",
+        title: source ? i18n.t("storyboard:attrs.pasteDifferentWords", { defaultValue: "Paste different words" }) : i18n.t("storyboard:attrs.pasteYourScript", { defaultValue: "Paste your script" }),
         description: i18n.t("editor:ui.wordsKeptExactlyAsWritten", { defaultValue: "Words you already have, kept exactly as you wrote them" }),
         onSelect: () => {
           setPasted("");
@@ -335,7 +334,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         disabledReason: startLockedReason
       }
     ],
-    [onStartBlank, source, startLocked, startLockedReason]
+    [onStartBlank, source, startLocked, startLockedReason, languageVersion]
   );
 
   return (
@@ -385,21 +384,19 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           disabled={readOnly}
           // The words here are a brief the writer may reword. Named "Your
           // script", it told a screen reader to put the script itself here.
-          label={source ? i18n.t("storyboard:attrs.notesForTheWriter", { defaultValue: "Notes for the writer" }) : "What the script is about"}
+          label={source ? i18n.t("storyboard:attrs.notesForTheWriter", { defaultValue: "Notes for the writer" }) : i18n.t("storyboard:attrs.whatTheScriptIsAbout", { defaultValue: "What the script is about" })}
           hideLabel
           // A Final Draft or subtitle file already says who reads each line
           // and is applied with no model, so nothing reads a note about it.
           placeholder={
             source?.attributed
               ? i18n.t("setup:script.optionalNotesToKeep", { defaultValue: "Optional: notes to keep with the script." }) : source
-                ? i18n.t("storyboard:attrs.optionalSayWhoReadsWhatOrHowToSplitTheLines", { defaultValue: "Optional: say who reads what, or how to split the lines." }) : "Describe the topic, audience and message for a new script."
+                ? i18n.t("storyboard:attrs.optionalSayWhoReadsWhatOrHowToSplitTheLines", { defaultValue: "Optional: say who reads what, or how to split the lines." }) : i18n.t("storyboard:attrs.describeTheTopicAudienceAndMessageForANewScript", { defaultValue: "Describe the topic, audience and message for a new script." })
           }
           helperText={
             source?.attributed
-              ? "Your imported words and speakers are kept as written. A note here does not change how the lines are prepared."
-              : source
-                ? "Your imported words are kept as written. Anything here only guides how they are split and who reads them."
-                : "Text entered here is a writing brief and may be rewritten. Use Paste your script or Upload a file to preserve existing words."
+              ? t("setup:script.yourImportedWordsAndSpeakersKept", { defaultValue: "Your imported words and speakers are kept as written. A note here does not change how the lines are prepared." }) : source
+                ? t("storyboard:attrs.yourImportedWordsAreKeptAsWrittenAnythingHereOnlyGuidesHowTheyAreSplitAndWhoReadsThem", { defaultValue: "Your imported words are kept as written. Anything here only guides how they are split and who reads them." }) : i18n.t("storyboard:attrs.textEnteredHereIsAWritingBriefAndMayBeRewritten", { defaultValue: "Text entered here is a writing brief and may be rewritten. Use Paste your script or Upload a file to preserve existing words." })
           }
           onChange={handleChange}
         />
@@ -446,9 +443,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <Dialog
         open={pasting}
         onClose={() => setPasting(false)}
-        title={source ? i18n.t("storyboard:attrs.replaceYourScript", { defaultValue: "Replace your script" }) : "Paste your script"}
+        title={source ? i18n.t("storyboard:attrs.replaceYourScript", { defaultValue: "Replace your script" }) : i18n.t("storyboard:attrs.pasteYourScript", { defaultValue: "Paste your script" })}
         showActions
-        confirmText="Use this text"
+        confirmText={i18n.t("editor:ui.useThisText", { defaultValue: "Use this text" })}
         // Empty text changes nothing, so the button is held until there is some.
         confirmDisabled={pasted.trim() === ""}
         onConfirm={usePasted}

@@ -42,6 +42,7 @@ import {
   selectableRowStyles
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const pickerStyles = (theme: Theme) =>
   css({
@@ -133,7 +134,7 @@ export const CreateApplicationFromWorkflowButton = memo(
           setCreateError(
             error instanceof Error
               ? error.message
-              : "Could not create the app from this workflow."
+              : i18n.t("editor:ui.couldNotCreateTheAppFromThisWorkflow", { defaultValue: "Could not create the app from this workflow." })
           );
         }
       },
@@ -167,7 +168,7 @@ export const CreateApplicationFromWorkflowButton = memo(
               </AlertBanner>
             ) : null}
             {isLoading ? (
-              <LoadingSpinner text="Loading workflows" />
+              <LoadingSpinner text={i18n.t("editor:ui.loadingWorkflows", { defaultValue: "Loading workflows" })} />
             ) : workflows.length === 0 ? (
               <EmptyState
                 title={t("editor:ui.noWorkflows", { defaultValue: "No workflows" })}
@@ -317,7 +318,7 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create an app with the + button above, or scaffold one from a workflow."
+      emptyDescription={i18n.t("editor:ui.createAnAppWithThe+ButtonAboveOrScaffoldOneFromAWorkflow", { defaultValue: "Create an app with the + button above, or scaffold one from a workflow." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}
@@ -330,7 +331,7 @@ const ApplicationListPanel = ({ projectId }: ApplicationListPanelProps) => {
           icon={DashboardCustomizeOutlinedIcon}
           secondary={
             app.operationCount === 1
-              ? "1 operation"
+              ? i18n.t("editor:ui.oneOperation", { defaultValue: "1 operation" })
               : `${app.operationCount} operations`
           }
           active={app.id === activeApplicationId}

@@ -5,11 +5,11 @@ export const SETTINGS_TAB_ITEMS: ReadonlyArray<{
   value: SettingsSection;
   label: string;
 }> = [
-  { value: "general", label: "General" },
+  { value: "general", label: "General", labelKey: "nav:settings.general" },
   { value: "providers", label: "Models & providers" },
-  { value: "integrations", label: "Integrations" },
+  { value: "integrations", label: "Integrations", labelKey: "nav:settings.integrations" },
   { value: "privacy", label: "Privacy" },
-  { value: "about", label: "About" }
+  { value: "about", label: "About", labelKey: "nav:settings.about" }
 ];
 
 const TAB_LABEL: Record<SettingsSection, string> = {

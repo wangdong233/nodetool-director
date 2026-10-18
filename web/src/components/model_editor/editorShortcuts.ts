@@ -4,7 +4,7 @@
  * bindings. `keys` are display labels; `combos` are the dispatcher strings
  * (lower-case keys, sorted, joined with "+").
  */
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 export type EditorAction =
   | "undo"
@@ -50,7 +50,7 @@ export const EDITOR_SHORTCUTS: readonly EditorShortcut[] = [
     combos: ["control+shift+z", "meta+shift+z", "control+y"]
   },
   { action: "save", label: "Save", group: "General", keys: ["Ctrl", "S"], combos: ["control+s", "meta+s"] },
-  { action: "showShortcuts", label: "Keyboard shortcuts", group: "General", keys: ["?"], combos: ["?+shift"] },
+  { action: "showShortcuts", label: i18n.t("timeline:attrs.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" }), group: "General", keys: ["?"], combos: ["?+shift"] },
   { action: "translate", label: "Move tool", group: "Transform", keys: ["G"], combos: ["g", "w"] },
   { action: "rotate", label: "Rotate tool", group: "Transform", keys: ["R"], combos: ["r", "e"] },
   { action: "scale", label: "Scale tool", group: "Transform", keys: ["S"], combos: ["s"] },

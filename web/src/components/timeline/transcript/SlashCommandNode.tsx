@@ -28,7 +28,7 @@ import {
 import type { TimelineStoreApi } from "../../../stores/timeline/TimelineStore";
 import type { TimelinePlaybackStoreApi } from "../../../stores/timeline/TimelinePlaybackStore";
 import { FONT_SIZE_SANS, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX, SHADOW } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 import { useTranslation } from "react-i18next";
 // ── Commands ──────────────────────────────────────────────────────────────────
 

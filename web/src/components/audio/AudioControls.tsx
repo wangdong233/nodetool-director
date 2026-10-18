@@ -18,6 +18,7 @@ import {
   TYPOGRAPHY
 } from "../ui_primitives";
 import { getAudioDownloadFilename } from "../../utils/audioFormat";
+import { i18n } from "../../../i18n";
 
 interface AudioControlsProps {
   /** `normal` draws the larger controls of the asset viewer. */
@@ -149,7 +150,7 @@ const AudioControls: React.FC<AudioControlsProps> = memo(
       <FlexRow
         className="audio-controls nodrag"
         role="group"
-        aria-label="Playback controls"
+        aria-label={i18n.t("ui2:attrs.playbackControls", { defaultValue: "Playback controls" })}
         align="center"
         wrap
         gap={large ? SPACING.md : SPACING.xs}
@@ -164,7 +165,7 @@ const AudioControls: React.FC<AudioControlsProps> = memo(
               <PlayArrowIcon fontSize={iconSize} />
             )
           }
-          tooltip={isPlaying ? "Pause" : "Play"}
+          tooltip={isPlaying ? i18n.t("timeline:attrs.pause2", { defaultValue: "Pause" }) : i18n.t("game:categories.Play", { defaultValue: "Play" })}
           tooltipPlacement="top"
           size={buttonSize}
           onClick={onPlayPause}

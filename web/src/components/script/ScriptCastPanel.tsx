@@ -37,6 +37,7 @@ import { useEntities } from "../../serverState/useEntities";
 import { ENTITY_KIND_COLOR } from "../entities/entityKind";
 import ScriptSpeakerAvatar from "./ScriptSpeakerAvatar";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ScriptCastPanelProps {
   scriptId: string;
@@ -130,7 +131,7 @@ const SpeakerCard = ({
     : null;
   const isDangling = !!speaker.entityId && !!entities && !linkedEntity;
   const entityOptions = [
-    { value: "", label: "No entity" },
+    { value: "", label: i18n.t("editor:ui.noEntity", { defaultValue: "No entity" }) },
     ...(entities ?? []).map((e) => ({
       value: e.id,
       label: `${e.name} · ${e.kind}`

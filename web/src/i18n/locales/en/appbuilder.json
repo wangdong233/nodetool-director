@@ -1,5 +1,6 @@
 {
   "attrs": {
+    "runtimeIdle": "idle",
     "3dModel": "3D model",
     "3dModelInput": "3D Model Input",
     "accordion": "Accordion",

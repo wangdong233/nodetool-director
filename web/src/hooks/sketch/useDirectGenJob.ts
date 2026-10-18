@@ -36,7 +36,7 @@ import type {
   LayerVersion,
   LayerWorkflowBinding
 } from "@nodetool-ai/image-editor";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * What the take was made from. Two takes of the same binding hash the same, so

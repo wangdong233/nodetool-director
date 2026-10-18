@@ -35,6 +35,7 @@ import { NO_EXAMPLE_NEEDS } from "../../utils/exampleNeeds";
 import { DashboardSectionHeader, useSectionWrap } from "./dashboardChrome";
 import ExampleNeedsPill from "./ExampleNeedsPill";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const ExampleGamePlayView = lazy(() => import("./ExampleGamePlayView"));
 
@@ -102,7 +103,7 @@ const GameCard = memo(function GameCard({
             onClick={handleClick}
             sx={{ alignSelf: "flex-start" }}
           >
-            {installing ? t("editor:ui.addingGame", { defaultValue: "Adding game…" }) : "Install game"}
+            {installing ? t("editor:ui.addingGame", { defaultValue: "Adding game…" }) : i18n.t("editor:ui.installGame", { defaultValue: "Install game" })}
           </EditorButton>
         </FlexRow>
       </FlexColumn>
@@ -215,7 +216,7 @@ const DashboardExampleGames = ({ onMakeGame }: DashboardExampleGamesProps) => {
         )}
         {playingGame ? null : isLoading ? (
           <FlexColumn align="center" padding={PADDING.spacious}>
-            <LoadingSpinner size="medium" text="Loading games" />
+            <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingGames", { defaultValue: "Loading games" })} />
           </FlexColumn>
         ) : isError ? (
           <EmptyState

@@ -51,12 +51,13 @@ import {
 } from "./costsData";
 import { useCostsDashboard } from "./useCostsDashboard";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const RANGE_OPTIONS: DateRange[] = ["7d", "14d", "30d", "90d"];
 const GROUP_OPTIONS: { value: GroupByKey; label: string }[] = [
-  { value: "execution", label: "Execution" },
+  { value: "execution", label: "Execution", labelKey: "settings:general.secExecution" },
   { value: "nodeType", label: "Node type" },
-  { value: "workflow", label: "Workflow" },
+  { value: "workflow", label: "Workflow", labelKey: "home:flowError.kind.workflow" },
   { value: "provider", label: "Provider" },
   { value: "model", label: "Model" }
 ];
@@ -230,7 +231,7 @@ const CostsDashboard: React.FC = () => {
         {/* header */}
         <PageHeader
           variant="plain"
-          title="Costs"
+          title={i18n.t("editor:ui.costsTitle", { defaultValue: "Costs" })}
           subtitle={
             view ? (
               <>
@@ -246,7 +247,7 @@ const CostsDashboard: React.FC = () => {
                 · {rangeLabel}
               </>
             ) : (
-              "Spend per node execution"
+              i18n.t("editor:ui.spendPerNodeExecution", { defaultValue: "Spend per node execution" })
             )
           }
           sx={{
@@ -275,7 +276,7 @@ const CostsDashboard: React.FC = () => {
               <>
                 <FilterDropdown
                   icon={<FilterListIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-                  label={providersAllSelected ? t("editor:ui.allProviders", { defaultValue: "All providers" }) : "Providers"}
+                  label={providersAllSelected ? t("editor:ui.allProviders", { defaultValue: "All providers" }) : i18n.t("editor:ui.providers", { defaultValue: "Providers" })}
                   count={
                     providersAllSelected
                       ? String(providerUniverse.length)
@@ -300,7 +301,7 @@ const CostsDashboard: React.FC = () => {
 
                 <FilterDropdown
                   icon={<AccountTreeIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-                  label={workflowsAllSelected ? t("editor:ui.allWorkflows", { defaultValue: "All workflows" }) : "Workflows"}
+                  label={workflowsAllSelected ? t("editor:ui.allWorkflows", { defaultValue: "All workflows" }) : i18n.t("editor:ui.workflows", { defaultValue: "Workflows" })}
                   count={
                     workflowsAllSelected
                       ? undefined

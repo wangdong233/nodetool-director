@@ -5,6 +5,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { Box, Caption, Checkbox, CONTROL, FlexColumn, FlexRow, InspectorValueInput, ScrollArea, SPACING, ToolbarIconButton, TruncatedText } from "../../../ui_primitives";
 import { AddButton } from "../InspectorParts";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../../i18n";
 
 const ACTION_SX = { width: CONTROL.height.xs, height: CONTROL.height.xs, p: SPACING.none, flexShrink: 0 } as const;
 
@@ -66,12 +67,12 @@ function CollisionMatrixEditor({ document, onDocument }: CollisionMatrixEditorPr
     if (!name || name === layer) { setRenameError(null); return; }
     if (layers.includes(name)) { setRenameError(`Layer ${name} already exists. Choose another name.`); return; }
     setRenameError(null);
-    onDocument(renameCollisionLayer3D(document, layer, name), "Rename Collision Layer");
+    onDocument(renameCollisionLayer3D(document, layer, name), i18n.t("game:collision.renameCollisionLayer", { defaultValue: "Rename Collision Layer" }));
   };
   const addLayer = (): void => {
     let index = layers.length + 1;
     while (layers.includes(`layer${index}`)) { index += 1; }
-    onDocument({ ...document, collisionLayers: [...layers, `layer${index}`] }, "Add Collision Layer");
+    onDocument({ ...document, collisionLayers: [...layers, `layer${index}`] }, i18n.t("game:collision.addCollisionLayer", { defaultValue: "Add Collision Layer" }));
   };
   const cells: ReactNode[] = [<Box key="corner" />];
   layers.forEach((layer, column) => cells.push(<Caption key={`head:${layer}`} title={layer} sx={{ textAlign: "center" }}>{column + 1}</Caption>));
@@ -81,7 +82,7 @@ function CollisionMatrixEditor({ document, onDocument }: CollisionMatrixEditorPr
       <Checkbox key={`${row}:${column}`} compact size="small" checked={collides(row, column)}
         inputProps={{ "aria-label": `${row} collides with ${column}` }}
         onChange={(_event, checked) => onDocument({ ...document, collisionMatrix: setCollisionPair(matrix, row, column, checked) },
-          checked ? t("game:collision.enableLayerCollision", { defaultValue: "Enable Layer Collision" }) : "Disable Layer Collision")} />));
+          checked ? t("game:collision.enableLayerCollision", { defaultValue: "Enable Layer Collision" }) : i18n.t("game:collision.disableLayerCollision", { defaultValue: "Disable Layer Collision" }))} />));
   });
   return <FlexColumn gap={SPACING.xs} sx={{ width: "100%", minWidth: 0 }}>
     <Caption>{t("game:collision.matrixHelp", { defaultValue: "Colliders pick a layer by name. Checked pairs collide. Category and mask bits come from this table." })}</Caption>
@@ -89,7 +90,7 @@ function CollisionMatrixEditor({ document, onDocument }: CollisionMatrixEditorPr
       <Caption sx={{ minWidth: CONTROL.height.xs, textAlign: "right" }}>{index + 1}</Caption>
       <InspectorValueInput grow ariaLabel={`Layer ${index + 1} name`} value={layer} onCommit={(raw) => rename(layer, raw)} />
       <ToolbarIconButton icon={<DeleteOutlineIcon fontSize="small" />} tooltip={`Remove layer ${layer}`} sx={ACTION_SX}
-        onClick={() => onDocument(removeCollisionLayer3D(document, layer), "Remove Collision Layer")} />
+        onClick={() => onDocument(removeCollisionLayer3D(document, layer), i18n.t("game:collision.removeCollisionLayer", { defaultValue: "Remove Collision Layer" }))} />
     </FlexRow>)}
     {renameError && <Caption color="error" role="alert">{renameError}</Caption>}
     <AddButton disabled={layers.length >= MAX_COLLISION_LAYERS_3D} onClick={addLayer}>{t("game:collision.addLayer", { defaultValue: "Add layer" })}</AddButton>

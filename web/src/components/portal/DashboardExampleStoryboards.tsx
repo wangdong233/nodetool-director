@@ -24,6 +24,7 @@ import { runsAsIsFirst, storyboardNeeds } from "../../utils/exampleNeeds";
 import { DashboardSectionHeader, useSectionWrap } from "./dashboardChrome";
 import ExampleNeedsPill from "./ExampleNeedsPill";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -204,7 +205,7 @@ const DashboardExampleStoryboards = () => {
           Explore a shot sequence with rendered stills. Open a board to make your own copy.
         </p>
         {isLoading ? (
-          <div className="boards-state"><LoadingSpinner size="medium" text="Loading storyboards" /></div>
+          <div className="boards-state"><LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingStoryboards", { defaultValue: "Loading storyboards" })} /></div>
         ) : isError ? (
           <div className="boards-state">
             <EmptyState variant="error" title={t("editor:ui.couldntLoadStoryboards", { defaultValue: "Couldn't load storyboards" })} description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })} actionText={t("editor:explorer.retry", { defaultValue: "Retry" })} onAction={() => refetch()} />

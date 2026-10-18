@@ -78,6 +78,7 @@ import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { captureLastFrame } from "./lastFrame";
 import { formatDuration } from "../../utils/formatUtils";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ShotCardProps {
   boardId: string;
@@ -553,7 +554,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             role={stillRendering ? "status" : undefined}
             sx={{ textAlign: "center", p: SPACING.md }}
           >
-            {stillRendering ? t("storyboard:attrs.renderingStill", { defaultValue: "Rendering still…" }) : "No still yet"}
+            {stillRendering ? t("storyboard:attrs.renderingStill", { defaultValue: "Rendering still…" }) : i18n.t("storyboard:attrs.noStillYet", { defaultValue: "No still yet" })}
           </Caption>
         )}
         {isGenerating && <MagicGenerationFill />}
@@ -583,7 +584,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             previewMedia && !isGenerating ? handleOpenViewer : undefined
           }
           fullscreenLabel={
-            previewClip ? t("storyboard:attrs.viewClipFullscreen", { defaultValue: "View clip fullscreen" }) : "View still fullscreen"
+            previewClip ? t("storyboard:attrs.viewClipFullscreen", { defaultValue: "View clip fullscreen" }) : i18n.t("storyboard:attrs.viewStillFullscreen", { defaultValue: "View still fullscreen" })
           }
           onRenderStill={readOnly ? undefined : handleRenderStill}
           onRenderClip={readOnly ? undefined : handleRenderClip}
@@ -618,7 +619,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
                 tooltip={`Render a new still and pick its model${
                   stillCost ? ` · about ${formatUsd(stillCost)}` : ""
                 }`}
-                ariaLabel="Regenerate still"
+                ariaLabel={t("storyboard:attrs.regenerateStill", { defaultValue: "Regenerate still" })}
                 onClick={handleRenderStill}
                 disabled={isGenerating}
               />
@@ -626,7 +627,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
                 icon={<MovieOutlinedIcon fontSize="inherit" />}
                 tooltip={
                   clipNeedsStill
-                    ? t("storyboard:attrs.renderAStillFirst", { defaultValue: "Render a still first" }) : "Render a clip and pick its model"
+                    ? t("storyboard:attrs.renderAStillFirst", { defaultValue: "Render a still first" }) : i18n.t("storyboard:attrs.renderAClipAndPickItsModel", { defaultValue: "Render a clip and pick its model" })
                 }
                 ariaLabel="Render clip"
                 onClick={handleRenderClip}
@@ -700,7 +701,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             minHeight: "2.7em"
           }}
         >
-          {shot.action.trim() || "No action described"}
+          {shot.action.trim() || i18n.t("storyboard:attrs.noActionDescribed", { defaultValue: "No action described" })}
         </Text>
       </FlexColumn>
 
@@ -716,7 +717,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             errorText: renderError ?? undefined
           }}
         >
-          {renderError ?? "The render failed. Try again."}
+          {renderError ?? i18n.t("storyboard:attrs.theRenderFailedTryAgain", { defaultValue: "The render failed. Try again." })}
         </ErrorBanner>
       )}
       <ShotMediaViewer

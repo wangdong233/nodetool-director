@@ -16,6 +16,7 @@ import ollamaIcon from "../../icons/providers/ollama.svg";
 import ProviderOnboardingCard from "./ProviderOnboardingCard";
 import { CAPABILITY_LABELS, providersForCapability } from "./providerOnboardingCatalog";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const ProviderOnboardingDialog: React.FC = () => {
   const { t } = useTranslation();
@@ -32,8 +33,8 @@ const ProviderOnboardingDialog: React.FC = () => {
   );
   const providers = useMemo(() => providersForCapability(capability), [capability]);
   const groups = [
-    { title: "Sign in with your account", providers: providers.filter((p) => p.oauth) },
-    { title: "Use an API key", providers: providers.filter((p) => !p.oauth) }
+    { title: i18n.t("editor:ui.signInWithYourAccount", { defaultValue: "Sign in with your account" }), providers: providers.filter((p) => p.oauth) },
+    { title: i18n.t("editor:ui.useAnAPIKey", { defaultValue: "Use an API key" }), providers: providers.filter((p) => !p.oauth) }
   ];
   const showLocal = (isElectron || isLocalhost) &&
     (!capability || capability === "generate_message" || capability === "generate_embedding");
@@ -63,7 +64,7 @@ const ProviderOnboardingDialog: React.FC = () => {
           <Text sx={{ maxWidth: "60ch" }}>
             {reason ?? (capability
               ? `Connect a provider for ${CAPABILITY_LABELS[capability]} to continue.`
-              : "Choose an account or API key to use models in your workflows.")}
+              : i18n.t("editor:ui.chooseAnAccountOrAPIKeyToUseModelsInYourWorkflows", { defaultValue: "Choose an account or API key to use models in your workflows." }))}
           </Text>
           <Caption size="small">{t("editor:ui.yourAPIUsageIsBilledDirectlyToYourProviderAccount", { defaultValue: "Your API usage is billed directly to your provider account." })}</Caption>
         </FlexColumn>

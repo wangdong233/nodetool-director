@@ -342,7 +342,7 @@ export const CurveEditor = forwardRef<HTMLDivElement, CurveEditorProps>(function
         <EditorButton density="compact" disabled={disabled || value.length >= maxKeys} onClick={() => addKeyAfter(selectedIndex)}>{t("ui2:attrs.addKey", { defaultValue: "Add key" })}</EditorButton>
         <EditorButton density="compact" disabled={disabled || value.length <= minKeys} onClick={() => removeKeyAt(selectedIndex)}>{t("editor:ui.deleteKey", { defaultValue: "Delete key" })}</EditorButton>
       </FlexRow>
-      <Caption id={hintId}>Arrow keys move a key, Shift moves further. Insert adds a key, Delete removes it. Double-click the plot to add a key there.</Caption>
+      <Caption id={hintId}>{t("ui2:attrs.curveEditorHint", { defaultValue: "Arrow keys move a key, Shift moves further. Insert adds a key, Delete removes it. Double-click the plot to add a key there." })}</Caption>
     </FlexColumn>
   );
 });

@@ -1,6 +1,6 @@
 import type { KieUnitPricing } from "../stores/ApiTypes";
 import { relativeTime } from "./formatDateAndTime";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 export function isKieVagueBillingSummary(p: Pick<KieUnitPricing, "billing_unit" | "tier_count">): boolean {
   if ((p.tier_count ?? 1) > 1) {

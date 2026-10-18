@@ -39,6 +39,7 @@ import {
 } from "../ui_primitives";
 import { newDocumentId } from "../../lib/newDocumentId";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DRAG_IMAGE_Z_INDEX = 9999;
@@ -157,7 +158,7 @@ const TimelineListItem = memo(function TimelineListItem({
       id={id}
       name={name}
       fallbackName="Untitled video"
-      renameLabel="Timeline name"
+      renameLabel={i18n.t("editor:ui.timelineName", { defaultValue: "Timeline name" })}
       icon={MovieOutlinedIcon}
       active={active}
       editing={editing}
@@ -293,7 +294,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
         placement="right-start"
       >
         <ToolbarIconButton
-          ariaLabel="Import timeline (.zip)"
+          ariaLabel={t("timeline:list.importArchive", { defaultValue: "Import timeline (.zip)" })}
           onClick={handleImportClick}
           disabled={isImporting}
           tabIndex={-1}
@@ -438,7 +439,7 @@ const TimelineListPanel = ({ projectId }: TimelineListPanelProps) => {
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create a new video timeline with the + button above."
+      emptyDescription={i18n.t("editor:ui.createANewVideoTimelineWithThe+ButtonAbove", { defaultValue: "Create a new video timeline with the + button above." })}
       deleteTarget={itemToDelete}
       onCancelDelete={() => setItemToDelete(null)}
       onConfirmDelete={handleConfirmDelete}

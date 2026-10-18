@@ -29,6 +29,7 @@ import { isNumber } from "../../utils/typePredicates";
 import type { PlayheadStore } from "./playheadStore";
 import { formatEditorTime } from "./formatEditorTime";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface AudioTransportBarProps {
   isPlaying: boolean;
@@ -170,7 +171,7 @@ const AudioTransportBar = memo(function AudioTransportBar({
                 <PlayArrowIcon fontSize="small" />
               )
             }
-            tooltip={isPlaying ? t("ui:attrs.pause", { defaultValue: "Pause" }) : "Play"}
+            tooltip={isPlaying ? t("ui:attrs.pause", { defaultValue: "Pause" }) : i18n.t("game:categories.Play", { defaultValue: "Play" })}
             tooltipPlacement="top"
             onClick={onTogglePlay}
             sx={{
@@ -202,7 +203,7 @@ const AudioTransportBar = memo(function AudioTransportBar({
       <FlexRow role="group" aria-label={t("editor:ui.zoom", { defaultValue: "Zoom" })} align="center" gap={SPACING.micro}>
         <ToolbarIconButton
           icon={<ZoomOutIcon fontSize="small" />}
-          tooltip="Zoom out"
+          tooltip={t("timeline:shortcuts.zoomOut", { defaultValue: "Zoom out" })}
           tooltipPlacement="top"
           onClick={onZoomOut}
           disabled={zoom <= minZoom}
@@ -220,7 +221,7 @@ const AudioTransportBar = memo(function AudioTransportBar({
         </Box>
         <ToolbarIconButton
           icon={<ZoomInIcon fontSize="small" />}
-          tooltip="Zoom in"
+          tooltip={t("timeline:shortcuts.zoomIn", { defaultValue: "Zoom in" })}
           tooltipPlacement="top"
           onClick={onZoomIn}
           disabled={zoom >= maxZoom}

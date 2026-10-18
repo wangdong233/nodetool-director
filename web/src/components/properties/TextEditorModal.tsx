@@ -73,6 +73,7 @@ import {
 import { codeHighlightTheme } from "../textEditor/codeHighlightTheme";
 import { codeHighlightTokenStyles } from "../textEditor/codeHighlightStyles";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const initialConfigTemplate = {
   namespace: "TextEditorModal",
@@ -1152,13 +1153,13 @@ const TextEditorModal = ({
       css={modalStyles}
     >
       <div
-        className={`modal-overlay ${isFullscreen ? "fullscreen" : ""}`}
+        className={`modal-overlay ${isFullscreen ? t("common:action.fullscreen", { defaultValue: "fullscreen" }) : ""}`}
         role="presentation"
         onClick={handleOverlayClick}
         ref={modalOverlayRef}
       >
         <div
-          className={`modal-content ${isFullscreen ? "fullscreen" : ""}`}
+          className={`modal-content ${isFullscreen ? t("common:action.fullscreen", { defaultValue: "fullscreen" }) : ""}`}
           role="dialog"
           aria-modal="true"
           style={
@@ -1228,14 +1229,14 @@ const TextEditorModal = ({
                 </button>
               </Tooltip>
               <Tooltip
-                title={assistantVisible ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : "Show assistant"}
+                title={assistantVisible ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })}
               >
                 <button
                   type="button"
                   className={`button ${assistantVisible ? "active" : ""}`}
                   onClick={toggleAssistantVisible}
                   aria-label={
-                    assistantVisible ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : "Show assistant"
+                    assistantVisible ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })
                   }
                 >
                   {assistantVisible ? (
@@ -1246,25 +1247,25 @@ const TextEditorModal = ({
                 </button>
               </Tooltip>
               <Tooltip
-                title={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : "Focus mode (hide panels)"}
+                title={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : i18n.t("editor:ui.focusModeHidePanels", { defaultValue: "Focus mode (hide panels)" })}
               >
                 <button
                   type="button"
                   className={`button ${focusMode ? "active" : ""}`}
                   onClick={() => setFocusMode((v) => !v)}
-                  aria-label={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : "Focus mode"}
+                  aria-label={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : i18n.t("editor:ui.focusMode", { defaultValue: "Focus mode" })}
                 >
                   {focusMode ? <OpenInFullIcon /> : <CloseFullscreenIcon />}
                 </button>
               </Tooltip>
               <Tooltip
-                title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                title={isFullscreen ? t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
               >
                 <button
                   type="button"
                   className="button"
                   onClick={toggleFullscreen}
-                  aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                  aria-label={isFullscreen ? t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
                 >
                   {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
                 </button>
@@ -1289,7 +1290,7 @@ const TextEditorModal = ({
                   <Tooltip
                     title={
                       isCodeEditor
-                        ? t("editor:ui.switchToRichText", { defaultValue: "Switch to rich text" }) : "Switch to code editor"
+                        ? t("editor:ui.switchToRichText", { defaultValue: "Switch to rich text" }) : i18n.t("editor:ui.switchToCodeEditor", { defaultValue: "Switch to code editor" })
                     }
                   >
                     <button
@@ -1298,7 +1299,7 @@ const TextEditorModal = ({
                       onClick={handleToggleEditorMode}
                       aria-label={
                         isCodeEditor
-                          ? t("editor:ui.switchToRichText", { defaultValue: "Switch to rich text" }) : "Switch to code editor"
+                          ? t("editor:ui.switchToRichText", { defaultValue: "Switch to rich text" }) : i18n.t("editor:ui.switchToCodeEditor", { defaultValue: "Switch to code editor" })
                       }
                     >
                       {isCodeEditor ? <TextFieldsIcon /> : <CodeIcon />}
@@ -1518,7 +1519,7 @@ const TextEditorModal = ({
                     defaultWidth={360}
                     maxWidth={560}
                     enabled={!assistantStacks}
-                    ariaLabel="Resize text editor assistant"
+                    ariaLabel={i18n.t("editor:ui.resizeTextEditorAssistant", { defaultValue: "Resize text editor assistant" })}
                   >
                   <div className="assistant-pane">
                     <div className="assistant-header">
@@ -1563,8 +1564,7 @@ const TextEditorModal = ({
                       status={
                         runtime.status === "idle" ||
                         runtime.status === "stopping"
-                          ? "connected"
-                          : runtime.status
+                          ? t("editor:bottom.stateConnected", { defaultValue: "connected" }) : runtime.status
                       }
                       progress={runtime.progress.current}
                       total={runtime.progress.total}

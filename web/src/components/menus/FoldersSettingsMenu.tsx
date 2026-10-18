@@ -24,6 +24,7 @@ import { isLocalhost } from "../../lib/env";
 import { NavButton, NodeTextField, ToolbarIconButton } from "../ui_primitives";
 import { SettingWithValue } from "../../stores/RemoteSettingStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface FolderButtonProps {
   label: string;
@@ -118,10 +119,10 @@ const FoldersSettings = () => {
     }
 
     const filteredEntries = Array.from(baseSettingsByGroup.entries()).filter(
-      ([groupName]) => groupName === "Folders"
+      ([groupName]) => groupName === i18n.t("editor:ui.foldersSectionTitle", { defaultValue: "Folders" })
     );
     return new Map(filteredEntries);
-  }, [data, storeSettingsByGroup]);
+  }, [data, storeSettingsByGroup, languageVersion]);
 
   const updateSettingsMutation = useMutation({
     mutationFn: ({
@@ -171,7 +172,7 @@ const FoldersSettings = () => {
       {
         onSuccess: () => {
           addNotification({
-            content: "Folder settings have been saved successfully",
+            content: "Folder settings have been saved successfully", contentKey: "tools:menus.folderSettingsHaveBeenSavedSuccessfully",
             type: "success",
             alert: true
           });

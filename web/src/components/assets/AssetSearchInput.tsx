@@ -8,6 +8,7 @@ import { useAssetSearch } from "../../serverState/useAssetSearch";
 import { SearchInput, ToolbarIconButton } from "../ui_primitives";
 import { isNumber } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 
 interface AssetSearchInputProps {
@@ -236,10 +237,10 @@ const AssetSearchInput: React.FC<AssetSearchInputProps> = ({
   }, [focusOnTyping, debouncedSetSearchTerm]);
 
   const effectivePlaceholder = isGlobalSearchMode
-    ? t("editor:ui.searchAllAssets2", { defaultValue: "Search all assets" }) : "Search current folder";
+    ? t("editor:ui.searchAllAssets2", { defaultValue: "Search all assets" }) : i18n.t("editor:ui.searchCurrentFolder2", { defaultValue: "Search current folder" });
 
   const toggleLabel = isGlobalSearchMode
-    ? t("editor:ui.switchToLocalSearch", { defaultValue: "Switch to local search" }) : "Switch to global search";
+    ? t("editor:ui.switchToLocalSearch", { defaultValue: "Switch to local search" }) : i18n.t("editor:ui.switchToGlobalSearch", { defaultValue: "Switch to global search" });
 
   return (
     <div

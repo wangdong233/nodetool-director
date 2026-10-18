@@ -47,7 +47,7 @@ import {
 import { usePersistedFold } from "./usePersistedFold";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 interface AIEditClipPanelProps {
   clipId: string;
@@ -280,7 +280,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
 
   const newTakeEligibility = useMemo(() => {
     if (!clip || clip.mediaType !== "video") {
-      return { ok: false as const, reason: "New take requires a video clip." };
+      return { ok: false as const, reason: "New take requires a video clip.", reasonKey: "timeline:attrs.newTakeRequiresAVideoClip" };
     }
     const activeId = activeTakeIdOf(clip);
     const activeTake = activeId
@@ -288,7 +288,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
       : undefined;
     return activeTake
       ? getReplayRecipe(activeTake)
-      : { ok: false as const, reason: "This clip has no accepted take." };
+      : { ok: false as const, reason: "This clip has no accepted take.", reasonKey: "timeline:attrs.thisClipHasNoAcceptedTake" };
   }, [clip]);
 
   const handleNewTake = useCallback(async () => {
@@ -332,17 +332,14 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
   const unavailableReason = !eligibility.ok
     ? eligibility.error
     : error
-      ? "The video edit model catalog could not be loaded. Retry to check compatible providers."
-      : noCompatibleModel
-        ? "No compatible video edit model is available. Add a provider or install a local model that supports video_to_video."
-        : undefined;
+      ? t("timeline:attrs.theVideoEditModelCatalogCouldNotBeLoadedRetryToCheckCompatibleProviders", { defaultValue: "The video edit model catalog could not be loaded. Retry to check compatible providers." }) : noCompatibleModel
+        ? t("timeline:attrs.noCompatibleVideoEditModelIsAvailableAddAProviderOrInstallALocalModelThatSupportsVideo_to_video", { defaultValue: "No compatible video edit model is available. Add a provider or install a local model that supports video_to_video." }) : undefined;
   const settlementMessage = active
     ? undefined
     : settledStatus === "cancelled"
       ? i18n.t("timeline:attrs.theEditWasCancelledTheAcceptedMediaWasLeftUnchanged", { defaultValue: "The edit was cancelled. The accepted media was left unchanged." }) : settledStatus === "expired"
         ? i18n.t("timeline:attrs.theEditExpiredBeforeItFinishedTheCapturedRequestIsAvailableToRetry", { defaultValue: "The edit expired before it finished. The captured request is available to retry." }) : settledStatus === "orphaned"
-          ? "The source clip was deleted before the edit finished. The result was kept for inspection and was not applied."
-          : settledStatus === "failed"
+          ? t("timeline:attrs.theSourceClipWasDeletedBeforeTheEditFinishedTheResultWasKeptForInspectionAndWasNotApplied", { defaultValue: "The source clip was deleted before the edit finished. The result was kept for inspection and was not applied." }) : settledStatus === "failed"
             ? i18n.t("timeline:attrs.theProviderFailedThisEditTheAcceptedMediaWasLeftUnchanged", { defaultValue: "The provider failed this edit. The accepted media was left unchanged." }) : undefined;
 
   return (
@@ -377,7 +374,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
               compact
               fullWidth
               inputProps={{
-                "aria-label": "Edit instruction",
+                "aria-label": i18n.t("timeline:attrs.editInstruction", { defaultValue: "Edit instruction" }),
                 "data-testid": "ai-edit-instruction"
               }}
               disabled={active}
@@ -475,7 +472,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                 }}
                 data-testid="ai-edit-submit"
               >
-                {active ? t("timeline:attrs.cancel", { defaultValue: "Cancel" }) : failed ? t("timeline:attrs.retry", { defaultValue: "Retry" }) : "Edit video"}
+                {active ? t("timeline:attrs.cancel", { defaultValue: "Cancel" }) : failed ? t("timeline:attrs.retry", { defaultValue: "Retry" }) : i18n.t("editor:ui.editVideo", { defaultValue: "Edit video" })}
               </EditorButton>
               <FlexRow justify="flex-end" fullWidth>
                 <CostEstimateLine
@@ -527,7 +524,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                   maxRows={4}
                   compact
                   fullWidth
-                  inputProps={{ "aria-label": "New take direction" }}
+                  inputProps={{ "aria-label": i18n.t("timeline:attrs.newTakeDirection", { defaultValue: "New take direction" }) }}
                   disabled={active || newTakeActive}
                 />
                 <EditorButton
@@ -537,7 +534,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                   onClick={() => void handleNewTake()}
                   data-testid="new-take-submit"
                 >
-                  {newTakeActive ? i18n.t("timeline:attrs.generatingNewTake", { defaultValue: "Generating new take…" }) : "New take"}
+                  {newTakeActive ? i18n.t("timeline:attrs.generatingNewTake", { defaultValue: "Generating new take…" }) : i18n.t("timeline:attrs.newTake", { defaultValue: "New take" })}
                 </EditorButton>
                 {newTakeError && (
                   <ErrorBanner

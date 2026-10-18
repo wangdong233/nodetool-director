@@ -18,7 +18,7 @@ import { FlexColumn, PADDING, ThinkingIndicator } from "../../ui_primitives";
 import { SetupFlow } from "../SetupFlow";
 import { useFinishIfLoadedDone } from "../useFinishIfLoadedDone";
 import { useStoryboardSetupFlow } from "./useStoryboardSetupFlow";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 export interface StoryboardSetupHostProps {
   boardId: string;

@@ -47,6 +47,7 @@ import { threadPreview } from "../chat/utils/threadUtils";
 import type { Message } from "../../stores/ApiTypes";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type ThreadStatus = React.ComponentProps<typeof ChatThreadView>["status"];
 
@@ -305,7 +306,7 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
 
   // ChatThreadView's status union excludes "stopping" — map it like GlobalChat.
   const status: ThreadStatus =
-    rawStatus === "stopping" ? "connected" : rawStatus;
+    rawStatus === "stopping" ? t("editor:bottom.stateConnected", { defaultValue: "connected" }) : rawStatus;
 
   const addNotification = useNotificationStore(
     (state) => state.addNotification
@@ -412,7 +413,7 @@ const ConversationOverlay: React.FC<ConversationOverlayProps> = ({
         invert
         invisible
         thickness={SPACING.md}
-        ariaLabel="Resize conversation height"
+        ariaLabel={i18n.t("editor:ui.resizeConversationHeight", { defaultValue: "Resize conversation height" })}
         sx={{
           left: getSpacingPx(SPACING.lg),
           right: getSpacingPx(SPACING.lg),

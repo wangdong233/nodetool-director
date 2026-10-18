@@ -60,6 +60,7 @@ import {
   DEFAULT_PAD_WIDTH,
   type SketchPadBackground
 } from "./sketchPadOptions";
+import { i18n } from "../../../../i18n";
 
 /** The pad's tools: paint, erase, flood-fill. Nothing that needs a layer stack. */
 const PAD_TOOLS: readonly SketchTool[] = ["brush", "pencil", "eraser", "fill"];
@@ -213,7 +214,7 @@ const PadToolbar: React.FC<PadToolbarProps> = ({ onUndo, onRedo, onClear }) => {
             </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title={tAttr("Clear")}>
+        <Tooltip title={tAttr(i18n.t("storyboard:attrs.clear", { defaultValue: "Clear" }))}>
           <IconButton size="small" aria-label={tAttr("Clear")} onClick={onClear}>
             <DeleteOutlineIcon fontSize="small" />
           </IconButton>

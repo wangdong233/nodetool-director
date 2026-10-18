@@ -10,6 +10,7 @@ import type * as React from "react";
 import { useEffect, useRef } from "react";
 
 import { normToValue, valueToNorm, type ParamDef } from "../fablesynth/params";
+import { i18n } from "../../../../../i18n";
 
 const A0 = -135;
 const A1 = 135;
@@ -213,7 +214,7 @@ export function FxStepper({
   const step = (d: number): void => onSet((index + d + count) % count);
   return (
     <div className="stepper" data-accent={accent}>
-      <button type="button" className="st-btn st-prev" aria-label="previous" onClick={() => step(-1)}>
+      <button type="button" className="st-btn st-prev" aria-label={i18n.t("home:docs.previous", { defaultValue: "previous" })} onClick={() => step(-1)}>
         ◂
       </button>
       <span className="st-value">{options[index] ?? String(index)}</span>

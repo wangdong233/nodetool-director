@@ -49,6 +49,7 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import CloseIcon from "@mui/icons-material/CloseOutlined";
 import { cn, reactFlowClasses } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 // Lighting presets (must match drei Environment preset types)
 type LightingPreset =
@@ -64,7 +65,7 @@ type LightingPreset =
   | "park";
 
 const LIGHTING_PRESETS: { value: LightingPreset; label: string }[] = [
-  { value: "studio", label: "Studio" },
+  { value: "studio", label: "Studio", labelKey: "editor:studio.studioBack" },
   { value: "dawn", label: "Dawn" },
   { value: "warehouse", label: "Warehouse" },
   { value: "city", label: "City" },
@@ -841,7 +842,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
                   <FullscreenIcon fontSize="small" />
                 )
               }
-              tooltip={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+              tooltip={isFullscreen ? t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
               onClick={toggleFullscreen}
               size="small"
             />

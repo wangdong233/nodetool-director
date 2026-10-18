@@ -44,6 +44,7 @@ import {
   parseDb
 } from "./faderTaper";
 import { InsertSlots } from "./InsertSlots";
+import { i18n } from "../../../../../i18n";
 
 /** Strip width on a roomy mixer, from the spacing scale (120 px). */
 const STRIP_UNITS = 30;
@@ -440,13 +441,13 @@ export const ChannelStripView: React.FC<ChannelStripViewProps> = memo((props) =>
                     M
                   </button>
                 </Tooltip>
-                <Tooltip title={channel.solo ? "Unsolo" : "Solo"}>
+                <Tooltip title={channel.solo ? i18n.t("timeline:attrs.unsolo", { defaultValue: "Unsolo" }) : i18n.t("timeline:attrs.solo", { defaultValue: "Solo" })}>
                   <button
                     type="button"
                     className="strip__toggle"
                     data-tone="success"
                     aria-pressed={!!channel.solo}
-                    aria-label={`${channel.solo ? "Unsolo" : "Solo"} ${channel.name}`}
+                    aria-label={`${channel.solo ? i18n.t("timeline:attrs.unsolo", { defaultValue: "Unsolo" }) : i18n.t("timeline:attrs.solo", { defaultValue: "Solo" })} ${channel.name}`}
                     onClick={props.onSolo}
                   >
                     S

@@ -15,6 +15,7 @@ import {
 import { Box } from "../ui_primitives";
 import { useColorConversion } from "../../hooks/useColorConversion";
 import type { ColorMode } from "../../hooks/useColorConversion";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -92,7 +93,7 @@ const ColorInputs: React.FC<ColorInputsProps> = memo(({
                   <InputAdornment position="start">#</InputAdornment>
                 )
               }}
-              inputProps={{ "aria-label": "Hex color" }}
+              inputProps={{ "aria-label": i18n.t("sketch:attrs.hexColor", { defaultValue: "Hex color" }) }}
               placeholder="FFFFFF"
             />
             <NumberField

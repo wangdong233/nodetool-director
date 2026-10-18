@@ -5,7 +5,7 @@ import { TabGroup } from "../components/ui_primitives/TabGroup";
 const tabs = [
   { value: "overview", label: "Overview" },
   { value: "params", label: "Parameters" },
-  { value: "logs", label: "Logs" }
+  { value: "logs", label: "Logs", labelKey: "game:console.logMany" }
 ];
 
 const meta = {

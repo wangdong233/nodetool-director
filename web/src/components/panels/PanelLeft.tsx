@@ -101,7 +101,7 @@ import CodeIcon from "@mui/icons-material/Code";
 
 import Fullscreen from "@mui/icons-material/Fullscreen";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 const HEADER_HEIGHT = 77;
 const HEADER_HEIGHT_MOBILE = 40;
@@ -445,7 +445,7 @@ const PanelContent = memo(function PanelContent({
                     onClick={handleFullscreenClick}
                     tabIndex={-1}
                     icon={<Fullscreen />}
-                    ariaLabel="Open library in full page"
+                    ariaLabel={i18n.t("editor:ui.openLibraryInFullPage", { defaultValue: "Open library in full page" })}
                   />
                 </Tooltip>
               }
@@ -590,7 +590,7 @@ const PanelContent = memo(function PanelContent({
                       onClick={handleEntitiesFullscreenClick}
                       tabIndex={-1}
                       icon={<Fullscreen />}
-                      ariaLabel="Open entities in full page"
+                      ariaLabel={i18n.t("editor:ui.openEntitiesInFullPage", { defaultValue: "Open entities in full page" })}
                     />
                   </Tooltip>
                   <CreateEntityButton projectId={projectId} />
@@ -918,7 +918,7 @@ const MobilePanelLeft: React.FC<{
             className={`panel-left-mobile-launcher ${isVisible ? "active" : ""}`}
             css={mobileLauncherStyles(theme)}
             onClick={isVisible ? onClose : onOpen}
-            ariaLabel={isVisible ? i18n.t("editor:ui.closePanel", { defaultValue: "Close panel" }) : "Open left panel"}
+            ariaLabel={isVisible ? i18n.t("editor:ui.closePanel", { defaultValue: "Close panel" }) : i18n.t("editor:ui.openLeftPanel", { defaultValue: "Open left panel" })}
             aria-expanded={isVisible}
             tabIndex={-1}
             icon={<MenuIcon />}
@@ -930,7 +930,7 @@ const MobilePanelLeft: React.FC<{
         open={isVisible}
         onClose={onClose}
         title={launcherTitle}
-        ariaLabel="Project navigation panel"
+        ariaLabel={i18n.t("editor:ui.projectNavigationPanel", { defaultValue: "Project navigation panel" })}
         headerExtras={
           <div css={mobileHeaderExtrasStyles(theme)}>
             <FlexRow className="mobile-tab-group" gap={SPACING.xs}>
@@ -1171,7 +1171,7 @@ const PanelLeft: React.FC = () => {
             value={panelSize}
             min={PANEL_MIN_SIZE}
             max={PANEL_MAX_SIZE}
-            ariaLabel="Resize panel"
+            ariaLabel={t("editor:bottom.resizeAria", { defaultValue: "Resize panel" })}
             onResize={handleResize}
             onResizeStart={handleResizeStart}
             onResizeEnd={handleResizeEnd}

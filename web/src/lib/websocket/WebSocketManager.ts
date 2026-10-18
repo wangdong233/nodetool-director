@@ -18,7 +18,7 @@
 import { EventEmitter } from "../EventEmitter";
 import { pack, unpack } from "msgpackr";
 import { isFunction, isObjectLike, isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 export type ConnectionState =
   | "disconnected"

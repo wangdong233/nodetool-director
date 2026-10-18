@@ -3,6 +3,7 @@ import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import { useNodes } from "../../contexts/NodeContext";
 import { Text, Tooltip, getSpacingPx, SPACING, ICON_SIZE } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const INPUT_PREFIX = "nodetool.input.";
 
@@ -42,7 +43,7 @@ const InputNodeNameWarning: React.FC<InputNodeNameWarningProps> = ({
     <Tooltip
       title={
         isMissing
-          ? "Input nodes require a name for the workflow to run. Please set a unique name for this input."
+          ? i18n.t("editor:ui.inputNodesRequireANameForTheWorkflowToRunPleaseSetAUniqueNameForThisInput", { defaultValue: "Input nodes require a name for the workflow to run. Please set a unique name for this input." })
           : `Another input is also named "${name}". Give each input a unique name.`
       }
       placement="top"
@@ -66,7 +67,7 @@ const InputNodeNameWarning: React.FC<InputNodeNameWarningProps> = ({
         }}
       >
         <WarningAmberOutlinedIcon sx={{ fontSize: ICON_SIZE.xs }} />
-        {isMissing ? t("editor:ui.nameRequired", { defaultValue: "Name required" }) : "Duplicate name"}
+        {isMissing ? t("editor:ui.nameRequired", { defaultValue: "Name required" }) : i18n.t("editor:ui:duplicateName", { defaultValue: "Duplicate name" })}
       </Text>
     </Tooltip>
   );

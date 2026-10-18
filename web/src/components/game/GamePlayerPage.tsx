@@ -8,6 +8,7 @@ import ReportBugButton from "../support/ReportBugButton";
 import { useGamePlaySession } from "./useGamePlaySession";
 import { gamePlayStatus } from "./gamePlayStatus";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface GamePlayerProps {
   gameId: string;
@@ -57,7 +58,7 @@ export function GamePlayer({ gameId, name, document, active = true, setsDocument
     <FlexRow align="center" gap={SPACING.sm} wrap>
       <Text size="big">{name}</Text>
       <EditorButton onClick={beginPlay} disabled={backend === "Initializing"}>
-        {playing ? t("ui:attrs.pause", { defaultValue: "Pause" }) : playDocument ? t("game:player.resume", { defaultValue: "Resume" }) : "Play"}
+        {playing ? t("ui:attrs.pause", { defaultValue: "Pause" }) : playDocument ? t("game:player.resume", { defaultValue: "Resume" }) : i18n.t("game:categories.Play", { defaultValue: "Play" })}
       </EditorButton>
       <EditorButton onClick={stop} disabled={!playDocument}>{t("ui2:attrs.stop", { defaultValue: "Stop" })}</EditorButton>
       <Caption>Score {playState.score} · {status} · {backend}</Caption>
@@ -87,7 +88,7 @@ export function SavedGamePlayer({ gameId, active = true, setsDocumentTitle = tru
   if (isPending) return <LoadingSpinner text="Loading game" />;
   if (error || !data) return <EmptyState variant="error" title={t("editor:ui.couldNotLoadGame", { defaultValue: "Could not load game" })} description={error?.message ?? "The game may have been deleted."} />;
   if (data.document.schemaVersion === 3) {
-    return <Suspense fallback={<LoadingSpinner text="Loading 3D player" />}><Player3D gameId={gameId} name={data.game.name} document={data.document} active={active} /></Suspense>;
+    return <Suspense fallback={<LoadingSpinner text={t("game:player.loading3dPlayer", { defaultValue: "Loading 3D player" })} />}><Player3D gameId={gameId} name={data.game.name} document={data.document} active={active} /></Suspense>;
   }
   return <GamePlayer gameId={gameId} name={data.game.name} document={data.document} active={active} setsDocumentTitle={setsDocumentTitle} />;
 }

@@ -27,10 +27,6 @@
     "loading": "Loading…"
   },
   "boot": {
-    "loading": "Loading NodeTool…",
-    "errorDetail": "Error loading application metadata.",
-    "refresh": "Refresh Page",
-    "preparing": "Preparing workspace…"
   },
   "mime": {
     "image/png": "PNG image",
@@ -100,13 +96,6 @@
     "dayAgo": "{{count}} day ago"
   },
   "list": {
-    "searchPlaceholder": "Search {{plural}}...",
-    "loadingPlural": "Loading {{plural}}",
-    "couldNotLoad": "Could not load {{plural}}",
-    "tryAgainLater": "Try again later.",
-    "noMatching": "No matching {{plural}}",
-    "noneYet": "No {{plural}} yet",
-    "deleteTitle": "Delete {{singular}}",
-    "deleteContent": "Delete \"{{name}}\"? This cannot be undone."
+    "tryAgainLater": "Try again later."
   }
 }

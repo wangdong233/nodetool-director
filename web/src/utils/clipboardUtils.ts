@@ -5,7 +5,7 @@
  */
 
 import type {} from "../window.d";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * Make a URL absolute if it's relative.
@@ -182,7 +182,7 @@ async function copyTextToClipboard(
 
     // For video/audio, copy the URL and metadata
     if (contentType.startsWith("video/") || contentType.startsWith("audio/")) {
-      const mediaType = contentType.startsWith("video/") ? "Video" : "Audio";
+      const mediaType = contentType.startsWith("video/") ? i18n.t("home:entry.video.title", { defaultValue: "Video" }) : i18n.t("appbuilder:attrs.audio", { defaultValue: "Audio" });
       textContent = assetName ? `${mediaType}: ${assetName}\nURL: ${absoluteUrl}` : absoluteUrl;
     } else {
       // For text files, fetch and copy the content

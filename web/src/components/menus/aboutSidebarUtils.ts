@@ -1,4 +1,5 @@
 import { isProduction } from "../../lib/env";
+import { i18n } from "../../../i18n";
 
 interface SidebarSection {
   category: string;
@@ -21,7 +22,7 @@ export const getAboutSidebarSections = (): SidebarSection[] => {
         ...(!isProduction
           ? [{ id: "installation-paths", label: "Installation paths" }]
           : []),
-        { id: "links", label: "Links" }
+        { id: "links", label: i18n.t("settings:sidebar.aboutLinks", { defaultValue: "Links" }) }
       ]
     }
   ];

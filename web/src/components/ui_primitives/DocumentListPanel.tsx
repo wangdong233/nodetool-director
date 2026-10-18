@@ -14,6 +14,7 @@ import { EmptyState } from "./EmptyState";
 import { FlexColumn } from "./FlexColumn";
 import { listPanelStyles } from "./listPanelStyles";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { i18n } from "../../../i18n";
 
 export interface DocumentListPanelDocument {
   id: string;
@@ -133,7 +134,7 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
           <EmptyState
             variant="error"
             title={`Could not load ${plural}`}
-            description={errorMessage ?? "Try again later."}
+            description={errorMessage ?? i18n.t("common:list.tryAgainLater", { defaultValue: "Try again later." })}
           />
           {errorAction}
         </FlexColumn>

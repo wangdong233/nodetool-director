@@ -17,7 +17,7 @@ import { useDuplicateNodes } from "../useDuplicate";
 import { useCopyPaste } from "../handlers/useCopyPaste";
 import { useToggleCollapse } from "./useToggleCollapse";
 import { shallow } from "zustand/shallow";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface UseNodeContextMenuReturn {
   menuPosition: { x: number; y: number } | null;

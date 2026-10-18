@@ -21,6 +21,7 @@ import { FlexRow } from "./FlexRow";
 import { SPACING, getSpacingPx } from "./spacing";
 import { CONTROL, TYPOGRAPHY } from "./tokens";
 import { Tooltip } from "./Tooltip";
+import { i18n } from "../../../i18n";
 
 export interface PanelHeaderProps {
   /**
@@ -59,11 +60,11 @@ export const PANEL_HEADER_HEIGHT = CONTROL.height.lg;
  * PanelHeader - title strip for panels
  *
  * @example
- * <PanelHeader title="Versions" count={12} onClose={close} />
+ * <PanelHeader title={i18n.t("editor:bottom.versions", { defaultValue: "Versions" })} count={12} onClose={close} />
  *
  * @example
  * <PanelHeader
- *   title="Workflows"
+ *   title={i18n.t("ui2:attrs.workflows", { defaultValue: "Workflows" })}
  *   docsTopic="workflows"
  *   actions={<ToolbarIconButton icon={<AddIcon />} tooltip="New workflow" />}
  * />
@@ -151,7 +152,7 @@ export const PanelHeader: React.FC<PanelHeaderProps> = memo(
         {docsTopic && (
           <DocsHelpLink
             topic={docsTopic}
-            label={titleText ?? "Help"}
+            label={titleText ?? i18n.t("editor:ui.cmHelp", { defaultValue: "Help" })}
             variant="label"
           />
         )}

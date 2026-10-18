@@ -70,7 +70,7 @@ import { REVIEW_BLOCK, REVIEW_CONTENT_WIDTH } from "../reviewStyles";
 import type { PlanReviewSection } from "../PlanReview";
 import { MODEL_ROLE_ONBOARDING } from "./modelRoles";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 export interface WorkflowReviewStepProps {
   plan: WorkflowSetupPlan;
@@ -225,7 +225,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
         ...plan.steps,
         {
           id: `step-${plan.steps.length + 1}-${Date.now()}`,
-          title: "New step",
+          title: i18n.t("editor:ui.newStep", { defaultValue: "New step" }),
           summary: "",
           node_type: null
         }
@@ -243,12 +243,12 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
         id: "inputs",
         header: "Inputs",
         subheader:
-          "What the workflow is given when it runs. You set the sample values on the next step.",
+          i18n.t("setup:workflow.inputsSubheader", { defaultValue: "What the workflow is given when it runs. You set the sample values on the next step." }), subheaderKey: "setup:workflow.inputsSubheader",
         rows: plan.inputs.map((input, index) => ({
           id: `input-${index}`,
           label: `${input.name} (${input.type})`,
           value: String(input.sample ?? ""),
-          placeholder: "No sample yet",
+          placeholder: i18n.t("editor:ui.noSampleYet", { defaultValue: "No sample yet" }),
           // A CSV or a list sample keeps its lines. On one line its rows ran
           // together: "product,settingceramic mug,…".
           multiline: String(input.sample ?? "").includes("\n"),
@@ -265,7 +265,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
       {
         id: "outputs",
         header: "Outputs",
-        subheader: "What it hands back.",
+        subheader: i18n.t("storyboard:attrs.whatItHandsBack", { defaultValue: "What it hands back." }), subheaderKey: "storyboard:attrs.whatItHandsBack",
         rows: plan.outputs.map((output, index) => ({
           id: `output-${index}`,
           label: `Output ${index + 1}`,
@@ -373,7 +373,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
         {blocked.unknownNodeTypes > 0 ? (
           <Caption color="secondary" component="p">
             {blocked.unknownNodeTypes === 1
-              ? "1 step names no node this install has. Pick one below to continue."
+              ? i18n.t("setup:workflow.oneStepNamesNoNode", { defaultValue: "1 step names no node this install has. Pick one below to continue." })
               : `${blocked.unknownNodeTypes} steps name no node this install has. Pick one for each below to continue.`}
           </Caption>
         ) : null}

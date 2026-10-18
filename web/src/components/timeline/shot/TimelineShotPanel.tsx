@@ -65,7 +65,7 @@ import { usePersistedFold } from "../Inspector/usePersistedFold";
 import TimelineShotForm from "./TimelineShotForm";
 import DerivedShotSection from "./DerivedShotSection";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** Whether a clip plays a storyboard shot's take. */
 export const isShotClip = (
@@ -208,12 +208,12 @@ const ShotContent = memo(({ clip, boardId, shot }: ShotContentProps) => {
               data-testid="timeline-shot-new-take"
               tooltip={
                 needsStill
-                  ? i18n.t("timeline:shot.thisShotAnimatesAStill", { defaultValue: "This shot animates a still. Render the still first." }) : "Render another take of this shot"
+                  ? i18n.t("timeline:shot.thisShotAnimatesAStill", { defaultValue: "This shot animates a still. Render the still first." }) : i18n.t("timeline:shot.renderAnotherTake", { defaultValue: "Render another take of this shot" })
               }
             >
               {generating
                 ? i18n.t("timeline:shot.rendering", { defaultValue: "Rendering…" }) : needsStill
-                  ? i18n.t("timeline:shot.renderStill", { defaultValue: "Render still" }) : "New take"}
+                  ? i18n.t("timeline:shot.renderStill", { defaultValue: "Render still" }) : i18n.t("timeline:attrs.newTake", { defaultValue: "New take" })}
             </EditorButton>
             {clip.locked && (
               <Caption color="secondary">

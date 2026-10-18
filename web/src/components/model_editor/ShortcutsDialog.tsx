@@ -10,6 +10,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import { EDITOR_SHORTCUTS, type EditorShortcut } from "./editorShortcuts";
+import { i18n } from "../../../i18n";
 
 const GROUPS: EditorShortcut["group"][] = ["General", "Transform", "Selection", "View"];
 
@@ -23,7 +24,7 @@ const ShortcutsDialog = ({ open, onClose }: ShortcutsDialogProps) => (
   <Dialog
     open={open}
     onClose={onClose}
-    title="3D editor shortcuts"
+    title={i18n.t("editor:ui.threeDEditorShortcuts", { defaultValue: "3D editor shortcuts" })}
     maxWidth="sm"
     fullWidth
   >

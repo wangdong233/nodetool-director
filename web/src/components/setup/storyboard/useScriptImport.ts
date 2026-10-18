@@ -17,7 +17,7 @@
  */
 
 import { useCallback, useState } from "react";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 import type { Screenplay } from "@nodetool-ai/protocol";
 
 import { restFetch } from "../../../lib/rest-fetch";

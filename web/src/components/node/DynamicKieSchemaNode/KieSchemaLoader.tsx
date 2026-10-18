@@ -8,6 +8,7 @@ import { resolveKieSchemaClient } from "../../../utils/kieDynamicSchema";
 import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
 import { replaceDynamicSlots } from "../../../utils/replaceDynamicSlots";
 import { NodeData } from "../../../stores/NodeData";
+import { i18n } from "../../../../i18n";
 
 export { DYNAMIC_KIE_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -46,7 +47,7 @@ export const KieSchemaLoader: React.FC<KieSchemaLoaderProps> = memo(
 
     const handleLoad = useCallback(async (force = false) => {
       if (!modelInfo) {
-        setError("Paste kie.ai API documentation first.");
+        setError(i18n.t("editor:ui.pasteKieaiAPIDocumentationFirst", { defaultValue: "Paste kie.ai API documentation first." }));
         return;
       }
       if (!force && lastAutoLoadedModelInfoRef.current === modelInfo) {

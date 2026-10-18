@@ -42,6 +42,7 @@ import {
 import { getProviderDisplayName } from "../../utils/providerDisplay";
 
 import type { Theme } from "@mui/material/styles";
+import { i18n } from "../../../i18n";
 
 // Rows are spaced 2px apart so neighbouring hover and selection fills do not
 // touch.
@@ -326,13 +327,13 @@ function ModelList<TModel extends ModelSelectorModel>({
         : needsDownload
         ? ""
         : execution.state !== "ready"
-          ? (execution.reason ?? "This model is not ready to use.")
+          ? (execution.reason ?? i18n.t("editor:ui.thisModelIsNotReadyToUse", { defaultValue: "This model is not ready to use." }))
           : !providerEnabled && !hasKey
-            ? "Enable provider and add API key in Settings to use this model"
+            ? i18n.t("editor:ui.enableProviderAndAddAPIKeyInSettingsToUseThisModel", { defaultValue: "Enable provider and add API key in Settings to use this model" })
             : !providerEnabled
-              ? "Enable provider in the left sidebar to use this model"
+              ? i18n.t("editor:ui.enableProviderInTheLeftSidebarToUseThisModel", { defaultValue: "Enable provider in the left sidebar to use this model" })
               : !hasKey
-                ? "Add API key in settings to use this model"
+                ? i18n.t("editor:ui.addApiKeyInSettingsToUseThisModel", { defaultValue: "Add API key in settings to use this model" })
                 : "";
       // A file inside a repository shows the file, then the model it belongs
       // to. Any other model shows its name, then its provider.
@@ -451,7 +452,7 @@ function ModelList<TModel extends ModelSelectorModel>({
       if (row.kind === "downloadHeader") {
         return (
           <SectionHeader
-            title="Available to download"
+            title={i18n.t("editor:ui.availableToDownload", { defaultValue: "Available to download" })}
             size="small"
             action={
               downloadTargetLabel && (
@@ -490,7 +491,7 @@ function ModelList<TModel extends ModelSelectorModel>({
           <EmptyState
             variant="no-results"
             size="small"
-            title="No models found"
+            title={i18n.t("editor:ui.noModelsFound", { defaultValue: "No models found" })}
             description={`No models match "${searchTerm}". Try another term or enable more providers.`}
           />
         ) : hasDownloads ? (
@@ -531,7 +532,7 @@ function ModelList<TModel extends ModelSelectorModel>({
           getItemKey={getItemKey}
           getItemProps={getItemProps}
           scrollToIndex={scrollToIndex}
-          ariaLabel="Models"
+          ariaLabel={i18n.t("game:assets.kindModel", { defaultValue: "Models" })}
           renderItem={renderFlatRow}
         />
       )}

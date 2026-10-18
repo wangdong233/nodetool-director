@@ -23,6 +23,7 @@ import {
   GradientStop,
   gradientToCss
 } from "../../stores/ColorPickerStore";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -365,7 +366,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
             unit="%"
             sx={{ width: "80px" }}
           />
-          <Tooltip title="Use current color">
+          <Tooltip title={i18n.t("editor:ui.useCurrentColor", { defaultValue: "Use current color" })}>
             <EditorButton
               variant="outlined"
               data-stop-index={selectedStopIndex}
@@ -397,7 +398,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
           onClick={copyToClipboard}
           variant="outlined"
         >
-          {copied ? "Copied!" : "Copy CSS"}
+          {copied ? i18n.t("editor:ui.copied2", { defaultValue: "Copied!" }) : i18n.t("editor:ui.copyCss", { defaultValue: "Copy CSS" })}
         </EditorButton>
       </FlexRow>
 

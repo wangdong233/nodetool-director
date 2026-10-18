@@ -144,6 +144,7 @@ import skyworkColorIcon from "../../icons/providers/skywork-color.svg";
 import tencentColorIcon from "../../icons/providers/tencent-color.svg";
 import tencentcloudColorIcon from "../../icons/providers/tencentcloud-color.svg";
 import yuanbaoColorIcon from "../../icons/providers/yuanbao-color.svg";
+import { i18n } from "../../../i18n";
 
 const providerIconMap: Record<string, string> = {
   // OpenAI / GPT
@@ -692,7 +693,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
           enabled && !hasKey ? (
             <WarningAmberIcon
               className="model-menu__provider-missing-key-icon"
-              aria-label="API key required"
+              aria-label={i18n.t("editor:ui.apiKeyRequired", { defaultValue: "API key required" })}
               sx={{ width: 14, height: 14, color: "warning.main", flexShrink: 0 }}
             />
           ) : undefined
@@ -764,13 +765,13 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
         <MenuItemPrimitive
           label={
             menuProvider && isProviderEnabled(menuProvider)
-              ? "Disable provider"
-              : "Enable provider"
+              ? i18n.t("editor:ui.disableProvider", { defaultValue: "Disable provider" })
+              : i18n.t("editor:ui.enableProvider", { defaultValue: "Enable provider" })
           }
           onClick={handleToggleProvider}
         />
         <MenuItemPrimitive
-          label="Open provider website"
+          label={i18n.t("editor:ui.openProviderWebsite", { defaultValue: "Open provider website" })}
           disabled={!menuProvider || !getProviderUrl(menuProvider)}
           onClick={handleOpenWebsite}
         />

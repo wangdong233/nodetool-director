@@ -12,6 +12,7 @@ import { useTheme } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
 import { SPACING, resolveSpacing, type SpacingValue } from "./spacing";
 import { EYEBROW } from "./tokens";
+import { i18n } from "../../../i18n";
 
 export interface FormSectionProps {
   /** Optional uppercase group label above the body */

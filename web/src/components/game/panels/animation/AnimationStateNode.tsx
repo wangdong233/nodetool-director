@@ -5,6 +5,7 @@ import { useTheme } from "@mui/material/styles";
 import { Box, Caption, FlexColumn, FlexRow, MOTION, SPACING, TruncatedText, TYPOGRAPHY } from "../../../ui_primitives";
 import { ANIMATION_HANDLE, type AnimationStateFlowNode } from "./animationGraphFlow";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../../i18n";
 
 const NODE_WIDTH = 168;
 // Transitions back to an earlier column leave and enter through the bottom edge, so a pair of opposite transitions draws as two separate curves.
@@ -37,7 +38,7 @@ function AnimationStateNode({ data, selected }: NodeProps<AnimationStateFlowNode
     </FlexRow>
     {!data.any && <FlexColumn sx={{ px: SPACING.md, py: SPACING.xs }}>
       <TruncatedText sx={{ ...TYPOGRAPHY.sans.caption, color: "text.secondary" }}>{data.motion}</TruncatedText>
-      {status && <Caption sx={{ color: live ?? undefined }}>{status === "playing" ? t("game:status.playingState", { defaultValue: "Playing" }) : "Blending out"}</Caption>}
+      {status && <Caption sx={{ color: live ?? undefined }}>{status === "playing" ? t("game:status.playingState", { defaultValue: "Playing" }) : i18n.t("game:editor:blendingOut", { defaultValue: "Blending out" })}</Caption>}
     </FlexColumn>}
     <Handle type="source" id={ANIMATION_HANDLE.out} position={Position.Right} />
     {!data.any && <Handle type="source" id={ANIMATION_HANDLE.backOut} position={Position.Bottom} style={BACK_SOURCE_STYLE} />}

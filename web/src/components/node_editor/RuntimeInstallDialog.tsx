@@ -36,6 +36,7 @@ import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
 import { createErrorMessage } from "../../utils/errorHandling";
 import type { MissingRuntime } from "../../hooks/useWorkflowRuntimeCheck";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type RuntimeStatus = "pending" | "installing" | "installed" | "failed";
 
@@ -78,7 +79,7 @@ async function installAll(
     } catch (err: unknown) {
       setRowState(rt.id, {
         status: "failed",
-        error: createErrorMessage(err, "Install failed").message,
+        error: createErrorMessage(err, i18n.t("editor:ui.installFailed", { defaultValue: "Install failed" })).message,
       });
       allInstalled = false;
     }
@@ -87,7 +88,7 @@ async function installAll(
 }
 
 const STATUS_LABEL = {
-  pending: "Required",
+  pending: i18n.t("editor:ui.requiredLabel", { defaultValue: "Required" }),
   installing: "Installing…",
   installed: "Installed",
   failed: "Failed",
@@ -178,7 +179,7 @@ const RuntimeInstallDialog: React.FC<RuntimeInstallDialogProps> = ({
     ? "Done"
     : installing
       ? t("editor:ui.installing", { defaultValue: "Installing…" }) : failedCount > 0
-        ? t("editor:explorer.retry", { defaultValue: "Retry" }) : "Install all";
+        ? t("editor:explorer.retry", { defaultValue: "Retry" }) : i18n.t("editor:ui.installAll2", { defaultValue: "Install all" });
 
   return (
     <Dialog

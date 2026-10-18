@@ -74,7 +74,7 @@ import {
 } from "../daw/fx/fableFxParams";
 import { FableFxInline } from "../daw/fx/FableFxInline";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** The name an effect's card shows: a FableSynth insert goes by its kind. */
 const effectLabel = (effect: TrackEffect): string =>
@@ -1490,7 +1490,7 @@ const ChromaKeyEditor: React.FC<
           value={effect.keyColor}
           disabled={disabled}
           onChange={(keyColor) => onPatch({ keyColor })}
-          ariaLabel="Chroma key color"
+          ariaLabel={t("timeline:attrs.chromaKeyColor", { defaultValue: "Chroma key color" })}
         />
         <span
           css={{
@@ -1769,7 +1769,7 @@ export const TrackEffectsPanel: React.FC<TrackEffectsPanelProps> = memo(
     const availableTypes = isVideo
       ? VIDEO_EFFECT_TYPES
       : AUDIO_EFFECT_TYPES;
-    const chainLabel = isVideo ? i18n.t("timeline:attrs.fxChain", { defaultValue: "FX chain" }) : "DSP chain";
+    const chainLabel = isVideo ? i18n.t("timeline:attrs.fxChain", { defaultValue: "FX chain" }) : i18n.t("timeline:attrs.dspChain", { defaultValue: "DSP chain" });
 
     return (
       <div css={containerStyles(theme)} data-testid="track-effects-panel">

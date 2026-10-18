@@ -15,6 +15,7 @@ import FableSynthInstrumentEditor, { InstrumentKeyboard } from "./FableSynthInst
 import { Button, Caption, FlexColumn, LoadingSpinner, SelectField, SPACING } from "../../ui_primitives";
 import PanelErrorBoundary from "../../common/PanelErrorBoundary";
 import { instrumentView } from "../daw/devices/deviceViews";
+import { i18n } from "../../../../i18n";
 import "../daw/devices/registerDeviceViews";
 export const AUDITION_DEBOUNCE_MS = 120;
 const containerStyles = (theme: Theme) => css({
@@ -82,7 +83,7 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
       >
         <FlexColumn gap={SPACING.md}>
           <SelectField
-            label="Instrument preset"
+            label={i18n.t("timeline:attrs.instrumentPreset", { defaultValue: "Instrument preset" })}
             css={css({ width: "100%", alignSelf: "flex-start" })}
             size="small"
             value={presetId}
@@ -111,13 +112,13 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
                 <DeviceView trackId={trackId} />
               </Suspense>
             </PanelErrorBoundary>
-          ) : instrument.type === "sampler" ? <SamplerInstrumentEditor key={trackId} instrument={instrument} onChange={commit} /> : instrument.type === "subtractive" ? <Caption color="muted">Choose a sampler, WT-1, BL-1, or DR-1 preset to edit this track’s instrument.</Caption> : (
+          ) : instrument.type === "sampler" ? <SamplerInstrumentEditor key={trackId} instrument={instrument} onChange={commit} /> : instrument.type === "subtractive" ? <Caption color="muted">{i18n.t("timeline:attrs.chooseAWT1BL1OrDR1PresetToEditThisTracksInstrument", { defaultValue: "Choose a sampler, WT-1, BL-1, or DR-1 preset to edit this track’s instrument." })}</Caption> : (
             <FableSynthInstrumentEditor key={trackId} instrument={instrument} onChange={commit} />
           )}
           {auditionError && <Caption role="alert">{auditionError}</Caption>}
           <Caption color="muted">
             Every clip on this track plays this voice. Changes are auditioned on{" "}
-            {instrument.type === "drum" ? "the selected pad" : instrument.type === "sampler" ? "the mapped sample key" : "middle C"}.
+            {instrument.type === "drum" ? i18n.t("timeline:attrs.theSelectedPad", { defaultValue: "the selected pad" }) : instrument.type === "sampler" ? i18n.t("timeline:attrs.theMappedSampleKey", { defaultValue: "the mapped sample key" }) : i18n.t("timeline:attrs.middleC", { defaultValue: "middle C" })}.
           </Caption>
         </FlexColumn>
       </div>

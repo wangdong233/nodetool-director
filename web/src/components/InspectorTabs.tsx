@@ -5,9 +5,9 @@ import { TabGroup, type TabItem } from "./ui_primitives";
 export type InspectorTab = "params" | "io" | "help";
 
 const TAB_DEFS: { value: InspectorTab; label: string; hasCount: boolean }[] = [
-  { value: "params", label: "Params", hasCount: true },
+  { value: "params", label: "Params", labelKey: "editor:inspector.tabParams", hasCount: true },
   { value: "io", label: "I/O", hasCount: true },
-  { value: "help", label: "Help", hasCount: false }
+  { value: "help", label: "Help", labelKey: "timeline:shortcuts.help", hasCount: false }
 ];
 
 const isInspectorTab = (value: string): value is InspectorTab =>

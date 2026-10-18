@@ -32,6 +32,7 @@ import { assetLocator } from "../../../utils/mediaRef";
 import LazyModel3DViewer from "../../asset_viewer/LazyModel3DViewer";
 import ResourceChip from "./ResourceChip";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 const LazySketchRenderer = React.lazy(
   () => import("../../sketch/SketchRenderer")
@@ -81,7 +82,7 @@ const SketchPreview: React.FC<{ id: string }> = ({ id }) => {
     return (
       <Box sx={frameSx}>
         <React.Suspense
-          fallback={<LoadingSpinner size="small" text="Loading preview" />}
+          fallback={<LoadingSpinner size="small" text={t("storyboard:attrs.loadingPreview", { defaultValue: "Loading preview" })} />}
         >
           <LazySketchRenderer
             document={document}
@@ -113,7 +114,7 @@ const TimelinePreview: React.FC<{ id: string }> = ({ id }) => {
     return (
       <Box sx={frameSx}>
         <React.Suspense
-          fallback={<LoadingSpinner size="small" text="Loading preview" />}
+          fallback={<LoadingSpinner size="small" text={t("storyboard:attrs.loadingPreview", { defaultValue: "Loading preview" })} />}
         >
           <LazyTimelineRenderer
             sequence={sequence}
@@ -157,7 +158,7 @@ const GamePreview: React.FC<{ id: string }> = ({ id }) => (
     sx={{ ...frameSx, height: GAME_PREVIEW_HEIGHT }}
     data-testid="game-preview"
   >
-    <React.Suspense fallback={<LoadingSpinner size="small" text="Loading game" />}>
+    <React.Suspense fallback={<LoadingSpinner size="small" text={i18n.t("editor:ui.loadingGame", { defaultValue: "Loading game" })} />}>
       <LazySavedGamePlayer gameId={id} setsDocumentTitle={false} />
     </React.Suspense>
   </Box>

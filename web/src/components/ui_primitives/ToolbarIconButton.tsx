@@ -21,6 +21,7 @@ import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { Tooltip, tooltipWithShortcut } from "./Tooltip";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 export interface ToolbarIconButtonProps
   extends Omit<IconButtonProps, "children" | "title"> {

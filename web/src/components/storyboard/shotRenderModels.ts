@@ -17,6 +17,7 @@ import type {
   VideoModelTask
 } from "../../hooks/useModelsByProvider";
 import type { ImageModelValue, VideoModelValue } from "../../stores/ApiTypes";
+import { i18n } from "../../../i18n";
 
 // Stills can come from a plain generator or an editing model; the latter can
 // take entity reference images, so the picker offers both.
@@ -45,9 +46,9 @@ export type ClipModelTask = ReturnType<
 >[number];
 
 export const CLIP_TASK_LABELS: Record<ClipModelTask, string> = {
-  image_to_video: "Animate stills",
-  text_to_video: "Generate from prompts",
-  reference_to_video: "Use entity references"
+  image_to_video: i18n.t("storyboard:attrs.animateStills", { defaultValue: "Animate stills" }),
+  text_to_video: i18n.t("storyboard:attrs.generateFromPrompts", { defaultValue: "Generate from prompts" }),
+  reference_to_video: i18n.t("storyboard:attrs.useEntityReferences", { defaultValue: "Use entity references" })
 };
 
 export const imageValue = (model: ShotModelRef): ImageModelValue => ({

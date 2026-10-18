@@ -14,6 +14,7 @@ import type { GamePanelLayoutState } from "../../../stores/game/GamePanelLayoutS
 import type { GamePanelRegistration } from "./panelRegistry";
 import { Caption, ContextMenu, Dialog, EditorButton, FlexColumn, FlexRow, ListSubheader, MenuItemPrimitive, SPACING, TextInput } from "../../ui_primitives";
 import ReportBugButton from "../../support/ReportBugButton";
+import { i18n } from "../../../../i18n";
 
 interface GameLayoutMenuProps {
   readonly store: StoreApi<GamePanelLayoutState>;
@@ -36,7 +37,7 @@ export function GameLayoutMenu({ store, panels }: GameLayoutMenuProps): ReactNod
   const custom = customLayouts.some((entry) => entry.name === current);
   const act = (action: () => void): boolean => {
     try { action(); setError(null); return true; }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "Unable to change saved layout"); return false; }
+    catch (cause) { setError(cause instanceof Error ? cause.message : i18n.t("game:layout.unableToChange", { defaultValue: "Unable to change saved layout" })); return false; }
   };
   const close = (): void => setOpen(false);
   const openDialog = (next: NonNullable<NameDialog>): void => {
@@ -67,7 +68,7 @@ export function GameLayoutMenu({ store, panels }: GameLayoutMenuProps): ReactNod
       <MenuItemPrimitive dividerBefore label="Save layout as…" icon={<SaveOutlinedIcon />} onClick={() => openDialog({ mode: "save" })} />
       <MenuItemPrimitive label="Rename layout…" icon={<DriveFileRenameOutlineIcon />} disabled={!custom}
         tooltip={custom ? undefined : "Built-in layouts cannot be renamed"} onClick={() => openDialog({ mode: "rename", from: current })} />
-      <MenuItemPrimitive label="Delete layout" icon={<DeleteOutlineIcon />} color="error" disabled={!custom}
+      <MenuItemPrimitive label={i18n.t("game:layout.deleteLayout", { defaultValue: "Delete layout" })} icon={<DeleteOutlineIcon />} color="error" disabled={!custom}
         tooltip={custom ? undefined : "Built-in layouts cannot be deleted"}
         onClick={() => { close(); if (act(() => store.getState().deleteLayout(current))) { setCurrent("Default"); } }} />
       {panels.length > 0 && <ListSubheader>Panels</ListSubheader>}
@@ -80,10 +81,10 @@ export function GameLayoutMenu({ store, panels }: GameLayoutMenuProps): ReactNod
       })}
     </ContextMenu>
     <Dialog open={dialog !== null} onClose={() => setDialog(null)} maxWidth="xs" fullWidth
-      title={dialog?.mode === "rename" ? "Rename layout" : "Save layout"}
+      title={dialog?.mode === "rename" ? i18n.t("game:layout.renameLayout", { defaultValue: "Rename layout" }) : i18n.t("game:layout.saveLayout", { defaultValue: "Save layout" })}
       onConfirm={confirmName} confirmText={dialog?.mode === "rename" ? "Rename" : "Save"} confirmDisabled={!name.trim()}>
       <FlexColumn gap={SPACING.md}>
-        <TextInput label="Layout name" autoFocus value={name} onChange={(event) => setName(event.target.value)}
+        <TextInput label={i18n.t("game:layout.layoutName", { defaultValue: "Layout name" })} autoFocus value={name} onChange={(event) => setName(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Enter" && name.trim()) { event.preventDefault(); confirmName(); } }} />
         {error && <FlexRow gap={SPACING.xs} align="center"><Caption role="alert" color="error">{error}</Caption>
           <ReportBugButton context={{ source: "panel-crash", summary: "Game layout could not be changed", errorText: error }} />

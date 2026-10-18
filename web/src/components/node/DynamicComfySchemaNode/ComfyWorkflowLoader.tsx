@@ -35,6 +35,7 @@ import {
 import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
 import { replaceDynamicSlots } from "../../../utils/replaceDynamicSlots";
 import { isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../../i18n";
 
 /** Wait this long after the last keystroke before parsing pasted JSON. */
 const PARSE_DEBOUNCE_MS = 300;
@@ -120,7 +121,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
           .catch((err: unknown) => {
             if (controller.signal.aborted) return;
             setSchema(null);
-            setError(errorMessage(err, "Failed to parse"));
+            setError(errorMessage(err, i18n.t("editor:ui.failedToParse", { defaultValue: "Failed to parse" })));
           });
       }, PARSE_DEBOUNCE_MS);
       return () => {
@@ -151,7 +152,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
           }
         } catch (err) {
           setSchema(null);
-          setError(errorMessage(err, "Failed to load file"));
+          setError(errorMessage(err, i18n.t("editor:ui.failedToLoadFile", { defaultValue: "Failed to load file" })));
         }
       },
       [applySchema]
@@ -234,7 +235,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
         <Dialog
           open={open}
           onClose={() => setOpen(false)}
-          title="Load ComfyUI workflow"
+          title={i18n.t("editor:ui.loadComfyUIWorkflow", { defaultValue: "Load ComfyUI workflow" })}
           maxWidth="sm"
           fullWidth
           confirmText="Apply"
@@ -258,7 +259,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
               />
               <FlexRow gap={SPACING.xs} align="center" sx={{ mt: SPACING.xs }}>
                 <ToolbarIconButton
-                  title="Choose file"
+                  title={i18n.t("editor:ui.chooseFile", { defaultValue: "Choose file" })}
                   size="small"
                   onClick={() => fileInputRef.current?.click()}
                 >

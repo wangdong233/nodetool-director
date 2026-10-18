@@ -44,6 +44,7 @@ import { clearRunSignatures, recordRunSignatures } from "./runSignatures";
 import { computeRunSignatures } from "../utils/computeRunSignatures";
 import { getNodeGenerations } from "./nodeGenerationAccessor";
 import { noteWorkflowRunStarted } from "../lib/analytics";
+import { i18n } from "../../i18n";
 
 /**
  * Title for a run: the node's name for a single-node run, otherwise the
@@ -546,7 +547,7 @@ export const createWorkflowRunnerStore = (
               statusMessage:
                 error instanceof Error
                   ? error.message
-                  : "Failed to resolve auth session"
+                  : i18n.t("editor:ui.failedToResolveAuthSession", { defaultValue: "Failed to resolve auth session" })
             });
           }
           throw error instanceof Error ? error : new Error(String(error));

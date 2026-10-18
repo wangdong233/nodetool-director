@@ -39,11 +39,11 @@ import { useTranslation } from "react-i18next";
 type KindFilter = "all" | EntityKind;
 
 const KIND_FILTERS: { value: KindFilter; label: string }[] = [
-  { value: "all", label: "All" },
+  { value: "all", label: "All", labelKey: "storyboard:attrs.all" },
   { value: "character", label: "Characters" },
-  { value: "location", label: "Locations" },
-  { value: "style", label: "Styles" },
-  { value: "prop", label: "Props" }
+  { value: "location", label: "Locations", labelKey: "storyboard:attrs.locations" },
+  { value: "style", label: "Styles", labelKey: "storyboard:attrs.styles" },
+  { value: "prop", label: "Props", labelKey: "storyboard:attrs.props" }
 ];
 
 export interface EntityPickerProps {

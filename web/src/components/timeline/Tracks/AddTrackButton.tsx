@@ -35,6 +35,7 @@ import {
   getSpacingPx,
   Tooltip
 } from "../../ui_primitives";
+import { i18n } from "../../../../i18n";
 
 const buttonStyles = (theme: Theme, compact: boolean) =>
   css({
@@ -138,12 +139,12 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
 
   return (
     <>
-      <Tooltip title="Add track" describeChild>
+      <Tooltip title={i18n.t("timeline:attrs.addTrack", { defaultValue: "Add track" })} describeChild>
         <button
           type="button"
           css={buttonStyles(theme, compact)}
           onClick={handleOpen}
-          aria-label="Add track"
+          aria-label={i18n.t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
           aria-haspopup="menu"
           data-testid="add-track-button"
         >
@@ -168,7 +169,7 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
         ))}
         <MenuItemPrimitive
           dividerBefore
-          label="New track folder"
+          label={i18n.t("timeline:attrs.newTrackFolder", { defaultValue: "New track folder" })}
           icon={<CreateNewFolderOutlinedIcon fontSize="small" />}
           onClick={() => {
             addTrackFolder();

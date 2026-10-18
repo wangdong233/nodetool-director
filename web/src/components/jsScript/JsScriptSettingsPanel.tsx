@@ -26,9 +26,10 @@ import {
 import JsScriptPortsEditor from "./JsScriptPortsEditor";
 import JsScriptSecretsEditor from "./JsScriptSecretsEditor";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** What a newly exposed script lands under until its owner names a category. */
-const DEFAULT_CATEGORY = "My Nodes";
+const DEFAULT_CATEGORY = i18n.t("editor:ui.myNodes", { defaultValue: "My Nodes" });
 
 interface JsScriptSettingsPanelProps {
   scriptId: string;

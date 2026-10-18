@@ -482,7 +482,7 @@ const PropertyDropzone = ({
       default:
         return null;
     }
-  }, [contentType, uri, openViewer, asset, id, filename, handleImageLoad, handleImageError, imageError, handleDoubleClick, handleCloseViewer, imageDimensions, handleVolumeChange]);
+  }, [contentType, uri, openViewer, asset, id, filename, handleImageLoad, handleImageError, imageError, handleDoubleClick, handleCloseViewer, imageDimensions, handleVolumeChange, languageVersion]);
 
   return (
     <div css={styles(theme)}>

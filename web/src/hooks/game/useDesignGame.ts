@@ -32,7 +32,7 @@ import { rpcRequest } from "../../lib/websocket/rpcRequest";
 import { useWorkflowManagerStore } from "../../contexts/WorkflowManagerContext";
 import { useGameSetupWriter } from "./useGameSetup";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /** One designer call's output allowance, as `design_game` asks for. */
 export const GAME_DESIGNER_MAX_OUTPUT_TOKENS = 4096;

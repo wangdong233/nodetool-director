@@ -7,6 +7,7 @@ import type { Asset } from "../../stores/ApiTypes";
 import { isEditableModel3DAsset } from "../model_editor/isEditableModel3D";
 import { assetTabType } from "../workspace/assetTabType";
 import { isSpreadsheetAsset, previewKind } from "../../utils/assetLanguage";
+import { i18n } from "../../../i18n";
 
 export type ViewerMedia = {
   isImage: boolean;
@@ -61,7 +62,7 @@ export function editActionFor(
           kind: "tab",
           tabType: "svg",
           title: asset.name || "SVG",
-          tooltip: "Edit SVG"
+          tooltip: i18n.t("editor:ui.editSvg", { defaultValue: "Edit SVG" })
         }
       : {
           kind: "tab",

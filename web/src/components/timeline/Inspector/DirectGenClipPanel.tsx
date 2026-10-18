@@ -81,7 +81,7 @@ import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipVersionHistory } from "./ClipVersionHistory";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 interface VideoModelChange {
   type: "video_model";
@@ -383,9 +383,9 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
     kind === "video"
       ? i18n.t("timeline:attrs.describeTheVideo", { defaultValue: "Describe the video…" }) : kind === "music"
         ? i18n.t("timeline:attrs.describeTheMusic", { defaultValue: "Describe the music…" }) : kind === "audio"
-          ? i18n.t("timeline:attrs.typeTextToSpeak", { defaultValue: "Type text to speak…" }) : "Describe the image…";
+          ? i18n.t("timeline:attrs.typeTextToSpeak", { defaultValue: "Type text to speak…" }) : i18n.t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" });
 
-  const generateLabel = clip.currentAssetId ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" }) : "Generate";
+  const generateLabel = clip.currentAssetId ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" }) : i18n.t("editor:ui.generate", { defaultValue: "Generate" });
 
   return (
     <Panel background="default" bordered={false} sx={panelSx}>
@@ -500,7 +500,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                 />
               ) : (
                 <SelectField
-                  label={isImageToVideo ? i18n.t("timeline:attrs.sourceImage", { defaultValue: "Source image" }) : "Source clip"}
+                  label={isImageToVideo ? i18n.t("timeline:attrs.sourceImage", { defaultValue: "Source image" }) : i18n.t("timeline:attrs.sourceClip", { defaultValue: "Source clip" })}
                   value={clip.sourceClipId ?? ""}
                   onChange={handleSourceChange}
                   options={sourceOptions}
@@ -564,7 +564,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                 />
                 <MediaOptionChip
                   icon={<TvIcon fontSize="small" />}
-                  header="Video resolution"
+                  header={t("timeline:attrs.videoResolution", { defaultValue: "Video resolution" })}
                   value={
                     (clip.resolution as VideoResolution | undefined) ??
                     DEFAULT_VIDEO_RESOLUTION

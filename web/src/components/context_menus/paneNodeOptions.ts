@@ -17,8 +17,8 @@ const byLabel = (a: PaneNodeOption, b: PaneNodeOption) =>
 export const CONSTANT_NODE_OPTIONS: readonly PaneNodeOption[] = [
   { label: "Audio", nodeType: "nodetool.constant.Audio" },
   { label: "Bool", nodeType: "nodetool.constant.Bool" },
-  { label: "Data Frame", nodeType: "nodetool.constant.DataFrame" },
-  { label: "Date", nodeType: "nodetool.constant.Date" },
+  { label: i18n.t("editor:ui.dataFrame", { defaultValue: "Data Frame" }), nodeType: "nodetool.constant.DataFrame" },
+  { label: "Date", labelKey: "ui2:attrs.date", nodeType: "nodetool.constant.Date" },
   { label: "Date Time", nodeType: "nodetool.constant.DateTime" },
   { label: "Dict", nodeType: "nodetool.constant.Dict" },
   { label: "Document", nodeType: "nodetool.constant.Document" },
@@ -27,21 +27,21 @@ export const CONSTANT_NODE_OPTIONS: readonly PaneNodeOption[] = [
   { label: "Integer", nodeType: "nodetool.constant.Integer" },
   { label: "JSON", nodeType: "nodetool.constant.JSON" },
   { label: "List", nodeType: "nodetool.constant.List" },
-  { label: "Model 3D", nodeType: "nodetool.constant.Model3D" },
-  { label: "Select", nodeType: "nodetool.constant.Select" },
+  { label: i18n.t("editor:ui.model3D", { defaultValue: "Model 3D" }), nodeType: "nodetool.constant.Model3D" },
+  { label: "Select", labelKey: "common:action.select", nodeType: "nodetool.constant.Select" },
   { label: "String", nodeType: "nodetool.constant.String" },
-  { label: "Video", nodeType: "nodetool.constant.Video" }
+  { label: "Video", labelKey: "home:entry.video.title", nodeType: "nodetool.constant.Video" }
 ].sort(byLabel);
 
 export const INPUT_NODE_OPTIONS: readonly PaneNodeOption[] = [
   { label: "Audio", nodeType: "nodetool.input.AudioInput" },
   { label: "Boolean", nodeType: "nodetool.input.BooleanInput" },
-  { label: "Data Frame", nodeType: "nodetool.input.DataframeInput" },
+  { label: i18n.t("editor:ui.dataFrame", { defaultValue: "Data Frame" }), nodeType: "nodetool.input.DataframeInput" },
   { label: "Document", nodeType: "nodetool.input.DocumentInput" },
   { label: "Float", nodeType: "nodetool.input.FloatInput" },
   { label: "Image", nodeType: "nodetool.input.ImageInput" },
   { label: "Integer", nodeType: "nodetool.input.IntegerInput" },
-  { label: "Select", nodeType: "nodetool.input.SelectInput" },
+  { label: "Select", labelKey: "common:action.select", nodeType: "nodetool.input.SelectInput" },
   { label: "String", nodeType: "nodetool.input.StringInput" },
-  { label: "Video", nodeType: "nodetool.input.VideoInput" }
+  { label: "Video", labelKey: "home:entry.video.title", nodeType: "nodetool.input.VideoInput" }
 ].sort(byLabel);

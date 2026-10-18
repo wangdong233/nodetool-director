@@ -7,6 +7,7 @@ import { useState } from "react";
 import { trpcClient } from "../../trpc/client";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface CollectionItemProps {
   collection: CollectionResponse;
@@ -80,7 +81,7 @@ const CollectionItem = ({
       addNotification({
         alert: true,
         type: "success",
-        content: "Collection updated successfully"
+        content: i18n.t("editor:ui.collectionUpdatedSuccessfully", { defaultValue: "Collection updated successfully" })
       });
       queryClient.invalidateQueries({ queryKey: ["collections"] });
     },

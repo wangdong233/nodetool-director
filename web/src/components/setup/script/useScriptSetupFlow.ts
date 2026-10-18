@@ -45,7 +45,7 @@ import { FormatStep, WriterModelFooterField } from "./FormatStep";
 import { IdeaStep } from "./IdeaStep";
 import { ReviewStep } from "./ReviewStep";
 import { VoicesStep } from "./VoicesStep";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 import { useTranslation } from "react-i18next";
 
 /**

@@ -191,7 +191,7 @@ const WorkspaceTabItem = ({
         {isEditing ? (
           <InlineEditableText
             className="tab-input"
-            ariaLabel="Tab name"
+            ariaLabel={t("nav:tabs.tabName", { defaultValue: "Tab name" })}
             value={tab.title}
             editing
             onEditingChange={handleEditingChange}

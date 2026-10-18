@@ -44,6 +44,7 @@ import {
 import { formatTimecode } from "../../Inspector/InspectorPrimitives.helpers";
 import { defaultLoopRange, formatBarsBeatsTicks } from "./loopRange";
 import { MasterMeter } from "./MasterMeter";
+import { i18n } from "../../../../../i18n";
 
 const MIN_BPM = 20;
 const MAX_BPM = 300;
@@ -272,15 +273,15 @@ export const DawTransport: React.FC<DawTransportProps> = memo(
           />
           <ToolbarIconButton
             icon={isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-            tooltip={`${isPlaying ? "Pause" : "Play"} (${playPauseKey})`}
-            aria-label={isPlaying ? "Pause" : "Play"}
+            tooltip={`${isPlaying ? i18n.t("timeline:attrs.pause2", { defaultValue: "Pause" }) : i18n.t("game:categories.Play", { defaultValue: "Play" })} (${playPauseKey})`}
+            aria-label={isPlaying ? i18n.t("timeline:attrs.pause2", { defaultValue: "Pause" }) : i18n.t("game:categories.Play", { defaultValue: "Play" })}
             onClick={onPlayPause}
             variant="primary"
             size="small"
           />
           <ToolbarIconButton
             icon={<StopIcon />}
-            tooltip="Stop and return to start"
+            tooltip={i18n.t("timeline:editor.stopReturnToStart", { defaultValue: "Stop and return to start" })}
             aria-label="Stop"
             onClick={onStop}
             size="small"

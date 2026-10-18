@@ -19,6 +19,7 @@ import { Box, Caption, FlexRow, GAP, SPACING } from "../ui_primitives";
 import SaveToMyNodesDialog from "./SaveToMyNodesDialog";
 import { isCustomCodeNode } from "../node/codeNodeUi";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface CodeNodeScriptLinkProps {
   id: string;
@@ -27,7 +28,7 @@ interface CodeNodeScriptLinkProps {
 }
 
 const NEW_SCRIPT_NAME = "Extracted from a Code node";
-const DEFAULT_CATEGORY = "My Nodes";
+const DEFAULT_CATEGORY = i18n.t("editor:ui.myNodes", { defaultValue: "My Nodes" });
 
 // EditorButton pins its height, so a label that wraps spills over the toolbar
 // below it. The row wraps instead; each button stays one line.
@@ -113,7 +114,7 @@ const CodeNodeScriptLinkInner: React.FC<CodeNodeScriptLinkProps> = ({
           }}
           title={`${linkedName ?? link.id} v${link.version}`}
         >
-          {`${isCustomCodeNode(nodeType, data) ? t("editor:ui.myNode", { defaultValue: "My node" }) : "Linked to"} ${
+          {`${isCustomCodeNode(nodeType, data) ? t("editor:ui.myNode", { defaultValue: "My node" }) : i18n.t("editor:ui.linkedTo", { defaultValue: "Linked to" })} ${
             linkedName ?? link.id
           } v${link.version}`}
         </Caption>

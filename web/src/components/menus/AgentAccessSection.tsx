@@ -36,6 +36,7 @@ import {
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type Connection = agentAccess.McpConnectionOutput;
 type TokenSummary = agentAccess.AccessTokenSummary;
@@ -44,10 +45,10 @@ type OauthGrant = agentAccess.OauthGrantSummary;
 /** Lifetimes the UI offers. "Never" is the default: a token in a config file
  * that silently stops working months later is a bad afternoon. */
 const EXPIRY_OPTIONS = [
-  { value: "never", label: "No expiry" },
-  { value: "30", label: "30 days" },
-  { value: "90", label: "90 days" },
-  { value: "365", label: "1 year" }
+  { value: "never", label: i18n.t("editor:ui.noExpiry", { defaultValue: "No expiry" }) },
+  { value: "30", label: i18n.t("editor:ui.30Days", { defaultValue: "30 days" }) },
+  { value: "90", label: i18n.t("editor:ui.90Days", { defaultValue: "90 days" }) },
+  { value: "365", label: i18n.t("editor:ui.1Year", { defaultValue: "1 year" }) }
 ] as const;
 
 /**
@@ -133,7 +134,7 @@ const AgentAccessSection = () => {
       trpcClient.agentAccess.revokeToken.mutate({ id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["access-tokens"] });
-      addNotification({ type: "info", alert: true, content: "Token revoked" });
+      addNotification({ type: "info", alert: true, content: i18n.t("editor:ui.tokenRevoked", { defaultValue: "Token revoked" }) });
     }
   });
 
@@ -151,7 +152,7 @@ const AgentAccessSection = () => {
       addNotification({
         type: "info",
         alert: true,
-        content: "Client disconnected"
+        content: "Client disconnected", contentKey: "tools:menus.clientDisconnected"
       });
     },
     onError: (err) => {
@@ -279,7 +280,7 @@ const AgentAccessSection = () => {
                     {formatStamp(token.last_used_at)} ·{" "}
                     {token.expires_at
                       ? `Expires ${formatStamp(token.expires_at)}`
-                      : "No expiry"}
+                      : i18n.t("editor:ui.noExpiry", { defaultValue: "No expiry" })}
                   </Text>
                 </FlexColumn>
                 <NavButton

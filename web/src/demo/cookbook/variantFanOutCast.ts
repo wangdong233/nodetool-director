@@ -30,6 +30,7 @@ import {
   stringInputMeta,
   textAgentMeta,
 } from "./builders";
+import { i18n } from "../../../i18n";
 
 const STRING_INPUT = "nodetool.input.StringInput";
 const INTEGER_INPUT = "nodetool.input.IntegerInput";
@@ -177,7 +178,7 @@ export const variantFanOutCast: DemoCast = {
     [STRING_INPUT]: stringInputMeta(),
     [INTEGER_INPUT]: meta({
       node_type: INTEGER_INPUT,
-      title: "Integer Input",
+      title: i18n.t("editor:ui.integerInput", { defaultValue: "Integer Input" }),
       properties: [prop("name", "str"), prop("value", "int")],
       outputs: [out("output", "int")],
       inline_fields: ["value"],

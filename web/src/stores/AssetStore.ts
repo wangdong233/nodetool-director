@@ -20,7 +20,7 @@ import {
   normalizeAssetList
 } from "../utils/normalizeAsset";
 import { isFunction, isNumber, isObjectLike } from "../utils/typePredicates";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 import { getLocalFilePath } from "../utils/localFile";
 type AssetCreatePayload = {
   workflow_id?: string;

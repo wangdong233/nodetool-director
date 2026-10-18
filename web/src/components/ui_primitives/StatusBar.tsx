@@ -21,6 +21,7 @@ import { SPACING, getSpacingPx } from "./spacing";
 import { BORDER_RADIUS, TYPOGRAPHY } from "./tokens";
 import { Toolbar } from "./Toolbar";
 import type { ToolbarProps } from "./Toolbar";
+import { i18n } from "../../../i18n";
 
 export type StatusBarProps = Omit<ToolbarProps, "position" | "density">;
 
@@ -87,8 +88,8 @@ export type SaveStateValue = "idle" | "dirty" | "saving" | "saved" | "error";
 const DEFAULT_LABELS: Record<Exclude<SaveStateValue, "idle">, string> = {
   dirty: "Unsaved changes",
   saving: "Saving…",
-  saved: "Saved",
-  error: "Save failed"
+  saved: i18n.t("editor:ui.savedZipA", { defaultValue: "Saved" }),
+  error: i18n.t("editor:ui.saveFailed", { defaultValue: "Save failed" })
 };
 
 const DOT_COLOR: Record<Exclude<SaveStateValue, "idle">, string> = {

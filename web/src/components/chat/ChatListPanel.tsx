@@ -76,7 +76,7 @@ export const CreateChatButton = memo(function CreateChatButton({
       console.error("Failed to create new chat thread:", error);
       addNotification({
         type: "error",
-        content: "Could not start a new conversation. Please try again."
+        content: "Could not start a new conversation. Please try again.", contentKey: "editor:chat.startFailed"
       });
     }
   }, [createNewThread, openThreadTab, addNotification, projectId]);

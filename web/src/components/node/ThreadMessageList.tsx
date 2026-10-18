@@ -10,6 +10,7 @@ import isEqual from "../../utils/isEqual";
 import { BORDER_RADIUS, Z_INDEX, getSpacingPx, SPACING, SHADOW } from "../ui_primitives";
 import { formatToolName } from "../../utils/formatUtils";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -135,7 +136,7 @@ const ToolCallsView: React.FC<{ toolCalls?: ToolCall[] | null }> = memo(({
         return (
           <div key={stableKey} className="tool-call">
             <div className="tool-call__header">
-              <span className="tool-call__badge">Agent task</span>
+              <span className="tool-call__badge">{i18n.t("ui2:attrs.agentTask", { defaultValue: "Agent task" })}</span>
               <span className="tool-call__name">
                 {tc.name ? formatToolName(tc.name) : "Agent task"}
               </span>

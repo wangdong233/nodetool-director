@@ -32,6 +32,7 @@ import { useRemoveFromGroup } from "../../hooks/nodes/useRemoveFromGroup";
 import { useRunFromHere } from "../../hooks/nodes/useRunFromHere";
 import { openPageTab } from "../workspace/openPageTab";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface NodeToolbarProps {
   nodeId: string | null;
@@ -133,7 +134,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
     <>
       <FloatingToolbar className="node-toolbar" sx={{ marginBottom: 2 }}>
         <ToolbarIconButton
-          title={isWorkflowRunning ? t("editor:node.running", { defaultValue: "Running…" }) : "Run node"}
+          title={isWorkflowRunning ? t("editor:node.running", { defaultValue: "Running…" }) : i18n.t("editor:node.runNode", { defaultValue: "Run node" })}
           className="nodrag"
           onClick={runFromHere}
           tabIndex={-1}
@@ -165,11 +166,11 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         <ToolbarIconButton
           title={
             <>
-              {isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable node" }) : "Disable node"}{" "}
+              {isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable node" }) : i18n.t("editor:node.disableNode", { defaultValue: "Disable node" })}{" "}
               {getShortcutTooltip("bypassNode", undefined, "combo")}
             </>
           }
-          ariaLabel={isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable node" }) : "Disable node"}
+          ariaLabel={isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable node" }) : i18n.t("editor:node.disableNode", { defaultValue: "Disable node" })}
           className="nodrag"
           onClick={handleToggleBypass}
           tabIndex={-1}

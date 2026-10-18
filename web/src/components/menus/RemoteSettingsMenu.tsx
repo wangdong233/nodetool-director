@@ -30,7 +30,7 @@ import ExternalLink from "../common/ExternalLink";
 import SearchProviderSection from "./SearchProviderSection";
 import { matchesSearch } from "./settingsSearch";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * Groups surfaced elsewhere (General tab, Folders panel) or via
@@ -66,7 +66,7 @@ const META_SECTION_GROUPS: ReadonlyArray<{
 }> = [
   {
     key: "local-model-servers",
-    label: "Local model servers",
+    label: "Local model servers", labelKey: "tools:menus.localModelServers",
     groups: [
       "vLLM",
       "Ollama",
@@ -87,7 +87,7 @@ const META_SECTION_GROUPS: ReadonlyArray<{
   },
   {
     key: "observability",
-    label: "Observability",
+    label: "Observability", labelKey: "tools:menus.observability",
     groups: ["Observability", "Traceloop"]
   },
   {
@@ -95,7 +95,7 @@ const META_SECTION_GROUPS: ReadonlyArray<{
     label: "Data & storage",
     groups: ["NodeSupabase", "Supabase"]
   },
-  { key: "other", label: "Other", groups: [] }
+  { key: "other", label: "Other", labelKey: "tools:menus.other", groups: [] }
 ];
 
 /** Inverted, lowercased lookup: registry group (lowercase) → meta-section key. */
@@ -248,25 +248,25 @@ const SETTING_BUTTON_TITLES: Record<string, string> = {
 };
 
 const SETTING_TOOLTIPS: Record<string, string> = {
-  OPENAI_API_KEY: "Go to OpenAI API key page",
-  ANTHROPIC_API_KEY: "Go to Anthropic console",
-  GEMINI_API_KEY: "Go to Google AI Studio to get your API key",
-  OPENROUTER_API_KEY: "Go to OpenRouter keys page",
+  OPENAI_API_KEY: i18n.t("settings:remote.OPENAI_API_KEY.get", { defaultValue: "Go to OpenAI API key page" }),
+  ANTHROPIC_API_KEY: i18n.t("settings:remote.ANTHROPIC_API_KEY.get", { defaultValue: "Go to Anthropic console" }),
+  GEMINI_API_KEY: i18n.t("settings:remote.GEMINI_API_KEY.get", { defaultValue: "Go to Google AI Studio to get your API key" }),
+  OPENROUTER_API_KEY: i18n.t("settings:remote.OPENROUTER_API_KEY.get", { defaultValue: "Go to OpenRouter keys page" }),
   REQUESTY_API_KEY: "Go to Requesty API keys page",
   OPPER_API_KEY: "Go to Opper platform to get your API key",
   API_ROUTE_API_KEY: "Go to API Route API keys page",
-  HF_TOKEN: "Go to Hugging Face tokens page",
-  REPLICATE_API_TOKEN: "Go to Replicate API tokens page",
-  GOOGLE_APP_PASSWORD: "Go to Google account app passwords page",
-  ELEVENLABS_API_KEY: "Go to ElevenLabs subscription page",
-  FAL_API_KEY: "Go to Fal.ai dashboard",
-  SERPAPI_API_KEY: "Go to SerpAPI key management page",
-  DATA_FOR_SEO_LOGIN: "Go to DataForSEO dashboard",
-  BRAVE_API_KEY: "Go to Brave Search API dashboard",
-  APIFY_API_TOKEN: "Go to Apify console integrations page",
+  HF_TOKEN: i18n.t("settings:remote.HF_TOKEN.get", { defaultValue: "Go to Hugging Face tokens page" }),
+  REPLICATE_API_TOKEN: i18n.t("settings:remote.REPLICATE_API_TOKEN.get", { defaultValue: "Go to Replicate API tokens page" }),
+  GOOGLE_APP_PASSWORD: i18n.t("settings:remote.GOOGLE_APP_PASSWORD.get", { defaultValue: "Go to Google account app passwords page" }),
+  ELEVENLABS_API_KEY: i18n.t("settings:remote.ELEVENLABS_API_KEY.get", { defaultValue: "Go to ElevenLabs subscription page" }),
+  FAL_API_KEY: i18n.t("settings:remote.FAL_API_KEY.get", { defaultValue: "Go to Fal.ai dashboard" }),
+  SERPAPI_API_KEY: i18n.t("settings:remote.SERPAPI_API_KEY.get", { defaultValue: "Go to SerpAPI key management page" }),
+  DATA_FOR_SEO_LOGIN: i18n.t("settings:remote.DATA_FOR_SEO_LOGIN.get", { defaultValue: "Go to DataForSEO dashboard" }),
+  BRAVE_API_KEY: i18n.t("settings:remote.BRAVE_API_KEY.get", { defaultValue: "Go to Brave Search API dashboard" }),
+  APIFY_API_TOKEN: i18n.t("settings:remote.APIFY_API_TOKEN.get", { defaultValue: "Go to Apify console integrations page" }),
   KIMI_API_KEY: "Go to Moonshot (Kimi) platform API keys page",
-  DASHSCOPE_API_KEY: "Go to Alibaba Cloud Model Studio API keys page",
-  AKI_API_KEY: "Go to AKI.IO to sign up and get your API key"
+  DASHSCOPE_API_KEY: i18n.t("settings:remote.DASHSCOPE_API_KEY.get", { defaultValue: "Go to Alibaba Cloud Model Studio API keys page" }),
+  AKI_API_KEY: i18n.t("settings:remote.AKI_API_KEY.get", { defaultValue: "Go to AKI.IO to sign up and get your API key" })
 };
 
 interface SettingItemProps {
@@ -624,7 +624,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                   startIcon={<SaveIcon />}
                   disabled={updateSettingsMutation.isPending}
                 >
-                  {updateSettingsMutation.isPending ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save changes"}
+                  {updateSettingsMutation.isPending ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("editor:ui.saveChanges", { defaultValue: "Save changes" })}
                 </EditorButton>
               </div>
             )}

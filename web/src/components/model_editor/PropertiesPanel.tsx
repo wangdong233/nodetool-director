@@ -41,6 +41,7 @@ import {
 import type { RecordEdit, ValueEdit } from "./editorCommands";
 import { isBoolean, isNumber } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const headerStyles = (theme: Theme) =>
   css({
@@ -332,7 +333,7 @@ const MATERIAL_NUMBER_FIELDS: readonly MaterialNumberSpec[] = [
   { key: "emissiveIntensity", label: "Emission", min: 0, step: 0.05 },
   { key: "ior", label: "IOR", min: 1, max: 2.333, step: 0.01 },
   { key: "reflectivity", label: "Reflectivity", min: 0, max: 1, step: 0.05 },
-  { key: "specularIntensity", label: "Specular", min: 0, max: 1, step: 0.05 },
+  { key: "specularIntensity", label: i18n.t("editor:ui.specular", { defaultValue: "Specular" }), min: 0, max: 1, step: 0.05 },
   { key: "clearcoat", label: "Clearcoat", min: 0, max: 1, step: 0.05 },
   { key: "clearcoatRoughness", label: "Clearcoat roughness", min: 0, max: 1, step: 0.05 },
   { key: "sheen", label: "Sheen", min: 0, max: 1, step: 0.05 },
@@ -348,7 +349,7 @@ const MATERIAL_COLOR_FIELDS: readonly { key: string; label: string }[] = [
   { key: "color", label: "Base color" },
   { key: "emissive", label: "Emissive" },
   { key: "sheenColor", label: "Sheen color" },
-  { key: "specularColor", label: "Specular" },
+  { key: "specularColor", label: i18n.t("editor:ui.specular", { defaultValue: "Specular" }) },
   { key: "attenuationColor", label: "Attenuation color" }
 ];
 
@@ -367,9 +368,9 @@ const MATERIAL_FLAG_FIELDS: readonly {
 ];
 
 const SIDE_OPTIONS = [
-  { value: String(THREE.FrontSide), label: "Front" },
-  { value: String(THREE.BackSide), label: "Back" },
-  { value: String(THREE.DoubleSide), label: "Double" }
+  { value: String(THREE.FrontSide), label: i18n.t("editor:ui.sideFront", { defaultValue: "Front" }) },
+  { value: String(THREE.BackSide), label: i18n.t("editor:ui.sideBack", { defaultValue: "Back" }) },
+  { value: String(THREE.DoubleSide), label: i18n.t("editor:ui.sideDouble", { defaultValue: "Double" }) }
 ] as const;
 
 /**
@@ -581,7 +582,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
     const raw = isAngle ? toRadians(display) : display;
     const next: GeometryParams = { ...readGeometryParams(mesh.geometry), [key]: raw };
     record({
-      label: "Edit geometry",
+      label: i18n.t("editor:ui.historyEditGeometry", { defaultValue: "Edit geometry" }),
       mergeKey: `${uuid}:geometry:${key}`,
       get: () => mesh.geometry,
       set: (geometry) => {

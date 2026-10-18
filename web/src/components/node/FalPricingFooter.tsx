@@ -55,6 +55,7 @@ import {
   type FalPricingEstimate
 } from "../../utils/fetchFalPricingEstimate";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface FalPricingFooterProps {
   metadata: NodeMetadata;
@@ -314,7 +315,7 @@ const FalPricingFooterInternal: React.FC<FalPricingFooterProps> = ({
                   wordBreak: "break-word"
                 }}
               >
-                {creditsData.detail ?? "Credits unavailable"}
+                {creditsData.detail ?? i18n.t("editor:ui.creditsUnavailable", { defaultValue: "Credits unavailable" })}
               </Text>
               {falCreditsDetailSuggestsKeysLink(creditsData.detail) && (
                 <ExternalLink

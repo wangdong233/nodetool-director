@@ -25,21 +25,22 @@ import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import type { BrowserExportFormat } from "./render/TimelineRenderer";
 import { canEncodeMp4 } from "./render/canEncodeMp4";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const formatOptions = (mp4Supported: boolean): readonly SelectOption[] => [
   { value: "mp4", label: "MP4 (H.264)", disabled: !mp4Supported },
-  { value: "webm", label: "WebM (VP9)" },
-  { value: "png_sequence", label: "PNG sequence (.zip)" }
+  { value: "webm", label: "WebM (VP9)", labelKey: "timeline:export.webm" },
+  { value: "png_sequence", label: "PNG sequence (.zip)", labelKey: "timeline:export.PNGSequenceZip" }
 ];
 
 const MP4_UNSUPPORTED_NOTE = "This browser cannot write MP4, so it is turned off.";
 
 /** One line under the picker saying what the choice actually produces. */
 const FORMAT_NOTE: Record<BrowserExportFormat, string> = {
-  mp4: "Plays everywhere. No transparency.",
-  webm: "VP9 video with Opus audio.",
+  mp4: "Plays everywhere. No transparency.", mp4Key: "timeline:export.playsEverywhereNoTransparency",
+  webm: "VP9 video with Opus audio.", webmKey: "timeline:export.VP9VideoWithOpusAudio",
   png_sequence:
-    "One PNG per frame in a zip, with a manifest.json naming the rate and size. No audio."
+    i18n.t("timeline:export.onePNGPerFrameInAZipWithAManifestjsonNamingTheRateAndSizeNoAudio", { defaultValue: "One PNG per frame in a zip, with a manifest.json naming the rate and size. No audio." })
 };
 
 /** What the dialog hands back when the user starts the render. */
@@ -49,13 +50,13 @@ export interface ExportVideoChoice {
   alpha: boolean;
 }
 
-const ALPHA_LABEL = "Export with transparency";
+const ALPHA_LABEL = i18n.t("timeline:export.alpha", { defaultValue: "Export with transparency" });
 
 /** Why the switch is off, or what turning it on does. */
 const ALPHA_NOTE: Record<BrowserExportFormat, string> = {
-  mp4: "MP4 carries no alpha channel. Choose WebM or a PNG sequence.",
-  webm: "Composites over a transparent ground and keeps the alpha channel.",
-  png_sequence: "Every PNG keeps its alpha channel."
+  mp4: i18n.t("timeline:export.MP4CarriesNoAlphaChannelChooseWebMOrAPNGSequence", { defaultValue: "MP4 carries no alpha channel. Choose WebM or a PNG sequence." }),
+  webm: i18n.t("timeline:export.compositesOverATransparentGroundAndKeepsTheAlphaChannel", { defaultValue: "Composites over a transparent ground and keeps the alpha channel." }),
+  png_sequence: i18n.t("timeline:export.everyPNGKeepsItsAlphaChannel", { defaultValue: "Every PNG keeps its alpha channel." })
 };
 
 export interface ExportVideoDialogProps {

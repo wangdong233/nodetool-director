@@ -25,6 +25,7 @@ import {
 } from "../../utils/searchProviders";
 import { matchesSearch } from "./settingsSearch";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface SearchProviderSectionProps {
   settingValues: Record<string, string>;
@@ -127,8 +128,8 @@ const SearchProviderSection = memo(function SearchProviderSection({
             }}
           >
             {hasAllCredentials
-              ? "✓ Credentials configured"
-              : "✗ Missing credentials"}
+              ? i18n.t("editor:ui.credentialsConfigured", { defaultValue: "✓ Credentials configured" })
+              : i18n.t("editor:ui.missingCredentials", { defaultValue: "✗ Missing credentials" })}
           </Text>
         </FlexRow>
       </div>

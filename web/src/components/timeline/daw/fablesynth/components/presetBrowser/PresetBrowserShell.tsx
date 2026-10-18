@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { favoriteKey, filterEntries, loadFavorites, saveFavorites, type BrowserItem } from '../../shared/presetBrowser';
+import { i18n } from "../../../../../../../i18n";
 import './presetBrowser.css';
 
 export type BrowserMode = 'kept' | 'audition' | 'variant' | 'b';
@@ -159,7 +160,7 @@ export function PresetBrowserShell<I extends BrowserItem, S extends BrowserSnaps
           </div>
         </div>
         <div className="pbr-group">
-          <span className="pbr-label">Character</span>
+          <span className="pbr-label">{i18n.t("setup:video.refKind_character", { defaultValue: "Character" })}</span>
           <div className="pbr-chips">
             {a.characters.map((t) => (
               <button key={t} type="button" className="pbr-chip" aria-pressed={tags.has(t)} onClick={() => setTags(toggle(tags, t))}>{t}</button>
@@ -222,7 +223,7 @@ export function PresetBrowserShell<I extends BrowserItem, S extends BrowserSnaps
         {a.renderDetail(MODE_COLOR[mode])}
         <div className="pbr-actions">
           <button type="button" className="pbr-btn primary" onClick={keep} disabled={isKept}>KEEP</button>
-          <button type="button" className="pbr-btn" onClick={revert} disabled={isKept}>REVERT</button>
+          <button type="button" className="pbr-btn" onClick={revert} disabled={isKept}>{i18n.t("sketch:attrs.revertSvg", { defaultValue: "REVERT" })}</button>
           <button type="button" className="pbr-btn" aria-pressed={mode === 'b'} onClick={ab} disabled={mode === 'kept'}>A / B</button>
           {a.vary && <button type="button" className="pbr-btn vary" onClick={vary} disabled={!current || mode === 'b'}>VARY</button>}
         </div>

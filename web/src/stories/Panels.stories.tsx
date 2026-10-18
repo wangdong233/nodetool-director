@@ -144,10 +144,10 @@ const InspectorPanel = () => {
           onChange={setTab}
           size="small"
           tabs={[
-            { value: "inspector", label: "Inspector", icon: <TuneIcon /> },
+            { value: "inspector", label: "Inspector", labelKey: "timeline:editor.inspector", icon: <TuneIcon /> },
             { value: "shot", label: "Shot", icon: <MovieOutlinedIcon /> },
             { value: "assistant", label: "Assistant", icon: <AutoAwesomeOutlinedIcon /> },
-            { value: "history", label: "History", icon: <HistoryIcon /> }
+            { value: "history", label: "History", labelKey: "timeline:editor.history", icon: <HistoryIcon /> }
           ]}
         />
         <PanelBody>
@@ -214,7 +214,7 @@ const InspectorPanel = () => {
               />
               <SelectField label="Model" value={model} onChange={setModel} options={modelOptions} size="small" />
               <GenerateAction
-                label="Edit video"
+                label={t("timeline:attrs.editVideoAction", { defaultValue: "Edit video" })}
                 cost="$0.70"
                 ready={instruction.trim().length > 0}
                 hint="Write an instruction"
@@ -298,7 +298,7 @@ const ListPanel = ({ empty }: { empty: boolean }) => {
   return (
     <PanelFrame>
       <PanelHeader
-        title="Versions"
+        title={t("editor:bottom.versions", { defaultValue: "Versions" })}
         count={empty ? undefined : items.length}
         actions={<ToolbarIconButton icon={<AddIcon />} tooltip={t("timeline:history.saveVersion", { defaultValue: "Save version" })} size="small" />}
         onClose={() => undefined}
@@ -370,7 +370,7 @@ const SettingsPanel = () => {
     <PanelFrame>
       <PanelHeader title="Timeline settings" onClose={() => undefined} />
       <PanelBody>
-        <SettingsGroup title="Editing">
+        <SettingsGroup title={t("timeline:shortcuts.editing", { defaultValue: "Editing" })}>
           <LabeledSwitch
             label="Snap to clip edges"
             description="Clips align to neighbours and the playhead."
@@ -395,14 +395,14 @@ const SettingsPanel = () => {
             size="small"
           />
         </SettingsGroup>
-        <SettingsGroup title="Preview">
+        <SettingsGroup title={t("storyboard:attrs.preview", { defaultValue: "Preview" })}>
           <SelectField
             label={t("timeline:editor.previewQuality", { defaultValue: "Preview quality" })}
             value={quality}
             onChange={setQuality}
             options={[
               { value: "auto", label: "Auto" },
-              { value: "full", label: "Full" },
+              { value: "full", label: "Full", labelKey: "settings:general.opts.full" },
               { value: "half", label: "Half" }
             ]}
             size="small"
@@ -423,7 +423,7 @@ const SettingsPanel = () => {
                 <Caption color="secondary">1.4 GB on disk</Caption>
               </FlexColumn>
             </FlexRow>
-            <Button size="small" variant="outlined">Clear</Button>
+            <Button size="small" variant="outlined">{t("common:action.clear", { defaultValue: "Clear" })}</Button>
           </FlexRow>
         </SettingsGroup>
       </PanelBody>

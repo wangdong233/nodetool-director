@@ -91,6 +91,7 @@ import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 
 import { readImportedWorkflow } from "../../utils/readImportedWorkflow";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type CommandMenuProps = {
   undo: (steps?: number | undefined) => void;
@@ -147,7 +148,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
     addNotification({
       type: "info",
       alert: true,
-      content: "Copied workflow JSON to Clipboard!"
+      content: "Copied workflow JSON to Clipboard!", contentKey: "tools:menus.copiedWorkflowJsonToClipboard"
     });
   }, [writeClipboard, workflowJSON, addNotification]);
 
@@ -222,7 +223,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         addNotification({
           type: "error",
           alert: true,
-          content: "Failed to import workflow — invalid JSON file"
+          content: "Failed to import workflow — invalid JSON file", contentKey: "tools:menus.failedToImportWorkflowInvalidJsonFile"
         });
       }
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -291,7 +292,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         ref={fileInputRef}
         type="file"
         accept=".json"
-        aria-label={t("editor:ui.importWorkflowFile", { defaultValue: "Import workflow file" })}
+        aria-label={i18n.t("editor:ui.importWorkflowFile", { defaultValue: "Import workflow file" })}
         style={{ display: "none" }}
         onChange={handleImportFileChange}
       />
@@ -299,7 +300,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         ref={bundleInputRef}
         type="file"
         accept=".nodetool,application/zip"
-        aria-label={t("editor:ui.importWorkflowBundleFile", { defaultValue: "Import workflow bundle file" })}
+        aria-label={i18n.t("editor:ui.importWorkflowBundleFile", { defaultValue: "Import workflow bundle file" })}
         style={{ display: "none" }}
         onChange={handleBundleFileChange}
       />
@@ -482,13 +483,13 @@ const ViewCommands = memo(function ViewCommands() {
         onSelect={() => runCommandAndClose(toggleVisible)}
       >
         {visible ? <MapOutlinedIcon /> : <MapRoundedIcon />}
-        {visible ? t("editor:ui.hideMiniMap", { defaultValue: "Hide mini map" }) : "Show mini map"}
+        {visible ? i18n.t("editor:ui.hideMiniMap", { defaultValue: "Hide mini map" }) : i18n.t("editor:ui.showMiniMap", { defaultValue: "Show mini map" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => setSnapToGrid(!snapToGrid))}
       >
         {snapToGrid ? <GridOffRoundedIcon /> : <GridOnRoundedIcon />}
-        {snapToGrid ? t("editor:ui.turnOffSnapToGrid", { defaultValue: "Turn off snap to grid" }) : "Snap to grid"}
+        {snapToGrid ? i18n.t("editor:ui.turnOffSnapToGrid", { defaultValue: "Turn off snap to grid" }) : i18n.t("settings:general.lblSnapToGrid", { defaultValue: "Snap to grid" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => handleFitView({ padding: 0.5 }))}
@@ -525,6 +526,7 @@ const ViewCommands = memo(function ViewCommands() {
 });
 
 const PanelCommands = memo(function PanelCommands() {
+  const { t } = useTranslation();
   const rightPanelToggle = useRightPanelStore((state) => state.toggleInspector);
   const leftPanelToggle = usePanelStore((state) => state.handleViewChange);
   const toggleConversation = useCanvasChatDockStore(
@@ -532,7 +534,7 @@ const PanelCommands = memo(function PanelCommands() {
   );
 
   return (
-    <Command.Group heading="Panels">
+    <Command.Group heading={i18n.t("timeline:shortcuts.panels", { defaultValue: "Panels" })}>
       <Command.Item
         onSelect={() => runCommandAndClose(rightPanelToggle)}
       >

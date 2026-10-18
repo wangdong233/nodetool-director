@@ -17,7 +17,7 @@ import {
 import { mergeTimelineDocuments, type TimelineMergeDoc } from "../../stores/timeline/merge";
 import { buildTimelineDocumentPayload } from "./timelineDocumentPayload";
 import { restFetch } from "../../lib/rest-fetch";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 export interface TrackObjectSelection {

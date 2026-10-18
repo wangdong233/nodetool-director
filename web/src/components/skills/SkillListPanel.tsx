@@ -19,7 +19,7 @@ import { notifyMutationError } from "../../utils/notifyMutationError";
 import type { SkillListItem } from "@nodetool-ai/protocol/api-schemas/skills.js";
 import ReportBugButton from "../support/ReportBugButton";
 import { DocumentListPanel, ListPanelItem } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * A shipped skill has no row, so its id carries this prefix (see the skills
@@ -56,7 +56,7 @@ const SkillListPanel = () => {
         // A shipped skill opens as a read: the editor's save and autosave would
         // fail against a document with no row behind it.
         mode: isSystemSkill(id) ? "view" : "edit",
-        title: name || "Untitled skill"
+        title: name || i18n.t("editor:ui.untitledSkill", { defaultValue: "Untitled skill" })
       });
       if (!location.pathname.startsWith("/workspace")) {
         navigate("/workspace");
@@ -150,8 +150,8 @@ const SkillListPanel = () => {
       <ListPanelItem
         id={skill.id}
         name={skill.name}
-        fallbackName="Untitled skill"
-        renameLabel="Skill name"
+        fallbackName={i18n.t("editor:ui.untitledSkill", { defaultValue: "Untitled skill" })}
+        renameLabel={i18n.t("editor:ui.skillName", { defaultValue: "Skill name" })}
         // A lock, and "Built in" under the name: enough to tell the two apart
         // at a glance without a second list or a heading.
         icon={skill.system ? LockOutlinedIcon : AutoAwesomeIcon}
@@ -192,7 +192,7 @@ const SkillListPanel = () => {
           }}
         />
       }
-      emptyDescription="Create a skill from the workspace New menu."
+      emptyDescription={i18n.t("editor:ui.createASkillFromTheWorkspaceNewMenu", { defaultValue: "Create a skill from the workspace New menu." })}
       deleteTarget={itemToDelete}
       onCancelDelete={handleCancelDelete}
       onConfirmDelete={handleConfirmDelete}

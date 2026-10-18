@@ -26,7 +26,7 @@ import {
   scriptSourcePatch,
   type ImportedScript
 } from "../../../lib/script/importedScript";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** What the text picker offers. TXT and FDX never reach the route. */
 export const SCRIPT_TEXT_ACCEPT = ".txt,.pdf,.docx,.fdx,application/pdf,text/plain";

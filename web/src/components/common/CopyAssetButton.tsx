@@ -21,6 +21,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/CloseOutlined";
 import { copyAssetToClipboard, isClipboardSupported, getClipboardSupportMessage } from "../../utils/clipboardUtils";
 import { isElectron } from "../../utils/browser";
+import { i18n } from "../../../i18n";
 
 const FEEDBACK_TIMEOUT = 2000;
 
@@ -109,7 +110,7 @@ async function copyAssetToClipboardBrowser(
   }
 
   if (isVideoType(contentType) || isAudioType(contentType)) {
-    const mediaType = isVideoType(contentType) ? "Video" : "Audio";
+    const mediaType = isVideoType(contentType) ? i18n.t("home:entry.video.title", { defaultValue: "Video" }) : i18n.t("appbuilder:attrs.audio", { defaultValue: "Audio" });
     const textContent = assetName ? `${mediaType}: ${assetName}\nURL: ${absoluteUrl}` : absoluteUrl;
     await navigator.clipboard.writeText(textContent);
     console.info("Media info copied to clipboard via browser API");
@@ -313,7 +314,7 @@ export const CopyAssetButton = memo<CopyAssetButtonProps>(
 
     const getDefaultTooltip = () => {
       if (isImageType(contentType)) {
-        return "Copy image (paste into any image editor)";
+        return i18n.t("editor:ui.copyImage", { defaultValue: "Copy image (paste into any image editor)" });
       }
       if (isVideoType(contentType)) {
         return "Copy video info";
@@ -326,7 +327,7 @@ export const CopyAssetButton = memo<CopyAssetButtonProps>(
 
     const tooltipText =
       state === "error"
-        ? "Failed to copy"
+        ? i18n.t("editor:ui.failedToCopy", { defaultValue: "Failed to copy" })
         : state === "copied"
           ? "Copied!"
           : tooltip || getDefaultTooltip();

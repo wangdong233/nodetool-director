@@ -15,7 +15,7 @@ import useThreadModel from "../../../hooks/chat/useThreadModel";
 import { useInStudio } from "../../../studio/StudioContext";
 import type { DocsTopic } from "../../../config/docsLinks";
 import type { BuildUiContextOptions } from "../../../lib/chat/uiContext";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 const styles = (_theme: Theme) =>
   css({
@@ -132,8 +132,7 @@ const AssistantChatPanel = ({
 
   const chatStatus =
     runtime.status === "idle" || runtime.status === "stopping"
-      ? "connected"
-      : runtime.status;
+      ? i18n.t("editor:bottom.stateConnected", { defaultValue: "connected" }) : runtime.status;
 
   const handleNewChat = useCallback(async () => {
     try {

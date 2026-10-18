@@ -39,6 +39,7 @@ import { useExposedInputToggle } from "../../hooks/nodes/useExposedInputToggle";
 import { isObjectLike } from "../../utils/typePredicates";
 import { runAsOneUndoEntry } from "../../utils/runAsOneUndoEntry";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** Payload from inspector multi-edit: reset/copy/remove apply to every id. */
 function resolvePropertyMenuTargetNodeIds(
@@ -240,18 +241,18 @@ const PropertyContextMenuComponent: React.FC = () => {
           await writeClipboard(serialized, true);
           addNotification({
             type: "success",
-            content: "Value copied to clipboard"
+            content: "Value copied to clipboard", contentKey: "editor:property.copied"
           });
         } catch {
           addNotification({
             type: "error",
-            content: "Failed to copy to clipboard"
+            content: "Failed to copy to clipboard", contentKey: "editor:notify.copyFailed"
           });
         }
       } else {
         addNotification({
           type: "warning",
-          content: "No value to copy"
+          content: "No value to copy", contentKey: "editor:property.nothingToCopy"
         });
       }
     }
@@ -365,7 +366,7 @@ const PropertyContextMenuComponent: React.FC = () => {
             isExposedHandle
               ? isConnected
                 ? t("editor:ui.hideTopInputHandleDisconnectsEdge", { defaultValue: "Hide top input handle (disconnects edge)" }) : "Hide top input handle"
-              : "Show as handle on the left/top of the node (no label)"
+              : i18n.t("editor:ui.showAsHandleOnTheLeftTopOfTheNodeNoLabel", { defaultValue: "Show as handle on the left/top of the node (no label)" })
           }
         />
       )}
@@ -381,7 +382,7 @@ const PropertyContextMenuComponent: React.FC = () => {
             isExposedLabeled
               ? isConnected
                 ? t("editor:ui.hideLabeledInputAtBottomDisconnectsEdge", { defaultValue: "Hide labeled input at bottom (disconnects edge)" }) : "Hide labeled input at bottom"
-              : "Show input at bottom with parameter title and editor"
+              : i18n.t("editor:ui.showInputAtBottomWithParameterTitleAndEditor", { defaultValue: "Show input at bottom with parameter title and editor" })
           }
         />
       )}

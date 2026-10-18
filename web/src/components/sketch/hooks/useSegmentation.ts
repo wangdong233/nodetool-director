@@ -43,7 +43,7 @@ import {
   rasterizeSegmentationToDocumentSpace
 } from "../sam";
 import type { SamModelInfo } from "../sam";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 interface UseSegmentationParams {
   canvasRef: RefObject<SketchCanvasRef | null>;

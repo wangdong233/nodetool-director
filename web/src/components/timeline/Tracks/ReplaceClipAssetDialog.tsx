@@ -23,6 +23,7 @@ import {
   SearchInput,
   SPACING
 } from "../../ui_primitives";
+import { i18n } from "../../../../i18n";
 
 /** Fixed so the dialog does not resize while results load. */
 const PANEL_HEIGHT = 360;
@@ -51,7 +52,7 @@ const KIND_LABEL: Record<string, string> = {
   "image/": "images",
   "video/": "videos",
   "audio/": "audio files",
-  "model/": "3D models"
+  "model/": i18n.t("editor:ui.models3d", { defaultValue: "3D models" })
 };
 
 interface ReplaceClipAssetDialogProps {
@@ -102,7 +103,7 @@ export const ReplaceClipAssetDialog: React.FC<ReplaceClipAssetDialogProps> =
       <Dialog
         open
         onClose={onClose}
-        title="Replace clip"
+        title={i18n.t("editor:ui.replaceClip", { defaultValue: "Replace clip" })}
         maxWidth="sm"
         fullWidth
       >

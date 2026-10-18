@@ -17,6 +17,8 @@ import {
   countGameConsoleLevels, filterGameConsoleGroups, GAME_CONSOLE_LEVELS, gameConsoleEntityScene,
   type GameConsoleEntry, type GameConsoleGroup, type GameConsoleLevel
 } from "./gameConsoleModel";
+import { i18n } from "../../../../../i18n";
+import { useTranslation } from "react-i18next";
 
 interface ConsoleDocument {
   readonly scenes: readonly { readonly id: string; readonly entities: readonly { readonly id: string; readonly name?: string }[] }[];
@@ -35,7 +37,7 @@ interface GameConsolePanelProps {
 const LEVEL_LABEL: Readonly<Record<GameConsoleLevel, { readonly one: string; readonly many: string }>> = {
   error: { one: "Error", many: "Errors" },
   warning: { one: "Warning", many: "Warnings" },
-  log: { one: "Log", many: "Logs" }
+  log: { one: i18n.t("game:console.log", { defaultValue: "Log" }), many: "Logs" }
 };
 const NO_ENTRIES: readonly GameConsoleEntry[] = [];
 
@@ -61,6 +63,7 @@ function tickLabel(group: GameConsoleGroup): string | null {
 
 /** Errors, warnings and script log lines from the play session, with filters, entity links and an assistant hand-off per line. */
 export default function GameConsolePanel({ gameId, document, liveEntries = NO_ENTRIES, onSelectEntity, onAskAssistant }: GameConsolePanelProps): ReactElement {
+  const { t } = useTranslation();
   const theme = useTheme();
   const store = getGameConsoleStore(gameId);
   const lineId = useId();
@@ -85,7 +88,7 @@ export default function GameConsolePanel({ gameId, document, liveEntries = NO_EN
   return <FlexColumn sx={{ height: "100%", minHeight: 0 }}>
     <GamePanelHeader title="Console" fill>
       <FieldDensityContext.Provider value="compact">
-        <SearchInput value={query} onChange={setQuery} placeholder="Filter" ariaLabel="Filter console" size="small"
+        <SearchInput value={query} onChange={setQuery} placeholder="Filter" ariaLabel={i18n.t("game:console.filterAria", { defaultValue: "Filter console" })} size="small"
           sx={{ flex: 1, minWidth: 0 }} />
       </FieldDensityContext.Provider>
       <Divider orientation="vertical" flexItem sx={{ mx: SPACING.xs, my: SPACING.xs }} />
@@ -104,15 +107,15 @@ export default function GameConsolePanel({ gameId, document, liveEntries = NO_EN
       })}
       <Divider orientation="vertical" flexItem sx={{ mx: SPACING.xs, my: SPACING.xs }} />
       <EditorButton disabled={stored.length === 0} onClick={() => store.getState().clear()}
-        sx={{ height: CONTROL.height.sm, color: "text.secondary" }}>Clear</EditorButton>
+        sx={{ height: CONTROL.height.sm, color: "text.secondary" }}>{i18n.t("common:action.clear", { defaultValue: "Clear" })}</EditorButton>
     </GamePanelHeader>
     <ScrollArea role="log" aria-label="Console" sx={{ flex: 1, minHeight: 0 }}>
       {visible.length === 0
         ? <FlexColumn align="center" gap={SPACING.micro} sx={{ px: SPACING.lg, py: SPACING.xl, textAlign: "center" }}>
-          <Caption size="small" color="secondary">{groups.length === 0 ? "No console output" : "No lines match the filters"}</Caption>
-          {groups.length === 0 && <Caption color="muted">Script errors, warnings and log lines appear here while the game plays.</Caption>}
+          <Caption size="small" color="secondary">{groups.length === 0 ? i18n.t("game:console.emptyTitle", { defaultValue: "No console output" }) : i18n.t("game:console.noMatchTitle", { defaultValue: "No lines match the filters" })}</Caption>
+          {groups.length === 0 && <Caption color="muted">{i18n.t("game:console.emptyDescription", { defaultValue: "Script errors, warnings and log lines appear here while the game plays." })}</Caption>}
         </FlexColumn>
-        : <Box component="ul" aria-label="Console lines" sx={{ listStyle: "none", m: 0, p: 0 }}>
+        : <Box component="ul" aria-label={i18n.t("game:console.linesAria", { defaultValue: "Console lines" })} sx={{ listStyle: "none", m: 0, p: 0 }}>
           {visible.map((group) => {
             const name = group.entityId ? entityNames.get(JSON.stringify([gameConsoleEntityScene(document, group.entityId, group.sceneId), group.entityId])) : undefined;
             const sceneId = group.entityId ? gameConsoleEntityScene(document, group.entityId, group.sceneId) : undefined;

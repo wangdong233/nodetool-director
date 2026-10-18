@@ -11,6 +11,7 @@ import {
   LogView
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ConsolePanelProps {
   lines: string[];
@@ -49,13 +50,13 @@ const ConsolePanel = ({ lines, onClear, busy = false }: ConsolePanelProps) => {
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
         >
-          {open ? t("editor:ui.hideConsole", { defaultValue: "Hide console" }) : "Show console"}
+          {open ? t("editor:ui.hideConsole", { defaultValue: "Hide console" }) : i18n.t("editor:ui.showConsole", { defaultValue: "Show console" })}
           {lines.length > 0 ? ` (${lines.length})` : ""}
         </EditorButton>
         {open && lines.length > 0 && (
           <FlexRow gap={0.5} align="center">
             <EditorButton variant="text" density="compact" onClick={handleCopy}>
-              {copied ? t("editor:ui.copiedPlain", { defaultValue: "Copied" }) : "Copy"}
+              {copied ? t("editor:ui.copiedPlain", { defaultValue: "Copied" }) : i18n.t("common:action.copy", { defaultValue: "Copy" })}
             </EditorButton>
             <EditorButton variant="text" density="compact" onClick={onClear}>
               Clear

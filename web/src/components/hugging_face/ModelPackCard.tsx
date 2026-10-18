@@ -35,6 +35,7 @@ import {
 import { Tooltip } from "../ui_primitives";
 import { useModelDownloadTarget } from "../../hooks/useModelDownloadTarget";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ModelPackCardProps {
   pack: ModelPack;
@@ -240,7 +241,7 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
 
         <ToolbarIconButton
           icon={<ExpandMoreIcon />}
-          tooltip={expanded ? t("editor:ui.collapseModelPackDetails", { defaultValue: "Collapse model pack details" }) : "Expand model pack details"}
+          tooltip={expanded ? t("editor:ui.collapseModelPackDetails", { defaultValue: "Collapse model pack details" }) : i18n.t("editor:ui.expandModelPackDetails", { defaultValue: "Expand model pack details" })}
           onClick={handleToggleExpanded}
           sx={{
             transform: expanded ? "rotate(180deg)" : "rotate(0deg)",

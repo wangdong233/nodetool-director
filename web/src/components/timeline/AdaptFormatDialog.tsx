@@ -30,6 +30,7 @@ import {
   useCreateFormatAdaptation
 } from "../../hooks/timeline/useCreateFormatAdaptation";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const FORMAT_OPTIONS = [
   { value: "9:16", label: "9:16", dimensions: "1080 × 1920" },
@@ -156,7 +157,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
       title={t("timeline:adapt.title", { defaultValue: "Adapt format" })}
       onConfirm={() => void handleCreate()}
       confirmText={
-        formats.size > 1 ? t("timeline:adapt.createMany", { defaultValue: "Create adaptations" }) : "Create adaptation"
+        formats.size > 1 ? t("timeline:adapt.createMany", { defaultValue: "Create adaptations" }) : i18n.t("timeline:adapt.createOne", { defaultValue: "Create adaptation" })
       }
       confirmDisabled={cannotCreate}
       isLoading={isCreating}
@@ -209,7 +210,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
           />
         )}
 
-        <FormField label="Safe margin">
+        <FormField label={t("timeline:adapt.safeMargin", { defaultValue: "Safe margin" })}>
           <FlexRow gap={SPACING.lg} align="center">
             <Slider
               value={safeMarginPercent}
@@ -219,7 +220,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
               onChange={(_event, value) =>
                 setSafeMarginPercent(Array.isArray(value) ? value[0] : value)
               }
-              aria-label="Safe margin"
+              aria-label={t("timeline:adapt.safeMargin", { defaultValue: "Safe margin" })}
               sx={{ flex: 1 }}
             />
             <Text size="small">{safeMarginPercent}%</Text>

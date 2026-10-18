@@ -4,7 +4,7 @@ import { PropertyProps } from "../node/PropertyInput";
 import { useInputMinMax } from "../../hooks/useInputMinMax";
 import { useUndoGroup } from "../../hooks/useUndoGroup";
 import { isNumber } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface NumberPropertyProps extends PropertyProps<number> {
   inputType: "int" | "float";

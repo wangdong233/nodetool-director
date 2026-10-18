@@ -234,7 +234,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
       title={t("storyboard:attrs.paintTheAreaToChange", { defaultValue: "Paint the area to change" })}
       maxWidth="lg"
       onConfirm={handleDone}
-      confirmText="Use this area"
+      confirmText={t("storyboard:attrs.useThisArea", { defaultValue: "Use this area" })}
       confirmDisabled={!ready}
     >
       <FlexColumn gap={SPACING.md} align="center">

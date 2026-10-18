@@ -69,7 +69,7 @@ const fontWeightOptions = (weight: number) =>
     : [...FONT_WEIGHTS, { value: String(weight), label: `Custom (${weight})` }];
 
 const FONT_STYLES = [
-  { value: "normal", label: "Normal" },
+  { value: "normal", label: "Normal", labelKey: "setup:script.paceNormalLabel" },
   { value: "italic", label: "Italic" }
 ] as const;
 

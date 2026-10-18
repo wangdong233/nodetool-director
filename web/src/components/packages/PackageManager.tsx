@@ -48,6 +48,7 @@ import {
   type PMRow
 } from "./usePackageManager";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** Persist the active list so reopening the Package Manager lands where the
  *  user left off. */
@@ -92,7 +93,7 @@ const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
     alwaysOn: { label: "Always on", color: "default" },
     installed: { label: "Installed", color: "success" },
     included: { label: "Included", color: "default" },
-    update: { label: "Update available", color: "warning" },
+    update: { label: i18n.t("editor:ui.updateAvailable", { defaultValue: "Update available" }), color: "warning" },
     notInstalled: { label: "Not installed", color: "default" }
   };
   const s = styles[badge];
@@ -123,7 +124,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUpdate}
         >
-          {busy ? t("editor:ui.working", { defaultValue: "Working…" }) : "Update"}
+          {busy ? t("editor:ui.working", { defaultValue: "Working…" }) : i18n.t("editor:ui.update", { defaultValue: "Update" })}
         </EditorButton>
       )}
       {install && (
@@ -133,7 +134,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onInstall}
         >
-          {busy ? t("editor:ui.installing", { defaultValue: "Installing…" }) : "Install"}
+          {busy ? t("editor:ui.installing", { defaultValue: "Installing…" }) : i18n.t("editor:ui.install", { defaultValue: "Install" })}
         </EditorButton>
       )}
       {uninstall && (
@@ -143,7 +144,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUninstall}
         >
-          {busy ? t("editor:ui.working", { defaultValue: "Working…" }) : "Uninstall"}
+          {busy ? t("editor:ui.working", { defaultValue: "Working…" }) : i18n.t("editor:ui.uninstall", { defaultValue: "Uninstall" })}
         </EditorButton>
       )}
     </>
@@ -403,10 +404,10 @@ function PackageManager() {
           ) : (
             <EmptyState
               variant={narrowed ? "no-results" : "empty"}
-              title={narrowed ? t("editor:ui.nothingMatches", { defaultValue: "Nothing matches" }) : "Nothing here yet"}
+              title={narrowed ? t("editor:ui.nothingMatches", { defaultValue: "Nothing matches" }) : i18n.t("editor:ui.nothingHereYet", { defaultValue: "Nothing here yet" })}
               description={
                 narrowed
-                  ? t("editor:ui.noPackageInThisListMatchesTheSearchAndTheStatusFilter", { defaultValue: "No package in this list matches the search and the status filter." }) : "This list has no packages."
+                  ? t("editor:ui.noPackageInThisListMatchesTheSearchAndTheStatusFilter", { defaultValue: "No package in this list matches the search and the status filter." }) : i18n.t("editor:ui.thisListHasNoPackages", { defaultValue: "This list has no packages." })
               }
               actionText={narrowed ? t("editor:ui.showAll", { defaultValue: "Show all" }) : undefined}
               onAction={narrowed ? clearSearchAndFilter : undefined}

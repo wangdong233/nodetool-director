@@ -135,6 +135,8 @@ import { useTimelineIsMobile } from "../../hooks/timeline/useTimelineIsMobile";
 import { useGuardedPanelTab } from "../../hooks/timeline/useGuardedPanelTab";
 import { ensureBundledFontsLoaded } from "./preview/fontLoading";
 import { useWorkspaceHeaderActions } from "../workspace/WorkspaceHeaderActionsContext";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 // The `@font-face` rules for the bundled corpus, pointing at the same files
 // the server rasterizer registers (D8). Imported by the editor rather than
@@ -232,7 +234,7 @@ const inspectorRegionStyles = (theme: Theme) =>
 function exportPhaseLabel(
   progress: { phase: string; frame: number; totalFrames: number } | null
 ): string {
-  if (!progress) return "Preparing…";
+  if (!progress) return i18n.t("storyboard:attrs.preparing", { defaultValue: "Preparing…" });
   switch (progress.phase) {
     case "audio":
       return "Mixing audio…";
@@ -241,7 +243,7 @@ function exportPhaseLabel(
     case "finalizing":
       return "Finalizing…";
     default:
-      return "Preparing…";
+      return i18n.t("storyboard:attrs.preparing", { defaultValue: "Preparing…" });
   }
 }
 
@@ -291,8 +293,8 @@ const PreviewRegion: React.FC<{
         >
           <EmptyState
             variant="error"
-            title="Sequence not found"
-            description="The timeline sequence you requested does not exist or you do not have access to it."
+            title={i18n.t("timeline:editor.seqNotFound", { defaultValue: "Sequence not found" })}
+            description={i18n.t("timeline:editor.seqNotFoundDesc", { defaultValue: "The timeline sequence you requested does not exist or you do not have access to it." })}
           />
           <FlexRow gap={1} align="center" justify="center" sx={{ flexWrap: "wrap" }}>
             {onRetryFetch ? (
@@ -301,7 +303,7 @@ const PreviewRegion: React.FC<{
                 size="small"
                 onClick={onRetryFetch}
                 disabled={createSequencePending}
-                aria-label="Retry loading sequence"
+                aria-label={i18n.t("timeline:editor.retryLoad", { defaultValue: "Retry loading sequence" })}
               >
                 Retry
               </EditorButton>
@@ -312,9 +314,9 @@ const PreviewRegion: React.FC<{
                 size="small"
                 onClick={onCreateNewSequence}
                 disabled={createSequencePending}
-                aria-label="Create new sequence"
+                aria-label={i18n.t("timeline:editor.createNew", { defaultValue: "Create new sequence" })}
               >
-                {createSequencePending ? "Creating…" : "New sequence"}
+                {createSequencePending ? i18n.t("editor:ui.creating", { defaultValue: "Creating…" }) : i18n.t("timeline:attrs.newSequence", { defaultValue: "New sequence" })}
               </EditorButton>
             ) : null}
           </FlexRow>
@@ -345,11 +347,11 @@ PreviewRegion.displayName = "PreviewRegion";
 type InspectorTab = "inspector" | "shot" | "source" | "instrument" | "agent" | "history" | "script" | "code";
 
 const INSPECTOR_TABS = [
-  { value: "inspector", label: "Inspector", icon: <TuneOutlinedIcon fontSize="small" /> },
-  { value: "instrument", label: "Instruments", icon: <PianoOutlinedIcon fontSize="small" /> },
+  { value: "inspector", label: "Inspector", labelKey: "timeline:editor.inspector", icon: <TuneOutlinedIcon fontSize="small" /> },
+  { value: "instrument", label: "Instruments", labelKey: "timeline:editor.instruments", icon: <PianoOutlinedIcon fontSize="small" /> },
   { value: "source", label: "Source", icon: <MovieFilterOutlinedIcon fontSize="small" /> },
   { value: "agent", label: "Assistant", icon: <AutoAwesomeIcon fontSize="small" /> },
-  { value: "history", label: "History", icon: <HistoryOutlinedIcon fontSize="small" /> }
+  { value: "history", label: "History", labelKey: "timeline:editor.history", icon: <HistoryOutlinedIcon fontSize="small" /> }
 ];
 
 const SCRIPT_TAB = {
@@ -366,7 +368,7 @@ const SHOT_TAB = {
 
 const CODE_TAB = {
   value: "code",
-  label: "Code",
+  label: "Code", labelKey: "timeline:code.title",
   icon: <CodeIcon fontSize="small" />
 };
 
@@ -412,7 +414,7 @@ const InspectorRegion: React.FC<{
     <ResizableSideDock
       storageKey="timeline_assistant"
       defaultWidth={360}
-      ariaLabel="Resize timeline side panel"
+      ariaLabel={i18n.t("timeline:editor.resizeSide", { defaultValue: "Resize timeline side panel" })}
     >
       <FlexColumn css={inspectorRegionStyles(theme)} fullHeight sx={{ minHeight: 0 }}>
         <TabGroup
@@ -450,6 +452,7 @@ const InspectorRegion: React.FC<{
 InspectorRegion.displayName = "InspectorRegion";
 
 const TranscriptRegion: React.FC = memo(() => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const hasScript = useHasScript();
 
@@ -509,7 +512,7 @@ const MobilePanelSheet: React.FC<{
       maxHeight="62vh"
       showDragHandle
       showClose={false}
-      ariaLabel="Timeline panels"
+      ariaLabel={i18n.t("timeline:attrs.timelinePanels", { defaultValue: "Timeline panels" })}
     >
       <FlexColumn fullWidth sx={{ height: "52vh", minHeight: 0 }}>
         {activeTab === "inspector" ? (
@@ -1129,7 +1132,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
           thickness={isMobile ? SPACING.xxl : SPACING.sm}
           grip={isMobile}
           keyboardStep={KEYBOARD_RESIZE_STEP_PX}
-          ariaLabel="Resize tracks panel"
+          ariaLabel={i18n.t("timeline:editor.resizeTracks", { defaultValue: "Resize tracks panel" })}
           onResize={handleTracksResize}
           onResizeStart={handleTracksResizeStart}
           onResizeEnd={handleTracksResizeEnd}
@@ -1167,8 +1170,8 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
           isMobile ? (
             <ToolbarIconButton
               onClick={openPanelSheet}
-              tooltip="Panels"
-              aria-label="Open panels"
+              tooltip={i18n.t("timeline:editor.panels", { defaultValue: "Panels" })}
+              aria-label={i18n.t("timeline:editor.openPanels", { defaultValue: "Open panels" })}
               // Tinted while a clip is selected: that's when the Inspector has
               // something to show, and it's the only hint on a phone that
               // tapping a clip led somewhere.
@@ -1223,7 +1226,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
       <Dialog
         open={isExporting || hasExportError}
         onClose={isExporting ? undefined : clearExportError}
-        title={hasExportError ? "Export failed" : "Exporting video"}
+        title={hasExportError ? i18n.t("timeline:attrs.exportFailed", { defaultValue: "Export failed" }) : i18n.t("timeline:attrs.exportingVideo", { defaultValue: "Exporting video" })}
         actions={exportDialogActions}
       >
         {exportError != null ? (

@@ -20,6 +20,7 @@ import {
   stringInputMeta,
   videoNodeMeta,
 } from "./builders";
+import { i18n } from "../../../i18n";
 
 const STRING_INPUT = "nodetool.input.StringInput";
 const KLING = "fal.text_to_video.KlingVideoV16ProTextToVideo";
@@ -64,14 +65,14 @@ const events: CastEvent[] = [
 export const textToVideoCast: DemoCast = {
   version: CAST_VERSION,
   id: "cookbook-text-to-video",
-  name: "Text to Video",
+  name: i18n.t("editor:ui.textToVideo", { defaultValue: "Text to Video" }),
   description: "Turn a single prompt into a cinematic clip with a text-to-video model.",
   createdAt: new Date(0).toISOString(),
   durationMs: 13500,
   fps: 30,
   workflow: cookbookWorkflow(
     WF,
-    "Text to Video",
+    i18n.t("editor:ui.textToVideo", { defaultValue: "Text to Video" }),
     "Prompt → Kling Text To Video → Output.",
     nodes,
     edges

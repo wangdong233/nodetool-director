@@ -154,7 +154,7 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ workflowId, active }) => {
         >
           {isUploading && (
             <div className="loading-overlay">
-              <LoadingSpinner size="medium" text="Uploading assets" />
+              <LoadingSpinner size="medium" text={t("ui2:attrs.uploadingAssets", { defaultValue: "Uploading assets" })} />
             </div>
           )}
           <ReactFlowWrapper workflowId={workflowId} active={active} />

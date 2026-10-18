@@ -5,7 +5,7 @@
  * setup flow's style step — and a board created at a ratio the settings form
  * does not offer cannot be changed back.
  */
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 export const ASPECT_OPTIONS = [
   { value: "16:9", label: "16:9 — Widescreen", labelKey: "storyboard:attrs.widescreen" },

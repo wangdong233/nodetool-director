@@ -28,6 +28,7 @@ import {
   TextInput
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
+import { i18n } from "../../../i18n";
 
 interface AppInstanceManagerProps {
   applicationId: string;
@@ -282,14 +283,13 @@ export default function AppInstanceManager({
         onConfirm={() => void confirm()}
         confirmText={
           action === "delete"
-            ? "Delete"
+            ? i18n.t("storyboard:attrs.delete", { defaultValue: "Delete" })
             : action === "new"
-              ? "Create"
-              : action === "duplicate"
+              ? i18n.t("common:action.create", { defaultValue: "Create" }) : action === "duplicate"
                 ? "Duplicate"
                 : action === "advance"
                   ? "Advance"
-                  : "Save"
+                  : i18n.t("storyboard:attrs.save", { defaultValue: "Save" })
         }
         isLoading={busy}
         confirmDisabled={named && !name.trim()}

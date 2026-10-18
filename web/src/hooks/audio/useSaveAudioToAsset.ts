@@ -8,7 +8,7 @@ import {
   type AudioSample
 } from "../../components/audio_editor/audioSample";
 import type { Asset } from "../../stores/ApiTypes";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * Encode the edited sample to 16-bit PCM WAV and overwrite the asset's bytes.

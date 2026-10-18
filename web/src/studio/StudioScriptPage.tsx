@@ -126,7 +126,7 @@ const StudioScriptPage = () => {
   if (loadState !== "ready") {
     return (
       <StudioShell title={title || "Untitled script"}>
-        <DocumentLoadStatus state={loadState} label="script" />
+        <DocumentLoadStatus state={loadState} label={t("home:flowError.kind.script", { defaultValue: "script" })} />
       </StudioShell>
     );
   }

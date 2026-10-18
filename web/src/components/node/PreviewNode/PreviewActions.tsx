@@ -7,6 +7,7 @@ import { CopyButton } from "../../ui_primitives";
 import { CopyAssetButton } from "../../common/CopyAssetButton";
 import { useNotificationStore } from "../../../stores/NotificationStore";
 import { isObjectLike, isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../../i18n";
 
 type PreviewActionsProps = {
   onDownload: () => void;
@@ -79,7 +80,7 @@ const PreviewActions: React.FC<PreviewActionsProps> = memo(({
   const handleCopyError = useCallback((_err: Error) => {
     addNotification({
       type: "error",
-      content: "Failed to copy to clipboard"
+      content: "Failed to copy to clipboard", contentKey: "editor:notify.copyFailed"
     });
   }, [addNotification]);
 
@@ -101,7 +102,7 @@ const PreviewActions: React.FC<PreviewActionsProps> = memo(({
           <FileDownloadIcon />
         </EditorButton>
       </Tooltip>
-      <Tooltip title="Add to assets">
+      <Tooltip title={i18n.t("editor:ui.addToAssets", { defaultValue: "Add to assets" })}>
         <EditorButton
           onClick={onAddToAssets}
           className="action-button"

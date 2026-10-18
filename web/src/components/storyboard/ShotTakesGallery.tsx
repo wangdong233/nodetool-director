@@ -44,6 +44,7 @@ import { useVideoThumbnail } from "../../hooks/useVideoThumbnail";
 import { asResolvedMediaUrl } from "../../utils/resolveMediaUri";
 import { ResponsiveImage } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ShotTakesGalleryProps {
   boardId: string;
@@ -407,7 +408,7 @@ const ShotTakesGalleryInner: React.FC<ShotTakesGalleryProps> = ({
             "&:hover": { color: "text.primary", bgcolor: "c_overlay_subtle" }
           }}
         >
-          {expanded ? t("storyboard:attrs.hideTakes", { defaultValue: "Hide takes" }) : "View takes"}
+          {expanded ? t("storyboard:attrs.hideTakes", { defaultValue: "Hide takes" }) : i18n.t("storyboard:attrs.viewTakes", { defaultValue: "View takes" })}
         </EditorButton>
       </FlexRow>
 

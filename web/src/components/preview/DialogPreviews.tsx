@@ -284,9 +284,9 @@ export const DIALOG_PREVIEWS: Record<
   },
   "dialog-add-output": { label: "Add output", component: PreviewAddOutput },
   "dialog-bug-report": { label: "Report a bug", component: PreviewBugReport },
-  "dialog-help": { label: "Help", component: PreviewHelp },
+  "dialog-help": { label: "Help", labelKey: "nav:rail.help", labelKey: "timeline:shortcuts.help", component: PreviewHelp },
   "dialog-export-video": {
-    label: "Export video",
+    label: "Export video", labelKey: "timeline:topbar.exportVideo",
     component: PreviewExportVideo
   },
   "dialog-timeline-shortcuts": {

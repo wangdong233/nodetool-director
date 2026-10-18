@@ -19,6 +19,7 @@ import { findClipById } from "../../../stores/timeline/clipLookup";
 import { ReplaceClipAssetDialog } from "../Tracks/ReplaceClipAssetDialog";
 import { ToolbarIconButton, FlexRow, SPACING } from "../../ui_primitives";
 import { useAlertNotifier } from "../../../hooks/useAlertNotifier";
+import { i18n } from "../../../../i18n";
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 
@@ -67,7 +68,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
         selectClip(newClipId);
       } catch (err) {
         reportDuplicateError(
-          err instanceof Error ? err.message : "Failed to duplicate clip"
+          err instanceof Error ? err.message : i18n.t("timeline:attrs.failedToDuplicateClip", { defaultValue: "Failed to duplicate clip" })
         );
       } finally {
         duplicateBusyRef.current = false;
@@ -91,7 +92,7 @@ export const ClipActions: React.FC<ClipActionsProps> = memo(
         selectClip(newClipId);
       } catch (err) {
         reportDuplicateError(
-          err instanceof Error ? err.message : "Failed to create copy"
+          err instanceof Error ? err.message : i18n.t("timeline:attrs.failedToCreateCopy", { defaultValue: "Failed to create copy" })
         );
       }
     }, [

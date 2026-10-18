@@ -8,7 +8,7 @@
  * off when it is already there.
  */
 
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 import React, { memo, useCallback, useMemo } from "react";
 import type { Entity } from "@nodetool-ai/protocol";
 

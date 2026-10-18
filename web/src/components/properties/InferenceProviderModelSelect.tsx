@@ -8,6 +8,7 @@ import isEqual from "../../utils/isEqual";
 import Select from "../inputs/Select";
 import type { PropertyProps } from "../node/PropertyInput";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface HuggingFaceModel {
   id: string;
@@ -35,11 +36,11 @@ const fetchModelsForProvider = async (provider: InferenceProvider, pipelineTag: 
 const providerOptions = [
     { label: "Cerebras", value: "cerebras" },
     { label: "Cohere", value: "cohere" },
-    { label: "Fal AI", value: "fal-ai" },
-    { label: "Featherless AI", value: "featherless-ai" },
-    { label: "Fireworks AI", value: "fireworks-ai" },
+    { label: i18n.t("editor:ui.falAI", { defaultValue: "Fal AI" }), value: "fal-ai" },
+    { label: i18n.t("editor:ui.featherlessAI", { defaultValue: "Featherless AI" }), value: "featherless-ai" },
+    { label: i18n.t("editor:ui.fireworksAI", { defaultValue: "Fireworks AI" }), value: "fireworks-ai" },
     { label: "Groq", value: "groq" },
-    { label: "HF Inference", value: "hf-inference" },
+    { label: i18n.t("editor:ui.hfInference", { defaultValue: "HF Inference" }), value: "hf-inference" },
     { label: "Hyperbolic", value: "hyperbolic" },
     { label: "Nebius", value: "nebius" },
     { label: "Novita", value: "novita" },
@@ -49,7 +50,7 @@ const providerOptions = [
     { label: "Sambanova", value: "sambanova" },
     { label: "Together", value: "together" },
     { label: "Z.AI", value: "zai-org" },
-    { label: "Add providers…", value: "__add_providers" }
+    { label: i18n.t("editor:ui.addProvidersEllipsis", { defaultValue: "Add providers…" }), value: "__add_providers" }
 ];
 
 const InferenceProviderModelSelect = ({
@@ -159,14 +160,14 @@ const InferenceProviderModelSelect = ({
                     </Text>
                     <Select
                         onOpenChange={setModelOpen}
-                        options={[...modelOptions, { value: "__add_providers", label: "Add providers…" }]}
+                        options={[...modelOptions, { value: "__add_providers", label: i18n.t("editor:ui.addProvidersEllipsis", { defaultValue: "Add providers…" }) }]}
                         value={value.model_id}
                         onChange={handleChangeModel}
                         placeholder={
                             isLoadingModels
                                 ? "Loading models…"
                                 : modelsError
-                                    ? t("editor:ui.errorLoadingModels", { defaultValue: "Error loading models" }) : "Select a model"
+                                    ? t("editor:ui.errorLoadingModels", { defaultValue: "Error loading models" }) : i18n.t("editor:ui.selectAModel", { defaultValue: "Select a model" })
                         }
                     />
                 </div>

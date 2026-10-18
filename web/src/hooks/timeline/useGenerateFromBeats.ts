@@ -41,7 +41,7 @@ import { aspectOf } from "../../components/storyboard/aspectOptions";
 import { deterministicFingerprint } from "../storyboard/productionContext";
 import { useTimelineDirectGenJob } from "./useTimelineDirectGenJob";
 import { persistTimelineDocument } from "./useTimelineSave";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /** How long a beat runs when its plan row has no usable length. */
 const FALLBACK_BEAT_MS = 4000;

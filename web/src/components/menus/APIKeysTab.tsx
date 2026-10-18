@@ -51,6 +51,7 @@ import {
 
 import { docsLink, docsUrl } from "../../config/docsLinks";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 // For multi-field credentials, find the parent provider (the one with fields array)
 const getParentProviderMeta = (key: string): ProviderMeta | undefined => {
@@ -143,7 +144,7 @@ export const ProviderCard = memo(function ProviderCard({
   const statusLabel = isUnavailable
     ? "Unavailable"
     : isConnected
-      ? t("ui2:attrs.connected", { defaultValue: "Connected" }) : "Not connected";
+      ? t("ui2:attrs.connected", { defaultValue: "Connected" }) : i18n.t("editor:ui.notConnected", { defaultValue: "Not connected" });
 
   const handleConnect = useCallback(() => {
     onConnect(secret);
@@ -322,7 +323,7 @@ export const ProviderCard = memo(function ProviderCard({
                 overflowWrap: "anywhere"
               }}
             >
-              {hasKey ? t("editor:ui.keyStored", { defaultValue: "Key stored" }) : "Signed in"}, but this server does not
+              {hasKey ? t("editor:ui.keyStored", { defaultValue: "Key stored" }) : i18n.t("editor:ui.signedIn", { defaultValue: "Signed in" })}, but this server does not
               offer {meta.name}. Its models stay out of the model menu.
             </Caption>
           )}
@@ -401,7 +402,7 @@ export const ProviderCard = memo(function ProviderCard({
                 onClick={handleTest}
                 disabled={testing}
               >
-                {testing ? t("editor:ui.testing", { defaultValue: "Testing…" }) : "Test"}
+                {testing ? t("editor:ui.testing", { defaultValue: "Testing…" }) : i18n.t("editor:ui.test2", { defaultValue: "Test" })}
               </EditorButton>
               <EditorButton
                 density="compact"
@@ -673,7 +674,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
           !combinedValues &&
           !meta.fields.every((f) => formValues[f.key])
         ) {
-          setFormError("All fields are required");
+          setFormError(i18n.t("tools:menus.allFieldsAreRequired", { defaultValue: "All fields are required" }));
           return;
         }
         for (const field of meta.fields) {
@@ -685,7 +686,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
       } else {
         // Single-field provider
         if (!formValue) {
-          setFormError("Secret value is required");
+          setFormError(i18n.t("tools:menus.secretValueIsRequired", { defaultValue: "Secret value is required" }));
           return;
         }
         await updateSecret(editingSecret.key, formValue);
@@ -920,11 +921,11 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
               open={dialogOpen}
               onClose={handleCloseDialog}
               fullWidth
-              title={`${editingSecret?.is_configured ? t("editor:ui.update", { defaultValue: "Update" }) : "Connect"} ${
+              title={`${editingSecret?.is_configured ? t("editor:ui.update", { defaultValue: "Update" }) : i18n.t("editor:ui.connect2", { defaultValue: "Connect" })} ${
                 meta?.name || editingSecret.key
               }`}
               onConfirm={handleSave}
-              confirmText={editingSecret?.is_configured ? t("editor:ui.update", { defaultValue: "Update" }) : "Connect"}
+              confirmText={editingSecret?.is_configured ? t("editor:ui.update", { defaultValue: "Update" }) : i18n.t("editor:ui.connect2", { defaultValue: "Connect" })}
               confirmDisabled={!allFieldsFilled}
             >
               <FlexColumn gap={SPACING.lg}>
@@ -1083,19 +1084,19 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
     {
       icon: <ModelTrainingIcon sx={{ fontSize: "1.2em" }} />,
       title: "Supported models",
-      subtitle: "See models by provider",
+      subtitle: "See models by provider", subtitleKey: "tools:menus.seeModelsByProvider",
       href: docsLink("providers")
     },
     {
       icon: <MenuBookIcon sx={{ fontSize: "1.2em" }} />,
       title: "API documentation",
-      subtitle: "Provider guides & links",
+      subtitle: "Provider guides & links", subtitleKey: "tools:menus.providerGuidesLinks",
       href: docsUrl("providers")
     },
     {
       icon: <HelpOutlineIcon sx={{ fontSize: "1.2em" }} />,
       title: "Troubleshooting",
-      subtitle: "Common issues & fixes",
+      subtitle: "Common issues & fixes", subtitleKey: "tools:menus.commonIssuesFixes",
       href: docsLink("troubleshooting")
     }
   ];

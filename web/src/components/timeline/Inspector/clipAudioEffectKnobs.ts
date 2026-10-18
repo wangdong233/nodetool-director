@@ -81,7 +81,7 @@ export const CLIP_AUDIO_KNOBS: KnobTable = {
     { key: "mix", label: "Mix", min: 0, max: 1, step: 0.01, unit: "", digits: 2 }
   ],
   reverb: [
-    { key: "decaySec", label: "Decay", min: 0.1, max: 10, step: 0.1, unit: "s", digits: 1 },
+    { key: "decaySec", label: "Decay", labelKey: "ui2:attrs.decay", min: 0.1, max: 10, step: 0.1, unit: "s", digits: 1 },
     { key: "mix", label: "Mix", min: 0, max: 1, step: 0.01, unit: "", digits: 2 }
   ],
   distortion: [

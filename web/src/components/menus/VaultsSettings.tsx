@@ -12,6 +12,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const DEFAULT_VAULT_ID = "default";
 
@@ -139,7 +140,7 @@ const VaultsSettings: React.FC = () => {
               >
                 <Text>
                   {vault.name}
-                  {isActive ? " — active" : ""}
+                  {isActive ? i18n.t("settings:vaults.activeSuffix", { defaultValue: " — active" }) : ""}
                 </Text>
                 <FlexRow gap={1} align="center">
                   {!isActive && (

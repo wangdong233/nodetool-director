@@ -17,6 +17,7 @@ import {
   MenuItemPrimitive, SearchInput, SPACING, Text, ToolbarIconButton, TreeRow, TYPOGRAPHY
 } from "../../../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../../i18n";
 
 type AddKind = "box" | "sphere" | "light";
 
@@ -138,7 +139,7 @@ export default function GameHierarchy3D({ document, scene, selectedIds, onSelect
     </Box>
     <FlexColumn role="list" aria-label={t("game:hierarchy.sceneEntities", { defaultValue: "Scene entities" })} sx={{ flex: 1, minHeight: 0, overflowY: "auto", py: SPACING.xs, px: SPACING.xs }}>
       {rows.length === 0 && <Caption sx={{ px: SPACING.sm, py: SPACING.xs }}>
-        {needle ? "No entities match." : "This scene has no entities."}
+        {needle ? i18n.t("game:hierarchy:noEntitiesMatch", { defaultValue: "No entities match." }) : i18n.t("game:hierarchy.noEntities", { defaultValue: "This scene has no entities." })}
       </Caption>}
       {rows.map(({ entity, depth, hasChildren }) => {
         const selected = selectedIds.includes(entity.id);
@@ -150,7 +151,7 @@ export default function GameHierarchy3D({ document, scene, selectedIds, onSelect
           sx={{ pr: SPACING.sm, minHeight: CONTROL.height.xs, gap: SPACING.micro,
             "&:focus-within": { bgcolor: selected ? "action.selected" : "action.hover" } }}>
           {hasChildren
-            ? <FlexRow component="button" aria-label={`${expanded ? t("editor:ui.collapse", { defaultValue: "Collapse" }) : "Expand"} ${name}`}
+            ? <FlexRow component="button" aria-label={`${expanded ? t("editor:ui.collapse", { defaultValue: "Collapse" }) : i18n.t("editor:ui.expand", { defaultValue: "Expand" })} ${name}`}
               aria-expanded={expanded} aria-disabled={needle !== ""} align="center" justify="center"
               onClick={(event) => { event.stopPropagation(); if (needle === "") { toggle(entity.id); } }}
               sx={{ flexShrink: 0,

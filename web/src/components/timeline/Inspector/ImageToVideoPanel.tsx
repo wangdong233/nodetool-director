@@ -51,6 +51,7 @@ import {
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface ImageToVideoPanelProps {
   clipId: string;
@@ -318,7 +319,7 @@ const ImageToVideoPanel: React.FC<ImageToVideoPanelProps> = ({ clipId }) => {
               compact
               fullWidth
               inputProps={{
-                "aria-label": "Motion prompt",
+                "aria-label": i18n.t("timeline:attrs.motionPrompt", { defaultValue: "Motion prompt" }),
                 "data-testid": "image-to-video-prompt"
               }}
               disabled={submitting}
@@ -333,7 +334,7 @@ const ImageToVideoPanel: React.FC<ImageToVideoPanelProps> = ({ clipId }) => {
                 title={t("timeline:attrs.noImageToVideoModel", { defaultValue: "No image-to-video model" })}
                 description={
                   error
-                    ? t("timeline:attrs.videoModelCatalogCouldNotBeLoaded", { defaultValue: "The video model catalog could not be loaded." }) : "Add a provider or install a local model that supports image_to_video."
+                    ? t("timeline:attrs.videoModelCatalogCouldNotBeLoaded", { defaultValue: "The video model catalog could not be loaded." }) : i18n.t("timeline:attrs.addProviderOrLocalI2V", { defaultValue: "Add a provider or install a local model that supports image_to_video." })
                 }
                 actionText={error ? t("timeline:attrs.retryModelCatalog", { defaultValue: "Retry model catalog" }) : undefined}
                 onAction={error ? () => void refetch() : undefined}
@@ -386,7 +387,7 @@ const ImageToVideoPanel: React.FC<ImageToVideoPanelProps> = ({ clipId }) => {
               onClick={() => void handleGenerate()}
               data-testid="image-to-video-submit"
             >
-              {submitting ? t("timeline:attrs.starting", { defaultValue: "Starting…" }) : "Generate video"}
+              {submitting ? t("timeline:attrs.starting", { defaultValue: "Starting…" }) : i18n.t("timeline:attrs.generateVideoAction", { defaultValue: "Generate video" })}
             </EditorButton>
 
             {!imageSize && measured.failed && (

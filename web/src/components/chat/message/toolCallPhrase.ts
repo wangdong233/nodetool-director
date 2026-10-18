@@ -10,7 +10,7 @@
 import type { ToolCall } from "../../../stores/ApiTypes";
 import { formatToolName } from "../../../utils/formatUtils";
 import { isObjectLike, isString } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** What a tool does, as far as the row phrasing is concerned. */
 type ToolPhraseKind =

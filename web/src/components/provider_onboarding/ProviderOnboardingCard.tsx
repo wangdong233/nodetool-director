@@ -30,7 +30,7 @@ import type { SecretValidation } from "../../stores/SecretsStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { PROVIDER_TAGLINE_KEYS, PROVIDER_COST_HINT_KEYS } from "./providerOnboardingCatalog";
 import type { OnboardingProvider } from "./providerOnboardingCatalog";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 type StoredCredentialStatus = "configured" | "verified" | "unavailable" | "rejected";
@@ -321,7 +321,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                   onClick={handleRecheck}
                   disabled={rechecking}
                 >
-                  {rechecking ? t("editor:ui.checking", { defaultValue: "Checking…" }) : "Recheck"}
+                  {rechecking ? t("editor:ui.checking", { defaultValue: "Checking…" }) : i18n.t("tools:menus:recheck", { defaultValue: "Recheck" })}
                 </EditorButton>
                 <EditorButton
                   density="compact"
@@ -428,7 +428,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                 ) : replacing ? (
                   "Replace"
                 ) : (
-                  "Connect"
+                  i18n.t("setup:workflow.connect", { defaultValue: "Connect" })
                 )}
               </EditorButton>
             </FlexRow>

@@ -31,7 +31,7 @@ import {
 } from "./ScriptStore";
 import { syncLineClipToTimeline } from "./timelineSync";
 import { isNumber, isObjectLike, isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Speech-to-text default for word-level take timing (best-effort). */
 interface AsrConfig {

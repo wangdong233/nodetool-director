@@ -385,7 +385,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
       { value: "swatches", label: "Swatches" },
       { value: "harmonies", label: "Harmonies" },
       ...(showGradient ? [{ value: "gradient", label: "Gradient" }] : []),
-      ...(showContrast ? [{ value: "contrast", label: "Contrast" }] : [])
+      ...(showContrast ? [{ value: "contrast", label: "Contrast", labelKey: "storyboard:attrs.contrast" }] : [])
     ],
     [showContrast, showGradient]
   );
@@ -407,7 +407,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               <EyedropperButton onColorPicked={handleEyedropperPick} />
               <CloseButton
                 onClick={handleApply}
-                tooltip="Close"
+                tooltip={t("ui2:attrs.close", { defaultValue: "Close" })}
                 shortcut={["Esc"]}
                 buttonSize="small"
               />

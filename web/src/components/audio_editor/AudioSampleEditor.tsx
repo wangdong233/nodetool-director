@@ -43,6 +43,7 @@ import {
   type AudioSample
 } from "./audioSample";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface AudioSampleEditorProps {
   asset: Asset;
@@ -289,7 +290,7 @@ const AudioSampleEditor = ({
     setError(null);
     const url = resolveMediaUrl(getUrlRef.current);
     if (!url) {
-      setError("This audio asset has no URL to load.");
+      setError(i18n.t("editor:ui.thisAudioAssetHasNoURLToLoad", { defaultValue: "This audio asset has no URL to load." }));
       setLoading(false);
       return;
     }
@@ -518,7 +519,7 @@ const AudioSampleEditor = ({
         <EmptyState
           variant="error"
           title={t("editor:ui.couldNotOpenAudioEditor", { defaultValue: "Could not open audio editor" })}
-          description={error ?? "Audio could not be decoded."}
+          description={error ?? i18n.t("editor:ui.audioCouldNotBeDecoded", { defaultValue: "Audio could not be decoded." })}
           actionText="Done"
           onAction={onClose}
         />

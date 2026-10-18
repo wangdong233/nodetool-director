@@ -9,6 +9,7 @@ import { StableGamePanelHost } from "./StableGamePanelHost";
 import { GameDockGroup } from "./GameDockGroup";
 import type { GameDockPresentation } from "./useGameDockPresentation";
 import { GAME_REGION_AXIS, GAME_REGION_LABELS, GAME_REGION_ZONES, gameDockDropAction, type GameDockDropTarget } from "./gameDockTargets";
+import { i18n } from "../../../../i18n";
 
 interface GameDockCanvasProps {
   readonly presentation: GameDockPresentation;
@@ -252,7 +253,7 @@ function GameDockRegion({ region, groups, store, renderGroup }: GameDockRegionPr
       const value = length * weight / total;
       return <Fragment key={group.id}>
         <FlexColumn sx={{ flex: `${weight} 1 0`, minHeight: 0, minWidth: 0 }}>{renderGroup(group, region)}</FlexColumn>
-        {next && <ResizeHandle orientation={axis === "row" ? "vertical" : "horizontal"} ariaLabel={`Resize ${group.activePanelId} group`}
+        {next && <ResizeHandle orientation={axis === "row" ? i18n.t("sketch:attrs.symmetryVertical", { defaultValue: "vertical" }) : i18n.t("sketch:attrs.symmetryHorizontal", { defaultValue: "horizontal" })} ariaLabel={`Resize ${group.activePanelId} group`}
           value={value} min={Math.min(MIN_GROUP_LENGTH, pairLength / 2)} max={Math.max(pairLength - MIN_GROUP_LENGTH, pairLength / 2)}
           onResize={(delta) => {
             if (pairLength <= 0) { return; }

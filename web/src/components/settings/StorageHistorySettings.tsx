@@ -12,9 +12,10 @@ import {
   Text
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 function formatBytes(bytes: number | null): string {
-  if (bytes === null) return "Not available";
+  if (bytes === null) return i18n.t("editor:ui.notAvailable", { defaultValue: "Not available" });
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   if (bytes < 1024 * 1024 * 1024) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -73,7 +74,7 @@ export default function StorageHistorySettings() {
         .then(() => {
           addNotification({
             type: "success",
-            content: "Database compaction completed."
+            content: "Database compaction completed.", contentKey: "settings:storage.notifCompactDone"
           });
         })
         .catch((error) => {
@@ -174,7 +175,7 @@ export default function StorageHistorySettings() {
       <div className="settings-item">
         <NumberSetting
           label={t("settings:storage.lblKeepRunTrace", { defaultValue: "Keep app run inputs and outputs (days)" })}
-          description="After this many days, inputs, outputs, and document snapshots expire. Status, timing, and cost remain until the completed run record expires."
+          description={t("settings:storage.descKeepRunTrace", { defaultValue: "After this many days, inputs, outputs, and document snapshots expire. Status, timing, and cost remain until the completed run record expires." })}
           value={policy.runTraceRetentionDays ?? 30}
           onCommit={(value) => updatePolicy({ runTraceRetentionDays: value })}
           min={1}
@@ -186,7 +187,7 @@ export default function StorageHistorySettings() {
       <div className="settings-item">
         <NumberSetting
           label={t("settings:storage.lblKeepGen", { defaultValue: "Keep generation details (days)" })}
-          description="After this many days, prompts, parameters, and logs are cleared from generation records. The billing record — model, provider, tokens, cost, and date — is kept."
+          description={t("settings:storage.descKeepGen", { defaultValue: "After this many days, prompts, parameters, and logs are cleared from generation records. The billing record — model, provider, tokens, cost, and date — is kept." })}
           value={policy.predictionRetentionDays ?? 400}
           onCommit={(value) => updatePolicy({ predictionRetentionDays: value })}
           min={1}
@@ -234,7 +235,7 @@ export default function StorageHistorySettings() {
               onClick={() => setConfirmation("compact")}
               disabled={disabled}
             >
-              {history.isCompacting ? t("settings:storage.compacting", { defaultValue: "Compacting…" }) : "Compact database"}
+              {history.isCompacting ? t("settings:storage.compacting", { defaultValue: "Compacting…" }) : i18n.t("settings:storage.compact", { defaultValue: "Compact database" })}
             </EditorButton>
           )}
         </FlexRow>
@@ -245,14 +246,13 @@ export default function StorageHistorySettings() {
         onConfirm={runConfirmedAction}
         title={
           confirmation === "compact"
-            ? t("settings:storage.confirmCompactTitle", { defaultValue: "Compact database?" }) : "Clean old history?"
+            ? t("settings:storage.confirmCompactTitle", { defaultValue: "Compact database?" }) : t("settings:storage.confirmCleanTitle", { defaultValue: "Clean old history?" })
         }
         content={
           confirmation === "compact"
-            ? "Compaction returns unused SQLite pages to disk. It can pause database writes while it rebuilds a large local database."
-            : `Remove ${cleanupCount} old workflow-history, completed-run, and run-event records, and clear prompts and parameters from ${redactionCount} generation records? The billing record for each generation is kept. Current workflows, assets, checkpoints, and active runs are not changed.`
+            ? t("settings:storage.confirmCompactBody", { defaultValue: "Compaction returns unused SQLite pages to disk. It can pause database writes while it rebuilds a large local database." }) : `Remove ${cleanupCount} old workflow-history, completed-run, and run-event records, and clear prompts and parameters from ${redactionCount} generation records? The billing record for each generation is kept. Current workflows, assets, checkpoints, and active runs are not changed.`
         }
-        confirmText={confirmation === "compact" ? t("settings:storage.confirmCompact", { defaultValue: "Compact" }) : "Clean"}
+        confirmText={confirmation === "compact" ? t("settings:storage.confirmCompact", { defaultValue: "Compact" }) : i18n.t("settings:storage.confirmClean", { defaultValue: "Clean" })}
         cancelText="Cancel"
       />
     </>

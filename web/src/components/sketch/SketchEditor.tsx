@@ -676,7 +676,7 @@ function SketchEditor({
           <ResizableSideDock
             storageKey="sketch_assistant"
             className="sketch-editor__assistant-panel"
-            ariaLabel="Resize sketch assistant"
+            ariaLabel={t("sketch:attrs.resizeSketchAssistant", { defaultValue: "Resize sketch assistant" })}
           >
             <SketchAgentPanel />
           </ResizableSideDock>
@@ -716,7 +716,7 @@ function SketchEditor({
               open={mobilePanelsOpen}
               onClose={() => setMobilePanelsOpen(false)}
               title={t("sketch:attrs.layersAndColor", { defaultValue: "Layers & color" })}
-              ariaLabel="Layers and color panel"
+              ariaLabel={t("sketch:attrs.layersAndColorPanel", { defaultValue: "Layers and color panel" })}
             >
               <FlexColumn
                 className="sketch-editor__panel-right sketch-editor__panel-right--mobile"
@@ -733,7 +733,7 @@ function SketchEditor({
               open={assistantPanelOpen}
               onClose={() => setAssistantPanelOpen(false)}
               title={t("sketch:attrs.assistant", { defaultValue: "Assistant" })}
-              ariaLabel="AI assistant panel"
+              ariaLabel={t("sketch:attrs.aiAssistantPanel", { defaultValue: "AI assistant panel" })}
               maxHeight="85vh"
             >
               <FlexColumn

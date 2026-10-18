@@ -36,7 +36,7 @@ import ReportBugButton from "../../support/ReportBugButton";
 import { WorkflowExamplePicker } from "./ExamplePicker";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 export interface WorkflowIdeaStepProps {
   workflowId: string;
@@ -124,7 +124,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
       {
         id: "import",
         title: i18n.t("storyboard:attrs.importAWorkflow", { defaultValue: "Import a workflow" }),
-        description: importing ? i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" }) : "A workflow JSON file",
+        description: importing ? i18n.t("setup:common.readingYourFile", { defaultValue: "Reading your file" }) : i18n.t("setup:workflow.aWorkflowJSONFile", { defaultValue: "A workflow JSON file" }),
         onSelect: () => importInput.current?.click(),
         disabled: importing,
         disabledReason: "Reading your file"
@@ -138,7 +138,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         disabledReason: "Reading your file"
       }
     ],
-    [importing, onBrowseExamples, onStartBlank]
+    [importing, onBrowseExamples, onStartBlank, languageVersion]
   );
 
   if (browsingExamples) {
@@ -182,7 +182,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
           label={t("storyboard:attrs.theTask", { defaultValue: "The task" })}
           hideLabel
           placeholder="Make a cover image for each title in a list"
-          helperText="Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it."
+          helperText={i18n.t("editor:ui.onlyDescribeTaskHere", { defaultValue: "Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it." })}
           onChange={handleChange}
           inputRef={briefField}
         />

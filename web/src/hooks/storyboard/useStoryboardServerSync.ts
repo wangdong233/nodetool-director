@@ -33,7 +33,7 @@ import {
   registerStoryboardSaver,
   type StoryboardSaveResult
 } from "./storyboardSaveRegistry";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 const AUTOSAVE_DEBOUNCE_MS = 750;
 const RETRY_DELAY_MS = 5_000;

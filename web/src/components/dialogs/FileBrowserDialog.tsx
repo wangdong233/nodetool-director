@@ -42,6 +42,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 export type SelectionMode = "file" | "directory";
 
@@ -576,7 +577,7 @@ function FileBrowserDialog({
       handleNavigate(created);
     } catch (err) {
       setNewFolderError(
-        err instanceof Error ? err.message : "Could not create the folder"
+        err instanceof Error ? err.message : i18n.t("editor:ui.couldNotCreateTheFolder", { defaultValue: "Could not create the folder" })
       );
     }
   }, [newFolderName, currentPath, handleNavigate]);
@@ -748,7 +749,7 @@ function FileBrowserDialog({
             sx={{ mr: "auto", minWidth: 0 }}
           >
             <Text size="small" color="secondary" truncate>
-              {selectedPath ? `Selected: ${selectedPath}` : "No selection"}
+              {selectedPath ? `Selected: ${selectedPath}` : i18n.t("editor:ui.nothingSelectedStatus", { defaultValue: "No selection" })}
             </Text>
             {selectedPath && (
               <CopyButton

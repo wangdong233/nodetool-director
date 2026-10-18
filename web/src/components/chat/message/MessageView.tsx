@@ -71,6 +71,7 @@ import {
   type ToolCallRun
 } from "./groupToolCalls";
 import { toolCallPhrase, toolCallRunDisplay } from "./toolCallPhrase";
+import { i18n } from "../../../../i18n";
 
 /**
  * PrettyJson - Memoized component for displaying formatted JSON.
@@ -410,7 +411,7 @@ const ToolCallRow: React.FC<{
           <FlexColumn className="tool-row-details" gap={SPACING.xs}>
             {isSubtask && subtaskInstructions && (
               <FlexColumn gap={SPACING.xs}>
-                <Caption className="tool-section-title">Objective</Caption>
+                <Caption className="tool-section-title">{i18n.t("storyboard:attrs.objective", { defaultValue: "Objective" })}</Caption>
                 <Text size="small" className="subtask-instructions">
                   {subtaskInstructions}
                 </Text>
@@ -421,7 +422,7 @@ const ToolCallRow: React.FC<{
             )}
             {formattedActionCode && (
               <FlexColumn gap={SPACING.xs}>
-                <Caption className="tool-section-title">Code</Caption>
+                <Caption className="tool-section-title">{i18n.t("timeline:code.title", { defaultValue: "Code" })}</Caption>
                 <CodeBlock inline={false} className="language-javascript">
                   {formattedActionCode}
                 </CodeBlock>
@@ -430,7 +431,7 @@ const ToolCallRow: React.FC<{
             {hasArgs && (
               <FlexColumn gap={SPACING.xs}>
                 <Caption className="tool-section-title">
-                  {isSubtask ? "Other arguments" : "Arguments"}
+                  {isSubtask ? i18n.t("editor:ui.otherArguments", { defaultValue: "Other arguments" }) : i18n.t("editor:ui.arguments", { defaultValue: "Arguments" })}
                 </Caption>
                 <PrettyJson value={displayArgs} />
               </FlexColumn>
@@ -446,7 +447,7 @@ const ToolCallRow: React.FC<{
                   <Caption className="tool-section-title">Result</Caption>
                   <CopyButton
                     value={resultContent}
-                    tooltip="Copy result"
+                    tooltip={i18n.t("editor:ui.copyResult", { defaultValue: "Copy result" })}
                     buttonSize="small"
                   />
                 </FlexRow>
@@ -1164,7 +1165,7 @@ export const MessageView: React.FC<MessageViewProps> = React.memo(
               {canEditAndResend && (
                 <ToolbarIconButton
                   icon={<EditOutlinedIcon fontSize="small" />}
-                  tooltip="Edit and resend"
+                  tooltip={i18n.t("editor:ui.editAndResend", { defaultValue: "Edit and resend" })}
                   ariaLabel="Edit and resend"
                   onClick={handleEditAndResend}
                 />

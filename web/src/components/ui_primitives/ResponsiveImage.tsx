@@ -16,6 +16,7 @@ import {
   type MediaLocator
 } from "../../hooks/useResolvedMediaUri";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
+import { i18n } from "../../../i18n";
 
 export interface ResponsiveImageProps extends Omit<BoxProps, 'onError'> {
   /**
@@ -191,7 +192,7 @@ ThumbnailImage.displayName = "ThumbnailImage";
  *
  * @example
  * // With loading skeleton
- * <ResponsiveImage locator="asset://abc123" alt="Preview" showSkeleton borderRadius={8} />
+ * <ResponsiveImage locator="asset://abc123" alt={i18n.t("storyboard:attrs.preview", { defaultValue: "Preview" })} showSkeleton borderRadius={8} />
  *
  * @example
  * // A URL media resolution already produced

@@ -144,7 +144,7 @@ export const newVideoSetupDocument = (
 };
 
 /** The flow's name, above the stepper. Each step body carries its own heading. */
-const FLOW_LABELS = { title: "Video" } as const;
+const FLOW_LABELS = { title: "Video", titleKey: "home:entry.video.title" } as const;
 
 /**
  * What a plan was drafted from. Two runs of the Director over the same brief
@@ -404,7 +404,7 @@ export const useVideoSetupFlow = ({
   const draftResult =
     draftBeatCount === undefined
       ? i18n.t("setup:video.draftTheBeats", { defaultValue: "Draft the beats" }) : `Draft ${draftBeatCount} beat${draftBeatCount === 1 ? "" : "s"}${
-          placedClips > 0 ? ", one per clip" : ""
+          placedClips > 0 ? i18n.t("setup:video.onePerClip", { defaultValue: ", one per clip" }) : ""
         }`;
 
   // The estimate prices what the Director is sent, not only the brief: the
@@ -422,12 +422,12 @@ export const useVideoSetupFlow = ({
   const replanGeneration = useMemo(
     () => ({
       result: draftResult,
-      next: "Your edited plan guides the new beats, which replace these.",
+      next: i18n.t("setup:video.editedPlanGuidesNewBeats", { defaultValue: "Your edited plan guides the new beats, which replace these." }), nextKey: "setup:video.editedPlanGuidesNewBeats",
       model: director.model ? toLanguageModelValue(director.model) : null,
       brief: plannedBrief,
       maxOutputTokens: 8192
     }),
-    [director.model, draftResult, plannedBrief]
+    [director.model, draftResult, plannedBrief, languageVersion]
   );
 
   const emptyBeats = (beats ?? []).filter(
@@ -450,7 +450,7 @@ export const useVideoSetupFlow = ({
             // make of it, as the upload notice asks.
             (placedClips > 0
               ? "Say what to make of your media"
-              : "Describe the video, or bring your own media")),
+              : i18n.t("storyboard:attrs.describeTheVideoOrBringYourOwnMedia", { defaultValue: "Describe the video, or bring your own media" }))),
         // Change flow discards this draft, so it waits for the upload too.
         holdNavigation: importingMedia,
         render: (context) =>
@@ -473,9 +473,8 @@ export const useVideoSetupFlow = ({
         // the plan the creator edited, so coming back here and pressing on
         // returns them to it rather than replacing it (F15).
         primaryLabel: planIsCurrent
-          ? "Continue to the beats"
-          : hasPlan
-            ? i18n.t("storyboard:attrs.rePlanTheBeats", { defaultValue: "Re-plan the beats" }) : "Plan the beats",
+          ? i18n.t("storyboard:attrs.continueToTheBeats", { defaultValue: "Continue to the beats" }) : hasPlan
+            ? i18n.t("storyboard:attrs.rePlanTheBeats", { defaultValue: "Re-plan the beats" }) : i18n.t("storyboard:attrs.planTheBeats", { defaultValue: "Plan the beats" }),
         // A reopened draft carries the model it last used, which the
         // providers may have dropped since, so the plan waits for the list.
         canAdvance:
@@ -493,14 +492,13 @@ export const useVideoSetupFlow = ({
                   }) : director.noProvider
                   ? i18n.t("setup:video.noProviderOffersALanguageModel", {
                       defaultValue: "No provider offers a language model"
-                    }) : "Pick a model to draft the beats",
+                    }) : i18n.t("storyboard:attrs.pickAModelToDraftTheBeats", { defaultValue: "Pick a model to draft the beats" }),
         generation: planIsCurrent
           ? undefined
           : {
               result: draftResult,
               next: hasPlan
-                ? "Your inputs changed since this plan was drafted. Your edited plan will guide the new beats."
-                : "Review the beats and timing. Media comes later in Look.",
+                ? i18n.t("setup:video.inputsChangedEditedPlanGuides", { defaultValue: "Your inputs changed since this plan was drafted. Your edited plan will guide the new beats." }) : i18n.t("storyboard:attrs.reviewTheBeatsAndTimingMediaComesLaterInLook", { defaultValue: "Review the beats and timing. Media comes later in Look." }),
               model: director.model
                 ? toLanguageModelValue(director.model)
                 : null,
@@ -512,7 +510,7 @@ export const useVideoSetupFlow = ({
         footerControls: (context) =>
           createElement(DirectorModelPicker, { readOnly: context.readOnly }),
         pending: planning,
-        pendingLabel: "Planning the beats",
+        pendingLabel: i18n.t("storyboard:attrs.planningTheBeats", { defaultValue: "Planning the beats" }),
         // The wait can be the agent's plan, which no button of this step
         // started, so Cancel stops whichever run holds the sequence.
         onCancel: cancelPlan,
@@ -535,12 +533,12 @@ export const useVideoSetupFlow = ({
           reviewBlocker ??
           (hasPlan
             ? `Fill in ${emptyBeats} beat${emptyBeats === 1 ? "" : "s"}: every beat needs a description and a length`
-            : "Plan the beats first — there is nothing to review yet"),
+            : i18n.t("storyboard:attrs.planTheBeatsFirstThereIsNothingToReviewYet", { defaultValue: "Plan the beats first — there is nothing to review yet" })),
         // `Re-plan` runs outside the shell's primary button, so the shell has
         // to read its wait: the creator cannot leave the plan while the plan
         // is being rewritten under them (F2).
         pending: planning,
-        pendingLabel: "Re-planning the beats",
+        pendingLabel: i18n.t("storyboard:attrs.rePlanningTheBeats", { defaultValue: "Re-planning the beats" }),
         onCancel: cancelPlan,
         render: () =>
           createElement(ReviewStep, {
@@ -557,7 +555,7 @@ export const useVideoSetupFlow = ({
       {
         stage: "look",
         label: i18n.t("editor:ui.look", { defaultValue: "Look" }),
-        primaryLabel: "Generate your video",
+        primaryLabel: i18n.t("storyboard:attrs.generateYourVideo", { defaultValue: "Generate your video" }),
         // The agent can re-plan while Look is up. Generate would render
         // beats that are about to be replaced.
         canAdvance: !productionBlocker && !planning && look.canAdvance,

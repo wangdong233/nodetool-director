@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { NumberField } from "../ui_primitives";
 import useRemoteSettingsStore from "../../stores/RemoteSettingStore";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { formatRangeHint } from "./NumberSetting";
 interface ServerNumberSettingProps {

@@ -21,6 +21,7 @@ import {
 import { SETUP_FIELD_WIDTH } from "../layout";
 import { GalleryFrame } from "../MediaGallery";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface CreativeContextFieldsProps {
   readonly value: CreativeContext | undefined;
@@ -32,9 +33,9 @@ interface CreativeContextFieldsProps {
 
 const TEXT_FIELDS = [
   ["product_name", "Product name"],
-  ["product_description", "Product description"],
-  ["audience", "Audience"],
-  ["objective", "Objective"],
+  ["product_description", i18n.t("storyboard:attrs.productDescription", { defaultValue: "Product description" })],
+  ["audience", i18n.t("storyboard:attrs.audience", { defaultValue: "Audience" })],
+  ["objective", i18n.t("ui2:attrs.objective", { defaultValue: "Objective" })],
   ["tone", "Tone"]
 ] as const;
 
@@ -221,7 +222,7 @@ export default function CreativeContextFields({
             readOnly={readOnly}
             label={
               key === "approved_claims"
-                ? t("storyboard:attrs.approvedClaims", { defaultValue: "Approved claims" }) : "Prohibited claims"
+                ? t("storyboard:attrs.approvedClaims", { defaultValue: "Approved claims" }) : i18n.t("storyboard:attrs.prohibitedClaims", { defaultValue: "Prohibited claims" })
             }
             value={value?.[key]?.join("\n") ?? ""}
             onCommit={(text) => update(claimsPatch(key, text))}

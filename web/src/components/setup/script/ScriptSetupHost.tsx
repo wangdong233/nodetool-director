@@ -24,7 +24,7 @@ import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
 import { SetupFlow } from "../SetupFlow";
 import { useFinishIfLoadedDone } from "../useFinishIfLoadedDone";
 import { useScriptSetupFlow } from "./useScriptSetupFlow";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 export interface ScriptSetupHostProps {
   scriptId: string;

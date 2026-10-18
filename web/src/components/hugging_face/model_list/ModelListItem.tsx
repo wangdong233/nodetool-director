@@ -32,6 +32,7 @@ import ModelCompatibilityDialog from "./ModelCompatibilityDialog";
 import { classifyModelFit, estimateRequiredGb } from "./modelFit";
 import type { FitLevel } from "../onboarding/onboardingCatalog";
 import { executionForDisplay } from "../../../utils/modelNormalization";
+import { i18n } from "../../../../i18n";
 
 const IMPORTANT_TAGS = new Set(["gguf", "mlx"]);
 
@@ -228,7 +229,7 @@ const ModelListItem: React.FC<
               ))}
               {model.pipeline_tag && (
                 <Tooltip
-                  title="View trending models with this tag on HuggingFace"
+                  title={i18n.t("editor:ui.viewTrendingModelsWithThisTagOnHuggingFace", { defaultValue: "View trending models with this tag on HuggingFace" })}
                   delay={TOOLTIP_DESCRIPTION_DELAY}
                   nextDelay={TOOLTIP_ENTER_NEXT_DELAY * 2}
                 >

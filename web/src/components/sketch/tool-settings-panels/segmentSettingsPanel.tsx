@@ -28,6 +28,7 @@ import type { ImageModelValue } from "../../../stores/ApiTypes";
 import { useSketchStore } from "../state";
 import { getLayerDataImageUrl } from "../serialization";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 function promptModeHelpText(mode: SegmentPromptMode): string {
   if (mode === "point") {
@@ -112,7 +113,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
     modelReady &&
     (settings.promptMode === "auto" ? canSplitSelectedLayer : true);
   const segmentActionLabel =
-    settings.promptMode === "auto" ? t("sketch:attrs.splitSelectedLayer", { defaultValue: "Split selected layer" }) : "Segment";
+    settings.promptMode === "auto" ? t("sketch:attrs.splitSelectedLayer", { defaultValue: "Split selected layer" }) : i18n.t("sketch:attrs.segmentTool", { defaultValue: "Segment" });
   const showClearPrompts = settings.promptMode !== "auto";
   // The picker names the model, so its status line is only worth a row when
   // the model cannot run.
@@ -166,9 +167,9 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
               }}
             >
               {modelInfo.status === "not-installed" &&
-                (modelInfo.errorMessage ?? "Model not available")}
+                (modelInfo.errorMessage ?? i18n.t("sketch:attrs.modelNotAvailable", { defaultValue: "Model not available" }))}
               {modelInfo.status === "error" &&
-                (modelInfo.errorMessage ?? "Connection failed")}
+                (modelInfo.errorMessage ?? i18n.t("sketch:attrs.connectionFailed", { defaultValue: "Connection failed" }))}
               {modelInfo.status === "checking" && "Checking…"}
             </Text>
           )}
@@ -272,7 +273,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
           }
           label={
             <Text sx={{ ...TYPOGRAPHY.sans.label }}>
-              {settings.outputCutouts ? t("sketch:attrs.cutoutLayers", { defaultValue: "Cutout layers" }) : "Mask layers"}
+              {settings.outputCutouts ? t("sketch:attrs.cutoutLayers", { defaultValue: "Cutout layers" }) : i18n.t("sketch:attrs.maskLayers", { defaultValue: "Mask layers" })}
             </Text>
           }
           sx={{ ml: 0, mr: 0 }}
@@ -289,7 +290,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
               onChange({ conceptPrompt: event.target.value })
             }
             placeholder={t("editor:ui.describeTheObject", { defaultValue: "Describe the object" })}
-            inputProps={{ "aria-label": "Concept prompt" }}
+            inputProps={{ "aria-label": i18n.t("sketch:attrs.conceptPrompt", { defaultValue: "Concept prompt" }) }}
             // Wide enough for the placeholder to read in full, and it keeps
             // the bar from being dominated by one text field.
             sx={{ width: 200 }}
@@ -396,7 +397,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
             wordBreak: "break-word"
           }}
         >
-          {segmentationError ?? "Segmentation failed."}
+          {segmentationError ?? i18n.t("sketch:attrs.segmentationFailed", { defaultValue: "Segmentation failed." })}
         </Text>
       )}
     </>

@@ -41,6 +41,7 @@ import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
 import { useSettingsStore } from "../../stores/SettingsStore";
 import { GRID_DIVISION_OPTIONS } from "./Tracks/tempoGrid";
 import { formatActionShortcut } from "./timelineKeymap";
+import { i18n } from "../../../i18n";
 
 /** Custom pointer cursor — monoline, 1.6px stroke. */
 const PointerIcon: React.FC = () => (
@@ -263,7 +264,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       css={compact ? compactRowCss : undefined}
     >
       <ToolButton
-        label="Select"
+        label={i18n.t("common:action.select", { defaultValue: "Select" })}
         shortcut={formatActionShortcut(preset, "selectTool")}
         active={activeTool === "select"}
         compact={compact}
@@ -281,8 +282,8 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <ContentCutOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Ripple"
-        description="Trims and deletes close the gap"
+        label={i18n.t("timeline:tools.ripple", { defaultValue: "Ripple" })}
+        description={i18n.t("timeline:tools.rippleDesc", { defaultValue: "Trims and deletes close the gap" })}
         active={rippleMode}
         compact={compact}
         onClick={toggleRippleMode}
@@ -294,14 +295,14 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         gap={0.5}
         align="center"
         role="radiogroup"
-        aria-label="Drop mode"
+        aria-label={i18n.t("timeline:tools.dropMode", { defaultValue: "Drop mode" })}
         onKeyDown={handleDropModeKeyDown}
         css={compact ? compactGroupStyles : undefined}
       >
       <ToolButton
-        label="Overwrite"
+        label={i18n.t("timeline:tools.overwrite", { defaultValue: "Overwrite" })}
         role="radio"
-        description="A drop replaces what it covers"
+        description={i18n.t("timeline:tools.overwriteDesc", { defaultValue: "A drop replaces what it covers" })}
         active={dropMode === "overwrite"}
         compact={compact}
         onClick={() => setDropMode("overwrite")}
@@ -309,9 +310,9 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <FlipToFrontOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Insert"
+        label={i18n.t("timeline:tools.insert", { defaultValue: "Insert" })}
         role="radio"
-        description="A drop pushes later clips right (or Ctrl+drag in any mode)"
+        description={i18n.t("timeline:tools.insertDesc", { defaultValue: "A drop pushes later clips right (or Ctrl+drag in any mode)" })}
         active={dropMode === "insert"}
         compact={compact}
         onClick={() => setDropMode("insert")}
@@ -319,9 +320,9 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <KeyboardTabOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Overlap"
+        label={i18n.t("timeline:tools.overlap", { defaultValue: "Overlap" })}
         role="radio"
-        description="A drop stacks and cross-fades"
+        description={i18n.t("timeline:tools.overlapDesc", { defaultValue: "A drop stacks and cross-fades" })}
         active={dropMode === "overlap"}
         compact={compact}
         onClick={() => setDropMode("overlap")}
@@ -333,7 +334,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       <ToolButton
         label="Snap"
         shortcut={formatActionShortcut(preset, "toggleSnap")}
-        description="Hold Alt while dragging to bypass"
+        description={i18n.t("timeline:tools.snapDesc", { defaultValue: "Hold Alt while dragging to bypass" })}
         active={snapEnabled}
         compact={compact}
         onClick={toggleSnap}
@@ -342,7 +343,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       </ToolButton>
       <ToolButton
         label="Bars"
-        description="The ruler counts bars and beats, not seconds"
+        description={i18n.t("timeline:tools.barsDesc", { defaultValue: "The ruler counts bars and beats, not seconds" })}
         active={rulerMode === "bars"}
         compact={compact}
         onClick={toggleRulerMode}
@@ -350,7 +351,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <StraightenOutlinedIcon />
       </ToolButton>
       <SelectField
-        label="Grid division"
+        label={i18n.t("timeline:tools.gridDivision", { defaultValue: "Grid division" })}
         hideLabel
         size="small"
         value={gridDivision}
@@ -360,8 +361,8 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       />
       <span css={dividerStyles} aria-hidden />
       <ToolButton
-        label="Linked"
-        description="Video and its audio move together"
+        label={i18n.t("timeline:tools.linked", { defaultValue: "Linked" })}
+        description={i18n.t("timeline:tools.linkedDesc", { defaultValue: "Video and its audio move together" })}
         active={linkedSelection}
         compact={compact}
         onClick={() => setLinkedSelection(!linkedSelection)}

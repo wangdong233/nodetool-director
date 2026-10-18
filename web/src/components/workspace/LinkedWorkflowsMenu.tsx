@@ -22,6 +22,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface LinkedWorkflowsMenuProps {
   applicationId: string;
@@ -82,7 +83,7 @@ const LinkedWorkflowsMenu = ({
       >
         {links.length === 0 && (
           <MenuItem disabled>
-            <ListItemText primary="This app binds no workflow yet." />
+            <ListItemText primary={i18n.t("editor:ui.thisAppBindsNoWorkflowYet", { defaultValue: "This app binds no workflow yet." })} />
           </MenuItem>
         )}
         {links.map((link) => {

@@ -57,7 +57,7 @@ import { useVideoSetupContext } from "./setupContext";
 import CreativeContextFields from "./CreativeContextFields";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** How wide a carried reference thumbnail is drawn. */
 const REFERENCE_THUMBNAIL = getSpacingPx(12);
@@ -96,7 +96,7 @@ export interface IdeaStepProps {
 }
 
 /** Why the ways out of the step wait for an upload. */
-const UPLOAD_PENDING_REASON = "Wait for your files to finish uploading";
+const UPLOAD_PENDING_REASON = i18n.t("setup:video.waitFilesFinishUploading", { defaultValue: "Wait for your files to finish uploading" });
 
 const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   onStartBlank,
@@ -211,7 +211,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       }
       if (importing || importingRef.current) {
         setImportFailed(false);
-        setError("Wait for the current upload to finish, then drop again.");
+        setError(t("setup:video.waitCurrentUploadThenDropAgain", { defaultValue: "Wait for the current upload to finish, then drop again." }));
         return;
       }
       const media = files.filter(isMediaFile);
@@ -271,8 +271,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           ? i18n.t("storyboard:attrs.notAvailableHereStartAScriptFromTheProjectScreen", { defaultValue: "Not available here. Start a script from the project screen." }) : importing
             ? UPLOAD_PENDING_REASON
             : hasPlacedMedia
-              ? "Your media is on this timeline and would be left behind. Plan the beats here instead."
-              : undefined
+              ? t("setup:video.mediaOnTimelinePlanHere", { defaultValue: "Your media is on this timeline and would be left behind. Plan the beats here instead." }) : undefined
       },
       {
         id: "blank",
@@ -283,7 +282,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         disabledReason: importing ? UPLOAD_PENDING_REASON : undefined
       }
     ],
-    [hasPlacedMedia, importing, onStartBlank, onStartFromScript]
+    [hasPlacedMedia, importing, onStartBlank, onStartFromScript, languageVersion]
   );
 
   return (
@@ -433,7 +432,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                         <ResponsiveImage
                           locator={reference.uri}
                           preferThumbnail
-                          alt={reference.name ?? "Reference image"}
+                          alt={reference.name ?? i18n.t("storyboard:attrs.referenceImage", { defaultValue: "Reference image" })}
                           fit="cover"
                           borderRadius={BORDER_RADIUS.sm}
                           showErrorFallback
@@ -446,7 +445,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                       <Caption color="secondary">
                         {binding
                           ? `${binding.kind} conditioning`
-                          : "inspiration only"}
+                          : i18n.t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })}
                       </Caption>
                     </FlexColumn>
                   );
@@ -461,7 +460,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
                     label={`${entity.name} · ${
                       creativeContext?.reference_bindings?.find(
                         (binding) => binding.entity_id === entity.id
-                      )?.kind ?? "inspiration only"
+                      )?.kind ?? i18n.t("storyboard:attrs.inspirationOnly", { defaultValue: "inspiration only" })
                     }`}
                     size="small"
                   />

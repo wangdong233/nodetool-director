@@ -10,6 +10,7 @@ import {
 import type { SaveStateValue } from "../ui_primitives";
 import { useScriptSaveStatus } from "../../stores/script/ScriptStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ScriptSaveIndicatorProps {
   scriptId: string;
@@ -22,9 +23,9 @@ const SAVE_STATE: Record<string, SaveStateValue> = {
 };
 
 const TOOLTIPS: Record<string, string> = {
-  unsaved: "Unsaved changes — saving shortly",
-  error: "Couldn't sync with the server. Your changes are kept locally.",
-  saved: "All changes saved"
+  unsaved: i18n.t("editor:ui.unsavedChangesSavingShortly", { defaultValue: "Unsaved changes — saving shortly" }),
+  error: i18n.t("editor:ui.couldntSyncWithTheServerYourChangesAreKeptLocally", { defaultValue: "Couldn't sync with the server. Your changes are kept locally." }),
+  saved: i18n.t("editor:ui.allChangesSaved", { defaultValue: "All changes saved" })
 };
 
 /**

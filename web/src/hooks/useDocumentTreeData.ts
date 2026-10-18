@@ -2,6 +2,7 @@ import { useMemo, useRef } from "react";
 import type { Entity } from "@nodetool-ai/protocol";
 
 import { trpc } from "../trpc/client";
+import { i18n } from "../../i18n";
 
 export type DocumentTreeLeafType =
   | "workflow"
@@ -91,7 +92,7 @@ const GROUPS: readonly {
     types: ["sketch", "script", "storyboard", "timeline", "game"]
   },
   { id: "text", label: "Text files", types: ["text"] },
-  { id: "agents", label: "Agents & code", types: ["jsscript"] },
+  { id: "agents", label: i18n.t("editor:ui.agentsAndCode", { defaultValue: "Agents & code" }), types: ["jsscript"] },
   { id: "entities", label: "Entities", types: ["entity"] }
 ];
 

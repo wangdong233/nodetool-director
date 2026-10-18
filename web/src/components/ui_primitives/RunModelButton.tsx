@@ -20,6 +20,7 @@ import { Button } from "@mui/material";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { BORDER_RADIUS, MOTION } from "./tokens";
 import { SPACING, getSpacingPx } from "./spacing";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -87,7 +88,7 @@ const RunModelButtonInner = forwardRef<
     <Button
       ref={ref}
       css={cssStyles}
-      className={`run-model-button nodrag ${isRunning ? "running" : ""} ${className ?? ""}`}
+      className={`run-model-button nodrag ${isRunning ? i18n.t("setup:workflow.pill_running", { defaultValue: "running" }) : ""} ${className ?? ""}`}
       onClick={handleClick}
       disabled={disabled}
       startIcon={

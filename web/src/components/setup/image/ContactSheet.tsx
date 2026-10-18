@@ -45,7 +45,7 @@ import { variationSeeds } from "../../../hooks/sketch/useGenerateVariations";
 import { resolveMediaUri } from "../../../utils/resolveMediaUri";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 export interface ContactSheetProps {
   /** The batch, in the order it was enqueued. */
@@ -97,7 +97,7 @@ export const downloadVariation = async (
 ): Promise<void> => {
   const url = await resolveMediaUri(`asset://${assetId}`);
   if (!url) {
-    throw new Error("Its file could not be found.");
+    throw new Error(i18n.t("setup:image.itsFileCouldNotBeFound", { defaultValue: "Its file could not be found." }));
   }
   const response = await fetch(url);
   if (!response.ok) {
@@ -119,17 +119,17 @@ export const downloadVariation = async (
 
 /** Status wording that says what is happening rather than naming a state. */
 const STATUS_TEXT: Record<string, string> = {
-  draft: "Waiting to start",
+  draft: "Waiting to start", draftKey: "storyboard:attrs.waitingToStart",
   queued: "Queued",
   generating: "Rendering",
-  failed: "This one failed"
+  failed: i18n.t("storyboard:attrs.thisOneFailed", { defaultValue: "This one failed" })
 };
 
 /** Statuses that mean the request has not settled yet. */
 const PENDING = new Set(["draft", "queued", "generating"]);
 
 /** What a failure says when the take recorded no reason of its own. */
-const UNRECORDED_REASON = "This one did not render, and gave no reason.";
+const UNRECORDED_REASON = i18n.t("setup:image.thisOneDidNotRender", { defaultValue: "This one did not render, and gave no reason." });
 
 /** Where saving a variation to the library has got to. */
 type SaveState = "idle" | "saving" | "saved" | "failed";
@@ -256,7 +256,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
         ...current,
         [layerId]: {
           state: "saving",
-          message: destination === "entity" ? i18n.t("setup:image.savingToEntitiesProgress", { defaultValue: "Saving to entities…" }) : "Opening…"
+          message: destination === "entity" ? i18n.t("setup:image.savingToEntitiesProgress", { defaultValue: "Saving to entities…" }) : i18n.t("setup:image.openingProgress", { defaultValue: "Opening…" })
         }
       }));
       try {
@@ -271,7 +271,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
             state: "saved",
             message:
               destination === "entity"
-                ? i18n.t("storyboard:attrs.savedToEntities", { defaultValue: "Saved to entities." }) : "Opened in a new node canvas."
+                ? i18n.t("storyboard:attrs.savedToEntities", { defaultValue: "Saved to entities." }) : i18n.t("storyboard:attrs.openedInANewNodeCanvas", { defaultValue: "Opened in a new node canvas." })
           }
         }));
       } catch (cause) {
@@ -360,7 +360,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
 
       <Box
         role="group"
-        aria-label={t("storyboard:attrs.variations", { defaultValue: "Variations" })}
+        aria-label={i18n.t("storyboard:attrs.variations", { defaultValue: "Variations" })}
         sx={{
           display: "grid",
           gridTemplateColumns:
@@ -455,8 +455,8 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
                     </EditorButton>
                     {(
                       [
-                        ["entity", "Save to entities"],
-                        ["canvas", "New node canvas"],
+                        ["entity", i18n.t("storyboard:attrs.saveToEntities", { defaultValue: "Save to entities" })],
+                        ["canvas", i18n.t("storyboard:attrs.newNodeCanvas", { defaultValue: "New node canvas" })],
                         ["video", "Image to video"]
                       ] as const
                     ).map(([destination, label]) => (
@@ -529,7 +529,7 @@ const ContactSheetInternal: React.FC<ContactSheetProps> = ({
           disabled={makeMorePending}
           onClick={onMakeMore}
         >
-          {makeMorePending ? i18n.t("storyboard:attrs.makingMore", { defaultValue: "Making more…" }) : "Make more variations"}
+          {makeMorePending ? i18n.t("storyboard:attrs.makingMore", { defaultValue: "Making more…" }) : i18n.t("storyboard:attrs.makeMoreVariations", { defaultValue: "Make more variations" })}
         </EditorButton>
         {makeMoreDetail && !makeMorePending ? (
           <Caption color="secondary" sx={{ alignSelf: "center" }}>

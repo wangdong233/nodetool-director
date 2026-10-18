@@ -15,6 +15,7 @@ import { PREVIEW_NODE_TYPE } from "../../constants/nodeTypes";
 import { edge, meta, node, out, prop, type GraphNode } from "../castHelpers";
 import { CAST_ASSET_SCHEME, type CastAsset, type CastViewport } from "../castTypes";
 import type { Edge, NodeMetadata, Workflow } from "../../stores/ApiTypes";
+import { i18n } from "../../../i18n";
 
 /** Assemble a synthetic Workflow from nodes/edges (positions are real). */
 export const cookbookWorkflow = (
@@ -83,7 +84,7 @@ export const OUTPUT_NODE_TYPE = "nodetool.output.Output";
 export const stringInputMeta = (): NodeMetadata =>
   meta({
     node_type: "nodetool.input.StringInput",
-    title: "String Input",
+    title: i18n.t("editor:ui.stringInput", { defaultValue: "String Input" }),
     properties: [prop("name", "str"), prop("value", "str")],
     outputs: [out("output", "str")],
     inline_fields: ["value"],

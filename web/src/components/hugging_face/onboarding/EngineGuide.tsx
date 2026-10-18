@@ -29,7 +29,7 @@ import {
   type OnboardingNodePack
 } from "./onboardingCatalog";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
   const { t } = useTranslation();
@@ -161,7 +161,7 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
           }
           sx={{ flexShrink: 0 }}
         >
-          {available ? t("editor:ui.install", { defaultValue: "Install" }) : "Open manager"}
+          {available ? t("editor:ui.install", { defaultValue: "Install" }) : i18n.t("editor:ui.openPackageManager", { defaultValue: "Open manager" })}
         </EditorButton>
       )}
     </FlexRow>
@@ -219,7 +219,7 @@ const EngineGuide: React.FC = () => {
             </Text>
             <Caption sx={{ opacity: 0.7 }}>
               {available
-                ? i18n.t("editor:ui.installThePacksThatAddTheNodesYouWantToUse", { defaultValue: "Install the packs that add the nodes you want to use." }) : "Node packs install from the desktop app's Package Manager."}
+                ? i18n.t("editor:ui.installThePacksThatAddTheNodesYouWantToUse", { defaultValue: "Install the packs that add the nodes you want to use." }) : i18n.t("editor:ui.nodePacksInstallFromTheDesktopAppsPackageManager", { defaultValue: "Node packs install from the desktop app's Package Manager." })}
             </Caption>
           </FlexColumn>
           <EditorButton

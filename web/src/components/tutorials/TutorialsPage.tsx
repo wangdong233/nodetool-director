@@ -29,6 +29,7 @@ import { TutorialCard } from "./TutorialCard";
 import { TUTORIALS, getTutorial } from "./tutorialsData";
 import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -318,7 +319,7 @@ const TutorialsPage: React.FC = () => {
           <Logo small width="26px" height="26px" fontSize="1em" borderRadius={BORDER_RADIUS.sm} />
         }
         title={t("nav:rail.tutorials", { defaultValue: "Tutorials" })}
-        subtitle="Short, beginner-friendly walkthroughs of NodeTool"
+        subtitle={t("tools:tutorials.subtitle", { defaultValue: "Short, beginner-friendly walkthroughs of NodeTool" })}
         hideSubtitleOnMobile
         actions={
           <EditorButton
@@ -435,7 +436,7 @@ const TutorialsPage: React.FC = () => {
                   disabled={openingTask}
                   aria-busy={openingTask}
                 >
-                  {openingTask ? t("tools:tutorials.openingTask", { defaultValue: "Opening task…" }) : "Open task"}
+                  {openingTask ? t("tools:tutorials.openingTask", { defaultValue: "Opening task…" }) : i18n.t("editor:ui.openTask", { defaultValue: "Open task" })}
                 </EditorButton>
               ) : (
                 <EditorButton variant="contained" onClick={() => navigate("/workspace")}>

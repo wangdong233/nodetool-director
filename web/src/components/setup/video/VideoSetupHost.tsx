@@ -26,7 +26,7 @@ import { useTimelineAgentBridge } from "../../../hooks/timeline/useTimelineAgent
 import { buildTimelineDocumentPayload } from "../../../hooks/timeline/timelineDocumentPayload";
 import DocumentLoadStatus from "../../workspace/DocumentLoadStatus";
 import { FlexColumn, PADDING, ThinkingIndicator } from "../../ui_primitives";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 import { SetupFlow } from "../SetupFlow";
 import { useFinishIfLoadedDone } from "../useFinishIfLoadedDone";
 import {
@@ -119,10 +119,10 @@ const VideoSetupBody = ({
   useFinishIfLoadedDone(loaded, config.stage, onFinish);
 
   if (query.isError) {
-    return <DocumentLoadStatus state="error" label="video" />;
+    return <DocumentLoadStatus state="error" label={i18n.t("home:flowError.kind.video", { defaultValue: "video" })} />;
   }
   if (!loaded) {
-    return <DocumentLoadStatus state="loading" label="video" />;
+    return <DocumentLoadStatus state="loading" label={i18n.t("home:flowError.kind.video", { defaultValue: "video" })} />;
   }
   // Generate writes `done` before it saves and sends the clips, and the host
   // opens the timeline only after that. The shell has no step for `done`, so

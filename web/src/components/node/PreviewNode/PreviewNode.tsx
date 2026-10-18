@@ -43,7 +43,7 @@ import {
 } from "../../../hooks/nodes/useNodeResultHistory";
 import { useNodes } from "../../../contexts/NodeContext";
 import { isObjectLike } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>

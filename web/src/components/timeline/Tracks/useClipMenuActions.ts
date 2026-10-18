@@ -26,6 +26,7 @@ import {
   canDetectClipBeats,
   useDetectClipBeats
 } from "../../../hooks/timeline/useDetectClipBeats";
+import { i18n } from "../../../../i18n";
 
 export interface ClipMenuActions {
   /** Generated clips can be re-rolled into a sibling take. */
@@ -85,7 +86,7 @@ export function useClipMenuActions(
     if (at > current.startMs && at < current.startMs + current.durationMs) {
       splitClipAtTime(clipId, at);
     } else {
-      onError("Move the playhead inside the clip to split it.");
+      onError(i18n.t("timeline:attrs.moveThePlayheadInsideTheClipToSplitIt", { defaultValue: "Move the playhead inside the clip to split it." }));
     }
   }, [clipId, onError, playbackApi, splitClipAtTime, timelineApi]);
 

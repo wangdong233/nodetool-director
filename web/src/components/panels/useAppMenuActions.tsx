@@ -21,6 +21,7 @@ import { openPageTab } from "../workspace/openPageTab";
 import { type PageTabKey } from "../workspace/pageTabs";
 
 export interface AppMenuAction {
+  labelKey?: string;
   key: string;
   label: string;
   icon: React.ReactNode;
@@ -77,7 +78,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     const actions: AppMenuAction[] = [
       {
         key: "tutorials",
-        label: "Tutorials",
+        label: "Tutorials", labelKey: "home:blank.tutorials",
         icon: <SchoolOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("tutorials")
@@ -126,7 +127,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     actions.push(
       {
         key: "assets",
-        label: "Assets",
+        label: "Assets", labelKey: "editor:explorer.title",
         icon: <PermMediaOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("assets")
@@ -155,14 +156,14 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
       },
       {
         key: "settings",
-        label: "Settings",
+        label: "Settings", labelKey: "nav:settings.title",
         icon: <SettingsIcon />,
         placement: "both",
         onClick: () => openPage("settings")
       },
       {
         key: "help",
-        label: "Help",
+        label: "Help", labelKey: "timeline:shortcuts.help",
         icon: <HelpOutlineIcon />,
         placement: "both",
         onClick: () => {

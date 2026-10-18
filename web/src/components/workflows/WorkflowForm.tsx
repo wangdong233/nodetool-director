@@ -12,7 +12,7 @@ import WorkspaceSelect from "../workspaces/WorkspaceSelect";
 import { useTranslation } from "react-i18next";
 
 const RUN_MODE_OPTIONS = [
-  { value: "workflow", label: "Workflow" },
+  { value: "workflow", label: "Workflow", labelKey: "home:flowError.kind.workflow" },
   { value: "chat", label: "Chat" },
   { value: "app", label: "App" },
   { value: "tool", label: "Tool" }
@@ -241,7 +241,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
 
       <FormSection label={t("editor:ui.advanced", { defaultValue: "Advanced" })} className="settings-section">
         <WorkspaceSelect
-          label="Workspace"
+          label={t("tools:tutorials.backToWorkspace", { defaultValue: "Workspace" })}
           value={localWorkflow.workspace_id ?? undefined}
           onChange={handleWorkspaceChange}
           helperText={t("editor:ui.associateWorkspaceFolder", { defaultValue: "Associate a workspace folder with this workflow for agent access" })}

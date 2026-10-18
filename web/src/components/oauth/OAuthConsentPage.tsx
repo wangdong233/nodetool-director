@@ -26,6 +26,7 @@ import {
 import { trpcClient } from "../../trpc/client";
 import { navigateToRedirect } from "./navigate";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const OAuthConsentPage = () => {
   const { t } = useTranslation();
@@ -113,7 +114,7 @@ const OAuthConsentPage = () => {
         <PageHeader
           variant="plain"
           title={request.client_name}
-          subtitle="wants to connect to your NodeTool account."
+          subtitle={t("ui2:attrs.wantsToConnectToYourNodeToolAccount", { defaultValue: "wants to connect to your NodeTool account." })}
         />
 
         <FlexColumn gap={1} sx={{ mt: 1 }}>
@@ -138,7 +139,7 @@ const OAuthConsentPage = () => {
           <AlertBanner severity="error">
             {mutationError instanceof Error
               ? mutationError.message
-              : "Could not complete this request."}
+              : i18n.t("editor:ui.couldNotCompleteThisRequest", { defaultValue: "Could not complete this request." })}
           </AlertBanner>
         )}
 

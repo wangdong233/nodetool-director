@@ -116,9 +116,9 @@ export const KNOBS: KnobTable = {
   // FableSynth inserts render their own device view.
   fable: [],
   colorCorrection: [
-    { key: "brightness", label: "Brightness", min: -1, max: 1, step: 0.01 },
-    { key: "contrast", label: "Contrast", min: 0, max: 4, step: 0.01 },
-    { key: "saturation", label: "Saturation", min: 0, max: 4, step: 0.01 },
+    { key: "brightness", label: "Brightness", labelKey: "storyboard:attrs.brightness", min: -1, max: 1, step: 0.01 },
+    { key: "contrast", label: "Contrast", labelKey: "storyboard:attrs.contrast", min: 0, max: 4, step: 0.01 },
+    { key: "saturation", label: "Saturation", labelKey: "storyboard:attrs.saturation", min: 0, max: 4, step: 0.01 },
     { key: "hue", label: "Hue", min: -180, max: 180, step: 1, unit: "°" },
     { key: "temperature", label: "Temp", min: -1, max: 1, step: 0.01 },
     { key: "tint", label: "Tint", min: -1, max: 1, step: 0.01 },

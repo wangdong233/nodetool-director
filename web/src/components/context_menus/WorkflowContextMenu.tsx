@@ -15,6 +15,7 @@ import EditIcon from "@mui/icons-material/EditOutlined";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const WorkflowContextMenu: React.FC = () => {
   const { t } = useTranslation();
@@ -81,7 +82,7 @@ const WorkflowContextMenu: React.FC = () => {
       <ListSubheader>{payload.name}</ListSubheader>
       <ContextMenuItem
         onClick={handleToggleFavorite}
-        label={isFavorite ? t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : "Add to favorites"}
+        label={isFavorite ? t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : i18n.t("editor:workflow.addFav", { defaultValue: "Add to favorites" })}
         IconComponent={isFavorite ? <StarIcon /> : <StarBorderIcon />}
       />
       <ContextMenuItem onClick={handleEdit} label={t("editor:workflow.edit", { defaultValue: "Edit" })} IconComponent={<EditIcon />} />

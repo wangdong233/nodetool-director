@@ -123,13 +123,13 @@ export class WebGPUCompositor implements TimelineCompositor {
 
   async init(canvas: HTMLCanvasElement): Promise<CompositorInitResult> {
     if (typeof navigator === "undefined" || !navigator.gpu) {
-      return { ok: false, reason: "WebGPU not supported in this browser" };
+      return { ok: false, reason: "WebGPU not supported in this browser", reasonKey: "timeline:attrs.webgpuNotSupportedInThisBrowser" };
     }
     const adapter = await navigator.gpu.requestAdapter({
       powerPreference: "high-performance"
     });
     if (!adapter) {
-      return { ok: false, reason: "No WebGPU adapter available" };
+      return { ok: false, reason: "No WebGPU adapter available", reasonKey: "timeline:attrs.noWebGPUAdapterAvailable" };
     }
     const device = await adapter.requestDevice();
     this.device = device;
@@ -156,7 +156,7 @@ export class WebGPUCompositor implements TimelineCompositor {
     });
     const context = canvas.getContext("webgpu");
     if (!context) {
-      return { ok: false, reason: "Failed to get WebGPU canvas context" };
+      return { ok: false, reason: "Failed to get WebGPU canvas context", reasonKey: "timeline:attrs.failedToGetWebGPUCanvasContext" };
     }
 
     this.context = context;

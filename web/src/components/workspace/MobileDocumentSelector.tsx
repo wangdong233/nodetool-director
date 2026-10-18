@@ -31,6 +31,7 @@ import {
 import { PROJECT_HOME_GLYPH, tabDisplayTitle } from "./tabTypeIdentity";
 import { PROJECT_COLOR } from "../projects/projectIdentity";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface MobileDocumentSelectorProps {
   tabs: WorkspaceTab[];
@@ -220,7 +221,7 @@ const MobileDocumentSelector = ({
             ? tabDisplayTitle(activeTab)
             : homeIsActive
               ? "Project home"
-              : "No document open"}
+              : i18n.t("nav:tabs.noDocumentOpen", { defaultValue: "No document open" })}
         </span>
         {activeTab && <DocumentStatus tab={activeTab} />}
         {tabs.length > 1 && (
@@ -233,7 +234,7 @@ const MobileDocumentSelector = ({
         open={open}
         onClose={closeSheet}
         title={t("nav:tabs.openDocuments", { defaultValue: "Open documents" })}
-        ariaLabel="Switch between open documents"
+        ariaLabel={t("nav:tabs.switchDocs", { defaultValue: "Switch between open documents" })}
       >
         <div css={listStyles}>
           {tabs.length === 0 && (
@@ -286,7 +287,7 @@ const MobileDocumentSelector = ({
                     className="close-all"
                     onClick={handleCloseAll}
                   >
-                    <ListItemText primary="Close all documents" />
+                    <ListItemText primary={t("nav:tabs.closeAllDocs", { defaultValue: "Close all documents" })} />
                   </ListItemButton>
                 </ListItem>
               </List>

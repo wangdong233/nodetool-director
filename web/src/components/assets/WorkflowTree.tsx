@@ -190,12 +190,12 @@ const WorkflowTree: React.FC = () => {
         role="button"
         tabIndex={0}
         aria-expanded={expanded}
-        aria-label="Workflows"
+        aria-label={t("ui2:attrs.workflows", { defaultValue: "Workflows" })}
         onClick={toggleExpanded}
         onKeyDown={handleRootKeyDown}
       >
         <AccountTreeIcon className="root-icon" />
-        <span className="root-label">Workflows</span>
+        <span className="root-label">{t("ui2:attrs.workflows", { defaultValue: "Workflows" })}</span>
         <ExpandMoreIcon className="expand-icon" />
       </div>
 

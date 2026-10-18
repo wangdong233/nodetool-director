@@ -36,6 +36,7 @@ import type { ChatDemoCast } from "./demo/chat/chatCastTypes";
 import { TimelineDemoPlayer } from "./demo/timeline/TimelineDemoPlayer";
 import { timelineCasts } from "./demo/timeline/casts";
 import type { TimelineDemoCast } from "./demo/timeline/timelineCastTypes";
+import { i18n } from "./i18n";
 
 interface NodetoolDemoApi {
   ready: boolean;
@@ -225,7 +226,7 @@ function App(): React.JSX.Element {
           style={styles.button}
           onClick={() => setPlaying((p) => !p)}
         >
-          {playing ? "Pause" : "Play"}
+          {playing ? i18n.t("timeline:attrs.pause2", { defaultValue: "Pause" }) : "Play"}
         </button>
         <input
           type="range"

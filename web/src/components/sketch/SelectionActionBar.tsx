@@ -58,6 +58,7 @@ import { SKETCH_Z_INDEX } from "./sketchStyles";
 import { RefineSelectionPopover } from "./tool-settings-panels/refine-selection";
 import { useAlertNotifier } from "../../hooks/useAlertNotifier";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** Gap in CSS px between the selection edge and the bar. */
 const BAR_GAP = 12;
@@ -228,13 +229,13 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
         setJobLayerId(null);
         switch (result.reason) {
           case "no-selection":
-            reportError("Make a selection first.");
+            reportError(t("sketch:attrs.makeASelectionFirst", { defaultValue: "Make a selection first." }));
             break;
           case "no-document":
-            reportError("No image document is open.");
+            reportError(t("sketch:attrs.noImageDocumentIsOpen", { defaultValue: "No image document is open." }));
             break;
           case "no-canvas":
-            reportError("Canvas is not ready yet.");
+            reportError(t("sketch:attrs.canvasIsNotReadyYet", { defaultValue: "Canvas is not ready yet." }));
             break;
           case "error":
             reportError(result.message ?? "Generation failed.");
@@ -246,7 +247,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
       await start(result.layerId);
       setPrompt("");
     } catch (e) {
-      reportError(e instanceof Error ? e.message : "Generation failed.");
+      reportError(e instanceof Error ? e.message : t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." }));
     } finally {
       setGenerating(false);
     }
@@ -442,10 +443,10 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
           onChange={(e) => setPrompt(e.target.value)}
           placeholder={
             mode === "inpaint"
-              ? t("sketch:attrs.replaceSelectionWith", { defaultValue: "Replace selection with…" }) : "Describe the edit…"
+              ? t("sketch:attrs.replaceSelectionWith", { defaultValue: "Replace selection with…" }) : t("sketch:attrs.describeTheEdit", { defaultValue: "Describe the edit…" })
           }
           compact
-          aria-label={mode === "inpaint" ? t("sketch:attrs.inpaintPrompt", { defaultValue: "Inpaint prompt" }) : "Edit prompt"}
+          aria-label={mode === "inpaint" ? t("sketch:attrs.inpaintPrompt", { defaultValue: "Inpaint prompt" }) : i18n.t("sketch:attrs.editPrompt", { defaultValue: "Edit prompt" })}
           data-testid="sketch-selection-inpaint-prompt"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !generateDisabled) {
@@ -478,8 +479,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
         <Tooltip
           title={
             mode === "inpaint"
-              ? "Inpaint — regenerate the selected region using your prompt and the selection as a mask."
-              : "Edit — transform the whole frame from your prompt."
+              ? t("sketch:attrs.inpaintRegenerateTheSelectedRegionUsingYourPromptAndTheSelectionAsAMask", { defaultValue: "Inpaint — regenerate the selected region using your prompt and the selection as a mask." }) : i18n.t("sketch:attrs.editTransformTheWholeFrameFromYourPrompt", { defaultValue: "Edit — transform the whole frame from your prompt." })
           }
           placement={placeAbove ? "top" : "bottom"}
         >
@@ -498,7 +498,7 @@ const SelectionActionBarInner: React.FC<SelectionActionBarProps> = ({
               }
               data-testid="sketch-selection-generate"
             >
-              {mode === "inpaint" ? t("sketch:attrs.inpaint", { defaultValue: "Inpaint" }) : "Edit"}
+              {mode === "inpaint" ? t("sketch:attrs.inpaint", { defaultValue: "Inpaint" }) : i18n.t("editor:workflow.edit", { defaultValue: "Edit" })}
             </EditorButton>
           </span>
         </Tooltip>

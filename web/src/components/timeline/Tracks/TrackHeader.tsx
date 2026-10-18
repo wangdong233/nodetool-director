@@ -76,6 +76,7 @@ import type { LongPressPoint } from "../../../hooks/timeline/useLongPress";
 import { trackRowHeightPx } from "./trackHeight";
 import { useTimelineLayoutStore } from "../../../stores/timeline/TimelineLayoutStore";
 import { trackTypeMeta, trackTypeAccent } from "./trackVisuals";
+import { i18n } from "../../../../i18n";
 export const TRACK_HEADER_WIDTH_PX = DEFAULT_TRACK_HEADER_WIDTH_PX;
 /**
  * Phone header width. 192px is half a 390px viewport — the lanes get less room
@@ -772,12 +773,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
           onChange={handlePresetChange}
           css={instrumentOnOwnRow ? instrumentRowSelectStyles : presetSelectStyles}
         />
-        <Tooltip title="Edit instrument">
+        <Tooltip title={i18n.t("timeline:attrs.editInstrument", { defaultValue: "Edit instrument" })}>
           <button
             type="button"
             css={instrumentExpanded ? iconButtonOnCss : iconButtonOffCss}
             onClick={handleInstrumentToggle}
-            aria-label="Edit instrument"
+            aria-label={i18n.t("timeline:attrs.editInstrument", { defaultValue: "Edit instrument" })}
             aria-expanded={instrumentExpanded}
             aria-pressed={instrumentExpanded}
             data-testid={`track-instrument-${track.id}`}
@@ -814,7 +815,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
           <div css={topRowStyles}>
             {!compact && (
               <>
-                <Tooltip title="Drag to reorder track">
+                <Tooltip title={i18n.t("timeline:attrs.dragToReorderTrack", { defaultValue: "Drag to reorder track" })}>
                   <div
                     css={dragHandleCss}
                     draggable
@@ -845,7 +846,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                 onEditingChange={setEditingName}
                 onCommit={commitName}
                 ariaLabel={`Track name: ${track.name}`}
-                title="Double-click to rename"
+                title={i18n.t("timeline:attrs.doubleclickToRename", { defaultValue: "Double-click to rename" })}
               />
               <span
                 css={indexChipCss}
@@ -868,12 +869,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             className={compact ? "timeline-track-controls" : undefined}
           >
             {track.type !== "midi" && (
-              <Tooltip title={track.visible ? "Hide track" : "Show track"}>
+              <Tooltip title={track.visible ? i18n.t("timeline:attrs.hideTrack", { defaultValue: "Hide track" }) : i18n.t("timeline:attrs.showTrack", { defaultValue: "Show track" })}>
                 <button
                   type="button"
                   css={track.visible ? iconButtonOnCss : iconButtonWarningCss}
                   onClick={() => setTrackVisible(track.id, !track.visible)}
-                  aria-label={track.visible ? "Hide track" : "Show track"}
+                  aria-label={track.visible ? i18n.t("timeline:attrs.hideTrack", { defaultValue: "Hide track" }) : i18n.t("timeline:attrs.showTrack", { defaultValue: "Show track" })}
                   aria-pressed={!track.visible}
                 >
                   {track.visible ? (
@@ -885,12 +886,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
               </Tooltip>
             )}
 
-            <Tooltip title={track.locked ? "Unlock track" : "Lock track"}>
+            <Tooltip title={track.locked ? i18n.t("timeline:attrs.unlockTrack", { defaultValue: "Unlock track" }) : i18n.t("timeline:attrs.lockTrack", { defaultValue: "Lock track" })}>
               <button
                 type="button"
                 css={track.locked ? iconButtonWarningCss : iconButtonOnCss}
                 onClick={() => setTrackLocked(track.id, !track.locked)}
-                aria-label={track.locked ? "Unlock track" : "Lock track"}
+                aria-label={track.locked ? i18n.t("timeline:attrs.unlockTrack", { defaultValue: "Unlock track" }) : i18n.t("timeline:attrs.lockTrack", { defaultValue: "Lock track" })}
                 aria-pressed={track.locked}
               >
                 {track.locked ? <LockOutlinedIcon /> : <LockOpenOutlinedIcon />}
@@ -915,12 +916,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                   </button>
                 </Tooltip>
 
-                <Tooltip title={track.solo ? "Unsolo" : "Solo"}>
+                <Tooltip title={track.solo ? i18n.t("timeline:attrs.unsolo", { defaultValue: "Unsolo" }) : i18n.t("timeline:attrs.solo", { defaultValue: "Solo" })}>
                   <button
                     type="button"
                     css={track.solo ? iconButtonSuccessCss : iconButtonOnCss}
                     onClick={() => setTrackSolo(track.id, !track.solo)}
-                    aria-label={track.solo ? "Unsolo" : "Solo"}
+                    aria-label={track.solo ? i18n.t("timeline:attrs.unsolo", { defaultValue: "Unsolo" }) : i18n.t("timeline:attrs.solo", { defaultValue: "Solo" })}
                     aria-pressed={!!track.solo}
                   >
                     <span css={soloGlyphStyles}>S</span>
@@ -935,8 +936,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
               <Tooltip
                 title={
                   effectsCount === 0
-                    ? "Effects chain (empty)"
-                    : `Effects chain (${effectsCount})`
+                    ? i18n.t("timeline:attrs.effectsChainEmpty", { defaultValue: "Effects chain (empty)" }) : `Effects chain (${effectsCount})`
                 }
               >
                 <button
@@ -948,7 +948,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
                   }
                   onClick={handleFxToggle}
                   aria-label={
-                    fxExpanded ? "Hide effects chain" : "Show effects chain"
+                    fxExpanded ? i18n.t("timeline:attrs.hideEffectsChain", { defaultValue: "Hide effects chain" }) : i18n.t("timeline:attrs.showEffectsChain", { defaultValue: "Show effects chain" })
                   }
                   aria-pressed={fxExpanded}
                   data-testid={`track-fx-${track.id}`}
@@ -979,7 +979,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             onPointerCancel={handleResizePointerEnd}
             onKeyDown={handleResizeKeyDown}
             onContextMenu={stopPointerPropagation}
-            aria-label="Resize track height"
+            aria-label={i18n.t("timeline:attrs.resizeTrackHeight", { defaultValue: "Resize track height" })}
             role="separator"
             aria-orientation="horizontal"
             aria-valuenow={Math.round(authoredHeightPx)}
@@ -1002,12 +1002,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             onClick={handleMenuRename}
           />
           <MenuItemPrimitive
-            label="Duplicate track"
+            label={i18n.t("timeline:attrs.duplicateTrack", { defaultValue: "Duplicate track" })}
             icon={<ContentCopyIcon fontSize="small" />}
             onClick={handleMenuDuplicate}
           />
           <MenuItemPrimitive
-            label="New folder with this track"
+            label={i18n.t("timeline:attrs.newFolderWithThisTrack", { defaultValue: "New folder with this track" })}
             icon={<CreateNewFolderOutlinedIcon fontSize="small" />}
             onClick={() => {
               createTrackFolderForTrack(track.id);
@@ -1016,7 +1016,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
           />
           {track.folderId && (
             <MenuItemPrimitive
-              label="Remove from folder"
+              label={i18n.t("timeline:attrs.removeFromFolder", { defaultValue: "Remove from folder" })}
               icon={<FolderOutlinedIcon fontSize="small" />}
               onClick={() => {
                 setTrackFolder(track.id, null);

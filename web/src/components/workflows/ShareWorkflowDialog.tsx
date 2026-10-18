@@ -32,10 +32,11 @@ import {
 } from "../../serverState/useWorkflowSharing";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const ROLE_LABELS: Record<ShareRole, string> = {
-  viewer: "Can view",
-  editor: "Can edit",
+  viewer: i18n.t("editor:ui.canView", { defaultValue: "Can view" }),
+  editor: i18n.t("editor:ui.canEdit", { defaultValue: "Can edit" }),
   public: "Public view"
 };
 
@@ -77,7 +78,7 @@ const ShareWorkflowDialog = ({
       } catch {
         addNotification({
           type: "error",
-          content: "Failed to create share link",
+          content: i18n.t("editor:ui.failedToCreateShareLink", { defaultValue: "Failed to create share link" }),
           alert: true
         });
         return;

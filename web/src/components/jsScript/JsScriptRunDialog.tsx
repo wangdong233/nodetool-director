@@ -29,6 +29,7 @@ import {
 import { workflowInputForScriptPort } from "../appbuilder/workflowIO";
 import type { JsScriptPort } from "../../stores/jsScript/JsScriptStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** What the dialog hands back: buffered values, or items staged per handle. */
 export interface JsScriptRunRequest {
@@ -182,8 +183,8 @@ const JsScriptRunDialog = ({
               <>
                 <Text size="small" color="secondary">
                   {streaming
-                    ? "This script reads its inputs with stream(). Give each handle a JSON array of the items to stage, e.g. [1, 2, 3]."
-                    : "Each input uses the control for its declared type."}
+                    ? i18n.t("editor:ui.thisScriptReadsItsInputsWithStreamGiveEachHandleAJsonArrayOfTheItemsToStageEg123", { defaultValue: "This script reads its inputs with stream(). Give each handle a JSON array of the items to stage, e.g. [1, 2, 3]." })
+                    : i18n.t("editor:ui.eachInputUsesTheControlForItsDeclaredType", { defaultValue: "Each input uses the control for its declared type." })}
                 </Text>
                 {inputs.map((port) =>
                   usesJsonField(port, streaming) ? (

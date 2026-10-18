@@ -27,8 +27,10 @@ import {
   Tooltip
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
-type Row = LogRow & { workflowId: string; workflowName: string; key: string };
+type Row = LogRow & {
+  labelKey?: string; workflowId: string; workflowName: string; key: string };
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -194,7 +196,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
   return (
     <Box
       css={rootStyles}
-      className={isFullscreen ? "fullscreen" : undefined}
+      className={isFullscreen ? t("common:action.fullscreen", { defaultValue: "fullscreen" }) : undefined}
     >
       <PanelHeader
         title={t("editor:bottom.logs", { defaultValue: "Logs" })}
@@ -208,7 +210,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
                 <FullscreenIcon fontSize="small" />
               )
             }
-            tooltip={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            tooltip={isFullscreen ? t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
             onClick={handleFullscreenToggle}
             ariaLabel="Toggle fullscreen"
           />

@@ -38,6 +38,7 @@ import {
   InspectorSectionTitle
 } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
+import { i18n } from "../../../../i18n";
 
 /**
  * Rotation is stored in radians (`animation/types.ts`) and shown in degrees,
@@ -56,7 +57,7 @@ const PROPERTY_LABELS: Record<KeyframeProperty, { label: string; unit?: string; 
   cameraAzimuth: { label: "Camera azimuth", unit: "°", step: 1 },
   cameraElevation: { label: "Camera elevation", unit: "°", step: 1 },
   cameraZoom: { label: "Camera zoom", unit: "×", step: 0.05 },
-  cameraFov: { label: "Camera FOV", unit: "°", step: 1 }
+  cameraFov: { label: "Camera FOV", labelKey: "timeline:attrs.cameraFov", unit: "°", step: 1 }
 };
 
 interface ClipKeyframesProps {
@@ -120,7 +121,7 @@ const KeyframeRow: React.FC<{
             tooltip={
               keyed
                 ? "Delete keyframe at playhead"
-                : `Add keyframe at playhead${armed ? " (Alt+K)" : ""}`
+                : `Add keyframe at playhead${armed ? i18n.t("timeline:attrs.altKSuffix", { defaultValue: " (Alt+K)" }) : ""}`
             }
             ariaLabel={`${keyed ? "Delete" : "Add"} ${meta.label} keyframe`}
           />
@@ -157,7 +158,7 @@ export const ClipKeyframes: React.FC<ClipKeyframesProps> = memo(({ clip }) => {
       <CollapsibleSection
         title={
           <InspectorSectionTitle
-            title={count > 0 ? `Keyframes (${count})` : "Keyframes"}
+            title={count > 0 ? `Keyframes (${count})` : i18n.t("timeline:attrs.keyframes", { defaultValue: "Keyframes" })}
             icon={<TimelineOutlinedIcon />}
           />
         }

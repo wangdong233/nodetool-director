@@ -18,7 +18,7 @@ import { useScriptStore, effectiveVoice } from "../../../stores/script/ScriptSto
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 interface LineDeliveryPanelProps {
   clipId: string;
@@ -79,7 +79,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
       instructions: instructions.trim() || undefined
     });
     if (!requestId) {
-      setError("The line delivery could not be submitted. Check the Script voice and connection.");
+      setError(t("timeline:attrs.theLineDeliveryCouldNotBeSubmittedCheckTheScriptVoiceAndConnection", { defaultValue: "The line delivery could not be submitted. Check the Script voice and connection." }));
     } else {
       setInstructions("");
     }
@@ -118,7 +118,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
           onClick={() => void handleSubmit()}
           startIcon={<AutoAwesomeOutlinedIcon />}
         >
-          {pending ? i18n.t("timeline:attrs.generatingDelivery", { defaultValue: "Generating delivery…" }) : "Change line delivery"}
+          {pending ? i18n.t("timeline:attrs.generatingDelivery", { defaultValue: "Generating delivery…" }) : i18n.t("timeline:attrs.changeLineDelivery", { defaultValue: "Change line delivery" })}
         </EditorButton>
         {error && (
           <ErrorBanner

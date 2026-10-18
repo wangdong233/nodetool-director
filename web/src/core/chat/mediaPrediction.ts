@@ -43,7 +43,7 @@ export function mediaPredictionLabel(capability: string): string {
     case "text_to_music":
       return "Generating audio";
     default:
-      return "Generating";
+      return i18n.t("storyboard:attrs.generating", { defaultValue: "Generating" });
   }
 }
 

@@ -22,6 +22,7 @@ import DecalEditor3D from "../../inspector/editors/DecalEditor3D";
 import { AddButton, RowAction } from "../../inspector/InspectorParts";
 import { gameSchemaFields } from "../../inspector/schemaForm";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../../i18n";
 
 interface GameInspector3DProps {
   readonly document: GameDocument3D;
@@ -33,7 +34,7 @@ interface GameInspector3DProps {
 }
 
 const TRANSFORM_LABELS = { position: "Position", rotation: "Rotation", scale: "Scale" } as const;
-const TRANSFORM_UNITS = { position: "Position in meters", rotation: "Rotation in degrees", scale: "Scale factor" } as const;
+const TRANSFORM_UNITS = { position: i18n.t("game:viewport.positionInMeters", { defaultValue: "Position in meters" }), rotation: i18n.t("game:viewport.rotationInDegrees", { defaultValue: "Rotation in degrees" }), scale: "Scale factor" } as const;
 const ENTITY_FIELDS = gameSchemaFields(gameEntity3D.omit({ id: true, name: true, transform3d: true, behaviors: true, decal3d: true }));
 const SCENE_FIELDS = gameSchemaFields(gameScene3D.omit({ id: true, entities: true }));
 const ICON_SX = { fontSize: FONT_SIZE_SANS.title, color: "text.secondary", flexShrink: 0 } as const;
@@ -78,7 +79,7 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
         componentEditors={GAME_COMPONENT_EDITORS} dimension="3d"
         value={settings} assets={document.assets} onChange={(value) => {
           const updated = gameScene3D.parse({ ...gameScene3D.omit({ id: true, entities: true }).parse(value), id: scene.id, entities: scene.entities });
-          applyDocument({ ...document, scenes: document.scenes.map((item) => item.id === sceneId ? updated : item) }, "Change Scene Settings");
+          applyDocument({ ...document, scenes: document.scenes.map((item) => item.id === sceneId ? updated : item) }, i18n.t("game:viewport.changeSceneSettings", { defaultValue: "Change Scene Settings" }));
         }} />}
       <InspectorSection title={t("game:inspector.collisionLayers", { defaultValue: "Collision layers" })}>
         <CollisionMatrixEditor document={document} onDocument={applyDocument} />
@@ -136,7 +137,7 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
       </InspectorSection>} onChange={(value) => {
         const updated = gameEntity3D.parse({ ...gameEntity3D.omit({ id: true, name: true, transform3d: true, behaviors: true }).parse(value),
           id: entity.id, name: entity.name, transform3d: entity.transform3d, behaviors: entity.behaviors });
-        replaceEntity(updated, updated.light3d && entity.light3d?.intensity !== updated.light3d.intensity ? t("game:viewport.changeLightIntensity", { defaultValue: "Change Light Intensity" }) : "Change Entity Components");
+        replaceEntity(updated, updated.light3d && entity.light3d?.intensity !== updated.light3d.intensity ? t("game:viewport.changeLightIntensity", { defaultValue: "Change Light Intensity" }) : i18n.t("game:viewport.changeEntityComponents", { defaultValue: "Change Entity Components" }));
       }} />
     <InspectorSection title={t("game:inspector.behaviors", { defaultValue: "Behaviors" })}>
       {entity.behaviors.length === 0 && <Caption>{t("game:inspector.noBehaviors", { defaultValue: "No behaviors yet." })}</Caption>}

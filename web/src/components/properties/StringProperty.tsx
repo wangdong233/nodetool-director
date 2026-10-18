@@ -149,7 +149,7 @@ const StringProperty = ({
         />
       </>
     ),
-    [inspectorToolbarActionSx, toggleExpand, value]
+    [inspectorToolbarActionSx, toggleExpand, value, languageVersion]
   );
 
   useInspectorHeaderSupplementalRegistration(

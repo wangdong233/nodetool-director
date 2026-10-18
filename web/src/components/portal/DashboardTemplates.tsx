@@ -44,6 +44,7 @@ import {
 import ExampleNeedsPill from "./ExampleNeedsPill";
 import { runsAsIs } from "../../utils/exampleNeeds";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** Rows shown on the dashboard before the user searches or opens the Examples tab. */
 const MAX_VISIBLE = 18;
@@ -376,7 +377,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
         <div className="cats" role="group" aria-label={t("editor:ui.filterByCategory", { defaultValue: "Filter by category" })}>
           <Chip
             compact
-            label="All"
+            label={t("storyboard:attrs.all", { defaultValue: "All" })}
             active={category === "all"}
             onClick={() => setCategory("all")}
           />
@@ -400,7 +401,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
 
         {isLoading ? (
           <div className="tpl-loading">
-            <LoadingSpinner size="medium" text="Loading templates" />
+            <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingTemplates", { defaultValue: "Loading templates" })} />
           </div>
         ) : isError ? (
           <div className="tpl-empty">

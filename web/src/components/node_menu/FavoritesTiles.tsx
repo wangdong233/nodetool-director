@@ -17,6 +17,7 @@ import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
 import { useFavoriteNodesStore } from "../../stores/FavoriteNodesStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const tooltipHintStyle: CSSProperties = {
   fontSize: "var(--fontSizeSmaller)",
@@ -253,7 +254,7 @@ const FavoritesTiles = memo(function FavoritesTiles({
       removeFavorite(nodeType);
       addNotification({
         type: "info",
-        content: "Node removed from favorites",
+        content: i18n.t("editor:ui.nodeRemovedFromFavorites", { defaultValue: "Node removed from favorites" }),
         timeout: NOTIFICATION_TIMEOUT_SHORT
       });
     },

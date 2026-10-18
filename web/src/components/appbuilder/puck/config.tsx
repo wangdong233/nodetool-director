@@ -89,6 +89,7 @@ import {
 } from "./RecorderWidgets";
 import { ChartWidget } from "./ChartWidget";
 import { tAttr } from "../i18nAttrs";
+import { i18n } from "../../../../i18n";
 
 const ACTION_OPTIONS = [
   { label: "Run workflow", value: "run" },
@@ -230,7 +231,7 @@ const stepperField: ArrayField = {
     value: { type: "text", label: "Value" }, title: { type: "text", label: "Title" },
     description: { type: "textarea", label: "Description" },
     disabled: { type: "radio", label: "Disabled", options: [{ label: "No", value: false }, { label: "Yes", value: true }] },
-    completed: { type: "radio", label: "Completed", options: [{ label: "No", value: false }, { label: "Yes", value: true }] }
+    completed: { type: "radio", label: "Completed", labelKey: "setup:workflow.pill_completed", options: [{ label: "No", value: false }, { label: "Yes", value: true }] }
   },
   defaultItemProps: { value: "step", title: "Step", description: "", disabled: false, completed: false },
   getItemSummary: (item: Record<string, unknown>) => String(item.title ?? item.value ?? "step")
@@ -380,7 +381,7 @@ export const appConfig: Config = {
   },
   categories: {
     inputs: {
-      title: "Inputs",
+      title: "Inputs", titleKey: "timeline:attrs.inputs",
       components: [
         "WorkflowForm",
         "WorkflowInput",
@@ -388,7 +389,7 @@ export const appConfig: Config = {
         "NumberInput",
         "Slider",
         "Switch",
-        "Select",
+        i18n.t("editor:ui.selectPlain", { defaultValue: "Select" }),
         "RadioGroup",
         "ChoiceCards",
         "Stepper",
@@ -440,7 +441,7 @@ export const appConfig: Config = {
         "Stat",
         "Alert",
         "CodeBlock",
-        "Download",
+        i18n.t("storyboard:attrs.download", { defaultValue: "Download" }),
         "Model3D",
         "Chart",
         "PDF",
@@ -449,7 +450,7 @@ export const appConfig: Config = {
       ]
     },
     layout: {
-      title: "Layout",
+      title: "Layout", titleKey: "timeline:attrs.layout",
       components: [
         "Container",
         "Columns",
@@ -468,7 +469,7 @@ export const appConfig: Config = {
         text: { type: "text", label: "Text" },
         level: {
           type: "select",
-          label: "Level",
+          label: i18n.t("editor:ui.gameLevel", { defaultValue: "Level" }),
           options: [
             { label: "H1", value: "1" },
             { label: "H2", value: "2" },
@@ -488,7 +489,7 @@ export const appConfig: Config = {
         text: { type: "textarea", label: "Text" },
         tone: {
           type: "select",
-          label: "Tone",
+          label: "Tone", labelKey: "storyboard:attrs.tone",
           options: [
             { label: "Default", value: "default" },
             { label: "Muted", value: "muted" },
@@ -527,10 +528,10 @@ export const appConfig: Config = {
         placeholder: { type: "text", label: "Placeholder" },
         download: {
           type: "radio",
-          label: "Download",
+          label: i18n.t("storyboard:attrs.download", { defaultValue: "Download" }),
           options: [
             { label: "Show", value: true },
-            { label: "Hide", value: false }
+            { label: i18n.t("editor:ui.hide2", { defaultValue: "Hide" }), value: false }
           ]
         },
         filename: { type: "text", label: "Download filename" },
@@ -558,7 +559,7 @@ export const appConfig: Config = {
           label: "Download",
           options: [
             { label: "Show", value: true },
-            { label: "Hide", value: false }
+            { label: i18n.t("editor:ui.hide2", { defaultValue: "Hide" }), value: false }
           ]
         },
         filename: { type: "text", label: "Download filename" },
@@ -572,7 +573,7 @@ export const appConfig: Config = {
       render: withConditions((props) => <AudioWidget {...props} />)
     },
     Video: {
-      label: "Video",
+      label: "Video", labelKey: "home:entry.video.title",
       fields: {
         binding: bindingField("read"),
         height: { type: "number", label: "Max height (px)" },
@@ -634,7 +635,7 @@ export const appConfig: Config = {
       render: withConditions((props) => <StoryboardWidget {...props} />)
     },
     StoryboardPreview: {
-      label: "Storyboard Preview",
+      label: "Storyboard Preview", labelKey: "storyboard:attrs.storyboardPreview",
       fields: {
         binding: bindingField("read"),
         height: { type: "number", label: "Height (px)" },
@@ -785,10 +786,10 @@ export const appConfig: Config = {
           type: "select",
           label: "Severity",
           options: [
-            { label: "Info", value: "info" },
+            { label: i18n.t("editor:ui.logInfo", { defaultValue: "Info" }), value: "info" },
             { label: "Success", value: "success" },
-            { label: "Warning", value: "warning" },
-            { label: "Error", value: "error" }
+            { label: i18n.t("editor:ui.logWarning", { defaultValue: "Warning" }), value: "warning" },
+            { label: i18n.t("editor:ui.logError", { defaultValue: "Error" }), value: "error" }
           ]
         },
         ...conditionalFields()
@@ -797,10 +798,10 @@ export const appConfig: Config = {
       render: withConditions((props) => <AlertWidget {...props} />)
     },
     CodeBlock: {
-      label: "Code",
+      label: "Code", labelKey: "timeline:code.title",
       fields: {
         binding: bindingField("read"),
-        text: { type: "textarea", label: "Code" },
+        text: { type: "textarea", label: "Code", labelKey: "timeline:code.title" },
         language: { type: "text", label: "Language label" },
         maxHeight: { type: "number", label: "Max height (px)" },
         ...conditionalFields()
@@ -989,7 +990,7 @@ export const appConfig: Config = {
       render: withConditions((props) => <SliderWidget {...props} />)
     },
     Switch: {
-      label: "Switch",
+      label: "Switch", labelKey: "common:action.switch",
       fields: {
         binding: bindingField("write"),
         label: { type: "text", label: "Label" },
@@ -1000,7 +1001,7 @@ export const appConfig: Config = {
       render: withConditions((props) => <SwitchWidget {...props} />)
     },
     Select: {
-      label: "Select",
+      label: i18n.t("editor:ui.selectPlain", { defaultValue: "Select" }), labelKey: "common:action.select",
       fields: {
         binding: bindingField("write"),
         label: { type: "text", label: "Label" },
@@ -1009,7 +1010,7 @@ export const appConfig: Config = {
         ...conditionalFields({ format: false })
       },
       defaultProps: {
-        label: "Select",
+        label: "Select", labelKey: "common:action.select",
         options: [{ value: "Option A" }, { value: "Option B" }]
       },
       render: withConditions((props) => <SelectWidget {...props} />)
@@ -1022,7 +1023,7 @@ export const appConfig: Config = {
         options: optionsField,
         row: {
           type: "radio",
-          label: "Layout",
+          label: "Layout", labelKey: "timeline:attrs.layout",
           options: [
             { label: "Stacked", value: false },
             { label: "Inline", value: true }
@@ -1087,7 +1088,7 @@ export const appConfig: Config = {
         options: optionsField,
         row: {
           type: "radio",
-          label: "Layout",
+          label: "Layout", labelKey: "timeline:attrs.layout",
           options: [
             { label: "Stacked", value: false },
             { label: "Inline", value: true }
@@ -1119,7 +1120,7 @@ export const appConfig: Config = {
         events: eventsField("change"),
         ...conditionalFields({ format: false })
       },
-      defaultProps: { label: "Date", withTime: false },
+      defaultProps: { label: "Date", labelKey: "ui2:attrs.date", withTime: false },
       render: withConditions((props) => <DateInputWidget {...props} />)
     },
     ResourcePicker: {
@@ -1237,7 +1238,7 @@ export const appConfig: Config = {
           options: [
             { label: "Language", value: "language_model" },
             { label: "Image", value: "image_model" },
-            { label: "Video", value: "video_model" },
+            { label: "Video", labelKey: "home:entry.video.title", value: "video_model" },
             { label: "Speech (TTS)", value: "tts_model" },
             { label: "Transcription (ASR)", value: "asr_model" },
             { label: "Embedding", value: "embedding_model" },
@@ -1267,7 +1268,7 @@ export const appConfig: Config = {
           type: "select",
           label: "Background",
           options: [
-            { label: "White", value: "white" },
+            { label: "White", labelKey: "ui2:attrs.whiteLower", value: "white" },
             { label: "Transparent", value: "transparent" }
           ]
         },
@@ -1341,7 +1342,7 @@ export const appConfig: Config = {
           label: "List of",
           options: [
             { label: "Images", value: "image_list" },
-            { label: "Videos", value: "video_list" },
+            { label: "Videos", labelKey: "timeline:attrs.kindVideos", value: "video_list" },
             { label: "Audio", value: "audio_list" },
             { label: "Text", value: "text_list" }
           ]
@@ -1377,14 +1378,14 @@ export const appConfig: Config = {
           options: [
             { label: "Primary", value: "primary" },
             { label: "Secondary", value: "secondary" },
-            { label: "Warning", value: "warning" }
+            { label: i18n.t("editor:ui.logWarning", { defaultValue: "Warning" }), value: "warning" }
           ]
         },
         fullWidth: {
           type: "radio",
           label: "Width",
           options: [
-            { label: "Full", value: true },
+            { label: "Full", labelKey: "settings:general.opts.full", value: true },
             { label: "Fit label", value: false }
           ]
         },
@@ -1414,7 +1415,7 @@ export const appConfig: Config = {
         title: { type: "text", label: "Title" },
         variant: {
           type: "select",
-          label: "Style",
+          label: "Style", labelKey: "setup:video.refKind_style",
           options: [
             { label: "Panel", value: "panel" },
             { label: "Card", value: "card" },
@@ -1434,7 +1435,7 @@ export const appConfig: Config = {
         gap: { type: "number", label: "Gap (px)" },
         layout: {
           type: "select",
-          label: "Layout",
+          label: "Layout", labelKey: "timeline:attrs.layout",
           options: [
             { label: "Equal halves", value: "equal" },
             { label: "Main and aside", value: "main-aside" }

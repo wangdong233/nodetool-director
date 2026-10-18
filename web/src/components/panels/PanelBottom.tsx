@@ -66,6 +66,7 @@ import HistoryIcon from "@mui/icons-material/History";
 import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay";
 import MemoryIcon from "@mui/icons-material/Memory";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const HEADER_HEIGHT = CONTROL.height.md;
 
@@ -150,17 +151,18 @@ export const useGraphCounts = (
 };
 
 interface ViewSpec {
+  labelKey?: string;
   id: BottomPanelView;
   label: string;
   icon: React.ReactNode;
 }
 
 const VIEW_SPECS = {
-  logs: { id: "logs", label: "Logs", icon: <ArticleIcon /> },
+  logs: { id: "logs", label: "Logs", labelKey: "game:console.logMany", icon: <ArticleIcon /> },
   queue: { id: "queue", label: "Queue", icon: <PlaylistPlayIcon /> },
   workers: { id: "workers", label: "Workers", icon: <MemoryIcon /> },
-  versions: { id: "versions", label: "Versions", icon: <HistoryIcon /> },
-  trace: { id: "trace", label: "Trace", icon: <TimelineIcon /> }
+  versions: { id: "versions", label: "Versions", labelKey: "editor:bottom.versions", icon: <HistoryIcon /> },
+  trace: { id: "trace", label: "Trace", labelKey: "editor:bottom.trace", icon: <TimelineIcon /> }
 } satisfies Record<BottomPanelView, ViewSpec>;
 
 const PANEL_VIEWS = BOTTOM_PANEL_GROUPS.flatMap((g) => g.views);
@@ -335,7 +337,7 @@ export const PanelBodyContent = memo(function PanelBodyContent({
 
   switch (activeView) {
     case "logs":
-      return <PanelErrorBoundary panelName="Run logs"><TracePanel view="logs" workflowId={currentWorkflowId} /></PanelErrorBoundary>;
+      return <PanelErrorBoundary panelName={i18n.t("editor:ui.runLogs", { defaultValue: "Run logs" })}><TracePanel view="logs" workflowId={currentWorkflowId} /></PanelErrorBoundary>;
     case "queue":
       return (
         <FlexColumn
@@ -507,7 +509,7 @@ const PanelBottom: React.FC = () => {
             value={panelSize}
             min={BOTTOM_PANEL_MIN_DRAG_SIZE}
             max={BOTTOM_PANEL_MAX_SIZE}
-            ariaLabel="Resize panel"
+            ariaLabel={t("editor:bottom.resizeAria", { defaultValue: "Resize panel" })}
             onResize={handleResize}
             onResizeStart={handleResizeStart}
             onResizeEnd={handleResizeEnd}

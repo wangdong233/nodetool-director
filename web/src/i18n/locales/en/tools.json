@@ -8,11 +8,14 @@
     "videoList": "Video List"
   },
   "menus": {
+    "recheck": "Recheck",
+    "register": "Register",
+    "extensionNotConnected": "Extension not connected",
+    "connectToChrome": "Connect to Chrome",
     "addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider": "Add a base URL and an API key to use any OpenAI-compatible provider.",
     "addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage": "Add a command or a URL. Its tools join the agent's toolbelt on the next message.",
     "aiAgentForProcessing": "AI agent for processing",
     "allFieldsAreRequired": "All fields are required",
-    "apiDocumentation": "API Documentation",
     "apiKey": "API Key",
     "apiKey2": "API key",
     "centerAllNodesInView": "Center all nodes in view",
@@ -22,16 +25,12 @@
     "commonIssuesFixes": "Common issues & fixes",
     "copiedToClipboard": "Copied to clipboard!",
     "copiedWorkflowJsonToClipboard": "Copied workflow JSON to Clipboard!",
-    "dataStorage": "Data & Storage",
     "decimalNumberInput": "Decimal number input",
     "detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations": "Detected from the model list. Add ids that Test misses. Calls go to /images/generations.",
     "detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos": "Detected from the model list. Add ids that Test misses. Calls go to /videos.",
     "failedToCopySystemInformationToClipboard": "Failed to copy system information to clipboard",
     "failedToDisconnectGoogleWorkspace": "Failed to disconnect Google Workspace",
     "failedToImportWorkflowInvalidJsonFile": "Failed to import workflow — invalid JSON file",
-    "couldNotSaveSettings": "Could not save settings: {{message}}",
-    "couldNotSaveFolderSettings": "Could not save folder settings: {{message}}",
-    "visitProviderForCredentials": "Visit {{label}} to get your credentials",
     "folderSettingsHaveBeenSavedSuccessfully": "Folder settings have been saved successfully",
     "groupContainerForNodes": "Group container for nodes",
     "imageFileInput": "Image file input",
@@ -44,11 +43,8 @@
     "oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "One KEY=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys.",
     "packageSpecPlaceholder": "@scope/package or package@version",
     "providerGuidesLinks": "Provider guides & links",
-    "providerOptions": "Provider Options",
     "providerRemoved": "Provider removed",
-    "providerSavedAs": "{{name}} saved as {{id}}",
     "disconnectedGoogleWorkspace": "Disconnected Google Workspace. Use Connect to restore access.",
-    "customProviderEncryptionNote": "The URL and key are encrypted and stored per account. The same values can come from the environment instead, as {{baseUrlEnv}} and {{apiKeyEnv}}.",
     "providers": {
       "AKI_API_KEY": {
         "description": "AKI.IO AI Model Hub."
@@ -228,12 +224,10 @@
     "secretValueIsRequired": "Secret value is required",
     "seeModelsByProvider": "See models by provider",
     "streamableHTTPWithSSEAsTheFallback": "Streamable HTTP, with SSE as the fallback.",
-    "supportedModels": "Supported Models",
     "systemInformationCopiedToClipboard": "System information copied to clipboard!",
     "textCommentNote": "Text comment note",
     "textInputField": "Text input field",
     "wholeNumberInput": "Whole number input",
-    "yourSettingsHaveBeenSavedSuccessfully": "Your settings have been saved successfully",
     "sections": {
       "popular": "Popular",
       "language": "Language Models",
@@ -243,16 +237,6 @@
       "compute": "Compute & Local",
       "advanced": "Services & Advanced"
     },
-    "languageModels": "Language Models",
-    "mediaGeneration": "Media Generation",
-    "gatewaysAndHubs": "Gateways & Hubs",
-    "webSearch": "Web Search",
-    "computeAndLocal": "Compute & Local",
-    "servicesAndAdvanced": "Services & Advanced",
-    "nameApiKeyUpdated": "{{name}} API key updated",
-    "failedToUpdateSecret": "Failed to update secret: {{error}}",
-    "nameApiKeyDeleted": "{{name}} API key deleted",
-    "failedToDeleteSecret": "Failed to delete secret: {{error}}",
     "tags": {
       "Popular": "Popular"
     },
@@ -260,18 +244,12 @@
   },
   "misc": {
     "onboardingPacks": {
-      "ollama": "Chat and embedding nodes backed by your local Ollama models."
     }
   },
   "tutorials": {
     "subtitle": "Short, beginner-friendly walkthroughs of NodeTool",
-    "countOne": "{{count}} tutorial",
-    "countMany": "{{count}} tutorials",
-    "startBuilding": "Start building",
     "openingTask": "Opening task…",
-    "browseExamples": "Browse examples",
     "backToWorkspace": "Workspace",
-    "playTutorialAria": "Play tutorial: {{title}}",
     "level": {
       "Beginner": "Beginner",
       "Intermediate": "Intermediate"

@@ -18,7 +18,7 @@ import useNodePacksStore, {
 import useOptionalNodePacksStore from "../../stores/OptionalNodePacksStore";
 import { OPTIONAL_NODE_PACKS } from "../../config/optionalNodePacks";
 import { getRequiredKeyForBuiltinPack } from "../../utils/providerPacks";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /** The rail entries. Each one is a list in the right pane. */
 export type PMCategory = "included" | "python" | "thirdparty" | "runtimes";
@@ -60,7 +60,7 @@ const RUNTIME_GROUP_ORDER: RuntimeGroup[] = ["language", "media", "ai"];
 const RUNTIME_GROUP_LABEL: Record<RuntimeGroup, string> = {
   language: "Languages",
   media: "Media & documents",
-  ai: "AI runtimes"
+  ai: i18n.t("editor:ui.aiRuntimes", { defaultValue: "AI runtimes" })
 };
 
 /** Prefix marking an optional-node-pack (menu visibility) row id, to keep it
@@ -471,7 +471,7 @@ export function usePackageManager(params: {
         badge: item.required ? "alwaysOn" : null,
         toggle: {
           enabled: item.enabled,
-          label: item.enabled ? i18n.t("editor:ui.enabled", { defaultValue: "Enabled" }) : "Disabled",
+          label: item.enabled ? i18n.t("editor:ui.enabled", { defaultValue: "Enabled" }) : i18n.t("editor:ui.disabled", { defaultValue: "Disabled" }),
           disabled: item.required,
           onChange: item.onToggle
         }
@@ -516,9 +516,9 @@ export function usePackageManager(params: {
 
     const notice =
       isSoftware && !rtAvailable
-        ? "Software installation runs in the NodeTool desktop app. Open the desktop app to install Python, FFmpeg, and other runtimes."
+        ? i18n.t("editor:ui.softwareInstallationRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallPythonFfmpegAndOtherRuntimes", { defaultValue: "Software installation runs in the NodeTool desktop app. Open the desktop app to install Python, FFmpeg, and other runtimes." })
         : cat === "python" && !pyAvailable
-          ? "Installing node packs runs in the NodeTool desktop app. Open the desktop app to install, update, and remove Python node packs."
+          ? i18n.t("editor:ui.installingNodePacksRunsInTheNodetoolDesktopAppOpenTheDesktopAppToInstallUpdateAndRemovePythonNodePacks", { defaultValue: "Installing node packs runs in the NodeTool desktop app. Open the desktop app to install, update, and remove Python node packs." })
           : null;
 
     const consoleModel = isSoftware

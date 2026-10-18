@@ -56,6 +56,7 @@ import {
   useModel3DSessionNames,
   type Model3DSessionNames
 } from "./useModel3DSessionNames";
+import { i18n } from "../../../../i18n";
 
 const CAMERA_MODES = [
   { value: "orbit", label: "Orbit" },
@@ -63,7 +64,7 @@ const CAMERA_MODES = [
 ] as const;
 
 const LIGHTING_PRESETS = [
-  { value: "studio", label: "Studio" },
+  { value: "studio", label: "Studio", labelKey: "editor:studio.studioBack" },
   { value: "soft", label: "Soft" },
   { value: "flat", label: "Flat" }
 ] as const;
@@ -430,7 +431,7 @@ const NamePickerRow: React.FC<NamePickerRowProps> = memo(
     if (session.status === "loading") {
       return (
         <InspectorRow label={label}>
-          <InspectorStaticValue value="Loading model…" />
+          <InspectorStaticValue value={i18n.t("editor:ui.loadingModel", { defaultValue: "Loading model…" })} />
         </InspectorRow>
       );
     }

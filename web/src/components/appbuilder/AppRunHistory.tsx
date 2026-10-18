@@ -25,6 +25,7 @@ import {
 import { AskRunAgentButton } from "../runs/AskRunAgentButton";
 import ReportBugButton from "../support/ReportBugButton";
 import { StoredRunActivity } from "./puck/AgentActivityWidget";
+import { i18n } from "../../../i18n";
 
 interface AppRunHistoryProps {
   instanceId: string;
@@ -228,7 +229,7 @@ export default function AppRunHistory({
                   {(["inputs", "outputs"] as const).map((field) => (
                     <FlexColumn key={field} gap={SPACING.sm}>
                       <Text weight={600}>
-                        {field === "inputs" ? "Inputs" : "Outputs"}
+                        {field === "inputs" ? i18n.t("timeline:attrs.inputs", { defaultValue: "Inputs" }) : i18n.t("appbuilder:attrs.outputs", { defaultValue: "Outputs" })}
                       </Text>
                       {Object.entries(run.app?.[field] ?? {}).map(
                         ([name, value]) => (

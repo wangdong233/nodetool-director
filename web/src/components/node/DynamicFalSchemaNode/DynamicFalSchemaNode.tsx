@@ -14,6 +14,7 @@ import { useNodeStatus, useNodeResultValue } from "../../../hooks/nodes/useNodeE
 import { useNodeFocusStore } from "../../../stores/NodeFocusStore";
 import { DynamicFalSchemaContent } from "./DynamicFalSchemaContent";
 import { FalSchemaLoader } from "./FalSchemaLoader";
+import { i18n } from "../../../../i18n";
 
 /** FAL node accent (distinct from input/output/generic) */
 const FAL_HEADER_COLOR = "#8B5CF6";
@@ -43,11 +44,11 @@ const DynamicFalSchemaNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
   );
 
   const headerTitle = useMemo(() => {
-    if (!metadata) {return "Fal AI";}
-    const base = metadata.title || "Fal AI";
+    if (!metadata) {return i18n.t("editor:ui.falAI", { defaultValue: "Fal AI" });}
+    const base = metadata.title || i18n.t("editor:ui.falAI", { defaultValue: "Fal AI" });
     const endpointId = data.endpoint_id?.replace("fal-ai/", "");
     return endpointId ? `${base} · ${endpointId}` : base;
-  }, [metadata, data.endpoint_id]);
+  }, [metadata, data.endpoint_id, languageVersion]);
 
   if (!metadata) {
     return null;

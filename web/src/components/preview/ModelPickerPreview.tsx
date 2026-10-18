@@ -16,6 +16,7 @@ import {
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
 import type { ModelExecutionAvailability } from "@nodetool-ai/protocol";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const API: ModelExecutionAvailability = {
   kind: "api",
@@ -108,7 +109,7 @@ const PreviewModelPicker: React.FC = () => {
           ref={setAnchorEl}
           label="Claude Sonnet 4.5"
           secondaryLabel={getProviderDisplayName("anthropic")}
-          subLabel="Select language model"
+          subLabel={i18n.t("storyboard:attrs.selectLanguageModel", { defaultValue: "Select language model" })}
           active
           onClick={noop}
         />

@@ -22,6 +22,7 @@ import { GAME_EDITOR_ROOT_SX } from "./gameEditorStyles";
 import { useGameExport } from "./useGameExport";
 import { useGameExecutableBuild } from "./useGameExecutableBuild";
 import { isElectron, isLocalhost } from "../../../lib/env";
+import { i18n } from "../../../../i18n";
 
 /** Compiling runs cargo on the server's machine, which is this computer only in the desktop app or a local server. */
 const CAN_BUILD_EXECUTABLE = isElectron || isLocalhost;
@@ -119,7 +120,7 @@ export default function GameEditorShell({ dimension, toolbar, status, panels, la
     {exporter.error && <FlexRow gap={SPACING.sm} align="center" sx={{ px: SPACING.md, py: SPACING.xs, borderBottom: 1, borderColor: "divider" }}>
       <Caption color="error" role="alert">Export failed: {exporter.error}</Caption>
       <ReportBugButton context={{ source: "panel-crash", summary: "Game export failed", errorText: exporter.error }} />
-      <EditorButton onClick={exporter.dismiss}>Dismiss</EditorButton>
+      <EditorButton onClick={exporter.dismiss}>{i18n.t("storyboard:attrs.dismiss", { defaultValue: "Dismiss" })}</EditorButton>
     </FlexRow>}
     {executable.building && <FlexRow gap={SPACING.sm} align="center" sx={{ px: SPACING.md, py: SPACING.xs }}>
       <Caption role="status">Compiling the desktop executable. Cargo's output is in the Console.</Caption>
@@ -128,12 +129,12 @@ export default function GameEditorShell({ dimension, toolbar, status, panels, la
     {executable.binaryPath && <FlexRow gap={SPACING.sm} align="center" sx={{ px: SPACING.md, py: SPACING.xs, borderBottom: 1, borderColor: "divider" }}>
       <Caption role="status" sx={{ minWidth: 0, overflowWrap: "anywhere" }}>Built {executable.binaryPath}</Caption>
       {showBinary && <EditorButton onClick={() => { void showBinary(executable.binaryPath ?? ""); }}>Show in folder</EditorButton>}
-      <EditorButton onClick={executable.dismiss}>Dismiss</EditorButton>
+      <EditorButton onClick={executable.dismiss}>{i18n.t("storyboard:attrs.dismiss", { defaultValue: "Dismiss" })}</EditorButton>
     </FlexRow>}
     {executable.error && <FlexRow gap={SPACING.sm} align="center" sx={{ px: SPACING.md, py: SPACING.xs, borderBottom: 1, borderColor: "divider" }}>
       <Caption color="error" role="alert">Build failed: {executable.error}</Caption>
       <ReportBugButton context={{ source: "panel-crash", summary: "Game executable build failed", errorText: executable.error }} />
-      <EditorButton onClick={executable.dismiss}>Dismiss</EditorButton>
+      <EditorButton onClick={executable.dismiss}>{i18n.t("storyboard:attrs.dismiss", { defaultValue: "Dismiss" })}</EditorButton>
     </FlexRow>}
     {notices}
     <GameDockCanvas presentation={presentation} store={layoutStore} />

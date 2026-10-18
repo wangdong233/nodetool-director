@@ -9,6 +9,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /**
  * Confirmation shown before a "Run Entire Workflow" action that would execute many
@@ -46,10 +47,10 @@ const RunWarningDialog: React.FC = () => {
       onClose={handleCancel}
       title={
         isConcurrent
-          ? t("editor:ui.startAnotherEntireWorkflowRun", { defaultValue: "Start another entire workflow run?" }) : "Run the entire workflow?"
+          ? t("editor:ui.startAnotherEntireWorkflowRun", { defaultValue: "Start another entire workflow run?" }) : i18n.t("editor:ui.runTheEntireWorkflow", { defaultValue: "Run the entire workflow?" })
       }
       onConfirm={handleConfirm}
-      confirmText={isConcurrent ? t("editor:ui.startSecondRun", { defaultValue: "Start second run" }) : "Run anyway"}
+      confirmText={isConcurrent ? t("editor:ui.startSecondRun", { defaultValue: "Start second run" }) : i18n.t("editor:ui.runAnyway", { defaultValue: "Run anyway" })}
       content={
         <FlexColumn gap={SPACING.sm}>
           {isConcurrent ? (

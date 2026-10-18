@@ -4,6 +4,7 @@ import type { UiDocumentRef } from "@nodetool-ai/protocol";
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
 import { useSketchSessionStore } from "../../stores/sketch/SketchSessionStore";
 import { useSketchStore } from "./state/useSketchStore";
+import { i18n } from "../../../i18n";
 
 /**
  * Chat surface for the image / sketch editor. The shared assistant panel
@@ -40,9 +41,9 @@ const SketchAgentPanel = () => {
       getSelection={getSelection}
       workflowId={documentId}
       docsTopic="sketches"
-      docsLabel="Sketch editor"
+      docsLabel={i18n.t("storyboard:attrs.sketchEditor", { defaultValue: "Sketch editor" })}
       welcomeTitle="Editor assistant"
-      welcomeBody="Describe an image to generate, or ask for an edit to your layers."
+      welcomeBody={i18n.t("sketch:attrs.editorAssistantWelcome", { defaultValue: "Describe an image to generate, or ask for an edit to your layers." })}
     />
   );
 };

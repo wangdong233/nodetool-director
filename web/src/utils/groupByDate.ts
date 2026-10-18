@@ -1,6 +1,6 @@
 import { relativeTime } from "./formatDateAndTime";
 import { isString } from "./typePredicates";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 export function groupByDate(
   date: Date | string,

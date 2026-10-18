@@ -20,6 +20,7 @@ import {
 } from "../ui_primitives";
 import type { WorkflowMediaItem } from "../../hooks/handlers/useGenerationToCanvas";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface BoardActionsMenuProps {
   onChangeStyle: () => void;
@@ -77,7 +78,7 @@ const BoardActionsMenu: React.FC<BoardActionsMenuProps> = ({
         onClose={closeMenu}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{ list: { "aria-label": "Board actions" } }}
+        slotProps={{ list: { "aria-label": i18n.t("storyboard:attrs.boardActions", { defaultValue: "Board actions" }) } }}
       >
         <MenuItemPrimitive
           label={t("storyboard:attrs.changeStyleEllipsis", { defaultValue: "Change style…" })}
@@ -85,7 +86,7 @@ const BoardActionsMenu: React.FC<BoardActionsMenuProps> = ({
           onClick={changeStyle}
         />
         <MenuItemPrimitive
-          label={downloading ? t("storyboard:attrs.preparingZip", { defaultValue: "Preparing ZIP…" }) : "Download ZIP"}
+          label={downloading ? t("storyboard:attrs.preparingZip", { defaultValue: "Preparing ZIP…" }) : i18n.t("storyboard:attrs.downloadZip", { defaultValue: "Download ZIP" })}
           icon={<DownloadIcon fontSize="small" />}
           disabled={!hasShots || downloading}
           onClick={downloadZip}

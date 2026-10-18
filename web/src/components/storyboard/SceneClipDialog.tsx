@@ -51,6 +51,7 @@ import { priceRenderStep } from "../../hooks/storyboard/shotCostPricing";
 import type { VideoModelValue } from "../../stores/ApiTypes";
 import { modelFieldSx } from "./shotRenderModels";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 export interface SceneClipDialogProps {
   boardId: string;
@@ -316,7 +317,7 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
                       locator={{ asset_id: assetId }}
                       preferThumbnail
                       loading="lazy"
-                      alt={shot?.slug ?? "Shot still"}
+                      alt={shot?.slug ?? i18n.t("storyboard:attrs.shotStill", { defaultValue: "Shot still" })}
                       aspectRatio="16 / 9"
                       fit="cover"
                     />

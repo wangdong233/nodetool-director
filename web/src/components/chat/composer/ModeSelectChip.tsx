@@ -17,6 +17,7 @@ import VideocamIcon from "@mui/icons-material/Videocam";
 import MediaControlChip from "./MediaControlChip";
 import MediaModeMenu from "./MediaModeMenu";
 import type { MediaMode } from "../../../stores/MediaGenerationStore";
+import { i18n } from "../../../../i18n";
 
 export function modeIconFor(mode: MediaMode): React.ReactNode {
   if (mode === "music") return <AudiotrackIcon fontSize="small" />;
@@ -56,10 +57,10 @@ export function modeLabelFor(mode: MediaMode): string {
     return "Video";
   }
   if (mode === "image_to_video") {
-    return "Image→Video";
+    return i18n.t("editor:ui.imageToVideoShort", { defaultValue: "Image→Video" });
   }
   if (mode === "reference_to_video") {
-    return "Refs→Video";
+    return i18n.t("editor:ui.refsToVideo", { defaultValue: "Refs→Video" });
   }
   if (mode === "audio") {
     return "Speech";
@@ -68,7 +69,7 @@ export function modeLabelFor(mode: MediaMode): string {
     return "Chat";
   }
   if (mode === "audio_to_video") {
-    return "Audio→Video";
+    return i18n.t("editor:ui.audioToVideoShort", { defaultValue: "Audio→Video" });
   }
   if (mode === "retake") {
     return "Retake";

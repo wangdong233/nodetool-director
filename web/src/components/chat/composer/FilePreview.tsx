@@ -11,7 +11,7 @@ import {
   ICON_SIZE
 } from "../../ui_primitives";
 import { DroppedFile } from "../types/chat.types";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 const isDisplayableImage = (uri: string) =>
   /^data:image\/(jpeg|jpg|png|gif|webp|svg\+xml|bmp);base64,/.test(uri) ||

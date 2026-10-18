@@ -17,6 +17,7 @@ import {
 } from "../../serverState/useExtensionStatus";
 import { BASE_URL } from "../../stores/BASE_URL";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const CHROME_EXTENSIONS_URL = "chrome://extensions";
 
@@ -157,7 +158,7 @@ const BrowserExtensionSettingsMenu = () => {
           {!isLoading && !data?.hostInstalled && (
             <NavButton
               icon={<LinkIcon />}
-              label={host.isInstalling ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : "Connect to Chrome"}
+              label={host.isInstalling ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : i18n.t("tools:menus:connectToChrome", { defaultValue: "Connect to Chrome" })}
               color="primary"
               onClick={() => host.install()}
               disabled={host.isInstalling}

@@ -715,7 +715,7 @@ const VoicingStrip = ({
                   run.failed.length === 1 ? "line" : "lines"
                 } could not be voiced.`
               : ""
-          }${stopped && !readOnly ? " Press Voice all to voice the rest." : ""}`}
+          }${stopped && !readOnly ? i18n.t("editor:ui.pressVoiceAllToVoiceTheRest", { defaultValue: " Press Voice all to voice the rest." }) : ""}`}
         </Text>
         {run.failed.length === 0 ? null : (
           <FlexColumn
@@ -985,7 +985,7 @@ const ScriptDocumentPane = ({
         id: "send-to-timeline",
         label: storyboardId
           ? i18n.t("editor:ui.assembleVideo", { defaultValue: "Assemble video" }) : timelineId
-            ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" }) : "Send to timeline",
+            ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" }) : i18n.t("editor:ui.sendToTimeline", { defaultValue: "Send to timeline" }),
         run: onSendToTimeline
       });
     }
@@ -1098,8 +1098,8 @@ const ScriptDocumentPane = ({
             canRedo={canRedo}
             onUndo={onUndo}
             onRedo={onRedo}
-            undoTooltip="Undo (⌘Z)"
-            redoTooltip="Redo (⌘⇧Z)"
+            undoTooltip={i18n.t("storyboard:attrs.undoCmdZ", { defaultValue: "Undo (⌘Z)" })}
+            redoTooltip={i18n.t("storyboard:attrs.redoCmdZ", { defaultValue: "Redo (⌘⇧Z)" })}
           />
         )}
         {!readOnly &&
@@ -1107,7 +1107,7 @@ const ScriptDocumentPane = ({
             <FlexRow align="center" gap={SPACING.xs}>
               <LoadingSpinner inline size={16} />
               <Text size="smaller">
-                {voicingAll || voicingLive ? i18n.t("editor:ui.voicing", { defaultValue: "Voicing…" }) : "Writing…"}
+                {voicingAll || voicingLive ? i18n.t("editor:ui.voicing", { defaultValue: "Voicing…" }) : i18n.t("editor:ui.writing", { defaultValue: "Writing…" })}
               </Text>
             </FlexRow>
           ) : (
@@ -1129,7 +1129,7 @@ const ScriptDocumentPane = ({
           <Tooltip
             title={
               hasVoicedLine
-                ? i18n.t("editor:ui.playCurrentTakesInOrder", { defaultValue: "Play current takes in order" }) : "Voice at least one line to play"
+                ? i18n.t("editor:ui.playCurrentTakesInOrder", { defaultValue: "Play current takes in order" }) : i18n.t("editor:ui.voiceAtLeastOneLineToPlay", { defaultValue: "Voice at least one line to play" })
             }
           >
             <span>
@@ -1168,13 +1168,13 @@ const ScriptDocumentPane = ({
             disabledReason={
               hasVoicedLine
                 ? undefined
-                : "Voice at least one line to send it to a timeline"
+                : i18n.t("editor:ui.voiceAtLeastOneLineToSendItToATimeline", { defaultValue: "Voice at least one line to send it to a timeline" })
             }
           >
             {assembling
               ? i18n.t("storyboard:attrs.assembling", { defaultValue: "Assembling…" }) : storyboardId
                 ? i18n.t("editor:ui.assembleVideo", { defaultValue: "Assemble video" }) : timelineId
-                  ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" }) : "Send to timeline"}
+                  ? i18n.t("editor:ui.updateTimeline", { defaultValue: "Update timeline" }) : i18n.t("editor:ui.sendToTimeline", { defaultValue: "Send to timeline" })}
           </EditorButton>
         )}
         {hasVoicedLine && (
@@ -1204,7 +1204,7 @@ const ScriptDocumentPane = ({
                 tooltip={
                   hasVoicedLine
                     ? undefined
-                    : "Voice at least one line to export subtitles"
+                    : i18n.t("editor:ui.voiceAtLeastOneLineToExportSubtitles", { defaultValue: "Voice at least one line to export subtitles" })
                 }
                 onClick={() => {
                   setMoreAnchor(null);
@@ -1262,7 +1262,7 @@ const ScriptDocumentPane = ({
           <EmptyState
             title={i18n.t("editor:ui.emptyScript", { defaultValue: "Empty script" })}
             description={i18n.t("editor:ui.addLineToStartWriting", { defaultValue: "Add a line to start writing. Enter splits a line. Assign speakers from the gutter, then voice them." })}
-            actionText={readOnly ? undefined : "Add first line"}
+            actionText={readOnly ? undefined : i18n.t("editor:ui.addFirstLine", { defaultValue: "Add first line" })}
             onAction={readOnly ? undefined : () => addLine(scriptId)}
           />
         )}

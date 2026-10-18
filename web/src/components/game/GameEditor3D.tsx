@@ -39,6 +39,7 @@ import GameViewport3D, { type GameViewportAction3D } from "./viewport3d/GameView
 import { scriptFailure } from "./useGamePlaySession";
 import { EMPTY_INPUT_3D, useGamePlaySession3D } from "./useGamePlaySession3D";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 async function openDiagnosticSession(document: GameDocument3D, signal: AbortSignal): Promise<GameDiagnosticSession> {
   const session = await openGameDiagnosticSession3D(document, signal);
@@ -100,7 +101,7 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
     const scaled = transform?.scale && (transform.scale.x !== entity?.transform3d.scale.x
       || transform.scale.y !== entity?.transform3d.scale.y || transform.scale.z !== entity?.transform3d.scale.z);
     const subject = updates.length > 1 ? `${updates.length} entities` : entity?.name || entity?.id || "Entity";
-    const verb = action ?? (rotated ? "Rotate" : scaled ? "Scale" : "Move");
+    const verb = action ?? (rotated ? t("game:tool.rotate", { defaultValue: "Rotate" }) : scaled ? "Scale" : "Move");
     getGameDraftStore(refId).getState().apply(ops, { label: verb === "Ground" ? `Align ${subject} to ground` : `${verb} ${subject}`,
       mergeKey: "transform-selection", gestureId });
   }, [refId, scene]);
@@ -151,7 +152,7 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
           retries = 0;
         } catch (cause) {
           if (isMissingDraft(cause)) {
-            store.getState().failSave("Draft source unavailable. Export your local draft before restoring.");
+            store.getState().failSave(t("game:editor.draftSourceUnavailableExport", { defaultValue: "Draft source unavailable. Export your local draft before restoring." }));
             await queries.games.getDraft.invalidate({ id: refId });
             throw cause;
           }
@@ -222,7 +223,7 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
       await flush();
       await flushGameDraft(savingRef, async () => {
         const state = getGameDraftStore(refId).getState();
-        if (!state.baseUpdatedAt) { throw new Error("The draft is not ready for model installation"); }
+        if (!state.baseUpdatedAt) { throw new Error(t("game:editor.draftNotReadyForModelInstallation", { defaultValue: "The draft is not ready for model installation" })); }
         await trpcClient.games.installAsset.mutate({ id: refId, assetId, slot: assetSlot, baseUpdatedAt: state.baseUpdatedAt });
         await pullFromServer();
       });
@@ -243,7 +244,7 @@ function GameEditor3DContent({ refId, active, document, name, projectId }: GameE
       await flush();
       await flushGameDraft(savingRef, async () => {
         const state = getGameDraftStore(refId).getState();
-        if (!state.baseUpdatedAt) { throw new Error("The draft is not ready for restoration"); }
+        if (!state.baseUpdatedAt) { throw new Error(t("game:editor.draftNotReadyForRestoration", { defaultValue: "The draft is not ready for restoration" })); }
         const result = await trpcClient.games.restoreDraft.mutate({ id: refId, baseUpdatedAt: state.baseUpdatedAt, revision });
         getGameDraftStore(refId).getState().load(result.document, result.game.draftUpdatedAt);
       });
@@ -399,9 +400,9 @@ export default function GameEditor3D({ refId, active }: GameEditor3DProps) {
     if (state.pendingOps.length === 0 && state.baseUpdatedAt !== data.game.draftUpdatedAt) { state.load(data.document, data.game.draftUpdatedAt); }
   }, [data, refId]);
   if (error?.data?.code === "PRECONDITION_FAILED") { return <GameDraftRecovery key={refId} refId={refId} />; }
-  if (isPending || (data && !document)) { return <LoadingSpinner text="Loading 3D game" />; }
+  if (isPending || (data && !document)) { return <LoadingSpinner text={i18n.t("editor:ui.loading3dGame", { defaultValue: "Loading 3D game" })} />; }
   if (error || !data || !document) {
-    const message = error?.message ?? "Game source is unavailable.";
+    const message = error?.message ?? i18n.t("editor:ui.gameSourceIsUnavailable", { defaultValue: "Game source is unavailable." });
     return <FlexColumn gap={SPACING.sm} align="center">
       <EmptyState variant="error" title={t("editor:ui.couldNotLoadGame", { defaultValue: "Could not load game" })} description={message} />
       <ReportBugButton context={{ source: "panel-crash", summary: "3D game could not load", errorText: message, nodeDetail: `Game: ${refId}` }} />

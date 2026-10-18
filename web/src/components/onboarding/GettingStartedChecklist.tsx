@@ -116,6 +116,7 @@ const styles = (theme: Theme) =>
   });
 
 interface ChecklistStep {
+  labelKey?: string;
   id: OnboardingStepId | "connect-provider";
   label: string;
   done: boolean;
@@ -161,7 +162,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
   const steps: ChecklistStep[] = [
     {
       id: "connect-provider",
-      label: "Connect an AI provider",
+      label: "Connect an AI provider", labelKey: "home:checklist.connectProvider",
       done: hasConfiguredProvider,
       // The dialog is where a key is replaced or another provider added, and
       // a disabled pill left people hunting for another way back to it.
@@ -170,7 +171,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
     },
     {
       id: "start-guided-flow",
-      label: "Start a guided flow",
+      label: "Start a guided flow", labelKey: "home:checklist.startGuidedFlow",
       done: completedSteps.includes("start-guided-flow"),
       // The cards live further down this surface; the pill takes the user
       // to them, starting one marks the step.
@@ -186,7 +187,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
     },
     {
       id: "keep-creating",
-      label: "Open an example or a blank doc",
+      label: "Open an example or a blank doc", labelKey: "home:checklist.openExamples",
       done: completedSteps.includes("keep-creating"),
       onClick: onOpenExamples
     }

@@ -25,7 +25,7 @@ import AddIcon from "@mui/icons-material/AddOutlined";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { getShortcutTooltip } from "../../config/shortcuts";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface ViewportStatusIndicatorProps {
   visible?: boolean;
@@ -238,10 +238,10 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
         {onTogglePortLabels ? (
           <ToolbarIconButton
             icon={<LabelOutlinedIcon sx={{ fontSize: ICON_SIZE.sm }} />}
-            tooltip={showPortLabels ? i18n.t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : "Show port labels"}
+            tooltip={showPortLabels ? i18n.t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : i18n.t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
             tooltipPlacement="top"
             onClick={onTogglePortLabels}
-            ariaLabel={showPortLabels ? i18n.t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : "Show port labels"}
+            ariaLabel={showPortLabels ? i18n.t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : i18n.t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
             aria-pressed={showPortLabels}
             size="small"
             sx={zoomButtonSx}

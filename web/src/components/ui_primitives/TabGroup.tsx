@@ -12,6 +12,7 @@ import { CONTROL, FONT_SIZE_SANS, MOTION, TYPOGRAPHY, reducedMotion } from "./to
 import { SPACING, getSpacingPx } from "./spacing";
 
 export interface TabItem {
+  labelKey?: string;
   /** Unique value for the tab */
   value: string;
   /** Display label */

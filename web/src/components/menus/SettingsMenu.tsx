@@ -73,7 +73,7 @@ import {
   tabHasMatches
 } from "./settingsSearch";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /** False when the element or an ancestor is `display: none`. */
 const isRendered = (element: HTMLElement): boolean =>
@@ -103,11 +103,11 @@ const settingsDocsTopic = (section: SettingsSection): DocsTopic =>
   section === "providers" ? "providers" : "configuration";
 
 const settingsDocsLabel = (section: SettingsSection): string =>
-  section === "providers" ? i18n.t("nav:settings.docsProviders", { defaultValue: "Models & providers" }) : "Configuration";
+  section === "providers" ? i18n.t("nav:settings.docsProviders", { defaultValue: "Models & providers" }) : i18n.t("nav:settings.docsConfig", { defaultValue: "Configuration" });
 
 const UPDATE_CHANNEL_OPTIONS = [
-  { value: "latest", label: "Stable" },
-  { value: "nightly", label: "Nightly" }
+  { value: "latest", label: "Stable", labelKey: "settings:general.opts.latest" },
+  { value: "nightly", label: "Nightly", labelKey: "settings:general.opts.nightly" }
 ] as const;
 
 const CLOSE_BEHAVIOR_OPTIONS = [
@@ -117,22 +117,22 @@ const CLOSE_BEHAVIOR_OPTIONS = [
 ] as const;
 
 const PAN_CONTROLS_OPTIONS = [
-  { value: "LMB", label: "Pan canvas" },
-  { value: "RMB", label: "Select nodes (box)" }
+  { value: "LMB", label: "Pan canvas", labelKey: "settings:general.opts.LMB" },
+  { value: "RMB", label: "Select nodes (box)", labelKey: "settings:general.opts.RMB" }
 ] as const;
 
 const SELECTION_MODE_OPTIONS = [
-  { value: "full", label: "Full" },
-  { value: "partial", label: "Partial" }
+  { value: "full", label: "Full", labelKey: "settings:general.opts.full" },
+  { value: "partial", label: "Partial", labelKey: "settings:general.opts.partial" }
 ] as const;
 
 const AUTOSAVE_INTERVAL_OPTIONS = [
-  { value: 1, label: "1 minute" },
-  { value: 5, label: "5 minutes" },
-  { value: 10, label: "10 minutes" },
-  { value: 15, label: "15 minutes" },
-  { value: 30, label: "30 minutes" },
-  { value: 60, label: "60 minutes" }
+  { value: 1, label: "1 minute", labelKey: "settings:general.opts.1" },
+  { value: 5, label: "5 minutes", labelKey: "settings:general.opts.5" },
+  { value: 10, label: "10 minutes", labelKey: "settings:general.opts.10" },
+  { value: 15, label: "15 minutes", labelKey: "settings:general.opts.15" },
+  { value: 30, label: "30 minutes", labelKey: "settings:general.opts.30" },
+  { value: 60, label: "60 minutes", labelKey: "settings:general.opts.60" }
 ] as const;
 
 const THEME_MODE_OPTIONS = [
@@ -334,7 +334,7 @@ function SettingsPage() {
       addNotification({
         type: "error",
         alert: true,
-        content: "Failed to save automatic update preference."
+        content: "Failed to save automatic update preference.", contentKey: "editor:notify.saveUpdatePrefFailed"
       });
     });
   }, [addNotification, autoUpdatesEnabled, desktopUpdateSettingsApi, supportsDesktopUpdateSettings]);
@@ -354,7 +354,7 @@ function SettingsPage() {
         addNotification({
           type: "error",
           alert: true,
-          content: "Failed to save update channel preference."
+          content: "Failed to save update channel preference.", contentKey: "editor:notify.saveChannelFailed"
         });
       });
   }, [addNotification, desktopUpdateSettingsApi, supportsDesktopUpdateSettings, updateChannel]);
@@ -469,7 +469,7 @@ function SettingsPage() {
         addNotification({
           type: "error",
           alert: true,
-          content: "Failed to copy token to clipboard"
+          content: "Failed to copy token to clipboard", contentKey: "editor:notify.tokenCopyFailed"
         });
       }
     }
@@ -512,20 +512,20 @@ function SettingsPage() {
 
   const generalSidebarSections = [
     {
-      category: "Workspace",
+      category: i18n.t("settings:general.catWorkspace", { defaultValue: "Workspace" }),
       items: [
-        { id: "editor", label: "Editor" },
-        ...(isElectron ? [{ id: "updates", label: "Updates" }] : []),
-        ...(isElectron ? [{ id: "vaults", label: "Vaults" }] : []),
-        { id: "appearance", label: "Appearance" }
+        { id: "editor", label: "Editor", labelKey: "settings:general.secEditor" },
+        ...(isElectron ? [{ id: "updates", label: "Updates", labelKey: "settings:general.secUpdates" }] : []),
+        ...(isElectron ? [{ id: "vaults", label: "Vaults", labelKey: "settings:general.secVaults" }] : []),
+        { id: "appearance", label: "Appearance", labelKey: "settings:general.secAppearance" }
       ]
     },
     {
       category: "Workflow",
       items: [
-        { id: "execution", label: "Execution" },
-        { id: "canvas-navigation", label: "Canvas & navigation" },
-        { id: "default-models", label: "Default models" }
+        { id: "execution", label: "Execution", labelKey: "settings:general.secExecution" },
+        { id: "canvas-navigation", label: "Canvas & navigation", labelKey: "settings:general.secCanvasNav" },
+        { id: "default-models", label: i18n.t("settings:defModels.title", { defaultValue: "Default models" }), labelKey: "settings:general.secDefaultModels" }
       ]
     },
     {
@@ -548,18 +548,18 @@ function SettingsPage() {
     // Folders are host paths, which the cloud neither shows nor accepts.
     const configItems = [
       ...getDisplayedSettingGroups(remoteSettings ?? []),
-      ...(isCloudProfile() ? [] : [{ id: "folders", label: "Folders" }])
+      ...(isCloudProfile() ? [] : [{ id: "folders", label: "Folders", labelKey: "settings:general.secFolders" }])
     ];
     return [
-      { category: "Configuration", items: configItems },
+      { category: i18n.t("nav:settings.docsConfig", { defaultValue: "Configuration" }), items: configItems },
       {
-        category: "Accounts",
+        category: i18n.t("settings:sidebar.intCatAccounts", { defaultValue: "Accounts" }),
         items: [{ id: "connected-accounts", label: "Connected accounts" }]
       },
       ...(isLocalhost
         ? [
             {
-              category: "Servers",
+              category: i18n.t("settings:sidebar.intCatServers", { defaultValue: "Servers" }),
               items: [
                 { id: "mcp-integration", label: "MCP integration" },
                 { id: "browser-extension", label: "Browser extension" }
@@ -570,15 +570,15 @@ function SettingsPage() {
       ...(session?.access_token && !isLocalhost
         ? [
             {
-              category: "Credentials",
+              category: i18n.t("settings:sidebar.intCatCredentials", { defaultValue: "Credentials" }),
               items: [
-                { id: "nodetool-api-token", label: "Nodetool API" }
+                { id: "nodetool-api-token", label: "Nodetool API", labelKey: "settings:general.apiIntTitle" }
               ]
             }
           ]
         : [])
     ];
-  }, [remoteSettings, session?.access_token]);
+  }, [remoteSettings, session?.access_token, languageVersion]);
 
   const allSidebarSections =
     section === "general"
@@ -668,7 +668,7 @@ function SettingsPage() {
         <header className="settings-page-header">
           <div className="settings-page-header__titles">
             <div className="settings-page-header__heading">
-              <h1 className="settings-page-header__title">Settings</h1>
+              <h1 className="settings-page-header__title">{i18n.t("nav:settings.title", { defaultValue: "Settings" })}</h1>
               <DocsHelpLink
                 topic={settingsDocsTopic(section)}
                 label={settingsDocsLabel(section)}
@@ -726,7 +726,7 @@ function SettingsPage() {
                     {matchingOtherTabs.length > 0 && (
                       <>
                         <Caption>
-                          {currentTabHasMatches ? i18n.t("settings:search.alsoIn", { defaultValue: "Also in" }) : "See"}
+                          {currentTabHasMatches ? i18n.t("settings:search.alsoIn", { defaultValue: "Also in" }) : i18n.t("settings:search.see", { defaultValue: "See" })}
                         </Caption>
                         {matchingOtherTabs.map((tab) => (
                           <TextLink
@@ -901,7 +901,7 @@ function SettingsPage() {
                           onChange={(checked) =>
                             updateSettings({ confirmLargeRun: checked })
                           }
-                          description="Running a workflow executes every node at once. Show a confirmation when a run would launch many model/provider nodes that could overload an API."
+                          description={i18n.t("settings:general.descConfirmManyNodes", { defaultValue: "Running a workflow executes every node at once. Show a confirmation when a run would launch many model/provider nodes that could overload an API." })}
                         />
                       </SearchItem>
 
@@ -935,7 +935,7 @@ function SettingsPage() {
                           max={1000}
                           step={10}
                           fallback={100}
-                          description="Playback buffer for realtime audio (modular synth patches). Lower values reduce knob-to-ear latency; higher values prevent dropouts when the editor is busy."
+                          description={i18n.t("settings:general.descAudioBuffer", { defaultValue: "Playback buffer for realtime audio (modular synth patches). Lower values reduce knob-to-ear latency; higher values prevent dropouts when the editor is busy." })}
                         />
                       </SearchItem>
 
@@ -963,7 +963,7 @@ function SettingsPage() {
                           defaultValue={4}
                           min={1}
                           max={64}
-                          description="Maximum number of workflow runs you can execute at once. Additional runs queue and start automatically as running ones finish."
+                          description={i18n.t("settings:general.descMaxParallelRuns", { defaultValue: "Maximum number of workflow runs you can execute at once. Additional runs queue and start automatically as running ones finish." })}
                         />
                       </SearchItem>
 
@@ -977,7 +977,7 @@ function SettingsPage() {
                           defaultValue={4}
                           min={1}
                           max={64}
-                          description="How many runs of the same workflow may run at once before further runs queue. Applies to concurrent generation (timeline, sketch); canvas runs always stay sequential."
+                          description={i18n.t("settings:general.descMaxRunsPerWorkflow", { defaultValue: "How many runs of the same workflow may run at once before further runs queue. Applies to concurrent generation (timeline, sketch); canvas runs always stay sequential." })}
                         />
                       </SearchItem>
                     </div>

@@ -44,9 +44,9 @@ const TONAL_SLIDERS: ReadonlyArray<SliderSpec> = [
 ];
 
 const RGB_SLIDERS: ReadonlyArray<SliderSpec> = [
-  { name: "red_midtones", label: "Red", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
-  { name: "green_midtones", label: "Green", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
-  { name: "blue_midtones", label: "Blue", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true }
+  { name: "red_midtones", label: "Red", labelKey: "sketch:attrs.redChannel", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
+  { name: "green_midtones", label: "Green", labelKey: "sketch:attrs.greenChannel", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
+  { name: "blue_midtones", label: "Blue", labelKey: "sketch:attrs.blueChannel", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true }
 ];
 
 const ALL_SLIDERS: ReadonlyArray<SliderSpec> = [...TONAL_SLIDERS, ...RGB_SLIDERS];

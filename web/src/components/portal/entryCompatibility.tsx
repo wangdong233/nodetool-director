@@ -3,7 +3,7 @@ import type { Workflow } from "../../stores/ApiTypes";
 import type { NodeMetadata } from "../../stores/ApiTypes";
 import { formatGenericProviderName, isLocalProvider } from "../../utils/providerDisplay";
 import { isRecord, isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 export interface EntryWorkflowLike {

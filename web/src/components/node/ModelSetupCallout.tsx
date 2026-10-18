@@ -10,6 +10,7 @@ import { useProviders } from "../../hooks/useProviders";
 import { openProviderOnboarding } from "../../stores/ProviderOnboardingStore";
 import { Text, EditorButton, ToolbarIconButton, MOTION, ICON_SIZE } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const enter = keyframes({
   from: { opacity: 0, transform: "translateY(-4px)" },
@@ -81,7 +82,7 @@ const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
   const handleAddKeys = useCallback(() => {
     onDismiss();
     openProviderOnboarding({
-      reason: "This node needs an AI model. Connect a provider to run it."
+      reason: i18n.t("editor:ui.thisNodeNeedsAnAIModelConnectAProviderToRunIt", { defaultValue: "This node needs an AI model. Connect a provider to run it." })
     });
   }, [onDismiss]);
 
@@ -103,7 +104,7 @@ const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
         )}
         <Text size="small" sx={{ pr: 2 }}>
           {noProvider
-            ? t("editor:ui.connectAnAIProviderToUseModelsAddAnAPIKeyToGetStarted", { defaultValue: "Connect an AI provider to use models — add an API key to get started." }) : "Pick a model here before running this workflow."}
+            ? t("editor:ui.connectAnAIProviderToUseModelsAddAnAPIKeyToGetStarted", { defaultValue: "Connect an AI provider to use models — add an API key to get started." }) : i18n.t("editor:ui.pickAModelHereBeforeRunningThisWorkflow", { defaultValue: "Pick a model here before running this workflow." })}
         </Text>
       </div>
       {noProvider && (

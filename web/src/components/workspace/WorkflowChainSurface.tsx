@@ -9,7 +9,7 @@ import type { NodeStore } from "../../stores/NodeStore";
 import { graphNodeToReactFlowNode } from "../../stores/graphNodeToReactFlowNode";
 import { graphEdgeToReactFlowEdge } from "../../stores/graphEdgeToReactFlowEdge";
 import type { Node as GraphNode } from "../../stores/ApiTypes";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface WorkflowChainSurfaceProps {
   workflowId: string;

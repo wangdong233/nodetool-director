@@ -75,14 +75,15 @@ import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { getErrorMessage } from "../../utils/errorHandling";
 import type { ImageModelValue } from "../../stores/ApiTypes";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type ModifyTab = "edit" | "upscale" | "reframe" | "adjust";
 
 const TABS: { value: ModifyTab; label: string }[] = [
-  { value: "edit", label: "Edit" },
-  { value: "upscale", label: "Upscale" },
-  { value: "reframe", label: "Reframe" },
-  { value: "adjust", label: "Adjust" }
+  { value: "edit", label: "Edit", labelKey: "storyboard:attrs.stillTabEdit" },
+  { value: "upscale", label: "Upscale", labelKey: "storyboard:attrs.stillTabUpscale" },
+  { value: "reframe", label: "Reframe", labelKey: "storyboard:attrs.stillTabReframe" },
+  { value: "adjust", label: "Adjust", labelKey: "storyboard:attrs.stillTabAdjust" }
 ];
 
 /**
@@ -100,9 +101,9 @@ const TASK_FOR_MODE: Record<StillVariantMode, ImageModelTask> = {
 const NEUTRAL: StillAdjustment = { brightness: 100, contrast: 100, saturation: 100 };
 
 const ADJUSTMENTS: { key: keyof StillAdjustment; label: string }[] = [
-  { key: "brightness", label: "Brightness" },
-  { key: "contrast", label: "Contrast" },
-  { key: "saturation", label: "Saturation" }
+  { key: "brightness", label: "Brightness", labelKey: "storyboard:attrs.brightness" },
+  { key: "contrast", label: "Contrast", labelKey: "storyboard:attrs.contrast" },
+  { key: "saturation", label: "Saturation", labelKey: "storyboard:attrs.saturation" }
 ];
 
 const previewSx = {
@@ -329,7 +330,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
         setStrokes(null);
       }
     } catch (error) {
-      reportFailure(error, "The edit did not start.");
+      reportFailure(error, i18n.t("storyboard:attrs.theEditDidNotStart", { defaultValue: "The edit did not start." }));
     } finally {
       setBusy(false);
       // The mask is an input to this one request, not a take: drop it once the
@@ -351,7 +352,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
     try {
       await run("upscale", upscaleModel, { scale });
     } catch (error) {
-      reportFailure(error, "The upscale did not start.");
+      reportFailure(error, i18n.t("storyboard:attrs.theUpscaleDidNotStart", { defaultValue: "The upscale did not start." }));
     } finally {
       setBusy(false);
     }
@@ -370,7 +371,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
         padding: outpaintPadding(size.width, size.height, aspect)
       });
     } catch (error) {
-      reportFailure(error, "The reframe did not start.");
+      reportFailure(error, i18n.t("storyboard:attrs.theReframeDidNotStart", { defaultValue: "The reframe did not start." }));
     } finally {
       setBusy(false);
     }
@@ -400,12 +401,12 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
         },
         onFailed: (error) => {
           setBusy(false);
-          reportFailure(error, "The adjusted still could not be saved.");
+          reportFailure(error, i18n.t("storyboard:attrs.theAdjustedStillCouldNotBeSaved", { defaultValue: "The adjusted still could not be saved." }));
         }
       });
     } catch (error) {
       setBusy(false);
-      reportFailure(error, "The still could not be adjusted.");
+      reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeAdjusted", { defaultValue: "The still could not be adjusted." }));
     }
   }, [stillUrl, stillName, adjustment, uploadAsset, appendShotKeyframeVersion, boardId, shot.id]);
 
@@ -454,7 +455,7 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
               onClick={() => setPainting(true)}
               disabled={!stillUrl}
             >
-              {strokes ? t("storyboard:attrs.repaintArea", { defaultValue: "Repaint area" }) : "Paint area"}
+              {strokes ? t("storyboard:attrs.repaintArea", { defaultValue: "Repaint area" }) : i18n.t("storyboard:attrs.paintArea", { defaultValue: "Paint area" })}
             </EditorButton>
             {strokes ? (
               <Chip
@@ -488,9 +489,8 @@ const ShotStillModifyPanelInner: React.FC<ShotStillModifyPanelProps> = ({
           {editModel && !editModelFits && (
             <Caption color="error">
               {strokes
-                ? "This model cannot change only a painted area. Pick an inpainting model, or clear the area."
-                : supports(editModel, "inpainting")
-                  ? t("storyboard:attrs.thisModelOnlyChangesAPaintedArea", { defaultValue: "This model only changes a painted area. Paint an area, or pick an editing model." }) : "This model cannot edit an existing image. Pick an editing model."}
+                ? t("storyboard:attrs.thisModelCannotChangeOnlyAPaintedArea", { defaultValue: "This model cannot change only a painted area. Pick an inpainting model, or clear the area." }) : supports(editModel, "inpainting")
+                  ? t("storyboard:attrs.thisModelOnlyChangesAPaintedArea", { defaultValue: "This model only changes a painted area. Paint an area, or pick an editing model." }) : i18n.t("storyboard:attrs.thisModelCannotEditAnExistingImage", { defaultValue: "This model cannot edit an existing image. Pick an editing model." })}
             </Caption>
           )}
           <EditorButton

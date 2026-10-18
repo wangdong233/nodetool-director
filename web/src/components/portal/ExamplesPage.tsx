@@ -20,11 +20,11 @@ const ExamplesPage: React.FC = () => {
       <TabGroup
         tabs={[
           { value: "apps", label: "Apps" },
-          { value: "workflows", label: "Workflows" },
+          { value: "workflows", label: "Workflows", labelKey: "ui2:attrs.workflows" },
           { value: "storyboards", label: "Storyboards" },
           { value: "timelines", label: "Timelines" },
           { value: "sketches", label: "Sketches" },
-          { value: "models", label: "3D models" },
+          { value: "models", label: "3D models", labelKey: "timeline:attrs.kind3dModels" },
           { value: "games", label: "Games" }
         ]}
         value={activeTab}

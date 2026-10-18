@@ -22,6 +22,7 @@ import type {
   SecretRequestOutcome
 } from "../../../stores/GlobalChatStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface SecretRequestCardProps {
   approvalId: string;
@@ -104,7 +105,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
     } catch (err) {
       // The request stays open: the run is still waiting, and the user can
       // correct a paste and try again rather than losing the turn.
-      setError(err instanceof Error ? err.message : "Could not save the key.");
+      setError(err instanceof Error ? err.message : i18n.t("editor:ui.couldNotSaveTheKey", { defaultValue: "Could not save the key." }));
       setSaving(false);
     }
   }, [approvalId, onResolve, request.key, updateSecret, value]);
@@ -190,7 +191,7 @@ const SecretRequestCard: React.FC<SecretRequestCardProps> = ({
             onClick={handleSave}
             startIcon={<KeyRoundedIcon />}
           >
-            {saving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save key"}
+            {saving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("editor:ui.saveKey", { defaultValue: "Save key" })}
           </EditorButton>
         </FlexRow>
       </div>

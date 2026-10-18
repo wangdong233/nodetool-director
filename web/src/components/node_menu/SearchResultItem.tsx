@@ -31,7 +31,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { FavoriteButton } from "../ui_primitives";
 import { NOTIFICATION_TIMEOUT_SHORT } from "../../config/constants";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 const COMPACT_SVG_PROPS = { width: "14px", height: "14px" } as const;
 const EXPANDED_SVG_PROPS = { width: "16px", height: "16px" } as const;
@@ -256,7 +256,7 @@ const SearchResultItem = memo(function SearchResultItem({
       addNotification({
         type: "info",
         content: next
-          ? i18n.t("editor:ui.nodeAddedToFavorites", { defaultValue: "Node added to favorites" }) : "Node removed from favorites",
+          ? i18n.t("editor:ui.nodeAddedToFavorites", { defaultValue: "Node added to favorites" }) : i18n.t("editor:ui.nodeRemovedFromFavorites", { defaultValue: "Node removed from favorites" }),
         timeout: NOTIFICATION_TIMEOUT_SHORT
       });
     },
@@ -462,7 +462,7 @@ const SearchResultItem = memo(function SearchResultItem({
             onToggle={handleFavoriteToggle}
             buttonSize="small"
           />
-          <Tooltip title={isExpanded ? t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : "Show details"}>
+          <Tooltip title={isExpanded ? t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : i18n.t("editor:ui.showDetails", { defaultValue: "Show details" })}>
             <div
               className={`expand-indicator ${isExpanded ? "expanded" : ""}`}
               role="button"
@@ -470,7 +470,7 @@ const SearchResultItem = memo(function SearchResultItem({
               onClick={handleToggleExpand}
               onKeyDown={handleExpandKeyDown}
               aria-expanded={isExpanded}
-              aria-label={isExpanded ? t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : "Show details"}
+              aria-label={isExpanded ? t("editor:ui.collapseDetails", { defaultValue: "Collapse details" }) : i18n.t("editor:ui.showDetails", { defaultValue: "Show details" })}
             >
               <ExpandMoreIcon />
             </div>

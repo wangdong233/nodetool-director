@@ -16,12 +16,13 @@ import SubtitlesOutlinedIcon from "@mui/icons-material/SubtitlesOutlined";
 import PianoOutlinedIcon from "@mui/icons-material/PianoOutlined";
 import QueueMusicOutlinedIcon from "@mui/icons-material/QueueMusicOutlined";
 import type { SvgIconComponent } from "@mui/icons-material";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 export type TrackTypeKey = TimelineTrack["type"];
 type ClipMediaKey = TimelineClip["mediaType"];
 
 interface TrackTypeMeta {
+  labelKey?: string;
   /** Single-letter prefix used in the index chip: V1, A1, T1, O1. */
   prefix: string;
   /** Long-form label for tooltips and aria. */
@@ -30,9 +31,9 @@ interface TrackTypeMeta {
 }
 
 const TRACK_TYPES = {
-  video: { prefix: "V", label: "Video", Icon: VideocamOutlinedIcon },
+  video: { prefix: "V", label: "Video", labelKey: "home:entry.video.title", Icon: VideocamOutlinedIcon },
   audio: { prefix: "A", label: "Audio", Icon: AudiotrackOutlinedIcon },
-  overlay: { prefix: "O", label: "Overlay", Icon: LayersOutlinedIcon },
+  overlay: { prefix: "O", label: "Overlay", labelKey: "storyboard:attrs.graphicsModeOverlay", Icon: LayersOutlinedIcon },
   subtitle: { prefix: "T", label: "Text", Icon: SubtitlesOutlinedIcon },
   midi: { prefix: "M", label: "MIDI", Icon: PianoOutlinedIcon },
   chord: { prefix: "C", label: "Chords", Icon: QueueMusicOutlinedIcon }

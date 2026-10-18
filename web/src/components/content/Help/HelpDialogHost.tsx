@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { useAppHeaderStore } from "../../../stores/AppHeaderStore";
 import { Dialog, LoadingSpinner } from "../../ui_primitives";
+import { i18n } from "../../../../i18n";
 
 const Help = lazy(() => import("./Help"));
 
@@ -13,7 +14,7 @@ const HelpDialogHost = () => {
   return open ? (
     <Suspense
       fallback={
-        <Dialog open onClose={close} title="Help" fullWidth maxWidth="lg">
+        <Dialog open onClose={close} title={i18n.t("timeline:shortcuts.help", { defaultValue: "Help" })} fullWidth maxWidth="lg">
           <LoadingSpinner text="Loading help" />
         </Dialog>
       }

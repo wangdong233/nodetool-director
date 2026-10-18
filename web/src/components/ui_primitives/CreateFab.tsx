@@ -8,7 +8,7 @@
  * @example
  * <CreateFab
  *   icon={<AddIcon />}
- *   label="New Workflow"
+ *   label={i18n.t("catalog:shortcuts.newWorkflow", { defaultValue: "New Workflow" })}
  *   onClick={handleCreate}
  * />
  */
@@ -24,6 +24,7 @@ import {
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { SHADOW } from "./tokens";
+import { i18n } from "../../../i18n";
 
 export interface CreateFabProps extends Omit<FabProps, "children"> {
   /**

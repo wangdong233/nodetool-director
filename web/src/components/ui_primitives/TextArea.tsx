@@ -17,6 +17,7 @@ import { Box } from "./Box";
 import { CONTROL, MOTION, reducedMotion } from "./tokens";
 import { SPACING } from "./spacing";
 import { isRecord, isString } from "../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 /** One key of a MUI slot prop, which may be an object or a function. */
 const slotValue = (slot: unknown, key: string): unknown =>
@@ -53,7 +54,7 @@ export interface TextAreaProps
  *
  * @example
  * <TextArea
- *   label="Descriptor"
+ *   label={i18n.t("storyboard:attrs.descriptor", { defaultValue: "Descriptor" })}
  *   value={descriptor}
  *   onChange={setDescriptor}
  *   minRows={4}

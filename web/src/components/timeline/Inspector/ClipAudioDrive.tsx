@@ -51,7 +51,7 @@ import {
 } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 import { BakedCurvePreview, type BakedCurvePoint } from "./BakedCurvePreview";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 import { useTranslation } from "react-i18next";
 
 /** The capability's own defaults, so an untouched form bakes what it would. */

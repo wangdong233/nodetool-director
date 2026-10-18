@@ -13,7 +13,7 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { MOTION } from "./tokens";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme, isFavorite: boolean, variant: string) =>
   css({

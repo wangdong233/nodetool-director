@@ -10,7 +10,7 @@ import { useAssetGridStore } from "../../stores/AssetGridStore";
 import useAssets from "../../serverState/useAssets";
 import useAuth from "../../stores/useAuth";
 import { FolderTree, AssetTreeNode } from "../../stores/AssetStore";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -65,12 +65,12 @@ function buildBreadcrumbPath(
   rootId: string
 ): Array<{ id: string; name: string }> {
   if (!folderTree || !currentFolderId) {
-    return [{ id: rootId, name: "Assets" }];
+    return [{ id: rootId, name: "Assets", nameKey: "timeline:attrs.kindAssets" }];
   }
 
   // If we're at root, just show root
   if (currentFolderId === rootId) {
-    return [{ id: rootId, name: "Assets" }];
+    return [{ id: rootId, name: "Assets", nameKey: "timeline:attrs.kindAssets" }];
   }
 
   // Build a lookup map from the tree
@@ -101,7 +101,7 @@ function buildBreadcrumbPath(
   }
 
   // Always prepend root
-  path.unshift({ id: rootId, name: "Assets" });
+  path.unshift({ id: rootId, name: "Assets", nameKey: "timeline:attrs.kindAssets" });
 
   return path;
 }

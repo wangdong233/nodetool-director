@@ -30,6 +30,7 @@ import {
   workbookToBytes,
   worksheetToDataframe
 } from "../../utils/xlsxDataframe";
+import { i18n } from "../../../i18n";
 
 const XLSX_CONTENT_TYPE =
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -285,7 +286,7 @@ const SpreadsheetDocumentEditor = ({
                   disabled={!isDirty || isSaving}
                   onClick={handleSave}
                 >
-                  {isSaving ? "Saving…" : "Save"}
+                  {isSaving ? i18n.t("timeline:topbar.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
                 </EditorButton>
               )}
             </>

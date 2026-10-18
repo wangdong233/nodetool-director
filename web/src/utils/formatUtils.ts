@@ -68,8 +68,8 @@ export function formatDuration(ms: number): string | null {
  * Size filter categories with human-readable labels
  */
 export const SIZE_FILTERS = [
-  { key: "all", label: "All", min: 0, max: Infinity },
-  { key: "empty", label: "Empty", min: 0, max: 0 },
+  { key: "all", label: "All", labelKey: "storyboard:attrs.all", min: 0, max: Infinity },
+  { key: "empty", label: "Empty", labelKey: "game:sceneTree.presetEmpty", min: 0, max: 0 },
   { key: "small", label: "< 1 MB", min: 1, max: 1024 * 1024 - 1 },
   {
     key: "medium",
@@ -99,14 +99,14 @@ export type SizeFilterKey = (typeof SIZE_FILTERS)[number]["key"];
  * always maps to exactly one filter.
  */
 export const TYPE_FILTERS = [
-  { key: "all", label: "All" },
+  { key: "all", label: "All", labelKey: "storyboard:attrs.all" },
   { key: "image", label: "Images" },
-  { key: "video", label: "Videos" },
+  { key: "video", label: "Videos", labelKey: "timeline:attrs.kindVideos" },
   { key: "audio", label: "Audio" },
   { key: "model_3d", label: "3D Models" },
   { key: "text", label: "Text" },
-  { key: "application", label: "Documents" },
-  { key: "other", label: "Other" }
+  { key: "application", label: "Documents", labelKey: "home:docs.titleEmpty" },
+  { key: "other", label: "Other", labelKey: "tools:menus.other" }
 ] as const;
 
 export type TypeFilterKey = (typeof TYPE_FILTERS)[number]["key"];

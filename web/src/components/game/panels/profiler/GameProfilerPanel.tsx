@@ -14,6 +14,7 @@ import {
   type GameProfileSource, type GameProfileStat
 } from "./gameProfileModel";
 import { useGameProfilerView } from "./useGameProfilerView";
+import { i18n } from "../../../../../i18n";
 
 interface ProfilerDocument {
   readonly scenes: readonly { readonly entities: readonly { readonly id: string; readonly name?: string }[] }[];
@@ -145,7 +146,7 @@ export default function GameProfilerPanel({ profiler, source, document }: GamePr
       <Divider orientation="vertical" flexItem sx={{ mx: SPACING.xs, my: SPACING.xs }} />
       <EditorButton disabled={view.capturing || empty} onClick={exportProfile} sx={{ height: CONTROL.height.sm }}>Export JSON</EditorButton>
       <EditorButton disabled={!profiler} onClick={() => { profiler?.clear(); refresh(); }}
-        sx={{ height: CONTROL.height.sm, color: "text.secondary" }}>Clear</EditorButton>
+        sx={{ height: CONTROL.height.sm, color: "text.secondary" }}>{i18n.t("common:action.clear", { defaultValue: "Clear" })}</EditorButton>
     </GamePanelHeader>
     <ScrollArea sx={{ flex: 1, minHeight: 0 }}>
       {empty || !summary || !metrics
@@ -179,7 +180,7 @@ export default function GameProfilerPanel({ profiler, source, document }: GamePr
             {summary.scripts.length > SCRIPT_ROWS && <Caption color="muted">{`${summary.scripts.length - SCRIPT_ROWS} more entities in the export`}</Caption>}
             {!viewingCapture && summary.scripts.length > 0 && <Caption color="muted">Totals since Play or Clear.</Caption>}
           </Section>
-          <Section title="Rendering">
+          <Section title={i18n.t("storyboard:attrs.rendering", { defaultValue: "Rendering" })}>
             <Row label="Draw calls">{countStat(metrics.drawCalls)}</Row>
             <Row label="Triangles">{source.dimension === "2d" ? "Not reported in 2D" : countStat(metrics.triangles)}</Row>
             <Row label="Texture memory">{bytesStat(metrics.textureBytes)}</Row>

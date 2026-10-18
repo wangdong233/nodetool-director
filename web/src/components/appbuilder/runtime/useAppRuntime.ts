@@ -94,6 +94,7 @@ import {
 import { AppRuntimeContextValue } from "./AppRuntimeContext";
 import { isString } from "../../../utils/typePredicates";
 import { promptForErrorDetail } from "../../../stores/errorDetailPrompt";
+import { i18n } from "../../../../i18n";
 
 const now = (): number => Date.now();
 
@@ -875,7 +876,7 @@ export const useAppRuntime = (
         ? {
             ...reserved,
             id: jobId,
-            status: isLiveInvocation(reserved) ? "running" : reserved.status
+            status: isLiveInvocation(reserved) ? i18n.t("editor:workflow.runRunning", { defaultValue: "running" }) : reserved.status
           }
         : {
             id: jobId,
@@ -1390,7 +1391,7 @@ export const useAppRuntime = (
       } catch (error) {
         failInvocation(
           operationId,
-          error instanceof Error ? error.message : "Run failed",
+          error instanceof Error ? error.message : i18n.t("setup:workflow.runFailed", { defaultValue: "Run failed" }),
           reservationId
         );
       } finally {
@@ -1585,12 +1586,12 @@ export const useAppRuntime = (
           void settleRun(
             jobId,
             "failed",
-            error instanceof Error ? error.message : "Run failed"
+            error instanceof Error ? error.message : i18n.t("setup:workflow.runFailed", { defaultValue: "Run failed" })
           );
           store.getState().dispatchEvent({
             type: "invocationError",
             invocationId: jobId,
-            error: error instanceof Error ? error.message : "Run failed"
+            error: error instanceof Error ? error.message : i18n.t("editor:ui.runFailed", { defaultValue: "Run failed" })
           });
         })
         .finally(() => {

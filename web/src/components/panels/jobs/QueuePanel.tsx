@@ -33,9 +33,9 @@ const FILTERS: {
   label: string;
   color?: "error";
 }[] = [
-  { id: "all", label: "All" },
-  { id: "failed", label: "Failed", color: "error" },
-  { id: "completed", label: "Completed" },
+  { id: "all", label: "All", labelKey: "storyboard:attrs.all" },
+  { id: "failed", label: "Failed", labelKey: "setup:workflow.pill_failed", color: "error" },
+  { id: "completed", label: "Completed", labelKey: "setup:workflow.pill_completed" },
   { id: "cancelled", label: "Cancelled" }
 ];
 
@@ -212,12 +212,12 @@ const QueuePanel = memo(function QueuePanel() {
 
       <FlexColumn
         component="section"
-        aria-label="History"
+        aria-label={t("timeline:editor.history", { defaultValue: "History" })}
         sx={{ flex: 1, minHeight: 0 }}
       >
         <SectionHeader
           size="small"
-          title="History"
+          title={t("timeline:editor.history", { defaultValue: "History" })}
           action={
             counts.all > 0 ? (
               <FlexRow

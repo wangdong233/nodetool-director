@@ -46,6 +46,7 @@ import { useDocumentDraftStore } from "../../stores/DocumentDraftStore";
 import { useDocumentConflicts } from "../../hooks/useDocumentConflicts";
 import { tAttr, tAttrTpl } from "./i18nAttrs";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ApplicationAppBuilderProps {
   applicationId: string;
@@ -579,7 +580,7 @@ const ApplicationAppBuilder: React.FC<ApplicationAppBuilderProps> = ({
         size="large"
         text={t("ui2:attrs.loadingDocument", {
           defaultValue: "Loading {{label}}…",
-          label: tAttr("App")
+          label: tAttr(i18n.t("editor:ui.cmApp", { defaultValue: "App" }))
         })}
       />
     );

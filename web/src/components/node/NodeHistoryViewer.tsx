@@ -60,6 +60,7 @@ import { TextRenderer } from "./output/TextRenderer";
 import { extractTextValue } from "../../utils/extractTextValue";
 import { isString } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface NodeHistoryViewerProps {
   workflowId: string;
@@ -859,7 +860,7 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
       <div className="node-history-overlay overlay-top-left">
         <div className="overlay-cluster">
           <ToolbarIconButton
-            title={effectiveView === "single" ? t("editor:ui.showGrid", { defaultValue: "Show grid" }) : "Show single"}
+            title={effectiveView === "single" ? t("editor:ui.showGrid", { defaultValue: "Show grid" }) : i18n.t("editor:ui.showSingle", { defaultValue: "Show single" })}
             size="small"
             onClick={handleToggleView}
             className="overlay-icon-btn"
@@ -906,12 +907,12 @@ const NodeHistoryViewerInternal: React.FC<NodeHistoryViewerProps> = ({
             />
           ) : null}
           <ToolbarIconButton
-            title={hasTextToOpen ? t("editor:ui.openFullText", { defaultValue: "Open full text" }) : "Open in viewer"}
+            title={hasTextToOpen ? t("editor:ui.openFullText", { defaultValue: "Open full text" }) : i18n.t("editor:ui.openInViewer", { defaultValue: "Open in viewer" })}
             size="small"
             onClick={handleOpenViewer}
             disabled={!canOpen}
             className="overlay-icon-btn"
-            aria-label={hasTextToOpen ? t("editor:ui.openFullText", { defaultValue: "Open full text" }) : "Open in viewer"}
+            aria-label={hasTextToOpen ? t("editor:ui.openFullText", { defaultValue: "Open full text" }) : i18n.t("editor:ui.openInViewer", { defaultValue: "Open in viewer" })}
           >
             <OpenInFullIcon />
           </ToolbarIconButton>

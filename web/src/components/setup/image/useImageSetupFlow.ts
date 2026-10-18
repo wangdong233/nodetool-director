@@ -39,7 +39,7 @@ import {
 import { BriefModelFooterField } from "./BriefModelSelect";
 import { ReviewStep } from "./ReviewStep";
 import { UseCaseStep } from "./UseCaseStep";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 import { useTranslation } from "react-i18next";
 
 /** A document's stage, with the field's absence read as `done` (PRD § 6.4). */

@@ -10,7 +10,7 @@ import { Asset, AssetWithPath } from "../../../stores/ApiTypes";
 import { useWorkspaceTabsStore } from "../../../stores/WorkspaceTabsStore";
 import { useAssetProjectScope } from "../../../hooks/assets/useAssetProjectScope";
 import { useTheme } from "@mui/material/styles";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 interface AssetFilesPanelProps {
   isHorizontal?: boolean;

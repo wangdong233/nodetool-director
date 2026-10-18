@@ -20,7 +20,7 @@ import { useBottomPanelStore } from "../stores/BottomPanelStore";
 import { usePanelStore } from "../stores/PanelStore";
 import { useMiniMapStore } from "../stores/MiniMapStore";
 import { useNotificationStore } from "../stores/NotificationStore";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 interface FloatingToolbarActions {
   handleRun: () => Promise<void>;
@@ -89,13 +89,13 @@ export const useFloatingToolbarActions = (): FloatingToolbarActions => {
     errorEditGeneration !== null && editGeneration !== errorEditGeneration;
   const runControlLabel = useMemo(() => {
     if (isStopping) {
-      return "Stopping";
+      return i18n.t("editor:workflow.runStopping", { defaultValue: "Stopping" });
     }
     if (queuePosition != null) {
       return `Queued #${queuePosition}`;
     }
     if (state === "connecting" || state === "connected") {
-      return "Starting";
+      return i18n.t("editor:workflow.runStarting", { defaultValue: "Starting" });
     }
     if (state === "running") {
       return pendingRunCount > 0
@@ -103,10 +103,10 @@ export const useFloatingToolbarActions = (): FloatingToolbarActions => {
         : "Running";
     }
     if (state === "error" && !editedSinceError) {
-      return "Error · Retry";
+      return i18n.t("editor:workflow.runErrorRetry", { defaultValue: "Error · Retry" });
     }
-    return "Run entire workflow";
-  }, [editedSinceError, isStopping, pendingRunCount, queuePosition, state]);
+    return i18n.t("editor:workflow.runEntireWorkflow", { defaultValue: "Run entire workflow" });
+  }, [editedSinceError, isStopping, pendingRunCount, queuePosition, state, languageVersion]);
 
   const getWorkflowById = useWorkflowManager((state) => state.getWorkflow);
   const saveWorkflow = useWorkflowManager((state) => state.saveWorkflow);

@@ -40,7 +40,7 @@ import type {
 import { formatJavaScriptForDisplay } from "../../utils/formatJavaScript";
 import { isString } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 type NodeStatus = "waiting" | "running" | "completed" | "failed";
 
@@ -718,8 +718,7 @@ const PlanningLog: React.FC<{
           entry.status === "failed"
             ? "failed"
             : isRunning
-              ? "running"
-              : "completed";
+              ? i18n.t("setup:workflow.pill_running", { defaultValue: "running" }) : i18n.t("setup:workflow.pill_completed", { defaultValue: "completed" });
 
         return (
           <div

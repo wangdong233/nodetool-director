@@ -11,7 +11,7 @@ import { create } from "zustand";
 import { trpcClient } from "../trpc/client";
 import { createErrorMessage } from "../utils/errorHandling";
 import { loadMetadata } from "../serverState/useMetadata";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 type PackStatus = "loaded" | "skipped" | "error";
 

@@ -46,6 +46,7 @@ import {
 } from "../ui_primitives";
 import { colorForType } from "../../config/data_types";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ShotInspectorProps {
   boardId: string;
@@ -233,7 +234,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
               sx={quietActionSx}
               tooltip={
                 shot.clip
-                  ? t("storyboard:attrs.reRenderThisClipWithANoteApplied", { defaultValue: "Re-render this clip with a note applied" }) : "Render a clip first"
+                  ? t("storyboard:attrs.reRenderThisClipWithANoteApplied", { defaultValue: "Re-render this clip with a note applied" }) : i18n.t("storyboard:attrs.renderAClipFirst", { defaultValue: "Render a clip first" })
               }
             >
               Iterate
@@ -266,7 +267,7 @@ const ShotInspectorInner: React.FC<ShotInspectorProps> = ({
         onClose={() => setIterateOpen(false)}
         title={t("storyboard:attrs.iterateOnThisClip", { defaultValue: "Iterate on this clip" })}
         onConfirm={handleIterateConfirm}
-        confirmText="Iterate"
+        confirmText={i18n.t("storyboard:attrs.iterate", { defaultValue: "Iterate" })}
         confirmDisabled={iterateText.trim().length === 0}
       >
         <FlexColumn gap={SPACING.xs}>

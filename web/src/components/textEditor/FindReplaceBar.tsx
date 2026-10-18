@@ -255,8 +255,8 @@ const FindReplaceBar = ({
 
           <span>
             <ToolbarIconButton
-              icon={<span style={TYPOGRAPHY.sans.label}>Replace</span>}
-              tooltip="Replace"
+              icon={<span style={TYPOGRAPHY.sans.label}>{t("ui2:attrs.replace", { defaultValue: "Replace" })}</span>}
+              tooltip={t("ui2:attrs.replace", { defaultValue: "Replace" })}
               onClick={handleReplace}
               disabled={!isValidSearch || totalMatches === 0}
               className="toolbar-button"

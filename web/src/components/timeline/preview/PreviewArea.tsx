@@ -83,6 +83,7 @@ import { liveDeviceFactory } from "../daw/devices/liveDevice";
 import { DawTransport } from "../daw/transport/DawTransport";
 import { Metronome } from "../daw/transport/metronome";
 import { useTimelineLayoutStore } from "../../../stores/timeline/TimelineLayoutStore";
+import { i18n } from "../../../../i18n";
 import "../daw/devices/registerFablesynthDevices";
 
 /** Space is bound by the preview itself (useCombo below), not the keymap. */
@@ -341,7 +342,7 @@ const PlaybackScrubber: React.FC<PlaybackScrubberProps> = memo(
 
     return (
       <Slider
-        aria-label="Scrub timeline"
+        aria-label={i18n.t("timeline:editor.scrubTimeline", { defaultValue: "Scrub timeline" })}
         min={0}
         max={max}
         step={step}
@@ -1479,7 +1480,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
         css={containerCss}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        aria-label="Preview area"
+        aria-label={i18n.t("timeline:editor.previewArea", { defaultValue: "Preview area" })}
         data-testid="preview-area"
         data-expanded={isExpanded}
       >
@@ -1492,33 +1493,33 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
             icon={<SkipPreviousIcon />}
             tooltip={withActionShortcut("Previous clip boundary", keyboardPreset, "prevCut")}
             onClick={jumpToPrevBoundary}
-            aria-label="Previous clip boundary"
+            aria-label={i18n.t("timeline:editor.prevClipBoundary", { defaultValue: "Previous clip boundary" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
 
           <ToolbarIconButton
             icon={<NavigateBeforeIcon />}
-            tooltip={withActionShortcut("Step back one frame", keyboardPreset, "stepFrameBack")}
+            tooltip={withActionShortcut(i18n.t("ui2:attrs.stepBackOneFrame", { defaultValue: "Step back one frame" }), keyboardPreset, "stepFrameBack")}
             onClick={stepBack}
             disabled={isPlaying}
-            aria-label="Step back one frame"
+            aria-label={i18n.t("timeline:editor.stepBackOneFrame", { defaultValue: "Step back one frame" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
 
           <ToolbarIconButton
             icon={isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-            tooltip={`${isPlaying ? "Pause" : "Play"} (${PLAY_PAUSE_KEY})`}
+            tooltip={`${isPlaying ? i18n.t("timeline:attrs.pause2", { defaultValue: "Pause" }) : i18n.t("game:categories.Play", { defaultValue: "Play" })} (${PLAY_PAUSE_KEY})`}
             onClick={handlePlayPauseToggle}
-            aria-label={isPlaying ? "Pause" : "Play"}
+            aria-label={isPlaying ? i18n.t("timeline:attrs.pause2", { defaultValue: "Pause" }) : i18n.t("game:categories.Play", { defaultValue: "Play" })}
             variant="primary"
             size="small"
           />
 
           <ToolbarIconButton
             icon={<StopIcon />}
-            tooltip="Stop and return to start"
+            tooltip={i18n.t("timeline:editor.stopReturnToStart", { defaultValue: "Stop and return to start" })}
             onClick={handleStop}
             aria-label="Stop"
             size="small"
@@ -1526,10 +1527,10 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
 
           <ToolbarIconButton
             icon={<NavigateNextIcon />}
-            tooltip={withActionShortcut("Step forward one frame", keyboardPreset, "stepFrameForward")}
+            tooltip={withActionShortcut(i18n.t("ui2:attrs.stepForwardOneFrame", { defaultValue: "Step forward one frame" }), keyboardPreset, "stepFrameForward")}
             onClick={stepForward}
             disabled={isPlaying}
-            aria-label="Step forward one frame"
+            aria-label={i18n.t("timeline:editor.stepForwardOneFrame", { defaultValue: "Step forward one frame" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
@@ -1538,7 +1539,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
             icon={<SkipNextIcon />}
             tooltip={withActionShortcut("Next clip boundary", keyboardPreset, "nextCut")}
             onClick={jumpToNextBoundary}
-            aria-label="Next clip boundary"
+            aria-label={i18n.t("timeline:editor.nextClipBoundary", { defaultValue: "Next clip boundary" })}
             size="small"
             className="timeline-preview__secondary-control"
           />
@@ -1582,7 +1583,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
             }}
             options={[
               { value: "auto", label: `Auto (${autoQualityLabel})` },
-              { value: "full", label: "Full" },
+              { value: "full", label: "Full", labelKey: "settings:general.opts.full" },
               { value: "half", label: "Half" },
               { value: "quarter", label: "Quarter" }
             ]}
@@ -1620,11 +1621,11 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
 
           <ToolbarIconButton
             icon={<FilterBAndWOutlinedIcon />}
-            tooltip="Show the selected clip's subject matte instead of the frame"
+            tooltip={i18n.t("timeline:editor.showMatteTooltip", { defaultValue: "Show the selected clip's subject matte instead of the frame" })}
             onClick={toggleMatteView}
             disabled={!hasReadyMatte}
             active={matteViewEnabled}
-            aria-label="Show matte"
+            aria-label={i18n.t("timeline:editor.showMatte", { defaultValue: "Show matte" })}
             aria-pressed={matteViewEnabled}
             size="small"
             className="timeline-preview__matte-view"
@@ -1632,9 +1633,9 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
 
           <ToolbarIconButton
             icon={isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-            tooltip={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            tooltip={isFullscreen ? i18n.t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
             onClick={handleFullscreen}
-            aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            aria-label={isFullscreen ? i18n.t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
             size="small"
             className="timeline-preview__fullscreen"
           />

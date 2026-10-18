@@ -25,6 +25,7 @@ import AgentAccessSection from "./AgentAccessSection";
 import ExternalMcpServersSection from "./ExternalMcpServersSection";
 import { trpcClient } from "../../trpc/client";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface TargetStatus {
   target: string;
@@ -162,21 +163,21 @@ const MCPSettingsMenu = () => {
           type: "error",
           alert: true,
           content:
-            result.error ?? "Could not find the NodeTool extension bundle."
+            result.error ?? i18n.t("editor:ui.couldNotFindTheNodeToolExtensionBundle", { defaultValue: "Could not find the NodeTool extension bundle." })
         });
       } else if (result.opened) {
         addNotification({
           type: "success",
           alert: true,
           content:
-            "Opening the NodeTool extension in Claude Desktop — confirm the install there."
+            "Opening the NodeTool extension in Claude Desktop — confirm the install there.", contentKey: "editor:notify.openingExtensionInClaudeDesktop"
         });
       } else {
         addNotification({
           type: "info",
           alert: true,
           content:
-            "Revealed nodetool.mcpb — drag it into Claude Desktop → Settings → Extensions."
+            "Revealed nodetool.mcpb — drag it into Claude Desktop → Settings → Extensions.", contentKey: "editor:notify.revealedMcpb"
         });
       }
     } catch (err) {

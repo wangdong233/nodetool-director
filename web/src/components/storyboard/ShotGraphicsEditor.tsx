@@ -15,6 +15,7 @@ import {
   TextInput
 } from "../ui_primitives";
 import type { ShotDraft } from "./shotDraft";
+import { i18n } from "../../../i18n";
 
 interface ShotGraphicsEditorProps {
   shot: Shot;
@@ -53,7 +54,7 @@ export default function ShotGraphicsEditor({
   };
   return (
     <FlexColumn gap={SPACING.sm}>
-      <Label>Graphics</Label>
+      <Label>{i18n.t("storyboard:attrs.graphics", { defaultValue: "Graphics" })}</Label>
       {!graphics ? (
         <EditorButton
           disabled={readOnly}
@@ -66,14 +67,14 @@ export default function ShotGraphicsEditor({
       ) : (
         <>
           <SelectField
-            label="Composition mode"
+            label={i18n.t("storyboard:attrs.compositionMode", { defaultValue: "Composition mode" })}
             value={graphics.mode ?? "overlay"}
             disabled={readOnly}
             options={[
               { value: "none", label: "None" },
-              { value: "overlay", label: "Overlay" },
-              { value: "graphics_first", label: "Graphics first" },
-              { value: "hybrid", label: "Hybrid" }
+              { value: "overlay", label: "Overlay", labelKey: "storyboard:attrs.graphicsModeOverlay" },
+              { value: "graphics_first", label: "Graphics first", labelKey: "storyboard:attrs.graphicsModeGraphicsFirst" },
+              { value: "hybrid", label: "Hybrid", labelKey: "storyboard:attrs.graphicsModeHybrid" }
             ]}
             onChange={(value) => {
               if (
@@ -87,7 +88,7 @@ export default function ShotGraphicsEditor({
             }}
           />
           <TextArea
-            label="Graphic direction"
+            label={i18n.t("storyboard:attrs.graphicDirection", { defaultValue: "Graphic direction" })}
             value={graphics.direction ?? ""}
             disabled={readOnly}
             onChange={(value) =>
@@ -117,8 +118,7 @@ export default function ShotGraphicsEditor({
                     disabled={readOnly || !!protection}
                     helperText={
                       protection
-                        ? "Protected copy comes from the production inputs. Edit it there."
-                        : undefined
+                        ? i18n.t("storyboard:attrs.protectedCopyComesFromTheProductionInputs", { defaultValue: "Protected copy comes from the production inputs. Edit it there." }) : undefined
                     }
                     onChange={(event) =>
                       patchElement(element.id, { text: event.target.value })

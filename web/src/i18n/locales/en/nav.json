@@ -17,7 +17,6 @@
   "settings": {
     "title": "Settings",
     "general": "General",
-    "providers": "Models & Providers",
     "integrations": "Integrations",
     "about": "About",
     "docsProviders": "Models & providers",
@@ -62,12 +61,9 @@
     "home": "Home",
     "tabName": "Tab name",
     "unsaved": "unsaved changes",
-    "openDocument": "Open document: {{title}}",
     "openDocuments": "Open documents",
     "noDocumentOpen": "No document open",
     "switchDocs": "Switch between open documents",
-    "emptyDocs": "No documents open — use + to open or create one.",
-    "closeNamed": "Close {{title}}",
     "closeAllDocs": "Close all documents",
     "typeNames": {
       "workflow": "workflow",

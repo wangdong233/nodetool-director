@@ -30,14 +30,15 @@ import {
 } from "../../../hooks/nodes/useNodeIO";
 import { MASK_NODE_TYPE } from "../../../constants/nodeTypes";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 type MaskTab = "image1" | "image2" | "mask" | "result";
 
 const TAB_PLACEHOLDERS = {
   image1: "Connect image 1",
   image2: "Connect image 2",
-  mask: "Connect a mask",
-  result: "Run the node to composite"
+  mask: i18n.t("editor:ui.connectAMask", { defaultValue: "Connect a mask" }),
+  result: i18n.t("editor:ui.runTheNodeToComposite", { defaultValue: "Run the node to composite" })
 } satisfies Record<MaskTab, string>;
 
 const styles = (theme: Theme) =>

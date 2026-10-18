@@ -34,7 +34,7 @@ import {
 } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface AssetActionsMenuProps {
   maxItemSize: number;
@@ -264,7 +264,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
             {!hideFolderControls && hasFolders && (
               <ToolbarIconButton
                 icon={foldersVisible ? <FolderIcon /> : <FolderOffIcon />}
-                tooltip={foldersVisible ? i18n.t("editor:explorer.hideFolders", { defaultValue: "Hide folders" }) : "Show folders"}
+                tooltip={foldersVisible ? i18n.t("editor:explorer.hideFolders", { defaultValue: "Hide folders" }) : i18n.t("editor:explorer.showFolders", { defaultValue: "Show folders" })}
                 onClick={toggleFoldersVisible}
                 tooltipPlacement="top"
                 nodrag={false}

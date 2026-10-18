@@ -51,12 +51,12 @@ import {
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 const SAVE_TYPE_LABEL = {
   manual: "Manual",
   autosave: "Auto",
-  restore: "Restore"
+  restore: i18n.t("timeline:history.restoreGeneric", { defaultValue: "Restore?" })
 } satisfies Record<TimelineVersionSaveType, string>;
 
 const SAVE_TYPE_COLOR = {
@@ -274,10 +274,10 @@ export const TimelineVersionHistoryPanel: React.FC<
         onClick={openSaveDialog}
         disabled={!sequenceId || isCreatingVersion}
       >
-        {isCreatingVersion ? i18n.t("timeline:history.saving", { defaultValue: "Saving…" }) : "Save version"}
+        {isCreatingVersion ? i18n.t("timeline:history.saving", { defaultValue: "Saving…" }) : i18n.t("timeline:history.saveVersion", { defaultValue: "Save version" })}
       </EditorButton>
     ),
-    [openSaveDialog, sequenceId, isCreatingVersion]
+    [openSaveDialog, sequenceId, isCreatingVersion, languageVersion]
   );
 
   return (
@@ -351,10 +351,10 @@ export const TimelineVersionHistoryPanel: React.FC<
         open={restoreTarget !== null}
         onClose={clearRestoreTarget}
         title={
-          restoreTarget ? `Restore v${restoreTarget.version}?` : "Restore?"
+          restoreTarget ? `Restore v${restoreTarget.version}?` : i18n.t("timeline:history.restoreGeneric", { defaultValue: "Restore?" })
         }
         onConfirm={handleConfirmRestore}
-        confirmText="Restore"
+        confirmText={t("timeline:history.restore", { defaultValue: "Restore" })}
         maxWidth="xs"
       >
         <FlexColumn gap={SPACING.xs}>

@@ -43,7 +43,7 @@ export function NoteSelectionInspector({
   const length = common("durationTick");
   const fields = [
     {
-      label: "Lowest pitch (MIDI)",
+      label: "Lowest pitch (MIDI)", labelKey: "timeline:attrs.lowestPitchMidi",
       short: "Pitch",
       value: first ? lowest : null,
       min: 0,
@@ -56,7 +56,7 @@ export function NoteSelectionInspector({
         })
     },
     {
-      label: "Start beat",
+      label: "Start beat", labelKey: "timeline:attrs.startBeat",
       short: "Start",
       value: first ? 1 + start / beatTicks : null,
       min: 1,
@@ -68,7 +68,7 @@ export function NoteSelectionInspector({
         })
     },
     {
-      label: "Length (beats)",
+      label: "Length (beats)", labelKey: "timeline:attrs.lengthBeats",
       short: "Length",
       value: length === null ? null : length / beatTicks,
       min: 1 / beatTicks,

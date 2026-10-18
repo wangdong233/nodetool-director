@@ -47,6 +47,7 @@ import {
   STUDIO_DIRECTOR_MODEL,
   STUDIO_STILL_MODEL
 } from "./curatedModels";
+import { i18n } from "../../i18n";
 
 /** Stamp the curated models onto a board that has none selected. */
 const useStudioModelPolicy = (
@@ -152,7 +153,7 @@ const StudioStoryboardPage = () => {
       <StudioShell title={title || "Storyboard"}>
         <DocumentLoadStatus
           state={loadState}
-          label="storyboard"
+          label={i18n.t("home:flowError.kind.storyboard", { defaultValue: "storyboard" })}
           onRetry={() => setRetryToken((value) => value + 1)}
           onClose={() => navigate("/workspace")}
           closeLabel="Back to workspace"

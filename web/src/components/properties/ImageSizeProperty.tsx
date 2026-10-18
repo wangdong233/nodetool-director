@@ -14,6 +14,7 @@ import { ImageSizePresetsMenu } from "./ImageSizePresetsMenu";
 import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import ConnectedBadge from "./ConnectedBadge";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type ImageSizeValue = {
   width: number;
@@ -179,7 +180,7 @@ const ImageSizeProperty = (props: PropertyProps<ImageSizeValue>) => {
           />
 
           <ToolbarIconButton
-            tooltip={locked ? t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : "Lock aspect ratio"}
+            tooltip={locked ? t("editor:ui.unlockAspectRatio", { defaultValue: "Unlock aspect ratio" }) : i18n.t("editor:ui.lockAspectRatio2", { defaultValue: "Lock aspect ratio" })}
             icon={locked ? <Lock sx={{ fontSize: ICON_SIZE.sm }} /> : <LockOpen sx={{ fontSize: ICON_SIZE.sm }} />}
             className="aspect-lock-button"
             onClick={toggleLock}

@@ -4,6 +4,7 @@ import RestoreIcon from "@mui/icons-material/Restore";
 import {
   Caption, CONTROL, Dialog, FlexColumn, FlexRow, SPACING, Text, ToolbarIconButton
 } from "../../../ui_primitives";
+import { i18n } from "../../../../../i18n";
 
 interface GameRevision {
   readonly revision: string;
@@ -36,20 +37,20 @@ export default function GameRevisions({ revisions, busy, onRestore }: GameRevisi
             : <Text size="small" family="secondary" truncate sx={{ color: "text.primary" }}>{entry.revision.slice(0, 12)}</Text>}
           <FlexRow gap={SPACING.xs} align="baseline" sx={{ minWidth: 0 }}>
             <Caption>{DATE_FORMAT.format(new Date(entry.modifiedAt))}</Caption>
-            {entry.current && <Caption color="primary">Current</Caption>}
+            {entry.current && <Caption color="primary">{i18n.t("timeline:attrs.current", { defaultValue: "Current" })}</Caption>}
           </FlexRow>
         </FlexColumn>
-        <ToolbarIconButton icon={<RestoreIcon fontSize="small" />} tooltip="Restore to draft" disabled={busy}
+        <ToolbarIconButton icon={<RestoreIcon fontSize="small" />} tooltip={i18n.t("game:revisions.restoreToDraft", { defaultValue: "Restore to draft" })} disabled={busy}
           onClick={() => setPendingRevision(entry.revision)} />
       </FlexRow>)}
     </FlexColumn>}
-    <Dialog open={pendingRevision !== null} title="Restore revision to draft" onClose={() => setPendingRevision(null)}
+    <Dialog open={pendingRevision !== null} title={i18n.t("game:revisions.restoreTitle", { defaultValue: "Restore revision to draft" })} onClose={() => setPendingRevision(null)}
       confirmText="Restore to draft" isLoading={busy} showActions onConfirm={() => {
         if (!pendingRevision || busy) { return; }
         void onRestore(pendingRevision);
         setPendingRevision(null);
       }}>
-      <Text>Restoring replaces the draft and clears its undo history.</Text>
+      <Text>{i18n.t("game:revisions.restoringWarning", { defaultValue: "Restoring replaces the draft and clears its undo history." })}</Text>
     </Dialog>
   </FlexColumn>;
 }

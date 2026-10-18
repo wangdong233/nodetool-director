@@ -29,6 +29,7 @@ import {
   useNodeImageModelConstraints,
   useNodeVideoModelConstraints
 } from "../../hooks/useMediaModelConstraints";
+import { i18n } from "../../../i18n";
 
 /**
  * Keep only the values the node's own enum can express, and fall back to the
@@ -228,7 +229,7 @@ export const MediaResolutionVideoProperty = memo<PropertyProps>((props) => {
     <OptionPicker<string>
       {...props}
       options={options}
-      header="Video resolution"
+      header={i18n.t("timeline:attrs.videoResolution", { defaultValue: "Video resolution" })}
       icon={<DisplaySettingsIcon fontSize="small" />}
       defaultValue="1080p"
     />

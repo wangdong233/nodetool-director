@@ -48,6 +48,7 @@ import AssetGridSplit from "./AssetGridSplit";
 import PanelErrorBoundary from "../common/PanelErrorBoundary";
 import { formatFileSize } from "../../utils/formatUtils";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = assetGridStyles;
 const FOLDERS_PANEL_HEIGHT = 200;
@@ -362,7 +363,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({
         >
           {showFolders ? (
             <AssetGridSplit
-              orientation={foldersDocked ? "horizontal" : "vertical"}
+              orientation={foldersDocked ? t("sketch:attrs.symmetryHorizontal", { defaultValue: "horizontal" }) : i18n.t("sketch:attrs.symmetryVertical", { defaultValue: "vertical" })}
               initialSize={
                 foldersDocked ? initialFoldersPanelWidth : FOLDERS_PANEL_HEIGHT
               }

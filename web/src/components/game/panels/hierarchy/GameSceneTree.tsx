@@ -25,6 +25,7 @@ import {
 
 import { reparentTransform } from "../../viewport2d/viewportGeometry";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../../i18n";
 
 interface GameSceneTreeProps {
   document: GameDocument;
@@ -42,12 +43,12 @@ type DropPosition = "before" | "inside" | "after";
 const TREE_ICON_SX = { fontSize: FONT_SIZE_SANS.body } as const;
 const MENU_ICON_SX = { ...TREE_ICON_SX, color: "text.secondary" } as const;
 const PRESETS: readonly { kind: Preset; label: string; icon: ReactNode }[] = [
-  { kind: "sprite", label: "Sprite", icon: <ImageOutlinedIcon sx={MENU_ICON_SX} /> },
-  { kind: "wall", label: "Static wall", icon: <CropSquareIcon sx={MENU_ICON_SX} /> },
-  { kind: "collectible", label: "Collectible", icon: <StarOutlineIcon sx={MENU_ICON_SX} /> },
+  { kind: "sprite", label: "Sprite", labelKey: "game:sceneTree.presetSprite", icon: <ImageOutlinedIcon sx={MENU_ICON_SX} /> },
+  { kind: "wall", label: "Static wall", labelKey: "game:sceneTree.presetWall", icon: <CropSquareIcon sx={MENU_ICON_SX} /> },
+  { kind: "collectible", label: "Collectible", labelKey: "game:sceneTree.presetCollectible", icon: <StarOutlineIcon sx={MENU_ICON_SX} /> },
   { kind: "trigger", label: "Trigger", icon: <SensorsOutlinedIcon sx={MENU_ICON_SX} /> },
-  { kind: "camera", label: "Camera", icon: <CameraAltOutlinedIcon sx={MENU_ICON_SX} /> },
-  { kind: "empty", label: "Empty", icon: <ViewInArOutlinedIcon sx={MENU_ICON_SX} /> }
+  { kind: "camera", label: "Camera", labelKey: "game:sceneTree.presetCamera", icon: <CameraAltOutlinedIcon sx={MENU_ICON_SX} /> },
+  { kind: "empty", label: "Empty", labelKey: "game:sceneTree.presetEmpty", icon: <ViewInArOutlinedIcon sx={MENU_ICON_SX} /> }
 ];
 /** Width of the expand chevron column; one indent step, so children line up under their parent's icon. */
 const CHEVRON_SLOT = getSpacingPx(SPACING.xl);
@@ -235,7 +236,7 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
     ? <ExpandMoreIcon sx={TREE_ICON_SX} aria-hidden="true" />
     : <ChevronRightIcon sx={TREE_ICON_SX} aria-hidden="true" />;
   const toggleButton = (label: string, expanded: boolean, onToggle: () => void, disabled = false) => (
-    <FlexRow component="button" align="center" justify="center" aria-label={`${expanded ? t("editor:ui.collapse", { defaultValue: "Collapse" }) : "Expand"} ${label}`}
+    <FlexRow component="button" align="center" justify="center" aria-label={`${expanded ? t("editor:ui.collapse", { defaultValue: "Collapse" }) : i18n.t("editor:ui.expand", { defaultValue: "Expand" })} ${label}`}
       aria-expanded={expanded} aria-disabled={disabled} onClick={(event) => { event.stopPropagation(); if (!disabled) onToggle(); }}
       sx={{ ...ROW_BUTTON_SX, width: CHEVRON_SLOT, height: CHEVRON_SLOT, flex: "0 0 auto", justifyContent: "center",
         color: "text.secondary", borderRadius: BORDER_RADIUS.sm, "&:hover": { color: "text.primary" },
@@ -285,7 +286,7 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
             if (prefabs && rows.length === 0 && !dragged) return null;
             const groupKey = `${scene.id}:${prefabs ? "prefabs" : "entities"}`;
             const groupExpanded = !((needle ? searchCollapsedGroups : collapsedGroups).has(groupKey));
-            const groupName = prefabs ? t("game:sceneTree.prefabs", { defaultValue: "Prefabs" }) : "Entities";
+            const groupName = prefabs ? t("game:sceneTree.prefabs", { defaultValue: "Prefabs" }) : i18n.t("editor:ui.entities", { defaultValue: "Entities" });
             return (
               <FlexColumn key={String(prefabs)}>
                 <TreeRow depth={1} baseIndent={SPACING.none} indentStep={SPACING.xl}
@@ -345,7 +346,7 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
       ); })}
       </FlexColumn>
       <EditorMenu anchorEl={anchor} open={Boolean(addSceneId)} onClose={() => setAddSceneId(null)}
-        slotProps={{ list: { "aria-label": "Add game entity" } }}>
+        slotProps={{ list: { "aria-label": i18n.t("game:sceneTree.addGameEntity", { defaultValue: "Add game entity" }) } }}>
         {PRESETS.map(({ kind, label, icon }) => (
           <MenuItemPrimitive key={kind} label={label} icon={icon} onClick={() => add(kind)}
             disabled={kind === "sprite" && !imageSlot}

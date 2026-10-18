@@ -23,6 +23,7 @@ import {
 } from "./editorShortcuts";
 import type { ViewPreset } from "./ViewportHelpers";
 import type { ViewPrefs } from "./viewPrefs";
+import { i18n } from "../../../i18n";
 
 const VIEW_LABELS: Record<ViewPreset, string> = {
   front: "Front",
@@ -66,7 +67,7 @@ const ViewportHud = ({
   onTogglePref
 }: ViewportHudProps) => (
     <FlexRow className={className}>
-      <MenuButton label="View" icon={<VideocamOutlinedIcon />} tooltip="Camera views">
+      <MenuButton label="View" icon={<VideocamOutlinedIcon />} tooltip={i18n.t("editor:ui.cameraViews", { defaultValue: "Camera views" })}>
         {(close) => [
           ...(Object.keys(VIEW_LABELS) as ViewPreset[]).map((view) => (
             <MenuItemPrimitive
@@ -120,7 +121,7 @@ const ViewportHud = ({
       <Divider orientation="vertical" flexItem />
       <ToolbarIconButton
         icon={<GridOnIcon fontSize="small" />}
-        tooltip="Grid"
+        tooltip={i18n.t("game:viewport.grid", { defaultValue: "Grid" })}
         shortcut={shortcutKeys("toggleGrid")}
         onClick={() => onTogglePref("grid")}
         active={prefs.grid}
@@ -128,7 +129,7 @@ const ViewportHud = ({
       />
       <ToolbarIconButton
         icon={<ViewInArOutlinedIcon fontSize="small" />}
-        tooltip="Wireframe overlay"
+        tooltip={i18n.t("editor:ui.wireframeOverlay", { defaultValue: "Wireframe overlay" })}
         shortcut={shortcutKeys("toggleWireframe")}
         onClick={() => onTogglePref("wireframe")}
         active={prefs.wireframe}

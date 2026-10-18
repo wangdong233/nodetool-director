@@ -34,6 +34,7 @@ import { ConnectedGeneratePopover } from "./ConnectedGeneratePopover";
 import { displayCombo } from "../shortcuts";
 import type { SketchActionId } from "../shortcuts";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface ViewToggleItemProps {
   label: string;
@@ -188,11 +189,11 @@ export const ConnectedEditorActions = memo(function ConnectedEditorActions({
         </>
       )}
 
-      <Tooltip title={assistantPanelOpen ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : "Show assistant"}>
+      <Tooltip title={assistantPanelOpen ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })}>
         <IconButton
           size="small"
           onClick={handleAssistant}
-          aria-label={assistantPanelOpen ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : "Show assistant"}
+          aria-label={assistantPanelOpen ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })}
           aria-pressed={assistantPanelOpen}
           data-testid="sketch-assistant-toggle"
         >

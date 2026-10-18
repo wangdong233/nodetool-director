@@ -20,6 +20,7 @@ import { useGameCommandShortcut } from "./useGameCommands";
 import GameExportButton from "./GameExportButton";
 import type { GameExportTarget } from "../../../utils/gameExportZip";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface GameToolbarProps {
   name: string;
@@ -57,7 +58,7 @@ interface GameToolbarProps {
 }
 
 const SAVE_LABELS = {
-  dirty: "Unsaved changes", saving: "Saving draft", saved: "Draft saved", error: "Draft not saved"
+  dirty: "Unsaved changes", saving: i18n.t("game:toolbar.savingDraft", { defaultValue: "Saving draft" }), saved: i18n.t("game:toolbar.draftSaved", { defaultValue: "Draft saved" }), error: i18n.t("game:toolbar.draftNotSaved", { defaultValue: "Draft not saved" })
 } as const;
 
 function GameSaveState({ saveStatus }: { saveStatus: string }) {
@@ -91,7 +92,7 @@ export default function GameToolbar({ name, playing, playSession, loading, savin
       p: SPACING.micro, borderRadius: CONTROL.radius, bgcolor: "action.hover", border: 1, borderColor: "divider"
     }}>
       <ToolbarIconButton icon={playing ? <PauseIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
-        tooltip={playing ? t("ui:attrs.pause", { defaultValue: "Pause" }) : "Play"} onClick={onPlay} disabled={loading} active={playSession}
+        tooltip={playing ? t("ui:attrs.pause", { defaultValue: "Pause" }) : i18n.t("game:categories.Play", { defaultValue: "Play" })} onClick={onPlay} disabled={loading} active={playSession}
         sx={playSession ? { bgcolor: "primary.main", color: "primary.contrastText", "&:hover": { bgcolor: "primary.dark", color: "primary.contrastText" } } : undefined} />
       <ToolbarIconButton icon={<SkipNextIcon fontSize="small" />} tooltip={t("game:toolbar.step", { defaultValue: "Step" })} onClick={onStep} disabled={playing || loading || !playSession} />
       <ToolbarIconButton icon={<StopIcon fontSize="small" />} tooltip={t("ui2:attrs.stop", { defaultValue: "Stop" })} onClick={onStop} disabled={loading || !playSession} />
@@ -108,7 +109,7 @@ export default function GameToolbar({ name, playing, playSession, loading, savin
         aria-pressed={sceneTreeOpen} active={sceneTreeOpen} onClick={onSceneTree} />
       <ToolbarIconButton icon={<TuneOutlinedIcon fontSize="small" />} tooltip={t("game:toolbar.toggleInspector", { defaultValue: "Toggle inspector" })}
         aria-pressed={inspectorOpen} active={inspectorOpen} onClick={onInspector} />
-      <ToolbarIconButton icon={<AutoAwesomeOutlinedIcon fontSize="small" />} tooltip={assistantOpen ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : "Show assistant"}
+      <ToolbarIconButton icon={<AutoAwesomeOutlinedIcon fontSize="small" />} tooltip={assistantOpen ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })}
         aria-pressed={assistantOpen} active={assistantOpen} onClick={onAssistant} />
       {onCommandPalette && <ToolbarIconButton icon={<KeyboardCommandKeyIcon fontSize="small" />} tooltip={t("game:toolbar.commands", { defaultValue: "Commands" })}
         shortcut={paletteShortcut} onClick={onCommandPalette} />}

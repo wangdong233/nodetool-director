@@ -1,6 +1,6 @@
 import { useNotificationStore } from "../stores/NotificationStore";
 import { isFunction } from "./typePredicates";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 type ModelDirectory = "huggingface" | "ollama";
 

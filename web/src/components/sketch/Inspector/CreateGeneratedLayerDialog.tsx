@@ -32,6 +32,7 @@ import {
 import { useCreateGeneratedLayer } from "../../../hooks/sketch/useCreateGeneratedLayer";
 import { useAutoFocusEnabled } from "../../../hooks/useAutoFocusEnabled";
 import { isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../../i18n";
 
 const IMAGE_OUTPUT_TYPES = new Set([
   "nodetool.output.ImageOutput",
@@ -209,9 +210,9 @@ const CreateGeneratedLayerDialogBody: React.FC<{
         onCreated?.(result.layerId);
         handleClose();
       } else if (result.reason === "no-document") {
-        setError("No image document is open.");
+        setError(i18n.t("sketch:attrs.noImageDocumentIsOpen", { defaultValue: "No image document is open." }));
       } else if (result.reason === "error") {
-        setError(result.message ?? "Failed to create layer.");
+        setError(result.message ?? i18n.t("sketch:attrs.failedToCreateLayer", { defaultValue: "Failed to create layer." }));
       }
     }, [
       createGeneratedLayer,
@@ -229,7 +230,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
         maxWidth="sm"
         fullWidth
         onConfirm={() => void handleConfirm()}
-        confirmText="Create layer"
+        confirmText={i18n.t("sketch:attrs.createLayer", { defaultValue: "Create layer" })}
         confirmDisabled={confirmDisabled}
         isLoading={isBusy}
       >
@@ -259,7 +260,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
             <EmptyState
               variant="error"
               size="small"
-              description="Could not load workflows."
+              description={i18n.t("editor:ui.couldNotLoadWorkflows", { defaultValue: "Could not load workflows." })}
             />
           )}
 
@@ -268,7 +269,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
               variant="empty"
               size="small"
               title="No matching workflows"
-              description="None of your workflows have an image output. Add an ImageOutput, MaskOutput, or Output node to a workflow to use it here."
+              description={i18n.t("sketch:attrs.noWorkflowWithImageOutput", { defaultValue: "None of your workflows have an image output. Add an ImageOutput, MaskOutput, or Output node to a workflow to use it here." })}
             />
           )}
 

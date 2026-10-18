@@ -186,6 +186,7 @@ import { useModelDownloadStore } from "./stores/ModelDownloadStore";
 
 import { BORDER_RADIUS, SPACING, getSpacingPx } from "./components/ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "./i18n";
 installIpcLogBridge();
 
 if (isLocalhost) {
@@ -780,7 +781,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                         label={t("common:action.reportBug", { defaultValue: "Report a bug" })}
                         context={{
                           source: "app-crash",
-                          summary: "Error loading application metadata",
+                          summary: i18n.t("editor:ui.errorLoadingApplicationMetadata", { defaultValue: "Error loading application metadata" }),
                           errorText: metadataError
                         }}
                       />

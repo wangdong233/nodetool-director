@@ -70,6 +70,7 @@ export interface ExampleEntry {
 }
 
 export interface ExampleGroup {
+  labelKey?: string;
   readonly kind: ExampleKind;
   readonly label: string;
   readonly icon: ElementType<{ className?: string }>;
@@ -222,7 +223,7 @@ export const useExampleGroups = (): ExampleGroups => {
     return [
       {
         kind: "workflows",
-        label: "Workflows",
+        label: "Workflows", labelKey: "ui2:attrs.workflows",
         icon: AccountTreeOutlinedIcon,
         dropHint: "Drag onto the workflow canvas to add its nodes.",
         entries: (workflowList ?? []).map((workflow: Workflow) => ({
@@ -313,7 +314,7 @@ export const useExampleGroups = (): ExampleGroups => {
       },
       {
         kind: "models",
-        label: "3D models",
+        label: "3D models", labelKey: "timeline:attrs.kind3dModels",
         icon: ViewInArOutlinedIcon,
         dropHint:
           "Drag onto a 3D model input, an open 3D model or the workflow canvas.",

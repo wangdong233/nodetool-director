@@ -138,7 +138,7 @@ const LEFT_PANEL_CATEGORY_BY_ID: Readonly<
   },
   workflows: {
     id: "workflows",
-    label: "Workflows",
+    label: "Workflows", labelKey: "ui2:attrs.workflows",
     description: "Open, create, and manage workflows.",
     docsTopic: "workflows",
     icon: <GridViewIcon />
@@ -232,7 +232,7 @@ const LEFT_PANEL_CATEGORY_BY_ID: Readonly<
   },
   library: {
     id: "library",
-    label: "Library",
+    label: "Library", labelKey: "nav:tabs.library",
     description: "Browse assets in the current project.",
     docsTopic: "assets",
     icon: <CollectionsOutlinedIcon />

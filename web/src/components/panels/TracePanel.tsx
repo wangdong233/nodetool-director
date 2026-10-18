@@ -14,7 +14,7 @@ import ReportBugButton from "../support/ReportBugButton";
 import { AskRunAgentButton } from "../runs/AskRunAgentButton";
 import type { Workflow } from "../../stores/ApiTypes";
 import { relativeTime } from "../../utils/formatDateAndTime";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface TracePanelProps {
   view?: RunInspectionView;
@@ -40,11 +40,11 @@ interface SpanLaneProps {
 
 function ContentStatus({ flags, limited }: ContentStatusProps): React.ReactElement | null {
   const notices = [
-    flags.content_expired ? "Run content expired." : null,
-    flags.content_state === "public" ? "Visitor run. Content was not recorded." : null,
-    flags.truncated ? "Recording was truncated at the run limit." : null,
+    flags.content_expired ? i18n.t("editor:ui.runContentExpired", { defaultValue: "Run content expired." }) : null,
+    flags.content_state === "public" ? i18n.t("editor:ui.visitorRunContentNotRecorded", { defaultValue: "Visitor run. Content was not recorded." }) : null,
+    flags.truncated ? i18n.t("editor:ui.recordingTruncatedAtRunLimit", { defaultValue: "Recording was truncated at the run limit." }) : null,
     flags.incomplete ? "The trace is incomplete." : null,
-    limited ? "Showing a bounded portion. Focus a span or narrow the filters to inspect more." : null
+    limited ? i18n.t("editor:ui.showingABoundedPortion", { defaultValue: "Showing a bounded portion. Focus a span or narrow the filters to inspect more." }) : null
   ].filter(Boolean);
   return notices.length ? <Caption role="status">{notices.join(" ")}</Caption> : null;
 }
@@ -80,9 +80,9 @@ function formatDuration(ms: number): string {
 }
 
 const STATUS_DISPLAY: Record<SpanStatusCode, { tone: StatusPillTone; label: string; hint: string }> = {
-  OK: { tone: "done", label: "ok", hint: "The span ended with status OK." },
-  ERROR: { tone: "failed", label: "error", hint: "The span ended with status ERROR." },
-  UNSET: { tone: "neutral", label: "unset", hint: "The span ended without an explicit status. OpenTelemetry treats this as success." }
+  OK: { tone: "done", label: "ok", hint: i18n.t("editor:ui.spanEndedOk", { defaultValue: "The span ended with status OK." }) },
+  ERROR: { tone: "failed", label: "error", hint: i18n.t("editor:ui.spanEndedError", { defaultValue: "The span ended with status ERROR." }) },
+  UNSET: { tone: "neutral", label: "unset", hint: i18n.t("editor:ui.spanEndedUnset", { defaultValue: "The span ended without an explicit status. OpenTelemetry treats this as success." }) }
 };
 
 function SpanStatus({ code, message }: SpanStatusProps): React.ReactElement {
@@ -122,7 +122,7 @@ function SpanDetails({ record, runStart }: SpanDetailsProps): React.ReactElement
         {formatDuration(record.duration_ms)} · starts at +{formatDuration(Math.max(0, record.start_time_ms - runStart))}{typeof cost === "number" ? ` · $${cost.toFixed(4)}` : ""}
       </Caption>
       <Caption color="muted" sx={TYPOGRAPHY.mono.code}>{record.span_id}</Caption>
-      <CopyButton value={JSON.stringify(record, null, 2)} tooltip="Copy span as JSON" />
+      <CopyButton value={JSON.stringify(record, null, 2)} tooltip={i18n.t("editor:ui.copySpanAsJSON", { defaultValue: "Copy span as JSON" })} />
     </FlexRow>
     {error && <AlertBanner severity="error" compact>{error}</AlertBanner>}
     <Label>Attributes</Label>
@@ -236,16 +236,16 @@ function TraceView({ runId, focusedSpanId, onFocus }: RunViewProps): React.React
   return <FlexColumn gap={SPACING.md} sx={{ flex: 1, minHeight: 0 }}>
     <FlexRow gap={SPACING.lg} sx={{ alignItems: "flex-end", flexWrap: "wrap" }}>
       <Box sx={{ width: (theme) => theme.spacing(SPACING.xxxl * 4) }}>
-        <SelectField label="Trace depth" size="small" value={depth} onChange={setDepth} options={[{ value: "4", label: "4 levels" }, { value: "16", label: "16 levels" }, { value: "64", label: "All levels" }]} />
+        <SelectField label="Trace depth" size="small" value={depth} onChange={setDepth} options={[{ value: "4", label: "4 levels" }, { value: "16", label: "16 levels" }, { value: "64", label: i18n.t("editor:ui.allLevels", { defaultValue: "All levels" }) }]} />
       </Box>
       <Box sx={{ flex: "1 1 auto", minWidth: (theme) => theme.spacing(SPACING.xxxl * 6), maxWidth: (theme) => theme.spacing(SPACING.xxxl * 12) }}>
-        <TextInput label="Span name" size="small" fullWidth value={name} onChange={(event) => setName(event.target.value.slice(0, 200))} />
+        <TextInput label={i18n.t("editor:ui.spanName", { defaultValue: "Span name" })} size="small" fullWidth value={name} onChange={(event) => setName(event.target.value.slice(0, 200))} />
       </Box>
       <Box sx={{ width: (theme) => theme.spacing(SPACING.xxxl * 8), maxWidth: "100%" }}>
-        <SpanPicker label="Focus span" emptyLabel="Whole run" nodes={trace.data?.nodes ?? []} value={focusedSpanId} onChange={onFocus} />
+        <SpanPicker label="Focus span" emptyLabel={i18n.t("editor:ui.wholeRun", { defaultValue: "Whole run" })} nodes={trace.data?.nodes ?? []} value={focusedSpanId} onChange={onFocus} />
       </Box>
       <ControlSlot>
-        <Checkbox label="Errors only" size="small" checked={errorsOnly} onChange={(_, checked) => setErrorsOnly(checked)} />
+        <Checkbox label={i18n.t("editor:ui.errorsOnly", { defaultValue: "Errors only" })} size="small" checked={errorsOnly} onChange={(_, checked) => setErrorsOnly(checked)} />
       </ControlSlot>
       {focusedSpanId && <ControlSlot><EditorButton size="small" onClick={() => onFocus(null)}>Clear span focus</EditorButton></ControlSlot>}
     </FlexRow>
@@ -254,7 +254,7 @@ function TraceView({ runId, focusedSpanId, onFocus }: RunViewProps): React.React
     {trace.data && <ContentStatus flags={trace.data} limited={trace.data.limited} />}
     <SplitView detailsOpen={Boolean(focusedSpanId)} details={<>
       <FlexRow gap={SPACING.md} sx={{ alignItems: "center", minHeight: LANE_HEADER_HEIGHT }}>
-        <Label sx={{ minWidth: 0, overflowWrap: "anywhere" }}>{focused?.name ?? nodes.find(({ record }) => record.span_id === focusedSpanId)?.record.name ?? "Span"}</Label>
+        <Label sx={{ minWidth: 0, overflowWrap: "anywhere" }}>{focused?.name ?? nodes.find(({ record }) => record.span_id === focusedSpanId)?.record.name ?? i18n.t("editor:ui.logColSpan", { defaultValue: "Span" })}</Label>
         <AskRunAgentButton runId={runId} spanId={focusedSpanId ?? undefined} />
       </FlexRow>
       {focus.error && <QueryError error={focus.error} />}
@@ -262,11 +262,11 @@ function TraceView({ runId, focusedSpanId, onFocus }: RunViewProps): React.React
       {focus.data && <ContentStatus flags={focus.data} limited={focus.data.limited} />}
       {focused && !focus.error && !focus.data?.content_expired && <SpanDetails record={focused} runStart={runStart} />}
     </>}>
-      {browser.length > 0 && <SpanLane label="Browser spans" nodes={browser} focusedSpanId={focusedSpanId} onFocus={onFocus} start={start} duration={Math.max(1, end - start)} />}
-      {server.length > 0 && <SpanLane label="Server spans" nodes={server} focusedSpanId={focusedSpanId} onFocus={onFocus} start={start} duration={Math.max(1, end - start)} />}
+      {browser.length > 0 && <SpanLane label={i18n.t("editor:ui.browserSpans", { defaultValue: "Browser spans" })} nodes={browser} focusedSpanId={focusedSpanId} onFocus={onFocus} start={start} duration={Math.max(1, end - start)} />}
+      {server.length > 0 && <SpanLane label={i18n.t("editor:ui.serverSpans", { defaultValue: "Server spans" })} nodes={server} focusedSpanId={focusedSpanId} onFocus={onFocus} start={start} duration={Math.max(1, end - start)} />}
       {!trace.isLoading && !trace.error && nodes.length === 0 && (filtered
-        ? <EmptyState variant="no-results" title="No spans match these filters" description="Clear the filters to see every span in this run." actionText="Clear filters" onAction={clearFilters} size="small" />
-        : <EmptyState title="No spans recorded" description="The trace may still be arriving. Stored spans appear here when available." size="small" />)}
+        ? <EmptyState variant="no-results" title="No spans match these filters" description="Clear the filters to see every span in this run." actionText={i18n.t("editor:ui.clearFilters", { defaultValue: "Clear filters" })} onAction={clearFilters} size="small" />
+        : <EmptyState title={i18n.t("editor:ui.noSpansRecorded", { defaultValue: "No spans recorded" })} description="The trace may still be arriving. Stored spans appear here when available." size="small" />)}
     </SplitView>
   </FlexColumn>;
 }
@@ -279,7 +279,7 @@ function logText(log: RunLog): string {
 // Time, level, source, span, message. Fixed meta widths keep the columns aligned across rows.
 const logGrid = (theme: Theme): string => `${theme.spacing(SPACING.xxxl * 3)} ${theme.spacing(SPACING.xxxl * 2)} minmax(0, 0.6fr) minmax(0, 1fr) minmax(0, 3fr)`;
 const LOG_LEVEL_COLOR: Record<string, string> = { error: "error.main", warn: "warning.main" };
-const LOG_LEVELS = [{ value: "debug", label: "Debug" }, { value: "info", label: "Info" }, { value: "warn", label: "Warning" }, { value: "error", label: "Error" }];
+const LOG_LEVELS = [{ value: "debug", label: i18n.t("editor:ui.logDebug", { defaultValue: "Debug" }) }, { value: "info", label: "Info" }, { value: "warn", label: "Warning" }, { value: "error", label: "Error" }];
 
 function LogsView({ runId, focusedSpanId, onFocus }: RunViewProps): React.ReactElement {
   const [level, setLevel] = useState("");
@@ -298,13 +298,13 @@ function LogsView({ runId, focusedSpanId, onFocus }: RunViewProps): React.ReactE
   return <FlexColumn gap={SPACING.md} sx={{ flex: 1, minHeight: 0 }}>
     <FlexRow gap={SPACING.lg} sx={{ alignItems: "flex-end", flexWrap: "wrap" }}>
       <Box sx={{ width: (theme) => theme.spacing(SPACING.xxxl * 4) }}>
-        <SelectField label="Log level" size="small" value={level} onChange={setLevel} options={[{ value: "", label: "All levels" }, ...LOG_LEVELS]} />
+        <SelectField label={i18n.t("editor:ui.logLevel", { defaultValue: "Log level" })} size="small" value={level} onChange={setLevel} options={[{ value: "", label: "All levels" }, ...LOG_LEVELS]} />
       </Box>
       <Box sx={{ width: (theme) => theme.spacing(SPACING.xxxl * 5) }}>
-        <SelectField label="Log source" size="small" value={source} onChange={setSource} options={[{ value: "", label: "All sources" }, ...[...new Set([...entries.map((log) => log.source).filter((value): value is string => Boolean(value)), ...(source ? [source] : [])])].map((value) => ({ value, label: value }))]} />
+        <SelectField label="Log source" size="small" value={source} onChange={setSource} options={[{ value: "", label: i18n.t("editor:ui.allSources", { defaultValue: "All sources" }) }, ...[...new Set([...entries.map((log) => log.source).filter((value): value is string => Boolean(value)), ...(source ? [source] : [])])].map((value) => ({ value, label: value }))]} />
       </Box>
       <Box sx={{ width: (theme) => theme.spacing(SPACING.xxxl * 8), maxWidth: "100%" }}>
-        <SpanPicker label="Log span" emptyLabel="All spans" nodes={trace.data?.nodes ?? []} value={focusedSpanId} onChange={onFocus} />
+        <SpanPicker label="Log span" emptyLabel={i18n.t("editor:ui.allSpans", { defaultValue: "All spans" })} nodes={trace.data?.nodes ?? []} value={focusedSpanId} onChange={onFocus} />
       </Box>
     </FlexRow>
     {logs.error && <QueryError error={logs.error} />}
@@ -319,10 +319,10 @@ function LogsView({ runId, focusedSpanId, onFocus }: RunViewProps): React.ReactE
       </FlexRow>
       <AttributeList attributes={selectedLog.attributes} />
     </>}>
-      {!logs.isLoading && entries.length === 0 && <EmptyState title="No matching log events" size="small" />}
+      {!logs.isLoading && entries.length === 0 && <EmptyState title={i18n.t("editor:ui.noMatchingLogEvents", { defaultValue: "No matching log events" })} size="small" />}
       {entries.length > 0 && <FlexColumn gap={SPACING.xs} sx={{ flex: 1, minHeight: 0 }}>
         <Box sx={{ display: "grid", gridTemplateColumns: logGrid(theme), columnGap: SPACING.lg, alignItems: "center", height: LANE_HEADER_HEIGHT, flexShrink: 0, px: SPACING.sm }}>
-          {["Time", "Level", "Source", "Span", "Message"].map((heading) => <Caption key={heading} color="muted">{heading}</Caption>)}
+          {["Time", "Level", "Source", i18n.t("editor:ui.logColSpan", { defaultValue: "Span" }), "Message"].map((heading) => <Caption key={heading} color="muted">{heading}</Caption>)}
         </Box>
         <VirtualList ariaLabel="Run logs" items={entries} estimateSize={SPAN_ROW_HEIGHT} getItemKey={(log) => log.id} sx={{ flex: 1, minHeight: 0 }}
           renderItem={(log) => <Box sx={{
@@ -350,7 +350,7 @@ function FailureBanner({ result, onShowSpan }: FailureBannerProps): React.ReactE
   const { run, summary } = result;
   if (run.status !== "failed" && !summary.first_failed_span_id) { return null; }
   const failing = [...summary.failure_path].reverse().find((span) => span.error) ?? summary.failure_path.at(-1);
-  const message = run.error ?? failing?.error ?? "No error message was recorded.";
+  const message = run.error ?? failing?.error ?? i18n.t("editor:ui.noErrorMessageWasRecorded", { defaultValue: "No error message was recorded." });
   const failedSpanId = summary.first_failed_span_id;
   const title = run.status === "failed" ? `Run failed${failing ? ` in ${failing.name}` : ""}` : `A span failed${failing ? ` in ${failing.name}` : ""}, but the run continued`;
   return <AlertBanner
@@ -384,8 +384,8 @@ const RUN_STATUS_TONE: Record<GetRunResult["run"]["status"], StatusPillTone> = {
 // Workflow runs carry a job id as their source, so the name comes from a workflow already in the cache. Nothing is fetched per run.
 function runTitle(run: RunRecord, workflowName: string | undefined): string {
   if (run.app) { return run.app.operation_id; }
-  if (run.kind === "workflow") { return workflowName ?? "Workflow run"; }
-  return run.kind === "chat" ? i18n.t("editor:ui.chatTurn", { defaultValue: "Chat turn" }) : "App run";
+  if (run.kind === "workflow") { return workflowName ?? i18n.t("editor:ui.workflowRun", { defaultValue: "Workflow run" }); }
+  return run.kind === "chat" ? i18n.t("editor:ui.chatTurn", { defaultValue: "Chat turn" }) : i18n.t("editor:ui.appRun", { defaultValue: "App run" });
 }
 
 const matchesQuery = (query: string, ...fields: string[]): boolean => fields.join(" ").toLowerCase().includes(query.trim().toLowerCase());
@@ -398,7 +398,7 @@ function RunPicker({ runs, value, onChange }: RunPickerProps): React.ReactElemen
   };
   return <Autocomplete<RunRecord, false, false>
     label="Run" size="small" sx={PICKER_SX} options={runs} value={runs.find((run) => run.id === value) ?? null}
-    noOptionsText="No matching runs" placeholder="No recent runs"
+    noOptionsText={i18n.t("editor:ui.noMatchingRuns", { defaultValue: "No matching runs" })} placeholder="No recent runs"
     getOptionLabel={(run) => `${titleOf(run)} · ${run.status} · ${relativeTime(run.started_at)}`}
     isOptionEqualToValue={(option, selected) => option.id === selected.id}
     filterOptions={(options, { inputValue }) => options.filter((run) => matchesQuery(inputValue, titleOf(run), run.kind, run.status))}
@@ -421,7 +421,7 @@ function SpanPicker({ label, emptyLabel, nodes, value, onChange }: SpanPickerPro
   const start = nodes.length ? Math.min(...nodes.map(({ record }) => record.start_time_ms)) : 0;
   return <Autocomplete<TraceNode, false, false>
     label={label} size="small" sx={PICKER_SX} options={nodes} value={nodes.find(({ record }) => record.span_id === value) ?? null}
-    placeholder={value ? `Span ${value}` : emptyLabel} noOptionsText="No matching spans"
+    placeholder={value ? `Span ${value}` : emptyLabel} noOptionsText={i18n.t("editor:ui.noMatchingSpans", { defaultValue: "No matching spans" })}
     getOptionLabel={({ record }) => record.name}
     isOptionEqualToValue={(option, selected) => option.record.span_id === selected.record.span_id}
     filterOptions={(options, { inputValue }) => options.filter(({ record }) => matchesQuery(inputValue, record.name, record.status.code))}
@@ -477,7 +477,7 @@ export default function TracePanel({ view = "trace", workflowId = null }: TraceP
     {recent.error && <QueryError error={recent.error} />}
     {summary.error && <QueryError error={summary.error} />}
     {summary.data && <FailureBanner result={summary.data} onShowSpan={focusSpan} />}
-    {!runId && !recent.isLoading && <EmptyState title="No recorded runs" description="Start an app operation, workflow, or chat turn to inspect its trace and logs." size="small" />}
+    {!runId && !recent.isLoading && <EmptyState title={i18n.t("editor:ui.noRecordedRuns", { defaultValue: "No recorded runs" })} description="Start an app operation, workflow, or chat turn to inspect its trace and logs." size="small" />}
     {canonicalId && (view === "logs" ? <LogsView key={canonicalId} runId={canonicalId} focusedSpanId={focusedSpanId} onFocus={focusSpan} /> : <TraceView key={canonicalId} runId={canonicalId} focusedSpanId={focusedSpanId} onFocus={focusSpan} />)}
   </FlexColumn>;
 }

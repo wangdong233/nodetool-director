@@ -50,6 +50,7 @@ import {
 } from "../../ui_primitives";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
+import { i18n } from "../../../../i18n";
 
 const TILE_PX = 56;
 
@@ -212,7 +213,7 @@ const VersionTile: React.FC<VersionTileProps> = memo(
 
     // Newest first → label by recency ("Latest", then "2 ago", "3 ago"…),
     // unless the take has been given a display label.
-    const ordinal = index === 0 ? "Latest" : `#${total - index}`;
+    const ordinal = index === 0 ? i18n.t("timeline:attrs.latest", { defaultValue: "Latest" }) : `#${total - index}`;
     const displayName = version.label?.trim() ? version.label : ordinal;
     const when = relativeTime(version.createdAt);
     const tooltip = active ? `Current · ${displayName} · ${when}` : `${displayName} · ${when}`;
@@ -251,7 +252,7 @@ const VersionTile: React.FC<VersionTileProps> = memo(
               isImage && url ? { backgroundImage: `url(${url})` } : undefined
             }
             onClick={handleClick}
-            aria-label={`${tooltip} — Preview ${active ? "Original" : "Candidate"}`}
+            aria-label={`${tooltip} — Preview ${active ? i18n.t("timeline:attrs.original", { defaultValue: "Original" }) : i18n.t("timeline:attrs.candidate", { defaultValue: "Candidate" })}`}
             aria-current={active}
             aria-pressed={auditioned}
           >
@@ -282,12 +283,12 @@ const VersionTile: React.FC<VersionTileProps> = memo(
           <div className="take-actions" css={takeActionsStyles}>
             <ToolbarIconButton
               icon={<PlayArrowIcon />}
-              tooltip={active ? "Preview original" : "Preview candidate"}
+              tooltip={active ? i18n.t("timeline:attrs.previewOriginal", { defaultValue: "Preview original" }) : i18n.t("timeline:attrs.previewCandidate", { defaultValue: "Preview candidate" })}
               onClick={(e) => {
                 e.stopPropagation();
                 onPreview(active ? null : version.id);
               }}
-              aria-label={active ? "Preview original" : "Preview candidate"}
+              aria-label={active ? i18n.t("timeline:attrs.previewOriginal", { defaultValue: "Preview original" }) : i18n.t("timeline:attrs.previewCandidate", { defaultValue: "Preview candidate" })}
               sx={actionIconSx}
             />
             {!active && (
@@ -312,8 +313,7 @@ const VersionTile: React.FC<VersionTileProps> = memo(
               icon={<DeleteOutlineIcon />}
               tooltip={
                 active
-                  ? "This is the active take — select a different take before deleting it."
-                  : `Delete ${displayName}`
+                  ? i18n.t("timeline:attrs.thisIsTheActiveTakeSelectADifferentTakeBeforeDeletingIt", { defaultValue: "This is the active take — select a different take before deleting it." }) : `Delete ${displayName}`
               }
               disabled={active}
               onClick={handleDeleteClick}
@@ -454,7 +454,7 @@ export const ClipVersionHistory: React.FC<ClipVersionHistoryProps> = memo(
         {editingVersion && (
           <div css={renameRowStyles(theme)}>
             <TextInput
-              label="Take label"
+              label={i18n.t("timeline:attrs.takeLabel", { defaultValue: "Take label" })}
               hideLabel
               compact
               autoFocus

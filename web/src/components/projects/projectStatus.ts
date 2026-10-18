@@ -9,7 +9,7 @@
 
 import type { RouterOutputs } from "../../trpc/client";
 import { relativeTime } from "../../utils/formatDateAndTime";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 
 export type ProjectDetail = RouterOutputs["projects"]["summaries"][number];
@@ -47,7 +47,7 @@ export const projectStatusLine = (
   documents: readonly ProjectDocument[],
   options?: { documentsPartial?: boolean }
 ): string => {
-  const partialSuffix = options?.documentsPartial ? " · partial" : "";
+  const partialSuffix = options?.documentsPartial ? i18n.t("editor:ui.partialSuffix", { defaultValue: " · partial" }) : "";
   if (documents.length === 0) {
     return `No documents yet${partialSuffix}`;
   }
@@ -213,7 +213,7 @@ export const projectNextStep = (
       return { label: "Render stills", document: board };
     }
     if (boardStatus.clips < boardStatus.shots) {
-      return { label: "Render clips", document: board };
+      return { label: i18n.t("editor:ui.renderClips", { defaultValue: "Render clips" }), document: board };
     }
   }
 

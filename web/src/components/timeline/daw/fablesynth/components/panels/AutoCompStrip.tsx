@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BLOCK_RATE, COMP_STYLES, compStyleById, fitComp } from '../../engine/autoComp';
 import type { FxTelemetryEngine } from './fxAdapter';
+import { i18n } from "../../../../../../../i18n";
 
 const LEARN_SECONDS = 8, SPARSE_SECONDS = 12, TIMEOUT_SECONDS = 30;
 const KEYS = ['on', 'thr', 'ratio', 'att', 'rel'] as const;
@@ -131,7 +132,7 @@ export function AutoCompStrip({ engine, tap, id, params, setParam }: Props) {
     <div className="comp-auto-row">
       <button type="button" className={`comp-auto-learn${progress !== null ? ' on' : ''}`} disabled={!!unavailable}
         style={{ '--p': progress ?? 0 } as React.CSSProperties} onClick={learn}>{progress !== null ? 'STOP' : learned ? 'RELEARN' : 'LEARN'}</button>
-      <button type="button" disabled={!fit || progress !== null} onClick={apply}>APPLY</button>
+      <button type="button" disabled={!fit || progress !== null} onClick={apply}>{i18n.t("timeline:project.apply", { defaultValue: "APPLY" })}</button>
       <button type="button" disabled={!undo} onClick={revert}>UNDO</button>
     </div>
     <p className="comp-auto-status">{status}</p>

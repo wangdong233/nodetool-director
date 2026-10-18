@@ -18,6 +18,7 @@ import CollectionsIcon from "@mui/icons-material/Collections";
 import { colorForType } from "../../config/data_types";
 import { IconForType } from "../../config/IconForType";
 import type { QuickActionNodeType } from "../../config/quickActionNodeTypes";
+import { i18n } from "../../../i18n";
 
 export type QuickActionDefinition = {
   key: string;
@@ -150,13 +151,13 @@ export const CONSTANT_NODES: QuickActionDefinition[] = [
   }),
   buildConstantNode({
     key: "constant-dataframe",
-    label: "Data Frame",
+    label: i18n.t("editor:ui.dataFrame", { defaultValue: "Data Frame" }),
     nodeType: "nodetool.constant.DataFrame",
     iconType: "dataframe"
   }),
   buildConstantNode({
     key: "constant-date",
-    label: "Date",
+    label: "Date", labelKey: "ui2:attrs.date",
     nodeType: "nodetool.constant.Date",
     iconType: "date"
   }),
@@ -216,7 +217,7 @@ export const CONSTANT_NODES: QuickActionDefinition[] = [
   }),
   buildConstantNode({
     key: "constant-model-3d",
-    label: "Model 3D",
+    label: i18n.t("editor:ui.model3D", { defaultValue: "Model 3D" }),
     nodeType: "nodetool.constant.Model3D",
     iconType: "model_3d"
   }),
@@ -228,7 +229,7 @@ export const CONSTANT_NODES: QuickActionDefinition[] = [
   }),
   buildConstantNode({
     key: "constant-video",
-    label: "Video",
+    label: "Video", labelKey: "home:entry.video.title",
     nodeType: "nodetool.constant.Video",
     iconType: "video"
   })

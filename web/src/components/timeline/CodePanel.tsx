@@ -55,6 +55,7 @@ import {
 } from "../../serverState/useTimelineCode";
 import { useDocumentDraftStore } from "../../stores/DocumentDraftStore";
 import { notifyMutationError } from "../../utils/notifyMutationError";
+import { i18n } from "../../../i18n";
 
 const editorBoxStyles = (theme: Theme) =>
   css({
@@ -272,10 +273,10 @@ export const CodePanel: React.FC = memo(() => {
           onClick={handleRebake}
           disabled={!sequenceId || isSettingCode || !dirty}
         >
-          {isSettingCode ? "Rebaking…" : "Rebake"}
+          {isSettingCode ? i18n.t("timeline:attrs.rebaking", { defaultValue: "Rebaking…" }) : i18n.t("timeline:attrs.rebake", { defaultValue: "Rebake" })}
         </EditorButton>
       ) : null,
-    [hasCode, handleRebake, sequenceId, isSettingCode, dirty]
+    [hasCode, handleRebake, sequenceId, isSettingCode, dirty, languageVersion]
   );
 
   if (isLoading) {
@@ -312,8 +313,8 @@ export const CodePanel: React.FC = memo(() => {
         sx={{ flex: 1, px: SPACING.md }}
       >
         <EmptyState
-          title="No code"
-          description="This timeline wasn't built from code, so there is nothing to edit here."
+          title={i18n.t("timeline:code.noCode", { defaultValue: "No code" })}
+          description={i18n.t("timeline:code.noCodeDesc", { defaultValue: "This timeline wasn't built from code, so there is nothing to edit here." })}
         />
       </FlexColumn>
     );
@@ -322,7 +323,7 @@ export const CodePanel: React.FC = memo(() => {
   return (
     <FlexColumn fullWidth fullHeight sx={{ minHeight: 0, overflow: "hidden" }}>
       <PanelHeader
-        title="Code"
+        title={i18n.t("timeline:code.title", { defaultValue: "Code" })}
         count={scenes.length || undefined}
         actions={toolbarActions}
       />
@@ -341,8 +342,8 @@ export const CodePanel: React.FC = memo(() => {
           <ConflictBanner
             sx={{ m: SPACING.sm }}
             conflicts={conflictRows}
-            acceptLabel="Overwrite with code"
-            discardLabel="Detach"
+            acceptLabel={i18n.t("timeline:attrs.overwriteWithCode", { defaultValue: "Overwrite with code" })}
+            discardLabel={i18n.t("timeline:attrs.detach", { defaultValue: "Detach" })}
             onAccept={handleOverwriteScene}
             onDiscard={handleDetachScene}
           />

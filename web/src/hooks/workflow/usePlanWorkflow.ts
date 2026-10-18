@@ -49,7 +49,7 @@ import { computeSearchResults } from "../../utils/nodeSearch";
 import { useWorkflowSetupWriter } from "./useWorkflowSetup";
 import { workflowCategory } from "../../components/setup/workflow/categories";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 import { snippetStepAsCode } from "../../utils/planSnippetSteps";
 import { isRecord } from "../../utils/typePredicates";
 /** How many candidate node types the planner prompt carries. */
@@ -380,7 +380,7 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
             ],
             onRound: (round) => {
               if (token === requestRef.current) {
-                setPlanningPhase(round > 1 ? "checking" : "drafting");
+                setPlanningPhase(round > 1 ? t("setup:workflow.pill_checking", { defaultValue: "checking" }) : i18n.t("editor:workflow:planDrafting", { defaultValue: "drafting" }));
               }
             },
             generate: async (messages) => {

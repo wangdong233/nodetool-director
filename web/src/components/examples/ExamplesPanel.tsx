@@ -266,7 +266,7 @@ const ExamplesPanel = () => {
       >
         <Chip
           compact
-          label="All"
+          label={t("storyboard:attrs.all", { defaultValue: "All" })}
           active={filter === "all"}
           onClick={() => setFilter("all")}
         />

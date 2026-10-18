@@ -21,6 +21,7 @@ import ProjectDocumentCard from "./ProjectDocumentCard";
 import ProjectSelector from "./ProjectSelector";
 import type { ProjectDocument } from "./projectStatus";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const DOCUMENTS_PER_PAGE = 4;
 
@@ -118,7 +119,7 @@ const CurrentProjectDocuments = () => {
         <ErrorBanner
           report={{
             source: "operation-failure",
-            summary: "Project documents failed to load",
+            summary: i18n.t("editor:ui.projectDocumentsFailedToLoad", { defaultValue: "Project documents failed to load" }),
             errorText: error.message
           }}
         >

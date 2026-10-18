@@ -2,6 +2,7 @@ import React, { memo } from "react";
 import FolderSpecialOutlinedIcon from "@mui/icons-material/FolderSpecialOutlined";
 import { PageLayout, ICON_SIZE } from "../ui_primitives";
 import WorkspacesManager from "./WorkspacesManager";
+import { i18n } from "../../../i18n";
 
 /**
  * Full-screen Workspaces page. Reachable from the logo menu; wraps the
@@ -11,7 +12,7 @@ const WorkspacesPage: React.FC = () => (
   <PageLayout
     icon={<FolderSpecialOutlinedIcon sx={{ fontSize: ICON_SIZE.lg }} />}
     title="Workspaces"
-    subtitle="Sandboxed folders that agents and workflows can read, write, and organize files in."
+    subtitle={i18n.t("editor:ui.sandboxedFoldersThatAgentsAndWorkflowsCanReadWriteAndOrganizeFilesIn", { defaultValue: "Sandboxed folders that agents and workflows can read, write, and organize files in." })}
     docsTopic="workspaces"
   >
     <WorkspacesManager />

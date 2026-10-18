@@ -32,7 +32,7 @@ import usePacksStore, {
 } from "../../stores/PacksStore";
 import { useShallow } from "zustand/react/shallow";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 function statusColor(
   pack: PackInfo
@@ -319,7 +319,7 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
                   <Text size="small" color="secondary">
                     {status
                       ? installStateText(status)
-                      : "Installed outside the current install ledger, so its mode is unknown here."}
+                      : i18n.t("editor:ui.installedOutsideTheCurrentInstallLedgerSoItsModeIsUnknownHere", { defaultValue: "Installed outside the current install ledger, so its mode is unknown here." })}
                   </Text>
                 </FlexColumn>
                 {needsTrust && (
@@ -330,7 +330,7 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
                     disabled={busy !== null}
                     sx={{ flexShrink: 0 }}
                   >
-                    {busy === pack.name ? i18n.t("editor:ui.verifying", { defaultValue: "Verifying…" }) : "Trust and rebuild"}
+                    {busy === pack.name ? i18n.t("editor:ui.verifying", { defaultValue: "Verifying…" }) : i18n.t("editor:ui.trustAndRebuild", { defaultValue: "Trust and rebuild" })}
                   </EditorButton>
                 )}
               </FlexRow>
@@ -374,7 +374,7 @@ const InstallPanel = memo(function InstallPanel({
       if (!api) {
         setStatus({
           kind: "err",
-          message: "Node pack install is not available in this build."
+          message: i18n.t("editor:ui.nodePackInstallIsNotAvailableInThisBuild", { defaultValue: "Node pack install is not available in this build." })
         });
         return;
       }
@@ -436,7 +436,7 @@ const InstallPanel = memo(function InstallPanel({
           onClick={handleInstall}
           disabled={!spec.trim() || status.kind === "installing"}
         >
-          {status.kind === "installing" ? i18n.t("editor:ui.installing", { defaultValue: "Installing…" }) : "Install"}
+          {status.kind === "installing" ? i18n.t("editor:ui.installing", { defaultValue: "Installing…" }) : i18n.t("editor:ui.install", { defaultValue: "Install" })}
         </EditorButton>
       </FlexRow>
       {status.kind === "ok" && (
@@ -548,7 +548,7 @@ function PackagesMenu() {
               onClick={() => void reload()}
               disabled={isLoading}
             >
-              {isLoading ? i18n.t("editor:ui.reloading", { defaultValue: "Reloading…" }) : "Reload"}
+              {isLoading ? i18n.t("editor:ui.reloading", { defaultValue: "Reloading…" }) : i18n.t("appbuilder:attrs.reload", { defaultValue: "Reload" })}
             </EditorButton>
           }
         />
@@ -572,7 +572,7 @@ function PackagesMenu() {
             <Text size="small" color="secondary">
               No node packs discovered. Install one with{" "}
               <Code>npm install &lt;pack&gt;</Code>
-              {isElectron ? " or via the field above." : "."}
+              {isElectron ? i18n.t("editor:ui.orViaTheFieldAbove", { defaultValue: " or via the field above." }) : "."}
             </Text>
           </FlexRow>
         ) : (

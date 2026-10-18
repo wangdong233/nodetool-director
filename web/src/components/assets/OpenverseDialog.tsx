@@ -31,6 +31,7 @@ import {
 } from "../ui_primitives";
 import { openverseLicenseLabel } from "../../utils/openverseLicense";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type MediaType = "images" | "audio";
 type LicenseType = "all" | "commercial" | "modification";
@@ -57,7 +58,7 @@ const CATEGORY_OPTIONS: Readonly<Record<MediaType, readonly SelectOption[]>> = {
   audio: [
     { value: ANY, label: "Any category" },
     { value: "music", label: "Music" },
-    { value: "sound_effect", label: "Sound effects" },
+    { value: "sound_effect", label: i18n.t("editor:ui.soundEffects", { defaultValue: "Sound effects" }) },
     { value: "podcast", label: "Podcasts" },
     { value: "audiobook", label: "Audiobooks" },
     { value: "news", label: "News" },
@@ -81,7 +82,7 @@ const ResultCredit: React.FC<ResultCreditProps> = ({ result }) => (
   <FlexColumn sx={{ minWidth: 0 }}>
     <Box sx={{ ...TYPOGRAPHY.sans.label, minWidth: 0 }}>
       <TruncatedText variant="inherit">
-        {result.title || "Untitled"}
+        {result.title || i18n.t("storyboard:attrs.untitled", { defaultValue: "Untitled" })}
       </TruncatedText>
     </Box>
     <Caption>
@@ -244,7 +245,7 @@ const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
                 key={result.id}
                 component="button"
                 aria-pressed={isSelected}
-                aria-label={`${result.title || "Untitled"}, ${openverseLicenseLabel(result)}`}
+                aria-label={`${result.title || i18n.t("storyboard:attrs.untitled", { defaultValue: "Untitled" })}, ${openverseLicenseLabel(result)}`}
                 title={result.attribution}
                 onClick={() => toggle(result.id)}
                 gap={SPACING.xs}
@@ -351,7 +352,7 @@ const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
         {busy
           ? t("editor:ui.adding", { defaultValue: "Adding…" }) : selected.size > 0
             ? `Add ${selected.size} to assets`
-            : "Add to assets"}
+            : i18n.t("editor:ui.addToAssets", { defaultValue: "Add to assets" })}
       </EditorButton>
     </FlexRow>
   );
@@ -380,7 +381,7 @@ const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
               }
             }}
           >
-            <ToggleOption value="images">Images</ToggleOption>
+            <ToggleOption value="images">{t("timeline:attrs.kindImages", { defaultValue: "Images" })}</ToggleOption>
             <ToggleOption value="audio">Audio</ToggleOption>
           </ToggleGroup>
           <Box sx={{ flex: 1, minWidth: 200 }}>

@@ -21,7 +21,7 @@
  * Director structure it (F3).
  */
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 

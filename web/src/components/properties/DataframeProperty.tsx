@@ -20,6 +20,7 @@ import {
 } from "../../utils/dataframeParsers";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -271,7 +272,7 @@ const DataframeProperty = ({
         <div className="dropzone-content">
           <UploadFileIcon />
           <span className="dropzone-text">
-            {isLoading ? t("common:status.loading", { defaultValue: "Loading…" }) : "Drop CSV or Excel file"}
+            {isLoading ? t("common:status.loading", { defaultValue: "Loading…" }) : i18n.t("editor:ui.dropCSVOrExcelFile", { defaultValue: "Drop CSV or Excel file" })}
           </span>
           <span className="dropzone-subtext">{t("editor:ui.supportedCsvXlsxXls", { defaultValue: "Supported: CSV, XLSX, XLS" })}</span>
         </div>

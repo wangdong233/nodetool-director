@@ -30,6 +30,7 @@ import type { SelectOption } from "../ui_primitives";
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import { useTimelineProjectSettings } from "../../hooks/timeline/useTimelineProjectSettings";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -69,13 +70,13 @@ const RESOLUTION_PRESETS: readonly ResolutionPreset[] = [
 
 const RESOLUTION_OPTIONS: readonly SelectOption[] = [
   ...RESOLUTION_PRESETS.map((p) => ({ value: p.value, label: p.label })),
-  { value: CUSTOM, label: "Custom…" }
+  { value: CUSTOM, label: "Custom…", labelKey: "timeline:project.custom" }
 ];
 
 const FPS_PRESETS = [24, 25, 30, 50, 60] as const;
 const FPS_OPTIONS: readonly SelectOption[] = [
   ...FPS_PRESETS.map((f) => ({ value: String(f), label: `${f} fps` })),
-  { value: CUSTOM, label: "Custom…" }
+  { value: CUSTOM, label: "Custom…", labelKey: "timeline:project.custom" }
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -366,7 +367,7 @@ const ProjectSettingsDialogInternal: React.FC<ProjectSettingsDialogProps> = ({
             value={offsetText}
             onChange={(e) => setOffsetText(e.target.value)}
             errorMessage={
-              offsetText !== "" && !offsetValid ? "0 or more" : undefined
+              offsetText !== "" && !offsetValid ? i18n.t("timeline:attrs.zeroOrMore", { defaultValue: "0 or more" }) : undefined
             }
             min={0}
             step={1}

@@ -3,7 +3,7 @@ import type { SxProps, Theme } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { useEditorScope } from "../../editor_ui";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 import {
   FlexColumn,
   FlexRow,

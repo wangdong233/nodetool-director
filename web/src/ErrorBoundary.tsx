@@ -184,9 +184,9 @@ const ErrorBoundary: React.FC = () => {
   const errorMessage =
     error instanceof Error
       ? error.message
-      : "An unknown error occurred" + JSON.stringify(error);
+      : i18n.t("editor:ui.anUnknownErrorOccurred", { defaultValue: "An unknown error occurred" }) + JSON.stringify(error);
   const stackTrace =
-    error instanceof Error ? error.stack : "No stack trace available";
+    error instanceof Error ? error.stack : i18n.t("editor:ui.noStackTraceAvailable", { defaultValue: "No stack trace available" });
 
   const fullErrorText = `${errorMessage}\n\n${stackTrace}`;
 
@@ -245,7 +245,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleCopy}
             className="copy-error-button"
           >
-            {copied ? "Copied!" : "Copy error"}
+            {copied ? i18n.t("editor:ui.copied2", { defaultValue: "Copied!" }) : "Copy error"}
           </EditorButton>
         </Box>
         <Box className="contact-row">
@@ -258,7 +258,7 @@ const ErrorBoundary: React.FC = () => {
             Join our Discord
           </a>
           <a href="mailto:hello@nodetool.ai" className="contact-link">
-            Email hello@nodetool.ai
+            {i18n.t("editor:ui.emailHello@nodetoolAi", { defaultValue: "Email hello@nodetool.ai" })}
           </a>
         </Box>
       </Box>

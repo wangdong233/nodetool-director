@@ -50,6 +50,7 @@ import {
 import type { ImageModelValue, VideoModelValue } from "../../stores/ApiTypes";
 import { VIDEO_RESOLUTIONS } from "../../stores/MediaGenerationStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 export type ShotRenderStep = "still" | "clip";
 
@@ -194,7 +195,7 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
 
   const isClip = step === "clip";
   const priced = estimate.pricedRequestCount > 0 && estimate.cost > 0;
-  const verb = isClip ? t("storyboard:attrs.renderClip", { defaultValue: "Render clip" }) : "Render still";
+  const verb = isClip ? t("storyboard:attrs.renderClip", { defaultValue: "Render clip" }) : i18n.t("timeline:shot.renderStill", { defaultValue: "Render still" });
 
   return (
     <Dialog
@@ -208,8 +209,7 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
       <FlexColumn gap={SPACING.lg}>
         <Caption color="secondary">
           {isClip
-            ? "Pick the model for this shot's clip. The shot keeps the choice for the next render."
-            : "Pick the model for this shot's still. The shot keeps the choice for the next render."}
+            ? t("storyboard:attrs.pickTheModelForThisShotsClip", { defaultValue: "Pick the model for this shot's clip. The shot keeps the choice for the next render." }) : i18n.t("storyboard:attrs.pickTheModelForThisShotsStill", { defaultValue: "Pick the model for this shot's still. The shot keeps the choice for the next render." })}
         </Caption>
         {isClip ? (
           <>

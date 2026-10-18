@@ -30,6 +30,7 @@ import { SetupCardButton, useRovingRadioGroup } from "../SetupCardButton";
 import BriefModelSelect from "./BriefModelSelect";
 import ReportBugButton from "../../support/ReportBugButton";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 /** The counts the flow offers (PRD § 10.2). */
 export const VARIATION_COUNTS: readonly number[] = [1, 2, 4];
@@ -41,11 +42,11 @@ const COUNT_CARD_WIDTH = SPACING_PX.xxxl * 2;
 const COUNT_OPTIONS = VARIATION_COUNTS.map((count) => ({ id: String(count) }));
 
 const FIELD_LABELS: ReadonlyArray<[keyof SketchRefinedBrief, string]> = [
-  ["subject", "Subject"],
-  ["composition", "Composition"],
+  ["subject", i18n.t("storyboard:attrs.subject", { defaultValue: "Subject" })],
+  ["composition", i18n.t("storyboard:attrs.composition", { defaultValue: "Composition" })],
   ["lighting", "Lighting"],
-  ["style_words", "Style words"],
-  ["negative", "Leave out"]
+  ["style_words", i18n.t("storyboard:attrs.styleWords", { defaultValue: "Style words" })],
+  ["negative", i18n.t("storyboard:attrs.leaveOut", { defaultValue: "Leave out" })]
 ];
 
 const EMPTY: SketchRefinedBrief = {
@@ -102,8 +103,8 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     () => [
       {
         id: "brief",
-        header: "Your brief",
-        subheader: "Edit anything here before it is rendered.",
+        header: i18n.t("editor:ui.yourBrief", { defaultValue: "Your brief" }),
+        subheader: t("storyboard:attrs.editAnythingHereBeforeItIsRendered", { defaultValue: "Edit anything here before it is rendered." }), subheaderKey: "storyboard:attrs.editAnythingHereBeforeItIsRendered",
         rows: FIELD_LABELS.map(([field, label]) => ({
           id: field,
           label,
@@ -121,7 +122,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       <BriefModelSelect />
       <PlanReview
         sections={sections}
-        replanLabel="Re-refine"
+        replanLabel={i18n.t("storyboard:attrs.reRefine", { defaultValue: "Re-refine" })}
         onReplan={onReRefine}
         replanPending={refining}
       />

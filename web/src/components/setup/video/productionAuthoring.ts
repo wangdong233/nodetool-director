@@ -7,7 +7,7 @@ import {
   deterministicFingerprint
 } from "../../../hooks/storyboard/productionContext";
 import type { PlanReviewField } from "../PlanReview";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 export const REVIEW_REQUIRED =
   "Production context changed. Return to the plan, review it, and continue to Look.";

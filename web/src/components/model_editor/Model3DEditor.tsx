@@ -360,7 +360,7 @@ const OrbitTargetBridge = ({
 const ADD_MENU_GROUPS: { title: string; kinds: PrimitiveKind[] }[] = [
   { title: "Mesh", kinds: ["box", "sphere", "plane", "cylinder", "cone", "torus"] },
   { title: "Light", kinds: ["directionalLight", "pointLight", "spotLight"] },
-  { title: "Other", kinds: ["empty"] }
+  { title: "Other", titleKey: "tools:menus.other", kinds: ["empty"] }
 ];
 
 interface Model3DEditorProps {
@@ -645,7 +645,7 @@ const Model3DEditor = ({
         setLoadError(
           error instanceof Error
             ? error.message
-            : "Failed to load 3D model. Only .glb/.gltf are supported."
+            : i18n.t("editor:ui.failedToLoad3DModelOnlyGlbgltfAreSupported", { defaultValue: "Failed to load 3D model. Only .glb/.gltf are supported." })
         );
       }
     );
@@ -785,7 +785,7 @@ const Model3DEditor = ({
         try {
           placeImport(await load());
         } catch (error) {
-          errors.push(error instanceof Error ? error.message : "The model could not be read.");
+          errors.push(error instanceof Error ? error.message : i18n.t("editor:ui.theModelCouldNotBeRead", { defaultValue: "The model could not be read." }));
         }
       }
       setImportError(errors.length > 0 ? errors.join(" ") : null);
@@ -1034,7 +1034,7 @@ const Model3DEditor = ({
     }
     const after = captureTransform(start.object);
     if (!transformsEqual(start.before, after)) {
-      const verb = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? t("editor:ui.rotate", { defaultValue: "Rotate" }) : "Scale";
+      const verb = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? t("editor:ui.rotate", { defaultValue: "Rotate" }) : i18n.t("editor:ui.scale", { defaultValue: "Scale" });
       pushCommand(
         transformCommand(`${verb} ${start.object.name || start.object.type}`, start.object, start.before, after)
       );
@@ -1116,7 +1116,7 @@ const Model3DEditor = ({
     } catch (error) {
       console.error("[Model3DEditor] Failed to export GLB:", error);
       setSaveError(
-        error instanceof Error ? error.message : "Failed to export model"
+        error instanceof Error ? error.message : i18n.t("editor:ui.failedToExportModel", { defaultValue: "Failed to export model" })
       );
     } finally {
       savingRef.current = false;
@@ -1286,19 +1286,19 @@ const Model3DEditor = ({
 
   const statusHint = useMemo(() => {
     if (previewActive) {
-      return "Animation preview · the gizmo is hidden · press stop to return to the rest pose and edit";
+      return i18n.t("editor:ui.hintAnimationPreview", { defaultValue: "Animation preview · the gizmo is hidden · press stop to return to the rest pose and edit" });
     }
     if (isDragging) {
       return snapActive
         ? `Snapping to ${gizmoMode === "rotate" ? `${SNAP.rotateDeg}°` : gizmoMode === "scale" ? SNAP.scale : `${SNAP.translate} units`} · release Ctrl to move freely`
-        : "Hold Ctrl to snap";
+        : i18n.t("editor:ui.hintHoldCtrlToSnap", { defaultValue: "Hold Ctrl to snap" });
     }
     if (selectedObject) {
-      const tool = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? t("editor:ui.rotate", { defaultValue: "Rotate" }) : "Scale";
+      const tool = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? t("editor:ui.rotate", { defaultValue: "Rotate" }) : i18n.t("editor:ui.scale", { defaultValue: "Scale" });
       return `${tool} (${gizmoSpace}) · drag the gizmo, hold Ctrl to snap · F frame · Ctrl+D duplicate · Del delete`;
     }
-    return "Click to select · drag to orbit · right-drag to pan · scroll to zoom · press ? for shortcuts";
-  }, [previewActive, isDragging, snapActive, gizmoMode, gizmoSpace, selectedObject]);
+    return i18n.t("editor:ui.hintIdle", { defaultValue: "Click to select · drag to orbit · right-drag to pan · scroll to zoom · press ? for shortcuts" });
+  }, [previewActive, isDragging, snapActive, gizmoMode, gizmoSpace, selectedObject, languageVersion]);
 
   const palette = useMemo(
     () => ({
@@ -1402,7 +1402,7 @@ const Model3DEditor = ({
         <ToolbarIconButton
           icon={gizmoSpace === "world" ? <PublicIcon fontSize="small" /> : <ControlCameraIcon fontSize="small" />}
           tooltip={withShortcut(
-            gizmoSpace === "world" ? t("editor:ui.worldSpaceGizmoFollowsTheSceneAxes", { defaultValue: "World space: gizmo follows the scene axes" }) : "Local space: gizmo follows the object",
+            gizmoSpace === "world" ? t("editor:ui.worldSpaceGizmoFollowsTheSceneAxes", { defaultValue: "World space: gizmo follows the scene axes" }) : i18n.t("editor:ui.localSpaceGizmoFollowsTheObject", { defaultValue: "Local space: gizmo follows the object" }),
             "toggleSpace"
           )}
           onClick={actions.toggleSpace}
@@ -1418,7 +1418,7 @@ const Model3DEditor = ({
           onClick={actions.toggleSnap}
           active={viewPrefs.snap}
           size="small"
-          ariaLabel="Toggle snapping"
+          ariaLabel={t("game:viewport.toggleSnapping", { defaultValue: "Toggle snapping" })}
         />
         <Divider orientation="vertical" flexItem />
         <MenuButton label={t("common:action.add", { defaultValue: "Add" })} icon={<AddIcon />} tooltip={t("editor:ui.addAnObjectAtTheViewCenter", { defaultValue: "Add an object at the view center" })}>
@@ -1504,13 +1504,13 @@ const Model3DEditor = ({
           />
           <ToolbarIconButton
             icon={<AutoAwesomeIcon fontSize="small" />}
-            tooltip={showAssistant ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : "Show assistant"}
+            tooltip={showAssistant ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })}
             onClick={toggleAssistant}
             active={showAssistant}
             size="small"
           />
           <MenuButton
-            label="Export"
+            label={t("timeline:attrs.export", { defaultValue: "Export" })}
             icon={<FileDownloadOutlinedIcon />}
             tooltip="Download the scene or the selected object as a file"
           >
@@ -1518,8 +1518,8 @@ const Model3DEditor = ({
               [false, true].flatMap((onlySelection) =>
                 EXPORT_FORMATS.map((info, index) => (
                   <MenuItemPrimitive
-                    key={`${onlySelection ? "selection" : "scene"}-${info.format}`}
-                    label={`${onlySelection ? "Selection" : "Scene"} as ${info.label}`}
+                    key={`${onlySelection ? t("editor:selection.header", { defaultValue: "selection" }) : i18n.t("editor:ui.scene", { defaultValue: "scene" })}-${info.format}`}
+                    label={`${onlySelection ? t("game:viewport.selection", { defaultValue: "Selection" }) : i18n.t("editor:ui.scene", { defaultValue: "Scene" })} as ${info.label}`}
                     secondary={info.detail}
                     dividerBefore={onlySelection && index === 0}
                     disabled={isExporting || !canSave || (onlySelection && !selectedObject)}
@@ -1532,7 +1532,7 @@ const Model3DEditor = ({
               )
             }
           </MenuButton>
-          <Tooltip title={withShortcut(isDirty ? t("editor:ui.saveChanges", { defaultValue: "Save changes" }) : "No unsaved changes", "save")}>
+          <Tooltip title={withShortcut(isDirty ? t("editor:ui.saveChanges", { defaultValue: "Save changes" }) : i18n.t("editor:ui.noUnsavedChanges", { defaultValue: "No unsaved changes" }), "save")}>
             <span>
               <EditorButton
                 density="compact"
@@ -1541,7 +1541,7 @@ const Model3DEditor = ({
                 onClick={() => void handleSave()}
                 disabled={isSaving || !canSave}
               >
-                {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
+                {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
               </EditorButton>
             </span>
           </Tooltip>
@@ -1761,7 +1761,7 @@ const Model3DEditor = ({
                 {isSaving
                   ? t("editor:ui.saving", { defaultValue: "Saving…" }) : isImporting
                     ? t("editor:ui.importingModel", { defaultValue: "Importing model…" }) : isExporting
-                      ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : "Loading model…"}
+                      ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : i18n.t("editor:ui.loadingModel", { defaultValue: "Loading model…" })}
               </Text>
             </FlexColumn>
           )}
@@ -1827,7 +1827,7 @@ const Model3DEditor = ({
           <ResizableSideDock
             storageKey="model3d_assistant"
             defaultWidth={ASSISTANT_PANEL_WIDTH}
-            ariaLabel="Resize 3D assistant"
+            ariaLabel={i18n.t("editor:ui.resize3DAssistant", { defaultValue: "Resize 3D assistant" })}
           >
             <PanelHeader
               title={t("editor:ui.assistant", { defaultValue: "Assistant" })}
@@ -1869,9 +1869,9 @@ const Model3DEditor = ({
           onClose();
         }}
         title={t("editor:ui.discardUnsavedChanges", { defaultValue: "Discard unsaved changes?" })}
-        content="Closing the editor now loses the edits made since the last save."
-        confirmText="Discard and close"
-        cancelText="Keep editing"
+        content={i18n.t("editor:ui.closingTheEditorNowLosesTheEdits", { defaultValue: "Closing the editor now loses the edits made since the last save." })}
+        confirmText={i18n.t("editor:ui.discardAndClose", { defaultValue: "Discard and close" })}
+        cancelText={t("storyboard:attrs.keepEditing", { defaultValue: "Keep editing" })}
       />
     </FlexColumn>
   );

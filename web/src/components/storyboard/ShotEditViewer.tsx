@@ -58,6 +58,7 @@ import { isShotGenerating } from "./ShotStatusPill";
 import { copiedStill, flippedStill } from "./shotImageEdits";
 import { syncShotClipToTimeline } from "../../stores/storyboard/timelineSync";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ShotEditViewerProps {
   boardId: string;
@@ -444,7 +445,7 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
       );
     } catch (error) {
       setBusy(false);
-      reportFailure(error, "The still could not be flipped.");
+      reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeFlipped", { defaultValue: "The still could not be flipped." }));
     }
   }, [stillUrl, stillName, addVersion]);
 
@@ -478,12 +479,12 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
         },
         onFailed: (error) => {
           setBusy(false);
-          reportFailure(error, "The still could not be opened for editing.");
+          reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeOpenedForEditing", { defaultValue: "The still could not be opened for editing." }));
         }
       });
     } catch (error) {
       setBusy(false);
-      reportFailure(error, "The still could not be opened for editing.");
+      reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeOpenedForEditing", { defaultValue: "The still could not be opened for editing." }));
     }
   }, [
     stillUrl,

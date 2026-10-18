@@ -27,6 +27,7 @@ import { entityAssistContext } from "../../utils/textAssist";
 import ImageRefPreview from "../node/ImageRefPreview";
 import EntityAssetPickerDialog from "./EntityAssetPickerDialog";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface EntityEditorDialogProps {
   open: boolean;
@@ -133,7 +134,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      title={entity ? t("editor:ui.editEntity", { defaultValue: "Edit entity" }) : "New entity"}
+      title={entity ? t("editor:ui.editEntity", { defaultValue: "Edit entity" }) : i18n.t("editor:ui.newEntity", { defaultValue: "New entity" })}
       maxWidth="xs"
       fullWidth
       onConfirm={handleConfirm}

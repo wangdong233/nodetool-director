@@ -8,6 +8,7 @@ import { useLiveSpectrum } from '../../components/panels/useLiveSpectrum';
 import { KitCapture, fitKitMix } from '../kitMix';
 import { pad, PAD_COUNT } from '../params';
 import { useDrumStore } from '../dr1Store';
+import { i18n } from "../../../../../../../i18n";
 
 const LEARN_SECONDS = 8, TIMEOUT_SECONDS = 30;
 
@@ -91,7 +92,7 @@ export function KitMixPanel() {
         <div className="dr-kitmix-actions">
           <button type="button" className={`dr-kitmix-learn${progress !== null ? ' on' : ''}`} style={{ '--p': progress ?? 0 } as React.CSSProperties}
             disabled={!device} onClick={learn}>{progress !== null ? 'STOP' : learned ? 'RELEARN' : 'LEARN'}</button>
-          <button type="button" disabled={!fit || progress !== null} onClick={apply}>APPLY</button>
+          <button type="button" disabled={!fit || progress !== null} onClick={apply}>{i18n.t("timeline:project.apply", { defaultValue: "APPLY" })}</button>
           <button type="button" disabled={!undo} onClick={revert}>UNDO</button>
         </div>
       </div>

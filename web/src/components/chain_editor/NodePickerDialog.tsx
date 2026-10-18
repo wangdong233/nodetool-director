@@ -160,7 +160,7 @@ export const NodePickerDialog: React.FC<NodePickerDialogProps> = ({
         <TextInput
           fullWidth
           size="small"
-          placeholder="Search nodes"
+          placeholder={t("ui2:attrs.searchNodes", { defaultValue: "Search nodes" })}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           autoFocus={autoFocusEnabled}

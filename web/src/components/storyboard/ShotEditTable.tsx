@@ -41,7 +41,7 @@ import {
   type ShotDraft
 } from "./shotDraft";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface ShotEditTableProps {
   draft: ShotDraft;
@@ -68,9 +68,9 @@ const pairGridSx = {
 } as const;
 
 const RENDER_MODE_OPTIONS = [
-  { value: "keyframe", label: "Keyframe" },
-  { value: "direct", label: "Direct" },
-  { value: "reference", label: "Reference" }
+  { value: "keyframe", label: "Keyframe", labelKey: "storyboard:attrs.renderModeKeyframe" },
+  { value: "direct", label: "Direct", labelKey: "storyboard:attrs.renderModeDirect" },
+  { value: "reference", label: "Reference", labelKey: "storyboard:attrs.renderModeReference" }
 ];
 
 const chipSx = { alignSelf: "flex-start" } as const;

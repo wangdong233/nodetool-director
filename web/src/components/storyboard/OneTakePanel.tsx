@@ -59,6 +59,7 @@ import type { VideoModelValue } from "../../stores/ApiTypes";
 import { ASPECT_OPTIONS } from "./aspectOptions";
 import { modelFieldSx } from "./shotRenderModels";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const OneTakeRenderDialog = React.lazy(() => import("./OneTakeRenderDialog"));
 
@@ -245,7 +246,7 @@ const OneTakePanelInner: React.FC<OneTakePanelProps> = ({
       <FlexColumn gap={SPACING.xl} data-testid="one-take-panel">
         <SectionHeader
           title={t("storyboard:attrs.oneTake", { defaultValue: "One take" })}
-          subtitle="Render the whole board as one continuous clip."
+          subtitle={t("storyboard:attrs.renderTheWholeBoardAsOneContinuousClip", { defaultValue: "Render the whole board as one continuous clip." })}
           size="small"
           action={<CloseButton tooltip={t("storyboard:attrs.closeOneTake", { defaultValue: "Close one take" })} onClick={onClose} />}
         />
@@ -321,7 +322,7 @@ const OneTakePanelInner: React.FC<OneTakePanelProps> = ({
             }
           />
           <Box sx={compiledSx} data-testid="one-take-compiled">
-            {compiled.compiled || "Add shots to compile the take."}
+            {compiled.compiled || i18n.t("storyboard:attrs.addShotsToCompileTheTake", { defaultValue: "Add shots to compile the take." })}
           </Box>
           <FlexRow align="center" gap={SPACING.lg} wrap>
             <Text size="small" data-testid="one-take-duration">

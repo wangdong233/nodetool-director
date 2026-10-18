@@ -18,6 +18,7 @@ import { useRegenerateStaleLayers } from "../../../hooks/sketch/useRegenerateSta
 import { CreateGeneratedLayerDialog } from "./CreateGeneratedLayerDialog";
 import { useAlertNotifier } from "../../../hooks/useAlertNotifier";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 const SketchAIToolbarInner: React.FC = () => {
   const { t } = useTranslation();
@@ -112,7 +113,7 @@ const SketchAIToolbarInner: React.FC = () => {
         onClose={() => setConfirmRegenOpen(false)}
         title={t("editor:ui.reGenerateStaleLayers", { defaultValue: "Re-generate stale layers?" })}
         onConfirm={() => void handleConfirmRegen()}
-        confirmText="Re-generate"
+        confirmText={i18n.t("editor:ui.reGenerate", { defaultValue: "Re-generate" })}
       >
         <Text size="small">
           {staleCount} stale layer{staleCount === 1 ? " is" : "s are"} ready to

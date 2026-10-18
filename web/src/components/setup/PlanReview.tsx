@@ -43,6 +43,7 @@ import {
   REVIEW_WIDE_WIDTH
 } from "./reviewStyles";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 export interface PlanReviewField {
   id: string;
@@ -420,7 +421,7 @@ const PlanReviewLines: React.FC<{ rows: readonly PlanReviewField[] }> = ({
             />
           }
         >
-          {open ? t("setup:plan.fewerOptions", { defaultValue: "Fewer options" }) : "More options"}
+          {open ? t("setup:plan.fewerOptions", { defaultValue: "Fewer options" }) : i18n.t("setup:plan.moreOptions", { defaultValue: "More options" })}
         </EditorButton>
         {summary ? <Caption color="muted">{summary}</Caption> : null}
       </FlexRow>

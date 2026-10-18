@@ -17,6 +17,7 @@ import {
 } from "../../ui_primitives";
 import { TRACK_FOLDER_HEIGHT_PX } from "./trackWindow";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface TrackFolderHeaderProps {
   folder: TimelineTrackFolder;
@@ -61,7 +62,7 @@ export const TrackFolderHeader: React.FC<TrackFolderHeaderProps> = ({
             )
           }
           onClick={() => onToggle(folder.id)}
-          aria-label={`${collapsed ? t("editor:ui.expand", { defaultValue: "Expand" }) : "Collapse"} folder ${folder.name}`}
+          aria-label={`${collapsed ? t("editor:ui.expand", { defaultValue: "Expand" }) : i18n.t("editor:ui.collapse", { defaultValue: "Collapse" })} folder ${folder.name}`}
           aria-expanded={!collapsed}
           size="small"
           sx={{ p: SPACING.none }}

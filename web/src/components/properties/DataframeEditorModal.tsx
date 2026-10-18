@@ -34,6 +34,7 @@ import DataTable from "../node/DataTable/DataTable";
 import ColumnsManager from "../node/ColumnsManager";
 import { NavButton, NodeTextField, CloseButton as CloseButtonPrimitive } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface DataframeEditorModalProps {
   value: DataframeRef;
@@ -508,13 +509,13 @@ const DataframeEditorModal = ({
   const content = (
     <div className="dataframe-editor-modal" css={modalStyles}>
       <div
-        className={`modal-overlay ${isFullscreen ? "fullscreen" : ""}`}
+        className={`modal-overlay ${isFullscreen ? t("common:action.fullscreen", { defaultValue: "fullscreen" }) : ""}`}
         role="presentation"
         onClick={handleOverlayClick}
         ref={modalOverlayRef}
       >
         <div
-          className={`modal-content ${isFullscreen ? "fullscreen" : ""}`}
+          className={`modal-content ${isFullscreen ? t("common:action.fullscreen", { defaultValue: "fullscreen" }) : ""}`}
           role="dialog"
           aria-modal="true"
           style={{ height: isFullscreen ? "100vh" : modalHeight }}
@@ -531,13 +532,13 @@ const DataframeEditorModal = ({
             <div className="actions">
               <div className="toolbar-group">
                 <Tooltip
-                  title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                  title={isFullscreen ? t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
                 >
                   <button
                     type="button"
                     className="button"
                     onClick={toggleFullscreen}
-                    aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                    aria-label={isFullscreen ? t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
                   >
                     {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
                   </button>

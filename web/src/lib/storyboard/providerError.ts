@@ -9,7 +9,7 @@
  * because a message we do not recognise is still better than "something went
  * wrong".
  */
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /** What went wrong, and what the creator can do about it. */
 export interface DirectorFailure {

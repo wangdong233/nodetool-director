@@ -54,11 +54,12 @@ import {
   isString
 } from "../../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 /** Aspect-ratio dropdown options. `free` means no constraint. */
 const ASPECT_OPTIONS = [
   { value: "free", label: "Free" },
-  { value: "1:1", label: "1:1 Square" },
+  { value: "1:1", label: i18n.t("editor:ui.oneToOneSquare", { defaultValue: "1:1 Square" }) },
   { value: "4:3", label: "4:3" },
   { value: "3:2", label: "3:2" },
   { value: "16:9", label: "16:9" },
@@ -721,7 +722,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
               id={`crop-width-${id}`}
               nodeId={id}
               name="width"
-              description={widthProperty?.description ?? "Crop width"}
+              description={widthProperty?.description ?? i18n.t("editor:ui.cropWidth", { defaultValue: "Crop width" })}
               value={cropW}
               min={1}
               max={imgDims?.w ?? 8192}
@@ -740,7 +741,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
               id={`crop-height-${id}`}
               nodeId={id}
               name="height"
-              description={heightProperty?.description ?? "Crop height"}
+              description={heightProperty?.description ?? i18n.t("editor:ui.cropHeight", { defaultValue: "Crop height" })}
               value={cropH}
               min={1}
               max={imgDims?.h ?? 8192}

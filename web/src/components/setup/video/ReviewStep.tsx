@@ -32,6 +32,7 @@ import {
   productionAuthoringBlocker,
   productionGenerationBlocker
 } from "./productionAuthoring";
+import { i18n } from "../../../../i18n";
 
 /** "12s", "1m 04s" — a length as a creator reads it. */
 export const formatSeconds = (ms: number): string => {
@@ -84,7 +85,7 @@ export interface ReviewStepProps {
  */
 const PLAIN_CUT = "cut";
 const TRANSITION_OPTIONS = [
-  { value: PLAIN_CUT, label: "Cut" },
+  { value: PLAIN_CUT, label: i18n.t("storyboard:attrs.cut", { defaultValue: "Cut" }) },
   ...KNOWN_TRANSITION_TYPE_LIST.map((type) => ({ value: type, label: type }))
 ] as const;
 
@@ -179,14 +180,14 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     rows: [
       {
         id: `${beat.id}-prompt`,
-        label: "Beat",
+        label: i18n.t("timeline:attrs.beat", { defaultValue: "Beat" }),
         value: beat.prompt,
         multiline: true,
         onChange: (value: string) => updateBeat(beat.id, { prompt: value })
       },
       {
         id: `${beat.id}-duration`,
-        label: "Seconds",
+        label: "Seconds", labelKey: "timeline:attrs.seconds",
         value: lengths[beat.id] ?? secondsText(beat.duration_ms),
         placeholder: rangeText,
         compact: true,
@@ -217,7 +218,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           !!beat.production?.speech_binding?.audio_asset_id,
         value: beat.voiceover ?? beat.production?.speech_binding?.text ?? "",
         multiline: true,
-        placeholder: "Leave empty for no line over this beat",
+        placeholder: "Leave empty for no line over this beat", placeholderKey: "timeline:attrs.leaveEmptyForNoLineOverBeat",
         onChange: (value: string) => {
           const production =
             beat.production?.speech_binding?.text && value.trim()
@@ -278,7 +279,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
       ) : null}
       <PlanReview
         sections={sections}
-        replanLabel="Re-plan"
+        replanLabel={i18n.t("storyboard:attrs.replan", { defaultValue: "Re-plan" })}
         onReplan={handleReplan}
         replanPending={replanPending}
         onRemoveSection={removeBeat}

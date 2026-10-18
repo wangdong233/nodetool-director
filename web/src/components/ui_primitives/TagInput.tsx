@@ -38,6 +38,7 @@ import AddIcon from "@mui/icons-material/AddOutlined";
 import { CONTROL, MOTION } from "./tokens";
 import { Tooltip } from "./Tooltip";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -181,12 +182,12 @@ export const TagInput: React.FC<TagInputProps> = memo(
         const trimmedTag = tag.trim();
 
         if (trimmedTag === "") {
-          setValidationError("Tag cannot be empty");
+          setValidationError(i18n.t("editor:ui.tagCannotBeEmpty", { defaultValue: "Tag cannot be empty" }));
           return false;
         }
 
         if (!allowDuplicates && tags.includes(trimmedTag)) {
-          setValidationError("This tag already exists");
+          setValidationError(i18n.t("editor:ui.thisTagAlreadyExists", { defaultValue: "This tag already exists" }));
           return false;
         }
 

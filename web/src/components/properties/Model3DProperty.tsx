@@ -21,6 +21,7 @@ import { deserializeDragData } from "../../lib/dragdrop";
 import { useAddExampleModelAsset } from "../../hooks/useAddExampleModelAsset";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -218,7 +219,7 @@ const Model3DProperty = (props: PropertyProps) => {
           )}
 
           <Tooltip
-            title={showUrlInput ? t("editor:ui.hideUrlInput", { defaultValue: "Hide URL input" }) : "Show input to enter a URL"}
+            title={showUrlInput ? t("editor:ui.hideUrlInput", { defaultValue: "Hide URL input" }) : i18n.t("editor:ui.showInputToEnterAUrl", { defaultValue: "Show input to enter a URL" })}
           >
             <EditorButton
               className="toggle-url-button"

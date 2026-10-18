@@ -18,6 +18,7 @@ import { trpcClient } from "../trpc/client";
 import { normalizeAssetList } from "../utils/normalizeAsset";
 import { useNotificationStore } from "../stores/NotificationStore";
 import { useAssetProjectScope } from "../hooks/assets/useAssetProjectScope";
+import { i18n } from "../../i18n";
 
 type FilterOptions = {
   searchTerm: string;
@@ -373,13 +374,13 @@ export const useAssets = () => {
     mutationFn: (name: string) =>
       createFolder(currentFolderId, name, writeProjectId),
     onSuccess: invalidateAssetSiblings,
-    onError: notifyMutationError("Error creating folder.")
+    onError: notifyMutationError(i18n.t("editor:ui.errorCreatingFolder", { defaultValue: "Error creating folder." }))
   });
 
   const deleteAssetMutation = useMutation({
     mutationFn: (assetId: string) => deleteAsset(assetId),
     onSuccess: invalidateAssetSiblings,
-    onError: notifyMutationError("Error deleting asset.")
+    onError: notifyMutationError(i18n.t("editor:ui.errorDeletingAsset", { defaultValue: "Error deleting asset." }))
   });
 
   const updateAssetMutation = useMutation({

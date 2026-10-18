@@ -11,7 +11,7 @@ import {
 import useMetadataStore from "../../stores/MetadataStore";
 import { setFrontendToolRuntimeState } from "../../lib/tools/frontendToolRuntimeState";
 import { getWorkflowRunnerStore } from "../../stores/WorkflowRunner";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 import {
   useImageModelsByProvider,
   useLanguageModelsByProvider,

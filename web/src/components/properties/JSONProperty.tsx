@@ -215,7 +215,7 @@ const JSONProperty = (props: PropertyProps<JSONValue | null>) => {
         />
       </>
     ),
-    [inspectorToolbarActionSx, toggleExpand, value]
+    [inspectorToolbarActionSx, toggleExpand, value, languageVersion]
   );
 
   useInspectorHeaderSupplementalRegistration(

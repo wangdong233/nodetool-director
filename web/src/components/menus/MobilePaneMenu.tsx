@@ -40,6 +40,7 @@ import {
 } from "../../utils/nodeUtils";
 import { shallow } from "zustand/shallow";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -170,7 +171,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
       open={open}
       onClose={onClose}
       title={t("editor:ui.canvasMenu", { defaultValue: "Canvas menu" })}
-      ariaLabel="Canvas actions and node insertion"
+      ariaLabel={i18n.t("editor:ui.canvasActionsAndNodeInsertion", { defaultValue: "Canvas actions and node insertion" })}
     >
       <div className="menu-content" css={styles(theme)}>
         <List dense>
@@ -183,7 +184,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary="Paste" 
-                secondary={!isClipboardValid ? t("editor:ui.noValidNodesInClipboard", { defaultValue: "No valid nodes in clipboard" }) : "Paste copied nodes"}
+                secondary={!isClipboardValid ? t("editor:ui.noValidNodesInClipboard", { defaultValue: "No valid nodes in clipboard" }) : i18n.t("editor:ui.pasteCopiedNodes", { defaultValue: "Paste copied nodes" })}
               />
             </ListItemButton>
           </ListItem>

@@ -55,6 +55,7 @@ import { relativeTime } from "../../utils/formatDateAndTime";
 import type { ProjectDetail } from "./projectStatus";
 import { PROJECT_FILE_EXTENSION } from "../../utils/projectArchive";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /**
  * How many loose documents the strip lists. Every document a user has ever
@@ -358,7 +359,7 @@ const ProjectListSurface = () => {
               title={
                 looseTotal > loose.length
                   ? `Not in a project · ${loose.length} most recent of ${looseTotal}`
-                  : "Not in a project"
+                  : i18n.t("editor:ui.notInAProject", { defaultValue: "Not in a project" })
               }
               action={
                 <Caption

@@ -24,12 +24,12 @@ import { useTranslation } from "react-i18next";
 type OverlayKey = "selection" | "grid" | "colliders" | "lights" | "backgrounds" | "camera";
 
 const OVERLAY_TOGGLES: readonly { key: OverlayKey; label: string; icon: ReactNode }[] = [
-  { key: "selection", label: "Selection", icon: <HighlightAltIcon fontSize="small" /> },
-  { key: "grid", label: "Grid", icon: <Grid4x4Icon fontSize="small" /> },
-  { key: "colliders", label: "Colliders", icon: <CropFreeIcon fontSize="small" /> },
-  { key: "lights", label: "Lights", icon: <LightModeOutlinedIcon fontSize="small" /> },
+  { key: "selection", label: "Selection", labelKey: "game:viewport.selection", icon: <HighlightAltIcon fontSize="small" /> },
+  { key: "grid", label: "Grid", labelKey: "game:viewport.grid", icon: <Grid4x4Icon fontSize="small" /> },
+  { key: "colliders", label: "Colliders", labelKey: "game:assets.kindCollider", icon: <CropFreeIcon fontSize="small" /> },
+  { key: "lights", label: "Lights", labelKey: "game:viewport.lights", icon: <LightModeOutlinedIcon fontSize="small" /> },
   { key: "backgrounds", label: "Backgrounds", icon: <WallpaperIcon fontSize="small" /> },
-  { key: "camera", label: "Camera", icon: <CameraOutlinedIcon fontSize="small" /> }
+  { key: "camera", label: "Camera", labelKey: "game:sceneTree.presetCamera", icon: <CameraOutlinedIcon fontSize="small" /> }
 ];
 const HEADER_ICON_SX = { fontSize: FONT_SIZE_SANS.body, color: "text.secondary" } as const;
 
@@ -494,7 +494,7 @@ export default function GameViewport({ canvasRef, frame, document, sceneId, play
       <GamePanelHeader title={t("game:panels.viewport", { defaultValue: "Viewport" })} label={playing ? "Game" : "Scene"}
         icon={playing ? <SportsEsportsOutlinedIcon sx={HEADER_ICON_SX} /> : <GridViewOutlinedIcon sx={HEADER_ICON_SX} />}>
         {!playing && <>
-          <ToolbarIconButton icon={<PanToolOutlinedIcon fontSize="small" />} ariaLabel="Pan"
+          <ToolbarIconButton icon={<PanToolOutlinedIcon fontSize="small" />} ariaLabel={t("game:viewport.pan", { defaultValue: "Pan" })}
             tooltip={mac ? "Pan. Two-finger scroll or right/middle drag also pans. Pinch or Ctrl+scroll zooms."
               : "Pan. Right/middle drag also pans. Mouse wheel zooms."}
             aria-pressed={panTool} active={panTool} onClick={() => setPanTool((value) => !value)} />

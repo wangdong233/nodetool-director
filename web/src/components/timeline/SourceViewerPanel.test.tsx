@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { SourceViewerPanel } from "./SourceViewerPanel";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 const mockSetSourceRange = jest.fn((range) => {
   mockSourceRange = range;
@@ -46,7 +46,7 @@ jest.mock("../ui_primitives", () => ({
   Text: ({ children }: React.PropsWithChildren) => <span>{children}</span>,
   Tooltip: ({ children }: React.PropsWithChildren) => <>{children}</>,
   TruncatedText: ({ children }: React.PropsWithChildren) => <span>{children}</span>,
-  VideoPlayer: ({ onDurationChange, onTimeUpdate }: { onDurationChange?: (duration: number) => void; onTimeUpdate?: (time: number) => void }) => <button aria-label="Video player" onClick={() => { onDurationChange?.(5); onTimeUpdate?.(2); }}>Video</button>,
+  VideoPlayer: ({ onDurationChange, onTimeUpdate }: { onDurationChange?: (duration: number) => void; onTimeUpdate?: (time: number) => void }) => <button aria-label="Video player" onClick={() => { onDurationChange?.(5); onTimeUpdate?.(2); }}>{i18n.t("home:entry.video.title", { defaultValue: "Video" })}</button>,
   FONT_WEIGHT: { medium: 500 },  SPACING: { md: 1, xs: 1, sm: 1 },
   getSpacingPx: () => "1px"
 }));

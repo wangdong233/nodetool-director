@@ -42,6 +42,7 @@ import { useProviderOnboardingStore } from "../../stores/ProviderOnboardingStore
 import { DIALOG_PREVIEWS } from "./DialogPreviews";
 import PreviewProgressStates from "./ProgressPreviews";
 import PreviewModelPicker from "./ModelPickerPreview";
+import { i18n } from "../../../i18n";
 
 const CostsDashboard = React.lazy(() => import("../costs/CostsDashboard"));
 const ModelListIndex = React.lazy(
@@ -273,7 +274,7 @@ const SAMPLE_NODE_README: NodeMetadata = {
       name: "prompt",
       type: { type: "str", optional: false, type_args: [] },
       default: "A cinematic photo of a cat astronaut on the moon",
-      title: "Prompt",
+      title: "Prompt", titleKey: "sketch:attrs.prompt",
       description: "The text description of the image to generate.",
       required: false
     },
@@ -322,7 +323,7 @@ const SAMPLE_DATAFRAME: DataframeRef = {
   uri: "",
   columns: [
     { name: "id", data_type: "int", description: "Row id" },
-    { name: "product", data_type: "string", description: "Product name" },
+    { name: "product", nameKey: "setup:video.refKind_product", data_type: "string", description: "Product name", descriptionKey: "storyboard:attrs.productName" },
     { name: "category", data_type: "string", description: "Category" },
     { name: "price", data_type: "float", description: "Price (USD)" },
     { name: "in_stock", data_type: "bool", description: "Availability" }
@@ -443,8 +444,8 @@ const PreviewConfirmDialog: React.FC = () => (
         open
         onClose={() => undefined}
         onConfirm={() => undefined}
-        title="Delete this workflow?"
-        content="This action cannot be undone. The workflow and its run history will be removed from the workspace."
+        title={i18n.t("editor:ui.deleteThisWorkflow", { defaultValue: "Delete this workflow?" })}
+        content={i18n.t("timeline:attrs.previewDeleteWorkflowWarning", { defaultValue: "This action cannot be undone. The workflow and its run history will be removed from the workspace." })}
         confirmText="Delete"
         cancelText="Cancel"
         destructive
@@ -662,16 +663,16 @@ const PreviewFormControls: React.FC = () => (
     <Panel padding="normal">
       <FlexColumn gap={3}>
         <FlexRow gap={2} align="flex-end">
-          <TextInput label="Medium text" placeholder="36px" />
+          <TextInput label={i18n.t("editor:ui.mediumText", { defaultValue: "Medium text" })} placeholder="36px" />
           <SelectField
-            label="Medium outlined"
+            label={i18n.t("editor:ui.mediumOutlined", { defaultValue: "Medium outlined" })}
             variant="outlined"
             value="widescreen"
             onChange={() => undefined}
             options={FORM_CONTROL_OPTIONS}
           />
           <SelectField
-            label="Medium standard"
+            label={i18n.t("editor:ui.mediumStandard", { defaultValue: "Medium standard" })}
             variant="standard"
             value="widescreen"
             onChange={() => undefined}
@@ -679,9 +680,9 @@ const PreviewFormControls: React.FC = () => (
           />
         </FlexRow>
         <FlexRow gap={2} align="flex-end">
-          <TextInput label="Small text" placeholder="28px" compact />
+          <TextInput label={i18n.t("editor:ui.smallText", { defaultValue: "Small text" })} placeholder="28px" compact />
           <SelectField
-            label="Small outlined"
+            label={i18n.t("editor:ui.smallOutlined", { defaultValue: "Small outlined" })}
             variant="outlined"
             size="small"
             value="square"
@@ -689,7 +690,7 @@ const PreviewFormControls: React.FC = () => (
             options={FORM_CONTROL_OPTIONS}
           />
           <SelectField
-            label="Small standard"
+            label={i18n.t("editor:ui.smallStandard", { defaultValue: "Small standard" })}
             variant="standard"
             size="small"
             value="square"

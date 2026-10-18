@@ -20,6 +20,7 @@ import { QUICK_ACTION_BUTTONS } from "./QuickActionTiles.constants";
 import { colorForType } from "../../config/data_types";
 import { IconForType } from "../../config/IconForType";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const QUICK_ACTION_NODE_TYPES = new Set<string>(
   QUICK_ACTION_BUTTONS.map((action) => action.nodeType)
@@ -379,8 +380,8 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
         onClose={() => setClearConfirmOpen(false)}
         onConfirm={handleClearRecent}
         title="Clear recent nodes?"
-        content="This clears your recently used nodes list. This cannot be undone."
-        confirmText="Clear recent"
+        content={i18n.t("editor:ui.thisClearsYourRecentlyUsedNodesListThisCannotBeUndone", { defaultValue: "This clears your recently used nodes list. This cannot be undone." })}
+        confirmText={i18n.t("editor:ui.clearRecent", { defaultValue: "Clear recent" })}
         destructive
         cancelText="Cancel"
         notificationMessage="Recent nodes cleared"

@@ -65,7 +65,7 @@ import {
   ICON_SIZE
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 const DOCUMENT_TAB_TYPES = {
   workflow: "workflow",
@@ -419,7 +419,7 @@ const DocumentTreeGroupRow = ({
           expanded={expanded}
           iconVariant="chevron"
           onClick={handleDisclosureClick}
-          aria-label={`${expanded ? i18n.t("editor:ui.collapse", { defaultValue: "Collapse" }) : "Expand"} ${group.label}`}
+          aria-label={`${expanded ? i18n.t("editor:ui.collapse", { defaultValue: "Collapse" }) : i18n.t("editor:ui.expand", { defaultValue: "Expand" })} ${group.label}`}
           tabIndex={-1}
         />
         <Icon aria-hidden="true" sx={{ fontSize: ICON_SIZE.md }} />
@@ -474,7 +474,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
   const errorContext = useMemo<BugReportContext>(
     () => ({
       source: "panel-crash",
-      summary: "Project documents failed to load",
+      summary: i18n.t("editor:ui.projectDocumentsFailedToLoad", { defaultValue: "Project documents failed to load" }),
       errorText: error?.message,
       stackTrace: error?.stack
     }),
@@ -640,7 +640,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
             title={t("editor:ui.couldNotLoadDocuments", { defaultValue: "Could not load documents" })}
             description={
               <FlexColumn align="center" gap={SPACING.sm}>
-                <Text size="small">{error?.message ?? "Try again later."}</Text>
+                <Text size="small">{error?.message ?? i18n.t("common:list.tryAgainLater", { defaultValue: "Try again later." })}</Text>
                 <ReportBugButton context={errorContext} />
               </FlexColumn>
             }
@@ -655,7 +655,7 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         >
           <EmptyState
             variant={query.trim() ? "no-results" : "empty"}
-            title={query.trim() ? i18n.t("editor:ui.noMatchingDocuments", { defaultValue: "No matching documents" }) : "No documents yet"}
+            title={query.trim() ? i18n.t("editor:ui.noMatchingDocuments", { defaultValue: "No matching documents" }) : i18n.t("editor:ui.noDocumentsYet", { defaultValue: "No documents yet" })}
             description={
               query.trim()
                 ? // This search covers documents and text files only. Name

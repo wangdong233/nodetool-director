@@ -2,6 +2,7 @@ import { lazy, Suspense, useState } from "react";
 import { LoadingSpinner, TabGroup } from "../ui_primitives";
 import DashboardExampleApps from "../portal/DashboardExampleApps";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const DashboardTemplates = lazy(() => import("../portal/DashboardTemplates"));
 const DashboardExampleStoryboards = lazy(
@@ -28,11 +29,11 @@ interface StartExamplesProps {
 
 const EXAMPLE_TABS = [
   { value: "apps", label: "Apps" },
-  { value: "workflows", label: "Workflows" },
+  { value: "workflows", label: "Workflows", labelKey: "ui2:attrs.workflows" },
   { value: "storyboards", label: "Storyboards" },
   { value: "timelines", label: "Timelines" },
   { value: "sketches", label: "Sketches" },
-  { value: "models", label: "3D models" },
+  { value: "models", label: "3D models", labelKey: "timeline:attrs.kind3dModels" },
   { value: "games", label: "Games" }
 ];
 
@@ -49,7 +50,7 @@ const StartExamples = ({ onBrowseAll, onMakeGame }: StartExamplesProps) => {
         aria-label={t("editor:ui.exampleTypes", { defaultValue: "Example types" })}
         size="small"
       />
-      <Suspense fallback={<LoadingSpinner size="medium" text="Loading examples" />}>
+      <Suspense fallback={<LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingExamples", { defaultValue: "Loading examples" })} />}>
         {activeTab === "apps" ? (
           <DashboardExampleApps compact onBrowseAll={onBrowseAll} />
         ) : activeTab === "workflows" ? (

@@ -166,6 +166,7 @@ import {
 } from "../../stores/lastModelStore";
 import { countOwnedClips } from "../../lib/assembledSequenceMerge";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 // The preview mounts the timeline compositor; keep it out of the board bundle.
 const LazyStoryboardPreview = React.lazy(() => import("./StoryboardPreview"));
@@ -1230,7 +1231,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       onClick={togglePreview}
                       disabled={!hasPlayableShot}
                     >
-                      {previewOpen ? t("storyboard:attrs.hidePreview", { defaultValue: "Hide preview" }) : "Preview"}
+                      {previewOpen ? t("storyboard:attrs.hidePreview", { defaultValue: "Hide preview" }) : i18n.t("editor:io.preview", { defaultValue: "Preview" })}
                     </EditorButton>
                     <EditorButton
                       variant={settingsVisible ? "contained" : "outlined"}
@@ -1297,7 +1298,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 {!readOnly && (
                   <ToolbarIconButton
                     icon={<PlayCircleOutlineIcon />}
-                    tooltip={previewOpen ? t("storyboard:attrs.hidePreview", { defaultValue: "Hide preview" }) : "Preview"}
+                    tooltip={previewOpen ? t("storyboard:attrs.hidePreview", { defaultValue: "Hide preview" }) : i18n.t("editor:io.preview", { defaultValue: "Preview" })}
                     onClick={togglePreview}
                     disabled={!hasPlayableShot}
                     active={previewOpen}
@@ -1438,7 +1439,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       {directError ??
                         assembleError ??
                         (hasShots
-                          ? t("storyboard:attrs.reDirectingRewritesTheScreenplayAndReplacesEveryShot", { defaultValue: "Re-directing rewrites the screenplay and replaces every shot." }) : "Direct writes the screenplay and seeds your shots.")}
+                          ? t("storyboard:attrs.reDirectingRewritesTheScreenplayAndReplacesEveryShot", { defaultValue: "Re-directing rewrites the screenplay and replaces every shot." }) : i18n.t("storyboard:attrs.directWritesTheScreenplayAndSeedsYourShots", { defaultValue: "Direct writes the screenplay and seeds your shots." }))}
                     </Caption>
                     <EditorButton
                       variant="contained"
@@ -1448,7 +1449,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                     >
                       {directing
                         ? t("storyboard:attrs.directing", { defaultValue: "Directing…" }) : hasShots
-                          ? t("editor:ui.reDirect", { defaultValue: "Re-direct" }) : "Direct"}
+                          ? t("editor:ui.reDirect", { defaultValue: "Re-direct" }) : i18n.t("storyboard:attrs.renderModeDirect", { defaultValue: "Direct" })}
                     </EditorButton>
                   </FlexRow>
                 </FlexColumn>
@@ -1573,14 +1574,13 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
             onClose={() => setAssembleConfirmOpen(false)}
             title={t("storyboard:attrs.rebuildLinkedTimeline", { defaultValue: "Rebuild linked timeline?" })}
             onConfirm={handleConfirmAssemble}
-            confirmText="Rebuild timeline"
+            confirmText={i18n.t("editor:ui.rebuildTimeline", { defaultValue: "Rebuild timeline" })}
             destructive
           >
             <FlexColumn gap={SPACING.xs}>
               <Text>
                 {replacedClipCount === null
-                  ? "This replaces every clip owned by this storyboard and its linked script, including trims and edits made to those clips."
-                  : `This replaces ${replacedClipCount} storyboard-owned clip${replacedClipCount === 1 ? "" : "s"}, including trims and edits made to those clips.`}
+                  ? t("storyboard:attrs.thisReplacesEveryClipOwnedByThisStoryboardAndItsLinkedScriptIncludingTrimsAndEditsMadeToThoseClips", { defaultValue: "This replaces every clip owned by this storyboard and its linked script, including trims and edits made to those clips." }) : `This replaces ${replacedClipCount} storyboard-owned clip${replacedClipCount === 1 ? "" : "s"}, including trims and edits made to those clips.`}
               </Text>
               <Caption color="secondary">
                 Tracks and clips added outside this storyboard are preserved.
@@ -1599,7 +1599,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
               setDownloadFallbackError(null);
               void downloadZip(false);
             }}
-            confirmText="Download last saved version"
+            confirmText={t("storyboard:attrs.downloadLastSavedVersion", { defaultValue: "Download last saved version" })}
           >
             <FlexColumn gap={SPACING.md}>
               <Text>
@@ -1612,7 +1612,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
 
           {previewOpen && (
             <React.Suspense
-              fallback={<LoadingSpinner size="small" text="Loading preview" />}
+              fallback={<LoadingSpinner size="small" text={t("storyboard:attrs.loadingPreview", { defaultValue: "Loading preview" })} />}
             >
               <LazyStoryboardPreview boardId={boardId} />
             </React.Suspense>
@@ -1646,7 +1646,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
               title={t("storyboard:attrs.noShotsYet", { defaultValue: "No shots yet" })}
               description={
                 readOnly
-                  ? t("storyboard:attrs.thisStoryboardHasNoShots", { defaultValue: "This storyboard has no shots." }) : "Write a brief and press Direct to generate a screenplay of shots."
+                  ? t("storyboard:attrs.thisStoryboardHasNoShots", { defaultValue: "This storyboard has no shots." }) : i18n.t("storyboard:attrs.writeABriefAndPressDirectToGenerateAScreenplayOfShots", { defaultValue: "Write a brief and press Direct to generate a screenplay of shots." })
               }
             />
           ) : (
@@ -1772,7 +1772,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                 >
                   {assembling
                     ? t("storyboard:attrs.assembling", { defaultValue: "Assembling…" }) : timelineId
-                      ? t("storyboard:attrs.rebuildLinkedTimelineEllipsis", { defaultValue: "Rebuild linked timeline…" }) : "Create timeline"}
+                      ? t("storyboard:attrs.rebuildLinkedTimelineEllipsis", { defaultValue: "Rebuild linked timeline…" }) : i18n.t("storyboard:attrs.createTimeline", { defaultValue: "Create timeline" })}
                 </EditorButton>
                 {timelineId && (
                   <EditorButton
@@ -1787,7 +1787,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
               {!hasRenderedShot && (
                 <Caption color="secondary">
                   {hasUnselectedClip
-                    ? t("storyboard:attrs.setAClipTakeAsCurrentToCreateATimeline", { defaultValue: "Set a clip take as current to create a timeline." }) : "Generate a still or render a clip to create a timeline."}
+                    ? t("storyboard:attrs.setAClipTakeAsCurrentToCreateATimeline", { defaultValue: "Set a clip take as current to create a timeline." }) : i18n.t("storyboard:attrs.generateAStillOrRenderAClipToCreateATimeline", { defaultValue: "Generate a still or render a clip to create a timeline." })}
                 </Caption>
               )}
               {assembleError && (

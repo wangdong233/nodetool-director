@@ -16,7 +16,7 @@ import {
   drawModel3DClipFrames,
   model3dSourceTimeSec
 } from "../Tracks/model3dClipFrames";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 interface RasterClipFrame {
   width: number;

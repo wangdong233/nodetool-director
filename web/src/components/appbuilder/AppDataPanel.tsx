@@ -50,7 +50,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface AppDataPanelProps {
   meta: AppDocMeta;
@@ -66,8 +66,8 @@ interface AppDataPanelProps {
 }
 
 const TARGET_KIND_OPTIONS = [
-  { label: "Workflow", value: "workflow" },
-  { label: "JS script", value: "script" }
+  { label: "Workflow", labelKey: "home:flowError.kind.workflow", value: "workflow" },
+  { label: i18n.t("editor:ui.jsScriptTypeLabel", { defaultValue: "JS script" }), value: "script" }
 ];
 
 const POLICY_OPTIONS = [
@@ -239,7 +239,7 @@ const OperationRow: React.FC<{
         />
       ) : (
         <SelectField
-          label="Workflow"
+          label={i18n.t("home:flowError.kind.workflow", { defaultValue: "Workflow" })}
           value={operation.workflowId}
           options={withPinned(workflowOptions, operation.workflowId)}
           onChange={(value) => onPatch({ workflowId: value })}
@@ -636,7 +636,7 @@ const AppDataPanel: React.FC<AppDataPanelProps> = ({
           CollapsibleSection defaults to open, so a section that starts closed
           has to say so — omitting the prop made the header click collapse it.
         */}
-        <CollapsibleSection title="Resources" defaultOpen={false} compact>
+        <CollapsibleSection title={i18n.t("settings:sidebar.aboutCatResources", { defaultValue: "Resources" })} defaultOpen={false} compact>
           <FlexColumn gap={SPACING.md} fullWidth>
             <Caption color="secondary">
               An asset, timeline, storyboard, or sketch a picker or gallery can

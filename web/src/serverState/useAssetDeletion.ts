@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useAssetStore } from "../stores/AssetStore";
 import { useNotificationStore } from "../stores/NotificationStore";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 import {
   useWorkspaceTabsStore,
   type WorkspaceTabType

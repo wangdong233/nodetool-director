@@ -25,6 +25,7 @@ import { useRemoveFromGroup } from "../../hooks/nodes/useRemoveFromGroup";
 import { useGroupIntoSubgraph } from "../../hooks/nodes/useGroupIntoSubgraph";
 import { useNodes } from "../../contexts/NodeContext";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const NodeContextMenu: React.FC = () => {
   const { t } = useTranslation();
@@ -130,7 +131,7 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="run-from-here"
       onClick={handlers.handleRunFromHere}
-      label={conditions.isWorkflowRunning ? t("editor:node.running", { defaultValue: "Running…" }) : "Run node"}
+      label={conditions.isWorkflowRunning ? t("editor:node.running", { defaultValue: "Running…" }) : i18n.t("editor:node.runNode", { defaultValue: "Run node" })}
       IconComponent={<PlayArrowIcon />}
       tooltip={t("editor:node.runNodeTip", { defaultValue: "Run this node as its own job, using previous results as inputs" })}
       disabled={conditions.isWorkflowRunning}
@@ -138,12 +139,12 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="toggle-bypass"
       onClick={handlers.handleToggleBypass}
-      label={conditions.isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable node" }) : "Disable node"}
+      label={conditions.isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable node" }) : i18n.t("editor:node.disableNode", { defaultValue: "Disable node" })}
       IconComponent={conditions.isBypassed ? <PowerSettingsNewIcon /> : <BlockIcon />}
       tooltip={
         <div className="tooltip-span">
           <div className="tooltip-title">
-            {conditions.isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable node" }) : "Disable node"}
+            {conditions.isBypassed ? t("editor:node.enableNode", { defaultValue: "Enable node" }) : i18n.t("editor:node.disableNode", { defaultValue: "Disable node" })}
           </div>
           <div className="tooltip-key">
             <kbd>B</kbd>
@@ -154,14 +155,14 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="toggle-collapsed"
       onClick={handlers.handleToggleCollapsed}
-      label={conditions.isCollapsed ? t("editor:node.expandNode", { defaultValue: "Expand node" }) : "Collapse node"}
+      label={conditions.isCollapsed ? t("editor:node.expandNode", { defaultValue: "Expand node" }) : i18n.t("editor:node.collapseNode", { defaultValue: "Collapse node" })}
       IconComponent={
         conditions.isCollapsed ? <UnfoldMoreIcon /> : <UnfoldLessIcon />
       }
       tooltip={
         <div className="tooltip-span">
           <div className="tooltip-title">
-            {conditions.isCollapsed ? t("editor:node.expandNode", { defaultValue: "Expand node" }) : "Collapse node"}
+            {conditions.isCollapsed ? t("editor:node.expandNode", { defaultValue: "Expand node" }) : i18n.t("editor:node.collapseNode", { defaultValue: "Collapse node" })}
           </div>
           <div className="tooltip-key">
             <kbd>C</kbd>
@@ -177,7 +178,7 @@ const NodeContextMenu: React.FC = () => {
       tooltip={
         conditions.hasCommentTitle
           ? "Delete the comment on this node"
-          : "Add a comment to this node"
+          : i18n.t("editor:node.addCommentTip", { defaultValue: "Add a comment to this node" })
       }
     />,
     <ContextMenuItem
@@ -218,7 +219,7 @@ const NodeContextMenu: React.FC = () => {
       label={
         node?.type
           ? `Select all ${node.type.split(".").pop()} nodes`
-          : "Select all nodes of this type"
+          : i18n.t("editor:node.selectAllOfType", { defaultValue: "Select all nodes of this type" })
       }
       IconComponent={<FilterListIcon />}
       tooltip={t("editor:node.selectAllOfTypeTip", { defaultValue: "Select all nodes of the same type" })}

@@ -36,7 +36,7 @@ const TYPE_CATEGORIES = [
   { value: "image", label: "Image", icon: "image" },
   { value: "text", label: "Text", icon: "text" },
   { value: "audio", label: "Audio", icon: "audio" },
-  { value: "video", label: "Video", icon: "video" },
+  { value: "video", label: "Video", labelKey: "home:entry.video.title", icon: "video" },
   { value: "float", label: "Number", icon: "float" }
 ];
 

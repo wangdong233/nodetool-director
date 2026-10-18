@@ -1,6 +1,7 @@
 import ReportBugButton from "../support/ReportBugButton";
 import type { DocumentLoadState } from "../../stores/documentSync";
 import { EditorButton, EmptyState, FlexColumn, LoadingSpinner } from "../ui_primitives";
+import { i18n } from "../../../i18n";
 
 interface DocumentLoadStatusProps {
   state: Exclude<DocumentLoadState, "ready">;
@@ -34,7 +35,7 @@ const DocumentLoadStatus = ({ state, label, onRetry, onClose, closeLabel = "Clos
       <EmptyState
         variant="error"
         title={`Could not load this ${label}`}
-        description={onRetry ? "The document could not be loaded. It may be unavailable or you may need to reconnect." : "The document could not be loaded. Close the tab and open it again to retry."}
+        description={onRetry ? i18n.t("ui2:attrs.loadFailedUnavailable", { defaultValue: "The document could not be loaded. It may be unavailable or you may need to reconnect." }) : i18n.t("ui2:attrs.loadFailedRetry", { defaultValue: "The document could not be loaded. Close the tab and open it again to retry." })}
         actionText={onRetry ? "Retry" : undefined}
         onAction={onRetry}
       />

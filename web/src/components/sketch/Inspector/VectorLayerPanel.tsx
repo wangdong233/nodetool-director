@@ -26,6 +26,8 @@ import {
   useGenerateSvg,
   type GenerateSvgTarget
 } from "../../../hooks/sketch/useGenerateSvg";
+import { i18n } from "../../../../i18n";
+import { useTranslation } from "react-i18next";
 
 const isSubmitShortcut = (event: React.KeyboardEvent): boolean =>
   event.key === "Enter" && (event.metaKey || event.ctrlKey);
@@ -81,7 +83,7 @@ function SvgPromptForm({
       onSvg(svg, request.trim());
     } catch (cause) {
       setApplyError(
-        `${errorMessage(cause, "The SVG could not be used.")} Try again or rephrase the request.`
+        `${errorMessage(cause, i18n.t("sketch:attrs.svgCouldNotBeUsed", { defaultValue: "The SVG could not be used." }))} Try again or rephrase the request.`
       );
     }
   };
@@ -125,7 +127,7 @@ function SvgPromptForm({
           </EditorButton>
         )}
       </FlexRow>
-      {generating && <Caption role="status">Generating SVG…</Caption>}
+      {generating && <Caption role="status">{i18n.t("sketch:attrs.generatingSvg", { defaultValue: "Generating SVG…" })}</Caption>}
       {shownError && <AlertBanner severity="error">{shownError}</AlertBanner>}
     </FlexColumn>
   );
@@ -152,7 +154,7 @@ export function SvgLayerImport({
       addVectorLayer(file.name.replace(/\.svg$/i, ""), await file.text());
       setError("");
     } catch (cause) {
-      setError(errorMessage(cause, "Could not import SVG."));
+      setError(errorMessage(cause, i18n.t("sketch:attrs.couldNotImportSvg", { defaultValue: "Could not import SVG." })));
     }
   };
   return (
@@ -161,7 +163,7 @@ export function SvgLayerImport({
         ref={inputRef}
         type="file"
         accept=".svg,image/svg+xml"
-        aria-label="Import SVG file"
+        aria-label={i18n.t("sketch:attrs.importSvgFile", { defaultValue: "Import SVG file" })}
         hidden
         onChange={(event) => {
           const file = event.target.files?.[0];
@@ -198,10 +200,10 @@ export function GenerateSvgLayerDialog({
     [canvasWidth, canvasHeight]
   );
   return (
-    <Dialog open={open} onClose={onClose} title="Generate SVG layer">
+    <Dialog open={open} onClose={onClose} title={i18n.t("sketch:attrs.generateSvgLayer", { defaultValue: "Generate SVG layer" })}>
       <SvgPromptForm
-        label="Describe the new SVG layer"
-        placeholder="A flat line icon of a paper plane"
+        label={i18n.t("sketch:attrs.describeTheNewSvgLayer", { defaultValue: "Describe the new SVG layer" })}
+        placeholder={i18n.t("sketch:attrs.newSvgPromptPlaceholder", { defaultValue: "A flat line icon of a paper plane" })}
         submitLabel="Generate"
         target={target}
         onSvg={(svg, request) => {
@@ -251,7 +253,7 @@ export function VectorLayerPanel({
       setVectorLayerSource(layer.id, source);
       setError("");
     } catch (cause) {
-      setError(errorMessage(cause, "Could not update SVG."));
+      setError(errorMessage(cause, i18n.t("sketch:attrs.couldNotUpdateSvg", { defaultValue: "Could not update SVG." })));
     }
   };
   const rasterize = async (): Promise<void> => {
@@ -263,7 +265,7 @@ export function VectorLayerPanel({
         layer.contentBounds.height
       );
       if (!decoded.image) {
-        throw new Error("This layer has no SVG source.");
+        throw new Error(i18n.t("sketch:attrs.layerHasNoSvgSource", { defaultValue: "This layer has no SVG source." }));
       }
       const canvas = await dataUrlToCanvas(
         decoded.image,
@@ -276,7 +278,7 @@ export function VectorLayerPanel({
         layer.data
       );
     } catch (cause) {
-      setError(errorMessage(cause, "Could not rasterize SVG."));
+      setError(errorMessage(cause, i18n.t("sketch:attrs.couldNotRasterizeSvg", { defaultValue: "Could not rasterize SVG." })));
     } finally {
       setBusy(false);
     }
@@ -290,8 +292,8 @@ export function VectorLayerPanel({
 
       <FlexColumn gap={SPACING.sm}>
         <SvgPromptForm
-          label="Generate with AI"
-          placeholder="Make the leaves autumn orange"
+          label={i18n.t("storyboard:attrs.generateWithAI", { defaultValue: "Generate with AI" })}
+          placeholder={i18n.t("sketch:attrs.svgEditPromptPlaceholder", { defaultValue: "Make the leaves autumn orange" })}
           submitLabel="Generate"
           target={target}
           onSvg={(svg) => setVectorLayerSource(layer.id, svg)}
@@ -301,7 +303,7 @@ export function VectorLayerPanel({
 
       <FlexColumn gap={SPACING.sm}>
         <TextInput
-          label="SVG source"
+          label={i18n.t("sketch:attrs.svgSource", { defaultValue: "SVG source" })}
           multiline
           monospace
           minRows={8}
@@ -329,7 +331,7 @@ export function VectorLayerPanel({
           </EditorButton>
           <EditorButton
             variant="contained"
-            tooltip="Apply SVG"
+            tooltip={i18n.t("sketch:attrs.applySvg", { defaultValue: "Apply SVG" })}
             shortcut={["Ctrl", "Enter"]}
             onClick={apply}
             disabled={busy || !dirty}

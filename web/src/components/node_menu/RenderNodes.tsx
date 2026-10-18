@@ -291,7 +291,7 @@ const RenderNodes: React.FC<RenderNodesProps> = ({
               <li>{t("editor:ui.clickOnTheNamespacesToTheLeft", { defaultValue: "Click on the namespaces to the left" })}</li>
             </ul>
 
-            <Text size="normal" weight={600}>Search nodes</Text>
+            <Text size="normal" weight={600}>{t("ui2:attrs.searchNodes", { defaultValue: "Search nodes" })}</Text>
             <ul>
               <li>{t("editor:ui.typeInTheSearchBarToSearchForNodes", { defaultValue: "Type in the search bar to search for nodes." })}</li>
             </ul>

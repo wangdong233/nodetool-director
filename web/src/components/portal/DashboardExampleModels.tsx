@@ -33,6 +33,7 @@ import { useAddExampleModelAsset } from "../../hooks/useAddExampleModelAsset";
 import { NO_EXAMPLE_NEEDS } from "../../utils/exampleNeeds";
 import ExampleNeedsPill from "./ExampleNeedsPill";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const DashboardExampleModels = () => {
   const { t } = useTranslation();
@@ -138,7 +139,7 @@ const DashboardExampleModels = () => {
                     onClick={() => install.mutate(model)}
                     sx={{ alignSelf: "flex-start", mt: "auto" }}
                   >
-                    {opening ? t("editor:ui.openingModel", { defaultValue: "Opening model…" }) : "Open model"}
+                    {opening ? t("editor:ui.openingModel", { defaultValue: "Opening model…" }) : i18n.t("editor:ui.openModel", { defaultValue: "Open model" })}
                   </EditorButton>
                 </FlexColumn>
               </Card>

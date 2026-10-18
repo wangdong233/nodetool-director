@@ -19,6 +19,7 @@ import {
   TOOLTIP_ENTER_DELAY,
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
+import { i18n } from "../../../i18n";
 
 /**
  * A tooltip label with its keyboard shortcut drawn as a key hint below it,
@@ -65,7 +66,7 @@ export interface TooltipProps extends Omit<MuiTooltipProps, "enterDelay" | "ente
  *
  * @example
  * // With arrow and custom delay
- * <Tooltip title="Settings" arrow delay={200} placement="bottom">
+ * <Tooltip title={i18n.t("nav:settings.title", { defaultValue: "Settings" })} arrow delay={200} placement="bottom">
  *   <SettingsIcon />
  * </Tooltip>
  *

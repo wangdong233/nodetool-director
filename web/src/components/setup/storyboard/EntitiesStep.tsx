@@ -81,7 +81,7 @@ import {
   SETUP_WIDE_CONTENT_WIDTH
 } from "../layout";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 // The estimate pulls in the provider price tables, as on the review step.
 const GenerationEstimateLine = lazy(() =>
@@ -123,7 +123,7 @@ const ENTITY_GROUPS = [
 ] as const;
 
 const REFERENCE_MODEL_HELPER =
-  "Used only for missing entities you choose to create. The same model carries into the Look step.";
+  i18n.t("storyboard:attrs.usedOnlyForMissingEntities", { defaultValue: "Used only for missing entities you choose to create. The same model carries into the Look step." });
 
 const editOnlyMessage = (name: string): string =>
   `${name} only edits images, so it cannot draw a reference from a description. Pick a model that creates images from text.`;
@@ -304,7 +304,7 @@ export const EntitiesStep = ({
     if (!screenplay || !model?.id) {
       setAssistFailure("find");
       setAssistError(
-        "The storyboard needs a screenplay and Director model first."
+        t("storyboard:attrs.theStoryboardNeedsAScreenplayAndDirectorModelFirst", { defaultValue: "The storyboard needs a screenplay and Director model first." })
       );
       return;
     }
@@ -337,7 +337,7 @@ export const EntitiesStep = ({
       setAssistError(
         error instanceof Error
           ? error.message
-          : "Could not find entities in the story."
+          : t("storyboard:attrs.couldNotFindEntitiesInTheStory", { defaultValue: "Could not find entities in the story." })
       );
     } finally {
       if (finishEntityFind(boardId, controller, found) && mountedRef.current) {
@@ -372,7 +372,7 @@ export const EntitiesStep = ({
       useStoryboardStore.getState().getBoard(boardId)?.imageModel ?? null;
     if (!selected?.id) {
       setAssistFailure("create");
-      setAssistError("Pick a reference image model first.");
+      setAssistError(t("storyboard:attrs.pickAReferenceImageModelFirst", { defaultValue: "Pick a reference image model first." }));
       return;
     }
     const resolved = referenceImageModel(selected, imageModels);
@@ -419,7 +419,7 @@ export const EntitiesStep = ({
         reference_asset_id: assetId
       });
       if (!entity) {
-        throw new Error("The entity could not be saved.");
+        throw new Error(t("storyboard:attrs.theEntityCouldNotBeSaved", { defaultValue: "The entity could not be saved." }));
       }
       // A creation canceled while it was being saved stays off the board: the
       // creator asked for it to stop (F10).
@@ -436,7 +436,7 @@ export const EntitiesStep = ({
       if (!mountedRef.current || signal?.aborted) return;
       setAssistFailure("create");
       setAssistError(
-        error instanceof Error ? error.message : "The entity could not be made."
+        error instanceof Error ? error.message : t("storyboard:attrs.theEntityCouldNotBeMade", { defaultValue: "The entity could not be made." })
       );
     } finally {
       creation?.done();
@@ -524,7 +524,7 @@ export const EntitiesStep = ({
               >
                 {suggesting
                   ? i18n.t("storyboard:attrs.findingEntities", { defaultValue: "Finding entities" }) : suggestions.length > 0
-                    ? i18n.t("storyboard:attrs.refreshSuggestions", { defaultValue: "Refresh suggestions" }) : "Find entities"}
+                    ? i18n.t("storyboard:attrs.refreshSuggestions", { defaultValue: "Refresh suggestions" }) : i18n.t("storyboard:attrs.findEntities", { defaultValue: "Find entities" })}
               </EditorButton>
               {suggesting ? (
                 // Named apart from the footer's Cancel, which stops entity
@@ -551,8 +551,8 @@ export const EntitiesStep = ({
                 }
               >
                 <GenerationEstimateLine
-                  result="Find the characters, places, and props in your screenplay"
-                  next="Nothing is created until you choose."
+                  result={t("storyboard:attrs.findTheCharactersPlacesAndPropsInYourScreenplay", { defaultValue: "Find the characters, places, and props in your screenplay" })}
+                  next={t("storyboard:attrs.nothingIsCreatedUntilYouChoose", { defaultValue: "Nothing is created until you choose." })}
                   model={board?.directorModel ?? null}
                   brief={`${ENTITY_SUGGESTIONS_SYSTEM_PROMPT}\n${suggestionsPrompt}`}
                   maxOutputTokens={SUGGESTIONS_MAX_OUTPUT_TOKENS}
@@ -567,7 +567,7 @@ export const EntitiesStep = ({
             severity="error"
             title={
               assistFailure === "find"
-                ? i18n.t("storyboard:attrs.couldNotFindEntities", { defaultValue: "Could not find entities" }) : "Could not create entities"
+                ? i18n.t("storyboard:attrs.couldNotFindEntities", { defaultValue: "Could not find entities" }) : t("storyboard:attrs.couldNotCreateEntities", { defaultValue: "Could not create entities" })
             }
             action={
               <ReportBugButton
@@ -736,7 +736,7 @@ export const EntitiesStep = ({
           }
         >
           {entitiesError?.message ??
-            "The entity library did not load. Try again, or skip this step."}
+            i18n.t("storyboard:attrs.theEntityLibraryDidNotLoadTryAgainOrSkipThisStep", { defaultValue: "The entity library did not load. Try again, or skip this step." })}
         </AlertBanner>
       ) : !entities || entities.length === 0 ? (
         <EmptyState
@@ -783,11 +783,11 @@ export const EntitiesStep = ({
                   variant="no-data"
                   title={
                     onlySelected && !query
-                      ? i18n.t("storyboard:attrs.noEntitiesSelected", { defaultValue: "No entities selected" }) : "No matching entities"
+                      ? i18n.t("storyboard:attrs.noEntitiesSelected", { defaultValue: "No entities selected" }) : t("storyboard:attrs.noMatchingEntities", { defaultValue: "No matching entities" })
                   }
                   description={
                     onlySelected && !query
-                      ? i18n.t("storyboard:attrs.browseYourLibraryToChooseReferencesForThisStoryboard", { defaultValue: "Browse your library to choose references for this storyboard." }) : "Try another name or change the selected filter."
+                      ? i18n.t("storyboard:attrs.browseYourLibraryToChooseReferencesForThisStoryboard", { defaultValue: "Browse your library to choose references for this storyboard." }) : t("storyboard:attrs.tryAnotherNameOrChangeTheSelectedFilter", { defaultValue: "Try another name or change the selected filter." })
                   }
                   size="small"
                 />

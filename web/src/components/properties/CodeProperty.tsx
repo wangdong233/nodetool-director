@@ -198,7 +198,7 @@ const CodeProperty = ({
         />
       </>
     ),
-    [code, inspectorToolbarActionSx, showExpandEditor, toggleExpand]
+    [code, inspectorToolbarActionSx, showExpandEditor, toggleExpand, languageVersion]
   );
 
   useInspectorHeaderSupplementalRegistration(

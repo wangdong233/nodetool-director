@@ -1,5 +1,5 @@
 import { isString } from "./typePredicates";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 const differenceInSeconds = (later: Date, earlier: Date): number =>
   Math.trunc((later.getTime() - earlier.getTime()) / 1000);
 

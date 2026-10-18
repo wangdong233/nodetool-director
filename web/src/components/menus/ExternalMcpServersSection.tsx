@@ -31,6 +31,7 @@ import {
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient, type RouterOutputs } from "../../trpc/client";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type ProbeResult = RouterOutputs["externalMcp"]["probe"];
 
@@ -63,8 +64,8 @@ const EMPTY_DRAFT: DraftState = {
 };
 
 const TRANSPORT_OPTIONS = [
-  { value: "stdio", label: "Command (stdio)" },
-  { value: "http", label: "HTTP URL" }
+  { value: "stdio", label: i18n.t("editor:ui.transportCommandStdio", { defaultValue: "Command (stdio)" }) },
+  { value: "http", label: i18n.t("editor:ui.transportHttpUrl", { defaultValue: "HTTP URL" }) }
 ] as const;
 
 /** `KEY=value` lines → record. Blank lines and lines without `=` are skipped. */
@@ -139,23 +140,23 @@ function configFrom(draft: DraftState): McpServerConfig {
 }
 
 function idError(id: string): string | null {
-  if (!id) return "Enter an id.";
+  if (!id) return i18n.t("editor:ui.enterAnId", { defaultValue: "Enter an id." });
   if (!MCP_SERVER_ID_PATTERN.test(id)) {
-    return "Lowercase letters, digits and _ only, up to 32 characters.";
+    return i18n.t("editor:ui.idCharsetRule", { defaultValue: "Lowercase letters, digits and _ only, up to 32 characters." });
   }
   return null;
 }
 
 function urlError(url: string): string | null {
-  if (!url.trim()) return "Enter a URL.";
+  if (!url.trim()) return i18n.t("editor:ui.enterAUrl", { defaultValue: "Enter a URL." });
   try {
     const parsed = new URL(url.trim());
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return "Use an http or https URL.";
+      return i18n.t("editor:ui.useHttpHttpsUrl", { defaultValue: "Use an http or https URL." });
     }
     return null;
   } catch {
-    return "That is not a valid URL.";
+    return i18n.t("editor:ui.notAValidUrl", { defaultValue: "That is not a valid URL." });
   }
 }
 
@@ -243,7 +244,7 @@ const ServerRow = memo(function ServerRow({
                   ? t("editor:ui.connectedTheServerOffersNoTools", { defaultValue: "Connected. The server offers no tools." }) : `${probe.tools.length} tool${probe.tools.length === 1 ? "" : "s"}: ${probe.tools
                       .map((tool) => tool.name)
                       .join(", ")}`
-                : (probe.error ?? "Could not connect.")}
+                : (probe.error ?? i18n.t("editor:ui.couldNotConnect", { defaultValue: "Could not connect." }))}
             </Caption>
           )}
         </FlexColumn>
@@ -257,7 +258,7 @@ const ServerRow = memo(function ServerRow({
           onClick={handleProbe}
           disabled={probing}
         >
-          {probing ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : "Test"}
+          {probing ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : i18n.t("editor:ui.test2", { defaultValue: "Test" })}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -265,7 +266,7 @@ const ServerRow = memo(function ServerRow({
           size="small"
           onClick={handleToggle}
         >
-          {server.enabled ? t("editor:ui.disable", { defaultValue: "Disable" }) : "Enable"}
+          {server.enabled ? t("editor:ui.disable", { defaultValue: "Disable" }) : i18n.t("editor:ui.enable", { defaultValue: "Enable" })}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -427,7 +428,7 @@ export const ExternalMcpServersSection = memo(
         : !stdioEnabled
           ? t("editor:ui.stdioServersAreNotAvailableOnThisDeployment", { defaultValue: "Stdio servers are not available on this deployment." }) : draft.command.trim()
             ? null
-            : "Enter a command.";
+            : i18n.t("editor:ui.enterACommand", { defaultValue: "Enter a command." });
 
     const handleSave = useCallback(() => {
       saveMutation.mutate(configFrom(draft));
@@ -491,7 +492,7 @@ export const ExternalMcpServersSection = memo(
           open={dialogOpen}
           onClose={handleClose}
           fullWidth
-          title={editingId ? t("editor:ui.editMcpServer", { defaultValue: "Edit MCP server" }) : "Add MCP server"}
+          title={editingId ? t("editor:ui.editMcpServer", { defaultValue: "Edit MCP server" }) : i18n.t("editor:ui.addMcpServer", { defaultValue: "Add MCP server" })}
           onConfirm={handleSave}
           confirmText={editingId ? "Save" : "Add"}
           confirmDisabled={
@@ -534,7 +535,7 @@ export const ExternalMcpServersSection = memo(
               description={
                 stdioEnabled
                   ? undefined
-                  : "This deployment cannot run commands; only HTTP servers connect."
+                  : i18n.t("editor:ui.thisDeploymentCannotRunCommandsOnlyHTTPServersConnect", { defaultValue: "This deployment cannot run commands; only HTTP servers connect." })
               }
             />
             {draft.type === "stdio" ? (

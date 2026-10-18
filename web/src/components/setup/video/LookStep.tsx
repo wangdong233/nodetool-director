@@ -59,10 +59,10 @@ import {
 } from "./modelAvailability";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** What the button says when no catalog figure covers the plan (PRD § 8.3). */
-export const COST_UNKNOWN_TEXT = "cost unknown until the first clip returns";
+export const COST_UNKNOWN_TEXT = i18n.t("setup:video.costUnknownUntilFirstClip", { defaultValue: "cost unknown until the first clip returns" });
 
 const countLabel = (count: number, singular: string, plural: string): string =>
   `${count} ${count === 1 ? singular : plural}`;
@@ -84,7 +84,7 @@ export const videoCommitmentDetail = (
     parts.push("no generation requests", "no generation cost");
   } else if (estimate.pricedCount === 0) {
     parts.push(
-      "cost unknown",
+      i18n.t("storyboard:attrs.costUnknown", { defaultValue: "cost unknown" }),
       countLabel(
         estimate.unpricedCount,
         "unpriced request",
@@ -339,38 +339,38 @@ export function useLookStep({
     : COST_UNKNOWN_TEXT;
 
   const blockedReason = firstBlocker([
-    [clipCount === 0, "Plan the beats first — there is nothing to render yet"],
+    [clipCount === 0, i18n.t("storyboard:attrs.planTheBeatsFirstThereIsNothingToRenderYet", { defaultValue: "Plan the beats first — there is nothing to render yet" })],
     [
       needsVideoGeneration && clipModels.noProvider,
-      "No provider is set up to render video. Connect one above."
+      i18n.t("storyboard:attrs.noProviderIsSetUpToRenderVideoConnectOneAbove", { defaultValue: "No provider is set up to render video. Connect one above." })
     ],
-    [needsVideoGeneration && !video?.model, "Pick a video model"],
+    [needsVideoGeneration && !video?.model, i18n.t("storyboard:attrs.pickAVideoModel", { defaultValue: "Pick a video model" })],
     [
       needsVideoGeneration &&
         !!video?.model &&
         !isAvailable(clipModels, video.model),
-      "Your providers do not offer that video model. Pick another."
+      i18n.t("storyboard:attrs.yourProvidersDoNotOfferThatVideoModelPickAnother", { defaultValue: "Your providers do not offer that video model. Pick another." })
     ],
     // A remembered model can be one the providers have since dropped, so
     // Generate waits for the list that can say so. A list that failed keeps
     // Generate live and names the unchecked model above the grid instead.
     [
       needsVideoGeneration && !!video?.model && clipModels.loading,
-      "Checking that your providers still offer that video model"
+      i18n.t("setup:video.checkingProvidersStillOfferVideoModel", { defaultValue: "Checking that your providers still offer that video model" })
     ],
     [
       needsVoiceGeneration && !audio?.voice,
-      "Pick a voice, or switch Voiceover off"
+      i18n.t("storyboard:attrs.pickAVoiceOrSwitchVoiceoverOff", { defaultValue: "Pick a voice, or switch Voiceover off" })
     ],
     [
       needsVoiceGeneration && !!audio?.voice && voices.loading,
-      "Checking that your providers still offer that voice"
+      i18n.t("setup:video.checkingProvidersStillOfferVoice", { defaultValue: "Checking that your providers still offer that voice" })
     ],
     [
       needsVoiceGeneration &&
         !!audio?.voice &&
         !isAvailable(voices, audio.voice),
-      "Your providers do not offer that voice. Pick another, or switch Voiceover off."
+      i18n.t("storyboard:attrs.yourProvidersDoNotOfferThatVoicePickAnotherOrSwitchVoiceoverOff", { defaultValue: "Your providers do not offer that voice. Pick another, or switch Voiceover off." })
     ]
   ]);
 
@@ -401,11 +401,11 @@ const ModelAvailabilityNote: React.FC<{
       kind === "video"
         ? {
             capability: "text_to_video",
-            reason: "Connect a provider that renders video to keep going."
+            reason: "Connect a provider that renders video to keep going.", reasonKey: "storyboard:attrs.connectAProviderThatRendersVideoToKeepGoing"
           }
         : {
             capability: "text_to_speech",
-            reason: "Connect a provider that reads lines aloud to keep going."
+            reason: "Connect a provider that reads lines aloud to keep going.", reasonKey: "storyboard:attrs.connectAProviderThatReadsLinesAloudToKeepGoing"
           }
     );
   }, [kind]);
@@ -416,7 +416,7 @@ const ModelAvailabilityNote: React.FC<{
         <LoadingSpinner size="small" inline />
         <Caption color="secondary">
           {kind === "video"
-            ? i18n.t("storyboard:attrs.checkingWhichVideoModelsYourProvidersOffer", { defaultValue: "Checking which video models your providers offer…" }) : "Checking which voices your providers offer…"}
+            ? i18n.t("storyboard:attrs.checkingWhichVideoModelsYourProvidersOffer", { defaultValue: "Checking which video models your providers offer…" }) : i18n.t("storyboard:attrs.checkingWhichVoicesYourProvidersOffer", { defaultValue: "Checking which voices your providers offer…" })}
         </Caption>
       </FlexRow>
     );
@@ -427,7 +427,7 @@ const ModelAvailabilityNote: React.FC<{
         <FlexRow gap={GAP.normal} align="center" wrap>
           <Text size="normal" component="span">
             {kind === "video"
-              ? i18n.t("storyboard:attrs.couldNotReadTheVideoModelsYourProvidersOffer", { defaultValue: "Could not read the video models your providers offer." }) : "Could not read the voices your providers offer."}
+              ? i18n.t("storyboard:attrs.couldNotReadTheVideoModelsYourProvidersOffer", { defaultValue: "Could not read the video models your providers offer." }) : i18n.t("storyboard:attrs.couldNotReadTheVoicesYourProvidersOffer", { defaultValue: "Could not read the voices your providers offer." })}
           </Text>
           {pickedLabel ? (
             <Text size="normal" component="span">
@@ -457,7 +457,7 @@ const ModelAvailabilityNote: React.FC<{
         <FlexRow gap={GAP.normal} align="center" wrap>
           <Text size="normal" component="span">
             {kind === "video"
-              ? i18n.t("storyboard:attrs.noProviderIsSetUpToRenderVideo", { defaultValue: "No provider is set up to render video." }) : "No provider is set up to read lines aloud, so switch Voiceover off or connect one."}
+              ? i18n.t("storyboard:attrs.noProviderIsSetUpToRenderVideo", { defaultValue: "No provider is set up to render video." }) : i18n.t("storyboard:attrs.noProviderIsSetUpToReadLinesAloudSoSwitchVoiceoverOffOrConnectOne", { defaultValue: "No provider is set up to read lines aloud, so switch Voiceover off or connect one." })}
           </Text>
           <EditorButton variant="outlined" onClick={connect}>
             Connect a provider
@@ -472,7 +472,7 @@ const ModelAvailabilityNote: React.FC<{
         <FlexRow gap={GAP.normal} align="center" wrap>
           <Text size="normal" component="span">
             {kind === "video"
-              ? i18n.t("storyboard:attrs.yourProvidersOfferNoVideoModel", { defaultValue: "Your providers offer no video model." }) : "Your providers offer no voice, so switch Voiceover off or connect one that does."}
+              ? i18n.t("storyboard:attrs.yourProvidersOfferNoVideoModel", { defaultValue: "Your providers offer no video model." }) : i18n.t("storyboard:attrs.yourProvidersOfferNoVoiceSoSwitchVoiceoverOffOrConnectOneThatDoes", { defaultValue: "Your providers offer no voice, so switch Voiceover off or connect one that does." })}
           </Text>
           <EditorButton variant="outlined" onClick={connect}>
             Connect a provider
@@ -530,7 +530,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
         title: option.label,
         video: samples[option.id],
         disabled: !isAvailable(clipModels, option.id),
-        disabledReason: "Your providers do not offer this model."
+        disabledReason: t("storyboard:attrs.yourProvidersDoNotOfferThisModel", { defaultValue: "Your providers do not offer this model." }), disabledReasonKey: "storyboard:attrs.yourProvidersDoNotOfferThisModel",
       })),
     [clipModels, samples]
   );
@@ -541,7 +541,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
         id: voice.id,
         title: voice.label,
         disabled: !isAvailable(voices, voice.id),
-        disabledReason: "Your providers do not offer this voice."
+        disabledReason: t("storyboard:attrs.yourProvidersDoNotOfferThisVoice", { defaultValue: "Your providers do not offer this voice." }), disabledReasonKey: "storyboard:attrs.yourProvidersDoNotOfferThisVoice",
       })),
     [voices]
   );
@@ -600,8 +600,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
           defaultValue: "No beat has a line to read. Add one in the review."
         }) : voiceOn && !pickedVoice
       ? i18n.t("storyboard:attrs.pickAVoiceOrSwitchVoiceoverOffNothingIsReadOtherwise", { defaultValue: "Pick a voice, or switch Voiceover off — nothing is read otherwise." }) : voiceOn && pickedVoice && !isAvailable(voices, pickedVoice)
-        ? "Your providers do not offer the voice you picked. Pick another, or switch Voiceover off."
-        : null;
+        ? t("storyboard:attrs.yourProvidersDoNotOfferTheVoiceYouPickedPickAnotherOrSwitchVoiceoverOff", { defaultValue: "Your providers do not offer the voice you picked. Pick another, or switch Voiceover off." }) : null;
 
   const handleAspect = useCallback(
     (value: string) => void saveProjectSettings(dimensionsForAspect(value)),
@@ -728,9 +727,9 @@ const LookStepInternal: React.FC<LookStepProps> = ({
               selectedId={settings.video?.model ?? null}
               onSelect={handleModel}
               onAddOwn={() => undefined}
-              addOwnLabel="More models in the editor"
+              addOwnLabel={i18n.t("storyboard:attrs.moreModelsInTheEditor", { defaultValue: "More models in the editor" })}
               addOwnDisabled
-              addOwnDisabledReason="The timeline's inspector offers every configured provider."
+              addOwnDisabledReason={i18n.t("storyboard:attrs.theTimelinesInspectorOffersEveryConfiguredProvider", { defaultValue: "The timeline's inspector offers every configured provider." })}
               reservePreview
             />
           ) : clipModels.reported.length > 0 ? (
@@ -781,9 +780,9 @@ const LookStepInternal: React.FC<LookStepProps> = ({
               selectedId={settings.voice?.voice ?? null}
               onSelect={handleVoice}
               onAddOwn={() => undefined}
-              addOwnLabel="More voices in the editor"
+              addOwnLabel={i18n.t("storyboard:attrs.moreVoicesInTheEditor", { defaultValue: "More voices in the editor" })}
               addOwnDisabled
-              addOwnDisabledReason="The timeline's inspector offers every configured voice."
+              addOwnDisabledReason={i18n.t("storyboard:attrs.theTimelinesInspectorOffersEveryConfiguredVoice", { defaultValue: "The timeline's inspector offers every configured voice." })}
               aspectRatio="1/1"
             />
           ) : null}
@@ -811,7 +810,7 @@ const LookStepInternal: React.FC<LookStepProps> = ({
           label={t("storyboard:attrs.music", { defaultValue: "Music" })}
           description={
             musicAvailable === false
-              ? i18n.t("storyboard:attrs.musicGenerationIsUnavailableAddAnAudioTrackInTheEditor", { defaultValue: "Music generation is unavailable. Add an audio track in the editor." }) : "One bed under the whole cut"
+              ? i18n.t("storyboard:attrs.musicGenerationIsUnavailableAddAnAudioTrackInTheEditor", { defaultValue: "Music generation is unavailable. Add an audio track in the editor." }) : t("storyboard:attrs.oneBedUnderTheWholeCut", { defaultValue: "One bed under the whole cut" })
           }
           checked={musicOn && musicAvailable !== false}
           disabled={musicAvailable === false}

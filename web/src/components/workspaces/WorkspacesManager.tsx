@@ -34,6 +34,7 @@ import {
   ListItemSecondaryAction
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -136,7 +137,7 @@ const WorkspacesManager: React.FC = () => {
       addNotification({
         type: "success",
         alert: true,
-        content: "Workspace added",
+        content: "Workspace added", contentKey: "editor:studio.workspaceAdded",
         dismissable: true
       });
     },
@@ -176,7 +177,7 @@ const WorkspacesManager: React.FC = () => {
       addNotification({
         type: "success",
         alert: true,
-        content: "Workspace removed",
+        content: "Workspace removed", contentKey: "editor:studio.workspaceRemoved",
         dismissable: true
       });
     },
@@ -273,7 +274,7 @@ const WorkspacesManager: React.FC = () => {
                       }
                       tooltip={
                         workspace.is_default
-                          ? t("ui2:attrs.defaultWorkspace", { defaultValue: "Default workspace" }) : "Set as default"
+                          ? t("ui2:attrs.defaultWorkspace", { defaultValue: "Default workspace" }) : i18n.t("editor:ui.setAsDefault2", { defaultValue: "Set as default" })
                       }
                       onClick={() => handleToggleDefault(workspace)}
                       sx={{
@@ -302,7 +303,7 @@ const WorkspacesManager: React.FC = () => {
               title={t("ui2:attrs.noWorkspacesConfigured", { defaultValue: "No workspaces configured" })}
               description={
                 canManage
-                  ? t("editor:ui.addAWorkspaceToAllowAgentsToAccessLocalFolders", { defaultValue: "Add a workspace to allow agents to access local folders" }) : "This deployment manages your workspace for you"
+                  ? t("editor:ui.addAWorkspaceToAllowAgentsToAccessLocalFolders", { defaultValue: "Add a workspace to allow agents to access local folders" }) : i18n.t("editor:ui.thisDeploymentManagesYourWorkspaceForYou", { defaultValue: "This deployment manages your workspace for you" })
               }
             />
           )}
@@ -315,7 +316,7 @@ const WorkspacesManager: React.FC = () => {
                 fullWidth
                 disabled={createMutation.isPending}
               >
-                {createMutation.isPending ? t("editor:ui.adding", { defaultValue: "Adding…" }) : "Add Workspace"}
+                {createMutation.isPending ? t("editor:ui.adding", { defaultValue: "Adding…" }) : i18n.t("editor:ui.addWorkspace2", { defaultValue: "Add Workspace" })}
               </EditorButton>
             </div>
           )}

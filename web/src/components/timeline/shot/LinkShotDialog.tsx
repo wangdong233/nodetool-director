@@ -21,6 +21,7 @@ import { useStoryboards } from "../../../hooks/storyboard/useStoryboards";
 import { useTimelineStoreApi } from "../../../stores/timeline/TimelineStore";
 import { useTimelineHistoryBatch } from "../../../stores/timeline/useTimelineHistoryBatch";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface LinkShotDialogProps {
   clipId: string;
@@ -51,14 +52,14 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
         value: "",
         label: boardsLoading
           ? t("timeline:shot.loadingStoryboards", { defaultValue: "Loading storyboards…" }) : (boards?.length ?? 0) === 0
-            ? t("timeline:shot.noStoryboardsYet", { defaultValue: "No storyboards yet" }) : "Choose a storyboard"
+            ? t("timeline:shot.noStoryboardsYet", { defaultValue: "No storyboards yet" }) : i18n.t("timeline:shot.chooseAStoryboard", { defaultValue: "Choose a storyboard" })
       },
       ...(boards ?? []).map((item) => ({
         value: item.id,
         label: item.name || "Untitled storyboard"
       }))
     ],
-    [boards, boardsLoading]
+    [boards, boardsLoading, languageVersion]
   );
   const shotOptions = useMemo(() => {
     // SAFETY: the wire document's `shots` is the passthrough zod mirror of
@@ -67,7 +68,7 @@ const LinkShotDialogInner = ({ clipId, onClose }: LinkShotDialogProps) => {
     return [
       {
         value: "",
-        label: boardId ? t("timeline:shot.chooseAShot", { defaultValue: "Choose a shot" }) : "Choose a storyboard first"
+        label: boardId ? t("timeline:shot.chooseAShot", { defaultValue: "Choose a shot" }) : i18n.t("timeline:shot.chooseAStoryboardFirst", { defaultValue: "Choose a storyboard first" })
       },
       ...[...shots]
         .sort((a, b) => a.index - b.index)

@@ -12,6 +12,7 @@ import { Caption, LoadingSpinner } from "../../ui_primitives";
 import { AppEvent } from "../types";
 import { getStoryboardId, ReadOnlyBoardLoader } from "./StoryboardWidget";
 import { useWidgetRuntime } from "./useWidgetRuntime";
+import { i18n } from "../../../../i18n";
 
 const LazyStoryboardPreview = React.lazy(
   () => import("../../storyboard/StoryboardPreview")
@@ -54,7 +55,7 @@ export const StoryboardPreviewWidget: React.FC<StoryboardPreviewWidgetProps> = (
   return (
     <ReadOnlyBoardLoader boardId={boardId}>
       <React.Suspense
-        fallback={<LoadingSpinner size="small" text="Loading preview" />}
+        fallback={<LoadingSpinner size="small" text={i18n.t("storyboard:attrs.loadingPreview", { defaultValue: "Loading preview" })} />}
       >
         <LazyStoryboardPreview boardId={boardId} height={props.height} />
       </React.Suspense>

@@ -21,6 +21,7 @@ import { trpcClient } from "../../trpc/client";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import EmbeddingModelSelect from "../properties/EmbeddingModelSelect";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const slideIn = keyframes`
   from {
@@ -161,7 +162,7 @@ const CollectionForm = ({ onClose, onSuccess }: CollectionFormProps) => {
         <AlertBanner severity="error" sx={{ mt: SPACING.lg }}>
           {createMutation.error instanceof Error
             ? createMutation.error.message
-            : "Failed to create collection"}
+            : i18n.t("editor:ui.failedToCreateCollection", { defaultValue: "Failed to create collection" })}
         </AlertBanner>
       )}
     </FlexColumn>

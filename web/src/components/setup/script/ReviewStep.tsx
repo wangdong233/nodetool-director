@@ -68,7 +68,7 @@ import { readScriptSource } from "../../../lib/script/importedScript";
 import { GenerationEstimateLine } from "../GenerationSummary";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** A duration as the review states it: seconds under a minute, else m:ss. */
 const spokenLength = (seconds: number): string => {
@@ -299,7 +299,7 @@ const ReviewLine: React.FC<ReviewLineProps> = memo(
           >
             <ToolbarIconButton
               icon={<TheaterComedyIcon fontSize="small" />}
-              tooltip={showDirection ? "Delete direction" : "Add direction"}
+              tooltip={showDirection ? i18n.t("storyboard:attrs:deleteDirection", { defaultValue: "Delete direction" }) : i18n.t("editor:ui.addDirection", { defaultValue: "Add direction" })}
               ariaLabel={`${showDirection ? "Delete direction from" : "Add direction to"} ${excerpt}`}
               onClick={toggleDirection}
             />
@@ -518,14 +518,14 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
               disabled={locked}
               onClick={onRewrite}
             >
-              {rewriting ? i18n.t("storyboard:attrs.rewriting", { defaultValue: "Rewriting…" }) : "Rewrite"}
+              {rewriting ? i18n.t("storyboard:attrs.rewriting", { defaultValue: "Rewriting…" }) : i18n.t("storyboard:attrs.rewrite", { defaultValue: "Rewrite" })}
             </EditorButton>
           </FlexRow>
           {/* A rewrite is a model call like any other, so it says what it
               will cost before it is pressed rather than after (F23). */}
           <GenerationEstimateLine
             result={`Rewrite ${words} words, keeping the lines it keeps`}
-            next="Edits you have made are given to the writer as context."
+            next={t("storyboard:attrs.editsYouHaveMadeAreGivenToTheWriterAsContext", { defaultValue: "Edits you have made are given to the writer as context." })}
             model={writerModel}
             brief={estimatedInput}
             maxOutputTokens={REWRITE_MAX_TOKENS}

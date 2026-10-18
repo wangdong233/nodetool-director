@@ -12,6 +12,7 @@ import {
   rgbToHex,
   simulateColorBlindness
 } from "../../utils/colorConversion";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -172,18 +173,18 @@ const ContrastChecker: React.FC<ContrastCheckerProps> = React.memo(({
           className="preview-box"
           style={{ backgroundColor: backgroundColor, color: foregroundColor }}
         >
-          <span className="preview-label">Preview on background</span>
-          <span className="preview-text">Normal text sample</span>
-          <span className="preview-text-large">Large text sample</span>
+          <span className="preview-label">{i18n.t("ui2:attrs.previewOnBackground", { defaultValue: "Preview on background" })}</span>
+          <span className="preview-text">{i18n.t("ui2:attrs.normalTextSample", { defaultValue: "Normal text sample" })}</span>
+          <span className="preview-text-large">{i18n.t("ui2:attrs.largeTextSample", { defaultValue: "Large text sample" })}</span>
         </div>
 
         <div
           className="preview-box"
           style={{ backgroundColor: foregroundColor, color: backgroundColor }}
         >
-          <span className="preview-label">Inverse preview</span>
-          <span className="preview-text">Normal text sample</span>
-          <span className="preview-text-large">Large text sample</span>
+          <span className="preview-label">{i18n.t("ui2:attrs.inversePreview", { defaultValue: "Inverse preview" })}</span>
+          <span className="preview-text">{i18n.t("ui2:attrs.normalTextSample", { defaultValue: "Normal text sample" })}</span>
+          <span className="preview-text-large">{i18n.t("ui2:attrs.largeTextSample", { defaultValue: "Large text sample" })}</span>
         </div>
       </div>
 

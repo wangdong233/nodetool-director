@@ -41,6 +41,7 @@ import type { Property, TypeMetadata } from "../../stores/ApiTypes";
 import type { ChainNode, InputMappings, InputSource } from "./chainTypes";
 import { areTypesCompatible } from "./chainTypes";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ChainNodePropertiesProps {
   nodeId: string;
@@ -263,7 +264,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
                       >
                         {sourceNode
                           ? `${sourceIndex + 1} · ${sourceNode.metadata.title}`
-                          : "Missing source"}
+                          : i18n.t("editor:ui.missingSource", { defaultValue: "Missing source" })}
                         {mapping.sourceOutput &&
                         sourceNode &&
                         sourceNode.metadata.outputs.length > 1
@@ -376,7 +377,7 @@ export const ChainNodeProperties: React.FC<ChainNodePropertiesProps> = ({
           {compatibleOptions.length === 0 && (
             <EditorMenuItem disabled>
               <ListItemText
-                primary="No compatible outputs in previous steps"
+                primary={i18n.t("editor:ui.noCompatibleOutputsInPreviousSteps", { defaultValue: "No compatible outputs in previous steps" })}
                 secondary={
                   activeProp
                     ? `This field takes ${formatType(activeProp.type)}`

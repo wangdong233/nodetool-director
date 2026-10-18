@@ -17,7 +17,7 @@ import {
   type RendererToolCallMessage
 } from "@nodetool-ai/protocol";
 import { recordProviderCallFailure } from "../../stores/ProviderCallFailureStore";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * Base shape of every message routed through the WebSocket.

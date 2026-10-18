@@ -8,7 +8,7 @@ import BugReportIcon from "@mui/icons-material/BugReport";
 import { EditorButton, Tooltip } from "../ui_primitives";
 import { openBugReport } from "../../stores/BugReportStore";
 import type { BugReportContext } from "../../utils/bugReportBundle";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface ReportBugButtonProps {

@@ -219,7 +219,7 @@ export class CloneStampTool implements ToolHandler {
 
 export const definition: ToolDefinition = {
   tool: "clone_stamp",
-  label: "Clone stamp",
+  label: "Clone stamp", labelKey: "sketch:attrs.cloneStamp",
   Icon: ControlPointDuplicateIcon,
   group: "painting"
 };

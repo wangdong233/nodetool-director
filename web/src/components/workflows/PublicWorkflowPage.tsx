@@ -25,6 +25,7 @@ import {
 } from "../../serverState/useWorkflowSharing";
 import { rememberPostLoginReturn } from "../../utils/postLoginReturn";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** `graphNodeToReactFlowNode` stamps this onto each node; nothing reads it back. */
 const PREVIEW_WORKFLOW_ID = "public-share-preview";
@@ -62,7 +63,7 @@ const PublicWorkflowPage = () => {
     } catch {
       addNotification({
         type: "error",
-        content: "Could not copy this workflow",
+        content: i18n.t("editor:ui.couldNotCopyThisWorkflow", { defaultValue: "Could not copy this workflow" }),
         alert: true
       });
     }
@@ -111,7 +112,7 @@ const PublicWorkflowPage = () => {
             disabled={duplicate.isPending || authState === "loading"}
             onClick={() => void handleDuplicate()}
           >
-            {signedIn ? t("editor:ui.duplicateToMyWorkflows", { defaultValue: "Duplicate to my workflows" }) : "Sign in to duplicate"}
+            {signedIn ? t("editor:ui.duplicateToMyWorkflows", { defaultValue: "Duplicate to my workflows" }) : i18n.t("editor:ui.signInToDuplicate", { defaultValue: "Sign in to duplicate" })}
           </EditorButton>
         }
       />

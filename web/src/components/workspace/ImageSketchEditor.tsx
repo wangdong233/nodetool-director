@@ -11,6 +11,7 @@ import {
 import { useSaveSketchToAsset } from "../../hooks/sketch/useSaveSketchToAsset";
 import type { Asset } from "../../stores/ApiTypes";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ImageSketchEditorProps {
   asset: Asset;
@@ -55,7 +56,7 @@ const ImageSketchEditor = ({ asset, onClose }: ImageSketchEditorProps) => {
           onClick={save}
           disabled={saving}
         >
-          {saving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save to image"}
+          {saving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("editor:ui.saveToImage", { defaultValue: "Save to image" })}
         </EditorButton>
         <EditorButton
           variant="text"
@@ -67,7 +68,7 @@ const ImageSketchEditor = ({ asset, onClose }: ImageSketchEditorProps) => {
         </EditorButton>
       </FlexRow>
     ),
-    [save, saving, saveAndClose]
+    [save, saving, saveAndClose, languageVersion]
   );
 
   useEffect(() => {

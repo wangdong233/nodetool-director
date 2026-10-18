@@ -2,6 +2,7 @@ import { memo, useCallback } from "react";
 import type { Ref } from "react";
 
 import { SearchInput } from "../ui_primitives";
+import { i18n } from "../../../i18n";
 
 interface CategorySearchBarProps {
   value: string;
@@ -30,7 +31,7 @@ const CategorySearchBar = memo(function CategorySearchBar({
       onChange={onChange}
       onClear={handleClear}
       placeholder={placeholder}
-      ariaLabel="Filter category"
+      ariaLabel={i18n.t("editor:ui.filterCategory", { defaultValue: "Filter category" })}
       clearTooltip="Clear filter"
       fullWidth
     />

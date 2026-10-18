@@ -15,6 +15,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { BORDER_RADIUS, MOTION, reducedMotion } from "./tokens";
 import { SPACING } from "./spacing";
+import { i18n } from "../../../i18n";
 
 // --- ToggleGroup ---
 
@@ -46,15 +47,15 @@ const SEGMENTED_HEIGHT = 32;
  * @example
  * // Exclusive selection (radio-like)
  * <ToggleGroup value={view} exclusive onChange={handleView}>
- *   <ToggleOption value="grid">Grid</ToggleOption>
+ *   <ToggleOption value="grid">{i18n.t("game:viewport.grid", { defaultValue: "Grid" })}</ToggleOption>
  *   <ToggleOption value="list">List</ToggleOption>
  * </ToggleGroup>
  *
  * @example
  * // Multi-select
  * <ToggleGroup value={filters} onChange={handleFilters} compact>
- *   <ToggleOption value="images">Images</ToggleOption>
- *   <ToggleOption value="videos">Videos</ToggleOption>
+ *   <ToggleOption value="images">{t("timeline:attrs.kindImages", { defaultValue: "Images" })}</ToggleOption>
+ *   <ToggleOption value="videos">{i18n.t("timeline:attrs.kindVideos", { defaultValue: "Videos" })}</ToggleOption>
  *   <ToggleOption value="audio">Audio</ToggleOption>
  * </ToggleGroup>
  */

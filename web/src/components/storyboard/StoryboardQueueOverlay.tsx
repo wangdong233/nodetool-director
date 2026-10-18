@@ -51,7 +51,7 @@ import {
 } from "../../stores/storyboard/StoryboardGenerationStore";
 import { useGenerateShot } from "../../hooks/storyboard/useGenerateShot";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 export interface StoryboardQueueOverlayProps {
   boardId: string;
@@ -167,7 +167,7 @@ const RequestCard = memo(function RequestCard({
           <ToolbarIconButton
             icon={<CloseIcon fontSize="inherit" />}
             tooltip={t("storyboard:attrs.stopTrackingTheProviderRequestMayStillFinishAndCharge", { defaultValue: "Stop tracking. The provider request may still finish and charge." })}
-            ariaLabel="Stop tracking render"
+            ariaLabel={t("storyboard:attrs.stopTrackingRender", { defaultValue: "Stop tracking render" })}
             variant="error"
             onClick={() => onStopTracking(row.jobId)}
           />
@@ -369,7 +369,7 @@ const StoryboardQueueOverlay = memo(function StoryboardQueueOverlay({
           <ToolbarIconButton
             icon={<CloseIcon fontSize="inherit" />}
             tooltip={t("storyboard:attrs.stopTrackingAllProviderRequestsMayStillFinishAndCharge", { defaultValue: "Stop tracking all. Provider requests may still finish and charge." })}
-            ariaLabel="Stop tracking all renders"
+            ariaLabel={t("storyboard:attrs.stopTrackingAllRenders", { defaultValue: "Stop tracking all renders" })}
             variant="error"
             onClick={handleStopAll}
           />

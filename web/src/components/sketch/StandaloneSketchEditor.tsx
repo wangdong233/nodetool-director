@@ -59,6 +59,7 @@ import {
 import { useSaveSketchDocument } from "../../hooks/sketch/useSaveSketchDocument";
 import { useSaveSketchAsAsset } from "../../hooks/sketch/useSaveSketchAsAsset";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -223,7 +224,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
         <ListItemIcon>
           <SaveOutlinedIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>{saving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}</ListItemText>
+        <ListItemText>{saving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}</ListItemText>
       </EditorMenuItem>,
       <EditorMenuItem
         key="save-as-asset"
@@ -238,7 +239,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
           <AddPhotoAlternateOutlinedIcon fontSize="small" />
         </ListItemIcon>
         <ListItemText>
-          {savingAsAsset ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save as asset"}
+          {savingAsAsset ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("timeline:topbar.saveAsAsset", { defaultValue: "Save as asset" })}
         </ListItemText>
       </EditorMenuItem>,
       <EditorMenuItem

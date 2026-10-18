@@ -179,6 +179,7 @@ import {
   sameIdSet,
   type ComprehensionContext
 } from "./reactFlowGraphModel";
+import { i18n } from "../../../i18n";
 
 const ReactFlowWrapper = ({
   workflowId,
@@ -277,7 +278,7 @@ const ReactFlowWrapper = ({
       useNodeMenuStore.getState().openNodeMenu({
         x: window.innerWidth / 2,
         y: window.innerHeight / 2,
-        searchTerm: "String Input",
+        searchTerm: i18n.t("editor:ui.stringInput", { defaultValue: "String Input" }),
         centerOnScreen: true
       });
       return;

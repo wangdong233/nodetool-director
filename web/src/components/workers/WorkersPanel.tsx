@@ -25,6 +25,7 @@ import {
 } from "../../hooks/useWorkers";
 import WorkerProfilesDialog from "./WorkerProfilesDialog";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /**
  * Workers panel — the live GPU-worker surface. Lists provisioned instances with
@@ -258,7 +259,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
               disabled={busy || !isRunning || !isHealthy}
               onClick={() => onAttach(instance.id)}
             >
-              {isBooting ? t("editor:ui.booting", { defaultValue: "Booting…" }) : "Attach"}
+              {isBooting ? t("editor:ui.booting", { defaultValue: "Booting…" }) : i18n.t("appbuilder:attrs.attach", { defaultValue: "Attach" })}
             </EditorButton>
           )}
           {/* Pause (keep the volume) — only meaningful while the pod runs. */}
@@ -589,7 +590,7 @@ const WorkersPanel: React.FC = () => {
         onConfirm={handleConfirmTerminate}
         title="Terminate worker?"
         content="Its volume and all cached models are permanently deleted. This stops all billing."
-        confirmText="Terminate"
+        confirmText={i18n.t("editor:ui.terminate", { defaultValue: "Terminate" })}
         cancelText="Cancel"
         destructive
       />

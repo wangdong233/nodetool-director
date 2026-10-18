@@ -20,7 +20,7 @@ const OP_LABELS: Readonly<Record<string, string>> = {
   gt: "greater than", gte: "at least", lt: "less than", lte: "at most", eq: "equals", neq: "not equal",
   true: "is true", false: "is false", set: "fired"
 };
-const MOTION_OPTIONS = [{ value: "clip", label: "Clip" }, { value: "blend1d", label: "1D blend" }, { value: "blend2d", label: "2D blend" }] as const;
+const MOTION_OPTIONS = [{ value: "clip", label: "Clip", labelKey: "storyboard:attrs.clipLower" }, { value: "blend1d", label: "1D blend" }, { value: "blend2d", label: "2D blend" }] as const;
 
 function finiteNumber(raw: string): number | null {
   const value = Number(raw.trim());
@@ -151,7 +151,7 @@ function BlendPoints({ graph, motion, clips, onChange }: {
         onClick={() => onChange({ ...motion, points: points.filter((_entry, position) => position !== index) })} />}>
         <NumberRow label={t("appbuilder:attrs.value", { defaultValue: "Value" })} value={point.value} onCommit={(value) => onChange({ ...motion,
           points: points.map((entry, position) => position === index ? { ...entry, value: value ?? 0 } : entry) })} />
-        <InspectorFieldRow label="Clip"><ClipField label={`Point ${index + 1} clip`} value={point.clip} clips={clips}
+        <InspectorFieldRow label={t("storyboard:attrs.clipLower", { defaultValue: "Clip" })}><ClipField label={`Point ${index + 1} clip`} value={point.clip} clips={clips}
           onChange={(clip) => onChange({ ...motion, points: points.map((entry, position) => position === index ? { ...entry, clip } : entry) })} /></InspectorFieldRow>
       </FieldGroup>)}
       <AddButton disabled={points.length >= 16} onClick={() => onChange({ ...motion,
@@ -175,7 +175,7 @@ function BlendPoints({ graph, motion, clips, onChange }: {
         points: points.map((entry, position) => position === index ? { ...entry, x: x ?? 0 } : entry) })} />
       <NumberRow label="Y" value={point.y} onCommit={(y) => onChange({ ...motion,
         points: points.map((entry, position) => position === index ? { ...entry, y: y ?? 0 } : entry) })} />
-      <InspectorFieldRow label="Clip"><ClipField label={`Point ${index + 1} clip`} value={point.clip} clips={clips}
+      <InspectorFieldRow label={t("storyboard:attrs.clipLower", { defaultValue: "Clip" })}><ClipField label={`Point ${index + 1} clip`} value={point.clip} clips={clips}
         onChange={(clip) => onChange({ ...motion, points: points.map((entry, position) => position === index ? { ...entry, clip } : entry) })} /></InspectorFieldRow>
     </FieldGroup>)}
     <AddButton disabled={points.length >= 16} onClick={() => onChange({ ...motion,
@@ -198,7 +198,7 @@ export function AnimationStateInspector({ graph, stateId, node, initial, clips, 
       }} />
     </InspectorFieldRow>
     {motion.kind === "clip"
-      ? <InspectorFieldRow label="Clip"><ClipField label="Clip" value={motion.clip} clips={clips}
+      ? <InspectorFieldRow label={t("storyboard:attrs.clipLower", { defaultValue: "Clip" })}><ClipField label={t("storyboard:attrs.clipLower", { defaultValue: "Clip" })} value={motion.clip} clips={clips}
         onChange={(clip) => onChange({ ...node, motion: { kind: "clip", clip } }, "Change Animation Clip")} /></InspectorFieldRow>
       : <BlendPoints graph={graph} motion={motion} clips={clips} onChange={(next) => onChange({ ...node, motion: next }, "Change Animation Blend")} />}
     <NumberRow label={t("timeline:attrs.speed", { defaultValue: "Speed" })} value={node.speed} onCommit={(speed) => onChange({ ...node, speed: speed ?? 1 }, "Change Animation State")} />

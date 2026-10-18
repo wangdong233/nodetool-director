@@ -29,6 +29,7 @@ import {
 } from "../../../hooks/timeline/useDeriveShotFromClip";
 import { getErrorMessage } from "../../../utils/errorHandling";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 const FRAME_COUNT_OPTIONS = Array.from(
   { length: MAX_DERIVED_FRAMES },
@@ -61,7 +62,7 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
       );
       setAction("");
     } catch (failure) {
-      setError(getErrorMessage(failure, "The derived shot could not be made."));
+      setError(getErrorMessage(failure, i18n.t("timeline:shot.derivedShotCouldNotBeMade", { defaultValue: "The derived shot could not be made." })));
     } finally {
       setWorking(false);
     }
@@ -108,7 +109,7 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
         disabled={working}
         data-testid="derived-shot-create"
       >
-        {working ? t("timeline:shot.takingFrames", { defaultValue: "Taking frames…" }) : "Create derived shot"}
+        {working ? t("timeline:shot.takingFrames", { defaultValue: "Taking frames…" }) : i18n.t("timeline:shot.createDerivedShot", { defaultValue: "Create derived shot" })}
       </EditorButton>
       {error && (
         <ErrorBanner

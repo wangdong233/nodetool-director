@@ -10,7 +10,7 @@
  * carrier of the state, which makes it an `img` with that name.
  *
  * @example
- * <StatusDot tone="warning" label="Unsaved changes" />
+ * <StatusDot tone="warning" label={i18n.t("nav:tabs.unsaved", { defaultValue: "Unsaved changes" })} />
  * <StatusDot tone="primary" pulse size="medium" />
  */
 
@@ -20,6 +20,7 @@ import { Box } from "./Box";
 import type { BoxProps } from "./Box";
 import { SPACING, getSpacingPx } from "./spacing";
 import { BORDER_RADIUS, MOTION, reducedMotion } from "./tokens";
+import { i18n } from "../../../i18n";
 
 export type StatusDotTone =
   | "primary"

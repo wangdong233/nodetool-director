@@ -33,6 +33,7 @@ import {
   ToggleOption,
   ICON_SIZE
 } from "../../ui_primitives";
+import { i18n } from "../../../../i18n";
 
 interface PuckAppEditorProps {
   /** The application being edited — the id the agent's `ui_app_*` tools take. */
@@ -80,7 +81,7 @@ const SaveButton: React.FC<{ onSave: (data: Data) => void; saving?: boolean }> =
       onClick={handleClick}
       disabled={saving}
     >
-      {saving ? "Saving…" : "Save"}
+      {saving ? i18n.t("timeline:topbar.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
     </EditorButton>
   );
 };

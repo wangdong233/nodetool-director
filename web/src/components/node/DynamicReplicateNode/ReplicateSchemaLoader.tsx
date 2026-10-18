@@ -8,6 +8,7 @@ import { resolveReplicateSchemaClient } from "../../../utils/replicateDynamicSch
 import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
 import { replaceDynamicSlots } from "../../../utils/replaceDynamicSlots";
 import { NodeData } from "../../../stores/NodeData";
+import { i18n } from "../../../../i18n";
 
 export { DYNAMIC_REPLICATE_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -40,7 +41,7 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
 
     const handleLoad = useCallback(async (force = false) => {
       if (!modelInfo) {
-        setError("Paste a Replicate model identifier first.");
+        setError(i18n.t("editor:ui.pasteAReplicateModelIdentifierFirst", { defaultValue: "Paste a Replicate model identifier first." }));
         return;
       }
       setError(null);

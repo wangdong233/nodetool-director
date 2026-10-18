@@ -1,6 +1,6 @@
 import type { FalUnitPricing } from "../stores/ApiTypes";
 import { relativeTime } from "./formatDateAndTime";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * fal.ai exposes a single `unit_price` + `billing_unit` per endpoint from

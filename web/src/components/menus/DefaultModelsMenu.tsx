@@ -10,6 +10,7 @@ import VideoModelSelect from "../properties/VideoModelSelect";
 import { CODE_MODEL_PREFERENCE } from "../../hooks/useCodeAuthoringModel";
 import type { ImageModelValue } from "../../stores/ApiTypes";
 import { IMAGE_TASK_DEFAULTS } from "../../utils/applyDefaultModels";
+import { i18n } from "../../../i18n";
 
 interface TaskModelSelectProps {
   onChange: (value: ImageModelValue) => void;
@@ -34,7 +35,7 @@ const MODEL_TYPE_CONFIG = [
     label: "Language model",
     Select: LanguageModelSelect
   },
-  { type: "image_model", label: "Image model", Select: ImageModelSelect },
+  { type: "image_model", label: "Image model", labelKey: "settings:defModels.mImage", Select: ImageModelSelect },
   {
     type: IMAGE_TASK_DEFAULTS["nodetool.image.Upscale"],
     label: "Upscale model",
@@ -68,8 +69,8 @@ const MODEL_TYPE_CONFIG = [
     label: "Code generation",
     Select: LanguageModelSelect,
     // The submission is a tool call, so non-tool-capable models are hidden.
-    selectProps: { placeholder: "Use chat model", requireToolSupport: true },
-    hint: "Writes Code Node code. Falls back to the chat model when unset."
+    selectProps: { placeholder: "Use chat model", placeholderKey: "settings:defModels.useChatPlaceholder", requireToolSupport: true },
+    hint: i18n.t("settings:defModels.codeHint", { defaultValue: "Writes Code Node code. Falls back to the chat model when unset." })
   }
 ] as const;
 

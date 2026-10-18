@@ -18,10 +18,11 @@ import { MentionAssetTile } from "./MentionAssetTile";
 import { MentionEntityTile } from "./MentionEntityTile";
 import type { MentionTab } from "./useAssetMentionSearch";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../../i18n";
 
 const MENTION_TABS: TabItem[] = [
   { value: "recent", label: "Recent" },
-  { value: "saved", label: "Saved" }
+  { value: "saved", label: i18n.t("editor:ui.savedZipA", { defaultValue: "Saved" }) }
 ];
 
 const assetMentionMenuStyles = (theme: Theme) =>
@@ -191,9 +192,9 @@ export const AssetMentionMenu: React.FC<AssetMentionMenuProps> = ({
   const emptyMessage =
     activeTab === "recent"
       ? queryString
-        ? t("editor:ui.noRecentAssetsMatch", { defaultValue: "No recent assets match." }) : "No assets used yet. Generate or drag one in."
+        ? t("editor:ui.noRecentAssetsMatch", { defaultValue: "No recent assets match." }) : i18n.t("editor:ui.noAssetsUsedYetGenerateOrDragOneIn", { defaultValue: "No assets used yet. Generate or drag one in." })
       : queryString
-        ? t("editor:ui.noAssetsMatch", { defaultValue: "No assets match." }) : "No saved assets yet.";
+        ? t("editor:ui.noAssetsMatch", { defaultValue: "No assets match." }) : i18n.t("editor:ui.noSavedAssetsYet", { defaultValue: "No saved assets yet." });
 
   const handleTabChange = (tab: string) => {
     if (tab === "recent" || tab === "saved") {

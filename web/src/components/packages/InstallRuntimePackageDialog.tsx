@@ -14,6 +14,7 @@ import useRuntimePackagePromptStore from "../../stores/RuntimePackagePromptStore
 import useRuntimePackagesStore from "../../stores/RuntimePackagesStore";
 import { useOpenPackageManagerInNewTab } from "../../hooks/useOpenPackageManager";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** Model lists a newly installed local runtime can add entries to. */
 const MODEL_QUERY_KEYS = [
@@ -129,8 +130,8 @@ const InstallRuntimePackageDialog: React.FC = () => {
       onClose={phase === "installing" ? undefined : dismiss}
       title={`Install ${name}?`}
       onConfirm={handleInstall}
-      confirmText={phase === "installing" ? t("editor:ui.installing", { defaultValue: "Installing…" }) : "Install"}
-      cancelText="Not now"
+      confirmText={phase === "installing" ? t("editor:ui.installing", { defaultValue: "Installing…" }) : i18n.t("editor:ui.install", { defaultValue: "Install" })}
+      cancelText={i18n.t("editor:ui.notNow", { defaultValue: "Not now" })}
       confirmDisabled={phase === "installing"}
       cancelDisabled={phase === "installing"}
       isLoading={phase === "installing"}
@@ -146,7 +147,7 @@ const InstallRuntimePackageDialog: React.FC = () => {
         )}
         {phase === "failed" && (
           <AlertBanner severity="error" compact>
-            {error ?? "The install failed. Try again from the Package Manager."}
+            {error ?? i18n.t("editor:ui.theInstallFailedTryAgainFromThePackageManager", { defaultValue: "The install failed. Try again from the Package Manager." })}
           </AlertBanner>
         )}
       </FlexColumn>

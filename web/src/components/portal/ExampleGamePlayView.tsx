@@ -44,7 +44,7 @@ export default function ExampleGamePlayView({
   }
   const { name, document } = query.data;
   return document.schemaVersion === 3 ? (
-    <Suspense fallback={<LoadingSpinner text="Loading 3D player" />}>
+    <Suspense fallback={<LoadingSpinner text={t("game:player.loading3dPlayer", { defaultValue: "Loading 3D player" })} />}>
       <Player3D
         gameId={`example:${slug}`}
         name={name}

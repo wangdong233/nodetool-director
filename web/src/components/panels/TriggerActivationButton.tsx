@@ -54,6 +54,7 @@ import {
 } from "@nodetool-ai/protocol";
 import { formatSchedule } from "../../utils/triggerSchedule";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** Stable empty fallback, so a pending query doesn't hand every render a new
  * array identity and re-create the callbacks that close over it. */
@@ -76,14 +77,14 @@ type ActivationState =
 const KIND_LABELS: Readonly<Record<string, string>> = {
   webhook: "Webhook",
   schedule: "Schedule",
-  file_watch: "File watch",
+  file_watch: i18n.t("editor:ui.fileWatch", { defaultValue: "File watch" }),
   manual: "Manual"
 };
 
 const kindLabel = (kind: string): string => KIND_LABELS[kind] ?? kind;
 
 const formatLastFired = (iso: string | null): string => {
-  if (!iso) return "Never";
+  if (!iso) return i18n.t("editor:ui.neverFired", { defaultValue: "Never" });
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
   return date.toLocaleString();
@@ -91,21 +92,21 @@ const formatLastFired = (iso: string | null): string => {
 
 /** Text on the workflow-level switch — honest about what we actually know. */
 const SWITCH_DESCRIPTIONS = {
-  loading: "Checking trigger status…",
-  error: "Could not load trigger status. Check your connection and retry.",
+  loading: i18n.t("editor:ui.checkingTriggerStatus", { defaultValue: "Checking trigger status…" }),
+  error: i18n.t("editor:ui.couldNotLoadTriggerStatusCheckYourConnectionAndRetry", { defaultValue: "Could not load trigger status. Check your connection and retry." }),
   unregistered:
-    "Save the workflow first — activation needs a saved trigger registration.",
-  inactive: "Listens for events and starts a run per event.",
-  mixed: "Some triggers are armed. Turn this on to arm the rest.",
-  active: "Listens for events and starts a run per event."
+    i18n.t("editor:ui.saveTheWorkflowFirstActivationNeedsASavedTriggerRegistration", { defaultValue: "Save the workflow first — activation needs a saved trigger registration." }),
+  inactive: i18n.t("editor:ui.listensForEventsAndStartsARunPerEvent", { defaultValue: "Listens for events and starts a run per event." }),
+  mixed: i18n.t("editor:ui.someTriggersAreArmedTurnThisOnToArmTheRest", { defaultValue: "Some triggers are armed. Turn this on to arm the rest." }),
+  active: i18n.t("editor:ui.listensForEventsAndStartsARunPerEvent", { defaultValue: "Listens for events and starts a run per event." })
 } satisfies Readonly<Record<ActivationState, string>>;
 
 const STATUS_LABELS = {
   loading: "Loading",
   error: "Unavailable",
-  unregistered: "Not registered",
+  unregistered: i18n.t("editor:ui.notRegistered", { defaultValue: "Not registered" }),
   inactive: "Inactive",
-  mixed: "Partly active",
+  mixed: i18n.t("editor:ui.partlyActive", { defaultValue: "Partly active" }),
   active: "Active"
 } satisfies Readonly<Record<ActivationState, string>>;
 
@@ -164,8 +165,8 @@ const WebhookDeliveryDetails: React.FC<WebhookDeliveryDetailsProps> = ({
               <VisibilityIcon fontSize="small" />
             )
           }
-          tooltip={revealed ? t("editor:ui.hideSecret", { defaultValue: "Hide secret" }) : "Show secret"}
-          ariaLabel={revealed ? t("editor:ui.hideWebhookSecret", { defaultValue: "Hide webhook secret" }) : "Show webhook secret"}
+          tooltip={revealed ? t("editor:ui.hideSecret", { defaultValue: "Hide secret" }) : i18n.t("editor:ui.showSecret", { defaultValue: "Show secret" })}
+          ariaLabel={revealed ? t("editor:ui.hideWebhookSecret", { defaultValue: "Hide webhook secret" }) : i18n.t("editor:ui.showWebhookSecret", { defaultValue: "Show webhook secret" })}
           onClick={() => setRevealed((r) => !r)}
         />
         <CopyButton value={webhookSecret} tooltip={t("editor:ui.copyWebhookSecret", { defaultValue: "Copy webhook secret" })} />
@@ -234,8 +235,7 @@ const TriggerActivationButton: React.FC = () => {
       : rows.length === 0
         ? "unregistered"
         : enabledCount === 0
-          ? "inactive"
-          : enabledCount === rows.length
+          ? t("game:runtime.inactive", { defaultValue: "inactive" }) : enabledCount === rows.length
             ? "active"
             : "mixed";
   // A trigger the dispatcher gave up on is a failure the user has to see, even
@@ -374,7 +374,7 @@ const TriggerActivationButton: React.FC = () => {
                       label={
                         reg?.enabled
                           ? t("editor:ui.active", { defaultValue: "Active" }) : stoppedBecause
-                            ? t("editor:ui.stopped", { defaultValue: "Stopped" }) : "Inactive"
+                            ? t("editor:ui.stopped", { defaultValue: "Stopped" }) : i18n.t("editor:ui.inactive", { defaultValue: "Inactive" })
                       }
                       size="small"
                     />

@@ -43,11 +43,12 @@ const IDENTITY_POINTS: readonly CurvePoint[] = [
 const CHANNELS: ReadonlyArray<{
   value: CurveChannel;
   label: string;
+  labelKey?: string;
 }> = [
   { value: "master", label: "Master" },
-  { value: "r", label: "Red" },
-  { value: "g", label: "Green" },
-  { value: "b", label: "Blue" }
+  { value: "r", label: "Red", labelKey: "sketch:attrs.redChannel" },
+  { value: "g", label: "Green", labelKey: "sketch:attrs.greenChannel" },
+  { value: "b", label: "Blue", labelKey: "sketch:attrs.blueChannel" }
 ];
 
 const graphStyles = css({

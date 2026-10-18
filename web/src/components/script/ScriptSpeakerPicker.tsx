@@ -26,6 +26,7 @@ import { useInStudio } from "../../studio/StudioContext";
 import { STUDIO_VOICE } from "../../studio/curatedModels";
 import ScriptSpeakerAvatar from "./ScriptSpeakerAvatar";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** Width of the screenplay speaker gutter: avatar plus the speaker's name. */
 export const SPEAKER_GUTTER = 148;
@@ -145,7 +146,7 @@ export const ScriptSpeakerPicker = ({
           readOnly
             ? label
             : cast.length
-              ? t("editor:ui.changeSpeaker", { defaultValue: "Change speaker" }) : "Add a speaker"
+              ? t("editor:ui.changeSpeaker", { defaultValue: "Change speaker" }) : i18n.t("editor:ui.addASpeaker", { defaultValue: "Add a speaker" })
         }
       >
         <Box
@@ -155,7 +156,7 @@ export const ScriptSpeakerPicker = ({
           aria-haspopup="menu"
           aria-expanded={!!anchor}
           aria-label={
-            speaker ? `${speaker.name}, change speaker` : "Assign speaker"
+            speaker ? `${speaker.name}, change speaker` : i18n.t("ui2:attrs.assignSpeaker", { defaultValue: "Assign speaker" })
           }
           onClick={
             canOpen

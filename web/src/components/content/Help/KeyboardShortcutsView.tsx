@@ -20,6 +20,7 @@ import { keyboardLayouts } from "./keyboard_layouts";
 import { useKeyPressedStore } from "../../../stores/KeyPressedStore";
 import { physicalKeyToLayoutButtonId } from "./physicalKeyboardLayoutKey";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface KeyboardShortcutsViewProps {
   shortcuts?: Shortcut[];
@@ -267,13 +268,13 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
       capslock: "⇪",
       shift: "⇧",
       control: os === "mac" ? "⌃" : "CTRL",
-      meta: os === "mac" ? "⌘" : "Win",
+      meta: os === "mac" ? "⌘" : i18n.t("editor:ui.winCondition", { defaultValue: "Win" }),
       alt: os === "mac" ? "⌥" : "Alt",
       enter: "⏎",
       space: "SPACE",
       escape: "ESC"
     } as Record<string, string>),
-    [os]
+    [os, languageVersion]
   );
 
   const setPaused = useKeyPressedStore((state) => state.setPaused);

@@ -42,9 +42,9 @@ import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
 import { useTranslation } from "react-i18next";
 
 const RENDER_MODE_OPTIONS = [
-  { value: "keyframe", label: "Animate a still" },
-  { value: "direct", label: "From the prompt" },
-  { value: "reference", label: "From references" }
+  { value: "keyframe", label: "Animate a still", labelKey: "timeline:shot.renderModeAnimateAStill" },
+  { value: "direct", label: "From the prompt", labelKey: "timeline:shot.renderModeFromThePrompt" },
+  { value: "reference", label: "From references", labelKey: "timeline:shot.renderModeFromReferences" }
 ];
 
 interface TimelineShotFormProps {

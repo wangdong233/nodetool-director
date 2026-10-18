@@ -29,6 +29,7 @@ import {
   ResizeHandle
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 // Matches HEADER_HEIGHT in PanelBottom — the bar still occupies this when collapsed.
 const BOTTOM_PANEL_HEADER_HEIGHT = 32;
@@ -166,7 +167,7 @@ const PanelRight: React.FC = () => {
           open={isVisible}
           onClose={handleMobileSheetClose}
           title={t("editor:ui.inspector", { defaultValue: "Inspector" })}
-          ariaLabel="Inspector panel"
+          ariaLabel={i18n.t("editor:ui.inspectorPanel", { defaultValue: "Inspector panel" })}
         >
           <FlexColumn
             sx={{

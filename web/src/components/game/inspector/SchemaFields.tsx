@@ -13,6 +13,7 @@ import type { FieldSchema } from "./schemaForm";
 import { schemaDefault, schemaVariant } from "./schemaForm";
 import type { GameComponentEditorProps, GameComponentEditors } from "./componentEditors";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface SchemaFieldsProps {
   schema: FieldSchema;
@@ -385,7 +386,7 @@ export default function SchemaFields({ schema, value, onChange, path = "", issue
   if ((path.endsWith("collider2d.category") || path.endsWith("collider2d.mask") || path.endsWith("collider3d.category") || path.endsWith("collider3d.mask")) && typeof value === "number") {
     return <FlexColumn gap={SPACING.xs} sx={FIELD_WIDTH}>
       <FlexRow align="center" sx={{ minHeight: CONTROL.height.xs }}>
-        <Label component="span" sx={{ mb: 0, flex: 1 }}>{path.endsWith("category") ? t("editor:ui.category", { defaultValue: "Category" }) : "Mask"}</Label>
+        <Label component="span" sx={{ mb: 0, flex: 1 }}>{path.endsWith("category") ? t("editor:ui.category", { defaultValue: "Category" }) : i18n.t("editor:ui.mask", { defaultValue: "Mask" })}</Label>
         {trailing}
       </FlexRow>
       <Box sx={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${CONTROL.height.xl + CONTROL.height.xs}px, 1fr))`, columnGap: SPACING.xs }}>
@@ -405,7 +406,7 @@ export default function SchemaFields({ schema, value, onChange, path = "", issue
     return <NumberField label={degrees ? t("editor:ui.rotation", { defaultValue: "Rotation" }) : fieldLabel(path)} value={typeof value === "number" ? value : 0} schema={schema}
       degrees={degrees} error={error} trailing={trailing} onChange={onChange} />;
   }
-  const referenceField = path.endsWith("collider3d.layer") ? { label: "Layer", names: collisionLayers } :
+  const referenceField = path.endsWith("collider3d.layer") ? { label: "Layer", labelKey: "game:schema.layer", names: collisionLayers } :
     path.endsWith("collider3d.physicsMaterial") ? { label: "Physics material", names: physicsMaterials } : undefined;
   if (schema.type === "string" && referenceField) {
     const current = typeof value === "string" ? value : "";

@@ -14,6 +14,8 @@ import {
 } from "../ui_primitives";
 import useAssets from "../../serverState/useAssets";
 import { ContextMenuProvider } from "../../providers/ContextMenuProvider";
+import { i18n } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 
 // AssetGrid sizes itself for the narrow left panel (a top margin and a
 // viewport-relative dropzone height cap). On the full-screen page those caps
@@ -49,14 +51,15 @@ const gridFillStyles = css({
  * with the Collections, Models, and Workspaces pages.
  */
 const AssetExplorer: React.FC = memo(() => {
+  const { t } = useTranslation();
   const { folderFiles, isLoading, error, refetchAssetsAndFolders } =
     useAssets();
 
   return (
     <PageLayout
       icon={<PermMediaOutlinedIcon sx={{ fontSize: ICON_SIZE.lg }} />}
-      title="Assets"
-      subtitle="Browse, organize, and preview your images, audio, video, and other files."
+      title={i18n.t("editor:explorer.title", { defaultValue: "Assets" })}
+      subtitle={t("editor:explorer.subtitle", { defaultValue: "Browse, organize, and preview your images, audio, video, and other files." })}
       docsTopic="assets"
       padded={false}
       actions={<StorageAnalytics assets={folderFiles} />}
@@ -70,7 +73,7 @@ const AssetExplorer: React.FC = memo(() => {
           <FlexColumn justify="center" align="center" sx={{ flex: 1 }}>
             <EmptyState
               variant="error"
-              title="Could not load assets"
+              title={i18n.t("editor:explorer.loadFailed", { defaultValue: "Could not load assets" })}
               description={error.message || "An error occurred. Please try again."}
               actionText="Retry"
               onAction={refetchAssetsAndFolders}

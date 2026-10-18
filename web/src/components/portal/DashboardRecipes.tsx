@@ -20,6 +20,7 @@ import {
 } from "../ui_primitives";
 import { useSectionWrap, DashboardSectionHeader } from "./dashboardChrome";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type Recipe = recipeSchemas.ExampleRecipeSummary;
 type RecipeStep = recipeSchemas.ExampleRecipeStep;
@@ -288,7 +289,7 @@ const RecipeAppRow = memo(function RecipeAppRow({
         disabled={installing}
         onClick={() => onInstall(app.slug)}
       >
-        {installing ? t("editor:ui.installing", { defaultValue: "Installing…" }) : "Install app"}
+        {installing ? t("editor:ui.installing", { defaultValue: "Installing…" }) : i18n.t("editor:ui.installApp", { defaultValue: "Install app" })}
       </EditorButton>
     </div>
   );
@@ -428,7 +429,7 @@ const DashboardRecipes: React.FC = () => {
         </p>
         {isLoading ? (
           <div className="rcp-loading">
-            <LoadingSpinner size="medium" text="Loading recipes" />
+            <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingRecipes", { defaultValue: "Loading recipes" })} />
           </div>
         ) : isError ? (
           <div className="rcp-empty">

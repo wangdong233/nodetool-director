@@ -16,6 +16,7 @@ import type {
 } from "../../stores/ApiTypes";
 import type { GlobalChatState } from "../../stores/GlobalChatStore";
 import type { ActiveMediaPrediction } from "./mediaPrediction";
+import { i18n } from "../../../i18n";
 
 /**
  * A thread's generation lifecycle. "idle" means no generation in flight — the
@@ -79,7 +80,7 @@ const mirrorFromPatch = (
 ): Partial<GlobalChatState> => {
   const mirror: Partial<GlobalChatState> = {};
   if ("status" in patch && patch.status !== undefined) {
-    mirror.status = patch.status === "idle" ? "connected" : patch.status;
+    mirror.status = patch.status === "idle" ? i18n.t("editor:bottom.stateConnected", { defaultValue: "connected" }) : patch.status;
   }
   if ("statusMessage" in patch) {
     mirror.statusMessage = patch.statusMessage ?? null;
@@ -146,8 +147,7 @@ export const mirrorsForThread = (
       rt.status !== "idle"
         ? rt.status
         : RUNTIME_STATUSES.includes(state.status)
-          ? "connected"
-          : state.status,
+          ? i18n.t("editor:bottom.stateConnected", { defaultValue: "connected" }) : state.status,
     statusMessage: rt.statusMessage,
     progress: rt.progress,
     currentPlanningUpdate: rt.planningUpdate,

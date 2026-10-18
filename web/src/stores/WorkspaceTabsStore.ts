@@ -14,7 +14,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useAuth } from "./useAuth";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 export type WorkspaceTabType =
   | "workflow"
@@ -136,6 +136,7 @@ export const isTabInScope = (
     : tab.projectId === undefined);
 
 export interface OpenTabInput {
+  titleKey?: string;
   type: WorkspaceTabType;
   ref: string;
   instanceId?: string;
@@ -756,7 +757,7 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
               ? {
                   ...tab,
                   setupTarget: target,
-                  title: target?.name ?? "New flow"
+                  title: target?.name ?? i18n.t("editor:ui.newFlow", { defaultValue: "New flow" })
                 }
               : tab
           )

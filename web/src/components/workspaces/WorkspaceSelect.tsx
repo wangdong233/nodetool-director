@@ -33,6 +33,7 @@ import FolderIcon from "@mui/icons-material/FolderOutlined";
 import AddIcon from "@mui/icons-material/AddOutlined";
 import StarIcon from "@mui/icons-material/Star";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -146,7 +147,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
         addNotification({
           type: "success",
           alert: true,
-          content: "Workspace added",
+          content: "Workspace added", contentKey: "editor:studio.workspaceAdded",
           dismissable: true
         });
       },
@@ -212,7 +213,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
           <span className="none-option">
             {defaultWorkspace
               ? `Default (${compactPath(defaultWorkspace.path)})`
-              : "Default workspace"}
+              : i18n.t("editor:ui.defaultWorkspace2", { defaultValue: "Default workspace" })}
           </span>
         );
       }
@@ -281,7 +282,7 @@ const WorkspaceSelect: React.FC<WorkspaceSelectProps> = memo(
           </Box>
           <Divider />
           <MenuItem value="">
-            <ListItemText primary="Default workspace" />
+            <ListItemText primary={i18n.t("editor:ui.defaultWorkspace2", { defaultValue: "Default workspace" })} />
           </MenuItem>
           {workspaces.map((workspace) => (
             <MenuItem key={workspace.id} value={workspace.id}>

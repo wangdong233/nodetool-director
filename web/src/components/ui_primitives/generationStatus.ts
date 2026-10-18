@@ -8,6 +8,7 @@
 import type { StatusDotTone } from "./StatusDot";
 import type { StatusType } from "./StatusIndicator";
 import type { StatusPillTone } from "./StatusPill";
+import { i18n } from "../../../i18n";
 
 /** Shared by `LayerStatus` (image-editor) and `ClipStatus` (timeline). */
 export type GenerationStatus =
@@ -21,6 +22,7 @@ export type GenerationStatus =
   | "missing";
 
 export interface GenerationStatusVisual {
+  labelKey?: string;
   status: StatusType;
   pill: StatusPillTone;
   dot: StatusDotTone;
@@ -31,10 +33,10 @@ export interface GenerationStatusVisual {
 export const GENERATION_STATUS = {
   draft: { status: "default", pill: "neutral", dot: "neutral", label: "Draft", pulse: false },
   queued: { status: "pending", pill: "neutral", dot: "neutral", label: "Queued", pulse: false },
-  generating: { status: "running", pill: "rendering", dot: "primary", label: "Generating", pulse: true },
-  generated: { status: "success", pill: "done", dot: "success", label: "Generated", pulse: false },
+  generating: { status: "running", pill: "rendering", dot: "primary", label: i18n.t("storyboard:attrs.generating", { defaultValue: "Generating" }), pulse: true },
+  generated: { status: "success", pill: "done", dot: "success", label: "Generated", labelKey: "game:overrides.generated", pulse: false },
   stale: { status: "warning", pill: "warning", dot: "warning", label: "Stale", pulse: false },
-  failed: { status: "error", pill: "failed", dot: "error", label: "Failed", pulse: false },
+  failed: { status: "error", pill: "failed", dot: "error", label: "Failed", labelKey: "setup:workflow.pill_failed", pulse: false },
   locked: { status: "info", pill: "neutral", dot: "info", label: "Locked", pulse: false },
   missing: { status: "error", pill: "failed", dot: "error", label: "Missing", pulse: false }
 } as const satisfies Record<GenerationStatus, GenerationStatusVisual>;

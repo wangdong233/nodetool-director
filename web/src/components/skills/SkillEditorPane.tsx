@@ -39,6 +39,7 @@ import {
   shouldApplyServerSkill
 } from "./skillEditorState";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface SkillEditorPaneProps {
   skillId: string;
@@ -150,7 +151,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
     setSavedContent(skill.content ?? "");
     setBaseUpdatedAt(skill.updatedAt);
     initializedSkillIdRef.current = skill.id;
-    setTabTitle(skillId, "skill", skill.name || "Untitled skill");
+    setTabTitle(skillId, "skill", skill.name || i18n.t("editor:ui.untitledSkill", { defaultValue: "Untitled skill" }));
   }, [
     skill,
     skillId,
@@ -461,7 +462,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
             disabled={!isDirty || updateMutation.isPending || readOnly}
             onClick={handleManualSave}
           >
-            {updateMutation.isPending ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
+            {updateMutation.isPending ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
           </EditorButton>
         </FlexRow>
       </FlexRow>

@@ -22,6 +22,7 @@ interface NotificationAction {
 }
 
 export interface Notification {
+  contentKey?: string;
   id: string;
   type: NotificationType;
   content: string;

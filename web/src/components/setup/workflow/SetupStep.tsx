@@ -48,6 +48,7 @@ import { OptionCardGrid } from "../OptionCardGrid";
 import type { OptionCardItem } from "../OptionCardGrid";
 import { MODEL_ROLE_LABEL, MODEL_ROLE_ONBOARDING } from "./modelRoles";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 /**
  * The three run modes, as cards (PRD § 11.3).
@@ -227,13 +228,13 @@ const BuildDisclosure: React.FC<{
       </Text>
       <Text size="small" color="secondary">
         {hasSamples
-          ? "The graph is checked, and if it passes it runs once with the sample inputs above. That run calls the models below and can cost provider rates."
-          : "The graph is checked, and if it passes it runs once. That run calls the models below and can cost provider rates."}
+          ? i18n.t("storyboard:attrs.theGraphIsCheckedAndIfItPassesItRunsOnceWithTheSampleInputsAboveThatRunCallsTheModelsBelowAndCanCostProviderRates", { defaultValue: "The graph is checked, and if it passes it runs once with the sample inputs above. That run calls the models below and can cost provider rates." })
+          : i18n.t("storyboard:attrs.theGraphIsCheckedAndIfItPassesItRunsOnceThatRunCallsTheModelsBelowAndCanCostProviderRates", { defaultValue: "The graph is checked, and if it passes it runs once. That run calls the models below and can cost provider rates." })}
       </Text>
       <Text size="small">
         {chosen.length > 0
           ? `Runs on ${chosen.join(" · ")}`
-          : "This plan needs no model of its own."}
+          : i18n.t("storyboard:attrs.thisPlanNeedsNoModelOfItsOwn", { defaultValue: "This plan needs no model of its own." })}
       </Text>
       <Caption color="secondary">
         Cost is unknown until the run returns — it depends on what each step

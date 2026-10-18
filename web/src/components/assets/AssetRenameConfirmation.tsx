@@ -10,6 +10,7 @@ import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useAssetUpdate } from "../../serverState/useAssetUpdate";
 import useAssets from "../../serverState/useAssets";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface AssetRenameConfirmationProps {
   assets: string[];
@@ -67,7 +68,7 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
       baseNewName.startsWith(" ") ||
       baseNewName.match(/^[-#*&]/)
     ) {
-      setShowAlert("Name cannot start with a special character.");
+      setShowAlert(t("editor:asset.nameCannotStartWithASpecialCharacter", { defaultValue: "Name cannot start with a special character." }));
       return;
     }
 
@@ -76,10 +77,10 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
 
     // Check for empty or overly long names
     if (!baseNewName) {
-      setShowAlert("Name cannot be empty.");
+      setShowAlert(t("editor:asset.nameCannotBeEmpty", { defaultValue: "Name cannot be empty." }));
       return;
     } else if (baseNewName.length > 100) {
-      setShowAlert("Max file name length is 100 characters.");
+      setShowAlert(t("editor:asset.maxFileNameLengthIs100Characters", { defaultValue: "Max file name length is 100 characters." }));
       return;
     }
 
@@ -119,7 +120,7 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
       fullWidth
       title={count === 1 ? t("catalog:shortcuts.renameAsset", { defaultValue: "Rename asset" }) : `Rename ${count} assets`}
       onConfirm={() => void handleRename()}
-      confirmText="Rename"
+      confirmText={i18n.t("timeline:attrs.rename", { defaultValue: "Rename" })}
       actionButtonsProps={{
         className: "asset-rename-actions",
         confirmButtonProps: {

@@ -15,7 +15,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient } from "../../trpc/client";
 import { saveTimelineThroughEditor } from "../../stores/timeline/timelineSaveRegistry";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface ProjectSettingsPatch {
   fps?: number;

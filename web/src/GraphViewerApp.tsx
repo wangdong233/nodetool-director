@@ -158,7 +158,7 @@ function parseWorkflow(raw: unknown): Workflow {
 
   return {
     id: str(obj.id, "inline"),
-    name: str(obj.name, "Workflow"),
+    name: str(obj.name, i18n.t("editor:ui.cmWorkflow", { defaultValue: "Workflow" })),
     access: "private",
     description: "",
     thumbnail: "",

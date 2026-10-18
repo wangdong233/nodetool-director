@@ -29,7 +29,7 @@ import { ConfirmDialog } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient, type RouterOutputs } from "../../trpc/client";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 type CustomProviderRow = RouterOutputs["customProviders"]["list"][number];
 type TestResult = RouterOutputs["customProviders"]["test"];
@@ -137,7 +137,7 @@ const ProviderRow = memo(function ProviderRow({
             )}
           </FlexRow>
           <Caption sx={{ opacity: 0.55, wordBreak: "break-all" }}>
-            {provider.base_url || "No endpoint set"}
+            {provider.base_url || i18n.t("editor:ui.noEndpointSet", { defaultValue: "No endpoint set" })}
           </Caption>
           {handListed > 0 && (
             <Caption size="smaller" sx={{ opacity: 0.45 }}>
@@ -183,7 +183,7 @@ const ProviderRow = memo(function ProviderRow({
           onClick={handleTest}
           disabled={testing}
         >
-          {testing ? i18n.t("editor:ui.testing", { defaultValue: "Testing…" }) : "Test"}
+          {testing ? i18n.t("editor:ui.testing", { defaultValue: "Testing…" }) : i18n.t("editor:ui.test2", { defaultValue: "Test" })}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -286,7 +286,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       addNotification({
         type: "success",
         alert: true,
-        content: "Provider removed"
+        content: "Provider removed", contentKey: "tools:menus.providerRemoved"
       });
     }
   });
@@ -457,7 +457,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
         open={dialogOpen}
         onClose={handleClose}
         fullWidth
-        title={editingSlug ? i18n.t("editor:ui.editEndpoint", { defaultValue: "Edit endpoint" }) : "Add OpenAI-compatible endpoint"}
+        title={editingSlug ? i18n.t("editor:ui.editEndpoint", { defaultValue: "Edit endpoint" }) : i18n.t("editor:ui.addOpenAICompatibleEndpoint", { defaultValue: "Add OpenAI-compatible endpoint" })}
         onConfirm={handleSave}
         confirmText={editingSlug ? "Save" : "Add"}
         confirmDisabled={
@@ -508,7 +508,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             onChange={handleApiKeyChange}
             fullWidth
             placeholder={
-              editingSlug ? i18n.t("editor:ui.leaveBlankToKeepTheStoredKey", { defaultValue: "Leave blank to keep the stored key" }) : "Optional"
+              editingSlug ? i18n.t("editor:ui.leaveBlankToKeepTheStoredKey", { defaultValue: "Leave blank to keep the stored key" }) : i18n.t("editor:ui.optional", { defaultValue: "Optional" })
             }
             variant="outlined"
             size="small"
@@ -551,7 +551,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
         open={Boolean(pendingDelete)}
         title="Remove endpoint?"
         content={`Remove ${pendingDelete?.name ?? ""}? Workflows that reference its models stop resolving.`}
-        confirmText="Remove"
+        confirmText={i18n.t("timeline:attrs.remove", { defaultValue: "Remove" })}
         cancelText="Cancel"
         destructive
         onConfirm={confirmDelete}

@@ -12,6 +12,7 @@ import useAssets from "../../serverState/useAssets";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { Asset } from "../../stores/ApiTypes";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const AssetCreateFolderConfirmation: React.FC = () => {
   const { t } = useTranslation();
@@ -97,17 +98,17 @@ const AssetCreateFolderConfirmation: React.FC = () => {
       folderName.startsWith(" ") ||
       folderName.match(/^[-#*&]/)
     ) {
-      setShowAlert("Name cannot start with a special character.");
+      setShowAlert(t("editor:asset.nameCannotStartWithASpecialCharacter", { defaultValue: "Name cannot start with a special character." }));
       return;
     }
 
     const invalidCharsFound = folderName.match(invalidCharsRegex);
 
     if (!folderName) {
-      setShowAlert("Name cannot be empty.");
+      setShowAlert(t("editor:asset.nameCannotBeEmpty", { defaultValue: "Name cannot be empty." }));
       return;
     } else if (folderName.length > 100) {
-      setShowAlert("Max folder name length is 100 characters.");
+      setShowAlert(t("editor:asset.maxFolderNameLengthIs100Characters", { defaultValue: "Max folder name length is 100 characters." }));
       return;
     }
 
@@ -157,7 +158,7 @@ const AssetCreateFolderConfirmation: React.FC = () => {
       refetchAssetsAndFolders();
     } catch (error) {
       console.error("Failed to create folder", error);
-      setShowAlert("Failed to create folder. Please try again.");
+      setShowAlert(t("editor:asset.failedToCreateFolderPleaseTryAgain", { defaultValue: "Failed to create folder. Please try again." }));
     }
   }, [
     folderName,
@@ -182,7 +183,7 @@ const AssetCreateFolderConfirmation: React.FC = () => {
       onClose={handleClose}
       maxWidth="xs"
       fullWidth
-      title={hasSelectedAssets ? t("editor:asset.moveToNew", { defaultValue: "Move to new folder" }) : "Create folder"}
+      title={hasSelectedAssets ? t("editor:asset.moveToNew", { defaultValue: "Move to new folder" }) : i18n.t("editor:explorer.createFolder", { defaultValue: "Create folder" })}
       onConfirm={() => void handleCreateFolder()}
       confirmText={hasSelectedAssets ? "Move" : "Create"}
       actionButtonsProps={{

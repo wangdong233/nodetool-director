@@ -13,6 +13,7 @@ import VideogameAssetOutlinedIcon from "@mui/icons-material/VideogameAssetOutlin
 export type GameDimension = "2d" | "3d";
 export type GamePanelRegion = "left" | "right" | "bottom" | "viewport";
 export interface GamePanelRegistration {
+  titleKey?: string;
   readonly id: string;
   readonly title: string;
   readonly icon: ReactNode;
@@ -63,10 +64,10 @@ for (const panel of [
   { id: "revisions", title: "Revisions", icon: createElement(HistoryOutlinedIcon), defaultRegion: "left" },
   { id: "viewport", title: "Viewport", icon: createElement(VideogameAssetOutlinedIcon), defaultRegion: "viewport" },
   { id: "scripts", title: "Scripts", icon: createElement(CodeOutlinedIcon), defaultRegion: "bottom" },
-  { id: "assets", title: "Assets", icon: createElement(PermMediaOutlinedIcon), defaultRegion: "bottom" },
+  { id: "assets", title: "Assets", titleKey: "editor:explorer.title", icon: createElement(PermMediaOutlinedIcon), defaultRegion: "bottom" },
   { id: "console", title: "Console", icon: createElement(TerminalOutlinedIcon), defaultRegion: "bottom" },
   { id: "profiler", title: "Profiler", icon: createElement(SpeedOutlinedIcon), defaultRegion: "bottom" },
-  { id: "inspector", title: "Inspector", icon: createElement(TuneOutlinedIcon), defaultRegion: "right" },
+  { id: "inspector", title: "Inspector", titleKey: "timeline:editor.inspector", icon: createElement(TuneOutlinedIcon), defaultRegion: "right" },
   { id: "assistant", title: "Assistant", icon: createElement(AutoAwesomeOutlinedIcon), defaultRegion: "right" }
 ] satisfies readonly Omit<GamePanelRegistration, "dimensions">[]) {
   gamePanelRegistry.register({ ...panel, dimensions });

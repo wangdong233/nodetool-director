@@ -5,6 +5,7 @@ import type { Theme } from "@mui/material/styles";
 import { Tooltip, ToolbarIconButton, MOTION, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import { memo, useMemo } from "react";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme, isBypassed: boolean) =>
   css({
@@ -86,7 +87,7 @@ const BypassGroupButton: React.FC<BypassGroupButtonProps> = memo(({
           style={tooltipContainerStyles}
         >
           <span style={titleTextStyles}>
-            {isBypassed ? "Enable all nodes" : "Disable all nodes"}
+            {isBypassed ? i18n.t("editor:ui.enableAllNodes", { defaultValue: "Enable all nodes" }) : i18n.t("editor:ui.disableAllNodes", { defaultValue: "Disable all nodes" })}
           </span>
           <span style={shortcutStyles}>
             <kbd>B</kbd>

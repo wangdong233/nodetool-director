@@ -20,6 +20,7 @@ import { MODEL_GOALS } from "./modelFit";
 import { MODEL_FORMATS } from "./modelFormat";
 import type { UseModelsResult } from "./useModels";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 const AVAILABILITY_FILTERS: {
   value: ModelAvailabilityFilter;
@@ -27,7 +28,7 @@ const AVAILABILITY_FILTERS: {
   labelKey?: string;
   color: "default" | "success" | "warning";
 }[] = [
-  { value: "all", label: "All", color: "default" },
+  { value: "all", label: i18n.t("editor:ui.catAll", { defaultValue: "All" }), color: "default" },
   { value: "ready", label: "Ready", color: "success" },
   {
     value: "download_required",
@@ -181,7 +182,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
             value={maxModelSizeGB}
             onChange={handleSizeChange}
             valueLabelDisplay="auto"
-            valueLabelFormat={(value) => (value === 0 ? "All" : `${value} GB`)}
+            valueLabelFormat={(value) => (value === 0 ? i18n.t("editor:ui.catAll", { defaultValue: "All" }) : `${value} GB`)}
             step={1}
             min={0}
             max={50}

@@ -14,7 +14,7 @@ import {
   clearRunSignatures
 } from "../../stores/runSignatures";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 export type InlineGraph = WorkflowGraph;
 

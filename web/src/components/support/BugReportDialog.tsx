@@ -54,6 +54,7 @@ import {
   type BundleSection
 } from "../../utils/bugReportBundle";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const GITHUB_ISSUE_URL = "https://github.com/nodetool-ai/nodetool/issues/new";
 
@@ -349,7 +350,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         maxWidth="sm"
         fullWidth
         onConfirm={handleOpenIssue}
-        confirmText="Open GitHub issue"
+        confirmText={i18n.t("editor:ui.openGitHubIssue", { defaultValue: "Open GitHub issue" })}
         cancelText="Later"
       >
         <FlexColumn gap={SPACING.lg}>
@@ -374,15 +375,15 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
       maxWidth="md"
       fullWidth
       onConfirm={() => void handleSaveBundle()}
-      confirmText={SUBMIT_TO_BACKEND ? t("editor:ui.sendReport", { defaultValue: "Send report" }) : "Save report bundle"}
+      confirmText={SUBMIT_TO_BACKEND ? t("editor:ui.sendReport", { defaultValue: "Send report" }) : i18n.t("editor:ui.saveReportBundle", { defaultValue: "Save report bundle" })}
       confirmDisabled={description.trim() === ""}
       isLoading={busy}
     >
       <FlexColumn gap={SPACING.lg}>
         <AlertBanner severity="info">
           {SUBMIT_TO_BACKEND
-            ? "Your report and the data checked below are sent to this NodeTool server. Review what it contains before you send it."
-            : "Nothing is uploaded. NodeTool saves a zip to your downloads. You then open a pre-filled GitHub issue and attach the zip there. Review what it contains below."}
+            ? i18n.t("editor:ui.yourReportAndTheDataCheckedBelowAreSentToThisNodetoolServer", { defaultValue: "Your report and the data checked below are sent to this NodeTool server. Review what it contains before you send it." })
+            : i18n.t("editor:ui.nothingIsUploaded", { defaultValue: "Nothing is uploaded. NodeTool saves a zip to your downloads. You then open a pre-filled GitHub issue and attach the zip there. Review what it contains below." })}
         </AlertBanner>
 
         <Caption>Reported from: {sourceLabel(context.source)}</Caption>
@@ -404,7 +405,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
           multiline
           minRows={3}
           fullWidth
-          placeholder={"1. Open …\n2. Add a … node\n3. Run the workflow"}
+          placeholder={i18n.t("editor:ui.bugReportStepsPlaceholder", { defaultValue: "1. Open …\n2. Add a … node\n3. Run the workflow" })}
         />
         <TextInput
           label={t("editor:ui.whatDidYouExpect", { defaultValue: "What did you expect?" })}
@@ -419,7 +420,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
           <SectionHeader
             size="small"
             title={t("ui2:attrs.attachedData", { defaultValue: "Attached data" })}
-            subtitle="API keys and inlined media are removed before the file is written. Open any file to read it first."
+            subtitle={i18n.t("editor:ui.apiKeysAndInlinedMediaAreRemoved", { defaultValue: "API keys and inlined media are removed before the file is written. Open any file to read it first." })}
           />
 
           {allSections.length === 0 ? (
@@ -492,7 +493,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
           <SectionHeader
             size="small"
             title={t("ui2:attrs.screenshotsAndOtherFiles", { defaultValue: "Screenshots and other files" })}
-            subtitle="A screenshot of the broken screen is the most useful thing you can add."
+            subtitle={i18n.t("editor:ui.aScreenshotOfTheBrokenScreen", { defaultValue: "A screenshot of the broken screen is the most useful thing you can add." })}
           />
           <UploadButton
             label="Add files"

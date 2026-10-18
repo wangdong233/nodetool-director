@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { trpcClient } from "../trpc/client";
 import { createErrorMessage } from "../utils/errorHandling";
 import type { SettingWithValue } from "./ApiTypes";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 export type { SettingWithValue };
 

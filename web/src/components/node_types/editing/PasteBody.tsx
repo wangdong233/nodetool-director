@@ -29,6 +29,7 @@ import {
 } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
 import { PASTE_NODE_TYPE } from "../../../constants/nodeTypes";
+import { i18n } from "../../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -188,7 +189,7 @@ const PasteBodyInner: React.FC<PasteBodyProps> = ({
       <div className="preview-area">
         <ImagePreview
           value={previewValue ?? baseValue}
-          message="Connect Image and Paste, then run"
+          message={i18n.t("editor:ui.connectImageAndPasteThenRun", { defaultValue: "Connect Image and Paste, then run" })}
         />
         {overlayRect && (
           <div
@@ -234,7 +235,7 @@ const PasteBodyInner: React.FC<PasteBodyProps> = ({
               id={`paste-top-${id}`}
               nodeId={id}
               name="top"
-              description={topProperty.description ?? "Top offset"}
+              description={topProperty.description ?? i18n.t("editor:ui.topOffset", { defaultValue: "Top offset" })}
               value={top}
               min={topProperty.min ?? 0}
               max={topProperty.max ?? 4096}

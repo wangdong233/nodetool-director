@@ -12,6 +12,7 @@ import {
 import StraightenIcon from "@mui/icons-material/Straighten";
 import useModelFiltersStore, { SizeBucket } from "../../stores/ModelFiltersStore";
 import { isProduction } from "../../lib/env";
+import { i18n } from "../../../i18n";
 
 const barStyles = css({
   display: "flex",
@@ -46,7 +47,7 @@ const ModelFiltersBar: React.FC = () => {
         <>
           <ToolbarIconButton
             icon={<StraightenIcon fontSize="small" />}
-            tooltip={sizeBucket ? `Size: ${sizeBucket}` : "Filter by size"}
+            tooltip={sizeBucket ? `Size: ${sizeBucket}` : i18n.t("editor:ui.filterBySize", { defaultValue: "Filter by size" })}
             onClick={(e) => setSizeAnchor(e.currentTarget)}
             size="small"
             active={!!sizeBucket || openSize}
@@ -64,7 +65,7 @@ const ModelFiltersBar: React.FC = () => {
                 setSizeBucket(null);
               }}
             >
-              <ListItemText primary="Any size" />
+              <ListItemText primary={i18n.t("editor:ui.anySize", { defaultValue: "Any size" })} />
             </EditorMenuItem>
             {sizeOptions.map((s) => (
               <EditorMenuItem

@@ -38,13 +38,14 @@ import { createGameViewportOverlays3D, disposeGameViewportOverlays3D } from "./g
 import GameOrientationGizmo3D, { createGameCameraOrientation3D } from "./GameOrientationGizmo3D";
 import type { GamePlaySession3D } from "../useGamePlaySession3D";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 /** What a viewport edit did, for the undo label. `Ground` is Align to ground. */
 export type GameViewportAction3D = "Move" | "Rotate" | "Scale" | "Ground";
 
 const TOOLS: readonly { mode: GameGizmoMode3D; label: string; command: "tool.move" | "tool.rotate" | "tool.scale"; icon: ReactNode }[] = [
   { mode: "translate", label: "Move", command: "tool.move", icon: <OpenWithIcon fontSize="small" /> },
-  { mode: "rotate", label: "Rotate", command: "tool.rotate", icon: <ThreeSixtyIcon fontSize="small" /> },
+  { mode: "rotate", label: "Rotate", labelKey: "game:tool.rotate", command: "tool.rotate", icon: <ThreeSixtyIcon fontSize="small" /> },
   { mode: "scale", label: "Scale", command: "tool.scale", icon: <OpenInFullIcon fontSize="small" /> }
 ];
 const ACTIONS: Readonly<Record<GameGizmoMode3D, GameViewportAction3D>> = { translate: "Move", rotate: "Rotate", scale: "Scale" };
@@ -534,7 +535,7 @@ export default function GameViewport3D({ document, host, selectedIds = NO_IDS, h
   const hint = host.playDocument ? mouseLook
     ? "Use the game's controls. Click for mouse look, Esc to release it."
     : "Use the game's controls. Mouse buttons work without pointer capture."
-    : flyMode ? t("game:viewport.flyHint", { defaultValue: "WASD to fly. R/F to rise and descend. Drag to look." }) : "Drag to orbit. Shift-drag to pan. Scroll to zoom. Shift-click adds to the selection.";
+    : flyMode ? t("game:viewport.flyHint", { defaultValue: "WASD to fly. R/F to rise and descend. Drag to look." }) : i18n.t("game:viewport:orbitHint3d", { defaultValue: "Drag to orbit. Shift-drag to pan. Scroll to zoom. Shift-click adds to the selection." });
   return <FlexColumn sx={{ flex: 1, minHeight: 0, minWidth: 0 }}>
     {!playerOnly && <GamePanelHeader title={t("game:panels.viewport", { defaultValue: "Viewport" })} label={host.playDocument ? "Game" : "Scene"}
       icon={host.playDocument ? <SportsEsportsOutlinedIcon sx={HEADER_ICON_SX} /> : <GridViewOutlinedIcon sx={HEADER_ICON_SX} />}>

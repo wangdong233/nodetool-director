@@ -38,6 +38,7 @@ import {
   useStoryboardSetupStage
 } from "../setup/storyboard/useStoryboardSetupFlow";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface StoryboardSurfaceProps {
   refId: string;
@@ -50,7 +51,7 @@ interface StoryboardSurfaceProps {
 type MobilePane = "board" | "assistant";
 
 const MOBILE_TABS = [
-  { value: "board", label: "Board", icon: <TheatersIcon /> },
+  { value: "board", label: i18n.t("storyboard:attrs.board", { defaultValue: "Board" }), icon: <TheatersIcon /> },
   { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
 ];
 
@@ -174,7 +175,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
     if (desktopAssistant) {
       commands.push({
         id: "assistant",
-        label: assistantOpen ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : "Show assistant",
+        label: assistantOpen ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" }),
         run: toggleAssistant
       });
     }
@@ -311,7 +312,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
           >
             <ResizableSideDock
               storageKey="storyboard_assistant"
-              ariaLabel="Resize storyboard assistant"
+              ariaLabel={t("ui2:attrs.resizeStoryboardAssistant", { defaultValue: "Resize storyboard assistant" })}
               enabled={!isMobile}
             >
               <StoryboardAgentPanel boardId={refId} />

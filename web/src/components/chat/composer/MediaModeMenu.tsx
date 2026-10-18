@@ -18,6 +18,7 @@ import {
 } from "../../ui_primitives";
 import type { MediaMode } from "../../../stores/MediaGenerationStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface MediaModeMenuProps {
   anchorEl: HTMLElement | null;
@@ -136,7 +137,7 @@ const MediaModeMenu: React.FC<MediaModeMenuProps> = ({
       anchorOrigin={{ vertical: "top", horizontal: "left" }}
       transformOrigin={{ vertical: "bottom", horizontal: "left" }}
       minWidth={240}
-      slotProps={{ list: { "aria-label": "Generation mode" } }}
+      slotProps={{ list: { "aria-label": i18n.t("editor:ui.generationMode", { defaultValue: "Generation mode" }) } }}
     >
       <ListSubheader>{t("ui2:attrs.mode", { defaultValue: "Mode" })}</ListSubheader>
       {MODES.filter((m) => !modes || modes.includes(m.id)).map((m) => {

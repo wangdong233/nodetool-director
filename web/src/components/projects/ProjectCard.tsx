@@ -27,6 +27,7 @@ import {
 } from "./projectStatus";
 import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
 import ProjectLifecycleActions from "./ProjectLifecycleActions";
+import { i18n } from "../../../i18n";
 
 const MEDIA_HEIGHT = 176;
 const EMPTY_MEDIA_HEIGHT_XS = 72;
@@ -177,7 +178,7 @@ const ProjectCard = ({ detail, onOpen, onDropDocument }: ProjectCardProps) => {
               </FlexRow>
             )}
             <Caption color="muted">
-              {documents.length === 0 ? "Nothing made yet" : "No stills yet"}
+              {documents.length === 0 ? i18n.t("home:docs:nothingMadeYet", { defaultValue: "Nothing made yet" }) : i18n.t("ui2:attrs.noStillsYet", { defaultValue: "No stills yet" })}
             </Caption>
           </FlexColumn>
         )}

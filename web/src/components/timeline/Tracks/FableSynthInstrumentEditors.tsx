@@ -30,7 +30,7 @@ import { useBatchedGesture } from "../../../hooks/timeline/useBatchedGesture";
 
 import "./fablesynth-editor.css";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 type FableInstrument = Exclude<MidiInstrument, { type: "subtractive" | "sampler" }>;
 type KnobSize = "lg" | "md" | "sm" | "xs";
@@ -977,7 +977,7 @@ const FableSynthInstrumentEditor = ({
         <Caption className="fs-description">
           {instrument.type === "bass"
             ? t("timeline:attrs.bassSynthesizer", { defaultValue: "Bass synthesizer" }) : instrument.type === "wavetable"
-              ? t("timeline:attrs.wavetableSynthesizer", { defaultValue: "Wavetable synthesizer" }) : "Drum synthesizer"}
+              ? t("timeline:attrs.wavetableSynthesizer", { defaultValue: "Wavetable synthesizer" }) : i18n.t("timeline:attrs.drumSynthesizer", { defaultValue: "Drum synthesizer" })}
         </Caption>
         <EditorButton
           size="small"

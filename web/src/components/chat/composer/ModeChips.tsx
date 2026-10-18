@@ -56,7 +56,7 @@ import {
   videoModelPatch
 } from "./modelSelection";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** Static option lists — the same rows whatever the model. */
 const VARIATIONS_OPTIONS: MediaOption<number>[] = IMAGE_VARIATIONS.map((n) => ({
@@ -94,7 +94,7 @@ const REFERENCE_AUDIO_OPTIONS: MediaOption<string>[] = [
   {
     id: "on",
     label: i18n.t("editor:ui.referenceAudio", { defaultValue: "Reference audio" }),
-    description: "keep the reference video's track",
+    description: i18n.t("editor:ui.keepReferenceVideoTrack", { defaultValue: "keep the reference video's track" }),
     icon: <VolumeUpIcon fontSize="small" />
   }
 ];
@@ -110,6 +110,7 @@ interface ClusterProps {
 }
 
 function MusicModeChips({ openModelPickerRef }: ClusterProps) {
+  const { t } = useTranslation();
   const params = useMediaGenerationStore((s) => s.music);
   const setParams = useMediaGenerationStore((s) => s.setMusicParams);
   const addRecentModel = useModelPreferencesStore((s) => s.addRecent);
@@ -142,7 +143,7 @@ function MusicModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<AccessTimeIcon fontSize="small" />}
         label={`${params.duration} Sec`}
-        header="Target duration"
+        header={t("timeline:attrs.targetDuration", { defaultValue: "Target duration" })}
         title={`Target duration: ${params.duration} seconds. The model may adjust or ignore this.`}
         value={params.duration}
         options={MUSIC_DURATIONS.map((id) => ({ id, label: `${id} Sec` }))}
@@ -166,7 +167,7 @@ function ImageModeChips({ openModelPickerRef }: ClusterProps) {
       <ModelChip
         openRef={openModelPickerRef}
         icon={null}
-        label={params.model?.name || "Select model"}
+        label={params.model?.name || i18n.t("storyboard:attrs.selectModel", { defaultValue: "Select model" })}
         picker={{
           kind: "image",
           task: "text_to_image",
@@ -297,6 +298,7 @@ function ImageEditModeChips({ openModelPickerRef }: ClusterProps) {
 }
 
 function VideoModeChips({ openModelPickerRef }: ClusterProps) {
+  const { t } = useTranslation();
   const params = useMediaGenerationStore((s) => s.video);
   const setParams = useMediaGenerationStore((s) => s.setVideoParams);
   const addRecentModel = useModelPreferencesStore((s) => s.addRecent);
@@ -332,7 +334,7 @@ function VideoModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<DisplaySettingsIcon fontSize="small" />}
         label={params.resolution}
-        header="Video resolution"
+        header={t("timeline:attrs.videoResolution", { defaultValue: "Video resolution" })}
         value={params.resolution}
         options={resolutionOptions}
         onChange={(resolution) => setParams({ resolution })}
@@ -350,6 +352,7 @@ function VideoModeChips({ openModelPickerRef }: ClusterProps) {
 }
 
 function ImageToVideoModeChips({ openModelPickerRef }: ClusterProps) {
+  const { t } = useTranslation();
   const params = useMediaGenerationStore((s) => s.imageToVideo);
   const setParams = useMediaGenerationStore((s) => s.setImageToVideoParams);
   const addRecentModel = useModelPreferencesStore((s) => s.addRecent);
@@ -404,7 +407,7 @@ function ImageToVideoModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<DisplaySettingsIcon fontSize="small" />}
         label={params.resolution}
-        header="Video resolution"
+        header={t("timeline:attrs.videoResolution", { defaultValue: "Video resolution" })}
         value={params.resolution}
         options={resolutionOptions}
         onChange={(resolution) => setParams({ resolution })}
@@ -468,7 +471,7 @@ function ReferenceToVideoModeChips({ openModelPickerRef }: ClusterProps) {
         menu="option"
         icon={<DisplaySettingsIcon fontSize="small" />}
         label={params.resolution}
-        header="Video resolution"
+        header={t("timeline:attrs.videoResolution", { defaultValue: "Video resolution" })}
         value={params.resolution}
         options={resolutionOptions}
         onChange={(resolution) => setParams({ resolution })}
@@ -484,7 +487,7 @@ function ReferenceToVideoModeChips({ openModelPickerRef }: ClusterProps) {
       <OptionChip
         menu="option"
         icon={<VolumeUpIcon fontSize="small" />}
-        label={params.useReferenceVideoAudio ? t("editor:ui.referenceAudio", { defaultValue: "Reference audio" }) : "Model audio"}
+        label={params.useReferenceVideoAudio ? t("editor:ui.referenceAudio", { defaultValue: "Reference audio" }) : i18n.t("editor:ui.modelAudio", { defaultValue: "Model audio" })}
         header="Audio source"
         value={params.useReferenceVideoAudio ? "on" : "off"}
         options={REFERENCE_AUDIO_OPTIONS}

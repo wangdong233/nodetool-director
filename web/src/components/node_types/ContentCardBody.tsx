@@ -94,6 +94,7 @@ import {
 import { resolveInlineMediaSource } from "../../utils/resolveMediaUri";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -517,7 +518,7 @@ const VideoPreview: React.FC<{ value: unknown; nodeId: string }> = ({
       console.error("VideoPreview: add to assets failed", error);
       addNotification({
         type: "error",
-        content: "Failed to add video to assets"
+        content: i18n.t("editor:ui.failedToAddVideoToAssets", { defaultValue: "Failed to add video to assets" })
       });
     }
   }, [value, nodeId, createAsset, addNotification]);
@@ -638,11 +639,11 @@ const PreviewArea: React.FC<{
       );
     }
     const empty = {
-      image: { message: "Run to generate", icon: <ImageIcon /> },
-      video: { message: "Run to generate video", icon: <MovieIcon /> },
-      text: { message: "Run to generate text", icon: <TextFieldsIcon /> },
-      audio: { message: "Run to generate audio", icon: <AudiotrackIcon /> },
-      model_3d: { message: "Run to generate 3D", icon: <ViewInArIcon /> },
+      image: { message: "Run to generate", messageKey: "editor:nodeBody.runImage", icon: <ImageIcon /> },
+      video: { message: "Run to generate video", messageKey: "editor:nodeBody.runVideo", icon: <MovieIcon /> },
+      text: { message: "Run to generate text", messageKey: "editor:nodeBody.runText", icon: <TextFieldsIcon /> },
+      audio: { message: "Run to generate audio", messageKey: "editor:nodeBody.runAudio", icon: <AudiotrackIcon /> },
+      model_3d: { message: "Run to generate 3D", messageKey: "editor:nodeBody.run3d", icon: <ViewInArIcon /> },
       generic: { message: "Run model", icon: undefined }
     } satisfies Record<
       Exclude<ContentCardVariant, "image_mask">,

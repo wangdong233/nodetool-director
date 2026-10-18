@@ -44,7 +44,7 @@ import {
 } from "../../stores/MediaGenerationStore";
 import { useTranslation } from "react-i18next";
 
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 function cycleArrayValue<T>(
   values: readonly T[],
@@ -217,7 +217,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
         <Tooltip
           title={
             canvasResizeHandlesEnabled
-              ? i18n.t("sketch:attrs.hideResizeHandlesOnCanvas", { defaultValue: "Hide resize handles on canvas" }) : "Show resize handles on canvas"
+              ? i18n.t("sketch:attrs.hideResizeHandlesOnCanvas", { defaultValue: "Hide resize handles on canvas" }) : i18n.t("sketch:attrs.showResizeHandlesOnCanvas", { defaultValue: "Show resize handles on canvas" })
           }
           placement="left"
         >
@@ -226,7 +226,7 @@ const SketchCanvasSizePanel: React.FC<SketchCanvasSizePanelProps> = ({
             checked={canvasResizeHandlesEnabled}
             onChange={(_, checked) => onCanvasResizeHandlesEnabledChange(checked)}
             inputProps={{
-              "aria-label": "Toggle canvas resize handles"
+              "aria-label": i18n.t("sketch:attrs.toggleCanvasResizeHandles", { defaultValue: "Toggle canvas resize handles" })
             }}
           />
         </Tooltip>

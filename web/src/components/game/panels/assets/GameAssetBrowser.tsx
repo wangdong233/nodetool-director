@@ -17,6 +17,8 @@ import { AutoGrid, BORDER_RADIUS, Box, Caption, Chip, CONTROL, Dialog, Divider, 
 import GameAssetThumbnail from "./GameAssetThumbnail";
 import { GAME_ASSET_KIND_FILTERS, candidatesForSlot, panelGenerationKind, shortDigest, type GameAssetBrowserTab,
   type GameAssetPanelGenerationKind, type GameAssetSource } from "./gameAssetBrowserModel";
+import { i18n } from "../../../../../i18n";
+import { useTranslation } from "react-i18next";
 
 export interface GameAssetBrowserProps {
   readonly gameId: string;
@@ -39,9 +41,9 @@ interface GenerationDraft {
 type ViewMode = "grid" | "list";
 
 const TABS: readonly GameAssetBrowserTab[] = ["assets", "prefabs", "scenes"];
-const TAB_LABELS: Readonly<Record<GameAssetBrowserTab, string>> = { assets: "Assets", prefabs: "Prefabs", scenes: "Scenes" };
+const TAB_LABELS: Readonly<Record<GameAssetBrowserTab, string>> = { assets: "Assets", prefabs: "Prefabs", scenes: i18n.t("game:assets.tabScenes", { defaultValue: "Scenes" }) };
 const KIND_LABELS: Readonly<Record<GameAssetMediaKind, string>> = {
-  image: "Images", audio: "Audio", font: "Fonts", model: "Models", collider: "Colliders", hdri: "HDRIs"
+  image: "Images", audio: "Audio", font: i18n.t("game:assets.kindFont", { defaultValue: "Fonts" }), model: "Models", collider: i18n.t("game:viewport.colliders", { defaultValue: "Colliders" }), hdri: i18n.t("game:assets.kindHdri", { defaultValue: "HDRIs" })
 };
 const KIND_NAMES: Readonly<Record<GameAssetMediaKind, string>> = {
   image: "Image", audio: "Audio", font: "Font", model: "Model", collider: "Collider", hdri: "HDRI"
@@ -98,7 +100,7 @@ function ReferenceList({ references, onSelectEntity }: {
   readonly references: readonly GameAssetReference[];
   readonly onSelectEntity: (sceneId: string, entityId: string) => void;
 }): ReactElement {
-  if (references.length === 0) { return <Caption sx={{ px: SPACING.sm }}>Not used by any entity, scene or prefab.</Caption>; }
+  if (references.length === 0) { return <Caption sx={{ px: SPACING.sm }}>{i18n.t("game:assets.notUsedBy", { defaultValue: "Not used by any entity, scene or prefab." })}</Caption>; }
   return <FlexColumn gap={SPACING.none}>
     {references.map((reference) => {
       const { sceneId, entityId } = reference;
@@ -143,6 +145,7 @@ function KindIcon({ kind }: { readonly kind: "prefab" | "scene" }): ReactElement
  * regenerate with a new prompt, or bind a staged candidate in place.
  */
 export default function GameAssetBrowser({ gameId, document, runServerEdit, onOps, onSelectEntity, onAskAssistant }: GameAssetBrowserProps): ReactElement {
+  const { t } = useTranslation();
   const dimension = document.schemaVersion === 3 ? "3d" : "2d";
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<GameAssetMediaKind | "all">("all");
@@ -221,7 +224,7 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
           {entry.siblingOf && <InspectorFieldRow label="Frame of">
             <ItemRow label={entry.siblingOf} onClick={() => setSelectedSlot(entry.siblingOf ?? null)} ariaLabel={`Open asset ${entry.siblingOf}`} />
           </InspectorFieldRow>}
-          {request?.prompt && <InspectorFieldRow label="Prompt">
+          {request?.prompt && <InspectorFieldRow label={i18n.t("sketch:attrs.prompt", { defaultValue: "Prompt" })}>
             <Box sx={{ ...TYPOGRAPHY.sans.label, minWidth: 0 }}><TruncatedText variant="inherit">{request.prompt}</TruncatedText></Box>
           </InspectorFieldRow>}
         </FlexColumn>
@@ -255,9 +258,9 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
                 digest={candidate.digest} label={`Candidate ${shortDigest(candidate.digest)}`} />
               <FlexColumn sx={{ flex: 1, minWidth: 0 }}>
                 <Box sx={{ ...TYPOGRAPHY.sans.label, minWidth: 0 }}><TruncatedText variant="inherit">{candidate.prompt ?? shortDigest(candidate.digest)}</TruncatedText></Box>
-                <Caption>{candidate.slot ? `Made for ${candidate.slot}` : "Unrecorded"} · {new Date(candidate.modified_at).toLocaleString()}</Caption>
+                <Caption>{candidate.slot ? `Made for ${candidate.slot}` : i18n.t("game:assets.unrecorded", { defaultValue: "Unrecorded" })} · {new Date(candidate.modified_at).toLocaleString()}</Caption>
               </FlexColumn>
-              {current ? <Chip compact label="Current" />
+              {current ? <Chip compact label={i18n.t("timeline:attrs.current", { defaultValue: "Current" })} />
                 : <EditorButton variant="outlined" disabled={busy} onClick={() => void install(entry.slot, candidate.digest)}>Use</EditorButton>}
             </FlexRow>;
           })}</FlexColumn>}
@@ -280,14 +283,14 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
       </>
       : scene && <>
         <FlexColumn gap={SPACING.sm} sx={{ pb: SPACING.md }}>
-          <DetailHeader preview={<KindIcon kind="scene" />} title={scene.name} badge={scene.entry && <Chip compact label="Entry" />}
+          <DetailHeader preview={<KindIcon kind="scene" />} title={scene.name} badge={scene.entry && <Chip compact label={i18n.t("game:assets.entryChip", { defaultValue: "Entry" })} />}
             subtitle={`Scene · ${plural(scene.entityCount, "entity", "entities")} · ${plural(scene.assets.length, "asset")}`} />
         </FlexColumn>
         <InspectorSection title={`Assets (${scene.assets.length})`}>{assetRows(scene.assets)}</InspectorSection>
       </>;
 
   const assetMeta = (entry: GameAssetCatalogEntry): ReactNode => <>
-    {entry.staleSiblings.length > 0 && <Caption color="warning">Frames out of date</Caption>}
+    {entry.staleSiblings.length > 0 && <Caption color="warning">{i18n.t("game:assets.framesOutOfDate", { defaultValue: "Frames out of date" })}</Caption>}
     <span>{KIND_NAMES[entry.mediaKind]}</span>
     <span>{entry.usedBy.length}×</span>
   </>;
@@ -303,7 +306,7 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
         <FlexColumn sx={{ minWidth: 0, px: SPACING.micro }}>
           <Box sx={{ ...TYPOGRAPHY.sans.label, minWidth: 0 }}><TruncatedText variant="inherit">{entry.slot}</TruncatedText></Box>
           <Caption color={entry.staleSiblings.length > 0 ? "warning" : undefined}>
-            {entry.staleSiblings.length > 0 ? "Frames out of date" : `${KIND_NAMES[entry.mediaKind]} · ${entry.usedBy.length}×`}
+            {entry.staleSiblings.length > 0 ? i18n.t("game:assets.framesOutOfDate", { defaultValue: "Frames out of date" }) : `${KIND_NAMES[entry.mediaKind]} · ${entry.usedBy.length}×`}
           </Caption>
         </FlexColumn>
       </FlexColumn>)
@@ -313,11 +316,11 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
         meta={<><span>{plural(entry.entityCount, "entity", "entities")}</span><span>{plural(entry.usedBy.length, "instance")}</span></>} />)
       : filtered.scenes.map((entry) => <ItemRow key={entry.id} selected={entry.id === scene?.id} onClick={() => setSelectedScene(entry.id)}
         ariaLabel={`Scene ${entry.name}`} leading={<KindIcon kind="scene" />} label={entry.name}
-        meta={<>{entry.entry && <Chip compact label="Entry" />}<span>{plural(entry.entityCount, "entity", "entities")}</span></>} />);
+        meta={<>{entry.entry && <Chip compact label={i18n.t("game:assets.entryChip", { defaultValue: "Entry" })} />}<span>{plural(entry.entityCount, "entity", "entities")}</span></>} />);
   const grid = tab === "assets" && view === "grid";
 
   return <FieldDensityContext.Provider value="compact">
-    <FlexColumn fullHeight aria-label="Asset browser" sx={{ minHeight: 0, containerType: "inline-size", containerName: "asset-browser" }}>
+    <FlexColumn fullHeight aria-label={i18n.t("game:assets.browserAria", { defaultValue: "Asset browser" })} sx={{ minHeight: 0, containerType: "inline-size", containerName: "asset-browser" }}>
       <FlexRow role="toolbar" aria-label="Assets toolbar" gap={SPACING.sm} align="center" wrap
         sx={{ flexShrink: 0, minHeight: CONTROL.height.md, px: SPACING.sm, py: SPACING.micro, borderBottom: 1, borderColor: "divider" }}>
         <ToggleGroup quiet exclusive size="small" aria-label="Browse" value={tab}
@@ -329,7 +332,7 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
         </ToggleGroup>
         <Divider orientation="vertical" flexItem sx={{ [STACKED]: { display: "none" } }} />
         <FlexRow gap={SPACING.sm} align="center" sx={{ flex: "1 1 auto", minWidth: 0, [STACKED]: { order: 2, flexBasis: "100%" } }}>
-          <SearchInput value={query} onChange={setQuery} placeholder="Search" ariaLabel="Search assets" size="small"
+          <SearchInput value={query} onChange={setQuery} placeholder="Search" ariaLabel={i18n.t("game:assets.searchAria", { defaultValue: "Search assets" })} size="small"
             sx={{ flex: "1 1 auto", minWidth: 0 }} />
           <Box sx={{ flexShrink: 0, width: getSpacingPx(30) }}>
             <SelectField label="Type" hideLabel size="small" value={kind} onChange={(value) => setKind(value as GameAssetMediaKind | "all")}
@@ -351,8 +354,8 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
         <ScrollArea thin aria-label={`${TAB_LABELS[tab]} list`} sx={{ flex: 1, minWidth: 0, minHeight: 0, p: SPACING.xs }}>
           {items.length === 0
             ? <FlexColumn gap={SPACING.micro} align="center" sx={{ py: SPACING.lg, px: SPACING.md, textAlign: "center" }}>
-              <Text size="small" weight={500}>{filtering ? "Nothing matches" : `No ${tab}`}</Text>
-              {filtering && <Caption>Clear the search or the type filter.</Caption>}
+              <Text size="small" weight={500}>{filtering ? i18n.t("game:assets.nothingMatches", { defaultValue: "Nothing matches" }) : `No ${tab}`}</Text>
+              {filtering && <Caption>{i18n.t("game:assets.clearFilters", { defaultValue: "Clear the search or the type filter." })}</Caption>}
             </FlexColumn>
             : grid ? <AutoGrid minItemWidth={TILE_MIN_WIDTH} gap={SPACING.xs}>{items}</AutoGrid>
             : <FlexColumn gap={SPACING.none}>{items}</FlexColumn>}
@@ -366,7 +369,7 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
         </ScrollArea>}
       </FlexRow>
       <Dialog open={generation !== null} title={generation ? `Generate ${generation.slot}` : ""} onClose={() => setGeneration(null)}
-        showActions confirmText="Generate and install" isLoading={busy} onConfirm={() => {
+        showActions confirmText={i18n.t("game:assets.generateAndInstall", { defaultValue: "Generate and install" })} isLoading={busy} onConfirm={() => {
           if (!generation || !generation.prompt.trim()) { return; }
           const draft = generation;
           setGeneration(null);
@@ -374,7 +377,7 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
         }}>
         <FlexColumn gap={SPACING.sm}>
           <Text>The result is staged under the game's assets and bound to the slot. Earlier files stay listed as candidates.</Text>
-          <TextArea label="Prompt" rows={5} value={generation?.prompt ?? ""}
+          <TextArea label={i18n.t("sketch:attrs.prompt", { defaultValue: "Prompt" })} rows={5} value={generation?.prompt ?? ""}
             onChange={(value) => setGeneration((current) => current ? { ...current, prompt: value } : current)} />
           {generation?.preparation && <Caption>Preparation: {JSON.stringify(generation.preparation)}</Caption>}
         </FlexColumn>

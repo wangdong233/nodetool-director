@@ -14,6 +14,7 @@ import {
 import { SxProps, Theme } from "@mui/material";
 import { sxEntries } from "./tokens";
 import { MENU_MIN_WIDTH } from "./menuStyles";
+import { i18n } from "../../../i18n";
 
 export interface ContextMenuProps extends Omit<MuiMenuProps, "anchorPosition"> {
   /** Position for right-click context menus */
@@ -32,7 +33,7 @@ export interface ContextMenuProps extends Omit<MuiMenuProps, "anchorPosition"> {
  * @example
  * // Anchor-based dropdown menu
  * <ContextMenu open={open} anchorEl={anchorEl} onClose={handleClose}>
- *   <MenuItemPrimitive label="Edit" onClick={handleEdit} />
+ *   <MenuItemPrimitive label={i18n.t("storyboard:attrs.stillTabEdit", { defaultValue: "Edit" })} onClick={handleEdit} />
  *   <MenuItemPrimitive label="Delete" color="error" onClick={handleDelete} />
  * </ContextMenu>
  *

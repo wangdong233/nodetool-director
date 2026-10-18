@@ -38,6 +38,7 @@ import {
 import type { TempoGridDivision } from "@nodetool-ai/timeline";
 import { GRID_DIVISION_OPTIONS } from "../Tracks/tempoGrid";
 import { PianoRoll } from "./PianoRoll";
+import { i18n } from "../../../../i18n";
 
 const HANDLE_HEIGHT_PX = 6;
 /** Arrow-key step for keyboard resizing. */
@@ -161,7 +162,7 @@ export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
             ref={handleRef}
             role="separator"
             aria-orientation="horizontal"
-            aria-label="Resize note editor"
+            aria-label={i18n.t("editor:ui.resizeNoteEditor", { defaultValue: "Resize note editor" })}
             aria-valuenow={heightPx}
             aria-valuemin={MIN_PIANO_ROLL_HEIGHT_PX}
             aria-valuemax={MAX_PIANO_ROLL_HEIGHT_PX}
@@ -189,7 +190,7 @@ export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
                 {fullHeight && !docked && (
                   <ToolbarIconButton
                     onClick={closePianoRoll}
-                    tooltip="Back to tracks"
+                    tooltip={i18n.t("editor:ui.backToTracks", { defaultValue: "Back to tracks" })}
                     aria-label="Back to tracks"
                   >
                     <ArrowBackIosNewIcon fontSize="small" />
@@ -201,17 +202,17 @@ export const PianoRollPanel: React.FC<PianoRollPanelProps> = memo(
                 <Caption color="muted" sx={{ whiteSpace: "nowrap" }}>
                   {clip.notes?.length ?? 0} {(clip.notes?.length ?? 0) === 1 ? "note" : "notes"}
                 </Caption>
-                <SelectField label="Note grid" hideLabel size="small" value={gridDivision}
+                <SelectField label={i18n.t("editor:ui.noteGrid", { defaultValue: "Note grid" })} hideLabel size="small" value={gridDivision}
                   options={GRID_DIVISION_OPTIONS} css={css({ width: 96 })}
                   onChange={(value) => setGridDivision(value as TempoGridDivision)} />
-                <EditorButton variant={snapEnabled ? "contained" : "text"} onClick={toggleSnap} aria-label="Snap notes" aria-pressed={snapEnabled}>Snap</EditorButton>
+                <EditorButton variant={snapEnabled ? "contained" : "text"} onClick={toggleSnap} aria-label={i18n.t("editor:ui.snapNotes", { defaultValue: "Snap notes" })} aria-pressed={snapEnabled}>Snap</EditorButton>
               </>
             }
             toolbarEnd={
               (!fullHeight || docked) && (
                 <CloseButton
                   onClick={closePianoRoll}
-                  tooltip="Close note editor"
+                  tooltip={i18n.t("editor:ui.closeNoteEditor", { defaultValue: "Close note editor" })}
                 />
               )
             }

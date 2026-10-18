@@ -3,7 +3,7 @@ import { AssetUpdate, useAssetStore } from "../stores/AssetStore";
 import { useNotificationStore } from "../stores/NotificationStore";
 import { useAssetGridStoreApi } from "../stores/AssetGridStore";
 import { AssetList } from "../stores/ApiTypes";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 export const useAssetUpdate = () => {
   const queryClient = useQueryClient();
@@ -45,7 +45,7 @@ export const useAssetUpdate = () => {
       addNotification({
         type: "info",
         alert: true,
-        content: `${updates.length > 1 ? "Assets" : "Asset"} updated!`,
+        content: `${updates.length > 1 ? i18n.t("editor:explorer.title", { defaultValue: "Assets" }) : "Asset"} updated!`,
         dismissable: false,
       });
     },

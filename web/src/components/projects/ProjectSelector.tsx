@@ -32,6 +32,7 @@ import { useAuth } from "../../stores/useAuth";
 import NewProjectDialog from "./NewProjectDialog";
 import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const selectorStyles = (theme: Theme, inline: boolean, mobile: boolean) =>
   css({
@@ -217,7 +218,7 @@ const ProjectSelector = ({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={
-          inline || mobile ? `Selected project: ${name}` : "Select project"
+          inline || mobile ? `Selected project: ${name}` : i18n.t("editor:ui.selectProject", { defaultValue: "Select project" })
         }
         onClick={() => setOpen((value) => !value)}
       >
@@ -306,7 +307,7 @@ const ProjectSelector = ({
         ))}
         {!isPending && !error && visibleProjects.length === 0 && (
           <Caption sx={{ px: SPACING.lg, py: SPACING.sm }}>
-            {needle ? t("editor:ui.noMatchingProjects", { defaultValue: "No matching projects" }) : "No named projects yet"}
+            {needle ? t("editor:ui.noMatchingProjects", { defaultValue: "No matching projects" }) : i18n.t("editor:ui.noNamedProjectsYet", { defaultValue: "No named projects yet" })}
           </Caption>
         )}
       </ContextMenu>

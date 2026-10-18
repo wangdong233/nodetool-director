@@ -5,7 +5,7 @@ import ChatMarkdown from "../ChatMarkdown";
 import { ReasoningToggle } from "../../../common/ReasoningToggle";
 import { useTheme } from "@mui/material/styles";
 import { BORDER_RADIUS, SPACING, TYPOGRAPHY } from "../../../ui_primitives";
-import { i18n } from "../../../../i18n";
+import { i18n } from "../../../../../i18n";
 
 interface ThoughtSectionProps {
   thoughtContent: string;

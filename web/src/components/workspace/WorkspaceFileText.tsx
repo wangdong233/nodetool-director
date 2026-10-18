@@ -32,6 +32,7 @@ import {
   EmptyState
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface WorkspaceFileTextProps {
   workspaceId: string;
@@ -298,7 +299,7 @@ const WorkspaceFileText = ({
                 disabled={!canSave}
                 onClick={handleSave}
               >
-                {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
+                {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
               </EditorButton>
             </>
           )}

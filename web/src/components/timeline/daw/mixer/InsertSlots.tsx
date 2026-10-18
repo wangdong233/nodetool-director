@@ -28,6 +28,7 @@ import {
 import { AUDIO_EFFECT_TYPES, EFFECT_LABELS } from "../../Tracks/trackEffectsConstants";
 import { FABLE_FX_KINDS, FABLE_FX_LABELS, makeFableEffect } from "../fx/fableFxParams";
 import { effectTitle } from "../dock/DeviceChainView";
+import { i18n } from "../../../../../i18n";
 
 export interface InsertSlotsProps {
   /** Channel name, for accessible labels. */
@@ -156,7 +157,7 @@ export const InsertSlots: React.FC<InsertSlotsProps> = memo(
                     type="button"
                     className="insert__power"
                     aria-pressed={effect.enabled}
-                    aria-label={`${effect.enabled ? "Bypass" : "Enable"} ${title}`}
+                    aria-label={`${effect.enabled ? i18n.t("timeline:attrs:bypass", { defaultValue: "Bypass" }) : i18n.t("editor:ui.enable", { defaultValue: "Enable" })} ${title}`}
                     onClick={() => onToggle(effect.id, !effect.enabled)}
                   >
                     <PowerSettingsNewIcon />

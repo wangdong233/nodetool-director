@@ -691,7 +691,7 @@ const Inspector: React.FC = () => {
       <Box className="inspector" css={inspectorStyles}>
         <div className="inspector-head">
           <div className="inspector-head-text">
-            <div className="inspector-title">Inspector</div>
+            <div className="inspector-title">{t("timeline:editor.inspector", { defaultValue: "Inspector" })}</div>
           </div>
           <div className="inspector-head-close">
             <CloseButton

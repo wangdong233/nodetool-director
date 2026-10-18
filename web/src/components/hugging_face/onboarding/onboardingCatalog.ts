@@ -13,7 +13,7 @@
  * a genuine {@link UnifiedModel} the download service understands.
  */
 import type { UnifiedModel } from "../../../stores/ApiTypes";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 /** What a model is for — drives the capability grouping in the UI. */
 export type OnboardingCapability =

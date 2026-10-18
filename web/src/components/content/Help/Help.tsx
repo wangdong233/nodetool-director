@@ -23,11 +23,12 @@ import KeyboardShortcutsView from "./KeyboardShortcutsView";
 import { NODE_EDITOR_SHORTCUTS } from "../../../config/shortcuts";
 import ControlsShortcutsTab from "./ControlsShortcutsTab";
 import { Dialog } from "../../ui_primitives";
+import { i18n } from "../../../../i18n";
 
 // The header store keeps the help tab as an index into this list.
 const HELP_TABS: TabItem[] = [
-  { value: "shortcuts", label: "Shortcuts" },
-  { value: "keyboard", label: "Keyboard" },
+  { value: "shortcuts", label: "Shortcuts", labelKey: "ui2:attrs.shortcuts" },
+  { value: "keyboard", label: i18n.t("timeline:attrs.keyboard", { defaultValue: "Keyboard" }) },
   { value: "datatypes", label: "Data types" }
 ];
 
@@ -172,7 +173,7 @@ const Help = ({
       onClose={handleClose}
       fullWidth
       maxWidth="lg"
-      title="Help"
+      title={i18n.t("timeline:shortcuts.help", { defaultValue: "Help" })}
       titleActions={
         <Tooltip title="Open NodeTool docs" placement="bottom">
           <a
@@ -184,7 +185,7 @@ const Help = ({
           >
             <div className="docs-button-text">
               <span>Nodetool</span>
-              <span>Docs</span>
+              <span>{i18n.t("ui2:attrs.docs", { defaultValue: "Docs" })}</span>
             </div>
             <OpenInNewIcon />
           </a>
@@ -216,7 +217,7 @@ const Help = ({
             <TabPanel value="datatypes" activeValue={activeTab} className="tabpanel">
               <Box className="tabpanel-content">
                 <DataTypesList
-                  title="NodeTool data types"
+                  title={i18n.t("editor:ui.nodetoolDataTypes", { defaultValue: "NodeTool data types" })}
                   dataTypes={nodetoolTypes}
                   expanded={expandedNodetool}
                   onChange={handleAccordionChange("nodetool")}

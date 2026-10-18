@@ -55,6 +55,7 @@ import CostEstimateLine from "../../costs/CostEstimateLine";
 import { generationCostLine } from "../../costs/costLine";
 import { directGenSourceLayers } from "./directGenSources";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 // Defaults for image-to-image controls when the binding has no explicit
 // value yet — same as the media chat composer's image_edit defaults.
@@ -287,7 +288,7 @@ const DirectGenLayerPanelInner: React.FC<DirectGenLayerPanelProps> = ({
             onClick={() => void start(layer.id)}
             data-testid="direct-gen-generate"
           >
-            {binding.currentAssetId ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" }) : "Generate"}
+            {binding.currentAssetId ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" }) : i18n.t("editor:ui.generate", { defaultValue: "Generate" })}
           </EditorButton>
         )}
         {binding.status === "failed" && (

@@ -24,6 +24,7 @@ import { NO_EXAMPLE_NEEDS } from "../../utils/exampleNeeds";
 import { DashboardSectionHeader, useSectionWrap } from "./dashboardChrome";
 import ExampleNeedsPill from "./ExampleNeedsPill";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) => css({
   paddingTop: getSpacingPx(SPACING.xxl),
@@ -79,7 +80,7 @@ const TimelineCard = memo(function TimelineCard({ timeline, installing, onInstal
           onClick={() => onInstall(timeline)}
           sx={{ alignSelf: "flex-start" }}
         >
-          {installing ? t("editor:ui.addingTimeline", { defaultValue: "Adding timeline…" }) : "Install timeline"}
+          {installing ? t("editor:ui.addingTimeline", { defaultValue: "Adding timeline…" }) : i18n.t("editor:ui.installTimeline", { defaultValue: "Install timeline" })}
         </EditorButton>
       </div>
     </article>
@@ -117,7 +118,7 @@ const DashboardExampleTimelines = () => {
         <DashboardSectionHeader title={t("editor:ui.startFromATimeline", { defaultValue: "Start from a timeline" })} count={`${timelines.length} timelines`} />
         <p className="timeline-lede">{t("editor:ui.exampleTimelinesLede", { defaultValue: "Watch a timeline directly, or install a copy to make your own version." })}</p>
         {isLoading ? (
-          <div className="timeline-state"><LoadingSpinner size="medium" text="Loading timelines" /></div>
+          <div className="timeline-state"><LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingTimelines", { defaultValue: "Loading timelines" })} /></div>
         ) : isError ? (
           <div className="timeline-state"><EmptyState variant="error" title={t("editor:ui.couldntLoadTimelines", { defaultValue: "Couldn't load timelines" })} description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })} actionText={t("editor:explorer.retry", { defaultValue: "Retry" })} onAction={() => refetch()} /></div>
         ) : timelines.length === 0 ? (

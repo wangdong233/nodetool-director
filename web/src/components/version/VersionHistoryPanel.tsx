@@ -33,6 +33,7 @@ import {
   PanelHeader
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** The workflow row's concurrency tokens after a restore. */
 export interface RestoredWorkflowTokens {
@@ -368,7 +369,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
         }}>
           <Caption size="smaller" color="primary">
             {!selectedVersionId
-              ? t("editor:ui.selectTheFirstVersionToCompare", { defaultValue: "Select the first version to compare" }) : "Select the second version to compare"}
+              ? t("editor:ui.selectTheFirstVersionToCompare", { defaultValue: "Select the first version to compare" }) : i18n.t("editor:ui.selectTheSecondVersionToCompare", { defaultValue: "Select the second version to compare" })}
           </Caption>
         </div>
       )}
@@ -542,7 +543,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
               </Text>
               <Caption size="smaller" color="muted">
                 {isCompareMode
-                  ? t("editor:ui.pickTwoVersionsToSeeWhatChanged", { defaultValue: "Pick two versions to see what changed." }) : "Click any entry to see its graph and metadata here."}
+                  ? t("editor:ui.pickTwoVersionsToSeeWhatChanged", { defaultValue: "Pick two versions to see what changed." }) : i18n.t("editor:ui.clickAnyEntryToSeeItsGraphAndMetadataHere", { defaultValue: "Click any entry to see its graph and metadata here." })}
               </Caption>
             </FlexColumn>
           )}

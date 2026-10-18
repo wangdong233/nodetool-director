@@ -28,6 +28,7 @@ import {
 } from "../ui_primitives";
 import type { VirtualListHandle } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type HandleDirection = "source" | "target";
 
@@ -292,7 +293,7 @@ export const KeyboardConnectionPicker = ({
             items={filteredOptions}
             estimateSize={PORT_OPTION_HEIGHT}
             getItemKey={(option) => option.key}
-            ariaLabel="Compatible ports"
+            ariaLabel={i18n.t("editor:ui.compatiblePorts", { defaultValue: "Compatible ports" })}
             scrollToIndex={boundedActiveIndex}
             sx={{ maxHeight: PORT_OPTIONS_MAX_HEIGHT }}
             getItemProps={(_option, index) => ({
@@ -327,7 +328,7 @@ export const KeyboardConnectionPicker = ({
                   <Text>{option.nodeTitle}</Text>
                   <Caption color="muted">{option.handleTitle}</Caption>
                   <Caption color="muted">
-                    {option.kind === "existing" ? t("editor:ui.existingNode", { defaultValue: "Existing node" }) : "Create node"}
+                    {option.kind === "existing" ? t("editor:ui.existingNode", { defaultValue: "Existing node" }) : i18n.t("editor:ui.createNode", { defaultValue: "Create node" })}
                   </Caption>
                 </FlexRow>
               </EditorButton>

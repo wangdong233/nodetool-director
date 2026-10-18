@@ -32,6 +32,7 @@ import {
 } from "../../hooks/useProjects";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ErrorWithMessage {
   readonly message: string;
@@ -154,7 +155,7 @@ const ProjectLifecycleActions = ({
           transformOrigin={{ vertical: "top", horizontal: "right" }}
         >
           <MenuItemPrimitive
-            label={exportProject.isPending ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : "Export"}
+            label={exportProject.isPending ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : i18n.t("storyboard:attrs.export", { defaultValue: "Export" })}
             icon={<FileDownloadOutlinedIcon />}
             disabled={exportProject.isPending}
             onClick={handleExport}
@@ -189,7 +190,7 @@ const ProjectLifecycleActions = ({
           onClick={handleExport}
           disabled={exportProject.isPending}
         >
-          {exportProject.isPending ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : "Export"}
+          {exportProject.isPending ? t("timeline:topbar.exporting", { defaultValue: "Exporting…" }) : i18n.t("storyboard:attrs.export", { defaultValue: "Export" })}
         </EditorButton>
         {project.archivedAt ? (
           <EditorButton density="compact" variant="text" onClick={handleRestore}>

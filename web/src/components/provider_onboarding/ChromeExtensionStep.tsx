@@ -27,6 +27,7 @@ import {
 } from "../../serverState/useExtensionStatus";
 import { BASE_URL } from "../../stores/BASE_URL";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 export const CHROME_EXTENSIONS_URL = "chrome://extensions";
 
@@ -131,7 +132,7 @@ const ChromeExtensionStep: React.FC = () => {
             label={
               isLoading
                 ? t("editor:ui.checking", { defaultValue: "Checking…" }) : connected
-                  ? t("editor:ui.extensionConnected", { defaultValue: "Extension connected" }) : "Extension not connected"
+                  ? t("editor:ui.extensionConnected", { defaultValue: "Extension connected" }) : i18n.t("tools:menus:extensionNotConnected", { defaultValue: "Extension not connected" })
             }
             color={connected ? "success" : "default"}
           />
@@ -210,7 +211,7 @@ const ChromeExtensionStep: React.FC = () => {
                   </ErrorBanner>
                 )}
                 <EditorButton density="compact" variant="outlined" size="small" onClick={() => install()}>
-                  {host.error ? t("storyboard:attrs.tryAgain", { defaultValue: "Try again" }) : "Register"}
+                  {host.error ? t("storyboard:attrs.tryAgain", { defaultValue: "Try again" }) : i18n.t("tools:menus:register", { defaultValue: "Register" })}
                 </EditorButton>
               </FlexColumn>
             )}

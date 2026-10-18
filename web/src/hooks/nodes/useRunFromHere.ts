@@ -10,7 +10,7 @@ import { reactFlowEdgeToGraphEdge } from "../../stores/reactFlowEdgeToGraphEdge"
 import { buildRunSubgraph } from "../../utils/runSubgraph";
 import { getNodeGenerations } from "../../stores/nodeGenerationAccessor";
 import { computeRunSignatures } from "../../utils/computeRunSignatures";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface UseRunFromHereReturn {
   /** Run just this node as its own job (the "Run Node" action). */

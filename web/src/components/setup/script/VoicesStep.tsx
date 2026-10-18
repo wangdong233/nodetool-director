@@ -59,6 +59,7 @@ import { REVIEW_BLOCK, REVIEW_CONTENT_WIDTH } from "../reviewStyles";
 import { useSetupVoices } from "./useSetupVoices";
 import type { SetupVoice } from "./useSetupVoices";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 /** The languages the flow offers to write and read in. */
 const LANGUAGES = [
@@ -75,9 +76,9 @@ const LANGUAGES = [
 ];
 
 const PACES: ReadonlyArray<{ value: ScriptPace; label: string }> = [
-  { value: "slow", label: "Slow" },
-  { value: "normal", label: "Normal" },
-  { value: "fast", label: "Fast" }
+  { value: "slow", label: "Slow", labelKey: "setup:script.paceSlowLabel" },
+  { value: "normal", label: "Normal", labelKey: "setup:script.paceNormalLabel" },
+  { value: "fast", label: "Fast", labelKey: "setup:script.paceFastLabel" }
 ];
 
 /** The line a speaker's samples read: the first thing they say. */
@@ -281,7 +282,7 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
           <Caption color="secondary" component="p">
             {hasLine
               ? `Samples read: “${spoken}”`
-              : "This speaker has no lines yet, so there is nothing to sample."}
+              : i18n.t("storyboard:attrs.thisSpeakerHasNoLinesYetSoThereIsNothingToSample", { defaultValue: "This speaker has no lines yet, so there is nothing to sample." })}
           </Caption>
           {/* Every audition is a speech call, so the step says so before one
               is pressed rather than after it is billed (F23). */}
@@ -297,7 +298,7 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
           <Text size="normal">
             {selectedVoice
               ? `Voice: ${selectedVoice.label}`
-              : "No voice chosen"}
+              : i18n.t("setup:script.noVoiceChosen", { defaultValue: "No voice chosen" })}
           </Text>
         ) : (
           <FormField
@@ -340,7 +341,7 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
             {sample?.pending
               ? t("storyboard:attrs.generatingSample", { defaultValue: "Generating sample" }) : selectedVoice
                 ? `Hear ${selectedVoice.label}`
-                : "Hear voice"}
+                : i18n.t("storyboard:attrs.hearVoice", { defaultValue: "Hear voice" })}
           </EditorButton>
         ) : null}
       </FlexRow>

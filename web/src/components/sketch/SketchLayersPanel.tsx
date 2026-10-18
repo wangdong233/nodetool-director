@@ -101,6 +101,7 @@ import {
 } from "./Inspector/VectorLayerPanel";
 import { isFunction } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /**
  * Layer row modifiers: `getModifierState` helps when `draggable` rows omit flags on
@@ -256,10 +257,10 @@ const ADD_ACTION_ICON_SX = {
 
 /** Fill presets offered in the add-layer menu; `null` is transparent. */
 const NEW_LAYER_FILLS: readonly { label: string; fill: string | null }[] = [
-  { label: "Transparent layer", fill: null },
-  { label: "White layer", fill: "#ffffff" },
-  { label: "Black layer", fill: "#000000" },
-  { label: "Gray layer", fill: "#808080" }
+  { label: "Transparent layer", labelKey: "sketch:attrs.transparentLayer", fill: null },
+  { label: "White layer", labelKey: "sketch:attrs.whiteLayer", fill: "#ffffff" },
+  { label: "Black layer", labelKey: "sketch:attrs.blackLayer", fill: "#000000" },
+  { label: "Gray layer", labelKey: "sketch:attrs.grayLayer", fill: "#808080" }
 ];
 
 const ADD_MENU_SWATCH_SX = {
@@ -1171,7 +1172,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             <ListItemIcon>
               <AddPhotoAlternateIcon />
             </ListItemIcon>
-            <ListItemText primary="Layer from workflow…" />
+            <ListItemText primary={t("sketch:attrs.layerFromWorkflow", { defaultValue: "Layer from workflow…" })} />
           </MenuItem>
         </ContextMenu>
         <SvgLayerImport inputRef={svgImportInputRef} />
@@ -1247,13 +1248,13 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
         <Tooltip
           title={
             maskLayerId === activeLayerId
-              ? t("sketch:attrs.removeMaskDesignation", { defaultValue: "Remove mask designation" }) : "Set as mask layer"
+              ? t("sketch:attrs.removeMaskDesignation", { defaultValue: "Remove mask designation" }) : i18n.t("sketch:attrs.setAsMaskLayer", { defaultValue: "Set as mask layer" })
           }
         >
           <IconButton
             aria-label={
               maskLayerId === activeLayerId
-                ? t("sketch:attrs.removeMaskDesignation", { defaultValue: "Remove mask designation" }) : "Set as mask layer"
+                ? t("sketch:attrs.removeMaskDesignation", { defaultValue: "Remove mask designation" }) : i18n.t("sketch:attrs.setAsMaskLayer", { defaultValue: "Set as mask layer" })
             }
             size="small"
             onClick={() =>
@@ -1271,13 +1272,13 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
 
         <Tooltip
           title={
-            activeLayer?.alphaLock ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock transparency" }) : "Lock transparency"
+            activeLayer?.alphaLock ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock transparency" }) : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })
           }
         >
           <IconButton
             aria-label={
               activeLayer?.alphaLock
-                ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock transparency" }) : "Lock transparency"
+                ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock transparency" }) : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })
             }
             size="small"
             onClick={() => onToggleAlphaLock(activeLayerId)}
@@ -1557,20 +1558,20 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             position={layerCtxMenu?.position ?? null}
           >
             <MenuItemPrimitive
-              label={allInputHidden ? t("sketch:attrs.showInput", { defaultValue: "Show input" }) : "Hide input"}
+              label={allInputHidden ? t("sketch:attrs.showInput", { defaultValue: "Show input" }) : i18n.t("sketch:attrs.hideInput", { defaultValue: "Hide input" })}
               onClick={handleCtxToggleInput}
             />
             <MenuItemPrimitive
-              label={allOutputHidden ? t("sketch:attrs.showOutput", { defaultValue: "Show output" }) : "Hide output"}
+              label={allOutputHidden ? t("sketch:attrs.showOutput", { defaultValue: "Show output" }) : i18n.t("sketch:attrs.hideOutput", { defaultValue: "Hide output" })}
               onClick={handleCtxToggleOutput}
               dividerAfter
             />
             <MenuItemPrimitive
-              label={ctxLayer?.visible === false ? t("editor:ui.showLayer", { defaultValue: "Show layer" }) : "Hide layer"}
+              label={ctxLayer?.visible === false ? t("editor:ui.showLayer", { defaultValue: "Show layer" }) : i18n.t("editor:ui.hideLayer", { defaultValue: "Hide layer" })}
               onClick={handleCtxVisibility}
             />
             <MenuItemPrimitive
-              label={isMulti ? t("sketch:attrs.duplicateLayers", { defaultValue: "Duplicate layers" }) : "Duplicate"}
+              label={isMulti ? t("sketch:attrs.duplicateLayers", { defaultValue: "Duplicate layers" }) : i18n.t("common:action.duplicate", { defaultValue: "Duplicate" })}
               onClick={handleCtxDuplicate}
               disabled={!ctxLayer}
               dividerAfter
@@ -1610,7 +1611,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             <MenuItemPrimitive
               label={
                 ctxLayer?.alphaLock
-                  ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock transparency" }) : "Lock transparency"
+                  ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock transparency" }) : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })
               }
               onClick={handleCtxAlphaLock}
               disabled={ctxIsGroup || isMulti}
@@ -1618,7 +1619,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             <MenuItemPrimitive
               label={
                 ctxLayer && maskLayerId === ctxLayer.id
-                  ? t("sketch:attrs.removeMask", { defaultValue: "Remove mask" }) : "Set as mask"
+                  ? t("sketch:attrs.removeMask", { defaultValue: "Remove mask" }) : i18n.t("sketch:attrs.setAsMask", { defaultValue: "Set as mask" })
               }
               onClick={handleCtxMask}
               disabled={ctxIsGroup || isMulti}

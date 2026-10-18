@@ -29,6 +29,7 @@ import { workflowListQueryKey } from "../../serverState/workflowQueryKeys";
 import { nextCopyName } from "../../utils/nextCopyName";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -398,7 +399,7 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
                   filterValue && selectedTags.length > 0
                     ? t("editor:ui.tryAdjustingYourSearchTermOrTagFilters", { defaultValue: "Try adjusting your search term or tag filters." }) : filterValue
                       ? t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." }) : selectedTags.length > 0
-                        ? t("editor:ui.tryRemovingSomeTagFilters", { defaultValue: "Try removing some tag filters." }) : "No workflows match the current filters."
+                        ? t("editor:ui.tryRemovingSomeTagFilters", { defaultValue: "Try removing some tag filters." }) : i18n.t("editor:ui.noWorkflowsMatchTheCurrentFilters", { defaultValue: "No workflows match the current filters." })
                 }
               />
             ) : (

@@ -72,6 +72,7 @@ import {
   FlexRow
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const containerStyles = css({
   width: "100%",
@@ -777,7 +778,7 @@ const AssetViewer: React.FC<AssetViewerProps> = (props) => {
           {currentAsset && !compareMode && inLibrary && (
             <ToolbarIconButton
               icon={<InfoOutlinedIcon />}
-              tooltip={showInfo ? t("editor:ui.hideInfo", { defaultValue: "Hide info" }) : "Show info"}
+              tooltip={showInfo ? t("editor:ui.hideInfo", { defaultValue: "Hide info" }) : i18n.t("editor:ui.showInfo", { defaultValue: "Show info" })}
               onClick={toggleInfo}
               className="button info"
               nodrag={false}

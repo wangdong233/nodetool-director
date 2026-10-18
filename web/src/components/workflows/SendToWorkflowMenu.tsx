@@ -21,6 +21,7 @@ import {
 import { useSendMediaToWorkflow } from "../../hooks/useSendMediaToWorkflow";
 import { useInStudio } from "../../studio/StudioContext";
 import type { WorkflowMediaItem } from "../../hooks/handlers/useGenerationToCanvas";
+import { i18n } from "../../../i18n";
 
 interface SendToWorkflowMenuProps {
   items: readonly WorkflowMediaItem[];
@@ -51,10 +52,10 @@ export const SendToWorkflowMenu: React.FC<SendToWorkflowMenuProps> = memo(
         slotProps={{ list: { "aria-label": "Send to workflow" } }}
       >
         <ListSubheader>
-          {items.length === 1 ? "Send 1 item to" : `Send ${items.length} items to`}
+          {items.length === 1 ? i18n.t("editor:ui.sendOneItemTo", { defaultValue: "Send 1 item to" }) : `Send ${items.length} items to`}
         </ListSubheader>
         <MenuItemPrimitive
-          label="New workflow"
+          label={i18n.t("editor:ui.newWorkflowLower", { defaultValue: "New workflow" })}
           icon={<AddIcon fontSize="small" />}
           dividerAfter={targets.length > 0}
           onClick={() => choose(null)}

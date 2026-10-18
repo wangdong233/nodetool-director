@@ -41,6 +41,7 @@ import {
   type WorkspaceTabType
 } from "../../stores/WorkspaceTabsStore";
 import { newDocumentId } from "../../lib/newDocumentId";
+import { i18n } from "../../../i18n";
 
 /** Render a blank white PNG to seed a "New sketch" canvas asset. */
 const createBlankImageFile = (): Promise<File> =>
@@ -97,7 +98,7 @@ export interface TextFileTemplate {
 
 export const TEXT_FILE_TEMPLATES: readonly TextFileTemplate[] = [
   {
-    label: "Markdown (.md)",
+    label: i18n.t("editor:ui.markdownMd", { defaultValue: "Markdown (.md)" }),
     filename: "Untitled.md",
     mimeType: "text/markdown",
     // Empty, not "# Untitled": a click after the seed heading put the caret
@@ -105,31 +106,31 @@ export const TEXT_FILE_TEMPLATES: readonly TextFileTemplate[] = [
     content: ""
   },
   {
-    label: "JSON (.json)",
+    label: i18n.t("editor:ui.jsonJson", { defaultValue: "JSON (.json)" }),
     filename: "Untitled.json",
     mimeType: "application/json",
     content: "{}\n"
   },
   {
-    label: "YAML (.yaml)",
+    label: i18n.t("editor:ui.yamlYaml", { defaultValue: "YAML (.yaml)" }),
     filename: "Untitled.yaml",
     mimeType: "application/x-yaml",
     content: "---\n"
   },
   {
-    label: "CSV (.csv)",
+    label: i18n.t("editor:ui.csvCsv", { defaultValue: "CSV (.csv)" }),
     filename: "Untitled.csv",
     mimeType: "text/csv",
     content: "Column 1\n"
   },
   {
-    label: "TSV (.tsv)",
+    label: i18n.t("editor:ui.tsvTsv", { defaultValue: "TSV (.tsv)" }),
     filename: "Untitled.tsv",
     mimeType: "text/tab-separated-values",
     content: "Column 1\n"
   },
   {
-    label: "Plain text (.txt)",
+    label: i18n.t("editor:ui.plainTextTxt", { defaultValue: "Plain text (.txt)" }),
     filename: "Untitled.txt",
     mimeType: "text/plain",
     content: ""
@@ -140,6 +141,7 @@ export const TEXT_FILE_TEMPLATES: readonly TextFileTemplate[] = [
 export type NewDocumentSubmenu = "texts" | "storyboards";
 
 export interface NewDocumentEntry {
+  labelKey?: string;
   key: string;
   /** The document, named — what the grid shows. */
   label: string;
@@ -439,7 +441,7 @@ export const useNewDocumentCatalog = (
         const created = await createSkill.mutateAsync({
           id: newDocumentId(),
           name: `skill-${Date.now().toString(36)}`,
-          description: "A reusable skill for the NodeTool agent.",
+          description: i18n.t("editor:ui.reusableSkillDescription", { defaultValue: "A reusable skill for the NodeTool agent." }),
           content:
             "# New skill\n\nDescribe what this skill does and when the agent should use it."
         });
@@ -471,7 +473,7 @@ export const useNewDocumentCatalog = (
   const entries: NewDocumentEntry[] = [
     {
       key: "workflow",
-      label: "Workflow",
+      label: "Workflow", labelKey: "home:flowError.kind.workflow",
       menuLabel: "New workflow",
       type: "workflow",
       icon: <AddOutlinedIcon fontSize="small" />,
@@ -488,7 +490,7 @@ export const useNewDocumentCatalog = (
     {
       key: "text",
       label: "Text",
-      menuLabel: "New text file…",
+      menuLabel: i18n.t("editor:ui.newTextFile", { defaultValue: "New text file…" }),
       type: "text",
       icon: <ArticleOutlinedIcon fontSize="small" />,
       submenu: "texts"
@@ -520,7 +522,7 @@ export const useNewDocumentCatalog = (
     {
       key: "storyboard",
       label: "Storyboard",
-      menuLabel: "New storyboard…",
+      menuLabel: i18n.t("editor:ui.newStoryboard2", { defaultValue: "New storyboard…" }),
       type: "storyboard",
       icon: <DashboardOutlinedIcon fontSize="small" />,
       submenu: "storyboards"
@@ -552,7 +554,7 @@ export const useNewDocumentCatalog = (
     {
       key: "skill",
       label: "Skill",
-      menuLabel: "New skill",
+      menuLabel: i18n.t("editor:ui.newSkill", { defaultValue: "New skill" }),
       type: "skill",
       icon: <AutoAwesomeOutlinedIcon fontSize="small" />,
       create: createSkillDocument

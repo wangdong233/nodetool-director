@@ -4,6 +4,7 @@ import type { UiDocumentRef } from "@nodetool-ai/protocol";
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
 import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import { useTimelineUIStore } from "../../stores/timeline/TimelineUIStore";
+import { i18n } from "../../../i18n";
 
 const TimelineAgentPanel = () => {
   const sequenceId = useTimelineStore((s) => s.sequenceId);
@@ -25,7 +26,7 @@ const TimelineAgentPanel = () => {
       getSelection={getSelection}
       workflowId={sequenceId}
       docsTopic="timelines"
-      docsLabel="Video editor"
+      docsLabel={i18n.t("timeline:editor.videoEditor", { defaultValue: "Video editor" })}
       welcomeTitle="Editor assistant"
       welcomeBody='Ask me to edit the timeline — e.g. "generate a 5-second clip of a city at night", "split the selected clip at the playhead", or "fade out the last clip".'
     />

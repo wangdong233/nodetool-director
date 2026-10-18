@@ -8,7 +8,7 @@ import { colorForType } from "../../config/data_types";
 import { PROJECT_COLOR, PROJECT_GLYPH } from "../projects/projectIdentity";
 import type { WorkspaceTabType } from "../../stores/WorkspaceTabsStore";
 import { isPageTabKey, pageTitle } from "./pageTabs";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * The project selector already names the open project, so the overview tab

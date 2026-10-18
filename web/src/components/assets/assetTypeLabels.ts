@@ -1,9 +1,9 @@
 import { TYPE_FILTERS } from "../../utils/formatUtils";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 const LABELS: Record<string, string> = {
   ...Object.fromEntries(TYPE_FILTERS.map(({ key, label }) => [key, label])),
-  folder: "Folders"
+  folder: i18n.t("editor:ui.foldersSectionTitle", { defaultValue: "Folders" })
 };
 
 /**

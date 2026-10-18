@@ -27,6 +27,7 @@ import {
 import MonacoPane from "./MonacoPane";
 import SvgPreview from "./SvgPreview";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const SVG_CONTENT_TYPE = "image/svg+xml";
 
@@ -236,7 +237,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
             disabled={!isDirty || isSaving}
             onClick={handleSave}
           >
-            {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : "Save"}
+            {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
           </EditorButton>
         </FlexRow>
       </Toolbar>

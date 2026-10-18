@@ -21,6 +21,7 @@ import {
 } from "../../hooks/useWorkspaces";
 import { useFolderPicker } from "./useFolderPicker";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** Derive a workspace name from an absolute folder path. */
 function nameFromPath(path: string): string {
@@ -97,7 +98,7 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
         label={
           isMobile || compact ? undefined : selected?.name || "Workspace"
         }
-        title={selected?.path ?? "Select a workspace folder"}
+        title={selected?.path ?? i18n.t("editor:ui.selectAWorkspaceFolder", { defaultValue: "Select a workspace folder" })}
         active={open}
         showChevron={false}
         truncate
@@ -114,7 +115,7 @@ const WorkspaceChip: React.FC<WorkspaceChipProps> = ({ compact = false }) => {
         paperSx={{ maxWidth: 420 }}
         slotProps={{ list: { "aria-label": "Workspace" } }}
       >
-        <ListSubheader>Workspace</ListSubheader>
+        <ListSubheader>{t("tools:tutorials.backToWorkspace", { defaultValue: "Workspace" })}</ListSubheader>
         {workspaces.map((workspace) => {
           const isSelected = workspace.id === workspaceId;
           return (

@@ -180,6 +180,7 @@ import imageBackground from "../../assets/guided-flows/image.webp";
 import workflowBackground from "../../assets/guided-flows/workflow.webp";
 import gameBackground from "../../assets/guided-flows/game.webp";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const ENTRY_BACKGROUNDS: Partial<Record<EntryFlowId, string>> = {
   storyboard: storyboardBackground,
@@ -779,7 +780,7 @@ const NewProjectSurface = ({
       addNotification({
         type: "info",
         alert: true,
-        content: "Still checking your language models. Try again in a moment."
+        content: "Still checking your language models. Try again in a moment.", contentKey: "home:notices.checkingModels"
       });
       return;
     }
@@ -787,7 +788,7 @@ const NewProjectSurface = ({
       setPendingStart(true);
       openProviderOnboarding({
         capability: "generate_message",
-        reason: "Almost there — chat needs a model to run."
+        reason: "Almost there — chat needs a model to run.", reasonKey: "home:notices.needModel"
       });
       return;
     }
@@ -817,7 +818,7 @@ const NewProjectSurface = ({
       addNotification({
         type: "info",
         alert: true,
-        content: "Pick a language model and the chat starts.",
+        content: "Pick a language model and the chat starts.", contentKey: "home:notices.pickModel",
         dedupeKey: PICK_MODEL_NOTICE_KEY
       });
       return;
@@ -1066,7 +1067,7 @@ const NewProjectSurface = ({
       }
       const text = flowPrompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : "New video";
+        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newVideo", { defaultValue: "New video" });
       setStarting(true);
       // The sequence made before its setup PATCH. A failure in between
       // deletes it, so no empty timeline is left in the project (F15).
@@ -1086,7 +1087,7 @@ const NewProjectSurface = ({
             }
             return [
               {
-                kind: entity.kind === "prop" ? "product" : entity.kind,
+                kind: entity.kind === "prop" ? t("setup:video.refKind_product", { defaultValue: "product" }) : entity.kind,
                 asset_id: assetId,
                 entity_id: entity.id,
                 label: entity.name
@@ -1270,7 +1271,7 @@ const NewProjectSurface = ({
       }
       const text = flowPrompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : "New workflow";
+        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newWorkflowLower", { defaultValue: "New workflow" });
       setStarting(true);
       try {
         const created = await createWorkflow({
@@ -1333,7 +1334,7 @@ const NewProjectSurface = ({
       }
       const text = flowPrompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : "New game";
+        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newGame", { defaultValue: "New game" });
       setStarting(true);
       try {
         // A 2D game is designed first: the flow's document is a workflow row
@@ -1542,7 +1543,7 @@ const NewProjectSurface = ({
         ? cards.map((card) => ({
             ...card,
             disabled: true,
-            disabledReason: "Waiting for your reference images to upload."
+            disabledReason: t("home:surface.waitingUploads", { defaultValue: "Waiting for your reference images to upload." }), disabledReasonKey: "home:surface.waitingUploads",
           }))
         : cards;
     }
@@ -1558,7 +1559,7 @@ const NewProjectSurface = ({
         : {
             ...card,
             disabled: true,
-            disabledReason: "One flow is already starting."
+            disabledReason: t("home:surface.oneFlowStarting", { defaultValue: "One flow is already starting." }), disabledReasonKey: "home:surface.oneFlowStarting",
           }
     );
   }, [isUploading, pendingFlow, showMoreFlows, gameDimension]);
@@ -2287,7 +2288,7 @@ const NewProjectSurface = ({
                 >
                   {isModelSelected(selectedModel)
                     ? `Model · ${selectedModel?.name || selectedModel?.id}`
-                    : "Select a model"}
+                    : i18n.t("home:composer.selectModel", { defaultValue: "Select a model" })}
                 </EditorButton>
                 <Box sx={{ flex: 1 }} />
                 {estimate && (
@@ -2423,8 +2424,8 @@ const NewProjectSurface = ({
                   label={t("home:surface.gameDimension", { defaultValue: "Game dimension" })}
                   value={gameDimension}
                   options={[
-                    { value: "2d", label: "2D game" },
-                    { value: "3d", label: "3D exploration" }
+                    { value: "2d", label: "2D game", labelKey: "home:surface.game2d" },
+                    { value: "3d", label: "3D exploration", labelKey: "home:surface.game3d" }
                   ]}
                   onChange={(value) => {
                     if (value === "2d" || value === "3d") {
@@ -2448,7 +2449,7 @@ const NewProjectSurface = ({
               aria-expanded={showMoreFlows}
               onClick={() => setShowMoreFlows((shown) => !shown)}
             >
-              {showMoreFlows ? t("home:surface.fewerFormats", { defaultValue: "Fewer formats" }) : "More formats"}
+              {showMoreFlows ? t("home:surface.fewerFormats", { defaultValue: "Fewer formats" }) : i18n.t("home:surface.moreFormats", { defaultValue: "More formats" })}
             </EditorButton>
           </FlexColumn>
 

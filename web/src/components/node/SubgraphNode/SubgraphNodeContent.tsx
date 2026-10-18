@@ -11,6 +11,7 @@ import { useDynamicProperty } from "../../../hooks/nodes/useDynamicProperty";
 import { SubgraphSync } from "./SubgraphSync";
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
+import { i18n } from "../../../../i18n";
 
 interface SubgraphNodeContentProps {
   id: string;
@@ -95,7 +96,7 @@ export const SubgraphNodeContent: React.FC<SubgraphNodeContentProps> = memo(
         {status === "running" && (
           <NodeProgress id={id} workflowId={workflowId} />
         )}
-        <Tooltip title="Open the subgraph in its own tab" describeChild>
+        <Tooltip title={i18n.t("editor:ui.openTheSubgraphInItsOwnTab", { defaultValue: "Open the subgraph in its own tab" })} describeChild>
           <Box
             component="button"
             type="button"
@@ -129,7 +130,7 @@ export const SubgraphNodeContent: React.FC<SubgraphNodeContentProps> = memo(
           >
             <FlexRow gap={0.5} align="center">
               <AccountTreeIcon sx={{ fontSize: ICON_SIZE.xs }} />
-              <Caption>Open subgraph</Caption>
+              <Caption>{i18n.t("ui2:attrs.openSubgraph", { defaultValue: "Open subgraph" })}</Caption>
             </FlexRow>
             <Caption>
               {innerNodeCount === 0

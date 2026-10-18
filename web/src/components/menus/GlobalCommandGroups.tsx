@@ -48,6 +48,7 @@ import {
 } from "../../utils/applicationBundle";
 import type { Workflow, WorkflowList } from "../../stores/ApiTypes";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const WORKSPACE_PATH = "/workspace";
 
@@ -216,10 +217,10 @@ const ProjectCommands = memo(function ProjectCommands() {
       uniqueValues(
         targets.map(
           (project) =>
-            `Switch to project ${project.isPersonal ? t("editor:ui.personal", { defaultValue: "Personal" }) : project.name}`
+            `Switch to project ${project.isPersonal ? i18n.t("editor:ui.personal", { defaultValue: "Personal" }) : project.name}`
         )
       ),
-    [targets]
+    [targets, languageVersion]
   );
 
   if (targets.length === 0) {
@@ -229,7 +230,7 @@ const ProjectCommands = memo(function ProjectCommands() {
   return (
     <Command.Group heading="Projects">
       {targets.map((project, index) => {
-        const name = project.isPersonal ? t("editor:ui.personal", { defaultValue: "Personal" }) : project.name;
+        const name = project.isPersonal ? i18n.t("editor:ui.personal", { defaultValue: "Personal" }) : project.name;
         return (
           <Command.Item
             key={project.id}
@@ -385,7 +386,7 @@ const AppCommands = memo(function AppCommands() {
         ref={appBundleInputRef}
         type="file"
         accept=".json,application/json"
-        aria-label={t("editor:ui.importAppBundleFile", { defaultValue: "Import app bundle file" })}
+        aria-label={i18n.t("editor:ui.importAppBundleFile", { defaultValue: "Import app bundle file" })}
         style={{ display: "none" }}
         onChange={handleAppBundleFileChange}
       />
@@ -415,6 +416,7 @@ const AppCommands = memo(function AppCommands() {
 });
 
 const HelpCommands = memo(function HelpCommands() {
+  const { t } = useTranslation();
   const currentWorkflowId = useWorkflowManager(
     (state) => state.currentWorkflowId
   );
@@ -422,7 +424,7 @@ const HelpCommands = memo(function HelpCommands() {
   const handleOpenHelp = useAppHeaderStore((state) => state.handleOpenHelp);
 
   return (
-    <Command.Group heading="Help">
+    <Command.Group heading={i18n.t("editor:inspector.tabHelp", { defaultValue: "Help" })}>
       <Command.Item
         onSelect={() =>
           runCommandAndClose(() => {
@@ -478,7 +480,7 @@ const OpenWorkflowCommands = memo(function OpenWorkflowCommands() {
   }
 
   return (
-    <Command.Group heading="Workflows">
+    <Command.Group heading={i18n.t("editor:ui.cmWorkflows", { defaultValue: "Workflows" })}>
       {workflows.workflows.map((workflow, index) => (
         <Command.Item
           key={workflow.id}

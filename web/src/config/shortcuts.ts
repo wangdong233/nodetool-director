@@ -1,9 +1,12 @@
 import React from "react";
+import { i18n } from "../../i18n";
 
 /**
  * Defines the structure for a keyboard shortcut.
  */
 export interface Shortcut {
+  titleKey?: string;
+  descriptionKey?: string;
   /** Human-readable title, e.g. "Copy" */
   title: string;
   /** Stable identifier to reference this shortcut elsewhere */
@@ -28,9 +31,9 @@ export interface Shortcut {
  * Node types added at the cursor with Shift + key.
  */
 export const ADD_NODE_HOTKEYS = [
-  { slug: "addPromptNode", key: "P", label: "Prompt", nodeType: "nodetool.text.Prompt" },
-  { slug: "addTextToImageNode", key: "G", label: "Text to Image", nodeType: "nodetool.image.TextToImage" },
-  { slug: "addTextToVideoNode", key: "V", label: "Text to Video", nodeType: "nodetool.video.TextToVideo" },
+  { slug: "addPromptNode", key: "P", label: "Prompt", labelKey: "sketch:attrs.prompt", nodeType: "nodetool.text.Prompt" },
+  { slug: "addTextToImageNode", key: "G", label: "Text to Image", labelKey: "catalog:hfTask.text-to-image", nodeType: "nodetool.image.TextToImage" },
+  { slug: "addTextToVideoNode", key: "V", label: i18n.t("editor:ui.textToVideo", { defaultValue: "Text to Video" }), nodeType: "nodetool.video.TextToVideo" },
   { slug: "addAgentNode", key: "L", label: "Agent", nodeType: "nodetool.agents.Agent" }
 ] as const;
 
@@ -187,7 +190,7 @@ function getShortcutTooltipFromShortcut(
  * @returns A React element for the tooltip, or the original slug if the shortcut is not found.
  * Example structure:
  * <div class="tooltip-span">
- *   <div class="tooltip-title">Run Workflow</div>
+ *   <div class="tooltip-title">{i18n.t("catalog:shortcuts.runWorkflow", { defaultValue: "Run Workflow" })}</div>
  *   <div class="tooltip-key"><kbd>CTRL</kbd>+<kbd>Enter</kbd> / <kbd>⌘</kbd>+<kbd>Enter</kbd></div>
  * </div>
  */
@@ -216,11 +219,11 @@ export const getShortcutTooltip = (
 export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
   // exit fullscreen with ESC key
   {
-    title: "Exit fullscreen",
+    title: i18n.t("common:action.exitFullscreen", { defaultValue: "Exit fullscreen" }), titleKey: "common:action.exitFullscreen", titleKey: "timeline:editor.exitFullscreen", titleKey: "timeline:attrs.exitFullscreen",
     slug: "exitFullscreen",
     keyCombo: ["Escape"],
     category: "editor",
-    description: "Exit fullscreen mode",
+    description: "Exit fullscreen mode", descriptionKey: "catalog:shortcuts.exitFullscreenMode",
     registerCombo: false
   },
   // ---------- NODES -------------------------------------------------------
@@ -229,7 +232,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "copy",
     keyCombo: ["Control", "C"],
     category: "editor",
-    description: "Copy selected nodes",
+    description: "Copy selected nodes", descriptionKey: "catalog:shortcuts.copySelectedNodes",
     registerCombo: true
   },
   {
@@ -237,7 +240,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "cut",
     keyCombo: ["Control", "X"],
     category: "editor",
-    description: "Cut selected nodes",
+    description: "Cut selected nodes", descriptionKey: "catalog:shortcuts.cutSelectedNodes",
     registerCombo: true
   },
   {
@@ -245,7 +248,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "paste",
     keyCombo: ["Control", "V"],
     category: "editor",
-    description: "Paste nodes from clipboard",
+    description: "Paste nodes from clipboard", descriptionKey: "catalog:shortcuts.pasteNodesFromClipboard",
     registerCombo: true
   },
   {
@@ -253,7 +256,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "undo",
     keyCombo: ["Control", "Z"],
     category: "editor",
-    description: "Undo last action",
+    description: "Undo last action", descriptionKey: "catalog:shortcuts.undoLastAction",
     registerCombo: true
   },
   {
@@ -261,7 +264,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "redo",
     keyCombo: ["Control", "Shift", "Z"],
     category: "editor",
-    description: "Redo last undone action",
+    description: "Redo last undone action", descriptionKey: "catalog:shortcuts.redoLastUndoneAction",
     registerCombo: true
   },
   {
@@ -269,7 +272,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "selectAll",
     keyCombo: ["Control", "A"],
     category: "editor",
-    description: "Select all nodes",
+    description: "Select all nodes", descriptionKey: "catalog:shortcuts.selectAllNodes",
     registerCombo: true
   },
   {
@@ -277,7 +280,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "align",
     keyCombo: ["A"],
     category: "editor",
-    description: "Align selected nodes",
+    description: "Align selected nodes", descriptionKey: "catalog:shortcuts.alignSelectedNodes",
     registerCombo: true
   },
   {
@@ -285,7 +288,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "alignWithSpacing",
     keyCombo: ["Shift", "A"],
     category: "editor",
-    description: "Align selected nodes and distribute spacing",
+    description: "Align selected nodes and distribute spacing", descriptionKey: "catalog:shortcuts.alignSelectedNodesAndDistributeSpacing",
     registerCombo: true
   },
   {
@@ -293,23 +296,23 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "duplicate",
     keyCombo: ["Control", "D"],
     category: "editor",
-    description: "Duplicate selected nodes",
+    description: "Duplicate selected nodes", descriptionKey: "catalog:shortcuts.duplicateSelectedNodes",
     registerCombo: true
   },
   {
-    title: "Duplicate vertical",
+    title: "Duplicate vertical", titleKey: "editor:node.duplicateVertical",
     slug: "duplicateVertical",
     keyCombo: ["Control", "Shift", "D"],
     category: "editor",
-    description: "Duplicate selected nodes vertically",
+    description: "Duplicate selected nodes vertically", descriptionKey: "catalog:shortcuts.duplicateSelectedNodesVertically",
     registerCombo: true
   },
   {
-    title: "Fit view",
+    title: "Fit view", titleKey: "catalog:shortcuts.fitView",
     slug: "fitView",
     keyCombo: ["F"],
     category: "editor",
-    description: "Fit all / selected nodes into view",
+    description: "Fit all / selected nodes into view", descriptionKey: "catalog:shortcuts.fitAllSelectedNodesIntoView",
     registerCombo: true
   },
   {
@@ -317,7 +320,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "deleteNode",
     keyCombo: ["Delete"],
     category: "editor",
-    description: "Delete selected nodes (Backspace or Delete)",
+    description: "Delete selected nodes (Backspace or Delete)", descriptionKey: "catalog:shortcuts.deleteSelectedNodesBackspaceOrDelete",
     registerCombo: false
   },
   {
@@ -325,7 +328,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "deleteNodeBackspace",
     keyCombo: ["Backspace"],
     category: "editor",
-    description: "Delete selected nodes (Backspace or Delete)",
+    description: "Delete selected nodes (Backspace or Delete)", descriptionKey: "catalog:shortcuts.deleteSelectedNodesBackspaceOrDelete",
     registerCombo: false
   },
   {
@@ -333,7 +336,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "resetDefault",
     keyCombo: ["Control", "MouseRight"],
     category: "editor",
-    description: "Reset property to default value",
+    description: "Reset property to default value", descriptionKey: "catalog:shortcuts.resetPropertyToDefaultValue",
     registerCombo: false
   },
   {
@@ -341,7 +344,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "groupSelected",
     keyCombo: ["Control", "G"],
     category: "editor",
-    description: "Group selected nodes",
+    description: "Group selected nodes", descriptionKey: "catalog:shortcuts.groupSelectedNodes",
     registerCombo: true
   },
   {
@@ -349,7 +352,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "moveLeft",
     keyCombo: ["ArrowLeft"],
     category: "editor",
-    description: "Nudge selected nodes left",
+    description: "Nudge selected nodes left", descriptionKey: "catalog:shortcuts.nudgeSelectedNodesLeft",
     registerCombo: true
   },
   {
@@ -357,7 +360,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "moveRight",
     keyCombo: ["ArrowRight"],
     category: "editor",
-    description: "Nudge selected nodes right",
+    description: "Nudge selected nodes right", descriptionKey: "catalog:shortcuts.nudgeSelectedNodesRight",
     registerCombo: true
   },
   {
@@ -365,7 +368,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "moveUp",
     keyCombo: ["ArrowUp"],
     category: "editor",
-    description: "Nudge selected nodes up",
+    description: "Nudge selected nodes up", descriptionKey: "catalog:shortcuts.nudgeSelectedNodesUp",
     registerCombo: true
   },
   {
@@ -373,7 +376,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "moveDown",
     keyCombo: ["ArrowDown"],
     category: "editor",
-    description: "Nudge selected nodes down",
+    description: "Nudge selected nodes down", descriptionKey: "catalog:shortcuts.nudgeSelectedNodesDown",
     registerCombo: true
   },
   {
@@ -381,7 +384,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "bypassNode",
     keyCombo: ["B"],
     category: "editor",
-    description: "Toggle whether selected nodes are excluded from runs",
+    description: "Toggle whether selected nodes are excluded from runs", descriptionKey: "catalog:shortcuts.toggleWhetherSelectedNodesAreExcludedFromRuns",
     registerCombo: true
   },
   {
@@ -394,26 +397,26 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     registerCombo: true
   },
   {
-    title: "Select Connected (All)",
+    title: "Select Connected (All)", titleKey: "catalog:shortcuts.selectConnectedAll",
     slug: "selectConnectedAll",
     keyCombo: ["Shift", "C"],
     category: "editor",
-    description: "Select all nodes connected to selected nodes (inputs and outputs)",
+    description: "Select all nodes connected to selected nodes (inputs and outputs)", descriptionKey: "catalog:shortcuts.selectAllNodesConnectedToSelectedNodesInputsAndOutputs",
     registerCombo: true
   },
   {
-    title: "Select Connected (Inputs)",
+    title: "Select Connected (Inputs)", titleKey: "catalog:shortcuts.selectConnectedInputs",
     slug: "selectConnectedInputs",
     keyCombo: ["Shift", "I"],
     category: "editor",
-    description: "Select all nodes that connect into selected nodes",
+    description: "Select all nodes that connect into selected nodes", descriptionKey: "catalog:shortcuts.selectAllNodesThatConnectIntoSelectedNodes",
     registerCombo: true
   },
   {
-    title: "Select Connected (Outputs)",
+    title: "Select Connected (Outputs)", titleKey: "catalog:shortcuts.selectConnectedOutputs",
     keyCombo: ["Shift", "O"],
     category: "editor",
-    description: "Select all nodes that receive output from selected nodes",
+    description: "Select all nodes that receive output from selected nodes", descriptionKey: "catalog:shortcuts.selectAllNodesThatReceiveOutputFromSelectedNodes",
     registerCombo: true,
     slug: "selectConnectedOutputs"
   },
@@ -423,7 +426,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "alignLeft",
     keyCombo: ["Shift", "ArrowLeft"],
     category: "editor",
-    description: "Align selected nodes to the left edge",
+    description: "Align selected nodes to the left edge", descriptionKey: "catalog:shortcuts.alignSelectedNodesToTheLeftEdge",
     registerCombo: true
   },
   {
@@ -431,7 +434,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "alignCenter",
     keyCombo: ["Shift", "H"],
     category: "editor",
-    description: "Align selected nodes to their center",
+    description: "Align selected nodes to their center", descriptionKey: "catalog:shortcuts.alignSelectedNodesToTheirCenter",
     registerCombo: true
   },
   {
@@ -439,7 +442,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "alignRight",
     keyCombo: ["Shift", "ArrowRight"],
     category: "editor",
-    description: "Align selected nodes to the right edge",
+    description: "Align selected nodes to the right edge", descriptionKey: "catalog:shortcuts.alignSelectedNodesToTheRightEdge",
     registerCombo: true
   },
   {
@@ -447,7 +450,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "alignTop",
     keyCombo: ["Shift", "ArrowUp"],
     category: "editor",
-    description: "Align selected nodes to the top edge",
+    description: "Align selected nodes to the top edge", descriptionKey: "catalog:shortcuts.alignSelectedNodesToTheTopEdge",
     registerCombo: true
   },
   {
@@ -455,7 +458,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "alignMiddle",
     keyCombo: ["Shift", "E"],
     category: "editor",
-    description: "Align selected nodes to their vertical center",
+    description: "Align selected nodes to their vertical center", descriptionKey: "catalog:shortcuts.alignSelectedNodesToTheirVerticalCenter",
     registerCombo: true
   },
   {
@@ -463,7 +466,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "alignBottom",
     keyCombo: ["Shift", "ArrowDown"],
     category: "editor",
-    description: "Align selected nodes to the bottom edge",
+    description: "Align selected nodes to the bottom edge", descriptionKey: "catalog:shortcuts.alignSelectedNodesToTheBottomEdge",
     registerCombo: true
   },
   {
@@ -471,7 +474,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "distributeHorizontal",
     keyCombo: ["Shift", "D"],
     category: "editor",
-    description: "Distribute selected nodes evenly horizontally",
+    description: "Distribute selected nodes evenly horizontally", descriptionKey: "catalog:shortcuts.distributeSelectedNodesEvenlyHorizontally",
     registerCombo: true
   },
   {
@@ -506,16 +509,16 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     keyCombo: ["Delete"],
     keyComboMac: ["Backspace"],
     category: "editor",
-    description: "Delete all selected nodes",
+    description: "Delete all selected nodes", descriptionKey: "catalog:shortcuts.deleteAllSelectedNodes",
     registerCombo: true,
     altKeyCombos: [["Backspace"]]
   },
   {
-    title: "Node info",
+    title: "Node info", titleKey: "catalog:shortcuts.nodeInfo",
     slug: "nodeInfo",
     keyCombo: ["Control", "I"],
     category: "editor",
-    description: "Show/hide node information panel",
+    description: "Show/hide node information panel", descriptionKey: "catalog:shortcuts.showhideNodeInformationPanel",
     registerCombo: true
   },
 
@@ -529,23 +532,23 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     registerCombo: true
   },
   {
-    title: "Workflows",
+    title: "Workflows", titleKey: "ui2:attrs.workflows",
     slug: "toggleWorkflows",
     keyCombo: ["1"],
     category: "panel",
-    description: "Toggle Workflows panel (left sidebar)",
+    description: "Toggle Workflows panel (left sidebar)", descriptionKey: "catalog:shortcuts.toggleWorkflowsPanelLeftSidebar",
     registerCombo: false
   },
   {
-    title: "Assets",
+    title: "Assets", titleKey: "editor:explorer.title",
     slug: "toggleAssets",
     keyCombo: ["2"],
     category: "panel",
-    description: "Toggle Assets panel (left sidebar)",
+    description: "Toggle Assets panel (left sidebar)", descriptionKey: "catalog:shortcuts.toggleAssetsPanelLeftSidebar",
     registerCombo: false
   },
   {
-    title: "Inspector",
+    title: "Inspector", titleKey: "timeline:editor.inspector",
     slug: "toggleInspector",
     keyCombo: ["I"],
     category: "panel",
@@ -561,7 +564,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     registerCombo: true
   },
   {
-    title: "Operator",
+    title: "Operator", titleKey: "catalog:shortcuts.operator",
     slug: "toggleOperator",
     keyCombo: ["O"],
     category: "panel",
@@ -578,7 +581,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     keyCombo: ["Control", "Shift", "O"],
     keyComboMac: ["Meta", "Shift", "O"],
     category: "panel",
-    description: "Start a new conversation in the focused chat",
+    description: "Start a new conversation in the focused chat", descriptionKey: "catalog:shortcuts.startANewConversationInTheFocusedChat",
     registerCombo: false
   },
   {
@@ -587,7 +590,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     keyCombo: ["Control", "Shift", "L"],
     keyComboMac: ["Meta", "Shift", "L"],
     category: "panel",
-    description: "Put the cursor in the focused chat's message box",
+    description: "Put the cursor in the focused chat's message box", descriptionKey: "catalog:shortcuts.putTheCursorInTheFocusedChatsMessageBox",
     registerCombo: false
   },
   {
@@ -595,7 +598,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "stopChatGeneration",
     keyCombo: ["Escape"],
     category: "panel",
-    description: "While a reply is in flight and the composer has focus",
+    description: "While a reply is in flight and the composer has focus", descriptionKey: "catalog:shortcuts.whileAReplyIsInFlightAndTheComposerHasFocus",
     registerCombo: false
   },
 
@@ -605,7 +608,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "runWorkflow",
     keyCombo: ["Control", "Enter"],
     category: "workflow" as const,
-    description: "Execute the current workflow",
+    description: "Execute the current workflow", descriptionKey: "catalog:shortcuts.executeTheCurrentWorkflow",
     registerCombo: false
   },
   {
@@ -613,15 +616,15 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "stopWorkflow",
     keyCombo: ["Escape"],
     category: "workflow" as const,
-    description: "Stop running workflow",
+    description: "Stop running workflow", descriptionKey: "catalog:shortcuts.stopRunningWorkflow",
     registerCombo: false
   },
   {
-    title: "Save workflow",
+    title: "Save workflow", titleKey: "catalog:shortcuts.saveWorkflow",
     slug: "saveWorkflow",
     keyCombo: ["Control", "S"],
     category: "workflow" as const,
-    description: "Save current workflow",
+    description: "Save current workflow", descriptionKey: "catalog:shortcuts.saveCurrentWorkflow",
     registerCombo: true
   },
   {
@@ -629,21 +632,21 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "newWorkflow",
     keyCombo: ["Control", "T"],
     category: "workflow" as const,
-    description: "Create a new workflow tab",
+    description: "Create a new workflow tab", descriptionKey: "catalog:shortcuts.createANewWorkflowTab",
     registerCombo: true,
     electronOnly: true
   },
   {
-    title: "Close workflow",
+    title: "Close workflow", titleKey: "catalog:shortcuts.closeWorkflow",
     slug: "closeWorkflow",
     keyCombo: ["Control", "W"],
     category: "workflow" as const,
-    description: "Close current workflow tab",
+    description: "Close current workflow tab", descriptionKey: "catalog:shortcuts.closeCurrentWorkflowTab",
     registerCombo: true,
     electronOnly: true
   },
   {
-    title: "Previous Tab",
+    title: "Previous Tab", titleKey: "catalog:shortcuts.previousTab",
     slug: "prevTab",
     keyCombo: ["Control", "PageUp"],
     altKeyCombos: [
@@ -651,11 +654,11 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
       ["Control", "Alt", "ArrowLeft"]
     ],
     category: "workflow" as const,
-    description: "Activate previous workflow tab",
+    description: "Activate previous workflow tab", descriptionKey: "catalog:shortcuts.activatePreviousWorkflowTab",
     registerCombo: true
   },
   {
-    title: "Next Tab",
+    title: "Next Tab", titleKey: "catalog:shortcuts.nextTab",
     slug: "nextTab",
     keyCombo: ["Control", "PageDown"],
     altKeyCombos: [
@@ -663,7 +666,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
       ["Control", "Alt", "ArrowRight"]
     ],
     category: "workflow" as const,
-    description: "Activate next workflow tab",
+    description: "Activate next workflow tab", descriptionKey: "catalog:shortcuts.activateNextWorkflowTab",
     registerCombo: true
   },
   // Direct tab switching (Ctrl/Cmd 1-9)
@@ -690,7 +693,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "assetSelectRange",
     keyCombo: ["Shift", "Click"],
     category: "assets" as const,
-    description: "Extend selection from the last selected asset",
+    description: "Extend selection from the last selected asset", descriptionKey: "catalog:shortcuts.extendSelectionFromTheLastSelectedAsset",
     registerCombo: false
   },
   {
@@ -698,7 +701,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "assetToggleSelect",
     keyCombo: ["Control", "Click"],
     category: "assets" as const,
-    description: "Add or remove an asset from the selection",
+    description: "Add or remove an asset from the selection", descriptionKey: "catalog:shortcuts.addOrRemoveAnAssetFromTheSelection",
     registerCombo: false
   },
   {
@@ -706,7 +709,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "assetViewerPrev",
     keyCombo: ["ArrowLeft"],
     category: "assets" as const,
-    description: "Show the previous asset in the asset viewer",
+    description: "Show the previous asset in the asset viewer", descriptionKey: "catalog:shortcuts.showThePreviousAssetInTheAssetViewer",
     registerCombo: false
   },
   {
@@ -714,7 +717,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "assetViewerNext",
     keyCombo: ["ArrowRight"],
     category: "assets" as const,
-    description: "Show the next asset in the asset viewer",
+    description: "Show the next asset in the asset viewer", descriptionKey: "catalog:shortcuts.showTheNextAssetInTheAssetViewer",
     registerCombo: false
   },
   {
@@ -723,7 +726,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     keyCombo: ["Control", "ArrowLeft"],
     keyComboMac: ["Control", "ArrowLeft"],
     category: "assets" as const,
-    description: "Jump back five assets in the asset viewer",
+    description: "Jump back five assets in the asset viewer", descriptionKey: "catalog:shortcuts.jumpBackFiveAssetsInTheAssetViewer",
     registerCombo: false
   },
   {
@@ -732,7 +735,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     keyCombo: ["Control", "ArrowRight"],
     keyComboMac: ["Control", "ArrowRight"],
     category: "assets" as const,
-    description: "Jump forward five assets in the asset viewer",
+    description: "Jump forward five assets in the asset viewer", descriptionKey: "catalog:shortcuts.jumpForwardFiveAssetsInTheAssetViewer",
     registerCombo: false
   },
   {
@@ -741,13 +744,13 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     keyCombo: ["Control", "Backspace"],
     altKeyCombos: [["Control", "Delete"]],
     category: "assets" as const,
-    description: "Clear the asset search field",
+    description: "Clear the asset search field", descriptionKey: "catalog:shortcuts.clearTheAssetSearchField",
     registerCombo: false
   },
 
   // ---------- HELP ----------------------------------------------------------
   {
-    title: "Show keyboard shortcuts",
+    title: "Show keyboard shortcuts", titleKey: "sketch:attrs.showKeyboardShortcuts",
     slug: "showKeyboardShortcuts",
     keyCombo: ["Control", "/"],
     keyComboMac: ["Meta", "/"],
@@ -765,17 +768,17 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     keyCombo: ["Control", ","],
     keyComboMac: ["Meta", ","],
     category: "editor",
-    description: "Open settings in a workspace tab",
+    description: "Open settings in a workspace tab", descriptionKey: "catalog:shortcuts.openSettingsInAWorkspaceTab",
     registerCombo: true
   },
 
   // ---------- FIND IN WORKFLOW ---------------------------------------------
   {
-    title: "Find in workflow",
+    title: "Find in workflow", titleKey: "catalog:shortcuts.findInWorkflow",
     slug: "findInWorkflow",
     keyCombo: ["Control", "F"],
     category: "editor" as const,
-    description: "Find and navigate to nodes in the current workflow",
+    description: "Find and navigate to nodes in the current workflow", descriptionKey: "catalog:shortcuts.findAndNavigateToNodesInTheCurrentWorkflow",
     registerCombo: true
   },
   {
@@ -783,47 +786,47 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "resetZoom",
     keyCombo: ["Control", "0"],
     category: "editor" as const,
-    description: "Reset zoom to 50%",
+    description: "Reset zoom to 50%", descriptionKey: "catalog:shortcuts.resetZoomTo50",
     registerCombo: true
   },
   {
-    title: "Zoom in",
+    title: "Zoom in", titleKey: "catalog:shortcuts.zoomIn", titleKey: "timeline:shortcuts.zoomIn",
     slug: "zoomIn",
     keyCombo: ["Control", "="],
     category: "editor" as const,
-    description: "Increase zoom level by 20%",
+    description: "Increase zoom level by 20%", descriptionKey: "catalog:shortcuts.increaseZoomLevelBy20",
     registerCombo: true
   },
   {
-    title: "Zoom out",
+    title: "Zoom out", titleKey: "catalog:shortcuts.zoomOut", titleKey: "timeline:shortcuts.zoomOut",
     slug: "zoomOut",
     keyCombo: ["Control", "-"],
     category: "editor" as const,
-    description: "Decrease zoom level by 20%",
+    description: "Decrease zoom level by 20%", descriptionKey: "catalog:shortcuts.decreaseZoomLevelBy20",
     registerCombo: true
   },
   {
-    title: "Zoom to 50%",
+    title: "Zoom to 50%", titleKey: "catalog:shortcuts.zoomTo50",
     slug: "zoom50",
     keyCombo: ["Control", "Alt", "5"],
     category: "editor" as const,
-    description: "Set zoom to 50%",
+    description: "Set zoom to 50%", descriptionKey: "catalog:shortcuts.setZoomTo50",
     registerCombo: true
   },
   {
-    title: "Zoom to 100%",
+    title: "Zoom to 100%", titleKey: "catalog:shortcuts.zoomTo100",
     slug: "zoom100",
     keyCombo: ["Control", "Alt", "1"],
     category: "editor" as const,
-    description: "Set zoom to 100%",
+    description: "Set zoom to 100%", descriptionKey: "catalog:shortcuts.setZoomTo100",
     registerCombo: true
   },
   {
-    title: "Zoom to 200%",
+    title: "Zoom to 200%", titleKey: "catalog:shortcuts.zoomTo200",
     slug: "zoom200",
     keyCombo: ["Control", "Alt", "2"],
     category: "editor" as const,
-    description: "Set zoom to 200%",
+    description: "Set zoom to 200%", descriptionKey: "catalog:shortcuts.setZoomTo200",
     registerCombo: true
   },
 
@@ -833,7 +836,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "navigateNextNode",
     keyCombo: ["Control", "Alt", "N"],
     category: "editor" as const,
-    description: "Navigate focus to next node in the canvas",
+    description: "Navigate focus to next node in the canvas", descriptionKey: "catalog:shortcuts.navigateFocusToNextNodeInTheCanvas",
     registerCombo: true
   },
   {
@@ -841,7 +844,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "navigatePrevNode",
     keyCombo: ["Control", "Alt", "P"],
     category: "editor" as const,
-    description: "Navigate focus to previous node in the canvas",
+    description: "Navigate focus to previous node in the canvas", descriptionKey: "catalog:shortcuts.navigateFocusToPreviousNodeInTheCanvas",
     registerCombo: true
   },
   {
@@ -849,7 +852,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "selectFocusedNode",
     keyCombo: ["Enter"],
     category: "editor" as const,
-    description: "Select the currently focused node",
+    description: "Select the currently focused node", descriptionKey: "catalog:shortcuts.selectTheCurrentlyFocusedNode",
     registerCombo: true
   },
   {
@@ -857,7 +860,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "exitNavigationMode",
     keyCombo: ["Escape"],
     category: "editor" as const,
-    description: "Exit keyboard navigation mode",
+    description: "Exit keyboard navigation mode", descriptionKey: "catalog:shortcuts.exitKeyboardNavigationMode",
     registerCombo: true
   },
   {
@@ -865,7 +868,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "focusNodeUp",
     keyCombo: ["Alt", "ArrowUp"],
     category: "editor" as const,
-    description: "Move focus to the nearest node above current",
+    description: "Move focus to the nearest node above current", descriptionKey: "catalog:shortcuts.moveFocusToTheNearestNodeAboveCurrent",
     registerCombo: true
   },
   {
@@ -873,7 +876,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "focusNodeDown",
     keyCombo: ["Alt", "ArrowDown"],
     category: "editor" as const,
-    description: "Move focus to the nearest node below current",
+    description: "Move focus to the nearest node below current", descriptionKey: "catalog:shortcuts.moveFocusToTheNearestNodeBelowCurrent",
     registerCombo: true
   },
   {
@@ -881,7 +884,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "focusNodeLeft",
     keyCombo: ["Alt", "ArrowLeft"],
     category: "editor" as const,
-    description: "Move focus to the nearest node to the left",
+    description: "Move focus to the nearest node to the left", descriptionKey: "catalog:shortcuts.moveFocusToTheNearestNodeToTheLeft",
     registerCombo: true
   },
   {
@@ -889,7 +892,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "focusNodeRight",
     keyCombo: ["Alt", "ArrowRight"],
     category: "editor" as const,
-    description: "Move focus to the nearest node to the right",
+    description: "Move focus to the nearest node to the right", descriptionKey: "catalog:shortcuts.moveFocusToTheNearestNodeToTheRight",
     registerCombo: true
   },
   {
@@ -897,7 +900,7 @@ export const NODE_EDITOR_SHORTCUTS: Shortcut[] = [
     slug: "goBack",
     keyCombo: ["Control", "Alt", "B"],
     category: "editor" as const,
-    description: "Go back to previously focused node",
+    description: "Go back to previously focused node", descriptionKey: "catalog:shortcuts.goBackToPreviouslyFocusedNode",
     registerCombo: true
   }
 ];

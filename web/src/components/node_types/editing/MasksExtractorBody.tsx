@@ -38,6 +38,7 @@ import {
 } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 // Node types bound to this bespoke body — the Bria + 851-labs
 // background-removal variants.
@@ -182,7 +183,7 @@ const MasksExtractorBodyInner: React.FC<MasksExtractorBodyProps> = ({
         ) : (
           <ImagePreview
             value={maskTabValue}
-            message="Run the node to extract a mask"
+            message={i18n.t("editor:ui.runTheNodeToExtractAMask", { defaultValue: "Run the node to extract a mask" })}
           />
         )}
       </div>

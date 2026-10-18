@@ -21,10 +21,10 @@ export const gamePlayStatus = ({
   sceneCount
 }: GamePlayStatusInput): string => {
   if (won) {
-    return "Won";
+    return i18n.t("game:status.won", { defaultValue: "Won" });
   }
   if (playing) {
     return sceneCount > 1 && sceneName ? `Scene: ${sceneName}` : "Playing";
   }
-  return paused ? "Paused" : "Ready";
+  return paused ? i18n.t("game:status.pausedState", { defaultValue: "Paused" }) : i18n.t("editor:ui.ready", { defaultValue: "Ready" });
 };

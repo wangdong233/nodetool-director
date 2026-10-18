@@ -20,9 +20,11 @@ import { BORDER_RADIUS, CONTROL, FONT_SIZE_SANS, TYPOGRAPHY } from "./tokens";
 import { SPACING } from "./spacing";
 import { useFormFieldContext } from "./formFieldContext";
 import { useFieldDensity } from "./fieldDensity";
+import { i18n } from "../../../i18n";
 
 
 export interface SelectOption {
+  labelKey?: string;
   /** Option value */
   value: string | number;
   /** Display label */
@@ -74,8 +76,8 @@ export interface SelectFieldProps {
  *   value={color}
  *   onChange={setColor}
  *   options={[
- *     { value: "red", label: "Red" },
- *     { value: "blue", label: "Blue" },
+ *     { value: "red", label: "Red", labelKey: "sketch:attrs.redChannel" },
+ *     { value: "blue", label: "Blue", labelKey: "sketch:attrs.blueChannel" },
  *   ]}
  * />
  *

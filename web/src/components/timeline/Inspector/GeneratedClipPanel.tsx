@@ -49,6 +49,7 @@ import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipVersionHistory } from "./ClipVersionHistory";
+import { i18n } from "../../../../i18n";
 
 interface GeneratedClipPanelProps {
   clipId: string;
@@ -193,7 +194,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
             <EmptyState
               variant="empty"
               size="small"
-              description="No workflow is bound to this clip."
+              description={i18n.t("editor:ui.noWorkflowIsBoundToThisClip", { defaultValue: "No workflow is bound to this clip." })}
             />
           )}
 
@@ -201,7 +202,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
             <CollapsibleSection
               title={
                 <InspectorSectionTitle
-                  title="Inputs"
+                  title={i18n.t("timeline:attrs.inputs", { defaultValue: "Inputs" })}
                   icon={<TuneOutlinedIcon />}
                 />
               }

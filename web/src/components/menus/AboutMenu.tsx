@@ -9,6 +9,7 @@ import { isElectron, isProduction } from "../../lib/env";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import ErrorBanner from "../support/ErrorBanner";
 import { FlexRow, FlexColumn, Text, Caption, LoadingSpinner, Chip, Box, getSpacingPx, SPACING } from "../ui_primitives";
+import { i18n } from "../../../i18n";
 
 // Note: This interface mirrors the SystemInfo type from window.d.ts
 // We use a local copy to avoid type export complexity
@@ -140,7 +141,7 @@ const FeatureStatus: React.FC<{
         ) : (
           <Chip
             icon={<CancelIcon />}
-            label="Not available"
+            label={i18n.t("settings:storage.bytesNA", { defaultValue: "Not available" })}
             size="small"
             color="default"
             variant="outlined"
@@ -172,7 +173,7 @@ const AboutMenu: React.FC = memo(() => {
         const info = await window.api?.settings?.getSystemInfo();
         setSystemInfo(info ?? null);
       } catch (err) {
-        setError("Failed to load system information");
+        setError(i18n.t("editor:ui.failedToLoadSystemInformation", { defaultValue: "Failed to load system information" }));
         console.error("Failed to fetch system info:", err);
       } finally {
         setLoading(false);
@@ -188,14 +189,14 @@ const AboutMenu: React.FC = memo(() => {
       addNotification({
         type: "info",
         alert: true,
-        content: "Copied to clipboard!"
+        content: "Copied to clipboard!", contentKey: "tools:menus.copiedToClipboard"
       });
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
       addNotification({
         type: "error",
         alert: true,
-        content: "Failed to copy to clipboard"
+        content: "Failed to copy to clipboard", contentKey: "editor:notify.copyFailed"
       });
     }
   }, [addNotification]);
@@ -230,8 +231,8 @@ NPM Packages: ${systemInfo.optionalNodePath}
 
 Features & Versions
 -------------------
-Python: ${systemInfo.pythonVersion || "Not available"}
-CUDA: ${systemInfo.cudaAvailable ? systemInfo.cudaVersion || "Available" : "Not available"}
+Python: ${systemInfo.pythonVersion || i18n.t("editor:ui.notAvailable", { defaultValue: "Not available" })}
+CUDA: ${systemInfo.cudaAvailable ? systemInfo.cudaVersion || "Available" : i18n.t("editor:ui.notAvailable", { defaultValue: "Not available" })}
 Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" : "Not installed"}
 `;
 
@@ -240,14 +241,14 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
       addNotification({
         type: "info",
         alert: true,
-        content: "System information copied to clipboard!"
+        content: "System information copied to clipboard!", contentKey: "tools:menus.systemInformationCopiedToClipboard"
       });
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
       addNotification({
         type: "error",
         alert: true,
-        content: "Failed to copy system information to clipboard"
+        content: "Failed to copy system information to clipboard", contentKey: "tools:menus.failedToCopySystemInformationToClipboard"
       });
     }
   }, [systemInfo, addNotification]);
@@ -288,9 +289,9 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
         Application
       </Text>
       <div className="settings-section">
-        <InfoRow label="Version" value={VERSION} />
+        <InfoRow label={i18n.t("timeline:attrs.version", { defaultValue: "Version" })} value={VERSION} />
         <InfoRow
-          label="Git commit"
+          label={i18n.t("editor:ui.gitCommit", { defaultValue: "Git commit" })}
           value={GIT_COMMIT_HASH}
           copyable
           onCopy={handleCopy}
@@ -312,8 +313,8 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
         {systemInfo ? (
           <>
             <InfoRow label="OS" value={systemInfo.os} />
-            <InfoRow label="Version" value={systemInfo.osVersion} />
-            <InfoRow label="Architecture" value={systemInfo.arch} />
+            <InfoRow label={i18n.t("timeline:attrs.version", { defaultValue: "Version" })} value={systemInfo.osVersion} />
+            <InfoRow label={i18n.t("editor:ui.architecture", { defaultValue: "Architecture" })} value={systemInfo.arch} />
           </>
         ) : (
           <>
@@ -330,13 +331,13 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
           </Text>
           <div className="settings-section">
             <InfoRow
-              label="Application"
+              label={i18n.t("editor:ui.application2", { defaultValue: "Application" })}
               value={systemInfo.installPath}
               copyable
               onCopy={handleCopy}
             />
             <InfoRow
-              label="Conda environment"
+              label={i18n.t("editor:ui.condaEnvironment", { defaultValue: "Conda environment" })}
               value={systemInfo.condaEnvPath}
               copyable
               onCopy={handleCopy}
@@ -348,13 +349,13 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               onCopy={handleCopy}
             />
             <InfoRow
-              label="Logs"
+              label={i18n.t("game:console.logMany", { defaultValue: "Logs" })}
               value={systemInfo.logsPath}
               copyable
               onCopy={handleCopy}
             />
             <InfoRow
-              label="NPM packages"
+              label={i18n.t("tools:menus.npmPackages", { defaultValue: "NPM packages" })}
               value={systemInfo.optionalNodePath}
               copyable
               onCopy={handleCopy}

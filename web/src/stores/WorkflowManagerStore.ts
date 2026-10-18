@@ -58,7 +58,7 @@ import { noteWorkflowCreatedHere } from "./workflowsCreatedHere";
 import { trackProductEvent } from "../lib/analytics";
 import type { Node, Edge } from "@xyflow/react";
 import type { NodeData } from "./NodeData";
-import { i18n } from "../i18n";
+import { i18n } from "../../i18n";
 
 /**
  * Merge one external graph write into a dirty canvas: run the engine against

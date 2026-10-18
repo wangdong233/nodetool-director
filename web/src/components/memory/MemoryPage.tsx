@@ -30,7 +30,7 @@ import { useNotificationStore } from "../../stores/NotificationStore";
 import { openChatThread } from "../workspace/openChatThread";
 import MemoryCard, { type Memory } from "./MemoryCard";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 /** Every kind present, so the filter offers what the data actually holds. */
 function kindsOf(memories: readonly Memory[]): string[] {
@@ -119,14 +119,14 @@ const MemoryPage: React.FC = () => {
         <EmptyState
           variant={searching || kind ? "no-results" : "empty"}
           title={
-            searching || kind ? i18n.t("editor:ui.noMemoryMatches", { defaultValue: "No memory matches" }) : "Nothing remembered yet"
+            searching || kind ? i18n.t("editor:ui.noMemoryMatches", { defaultValue: "No memory matches" }) : i18n.t("editor:ui.nothingRememberedYet", { defaultValue: "Nothing remembered yet" })
           }
           description={
             searching || kind
               ? kind
                 ? `No memories match the ${kind} filter${searching ? " and search" : ""}. Select All to reset the filter.`
-                : "No memory contains all of those words."
-              : "The agent records project notes and the assets it creates as it works. They show up here."
+                : i18n.t("editor:ui.noMemoryContainsAllOfThoseWords", { defaultValue: "No memory contains all of those words." })
+              : i18n.t("editor:ui.theAgentRecordsProjectNotesAndTheAssetsItCreatesAsItWorksTheyShowUpHere", { defaultValue: "The agent records project notes and the assets it creates as it works. They show up here." })
           }
         />
       );
@@ -150,7 +150,7 @@ const MemoryPage: React.FC = () => {
     <PageLayout
       icon={<PsychologyOutlinedIcon sx={{ fontSize: ICON_SIZE.lg }} />}
       title={t("editor:ui.memory", { defaultValue: "Memory" })}
-      subtitle="What the agent remembers across every conversation — project notes and the resources they refer to."
+      subtitle={i18n.t("editor:ui.whatTheAgentRemembers", { defaultValue: "What the agent remembers across every conversation — project notes and the resources they refer to." })}
     >
       <FlexColumn gap={SPACING.md} sx={{ width: "100%" }}>
         <FlexRow align="center" justify="space-between" gap={SPACING.md}>
@@ -158,13 +158,13 @@ const MemoryPage: React.FC = () => {
             value={query}
             onChange={setQuery}
             placeholder={t("editor:ui.searchMemories", { defaultValue: "Search memories" })}
-            ariaLabel="Search memories by keyword"
+            ariaLabel={i18n.t("editor:ui.searchMemoriesByKeyword", { defaultValue: "Search memories by keyword" })}
             size="small"
             debounceMs={250}
             sx={{ maxWidth: 360, width: "100%" }}
           />
           <Text size="small" sx={{ opacity: 0.6, flexShrink: 0 }}>
-            {visible.length === 1 ? "1 memory" : `${visible.length} memories`}
+            {visible.length === 1 ? i18n.t("editor:ui.oneMemory", { defaultValue: "1 memory" }) : `${visible.length} memories`}
           </Text>
         </FlexRow>
         {(kinds.length > 1 || kind !== null) && (
@@ -208,7 +208,7 @@ const MemoryPage: React.FC = () => {
           }
         }}
         title={t("editor:ui.deleteMemory", { defaultValue: "Delete memory" })}
-        content="Delete this memory? This cannot be undone."
+        content={i18n.t("editor:ui.deleteThisMemoryThisCannotBeUndone", { defaultValue: "Delete this memory? This cannot be undone." })}
         confirmText="Delete"
         cancelText="Cancel"
       />

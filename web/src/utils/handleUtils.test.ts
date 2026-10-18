@@ -331,7 +331,7 @@ describe("Code node inferred handles", () => {
   const codeMeta = makeMetadata({
     node_type: "nodetool.code.Code",
     properties: [
-      { name: "code", type: makeType("str"), required: false },
+      { name: "code", nameKey: "ui2:attrs.code", type: makeType("str"), required: false },
     ],
     outputs: [],
   });

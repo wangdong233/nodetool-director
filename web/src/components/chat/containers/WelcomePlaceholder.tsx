@@ -27,6 +27,7 @@ import openaiIcon from "../../../icons/providers/openai.svg";
 import anthropicIcon from "../../../icons/providers/anthropic.svg";
 import geminiColorIcon from "../../../icons/providers/gemini-color.svg";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 /** Keeps the subtitle to a readable line length on a wide column. */
 const WELCOME_TEXT_MAX_WIDTH = 520;
@@ -120,11 +121,11 @@ const styles = (theme: Theme) =>
 // per job the studio is built for: a product spot, a creator-style cut, a
 // narrated explainer, a whole campaign, and the pipeline that repeats it.
 const SUGGESTIONS = [
-  "Storyboard a 30-second ad for …",
-  "Direct a UGC-style testimonial for …",
-  "Narrate a 60-second explainer about …",
-  "Turn this brief into a launch campaign: …",
-  "Build a workflow that renders an ad for every …"
+  i18n.t("editor:ui.suggestionStoryboardAd", { defaultValue: "Storyboard a 30-second ad for …" }),
+  i18n.t("editor:ui.suggestionUgcTestimonial", { defaultValue: "Direct a UGC-style testimonial for …" }),
+  i18n.t("editor:ui.suggestionExplainer", { defaultValue: "Narrate a 60-second explainer about …" }),
+  i18n.t("editor:ui.suggestionLaunchCampaign", { defaultValue: "Turn this brief into a launch campaign: …" }),
+  i18n.t("editor:ui.suggestionWorkflowAd", { defaultValue: "Build a workflow that renders an ad for every …" })
 ];
 
 // Cloud LLM providers we point first-time users at. Each maps to an API key
@@ -142,8 +143,8 @@ const SETUP_PROVIDERS = [
  */
 const SETUP_SUBTITLE =
   isElectron || isLocalhost
-    ? "Sign in with Claude or OpenAI to use a subscription you already pay for, or add an API key. Your credentials are encrypted and stored securely."
-    : "Add an API key for OpenAI, Anthropic, or Gemini to start chatting. Your keys are encrypted and stored securely.";
+    ? i18n.t("editor:chat.setupSubtitleDesktop", { defaultValue: "Sign in with Claude or OpenAI to use a subscription you already pay for, or add an API key. Your credentials are encrypted and stored securely." })
+    : i18n.t("editor:chat.setupSubtitleWeb", { defaultValue: "Add an API key for OpenAI, Anthropic, or Gemini to start chatting. Your keys are encrypted and stored securely." });
 
 interface WelcomePlaceholderProps {
   onSuggestionClick?: (suggestion: string) => void;
@@ -175,8 +176,8 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
       capability: "generate_message",
       reason:
         isElectron || isLocalhost
-          ? "Chat needs a language model. Sign in with Claude or OpenAI, or connect any provider with an API key."
-          : "Chat needs a language model. Connect a provider to start."
+          ? i18n.t("editor:ui.chatNeedsALanguageModelSignInWithClaudeOrOpenAIOrConnectAnyProviderWithAnAPIKey", { defaultValue: "Chat needs a language model. Sign in with Claude or OpenAI, or connect any provider with an API key." })
+          : i18n.t("editor:ui.chatNeedsALanguageModelConnectAProviderToStart", { defaultValue: "Chat needs a language model. Connect a provider to start." })
     });
   }, []);
 

@@ -21,7 +21,7 @@ import {
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { ListVideoThumb } from "./PropertyListThumb";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
 interface VideoItem {

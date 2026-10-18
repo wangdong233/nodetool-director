@@ -24,6 +24,7 @@ import { NamespaceTree } from "../../hooks/useNamespaceTree";
 import { HomeNamespaceIcon } from "./NamespaceIcon";
 import OptionalPacksSection from "./OptionalPacksSection";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface NamespacePanelProps {
   namespaceTree: NamespaceTree;
@@ -250,7 +251,7 @@ const NamespacePanel: React.FC<NamespacePanelProps> = ({ namespaceTree }) => {
               <HomeNamespaceIcon />
               <span className="namespace-label">
                 {searchTerm.length > minSearchTermLength
-                  ? t("editor:ui.allResults", { defaultValue: "All results" }) : "Home"}
+                  ? t("editor:ui.allResults", { defaultValue: "All results" }) : i18n.t("editor:ui.home", { defaultValue: "Home" })}
               </span>
             </div>
           </div>

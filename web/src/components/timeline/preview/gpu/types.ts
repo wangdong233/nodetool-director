@@ -159,6 +159,7 @@ export interface CompositeAdjustment {
 }
 
 export interface CompositorInitResult {
+  reasonKey?: string;
   ok: boolean;
   reason?: string;
 }

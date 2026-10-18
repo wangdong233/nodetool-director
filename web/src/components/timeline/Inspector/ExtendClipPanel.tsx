@@ -30,13 +30,13 @@ import {
 import { INSPECTOR_FORM_SX, InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 const TIMING_OPTIONS: ReadonlyArray<{ value: ExtensionTiming; label: string }> =
   [
-    { value: "keep-cut", label: "Keep cut and retain handles" },
-    { value: "available-space", label: "Extend into available space" },
-    { value: "ripple", label: "Extend and ripple later clips" }
+    { value: "keep-cut", label: "Keep cut and retain handles", labelKey: "timeline:attrs.keepCutAndRetainHandles" },
+    { value: "available-space", label: "Extend into available space", labelKey: "timeline:attrs.extendIntoAvailableSpace" },
+    { value: "ripple", label: "Extend and ripple later clips", labelKey: "timeline:attrs.extendAndRippleLaterClips" }
   ];
 
 const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
@@ -166,7 +166,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                 title={t("timeline:attrs.noExtensionModelAvailable", { defaultValue: "No extension model available" })}
                 description={
                   modelError
-                    ? i18n.t("timeline:attrs.couldNotLoadExtensionModelsTryAgainWhenConnected", { defaultValue: "Could not load extension models. Try again when connected." }) : "Connect a provider with a video extension model to use Extend."
+                    ? i18n.t("timeline:attrs.couldNotLoadExtensionModelsTryAgainWhenConnected", { defaultValue: "Could not load extension models. Try again when connected." }) : i18n.t("timeline:attrs.connectAProviderWithAVideoExtensionModelToUseExtend", { defaultValue: "Connect a provider with a video extension model to use Extend." })
                 }
               />
             ) : (
@@ -245,7 +245,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                     !(Number(selectedDuration) > 0)
                   }
                 >
-                  {pending ? t("timeline:attrs.extending", { defaultValue: "Extending…" }) : "Generate extension"}
+                  {pending ? t("timeline:attrs.extending", { defaultValue: "Extending…" }) : i18n.t("timeline:attrs.generateExtension", { defaultValue: "Generate extension" })}
                 </EditorButton>
               </>
             )}
@@ -263,11 +263,11 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                 <>
                   <FlexRow justify="space-between" align="center" fullWidth>
                     <Label>
-                      {job.request.direction === "start" ? t("timeline:attrs.start", { defaultValue: "Start" }) : "End"}{" "}
+                      {job.request.direction === "start" ? t("timeline:attrs.start", { defaultValue: "Start" }) : i18n.t("storyboard:attrs.end", { defaultValue: "End" })}{" "}
                       extension, {job.request.addedSourceDurationMs / 1000}s
                     </Label>
                     <Caption color={accepted ? "primary" : "secondary"}>
-                      {accepted ? t("timeline:attrs.inUse", { defaultValue: "In use" }) : "Candidate"}
+                      {accepted ? t("timeline:attrs.inUse", { defaultValue: "In use" }) : i18n.t("timeline:attrs.candidate", { defaultValue: "Candidate" })}
                     </Caption>
                   </FlexRow>
                   <EditorButton
@@ -278,7 +278,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                     }
                   >
                     {preview === take.assetId
-                      ? i18n.t("timeline:attrs.closePreview", { defaultValue: "Close preview" }) : "Preview extension"}
+                      ? i18n.t("timeline:attrs.closePreview", { defaultValue: "Close preview" }) : i18n.t("timeline:attrs.previewExtension", { defaultValue: "Preview extension" })}
                   </EditorButton>
                   {preview === take.assetId && (
                     <VideoPlayer

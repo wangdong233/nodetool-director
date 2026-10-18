@@ -15,6 +15,7 @@ import {
   FormFieldContext,
   type FormFieldContextValue
 } from "./formFieldContext";
+import { i18n } from "../../../i18n";
 
 export interface FormFieldProps extends Omit<BoxProps, 'onChange'> {
   /** Field label */

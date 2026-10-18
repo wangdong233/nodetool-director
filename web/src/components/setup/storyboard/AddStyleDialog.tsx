@@ -12,7 +12,7 @@
  * second press and made a second call (F18).
  */
 
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 import React, { Suspense, lazy, useCallback, useRef, useState } from "react";
 
 import {

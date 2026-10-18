@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EQ_REFERENCES, SpectrumCapture, fitEq, referenceById, removeEq, type EqFit } from '../../engine/autoEq';
 import { EQ_BANDS, readEqBands } from '../../engine/eqResponse';
+import { i18n } from "../../../../../../../i18n";
 
 const LEARN_SECONDS = 8, TIMEOUT_SECONDS = 30;
 const EQ_KEYS = ['fx.eq.on', ...EQ_BANDS.flatMap(b => [b.freq, b.gain, b.q, b.type, b.on])];
@@ -104,7 +105,7 @@ export function AutoEqStrip({ analysis, params, setParam, sampleRate, onFit }: P
     <div className="eq-auto-row">
       <button type="button" className={`eq-auto-learn${progress !== null ? ' on' : ''}`} disabled={!analysis.source}
         style={{ '--p': progress ?? 0 } as React.CSSProperties} onClick={learn}>{progress !== null ? 'STOP' : levels ? 'RELEARN' : 'LEARN'}</button>
-      <button type="button" disabled={!fit || progress !== null} onClick={apply}>APPLY</button>
+      <button type="button" disabled={!fit || progress !== null} onClick={apply}>{i18n.t("timeline:project.apply", { defaultValue: "APPLY" })}</button>
       <button type="button" disabled={!undo} onClick={revert}>UNDO</button>
     </div>
     <p className="eq-auto-status">{status}</p>

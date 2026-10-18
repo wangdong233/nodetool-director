@@ -27,7 +27,7 @@ const VISIBLE_HANDLES: readonly TransformHandle[] = [
 
 export const MeshWarpMode: TransformModeHandler = {
   id: "mesh-warp",
-  label: "Mesh warp",
+  label: "Mesh warp", labelKey: "sketch:attrs.meshWarp",
   tooltip:
     "Distort an image or image area using a customizable grid. Drag handles to apply mesh deformation.",
   // Hidden from the toolbar until the real Affinity-style Mesh Warp tool

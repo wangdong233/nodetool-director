@@ -39,6 +39,7 @@ import {
   isString
 } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const humanizeType = (type: string) => {
   return type.replace(/([A-Z])/g, " $1").trim();
@@ -272,7 +273,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
   const mockMetadata: NodeMetadata = useMemo(
     () => ({
       title: computedHeaderTitle || nodeTitle || "Missing node",
-      description: "This node is missing",
+      description: i18n.t("editor:ui.thisNodeIsMissing", { defaultValue: "This node is missing" }),
       namespace: resolvedNamespace,
       node_type: resolvedType || "unknown",
       layout: "default",
@@ -283,7 +284,7 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
         {
           name: "output",
           type: { type: "any", optional: true, type_args: [] },
-          description: "Default output",
+          description: i18n.t("editor:ui.defaultOutput", { defaultValue: "Default output" }),
           stream: false
         }
       ],
@@ -299,7 +300,8 @@ const PlaceholderNode = (props: NodeProps<PlaceholderNodeData>) => {
       nodeTitle,
       resolvedNamespace,
       resolvedType,
-      mockProperties
+      mockProperties,
+      languageVersion
     ]
   );
   const className = useMemo(

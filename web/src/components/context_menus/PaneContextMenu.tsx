@@ -319,25 +319,25 @@ const PaneContextMenu: React.FC = () => {
           onClick={handleAddCommentAndClose}
           label={t("editor:pane.addComment", { defaultValue: "Add comment" })}
           IconComponent={<AddCommentIcon />}
-          tooltip={"Hold C key and drag"}
+          tooltip={t("editor:pane.addCommentTip", { defaultValue: "Hold C key and drag" })}
         />
         <ContextMenuItem
           onClick={handleAddGroupAndClose}
           label={t("editor:pane.addGroup", { defaultValue: "Add group" })}
           IconComponent={<GroupWorkIcon />}
-          tooltip={"Add a group node"}
+          tooltip={t("editor:pane.addGroupTip", { defaultValue: "Add a group node" })}
         />
         <ContextMenuItem
           onClick={handleCreateNode(WORKFLOW_NODE_TYPE)}
           label={t("editor:pane.addWorkflow", { defaultValue: "Add workflow" })}
           IconComponent={<AccountTreeIcon />}
-          tooltip={"Add a workflow node"}
+          tooltip={t("editor:pane.addWorkflowTip", { defaultValue: "Add a workflow node" })}
         />
         <ContextMenuItem
           onClick={handleCreateNode(SUBGRAPH_NODE_TYPE)}
           label={t("editor:pane.addSubgraph", { defaultValue: "Add subgraph" })}
           IconComponent={<SchemaIcon />}
-          tooltip={"Add an inline subgraph node"}
+          tooltip={t("editor:pane.addSubgraphTip", { defaultValue: "Add an inline subgraph node" })}
         />
         <ContextMenuItem
           onClick={handleCreateNode(APP_NODE_TYPE)}

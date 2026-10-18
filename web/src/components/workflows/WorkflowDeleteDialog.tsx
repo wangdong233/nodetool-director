@@ -12,6 +12,7 @@ import {
   SPACING,
   Text
 } from "../ui_primitives";
+import { i18n } from "../../../i18n";
 
 interface WorkflowDeleteDialogProps {
   open: boolean;
@@ -79,7 +80,7 @@ const WorkflowDeleteDialog: FC<WorkflowDeleteDialogProps> = ({
       if (failure?.status === "rejected") {
         throw failure.reason;
       }
-      addNotification({ content: "Workflows deleted", type: "success" });
+      addNotification({ content: i18n.t("editor:ui.workflowsDeleted", { defaultValue: "Workflows deleted" }), type: "success" });
       onClose();
     } catch (error) {
       addNotification({

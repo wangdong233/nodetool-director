@@ -36,7 +36,7 @@ import {
 import type { SceneTreeNode } from "./sceneTree";
 import { shortcutKeys } from "./editorShortcuts";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 export type OutlinerAction =
   | "rename"
@@ -277,7 +277,7 @@ const OutlinerRow = memo(
           size="small"
           // One tab stop per tree, not one per row: H toggles the selection.
           tabIndex={-1}
-          aria-label={node.visible ? i18n.t("editor:ui.hideObject", { defaultValue: "Hide object" }) : "Show object"}
+          aria-label={node.visible ? i18n.t("editor:ui.hideObject", { defaultValue: "Hide object" }) : i18n.t("editor:ui.showObject", { defaultValue: "Show object" })}
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
             onToggleVisible(node.uuid);
@@ -450,7 +450,7 @@ const SceneOutliner = ({
             value={query}
             onChange={setQuery}
             placeholder={i18n.t("editor:ui.filterObjects", { defaultValue: "Filter objects" })}
-            ariaLabel="Filter scene objects"
+            ariaLabel={i18n.t("editor:ui.filterSceneObjects", { defaultValue: "Filter scene objects" })}
             size="small"
             fullWidth
           />

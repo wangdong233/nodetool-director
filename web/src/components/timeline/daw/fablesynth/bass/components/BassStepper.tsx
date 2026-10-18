@@ -22,7 +22,7 @@ export function BassStepper({ paramId, label, accent }: BassStepperProps) {
     return (
       <div className="stepper" data-accent={accent}>
         {label ? <span className="st-label">{label}</span> : null}
-        <button className="st-btn st-prev" aria-label="previous" onClick={() => stepN(-1)}>◂</button>
+        <button className="st-btn st-prev" aria-label={t("home:docs.previous", { defaultValue: "previous" })} onClick={() => stepN(-1)}>◂</button>
         <span className="st-value">{def.fmt ? def.fmt(v) : String(v)}</span>
         <button className="st-btn st-next" aria-label={t("home:docs.next", { defaultValue: "next" })} onClick={() => stepN(1)}>▸</button>
       </div>
@@ -39,7 +39,7 @@ export function BassStepper({ paramId, label, accent }: BassStepperProps) {
   return (
     <div className="stepper" data-accent={accent}>
       {label ? <span className="st-label">{label}</span> : null}
-      <button className="st-btn st-prev" aria-label="previous" onClick={() => step(-1)}>◂</button>
+      <button className="st-btn st-prev" aria-label={t("home:docs.previous", { defaultValue: "previous" })} onClick={() => step(-1)}>◂</button>
       <span className="st-value">{options[index]}</span>
       <button className="st-btn st-next" aria-label={t("home:docs.next", { defaultValue: "next" })} onClick={() => step(1)}>▸</button>
     </div>

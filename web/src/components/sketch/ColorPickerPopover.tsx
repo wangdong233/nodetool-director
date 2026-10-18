@@ -49,15 +49,16 @@ import {
   colorPickerSliderThumbSx
 } from "./sketchStyles";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const SV_SIZE = 160;
 const HUE_HEIGHT = 12;
 
 const RGB_LABELS = { r: "Red", g: "Green", b: "Blue" } as const;
 const HSL_LABELS = {
-  h: "Hue (degrees)",
-  s: "Saturation (percent)",
-  l: "Lightness (percent)"
+  h: "Hue (degrees)", hKey: "sketch:attrs.hueDegrees",
+  s: "Saturation (percent)", sKey: "sketch:attrs.saturationPercent",
+  l: i18n.t("sketch:attrs.lightnessPercent", { defaultValue: "Lightness (percent)" })
 } as const;
 
 interface ColorPickerPopoverProps {

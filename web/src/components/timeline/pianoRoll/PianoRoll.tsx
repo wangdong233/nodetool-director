@@ -90,6 +90,7 @@ import {
 
 import { decodeNoteClipboard, encodeNoteClipboard, pasteNotes } from "./noteClipboard";
 import { NoteSelectionInspector } from "./NoteSelectionInspector";
+import { i18n } from "../../../../i18n";
 
 const isNoteControl = (target: EventTarget) => target instanceof HTMLElement &&
   target.closest("input, select, textarea, button, [role=combobox], [role=listbox], [role=option], [role=dialog], [contenteditable=true]") !== null;
@@ -899,7 +900,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
               beatTicks={msToTicks(beatDurationMs(tempo), tempo.bpm)}
               onChange={next => setClipNotes(clipId, next)}
               velocityAdjust={
-                <Slider aria-label="Selected note velocity" min={1} max={127} step={1}
+                <Slider aria-label={i18n.t("editor:ui.selectedNoteVelocity", { defaultValue: "Selected note velocity" })} min={1} max={127} step={1}
                   density="compact" sx={{ width: 64 }} disabled={selectedNotes.length === 0}
                   value={selectedVelocity} valueLabelDisplay="auto"
                   onPointerDown={handleVelocityStart}
@@ -912,7 +913,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
                   onChangeCommitted={handleVelocityEnd} onPointerCancel={handleVelocityEnd} />
               } />
           </FlexRow>
-          <ToolbarIconButton onClick={() => setShortcutsOpen(true)} tooltip="Note editing shortcuts (?)" aria-label="Note editing shortcuts">
+          <ToolbarIconButton onClick={() => setShortcutsOpen(true)} tooltip="Note editing shortcuts (?)" aria-label={i18n.t("editor:ui.noteEditingShortcuts", { defaultValue: "Note editing shortcuts" })}>
             <KeyboardOutlinedIcon fontSize="small" />
           </ToolbarIconButton>
           {toolbarEnd}

@@ -62,7 +62,7 @@ import {
   __resetGenerationCompletionNoticeForTests,
   announceGenerationFinished
 } from "./generationCompletionNotice";
-import { i18n } from "../../i18n";
+import { i18n } from "../../../i18n";
 
 interface DirectGenRpcResponse extends WebSocketMessage {
   type: "rpc_response";
@@ -1447,7 +1447,7 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
       const recipeResult =
         kind === "text-to-video"
           ? captureVideoGenerationRecipe(clip)
-          : { ok: false as const, reason: "Not a text-to-video clip." };
+          : { ok: false as const, reason: "Not a text-to-video clip.", reasonKey: "timeline:attrs.notATexttovideoClip" };
       const generationRecipe = recipeResult.ok
         ? recipeResult.recipe
         : undefined;
@@ -1587,7 +1587,7 @@ export function useTimelineDirectGenJob(): UseTimelineDirectGenJobApi {
               production,
               status: "failed",
               assetIds: [],
-              errorMessage: "The production request could not be submitted."
+              errorMessage: i18n.t("timeline:attrs.theProductionRequestCouldNotBeSubmitted", { defaultValue: "The production request could not be submitted." })
             });
           } else {
             useDirectGenPendingStore

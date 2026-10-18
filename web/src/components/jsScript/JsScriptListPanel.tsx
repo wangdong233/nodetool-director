@@ -17,6 +17,7 @@ import {
   Tooltip
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const DEFAULT_NAME = "Untitled JS script";
 
@@ -118,7 +119,7 @@ const JsScriptListPanel = ({ projectId }: JsScriptListPanelProps) => {
       isLoading={isLoading}
       isError={isError}
       errorMessage={error?.message}
-      emptyDescription="Create a new JS script with the + button above."
+      emptyDescription={i18n.t("editor:ui.createANewJSScriptWithThe+ButtonAbove", { defaultValue: "Create a new JS script with the + button above." })}
       deleteTarget={null}
       onCancelDelete={noop}
       onConfirmDelete={noop}

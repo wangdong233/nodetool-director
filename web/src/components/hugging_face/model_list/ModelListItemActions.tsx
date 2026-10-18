@@ -21,6 +21,7 @@ import { isProduction } from "../../../lib/env";
 import { isElectron } from "../../../utils/browser";
 import { TOOLTIP_DESCRIPTION_DELAY } from "../../../config/constants";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface ModelListItemActionsProps {
   model: UnifiedModel;
@@ -110,7 +111,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
         <Tooltip
           title={
             handleShowInExplorer && !isProduction && isElectron
-              ? t("editor:ui.showInExplorer", { defaultValue: "Show in Explorer" }) : "Downloaded"
+              ? t("editor:ui.showInExplorer", { defaultValue: "Show in Explorer" }) : i18n.t("editor:ui.downloaded", { defaultValue: "Downloaded" })
           }
           delay={TOOLTIP_DESCRIPTION_DELAY}
         >
@@ -133,7 +134,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
       <div className="model-actions">
         <CopyButton
           value={model.repo_id || model.id}
-          tooltip={isOllama ? t("editor:ui.copyModelName", { defaultValue: "Copy model name" }) : "Copy repo ID"}
+          tooltip={isOllama ? t("editor:ui.copyModelName", { defaultValue: "Copy model name" }) : i18n.t("editor:ui.copyRepoID", { defaultValue: "Copy repo ID" })}
           nodrag={false}
         />
         {canShowExplorerButton && !isProduction && isElectron && (

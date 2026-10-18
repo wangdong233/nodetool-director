@@ -32,6 +32,7 @@ import { useNodes } from "../../contexts/NodeContext";
 import isEqual from "../../utils/isEqual";
 import { shallow } from "zustand/shallow";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface SelectionContextMenuProps {
   top?: number;
@@ -191,7 +192,7 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
       onClick={(e) => e.stopPropagation()}
       position={menuPosition}
     >
-      <ListSubheader>Selection</ListSubheader>
+      <ListSubheader>{t("game:viewport.selection", { defaultValue: "Selection" })}</ListSubheader>
 
       <ContextMenuItem
         onClick={handleDuplicateNodes}
@@ -271,12 +272,12 @@ const SelectionContextMenu: React.FC<SelectionContextMenuProps> = () => {
 
       <ContextMenuItem
         onClick={handleToggleBypass}
-        label={majorityBypassed ? t("editor:selection.enableAll", { defaultValue: "Enable all" }) : "Disable all"}
+        label={majorityBypassed ? t("editor:selection.enableAll", { defaultValue: "Enable all" }) : i18n.t("editor:selection.disableAll", { defaultValue: "Disable all" })}
         IconComponent={<BlockIcon />}
         tooltip={
           <div className="tooltip-span">
             <div className="tooltip-title">
-              {majorityBypassed ? t("editor:ui.enableNodes", { defaultValue: "Enable nodes" }) : "Disable nodes"}
+              {majorityBypassed ? t("editor:ui.enableNodes", { defaultValue: "Enable nodes" }) : i18n.t("editor:ui.disableNodes", { defaultValue: "Disable nodes" })}
             </div>
             <div className="tooltip-key">
               <kbd>B</kbd>

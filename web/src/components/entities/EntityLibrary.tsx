@@ -129,7 +129,7 @@ const EntityLibraryInternal: React.FC = () => {
         ))}
       </AutoGrid>
     );
-  }, [isLoading, entities, handleAdd, handleEdit, handleRemove]);
+  }, [isLoading, entities, handleAdd, handleEdit, handleRemove, languageVersion]);
 
   if (creating) {
     return (

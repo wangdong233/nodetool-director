@@ -58,7 +58,7 @@ import { AddStyleDialog } from "./AddStyleDialog";
 import { useCustomStyle, useStyleSaving } from "./useCustomStyle";
 import { setShotlistImport, useShotlistImportSummary } from "./setupChoices";
 import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
+import { i18n } from "../../../../i18n";
 
 export interface LookStepProps {
   boardId: string;
@@ -158,7 +158,7 @@ export function useLookStep(boardId: string): LookStepControls {
     ? i18n.t("setup:storyboard.savingYourStyle", { defaultValue: "Saving your style" }) : style.trim().length === 0
       ? i18n.t("storyboard:attrs.pickAnArtStyle", { defaultValue: "Pick an art style" }) : hasStillModel
         ? undefined
-        : "Pick a still model";
+        : i18n.t("storyboard:attrs.pickAStillModel", { defaultValue: "Pick a still model" });
 
   return {
     canAdvance: blockedReason === undefined,

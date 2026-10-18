@@ -27,6 +27,7 @@ import EntityCard from "./EntityCard";
 import EntityEditorDialog from "./EntityEditorDialog";
 import { creationProjectId } from "../../stores/WorkspaceTabsStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** Picks an image asset, then opens the editor to describe it. */
 interface CreateEntityButtonProps {
@@ -126,7 +127,7 @@ const EntityListPanelInternal: React.FC<EntityListPanelProps> = ({
   if (isLoading) {
     return (
       <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1 }}>
-        <LoadingSpinner size="large" text="Loading entities" />
+        <LoadingSpinner size="large" text={i18n.t("editor:ui.loadingEntities", { defaultValue: "Loading entities" })} />
       </FlexColumn>
     );
   }

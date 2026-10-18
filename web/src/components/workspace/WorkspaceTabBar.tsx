@@ -50,6 +50,7 @@ import { TYPE_COLOR, TYPE_GLYPH } from "./tabTypeIdentity";
 import { useOpenNewProjectTab, useProjects } from "../../hooks/useProjects";
 import { useWorkspaceHeaderActions } from "./WorkspaceHeaderActionsContext";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** Whether a document type supports both View and Edit (vs view-only). */
 const SUPPORTS_BOTH_MODES = {
@@ -418,7 +419,7 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
     (project) => project.id === activeProjectId
   );
   const homeTitle =
-    activeProject?.name ?? (activeProjectId ? t("editor:ui.project", { defaultValue: "Project" }) : "Home");
+    activeProject?.name ?? (activeProjectId ? t("editor:ui.project", { defaultValue: "Project" }) : i18n.t("editor:ui.home", { defaultValue: "Home" }));
   const visibleTabs = useMemo(
     () =>
       tabs.filter(
