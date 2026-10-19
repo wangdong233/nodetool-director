@@ -144,7 +144,9 @@
     "discardPreview": "放弃预览"
   },
   "changes": {
-    "viewInChat": "在对话中查看"
+    "viewInChat": "在对话中查看",
+    "agentChanges": "智能体改动",
+    "agentChangesList": "智能体改动列表"
   },
   "console": {
     "log": "日志",
@@ -160,7 +162,10 @@
   },
   "hierarchy": {
     "noEntities": "此场景没有实体。",
-    "sceneEntities": "场景实体"
+    "sceneEntities": "场景实体",
+    "toolbarAria": "层级工具栏",
+    "reorderHint": "拖动可重排或嵌套。Alt+方向键移动或嵌套焦点实体。",
+    "keyboardHelp": "层级键盘帮助"
   },
   "sceneTree": {
     "prefabs": "预制体",
@@ -200,7 +205,8 @@
     "sceneSettingsHint": "场景设置。选择一个实体进行编辑。",
     "noBehaviors": "暂无行为。",
     "addScript": "添加脚本",
-    "collisionLayers": "碰撞层"
+    "collisionLayers": "碰撞层",
+    "addProperty": "添加属性"
   },
   "schema": {
     "invalidFormat": "格式无效",
@@ -407,5 +413,9 @@
     "installImageAsset": "先安装一个图像素材才能添加贴花。",
     "addReceiver": "在场景里添加一个图元或刚体模型接收体。",
     "addDecal": "添加贴花"
+  },
+  "env": {
+    "environmentPreset": "环境预设",
+    "presetCaption": "应用场景环境与太阳光照。其他光源保持不变。"
   }
 }

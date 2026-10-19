@@ -135,9 +135,9 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
         <ContextMenuItem
           onClick={handleDeleteEdge}
           IconComponent={<DeleteIcon />}
-          label="Delete link"
+          label={t("editor:edge.deleteLink", { defaultValue: "Delete link" })}
           destructive
-          tooltip="Remove this lineage link. Data connections are not affected."
+          tooltip={t("editor:edge.removeLineageLink", { defaultValue: "Remove this lineage link. Data connections are not affected." })}
         />
       </ContextMenu>
     );
@@ -175,7 +175,7 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
           >
             <span>{t("editor:edge.deleteTip1", { defaultValue: "Delete this connection" })}</span>
             <span style={{ textAlign: "center" }}>
-              <kbd>Middle mouse button</kbd> or select the edge and press{" "}
+              <kbd>{t("editor:edge.middleMouseButton", { defaultValue: "Middle mouse button" })}</kbd> or select the edge and press{" "}
               <kbd>Delete</kbd> or <kbd>Backspace</kbd>. Select many edges by
               holding <kbd>CTRL</kbd> or <kbd>Meta</kbd> while clicking.
             </span>

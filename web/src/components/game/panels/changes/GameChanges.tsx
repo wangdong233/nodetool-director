@@ -13,6 +13,7 @@ import { getGameDraftStore } from "../../../../stores/game/GameDraftStore";
 import { acceptServerAnyGameUnit as acceptServerGameUnit, anyGameMergeAdapter as gameMergeAdapter } from "../../../../stores/game/anyMerge";
 import { Caption, CONTROL, FlexColumn, FlexRow, FONT_SIZE_SANS, Label, SPACING, Text, ToolbarIconButton } from "../../../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../../i18n";
 
 interface GameChangesProps {
   gameId: string;
@@ -73,15 +74,15 @@ export default function GameChanges({ gameId, document, onOps, onHover, onFocusM
   };
 
   if (groups.length === 0) return null;
-  return <FlexColumn role="region" aria-label="Agent changes" sx={{ flexShrink: 0, maxHeight: CONTROL.height.lg * 6,
+  return <FlexColumn role="region" aria-label={i18n.t("game:changes.agentChanges", { defaultValue: "Agent changes" })} sx={{ flexShrink: 0, maxHeight: CONTROL.height.lg * 6,
     borderBottom: 1, borderColor: "divider", bgcolor: "background.paper" }}>
     <FlexRow align="center" gap={SPACING.xs} sx={{ flexShrink: 0, minHeight: CONTROL.height.sm, px: SPACING.md }}>
       <AutoAwesomeOutlinedIcon aria-hidden="true" sx={{ fontSize: FONT_SIZE_SANS.body, color: "text.secondary" }} />
-      <Label component="span" sx={{ mb: 0, color: "text.secondary" }}>Agent changes</Label>
+      <Label component="span" sx={{ mb: 0, color: "text.secondary" }}>{i18n.t("game:changes.agentChanges", { defaultValue: "Agent changes" })}</Label>
       <Caption>{groups.length}</Caption>
     </FlexRow>
     {error && <Caption color="error" role="alert" sx={{ px: SPACING.md, pb: SPACING.xs }}>{error}</Caption>}
-    <FlexColumn role="list" aria-label="Agent changes list" sx={{ minHeight: 0, overflowY: "auto", px: SPACING.xs, pb: SPACING.xs }}>
+    <FlexColumn role="list" aria-label={i18n.t("game:changes.agentChangesList", { defaultValue: "Agent changes list" })} sx={{ minHeight: 0, overflowY: "auto", px: SPACING.xs, pb: SPACING.xs }}>
       {groups.map((group) => {
         const summary = group.summary.join("; ");
         return <FlexRow key={group.id} role="listitem" align="center" gap={SPACING.xs}

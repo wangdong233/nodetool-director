@@ -39,7 +39,10 @@
     "insertReroute": "插入转接点",
     "insertRerouteTip": "在此位置插入转接节点",
     "deleteEdge": "删除连线",
-    "deleteTip1": "删除此连接"
+    "deleteTip1": "删除此连接",
+    "deleteLink": "删除链接",
+    "removeLineageLink": "移除这条血缘链接。数据连接不受影响。",
+    "middleMouseButton": "鼠标中键"
   },
   "pane": {
     "fitScreen": "适配屏幕",
@@ -142,7 +145,10 @@
     "slotType": "插槽类型",
     "copied": "值已复制到剪贴板",
     "nothingToCopy": "没有可复制的值",
-    "sectionTitle": "属性"
+    "sectionTitle": "属性",
+    "copyPropertyValue": "复制属性值",
+    "deleteDynamicProperty": "删除动态属性",
+    "deleteFromNode": "从节点上删除此属性"
   },
   "io": {
     "searchConnectable": "搜索可连接节点",
@@ -2879,7 +2885,12 @@
     "noDocumentsOpen": "没有打开的文档",
     "tapNewToOpen": "点“新建”打开或创建一个。",
     "projectHomeSwitchDoc": "项目主页,切换文档",
-    "openDocuments": "打开文档"
+    "openDocuments": "打开文档",
+    "showAssetsOneProjectOrAll": "只看某个项目的资产,或看全部",
+    "allProjects": "全部项目",
+    "folderPath": "文件夹路径",
+    "typeAPath": "输入路径",
+    "searchInCurrentFolder": "在当前文件夹中搜索"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

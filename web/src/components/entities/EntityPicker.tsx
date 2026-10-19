@@ -205,9 +205,9 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
         ) : libraryEmpty ? (
           <EmptyState
             variant="empty"
-            title="No entities yet"
+            title={t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
             description={t("editor:ui.charactersLocationsStylesAndPropsYouCreateShowUpHere", { defaultValue: "Characters, locations, styles, and props you create show up here." })}
-            actionText={handleCreate ? "New entity" : undefined}
+            actionText={handleCreate ? t("editor:ui.newEntity", { defaultValue: "New entity" }) : undefined}
             onAction={handleCreate}
             size="small"
           />

@@ -334,7 +334,7 @@ export default function SchemaFields({ schema, value, onChange, path = "", issue
       {groups}
       {addOptions.length > 0 && (componentSections
         ? <Box sx={ADD_COMPONENT_ROW_SX}><InspectorAddMenu label={addLabel ?? "Add component"} options={addOptions} onSelect={add} /></Box>
-        : <InspectorAddMenu label="Add property" options={addOptions} onSelect={add} />)}
+        : <InspectorAddMenu label={i18n.t("game:inspector.addProperty", { defaultValue: "Add property" })} options={addOptions} onSelect={add} />)}
       {fieldError(issues, issuePath) && <Caption color="error">{fieldError(issues, issuePath)}</Caption>}
     </FlexColumn>;
   }

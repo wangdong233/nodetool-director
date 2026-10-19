@@ -3,6 +3,7 @@ import { GAME_ENVIRONMENT_PRESET_IDS_3D, gameEnvironmentPresetId3D, getGameEnvir
 import { gameDocumentOp3D, type GameDocumentOp3D } from "@nodetool-ai/game-runtime";
 
 import { Caption, EditorButton, FlexColumn, InspectorFieldRow, InspectorSelect, SPACING } from "../../../ui_primitives";
+import { i18n } from "../../../../i18n";
 
 interface EnvironmentPresetEditorProps {
   readonly sceneId: string;
@@ -14,11 +15,11 @@ const OPTIONS = GAME_ENVIRONMENT_PRESET_IDS_3D.map((value) => ({ value, label: g
 export default function EnvironmentPresetEditor({ sceneId, onOps }: EnvironmentPresetEditorProps) {
   const [preset, setPreset] = useState<GameEnvironmentPresetId3D>("sunny-day");
   return <FlexColumn gap={SPACING.sm}>
-    <InspectorFieldRow label="Environment preset">
-      <InspectorSelect label="Environment preset" grow value={preset} options={OPTIONS}
+    <InspectorFieldRow label={i18n.t("game:env.environmentPreset", { defaultValue: "Environment preset" })}>
+      <InspectorSelect label={i18n.t("game:env.environmentPreset", { defaultValue: "Environment preset" })} grow value={preset} options={OPTIONS}
         onChange={(value) => setPreset(gameEnvironmentPresetId3D.parse(value))} />
     </InspectorFieldRow>
-    <Caption>Applies the scene environment and sun lighting. Keeps other lights.</Caption>
+    <Caption>{i18n.t("game:env.presetCaption", { defaultValue: "Applies the scene environment and sun lighting. Keeps other lights." })}</Caption>
     <EditorButton onClick={() => onOps([gameDocumentOp3D.parse({ op: "apply_environment_preset", scene_id: sceneId, preset })], "Apply Environment Preset")}>
       Apply preset
     </EditorButton>

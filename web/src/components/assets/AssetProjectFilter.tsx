@@ -58,7 +58,7 @@ const AssetProjectFilter: React.FC = () => {
     scopeKey === personalProjectId || scopeKey === LOOSE_PROJECT_ID;
   const label =
     scopeKey === ALL_PROJECTS
-      ? "All projects"
+      ? t("editor:ui.allProjects", { defaultValue: "All projects" })
       : isPersonalScope
         ? t("editor:ui.personal", { defaultValue: "Personal" }) : (namedProjects.find((project) => project.id === scopeKey)?.name ??
           "Project");
@@ -80,7 +80,7 @@ const AssetProjectFilter: React.FC = () => {
         density="compact"
         startIcon={scopeKey === ALL_PROJECTS ? undefined : projectGlyph}
         endIcon={<ArrowDropDownIcon />}
-        tooltip="Show assets from one project or all of them"
+        tooltip={t("editor:ui.showAssetsOneProjectOrAll", { defaultValue: "Show assets from one project or all of them" })}
         aria-haspopup="menu"
         aria-label={`Project: ${label}`}
         onClick={(e) => setAnchor(e.currentTarget)}
@@ -98,7 +98,7 @@ const AssetProjectFilter: React.FC = () => {
         transformOrigin={{ vertical: "top", horizontal: "left" }}
       >
         <MenuItemPrimitive
-          label="All projects"
+          label={t("editor:ui.allProjects", { defaultValue: "All projects" })}
           icon={<FilterAltOffIcon />}
           checkable="radio"
           checked={scopeKey === ALL_PROJECTS}

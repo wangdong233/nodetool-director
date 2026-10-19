@@ -798,7 +798,7 @@ function FileBrowserDialog({
 
           {isEditingPath ? (
             <TextInput
-              label="Folder path"
+              label={t("editor:ui.folderPath", { defaultValue: "Folder path" })}
               hideLabel
               size="small"
               fullWidth
@@ -832,7 +832,7 @@ function FileBrowserDialog({
               />
               {/* Clicking the bar edits the path; this is the keyboard way. */}
               <ToolbarIconButton
-                tooltip="Type a path"
+                tooltip={t("editor:ui.typeAPath", { defaultValue: "Type a path" })}
                 onClick={(event) => {
                   event.stopPropagation();
                   handleStartEditPath();
@@ -848,7 +848,7 @@ function FileBrowserDialog({
             <SearchInput
               value={searchQuery}
               onChange={handleSearchQueryChange}
-              placeholder="Search in current folder"
+              placeholder={t("editor:ui.searchInCurrentFolder", { defaultValue: "Search in current folder" })}
               fullWidth
             />
           </div>

@@ -345,7 +345,7 @@ const PropertyContextMenuComponent: React.FC = () => {
         onClick={handleCopyValue}
         label={t("editor:property.copyValue", { defaultValue: "Copy value" })}
         IconComponent={<ContentCopyIcon />}
-        tooltip="Copy property value"
+        tooltip={t("editor:property.copyPropertyValue", { defaultValue: "Copy property value" })}
       />
       <ContextMenuItem
         onClick={handleReset}
@@ -402,10 +402,10 @@ const PropertyContextMenuComponent: React.FC = () => {
       {isDynamicProperty && (
         <ContextMenuItem
           onClick={handleRemoveDynamicProperty}
-          label="Delete dynamic property"
+          label={t("editor:property.deleteDynamicProperty", { defaultValue: "Delete dynamic property" })}
           destructive
           IconComponent={<DeleteIcon />}
-          tooltip="Delete this property from the node"
+          tooltip={t("editor:property.deleteFromNode", { defaultValue: "Delete this property from the node" })}
         />
       )}
     </ContextMenu>

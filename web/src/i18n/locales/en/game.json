@@ -144,7 +144,9 @@
     "discardPreview": "Discard preview"
   },
   "changes": {
-    "viewInChat": "View in chat"
+    "viewInChat": "View in chat",
+    "agentChanges": "Agent changes",
+    "agentChangesList": "Agent changes list"
   },
   "console": {
     "log": "Log",
@@ -160,7 +162,10 @@
   },
   "hierarchy": {
     "noEntities": "This scene has no entities.",
-    "sceneEntities": "Scene entities"
+    "sceneEntities": "Scene entities",
+    "toolbarAria": "Hierarchy toolbar",
+    "reorderHint": "Drag to reorder or nest. Alt+arrow keys move or nest the focused entity.",
+    "keyboardHelp": "Hierarchy keyboard help"
   },
   "sceneTree": {
     "prefabs": "Prefabs",
@@ -200,7 +205,8 @@
     "sceneSettingsHint": "Scene settings. Select an entity to edit it.",
     "noBehaviors": "No behaviors yet.",
     "addScript": "Add script",
-    "collisionLayers": "Collision layers"
+    "collisionLayers": "Collision layers",
+    "addProperty": "Add property"
   },
   "schema": {
     "invalidFormat": "Invalid format",
@@ -407,5 +413,9 @@
     "installImageAsset": "Install an image asset to add a decal.",
     "addReceiver": "Add a primitive or rigid model receiver in this scene.",
     "addDecal": "Add decal"
+  },
+  "env": {
+    "environmentPreset": "Environment preset",
+    "presetCaption": "Applies the scene environment and sun lighting. Keeps other lights."
   }
 }

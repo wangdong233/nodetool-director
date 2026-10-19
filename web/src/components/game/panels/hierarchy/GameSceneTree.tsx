@@ -247,7 +247,7 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
 
   return (
     <FlexColumn sx={{ flex: 1, minHeight: 0, height: "100%" }}>
-      <FlexRow role="toolbar" aria-label="Hierarchy toolbar" align="center" gap={SPACING.xs} sx={{
+      <FlexRow role="toolbar" aria-label={i18n.t("game:hierarchy.toolbarAria", { defaultValue: "Hierarchy toolbar" })} align="center" gap={SPACING.xs} sx={{
         flexShrink: 0, minHeight: CONTROL.height.md, boxSizing: "border-box", paddingInline: getSpacingPx(SPACING.sm),
         borderBottom: `1px solid ${theme.vars.palette.divider}`
       }}>
@@ -260,8 +260,8 @@ export default function GameSceneTree({ document, activeSceneId, selectedIds, is
           setSearchCollapsedGroups(new Set());
         }} placeholder="Search" ariaLabel="Search entities" size="small" fullWidth
           sx={{ "&& .MuiInputBase-input": TYPOGRAPHY.sans.label, "& .search-icon, & .clear-button svg": TREE_ICON_SX }} /></Box>
-        <Tooltip title="Drag to reorder or nest. Alt+arrow keys move or nest the focused entity.">
-          <HelpOutlineIcon tabIndex={0} aria-label="Hierarchy keyboard help" sx={{ ...TREE_ICON_SX, flexShrink: 0, color: "text.secondary",
+        <Tooltip title={i18n.t("game:hierarchy.reorderHint", { defaultValue: "Drag to reorder or nest. Alt+arrow keys move or nest the focused entity." })}>
+          <HelpOutlineIcon tabIndex={0} aria-label={i18n.t("game:hierarchy.keyboardHelp", { defaultValue: "Hierarchy keyboard help" })} sx={{ ...TREE_ICON_SX, flexShrink: 0, color: "text.secondary",
             "&:focus-visible": focusRing(theme, 2), borderRadius: BORDER_RADIUS.circle }} />
         </Tooltip>
       </FlexRow>
