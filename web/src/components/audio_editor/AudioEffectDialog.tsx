@@ -23,6 +23,7 @@ import {
 import type { AudioSample } from "./audioSample";
 import type { Selection } from "./WaveformView";
 import { useEffectPreview } from "./useEffectPreview";
+import { i18n } from "../../i18n";
 
 interface AudioEffectDialogProps {
   effect: AudioEffect;
@@ -194,8 +195,8 @@ const AudioEffectDialog = ({
   );
 
   const scope = selection
-    ? "Applies to the selection."
-    : "Applies to the whole clip.";
+    ? i18n.t("editor:ui.appliesToSelection", { defaultValue: "Applies to the selection." })
+    : i18n.t("editor:ui.appliesToWholeClip", { defaultValue: "Applies to the whole clip." });
 
   return (
     <Dialog
@@ -211,7 +212,7 @@ const AudioEffectDialog = ({
             onClick={handleTogglePreview}
             disabled={applying}
           >
-            {previewing ? "Stop preview" : "Preview"}
+            {previewing ? i18n.t("editor:ui.stopPreview", { defaultValue: "Stop preview" }) : i18n.t("editor:ui.preview", { defaultValue: "Preview" })}
           </EditorButton>
           <EditorButton
             size="small"

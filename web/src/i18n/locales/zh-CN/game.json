@@ -416,6 +416,7 @@
   },
   "env": {
     "environmentPreset": "环境预设",
-    "presetCaption": "应用场景环境与太阳光照。其他光源保持不变。"
+    "presetCaption": "应用场景环境与太阳光照。其他光源保持不变。",
+    "fogMode": "雾模式"
   }
 }

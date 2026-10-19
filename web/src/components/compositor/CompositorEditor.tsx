@@ -347,8 +347,8 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
           {layers.length === 0 ? (
             <EmptyState
               size="small"
-              title="No layers yet"
-              description="Add one below."
+              title={t("editor:ui.noLayersYet", { defaultValue: "No layers yet" })}
+              description={t("editor:ui.addOneBelow", { defaultValue: "Add one below." })}
             />
           ) : (
             <div className="layer-stack">

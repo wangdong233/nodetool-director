@@ -33,9 +33,7 @@
     "regenerateStaleStill_other": "Regenerate {{count}} stale stills?",
     "regenerateStaleClip_one": "Regenerate {{count}} stale clip?",
     "regenerateStaleClip_other": "Regenerate {{count}} stale clips?",
-    "verificationState": {
-
-    },
+    "verificationState": {},
     "discardChanges": "Discard changes?",
     "howTheSceneIsLit": "How the scene is lit",
     "keepEditing": "Keep editing",
@@ -869,5 +867,10 @@
     "writeABriefAndPressDirectToGenerateAScreenplayOfShots": "Write a brief and press Direct to generate a screenplay of shots.",
     "createTimeline": "Create timeline",
     "generateAStillOrRenderAClipToCreateATimeline": "Generate a still or render a clip to create a timeline."
+  },
+  "board": {
+    "searchShotsPlaceholder": "Search shots by description, dialogue, scene",
+    "noMatchingShots": "No matching shots",
+    "searchLooksIn": "Search looks in shot titles, descriptions, dialogue, sound and scene headings."
   }
 }

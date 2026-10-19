@@ -210,7 +210,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
           ref={searchRef}
           value={filterValue}
           onChange={setFilterValue}
-          placeholder="Search conversations"
+          placeholder={t("editor:chat.searchConversations", { defaultValue: "Search conversations" })}
         />
       </FlexColumn>
 
@@ -249,7 +249,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
               and newcomers lost several actions finding "New chat". */}
           <EmptyState
             title={t("editor:chat.noneYet", { defaultValue: "No conversations yet" })}
-            description="Ask a question to start one."
+            description={t("editor:chat.askToStart", { defaultValue: "Ask a question to start one." })}
             actionText={t("editor:chat.newChat", { defaultValue: "New chat" })}
             onAction={() => void handleNewThread()}
           />

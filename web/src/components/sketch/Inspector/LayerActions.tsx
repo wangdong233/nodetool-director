@@ -291,10 +291,10 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
 
           <ToolbarIconButton
             icon={<ContentCopyIcon fontSize="small" />}
-            tooltip="Duplicate — copies overrides; tweak params for a variation"
+            tooltip={i18n.t("sketch:attrs.duplicateLayerTip", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
             onClick={() => void handleDuplicate()}
             disabled={duplicateBusy || !documentId}
-            aria-label="Duplicate layer"
+            aria-label={i18n.t("sketch:attrs.duplicateLayer", { defaultValue: "Duplicate layer" })}
             data-testid="layer-action-duplicate"
           />
 
@@ -328,7 +328,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
           {binding.workflowId && documentId && (
             <ToolbarIconButton
               icon={<OpenInNewIcon fontSize="small" />}
-              tooltip="Open in node editor"
+              tooltip={i18n.t("sketch:attrs.openInNodeEditor", { defaultValue: "Open in node editor" })}
               onClick={handleOpenInNodeEditor}
               aria-label={i18n.t("editor:ui.openLayerWorkflowInNodeEditor", { defaultValue: "Open layer workflow in node editor" })}
               data-testid="layer-action-open-in-editor"

@@ -265,7 +265,7 @@ const ReviewLine: React.FC<ReviewLineProps> = memo(
               autoFocus={!hasDirection}
               value={line.direction ?? ""}
               onChange={setDirection}
-              placeholder="Direction, e.g. whispering, tired"
+              placeholder={i18n.t("setup:script.directionPlaceholder", { defaultValue: "Direction, e.g. whispering, tired" })}
               hideLabel
               label="Direction"
               compact
@@ -277,7 +277,7 @@ const ReviewLine: React.FC<ReviewLineProps> = memo(
           <TextArea
             value={line.text}
             onChange={setText}
-            placeholder="Write a line"
+            placeholder={i18n.t("setup:script.writeALine", { defaultValue: "Write a line" })}
             minRows={1}
             hideLabel
             label={i18n.t("editor:ui.scriptLine", { defaultValue: "Line" })}
@@ -300,7 +300,7 @@ const ReviewLine: React.FC<ReviewLineProps> = memo(
             <ToolbarIconButton
               icon={<TheaterComedyIcon fontSize="small" />}
               tooltip={showDirection ? i18n.t("storyboard:attrs:deleteDirection", { defaultValue: "Delete direction" }) : i18n.t("editor:ui.addDirection", { defaultValue: "Add direction" })}
-              ariaLabel={`${showDirection ? "Delete direction from" : "Add direction to"} ${excerpt}`}
+              ariaLabel={`${showDirection ? i18n.t("setup:script.deleteDirectionFrom", { defaultValue: "Delete direction from" }) : i18n.t("setup:script.addDirectionTo", { defaultValue: "Add direction to" })} ${excerpt}`}
               onClick={toggleDirection}
             />
             <ToolbarIconButton

@@ -226,7 +226,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
       <Dialog
         open
         onClose={handleClose}
-        title="Create generated layer"
+        title={i18n.t("sketch:attrs.createGeneratedLayer", { defaultValue: "Create generated layer" })}
         maxWidth="sm"
         fullWidth
         onConfirm={() => void handleConfirm()}
@@ -243,8 +243,8 @@ const CreateGeneratedLayerDialogBody: React.FC<{
               would cover the workflow list below. */}
           <SearchInput
             autoFocus={autoFocusEnabled}
-            placeholder="Search workflows"
-            ariaLabel="Search workflows"
+            placeholder={i18n.t("sketch:attrs.searchWorkflows", { defaultValue: "Search workflows" })}
+            ariaLabel={i18n.t("sketch:attrs.searchWorkflows", { defaultValue: "Search workflows" })}
             value={filter}
             onChange={setFilter}
             fullWidth
@@ -268,7 +268,7 @@ const CreateGeneratedLayerDialogBody: React.FC<{
             <EmptyState
               variant="empty"
               size="small"
-              title="No matching workflows"
+              title={i18n.t("sketch:attrs.noMatchingWorkflows", { defaultValue: "No matching workflows" })}
               description={i18n.t("sketch:attrs.noWorkflowWithImageOutput", { defaultValue: "None of your workflows have an image output. Add an ImageOutput, MaskOutput, or Output node to a workflow to use it here." })}
             />
           )}

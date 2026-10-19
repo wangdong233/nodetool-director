@@ -913,7 +913,7 @@ export const PianoRoll: React.FC<PianoRollProps> = memo(
                   onChangeCommitted={handleVelocityEnd} onPointerCancel={handleVelocityEnd} />
               } />
           </FlexRow>
-          <ToolbarIconButton onClick={() => setShortcutsOpen(true)} tooltip="Note editing shortcuts (?)" aria-label={i18n.t("editor:ui.noteEditingShortcuts", { defaultValue: "Note editing shortcuts" })}>
+          <ToolbarIconButton onClick={() => setShortcutsOpen(true)} tooltip={i18n.t("timeline:editor.noteEditingShortcutsQ", { defaultValue: "Note editing shortcuts (?)" })} aria-label={i18n.t("editor:ui.noteEditingShortcuts", { defaultValue: "Note editing shortcuts" })}>
             <KeyboardOutlinedIcon fontSize="small" />
           </ToolbarIconButton>
           {toolbarEnd}

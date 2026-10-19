@@ -89,7 +89,7 @@ const PlaybackClock = memo(function PlaybackClock({
     <FlexRow
       align="baseline"
       gap={SPACING.xs}
-      aria-label="Playback position"
+      aria-label={i18n.t("editor:ui.playbackPosition", { defaultValue: "Playback position" })}
       sx={{ whiteSpace: "nowrap" }}
     >
       <Text size="small" family="secondary" weight={500}>
@@ -185,7 +185,7 @@ const AudioTransportBar = memo(function AudioTransportBar({
           />
           <ToolbarIconButton
             icon={<RepeatIcon fontSize="small" />}
-            tooltip={loop ? "Loop on" : "Loop off"}
+            tooltip={loop ? i18n.t("editor:ui.loopOn", { defaultValue: "Loop on" }) : i18n.t("editor:ui.loopOff", { defaultValue: "Loop off" })}
             ariaLabel="Loop"
             tooltipPlacement="top"
             active={loop}

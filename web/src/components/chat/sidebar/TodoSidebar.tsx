@@ -19,6 +19,7 @@ import {
   EmptyState
 } from "../../ui_primitives";
 import type { TodoItem } from "../../../stores/ApiTypes";
+import { i18n } from "../../../i18n";
 
 const TODO_SIDEBAR_WIDTH = 280;
 
@@ -131,8 +132,8 @@ export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
         {todos.length === 0 ? (
           <EmptyState
             size="small"
-            title="No tasks yet"
-            description="The agent will list its plan here as it works."
+            title={i18n.t("editor:chat.noTasksYet", { defaultValue: "No tasks yet" })}
+            description={i18n.t("editor:chat.agentListsPlanHere", { defaultValue: "The agent will list its plan here as it works." })}
           />
         ) : (
           <FlexColumn gap={0}>

@@ -74,7 +74,7 @@ const AssetTypeFilterBar: React.FC = () => {
     <FlexRow
       className="asset-type-filter"
       role="toolbar"
-      aria-label="Filter by file type"
+      aria-label={t("editor:ui.filterByFileType", { defaultValue: "Filter by file type" })}
       align="center"
       gap={SPACING.xs}
       wrap
@@ -107,7 +107,7 @@ const AssetTypeFilterBar: React.FC = () => {
           onClick={toggleAll}
           sx={{ ml: "auto" }}
         >
-          {anyExpanded ? "Collapse all" : "Expand all"}
+          {anyExpanded ? t("editor:ui.collapseAll", { defaultValue: "Collapse all" }) : t("editor:ui.expandAll", { defaultValue: "Expand all" })}
         </EditorButton>
       )}
     </FlexRow>

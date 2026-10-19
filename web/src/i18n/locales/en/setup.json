@@ -158,7 +158,11 @@
     "noVoiceChosen": "No voice chosen",
     "noPresetVoices": "This model has no preset voices. Pick another model.",
     "noLinesWereFoundInThisFile": "No lines were found in this file.",
-    "pastedReplacesFinalDraft": "Pasted text replaces your Final Draft file, and its speakers are not kept. Cancel to keep the file."
+    "pastedReplacesFinalDraft": "Pasted text replaces your Final Draft file, and its speakers are not kept. Cancel to keep the file.",
+    "directionPlaceholder": "Direction, e.g. whispering, tired",
+    "writeALine": "Write a line",
+    "deleteDirectionFrom": "Delete direction from",
+    "addDirectionTo": "Add direction to"
   },
   "storyboard": {
     "openingYourStoryboard": "Opening your storyboard",

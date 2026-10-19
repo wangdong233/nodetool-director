@@ -127,7 +127,11 @@
     "exportingMedia": "Exporting media…",
     "exportMediaZip": "Export media (.zip)",
     "deleteTrack": "Delete track",
-    "deleteTrackConfirm": "Delete track?"
+    "deleteTrackConfirm": "Delete track?",
+    "failedToLoadWorkflowInputs": "Failed to load workflow inputs.",
+    "noEditableInputs": "This workflow has no editable input parameters.",
+    "estimatedCostOneRun": "Estimated cost of one run of this workflow",
+    "noteEditingShortcutsQ": "Note editing shortcuts (?)"
   },
   "tools": {
     "select": "Select",

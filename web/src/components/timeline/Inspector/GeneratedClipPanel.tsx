@@ -214,7 +214,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                 <EmptyState
                   variant="error"
                   size="small"
-                  description="Failed to load workflow inputs."
+                  description={i18n.t("timeline:editor.failedToLoadWorkflowInputs", { defaultValue: "Failed to load workflow inputs." })}
                 />
               )}
               {!isLoading && !isError && workflow && (
@@ -223,7 +223,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                     <EmptyState
                       variant="empty"
                       size="small"
-                      description="This workflow has no editable input parameters."
+                      description={i18n.t("timeline:editor.noEditableInputs", { defaultValue: "This workflow has no editable input parameters." })}
                     />
                   ) : nodeStoreForForm ? (
                     <NodeContext.Provider value={nodeStoreForForm}>
@@ -249,7 +249,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
               <FlexRow justify="flex-end" fullWidth>
                 <CostEstimateLine
                   estimate={workflowCostLine(costEstimate)}
-                  title="Estimated cost of one run of this workflow"
+                  title={i18n.t("timeline:editor.estimatedCostOneRun", { defaultValue: "Estimated cost of one run of this workflow" })}
                 />
               </FlexRow>
               <EditorButton

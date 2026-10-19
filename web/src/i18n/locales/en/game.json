@@ -416,6 +416,7 @@
   },
   "env": {
     "environmentPreset": "Environment preset",
-    "presetCaption": "Applies the scene environment and sun lighting. Keeps other lights."
+    "presetCaption": "Applies the scene environment and sun lighting. Keeps other lights.",
+    "fogMode": "Fog mode"
   }
 }

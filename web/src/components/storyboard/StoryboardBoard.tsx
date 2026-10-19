@@ -1657,7 +1657,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                   value={shotQuery}
                   onChange={setShotQuery}
                   onSubmit={handleSearchSubmit}
-                  placeholder="Search shots by description, dialogue, scene"
+                  placeholder={i18n.t("storyboard:board.searchShotsPlaceholder", { defaultValue: "Search shots by description, dialogue, scene" })}
                   ariaLabel="Search shots"
                   size="small"
                   sx={{ width: "100%", maxWidth: "40ch" }}
@@ -1671,8 +1671,8 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
               {visibleGroups.length === 0 ? (
                 <EmptyState
                   variant="empty"
-                  title="No matching shots"
-                  description="Search looks in shot titles, descriptions, dialogue, sound and scene headings."
+                  title={i18n.t("storyboard:board.noMatchingShots", { defaultValue: "No matching shots" })}
+                  description={i18n.t("storyboard:board.searchLooksIn", { defaultValue: "Search looks in shot titles, descriptions, dialogue, sound and scene headings." })}
                 />
               ) : (
                 <FlexRow

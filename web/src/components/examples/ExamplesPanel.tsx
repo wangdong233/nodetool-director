@@ -31,6 +31,7 @@ import {
   type ExampleKind
 } from "./useExampleGroups";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 type ExampleFilter = ExampleKind | "all";
 
@@ -147,7 +148,7 @@ const ExampleCard = memo(function ExampleCard({
             {entry.name || "Untitled example"}
           </TruncatedText>
           <Caption color="secondary" noWrap>
-            {opening ? "Adding a copy…" : entry.secondary}
+            {opening ? i18n.t("editor:ui.addingACopy", { defaultValue: "Adding a copy…" }) : entry.secondary}
           </Caption>
         </span>
       </button>
@@ -284,7 +285,7 @@ const ExamplesPanel = () => {
         <FlexColumn justify="center" align="center" sx={{ flex: 1, px: 2 }}>
           <EmptyState
             variant="no-results"
-            title="No matching examples"
+            title={t("editor:ui.noMatchingExamples", { defaultValue: "No matching examples" })}
             description={t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })}
             actionText={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
             onAction={() => setQuery("")}

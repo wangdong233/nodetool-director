@@ -261,6 +261,11 @@
     "restoreVersion": "恢复版本",
     "deleteVersion": "删除版本",
     "deleteVersionConfirm": "删除版本?",
-    "resetToBlackAndWhite": "重置为黑白"
+    "resetToBlackAndWhite": "重置为黑白",
+    "createGeneratedLayer": "创建生成图层",
+    "searchWorkflows": "搜索工作流",
+    "noMatchingWorkflows": "没有匹配的工作流",
+    "duplicateLayerTip": "复制 —— 拷贝覆盖参数;微调参数得到变体",
+    "openInNodeEditor": "在节点编辑器中打开"
   }
 }

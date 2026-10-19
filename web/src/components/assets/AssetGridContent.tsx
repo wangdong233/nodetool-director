@@ -384,8 +384,8 @@ const AssetGridContent: React.FC<AssetGridContentProps> = memo(({
           <EmptyState
             variant="no-results"
             title={`No ${assetTypeLabel(typeFilter).toLowerCase()} here`}
-            description="Other file types are hidden by the type filter."
-            actionText="Show all types"
+            description={t("editor:ui.otherTypesHidden", { defaultValue: "Other file types are hidden by the type filter." })}
+            actionText={t("editor:ui.showAllTypes", { defaultValue: "Show all types" })}
             onAction={() => setTypeFilter("all")}
             size="small"
           />

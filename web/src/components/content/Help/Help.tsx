@@ -175,7 +175,7 @@ const Help = ({
       maxWidth="lg"
       title={i18n.t("timeline:shortcuts.help", { defaultValue: "Help" })}
       titleActions={
-        <Tooltip title="Open NodeTool docs" placement="bottom">
+        <Tooltip title={i18n.t("editor:ui.openNodetoolDocs", { defaultValue: "Open NodeTool docs" })} placement="bottom">
           <a
             href="https://docs.nodetool.ai"
             target="_blank"
@@ -199,7 +199,7 @@ const Help = ({
               tabs={HELP_TABS}
               value={activeTab}
               onChange={handleChange}
-              aria-label="help tabs"
+              aria-label={i18n.t("editor:ui.helpTabs", { defaultValue: "help tabs" })}
               sx={{ flex: 1 }}
             />
           </div>

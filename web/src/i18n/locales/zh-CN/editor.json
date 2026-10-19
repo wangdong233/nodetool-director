@@ -199,7 +199,11 @@
     "docsLabel": "对话与智能体",
     "uploadingFiles": "上传中…",
     "addToMessage": "添加到消息",
-    "startAConversationToExploreAIWorkflowsWithNaturalLanguage": "开启一段对话，用自然语言探索 AI 工作流。"
+    "startAConversationToExploreAIWorkflowsWithNaturalLanguage": "开启一段对话，用自然语言探索 AI 工作流。",
+    "searchConversations": "搜索会话",
+    "askToStart": "提一个问题即可开始。",
+    "noTasksYet": "还没有任务",
+    "agentListsPlanHere": "智能体工作时会把计划列在这里。"
   },
   "notify": {
     "saveUpdatePrefFailed": "无法保存自动更新偏好。",
@@ -2894,7 +2898,25 @@
     "addYourNote": "添加备注…",
     "deleteNote": "删除备注",
     "copyAsset": "复制资产",
-    "copyOutput": "复制输出"
+    "copyOutput": "复制输出",
+    "otherTypesHidden": "其他文件类型已被类型筛选隐藏。",
+    "showAllTypes": "显示全部类型",
+    "filterByFileType": "按文件类型筛选",
+    "collapseAll": "全部收起",
+    "expandAll": "全部展开",
+    "appliesToSelection": "作用于选区。",
+    "appliesToWholeClip": "作用于整个片段。",
+    "stopPreview": "停止预览",
+    "preview": "预览",
+    "playbackPosition": "播放位置",
+    "loopOn": "循环开",
+    "loopOff": "循环关",
+    "noLayersYet": "还没有图层",
+    "addOneBelow": "在下方添加一个。",
+    "openNodetoolDocs": "打开 NodeTool 文档",
+    "helpTabs": "帮助标签页",
+    "noMatchingExamples": "没有匹配的示例",
+    "addingACopy": "正在添加副本…"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

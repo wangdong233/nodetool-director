@@ -199,7 +199,11 @@
     "docsLabel": "Chat & agents",
     "uploadingFiles": "Uploading…",
     "addToMessage": "Add to message",
-    "startAConversationToExploreAIWorkflowsWithNaturalLanguage": "Start a conversation to explore AI workflows with natural language."
+    "startAConversationToExploreAIWorkflowsWithNaturalLanguage": "Start a conversation to explore AI workflows with natural language.",
+    "searchConversations": "Search conversations",
+    "askToStart": "Ask a question to start one.",
+    "noTasksYet": "No tasks yet",
+    "agentListsPlanHere": "The agent will list its plan here as it works."
   },
   "notify": {
     "saveUpdatePrefFailed": "Failed to save automatic update preference.",
@@ -2899,7 +2903,25 @@
     "addYourNote": "Add your note…",
     "deleteNote": "Delete note",
     "copyAsset": "Copy asset",
-    "copyOutput": "Copy output"
+    "copyOutput": "Copy output",
+    "otherTypesHidden": "Other file types are hidden by the type filter.",
+    "showAllTypes": "Show all types",
+    "filterByFileType": "Filter by file type",
+    "collapseAll": "Collapse all",
+    "expandAll": "Expand all",
+    "appliesToSelection": "Applies to the selection.",
+    "appliesToWholeClip": "Applies to the whole clip.",
+    "stopPreview": "Stop preview",
+    "preview": "Preview",
+    "playbackPosition": "Playback position",
+    "loopOn": "Loop on",
+    "loopOff": "Loop off",
+    "noLayersYet": "No layers yet",
+    "addOneBelow": "Add one below.",
+    "openNodetoolDocs": "Open NodeTool docs",
+    "helpTabs": "help tabs",
+    "noMatchingExamples": "No matching examples",
+    "addingACopy": "Adding a copy…"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

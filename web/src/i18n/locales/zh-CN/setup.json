@@ -158,7 +158,11 @@
     "noVoiceChosen": "未选择配音",
     "noPresetVoices": "此模型没有预设配音。请换一个模型。",
     "noLinesWereFoundInThisFile": "此文件中没有找到台词。",
-    "pastedReplacesFinalDraft": "粘贴的文字会替换你的 Final Draft 文件，且不保留其说话人。取消可保留该文件。"
+    "pastedReplacesFinalDraft": "粘贴的文字会替换你的 Final Draft 文件，且不保留其说话人。取消可保留该文件。",
+    "directionPlaceholder": "表演指示,如:whispering、tired",
+    "writeALine": "写一句台词",
+    "deleteDirectionFrom": "删除这句的表演指示:",
+    "addDirectionTo": "给这句加表演指示:"
   },
   "storyboard": {
     "openingYourStoryboard": "正在打开你的分镜",

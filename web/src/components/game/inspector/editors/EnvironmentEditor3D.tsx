@@ -3,6 +3,7 @@ import { FlexColumn, InspectorFieldRow, InspectorSelect, SPACING } from "../../.
 import SchemaFields from "../SchemaFields";
 import type { GameComponentEditorProps } from "../componentEditors";
 import { gameSchemaFields } from "../schemaForm";
+import { i18n } from "../../../../i18n";
 
 const BASE_FIELDS = gameSchemaFields(gameEnvironment3D.omit({ fog: true }));
 const HEIGHT_FIELDS = gameSchemaFields(gameHeightFog3D.omit({ kind: true }));
@@ -21,7 +22,7 @@ export default function EnvironmentEditor3D({ value, onChange, path, issuePath, 
         if (fog) { next.fog = fog; }
         onChange(next);
       }} />
-    <InspectorFieldRow label="Fog mode"><InspectorSelect grow label="Fog mode" value={mode} options={FOG_MODES}
+    <InspectorFieldRow label={i18n.t("game:env.fogMode", { defaultValue: "Fog mode" })}><InspectorSelect grow label={i18n.t("game:env.fogMode", { defaultValue: "Fog mode" })} value={mode} options={FOG_MODES}
       onChange={(mode) => {
         if (mode === "none") { onChange(base); return; }
         const color = fog?.color ?? "#ffffff";
