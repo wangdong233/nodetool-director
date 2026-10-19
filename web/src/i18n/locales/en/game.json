@@ -272,7 +272,15 @@
     "resetAll": "Reset all shortcuts",
     "applyBoth": "Shortcuts apply to both game editors. Ctrl and Cmd are interchangeable."
   },
-  "dock": {},
+  "dock": {
+    "viewportStaysOpen": "The viewport always stays open",
+    "restoreLayout": "Restore layout",
+    "maximizeGroup": "Maximize group",
+    "splitRight": "Split to the right",
+    "splitBelow": "Split below",
+    "moveTabLeft": "Move tab left",
+    "moveTabRight": "Move tab right"
+  },
   "viewport": {
     "gameViewportAria": "Game viewport",
     "editOverlayAria": "Game edit overlay",
@@ -291,7 +299,20 @@
     "rotationInDegrees": "Rotation in degrees",
     "changeSceneSettings": "Change Scene Settings",
     "changeLightIntensity": "Change Light Intensity",
-    "changeEntityComponents": "Change Entity Components"
+    "changeEntityComponents": "Change Entity Components",
+    "mouseLookHint": "Use the game's controls. Click for mouse look, Esc to release it.",
+    "noCaptureHint": "Use the game's controls. Mouse buttons work without pointer capture.",
+    "localSpace": "Local space",
+    "worldSpace": "World space",
+    "gizmoSettings": "Gizmo settings",
+    "alignToGround": "Align to ground",
+    "snapIncrements": "Snap increments",
+    "moveM": "Move (m)",
+    "rotateDeg": "Rotate (°)",
+    "surfaceSnap": "Surface snap",
+    "surfaceSnapDesc": "Move drags rest the selection on the surface under the pointer.",
+    "orbitAroundSelection": "Orbit around selection",
+    "orbitSelectionDesc": "The camera turns around the selection when it changes."
   },
   "profiler": {
     "recordingCapture": "Recording a capture · showing the live window",
@@ -346,5 +367,35 @@
     "animationStateGraph": "Animation state graph",
     "animationInspector": "Animation inspector",
     "graphProblems": "Graph problems"
+  },
+  "particle": {
+    "particlePreset": "Particle preset",
+    "applyPreset": "Apply preset",
+    "presetReplaces": "Applying a preset replaces this component's emitters. Other entity components stay unchanged.",
+    "particleEmitter": "Particle emitter",
+    "addEmitter": "Add emitter",
+    "removeEmitter": "Remove emitter",
+    "colorOverLifetime": "Color over lifetime",
+    "particleColorOverLifetime": "Particle color over lifetime",
+    "removeColorOverLifetime": "Remove color over lifetime",
+    "addColorOverLifetime": "Add color over lifetime"
+  },
+  "export": {
+    "exportingBuild": "Exporting build",
+    "exportBuild": "Export build",
+    "webPlayer": "Web player",
+    "webPlayerSecondary": "Static site, published revision (.zip)",
+    "desktopApp": "Desktop app",
+    "desktopAppSecondary": "Tauri project for Windows, macOS and Linux (.zip)",
+    "desktopExecutable": "Desktop executable",
+    "desktopExecutableSecondary": "Compile on this computer with cargo, output in the Console"
+  },
+  "decal": {
+    "removeDecal": "Remove decal",
+    "decalImage": "Decal image",
+    "decalReceiver": "Decal receiver",
+    "installImageAsset": "Install an image asset to add a decal.",
+    "addReceiver": "Add a primitive or rigid model receiver in this scene.",
+    "addDecal": "Add decal"
   }
 }

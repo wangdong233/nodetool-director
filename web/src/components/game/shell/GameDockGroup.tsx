@@ -17,6 +17,7 @@ import type { GamePanelRegion } from "./panelRegistry";
 import type { GameDockPresentation } from "./useGameDockPresentation";
 import type { GameDockDrag } from "./GameDockCanvas";
 import { GAME_REGION_AXIS, GAME_REGION_LABELS, gameDockDropAction, gameDockMoveToRegion } from "./gameDockTargets";
+import { i18n } from "../../../i18n";
 
 interface GameDockGroupProps {
   readonly group: GamePanelGroup;
@@ -90,18 +91,18 @@ export function GameDockGroup({ group, region, presentation, store, setSlot, dra
     </Box>
     <ContextMenu open={menu !== null} position={menu?.position ?? null} onClose={closeMenu}>
       <MenuItemPrimitive label={`Close ${title(menuPanel)}`} icon={<CloseIcon />} disabled={menuPanel === "viewport"}
-        tooltip={menuPanel === "viewport" ? "The viewport always stays open" : undefined}
+        tooltip={menuPanel === "viewport" ? i18n.t("game:dock.viewportStaysOpen", { defaultValue: "The viewport always stays open" }) : undefined}
         onClick={() => run(() => dispatch({ type: "hide", panelId: menuPanel }))} />
-      <MenuItemPrimitive label={maximized ? "Restore layout" : "Maximize group"} shortcut="Shift+Space"
+      <MenuItemPrimitive label={maximized ? i18n.t("game:dock.restoreLayout", { defaultValue: "Restore layout" }) : i18n.t("game:dock.maximizeGroup", { defaultValue: "Maximize group" })} shortcut="Shift+Space"
         icon={maximized ? <CloseFullscreenIcon /> : <OpenInFullIcon />} onClick={() => run(() => onToggleMaximize?.())} />
-      {eligible.length > 1 && <MenuItemPrimitive label={axis === "row" ? "Split to the right" : "Split below"} icon={<VerticalSplitOutlinedIcon />}
+      {eligible.length > 1 && <MenuItemPrimitive label={axis === "row" ? i18n.t("game:dock.splitRight", { defaultValue: "Split to the right" }) : i18n.t("game:dock.splitBelow", { defaultValue: "Split below" })} icon={<VerticalSplitOutlinedIcon />}
         onClick={() => run(() => {
           const action = gameDockDropAction(store.getState().layout, menuPanel,
             { kind: "zone", region, groupId: group.id, zone: axis === "row" ? "right" : "bottom" }, visible);
           if (action) { dispatch(action); }
         })} />}
-      {menuIndex > 0 && <MenuItemPrimitive label="Move tab left" icon={<ChevronLeftIcon />} onClick={() => run(() => reorder(-1))} />}
-      {menuIndex >= 0 && menuIndex < eligible.length - 1 && <MenuItemPrimitive label="Move tab right" icon={<ChevronRightIcon />}
+      {menuIndex > 0 && <MenuItemPrimitive label={i18n.t("game:dock.moveTabLeft", { defaultValue: "Move tab left" })} icon={<ChevronLeftIcon />} onClick={() => run(() => reorder(-1))} />}
+      {menuIndex >= 0 && menuIndex < eligible.length - 1 && <MenuItemPrimitive label={i18n.t("game:dock.moveTabRight", { defaultValue: "Move tab right" })} icon={<ChevronRightIcon />}
         onClick={() => run(() => reorder(1))} />}
       {GAME_PANEL_REGIONS.filter((entry) => entry !== region).map((entry, index) => <MenuItemPrimitive key={entry} dividerBefore={index === 0}
         label={`Move to ${GAME_REGION_LABELS[entry]}`} icon={<LoginOutlinedIcon />}

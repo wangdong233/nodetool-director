@@ -272,7 +272,15 @@
     "resetAll": "重置全部快捷键",
     "applyBoth": "快捷键同时适用于两个游戏编辑器。Ctrl 与 Cmd 可以互换。"
   },
-  "dock": {},
+  "dock": {
+    "viewportStaysOpen": "视口始终保持打开",
+    "restoreLayout": "恢复布局",
+    "maximizeGroup": "最大化分组",
+    "splitRight": "向右拆分",
+    "splitBelow": "向下拆分",
+    "moveTabLeft": "左移标签页",
+    "moveTabRight": "右移标签页"
+  },
   "viewport": {
     "gameViewportAria": "游戏视口",
     "editOverlayAria": "游戏编辑叠加层",
@@ -291,7 +299,20 @@
     "rotationInDegrees": "旋转（度）",
     "changeSceneSettings": "更改场景设置",
     "changeLightIntensity": "更改光源强度",
-    "changeEntityComponents": "更改实体组件"
+    "changeEntityComponents": "更改实体组件",
+    "mouseLookHint": "用游戏自己的操作。点击进入鼠标视角,按 Esc 释放。",
+    "noCaptureHint": "用游戏自己的操作。鼠标按键无需指针捕获即可使用。",
+    "localSpace": "局部空间",
+    "worldSpace": "世界空间",
+    "gizmoSettings": "Gizmo 设置",
+    "alignToGround": "对齐到地面",
+    "snapIncrements": "吸附步长",
+    "moveM": "移动 (m)",
+    "rotateDeg": "旋转 (°)",
+    "surfaceSnap": "表面吸附",
+    "surfaceSnapDesc": "移动拖拽时,把选区安放在指针下的表面上。",
+    "orbitAroundSelection": "环绕选区旋转",
+    "orbitSelectionDesc": "选区变化时,相机围绕它转动。"
   },
   "profiler": {
     "recordingCapture": "正在录制捕获 · 显示实时窗口",
@@ -346,5 +367,35 @@
     "animationStateGraph": "动画状态图",
     "animationInspector": "动画检查器",
     "graphProblems": "图问题"
+  },
+  "particle": {
+    "particlePreset": "粒子预设",
+    "applyPreset": "应用预设",
+    "presetReplaces": "应用预设会替换这个组件的发射器。实体的其他组件保持不变。",
+    "particleEmitter": "粒子发射器",
+    "addEmitter": "添加发射器",
+    "removeEmitter": "移除发射器",
+    "colorOverLifetime": "生命周期颜色",
+    "particleColorOverLifetime": "粒子生命周期颜色",
+    "removeColorOverLifetime": "移除生命周期颜色",
+    "addColorOverLifetime": "添加生命周期颜色"
+  },
+  "export": {
+    "exportingBuild": "正在导出构建",
+    "exportBuild": "导出构建",
+    "webPlayer": "Web 播放器",
+    "webPlayerSecondary": "静态站点,已发布的修订(.zip)",
+    "desktopApp": "桌面应用",
+    "desktopAppSecondary": "面向 Windows、macOS 与 Linux 的 Tauri 工程(.zip)",
+    "desktopExecutable": "桌面可执行文件",
+    "desktopExecutableSecondary": "在本机用 cargo 编译,产物输出到控制台"
+  },
+  "decal": {
+    "removeDecal": "移除贴花",
+    "decalImage": "贴花图像",
+    "decalReceiver": "贴花接收体",
+    "installImageAsset": "先安装一个图像素材才能添加贴花。",
+    "addReceiver": "在场景里添加一个图元或刚体模型接收体。",
+    "addDecal": "添加贴花"
   }
 }
