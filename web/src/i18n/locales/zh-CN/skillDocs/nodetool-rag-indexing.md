@@ -138,3 +138,14 @@ sentence-transformers 模型)。
 - **知识库是空的**: 先建索引再检索——没建过索引的知识库什么都查不到。
 - **节点名写错**: 是 `vector.IndexTextChunk` / `vector.QueryText` / `vector.HybridSearch`,不是 `IndexTextChunks` / `TextSearch`,也不存在 `vector.chroma.*`/`vector.faiss.*` 命名空间。
 - **没有 `nodetool collections` CLI**: 知识库经编辑器 UI 或 `/api/collections/...` 端点管理。
+
+工具:`list_collections` 返回用户可访问的每个集合及其元数据(含 `embedding_model`);`query_collection {collection, query, n_results?}` 返回最近的块,形如 `{id, document, score}`,`n_results` 默认 5。`vector_index`、`vector_batch_index`、`vector_text_search`、`vector_hybrid_search`、`vector_recursive_split_and_index`、`vector_markdown_split_and_index` 只作用于宿主绑定的集合。所有向量节点都在 `vector` 命名空间。
+
+| `vector.Collection` | `name`、`embedding_model` | 取或建集合并输出 `{type: "collection", name}` |
+| `vector.IndexTextChunk` | `collection`、`document_id`、`text`、`metadata` | 追加一个块;同一 `document_id` 重写整篇 |
+| `vector.HybridSearch` | `collection`、`text`、`n_results`、`k_constant`、`min_keyword_length` | 向量+关键词混合 |
+| `vector.QueryImage` | `collection`、`image`、`n_results` | 以图搜图 |
+
+示例用 Ollama 的 `nomic-embed-text`;换模型意味着换向量空间,需重建集合。少量块直接 `run_node`:`run_node {node_type: "vector.IndexTextChunk", ...}` 逐个传 `collection: {type: "collection", name}`。
+
+取文本:`nodetool.document.ListDocuments {folder, pattern, recursive}` 列文件;`nodetool.document.LoadDocumentFile {path}` 读文本与 Markdown;PDF 用 `lib.pdf.ExtractText` 或 `lib.pdf.ExtractMarkdown`。

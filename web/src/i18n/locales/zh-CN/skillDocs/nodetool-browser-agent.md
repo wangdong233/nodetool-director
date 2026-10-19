@@ -98,3 +98,13 @@ for await (const message of agent.execute(ctx)) {
 - **多页任务把 `max_steps` 调高**(15-20)。
 - **智能体需要先发现 URL 时搭配 `google_search`**。
 - **JSON API 用 `http_request`** —— 比整页渲染更快更省。
+
+工具:`web_search {query, search_type?: "web" | "news", num_results?, allowed_domains?}` 找网页/新闻;`image_search {query}` 找现成图;`browser {url}` 读页面(返回去 HTML 的正文,不跑客户端 JS);`take_screenshot {url, output_file?, full_page?}` 截图存工作区。
+
+`browser_*` 工具逐步驱动一个真实 Chrome:1. `browser_status` 报告活跃浏览器(服务端无头 Chrome 或本机带界面的 Chrome);2. `browser_navigate {url}` 加载;3. `browser_view` 返回 URL、标题、编号的交互元素与截图,一切操作按最近一次 view 的 `index` 寻址。
+
+操作:`browser_click {index}`、`browser_input_text {index, text}`、`browser_press_key {key}`、`browser_scroll {to_bottom? | pixels?}`;画布类无 index 元素用 `coordinate_x`、`coordinate_y`。另有 `browser_console_exec {javascript}`(页面内求值)、`browser_console_view`(读控制台)、`browser_capture_media`(存页面媒体)、`browser_upload_asset {index, asset_id}`(向文件输入放资产)、`browser_restart {transport?: "local" | "extension", url?}`(重启;`transport: "extension"` 驱动用户自己的 Chrome 标签页)。
+
+流水线中一步完成浏览:用 `nodetool.agents.Agent` 节点,任务写 `prompt`,可用工具写 `tools`,形如 `{type: "tool_name", name}`。仅截图则 `lib.browser.Screenshot {url}`;建图参考 `nodetool-workflow-builder`。代码侧:`run_agent` 以显式 `tools` 与 `output_schema` 跑子代理(见 `nodetool-js-scripting` § Running an agent)。
+
+CLI:`nodetool agent run` 用默认工具带跑一个代理。`--max-iterations`(默认 25)限工具轮数;`--cost-cap <usd>` 限花费、`--timeout <s>` 限时;`--permission-mode default | auto | plan`——终端上 `default` 会在每次写/执行/外呼前询问,含资金风险的任务不要传 `auto`。结构化结果用 `write_file` 或 `save_asset` 保存。

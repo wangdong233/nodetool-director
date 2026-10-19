@@ -232,3 +232,24 @@ nodetool deploy workflows run <deployment> <workflow-id>
 - **缺 SECRETS_MASTER_KEY**: 生产的加密密钥存储必需
 - **生产环境 AUTH_PROVIDER=none**: 安全风险,一律用 static 或 supabase
 - **HF 缓存没挂载**: 每次容器启动都重新下载模型
+
+两种形态:长驻服务器(用户连入)用仓库的 `docker-compose.yml`,或 `node` 直接跑;租用 GPU(用户的 NodeTool 连出、按分钟计费)用 Runpod/Vast 上的 `nodetool worker`。`nodetool deploy` 只支持 `docker` 一种目标;部署读 `AUTH_PROVIDER` 与 `NODETOOL_SERVER_MODE` 之外的自身变量。
+
+鉴权:本地(Supabase 变量未设)回环以用户 `"1"` 免令牌,`NODETOOL_TRUST_LOCALHOST=false` 可关;Supabase(`SUPABASE_URL`+`SUPABASE_KEY`)每个非公开请求需有效 JWT;两种模式下 **Settings → MCP → Connect** 创建的访问令牌(`ntk_…`)以 `Authorization: Bearer <token>` 传递,WebSocket 客户端在 `/ws` URL 上带 `?api_key=<token>`。Web 登录页还需 `SUPABASE_ANON_KEY`。
+
+默认信任网段 `172.16.0.0/12,192.168.65.0/24`(Docker 桥);笔记本、局域网或 VPN 安全。`.env` 里放 `SUPABASE_ANON_KEY`。数据(含密钥)落在 `nodetool-data` 卷的 `/workspace`;`NODETOOL_PORT` 改宿主端口,`NODETOOL_VERSION` 钉镜像标签。
+
+`deployment.yaml` 在用户配置目录而非工作目录;用 `nodetool deploy edit` 打开,不要猜路径。CLI 会为缺少的目标生成 `server_auth_token` 与 `container.environment.SECRETS_MASTER_KEY` 写入 `deployment.yaml`;`apply` 用该令牌启动容器,容器保留自己的数据库。管理动词发管理员令牌:`--token <token>` 或 `NODETOOL_ADMIN_TOKEN`,否则交互式询问。
+
+Worker:先存服务商密钥 `nodetool secrets store RUNPOD_API_KEY`(或 `VAST_API_KEY`);`--idle-timeout <minutes>` 停空闲 worker,`--max-lifetime <minutes>` 定寿命,`--disk <gb>` 定模型缓存盘,`--ssh-key <path.pub>` 开 SSH 调试;`--attach` 打印 `NODETOOL_WORKER_URL`,另一个 shell 里 `export NODETOOL_WORKER_TOKEN=$(nodetool worker token <instance-id>)`;`nodetool worker models download --repo-id <owner/name>` 拉权重,`models list`/`models delete` 管缓存。
+
+| `SECRETS_MASTER_KEY` | 加密存储的密钥。显式设置(`openssl rand -base64 32`);丢失即不可解密 |
+| `NODETOOL_TRUST_LOCALHOST` | 回环是否绕过鉴权 |
+| `NODETOOL_ENABLE_MCP=1` | 生产服务器上提供 `/mcp` |
+| `NODETOOL_STORAGE_BACKEND` | `file`(默认)/`s3`/`supabase`,配 `ASSET_BUCKET`、`TEMP_BUCKET` |
+| `DB_PATH`、`ASSET_FOLDER`、`VECTORSTORE_DB_PATH`、`HF_HOME` | 放持久卷 |
+| `HOST`、`PORT` | 绑定地址;镜像绑 `0.0.0.0` |
+| `NODETOOL_LOG_LEVEL` | 日志级别,默认 `info` |
+| 服务商密钥 | `OPENAI_API_KEY`、`ANTHROPIC_API_KEY`、`GEMINI_API_KEY`、`HF_TOKEN`、`FAL_API_KEY` 按需 |
+
+**忘关的 worker**:`nodetool worker list` 查看,`nodetool worker stop --all` 全停。

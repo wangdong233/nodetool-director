@@ -311,3 +311,10 @@ wscat -c ws://localhost:7777/ws
 4. **查日志** —— 服务器日志有完整堆栈
 5. **卡住就重启** —— 杀服务器,清缓存,重启
 6. **降低复杂度** —— 先用最小工作流测通,再加节点
+
+日志:`nodetool.runs.logs(run_id, {span_id, include_content: true})`。
+
+| 症状 | 首选 | 深挖 | 技能 |
+| 时间线:长度不对、缺片段、字体错 | `validate_timeline` | `timeline debug` | `timeline-edit-ops` |
+
+- [ ] **API 密钥**:`list_secrets` 查已配置的密钥。
