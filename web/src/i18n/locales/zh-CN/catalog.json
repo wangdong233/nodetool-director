@@ -1023,9 +1023,7 @@
     }
   },
   "workflowInspiration": {
-    "summarize-pdf": "总结 PDF 并发送邮件",
-    "product-shots": "从 CSV 批量生成产品照",
-    "url-to-post": "把 YouTube 链接转成一篇博客文章"
+    "product-shots": "从 CSV 批量生成产品照"
   },
   "nodes": {
     "__taskSuffixes": {

@@ -442,7 +442,7 @@ const ModelAvailabilityNote: React.FC<{
               source: "provider-call",
               summary:
                 kind === "video"
-                  ? t("setup:video.modelListUnreadable", { defaultValue: "Video model list could not be read" })
+                  ? i18n.t("setup:video.modelListUnreadable", { defaultValue: "Video model list could not be read" })
                   : "Voice list could not be read",
               errorText: availability.error
             }}

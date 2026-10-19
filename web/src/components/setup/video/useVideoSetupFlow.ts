@@ -54,7 +54,6 @@ import {
 import { assetIdFromLocator } from "../../../utils/mediaRef";
 
 import { i18n, useAppLanguage } from "../../../i18n";
-import { i18n } from "../../../i18n";
 
 /**
  * A sequence's stage, with the field's absence read as `done` — an old
