@@ -139,7 +139,7 @@ export const TopBar: React.FC<TopBarProps> = memo(
         {activitySlot}
         {onSetDawMode && (
           <Tooltip
-            title={`Video layout or DAW mode for audio work${dawShortcut ? ` (${dawShortcut})` : ""}`}
+            title={i18n.t("timeline:editor.videoLayoutOrDaw", { defaultValue: "Video layout or DAW mode for audio work" }) + (dawShortcut ? ` (${dawShortcut})` : "")}
           >
             <ToggleGroup
               value={dawMode ? "daw" : "video"}
@@ -148,9 +148,9 @@ export const TopBar: React.FC<TopBarProps> = memo(
               onChange={(_event, value: string | null) => {
                 if (value === "daw" || value === "video") onSetDawMode(value === "daw");
               }}
-              aria-label="Editor layout"
+              aria-label={i18n.t("timeline:editor.editorLayout", { defaultValue: "Editor layout" })}
             >
-              <ToggleOption value="video" aria-label="Video layout">
+              <ToggleOption value="video" aria-label={i18n.t("timeline:editor.videoLayout", { defaultValue: "Video layout" })}>
                 Video
               </ToggleOption>
               <ToggleOption value="daw" aria-label="DAW mode">
@@ -277,8 +277,8 @@ export const TopBar: React.FC<TopBarProps> = memo(
                   icon={<MovieCreationOutlinedIcon fontSize="small" />}
                   label={
                     isExportingPremiere
-                      ? "Exporting for Premiere…"
-                      : "Export for Premiere Pro"
+                      ? i18n.t("timeline:editor.exportingForPremiere", { defaultValue: "Exporting for Premiere…" })
+                      : i18n.t("timeline:editor.exportForPremierePro", { defaultValue: "Export for Premiere Pro" })
                   }
                   disabled={isExportingPremiere}
                   onClick={runFromMenu(onExportPremiere)}
@@ -288,7 +288,7 @@ export const TopBar: React.FC<TopBarProps> = memo(
                 <MenuItemPrimitive
                   icon={<PermMediaOutlinedIcon fontSize="small" />}
                   label={
-                    isExportingMedia ? "Exporting media…" : "Export media (.zip)"
+                    isExportingMedia ? i18n.t("timeline:editor.exportingMedia", { defaultValue: "Exporting media…" }) : i18n.t("timeline:editor.exportMediaZip", { defaultValue: "Export media (.zip)" })
                   }
                   disabled={isExportingMedia}
                   onClick={runFromMenu(onExportMedia)}

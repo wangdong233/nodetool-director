@@ -20,6 +20,7 @@ import {
   ToolbarIconButton,
   HoverActionGroup
 } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 const rowStyles = (theme: Theme) =>
   css({
@@ -142,18 +143,18 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
             {canRestore && (
               <ToolbarIconButton
                 icon={<RestoreIcon fontSize="small" />}
-                tooltip="Restore this version"
+                tooltip={i18n.t("sketch:attrs.restoreThisVersion", { defaultValue: "Restore this version" })}
                 onClick={handleRestoreClick}
                 disabled={isRestoring}
-                aria-label="Restore version"
+                aria-label={i18n.t("sketch:attrs.restoreVersion", { defaultValue: "Restore version" })}
               />
             )}
             <ToolbarIconButton
               icon={<DeleteIcon fontSize="small" />}
-              tooltip="Delete version"
+              tooltip={i18n.t("sketch:attrs.deleteVersion", { defaultValue: "Delete version" })}
               onClick={handleDeleteClick}
               disabled={isDeleting}
-              aria-label="Delete version"
+              aria-label={i18n.t("sketch:attrs.deleteVersion", { defaultValue: "Delete version" })}
             />
           </HoverActionGroup>
         </FlexRow>
@@ -161,7 +162,7 @@ export const LayerVersionRow: React.FC<LayerVersionRowProps> = memo(
         <Dialog
           open={deleteDialogOpen}
           onClose={handleDeleteCancel}
-          title="Delete version?"
+          title={i18n.t("sketch:attrs.deleteVersionConfirm", { defaultValue: "Delete version?" })}
           onConfirm={handleDeleteConfirm}
           confirmText="Delete"
           destructive

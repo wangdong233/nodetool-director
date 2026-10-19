@@ -256,5 +256,11 @@
     "backToYourIdea": "Back to your idea",
     "aWorkflowJSONFile": "A workflow JSON file",
     "notChecked": "Not checked"
+  },
+  "app": {
+    "describeTheAppFirst": "Describe the app first",
+    "theApp": "The app",
+    "placeholder": "A page where I type a product name, press a button, and get a short description back",
+    "helperText": "Say what someone types or picks, what the button does, and what they get back."
   }
 }

@@ -683,9 +683,9 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
         dimmed={!enabled}
         tooltip={
           !enabled
-            ? "Disabled. Right-click to enable it"
+            ? i18n.t("editor:ui.disabledRightClickToEnable", { defaultValue: "Disabled. Right-click to enable it" })
             : !hasKey
-              ? "Add an API key to use these models. Right-click for options"
+              ? i18n.t("editor:ui.addApiKeyToUseModels", { defaultValue: "Add an API key to use these models. Right-click for options" })
               : undefined
         }
         count={modelCounts.get(p)}
@@ -707,7 +707,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
       css={isHorizontal ? horizontalListStyles : listStyles}
       className={`model-menu__providers-list ${isHorizontal ? "is-horizontal" : ""}`}
       role="navigation"
-      aria-label="Model sources"
+      aria-label={i18n.t("editor:ui.modelSources", { defaultValue: "Model sources" })}
     >
       <ModelMenuNavItem
         className="model-menu__provider-item model-menu__provider-item--all"
@@ -733,7 +733,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
       )}
       {isError && (
         <Box className="model-menu__providers-error">
-          <EmptyState variant="error" size="small" title="Providers did not load" />
+          <EmptyState variant="error" size="small" title={i18n.t("editor:ui.providersDidNotLoad", { defaultValue: "Providers did not load" })} />
         </Box>
       )}
       {cloudList.map(renderProvider)}
@@ -760,7 +760,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
         onClose={handleMenuClose}
       >
         {menuNeedsKey && (
-          <MenuItemPrimitive label="Add API key…" onClick={handleAddKey} />
+          <MenuItemPrimitive label={i18n.t("editor:ui.addApiKeyEllipsis", { defaultValue: "Add API key…" })} onClick={handleAddKey} />
         )}
         <MenuItemPrimitive
           label={

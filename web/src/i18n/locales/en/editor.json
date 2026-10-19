@@ -28,7 +28,12 @@
     "deleteNodeTip": "Delete this node",
     "runNode": "Run Node",
     "disableNode": "Disable Node",
-    "collapseNode": "Collapse Node"
+    "collapseNode": "Collapse Node",
+    "copyNodeDataJson": "Copy node data as JSON",
+    "duplicateVertically": "Duplicate vertically",
+    "deleteComment": "Delete comment",
+    "addComment": "Add comment",
+    "deleteCommentTip": "Delete the comment on this node"
   },
   "edge": {
     "insertReroute": "Insert reroute",
@@ -2834,7 +2839,24 @@
     "signInAndKeepTabsOpen": "Sign in to ChatGPT and Gemini in Chrome and keep those tabs open.",
     "noModelsYet": "No models yet",
     "downloadLocalOrAddKey": "Download a local model or add an API key for a cloud provider.",
-    "enableProviderOrAddKey": "Enable a provider in the sidebar or add an API key in settings."
+    "enableProviderOrAddKey": "Enable a provider in the sidebar or add an API key in settings.",
+    "hideAiRender": "Hide AI render",
+    "renderThisViewWithAi": "Render this view with AI",
+    "renderWithAi": "Render with AI",
+    "downloadSceneOrObject": "Download the scene or the selected object as a file",
+    "dropAModelToAdd": "Drop a model to add it to the scene",
+    "turnViewIntoImage": "Turn the current view into a finished image with an image-edit model",
+    "filterByGeneratingModel": "Filter by the model that generated the file",
+    "findOpenlyLicensedOnOpenverse": "Find openly licensed images and audio on Openverse",
+    "orDropFilesAnywhere": "Or drop files anywhere on the grid",
+    "findOpenlyLicensedMedia": "Find openly licensed media on Openverse",
+    "hideSearchAndViewOptions": "Hide search and view options",
+    "searchSortViewOptions": "Search, sort and view options",
+    "disabledRightClickToEnable": "Disabled. Right-click to enable it",
+    "addApiKeyToUseModels": "Add an API key to use these models. Right-click for options",
+    "modelSources": "Model sources",
+    "providersDidNotLoad": "Providers did not load",
+    "addApiKeyEllipsis": "Add API key…"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

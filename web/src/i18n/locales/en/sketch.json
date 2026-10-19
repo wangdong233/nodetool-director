@@ -256,6 +256,10 @@
     "turnOnPenPressure": "Turn on pen pressure",
     "maskLayers": "Mask layers",
     "showingSelectionAsMarchingAntsClickToSwitchToRedOverlay": "Showing selection as marching ants — click to switch to red overlay",
-    "switchToMaskOverlay": "Switch to mask overlay"
+    "switchToMaskOverlay": "Switch to mask overlay",
+    "restoreThisVersion": "Restore this version",
+    "restoreVersion": "Restore version",
+    "deleteVersion": "Delete version",
+    "deleteVersionConfirm": "Delete version?"
   }
 }

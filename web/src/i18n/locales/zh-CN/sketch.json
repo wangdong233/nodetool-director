@@ -256,6 +256,10 @@
     "turnOnPenPressure": "开启压感",
     "maskLayers": "蒙版图层",
     "showingSelectionAsMarchingAntsClickToSwitchToRedOverlay": "选区以蚁行线显示——点击切换为红色叠加",
-    "switchToMaskOverlay": "切换为蒙版叠加"
+    "switchToMaskOverlay": "切换为蒙版叠加",
+    "restoreThisVersion": "恢复此版本",
+    "restoreVersion": "恢复版本",
+    "deleteVersion": "删除版本",
+    "deleteVersionConfirm": "删除版本?"
   }
 }

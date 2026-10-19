@@ -256,5 +256,11 @@
     "backToYourIdea": "返回你的点子",
     "aWorkflowJSONFile": "工作流 JSON 文件",
     "notChecked": "未检查"
+  },
+  "app": {
+    "describeTheAppFirst": "先描述这个应用",
+    "theApp": "这个应用",
+    "placeholder": "一个页面:我输入产品名,按一个按钮,得到一段简短介绍",
+    "helperText": "说明用户输入或选择什么、按钮做什么、他们得到什么。"
   }
 }

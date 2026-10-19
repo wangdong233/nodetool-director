@@ -24,6 +24,7 @@ import {
   pickDefaultPlannerModel,
   type PlannerModelChoice
 } from "../workflow/defaultPlannerModel";
+import { i18n } from "../../../i18n";
 
 export interface BuiltApp {
   appId: string;
@@ -106,7 +107,7 @@ const AppSetupHost: React.FC<AppSetupHostProps> = ({
           canAdvance: text.length > 0 && model !== null,
           blockedReason:
             text.length === 0
-              ? "Describe the app first"
+              ? i18n.t("setup:app.describeTheAppFirst", { defaultValue: "Describe the app first" })
               : "Connect a provider to pick a model",
           pendingLabel: "Building the screen and its workflow, then test-running them",
           onAdvance: build,
@@ -127,10 +128,10 @@ const AppSetupHost: React.FC<AppSetupHostProps> = ({
                 autoFocus
                 multiline
                 rows={4}
-                label="The app"
+                label={i18n.t("setup:app.theApp", { defaultValue: "The app" })}
                 hideLabel
-                placeholder="A page where I type a product name, press a button, and get a short description back"
-                helperText="Say what someone types or picks, what the button does, and what they get back."
+                placeholder={i18n.t("setup:app.placeholder", { defaultValue: "A page where I type a product name, press a button, and get a short description back" })}
+                helperText={i18n.t("setup:app.helperText", { defaultValue: "Say what someone types or picks, what the button does, and what they get back." })}
                 onChange={(event) => setBrief(event.target.value)}
               />
             </FlexColumn>

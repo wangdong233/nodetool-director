@@ -118,7 +118,14 @@
     "raiseChordOctave": "Raise chord octave",
     "compPattern": "Comp pattern",
     "generatedPhrasePreview": "Generated phrase preview",
-    "chordTrackLabel": "Chord track"
+    "chordTrackLabel": "Chord track",
+    "videoLayoutOrDaw": "Video layout or DAW mode for audio work",
+    "editorLayout": "Editor layout",
+    "videoLayout": "Video layout",
+    "exportingForPremiere": "Exporting for Premiere…",
+    "exportForPremierePro": "Export for Premiere Pro",
+    "exportingMedia": "Exporting media…",
+    "exportMediaZip": "Export media (.zip)"
   },
   "tools": {
     "select": "Select",

@@ -1,6 +1,12 @@
 {
   "attrs": {},
-  "ui": {},
+  "ui": {
+    "installFromTerminal": "从终端安装",
+    "runThis": "运行这条命令",
+    "copyCommand": "复制命令",
+    "clientConnectsToServer": "客户端连接到这个服务器。NodeTool 运行期间它可用。",
+    "clientStartsNodetool": "客户端会自行启动 NodeTool。无论本应用是否在运行,它都可用。"
+  },
   "ctx": {
     "audioList": "音频列表",
     "imageList": "图像列表",

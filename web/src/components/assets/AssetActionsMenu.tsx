@@ -131,7 +131,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
           density="compact"
           startIcon={<SmartToyOutlinedIcon />}
           endIcon={<ArrowDropDownIcon />}
-          tooltip="Filter by the model that generated the file"
+          tooltip={t("editor:ui.filterByGeneratingModel", { defaultValue: "Filter by the model that generated the file" })}
           aria-haspopup="menu"
           onClick={(e) => setModelFilterAnchor(e.currentTarget)}
           sx={{ maxWidth: 200 }}
@@ -160,7 +160,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         variant="outlined"
         density="compact"
         startIcon={<TravelExploreIcon />}
-        tooltip="Find openly licensed images and audio on Openverse"
+        tooltip={t("editor:ui.findOpenlyLicensedOnOpenverse", { defaultValue: "Find openly licensed images and audio on Openverse" })}
         onClick={() => setOpenverseOpen(true)}
       >
         Openverse
@@ -176,7 +176,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
         variant="contained"
         density="compact"
         startIcon={<FileUploadIcon />}
-        tooltip="Or drop files anywhere on the grid"
+        tooltip={t("editor:ui.orDropFilesAnywhere", { defaultValue: "Or drop files anywhere on the grid" })}
         onClick={() => fileInputRef.current?.click()}
       >
         Upload
@@ -204,7 +204,7 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
       )}
       <ToolbarIconButton
         icon={<TravelExploreIcon />}
-        tooltip="Find openly licensed media on Openverse"
+        tooltip={t("editor:ui.findOpenlyLicensedMedia", { defaultValue: "Find openly licensed media on Openverse" })}
         onClick={() => setOpenverseOpen(true)}
         tooltipPlacement="top"
         nodrag={false}
@@ -275,8 +275,8 @@ const AssetActionsMenu: React.FC<AssetActionsMenuProps> = ({
               icon={<TuneIcon />}
               tooltip={
                 expanded
-                  ? "Hide search and view options"
-                  : "Search, sort and view options"
+                  ? t("editor:ui.hideSearchAndViewOptions", { defaultValue: "Hide search and view options" })
+                  : t("editor:ui.searchSortViewOptions", { defaultValue: "Search, sort and view options" })
               }
               onClick={() => setExpanded((prev) => !prev)}
               tooltipPlacement="top"

@@ -28,7 +28,12 @@
     "deleteNodeTip": "删除该节点",
     "runNode": "运行节点",
     "disableNode": "停用节点",
-    "collapseNode": "折叠节点"
+    "collapseNode": "折叠节点",
+    "copyNodeDataJson": "以 JSON 复制节点数据",
+    "duplicateVertically": "向下复制",
+    "deleteComment": "删除评论",
+    "addComment": "添加评论",
+    "deleteCommentTip": "删除此节点上的评论"
   },
   "edge": {
     "insertReroute": "插入转接点",
@@ -2829,7 +2834,24 @@
     "signInAndKeepTabsOpen": "在 Chrome 里登录 ChatGPT 和 Gemini,并保持这些标签页打开。",
     "noModelsYet": "还没有模型",
     "downloadLocalOrAddKey": "下载一个本地模型,或为云端服务商添加 API 密钥。",
-    "enableProviderOrAddKey": "在侧栏启用一个服务商,或在设置里添加 API 密钥。"
+    "enableProviderOrAddKey": "在侧栏启用一个服务商,或在设置里添加 API 密钥。",
+    "hideAiRender": "隐藏 AI 渲染",
+    "renderThisViewWithAi": "用 AI 渲染此视图",
+    "renderWithAi": "用 AI 渲染",
+    "downloadSceneOrObject": "把场景或选中的对象下载为文件",
+    "dropAModelToAdd": "拖入一个模型把它添加到场景",
+    "turnViewIntoImage": "用图像编辑模型把当前视图变成成品图",
+    "filterByGeneratingModel": "按生成该文件的模型筛选",
+    "findOpenlyLicensedOnOpenverse": "在 Openverse 上找开放授权的图像与音频",
+    "orDropFilesAnywhere": "也可以把文件拖到网格任意位置",
+    "findOpenlyLicensedMedia": "在 Openverse 上找开放授权的媒体",
+    "hideSearchAndViewOptions": "收起搜索与视图选项",
+    "searchSortViewOptions": "搜索、排序与视图选项",
+    "disabledRightClickToEnable": "已禁用。右键单击启用",
+    "addApiKeyToUseModels": "添加 API 密钥后才能使用这些模型。右键查看选项",
+    "modelSources": "模型来源",
+    "providersDidNotLoad": "服务商列表加载失败",
+    "addApiKeyEllipsis": "添加 API 密钥…"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

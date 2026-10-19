@@ -1497,11 +1497,11 @@ const Model3DEditor = ({
           />
           <ToolbarIconButton
             icon={<PhotoCameraOutlinedIcon fontSize="small" />}
-            tooltip={showAiRender ? "Hide AI render" : "Render this view with AI"}
+            tooltip={showAiRender ? t("editor:ui.hideAiRender", { defaultValue: "Hide AI render" }) : t("editor:ui.renderThisViewWithAi", { defaultValue: "Render this view with AI" })}
             onClick={toggleAiRender}
             active={showAiRender}
             size="small"
-            ariaLabel="Render with AI"
+            ariaLabel={t("editor:ui.renderWithAi", { defaultValue: "Render with AI" })}
           />
           <ToolbarIconButton
             icon={<AutoAwesomeIcon fontSize="small" />}
@@ -1513,7 +1513,7 @@ const Model3DEditor = ({
           <MenuButton
             label={t("timeline:attrs.export", { defaultValue: "Export" })}
             icon={<FileDownloadOutlinedIcon />}
-            tooltip="Download the scene or the selected object as a file"
+            tooltip={t("editor:ui.downloadSceneOrObject", { defaultValue: "Download the scene or the selected object as a file" })}
           >
             {(close) =>
               [false, true].flatMap((onlySelection) =>
@@ -1595,7 +1595,7 @@ const Model3DEditor = ({
           )}
           {dropActive && (
             <FlexColumn className="drop-hint" align="center" justify="center">
-              <Text>Drop a model to add it to the scene</Text>
+              <Text>{t("editor:ui.dropAModelToAdd", { defaultValue: "Drop a model to add it to the scene" })}</Text>
             </FlexColumn>
           )}
           {exportError && (
@@ -1810,11 +1810,11 @@ const Model3DEditor = ({
             ariaLabel="Resize AI render panel"
           >
             <PanelHeader
-              title="Render with AI"
+              title={t("editor:ui.renderWithAi", { defaultValue: "Render with AI" })}
               icon={<PhotoCameraOutlinedIcon />}
-              description="Turn the current view into a finished image with an image-edit model"
+              description={t("editor:ui.turnViewIntoImage", { defaultValue: "Turn the current view into a finished image with an image-edit model" })}
               onClose={toggleAiRender}
-              closeLabel="Hide AI render"
+              closeLabel={t("editor:ui.hideAiRender", { defaultValue: "Hide AI render" })}
             />
             <div className="panel-body">
               <AiRenderPanel capture={captureForAi} />

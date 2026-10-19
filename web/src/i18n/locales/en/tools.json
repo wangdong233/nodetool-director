@@ -1,6 +1,12 @@
 {
   "attrs": {},
-  "ui": {},
+  "ui": {
+    "installFromTerminal": "Install from a terminal",
+    "runThis": "Run this",
+    "copyCommand": "Copy command",
+    "clientConnectsToServer": "The client connects to this server. It works while NodeTool runs.",
+    "clientStartsNodetool": "The client starts NodeTool itself. It works whether or not this app runs."
+  },
   "ctx": {
     "audioList": "Audio List",
     "imageList": "Image List",

@@ -98,7 +98,7 @@ const NodeContextMenu: React.FC = () => {
       onClick={handlers.handleCopyMetadataToClipboard}
       label={t("editor:node.copyJson", { defaultValue: "Copy node as JSON" })}
       IconComponent={<DataArrayIcon />}
-      tooltip="Copy node data as JSON"
+      tooltip={t("editor:node.copyNodeDataJson", { defaultValue: "Copy node data as JSON" })}
     />,
     <ContextMenuItem
       key="duplicate"
@@ -117,11 +117,11 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="duplicate-vertical"
       onClick={handlers.handleDuplicateVertical}
-      label="Duplicate vertically"
+      label={t("editor:node.duplicateVertically", { defaultValue: "Duplicate vertically" })}
       IconComponent={<SouthIcon />}
       tooltip={
         <div className="tooltip-span">
-          <div className="tooltip-title">Duplicate vertically</div>
+          <div className="tooltip-title">{t("editor:node.duplicateVertically", { defaultValue: "Duplicate vertically" })}</div>
           <div className="tooltip-key">
             <kbd>CTRL</kbd>+<kbd>SHIFT</kbd>+<kbd>D</kbd> / <kbd>⌘</kbd>+<kbd>SHIFT</kbd>+<kbd>D</kbd>
           </div>
@@ -173,11 +173,11 @@ const NodeContextMenu: React.FC = () => {
     <ContextMenuItem
       key="toggle-comment"
       onClick={handlers.handleToggleComment}
-      label={conditions.hasCommentTitle ? "Delete comment" : "Add comment"}
+      label={conditions.hasCommentTitle ? t("editor:node.deleteComment", { defaultValue: "Delete comment" }) : t("editor:node.addComment", { defaultValue: "Add comment" })}
       IconComponent={<EditIcon />}
       tooltip={
         conditions.hasCommentTitle
-          ? "Delete the comment on this node"
+          ? t("editor:node.deleteCommentTip", { defaultValue: "Delete the comment on this node" })
           : i18n.t("editor:node.addCommentTip", { defaultValue: "Add a comment to this node" })
       }
     />,

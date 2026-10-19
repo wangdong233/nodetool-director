@@ -213,8 +213,8 @@ const MCPSettingsMenu = () => {
               </Text>
               <Text className="description" sx={{ mb: 1 }}>
                 {data.defaultLaunch.startsWith("http")
-                  ? "The client connects to this server. It works while NodeTool runs."
-                  : "The client starts NodeTool itself. It works whether or not this app runs."}
+                  ? t("tools:ui.clientConnectsToServer", { defaultValue: "The client connects to this server. It works while NodeTool runs." })
+                  : t("tools:ui.clientStartsNodetool", { defaultValue: "The client starts NodeTool itself. It works whether or not this app runs." })}
               </Text>
               <Text
                 className="description"
@@ -307,14 +307,14 @@ const MCPSettingsMenu = () => {
           className="settings-section"
           style={{ marginTop: getSpacingPx(SPACING.xxl) }}
         >
-          <Text sx={{ fontWeight: 500, mb: 0.5 }}>Install from a terminal</Text>
+          <Text sx={{ fontWeight: 500, mb: 0.5 }}>{t("tools:ui.installFromTerminal", { defaultValue: "Install from a terminal" })}</Text>
           <Text className="description" sx={{ mb: 1 }}>
             Registers NodeTool with every agent harness found on the machine.
             The agent starts NodeTool on demand, so this app does not need to
             run.
           </Text>
           <FlexColumn gap={0.5}>
-            <Caption>Run this</Caption>
+            <Caption>{t("tools:ui.runThis", { defaultValue: "Run this" })}</Caption>
             <FlexRow align="center" gap={1}>
               <Text
                 sx={{
@@ -326,7 +326,7 @@ const MCPSettingsMenu = () => {
               >
                 {TERMINAL_INSTALL}
               </Text>
-              <CopyButton value={TERMINAL_INSTALL} tooltip="Copy command" />
+              <CopyButton value={TERMINAL_INSTALL} tooltip={t("tools:ui.copyCommand", { defaultValue: "Copy command" })} />
             </FlexRow>
           </FlexColumn>
         </div>

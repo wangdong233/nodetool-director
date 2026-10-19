@@ -118,7 +118,14 @@
     "raiseChordOctave": "升高和弦八度",
     "compPattern": "伴奏型",
     "generatedPhrasePreview": "生成乐句预览",
-    "chordTrackLabel": "和弦轨"
+    "chordTrackLabel": "和弦轨",
+    "videoLayoutOrDaw": "视频布局,或音频工作的 DAW 模式",
+    "editorLayout": "编辑器布局",
+    "videoLayout": "视频布局",
+    "exportingForPremiere": "正在导出 Premiere…",
+    "exportForPremierePro": "导出到 Premiere Pro",
+    "exportingMedia": "正在导出媒体…",
+    "exportMediaZip": "导出媒体(.zip)"
   },
   "tools": {
     "select": "选择",
