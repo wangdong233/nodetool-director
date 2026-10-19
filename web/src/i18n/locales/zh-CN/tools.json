@@ -403,5 +403,8 @@
     "startHere": "从这里开始",
     "yourTask": "你的任务",
     "checkTheResult": "检查结果"
+  },
+  "jsScript": {
+    "agentsReadHelper": "智能体会读这段描述来决定是否调用该脚本。"
   }
 }

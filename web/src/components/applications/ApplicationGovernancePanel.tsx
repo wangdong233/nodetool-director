@@ -317,7 +317,7 @@ const DeploySection = memo(function DeploySection({
                 slotProps={{ htmlInput: { readOnly: true } }}
                 fullWidth
               />
-              <CopyButton value={url} tooltip="Copy link" />
+              <CopyButton value={url} tooltip={t("editor:ui.copyLink", { defaultValue: "Copy link" })} />
             </FlexRow>
           )}
           {deployment?.blockedReason && (

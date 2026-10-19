@@ -868,7 +868,10 @@
     "durationSecondsLabel": "时长(秒)",
     "setByHand": "手动设定",
     "nothingToPreviewYet": "还没有可预览的内容",
-    "generateStillsOrClipsFirst": "请先生成静帧或片段。"
+    "generateStillsOrClipsFirst": "请先生成静帧或片段。",
+    "entityLookHelper": "用一句话描述它的外观。每个用到该实体的提示词都会原样带入这句话。",
+    "tagImageLibraryHint": "把图像标记为角色、场景、风格或道具,即可跨镜头复用。在媒体库中,右键单击图像并选择“用作实体”。",
+    "tagImagePanelHint": "用上方 + 按钮把图像标记为角色、场景、风格或道具,或在媒体库中右键单击图像。"
   },
   "board": {
     "searchShotsPlaceholder": "按描述、台词、场景搜索镜头",

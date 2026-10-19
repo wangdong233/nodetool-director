@@ -391,7 +391,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
               <EmptyState
                 size="small"
                 variant="no-results"
-                title="No assets found matching your search"
+                title={t("editor:ui.noAssetsMatchSearch", { defaultValue: "No assets found matching your search" })}
               />
             )}
           </div>

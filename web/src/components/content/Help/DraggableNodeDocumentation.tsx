@@ -19,6 +19,7 @@ import useMetadataStore from "../../../stores/MetadataStore";
 import { usePanelStore } from "../../../stores/PanelStore";
 import { useNodes } from "../../../contexts/NodeContext";
 import { shallow } from "zustand/shallow";
+import { i18n } from "../../../i18n";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DOCUMENTATION_PANEL_Z_INDEX = 1000;
@@ -168,7 +169,7 @@ const DraggableNodeDocumentation: React.FC<DraggableNodeDocumentationProps> = ({
   return (
     <div css={cssStyles} ref={nodeRef}>
       <div className="handle"></div>
-      <CloseButton className="close-button" onClick={onClose} tooltip="Close documentation" />
+      <CloseButton className="close-button" onClick={onClose} tooltip={i18n.t("editor:ui.closeDocumentation", { defaultValue: "Close documentation" })} />
       <div className="content">{content}</div>
     </div>
   );

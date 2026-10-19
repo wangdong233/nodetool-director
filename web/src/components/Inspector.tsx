@@ -705,7 +705,7 @@ const Inspector: React.FC = () => {
         <EmptyState
           size="small"
           title={t("editor:ui.noNodeSelected", { defaultValue: "No node selected" })}
-          description="Select a node to edit its settings here."
+          description={t("editor:ui.selectNodeToEdit", { defaultValue: "Select a node to edit its settings here." })}
         />
       </Box>
     );

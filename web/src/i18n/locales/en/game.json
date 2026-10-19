@@ -88,7 +88,8 @@
     "hideAssistant": "Hide assistant",
     "draftSaved": "Draft saved",
     "savingDraft": "Saving draft",
-    "draftNotSaved": "Draft not saved"
+    "draftNotSaved": "Draft not saved",
+    "restartFromTick0": "Restart from tick 0"
   },
   "status": {
     "won": "Won",
@@ -207,7 +208,8 @@
     "addScript": "Add script",
     "collisionLayers": "Collision layers",
     "addProperty": "Add property",
-    "physicsMaterials": "Physics materials"
+    "physicsMaterials": "Physics materials",
+    "addMaterial": "Add material"
   },
   "schema": {
     "invalidFormat": "Invalid format",
@@ -251,7 +253,8 @@
   "revisions": {
     "restoreToDraft": "Restore to draft",
     "restoreTitle": "Restore revision to draft",
-    "restoringWarning": "Restoring replaces the draft and clears its undo history."
+    "restoringWarning": "Restoring replaces the draft and clears its undo history.",
+    "noneYet": "No published revisions yet."
   },
   "script": {
     "conflict": "The draft script changed. Your edits are not being saved until you choose a version.",
@@ -383,7 +386,8 @@
     "animationParameters": "Animation parameters",
     "animationStateGraph": "Animation state graph",
     "animationInspector": "Animation inspector",
-    "graphProblems": "Graph problems"
+    "graphProblems": "Graph problems",
+    "anyState": "Any state"
   },
   "particle": {
     "particlePreset": "Particle preset",
@@ -427,5 +431,8 @@
     "environmentPreset": "Environment preset",
     "presetCaption": "Applies the scene environment and sun lighting. Keeps other lights.",
     "fogMode": "Fog mode"
+  },
+  "scripts": {
+    "timeByEntity": "Script time by entity"
   }
 }

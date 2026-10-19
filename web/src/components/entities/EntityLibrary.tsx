@@ -113,7 +113,7 @@ const EntityLibraryInternal: React.FC = () => {
         <EmptyState
           variant="empty"
           title={t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
-          description="Tag an image as a character, location, style, or prop to reuse it across shots. In the Library, right-click an image and choose Use as entity."
+          description={t("storyboard:attrs.tagImageLibraryHint", { defaultValue: "Tag an image as a character, location, style, or prop to reuse it across shots. In the Library, right-click an image and choose Use as entity." })}
           actionText={t("editor:ui.addEntity", { defaultValue: "Add entity" })}
           onAction={handleAdd}
         />

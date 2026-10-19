@@ -17,6 +17,7 @@ import { blendModeGpuId } from "@nodetool-ai/gpu";
 import type { BitmapMap } from "./useLayerBitmaps";
 import { useWebGPUPreview, type PreviewLayer } from "./useWebGPUPreview";
 import type { CompositorEditorLayer } from "./types";
+import { i18n } from "../../i18n";
 
 export interface CompositorPreviewProps {
   canvasWidth: number;
@@ -81,7 +82,7 @@ const CompositorPreviewInner: React.FC<CompositorPreviewProps> = ({
       className="compositor-preview"
       style={{ maxHeight }}
       role="img"
-      aria-label="Composited preview"
+      aria-label={i18n.t("editor:ui.compositedPreview", { defaultValue: "Composited preview" })}
     />
   );
 };

@@ -342,7 +342,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
         onClose={handleSwatchMenuClose}
       >
         <MenuItemPrimitive
-          label="Delete swatch"
+          label={t("editor:ui.deleteSwatch", { defaultValue: "Delete swatch" })}
           icon={<DeleteIcon />}
           color="error"
           onClick={handleDeleteSwatch}

@@ -157,7 +157,7 @@ const AssetRenameConfirmation: React.FC<AssetRenameConfirmationProps> = (
           spellCheck="false"
           helperText={
             count > 1
-              ? "Multiple assets selected: names will be appended with a number."
+              ? t("editor:ui.multipleAssetsRenameNote", { defaultValue: "Multiple assets selected: names will be appended with a number." })
               : undefined
           }
         />

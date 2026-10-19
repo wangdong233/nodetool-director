@@ -406,6 +406,8 @@
     "noRunsRecordedForInstance": "No runs recorded for this instance",
     "recordingIncomplete": "Recording is incomplete.",
     "runHistoryPanel": "Run history",
-    "someRecordedContentLimited": "Some recorded content was limited."
+    "someRecordedContentLimited": "Some recorded content was limited.",
+    "emptyCollection": "Empty collection",
+    "signInToLoadInstance": "Sign in to load this app instance."
   }
 }

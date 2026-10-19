@@ -34,6 +34,7 @@ import {
   useBuilderWorkflow
 } from "./BuilderWorkflowContext";
 import type { WorkflowInputIO } from "../workflowIO";
+import { i18n } from "../../../i18n";
 
 type Option = { label: string; value: string };
 const NONE: Option = { label: "— none —", value: "" };
@@ -405,7 +406,7 @@ const WriteBindingPicker: React.FC<{
       />
       <Autocomplete<BindingOption>
         label={label}
-        placeholder="Search inputs and node properties"
+        placeholder={i18n.t("appbuilder:attrs.searchInputsAndNodeProperties", { defaultValue: "Search inputs and node properties" })}
         options={resolvedOptions}
         value={selectedOption}
         disabled={readOnly || !hasOptions}

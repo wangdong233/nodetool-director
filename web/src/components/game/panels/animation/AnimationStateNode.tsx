@@ -33,7 +33,7 @@ function AnimationStateNode({ data, selected }: NodeProps<AnimationStateFlowNode
     <FlexRow align="center" gap={SPACING.xs} sx={{ px: SPACING.md, py: SPACING.xs, backgroundColor: data.any ? "transparent" : palette.c_node_header_bg,
       borderBottom: data.any ? "none" : `1px solid ${palette.divider}` }}>
       <TruncatedText component="span" sx={{ ...TYPOGRAPHY.mono.label, flex: 1, minWidth: 0,
-        color: data.any ? "text.secondary" : "text.primary" }}>{data.any ? "Any state" : data.stateId}</TruncatedText>
+        color: data.any ? "text.secondary" : "text.primary" }}>{data.any ? i18n.t("game:anim.anyState", { defaultValue: "Any state" }) : data.stateId}</TruncatedText>
       {data.initial && <Caption color="secondary">Initial</Caption>}
     </FlexRow>
     {!data.any && <FlexColumn sx={{ px: SPACING.md, py: SPACING.xs }}>

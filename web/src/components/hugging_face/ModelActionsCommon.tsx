@@ -28,7 +28,7 @@ export const HuggingFaceLink: React.FC<{
   modelId: string;
 }> = ({ modelId }) =>
   !modelId.endsWith("safetensors") && (
-    <Tooltip title="View on HuggingFace" delay={TOOLTIP_DESCRIPTION_DELAY}>
+    <Tooltip title={i18n.t("editor:ui.viewOnHuggingFace", { defaultValue: "View on HuggingFace" })} delay={TOOLTIP_DESCRIPTION_DELAY}>
       <EditorButton
         density="compact"
         href={`https://huggingface.co/${modelId}`}

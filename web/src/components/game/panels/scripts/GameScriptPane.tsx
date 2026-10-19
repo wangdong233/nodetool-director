@@ -109,7 +109,7 @@ export default function GameScriptPane({ dimension = "2d", entityId, entityName,
             {monacoLoadError ? <Caption color="error" role="alert">{monacoLoadError}</Caption> : isMonacoLoading ? <LoadingSpinner size="small" /> : null}
           </FlexRow>}
       </Box>
-      {runEntityStats.length > 0 && <FlexColumn component="ul" aria-label="Script time by entity" sx={{ flexShrink: 0, maxHeight: "25%", overflowY: "auto",
+      {runEntityStats.length > 0 && <FlexColumn component="ul" aria-label={t("game:scripts.timeByEntity", { defaultValue: "Script time by entity" })} sx={{ flexShrink: 0, maxHeight: "25%", overflowY: "auto",
         m: 0, px: SPACING.md, py: SPACING.xs, listStyle: "none", borderTop: 1, borderColor: "divider" }}>
         {runEntityStats.map((entry) => <FlexRow component="li" key={entry.entityId} gap={SPACING.md} align="center" sx={{ minHeight: CONTROL.height.xs }}>
           <Caption sx={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--fontFamily2)" }}>{entry.entityId}</Caption>

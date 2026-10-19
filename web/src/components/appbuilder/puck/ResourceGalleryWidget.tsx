@@ -220,7 +220,7 @@ export const ResourceGalleryWidget: React.FC<ResourceGalleryProps> = ({
           <EmptyState
             variant="empty"
             size="small"
-            title="Empty collection"
+            title={t("appbuilder:attrs.emptyCollection", { defaultValue: "Empty collection" })}
             description={`No ${binding.kind} resources in this collection yet.`}
           />
         )

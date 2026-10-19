@@ -117,7 +117,7 @@ export default function GameHierarchy3D({ document, scene, selectedIds, onSelect
   });
 
   return <FlexColumn sx={{ height: "100%", minHeight: 0 }}>
-    <FlexRow role="toolbar" aria-label="Hierarchy toolbar" align="center" gap={SPACING.xs} sx={{
+    <FlexRow role="toolbar" aria-label={t("game:hierarchy.toolbarAria", { defaultValue: "Hierarchy toolbar" })} align="center" gap={SPACING.xs} sx={{
       flexShrink: 0, minHeight: CONTROL.height.md, boxSizing: "border-box", paddingInline: getSpacingPx(SPACING.sm),
       borderBottom: `1px solid ${theme.vars.palette.divider}`
     }}>

@@ -77,7 +77,7 @@ const JsScriptSettingsPanel = ({
           minRows={1}
           value={document.description}
           placeholder={t("editor:ui.whatThisScriptDoes", { defaultValue: "What this script does" })}
-          helperText="Agents read this to decide whether to call the script."
+          helperText={t("tools:jsScript.agentsReadHelper", { defaultValue: "Agents read this to decide whether to call the script." })}
           disabled={readOnly}
           onChange={(value) =>
             setDescription(scriptId, value)

@@ -78,7 +78,7 @@ const DownloadManagerDialog: React.FC = () => {
           <EmptyState
             icon={<DownloadingIcon />}
             title={t("ui2:attrs.noActiveDownloads", { defaultValue: "No active downloads" })}
-            description="Start a model download from the Recommended Models dialog or Model Manager."
+            description={t("editor:ui.startModelDownloadHint", { defaultValue: "Start a model download from the Recommended Models dialog or Model Manager." })}
           />
         )}
         {isLocalhost &&

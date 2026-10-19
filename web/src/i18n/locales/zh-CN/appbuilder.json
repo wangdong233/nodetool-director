@@ -406,6 +406,8 @@
     "noRunsRecordedForInstance": "此实例还没有运行记录",
     "contentExceedsReadLimit": "内容超出读取上限。",
     "someRecordedContentLimited": "部分录制内容受限。",
-    "recordingIncomplete": "录制不完整。"
+    "recordingIncomplete": "录制不完整。",
+    "emptyCollection": "空集合",
+    "signInToLoadInstance": "登录后加载这个应用实例。"
   }
 }

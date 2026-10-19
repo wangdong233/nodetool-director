@@ -201,7 +201,7 @@ const eventsField = (
 
   return {
     type: "array",
-    label: trigger === "click" ? "On click" : "On change",
+    label: trigger === "click" ? i18n.t("appbuilder:attrs.onClick", { defaultValue: "On click" }) : i18n.t("appbuilder:attrs.onChange", { defaultValue: "On change" }),
     arrayFields,
     defaultItemProps,
     // Array summaries render at edit time, so the action token resolves to

@@ -257,7 +257,7 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
             {credit.attribution && (
               <CopyButton
                 value={credit.attribution}
-                tooltip="Copy attribution"
+                tooltip={t("editor:ui.copyAttribution", { defaultValue: "Copy attribution" })}
                 buttonSize="small"
               />
             )}

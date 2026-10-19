@@ -163,7 +163,7 @@ const DeleteModelDialog: React.FC<DeleteModelDialogProps> = ({
     <Dialog
       open={!!modelId}
       onClose={onClose}
-      title="Delete model?"
+      title={t("editor:ui.deleteModelConfirm", { defaultValue: "Delete model?" })}
       actions={
         <>
           <Button

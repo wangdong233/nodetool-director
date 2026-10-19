@@ -56,7 +56,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ children }) => {
       <Command label={t("editor:ui.commandMenu", { defaultValue: "Command menu" })} className="command-menu">
         <CommandInput
           ref={input}
-          placeholder="Type a command or search"
+          placeholder={t("editor:ui.typeACommandOrSearch", { defaultValue: "Type a command or search" })}
           aria-label={t("editor:ui.commandMenuSearch", { defaultValue: "Command menu search" })}
         />
         <Command.List>

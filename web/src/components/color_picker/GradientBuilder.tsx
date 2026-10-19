@@ -378,7 +378,7 @@ const GradientBuilder: React.FC<GradientBuilderProps> = React.memo(({
           </Tooltip>
           <DeleteButton
             onClick={handleRemoveStopButtonClick}
-            tooltip="Delete stop"
+            tooltip={i18n.t("editor:ui.deleteStop", { defaultValue: "Delete stop" })}
             disabled={gradient.stops.length <= 2}
             nodrag={false}
           />

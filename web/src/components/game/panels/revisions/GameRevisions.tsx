@@ -25,7 +25,7 @@ const DATE_FORMAT = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", ti
 export default function GameRevisions({ revisions, busy, onRestore }: GameRevisionsProps): React.ReactElement {
   const [pendingRevision, setPendingRevision] = useState<string | null>(null);
   return <FlexColumn sx={{ flex: 1, minHeight: 0 }}>
-    {revisions.length === 0 && <Caption sx={{ px: SPACING.md, py: SPACING.sm }}>No published revisions yet.</Caption>}
+    {revisions.length === 0 && <Caption sx={{ px: SPACING.md, py: SPACING.sm }}>{i18n.t("game:revisions.noneYet", { defaultValue: "No published revisions yet." })}</Caption>}
     {revisions.length > 0 && <FlexColumn role="list" aria-label="Revisions"
       sx={{ flex: 1, minHeight: 0, overflowY: "auto", py: SPACING.xs, px: SPACING.xs }}>
       {revisions.slice(0, 10).map((entry) => <FlexRow key={entry.revision} role="listitem" align="center" gap={SPACING.sm}

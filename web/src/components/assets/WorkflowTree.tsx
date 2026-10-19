@@ -205,7 +205,7 @@ const WorkflowTree: React.FC = () => {
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder="Search workflows"
+              placeholder={t("sketch:attrs.searchWorkflows", { defaultValue: "Search workflows" })}
               fullWidth
               size="small"
               sx={searchInputSx}

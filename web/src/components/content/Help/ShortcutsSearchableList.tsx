@@ -108,7 +108,7 @@ export const ShortcutsSearchableList: React.FC<ShortcutsSearchableListProps> = (
           <EmptyState
             variant="no-results"
             size="small"
-            title="No matching shortcuts"
+            title={t("editor:ui.noMatchingShortcuts", { defaultValue: "No matching shortcuts" })}
             description={t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })}
           />
         )}

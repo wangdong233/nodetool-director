@@ -91,7 +91,7 @@ export function editActionFor(
     return {
       kind: "video",
       tooltip: asset.timeline_id
-        ? "Edit timeline"
+        ? i18n.t("editor:ui.editTimeline", { defaultValue: "Edit timeline" })
         : "Create timeline from video"
     };
   }

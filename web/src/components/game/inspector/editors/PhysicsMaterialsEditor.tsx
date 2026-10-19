@@ -6,6 +6,7 @@ import { Caption, FlexColumn, InspectorFieldRow, InspectorValueInput, SPACING } 
 import { AddButton, FieldGroup, RowAction } from "../InspectorParts";
 import SchemaFields from "../SchemaFields";
 import { gameSchemaFields } from "../schemaForm";
+import { i18n } from "../../../../i18n";
 
 const MATERIAL_FIELDS = gameSchemaFields(gamePhysicsMaterial3D);
 
@@ -69,7 +70,7 @@ function PhysicsMaterialsEditor({ document, onDocument }: PhysicsMaterialsEditor
       <SchemaFields schema={MATERIAL_FIELDS} value={material} path={`physicsMaterials.${name}`} onChange={(value) => change(name, value)} />
     </FieldGroup>)}
     {renameError && <Caption color="error" role="alert">{renameError}</Caption>}
-    <AddButton disabled={names.length >= GAME_MAX_PHYSICS_MATERIALS_3D} onClick={addMaterial}>Add material</AddButton>
+    <AddButton disabled={names.length >= GAME_MAX_PHYSICS_MATERIALS_3D} onClick={addMaterial}>{i18n.t("game:inspector.addMaterial", { defaultValue: "Add material" })}</AddButton>
   </FlexColumn>;
 }
 

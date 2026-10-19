@@ -137,7 +137,7 @@ const EntityListPanelInternal: React.FC<EntityListPanelProps> = ({
       <EmptyState
         variant="empty"
         title={t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
-        description="Tag an image as a character, location, style, or prop with the + button above, or right-click an image in the Library and choose Use as entity."
+        description={t("storyboard:attrs.tagImagePanelHint", { defaultValue: "Tag an image as a character, location, style, or prop with the + button above, or right-click an image in the Library and choose Use as entity." })}
         size="small"
       />
     );

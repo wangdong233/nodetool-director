@@ -1181,7 +1181,7 @@ export const MessageView: React.FC<MessageViewProps> = React.memo(
               <CopyButton
                 value={replyCopyText ?? copyText}
                 buttonSize="small"
-                tooltip="Copy message"
+                tooltip={i18n.t("editor:ui.copyMessage", { defaultValue: "Copy message" })}
               />
             </div>
           )}

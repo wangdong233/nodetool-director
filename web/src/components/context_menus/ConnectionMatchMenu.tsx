@@ -10,6 +10,7 @@ import {
 } from "../ui_primitives";
 import { Connection } from "@xyflow/react";
 import useContextMenu from "../../stores/ContextMenuStore";
+import { i18n } from "../../i18n";
 
 export interface ConnectionMatchOption {
   id: string;
@@ -63,7 +64,7 @@ const ConnectionMatchMenu: React.FC = () => {
       onContextMenu={(event) => event.preventDefault()}
       position={menuPosition}
     >
-      <ListSubheader>Select connection</ListSubheader>
+      <ListSubheader>{i18n.t("editor:ui.selectConnection", { defaultValue: "Select connection" })}</ListSubheader>
       {options.map((option) => (
         <MenuItem key={option.id} onClick={createSelectOptionHandler(option)}>
           <ListItemText

@@ -18,6 +18,7 @@ import {
   canCheckHfCache,
   getHfCacheKey
 } from "../../utils/hfCache";
+import { i18n } from "../../i18n";
 
 interface RecommendedModelsProps {
   recommendedModels: UnifiedModel[];
@@ -106,7 +107,7 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
       >
         <SearchInput
           className="search-models-input"
-          placeholder="Search models"
+          placeholder={i18n.t("editor:ui.searchModelsPlaceholder", { defaultValue: "Search models" })}
           size="small"
           value={searchQuery}
           onChange={setSearchQuery}

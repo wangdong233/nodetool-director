@@ -196,7 +196,7 @@ const EntityEditorDialogInternal: React.FC<EntityEditorDialogProps> = ({
         <TextArea
           label={t("editor:ui.descriptor", { defaultValue: "Descriptor" })}
           required
-          helperText="How it looks, in a sentence. Every prompt that uses this entity gets it word for word."
+          helperText={t("storyboard:attrs.entityLookHelper", { defaultValue: "How it looks, in a sentence. Every prompt that uses this entity gets it word for word." })}
           value={descriptor}
           onChange={setDescriptor}
           minRows={3}

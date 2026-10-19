@@ -146,7 +146,7 @@ export default function GameConsolePanel({ gameId, document, liveEntries = NO_EN
                   : <Caption component="span" color="muted">{group.entityId}</Caption>)}
                 {ticks && <Caption component="span" color="muted" sx={{ fontVariantNumeric: "tabular-nums" }}>{ticks}</Caption>}
                 <ToolbarIconButton className="console-ask" icon={<AutoAwesomeOutlinedIcon sx={{ fontSize: FONT_SIZE_SANS.body }} />}
-                  tooltip="Ask the assistant" aria-describedby={`${lineId}-${group.id}`}
+                  tooltip={t("game:console.askTheAssistant", { defaultValue: "Ask the assistant" })} aria-describedby={`${lineId}-${group.id}`}
                   onClick={() => onAskAssistant(gameConsolePrompt(group, name))}
                   sx={{ p: SPACING.micro, my: -SPACING.micro }} />
               </FlexRow>

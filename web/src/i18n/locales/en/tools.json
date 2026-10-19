@@ -403,5 +403,8 @@
     "startHere": "Start here",
     "yourTask": "Your task",
     "checkTheResult": "Check the result"
+  },
+  "jsScript": {
+    "agentsReadHelper": "Agents read this to decide whether to call the script."
   }
 }

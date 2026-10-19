@@ -88,7 +88,8 @@
     "hideAssistant": "隐藏助手",
     "draftSaved": "草稿已保存",
     "savingDraft": "正在保存草稿",
-    "draftNotSaved": "草稿未保存"
+    "draftNotSaved": "草稿未保存",
+    "restartFromTick0": "从 tick 0 重新开始"
   },
   "status": {
     "won": "获胜",
@@ -207,7 +208,8 @@
     "addScript": "添加脚本",
     "collisionLayers": "碰撞层",
     "addProperty": "添加属性",
-    "physicsMaterials": "物理材质"
+    "physicsMaterials": "物理材质",
+    "addMaterial": "添加材质"
   },
   "schema": {
     "invalidFormat": "格式无效",
@@ -251,7 +253,8 @@
   "revisions": {
     "restoreToDraft": "恢复到草稿",
     "restoreTitle": "将版本恢复到草稿",
-    "restoringWarning": "恢复将替换草稿并清除其撤销历史。"
+    "restoringWarning": "恢复将替换草稿并清除其撤销历史。",
+    "noneYet": "还没有已发布的修订。"
   },
   "script": {
     "conflict": "草稿脚本已变化。在选择版本之前，你的编辑不会被保存。",
@@ -383,7 +386,8 @@
     "animationParameters": "动画参数",
     "animationStateGraph": "动画状态图",
     "animationInspector": "动画检查器",
-    "graphProblems": "图问题"
+    "graphProblems": "图问题",
+    "anyState": "任意状态"
   },
   "particle": {
     "particlePreset": "粒子预设",
@@ -427,5 +431,8 @@
     "environmentPreset": "环境预设",
     "presetCaption": "应用场景环境与太阳光照。其他光源保持不变。",
     "fogMode": "雾模式"
+  },
+  "scripts": {
+    "timeByEntity": "各实体的脚本耗时"
   }
 }

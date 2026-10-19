@@ -752,7 +752,7 @@ function SettingsPage() {
                   <div className="general-settings">
                     <div className="settings-section">
                       <Text size="big" id="editor" className="settings-heading">
-                        Editor
+                        {i18n.t("editor:ui.editorHeading", { defaultValue: "Editor" })}
                       </Text>
                       <SearchItem
                         search={search}

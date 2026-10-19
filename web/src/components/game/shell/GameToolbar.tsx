@@ -96,7 +96,7 @@ export default function GameToolbar({ name, playing, playSession, loading, savin
         sx={playSession ? { bgcolor: "primary.main", color: "primary.contrastText", "&:hover": { bgcolor: "primary.dark", color: "primary.contrastText" } } : undefined} />
       <ToolbarIconButton icon={<SkipNextIcon fontSize="small" />} tooltip={t("game:toolbar.step", { defaultValue: "Step" })} onClick={onStep} disabled={playing || loading || !playSession} />
       <ToolbarIconButton icon={<StopIcon fontSize="small" />} tooltip={t("ui2:attrs.stop", { defaultValue: "Stop" })} onClick={onStop} disabled={loading || !playSession} />
-      {onRestart && <ToolbarIconButton icon={<RestartAltIcon fontSize="small" />} tooltip="Restart from tick 0" onClick={onRestart} disabled={loading || !playSession} />}
+      {onRestart && <ToolbarIconButton icon={<RestartAltIcon fontSize="small" />} tooltip={t("game:toolbar.restartFromTick0", { defaultValue: "Restart from tick 0" })} onClick={onRestart} disabled={loading || !playSession} />}
     </FlexRow>
 
     <FlexRow gap={SPACING.xs} align="center" justify="flex-end" sx={{ minWidth: 0 }}>

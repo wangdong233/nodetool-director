@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { TabGroup, type TabItem } from "./ui_primitives";
+import { i18n } from "../i18n";
 
 /** The tabs shown at the top of the Inspector panel. */
 export type InspectorTab = "params" | "io" | "help";
@@ -38,7 +39,7 @@ export const InspectorTabs: React.FC<InspectorTabsProps> = ({
     <TabGroup
       className="inspector-tabs"
       size="small"
-      aria-label="Inspector sections"
+      aria-label={i18n.t("editor:ui.inspectorSections", { defaultValue: "Inspector sections" })}
       tabs={tabs}
       value={active}
       onChange={(next) => {
