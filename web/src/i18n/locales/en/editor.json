@@ -3011,7 +3011,15 @@
     "systemDefaultCamera": "System default camera",
     "systemDefaultInput": "System default input",
     "closeUnsavedConfirm": "Close document with unsaved changes?",
-    "loadingNodetool": "Loading NodeTool"
+    "loadingNodetool": "Loading NodeTool",
+    "animationPreview": "Animation preview",
+    "connectSubscriptions": "Connect your AI subscriptions",
+    "addChromeExtension": "Add the Chrome extension",
+    "providerJobFailed": "The provider's job failed. Try again, or use another model.",
+    "planningCanceled": "Planning was canceled.",
+    "closeDocumentsUnsaved": "Close documents with unsaved changes?",
+    "closeAnyway": "Close anyway",
+    "keepOpen": "Keep open"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

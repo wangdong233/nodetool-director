@@ -281,7 +281,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
                 <Chip
                   compact
                   variant="outlined"
-                  label={pinned ? i18n.t("storyboard:attrs.setByHand", { defaultValue: "Set by hand" }) : "From voice takes"}
+                  label={pinned ? i18n.t("storyboard:attrs.setByHand", { defaultValue: "Set by hand" }) : i18n.t("storyboard:attrs.fromVoiceTakes", { defaultValue: "From voice takes" })}
                   sx={chipSx}
                   onClick={readOnly ? undefined : handleToggleDurationSource}
                 />

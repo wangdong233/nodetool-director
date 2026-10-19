@@ -3006,7 +3006,15 @@
     "systemDefaultCamera": "系统默认摄像头",
     "systemDefaultInput": "系统默认输入",
     "closeUnsavedConfirm": "关闭有未保存更改的文档?",
-    "loadingNodetool": "正在加载 NodeTool"
+    "loadingNodetool": "正在加载 NodeTool",
+    "animationPreview": "动画预览",
+    "connectSubscriptions": "连接你的 AI 订阅",
+    "addChromeExtension": "添加 Chrome 扩展",
+    "providerJobFailed": "服务商任务失败。请重试,或换一个模型。",
+    "planningCanceled": "规划已取消。",
+    "closeDocumentsUnsaved": "关闭有未保存更改的文档?",
+    "closeAnyway": "仍要关闭",
+    "keepOpen": "保持打开"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

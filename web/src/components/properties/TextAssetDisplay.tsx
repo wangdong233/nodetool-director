@@ -5,6 +5,7 @@ import TextEditorModal from "./TextEditorModal";
 import { Tooltip, Text, getSpacingPx, SPACING } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { useTranslation } from "react-i18next";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const MAX_TEXT_LENGTH = 1000;
 const MAX_TEXT_HEIGHT = 50;
@@ -15,6 +16,7 @@ interface TextAssetDisplayProps {
 
 const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const getAsset = useAssetStore((state) => state.get);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -38,8 +40,8 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
   }, [data]);
 
   const memoizedPreviewText = useMemo(() => {
-    return data ? data.substring(0, MAX_TEXT_LENGTH) : t("editor:ui.loadingPreview", { defaultValue: "Loading preview…" });
-  }, [data]);
+    return data ? data.substring(0, MAX_TEXT_LENGTH) : i18n.t("editor:ui.loadingPreview", { defaultValue: "Loading preview…" });
+  }, [data, languageVersion]);
 
   return (
     <div

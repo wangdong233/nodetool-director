@@ -94,7 +94,9 @@
   "status": {
     "won": "Won",
     "playingState": "Playing",
-    "pausedState": "Paused"
+    "pausedState": "Paused",
+    "designingCanceled": "Designing was canceled.",
+    "noDesignReturned": "The designer did not return a design. Try again, or pick another model."
   },
   "player": {
     "gameNotFound": "Game not found",

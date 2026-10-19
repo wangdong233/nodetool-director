@@ -27,6 +27,7 @@ import {
   workflowOperations,
   type AppNodeMetadataLookup
 } from "./appNodeIO";
+import { i18n } from "../../../i18n";
 
 interface AppOption {
   id: string;
@@ -294,7 +295,7 @@ export const AppLoader: React.FC<AppLoaderProps> = memo(({ nodeId, data }) => {
         renderInput={(params) => (
           <TextField
             {...params}
-            label="Select app"
+            label={i18n.t("appbuilder:attrs.selectApp", { defaultValue: "Select app" })}
             variant="outlined"
             size="small"
             slotProps={{

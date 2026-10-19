@@ -94,7 +94,9 @@
   "status": {
     "won": "获胜",
     "playingState": "运行中",
-    "pausedState": "已暂停"
+    "pausedState": "已暂停",
+    "designingCanceled": "设计已取消。",
+    "noDesignReturned": "设计器没有返回设计。请重试,或换一个模型。"
   },
   "player": {
     "gameNotFound": "未找到游戏",

@@ -175,7 +175,7 @@ const StudioStoryboardPage = () => {
       {assemblyNotice && (
         <AlertBanner
           severity="warning"
-          title="Timeline created with omissions"
+          title={i18n.t("timeline:editor.createdWithOmissions", { defaultValue: "Timeline created with omissions" })}
           action={
             <EditorButton
               onClick={() =>

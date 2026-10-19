@@ -113,7 +113,7 @@ const AnimationBar = ({ preview, onActiveChange, className }: AnimationBarProps)
   return (
     <FloatingToolbar
       className={className}
-      aria-label="Animation preview"
+      aria-label={t("editor:ui.animationPreview", { defaultValue: "Animation preview" })}
       sx={{ gap: SPACING.sm, px: SPACING.md }}
     >
       <MovieOutlinedIcon fontSize="small" color="action" />

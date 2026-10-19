@@ -875,7 +875,8 @@
     "generateStillsOrClipsFirst": "Generate stills or clips first.",
     "entityLookHelper": "How it looks, in a sentence. Every prompt that uses this entity gets it word for word.",
     "tagImageLibraryHint": "Tag an image as a character, location, style, or prop to reuse it across shots. In the Library, right-click an image and choose Use as entity.",
-    "tagImagePanelHint": "Tag an image as a character, location, style, or prop with the + button above, or right-click an image in the Library and choose Use as entity."
+    "tagImagePanelHint": "Tag an image as a character, location, style, or prop with the + button above, or right-click an image in the Library and choose Use as entity.",
+    "fromVoiceTakes": "From voice takes"
   },
   "board": {
     "searchShotsPlaceholder": "Search shots by description, dialogue, scene",

@@ -353,7 +353,7 @@ const WorkflowList = ({ projectId }: WorkflowListProps) => {
           ref={searchRef}
           value={filterValue}
           onChange={setFilterValue}
-          placeholder="Search workflows"
+          placeholder={t("sketch:attrs.searchWorkflows", { defaultValue: "Search workflows" })}
         />
         <FlexRow
           className="toolbar-header"

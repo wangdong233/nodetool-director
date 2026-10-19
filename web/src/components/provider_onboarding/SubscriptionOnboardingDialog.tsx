@@ -179,7 +179,7 @@ const SubscriptionOnboardingDialog: React.FC = () => {
       onClose={dismiss}
       maxWidth="sm"
       fullWidth
-      title={onSubscriptions ? "Connect your AI subscriptions" : "Add the Chrome extension"}
+      title={onSubscriptions ? t("editor:ui.connectSubscriptions", { defaultValue: "Connect your AI subscriptions" }) : t("editor:ui.addChromeExtension", { defaultValue: "Add the Chrome extension" })}
       actions={
         onSubscriptions ? (
           <>

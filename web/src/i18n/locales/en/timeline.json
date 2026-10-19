@@ -144,7 +144,8 @@
     "versionsLoadFailed": "Could not load versions",
     "scrollTracksDesc": "The tracks scroll to keep the playhead in view during playback",
     "detectBeats": "Detect beats",
-    "tryAnotherName": "Try another name."
+    "tryAnotherName": "Try another name.",
+    "createdWithOmissions": "Timeline created with omissions"
   },
   "tools": {
     "select": "Select",

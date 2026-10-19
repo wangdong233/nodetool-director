@@ -165,7 +165,7 @@ const InferenceProviderModelSelect = ({
                         onChange={handleChangeModel}
                         placeholder={
                             isLoadingModels
-                                ? "Loading models…"
+                                ? i18n.t("editor:ui.loadingModels", { defaultValue: "Loading models…" })
                                 : modelsError
                                     ? t("editor:ui.errorLoadingModels", { defaultValue: "Error loading models" }) : i18n.t("editor:ui.selectAModel", { defaultValue: "Select a model" })
                         }

@@ -8,7 +8,7 @@ import {
 import { useDocumentDraftStore } from "../stores/DocumentDraftStore";
 import { requestConfirm } from "../stores/ConfirmStore";
 import { closeWorkspaceDocuments } from "../components/workspace/closeWorkspaceDocuments";
-import { i18n } from "../i18n";
+import { i18n, useAppLanguage } from "../i18n";
 
 interface WorkspaceDocumentClose {
   closeDocument: (tab: WorkspaceTab) => void;
@@ -18,6 +18,7 @@ interface WorkspaceDocumentClose {
 
 export function useWorkspaceDocumentClose(): WorkspaceDocumentClose {
   const manager = useWorkflowManagerStore();
+  const { version: languageVersion } = useAppLanguage();
   const hasUnsavedChanges = useMemo(
     () =>
       (tab: WorkspaceTab): boolean =>
@@ -76,10 +77,10 @@ export function useWorkspaceDocumentClose(): WorkspaceDocumentClose {
         title:
           dirty.length === 1
             ? i18n.t("editor:ui.closeUnsavedConfirm", { defaultValue: "Close document with unsaved changes?" })
-            : "Close documents with unsaved changes?",
+            : i18n.t("editor:ui.closeDocumentsUnsaved", { defaultValue: "Close documents with unsaved changes?" }),
         content: `Unsaved changes or saves in progress may be lost. Close ${dirty.map((tab) => `“${tab.title}”`).join(", ")}?`,
-        confirmText: "Close anyway",
-        cancelText: "Keep open",
+        confirmText: i18n.t("editor:ui.closeAnyway", { defaultValue: "Close anyway" }),
+        cancelText: i18n.t("editor:ui.keepOpen", { defaultValue: "Keep open" }),
         destructive: true
       }).then((confirmed) => {
         if (
@@ -104,5 +105,5 @@ export function useWorkspaceDocumentClose(): WorkspaceDocumentClose {
         close(useWorkspaceTabsStore.getState().tabs);
       }
     };
-  }, [hasUnsavedChanges, manager]);
+  }, [hasUnsavedChanges, manager, languageVersion]);
 }
