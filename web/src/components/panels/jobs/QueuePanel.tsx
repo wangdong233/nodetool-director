@@ -159,7 +159,7 @@ const QueuePanel = memo(function QueuePanel() {
       <EmptyState
         size="small"
         variant="error"
-        title="Could not load jobs"
+        title={t("editor:ui.couldNotLoadJobs", { defaultValue: "Could not load jobs" })}
       />
     );
   }
@@ -200,12 +200,12 @@ const QueuePanel = memo(function QueuePanel() {
         {active.length === 0 ? (
           <EmptyState
             size="small"
-            title="Nothing running or queued"
-            description="Runs show up here while they work."
+            title={t("editor:ui.nothingRunningOrQueued", { defaultValue: "Nothing running or queued" })}
+            description={t("editor:ui.runsShowUpHere", { defaultValue: "Runs show up here while they work." })}
           />
         ) : (
           <ScrollArea sx={{ minHeight: 0 }}>
-            <JobGrid jobs={active} label="Active jobs" />
+            <JobGrid jobs={active} label={t("editor:ui.activeJobs", { defaultValue: "Active jobs" })} />
           </ScrollArea>
         )}
       </FlexColumn>
@@ -223,7 +223,7 @@ const QueuePanel = memo(function QueuePanel() {
               <FlexRow
                 gap={SPACING.xs}
                 role="group"
-                aria-label="Filter history"
+                aria-label={t("editor:ui.filterHistory", { defaultValue: "Filter history" })}
               >
                 {FILTERS.filter(
                   (f) => f.id === "all" || counts[f.id] > 0
@@ -245,8 +245,8 @@ const QueuePanel = memo(function QueuePanel() {
           {groups.length === 0 ? (
             <EmptyState
               size="small"
-              title="No finished runs yet"
-              description="Completed, failed and cancelled runs are listed here."
+              title={t("editor:ui.noFinishedRunsYet", { defaultValue: "No finished runs yet" })}
+              description={t("editor:ui.completedFailedCancelled", { defaultValue: "Completed, failed and cancelled runs are listed here." })}
             />
           ) : (
             <FlexColumn gap={SPACING.md}>

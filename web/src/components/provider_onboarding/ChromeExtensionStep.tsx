@@ -137,13 +137,13 @@ const ChromeExtensionStep: React.FC = () => {
             color={connected ? "success" : "default"}
           />
           {!connected && !isLoading && (
-            <Caption>This updates on its own once the setup below is done.</Caption>
+            <Caption>{t("editor:ui.thisUpdatesOnItsOwn", { defaultValue: "This updates on its own once the setup below is done." })}</Caption>
           )}
         </FlexRow>
       </FlexColumn>
 
       <FlexColumn gap={SPACING.md}>
-        <Text component="h3" size="small">Why add it</Text>
+        <Text component="h3" size="small">{t("editor:ui.whyAddIt", { defaultValue: "Why add it" })}</Text>
         <FlexColumn component="ul" gap={SPACING.sm} sx={{ m: 0, pl: SPACING.xl }}>
           {EXTENSION_BENEFITS.map((benefit) => (
             <Text component="li" key={benefit} size="small" weight={400}>
@@ -154,7 +154,7 @@ const ChromeExtensionStep: React.FC = () => {
       </FlexColumn>
 
       <FlexColumn gap={SPACING.md}>
-        <Text component="h3" size="small">How it works</Text>
+        <Text component="h3" size="small">{t("editor:ui.howItWorks", { defaultValue: "How it works" })}</Text>
         <Text size="small" weight={400} sx={{ maxWidth: "60ch" }}>
           When a workflow or the chat asks ChatGPT or Gemini for an image or a
           video, NodeTool finds your open chatgpt.com or gemini.google.com tab
@@ -169,7 +169,7 @@ const ChromeExtensionStep: React.FC = () => {
       </FlexColumn>
 
       <FlexColumn gap={SPACING.md}>
-        <Text component="h3" size="small">Set it up</Text>
+        <Text component="h3" size="small">{t("editor:ui.setItUp", { defaultValue: "Set it up" })}</Text>
         <FlexColumn
           component="ol"
           gap={SPACING.lg}
@@ -181,7 +181,7 @@ const ChromeExtensionStep: React.FC = () => {
             borderRadius: BORDER_RADIUS.lg
           }}
         >
-          <SetupStep index={1} title="Let Chrome start NodeTool's browser bridge.">
+          <SetupStep index={1} title={t("editor:ui.letChromeStartBridge", { defaultValue: "Let Chrome start NodeTool's browser bridge." })}>
             {isWindows() ? (
               <Caption color="warning">
                 This is not supported on Windows yet. Media generation through
@@ -190,12 +190,12 @@ const ChromeExtensionStep: React.FC = () => {
             ) : hostInstalled ? (
               <FlexRow gap={SPACING.xs} align="center">
                 <CheckCircleRoundedIcon sx={{ fontSize: "1.2em", color: theme.vars.palette.success.main }} />
-                <Caption>Done. NodeTool registered its bridge with your browsers.</Caption>
+                <Caption>{t("editor:ui.doneBridgeRegistered", { defaultValue: "Done. NodeTool registered its bridge with your browsers." })}</Caption>
               </FlexRow>
             ) : host.isInstalling || !status ? (
               <FlexRow gap={SPACING.sm} align="center">
                 <LoadingSpinner size="small" inline />
-                <Caption>Registering with your browsers…</Caption>
+                <Caption>{t("editor:ui.registeringWithBrowsers", { defaultValue: "Registering with your browsers…" })}</Caption>
               </FlexRow>
             ) : (
               <FlexColumn gap={SPACING.sm} align="flex-start">
@@ -218,7 +218,7 @@ const ChromeExtensionStep: React.FC = () => {
           </SetupStep>
           <SetupStep
             index={2}
-            title={canReveal ? "Open the extension folder that comes with NodeTool." : "Download the extension NodeTool provides and unzip it."}
+            title={canReveal ? t("editor:ui.openTheExtensionFolder", { defaultValue: "Open the extension folder that comes with NodeTool." }) : t("editor:ui.downloadAndUnzip", { defaultValue: "Download the extension NodeTool provides and unzip it." })}
           >
             <FlexRow gap={SPACING.md} wrap>
               {canReveal ? (
@@ -229,7 +229,7 @@ const ChromeExtensionStep: React.FC = () => {
                   startIcon={<FolderOpenIcon />}
                   onClick={handleReveal}
                 >
-                  Show extension folder
+                  {t("editor:ui.showExtensionFolder", { defaultValue: "Show extension folder" })}
                 </EditorButton>
               ) : (
                 <EditorButton
@@ -239,20 +239,20 @@ const ChromeExtensionStep: React.FC = () => {
                   startIcon={<DownloadIcon />}
                   onClick={handleDownload}
                 >
-                  Download extension
+                  {t("editor:ui.downloadExtension", { defaultValue: "Download extension" })}
                 </EditorButton>
               )}
             </FlexRow>
           </SetupStep>
           <SetupStep
             index={3}
-            title="Open chrome://extensions, turn on Developer mode, click Load unpacked and choose that folder."
+            title={t("editor:ui.openChromeExtensions", { defaultValue: "Open chrome://extensions, turn on Developer mode, click Load unpacked and choose that folder." })}
           >
             <FlexRow gap={SPACING.sm} align="center">
               <Box component="code" sx={{ fontFamily: theme.fontFamily2 }}>
                 {CHROME_EXTENSIONS_URL}
               </Box>
-              <CopyButton value={CHROME_EXTENSIONS_URL} tooltip="Copy address" />
+              <CopyButton value={CHROME_EXTENSIONS_URL} tooltip={t("editor:ui.copyAddress", { defaultValue: "Copy address" })} />
             </FlexRow>
             <Caption>
               Chrome does not open this address from a link, so paste it into
@@ -262,7 +262,7 @@ const ChromeExtensionStep: React.FC = () => {
           </SetupStep>
           <SetupStep
             index={4}
-            title="Sign in to ChatGPT and Gemini in Chrome and keep those tabs open."
+            title={t("editor:ui.signInAndKeepTabsOpen", { defaultValue: "Sign in to ChatGPT and Gemini in Chrome and keep those tabs open." })}
           >
             <FlexRow gap={SPACING.lg} wrap>
               <ExternalLink href="https://chatgpt.com" size="small">chatgpt.com</ExternalLink>

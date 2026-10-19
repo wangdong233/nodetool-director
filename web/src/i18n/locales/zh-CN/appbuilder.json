@@ -401,6 +401,11 @@
     "saving": "保存中…",
     "selectApp": "选择小程序",
     "thisAppCouldNotBeLoaded": "无法加载此小程序。",
-    "working": "运行中"
+    "working": "运行中",
+    "runHistoryPanel": "运行历史",
+    "noRunsRecordedForInstance": "此实例还没有运行记录",
+    "contentExceedsReadLimit": "内容超出读取上限。",
+    "someRecordedContentLimited": "部分录制内容受限。",
+    "recordingIncomplete": "录制不完整。"
   }
 }

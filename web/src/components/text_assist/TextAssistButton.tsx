@@ -41,6 +41,7 @@ import {
   type TextAssistField
 } from "../../utils/textAssist";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const PANEL_WIDTH = 380;
 const SUGGESTION_MAX_HEIGHT = 240;
@@ -63,7 +64,7 @@ const ModelPicker: React.FC = () => {
     <LanguageModelSelect
       value={model?.id ?? ""}
       provider={model?.provider}
-      placeholder="Model for writing"
+      placeholder={i18n.t("editor:ui.modelForWriting", { defaultValue: "Model for writing" })}
       onChange={(value) => setSelectedModel(value as LanguageModel)}
     />
   );
@@ -127,8 +128,8 @@ const TextAssistButtonInternal: React.FC<TextAssistButtonProps> = ({
         ref={anchorRef}
         className="text-assist-trigger"
         icon={<AutoAwesomeOutlinedIcon fontSize="small" />}
-        tooltip="Writing assistant"
-        aria-label="Open the writing assistant"
+        tooltip={t("editor:ui.writingAssistant", { defaultValue: "Writing assistant" })}
+        aria-label={t("editor:ui.openTheWritingAssistant", { defaultValue: "Open the writing assistant" })}
         aria-haspopup="dialog"
         aria-expanded={open}
         disabled={disabled}
@@ -144,14 +145,14 @@ const TextAssistButtonInternal: React.FC<TextAssistButtonProps> = ({
         slotProps={{
           paper: {
             role: "dialog",
-            "aria-label": "Writing assistant"
+            "aria-label": t("editor:ui.writingAssistant", { defaultValue: "Writing assistant" })
           }
         }}
       >
         <FlexColumn gap={GAP.comfortable} sx={{ p: PADDING.comfortable }}>
           <FlexRow gap={GAP.tight} align="center">
             <AutoAwesomeOutlinedIcon fontSize="small" color="primary" />
-            <Text weight={500}>Writing assistant</Text>
+            <Text weight={500}>{t("editor:ui.writingAssistant", { defaultValue: "Writing assistant" })}</Text>
           </FlexRow>
 
           {proposal !== null && (
@@ -189,7 +190,7 @@ const TextAssistButtonInternal: React.FC<TextAssistButtonProps> = ({
                   onClick={apply}
                   disabled={running}
                 >
-                  {value.trim() ? "Replace text" : "Insert"}
+                  {value.trim() ? t("editor:ui.replaceText", { defaultValue: "Replace text" }) : t("editor:ui.insert", { defaultValue: "Insert" })}
                 </EditorButton>
               </FlexRow>
             </FlexColumn>
@@ -229,8 +230,8 @@ const TextAssistButtonInternal: React.FC<TextAssistButtonProps> = ({
               }}
               placeholder={
                 proposal !== null
-                  ? "Refine the suggestion…"
-                  : "Tell the assistant what to write…"
+                  ? t("editor:ui.refineTheSuggestion", { defaultValue: "Refine the suggestion…" })
+                  : t("editor:ui.tellTheAssistantWhatToWrite", { defaultValue: "Tell the assistant what to write…" })
               }
               label={t("timeline:attrs.instruction", { defaultValue: "Instruction" })}
               hideLabel
@@ -239,7 +240,7 @@ const TextAssistButtonInternal: React.FC<TextAssistButtonProps> = ({
             <ToolbarIconButton
               icon={<ArrowUpwardIcon fontSize="small" />}
               tooltip={t("appbuilder:attrs.send", { defaultValue: "Send" })}
-              aria-label="Send the instruction"
+              aria-label={t("editor:ui.sendTheInstruction", { defaultValue: "Send the instruction" })}
               variant="primary"
               size="small"
               disabled={running || !instruction.trim()}

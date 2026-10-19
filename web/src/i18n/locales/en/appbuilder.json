@@ -401,6 +401,11 @@
     "saving": "Saving…",
     "selectApp": "Select app",
     "thisAppCouldNotBeLoaded": "This app could not be loaded.",
-    "working": "Working"
+    "working": "Working",
+    "contentExceedsReadLimit": "Content exceeds the read limit.",
+    "noRunsRecordedForInstance": "No runs recorded for this instance",
+    "recordingIncomplete": "Recording is incomplete.",
+    "runHistoryPanel": "Run history",
+    "someRecordedContentLimited": "Some recorded content was limited."
   }
 }

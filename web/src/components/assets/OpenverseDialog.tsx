@@ -206,17 +206,17 @@ const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
     if (!query) {
       return (
         <EmptyState
-          title="Search openly licensed media"
-          description="Openverse indexes Creative Commons and public-domain images and audio from Flickr, Wikimedia, Freesound and other collections."
+          title={i18n.t("editor:ui.searchOpenlyLicensedMedia", { defaultValue: "Search openly licensed media" })}
+          description={i18n.t("editor:ui.openverseIndexes", { defaultValue: "Openverse indexes Creative Commons and public-domain images and audio from Flickr, Wikimedia, Freesound and other collections." })}
         />
       );
     }
     if (search.isLoading) {
-      return <LoadingSpinner text="Searching Openverse" />;
+      return <LoadingSpinner text={i18n.t("editor:ui.searchingOpenverse", { defaultValue: "Searching Openverse" })} />;
     }
     if (search.error) {
       return (
-        <AlertBanner severity="error" title="Search failed">
+        <AlertBanner severity="error" title={i18n.t("editor:ui.searchFailed", { defaultValue: "Search failed" })}>
           {search.error.message}
         </AlertBanner>
       );
@@ -225,8 +225,8 @@ const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
       return (
         <EmptyState
           variant="no-results"
-          title="No results"
-          description="Try other words, or allow more licenses."
+          title={i18n.t("editor:ui.noResultsOpenverse", { defaultValue: "No results" })}
+          description={i18n.t("editor:ui.tryOtherWords", { defaultValue: "Try other words, or allow more licenses." })}
         />
       );
     }
@@ -236,7 +236,7 @@ const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
           minItemWidth={TILE_MIN_WIDTH}
           gap={SPACING.sm}
           role="group"
-          aria-label="Openverse images"
+          aria-label={i18n.t("editor:ui.openverseImages", { defaultValue: "Openverse images" })}
         >
           {results.map((result) => {
             const isSelected = selected.has(result.id);
@@ -276,7 +276,7 @@ const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
       );
     }
     return (
-      <FlexColumn gap={SPACING.xs} role="list" aria-label="Openverse audio">
+      <FlexColumn gap={SPACING.xs} role="list" aria-label={i18n.t("editor:ui.openverseAudio", { defaultValue: "Openverse audio" })}>
         {results.map((result) => (
           <FlexRow
             key={result.id}
@@ -371,7 +371,7 @@ const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
           <ToggleGroup
             exclusive
             size="small"
-            aria-label="Media type"
+            aria-label={i18n.t("editor:ui.mediaType", { defaultValue: "Media type" })}
             value={mediaType}
             onChange={(_event, value: MediaType | null) => {
               if (value) {
@@ -392,8 +392,8 @@ const OpenverseDialog: React.FC<OpenverseDialogProps> = ({ open, onClose }) => {
               onClear={() => handleSubmit("")}
               placeholder={
                 mediaType === "images"
-                  ? "Search images, e.g. mountain lake"
-                  : "Search audio, e.g. rain on window"
+                  ? i18n.t("editor:ui.searchImagesExample", { defaultValue: "Search images, e.g. mountain lake" })
+                  : i18n.t("editor:ui.searchAudioExample", { defaultValue: "Search audio, e.g. rain on window" })
               }
               ariaLabel="Search Openverse"
               autoFocus

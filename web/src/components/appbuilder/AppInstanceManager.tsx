@@ -85,7 +85,7 @@ export default function AppInstanceManager({
     try {
       await flushInstance?.();
       const selected = choices.find((item) => item.id === id);
-      navigate(id, selected?.name ?? "App instance");
+      navigate(id, selected?.name ?? i18n.t("appbuilder:attrs.appInstance", { defaultValue: "App instance" }));
     } catch (failure) {
       setError(
         failure instanceof Error
@@ -180,8 +180,8 @@ export default function AppInstanceManager({
         />
         <Caption>
           {instance.version === null
-            ? "Draft working copy"
-            : `Pinned version ${instance.version}`}
+            ? i18n.t("appbuilder:attrs.draftWorkingCopy", { defaultValue: "Draft working copy" })
+            : i18n.t("appbuilder:attrs.pinnedVersion", { defaultValue: "Pinned version {{version}}" }).replace("{{version}}", String(instance.version))}
         </Caption>
         <EditorButton
           variant="outlined"
@@ -271,13 +271,13 @@ export default function AppInstanceManager({
         }}
         title={
           action === "advance"
-            ? "Advance instance version"
+            ? i18n.t("appbuilder:attrs.advanceInstanceVersion", { defaultValue: "Advance instance version" })
             : action === "delete"
-              ? "Delete instance?"
+              ? i18n.t("appbuilder:attrs.deleteInstance", { defaultValue: "Delete instance?" })
               : action === "duplicate"
-                ? "Duplicate instance"
+                ? i18n.t("appbuilder:attrs.duplicateInstance", { defaultValue: "Duplicate instance" })
                 : action === "rename"
-                  ? "Rename instance"
+                  ? i18n.t("appbuilder:attrs.renameInstance", { defaultValue: "Rename instance" })
                   : "New instance"
         }
         onConfirm={() => void confirm()}
@@ -297,7 +297,7 @@ export default function AppInstanceManager({
       >
         {named ? (
           <TextInput
-            label="Instance name"
+            label={i18n.t("appbuilder:attrs.instanceName", { defaultValue: "Instance name" })}
             value={name}
             onChange={(event) => setName(event.target.value)}
             autoFocus

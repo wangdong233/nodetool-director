@@ -305,13 +305,13 @@ const AiRenderPanel = ({ capture }: AiRenderPanelProps) => {
           {!shown ? (
             <EmptyState
               size="small"
-              title="No renders yet"
-              description="Frame the shot in the viewport, then render it with an image model."
+              title={t("editor:ui.noRendersYet", { defaultValue: "No renders yet" })}
+              description={t("editor:ui.frameTheShotThenRender", { defaultValue: "Frame the shot in the viewport, then render it with an image model." })}
             />
           ) : shown.status === "rendering" ? (
             <FlexColumn align="center" justify="center" gap={SPACING.sm} sx={{ aspectRatio: "16 / 9" }}>
               <LoadingSpinner />
-              <Caption>Rendering this view…</Caption>
+              <Caption>{t("editor:ui.renderingThisView", { defaultValue: "Rendering this view…" })}</Caption>
             </FlexColumn>
           ) : shown.status === "failed" ? (
             <Box sx={{ padding: getSpacingPx(SPACING.sm) }}>
@@ -348,7 +348,7 @@ const AiRenderPanel = ({ capture }: AiRenderPanelProps) => {
         <TextArea
           value={prompt}
           onChange={(value) => setPrompt(value)}
-          placeholder="Describe the finished image, e.g. moonlit bedroom, Pixar style, soft rim light"
+          placeholder={t("editor:ui.describeTheFinishedImage", { defaultValue: "Describe the finished image, e.g. moonlit bedroom, Pixar style, soft rim light" })}
           minRows={2}
           maxRows={6}
           fullWidth
@@ -390,7 +390,7 @@ const AiRenderPanel = ({ capture }: AiRenderPanelProps) => {
         </FlexColumn>
 
         <FlexColumn gap={SPACING.xs}>
-          <Label size="small">Send the model</Label>
+          <Label size="small">{t("editor:ui.sendTheModel", { defaultValue: "Send the model" })}</Label>
           <ToggleGroup
             size="small"
             exclusive
@@ -410,10 +410,10 @@ const AiRenderPanel = ({ capture }: AiRenderPanelProps) => {
 
         <FlexColumn gap={SPACING.xs}>
           <FlexRow align="center" justify="space-between">
-            <Label size="small">Style references</Label>
+            <Label size="small">{t("editor:ui.styleReferences", { defaultValue: "Style references" })}</Label>
             <UploadButton
               onFileSelect={(files) => void handleUpload(files)}
-              tooltip="Upload a style reference image"
+              tooltip={t("editor:ui.uploadAStyleReference", { defaultValue: "Upload a style reference image" })}
               accept="image/*"
               disabled={references.length >= MAX_REFERENCES}
             />
@@ -426,7 +426,7 @@ const AiRenderPanel = ({ capture }: AiRenderPanelProps) => {
                 border: `1px dashed ${theme.vars.palette.divider}`
               }}
             >
-              <Caption>Drop an image here, or use a render below, to keep a look across shots.</Caption>
+              <Caption>{t("editor:ui.dropAnImageHere", { defaultValue: "Drop an image here, or use a render below, to keep a look across shots." })}</Caption>
             </Box>
           ) : (
             <FlexRow gap={SPACING.xs} sx={{ flexWrap: "wrap" }}>
@@ -444,7 +444,7 @@ const AiRenderPanel = ({ capture }: AiRenderPanelProps) => {
                   />
                   <ToolbarIconButton
                     icon={<CloseIcon fontSize="small" />}
-                    tooltip="Remove reference"
+                    tooltip={t("editor:ui.removeReference", { defaultValue: "Remove reference" })}
                     ariaLabel={`Remove style reference ${reference.name}`}
                     size="small"
                     onClick={() =>
@@ -472,7 +472,7 @@ const AiRenderPanel = ({ capture }: AiRenderPanelProps) => {
         >
           Render this view
         </EditorButton>
-        {!canRender && <Caption>Pick an image model that can edit images.</Caption>}
+        {!canRender && <Caption>{t("editor:ui.pickAnImageModelThatEdits", { defaultValue: "Pick an image model that can edit images." })}</Caption>}
         {notice && (
           <AlertBanner severity="warning" compact onClose={() => setNotice(null)}>
             {notice}
@@ -481,7 +481,7 @@ const AiRenderPanel = ({ capture }: AiRenderPanelProps) => {
 
         {renders.length > 1 && (
           <FlexColumn gap={SPACING.xs}>
-            <Label size="small">Earlier renders</Label>
+            <Label size="small">{t("editor:ui.earlierRenders", { defaultValue: "Earlier renders" })}</Label>
             <FlexRow gap={SPACING.xs} sx={{ flexWrap: "wrap" }}>
               {renders.map((entry) => (
                 <FlexColumn key={entry.id} gap={SPACING.micro} sx={{ width: 96 }}>

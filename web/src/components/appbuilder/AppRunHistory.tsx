@@ -49,17 +49,17 @@ function ReadOnlyValue({ value }: { value: unknown }): React.ReactElement {
         return (
           <ResponsiveImage
             locator={locator}
-            alt="Historical output"
+            alt={i18n.t("appbuilder:attrs.historicalOutput", { defaultValue: "Historical output" })}
             fit="contain"
           />
         );
       }
       if (media.data.type === "video") {
-        return <VideoPlayer locator={locator} label="Historical output" />;
+        return <VideoPlayer locator={locator} label={i18n.t("appbuilder:attrs.historicalOutput", { defaultValue: "Historical output" })} />;
       }
       return <AudioPlayback locator={locator} />;
     }
-    return <Caption>Media reference unavailable.</Caption>;
+    return <Caption>{i18n.t("appbuilder:attrs.mediaReferenceUnavailable", { defaultValue: "Media reference unavailable." })}</Caption>;
   }
   return (
     <Text
@@ -116,7 +116,7 @@ export default function AppRunHistory({
   const error = history.error ?? detail.error;
   return (
     <FlexColumn gap={SPACING.md} padding={SPACING.lg}>
-      <Text weight={600}>Run history</Text>
+      <Text weight={600}>{i18n.t("appbuilder:attrs.runHistoryPanel", { defaultValue: "Run history" })}</Text>
       {error ? (
         <AlertBanner
           severity="error"
@@ -150,14 +150,14 @@ export default function AppRunHistory({
                 {record.app?.cost_state === "settled"
                   ? `$${record.app.actual_usd?.toFixed(4)}`
                   : record.app?.cost_state === "unsettled"
-                    ? "Cost pending"
+                    ? i18n.t("appbuilder:attrs.costPending", { defaultValue: "Cost pending" })
                     : "Cost unavailable"}
               </Caption>
               {record.app?.result_reference ? (
                 <ResponsiveImage
                   locator={`asset://${record.app.result_reference.asset_id}`}
                   preferThumbnail
-                  alt="Run result thumbnail"
+                  alt={i18n.t("appbuilder:attrs.runResultThumbnail", { defaultValue: "Run result thumbnail" })}
                 />
               ) : null}
             </FlexRow>
@@ -165,7 +165,7 @@ export default function AppRunHistory({
         </FlexColumn>
       </ScrollArea>
       {!history.isLoading && !records.length ? (
-        <EmptyState size="small" title="No runs recorded for this instance" />
+        <EmptyState size="small" title={i18n.t("appbuilder:attrs.noRunsRecordedForInstance", { defaultValue: "No runs recorded for this instance" })} />
       ) : null}
       <FlexRow gap={SPACING.sm}>
         {pageIndex > 0 ? (
@@ -183,9 +183,9 @@ export default function AppRunHistory({
         ) : null}
       </FlexRow>
       {selectedRunId ? (
-        <FlexColumn gap={SPACING.md} role="region" aria-label="Historical run">
+        <FlexColumn gap={SPACING.md} role="region" aria-label={i18n.t("appbuilder:attrs.historicalRun", { defaultValue: "Historical run" })}>
           <FlexRow gap={SPACING.sm}>
-            <Text weight={600}>Historical result (read-only)</Text>
+            <Text weight={600}>{i18n.t("appbuilder:attrs.historicalResultReadOnly", { defaultValue: "Historical result (read-only)" })}</Text>
             <EditorButton onClick={() => onSelect(null)}>
               Close history selection
             </EditorButton>
@@ -242,7 +242,7 @@ export default function AppRunHistory({
                       {!Object.keys(run.app?.[field] ?? {}).length ? (
                         <Caption>
                           {run.app?.content_limited
-                            ? "Content exceeds the read limit."
+                            ? i18n.t("appbuilder:attrs.contentExceedsReadLimit", { defaultValue: "Content exceeds the read limit." })
                             : "No values recorded."}
                         </Caption>
                       ) : null}
@@ -251,10 +251,10 @@ export default function AppRunHistory({
                 </>
               )}
               {run.app?.content_limited || summary?.truncated ? (
-                <Caption>Some recorded content was limited.</Caption>
+                <Caption>{i18n.t("appbuilder:attrs.someRecordedContentLimited", { defaultValue: "Some recorded content was limited." })}</Caption>
               ) : null}
               {summary?.incomplete ? (
-                <Caption>Recording is incomplete.</Caption>
+                <Caption>{i18n.t("appbuilder:attrs.recordingIncomplete", { defaultValue: "Recording is incomplete." })}</Caption>
               ) : null}
               {summary?.documents.map((document) => {
                 const type = documentType(document.kind);
