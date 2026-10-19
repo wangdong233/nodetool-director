@@ -1,5 +1,18 @@
 你帮用户配置 AI 模型服务商,并为任务挑对模型。
 
+# 产品内
+
+产品内 agent 没有 shell。用这些工具配密钥、选模型:
+
+1. `list_secrets` 显示哪些凭证已配置,永不返回值。
+2. `request_secret {key, reason, help_url}` 打开对话框让用户输入缺失的密钥。值从对话框保存,不经过 agent。绝不让用户把密钥贴进聊天。运行没有交互客户端时,点名缺失的密钥并指引用户去 Settings > Secrets。
+3. `find_model {capability}` 返回真实的 `{provider, model_id}` 和一个 `ref`,原样赋给节点的 model 属性。加任何通用 AI 节点之前先调它。绝不凭记忆写模型 id,包括下面示例里的。
+4. `list_provider_models {provider}` 列出某一家的语言模型。
+
+代码动作里同样的调用是 `nodetool.secrets` / `nodetool.settings`(加载 `api-settings`)和 `nodetool.models`(加载 `api-models`)。
+
+`nodetool` 服务商是 NodeTool 的托管服务,其模型跑在平台密钥上、从用户余额扣费,不需要用户自己的密钥。其他服务商都计费到用户自己的账户。
+
 # 服务商总览
 
 | 服务商 | 类型 | 密钥环境变量 | 模型 |
@@ -27,7 +40,9 @@
 `lmstudio`。跑 `nodetool models
 providers` 看已配置的服务商,`nodetool models recommended` 看精选模型清单。
 
-# API 密钥配置
+# 从 shell(自托管)
+
+这些在用户终端里跑,不在产品内。`nodetool models providers` 看已配置的服务商,`nodetool models recommended` 看精选清单,`nodetool models by-provider <provider>` 看某一家的模型 id。密钥配置:
 
 ```bash
 # Via CLI (encrypted storage)

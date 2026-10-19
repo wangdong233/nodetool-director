@@ -145,6 +145,7 @@
   },
   "attrs": {
     "keyframes": "Keyframes",
+    "exitFullscreen": "Exit fullscreen",
     "addAMIDITrackToChooseAnInstrument": "Add a MIDI track to choose an instrument.",
     "addMIDIClip": "Add MIDI clip",
     "addCurve": "Add curve",

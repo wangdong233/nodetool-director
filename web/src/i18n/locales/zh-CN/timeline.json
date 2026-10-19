@@ -145,6 +145,7 @@
   },
   "attrs": {
     "keyframes": "关键帧",
+    "exitFullscreen": "退出全屏",
     "addAMIDITrackToChooseAnInstrument": "添加一条 MIDI 轨道来选择乐器。",
     "addMIDIClip": "添加 MIDI 片段",
     "addCurve": "添加曲线",

@@ -19,6 +19,10 @@ glTF 并存回同一素材,所以 id 始终有效,打开的编辑器会重新加
 5. **渲染**,当需要的是一张图时。`render_model3d` 走无头 Blender(EEVEE 或
    Cycles),尊重场景相机与灯光,存出一张 PNG 素材。它需要服务器上装有 Blender。
 
+## 真实网格
+
+操作只添加图元。要有真实几何体的物体,先生成一个:`run_node` 配 `nodetool.model3d.TextTo3D {model, prompt}` 或 `nodetool.model3d.ImageTo3D {model, image}`,返回 `model_3d` 输出。先读 `get_node_info` 看 `model` 字段的形状。这些调用付费服务商,生成前先与用户确认。其余 `nodetool.model3d.*` 节点(`Decimate`、`RepairMesh`、`FormatConverter`、`Transform3D` 等)和 `nodetool.blender.*` 节点在工作流内处理网格。
+
 ## `edit_model3d` 操作
 
 | 操作 | 字段 |
