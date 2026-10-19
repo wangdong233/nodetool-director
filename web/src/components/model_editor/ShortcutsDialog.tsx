@@ -40,14 +40,14 @@ const ShortcutsDialog = ({ open, onClose }: ShortcutsDialogProps) => (
           ))}
           {group === "View" && (
             <FlexRow justify="space-between" align="center" gap={SPACING.md}>
-              <Text size="small">Orbit / pan / zoom</Text>
-              <Text size="smaller" color="secondary">Left / right drag, wheel</Text>
+              <Text size="small">{i18n.t("editor:ui.orbitPanZoom", { defaultValue: "Orbit / pan / zoom" })}</Text>
+              <Text size="smaller" color="secondary">{i18n.t("editor:ui.leftRightDragWheel", { defaultValue: "Left / right drag, wheel" })}</Text>
             </FlexRow>
           )}
           {group === "Transform" && (
             <FlexRow justify="space-between" align="center" gap={SPACING.md}>
-              <Text size="small">Scrub a value</Text>
-              <Text size="smaller" color="secondary">Drag the X / Y / Z label</Text>
+              <Text size="small">{i18n.t("editor:ui.scrubAValue", { defaultValue: "Scrub a value" })}</Text>
+              <Text size="smaller" color="secondary">{i18n.t("editor:ui.dragTheXYZLabel", { defaultValue: "Drag the X / Y / Z label" })}</Text>
             </FlexRow>
           )}
         </FlexColumn>

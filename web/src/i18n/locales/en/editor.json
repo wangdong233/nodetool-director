@@ -130,7 +130,11 @@
     "createTimelineFromVideo": "Create Timeline from Video",
     "createTimelineTip": "Create a timeline from this video and open it for editing",
     "createFolderHereTip": "Create a new folder in the current location",
-    "copyContent": "Copy Content"
+    "copyContent": "Copy Content",
+    "useAsEntity": "Use as entity…",
+    "tagAsEntityTip": "Tag this image as a character, location, style, or prop to reuse it across shots",
+    "copyVideoUrlMeta": "Copy video URL and metadata",
+    "copyAudioUrlMeta": "Copy audio URL and metadata"
   },
   "property": {
     "copyValue": "Copy value",
@@ -2856,7 +2860,19 @@
     "addApiKeyToUseModels": "Add an API key to use these models. Right-click for options",
     "modelSources": "Model sources",
     "providersDidNotLoad": "Providers did not load",
-    "addApiKeyEllipsis": "Add API key…"
+    "addApiKeyEllipsis": "Add API key…",
+    "sortFiles": "Sort files",
+    "thumbnailSize": "Thumbnail size",
+    "selectEveryFileInView": "Select every file in view",
+    "noCostDataForPeriod": "No cost data for this period",
+    "filterNodesModels": "Filter nodes, models",
+    "orbitPanZoom": "Orbit / pan / zoom",
+    "leftRightDragWheel": "Left / right drag, wheel",
+    "scrubAValue": "Scrub a value",
+    "dragTheXYZLabel": "Drag the X / Y / Z label",
+    "modelsAppearAfterInstall": "The models appear here when the install finishes.",
+    "failedToLoadModelsFrom": "Failed to load models from:",
+    "missingAProvider": "Missing a provider?"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

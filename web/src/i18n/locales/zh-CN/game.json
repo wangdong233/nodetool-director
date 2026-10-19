@@ -234,7 +234,12 @@
     "unrecorded": "未记录",
     "framesOutOfDate": "帧已过期",
     "entryChip": "入口",
-    "generateAndInstall": "生成并安装"
+    "generateAndInstall": "生成并安装",
+    "frameOf": "所属帧",
+    "toolbarAria": "素材工具栏",
+    "listView": "列表视图",
+    "gridView": "网格视图",
+    "noAssets": "还没有素材。"
   },
   "revisions": {
     "restoreToDraft": "恢复到草稿",

@@ -739,7 +739,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
               size="small"
               icon={<LoadingSpinner size="small" />}
               title={`Installing ${selectedInstall.spec.installLabel}`}
-              description="The models appear here when the install finishes."
+              description={i18n.t("editor:ui.modelsAppearAfterInstall", { defaultValue: "The models appear here when the install finishes." })}
             />
           ) : (
             <EmptyState
@@ -935,7 +935,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
             <Tooltip
               title={
                 <FlexColumn gap={SPACING.xs}>
-                  <Caption>Failed to load models from:</Caption>
+                  <Caption>{i18n.t("editor:ui.failedToLoadModelsFrom", { defaultValue: "Failed to load models from:" })}</Caption>
                   {providerErrors.map((pe) => (
                     <Caption key={pe.provider} component="div">
                       {pe.provider}:{" "}
@@ -1001,7 +1001,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
           borderTop: `1px solid ${theme.vars.palette.divider}`
         }}
       >
-        <Caption sx={{ color: "text.secondary" }}>Missing a provider?</Caption>
+        <Caption sx={{ color: "text.secondary" }}>{i18n.t("editor:ui.missingAProvider", { defaultValue: "Missing a provider?" })}</Caption>
         <EditorButton
           variant="text"
           size="small"

@@ -234,7 +234,12 @@
     "unrecorded": "Unrecorded",
     "framesOutOfDate": "Frames out of date",
     "entryChip": "Entry",
-    "generateAndInstall": "Generate and install"
+    "generateAndInstall": "Generate and install",
+    "frameOf": "Frame of",
+    "toolbarAria": "Assets toolbar",
+    "listView": "List view",
+    "gridView": "Grid view",
+    "noAssets": "No assets."
   },
   "revisions": {
     "restoreToDraft": "Restore to draft",

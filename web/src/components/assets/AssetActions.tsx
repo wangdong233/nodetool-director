@@ -115,7 +115,7 @@ const AssetActions = ({
         density="compact"
         startIcon={<SortIcon />}
         endIcon={<ArrowDropDownIcon />}
-        tooltip="Sort files"
+        tooltip={t("editor:ui.sortFiles", { defaultValue: "Sort files" })}
         aria-haspopup="menu"
         onClick={(e) => setSortAnchor(e.currentTarget)}
       >
@@ -153,7 +153,7 @@ const AssetActions = ({
       </ToggleGroup>
 
       {viewMode === "grid" && (
-        <Tooltip title="Thumbnail size" placement="bottom">
+        <Tooltip title={t("editor:ui.thumbnailSize", { defaultValue: "Thumbnail size" })} placement="bottom">
           <FlexRow
             align="center"
             gap={SPACING.sm}
@@ -162,7 +162,7 @@ const AssetActions = ({
             <PhotoSizeSelectSmallIcon sx={{ fontSize: ICON_SIZE.sm }} />
             <Slider
               size="small"
-              aria-label="Thumbnail size"
+              aria-label={t("editor:ui.thumbnailSize", { defaultValue: "Thumbnail size" })}
               step={1}
               min={1}
               max={maxItemSize}
@@ -178,7 +178,7 @@ const AssetActions = ({
         color="inherit"
         density="compact"
         startIcon={<SelectAllIcon />}
-        tooltip="Select every file in view"
+        tooltip={t("editor:ui.selectEveryFileInView", { defaultValue: "Select every file in view" })}
         onClick={handleSelectAllAssets}
       >
         Select all

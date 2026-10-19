@@ -197,7 +197,7 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
   };
   const openAsset = (slot: string): void => { setTab("assets"); setSelectedSlot(slot); };
   const assetRows = (slots: readonly string[]): ReactElement => slots.length === 0
-    ? <Caption sx={{ px: SPACING.sm }}>No assets.</Caption>
+    ? <Caption sx={{ px: SPACING.sm }}>{i18n.t("game:assets.noAssets", { defaultValue: "No assets." })}</Caption>
     : <FlexColumn gap={SPACING.none}>{slots.map((slot) => <ItemRow key={slot} label={slot} leading={thumbnailOf(slot, "row")}
       meta={(() => { const entry = catalog.assets.find((candidate) => candidate.slot === slot); return entry ? KIND_NAMES[entry.mediaKind] : null; })()}
       onClick={() => openAsset(slot)} ariaLabel={`Open asset ${slot}`} />)}</FlexColumn>;
@@ -221,7 +221,7 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
           <InspectorFieldRow label="Digest">
             <Box sx={{ ...TYPOGRAPHY.mono.label, color: "text.primary" }}>{shortDigest(entry.digest)}</Box>
           </InspectorFieldRow>
-          {entry.siblingOf && <InspectorFieldRow label="Frame of">
+          {entry.siblingOf && <InspectorFieldRow label={i18n.t("game:assets.frameOf", { defaultValue: "Frame of" })}>
             <ItemRow label={entry.siblingOf} onClick={() => setSelectedSlot(entry.siblingOf ?? null)} ariaLabel={`Open asset ${entry.siblingOf}`} />
           </InspectorFieldRow>}
           {request?.prompt && <InspectorFieldRow label={i18n.t("sketch:attrs.prompt", { defaultValue: "Prompt" })}>
@@ -321,7 +321,7 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
 
   return <FieldDensityContext.Provider value="compact">
     <FlexColumn fullHeight aria-label={i18n.t("game:assets.browserAria", { defaultValue: "Asset browser" })} sx={{ minHeight: 0, containerType: "inline-size", containerName: "asset-browser" }}>
-      <FlexRow role="toolbar" aria-label="Assets toolbar" gap={SPACING.sm} align="center" wrap
+      <FlexRow role="toolbar" aria-label={i18n.t("game:assets.toolbarAria", { defaultValue: "Assets toolbar" })} gap={SPACING.sm} align="center" wrap
         sx={{ flexShrink: 0, minHeight: CONTROL.height.md, px: SPACING.sm, py: SPACING.micro, borderBottom: 1, borderColor: "divider" }}>
         <ToggleGroup quiet exclusive size="small" aria-label="Browse" value={tab}
           onChange={(_event, value: GameAssetBrowserTab | null) => { if (value) { setTab(value); } }} sx={{ flexShrink: 0 }}>
@@ -340,9 +340,9 @@ export default function GameAssetBrowser({ gameId, document, runServerEdit, onOp
           </Box>
         </FlexRow>
         <FlexRow gap={SPACING.micro} align="center" sx={{ flexShrink: 0, [STACKED]: { order: 1, ml: "auto" } }}>
-          <ToolbarIconButton icon={<ViewListOutlinedIcon fontSize="small" />} tooltip="List view" ariaLabel="List view"
+          <ToolbarIconButton icon={<ViewListOutlinedIcon fontSize="small" />} tooltip={i18n.t("game:assets.listView", { defaultValue: "List view" })} ariaLabel={i18n.t("game:assets.listView", { defaultValue: "List view" })}
             active={view === "list"} disabled={tab !== "assets"} onClick={() => setView("list")} />
-          <ToolbarIconButton icon={<GridViewOutlinedIcon fontSize="small" />} tooltip="Grid view" ariaLabel="Grid view"
+          <ToolbarIconButton icon={<GridViewOutlinedIcon fontSize="small" />} tooltip={i18n.t("game:assets.gridView", { defaultValue: "Grid view" })} ariaLabel={i18n.t("game:assets.gridView", { defaultValue: "Grid view" })}
             active={view === "grid"} disabled={tab !== "assets"} onClick={() => setView("grid")} />
         </FlexRow>
       </FlexRow>

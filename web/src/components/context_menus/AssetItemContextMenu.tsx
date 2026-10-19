@@ -313,9 +313,9 @@ const AssetItemContextMenu = () => {
         {entityCandidate && (
           <ContextMenuItem
             onClick={handleUseAsEntity}
-            label="Use as entity…"
+            label={t("editor:asset.useAsEntity", { defaultValue: "Use as entity…" })}
             IconComponent={<PersonAddAltOutlinedIcon />}
-            tooltip="Tag this image as a character, location, style, or prop to reuse it across shots"
+            tooltip={t("editor:asset.tagAsEntityTip", { defaultValue: "Tag this image as a character, location, style, or prop to reuse it across shots" })}
           />
         )}
         {singleVideo && (
@@ -365,9 +365,9 @@ const AssetItemContextMenu = () => {
             tooltip={
               selectedAssets[0]?.content_type?.startsWith("image/")
                 ? t("editor:asset.copyImage", { defaultValue: "Copy image" }) : selectedAssets[0]?.content_type?.startsWith("video/")
-                ? "Copy video URL and metadata"
+                ? t("editor:asset.copyVideoUrlMeta", { defaultValue: "Copy video URL and metadata" })
                 : selectedAssets[0]?.content_type?.startsWith("audio/")
-                ? "Copy audio URL and metadata"
+                ? t("editor:asset.copyAudioUrlMeta", { defaultValue: "Copy audio URL and metadata" })
                 : "Copy content"
             }
           />

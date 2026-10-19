@@ -130,7 +130,11 @@
     "createTimelineFromVideo": "从视频创建时间线",
     "createTimelineTip": "从此视频创建时间线并打开编辑",
     "createFolderHereTip": "在当前位置新建文件夹",
-    "copyContent": "复制内容"
+    "copyContent": "复制内容",
+    "useAsEntity": "用作实体…",
+    "tagAsEntityTip": "把这张图像标记为角色、场景、风格或道具,在多个镜头间复用",
+    "copyVideoUrlMeta": "复制视频 URL 与元数据",
+    "copyAudioUrlMeta": "复制音频 URL 与元数据"
   },
   "property": {
     "copyValue": "复制值",
@@ -2851,7 +2855,19 @@
     "addApiKeyToUseModels": "添加 API 密钥后才能使用这些模型。右键查看选项",
     "modelSources": "模型来源",
     "providersDidNotLoad": "服务商列表加载失败",
-    "addApiKeyEllipsis": "添加 API 密钥…"
+    "addApiKeyEllipsis": "添加 API 密钥…",
+    "sortFiles": "文件排序",
+    "thumbnailSize": "缩略图大小",
+    "selectEveryFileInView": "选中视图中的全部文件",
+    "noCostDataForPeriod": "该时段暂无花费数据",
+    "filterNodesModels": "筛选节点、模型",
+    "orbitPanZoom": "环绕 / 平移 / 缩放",
+    "leftRightDragWheel": "左 / 右键拖拽,滚轮",
+    "scrubAValue": "拖动微调数值",
+    "dragTheXYZLabel": "拖动 X / Y / Z 标签",
+    "modelsAppearAfterInstall": "安装完成后,模型会出现在这里。",
+    "failedToLoadModelsFrom": "以下来源的模型加载失败:",
+    "missingAProvider": "找不到你在用的服务商?"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

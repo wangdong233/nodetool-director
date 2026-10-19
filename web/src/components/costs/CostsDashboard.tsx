@@ -382,7 +382,7 @@ const CostsDashboard: React.FC = () => {
           />
         ) : (
           <StateMessage>
-            <EmptyState variant="no-data" title="No cost data for this period" />
+            <EmptyState variant="no-data" title={i18n.t("editor:ui.noCostDataForPeriod", { defaultValue: "No cost data for this period" })} />
           </StateMessage>
         )}
       </Box>
@@ -541,7 +541,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder="Filter nodes, models"
+              placeholder={i18n.t("editor:ui.filterNodesModels", { defaultValue: "Filter nodes, models" })}
               fullWidth
             />
           </Box>
