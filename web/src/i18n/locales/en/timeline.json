@@ -95,7 +95,30 @@
     "nextClipBoundary": "Next clip boundary",
     "previewQuality": "Preview quality",
     "showMatteTooltip": "Show the selected clip's subject matte instead of the frame",
-    "showMatte": "Show matte"
+    "showMatte": "Show matte",
+    "audioEdits": "Audio edits",
+    "selectionEdits": "Selection edits",
+    "trimToSelection": "Trim to selection",
+    "silenceSelection": "Silence selection",
+    "fadeInSelection": "Fade in selection",
+    "fadeOutSelection": "Fade out selection",
+    "levelEdits": "Level edits",
+    "noChordsUnderClip": "No chords under the clip. Click the chord lane to add one, or load a progression.",
+    "noMidiClipSelected": "No MIDI clip selected",
+    "selectMidiClipToArp": "Select a MIDI clip to arpeggiate it or comp it over the chord track.",
+    "addMidiClipToArp": "Add a MIDI clip to arpeggiate it or comp it over the chord track.",
+    "addChordTrack": "ADD CHORD TRACK",
+    "harmonyStyle": "Harmony style",
+    "harmonyInput": "Harmony input",
+    "chordsUnderTheClip": "Chords under the clip",
+    "previousCompPattern": "Previous comp pattern",
+    "browseCompPatterns": "Browse comp patterns",
+    "nextCompPattern": "Next comp pattern",
+    "lowerChordOctave": "Lower chord octave",
+    "raiseChordOctave": "Raise chord octave",
+    "compPattern": "Comp pattern",
+    "generatedPhrasePreview": "Generated phrase preview",
+    "chordTrackLabel": "Chord track"
   },
   "tools": {
     "select": "Select",
@@ -991,9 +1014,7 @@
     "verticalZoom": "Vertical zoom",
     "increaseTrackHeight": "Increase track height"
   },
-  "keyframeChannels": {
-
-  },
+  "keyframeChannels": {},
   "trackTypes": {
     "video": "Video",
     "audio": "Audio",

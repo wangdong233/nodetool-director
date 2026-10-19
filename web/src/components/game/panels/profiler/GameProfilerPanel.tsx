@@ -127,7 +127,7 @@ export default function GameProfilerPanel({ profiler, source, document }: GamePr
     else if (view.live) { downloadGameProfile(gameProfileExport(source, { kind: "live", data: view.live })); }
   };
   const captureSeconds = capture ? ((capture.endedAt - capture.startedAt) / 1000).toFixed(1) : "0";
-  const status = view.capturing ? "Recording a capture · showing the live window"
+  const status = view.capturing ? i18n.t("game:profiler.recordingCapture", { defaultValue: "Recording a capture · showing the live window" })
     : viewingCapture ? `Capture · ${captureSeconds} s · ${count(summary?.ticks ?? 0)} ticks${capture.full ? " · stopped when full" : ""}`
       : `Live · last ${count(summary?.ticks ?? 0)} ticks`;
   return <FlexColumn ref={root} sx={{ height: "100%", minHeight: 0 }}>
@@ -144,23 +144,23 @@ export default function GameProfilerPanel({ profiler, source, document }: GamePr
       </EditorButton>
       {viewingCapture && <EditorButton onClick={() => setLiveOver(capture)} sx={{ height: CONTROL.height.sm, color: "text.secondary" }}>Live</EditorButton>}
       <Divider orientation="vertical" flexItem sx={{ mx: SPACING.xs, my: SPACING.xs }} />
-      <EditorButton disabled={view.capturing || empty} onClick={exportProfile} sx={{ height: CONTROL.height.sm }}>Export JSON</EditorButton>
+      <EditorButton disabled={view.capturing || empty} onClick={exportProfile} sx={{ height: CONTROL.height.sm }}>{i18n.t("game:profiler.exportJson", { defaultValue: "Export JSON" })}</EditorButton>
       <EditorButton disabled={!profiler} onClick={() => { profiler?.clear(); refresh(); }}
         sx={{ height: CONTROL.height.sm, color: "text.secondary" }}>{i18n.t("common:action.clear", { defaultValue: "Clear" })}</EditorButton>
     </GamePanelHeader>
     <ScrollArea sx={{ flex: 1, minHeight: 0 }}>
       {empty || !summary || !metrics
-        ? <EmptyState variant="no-data" size="small" title="No samples yet"
-          description="Press Play. The profiler records each tick while this panel is open." />
+        ? <EmptyState variant="no-data" size="small" title={i18n.t("game:profiler.noSamplesYet", { defaultValue: "No samples yet" })}
+          description={i18n.t("game:profiler.pressPlayRecords", { defaultValue: "Press Play. The profiler records each tick while this panel is open." })} />
         : <Box sx={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${getSpacingPx(SPACING.xxl * 10)}, 1fr))`,
           gap: getSpacingPx(SPACING.lg), p: SPACING.md, alignItems: "start" }}>
-          <Section title="Frame time">
+          <Section title={i18n.t("game:profiler.frameTime", { defaultValue: "Frame time" })}>
             <Sparkline values={frameValues} budget={tickBudgetMs}
               label={`Frame time per rendered frame, ${msStat(metrics.frameMs)}, tick budget ${formatGameProfileMs(tickBudgetMs)}`} />
             <Row label="Frame">{msStat(metrics.frameMs)}</Row>
-            <Row label="Tick budget">{formatGameProfileMs(tickBudgetMs)}</Row>
+            <Row label={i18n.t("game:profiler.tickBudget", { defaultValue: "Tick budget" })}>{formatGameProfileMs(tickBudgetMs)}</Row>
           </Section>
-          <Section title="Simulation CPU">
+          <Section title={i18n.t("game:profiler.simulationCpu", { defaultValue: "Simulation CPU" })}>
             <Sparkline values={stepValues} label={`Simulation step time, ${msStat(metrics.stepMs)}`} />
             <Row label="Step">{msStat(metrics.stepMs)}</Row>
             {summary.systems.map((system) => <FlexColumn key={system.system} gap={SPACING.micro}>
@@ -170,26 +170,26 @@ export default function GameProfilerPanel({ profiler, source, document }: GamePr
             </FlexColumn>)}
           </Section>
           <Section title="Scripts">
-            <Row label="All scripts">{msStat(metrics.scriptMs)}</Row>
+            <Row label={i18n.t("game:profiler.allScripts", { defaultValue: "All scripts" })}>{msStat(metrics.scriptMs)}</Row>
             {summary.scripts.length === 0
-              ? <Caption color="muted">No script ran.</Caption>
+              ? <Caption color="muted">{i18n.t("game:profiler.noScriptRan", { defaultValue: "No script ran." })}</Caption>
               : summary.scripts.slice(0, SCRIPT_ROWS).map((script) =>
-                <Row key={script.entityId} label={script.entityId === GAME_PROFILER_OTHER_ENTITIES ? "Other entities" : entityNames.get(script.entityId) || script.entityId}>
+                <Row key={script.entityId} label={script.entityId === GAME_PROFILER_OTHER_ENTITIES ? i18n.t("game:profiler.otherEntities", { defaultValue: "Other entities" }) : entityNames.get(script.entityId) || script.entityId}>
                   {`${formatGameProfileMs(script.avgMs)} avg · ${formatGameProfileMs(script.maxMs)} max · ${count(script.calls)} calls`}
                 </Row>)}
             {summary.scripts.length > SCRIPT_ROWS && <Caption color="muted">{`${summary.scripts.length - SCRIPT_ROWS} more entities in the export`}</Caption>}
-            {!viewingCapture && summary.scripts.length > 0 && <Caption color="muted">Totals since Play or Clear.</Caption>}
+            {!viewingCapture && summary.scripts.length > 0 && <Caption color="muted">{i18n.t("game:profiler.totalsSincePlay", { defaultValue: "Totals since Play or Clear." })}</Caption>}
           </Section>
           <Section title={i18n.t("storyboard:attrs.rendering", { defaultValue: "Rendering" })}>
-            <Row label="Draw calls">{countStat(metrics.drawCalls)}</Row>
-            <Row label="Triangles">{source.dimension === "2d" ? "Not reported in 2D" : countStat(metrics.triangles)}</Row>
-            <Row label="Texture memory">{bytesStat(metrics.textureBytes)}</Row>
-            <Row label="Geometry memory">{source.dimension === "2d" ? "Not reported in 2D" : bytesStat(metrics.geometryBytes)}</Row>
+            <Row label={i18n.t("game:profiler.drawCalls", { defaultValue: "Draw calls" })}>{countStat(metrics.drawCalls)}</Row>
+            <Row label="Triangles">{source.dimension === "2d" ? i18n.t("game:profiler.notReportedIn2d", { defaultValue: "Not reported in 2D" }) : countStat(metrics.triangles)}</Row>
+            <Row label={i18n.t("game:profiler.textureMemory", { defaultValue: "Texture memory" })}>{bytesStat(metrics.textureBytes)}</Row>
+            <Row label={i18n.t("game:profiler.geometryMemory", { defaultValue: "Geometry memory" })}>{source.dimension === "2d" ? i18n.t("game:profiler.notReportedIn2d", { defaultValue: "Not reported in 2D" }) : bytesStat(metrics.geometryBytes)}</Row>
           </Section>
-          <Section title="Physics and audio">
+          <Section title={i18n.t("game:profiler.physicsAndAudio", { defaultValue: "Physics and audio" })}>
             <Row label="Bodies">{countStat(metrics.bodies)}</Row>
             <Row label="Contacts">{countStat(metrics.contacts)}</Row>
-            <Row label="Audio voices">{countStat(metrics.voices)}</Row>
+            <Row label={i18n.t("game:profiler.audioVoices", { defaultValue: "Audio voices" })}>{countStat(metrics.voices)}</Row>
           </Section>
         </Box>}
     </ScrollArea>

@@ -499,18 +499,18 @@ function ModelList<TModel extends ModelSelectorModel>({
             variant="empty"
             size="small"
             icon={<DownloadIcon className="empty-icon" />}
-            title="No models yet"
-            description="Download a local model or add an API key for a cloud provider."
-            actionText="Open settings"
+            title={i18n.t("editor:ui.noModelsYet", { defaultValue: "No models yet" })}
+            description={i18n.t("editor:ui.downloadLocalOrAddKey", { defaultValue: "Download a local model or add an API key for a cloud provider." })}
+            actionText={i18n.t("editor:ui.openSettings", { defaultValue: "Open settings" })}
             onAction={handleOpenSettings}
           />
         ) : (
           <EmptyState
             variant="empty"
             size="small"
-            title="No models available"
-            description="Enable a provider in the sidebar or add an API key in settings."
-            actionText="Open settings"
+            title={i18n.t("editor:ui.noModelsAvailable", { defaultValue: "No models available" })}
+            description={i18n.t("editor:ui.enableProviderOrAddKey", { defaultValue: "Enable a provider in the sidebar or add an API key in settings." })}
+            actionText={i18n.t("editor:ui.openSettings", { defaultValue: "Open settings" })}
             onAction={handleOpenSettings}
           />
         )

@@ -99,7 +99,7 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
   return (
     <Toolbar
       role="toolbar"
-      aria-label="Audio edits"
+      aria-label={t("timeline:editor.audioEdits", { defaultValue: "Audio edits" })}
       sx={{ flexWrap: "wrap", py: SPACING.xs }}
     >
       <ToolbarGroup role="group" aria-label={t("timeline:editor.history", { defaultValue: "History" })}>
@@ -119,10 +119,10 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
 
       <ToolbarDivider />
 
-      <ToolbarGroup role="group" aria-label="Selection edits">
+      <ToolbarGroup role="group" aria-label={t("timeline:editor.selectionEdits", { defaultValue: "Selection edits" })}>
         <ToolbarIconButton
           icon={<CropOutlinedIcon fontSize="small" />}
-          tooltip="Trim to selection"
+          tooltip={t("timeline:editor.trimToSelection", { defaultValue: "Trim to selection" })}
           onClick={onTrim}
           disabled={!hasSelection}
         />
@@ -134,19 +134,19 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
         />
         <ToolbarIconButton
           icon={<VolumeOffOutlinedIcon fontSize="small" />}
-          tooltip="Silence selection"
+          tooltip={t("timeline:editor.silenceSelection", { defaultValue: "Silence selection" })}
           onClick={onSilence}
           disabled={!hasSelection}
         />
         <ToolbarIconButton
           icon={<TrendingUpOutlinedIcon fontSize="small" />}
-          tooltip="Fade in selection"
+          tooltip={t("timeline:editor.fadeInSelection", { defaultValue: "Fade in selection" })}
           onClick={onFadeIn}
           disabled={!hasSelection}
         />
         <ToolbarIconButton
           icon={<TrendingDownOutlinedIcon fontSize="small" />}
-          tooltip="Fade out selection"
+          tooltip={t("timeline:editor.fadeOutSelection", { defaultValue: "Fade out selection" })}
           onClick={onFadeOut}
           disabled={!hasSelection}
         />
@@ -154,7 +154,7 @@ const AudioEditorToolbar = memo(function AudioEditorToolbar({
 
       <ToolbarDivider />
 
-      <ToolbarGroup role="group" aria-label="Level edits">
+      <ToolbarGroup role="group" aria-label={t("timeline:editor.levelEdits", { defaultValue: "Level edits" })}>
         <ToolbarIconButton
           icon={<HeightOutlinedIcon fontSize="small" />}
           tooltip={`Normalize ${scope}`}

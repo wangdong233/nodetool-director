@@ -228,8 +228,8 @@ export default function AnimationGraphPanel({ document, diagnostics: documentDia
 
   if (!graph || graphId === undefined || !layer) {
     return <FlexColumn sx={{ height: "100%", minHeight: 0 }} align="center" justify="center">
-      <EmptyState size="small" title="No animation graphs" description="A graph plays an animator's clips as states, switched by transitions that scripts drive with parameters."
-        actionText="New graph" onAction={newGraph} />
+      <EmptyState size="small" title={t("game:anim.noGraphs", { defaultValue: "No animation graphs" })} description={t("game:anim.graphDescription", { defaultValue: "A graph plays an animator's clips as states, switched by transitions that scripts drive with parameters." })}
+        actionText={t("game:anim.newGraph", { defaultValue: "New graph" })} onAction={newGraph} />
       {error && <Caption color="error" role="alert">{error}</Caption>}
     </FlexColumn>;
   }
@@ -237,15 +237,15 @@ export default function AnimationGraphPanel({ document, diagnostics: documentDia
   let inspector = <FlexColumn gap={SPACING.xs}>
     <Label sx={{ mb: 0 }}>Layer {layer.id}</Label>
     {layerIndex === 0
-      ? <Caption color="secondary">The base layer overrides the pose at full weight. Select a state or transition to edit it. With the keyboard, Tab to it and press Enter, or Delete to remove it. Drag from a state&apos;s right edge to another state, or use Transition to in the state inspector, to add a transition.</Caption>
+      ? <Caption color="secondary">{t("game:anim.baseLayerCaption", { defaultValue: "The base layer overrides the pose at full weight. Select a state or transition to edit it. With the keyboard, Tab to it and press Enter, or Delete to remove it. Drag from a state's right edge to another state, or use Transition to in the state inspector, to add a transition." })}</Caption>
       : <>
-        <InspectorSelect grow label="Layer mode" value={layer.mode} options={[{ value: "override", label: "Override" }, { value: "additive", label: "Additive" }]}
+        <InspectorSelect grow label={t("game:anim.layerMode", { defaultValue: "Layer mode" })} value={layer.mode} options={[{ value: "override", label: "Override" }, { value: "additive", label: "Additive" }]}
           onChange={(mode) => commit((current) => setAnimationLayerBlend(current, layerIndex, { mode: mode as "override" | "additive" }), "Change Animation Layer")} />
         <EditorButton variant="outlined" color="error" onClick={() => {
           if (commit((current) => removeAnimationLayer(current, layerIndex), "Remove Animation Layer")) { setLayerChoice(0); }
         }}>{t("sketch:attrs.removeLayer", { defaultValue: "Remove layer" })}</EditorButton>
       </>}
-    <AnimationTransitionAdder label="Any state to" targets={Object.keys(layer.states)} onAdd={(to) => connect(ANY_ANIMATION_STATE, to)} />
+    <AnimationTransitionAdder label={t("game:anim.anyStateTo", { defaultValue: "Any state to" })} targets={Object.keys(layer.states)} onAdd={(to) => connect(ANY_ANIMATION_STATE, to)} />
   </FlexColumn>;
   if (selectedState) {
     inspector = <AnimationStateInspector key={`${positionKey}/${selectedState}`} graph={graph} stateId={selectedState} node={layer.states[selectedState]}
@@ -272,15 +272,15 @@ export default function AnimationGraphPanel({ document, diagnostics: documentDia
   }
 
   return <FlexColumn sx={{ height: "100%", minHeight: 0 }}>
-    <GamePanelHeader title="Animation graph" fill>
+    <GamePanelHeader title={t("game:anim.animationGraph", { defaultValue: "Animation graph" })} fill>
       <Box sx={{ width: SIDE_COLUMN_WIDTH, minWidth: 0 }}>
-        <InspectorSelect grow label="Animation graph" value={graphId} options={graphIds.map((id) => ({ value: id, label: id }))} onChange={selectGraph} />
+        <InspectorSelect grow label={t("game:anim.animationGraph", { defaultValue: "Animation graph" })} value={graphId} options={graphIds.map((id) => ({ value: id, label: id }))} onChange={selectGraph} />
       </Box>
-      <ToolbarIconButton icon={<AddIcon />} tooltip="New graph" ariaLabel="New animation graph" onClick={newGraph} />
-      <ToolbarIconButton icon={<DeleteOutlineIcon />} tooltip="Remove graph" ariaLabel="Remove animation graph" onClick={removeGraph} />
+      <ToolbarIconButton icon={<AddIcon />} tooltip={t("game:anim.newGraph", { defaultValue: "New graph" })} ariaLabel={t("game:anim.newAnimationGraph", { defaultValue: "New animation graph" })} onClick={newGraph} />
+      <ToolbarIconButton icon={<DeleteOutlineIcon />} tooltip={t("game:anim.removeGraph", { defaultValue: "Remove graph" })} ariaLabel={t("game:anim.removeAnimationGraph", { defaultValue: "Remove animation graph" })} onClick={removeGraph} />
       <Divider orientation="vertical" flexItem sx={{ mx: SPACING.xs, my: SPACING.xs }} />
       {graph.layers.length > 1 && <Box sx={{ minWidth: 0 }}>
-        <InspectorSelect label="Animation layer" value={String(layerIndex)} options={graph.layers.map((entry, index) => ({ value: String(index), label: entry.id }))}
+        <InspectorSelect label={t("game:anim.animationLayer", { defaultValue: "Animation layer" })} value={String(layerIndex)} options={graph.layers.map((entry, index) => ({ value: String(index), label: entry.id }))}
           onChange={(value) => { setLayerChoice(Number(value)); setSelection(null); }} />
       </Box>}
       <ToolbarIconButton icon={<LayersOutlinedIcon />} tooltip={t("game:collision.addLayer", { defaultValue: "Add layer" })} ariaLabel="Add animation layer"
@@ -294,13 +294,13 @@ export default function AnimationGraphPanel({ document, diagnostics: documentDia
     {error && <Caption color="error" role="alert" sx={{ px: SPACING.md, py: SPACING.xs }}>{error}</Caption>}
     {notice && <Caption color="warning" role="note" sx={{ px: SPACING.md, py: SPACING.xs }}>{notice}</Caption>}
     <FlexRow sx={{ flex: 1, minHeight: 0 }}>
-      <ScrollArea role="region" aria-label="Animation parameters" sx={{ width: SIDE_COLUMN_WIDTH, flexShrink: 0, borderRight: 1, borderColor: "divider", p: SPACING.sm }}>
+      <ScrollArea role="region" aria-label={t("game:anim.animationParameters", { defaultValue: "Animation parameters" })} sx={{ width: SIDE_COLUMN_WIDTH, flexShrink: 0, borderRight: 1, borderColor: "divider", p: SPACING.sm }}>
         <Label sx={{ mb: SPACING.xs }}>Parameters</Label>
         <AnimationParameterList graph={graph} live={live?.parameters ?? null} commit={commit}
           onRenamed={(from, to) => setNotice(`Renamed parameter ${from} to ${to}. Scripts that call setAnimParam("${from}", …) are not updated.`)} />
       </ScrollArea>
       {/* Delete and Backspace remove the selected state or transition while focus is on the canvas. */}
-      <Box role="group" onKeyDown={onKeyDown} aria-label="Animation state graph" sx={{ flex: 1, minWidth: 0, position: "relative",
+      <Box role="group" onKeyDown={onKeyDown} aria-label={t("game:anim.animationStateGraph", { defaultValue: "Animation state graph" })} sx={{ flex: 1, minWidth: 0, position: "relative",
         "& .animation-transition-live .react-flow__edge-path": { stroke: theme.vars.palette.success.main } }}>
         <ReactFlow<AnimationStateFlowNode, Edge> key={positionKey} nodes={nodes} edges={edges} nodeTypes={NODE_TYPES}
           onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
@@ -314,10 +314,10 @@ export default function AnimationGraphPanel({ document, diagnostics: documentDia
             style={{ backgroundColor: theme.vars.palette.c_editor_bg_color }} variant={BackgroundVariant.Cross} />
         </ReactFlow>
       </Box>
-      <ScrollArea role="region" aria-label="Animation inspector" sx={{ width: SIDE_COLUMN_WIDTH, flexShrink: 0, borderLeft: 1, borderColor: "divider", p: SPACING.sm }}>
+      <ScrollArea role="region" aria-label={t("game:anim.animationInspector", { defaultValue: "Animation inspector" })} sx={{ width: SIDE_COLUMN_WIDTH, flexShrink: 0, borderLeft: 1, borderColor: "divider", p: SPACING.sm }}>
         <FlexColumn gap={SPACING.sm}>
           {inspector}
-          {diagnostics.length > 0 && <FlexColumn gap={SPACING.micro} role="list" aria-label="Graph problems">
+          {diagnostics.length > 0 && <FlexColumn gap={SPACING.micro} role="list" aria-label={t("game:anim.graphProblems", { defaultValue: "Graph problems" })}>
             {diagnostics.map((message) => <Caption key={message} role="listitem" color="error">{message}</Caption>)}
           </FlexColumn>}
         </FlexColumn>

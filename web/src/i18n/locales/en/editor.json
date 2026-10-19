@@ -2831,7 +2831,10 @@
     "showExtensionFolder": "Show extension folder",
     "openChromeExtensions": "Open chrome://extensions, turn on Developer mode, click Load unpacked and choose that folder.",
     "copyAddress": "Copy address",
-    "signInAndKeepTabsOpen": "Sign in to ChatGPT and Gemini in Chrome and keep those tabs open."
+    "signInAndKeepTabsOpen": "Sign in to ChatGPT and Gemini in Chrome and keep those tabs open.",
+    "noModelsYet": "No models yet",
+    "downloadLocalOrAddKey": "Download a local model or add an API key for a cloud provider.",
+    "enableProviderOrAddKey": "Enable a provider in the sidebar or add an API key in settings."
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

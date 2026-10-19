@@ -2826,7 +2826,10 @@
     "showExtensionFolder": "显示扩展文件夹",
     "openChromeExtensions": "打开 chrome://extensions,开启开发者模式,点击“加载已解压的扩展程序”并选择该文件夹。",
     "copyAddress": "复制地址",
-    "signInAndKeepTabsOpen": "在 Chrome 里登录 ChatGPT 和 Gemini,并保持这些标签页打开。"
+    "signInAndKeepTabsOpen": "在 Chrome 里登录 ChatGPT 和 Gemini,并保持这些标签页打开。",
+    "noModelsYet": "还没有模型",
+    "downloadLocalOrAddKey": "下载一个本地模型,或为云端服务商添加 API 密钥。",
+    "enableProviderOrAddKey": "在侧栏启用一个服务商,或在设置里添加 API 密钥。"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

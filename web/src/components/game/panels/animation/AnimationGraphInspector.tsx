@@ -60,13 +60,13 @@ interface ParameterListProps {
 
 /** The graph's parameters with their kinds and defaults, and their live values while a session plays. */
 export function AnimationParameterList({ graph, live, commit, onRenamed }: ParameterListProps) {
-  const { t } = useTranslation(["ui2","storyboard","appbuilder","editor","timeline"]);
+  const { t } = useTranslation(["ui2","storyboard","appbuilder","editor","timeline","game"]);
   const add = (kind: AnimationParameterKind): void => {
     const name = uniqueAnimationName(Object.keys(graph.parameters), kind === "float" ? "speed" : kind === "bool" ? "flag" : "trigger");
     commit((current) => addAnimationParameter(current, name, kind), "Add Animation Parameter");
   };
   return <FlexColumn gap={SPACING.xs} sx={{ minWidth: 0 }}>
-    {Object.keys(graph.parameters).length === 0 && <Caption color="secondary">Scripts set parameters with setAnimParam. Transitions and blends read them.</Caption>}
+    {Object.keys(graph.parameters).length === 0 && <Caption color="secondary">{t("game:anim.scriptsSetParameters", { defaultValue: "Scripts set parameters with setAnimParam. Transitions and blends read them." })}</Caption>}
     {Object.entries(graph.parameters).map(([name, parameter]) => {
       const value = live?.[name];
       return <FieldGroup key={name} title={value === undefined ? name : `${name} = ${String(value)}`}
@@ -143,7 +143,7 @@ function BlendPoints({ graph, motion, clips, onChange }: {
     const points = motion.points;
     return <FlexColumn gap={SPACING.xs}>
       <InspectorFieldRow label="Parameter">
-        <InspectorSelect grow label="Blend parameter" value={motion.parameter} options={floatOptions(graph, motion.parameter)}
+        <InspectorSelect grow label={t("game:anim.blendParameter", { defaultValue: "Blend parameter" })} value={motion.parameter} options={floatOptions(graph, motion.parameter)}
           onChange={(parameter) => onChange({ ...motion, parameter })} />
       </InspectorFieldRow>
       {points.map((point, index) => <FieldGroup key={index} title={`Point ${index + 1}`} actions={<RowAction icon={<DeleteOutlineIcon />}
@@ -155,17 +155,17 @@ function BlendPoints({ graph, motion, clips, onChange }: {
           onChange={(clip) => onChange({ ...motion, points: points.map((entry, position) => position === index ? { ...entry, clip } : entry) })} /></InspectorFieldRow>
       </FieldGroup>)}
       <AddButton disabled={points.length >= 16} onClick={() => onChange({ ...motion,
-        points: [...points, { value: (points.at(-1)?.value ?? 0) + 1, clip: points.at(-1)?.clip ?? clips[0] ?? "idle" }] })}>Add point</AddButton>
+        points: [...points, { value: (points.at(-1)?.value ?? 0) + 1, clip: points.at(-1)?.clip ?? clips[0] ?? "idle" }] })}>{t("game:anim.addPoint", { defaultValue: "Add point" })}</AddButton>
     </FlexColumn>;
   }
   const points = motion.points;
   return <FlexColumn gap={SPACING.xs}>
-    <InspectorFieldRow label="Parameter X">
-      <InspectorSelect grow label="Blend parameter X" value={motion.parameterX} options={floatOptions(graph, motion.parameterX)}
+    <InspectorFieldRow label={t("game:anim.parameterX", { defaultValue: "Parameter X" })}>
+      <InspectorSelect grow label={t("game:anim.blendParameterX", { defaultValue: "Blend parameter X" })} value={motion.parameterX} options={floatOptions(graph, motion.parameterX)}
         onChange={(parameterX) => onChange({ ...motion, parameterX })} />
     </InspectorFieldRow>
-    <InspectorFieldRow label="Parameter Y">
-      <InspectorSelect grow label="Blend parameter Y" value={motion.parameterY} options={floatOptions(graph, motion.parameterY)}
+    <InspectorFieldRow label={t("game:anim.parameterY", { defaultValue: "Parameter Y" })}>
+      <InspectorSelect grow label={t("game:anim.blendParameterY", { defaultValue: "Blend parameter Y" })} value={motion.parameterY} options={floatOptions(graph, motion.parameterY)}
         onChange={(parameterY) => onChange({ ...motion, parameterY })} />
     </InspectorFieldRow>
     {points.map((point, index) => <FieldGroup key={index} title={`Point ${index + 1}`} actions={<RowAction icon={<DeleteOutlineIcon />}
@@ -185,14 +185,14 @@ function BlendPoints({ graph, motion, clips, onChange }: {
 
 /** Name, motion, speed and looping of one state. */
 export function AnimationStateInspector({ graph, stateId, node, initial, clips, onRename, onChange, onMakeInitial, onRemove, onError, transitionTargets, onAddTransition }: StateInspectorProps) {
-  const { t } = useTranslation(["ui2","storyboard","appbuilder","editor","timeline"]);
+  const { t } = useTranslation(["ui2","storyboard","appbuilder","editor","timeline","game"]);
   const motion = node.motion;
   return <FlexColumn gap={SPACING.xs}>
     <InspectorFieldRow label="Name">
       <InspectorValueInput grow ariaLabel="State name" value={stateId} onCommit={onRename} />
     </InspectorFieldRow>
     <InspectorFieldRow label={t("editor:ui.motion", { defaultValue: "Motion" })}>
-      <InspectorSelect grow label="Motion kind" value={motion.kind} options={MOTION_OPTIONS} onChange={(kind) => {
+      <InspectorSelect grow label={t("game:anim.motionKind", { defaultValue: "Motion kind" })} value={motion.kind} options={MOTION_OPTIONS} onChange={(kind) => {
         try { onChange({ ...node, motion: convertAnimationMotion(graph, motion, kind as GameAnimationMotion3D["kind"]) }, "Change Animation Motion"); }
         catch (cause) { onError(cause instanceof Error ? cause.message : String(cause)); }
       }} />
@@ -203,10 +203,10 @@ export function AnimationStateInspector({ graph, stateId, node, initial, clips, 
       : <BlendPoints graph={graph} motion={motion} clips={clips} onChange={(next) => onChange({ ...node, motion: next }, "Change Animation Blend")} />}
     <NumberRow label={t("timeline:attrs.speed", { defaultValue: "Speed" })} value={node.speed} onCommit={(speed) => onChange({ ...node, speed: speed ?? 1 }, "Change Animation State")} />
     <InspectorToggleRow label="Loop" checked={node.loop} onChange={(loop) => onChange({ ...node, loop }, "Change Animation State")} />
-    <AnimationTransitionAdder label="Transition to" onAdd={onAddTransition} targets={transitionTargets} />
+    <AnimationTransitionAdder label={t("game:anim.transitionTo", { defaultValue: "Transition to" })} onAdd={onAddTransition} targets={transitionTargets} />
     <FlexRow gap={SPACING.xs} wrap sx={{ pt: SPACING.xs }}>
-      <EditorButton variant="outlined" disabled={initial} onClick={onMakeInitial}>{initial ? "Initial state" : "Make initial"}</EditorButton>
-      <EditorButton variant="outlined" color="error" onClick={onRemove}>Remove state</EditorButton>
+      <EditorButton variant="outlined" disabled={initial} onClick={onMakeInitial}>{initial ? t("game:anim.initialState", { defaultValue: "Initial state" }) : t("game:anim.makeInitial", { defaultValue: "Make initial" })}</EditorButton>
+      <EditorButton variant="outlined" color="error" onClick={onRemove}>{t("game:anim.removeState", { defaultValue: "Remove state" })}</EditorButton>
     </FlexRow>
   </FlexColumn>;
 }
@@ -221,13 +221,13 @@ interface TransitionInspectorProps {
 
 /** Source, target, timing and conditions of one transition. All conditions must hold for it to fire. */
 export function AnimationTransitionInspector({ graph, stateIds, transition, onChange, onRemove }: TransitionInspectorProps) {
-  const { t } = useTranslation(["ui2","storyboard","appbuilder","editor","timeline"]);
+  const { t } = useTranslation(["ui2","storyboard","appbuilder","editor","timeline","game"]);
   const stateOptions = stateIds.map((id) => ({ value: id, label: id }));
   const parameterNames = Object.keys(graph.parameters);
   const parameterOptions = parameterNames.map((name) => ({ value: name, label: name }));
   const conditions = transition.conditions;
   const setConditions = (next: GameAnimationTransition3D["conditions"]): void => onChange({ ...transition, conditions: next }, "Change Animation Condition");
-  let conditionRows: ReactNode = <Caption color="secondary">No conditions. The transition fires once the exit time passes.</Caption>;
+  let conditionRows: ReactNode = <Caption color="secondary">{t("game:anim.noConditions", { defaultValue: "No conditions. The transition fires once the exit time passes." })}</Caption>;
   if (conditions.length > 0) {
     conditionRows = conditions.map((condition, index) => {
       const kind = graph.parameters[condition.parameter]?.kind;
@@ -258,15 +258,15 @@ export function AnimationTransitionInspector({ graph, stateIds, transition, onCh
   const firstParameter = parameterNames[0];
   return <FlexColumn gap={SPACING.xs}>
     <InspectorFieldRow label="From">
-      <InspectorSelect grow label="From state" value={transition.from} options={[{ value: ANY_ANIMATION_STATE, label: "Any state" }, ...stateOptions]}
+      <InspectorSelect grow label={t("game:anim.fromState", { defaultValue: "From state" })} value={transition.from} options={[{ value: ANY_ANIMATION_STATE, label: "Any state" }, ...stateOptions]}
         onChange={(from) => onChange({ ...transition, from }, "Change Animation Transition")} />
     </InspectorFieldRow>
     <InspectorFieldRow label="To">
-      <InspectorSelect grow label="To state" value={transition.to} options={stateOptions} onChange={(to) => onChange({ ...transition, to }, "Change Animation Transition")} />
+      <InspectorSelect grow label={t("game:anim.toState", { defaultValue: "To state" })} value={transition.to} options={stateOptions} onChange={(to) => onChange({ ...transition, to }, "Change Animation Transition")} />
     </InspectorFieldRow>
-    <NumberRow label="Blend ticks" value={transition.durationTicks}
+    <NumberRow label={t("game:anim.blendTicks", { defaultValue: "Blend ticks" })} value={transition.durationTicks}
       onCommit={(value) => onChange({ ...transition, durationTicks: Math.round(value ?? 0) }, "Change Animation Transition")} />
-    <NumberRow label="Exit after ticks" value={transition.exitTicks} allowEmpty onCommit={(value) => {
+    <NumberRow label={t("game:anim.exitAfterTicks", { defaultValue: "Exit after ticks" })} value={transition.exitTicks} allowEmpty onCommit={(value) => {
       const { exitTicks: _previous, ...rest } = transition;
       onChange(value === undefined ? rest : { ...rest, exitTicks: Math.round(value) }, "Change Animation Transition");
     }} />
@@ -275,7 +275,7 @@ export function AnimationTransitionInspector({ graph, stateIds, transition, onCh
     <AddButton disabled={!firstParameter || conditions.length >= 8} onClick={() => {
       const kind = graph.parameters[firstParameter]?.kind;
       if (kind) { setConditions([...conditions, defaultCondition(firstParameter, kind)]); }
-    }}>Add condition</AddButton>
+    }}>{t("game:anim.addCondition", { defaultValue: "Add condition" })}</AddButton>
     <FlexRow sx={{ pt: SPACING.xs }}>
       <EditorButton variant="outlined" color="error" onClick={onRemove}>{t("timeline:attrs.removeTransition", { defaultValue: "Remove transition" })}</EditorButton>
     </FlexRow>
