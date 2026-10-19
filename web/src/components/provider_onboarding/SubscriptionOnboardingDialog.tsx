@@ -28,6 +28,7 @@ import {
   type OnboardingProvider
 } from "./providerOnboardingCatalog";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /**
  * The sign-in subscriptions, in the order the dialog lists them. This page is
@@ -179,7 +180,7 @@ const SubscriptionOnboardingDialog: React.FC = () => {
       onClose={dismiss}
       maxWidth="sm"
       fullWidth
-      title={onSubscriptions ? t("editor:ui.connectSubscriptions", { defaultValue: "Connect your AI subscriptions" }) : t("editor:ui.addChromeExtension", { defaultValue: "Add the Chrome extension" })}
+      title={onSubscriptions ? i18n.t("editor:ui.connectSubscriptions", { defaultValue: "Connect your AI subscriptions" }) : i18n.t("editor:ui.addChromeExtension", { defaultValue: "Add the Chrome extension" })}
       actions={
         onSubscriptions ? (
           <>
