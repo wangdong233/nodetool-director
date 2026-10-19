@@ -109,3 +109,5 @@ https://fal.ai/learn/tools/how-to-use-kling-3-0-pro
 多镜头:`kling-3.0/video` 的 `multi_shots` 最多 12 条 `multi_prompt`、最多 3 个 `kling_elements`;omni 路由用 `multi_shot` 配 `shot_type` `customize` 或 `intelligence`;`kling/v3-turbo-*` 只收提示词与时长;`cfg_scale` 与 `negative_prompt` 在 v2.6 与 v3.0 上有,O3 没有。
 
 参考图转视频:`find_model` 查 `reference_to_video` 后走 `generate_video_from_references`;路由级字段用 `search_nodes` 找到,`get_node_info` 读字段,`run_node` 运行。首尾帧:fal 叫 `end_image_url`,别处叫 `tail_image_url`。
+
+`kling-v3.0-turbo/*` 只收提示词与时长;`negative_prompt` 在 v2.6 与 v3.0 上有,O3 没有。

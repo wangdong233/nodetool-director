@@ -344,3 +344,9 @@ OPEN QUESTIONS
 按名取 id:`create_storyboard` → `.storyboard_id`;`create_entity` 返回 `{entity}`;图走 `nodetool.media.generateImage`;从板提稿用 `extract_script_from_storyboard` 取 `.script_id`。分镜/实体/渲染的调用形状见 `storyboard-core` § Tool contract。
 
 配音前先算账:`get_cost_summary` 看静态图已花的钱。每说话人选贴合品牌的声音;`voice` 用服务商自己的声音名。
+
+每说话人选贴合品牌的声音:`voice` 用服务商自己的声音名(如 `Aoede`、`Charon`、`alloy`)。
+
+2. **在此统一画幅**——混合比例在这里解决;黑色多的镜头加边,`transform`/`set_clip_params` 调整。
+
+5. **动效与文字。** 超标、CTA 卡与落版是剪辑上的文字层,不是贴图;op 契约见 `timeline-edit-ops`。

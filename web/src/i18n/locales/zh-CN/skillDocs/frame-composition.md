@@ -252,3 +252,5 @@ flex 纵列里给形状设 `flexItem: {position: "absolute", inset: 0}`:
 - 在中点预览过,图层栈读过了。
 
 加在编组片段上的间隙只作用于其真实子片段(`parentId` 指向该组)。
+
+作用于编组片段的设置只影响其真实子片段(它们的 `parentId` 指向该组)。

@@ -87,3 +87,5 @@ https://fal.ai/learn/devs/veo3-prompt-guide-master-google-video-generation
 音频开关 `auto_fix`、种子、尾帧等字段只在该路由自己的节点上:用 `search_nodes` 找到,`get_node_info` 读字段,`run_node` 运行。每次运行都是付费生成,先确认范围。
 
 **音频是成本杠杆。** fal 与 Replicate 的 `generate_audio` 默认开,AtlasCloud 的 `google/veo3.1/*` 与 `google/veo3.1-fast/*` 默认关;AtlasCloud/Replicate 的 lite 路由与 kie 的 `veo-3-1` 无音频开关。fal 指南称关闭可省标准费用。
+
+fal 的 `fal-ai/veo3.1`(含 `/fast`、`/lite`)音频默认关。

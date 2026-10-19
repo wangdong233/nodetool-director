@@ -318,3 +318,13 @@ wscat -c ws://localhost:7777/ws
 | 时间线:长度不对、缺片段、字体错 | `validate_timeline` | `timeline debug` | `timeline-edit-ops` |
 
 - [ ] **API 密钥**:`list_secrets` 查已配置的密钥。
+
+类型不匹配:插一个转换节点(`search_nodes` 按类型对查找)或 `nodetool.code.Code` 节点手转。
+
+密钥修复:`list_secrets` 看已设键,再 `request_secret` 让用户录入,或 `nodetool secrets store OPENAI_API_KEY`/导出环境变量。
+
+来自 NodeTool 服务器本身(非服务商)的 `401` 是服务端鉴权:云端模型 id 以 `find_model`/`list_provider_models` 为准,不要凭记忆;服务器只看 `SUPABASE_URL` 与 `SUPABASE_KEY` 选鉴权模式,不读 `AUTH_PROVIDER` 与 `NODETOOL_SERVER_MODE`。本地默认回环以用户 `"1"` 免令牌;`NODETOOL_TRUST_LOCALHOST=false`/`NODETOOL_TRUST_LOCAL_NETWORKS` 收紧;`SERVER_AUTH_TOKEN` 可设,`nodetool deploy users-add` 建用户;`NODETOOL_TRUST_LOCALHOST=true` 放开。令牌(`ntk_…`)以 `Authorization: Bearer <token>` 传递,WebSocket 在 `/ws` 上带 `?api_key=<token>`。配置步骤见 `nodetool-deployment`;`nodetool deploy show <name>` 本地解析,`nodetool deploy plan <name>` 在 `apply` 前预演。
+
+日志:桌面端在 macOS/Linux 写 `~/.local/share/nodetool/logs/nodetool.log`,Windows 写 `%LOCALAPPDATA%\nodetool\logs\`;用户 shell 里 `NODETOOL_LOG_LEVEL=debug nodetool serve` 起详细日志服务(由环境变量控制,非 `serve` 标志)。
+
+桌面端日志 `nodetool.log`:macOS/Linux 在 `~/.local/share/nodetool/logs/`,Windows 在 `%LOCALAPPDATA%\nodetool\logs\`。

@@ -149,3 +149,11 @@ sentence-transformers 模型)。
 示例用 Ollama 的 `nomic-embed-text`;换模型意味着换向量空间,需重建集合。少量块直接 `run_node`:`run_node {node_type: "vector.IndexTextChunk", ...}` 逐个传 `collection: {type: "collection", name}`。
 
 取文本:`nodetool.document.ListDocuments {folder, pattern, recursive}` 列文件;`nodetool.document.LoadDocumentFile {path}` 读文本与 Markdown;PDF 用 `lib.pdf.ExtractText` 或 `lib.pdf.ExtractMarkdown`。
+
+扇出:Code 节点里 `await output("chunks", chunks)` 分块、`await media.text(inputs.document)` 读文档输入;`nodetool.control.ForEach` 把每块从 `output` 发出、序号在 `index`;用 `nodetool.text.Template` 由文件名与序号拼唯一 `document_id`,`metadata` 写 `{source: <file name>}`。建好后 `validate_workflow` 校验再运行;托管云上的索引有配额。
+
+检索图:`StringInput`(问题)→ `vector.HybridSearch {collection, n_results: 5}` → Code 节点把 `documents` 拼成上下文 → `nodetool.text.Prompt`/`Template` 组提示 → `nodetool.agents.Agent` 回答。
+
+向量后端由 `NODETOOL_VECTOR_PROVIDER` 启动时选定:`sqlite-vec`(默认,本地 SQLite,`VECTORSTORE_DB_PATH` 移位置)、`pinecone`(`PINECONE_API_KEY`、可选 `PINECONE_ENVIRONMENT`、`PINECONE_CONTROLLER_HOST`)、`supabase`(Postgres+pgvector,`SUPABASE_URL` 配 `SUPABASE_KEY` 或 `SUPABASE_SERVICE_ROLE_KEY`,建表迁移在 `packages/vectorstore/sql/supabase-migr...`)。REST:`POST /api/collections/<name>/index` 以 `multipart/form-data` 的 `file` 字段收单个文本文件,分块并索引;没有 `nodetool.text.Chunk`。
+
+Supabase 建表迁移:`packages/vectorstore/sql/supabase-migration.sql`。

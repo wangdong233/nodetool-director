@@ -308,3 +308,5 @@ export class MyProvider extends BaseProvider {
 云端服务商:**FAL**(`fal_ai`,`FAL_API_KEY`,快速图像/视频)、**KIE**(`kie`,`KIE_API_KEY`,多厂商图像/视频/音乐)、**ElevenLabs**(`elevenlabs`,`ELEVENLABS_API_KEY`,TTS 与音效);另有 `azure_openai`(`AZURE_OPENAI_API_KEY`、`AZURE_OPENAI_ENDPOINT`、`AZURE_OPENAI_DEPLOYMENTS`)与 `bedrock`(`BEDROCK_ACCESS_KEY_ID`、`BEDROCK_SECRET_ACCESS_KEY`、`BEDROCK_REGION`)。
 
 CLI:`nodetool providers` 列已配置服务商,`nodetool models recommended` 列精选推荐;模型 id 以 `find_model` 或 `list_provider_models` 的结果为准,不要凭记忆填。密钥贴进聊天时用 `request_secret` 重新录入。
+
+CLI `nodetool providers` 显示已配置的服务商,`nodetool models recommended` 显示精选。

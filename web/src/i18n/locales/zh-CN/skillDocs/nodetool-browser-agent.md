@@ -108,3 +108,7 @@ for await (const message of agent.execute(ctx)) {
 流水线中一步完成浏览:用 `nodetool.agents.Agent` 节点,任务写 `prompt`,可用工具写 `tools`,形如 `{type: "tool_name", name}`。仅截图则 `lib.browser.Screenshot {url}`;建图参考 `nodetool-workflow-builder`。代码侧:`run_agent` 以显式 `tools` 与 `output_schema` 跑子代理(见 `nodetool-js-scripting` § Running an agent)。
 
 CLI:`nodetool agent run` 用默认工具带跑一个代理。`--max-iterations`(默认 25)限工具轮数;`--cost-cap <usd>` 限花费、`--timeout <s>` 限时;`--permission-mode default | auto | plan`——终端上 `default` 会在每次写/执行/外呼前询问,含资金风险的任务不要传 `auto`。结构化结果用 `write_file` 或 `save_asset` 保存。
+
+| 找网页/新闻 | `web_search {query, search_type?: "web" | "news", num_results?, allowed_domains?}` |
+
+联网:`web_search {query, search_type?: "web" | "news", num_results?, allowed_domains?, blocked_domains?}`;接管用户浏览器:`browser_restart {transport: "extension"}`。

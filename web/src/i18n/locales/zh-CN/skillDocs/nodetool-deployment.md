@@ -253,3 +253,5 @@ Worker:先存服务商密钥 `nodetool secrets store RUNPOD_API_KEY`(或 `VAST_A
 | 服务商密钥 | `OPENAI_API_KEY`、`ANTHROPIC_API_KEY`、`GEMINI_API_KEY`、`HF_TOKEN`、`FAL_API_KEY` 按需 |
 
 **忘关的 worker**:`nodetool worker list` 查看,`nodetool worker stop --all` 全停。
+
+`SERVER_AUTH_TOKEN` 也可在本地模式设;`nodetool deploy users-add` 建用户。Supabase 模式(`NODETOOL_TRUST_LOCALHOST=true` 覆盖回环)。容器以 `Authorization: Bearer <server_auth_token>` 收令牌。另一个 shell 导出 `NODETOOL_WORKER_TOKEN=$(nodetool worker token <instance-id>)`。

@@ -188,3 +188,5 @@ showcase、hero、发布或"要最好的"片子,宣布完成之前要像导演�
 4. **以 showcase 档验证。** `validate_timeline` 配 `{"timeline_id": "<id>", "tier": "showcase"}`(代码里为 `nodetool.timelines.validate(id, {tier: "showcase"})`)返回 `errors`;构建调用在验证错误时返回 `{timeline_id, warnings}` 加 `code`。
 
 它(`@nodetool-ai/sandbox-timeline`)的 `video()` 用场景列表构建文档。
+
+该库(`@nodetool-ai/sandbox-timeline`)的 `video()` 用场景列表构建文档。

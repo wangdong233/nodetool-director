@@ -76,3 +76,7 @@ watches from a throne. Dynamic camera movement, dramatic lighting.
 
 改编自 fal 的 Wan 2.6 提示词指南:
 https://fal.ai/learn/devs/wan-2-6-prompt-guide-mastering-all-three-generation-modes
+
+路由级字段用 `search_nodes` 找到,`get_node_info` 读字段,`run_node` 运行。
+
+多镜头:AtlasCloud 的 `shot_type` 默认 `multi`;Replicate 的 `multi_shots` 类似。音频输入(`audio`)收 WAV/MP3、3–30 秒;`enable_prompt_expansion` 各路由默认开。
