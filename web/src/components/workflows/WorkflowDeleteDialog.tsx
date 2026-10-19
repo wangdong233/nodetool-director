@@ -116,14 +116,14 @@ const WorkflowDeleteDialog: FC<WorkflowDeleteDialogProps> = ({
       destructive
       onConfirm={handleDelete}
       confirmText="Delete"
-      title={single ? "Delete workflow?" : "Delete workflows?"}
+      title={single ? i18n.t("editor:ui.deleteWorkflowConfirm", { defaultValue: "Delete workflow?" }) : i18n.t("editor:ui.deleteWorkflowsConfirm", { defaultValue: "Delete workflows?" })}
       maxWidth="xs"
       fullWidth
       content={
         <FlexColumn gap={SPACING.md}>
           <Text color="secondary">
             {single
-              ? "This workflow and its graph are permanently deleted. This cannot be undone."
+              ? i18n.t("editor:ui.workflowPermanentlyDeleted", { defaultValue: "This workflow and its graph are permanently deleted. This cannot be undone." })
               : "These workflows and their graphs are permanently deleted. This cannot be undone."}
           </Text>
           <ScrollArea maxHeight="40vh">

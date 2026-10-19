@@ -3,6 +3,7 @@ import React, { Suspense } from "react";
 import { isCloudProfile } from "../../lib/runtimeConfig";
 import { EmptyState, LoadingSpinner } from "../ui_primitives";
 import { PAGE_TAB_TITLES, type PageTabKey } from "./pageTabs";
+import { i18n } from "../../i18n";
 
 const AssetExplorer = React.lazy(() => import("../assets/AssetExplorer"));
 const TutorialsPage = React.lazy(() => import("../tutorials/TutorialsPage"));
@@ -80,7 +81,7 @@ const PageSurface = ({ pageKey }: PageSurfaceProps) => {
       <div style={surfaceStyle} aria-label={PAGE_TAB_TITLES[pageKey]}>
         <EmptyState
           title={`${PAGE_TAB_TITLES[pageKey]} is not available on this server`}
-          description="It manages files on the machine the server runs on. Use the desktop app or a self-hosted install for it."
+          description={i18n.t("editor:ui.pageSurfaceDesc", { defaultValue: "It manages files on the machine the server runs on. Use the desktop app or a self-hosted install for it." })}
         />
       </div>
     );

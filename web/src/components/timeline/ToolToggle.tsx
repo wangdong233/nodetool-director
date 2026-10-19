@@ -371,7 +371,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       </ToolButton>
       <ToolButton
         label="Follow"
-        description="The tracks scroll to keep the playhead in view during playback"
+        description={i18n.t("timeline:editor.scrollTracksDesc", { defaultValue: "The tracks scroll to keep the playhead in view during playback" })}
         active={followPlayhead}
         compact={compact}
         onClick={toggleFollowPlayhead}

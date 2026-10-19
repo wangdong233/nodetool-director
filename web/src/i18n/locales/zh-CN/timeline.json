@@ -133,7 +133,18 @@
     "estimatedCostOneRun": "此工作流运行一次的预估花费",
     "noteEditingShortcutsQ": "音符编辑快捷键(?)",
     "whereTheResultGoes": "结果去哪里",
-    "editingVideo": "正在编辑视频"
+    "editingVideo": "正在编辑视频",
+    "codeLoadFailed": "时间线代码加载失败",
+    "deleteKeyframeAtPlayhead": "删除播放头处的关键帧",
+    "generatingExtension": "正在生成延展",
+    "estimatedCostThisGeneration": "本次生成的预估花费",
+    "importTimelineTitle": "导入时间线(.zip,或与媒体一起打包的 Premiere XML)",
+    "referencesHelper": "在提示词里写 [Image 1]、[Image 2]… 来安放每张参考图。",
+    "keyboardLayout": "键盘布局",
+    "versionsLoadFailed": "版本加载失败",
+    "scrollTracksDesc": "播放时轨道滚动,保持播放头可见",
+    "detectBeats": "检测节拍",
+    "tryAnotherName": "换个名字试试。"
   },
   "tools": {
     "select": "选择",

@@ -4,6 +4,7 @@ import type * as monaco from "monaco-editor";
 import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
 import ErrorBanner from "../support/ErrorBanner";
 import { FlexColumn, LoadingSpinner } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface MonacoPaneProps {
   value: string;
@@ -119,7 +120,7 @@ const MonacoPane = ({
         fullHeight
         sx={{ alignItems: "center", justifyContent: "center" }}
       >
-        <LoadingSpinner text={isMonacoLoading ? "Loading editor" : undefined} />
+        <LoadingSpinner text={isMonacoLoading ? i18n.t("editor:ui.loadingEditor", { defaultValue: "Loading editor" }) : undefined} />
       </FlexColumn>
     );
   }

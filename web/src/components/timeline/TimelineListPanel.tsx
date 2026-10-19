@@ -290,7 +290,7 @@ export const CreateTimelineButton = memo(function CreateTimelineButton() {
         />
       </Tooltip>
       <Tooltip
-        title="Import timeline (.zip, or a Premiere XML zipped with its media)"
+        title={t("timeline:editor.importTimelineTitle", { defaultValue: "Import timeline (.zip, or a Premiere XML zipped with its media)" })}
         placement="right-start"
       >
         <ToolbarIconButton

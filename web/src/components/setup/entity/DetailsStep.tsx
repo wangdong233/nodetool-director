@@ -133,7 +133,7 @@ export const DetailsStep = ({
     </FlexColumn>
     {onStartBlank === undefined ? null : (
       <AlternativesColumn
-        label="Other ways to start"
+        label={i18n.t("setup:entity.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={[
           {
             id: "blank",

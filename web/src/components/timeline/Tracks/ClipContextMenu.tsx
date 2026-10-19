@@ -145,7 +145,7 @@ export function ClipContextMenu({
       )}
       {actions.canDetectBeats && (
         <MenuItemPrimitive
-          label="Detect beats"
+          label={t("timeline:editor.detectBeats", { defaultValue: "Detect beats" })}
           icon={<QueueMusicOutlinedIcon fontSize="small" />}
           onClick={run(actions.detectBeats)}
         />

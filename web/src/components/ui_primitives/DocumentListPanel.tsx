@@ -148,7 +148,7 @@ export function DocumentListPanel<T extends DocumentListPanelDocument>({
           <EmptyState
             title={filterValue ? `No matching ${plural}` : `No ${plural} yet`}
             description={
-              filterValue ? "Try a different search term." : emptyDescription
+              filterValue ? i18n.t("editor:ui.tryADifferentSearchTerm2", { defaultValue: "Try a different search term." }) : emptyDescription
             }
           />
         </FlexColumn>

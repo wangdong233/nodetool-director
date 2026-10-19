@@ -148,7 +148,7 @@ const TimelineReferencesFieldInner: React.FC<TimelineReferencesFieldProps> = ({
     <FlexColumn gap={SPACING.lg} data-testid="timeline-references">
       <FormField
         label={t("storyboard:attrs.referenceImages", { defaultValue: "Reference images" })}
-        helperText="Write [Image 1], [Image 2], … in the prompt to place each one."
+        helperText={t("timeline:editor.referencesHelper", { defaultValue: "Write [Image 1], [Image 2], … in the prompt to place each one." })}
       >
         <FlexColumn gap={SPACING.sm}>
           {value.imageIds.length > 0 ? (

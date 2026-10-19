@@ -123,7 +123,7 @@ const EditorToolbar = ({
             />
             <ToolbarIconButton
               icon={<FormatListBulletedIcon fontSize="small" />}
-              tooltip="Bulleted list"
+              tooltip={t("editor:ui.bulletedList", { defaultValue: "Bulleted list" })}
               className="toolbar-button"
               onClick={onBulletList}
               size="small"

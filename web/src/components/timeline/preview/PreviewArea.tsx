@@ -1572,7 +1572,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
           )}
 
           <SelectField
-            label="Preview quality"
+            label={i18n.t("timeline:editor.previewQuality", { defaultValue: "Preview quality" })}
             hideLabel
             size="small"
             value={previewQuality}

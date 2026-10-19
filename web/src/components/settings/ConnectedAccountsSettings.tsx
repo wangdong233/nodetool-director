@@ -205,7 +205,7 @@ const ConnectedAccountsSettings = () => {
               <Text size="small" family="secondary">
                 {showPending.code}
               </Text>
-              <CopyButton value={showPending.code} tooltip="Copy link code" />
+              <CopyButton value={showPending.code} tooltip={t("editor:ui.copyLinkCode", { defaultValue: "Copy link code" })} />
             </FlexRow>
             <FlexRow align="center" gap={SPACING.md}>
               <LoadingSpinner />

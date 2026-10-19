@@ -293,7 +293,7 @@ export const CodePanel: React.FC = memo(() => {
     return (
       <FlexColumn gap={SPACING.micro} sx={{ p: SPACING.md }}>
         <ErrorBanner
-          title="Could not load the timeline's code"
+          title={i18n.t("timeline:editor.codeLoadFailed", { defaultValue: "Could not load the timeline's code" })}
           report={{
             source: "operation-failure",
             summary: "Timeline code failed to load",

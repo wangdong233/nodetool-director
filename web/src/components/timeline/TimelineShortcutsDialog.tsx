@@ -258,7 +258,7 @@ export const TimelineShortcutsDialog: React.FC<TimelineShortcutsDialogProps> =
             exclusive
             onChange={handlePreset}
             compact
-            aria-label="Keyboard layout"
+            aria-label={i18n.t("timeline:editor.keyboardLayout", { defaultValue: "Keyboard layout" })}
           >
             {TIMELINE_KEYBOARD_PRESETS.map((p) => (
               <ToggleOption key={p} value={p}>

@@ -366,7 +366,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
   const costLine = (
     <CostEstimateLine
       estimate={generationCostLine(costEstimate)}
-      title="Estimated cost of this generation"
+      title={i18n.t("timeline:editor.estimatedCostThisGeneration", { defaultValue: "Estimated cost of this generation" })}
     />
   );
 

@@ -298,7 +298,7 @@ export function VectorLayerPanel({
           target={target}
           onSvg={(svg) => setVectorLayerSource(layer.id, svg)}
         />
-        <Caption>Replaces this layer&apos;s SVG. Undo restores it.</Caption>
+        <Caption>{i18n.t("sketch:attrs.replacesLayerSvg", { defaultValue: "Replaces this layer's SVG. Undo restores it." })}</Caption>
       </FlexColumn>
 
       <FlexColumn gap={SPACING.sm}>

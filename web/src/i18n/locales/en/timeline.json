@@ -133,7 +133,18 @@
     "estimatedCostOneRun": "Estimated cost of one run of this workflow",
     "noteEditingShortcutsQ": "Note editing shortcuts (?)",
     "whereTheResultGoes": "Where the result goes",
-    "editingVideo": "Editing video"
+    "editingVideo": "Editing video",
+    "codeLoadFailed": "Could not load the timeline's code",
+    "deleteKeyframeAtPlayhead": "Delete keyframe at playhead",
+    "generatingExtension": "Generating extension",
+    "estimatedCostThisGeneration": "Estimated cost of this generation",
+    "importTimelineTitle": "Import timeline (.zip, or a Premiere XML zipped with its media)",
+    "referencesHelper": "Write [Image 1], [Image 2], … in the prompt to place each one.",
+    "keyboardLayout": "Keyboard layout",
+    "versionsLoadFailed": "Could not load versions",
+    "scrollTracksDesc": "The tracks scroll to keep the playhead in view during playback",
+    "detectBeats": "Detect beats",
+    "tryAnotherName": "Try another name."
   },
   "tools": {
     "select": "Select",

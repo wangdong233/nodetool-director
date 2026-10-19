@@ -63,7 +63,8 @@
       "textureDetail": "纹理细节",
       "productView": "产品视图",
       "turnaroundSheet": "转面设定图"
-    }
+    },
+    "otherWaysToStart": "其他开场方式"
   },
   "game": {
     "openingYourGameSetup": "正在打开你的游戏设置",
@@ -200,7 +201,8 @@
     "rewritingShots": "正在重写 {{shots}}",
     "addCameraDirectionToYourCountShotScript": "为你的 {{count}} 镜头剧本添加运镜指导",
     "writeACountShotScreenplay": "写一份 {{count}} 镜头的剧本，可作文本编辑",
-    "creatingCountEntities": "正在创建 {{count}} 个实体"
+    "creatingCountEntities": "正在创建 {{count}} 个实体",
+    "entitySuggestionsFailed": "分镜实体建议获取失败"
   },
   "video": {
     "costUnknownUntilFirstClip": "首个片段返回前成本未知",
@@ -231,7 +233,9 @@
     "refKind_character": "角色",
     "refKind_style": "风格",
     "oneClaimPerLine": "每行一条主张。",
-    "leaveFieldsBlank": "不适用的字段留空即可。"
+    "leaveFieldsBlank": "不适用的字段留空即可。",
+    "modelListUnreadable": "视频模型列表读取失败",
+    "sayWhatToMake": "说说要把你的素材做成什么"
   },
   "workflow": {
     "connect": "连接",
@@ -263,7 +267,8 @@
     "openingYourWorkflow": "正在打开你的工作流",
     "backToYourIdea": "返回你的点子",
     "aWorkflowJSONFile": "工作流 JSON 文件",
-    "notChecked": "未检查"
+    "notChecked": "未检查",
+    "ideaPlaceholder": "为列表里的每个标题生成一张封面图"
   },
   "app": {
     "describeTheAppFirst": "先描述这个应用",

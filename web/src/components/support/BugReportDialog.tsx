@@ -496,7 +496,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
             subtitle={i18n.t("editor:ui.aScreenshotOfTheBrokenScreen", { defaultValue: "A screenshot of the broken screen is the most useful thing you can add." })}
           />
           <UploadButton
-            label="Add files"
+            label={t("editor:ui.addFiles", { defaultValue: "Add files" })}
             tooltip={t("editor:ui.attachFilesToTheBugReport", { defaultValue: "Attach files to the bug report" })}
             iconVariant="file"
             nodrag={false}

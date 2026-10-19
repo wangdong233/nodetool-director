@@ -224,7 +224,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
             applyChange({ tags: uniqueTags }, true);
           }}
           suggestions={tagOptions}
-          placeholder="Type or select tags…"
+          placeholder={t("editor:ui.typeOrSelectTags", { defaultValue: "Type or select tags…" })}
           description={t("editor:ui.selectFromSuggestionsOrTypeCustomTagsPressEnterToAdd", { defaultValue: "Select from suggestions or type custom tags (press Enter to add)" })}
         />
       </FormSection>
@@ -235,7 +235,7 @@ const WorkflowForm = ({ workflow, onClose, availableTags = [] }: WorkflowFormPro
           value={localWorkflow.run_mode || "workflow"}
           onChange={(value) => applyChange({ run_mode: value }, true)}
           options={RUN_MODE_OPTIONS}
-          description="How this workflow runs and can be triggered"
+          description={t("editor:ui.howWorkflowRuns", { defaultValue: "How this workflow runs and can be triggered" })}
         />
       </FormSection>
 

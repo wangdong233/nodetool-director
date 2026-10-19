@@ -22,6 +22,7 @@ import {
   Text, Toolbar, getSpacingPx, SPACING,
   EmptyState
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface TextPreviewProps {
   asset: Asset;
@@ -85,7 +86,7 @@ const CsvTableView = ({ text, name }: { text: string; name: string }) => {
   if (columns.length === 0) {
     return (
       <FlexColumn className="status">
-        <EmptyState size="small" variant="no-data" title="This table is empty" />
+        <EmptyState size="small" variant="no-data" title={i18n.t("editor:ui.thisTableIsEmpty", { defaultValue: "This table is empty" })} />
       </FlexColumn>
     );
   }

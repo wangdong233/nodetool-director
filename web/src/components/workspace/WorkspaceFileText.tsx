@@ -100,7 +100,7 @@ const CsvTableView = ({ text, name }: { text: string; name: string }) => {
   if (columns.length === 0) {
     return (
       <FlexColumn className="status">
-        <EmptyState size="small" variant="no-data" title="This table is empty" />
+        <EmptyState size="small" variant="no-data" title={t("editor:ui.thisTableIsEmpty", { defaultValue: "This table is empty" })} />
       </FlexColumn>
     );
   }

@@ -63,7 +63,8 @@
       "textureDetail": "Texture detail",
       "productView": "Product view",
       "turnaroundSheet": "Turnaround sheet"
-    }
+    },
+    "otherWaysToStart": "Other ways to start"
   },
   "game": {
     "openingYourGameSetup": "Opening your game setup",
@@ -200,7 +201,8 @@
     "rewritingShots": "Rewriting {{shots}}",
     "addCameraDirectionToYourCountShotScript": "Add camera direction to your {{count}}-shot script",
     "writeACountShotScreenplay": "Write a {{count}}-shot screenplay you can edit as text",
-    "creatingCountEntities": "Creating {{count}} entities"
+    "creatingCountEntities": "Creating {{count}} entities",
+    "entitySuggestionsFailed": "Storyboard entity suggestions failed"
   },
   "video": {
     "costUnknownUntilFirstClip": "cost unknown until the first clip returns",
@@ -231,7 +233,9 @@
     "refKind_character": "character",
     "refKind_style": "style",
     "oneClaimPerLine": "One claim per line.",
-    "leaveFieldsBlank": "Leave fields blank when they do not apply."
+    "leaveFieldsBlank": "Leave fields blank when they do not apply.",
+    "modelListUnreadable": "Video model list could not be read",
+    "sayWhatToMake": "Say what to make of your media"
   },
   "workflow": {
     "connect": "Connect",
@@ -263,7 +267,8 @@
     "openingYourWorkflow": "Opening your workflow",
     "backToYourIdea": "Back to your idea",
     "aWorkflowJSONFile": "A workflow JSON file",
-    "notChecked": "Not checked"
+    "notChecked": "Not checked",
+    "ideaPlaceholder": "Make a cover image for each title in a list"
   },
   "app": {
     "describeTheAppFirst": "Describe the app first",

@@ -120,7 +120,7 @@ const KeyframeRow: React.FC<{
             activeIcon={<DiamondIcon fontSize="inherit" />}
             tooltip={
               keyed
-                ? "Delete keyframe at playhead"
+                ? i18n.t("timeline:editor.deleteKeyframeAtPlayhead", { defaultValue: "Delete keyframe at playhead" })
                 : `Add keyframe at playhead${armed ? i18n.t("timeline:attrs.altKSuffix", { defaultValue: " (Alt+K)" }) : ""}`
             }
             ariaLabel={`${keyed ? "Delete" : "Add"} ${meta.label} keyframe`}

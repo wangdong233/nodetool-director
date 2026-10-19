@@ -428,7 +428,7 @@ const ScriptLineRow = ({
 
   const statusIndicator =
     status === "stale" ? (
-      <Tooltip title="The text or voice changed since this take">
+      <Tooltip title={t("editor:ui.changedSinceTake", { defaultValue: "The text or voice changed since this take" })}>
         <StatusPill tone="warning" sx={pillSx}>
           <RefreshIcon fontSize="inherit" />
           Stale

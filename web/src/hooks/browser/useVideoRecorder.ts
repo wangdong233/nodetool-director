@@ -97,7 +97,7 @@ export function useVideoRecorder({
           const fallbackLabel =
             device.label ||
             (device.deviceId === "default"
-              ? "System default camera"
+              ? i18n.t("editor:ui.systemDefaultCamera", { defaultValue: "System default camera" })
               : `Camera ${index + 1}`);
           return {
             deviceId: normalizedDeviceId,
@@ -111,7 +111,7 @@ export function useVideoRecorder({
           const fallbackLabel =
             device.label ||
             (device.deviceId === "default"
-              ? "System default input"
+              ? i18n.t("editor:ui.systemDefaultInput", { defaultValue: "System default input" })
               : `Microphone ${index + 1}`);
           return {
             deviceId: normalizedDeviceId,

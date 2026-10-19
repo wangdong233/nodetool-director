@@ -233,7 +233,7 @@ const WorkspacesManager: React.FC = () => {
             </FlexRow>
           ) : error ? (
             <ErrorBanner
-              title="Could not load workspaces"
+              title={t("editor:ui.workspacesLoadFailed", { defaultValue: "Could not load workspaces" })}
               onRetry={handleRetry}
               report={{
                 source: "operation-failure",

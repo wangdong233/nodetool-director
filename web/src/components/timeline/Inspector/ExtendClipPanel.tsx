@@ -323,7 +323,7 @@ const ExtendClipPanel: React.FC<{ clipId: string }> = ({ clipId }) => {
                   </EditorButton>
                 </>
               ) : (
-                <ThinkingIndicator label="Generating extension" announce />
+                <ThinkingIndicator label={t("timeline:editor.generatingExtension", { defaultValue: "Generating extension" })} announce />
               )}
             </FlexColumn>
           );

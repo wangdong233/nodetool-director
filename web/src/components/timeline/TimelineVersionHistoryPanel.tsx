@@ -298,7 +298,7 @@ export const TimelineVersionHistoryPanel: React.FC<
         ) : error ? (
           <FlexColumn gap={0.5} sx={{ p: 2 }}>
             <ErrorBanner
-              title="Could not load versions"
+              title={t("timeline:editor.versionsLoadFailed", { defaultValue: "Could not load versions" })}
               report={{
                 source: "operation-failure",
                 summary: "Timeline versions failed to load",

@@ -417,7 +417,7 @@ const SectionBlockInner = ({
         {!readOnly && (
           <Box className="section-remove">
             <ToolbarIconButton
-              tooltip="Delete section"
+              tooltip={t("editor:ui.deleteSection", { defaultValue: "Delete section" })}
               onClick={() => removeSection(scriptId, section.id)}
               icon={<CloseIcon fontSize="small" />}
             />

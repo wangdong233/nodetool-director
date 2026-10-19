@@ -183,7 +183,7 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
           rows={4}
           label={t("storyboard:attrs.theTask", { defaultValue: "The task" })}
           hideLabel
-          placeholder="Make a cover image for each title in a list"
+          placeholder={t("setup:workflow.ideaPlaceholder", { defaultValue: "Make a cover image for each title in a list" })}
           helperText={i18n.t("editor:ui.onlyDescribeTaskHere", { defaultValue: "Only describe the task here. Add files, connect services and set destinations during setup or in the built workflow before running it." })}
           onChange={handleChange}
           inputRef={briefField}

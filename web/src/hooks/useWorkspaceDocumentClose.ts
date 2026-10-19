@@ -8,6 +8,7 @@ import {
 import { useDocumentDraftStore } from "../stores/DocumentDraftStore";
 import { requestConfirm } from "../stores/ConfirmStore";
 import { closeWorkspaceDocuments } from "../components/workspace/closeWorkspaceDocuments";
+import { i18n } from "../i18n";
 
 interface WorkspaceDocumentClose {
   closeDocument: (tab: WorkspaceTab) => void;
@@ -74,7 +75,7 @@ export function useWorkspaceDocumentClose(): WorkspaceDocumentClose {
       void requestConfirm({
         title:
           dirty.length === 1
-            ? "Close document with unsaved changes?"
+            ? i18n.t("editor:ui.closeUnsavedConfirm", { defaultValue: "Close document with unsaved changes?" })
             : "Close documents with unsaved changes?",
         content: `Unsaved changes or saves in progress may be lost. Close ${dirty.map((tab) => `“${tab.title}”`).join(", ")}?`,
         confirmText: "Close anyway",

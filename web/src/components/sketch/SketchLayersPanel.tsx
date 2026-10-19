@@ -1321,7 +1321,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
           <DeleteButton
             iconVariant="outline"
             tooltip={
-              hasMultiLayerSelection ? "Delete selected layers" : "Delete layer"
+              hasMultiLayerSelection ? t("sketch:attrs.deleteSelectedLayers", { defaultValue: "Delete selected layers" }) : t("sketch:attrs.deleteLayer", { defaultValue: "Delete layer" })
             }
             ariaLabel="Delete active layer"
             onClick={() =>

@@ -189,7 +189,7 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
           <EmptyState
             variant="no-data"
             title={t("editor:ui.svgNotFound", { defaultValue: "SVG not found" })}
-            description="It may have been deleted."
+            description={t("editor:ui.mayHaveBeenDeleted", { defaultValue: "It may have been deleted." })}
           />
         )}
       </FlexColumn>

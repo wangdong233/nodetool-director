@@ -246,7 +246,7 @@ const SpreadsheetDocumentEditor = ({
         fullHeight
         sx={{ alignItems: "center", justifyContent: "center" }}
       >
-        <EmptyState size="small" variant="no-data" title="This workbook has no sheets" />
+        <EmptyState size="small" variant="no-data" title={i18n.t("editor:ui.workbookNoSheets", { defaultValue: "This workbook has no sheets" })} />
       </FlexColumn>
     );
   }

@@ -542,7 +542,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
             size="small"
             icon={<FolderOpenIcon />}
             title={t("editor:ui.noWorkspaceSelected", { defaultValue: "No workspace selected" })}
-            description="Select a workspace above or create one."
+            description={t("editor:ui.selectWorkspaceAbove", { defaultValue: "Select a workspace above or create one." })}
             actionText={t("editor:ui.createWorkspace", { defaultValue: "Create workspace" })}
             onAction={handleManageWorkspace}
           />
@@ -575,7 +575,7 @@ const WorkspaceTree: React.FC<WorkspaceTreeProps> = ({ projectId }) => {
             size="small"
             icon={<FolderOpenIcon />}
             title={t("editor:ui.workspaceIsEmpty", { defaultValue: "Workspace is empty" })}
-            description="Add files to your workspace folder to see them here."
+            description={t("editor:ui.addFilesToSeeHere", { defaultValue: "Add files to your workspace folder to see them here." })}
           />
         )}
       </div>

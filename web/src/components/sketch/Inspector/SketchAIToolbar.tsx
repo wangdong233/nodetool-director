@@ -67,7 +67,7 @@ const SketchAIToolbarInner: React.FC = () => {
         }}
       >
         <Tooltip
-          title="Generate a layer from any workflow with an image output"
+          title={t("sketch:attrs.generateLayerFromWorkflow", { defaultValue: "Generate a layer from any workflow with an image output" })}
           placement="bottom"
         >
           <span>

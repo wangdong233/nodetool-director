@@ -455,7 +455,7 @@ const TextDocumentEditor = ({
           wordWrap={wordWrap}
           placeholder={
             isMarkdown
-              ? "Start writing. Use the buttons above for headings, bold and lists."
+              ? t("editor:ui.startWriting", { defaultValue: "Start writing. Use the buttons above for headings, bold and lists." })
               : undefined
           }
           onChange={setContent}

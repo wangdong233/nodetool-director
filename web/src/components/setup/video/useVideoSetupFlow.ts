@@ -54,6 +54,7 @@ import {
 import { assetIdFromLocator } from "../../../utils/mediaRef";
 
 import { i18n, useAppLanguage } from "../../../i18n";
+import { i18n } from "../../../i18n";
 
 /**
  * A sequence's stage, with the field's absence read as `done` — an old
@@ -450,7 +451,7 @@ export const useVideoSetupFlow = ({
             // Placed media alone does not advance: the brief says what to
             // make of it, as the upload notice asks.
             (placedClips > 0
-              ? "Say what to make of your media"
+              ? i18n.t("setup:video.sayWhatToMake", { defaultValue: "Say what to make of your media" })
               : i18n.t("storyboard:attrs.describeTheVideoOrBringYourOwnMedia", { defaultValue: "Describe the video, or bring your own media" }))),
         // Change flow discards this draft, so it waits for the upload too.
         holdNavigation: importingMedia,

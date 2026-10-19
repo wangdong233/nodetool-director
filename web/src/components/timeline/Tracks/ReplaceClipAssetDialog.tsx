@@ -127,7 +127,7 @@ export const ReplaceClipAssetDialog: React.FC<ReplaceClipAssetDialogProps> =
               title={query ? `No ${kindLabel} match` : `No ${kindLabel} yet`}
               description={
                 query
-                  ? "Try another name."
+                  ? i18n.t("timeline:editor.tryAnotherName", { defaultValue: "Try another name." })
                   : "Upload a file or generate one first."
               }
               size="small"

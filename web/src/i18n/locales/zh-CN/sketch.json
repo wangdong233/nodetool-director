@@ -270,6 +270,10 @@
     "exportPsd": "导出 PSD",
     "importPsd": "导入 PSD…",
     "applyCrop": "应用裁剪",
-    "cancelCropPreview": "取消裁剪预览"
+    "cancelCropPreview": "取消裁剪预览",
+    "generateLayerFromWorkflow": "从任意带图像输出的工作流生成一个图层",
+    "replacesLayerSvg": "会替换此图层的 SVG。撤销可还原。",
+    "deleteSelectedLayers": "删除所选图层",
+    "deleteLayer": "删除图层"
   }
 }

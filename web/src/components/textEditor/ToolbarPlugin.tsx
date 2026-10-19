@@ -160,7 +160,7 @@ const ToolbarPlugin = () => {
   return (
     <FloatingToolbar
       className="format-toolbar-actions"
-      aria-label="Text formatting"
+      aria-label={t("editor:ui.textFormatting", { defaultValue: "Text formatting" })}
     >
       <ToolbarIconButton
         icon={<FormatBoldIcon />}

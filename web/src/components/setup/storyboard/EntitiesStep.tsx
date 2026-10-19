@@ -575,7 +575,7 @@ export const EntitiesStep = ({
                   source: "provider-call",
                   summary:
                     assistFailure === "find"
-                      ? "Storyboard entity suggestions failed"
+                      ? t("setup:storyboard.entitySuggestionsFailed", { defaultValue: "Storyboard entity suggestions failed" })
                       : "Storyboard entity creation failed",
                   errorText: assistError
                 }}

@@ -720,7 +720,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                   {status === "pending" && !isDevTestRoute && (
                     <div
                       role="status"
-                      aria-label="Loading NodeTool"
+                      aria-label={i18n.t("editor:ui.loadingNodetool", { defaultValue: "Loading NodeTool" })}
                       style={{
                         display: "flex",
                         flexDirection: "column",
