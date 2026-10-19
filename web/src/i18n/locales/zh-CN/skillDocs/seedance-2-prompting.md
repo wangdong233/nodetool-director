@@ -136,3 +136,9 @@ Seedance 2 在同一遍里写画面与声音,仅此一件事实就改变了提�
 
 改编自 fal 的 Seedance 2.0 提示词指南:
 https://fal.ai/learn/tools/seedance-2-0-prompting-guide
+
+用 `find_model` 查 `reference_to_video`,再走 `generate_video_from_references`。转发提示词、媒体、`duration_seconds`、宽高比与分辨率。
+
+音频引用:fal 叫 `audio_urls`,别处叫 `reference_audios`;`generate_audio` 开关与自动时长只在该路由自己的节点上——用 `search_nodes` 找到,`get_node_info` 读字段,`run_node` 运行。
+
+自动时长(让模型自己适配内容)在 fal 为 `auto`,AtlasCloud 与 Replicate 为 `-1`,kie 无此选项。

@@ -278,3 +278,7 @@ return { curves: [{ property: "trimEnd",
 `range` 扫过动画的时窗、`sheet: true` 把扫掠拼成一张带标注的小样图
 ——这是看一次过冲真的过冲的办法,而不是检查三个碰巧都像是对的
 瞬间。
+
+`timeline-edit-ops` 承载 op 契约与本文引用的预设目录。
+
+加法轴:`offsetX`、`offsetY`、`rotation`(弧度)、`rotationX`、`rotationY`(度)、`blur`(px)、`brightness`、相机方位角 `cameraAzimuth`/`cameraElevation`/`cameraFov`。乘法轴:`scale`、`scaleX`、`scaleY`、`opacity`(0..1)、`saturation`、`contrast`、`cameraZoom`。

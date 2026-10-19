@@ -103,3 +103,5 @@ cyan, and she whispers "That wasn't a drop."
 
 Stop after the board. Stills before clips.
 ```
+
+预告片/先导片另加载 `/trailer-template`:它定八个节拍与音床。旁白与配乐提示经 `edit_storyboard` → `set_board {narration, music_prompt}` 设置。

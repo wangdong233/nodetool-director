@@ -339,3 +339,15 @@ await edit_storyboard({
 `motion-graphics` 承载时间线操作契约,`video-audio-continuity` 处理某
 镜头自带的声音必须留存的场合,`color-motion` 承载让不同场景的镜头剪在
 一起的调色,`logo-reveal` 负责收束之后的厂标。
+
+完整契约:十五个 `edit_storyboard` op、`set_board` 接受的每个键(含 `music_prompt`)、分镜技能(`storyboard-core`)与叙事结构(`short-film`)。
+
+结果还会给出 `prompting_skill`;第 3 步前先加载,镜头的 `action`、`motion`、`camera` 以其为准。
+
+把八行音床写进板子 `brief` 的 `MUSIC:` 块,一行一拍带时间码;按镜头经 `{op: "set_board", music_prompt}` 细化。
+
+**长融合或长渲染,片段轮之前说明选哪种。** 1.5 秒的节拍仍会买视频模型的最短片段;`covered_by` 记录覆盖关系。
+
+铺底:`edit_timeline` → `add_track`(音频),`add_media_clip` 放同一素材于 0:00,再 `set_clip_params {muted: true}` 静音逐镜头音。
+
+`timeline-edit-ops` 承载时间线 op 契约,`motion-graphics` 承载构建循环,`video-audio-continuity` 承载音画连续性。

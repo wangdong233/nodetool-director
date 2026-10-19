@@ -67,3 +67,7 @@ room comes into view behind him.
 改编自 fal 导演端点文档所载 MiniMax 运镜契约,与 Akool 的海螺提示词指南:
 https://fal.ai/models/fal-ai/minimax/video-01-director/api
 https://akool.com/blog-posts/minimax-hailuo-video-prompt-guide
+
+`prompt_optimizer` 只在该路由自己的节点上:用 `search_nodes` 找到,`get_node_info` 读字段,`run_node` 运行。
+
+模型族:MiniMax 自家的 `T2V-01-Director`、`I2V-01-Director`,以及 `video-01-subject-reference`(MiniMax 自家的 `S2V-01`,经 `generate_video_from_references` 调用)可从单张参考图保持人脸。

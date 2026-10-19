@@ -418,3 +418,11 @@ const timeline = await assemble_storyboard_timeline({
 如果简报是"一款叫 WARP 的能量饮料",没有标识、没有罐图、没有主角照片,
 你照样建板。实体发现*就是*这些资产生成的过程:参考静图兼作客户可签认的
 情绪板帧,你写下的描述词则成为下一轮制作继承的品牌规范。
+
+本技能管广告的结构;观感搭配对应的工作技能:`product-commercial`(精致产品片)、`ugc-video`(UGC)、`motion-ad`(动效广告)。
+
+`create_storyboard` 返回的 id 叫 `storyboard_id`(也叫 `id`);`create_entity` 返回 `{entity}`;图像节点走 `nodetool.media.generateImage`。
+
+`action`、`motion`、`camera` 按所选模型线的 prompting 技能(`find_model` 结果里的 `prompting_skill`)来写。
+
+之后的常规时间线工具各有技能:`timeline-edit-ops` 管 op 契约。

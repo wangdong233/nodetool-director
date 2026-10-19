@@ -76,3 +76,9 @@ Seedream 5 Pro 增加了区域级精确编辑与图层分离,这正是"一处必
 改编自 fal 的 Seedream v4.5 提示词指南与 Runware 的 Seedream 5.0 Pro 提示词指南:
 https://fal.ai/learn/devs/seedream-v4-5-prompt-guide
 https://runware.ai/docs/models/bytedance-seedream-5-0-pro/guides/prompting
+
+字段只在该路由自己的节点上:用 `search_nodes` 找到,`get_node_info` 读字段,`run_node` 运行。
+
+参考图上限:kie 的 `seedream/4.5-edit` 与 `seedream/5-lite-image-to-image` 最多 14 张,`seedream/5-pro-image-to-image` 与 `bytedance/seedream-v4-edit` 最多 10 张。
+
+尺寸参数:AtlasCloud 用 `size`(默认 `2048*2048`),kie 用 `aspect_ratio` 或 `image_size`,Replicate 用 `size`(默认 `2K`)。

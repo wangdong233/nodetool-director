@@ -88,3 +88,9 @@ validate_timeline. Finish by muting the Shot Audio clips under the voiceover.
 
 Stop after the script and the board. Show me the words before you spend.
 ```
+
+解说片需再加载 `/explainer-storyboard`:它定教学弧线与节拍,本技能定稿与配音。
+
+每句一行:`{"op": "add_line", "speaker": "Narrator", "text": "..."}`。没有 `speaker` 的行无论演员表如何都读 `no_voice`;`voice` 用服务商自己的声音名(如 `Aoede`、`alloy`),不是模型 id。
+
+`edit_storyboard` → `{op: "set_board", music_prompt: "..."}` 设配乐方向。
