@@ -985,7 +985,7 @@ describe("NewProjectSurface", () => {
   it("opens blank documents outside any project", async () => {
     renderSurface();
     expect(catalogOptions).toHaveBeenCalledWith({ projectId: "default" });
-    await userEvent.click(screen.getByRole("button", { name: "New workflow" }));
+    await userEvent.click(screen.getByRole("button", { name: "Workflow" }));
     expect(createWorkflow).toHaveBeenCalled();
   });
 
@@ -1025,7 +1025,7 @@ describe("NewProjectSurface", () => {
 
   it("marks keep-creating when a blank document opens", async () => {
     renderSurface();
-    await userEvent.click(screen.getByRole("button", { name: "New workflow" }));
+    await userEvent.click(screen.getByRole("button", { name: "Workflow" }));
     expect(createWorkflow).toHaveBeenCalled();
     expect(useOnboardingStore.getState().completedSteps).toContain(
       "keep-creating"

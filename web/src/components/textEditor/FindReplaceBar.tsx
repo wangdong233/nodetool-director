@@ -188,7 +188,7 @@ const FindReplaceBar = ({
     <Toolbar
       className="find-replace-bar"
       role="toolbar"
-      aria-label={t("editor:ui.findAndReplace", { defaultValue: "Find and replace" })}
+      aria-label={t("editor:ui.findAndReplace", { defaultValue: "Find & replace" })}
       density="compact"
       css={styles(theme)}
       sx={{ flexWrap: "wrap", py: SPACING.xs, pl: SPACING.xl }}

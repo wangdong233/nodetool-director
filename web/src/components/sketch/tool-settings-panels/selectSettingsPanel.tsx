@@ -93,7 +93,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
           value="lasso"
           variant="icon"
           aria-label={t("editor:ui.freehandLasso", { defaultValue: "Freehand lasso" })}
-          title={t("editor:ui.freehandLasso", { defaultValue: "Freehand (lasso)" })}
+          title={t("editor:ui.freehandLasso", { defaultValue: "Freehand lasso" })}
         >
           <GestureOutlinedIcon fontSize="inherit" />
         </SketchModeOption>

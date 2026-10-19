@@ -1533,8 +1533,16 @@ const NewProjectSurface = ({
       )
     ).map((card) => ({
       ...card,
-      description: card.id === "game" && gameDimension === "3d"
-        ? t("home:entry.game.desc3d", { defaultValue: "Start with a playable 3D exploration scene in the built-in engine." }) : card.description,
+      // The 3D override must drop `descriptionKey` too: the card renderer
+      // prefers the key, so a surviving key would mask the override.
+      description:
+        card.id === "game" && gameDimension === "3d"
+          ? t("home:entry.game.desc3d", { defaultValue: "Start with a playable 3D exploration scene in the built-in engine." })
+          : card.description,
+      descriptionKey:
+        card.id === "game" && gameDimension === "3d"
+          ? undefined
+          : card.descriptionKey,
       image: ENTRY_BACKGROUNDS[card.id]
     }));
     if (pendingFlow === null) {

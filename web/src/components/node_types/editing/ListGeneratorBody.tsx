@@ -291,7 +291,7 @@ const ListGeneratorBodyInner: React.FC<BespokeBodyProps> = ({
               ? t("editor:ui.generating", { defaultValue: "Generating…" })
               : t("editor:ui.list", { defaultValue: "List" })
             : t("editor:ui.itemCount", {
-                defaultValue: "{{count}} item",
+                defaultValue: "{{count}} items",
                 count: items.length
               })}
         </span>

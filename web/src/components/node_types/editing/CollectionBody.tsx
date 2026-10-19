@@ -321,7 +321,7 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
           {items.length === 0
             ? t("editor:ui.collection", { defaultValue: "Collection" })
             : t("editor:ui.itemCount", {
-                defaultValue: "{{count}} item",
+                defaultValue: "{{count}} items",
                 count: items.length
               })}
         </span>
