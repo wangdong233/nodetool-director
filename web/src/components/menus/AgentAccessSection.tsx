@@ -209,7 +209,7 @@ const AgentAccessSection = () => {
       <FormField label={t("ui2:attrs.serverURL", { defaultValue: "Server URL" })} sx={{ mb: 2 }}>
         <FlexRow align="center" gap={1}>
           <CodeBlock sx={{ flex: 1 }}>{url}</CodeBlock>
-          <CopyButton value={url} tooltip="Copy server URL" />
+          <CopyButton value={url} tooltip={i18n.t("tools:ui.copyServerUrl", { defaultValue: "Copy server URL" })} />
         </FlexRow>
       </FormField>
 
@@ -251,7 +251,7 @@ const AgentAccessSection = () => {
           <Caption>{t("editor:ui.claudeCodeRunThis", { defaultValue: "Claude Code — run this" })}</Caption>
           <FlexRow align="center" gap={1}>
             <CodeBlock sx={{ flex: 1 }}>{snippets.cli}</CodeBlock>
-            <CopyButton value={snippets.cli} tooltip="Copy command" />
+            <CopyButton value={snippets.cli} tooltip={i18n.t("tools:ui.copyCommand", { defaultValue: "Copy command" })} />
           </FlexRow>
 
           <Caption>{t("editor:ui.orPasteIntoAnMCPClientConfigFile", { defaultValue: "Or paste into an MCP client config file" })}</Caption>
@@ -259,7 +259,7 @@ const AgentAccessSection = () => {
             <CodeBlock sx={{ flex: 1 }}>{snippets.json}</CodeBlock>
             <CopyButton
               value={snippets.json}
-              tooltip="Copy configuration"
+              tooltip={i18n.t("tools:ui.copyConfiguration", { defaultValue: "Copy configuration" })}
             />
           </FlexRow>
         </FlexColumn>

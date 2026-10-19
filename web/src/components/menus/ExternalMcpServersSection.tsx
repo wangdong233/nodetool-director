@@ -622,7 +622,7 @@ export const ExternalMcpServersSection = memo(
 
         <ConfirmDialog
           open={Boolean(pendingDelete)}
-          title="Remove server?"
+          title={i18n.t("tools:ui.removeServer", { defaultValue: "Remove server?" })}
           content={`Remove ${pendingDelete?.name ?? ""}? Its tools leave the agent's toolbelt.`}
           confirmText="Remove"
           cancelText="Cancel"

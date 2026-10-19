@@ -2890,7 +2890,11 @@
     "allProjects": "全部项目",
     "folderPath": "文件夹路径",
     "typeAPath": "输入路径",
-    "searchInCurrentFolder": "在当前文件夹中搜索"
+    "searchInCurrentFolder": "在当前文件夹中搜索",
+    "addYourNote": "添加备注…",
+    "deleteNote": "删除备注",
+    "copyAsset": "复制资产",
+    "copyOutput": "复制输出"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

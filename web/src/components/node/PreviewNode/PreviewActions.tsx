@@ -118,7 +118,7 @@ const PreviewActions: React.FC<PreviewActionsProps> = memo(({
           onCopyError={handleCopyError}
           className="action-button copy"
           sx={COPY_BUTTON_SX}
-          aria-label="Copy asset"
+          aria-label={i18n.t("editor:ui.copyAsset", { defaultValue: "Copy asset" })}
         />
       ) : (
         <CopyButton
@@ -126,7 +126,7 @@ const PreviewActions: React.FC<PreviewActionsProps> = memo(({
           onCopyError={handleCopyError}
           className="action-button copy"
           sx={COPY_BUTTON_SX}
-          aria-label="Copy output"
+          aria-label={i18n.t("editor:ui.copyOutput", { defaultValue: "Copy output" })}
         />
       )}
     </FlexRow>

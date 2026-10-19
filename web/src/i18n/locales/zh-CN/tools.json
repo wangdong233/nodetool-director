@@ -5,7 +5,12 @@
     "runThis": "运行这条命令",
     "copyCommand": "复制命令",
     "clientConnectsToServer": "客户端连接到这个服务器。NodeTool 运行期间它可用。",
-    "clientStartsNodetool": "客户端会自行启动 NodeTool。无论本应用是否在运行,它都可用。"
+    "clientStartsNodetool": "客户端会自行启动 NodeTool。无论本应用是否在运行,它都可用。",
+    "copyServerUrl": "复制服务器 URL",
+    "copyConfiguration": "复制配置",
+    "removeServer": "移除服务器?",
+    "loadUnlistedPacks": "加载不在允许清单里的节点包",
+    "unlistedPacksDesc": "生产环境默认关闭。关闭时,只有你明确信任过的包才会加载。"
   },
   "ctx": {
     "audioList": "音频列表",

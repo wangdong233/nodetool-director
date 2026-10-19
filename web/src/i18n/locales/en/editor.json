@@ -2895,7 +2895,11 @@
     "allProjects": "All projects",
     "folderPath": "Folder path",
     "typeAPath": "Type a path",
-    "searchInCurrentFolder": "Search in current folder"
+    "searchInCurrentFolder": "Search in current folder",
+    "addYourNote": "Add your note…",
+    "deleteNote": "Delete note",
+    "copyAsset": "Copy asset",
+    "copyOutput": "Copy output"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

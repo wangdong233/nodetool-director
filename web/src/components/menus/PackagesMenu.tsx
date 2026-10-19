@@ -511,8 +511,8 @@ function PackagesMenu() {
       <FlexColumn gap={SPACING.md}>
         <SectionHeader size="small" title={i18n.t("editor:ui.trustDefaults", { defaultValue: "Trust defaults" })} />
         <LabeledSwitch
-          label="Load packs that are not on the allowlist"
-          description="Off in production by default. When off, only packs you've explicitly trusted will load."
+          label={i18n.t("tools:ui.loadUnlistedPacks", { defaultValue: "Load packs that are not on the allowlist" })}
+          description={i18n.t("tools:ui.unlistedPacksDesc", { defaultValue: "Off in production by default. When off, only packs you've explicitly trusted will load." })}
           checked={trust.allowUnlisted}
           onChange={(v) => void setAllowUnlisted(v)}
         />
@@ -571,7 +571,7 @@ function PackagesMenu() {
           >
             <Text size="small" color="secondary">
               No node packs discovered. Install one with{" "}
-              <Code>npm install &lt;pack&gt;</Code>
+              <Code>{"npm install <pack>"}</Code>
               {isElectron ? i18n.t("editor:ui.orViaTheFieldAbove", { defaultValue: " or via the field above." }) : "."}
             </Text>
           </FlexRow>

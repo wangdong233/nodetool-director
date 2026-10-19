@@ -5,7 +5,12 @@
     "runThis": "Run this",
     "copyCommand": "Copy command",
     "clientConnectsToServer": "The client connects to this server. It works while NodeTool runs.",
-    "clientStartsNodetool": "The client starts NodeTool itself. It works whether or not this app runs."
+    "clientStartsNodetool": "The client starts NodeTool itself. It works whether or not this app runs.",
+    "copyServerUrl": "Copy server URL",
+    "copyConfiguration": "Copy configuration",
+    "removeServer": "Remove server?",
+    "loadUnlistedPacks": "Load packs that are not on the allowlist",
+    "unlistedPacksDesc": "Off in production by default. When off, only packs you've explicitly trusted will load."
   },
   "ctx": {
     "audioList": "Audio List",
