@@ -162,7 +162,9 @@
     "directionPlaceholder": "Direction, e.g. whispering, tired",
     "writeALine": "Write a line",
     "deleteDirectionFrom": "Delete direction from",
-    "addDirectionTo": "Add direction to"
+    "addDirectionTo": "Add direction to",
+    "languageDescription": "What the script is written in. Change it, then rewrite on the Format step to apply it.",
+    "paceDescription": "Sent with every sample and every take."
   },
   "storyboard": {
     "openingYourStoryboard": "Opening your storyboard",
@@ -227,7 +229,9 @@
     "waitCurrentUploadThenDropAgain": "Wait for the current upload to finish, then drop again.",
     "mediaOnTimelinePlanHere": "Your media is on this timeline and would be left behind. Plan the beats here instead.",
     "refKind_character": "character",
-    "refKind_style": "style"
+    "refKind_style": "style",
+    "oneClaimPerLine": "One claim per line.",
+    "leaveFieldsBlank": "Leave fields blank when they do not apply."
   },
   "workflow": {
     "connect": "Connect",

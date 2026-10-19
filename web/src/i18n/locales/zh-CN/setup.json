@@ -162,7 +162,9 @@
     "directionPlaceholder": "表演指示,如:whispering、tired",
     "writeALine": "写一句台词",
     "deleteDirectionFrom": "删除这句的表演指示:",
-    "addDirectionTo": "给这句加表演指示:"
+    "addDirectionTo": "给这句加表演指示:",
+    "languageDescription": "剧本使用的语言。修改后,需在“格式”步骤重写才会生效。",
+    "paceDescription": "随每条试音和每次录制一起发送。"
   },
   "storyboard": {
     "openingYourStoryboard": "正在打开你的分镜",
@@ -227,7 +229,9 @@
     "waitCurrentUploadThenDropAgain": "请等当前上传完成后再拖放。",
     "mediaOnTimelinePlanHere": "你的媒体已在这条时间线上，转走会丢下它们。请在这里规划节拍。",
     "refKind_character": "角色",
-    "refKind_style": "风格"
+    "refKind_style": "风格",
+    "oneClaimPerLine": "每行一条主张。",
+    "leaveFieldsBlank": "不适用的字段留空即可。"
   },
   "workflow": {
     "connect": "连接",

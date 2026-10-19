@@ -423,7 +423,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
                   if (value) setLanding(value);
                 }}
                 disabled={active}
-                aria-label="Where the result goes"
+                aria-label={i18n.t("timeline:editor.whereTheResultGoes", { defaultValue: "Where the result goes" })}
               >
                 <ToggleOption value="take" data-testid="ai-edit-landing-take">
                   Add as take
@@ -483,7 +483,7 @@ const AIEditClipPanel: React.FC<AIEditClipPanelProps> = ({ clipId }) => {
             </FlexColumn>
 
             {active && (
-              <ThinkingIndicator label="Editing video" announce />
+              <ThinkingIndicator label={i18n.t("timeline:editor.editingVideo", { defaultValue: "Editing video" })} announce />
             )}
             {settlementMessage && (
               <Caption color="error">{settlementMessage}</Caption>

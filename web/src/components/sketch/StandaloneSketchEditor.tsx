@@ -266,7 +266,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
         <ListItemIcon>
           <LayersOutlinedIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>Export PSD</ListItemText>
+        <ListItemText>{i18n.t("sketch:attrs.exportPsd", { defaultValue: "Export PSD" })}</ListItemText>
       </EditorMenuItem>,
       <EditorMenuItem
         key="import-psd"
@@ -279,7 +279,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
         <ListItemIcon>
           <FileUploadOutlinedIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>Import PSD…</ListItemText>
+        <ListItemText>{i18n.t("sketch:attrs.importPsd", { defaultValue: "Import PSD…" })}</ListItemText>
       </EditorMenuItem>
     ];
 

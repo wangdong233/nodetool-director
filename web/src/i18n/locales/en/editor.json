@@ -2932,7 +2932,12 @@
     "searchOutputType": "Search output type",
     "sceneIsEmpty": "Scene is empty",
     "useAddToCreate": "Use Add to create an object.",
-    "addCommentLabel": "Add comment"
+    "addCommentLabel": "Add comment",
+    "convertToJsScript": "Convert to JS script",
+    "downloadNodeJsScript": "Download Node.js script",
+    "replaceWith": "Replace with…",
+    "noProfilesYet": "No profiles yet",
+    "createOneBelow": "Create one below."
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

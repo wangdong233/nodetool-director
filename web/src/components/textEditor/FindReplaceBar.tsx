@@ -188,7 +188,7 @@ const FindReplaceBar = ({
     <Toolbar
       className="find-replace-bar"
       role="toolbar"
-      aria-label="Find and replace"
+      aria-label={t("editor:ui.findAndReplace", { defaultValue: "Find and replace" })}
       density="compact"
       css={styles(theme)}
       sx={{ flexWrap: "wrap", py: SPACING.xs, pl: SPACING.xl }}
@@ -241,7 +241,7 @@ const FindReplaceBar = ({
         <ToolbarGroup className="search-group">
           <NodeTextField
             className="replace-input"
-            placeholder="Replace with…"
+            placeholder={t("editor:ui.replaceWith", { defaultValue: "Replace with…" })}
             value={replaceTerm}
             onChange={handleReplaceChange}
             onKeyDown={handleKeyDown}

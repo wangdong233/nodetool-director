@@ -1021,13 +1021,13 @@ const FloatingToolBar: React.FC = memo(function FloatingToolBar() {
           onClick={runWithClose(handleDownload)}
         />
         <MenuItemPrimitive
-          label="Convert to JS script"
+          label={i18n.t("editor:ui.convertToJsScript", { defaultValue: "Convert to JS script" })}
           icon={<DataObjectOutlinedIcon fontSize="small" />}
           disabled={isExporting}
           onClick={runWithClose(() => void convertToJsScript())}
         />
         <MenuItemPrimitive
-          label="Download Node.js script"
+          label={i18n.t("editor:ui.downloadNodeJsScript", { defaultValue: "Download Node.js script" })}
           icon={<TerminalIcon fontSize="small" />}
           disabled={isExporting}
           onClick={runWithClose(() => void downloadNodeScript())}

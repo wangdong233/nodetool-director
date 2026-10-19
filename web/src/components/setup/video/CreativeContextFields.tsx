@@ -201,7 +201,7 @@ export default function CreativeContextFields({
       unmountOnExit
     >
       <FlexColumn gap={GAP.comfortable}>
-        <Caption>Leave fields blank when they do not apply.</Caption>
+        <Caption>{i18n.t("setup:video.leaveFieldsBlank", { defaultValue: "Leave fields blank when they do not apply." })}</Caption>
         {TEXT_FIELDS.map(([key, label]) => (
           <ContextText
             key={`${key}:${value?.[key] ?? ""}`}
@@ -218,7 +218,7 @@ export default function CreativeContextFields({
           <ContextText
             key={`${key}:${value?.[key]?.join("\n") ?? ""}`}
             multiline
-            helperText="One claim per line."
+            helperText={i18n.t("setup:video.oneClaimPerLine", { defaultValue: "One claim per line." })}
             readOnly={readOnly}
             label={
               key === "approved_claims"

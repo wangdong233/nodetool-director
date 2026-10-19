@@ -131,7 +131,9 @@
     "failedToLoadWorkflowInputs": "工作流输入加载失败。",
     "noEditableInputs": "这个工作流没有可编辑的输入参数。",
     "estimatedCostOneRun": "此工作流运行一次的预估花费",
-    "noteEditingShortcutsQ": "音符编辑快捷键(?)"
+    "noteEditingShortcutsQ": "音符编辑快捷键(?)",
+    "whereTheResultGoes": "结果去哪里",
+    "editingVideo": "正在编辑视频"
   },
   "tools": {
     "select": "选择",

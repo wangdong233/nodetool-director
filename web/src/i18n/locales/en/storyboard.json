@@ -866,7 +866,13 @@
     "directWritesTheScreenplayAndSeedsYourShots": "Direct writes the screenplay and seeds your shots.",
     "writeABriefAndPressDirectToGenerateAScreenplayOfShots": "Write a brief and press Direct to generate a screenplay of shots.",
     "createTimeline": "Create timeline",
-    "generateAStillOrRenderAClipToCreateATimeline": "Generate a still or render a clip to create a timeline."
+    "generateAStillOrRenderAClipToCreateATimeline": "Generate a still or render a clip to create a timeline.",
+    "hideVoiceSettings": "Hide voice settings",
+    "voiceSettings": "Voice settings",
+    "durationSecondsLabel": "Duration (seconds)",
+    "setByHand": "Set by hand",
+    "nothingToPreviewYet": "Nothing to preview yet",
+    "generateStillsOrClipsFirst": "Generate stills or clips first."
   },
   "board": {
     "searchShotsPlaceholder": "Search shots by description, dialogue, scene",

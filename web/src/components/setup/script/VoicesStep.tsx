@@ -429,7 +429,7 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({
             options={LANGUAGES.map((name) => ({ value: name, label: name }))}
             disabled={readOnly}
             onChange={setLanguage}
-            description="What the script is written in. Change it, then rewrite on the Format step to apply it."
+            description={i18n.t("setup:script.languageDescription", { defaultValue: "What the script is written in. Change it, then rewrite on the Format step to apply it." })}
           />
           <SelectField
             label={t("setup:script.paceLabel", { defaultValue: "Pace" })}
@@ -437,7 +437,7 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({
             options={PACES}
             disabled={readOnly}
             onChange={setPace}
-            description="Sent with every sample and every take."
+            description={i18n.t("setup:script.paceDescription", { defaultValue: "Sent with every sample and every take." })}
           />
         </FlexRow>
       </FlexColumn>

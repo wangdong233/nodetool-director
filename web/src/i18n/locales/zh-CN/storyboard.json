@@ -862,7 +862,13 @@
     "directWritesTheScreenplayAndSeedsYourShots": "Direct 会写出剧本并铺好你的镜头。",
     "writeABriefAndPressDirectToGenerateAScreenplayOfShots": "写一份简报，按 Direct 生成镜头剧本。",
     "createTimeline": "创建时间线",
-    "generateAStillOrRenderAClipToCreateATimeline": "生成一张静帧或渲染一个片段即可创建时间线。"
+    "generateAStillOrRenderAClipToCreateATimeline": "生成一张静帧或渲染一个片段即可创建时间线。",
+    "hideVoiceSettings": "收起配音设置",
+    "voiceSettings": "配音设置",
+    "durationSecondsLabel": "时长(秒)",
+    "setByHand": "手动设定",
+    "nothingToPreviewYet": "还没有可预览的内容",
+    "generateStillsOrClipsFirst": "请先生成静帧或片段。"
   },
   "board": {
     "searchShotsPlaceholder": "按描述、台词、场景搜索镜头",

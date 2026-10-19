@@ -201,8 +201,8 @@ const SpeakerCard = ({
         </FlexColumn>
         {!readOnly && (
           <ToolbarIconButton
-            tooltip={expanded ? "Hide voice settings" : "Voice settings"}
-            ariaLabel={expanded ? "Hide voice settings" : "Voice settings"}
+            tooltip={expanded ? i18n.t("storyboard:attrs.hideVoiceSettings", { defaultValue: "Hide voice settings" }) : i18n.t("storyboard:attrs.voiceSettings", { defaultValue: "Voice settings" })}
+            ariaLabel={expanded ? i18n.t("storyboard:attrs.hideVoiceSettings", { defaultValue: "Hide voice settings" }) : i18n.t("storyboard:attrs.voiceSettings", { defaultValue: "Voice settings" })}
             onClick={() => setExpanded((open) => !open)}
             icon={<TuneIcon fontSize="small" />}
             sx={expanded ? { color: "primary.main" } : undefined}

@@ -27,6 +27,7 @@ import { SketchModeToggle, SketchModeOption } from "./SketchModeToggle";
 import { TransformMode } from "../types";
 import { getToolbarTransformModes } from "../transform/modes";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface AdjustmentsSettingsPanelProps {
   brightness: number;
@@ -287,7 +288,7 @@ export const CropSettingsPanel = memo(function CropSettingsPanel({
       <FlexRow sx={{ gap: getSpacingPx(SPACING.micro), ml: 1 }}>
         <ToolbarIconButton
           icon={<CheckIcon sx={{ fontSize: ICON_SIZE.md }} />}
-          tooltip="Apply crop"
+          tooltip={i18n.t("sketch:attrs.applyCrop", { defaultValue: "Apply crop" })}
           shortcut={["Enter"]}
           tooltipPlacement="bottom"
           disabled={!hasPendingCrop}
@@ -296,7 +297,7 @@ export const CropSettingsPanel = memo(function CropSettingsPanel({
         />
         <ToolbarIconButton
           icon={<CloseIcon sx={{ fontSize: ICON_SIZE.md }} />}
-          tooltip="Cancel crop preview"
+          tooltip={i18n.t("sketch:attrs.cancelCropPreview", { defaultValue: "Cancel crop preview" })}
           shortcut={["Esc"]}
           tooltipPlacement="bottom"
           disabled={!hasPendingCrop}

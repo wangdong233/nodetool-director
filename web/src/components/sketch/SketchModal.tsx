@@ -132,7 +132,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
     (close: () => void) => [
       <MenuItemPrimitive
         key="export-psd"
-        label="Export PSD"
+        label={i18n.t("sketch:attrs.exportPsd", { defaultValue: "Export PSD" })}
         icon={<LayersOutlinedIcon fontSize="small" />}
         onClick={() => {
           close();
@@ -142,7 +142,7 @@ const SketchModal: React.FC<SketchModalProps> = ({
       />,
       <MenuItemPrimitive
         key="import-psd"
-        label="Import PSD…"
+        label={i18n.t("sketch:attrs.importPsd", { defaultValue: "Import PSD…" })}
         icon={<FileUploadOutlinedIcon fontSize="small" />}
         onClick={() => {
           close();

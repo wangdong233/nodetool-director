@@ -21,6 +21,7 @@ import {
 } from "../ui_primitives";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
 import { buildPreviewSequence, previewSignature } from "./previewSequence";
+import { i18n } from "../../i18n";
 
 /** Grows with the window, so the player stays the board's main picture. */
 const PREVIEW_HEIGHT = "max(400px, 60vh)";
@@ -77,8 +78,8 @@ const StoryboardPreviewInner: React.FC<StoryboardPreviewProps> = ({
       <Box sx={emptySx} className="storyboard-preview storyboard-preview--empty">
         <EmptyState
           size="small"
-          title="Nothing to preview yet"
-          description="Generate stills or clips first."
+          title={i18n.t("storyboard:attrs.nothingToPreviewYet", { defaultValue: "Nothing to preview yet" })}
+          description={i18n.t("storyboard:attrs.generateStillsOrClipsFirst", { defaultValue: "Generate stills or clips first." })}
         />
       </Box>
     );

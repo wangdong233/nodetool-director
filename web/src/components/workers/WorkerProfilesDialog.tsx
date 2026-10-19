@@ -343,8 +343,8 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           {profiles.length === 0 ? (
             <EmptyState
               size="small"
-              title="No profiles yet"
-              description="Create one below."
+              title={i18n.t("editor:ui.noProfilesYet", { defaultValue: "No profiles yet" })}
+              description={i18n.t("editor:ui.createOneBelow", { defaultValue: "Create one below." })}
             />
           ) : (
             profiles.map((profile) => (

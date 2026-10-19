@@ -250,7 +250,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
               compact
               size="small"
               type="number"
-              label="Duration (seconds)"
+              label={i18n.t("storyboard:attrs.durationSecondsLabel", { defaultValue: "Duration (seconds)" })}
               placeholder={
                 !pinned && takesDuration != null
                   ? String(takesDuration)
@@ -281,7 +281,7 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
                 <Chip
                   compact
                   variant="outlined"
-                  label={pinned ? "Set by hand" : "From voice takes"}
+                  label={pinned ? i18n.t("storyboard:attrs.setByHand", { defaultValue: "Set by hand" }) : "From voice takes"}
                   sx={chipSx}
                   onClick={readOnly ? undefined : handleToggleDurationSource}
                 />

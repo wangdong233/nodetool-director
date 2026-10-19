@@ -266,6 +266,10 @@
     "searchWorkflows": "Search workflows",
     "noMatchingWorkflows": "No matching workflows",
     "duplicateLayerTip": "Duplicate — copies overrides; tweak params for a variation",
-    "openInNodeEditor": "Open in node editor"
+    "openInNodeEditor": "Open in node editor",
+    "exportPsd": "Export PSD",
+    "importPsd": "Import PSD…",
+    "applyCrop": "Apply crop",
+    "cancelCropPreview": "Cancel crop preview"
   }
 }

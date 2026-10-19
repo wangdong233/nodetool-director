@@ -2927,7 +2927,12 @@
     "searchOutputType": "搜索输出类型",
     "sceneIsEmpty": "场景是空的",
     "useAddToCreate": "用“添加”创建一个对象。",
-    "addCommentLabel": "添加评论"
+    "addCommentLabel": "添加评论",
+    "convertToJsScript": "转换为 JS 脚本",
+    "downloadNodeJsScript": "下载 Node.js 脚本",
+    "replaceWith": "替换为…",
+    "noProfilesYet": "还没有配置",
+    "createOneBelow": "在下方创建一个。"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",
