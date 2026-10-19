@@ -124,3 +124,5 @@
   只在你碰巧看的地方清。
 - 迭代时用低 `preview_scale` 跑 `render_timeline`。底衬要按秒评判,
   静帧说不出它安不安。
+
+`timeline-edit-ops` 承载本文所提各调用的 op 契约。

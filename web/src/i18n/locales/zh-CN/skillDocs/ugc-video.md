@@ -173,3 +173,5 @@ and name the four you would drop. Stop there.
 9  she steps off, same outfit, walks to camera
 10 crossing the street. "Alright everyone, bye."
 ```
+
+`/product-commercial` 定观感,`/commercial-beat-sheet` 定钩子、节拍与时间码。

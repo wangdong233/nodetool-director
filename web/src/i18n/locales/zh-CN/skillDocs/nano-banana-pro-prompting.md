@@ -109,3 +109,5 @@ with shallow focus, muted earth tones"(四十多岁的陶艺师在杂乱工作�
 
 改编自 fal 的 Nano Banana Pro 提示词指南:
 https://fal.ai/learn/tools/nano-banana-pro-prompting-guide
+
+多图场景:Replicate 的 `google/nano-banana-pro` 最多 14 张,kie 的 `nano-banana-pro` 最多 8 张。文生图与编辑是同一模型。

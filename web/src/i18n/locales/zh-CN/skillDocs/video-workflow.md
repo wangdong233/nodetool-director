@@ -110,3 +110,5 @@ validate_workflow before saving.
 
 Save it and stop. Do not run the clip stage.
 ```
+
+人挑选过分镜板后再接线:先接 `CreateStoryboard` 或 `RecastStoryboard`,把它的输出传下去。

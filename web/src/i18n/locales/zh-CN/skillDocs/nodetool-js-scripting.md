@@ -187,3 +187,7 @@ nodetool jsscript versions list|show|create|restore|delete <id>
   被调用。
 - `docs/harnesses.md` § nodetool jsscript
 - `packages/sandbox-packs/README.md`
+
+`name` 必须是已声明的输出句柄;返回值之外不要再返回别的键。
+
+从源码运行 CLI:`npm run dev:nodetool -- <command>`。

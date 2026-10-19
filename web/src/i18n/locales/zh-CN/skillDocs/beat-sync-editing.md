@@ -44,6 +44,7 @@ frames_per_beat = (60 / bpm) × fps          # fps comes from get_timeline
 ```
 
 两者要么吃 `onsets_ms`,要么吃带 `offset_ms` 的 `bpm`。60ms 的默认容差
+`set_markers_from_beats` 还需要 `count`,即要标记的节拍数。`onsets_ms` 网格每个起点放一个标记,忽略 `count`。
 在 30fps 下约合两帧——宽到读起来"在拍点上",紧到不会把一个从来不挨着
 某拍的边缘拖过去。`snap_to_beats` 会报告每个目标,包括没有任何东西够得
 着的那些,并给出原因。`action: "move"` 保持片段长度、推移后面的内容;
@@ -185,3 +186,5 @@ J 切和 L 切靠把画面和声音拆到不同片段来搭,不靠转场:装配�
 | 转场从黑场淡入 | 进场头部下面没有东西 | 按转场的 `durationMs` 重叠两片段 |
 | 全程发平 | 节奏均匀 | 铺陈、推进、高潮、收束 |
 | 什么都不落地 | 没有唯一峰值 | 一个最大视觉压在 drop 上,随后一记驻留 |
+
+`timeline-edit-ops` 承载本文所提各调用的 op 契约。

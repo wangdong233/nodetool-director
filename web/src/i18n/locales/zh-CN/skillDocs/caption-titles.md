@@ -123,3 +123,9 @@ T1 标题/片尾卡,T2 下三分之一字幕条,T3 字幕,T4 标注,T5 CTA。
 本该挨着的脸、字幕拖到片段结束还没走完,都在这里现形。拿着帧再核一遍
 映射表:时码、阅读时长下限、压暗层顺序、结尾只有一个 CTA。没被要求
 渲染就停在文字层作者这一步。
+
+`timeline-edit-ops` 承载本文所提每个调用的 op 契约;`motion-principles` 给出进出时值。
+
+每个层级都有预置合成。用 `{"op": "insert_composition", "composition_id": "<id>", ...}` 插入,并在 `params` 里覆盖文案与时长。
+
+两遍验证回答不同问题:`validate_timeline` 读文档查 `text_illegible` 等问题;`render_timeline` 渲染后在画面上核对实际可读性。

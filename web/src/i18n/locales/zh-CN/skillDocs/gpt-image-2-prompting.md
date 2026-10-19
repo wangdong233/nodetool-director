@@ -133,3 +133,9 @@ and contact shadows. No extra accessories.
 
 改编自 fal 的 GPT Image 2 提示词指南:
 https://fal.ai/learn/tools/prompting-gpt-image-2
+
+默认路由是 `openai/gpt-image-2`,输出 PNG 或 WebP。fal 与 AtlasCloud 路由另有各自的模型标识。
+
+输出格式与 `background` 等字段只在该路由自己的节点上:用 `search_nodes` 找到它,`get_node_info` 读字段,`run_node` 运行。
+
+透明背景需要一条 `background` 字段设为 `transparent` 的路由。

@@ -115,3 +115,5 @@ brand marks, no on-screen type.
 7a 27-30 the pack alone on a cafe table, street bokeh, one-second push, dead
          hold on the tail. entity_ids: the product only.
 ```
+
+钩子、节拍与时间码来自 `/commercial-beat-sheet`。

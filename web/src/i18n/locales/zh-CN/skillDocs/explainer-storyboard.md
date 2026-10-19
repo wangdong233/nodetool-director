@@ -65,3 +65,9 @@
 处理 UI 样机的摆位与它在 9:16 下是否成立,`motion-direction` 让机制节拍
 共享同一种运动语言,`beat-sync-editing` 用于成片必须卡在音乐底上的场合。
 顿悟点后的半拍静默是一次保持,不是一个空档——留在成片里。
+
+本技能管解说片的结构。当旁白需要给镜头计时,再加载 `script-video`:先写稿,再由稿出镜。
+
+需要成片时,`timeline-edit-ops` 承载 timeline op 契约,`motion-graphics` 承载构建循环。
+
+分镜板相关操作走 `storyboard-core`:`create_storyboard({ name, brief, style, aspect_ratio })` 创建,取 `board.storyboard_id`。
