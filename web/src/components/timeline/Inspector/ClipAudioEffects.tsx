@@ -56,6 +56,7 @@ import {
   formatKnob,
   type ClipAudioKnob
 } from "./clipAudioEffectKnobs";
+import { i18n } from "../../../i18n";
 
 const ClipAudioEditorDialog = lazy(() => import("./ClipAudioEditorDialog"));
 
@@ -86,7 +87,7 @@ const EffectFields: React.FC<EffectFieldsProps> = memo(({ effect, onPatch }) => 
       {effect.type === "filter" && (
         <InspectorRow label="Mode">
           <InspectorSelect
-            label="Filter mode"
+            label={i18n.t("timeline:attrs.filterMode", { defaultValue: "Filter mode" })}
             value={effect.mode}
             options={FILTER_MODE_OPTIONS}
             onChange={(mode) => onPatch({ mode: mode as TrackFilterEffect["mode"] })}
@@ -168,7 +169,7 @@ const EffectRow: React.FC<EffectRowProps> = memo(
           </Button>
           <ToolbarIconButton
             icon={<ArrowUpwardOutlinedIcon />}
-            tooltip="Move earlier in the chain"
+            tooltip={i18n.t("timeline:attrs.moveEarlierInChain", { defaultValue: "Move earlier in the chain" })}
             aria-label={`Move ${name} up`}
             size="small"
             disabled={isFirst}
@@ -176,7 +177,7 @@ const EffectRow: React.FC<EffectRowProps> = memo(
           />
           <ToolbarIconButton
             icon={<ArrowDownwardOutlinedIcon />}
-            tooltip="Move later in the chain"
+            tooltip={i18n.t("timeline:attrs.moveLaterInChain", { defaultValue: "Move later in the chain" })}
             aria-label={`Move ${name} down`}
             size="small"
             disabled={isLast}

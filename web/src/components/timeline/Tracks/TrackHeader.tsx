@@ -958,12 +958,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
               </Tooltip>
             )}
 
-            <Tooltip title="Delete track">
+            <Tooltip title={i18n.t("timeline:editor.deleteTrack", { defaultValue: "Delete track" })}>
               <button
                 type="button"
                 css={iconButtonOnCss}
                 onClick={() => setConfirmRemoveOpen(true)}
-                aria-label="Delete track"
+                aria-label={i18n.t("timeline:editor.deleteTrack", { defaultValue: "Delete track" })}
               >
                 <DeleteOutlineOutlinedIcon />
               </button>
@@ -1046,7 +1046,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             onClick={handleMenuInsertBelow}
           />
           <MenuItemPrimitive
-            label="Delete track"
+            label={i18n.t("timeline:editor.deleteTrack", { defaultValue: "Delete track" })}
             icon={<DeleteOutlineOutlinedIcon fontSize="small" />}
             onClick={handleMenuRemove}
             color="error"
@@ -1065,7 +1065,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
               });
             }
           }}
-          title="Delete track?"
+          title={i18n.t("timeline:editor.deleteTrackConfirm", { defaultValue: "Delete track?" })}
           content={`Track "${track.name}" and all its clips are deleted.`}
           confirmText="Delete"
           cancelText="Cancel"

@@ -383,7 +383,12 @@
     "colorOverLifetime": "生命周期颜色",
     "particleColorOverLifetime": "粒子生命周期颜色",
     "removeColorOverLifetime": "移除生命周期颜色",
-    "addColorOverLifetime": "添加生命周期颜色"
+    "addColorOverLifetime": "添加生命周期颜色",
+    "pausePreview": "暂停预览",
+    "playPreview": "播放预览",
+    "restartPreview": "重启预览",
+    "isolatedPreview": "隔离预览。重启沿用同一个种子;编辑会重启效果。",
+    "billboards3d": "3D 用圆形公告板或网格;精灵纹理与图集仅 2D 可用。"
   },
   "export": {
     "exportingBuild": "正在导出构建",

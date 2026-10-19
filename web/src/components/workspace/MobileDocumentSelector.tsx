@@ -200,8 +200,8 @@ const MobileDocumentSelector = ({
           activeTab
             ? `Open document: ${tabDisplayTitle(activeTab)}`
             : homeIsActive
-              ? "Project home, switch document"
-              : "Open documents"
+              ? t("editor:ui.projectHomeSwitchDoc", { defaultValue: "Project home, switch document" })
+              : t("editor:ui.openDocuments", { defaultValue: "Open documents" })
         }
         onClick={() => setOpen(true)}
       >
@@ -240,8 +240,8 @@ const MobileDocumentSelector = ({
           {tabs.length === 0 && (
             <EmptyState
               size="small"
-              title="No documents open"
-              description="Tap New to open or create one."
+              title={t("editor:ui.noDocumentsOpen", { defaultValue: "No documents open" })}
+              description={t("editor:ui.tapNewToOpen", { defaultValue: "Tap New to open or create one." })}
             />
           )}
           <List dense disablePadding>

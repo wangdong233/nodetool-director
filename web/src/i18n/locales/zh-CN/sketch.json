@@ -260,6 +260,7 @@
     "restoreThisVersion": "恢复此版本",
     "restoreVersion": "恢复版本",
     "deleteVersion": "删除版本",
-    "deleteVersionConfirm": "删除版本?"
+    "deleteVersionConfirm": "删除版本?",
+    "resetToBlackAndWhite": "重置为黑白"
   }
 }

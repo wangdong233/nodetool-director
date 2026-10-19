@@ -125,7 +125,9 @@
     "exportingForPremiere": "正在导出 Premiere…",
     "exportForPremierePro": "导出到 Premiere Pro",
     "exportingMedia": "正在导出媒体…",
-    "exportMediaZip": "导出媒体(.zip)"
+    "exportMediaZip": "导出媒体(.zip)",
+    "deleteTrack": "删除轨道",
+    "deleteTrackConfirm": "删除轨道?"
   },
   "tools": {
     "select": "选择",
@@ -869,7 +871,10 @@
     "solo": "独奏",
     "showEffectsChain": "显示效果链",
     "middleC": "中央 C",
-    "aVideoOrOverlayTrack": "视频或叠加"
+    "aVideoOrOverlayTrack": "视频或叠加",
+    "filterMode": "滤波模式",
+    "moveEarlierInChain": "在链路上前移",
+    "moveLaterInChain": "在链路上后移"
   },
   "shortcuts": {
     "tools": "工具",

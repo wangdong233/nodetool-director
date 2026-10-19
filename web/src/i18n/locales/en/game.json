@@ -383,7 +383,12 @@
     "colorOverLifetime": "Color over lifetime",
     "particleColorOverLifetime": "Particle color over lifetime",
     "removeColorOverLifetime": "Remove color over lifetime",
-    "addColorOverLifetime": "Add color over lifetime"
+    "addColorOverLifetime": "Add color over lifetime",
+    "pausePreview": "Pause preview",
+    "playPreview": "Play preview",
+    "restartPreview": "Restart preview",
+    "isolatedPreview": "Isolated preview. Restart uses the same seed. Editing restarts the effect.",
+    "billboards3d": "3D uses round billboards or meshes. Sprite textures and sheets are 2D only."
   },
   "export": {
     "exportingBuild": "Exporting build",

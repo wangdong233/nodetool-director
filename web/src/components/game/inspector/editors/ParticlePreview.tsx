@@ -5,6 +5,7 @@ import { createGameParticlePreview, FixedTickClock, PARTICLE_PREVIEW_HEIGHT, PAR
 import { resolveMediaUri } from "../../../../utils/resolveMediaUri";
 import { BORDER_RADIUS, Box, Caption, EditorButton, FlexColumn, FlexRow, SPACING } from "../../../ui_primitives";
 import ReportBugButton from "../../../support/ReportBugButton";
+import { i18n } from "../../../../i18n";
 
 interface ParticlePreviewProps {
   readonly particles: GameParticles;
@@ -111,12 +112,12 @@ export default function ParticlePreview({ particles, dimension, assets }: Partic
   return <FlexColumn gap={SPACING.xs}>
     <Box ref={host} sx={{ width: "100%", aspectRatio: "16 / 9", backgroundColor: "background.default", borderRadius: BORDER_RADIUS.sm, overflow: "hidden" }} />
     <FlexRow gap={SPACING.sm} align="center">
-      <EditorButton onClick={() => setPlaying((value) => !value)}>{playing ? "Pause preview" : "Play preview"}</EditorButton>
-      <EditorButton onClick={() => setGeneration((value) => value + 1)}>Restart preview</EditorButton>
+      <EditorButton onClick={() => setPlaying((value) => !value)}>{playing ? i18n.t("game:particle.pausePreview", { defaultValue: "Pause preview" }) : i18n.t("game:particle.playPreview", { defaultValue: "Play preview" })}</EditorButton>
+      <EditorButton onClick={() => setGeneration((value) => value + 1)}>{i18n.t("game:particle.restartPreview", { defaultValue: "Restart preview" })}</EditorButton>
     </FlexRow>
     <Caption>{dimension === "2d" ? "Canvas2D" : "WebGL2"} · {status.count} particles · tick {status.tick}</Caption>
-    <Caption>Isolated preview. Restart uses the same seed. Editing restarts the effect.</Caption>
-    {dimension === "3d" && <Caption>3D uses round billboards or meshes. Sprite textures and sheets are 2D only.</Caption>}
+    <Caption>{i18n.t("game:particle.isolatedPreview", { defaultValue: "Isolated preview. Restart uses the same seed. Editing restarts the effect." })}</Caption>
+    {dimension === "3d" && <Caption>{i18n.t("game:particle.billboards3d", { defaultValue: "3D uses round billboards or meshes. Sprite textures and sheets are 2D only." })}</Caption>}
     {error && <>
       <Caption color="error" role="alert">{error}</Caption>
       <ReportBugButton context={{ source: "panel-crash", summary: "Particle preview failed", errorText: error }} />

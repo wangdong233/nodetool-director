@@ -260,6 +260,7 @@
     "restoreThisVersion": "Restore this version",
     "restoreVersion": "Restore version",
     "deleteVersion": "Delete version",
-    "deleteVersionConfirm": "Delete version?"
+    "deleteVersionConfirm": "Delete version?",
+    "resetToBlackAndWhite": "Reset to black and white"
   }
 }

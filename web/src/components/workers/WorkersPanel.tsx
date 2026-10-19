@@ -545,8 +545,8 @@ const WorkersPanel: React.FC = () => {
           ) : shownInstances.length === 0 ? (
             <EmptyState
               size="small"
-              title="No workers running"
-              description="Start one to rent a GPU for your graphs."
+              title={t("editor:ui.noWorkersRunning", { defaultValue: "No workers running" })}
+              description={t("editor:ui.startOneToRentGpu", { defaultValue: "Start one to rent a GPU for your graphs." })}
             />
           ) : (
             shownInstances.map((instance) => (
@@ -588,8 +588,8 @@ const WorkersPanel: React.FC = () => {
         open={terminateTargetId !== null}
         onClose={closeTerminateConfirm}
         onConfirm={handleConfirmTerminate}
-        title="Terminate worker?"
-        content="Its volume and all cached models are permanently deleted. This stops all billing."
+        title={t("editor:ui.terminateWorker", { defaultValue: "Terminate worker?" })}
+        content={t("editor:ui.terminateWorkerContent", { defaultValue: "Its volume and all cached models are permanently deleted. This stops all billing." })}
         confirmText={i18n.t("editor:ui.terminate", { defaultValue: "Terminate" })}
         cancelText="Cancel"
         destructive

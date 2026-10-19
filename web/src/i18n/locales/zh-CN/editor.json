@@ -2867,7 +2867,19 @@
     "dragTheXYZLabel": "拖动 X / Y / Z 标签",
     "modelsAppearAfterInstall": "安装完成后,模型会出现在这里。",
     "failedToLoadModelsFrom": "以下来源的模型加载失败:",
-    "missingAProvider": "找不到你在用的服务商?"
+    "missingAProvider": "找不到你在用的服务商?",
+    "workflowJson": "工作流 JSON",
+    "orDropJsonPng": "或把 .json / .png 拖到这里",
+    "exposeAdditionalParams": "把更多参数暴露为输入:",
+    "deleteStop": "删除停止点",
+    "noWorkersRunning": "没有正在运行的 worker",
+    "startOneToRentGpu": "启动一个,为你的图租用 GPU。",
+    "terminateWorker": "终止 worker?",
+    "terminateWorkerContent": "它的卷和全部缓存模型会被永久删除,计费随之停止。",
+    "noDocumentsOpen": "没有打开的文档",
+    "tapNewToOpen": "点“新建”打开或创建一个。",
+    "projectHomeSwitchDoc": "项目主页,切换文档",
+    "openDocuments": "打开文档"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

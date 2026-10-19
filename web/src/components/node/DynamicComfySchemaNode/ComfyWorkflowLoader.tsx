@@ -217,7 +217,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
     return (
       <>
         <ToolbarIconButton
-          title="Load workflow"
+          title={i18n.t("editor:ui.loadWorkflow", { defaultValue: "Load workflow" })}
           size="small"
           onClick={() => setOpen(true)}
           sx={{
@@ -249,7 +249,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
             </Caption>
             <DropZone onFilesDrop={onFilesDrop} sx={{ p: SPACING.xs }}>
               <TextInput
-                label="Workflow JSON"
+                label={i18n.t("editor:ui.workflowJson", { defaultValue: "Workflow JSON" })}
                 value={text}
                 onChange={(e) => parseText(e.target.value)}
                 multiline
@@ -265,7 +265,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
                 >
                   <UploadFileIcon sx={{ fontSize: ICON_SIZE.md }} />
                 </ToolbarIconButton>
-                <Caption>or drop a .json / .png here</Caption>
+                <Caption>{i18n.t("editor:ui.orDropJsonPng", { defaultValue: "or drop a .json / .png here" })}</Caption>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -291,7 +291,7 @@ export const ComfyWorkflowLoader: React.FC<ComfyWorkflowLoaderProps> = memo(
                 <Text size="small">{summary}</Text>
                 {schema.available_params.length > 0 && (
                   <>
-                    <Caption>Expose additional parameters as inputs:</Caption>
+                    <Caption>{i18n.t("editor:ui.exposeAdditionalParams", { defaultValue: "Expose additional parameters as inputs:" })}</Caption>
                     <ScrollArea style={{ maxHeight: 180 }}>
                       <FlexColumn gap={SPACING.none}>
                         {schema.available_params.map((param) => (

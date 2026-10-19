@@ -163,21 +163,21 @@ const ColorSwatchPair: React.FC<ColorSwatchPairProps> = ({
         sx={{ width: `${STACK}px` }}
       >
         <Tooltip
-          title="Swap colors"
+          title={t("sketch:attrs.swapColors", { defaultValue: "Swap colors" })}
           shortcut={["X"]}
           placement="right"
         >
           <EditorButton
             density="compact"
             onClick={onSwapColors}
-            aria-label="Swap colors"
+            aria-label={t("sketch:attrs.swapColors", { defaultValue: "Swap colors" })}
             sx={{ flex: 1, minWidth: 0, padding: 0, borderRadius: BORDER_RADIUS.sm }}
           >
             <SwapHorizIcon sx={{ fontSize: ICON_SIZE.xs }} />
           </EditorButton>
         </Tooltip>
         <Tooltip
-          title="Reset to black and white"
+          title={t("sketch:attrs.resetToBlackAndWhite", { defaultValue: "Reset to black and white" })}
           shortcut={["D"]}
           placement="right"
         >

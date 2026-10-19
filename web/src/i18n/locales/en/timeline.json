@@ -125,7 +125,9 @@
     "exportingForPremiere": "Exporting for Premiere…",
     "exportForPremierePro": "Export for Premiere Pro",
     "exportingMedia": "Exporting media…",
-    "exportMediaZip": "Export media (.zip)"
+    "exportMediaZip": "Export media (.zip)",
+    "deleteTrack": "Delete track",
+    "deleteTrackConfirm": "Delete track?"
   },
   "tools": {
     "select": "Select",
@@ -869,7 +871,10 @@
     "solo": "Solo",
     "showEffectsChain": "Show effects chain",
     "middleC": "middle C",
-    "aVideoOrOverlayTrack": "a video or overlay"
+    "aVideoOrOverlayTrack": "a video or overlay",
+    "filterMode": "Filter mode",
+    "moveEarlierInChain": "Move earlier in the chain",
+    "moveLaterInChain": "Move later in the chain"
   },
   "shortcuts": {
     "tools": "Tools",

@@ -2872,7 +2872,19 @@
     "dragTheXYZLabel": "Drag the X / Y / Z label",
     "modelsAppearAfterInstall": "The models appear here when the install finishes.",
     "failedToLoadModelsFrom": "Failed to load models from:",
-    "missingAProvider": "Missing a provider?"
+    "missingAProvider": "Missing a provider?",
+    "workflowJson": "Workflow JSON",
+    "orDropJsonPng": "or drop a .json / .png here",
+    "exposeAdditionalParams": "Expose additional parameters as inputs:",
+    "deleteStop": "Delete stop",
+    "noWorkersRunning": "No workers running",
+    "startOneToRentGpu": "Start one to rent a GPU for your graphs.",
+    "terminateWorker": "Terminate worker?",
+    "terminateWorkerContent": "Its volume and all cached models are permanently deleted. This stops all billing.",
+    "noDocumentsOpen": "No documents open",
+    "tapNewToOpen": "Tap New to open or create one.",
+    "projectHomeSwitchDoc": "Project home, switch document",
+    "openDocuments": "Open documents"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",
