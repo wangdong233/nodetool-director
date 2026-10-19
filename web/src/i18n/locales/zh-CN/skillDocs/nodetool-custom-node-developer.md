@@ -229,3 +229,11 @@ describe("MyNode", () => {
 - **nodeType 格式**: 必须是 `namespace.category.Name`,以点分隔
 - **可变状态没有 initialize()**: 用了实例字段就要在 `initialize()` 里重置
 - **漏声明密钥**: 加进 `requiredSettings` 数组,UI 才会正确提示
+
+沙箱 JavaScript 的写法见 `nodetool-js-scripting`。
+
+流式是结构性的:重写 `genProcess` 让节点产出多个值,`outputCorrelation` 声明关系——`iteration`(每次 yield 一个值)或 `single`(最后一个值)。`chunk` 输出必须来自配 `iteration` 的 `genProcess`。消费流的节点设 `isStreamingInput` 并实现 `run()`。
+
+媒体引用可带内联 `data`,或只有 `uri`(`asset://`、`file://`、storage、`http`)。用 `loadMediaRefBytes` 读字节,它解析所有形态;返回的 `data` 永远不要写成 `data:` URI。
+
+沙箱包允许清单:`NODETOOL_PACKS_REQUIRE_ALLOWLIST=1` 时只加载清单内的包。

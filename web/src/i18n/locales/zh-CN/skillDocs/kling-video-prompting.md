@@ -103,3 +103,9 @@ Immediately, [Marla, brittle, too fast]: "I was coming back."
 改编自 fal 的可灵 3.0 提示词指南与 Kling 3.0 Pro 使用说明:
 https://blog.fal.ai/kling-3-0-prompting-guide/
 https://fal.ai/learn/tools/how-to-use-kling-3-0-pro
+
+音频:kie 路由 `kling-2.6/*` 与 `kling-3.0/video` 用 `sound`(默认关),`kling-3.0-omni/*` 用 `audio`(默认关);Replicate 的 `kling-v3-video`、`kling-v3-omni-video` 的 `generate_audio` 默认关,`kling-v2.6` 默认开。
+
+多镜头:`kling-3.0/video` 的 `multi_shots` 最多 12 条 `multi_prompt`、最多 3 个 `kling_elements`;omni 路由用 `multi_shot` 配 `shot_type` `customize` 或 `intelligence`;`kling/v3-turbo-*` 只收提示词与时长;`cfg_scale` 与 `negative_prompt` 在 v2.6 与 v3.0 上有,O3 没有。
+
+参考图转视频:`find_model` 查 `reference_to_video` 后走 `generate_video_from_references`;路由级字段用 `search_nodes` 找到,`get_node_info` 读字段,`run_node` 运行。首尾帧:fal 叫 `end_image_url`,别处叫 `tail_image_url`。

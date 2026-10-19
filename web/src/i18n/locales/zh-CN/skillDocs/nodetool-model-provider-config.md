@@ -300,3 +300,11 @@ export class MyProvider extends BaseProvider {
   `NODETOOL_PYTHON_ON_DEMAND=true` 且还没有工作流启动过 worker
 - **限流**: 云端服务商有限流;做重试或改用本地
 - **模型 ID 不匹配**: 用服务商的准确模型 ID(如 `gpt-5.4`、`claude-sonnet-4-6`)——`nodetool models by-provider <provider>` 可列出
+
+配钥匙四步:1. `list_secrets` 查已配置的凭据(永不返回值);2. `request_secret {key, reason, help_url}` 打开对话框让用户输入;3. `find_model {capability}` 返回真实的 `{provider, model_id}` 与 `ref`;4. `list_provider_models {provider}` 列单个服务商的语言模型。代码动作里对应 `nodetool.secrets`、`nodetool.settings`(先加载 `api-settings`)与 `nodetool.models`(先加载 `api-models`)。
+
+`nodetool` 服务商是 NodeTool 托管服务。
+
+云端服务商:**FAL**(`fal_ai`,`FAL_API_KEY`,快速图像/视频)、**KIE**(`kie`,`KIE_API_KEY`,多厂商图像/视频/音乐)、**ElevenLabs**(`elevenlabs`,`ELEVENLABS_API_KEY`,TTS 与音效);另有 `azure_openai`(`AZURE_OPENAI_API_KEY`、`AZURE_OPENAI_ENDPOINT`、`AZURE_OPENAI_DEPLOYMENTS`)与 `bedrock`(`BEDROCK_ACCESS_KEY_ID`、`BEDROCK_SECRET_ACCESS_KEY`、`BEDROCK_REGION`)。
+
+CLI:`nodetool providers` 列已配置服务商,`nodetool models recommended` 列精选推荐;模型 id 以 `find_model` 或 `list_provider_models` 的结果为准,不要凭记忆填。密钥贴进聊天时用 `request_secret` 重新录入。

@@ -165,3 +165,9 @@ curl -X POST http://localhost:7777/v1/chat/completions \
 - **指望有个 shell**: `ls` 这类裸命令是发给模型,不是执行。改用智能体的文件工具。
 - **找 `/agent` 开关**: 智能体模式常开,没有开关。
 - **误用 `/agent`**: 该命令用于检视委派出去的子智能体线程,不是智能体模式开关。
+
+服务商别名含 `groq`、`mistral`、`deepseek`、`moonshot`、`minimax`、`cerebras`、`gmi`、`meta`、`replicate`、`kie`、`aki`、`ollama`、`lmstudio`、`mlx`、`node_llama_cpp`。
+
+工具白名单:`web_search`(联网搜索)、`take_screenshot`(网页截图)等;`--tools` 按精确名匹配,未知名会被静默丢弃,先核对拼写。
+
+**无人值守会花钱不问**:管道输入默认 `--permission-mode auto`。设置 `--cost-cap` 与 `--timeout` 兜底。
