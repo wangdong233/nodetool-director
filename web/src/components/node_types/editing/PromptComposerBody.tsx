@@ -195,7 +195,7 @@ const VariableInsertBar: React.FC<{
       {variables.map(({ name, source }) => (
         <Tooltip
           key={name}
-          title={source === "graph" ? "Set by a Set Variable node" : ""}
+          title={source === "graph" ? t("editor:ui.setByASetVariableNode", { defaultValue: "Set by a Set Variable node" }) : ""}
           describeChild
         >
           <button

@@ -235,7 +235,7 @@ export const AssetMentionMenu: React.FC<AssetMentionMenuProps> = ({
       <TabGroup
         className="mention-tabs"
         size="small"
-        aria-label="Asset source"
+        aria-label={t("editor:ui.assetSource", { defaultValue: "Asset source" })}
         tabs={MENTION_TABS}
         value={activeTab}
         onChange={handleTabChange}

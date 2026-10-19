@@ -5,6 +5,7 @@ import type { Theme } from "@mui/material/styles";
 import { Tooltip, ToolbarIconButton, LoadingSpinner, MOTION, BORDER_RADIUS } from "../ui_primitives";
 import PlayArrow from "@mui/icons-material/PlayArrow";
 import { memo, useCallback, useMemo } from "react";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme, _isRunning: boolean) =>
   css({
@@ -53,7 +54,7 @@ const RunGroupButton: React.FC<RunGroupButtonProps> = ({
 
   return (
     <Tooltip
-      title={isWorkflowRunning ? "Group is running" : "Run group"}
+      title={isWorkflowRunning ? i18n.t("editor:ui.groupIsRunning", { defaultValue: "Group is running" }) : i18n.t("editor:ui.runGroup", { defaultValue: "Run group" })}
     >
       <ToolbarIconButton
         title=""

@@ -9,6 +9,7 @@ import Select from "../inputs/Select";
 import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import ConnectedBadge from "./ConnectedBadge";
 import { LoadingSpinner } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface CollectionValue {
   type: "collection";
@@ -67,7 +68,7 @@ const CollectionProperty = (props: PropertyProps<CollectionValue | null>) => {
         onChange={(newValue) =>
           props.onChange({ type: "collection", name: newValue })
         }
-        placeholder="Select collection…"
+        placeholder={i18n.t("editor:ui.selectCollection", { defaultValue: "Select collection…" })}
         label={props.property.name}
       />
     </>

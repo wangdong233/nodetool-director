@@ -539,7 +539,7 @@ const PanelBottom: React.FC = () => {
             <TabGroup
               className="tab-rail"
               size="small"
-              aria-label="Bottom panel views"
+              aria-label={t("editor:ui.bottomPanelViews", { defaultValue: "Bottom panel views" })}
               tabs={visibleTabs}
               value={isVisible ? activeView : false}
               onChange={handleTabToggle}

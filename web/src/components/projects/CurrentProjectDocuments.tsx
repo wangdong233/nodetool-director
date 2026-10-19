@@ -126,7 +126,7 @@ const CurrentProjectDocuments = () => {
           {error.message}
         </ErrorBanner>
       ) : documents.length === 0 ? (
-        <EmptyState size="small" title="No documents in this project yet" />
+        <EmptyState size="small" title={t("editor:ui.noDocumentsInProject", { defaultValue: "No documents in this project yet" })} />
       ) : (
         <Box
           sx={{

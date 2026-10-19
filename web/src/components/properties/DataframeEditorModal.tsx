@@ -582,7 +582,7 @@ const DataframeEditorModal = ({
               <div className="table-section">
                 <div className="search-bar">
                   <NodeTextField
-                    placeholder="Search in table"
+                    placeholder={t("editor:ui.searchInTable", { defaultValue: "Search in table" })}
                     value={searchFilter}
                     onChange={handleSearchChange}
                     InputProps={{

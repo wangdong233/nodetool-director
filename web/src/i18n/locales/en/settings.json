@@ -348,6 +348,7 @@
   "privacy": {
     "shareAnonymousStats": "Share anonymous usage statistics",
     "noEventsYet": "No events recorded in this session yet.",
-    "nothingRecorded": "Nothing is recorded while usage statistics are off."
+    "nothingRecorded": "Nothing is recorded while usage statistics are off.",
+    "usageStatistics": "Usage statistics"
   }
 }

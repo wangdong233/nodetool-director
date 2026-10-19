@@ -406,5 +406,9 @@
   },
   "jsScript": {
     "agentsReadHelper": "Agents read this to decide whether to call the script."
+  },
+  "packages": {
+    "searchPlaceholder": "Search (press /)",
+    "pageTitle": "Package manager"
   }
 }

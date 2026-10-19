@@ -158,7 +158,7 @@ export const ReplicateSchemaLoader: React.FC<ReplicateSchemaLoaderProps> = memo(
     return (
       <Box sx={{ display: "inline-flex", alignItems: "center" }}>
         <ToolbarIconButton
-          title="Reload schema"
+          title={i18n.t("editor:ui.reloadSchema", { defaultValue: "Reload schema" })}
           size="small"
           disabled={loading}
           onClick={() => void handleLoad(true)}

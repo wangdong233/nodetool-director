@@ -314,7 +314,7 @@ const QuickActionTiles = memo(function QuickActionTiles() {
     <div css={memoizedStyles}>
       <TileSection title={t("editor:ui.aiNodes", { defaultValue: "AI nodes" })} actions={AI_TASK_ACTIONS} {...sectionProps} />
       <TileSection
-        title="Provider models"
+        title={t("editor:ui.providerModels", { defaultValue: "Provider models" })}
         actions={PROVIDER_ACTIONS}
         {...sectionProps}
       />

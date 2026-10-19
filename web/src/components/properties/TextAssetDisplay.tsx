@@ -38,7 +38,7 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
   }, [data]);
 
   const memoizedPreviewText = useMemo(() => {
-    return data ? data.substring(0, MAX_TEXT_LENGTH) : "Loading preview…";
+    return data ? data.substring(0, MAX_TEXT_LENGTH) : t("editor:ui.loadingPreview", { defaultValue: "Loading preview…" });
   }, [data]);
 
   return (

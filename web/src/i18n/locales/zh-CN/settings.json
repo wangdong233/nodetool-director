@@ -348,6 +348,7 @@
   "privacy": {
     "shareAnonymousStats": "分享匿名使用统计",
     "noEventsYet": "本次会话还没有记录任何事件。",
-    "nothingRecorded": "使用统计关闭期间不记录任何内容。"
+    "nothingRecorded": "使用统计关闭期间不记录任何内容。",
+    "usageStatistics": "使用统计"
   }
 }

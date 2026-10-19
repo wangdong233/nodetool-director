@@ -11,7 +11,7 @@ import { i18n } from "../../i18n";
 const PackagesPage: React.FC = () => (
   <PageLayout
     icon={<Inventory2OutlinedIcon sx={{ fontSize: ICON_SIZE.lg }} />}
-    title="Package manager"
+    title={i18n.t("tools:packages.pageTitle", { defaultValue: "Package manager" })}
     subtitle={i18n.t("editor:ui.installRuntimesAndNodePacksInOnePlace", { defaultValue: "Install runtimes and node packs in one place." })}
     docsTopic="nodePacks"
     padded={false}

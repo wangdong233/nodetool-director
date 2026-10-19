@@ -451,7 +451,7 @@ const NodeLibrary = memo<NodeLibraryProps>(
               type="button"
               className="nl-search-clear"
               onClick={() => setQuery("")}
-              aria-label="Clear search"
+              aria-label={i18n.t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
             >
               <ClearIcon />
             </button>

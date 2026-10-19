@@ -338,7 +338,7 @@ export const KeyboardConnectionPicker = ({
           <EmptyState
             variant="no-results"
             size="small"
-            title="No compatible ports found"
+            title={t("editor:ui.noCompatiblePortsFound", { defaultValue: "No compatible ports found" })}
           />
         )}
       </FlexColumn>

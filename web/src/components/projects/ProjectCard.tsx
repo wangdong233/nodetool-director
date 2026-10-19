@@ -256,7 +256,7 @@ const ProjectCard = ({ detail, onOpen, onDropDocument }: ProjectCardProps) => {
             </Tooltip>
           )}
           <Box sx={{ flex: 1 }} />
-          <Tooltip title="Spent at provider rates">
+          <Tooltip title={i18n.t("editor:ui.spentAtProviderRates", { defaultValue: "Spent at provider rates" })}>
             <Box
               component="span"
               sx={{

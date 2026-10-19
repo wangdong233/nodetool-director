@@ -68,7 +68,10 @@
     },
     "speech": {
       "desc": "输入一行文字，听它被读出来。"
-    }
+    },
+    "makeAGame": "做一个游戏",
+    "searchTemplates": "按名称、标签搜索模板",
+    "noInputsDeclared": "未声明任何输入"
   },
   "composer": {
     "selectModel": "选择模型",

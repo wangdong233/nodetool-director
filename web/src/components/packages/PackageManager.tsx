@@ -317,7 +317,7 @@ function PackageManager() {
                     ref={searchRef}
                     value={q}
                     onChange={setQ}
-                    placeholder="Search (press /)"
+                    placeholder={t("tools:packages.searchPlaceholder", { defaultValue: "Search (press /)" })}
                     showClear
                   />
                 </Box>

@@ -173,7 +173,7 @@ const Model3DModelSelect: React.FC<Model3DModelSelectProps> = ({
           minWidth: 250
         }}
       >
-        {isLoading && <MenuItemPrimitive label="Loading models…" disabled />}
+        {isLoading && <MenuItemPrimitive label={t("editor:ui.loadingModels", { defaultValue: "Loading models…" })} disabled />}
         {!isLoading && filteredModels.length === 0 && (
           <MenuItemPrimitive label={t("editor:ui.no3DModelsAvailable", { defaultValue: "No 3D models available" })} disabled />
         )}

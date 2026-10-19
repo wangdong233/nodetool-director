@@ -26,6 +26,7 @@ import {
 import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
 import type { Thread } from "../../stores/ApiTypes";
 import { relativeTime } from "../../utils/formatDateAndTime";
+import { i18n } from "../../i18n";
 
 const RECENT_CHAT_COUNT = 4;
 
@@ -130,7 +131,7 @@ const RecentChats = () => {
     <FlexColumn
       component="section"
       gap={SPACING.md}
-      aria-label="Recent chats"
+      aria-label={i18n.t("editor:ui.recentChats", { defaultValue: "Recent chats" })}
     >
       <FlexRow align="center" gap={SPACING.md}>
         <Caption color="muted" sx={{ flex: 1 }}>

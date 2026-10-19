@@ -379,7 +379,7 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
         open={clearConfirmOpen}
         onClose={() => setClearConfirmOpen(false)}
         onConfirm={handleClearRecent}
-        title="Clear recent nodes?"
+        title={t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes?" })}
         content={i18n.t("editor:ui.thisClearsYourRecentlyUsedNodesListThisCannotBeUndone", { defaultValue: "This clears your recently used nodes list. This cannot be undone." })}
         confirmText={i18n.t("editor:ui.clearRecent", { defaultValue: "Clear recent" })}
         destructive

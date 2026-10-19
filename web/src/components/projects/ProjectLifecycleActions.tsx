@@ -138,7 +138,7 @@ const ProjectLifecycleActions = ({
       <>
         <ToolbarIconButton
           icon={<MoreHorizIcon />}
-          tooltip="Project actions"
+          tooltip={t("editor:ui.projectActions", { defaultValue: "Project actions" })}
           ariaLabel={`Actions for ${project.name}`}
           aria-haspopup="menu"
           aria-expanded={Boolean(menuAnchor)}

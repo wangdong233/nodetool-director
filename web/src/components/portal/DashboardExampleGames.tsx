@@ -183,7 +183,7 @@ const DashboardExampleGames = ({ onMakeGame }: DashboardExampleGamesProps) => {
               density="compact"
               onClick={onMakeGame}
             >
-              Make a game
+              {t("home:entry.makeAGame", { defaultValue: "Make a game" })}
             </EditorButton>
           )}
         </DashboardSectionHeader>
@@ -231,7 +231,7 @@ const DashboardExampleGames = ({ onMakeGame }: DashboardExampleGamesProps) => {
             variant="no-data"
             title={t("editor:ui.noGamesAvailable", { defaultValue: "No games available" })}
             description={t("editor:ui.exampleGamesWillAppearHereWhenThisInstallShipsThem", { defaultValue: "Example games will appear here when this install ships them." })}
-            actionText={onMakeGame ? "Make a game" : undefined}
+            actionText={onMakeGame ? t("home:entry.makeAGame", { defaultValue: "Make a game" }) : undefined}
             onAction={onMakeGame}
           />
         ) : (

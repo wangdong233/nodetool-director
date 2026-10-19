@@ -68,7 +68,10 @@
     },
     "speech": {
       "desc": "Type a line and hear it spoken."
-    }
+    },
+    "makeAGame": "Make a game",
+    "searchTemplates": "Search templates by name, tag",
+    "noInputsDeclared": "No inputs are declared"
   },
   "composer": {
     "selectModel": "Select a model",

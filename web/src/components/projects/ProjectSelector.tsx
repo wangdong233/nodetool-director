@@ -248,7 +248,7 @@ const ProjectSelector = ({
       >
         {mobile && (
           <MenuItemPrimitive
-            label="Project home"
+            label={t("editor:ui.projectHome", { defaultValue: "Project home" })}
             icon={<HomeRoundedIcon />}
             onClick={openProjectHome}
             dividerAfter

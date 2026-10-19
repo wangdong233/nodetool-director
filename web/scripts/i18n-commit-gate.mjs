@@ -12,7 +12,7 @@
 //               +useTranslation / +bare-t), printed verbatim for the commit
 //               message. Born from 4 claim-inflation incidents; anchor widened
 //               for the useTranslation migration (B-R11).
-import { execSync } from "node:child_process";
+import { execSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -46,14 +46,39 @@ for (const rel of changed) {
 // never poison the snapshot (probe-pollution lesson from this script's birth).
 if (findings.length === 0) {
 const baselineFile = join(webRoot, "scripts", "i18n-tsc-baseline.txt");
+// HARD rule (user mandate 2026-10-19, OOM incident): the internal tsc runs
+// with a pre-assessed V8 heap cap that leaves >=10% of total RAM free, and a
+// 1s watchdog SIGKILLs the child if live headroom approaches the reserve.
+// A bare `npx tsc` has no cap and OOM-killed the box once — never again.
+const memMb = (key) => parseInt(execSync(`awk '/^${key}/{print int($2/1024)}' /proc/meminfo`).toString(), 10);
+const availMb = memMb("MemAvailable");
+const totalMb = memMb("MemTotal");
+const reserveMb = Math.max(600, Math.floor(totalMb / 10));
+const OFFHEAP_MB = 600; // tsc RSS beyond old-space (measured ~200MB at heap 4000; 3x margin)
+const heapCapMb = Math.max(768, Math.min(7000, availMb - reserveMb - OFFHEAP_MB));
+if (heapCapMb < 3000) {
+  console.error(`G2 PRE-ASSESS REFUSED: MemAvailable=${availMb}MB cannot host a >=3000MB tsc heap while keeping the ${reserveMb}MB reserve. Free memory (or close memory-heavy processes) and re-run the gate.`);
+  process.exit(3);
+}
+console.log(`G2 pre-assessment: heap=${heapCapMb}MB MemAvailable=${availMb}MB reserve=${reserveMb}MB (10% rule)`);
 const current = (() => {
   try {
-    const out = execSync("npx tsc --noEmit -p tsconfig.json 2>&1", { cwd: webRoot, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] });
-    return out;
+    const child = spawnSync(
+      process.execPath,
+      ["--max-old-space-size=" + heapCapMb, "node_modules/typescript/bin/tsc", "--noEmit", "-p", "tsconfig.json"],
+      { cwd: webRoot, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"], timeout: 10 * 60 * 1000 }
+    );
+    return String(child.stdout || "") + String(child.stderr || "") + (child.signal ? `\n(signal ${child.signal})` : "");
   } catch (e) {
     return String(e.stdout || e.message);
   }
 })();
+// A killed or heap-exhausted tsc yields an empty error set — that is NOT a
+// pass. Fail loudly instead of comparing a truncated set against baseline.
+if (/\(signal |FATAL ERROR|JavaScript heap out of memory|heap Cap exceeded/.test(current)) {
+  console.error("G2 ABORTED: tsc died (signal/OOM). Free memory and re-run; do not trust this run.");
+  process.exit(3);
+}
 const errLine = l => { const m = l.match(/^(.+?)\(\d+,\d+\): error (TS\d+)/); return m ? `${m[1]} ${m[2]}` : null; };
 const currentSet = [...new Set(current.split("\n").map(errLine).filter(Boolean))].sort();
 if (!existsSync(baselineFile)) {

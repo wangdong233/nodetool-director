@@ -64,7 +64,7 @@ const ListProperty = (props: PropertyProps) => {
             onChange={handleDataTypeChange}
             options={options}
             label={t("editor:ui.dataType", { defaultValue: "Data type" })}
-            placeholder="Select type…"
+            placeholder={t("editor:ui.selectType", { defaultValue: "Select type…" })}
           />
         </div>
         <ListTable

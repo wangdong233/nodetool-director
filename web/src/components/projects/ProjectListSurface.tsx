@@ -284,7 +284,7 @@ const ProjectListSurface = () => {
           ref={importInputRef}
           type="file"
           accept={`${PROJECT_FILE_EXTENSION},application/zip`}
-          aria-label="Project file"
+          aria-label={t("editor:ui.projectFile", { defaultValue: "Project file" })}
           onChange={handleImportFile}
           style={{ display: "none" }}
         />

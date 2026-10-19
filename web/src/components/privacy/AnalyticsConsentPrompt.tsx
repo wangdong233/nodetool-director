@@ -22,6 +22,7 @@ import {
   TextLink,
   Z_INDEX
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const AnalyticsConsentPrompt: React.FC = () => {
   const { client, consent } = useProductAnalytics();
@@ -63,7 +64,7 @@ const AnalyticsConsentPrompt: React.FC = () => {
   return (
     <Card
       role="region"
-      aria-label="Usage statistics"
+      aria-label={i18n.t("settings:privacy.usageStatistics", { defaultValue: "Usage statistics" })}
       variant="elevated"
       padding="comfortable"
       sx={{

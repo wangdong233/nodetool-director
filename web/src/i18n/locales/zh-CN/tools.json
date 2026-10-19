@@ -406,5 +406,9 @@
   },
   "jsScript": {
     "agentsReadHelper": "智能体会读这段描述来决定是否调用该脚本。"
+  },
+  "packages": {
+    "searchPlaceholder": "搜索(按 /)",
+    "pageTitle": "包管理器"
   }
 }

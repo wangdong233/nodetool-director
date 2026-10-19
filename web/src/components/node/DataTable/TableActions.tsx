@@ -506,7 +506,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
         </ToolbarIconButton>
       )}
 
-      <ToolbarIconButton title="Copy table data" onClick={handleCopyData}>
+      <ToolbarIconButton title={i18n.t("editor:ui.copyTableData", { defaultValue: "Copy table data" })} onClick={handleCopyData}>
         <ContentCopyIcon sx={{ fontSize: ICON_SIZE.xs }} />
       </ToolbarIconButton>
 

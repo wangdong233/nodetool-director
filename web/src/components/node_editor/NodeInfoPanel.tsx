@@ -16,6 +16,7 @@ import { nodeErrorToDisplayString } from "../../stores/ErrorStore";
 import { useNodeError } from "../../hooks/nodes/useNodeExecState";
 import type { NodeData } from "../../stores/NodeData";
 import { absoluteNodePosition } from "../../utils/absoluteNodePosition";
+import { i18n } from "../../i18n";
 
 const PrettyNamespace = memo<{ namespace: string }>(({ namespace }) => {
   const parts = namespace.split(".");
@@ -444,7 +445,7 @@ const NodeInfoPanelContent: React.FC<{ inspectedNodeId: string }> = memo(
             )}
             {parsedDescription.useCases.raw && (
               <div className="node-use-cases">
-                <h5>Use cases</h5>
+                <h5>{i18n.t("editor:ui.useCases", { defaultValue: "Use cases" })}</h5>
                 <ul>
                   {parsedDescription.useCases.raw.split("\n").map((useCase) => (
                     <li key={useCase}>{useCase}</li>

@@ -18,6 +18,7 @@ import type { GraphLink } from "@nodetool-ai/protocol";
 import { useNodeStoreRef, useNodes } from "../../contexts/NodeContext";
 import useContextMenuStore from "../../stores/ContextMenuStore";
 import { TYPOGRAPHY } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const LAYER_STYLE: React.CSSProperties = {
   position: "absolute",
@@ -256,7 +257,7 @@ const LinkLayer: React.FC = () => {
 
   return (
     <ViewportPortal>
-      <svg style={LAYER_STYLE} aria-label="Lineage links">
+      <svg style={LAYER_STYLE} aria-label={i18n.t("editor:ui.lineageLinks", { defaultValue: "Lineage links" })}>
         {links.map((link) => (
           <LinkPath
             key={link.id}

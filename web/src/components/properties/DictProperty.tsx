@@ -68,7 +68,7 @@ const DictProperty = (props: PropertyProps<Record<string, DictCellValue>>) => {
           onChange={handleDataTypeChange}
           options={options}
           label={t("editor:ui.dataType", { defaultValue: "Data type" })}
-          placeholder="Select type…"
+          placeholder={t("editor:ui.selectType", { defaultValue: "Select type…" })}
         />
       </div>
       <DictTable
