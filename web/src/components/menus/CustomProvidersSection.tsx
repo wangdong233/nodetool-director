@@ -549,7 +549,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
-        title="Remove endpoint?"
+        title={i18n.t("tools:ui.removeEndpoint", { defaultValue: "Remove endpoint?" })}
         content={`Remove ${pendingDelete?.name ?? ""}? Workflows that reference its models stop resolving.`}
         confirmText={i18n.t("timeline:attrs.remove", { defaultValue: "Remove" })}
         cancelText="Cancel"

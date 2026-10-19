@@ -318,8 +318,8 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
           </>
         ) : (
           <>
-            <InfoRow label="Platform" value={navigator.platform} />
-            <InfoRow label="User agent" value={navigator.userAgent} />
+            <InfoRow label={i18n.t("editor:ui.platform", { defaultValue: "Platform" })} value={navigator.platform} />
+            <InfoRow label={i18n.t("editor:ui.userAgent", { defaultValue: "User agent" })} value={navigator.userAgent} />
           </>
         )}
       </div>
@@ -372,7 +372,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
           <div className="settings-section">
             <InfoRow label="Python" value={systemInfo.pythonVersion} />
             <FeatureStatus
-              label="CUDA (GPU)"
+              label={i18n.t("editor:ui.cudaGpu", { defaultValue: "CUDA (GPU)" })}
               available={systemInfo.cudaAvailable}
               version={systemInfo.cudaVersion}
             />

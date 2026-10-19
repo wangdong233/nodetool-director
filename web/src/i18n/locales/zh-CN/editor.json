@@ -2916,7 +2916,18 @@
     "openNodetoolDocs": "打开 NodeTool 文档",
     "helpTabs": "帮助标签页",
     "noMatchingExamples": "没有匹配的示例",
-    "addingACopy": "正在添加副本…"
+    "addingACopy": "正在添加副本…",
+    "startingDownload": "正在开始下载…",
+    "waitingToDownload": "等待下载…",
+    "cudaGpu": "CUDA(GPU)",
+    "selectAllOfSameType": "选中同类型的全部",
+    "deleteCommentLabel": "删除评论",
+    "copyMessage": "复制消息",
+    "searchInputType": "搜索输入类型",
+    "searchOutputType": "搜索输出类型",
+    "sceneIsEmpty": "场景是空的",
+    "useAddToCreate": "用“添加”创建一个对象。",
+    "addCommentLabel": "添加评论"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

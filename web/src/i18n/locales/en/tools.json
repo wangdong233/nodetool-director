@@ -10,7 +10,8 @@
     "copyConfiguration": "Copy configuration",
     "removeServer": "Remove server?",
     "loadUnlistedPacks": "Load packs that are not on the allowlist",
-    "unlistedPacksDesc": "Off in production by default. When off, only packs you've explicitly trusted will load."
+    "unlistedPacksDesc": "Off in production by default. When off, only packs you've explicitly trusted will load.",
+    "removeEndpoint": "Remove endpoint?"
   },
   "ctx": {
     "audioList": "Audio List",

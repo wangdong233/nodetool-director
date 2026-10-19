@@ -206,7 +206,8 @@
     "noBehaviors": "暂无行为。",
     "addScript": "添加脚本",
     "collisionLayers": "碰撞层",
-    "addProperty": "添加属性"
+    "addProperty": "添加属性",
+    "physicsMaterials": "物理材质"
   },
   "schema": {
     "invalidFormat": "格式无效",
@@ -271,7 +272,9 @@
     "renameLayout": "重命名布局",
     "deleteLayout": "删除布局",
     "unableToChange": "无法更改已保存的布局",
-    "saveLayout": "保存布局"
+    "saveLayout": "保存布局",
+    "saveLayoutAs": "布局另存为…",
+    "renameLayoutAs": "重命名布局…"
   },
   "shortcuts": {
     "pressKeys": "按下组合键。按 Esc 取消。",
@@ -323,7 +326,10 @@
     "surfaceSnap": "表面吸附",
     "surfaceSnapDesc": "移动拖拽时,把选区安放在指针下的表面上。",
     "orbitAroundSelection": "环绕选区旋转",
-    "orbitSelectionDesc": "选区变化时,相机围绕它转动。"
+    "orbitSelectionDesc": "选区变化时,相机围绕它转动。",
+    "sceneOrientation": "场景朝向",
+    "orthographicView": "正交视图",
+    "perspectiveView": "透视视图"
   },
   "profiler": {
     "recordingCapture": "正在录制捕获 · 显示实时窗口",
@@ -404,7 +410,10 @@
     "desktopApp": "桌面应用",
     "desktopAppSecondary": "面向 Windows、macOS 与 Linux 的 Tauri 工程(.zip)",
     "desktopExecutable": "桌面可执行文件",
-    "desktopExecutableSecondary": "在本机用 cargo 编译,产物输出到控制台"
+    "desktopExecutableSecondary": "在本机用 cargo 编译,产物输出到控制台",
+    "showInFolder": "在文件夹中显示",
+    "buildingDesktop": "正在从已发布修订构建桌面应用工程",
+    "buildingWeb": "正在从已发布修订构建 Web 播放器"
   },
   "decal": {
     "removeDecal": "移除贴花",

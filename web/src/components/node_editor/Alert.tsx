@@ -20,6 +20,7 @@ import {
 } from "../../stores/NotificationStore";
 import { useRightPanelStore } from "../../stores/RightPanelStore";
 import { NOTIFICATION_TIMEOUT_DEFAULT } from "../../config/constants";
+import { i18n } from "../../i18n";
 
 const TRANSITION_DURATION = 300;
 const ENTER_OFFSET_Y = 12;
@@ -198,7 +199,7 @@ const NotificationItem = memo(function NotificationItem({
                   <CopyButton
                     value={notification.content}
                     className="copy-button"
-                    tooltip="Copy message"
+                    tooltip={i18n.t("editor:ui.copyMessage", { defaultValue: "Copy message" })}
                   />
                 )
               )}

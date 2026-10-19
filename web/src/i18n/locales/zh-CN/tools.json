@@ -10,7 +10,8 @@
     "copyConfiguration": "复制配置",
     "removeServer": "移除服务器?",
     "loadUnlistedPacks": "加载不在允许清单里的节点包",
-    "unlistedPacksDesc": "生产环境默认关闭。关闭时,只有你明确信任过的包才会加载。"
+    "unlistedPacksDesc": "生产环境默认关闭。关闭时,只有你明确信任过的包才会加载。",
+    "removeEndpoint": "移除端点?"
   },
   "ctx": {
     "audioList": "音频列表",

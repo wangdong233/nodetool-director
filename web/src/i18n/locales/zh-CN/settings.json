@@ -100,7 +100,9 @@
     "desc": "保险库是一个独立隔离的数据存储，拥有自己的数据库、素材和 RAG 知识库。切换保险库可将不同的工作流与数据分开存放。切换会重启后端并重新加载应用。",
     "activeSuffix": "——使用中",
     "newName": "新保险库名称",
-    "renamePromptTitle": "重命名保险库"
+    "renamePromptTitle": "重命名保险库",
+    "vaultName": "保管库名称",
+    "removeVault": "移除保管库?"
   },
   "storage": {
     "loading": "正在加载历史状态…",
@@ -342,5 +344,10 @@
     "AKI_API_KEY": {
       "get": "获取 AKI 密钥"
     }
+  },
+  "privacy": {
+    "shareAnonymousStats": "分享匿名使用统计",
+    "noEventsYet": "本次会话还没有记录任何事件。",
+    "nothingRecorded": "使用统计关闭期间不记录任何内容。"
   }
 }

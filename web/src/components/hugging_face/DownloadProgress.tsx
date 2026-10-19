@@ -278,7 +278,7 @@ export const DownloadProgress: React.FC<{
             <CloseButton
               onClick={handleCancelAndDismiss}
               buttonSize="small"
-              tooltip="Cancel download"
+              tooltip={i18n.t("editor:ui.cancelDownload", { defaultValue: "Cancel download" })}
               nodrag={false}
               sx={{ flexShrink: 0 }}
             />
@@ -344,8 +344,8 @@ export const DownloadProgress: React.FC<{
           <LoadingSpinner inline size={14} />
           <Text size="small">
             {download.status === "start"
-              ? "Starting download…"
-              : "Waiting to download…"}
+              ? i18n.t("editor:ui.startingDownload", { defaultValue: "Starting download…" })
+              : i18n.t("editor:ui.waitingToDownload", { defaultValue: "Waiting to download…" })}
           </Text>
         </FlexRow>
       )}

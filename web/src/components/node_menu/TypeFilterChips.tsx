@@ -24,6 +24,7 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import useMetadataStore from "../../stores/MetadataStore";
 import useNodeMenuStore from "../../stores/NodeMenuStore";
 import { useShallow } from "zustand/react/shallow";
+import { i18n } from "../../i18n";
 
 interface TypeFilterChipsProps {
   selectedInputType: string;
@@ -486,10 +487,10 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 <TextField
                   {...params}
                   size="small"
-                  placeholder="Search input type"
+                  placeholder={i18n.t("editor:ui.searchInputType", { defaultValue: "Search input type" })}
                   inputProps={{
                     ...params.inputProps,
-                    "aria-label": "Search input type"
+                    "aria-label": i18n.t("editor:ui.searchInputType", { defaultValue: "Search input type" })
                   }}
                 />
               )}
@@ -529,10 +530,10 @@ const TypeFilterChips: React.FC<TypeFilterChipsProps> = memo(
                 <TextField
                   {...params}
                   size="small"
-                  placeholder="Search output type"
+                  placeholder={i18n.t("editor:ui.searchOutputType", { defaultValue: "Search output type" })}
                   inputProps={{
                     ...params.inputProps,
-                    "aria-label": "Search output type"
+                    "aria-label": i18n.t("editor:ui.searchOutputType", { defaultValue: "Search output type" })
                   }}
                 />
               )}

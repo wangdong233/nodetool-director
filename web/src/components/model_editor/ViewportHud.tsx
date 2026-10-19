@@ -82,7 +82,7 @@ const ViewportHud = ({
           )),
           <MenuItemPrimitive
             key="frame"
-            label="Frame all"
+            label={i18n.t("editor:ui.frameAll", { defaultValue: "Frame all" })}
             dividerBefore
             shortcut={shortcutLabel("frameAll")}
             onClick={() => {
@@ -137,7 +137,7 @@ const ViewportHud = ({
       />
       <ToolbarIconButton
         icon={<LightbulbOutlinedIcon fontSize="small" />}
-        tooltip="Light icons"
+        tooltip={i18n.t("editor:ui.lightIcons", { defaultValue: "Light icons" })}
         onClick={() => onTogglePref("lightIcons")}
         active={prefs.lightIcons}
         size="small"

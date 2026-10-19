@@ -115,7 +115,7 @@ export default function GameEditorShell({ dimension, toolbar, status, panels, la
       onBuildExecutable={canBuildExecutable && !executable.building ? executable.run : undefined}
       layoutMenu={<GameLayoutMenu store={layoutStore} panels={registrations.filter((entry) => views.some((view) => view.id === entry.id))} />} />
     {exporter.exporting && <Caption role="status" sx={{ px: SPACING.md, py: SPACING.xs }}>
-      {exporter.exporting === "tauri" ? "Building the desktop app project from the published revision" : "Building the web player from the published revision"}
+      {exporter.exporting === "tauri" ? i18n.t("game:export.buildingDesktop", { defaultValue: "Building the desktop app project from the published revision" }) : i18n.t("game:export.buildingWeb", { defaultValue: "Building the web player from the published revision" })}
     </Caption>}
     {exporter.error && <FlexRow gap={SPACING.sm} align="center" sx={{ px: SPACING.md, py: SPACING.xs, borderBottom: 1, borderColor: "divider" }}>
       <Caption color="error" role="alert">Export failed: {exporter.error}</Caption>
@@ -128,7 +128,7 @@ export default function GameEditorShell({ dimension, toolbar, status, panels, la
     </FlexRow>}
     {executable.binaryPath && <FlexRow gap={SPACING.sm} align="center" sx={{ px: SPACING.md, py: SPACING.xs, borderBottom: 1, borderColor: "divider" }}>
       <Caption role="status" sx={{ minWidth: 0, overflowWrap: "anywhere" }}>Built {executable.binaryPath}</Caption>
-      {showBinary && <EditorButton onClick={() => { void showBinary(executable.binaryPath ?? ""); }}>Show in folder</EditorButton>}
+      {showBinary && <EditorButton onClick={() => { void showBinary(executable.binaryPath ?? ""); }}>{i18n.t("game:export.showInFolder", { defaultValue: "Show in folder" })}</EditorButton>}
       <EditorButton onClick={executable.dismiss}>{i18n.t("storyboard:attrs.dismiss", { defaultValue: "Dismiss" })}</EditorButton>
     </FlexRow>}
     {executable.error && <FlexRow gap={SPACING.sm} align="center" sx={{ px: SPACING.md, py: SPACING.xs, borderBottom: 1, borderColor: "divider" }}>

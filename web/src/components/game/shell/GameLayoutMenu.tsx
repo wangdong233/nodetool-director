@@ -65,8 +65,8 @@ export function GameLayoutMenu({ store, panels }: GameLayoutMenuProps): ReactNod
       {[...GAME_LAYOUT_PRESETS, ...customLayouts.map((entry) => entry.name)].map((layoutName) => <MenuItemPrimitive key={layoutName}
         label={layoutName} selected={layoutName === current} icon={layoutName === current ? <CheckIcon /> : <span />}
         onClick={() => { close(); if (act(() => store.getState().selectLayout(layoutName))) { setCurrent(layoutName); } }} />)}
-      <MenuItemPrimitive dividerBefore label="Save layout as…" icon={<SaveOutlinedIcon />} onClick={() => openDialog({ mode: "save" })} />
-      <MenuItemPrimitive label="Rename layout…" icon={<DriveFileRenameOutlineIcon />} disabled={!custom}
+      <MenuItemPrimitive dividerBefore label={i18n.t("game:layout.saveLayoutAs", { defaultValue: "Save layout as…" })} icon={<SaveOutlinedIcon />} onClick={() => openDialog({ mode: "save" })} />
+      <MenuItemPrimitive label={i18n.t("game:layout.renameLayoutAs", { defaultValue: "Rename layout…" })} icon={<DriveFileRenameOutlineIcon />} disabled={!custom}
         tooltip={custom ? undefined : "Built-in layouts cannot be renamed"} onClick={() => openDialog({ mode: "rename", from: current })} />
       <MenuItemPrimitive label={i18n.t("game:layout.deleteLayout", { defaultValue: "Delete layout" })} icon={<DeleteOutlineIcon />} color="error" disabled={!custom}
         tooltip={custom ? undefined : "Built-in layouts cannot be deleted"}

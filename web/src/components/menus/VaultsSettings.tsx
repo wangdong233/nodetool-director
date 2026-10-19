@@ -213,7 +213,7 @@ const VaultsSettings: React.FC = () => {
         fullWidth
       >
         <TextInput
-          label="Vault name"
+          label={i18n.t("settings:vaults.vaultName", { defaultValue: "Vault name" })}
           value={renameValue}
           autoComplete="off"
           autoFocus
@@ -232,7 +232,7 @@ const VaultsSettings: React.FC = () => {
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
-        title="Remove vault?"
+        title={i18n.t("settings:vaults.removeVault", { defaultValue: "Remove vault?" })}
         content={`"${deleteTarget?.name ?? ""}" is removed from the list. Its database files stay on disk and can be re-added or deleted manually.`}
         confirmText="Remove"
         cancelText="Cancel"

@@ -74,7 +74,7 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
           <Caption>{t("game:inspector.sceneSettingsHint", { defaultValue: "Scene settings. Select an entity to edit it." })}</Caption>
         </FlexColumn>
       </FlexRow>
-      {scene && <InspectorSection title="Environment preset"><EnvironmentPresetEditor sceneId={scene.id} onOps={onOps} /></InspectorSection>}
+      {scene && <InspectorSection title={i18n.t("game:env.environmentPreset", { defaultValue: "Environment preset" })}><EnvironmentPresetEditor sceneId={scene.id} onOps={onOps} /></InspectorSection>}
       {scene && <SchemaFields componentSections addLabel="Add setting" schema={SCENE_FIELDS}
         componentEditors={GAME_COMPONENT_EDITORS} dimension="3d"
         value={settings} assets={document.assets} onChange={(value) => {
@@ -84,7 +84,7 @@ export default function GameInspector3D({ document, sceneId, entityId, onOps, on
       <InspectorSection title={t("game:inspector.collisionLayers", { defaultValue: "Collision layers" })}>
         <CollisionMatrixEditor document={document} onDocument={applyDocument} />
       </InspectorSection>
-      <InspectorSection title="Physics materials">
+      <InspectorSection title={i18n.t("game:inspector.physicsMaterials", { defaultValue: "Physics materials" })}>
         <PhysicsMaterialsEditor document={document} onDocument={applyDocument} />
       </InspectorSection>
       {validation.diagnostics.map((issue, index) => <Caption key={`${issue.code}:${index}`} color="error">{issue.path.join(".")}: {issue.message}</Caption>)}

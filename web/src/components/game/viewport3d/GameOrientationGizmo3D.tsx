@@ -4,6 +4,7 @@ import ThreeDRotationOutlinedIcon from "@mui/icons-material/ThreeDRotationOutlin
 import ViewInArOutlinedIcon from "@mui/icons-material/ViewInArOutlined";
 import type { GameAxisView3D } from "../../../stores/game/gameGizmo3D";
 import { BORDER_RADIUS, Box, CONTROL, FlexColumn, SPACING, ToolbarIconButton, TYPOGRAPHY } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 /** The editor camera's orientation, published outside React so orbiting does not re-render the viewport. */
 export interface GameCameraOrientation3D {
@@ -64,7 +65,7 @@ export default function GameOrientationGizmo3D({ orientation, orthographic, onVi
   const size = CONTROL.height.xl * 2;
   return <FlexColumn align="center" gap={SPACING.micro} sx={{ position: "absolute", top: SPACING.md, right: SPACING.md,
     p: SPACING.micro, borderRadius: BORDER_RADIUS.md, bgcolor: "background.paper" }}>
-    <Box component="svg" role="group" aria-label="Scene orientation" viewBox="-40 -40 80 80" width={size} height={size}
+    <Box component="svg" role="group" aria-label={i18n.t("game:viewport.sceneOrientation", { defaultValue: "Scene orientation" })} viewBox="-40 -40 80 80" width={size} height={size}
       sx={(theme) => ({ display: "block", overflow: "visible",
         "& text": { ...TYPOGRAPHY.sans.caption, pointerEvents: "none", userSelect: "none" },
         // Each label uses its palette colour's contrast text, so it stays readable on the axis colour in both themes.
@@ -82,7 +83,7 @@ export default function GameOrientationGizmo3D({ orientation, orthographic, onVi
       </g>)}
     </Box>
     <ToolbarIconButton icon={orthographic ? <ViewInArOutlinedIcon fontSize="small" /> : <ThreeDRotationOutlinedIcon fontSize="small" />}
-      tooltip={orthographic ? "Orthographic view" : "Perspective view"} ariaLabel="Orthographic view" shortcut={projectionShortcut}
+      tooltip={orthographic ? i18n.t("game:viewport.orthographicView", { defaultValue: "Orthographic view" }) : i18n.t("game:viewport.perspectiveView", { defaultValue: "Perspective view" })} ariaLabel={i18n.t("game:viewport.orthographicView", { defaultValue: "Orthographic view" })} shortcut={projectionShortcut}
       aria-pressed={orthographic} active={orthographic} onClick={onToggleProjection} />
   </FlexColumn>;
 }

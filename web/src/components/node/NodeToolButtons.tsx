@@ -252,7 +252,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         )}
 
         <MenuItemPrimitive
-          label={hasCommentTitle ? "Delete comment" : "Add comment"}
+          label={hasCommentTitle ? i18n.t("editor:ui.deleteCommentLabel", { defaultValue: "Delete comment" }) : i18n.t("editor:ui.addCommentLabel", { defaultValue: "Add comment" })}
           icon={<EditIcon />}
           onClick={handleToggleComment}
         />
@@ -264,7 +264,7 @@ const NodeToolButtons: React.FC<NodeToolbarProps> = ({ nodeId }) => {
         />
 
         <MenuItemPrimitive
-          label="Select all of same type"
+          label={i18n.t("editor:ui.selectAllOfSameType", { defaultValue: "Select all of same type" })}
           icon={<FilterListIcon />}
           onClick={handleSelectAllSameType}
         />

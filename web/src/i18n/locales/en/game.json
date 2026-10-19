@@ -206,7 +206,8 @@
     "noBehaviors": "No behaviors yet.",
     "addScript": "Add script",
     "collisionLayers": "Collision layers",
-    "addProperty": "Add property"
+    "addProperty": "Add property",
+    "physicsMaterials": "Physics materials"
   },
   "schema": {
     "invalidFormat": "Invalid format",
@@ -271,7 +272,9 @@
     "renameLayout": "Rename layout",
     "deleteLayout": "Delete layout",
     "unableToChange": "Unable to change saved layout",
-    "saveLayout": "Save layout"
+    "saveLayout": "Save layout",
+    "saveLayoutAs": "Save layout as…",
+    "renameLayoutAs": "Rename layout…"
   },
   "shortcuts": {
     "pressKeys": "Press a key combination. Escape cancels.",
@@ -323,7 +326,10 @@
     "surfaceSnap": "Surface snap",
     "surfaceSnapDesc": "Move drags rest the selection on the surface under the pointer.",
     "orbitAroundSelection": "Orbit around selection",
-    "orbitSelectionDesc": "The camera turns around the selection when it changes."
+    "orbitSelectionDesc": "The camera turns around the selection when it changes.",
+    "sceneOrientation": "Scene orientation",
+    "orthographicView": "Orthographic view",
+    "perspectiveView": "Perspective view"
   },
   "profiler": {
     "recordingCapture": "Recording a capture · showing the live window",
@@ -404,7 +410,10 @@
     "desktopApp": "Desktop app",
     "desktopAppSecondary": "Tauri project for Windows, macOS and Linux (.zip)",
     "desktopExecutable": "Desktop executable",
-    "desktopExecutableSecondary": "Compile on this computer with cargo, output in the Console"
+    "desktopExecutableSecondary": "Compile on this computer with cargo, output in the Console",
+    "showInFolder": "Show in folder",
+    "buildingDesktop": "Building the desktop app project from the published revision",
+    "buildingWeb": "Building the web player from the published revision"
   },
   "decal": {
     "removeDecal": "Remove decal",

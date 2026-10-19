@@ -100,7 +100,9 @@
     "desc": "A vault is a separate, isolated data store with its own database, assets, and RAG collections. Switch vaults to keep different sets of workflows and data apart. Switching restarts the backend and reloads the app.",
     "activeSuffix": " — active",
     "newName": "New vault name",
-    "renamePromptTitle": "Rename vault"
+    "renamePromptTitle": "Rename vault",
+    "vaultName": "Vault name",
+    "removeVault": "Remove vault?"
   },
   "storage": {
     "loading": "Loading history status…",
@@ -342,5 +344,10 @@
     "AKI_API_KEY": {
       "get": "Go to AKI.IO to sign up and get your API key"
     }
+  },
+  "privacy": {
+    "shareAnonymousStats": "Share anonymous usage statistics",
+    "noEventsYet": "No events recorded in this session yet.",
+    "nothingRecorded": "Nothing is recorded while usage statistics are off."
   }
 }

@@ -2921,7 +2921,18 @@
     "openNodetoolDocs": "Open NodeTool docs",
     "helpTabs": "help tabs",
     "noMatchingExamples": "No matching examples",
-    "addingACopy": "Adding a copy…"
+    "addingACopy": "Adding a copy…",
+    "startingDownload": "Starting download…",
+    "waitingToDownload": "Waiting to download…",
+    "cudaGpu": "CUDA (GPU)",
+    "selectAllOfSameType": "Select all of same type",
+    "deleteCommentLabel": "Delete comment",
+    "copyMessage": "Copy message",
+    "searchInputType": "Search input type",
+    "searchOutputType": "Search output type",
+    "sceneIsEmpty": "Scene is empty",
+    "useAddToCreate": "Use Add to create an object.",
+    "addCommentLabel": "Add comment"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

@@ -493,8 +493,8 @@ const SceneOutliner = ({
           {!hasNodes ? (
             <EmptyState
               size="small"
-              title="Scene is empty"
-              description="Use Add to create an object."
+              title={i18n.t("editor:ui.sceneIsEmpty", { defaultValue: "Scene is empty" })}
+              description={i18n.t("editor:ui.useAddToCreate", { defaultValue: "Use Add to create an object." })}
             />
           ) : rows.length === 0 ? (
             <EmptyState

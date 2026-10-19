@@ -13,6 +13,7 @@ import {
   SPACING,
   Text
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const CLIENT_LABEL: Record<AnalyticsClientType, string> = {
   cloud_web: "NodeTool Cloud in this browser",
@@ -72,7 +73,7 @@ const PrivacyMenu: React.FC = () => {
           <FlexColumn gap={GAP.comfortable}>
             <LabeledSwitch
               id="product-analytics-switch"
-              label="Share anonymous usage statistics"
+              label={i18n.t("settings:privacy.shareAnonymousStats", { defaultValue: "Share anonymous usage statistics" })}
               description={`Off by default. Applies only to ${CLIENT_LABEL[resolveWebClientType()]}. Signing in or out does not change it, and it never carries over to another NodeTool app.`}
               checked={enabled}
               onChange={handleToggle}
@@ -133,8 +134,8 @@ const PrivacyMenu: React.FC = () => {
           ) : (
             <Caption>
               {enabled
-                ? "No events recorded in this session yet."
-                : "Nothing is recorded while usage statistics are off."}
+                ? i18n.t("settings:privacy.noEventsYet", { defaultValue: "No events recorded in this session yet." })
+                : i18n.t("settings:privacy.nothingRecorded", { defaultValue: "Nothing is recorded while usage statistics are off." })}
             </Caption>
           )}
           {enabled && (
