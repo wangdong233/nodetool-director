@@ -2381,7 +2381,7 @@ const NewProjectSurface = ({
                   </Caption>
                 ) : (
                   <Caption color="muted">
-                    Pick a skill to start from, or just describe what you want.
+                    {t("home:composer.pickSkillOrDescribe", { defaultValue: "Pick a skill to start from, or just describe what you want." })}
                   </Caption>
                 )}
               </FlexColumn>

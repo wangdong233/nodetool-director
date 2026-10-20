@@ -240,6 +240,7 @@ export const ONBOARDING_PROVIDERS: OnboardingProvider[] = [
 
 /** Human-readable label for a required capability, for the dialog subtitle. */
 export const PROVIDER_TAGLINE_KEYS: Record<string, string> = {
+  "codex": "editor:ui.chatWithGPTModelsOnYourChatGPTPlan",
   "meshy": "editor:ui.generate3DModelsFromTextOrImages",
   "openai": "editor:ui.GPTForChatPlusImageSpeechAndEmbeddings",
   "claude": "editor:ui.useAClaudeProOrMaxSubscriptionNoAPIKey",

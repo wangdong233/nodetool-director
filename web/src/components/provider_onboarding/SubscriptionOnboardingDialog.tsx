@@ -132,12 +132,10 @@ const SubscriptionsStep: React.FC<SubscriptionsStepProps> = ({
     <FlexColumn gap={SPACING.xxl}>
       <FlexColumn gap={SPACING.md}>
         <Text sx={{ maxWidth: "60ch" }}>
-          Sign in with the plans you already pay for. NodeTool uses them
-          directly, so there is no API key to create and no per-token bill.
+          {i18n.t("editor:ui.signInWithExistingPlans", { defaultValue: "Sign in with the plans you already pay for. NodeTool uses them directly, so there is no API key to create and no per-token bill." })}
         </Text>
         <Caption>
-          Image generation with ChatGPT, and everything with Gemini, needs the
-          Chrome extension. The next step sets it up.
+          {i18n.t("editor:ui.chatgptImagesNeedExtension", { defaultValue: "Image generation with ChatGPT, and everything with Gemini, needs the Chrome extension. The next step sets it up." })}
         </Caption>
       </FlexColumn>
       <FlexColumn sx={{ border: `1px solid ${theme.vars.palette.divider}`, borderRadius: BORDER_RADIUS.lg, overflow: "hidden" }}>

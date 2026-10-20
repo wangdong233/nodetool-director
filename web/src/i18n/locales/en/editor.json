@@ -3019,7 +3019,10 @@
     "planningCanceled": "Planning was canceled.",
     "closeDocumentsUnsaved": "Close documents with unsaved changes?",
     "closeAnyway": "Close anyway",
-    "keepOpen": "Keep open"
+    "keepOpen": "Keep open",
+    "signInWithExistingPlans": "Sign in with the plans you already pay for. NodeTool uses them directly, so there is no API key to create and no per-token bill.",
+    "chatgptImagesNeedExtension": "Image generation with ChatGPT, and everything with Gemini, needs the Chrome extension. The next step sets it up.",
+    "chatWithGPTModelsOnYourChatGPTPlan": "Chat with GPT models on your ChatGPT plan. Images need the Chrome extension."
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

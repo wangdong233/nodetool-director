@@ -180,7 +180,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
     },
     {
       id: "describe-idea",
-      label: "Describe what you want to make",
+      label: "Describe what you want to make", labelKey: "home:checklist.describeIdea",
       done: completedSteps.includes("describe-idea"),
       // The composer below the cards is the way there; pressing Start
       // marks the step.

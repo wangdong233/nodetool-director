@@ -360,14 +360,14 @@ const TutorialsPage: React.FC = () => {
                 poster={resolveStaticMediaUri(active.poster) ?? undefined}
                 autoplay={started}
                 muted
-                label={active.title}
+                label={active.titleKey ? i18n.t(active.titleKey, { defaultValue: active.title }) : active.title}
               />
               {!started && (
                 <button
                   type="button"
                   className="tut-play"
                   onClick={start}
-                  aria-label={`Play video: ${active.title}`}
+                  aria-label={`Play video: ${active.titleKey ? i18n.t(active.titleKey, { defaultValue: active.title }) : active.title}`}
                 >
                   <PlayArrowRoundedIcon />
                 </button>
@@ -382,19 +382,21 @@ const TutorialsPage: React.FC = () => {
             </div>
 
             <Text component="h2" size="big" className="tut-title">
-              {active.title}
+              {active.titleKey ? i18n.t(active.titleKey, { defaultValue: active.title }) : active.title}
             </Text>
             <p className="tut-desc">{active.descriptionKey ? i18n.t(active.descriptionKey, { defaultValue: active.description }) : active.description}</p>
 
             <section className="tut-learn">
               <Text component="h2" size="normal" weight={600}>
-                What you'll learn
+                {i18n.t("tools:tutorials.whatYouWillLearn", { defaultValue: "What you'll learn" })}
               </Text>
               <ul>
-                {active.learn.map((point) => (
+                {active.learn.map((point, index) => (
                   <li key={point}>
                     <CheckRoundedIcon />
-                    {point}
+                    {active.learnKeys?.[index]
+                      ? i18n.t(active.learnKeys[index], { defaultValue: point })
+                      : point}
                   </li>
                 ))}
               </ul>
