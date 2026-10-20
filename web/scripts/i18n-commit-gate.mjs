@@ -100,13 +100,27 @@ const current = await (() => {
     child.stderr.on("data", (d) => { out += d; });
     const watchdog = setInterval(() => {
       try {
-        const live = parseInt(execSync(`awk '/^MemAvailable/{print int($2/1024)}' /proc/meminfo`).toString(), 10);
+        // Two trip wires, both mirroring the box's earlyoom daemon
+        // (-m 8 -s 5, which prefers killing compiler processes): sample
+        // MemAvailable AND swap free. The 2026-10-20 137-kill proved the
+        // swap line is real — a 4GB tsc pushed swap free below earlyoom's
+        // 5% while MemAvailable was still above this gate's own reserve,
+        // and earlyoom (not this watchdog) ended the run. Kill margin sits
+        // well above earlyoom's thresholds so the gate always suicides
+        // first and reports its own reason.
+        const mem = readFileSync("/proc/meminfo", "utf8");
+        const live = Math.round(parseInt(/^MemAvailable:\s+(\d+) kB/m.exec(mem)[1], 10) / 1024);
+        const swapFree = Math.round(parseInt(/^SwapFree:\s+(\d+) kB/m.exec(mem)[1], 10) / 1024);
+        const swapTotal = Math.round(parseInt(/^SwapTotal:\s+(\d+) kB/m.exec(mem)[1], 10) / 1024);
         try {
           const rss = parseInt(execSync(`awk '/^VmRSS/{print int($2/1024)}' /proc/${child.pid}/status`).toString(), 10);
           if (rss > peakRssMb) peakRssMb = rss;
         } catch { /* child exited between the two reads */ }
         if (live < reserveMb) {
           killReason = `watchdog kill: MemAvailable=${live}MB < reserve ${reserveMb}MB (peak tsc RSS ${peakRssMb}MB)`;
+          child.kill("SIGKILL");
+        } else if (swapTotal > 0 && swapFree < swapTotal * 0.15) {
+          killReason = `watchdog kill: SwapFree=${swapFree}MB < 15% of ${swapTotal}MB (earlyoom fires at 5%; peak tsc RSS ${peakRssMb}MB)`;
           child.kill("SIGKILL");
         }
       } catch { /* sampling failure must not kill a healthy run */ }
