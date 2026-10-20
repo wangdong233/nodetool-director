@@ -8,7 +8,8 @@ import { useNodes } from "../../contexts/NodeContext";
 import Select from "../inputs/Select";
 import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import ConnectedBadge from "./ConnectedBadge";
-import { useTranslation } from "react-i18next";
+import { LoadingSpinner } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface CollectionValue {
   type: "collection";
@@ -16,7 +17,6 @@ interface CollectionValue {
 }
 
 const CollectionProperty = (props: PropertyProps<CollectionValue | null>) => {
-  const { t } = useTranslation();
   const id = `collection-${props.property.name}-${props.propertyIndex}`;
   const isConnectedSelector = useIsConnectedSelector(
     props.nodeId,
@@ -60,7 +60,7 @@ const CollectionProperty = (props: PropertyProps<CollectionValue | null>) => {
         description={props.property.description}
         id={id}
       />
-      {isLoading && <p>{t("common:status.loading", { defaultValue: "Loading…" })}</p>}
+      {isLoading && <LoadingSpinner size="small" />}
       {error && <p>Error: {error.message}</p>}
       <Select
         value={selectValue}
@@ -68,7 +68,7 @@ const CollectionProperty = (props: PropertyProps<CollectionValue | null>) => {
         onChange={(newValue) =>
           props.onChange({ type: "collection", name: newValue })
         }
-        placeholder={t("editor:ui.selectCollection", { defaultValue: "Select collection..." })}
+        placeholder={i18n.t("editor:ui.selectCollection", { defaultValue: "Select collection…" })}
         label={props.property.name}
       />
     </>

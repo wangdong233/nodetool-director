@@ -1,7 +1,8 @@
 import ReportBugButton from "../support/ReportBugButton";
 import type { DocumentLoadState } from "../../stores/documentSync";
-import { EmptyState, FlexColumn, LoadingSpinner, EditorButton } from "../ui_primitives";
-import { useTranslation } from "react-i18next";
+import { EditorButton, EmptyState, FlexColumn, LoadingSpinner } from "../ui_primitives";
+import { i18n } from "../../i18n";
+
 interface DocumentLoadStatusProps {
   state: Exclude<DocumentLoadState, "ready">;
   /** The document type, lowercase, as it reads mid-sentence: "storyboard". */
@@ -20,9 +21,7 @@ interface DocumentLoadStatusProps {
  * straight away shows an empty document — indistinguishable from a document
  * that really is empty. This shows the load instead.
  */
-const DocumentLoadStatus = ({ state, label, onRetry, onClose, closeLabel = "Close tab" }: DocumentLoadStatusProps) => {
-  const { t } = useTranslation();
-  return (
+const DocumentLoadStatus = ({ state, label, onRetry, onClose, closeLabel = "Close tab" }: DocumentLoadStatusProps) => (
   <FlexColumn
     fullWidth
     fullHeight
@@ -31,27 +30,13 @@ const DocumentLoadStatus = ({ state, label, onRetry, onClose, closeLabel = "Clos
     sx={{ minHeight: 0 }}
   >
     {state === "loading" ? (
-      <LoadingSpinner
-        text={t("ui2:attrs.loadingDocument", {
-          defaultValue: "Loading {{label}}…",
-          label
-        })}
-      />
+      <LoadingSpinner text={`Loading ${label}`} />
     ) : (
       <EmptyState
         variant="error"
-        title={t("ui2:attrs.couldNotLoadDocument", {
-          defaultValue: "Could not load this {{label}}",
-          label
-        })}
-        description={onRetry
-          ? t("ui2:attrs.loadFailedUnavailable", {
-              defaultValue: "The document could not be loaded. It may be unavailable or you may need to reconnect."
-            })
-          : t("ui2:attrs.loadFailedRetry", {
-              defaultValue: "The document could not be loaded. Close the tab and open it again to retry."
-            })}
-        actionText={onRetry ? t("common:action.retry", { defaultValue: "Retry" }) : undefined}
+        title={`Could not load this ${label}`}
+        description={onRetry ? i18n.t("ui2:attrs.loadFailedUnavailable", { defaultValue: "The document could not be loaded. It may be unavailable or you may need to reconnect." }) : i18n.t("ui2:attrs.loadFailedRetry", { defaultValue: "The document could not be loaded. Close the tab and open it again to retry." })}
+        actionText={onRetry ? "Retry" : undefined}
         onAction={onRetry}
       />
     )}
@@ -60,7 +45,6 @@ const DocumentLoadStatus = ({ state, label, onRetry, onClose, closeLabel = "Clos
       <EditorButton onClick={onClose}>{closeLabel}</EditorButton>
     )}
   </FlexColumn>
-)
-  };
+);
 
 export default DocumentLoadStatus;

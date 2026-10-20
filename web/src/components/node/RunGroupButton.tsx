@@ -2,11 +2,10 @@
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { Tooltip, ToolbarIconButton, LoadingSpinner, MOTION, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
+import { Tooltip, ToolbarIconButton, LoadingSpinner, MOTION, BORDER_RADIUS } from "../ui_primitives";
 import PlayArrow from "@mui/icons-material/PlayArrow";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { memo, useCallback, useMemo } from "react";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme, _isRunning: boolean) =>
   css({
@@ -28,11 +27,6 @@ const styles = (theme: Theme, _isRunning: boolean) =>
       },
       "& svg": {
         fontSize: 18
-      },
-      "& .MuiCircularProgress-root": {
-        width: "16px !important",
-        height: "16px !important",
-        color: theme.vars.palette.common.black
       }
     }
   });
@@ -48,7 +42,6 @@ const RunGroupButton: React.FC<RunGroupButtonProps> = ({
   state,
   onClick
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const isRunning = state === "running";
   const cssStyles = useMemo(() => styles(theme, isRunning), [theme, isRunning]);
@@ -59,33 +52,9 @@ const RunGroupButton: React.FC<RunGroupButtonProps> = ({
     }
   }, [isWorkflowRunning, onClick]);
 
-  const tooltipSpanStyle = useMemo(() => ({
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    gap: getSpacingPx(SPACING.micro)
-  }), []);
-
-  const tooltipTextStyle = useMemo(() => ({
-    fontSize: "1.1em",
-    color: "white"
-  }), []);
-
   return (
     <Tooltip
-      title={
-        isWorkflowRunning ? (
-          "Group is currently running..."
-        ) : (
-          <div
-            className="tooltip-span"
-            style={tooltipSpanStyle}
-          >
-            <span style={tooltipTextStyle}>{t("ui2:attrs.runGroup", { defaultValue: "Run Group" })}</span>
-          </div>
-        )
-      }
-      delay={TOOLTIP_ENTER_DELAY}
+      title={isWorkflowRunning ? i18n.t("editor:ui.groupIsRunning", { defaultValue: "Group is running" }) : i18n.t("editor:ui.runGroup", { defaultValue: "Run group" })}
     >
       <ToolbarIconButton
         title=""
@@ -95,7 +64,11 @@ const RunGroupButton: React.FC<RunGroupButtonProps> = ({
         className={`run-button ${isWorkflowRunning ? "disabled" : ""}`}
         onClick={handleClick}
       >
-        {isRunning ? <LoadingSpinner size="small" /> : <PlayArrow />}
+        {isRunning ? (
+          <LoadingSpinner inline size={16} color="inherit" />
+        ) : (
+          <PlayArrow />
+        )}
       </ToolbarIconButton>
     </Tooltip>
   );

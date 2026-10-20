@@ -3,40 +3,29 @@ import { css } from "@emotion/react";
 import React, { useCallback } from "react";
 
 import {
+  Box,
   Caption,
-  Checkbox,
-  Divider,
-  EditorButton,
-  EditorMenu,
-  EditorMenuItem,
-  FlexColumn,
+  ContextMenu,
+  EmptyState,
   FlexRow,
   LoadingSpinner,
-  Tooltip,
-  Box,
-  BORDER_RADIUS,
+  MenuItemPrimitive,
+  SectionHeader,
   SPACING,
-  getSpacingPx,
-  List,
-  ListItemButton,
-  ListItemText
+  getSpacingPx
 } from "../ui_primitives";
-import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { useTheme } from "@mui/material/styles";
-import type { Theme } from "@mui/material/styles";
-import {
-  TOOLTIP_ENTER_DELAY,
-  TOOLTIP_ENTER_NEXT_DELAY
-} from "../../config/constants";
+import AppsIcon from "@mui/icons-material/Apps";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
 import { openProviderOnboarding } from "../../stores/ProviderOnboardingStore";
+import ModelMenuNavItem from "./shared/ModelMenuNavItem";
 
 import {
   isHuggingFaceProvider,
-  getProviderBaseName,
   formatGenericProviderName,
-  getProviderUrl
+  getProviderUrl,
+  groupProvidersBySite,
+  type ProviderEntry
 } from "../../utils/providerDisplay";
 import {
   requiredSecretForProvider,
@@ -44,10 +33,7 @@ import {
 } from "../../stores/ModelMenuStore";
 import { useSecrets } from "../../hooks/useSecrets";
 import { useIsDarkMode } from "../../hooks/useIsDarkMode";
-import {
-  executionLabelsByProvider,
-  type ModelSelectorModel
-} from "../../utils/modelNormalization";
+import type { ModelSelectorModel } from "../../utils/modelNormalization";
 
 // Provider icons vendored from @lobehub/icons-static-svg (see src/icons/providers/README.md)
 import openaiIcon from "../../icons/providers/openai.svg";
@@ -158,7 +144,7 @@ import skyworkColorIcon from "../../icons/providers/skywork-color.svg";
 import tencentColorIcon from "../../icons/providers/tencent-color.svg";
 import tencentcloudColorIcon from "../../icons/providers/tencentcloud-color.svg";
 import yuanbaoColorIcon from "../../icons/providers/yuanbao-color.svg";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const providerIconMap: Record<string, string> = {
   // OpenAI / GPT
@@ -497,22 +483,26 @@ const getProviderFallbackLabel = (provider: string): string => {
 };
 
 const listStyles = css({
+  flex: 1,
+  minHeight: 0,
   overflowY: "auto",
-  maxHeight: "calc(100% - 20px)"
+  overflowX: "hidden",
+  display: "flex",
+  flexDirection: "column",
+  gap: 2,
+  padding: `${getSpacingPx(SPACING.sm)} ${getSpacingPx(SPACING.sm)}`
 });
 
-// Horizontal strip used on narrow screens, where an 88px sidebar would eat a
-// quarter of the viewport.
+// Horizontal strip of filter chips used on narrow screens, where a sidebar
+// would eat a quarter of the viewport.
 const horizontalListStyles = css({
   display: "flex",
   flexDirection: "row",
-  alignItems: "stretch",
-  gap: getSpacingPx(SPACING.xs),
+  alignItems: "center",
+  gap: getSpacingPx(SPACING.sm),
   overflowX: "auto",
   overflowY: "hidden",
-  paddingTop: 0,
-  paddingBottom: 0,
-  "& > *": { flexShrink: 0 }
+  padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.lg)}`
 });
 
 type ProviderStoreHook = <Selected>(
@@ -523,6 +513,36 @@ type ProviderStoreHook = <Selected>(
   equalityFn?: (left: Selected, right: Selected) => boolean
 ) => Selected;
 
+interface ProviderIconProps {
+  provider: string;
+  iconUrl: string | null;
+}
+
+/** A provider's logo at 16px, or its initials when there is no logo. */
+const ProviderIcon: React.FC<ProviderIconProps> = ({ provider, iconUrl }) => {
+  const isDarkMode = useIsDarkMode();
+  if (!iconUrl) {
+    return (
+      <Caption component="span" sx={{ lineHeight: 1, color: "inherit" }}>
+        {getProviderFallbackLabel(provider)}
+      </Caption>
+    );
+  }
+  // The HuggingFace logo has good contrast on its own, so it is the one icon
+  // not inverted in dark mode.
+  const invert = isDarkMode && iconUrl !== huggingfaceColorIcon;
+  return (
+    <img
+      src={iconUrl}
+      alt=""
+      style={{
+        objectFit: "contain",
+        filter: invert ? "invert(1) brightness(1.1) contrast(0.9)" : "none"
+      }}
+    />
+  );
+};
+
 interface ProviderListProps {
   providers: string[];
   models?: readonly ModelSelectorModel[];
@@ -530,9 +550,10 @@ interface ProviderListProps {
   isError: boolean;
   storeHook?: ProviderStoreHook;
   forceUnselect?: boolean;
-  iconOnly?: boolean;
-  /** "horizontal" lays the providers out as a scrolling strip (mobile). */
+  /** "horizontal" lays the entries out as a scrolling chip strip (mobile). */
   orientation?: "vertical" | "horizontal";
+  /** Entries drawn after "All models": the Favorites and Recent views. */
+  quickViews?: React.ReactNode;
 }
 
 // Memoized: the model menu re-renders on every keystroke in its search box and
@@ -545,11 +566,9 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
   isError,
   storeHook = useLanguageModelMenuStore,
   forceUnselect = false,
-  iconOnly = false,
-  orientation = "vertical"
+  orientation = "vertical",
+  quickViews
 }) => {
-  const { t } = useTranslation();
-  const theme = useTheme();
   const selected = storeHook((s) => s.selectedProvider);
   const setSelected = storeHook((s) => s.setSelectedProvider);
   const [menuAnchor, setMenuAnchor] = React.useState<null | HTMLElement>(null);
@@ -562,40 +581,33 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
     (s) => s.setProviderEnabled
   );
   const { isApiKeySet } = useSecrets();
-
-  const isDarkMode = useIsDarkMode();
   const isHorizontal = orientation === "horizontal";
-  const tooltipPlacement = isHorizontal ? "bottom" : "right";
-  const itemMinWidth = isHorizontal ? 76 : undefined;
 
-  const providerExecutionLabels = React.useMemo(
-    () => executionLabelsByProvider(models),
-    [models]
-  );
+  const modelCounts = React.useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const m of models) {
+      const p = m.provider ?? "";
+      counts.set(p, (counts.get(p) ?? 0) + 1);
+    }
+    return counts;
+  }, [models]);
 
-  // Sort providers: enabled first (alphabetical), then disabled (alphabetical).
-  // The label and icon URL are resolved here as well: both are pure functions of
-  // the provider id, and resolving them inside the render loop re-ran a
-  // substring scan over ~45 icon names per provider on every re-render.
-  const { orderedProviders, enabledCount, disabledCount } = React.useMemo(() => {
-    // Use enabledProviders map directly to avoid expensive re-computation via selector functions
-    const map = enabledProviders || {};
-    const withLabels = providers.map((p) => ({
-      p,
-      label: isHuggingFaceProvider(p)
-        ? getProviderBaseName(p)
-        : formatGenericProviderName(p),
-      iconUrl: getProviderIconUrl(p),
-      enabled: map[p] !== false // default enabled
-    }));
-    const byLabel = (a: { label: string }, b: { label: string }) =>
-      a.label.localeCompare(b.label);
-    const enabledList = withLabels.filter((x) => x.enabled).sort(byLabel);
-    const disabledList = withLabels.filter((x) => !x.enabled).sort(byLabel);
+  // Group providers: enabled cloud, enabled local, then disabled, each by
+  // name. The icon URL is resolved here as well: it is a pure function of the
+  // provider id, and resolving it inside the render loop re-ran a substring
+  // scan over ~45 icon names per provider on every re-render.
+  const { cloudList, localList, disabledList } = React.useMemo(() => {
+    const groups = groupProvidersBySite(providers, enabledProviders || {});
+    const withIcons = (list: ProviderEntry[]) =>
+      list.map(({ provider, label }) => ({
+        p: provider,
+        label,
+        iconUrl: getProviderIconUrl(provider)
+      }));
     return {
-      orderedProviders: [...enabledList, ...disabledList],
-      enabledCount: enabledList.length,
-      disabledCount: disabledList.length
+      cloudList: withIcons(groups.cloud),
+      localList: withIcons(groups.local),
+      disabledList: withIcons(groups.disabled)
     };
   }, [providers, enabledProviders]);
 
@@ -610,29 +622,15 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
     }
   }, [setSelected]);
 
-  const handleProviderToggle = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    event.stopPropagation();
-    const target = event.currentTarget;
-    const provider = target.dataset.provider;
-    const newEnabled = target.dataset.enabled === "true";
-    if (provider) {
-      setProviderEnabled(provider, newEnabled);
-    }
-  }, [setProviderEnabled]);
-
-  const handleMenuOpen = useCallback((event: React.MouseEvent, p: string) => {
+  const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
-    setMenuAnchor(event.currentTarget as HTMLElement);
-    setMenuProvider(p);
+    setMenuAnchor(event.currentTarget);
+    setMenuProvider(event.currentTarget.dataset.provider ?? null);
   }, []);
 
   const handleMenuClose = useCallback(() => {
     setMenuAnchor(null);
     setMenuProvider(null);
-  }, []);
-
-  const handleStopPropagation = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
   }, []);
 
   const handleOpenWebsite = useCallback(() => {
@@ -649,408 +647,136 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
     handleMenuClose();
   }, [menuProvider, isProviderEnabled, setProviderEnabled, handleMenuClose]);
 
-  const handleAddKey = useCallback(
-    (secretKey: string | null) => {
-      handleMenuClose();
-      openProviderOnboarding(
-        secretKey ? { highlightSecretKey: secretKey } : undefined
-      );
-    },
-    [handleMenuClose]
-  );
+  const menuSecret = menuProvider ? requiredSecretForProvider(menuProvider) : null;
+  const menuNeedsKey = !!menuSecret && !isApiKeySet(menuSecret);
+
+  const handleAddKey = useCallback(() => {
+    handleMenuClose();
+    openProviderOnboarding(
+      menuSecret ? { highlightSecretKey: menuSecret } : undefined
+    );
+  }, [handleMenuClose, menuSecret]);
+
+  const renderProvider = ({
+    p,
+    label,
+    iconUrl
+  }: {
+    p: string;
+    label: string;
+    iconUrl: string | null;
+  }) => {
+    const enabled = isProviderEnabled(p);
+    const env = requiredSecretForProvider(p);
+    const hasKey = env ? isApiKeySet(env) : true;
+    return (
+      <ModelMenuNavItem
+        key={p}
+        className={`model-menu__provider-item ${selected === p ? "is-selected" : ""} ${enabled ? "is-enabled" : "is-disabled"}`}
+        orientation={orientation}
+        label={label}
+        icon={<ProviderIcon provider={p} iconUrl={iconUrl} />}
+        selected={selected === p && !forceUnselect}
+        onClick={handleSelectProvider}
+        onContextMenu={handleMenuOpen}
+        data-provider={p}
+        dimmed={!enabled}
+        tooltip={
+          !enabled
+            ? i18n.t("editor:ui.disabledRightClickToEnable", { defaultValue: "Disabled. Right-click to enable it" })
+            : !hasKey
+              ? i18n.t("editor:ui.addApiKeyToUseModels", { defaultValue: "Add an API key to use these models. Right-click for options" })
+              : undefined
+        }
+        count={modelCounts.get(p)}
+        trailing={
+          enabled && !hasKey ? (
+            <WarningAmberIcon
+              className="model-menu__provider-missing-key-icon"
+              aria-label={i18n.t("editor:ui.apiKeyRequired", { defaultValue: "API key required" })}
+              sx={{ width: 14, height: 14, color: "warning.main", flexShrink: 0 }}
+            />
+          ) : undefined
+        }
+      />
+    );
+  };
 
   return (
-    <List
-      dense
+    <Box
       css={isHorizontal ? horizontalListStyles : listStyles}
       className={`model-menu__providers-list ${isHorizontal ? "is-horizontal" : ""}`}
-      sx={{ fontSize: (theme: Theme) => theme.vars.fontSizeSmall, px: iconOnly ? 0.5 : 0 }}
+      role="navigation"
+      aria-label={i18n.t("editor:ui.modelSources", { defaultValue: "Model sources" })}
     >
-      {isLoading && (
-        <div className="model-menu__providers-loading is-loading" style={{ padding: 8 }}>
-          <LoadingSpinner size="small" />
-        </div>
-      )}
-      {isError && (
-        <div className="model-menu__providers-error is-error" style={{ padding: 8 }}>
-          {t("editor:ui.errorLoadingProviders")}
-        </div>
-      )}
-      <ListItemButton
-        disableRipple
-        className={`model-menu__provider-item model-menu__provider-item--all ${selected === null && !forceUnselect ? "is-selected" : ""}`}
+      <ModelMenuNavItem
+        className="model-menu__provider-item model-menu__provider-item--all"
+        orientation={orientation}
+        label={isHorizontal ? "All" : "All models"}
+        icon={<AppsIcon />}
         selected={selected === null && !forceUnselect}
         onClick={handleSelectNull}
-        sx={{
-          py: iconOnly ? 1 : 0.5,
-          justifyContent: iconOnly ? "center" : "flex-start",
-          px: iconOnly ? 0 : 2,
-          minHeight: iconOnly ? 52 : "auto",
-          minWidth: itemMinWidth,
-          borderRadius: iconOnly ? 1 : 0
-        }}
-      >
-        {iconOnly ? (
-          <Tooltip
-            className="model-menu__all-providers-tooltip"
-            title={t("editor:ui.allProviders", { defaultValue: "All providers" })}
-            placement={tooltipPlacement}
-          >
-            <FlexColumn align="center" gap={0.5} sx={{ py: 0.5 }}>
-              <FormatListBulletedIcon className="model-menu__all-providers-icon" />
-              <Caption
-                sx={{
-                  display: "block",
-                  maxWidth: 76,
-                  textAlign: "center",
-                  lineHeight: 1.15,
-                  fontSize: (t: Theme) => t.vars.fontSizeSmaller,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap"
-                }}
-              >
-                All
-              </Caption>
-            </FlexColumn>
-          </Tooltip>
-        ) : (
-          <ListItemText
-            className="model-menu__all-providers-text"
-            primary={t("editor:ui.allProviders", { defaultValue: "All providers" })}
-            primaryTypographyProps={{
-              sx: { fontSize: (theme) => theme.vars.fontSizeSmall }
-            }}
-          />
-        )}
-      </ListItemButton>
-      {orderedProviders.map(
-        ({ p, label: providerLabel, iconUrl }, idx) => {
-          const enabled = isProviderEnabled(p);
-          const showDivider = idx === enabledCount && disabledCount > 0;
-          const normKey = /gemini|google/i.test(p) ? "gemini" : p;
-          const providerEnabled = (enabledProviders || {})[normKey] !== false;
-          const available = providerEnabled;
-          const env = requiredSecretForProvider(p);
-          const hasKey = env ? isApiKeySet(env) : true;
-          const isHFLogo = iconUrl === huggingfaceColorIcon;
-          const renderBadges = () => {
-            const badges: Array<{ label: string }> = [];
-            const isHF = isHuggingFaceProvider(p);
-            const executionLabels = providerExecutionLabels.get(p);
-
-            if (isHF) {
-              badges.push({ label: "HF" });
-            }
-            if (executionLabels) {
-              const actionable = ["Local", "Server", "API"].filter((label) =>
-                executionLabels.has(label as "Local" | "Server" | "API")
-              );
-              for (const label of actionable) badges.push({ label });
-              if (actionable.length === 0 && executionLabels.has("Unavailable")) {
-                badges.push({ label: "Unavailable" });
-              }
-            }
-
-            return (
-              <FlexRow className="model-menu__provider-badges" gap={0.5}>
-                {badges.map((b) => {
-                  const tooltipTitle =
-                    b.label === "HF"
-                      ? t("editor:ui.huggingfaceModelsFromTheHuggingFaceHub", { defaultValue: "HuggingFace: Models from the Hugging Face Hub." })
-                      : b.label === "Local"
-                        ? t("editor:ui.localRunsLocallyOnYourMachine", { defaultValue: "Local: Runs locally on your machine." })
-                        : b.label === "Server"
-                          ? t("editor:ui.serverRunsOnTheConfiguredNodetoolServer", { defaultValue: "Server: Runs on the configured NodeTool server." })
-                          : b.label === "Unavailable"
-                            ? t("editor:ui.unavailableNoReadyExecutionTargetWasReported", { defaultValue: "Unavailable: No ready execution target was reported." })
-                            : "API: Input is sent to the provider. Provider billing applies.";
-                  return (
-                    <Tooltip
-                      className="model-menu__provider-badge-tooltip"
-                      key={b.label}
-                      title={tooltipTitle}
-                      delay={TOOLTIP_ENTER_DELAY * 2}
-                      nextDelay={TOOLTIP_ENTER_NEXT_DELAY * 2}
-                    >
-                      <span
-                        className={`model-menu__provider-badge model-menu__provider-badge--${b.label.toLowerCase()}`}
-                        style={{
-                          padding: theme.spacing(0.5, 1.5),
-                          fontSize: theme.vars.fontSizeSmaller,
-                          lineHeight: 1.1,
-                          borderRadius: BORDER_RADIUS.sm,
-                          background: "transparent",
-                          color:
-                            b.label === "API"
-                              ? theme.vars.palette.c_provider_api
-                              : b.label === "Local"
-                                ? theme.vars.palette.c_provider_local
-                                : b.label === "Unavailable"
-                                  ? theme.vars.palette.text.disabled
-                                  : b.label === "Server"
-                                    ? theme.vars.palette.warning.main
-                                    : theme.vars.palette.c_provider_hf,
-                          letterSpacing: 0.2,
-                          border: `1px solid currentColor`
-                        }}
-                      >
-                        {b.label}
-                      </span>
-                    </Tooltip>
-                  );
-                })}
-              </FlexRow>
-            );
-          };
-          return (
-            <React.Fragment key={`provider-item-${p}`}>
-              {showDivider && !iconOnly && (
-                <Divider className="model-menu__providers-divider" component="li" sx={{ my: 0.5, opacity: 0.5 }} />
-              )}
-              <ListItemButton
-                disableRipple
-                className={`model-menu__provider-item ${selected === p ? "is-selected" : ""} ${enabled && available ? "is-enabled" : "is-disabled"}`}
-                selected={selected === p}
-                onClick={handleSelectProvider}
-                data-provider={p}
-                onContextMenu={(e) => handleMenuOpen(e, p)}
-                sx={{
-                  gap: 0.5,
-                  opacity: enabled && available ? 1 : 0.5,
-                  py: iconOnly ? 1 : 0.5,
-                  justifyContent: iconOnly ? "center" : "flex-start",
-                  px: iconOnly ? 0 : 2,
-                  minHeight: iconOnly ? 68 : "auto",
-                  minWidth: itemMinWidth,
-                  borderRadius: iconOnly ? 1 : 0
-                }}
-              >
-                {iconOnly ? (
-                  <Tooltip
-                    className="model-menu__provider-icon-tooltip"
-                    title={providerLabel}
-                    placement={tooltipPlacement}
-                  >
-                    <FlexColumn align="center" gap={0.5} sx={{ py: 0.5 }}>
-                      <FlexRow
-                        className="model-menu__provider-icon-circle"
-                        align="center"
-                        justify="center"
-                        sx={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: BORDER_RADIUS.circle,
-                          bgcolor:
-                            selected === p
-                              ? "primary.main"
-                              : isProviderEnabled(p)
-                                ? "action.selected"
-                                : "transparent",
-                          border: `1px solid ${selected === p ? "transparent" : theme.vars.palette.divider}`,
-                          fontWeight: 600,
-                          fontSize: "var(--fontSizeSmall)",
-                          color:
-                            selected === p
-                              ? "primary.contrastText"
-                              : isProviderEnabled(p)
-                                ? "text.primary"
-                                : "text.disabled",
-                          overflow: "hidden",
-                          flexShrink: 0
-                        }}
-                      >
-                        {iconUrl ? (
-                          <img
-                            className="model-menu__provider-icon-image"
-                            src={iconUrl}
-                            alt=""
-                            style={{
-                              width: 24,
-                              height: 24,
-                              objectFit: "contain",
-                              filter: selected === p
-                                ? "brightness(0) invert(1)"
-                                : isDarkMode && !isHFLogo
-                                  ? "invert(1) brightness(1.1) contrast(0.9)"
-                                  : "none"
-                            }}
-                          />
-                        ) : (
-                          getProviderFallbackLabel(p)
-                        )}
-                      </FlexRow>
-                      <Caption
-                        sx={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          wordBreak: "break-word",
-                          maxWidth: 76,
-                          textAlign: "center",
-                          lineHeight: 1.15,
-                          fontSize: (th: Theme) => th.vars.fontSizeSmaller
-                        }}
-                      >
-                        {providerLabel}
-                      </Caption>
-                    </FlexColumn>
-                  </Tooltip>
-                ) : (
-                  <>
-                    <ListItemText
-                      className="model-menu__provider-label"
-                      primary={
-                        <FlexRow className="model-menu__provider-label-content" gap={1} align="center">
-                          {/* The HuggingFace logo has good contrast on its own, so it
-                              is the one icon not inverted in dark mode. */}
-                          <FlexRow className="model-menu__provider-inline-icon" align="center" justify="center" sx={{
-                            width: 28,
-                            height: 28,
-                            flexShrink: 0,
-                            borderRadius: BORDER_RADIUS.sm,
-                            bgcolor: isDarkMode && !isHFLogo ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-                            opacity: available ? 1 : 0.5,
-                          }}>
-                            {iconUrl ? (
-                              <img
-                                className="model-menu__provider-inline-icon-image"
-                                src={iconUrl}
-                                alt=""
-                                style={{
-                                  width: 22,
-                                  height: 22,
-                                  objectFit: 'contain',
-                                  filter: (isDarkMode && !isHFLogo) ? 'invert(1) brightness(1.1) contrast(0.9)' : 'none'
-                                }}
-                              />
-                            ) : (
-                              <Box
-                                component="span"
-                                sx={{
-                                  fontWeight: 600,
-                                  fontSize: theme.vars.fontSizeSmall,
-                                  color: theme.vars.palette.text.primary,
-                                  lineHeight: 1
-                                }}
-                              >
-                                {getProviderFallbackLabel(p)}
-                              </Box>
-                            )}
-                          </FlexRow>
-                          <span className="model-menu__provider-name">
-                            {providerLabel}
-                          </span>
-                        </FlexRow>
-                      }
-                      slotProps={{
-                        primary: {
-                          sx: {
-                            fontSize: (theme) => theme.vars.fontSizeSmall
-                          }
-                        }
-                      }}
-                    />
-                    {!hasKey && (
-                      <FlexRow
-                        className="model-menu__provider-missing-key"
-                        gap={0.5}
-                        align="center"
-                        sx={{ mr: 1 }}
-                        onClick={handleStopPropagation}
-                      >
-                        <Tooltip className="model-menu__provider-missing-key-tooltip" title={t("editor:ui.apiKeyRequired", { defaultValue: "API key required" })}>
-                          <InfoOutlinedIcon
-                            className="model-menu__provider-missing-key-icon"
-                            sx={{
-                              fontSize: (theme: Theme) => theme.vars.fontSizeNormal,
-                              color: "warning.main"
-                            }}
-                          />
-                        </Tooltip>
-                        <Tooltip className="model-menu__provider-add-key-tooltip" title={t("editor:ui.connectThisProvider", { defaultValue: "Connect this provider" })}>
-                          <EditorButton
-                            className="model-menu__provider-add-key-button"
-                            density="compact"
-                            variant="text"
-                            sx={{
-                              minWidth: "auto",
-                              p: 0,
-                              fontSize: (theme: Theme) => theme.vars.fontSizeSmaller,
-                              color: "warning.main"
-                            }}
-                            onClick={() => handleAddKey(env)}
-                          >
-                            {t("editor:ui.addKey", { defaultValue: "Add key" })}
-                          </EditorButton>
-                        </Tooltip>
-                      </FlexRow>
-                    )}
-                    <FlexRow
-                      className="model-menu__provider-actions"
-                      gap={0.5}
-                      align="center"
-                      sx={{ ml: "auto" }}
-                      onClick={handleStopPropagation}
-                    >
-                      {renderBadges()}
-                      <Tooltip
-                        className="model-menu__provider-toggle-tooltip"
-                        title={enabled ? t("editor:ui.disableProvider", { defaultValue: "Disable provider" }) : t("editor:ui.enableProvider", { defaultValue: "Enable provider" })}
-                      >
-                        <Box
-                          data-provider={p}
-                          data-enabled={!enabled}
-                          onClick={handleProviderToggle}
-                          sx={{ cursor: 'pointer' }}
-                        >
-                          <Checkbox
-                            className="model-menu__provider-toggle-checkbox"
-                            edge="end"
-                            size="small"
-                            sx={{
-                              padding: 0,
-                              "& .MuiSvgIcon-root": {
-                                fontSize: (theme: Theme) => theme.vars.fontSizeBig
-                              },
-                              pointerEvents: 'none'
-                            }}
-                            checked={enabled}
-                          />
-                        </Box>
-                      </Tooltip>
-                    </FlexRow>
-                  </>
-                )}
-              </ListItemButton>
-            </React.Fragment>
-          );
-        }
+        count={models.length}
+      />
+      {quickViews}
+      {!isHorizontal && cloudList.length > 0 && (
+        <SectionHeader
+          title="Cloud"
+          size="small"
+          sx={{ px: SPACING.md, pt: SPACING.md, pb: SPACING.xs }}
+        />
       )}
-      <EditorMenu
+      {isLoading && (
+        <FlexRow className="model-menu__providers-loading" sx={{ p: SPACING.md }}>
+          <LoadingSpinner size="small" />
+        </FlexRow>
+      )}
+      {isError && (
+        <Box className="model-menu__providers-error">
+          <EmptyState variant="error" size="small" title={i18n.t("editor:ui.providersDidNotLoad", { defaultValue: "Providers did not load" })} />
+        </Box>
+      )}
+      {cloudList.map(renderProvider)}
+      {localList.length > 0 && !isHorizontal && (
+        <SectionHeader
+          title="Local"
+          size="small"
+          sx={{ px: SPACING.md, pt: SPACING.md, pb: SPACING.xs }}
+        />
+      )}
+      {localList.map(renderProvider)}
+      {disabledList.length > 0 && !isHorizontal && (
+        <SectionHeader
+          title="Disabled"
+          size="small"
+          sx={{ px: SPACING.md, pt: SPACING.md, pb: SPACING.xs }}
+        />
+      )}
+      {disabledList.map(renderProvider)}
+      <ContextMenu
         className="model-menu__provider-context-menu"
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
         onClose={handleMenuClose}
       >
-        <EditorMenuItem
-          className="model-menu__provider-context-menu-item model-menu__provider-context-menu-item--website"
+        {menuNeedsKey && (
+          <MenuItemPrimitive label={i18n.t("editor:ui.addApiKeyEllipsis", { defaultValue: "Add API key…" })} onClick={handleAddKey} />
+        )}
+        <MenuItemPrimitive
+          label={
+            menuProvider && isProviderEnabled(menuProvider)
+              ? i18n.t("editor:ui.disableProvider", { defaultValue: "Disable provider" })
+              : i18n.t("editor:ui.enableProvider", { defaultValue: "Enable provider" })
+          }
+          onClick={handleToggleProvider}
+        />
+        <MenuItemPrimitive
+          label={i18n.t("editor:ui.openProviderWebsite", { defaultValue: "Open provider website" })}
           disabled={!menuProvider || !getProviderUrl(menuProvider)}
           onClick={handleOpenWebsite}
-        >
-          {t("editor:ui.openProviderWebsite")}
-        </EditorMenuItem>
-        <EditorMenuItem
-          className="model-menu__provider-context-menu-item model-menu__provider-context-menu-item--toggle"
-          onClick={handleToggleProvider}
-        >
-          {menuProvider && isProviderEnabled(menuProvider)
-            ? t("editor:ui.disableProvider", { defaultValue: "Disable provider" })
-            : t("editor:ui.enableProvider", { defaultValue: "Enable provider" })}
-        </EditorMenuItem>
-      </EditorMenu>
-    </List>
+        />
+      </ContextMenu>
+    </Box>
   );
 });
 

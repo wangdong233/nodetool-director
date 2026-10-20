@@ -6,13 +6,14 @@
 
 import React, { memo, useCallback } from "react";
 import { useTheme } from "@mui/material/styles";
-import EditIcon from "@mui/icons-material/Edit";
+import EditIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import type { Entity } from "@nodetool-ai/protocol";
 import {
   Card,
-  Text,
   Caption,
+  TruncatedText,
+  TYPOGRAPHY,
   Chip,
   FlexRow,
   FlexColumn,
@@ -20,7 +21,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import ImageRefPreview from "../node/ImageRefPreview";
-import { getEntityKindChipSx } from "./entityKind";
+import { ENTITY_KIND_COLOR } from "./entityKind";
 import { useTranslation } from "react-i18next";
 
 interface EntityCardProps {
@@ -49,7 +50,7 @@ const EntityCardInternal: React.FC<EntityCardProps> = ({
       variant="outlined"
       padding="none"
       className="entity-card"
-      sx={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
+      sx={{ overflow: "hidden" }}
     >
       <div
         style={{
@@ -68,7 +69,7 @@ const EntityCardInternal: React.FC<EntityCardProps> = ({
               sx={{ width: "100%", height: "100%" }}
             >
               <Caption sx={{ color: theme.vars.palette.text.disabled }}>
-                {t("editor:ui.noImage", { defaultValue: "No image" })}
+                No image
               </Caption>
             </FlexRow>
           }
@@ -77,21 +78,15 @@ const EntityCardInternal: React.FC<EntityCardProps> = ({
 
       <FlexColumn gap={SPACING.xs} sx={{ p: 1 }}>
         <FlexRow align="center" justify="space-between" gap={0.5}>
-          <Text
-            sx={{
-              fontWeight: 600,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap"
-            }}
-          >
-            {t(`catalog:styles.${entity.name}.name`, { defaultValue: entity.name || "Untitled" })}
-          </Text>
+          <TruncatedText sx={{ ...TYPOGRAPHY.sans.label }}>
+            {entity.name || "Untitled"}
+          </TruncatedText>
           <Chip
-            label={t(`storyboard:attrs.${entity.kind}`, { defaultValue: entity.kind })}
+            label={entity.kind}
             compact
             variant="outlined"
-            sx={{ ...getEntityKindChipSx(entity.kind), flexShrink: 0 }}
+            color={ENTITY_KIND_COLOR[entity.kind]}
+            sx={{ flexShrink: 0 }}
           />
         </FlexRow>
 
@@ -104,9 +99,7 @@ const EntityCardInternal: React.FC<EntityCardProps> = ({
             overflow: "hidden"
           }}
         >
-          {entity.descriptor
-            ? t(`catalog:styles.${entity.name}.description`, { defaultValue: entity.descriptor })
-            : null}
+          {entity.descriptor}
         </Caption>
 
         <FlexRow gap={0.5} justify="flex-end">

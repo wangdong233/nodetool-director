@@ -23,6 +23,7 @@ import {
   stringInputMeta,
   textAgentMeta,
 } from "./builders";
+import { i18n } from "../../i18n";
 
 const STRING_INPUT = "nodetool.input.StringInput";
 const HYBRID_SEARCH = "vector.HybridSearch";
@@ -75,7 +76,7 @@ const events: CastEvent[] = [
   m.edgeUpdate(1700, "e2", "active"),
 
   m.nodeUpdate(2300, "search", "Hybrid Search", HYBRID_SEARCH, "running"),
-  ...m.progress("search", 8, 2600, 1400),
+  ...m.progress("search", 42, 2600, 1400),
   m.nodeUpdate(4300, "search", "Hybrid Search", HYBRID_SEARCH, "completed", { output: PASSAGES }),
   m.edgeUpdate(4500, "e2", "completed"),
   m.edgeUpdate(4700, "e3", "active"),
@@ -123,7 +124,7 @@ export const chatWithDocsCast: DemoCast = {
       inline: [],
       properties: [prop("text", "str"), prop("collection", "collection")],
     }),
-    [TEMPLATE]: simpleMeta(TEMPLATE, "Template", "str", {
+    [TEMPLATE]: simpleMeta(TEMPLATE, i18n.t("storyboard:attrs.template", { defaultValue: "Template" }), "str", {
       inputs: ["question", "context"],
       inline: ["template"],
       properties: [prop("template", "str"), prop("question", "str"), prop("context", "str")],

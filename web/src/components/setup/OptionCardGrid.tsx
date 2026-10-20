@@ -8,6 +8,7 @@ import React, { memo } from "react";
 import { useTheme } from "@mui/material/styles";
 
 import {
+  AutoGrid,
   BORDER_RADIUS,
   Box,
   Caption,
@@ -15,26 +16,25 @@ import {
   GAP,
   PADDING,
   ResponsiveImage,
-  Text
+  Text,
+  TYPOGRAPHY
 } from "../ui_primitives";
 import type { MediaLocator } from "../../hooks/useResolvedMediaUri";
 import { SetupCardButton, useRovingRadioGroup } from "./SetupCardButton";
 import { GalleryExpandButton, MEDIA_GALLERY_HOST_CLASS } from "./MediaGallery";
 import type { SetupCardGridMode } from "./SetupCardButton";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /** The class every card in the grid carries, for a host that restyles them. */
 export const OPTION_CARD_CLASS = "option-card";
 
 export interface OptionCardItem {
+  descriptionKey?: string;
+  titleKey?: string;
   id: string;
   title: string;
-  /** Full `ns:key` for the title; resolved at render so module tables stay pure data. */
-  titleKey?: string;
   /** One line under the title. */
   description?: string;
-  /** Full `ns:key` for the description; resolved at render. */
-  descriptionKey?: string;
   /**
    * The card's numbers, on their own line under the description — a format's
    * "15s · 16:9 · 30fps". They are what the choice decides, so they do not
@@ -77,28 +77,21 @@ const CardText: React.FC<{ option: OptionCardItem; onImage: boolean }> = ({
   option,
   onImage
 }) => {
-  const { t } = useTranslation();
   // Over a still, every line takes the overlay's colour: the muted greys the
   // text cards use are unreadable against a photograph.
   const inherit = onImage ? { color: "inherit" } : undefined;
-  const title = option.titleKey
-    ? t(option.titleKey, { defaultValue: option.title })
-    : option.title;
-  const description = option.descriptionKey
-    ? t(option.descriptionKey, { defaultValue: option.description })
-    : option.description;
   return (
     <FlexColumn gap={GAP.tight}>
-      <Text size="normal" component="span" sx={inherit}>
-        {title}
+      <Text component="span" sx={{ ...TYPOGRAPHY.sans.label, ...inherit }}>
+        {option.titleKey ? i18n.t(option.titleKey, { defaultValue: option.title }) : option.title}
       </Text>
-      {description ? (
+      {option.description ? (
         <Caption
           component="span"
           color={onImage ? undefined : "secondary"}
           sx={inherit}
         >
-          {description}
+          {option.descriptionKey ? i18n.t(option.descriptionKey, { defaultValue: option.description }) : option.description}
         </Caption>
       ) : null}
       {option.meta ? (
@@ -126,6 +119,7 @@ const MediaCard: React.FC<{ option: OptionCardItem; image: MediaLocator }> = ({
         locator={image}
         alt=""
         aspectRatio="16/9"
+        preferThumbnail
         sx={{ display: "block" }}
       />
       {/* The still decides the contrast under the title, so the text brings its
@@ -161,14 +155,11 @@ const OptionCardGridInternal: React.FC<OptionCardGridProps> = ({
   const single = mode === "single-select";
   const radioProps = useRovingRadioGroup(options, selectedId, onSelect);
   return (
-    <Box
+    <AutoGrid
       role={single ? "radiogroup" : "group"}
       aria-label={label}
-      sx={{
-        display: "grid",
-        gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${minColumnWidth}px), 1fr))`,
-        gap: GAP.comfortable
-      }}
+      minItemWidth={minColumnWidth}
+      gap={GAP.comfortable}
     >
       {options.map((option) => {
         const filled = variant === "media" && option.image !== undefined;
@@ -198,6 +189,7 @@ const OptionCardGridInternal: React.FC<OptionCardGridProps> = ({
                     alt=""
                     aspectRatio="16/9"
                     borderRadius={BORDER_RADIUS.sm}
+                    preferThumbnail
                   />
                 ) : null}
                 <CardText option={option} onImage={false} />
@@ -220,12 +212,12 @@ const OptionCardGridInternal: React.FC<OptionCardGridProps> = ({
             <GalleryExpandButton
               locator={option.image}
               kind="image"
-              caption={option.title}
+              caption={option.titleKey ? i18n.t(option.titleKey, { defaultValue: option.title }) : option.title}
             />
           </Box>
         );
       })}
-    </Box>
+    </AutoGrid>
   );
 };
 

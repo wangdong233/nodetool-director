@@ -15,6 +15,7 @@ import { mergeByUnits } from "../documentMerge";
 
 /** The slice of a JS script document the engine merges. */
 export interface JsScriptMergeDoc {
+  nameKey?: string;
   code: string;
   inputs: unknown[];
   outputs: unknown[];

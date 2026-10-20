@@ -103,3 +103,9 @@
 https://elevenlabs.io/docs/best-practices/prompting/eleven-v3
 https://elevenlabs.io/docs/overview/capabilities/sound-effects
 https://elevenlabs.io/docs/eleven-api/guides/cookbooks/music.md
+
+直达 `eleven_*` 系列模型走 `elevenlabs.TextToSpeech`,fal、kie 或 OpenAI 兼容路由各有自己的节点。节点级参数只在该路由自己的节点上:用 `search_nodes` 找到它,`get_node_info` 读字段,`run_node` 运行。每次运行都是付费生成,先与用户确认范围。
+
+输入字段:ElevenLabs 原生节点叫 `inputs`,kie 路由叫 `dialogue`。说话人是条目自带的声音,不要另行指定。
+
+音乐生成走 Replicate 的 `elevenlabs/music`。

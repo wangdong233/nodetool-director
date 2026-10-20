@@ -290,6 +290,40 @@ describe("useFileDrop", () => {
     expect(onChangeAsset).toHaveBeenCalled();
   });
 
+  it("rejects an example instead of pasting its drag data as text", () => {
+    const onChange = jest.fn();
+    mockDeserialize.mockReturnValue({
+      type: "example-sketch",
+      payload: { slug: "moonlit-tide", name: "Moonlit Tide" }
+    });
+
+    const { result } = renderHook(() =>
+      useFileDrop({ type: "image", onChange })
+    );
+
+    act(() => {
+      result.current.onDrop(
+        createMockDragEvent({
+          dataTransfer: {
+            items: [
+              {
+                kind: "string",
+                getAsString: (cb: (s: string) => void) => cb("{}")
+              }
+            ],
+            files: { length: 0 },
+            getData: jest.fn(() => "")
+          }
+        })
+      );
+    });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(mockAddNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "error" })
+    );
+  });
+
   it("passes dropped string items to onChange", () => {
     const onChange = jest.fn();
     mockDeserialize.mockReturnValue(null);
@@ -377,6 +411,38 @@ describe("useFileDrop", () => {
 
     expect(mockUploadAsset).toHaveBeenCalledWith(
       expect.objectContaining({ file: mockFile, source: "file" })
+    );
+    expect(mockAddNotification).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["notes.txt", "text/plain"],
+    ["page.html", "text/html"],
+    ["readme.md", "text/markdown"]
+  ])("accepts %s dropped onto a document dropzone", (name, type) => {
+    mockDeserialize.mockReturnValue(null);
+    mockHasExternalFiles.mockReturnValue(true);
+    const mockFile = new File(["content"], name, { type });
+    mockExtractFiles.mockReturnValue([mockFile]);
+
+    const { result } = renderHook(() =>
+      useFileDrop({ type: "document", uploadAsset: true })
+    );
+
+    act(() => {
+      result.current.onDrop(
+        createMockDragEvent({
+          dataTransfer: {
+            items: [],
+            files: { length: 1 },
+            getData: jest.fn(() => "")
+          }
+        })
+      );
+    });
+
+    expect(mockUploadAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ file: mockFile })
     );
     expect(mockAddNotification).not.toHaveBeenCalled();
   });

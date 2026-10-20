@@ -1,10 +1,6 @@
 import React, { useCallback } from "react";
 
-import {
-  Text,
-  ContextMenu,
-  MenuItem
-} from "../ui_primitives";
+import { ContextMenu, Divider, ListSubheader } from "../ui_primitives";
 import ContextMenuItem from "./ContextMenuItem";
 import useContextMenuStore from "../../stores/ContextMenuStore";
 import { Workflow } from "../../stores/ApiTypes";
@@ -14,11 +10,12 @@ import {
 } from "../../stores/FavoriteWorkflowsStore";
 import { useWorkflowActions } from "../../stores/WorkflowActionsStore";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
+import EditIcon from "@mui/icons-material/EditOutlined";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const WorkflowContextMenu: React.FC = () => {
   const { t } = useTranslation();
@@ -82,12 +79,10 @@ const WorkflowContextMenu: React.FC = () => {
       onContextMenu={(event) => event.preventDefault()}
       position={menuPosition}
     >
-      <MenuItem disabled>
-        <Text>{payload.name}</Text>
-      </MenuItem>
+      <ListSubheader>{payload.name}</ListSubheader>
       <ContextMenuItem
         onClick={handleToggleFavorite}
-        label={isFavorite ? t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : t("editor:workflow.addFav", { defaultValue: "Add to favorites" })}
+        label={isFavorite ? t("editor:workflow.removeFav", { defaultValue: "Remove from favorites" }) : i18n.t("editor:workflow.addFav", { defaultValue: "Add to favorites" })}
         IconComponent={isFavorite ? <StarIcon /> : <StarBorderIcon />}
       />
       <ContextMenuItem onClick={handleEdit} label={t("editor:workflow.edit", { defaultValue: "Edit" })} IconComponent={<EditIcon />} />
@@ -99,14 +94,15 @@ const WorkflowContextMenu: React.FC = () => {
       {onOpenAsApp && (
         <ContextMenuItem
           onClick={handleOpenAsApp}
-          label={t("editor:workflow.openAsApp", { defaultValue: "Open as App" })}
+          label={t("editor:workflow.openAsApp", { defaultValue: "Open as app" })}
           IconComponent={<StarIcon />}
         />
       )}
+      <Divider />
       <ContextMenuItem
         onClick={handleDelete}
         label={t("common:action.delete", { defaultValue: "Delete" })}
-        addButtonClassName="delete"
+        destructive
         IconComponent={<DeleteIcon />}
       />
     </ContextMenu>

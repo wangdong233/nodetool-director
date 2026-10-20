@@ -127,55 +127,37 @@ function getSquare(hex: string): string[] {
   ];
 }
 
-export function getHarmonyInfo(): Array<{
-  type: HarmonyType;
-  name: string;
-  nameKey: string;
-  description: string;
-  descriptionKey: string;
-}> {
+export function getHarmonyInfo(): Array<{ type: HarmonyType; name: string; description: string; nameKey?: string; descriptionKey?: string }> {
   return [
     {
       type: "complementary",
-      name: "Complementary",
-      nameKey: "editor:ui.complementary",
-      description: "Opposite colors on the color wheel, creating high contrast",
-      descriptionKey: "editor:ui.oppositeColorsHighContrast"
+      name: "Complementary", nameKey: "editor:ui.complementary",
+      description: "Opposite colors on the color wheel, creating high contrast", descriptionKey: "editor:ui.oppositeColorsHighContrast",
     },
     {
       type: "analogous",
-      name: "Analogous",
-      nameKey: "editor:ui.analogous",
-      description: "Adjacent colors that create a harmonious, natural look",
-      descriptionKey: "editor:ui.adjacentColorsHarmoniousNaturalLook"
+      name: "Analogous", nameKey: "editor:ui.analogous",
+      description: "Adjacent colors that create a harmonious, natural look", descriptionKey: "editor:ui.adjacentColorsHarmoniousNaturalLook",
     },
     {
       type: "triadic",
-      name: "Triadic",
-      nameKey: "editor:ui.triadic",
-      description: "Three colors equally spaced (120°) for vibrant combinations",
-      descriptionKey: "editor:ui.threeColorsEquallySpacedVibrant"
+      name: "Triadic", nameKey: "editor:ui.triadic",
+      description: "Three colors equally spaced (120°) for vibrant combinations", descriptionKey: "editor:ui.threeColorsEquallySpacedVibrant",
     },
     {
       type: "split-complementary",
-      name: "Split Complementary",
-      nameKey: "editor:ui.splitComplementary",
-      description: "Base color with two adjacent to its complement",
-      descriptionKey: "editor:ui.baseColorWithTwoAdjacentToComplement"
+      name: "Split complementary",
+      description: "Base color with two adjacent to its complement", descriptionKey: "editor:ui.baseColorWithTwoAdjacentToComplement",
     },
     {
       type: "tetradic",
-      name: "Tetradic",
-      nameKey: "editor:ui.tetradic",
-      description: "Four colors forming a rectangle on the color wheel",
-      descriptionKey: "editor:ui.fourColorsFormingRectangle"
+      name: "Tetradic", nameKey: "editor:ui.tetradic",
+      description: "Four colors forming a rectangle on the color wheel", descriptionKey: "editor:ui.fourColorsFormingRectangle",
     },
     {
       type: "square",
-      name: "Square",
-      nameKey: "editor:ui.squareHarmony",
-      description: "Four colors evenly spaced (90°) for bold combinations",
-      descriptionKey: "editor:ui.fourColorsEvenlySpacedBold"
+      name: "Square", nameKey: "editor:ui.squareHarmony",
+      description: "Four colors evenly spaced (90°) for bold combinations", descriptionKey: "editor:ui.fourColorsEvenlySpacedBold",
     }
   ];
 }

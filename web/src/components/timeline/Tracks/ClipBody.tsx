@@ -32,9 +32,10 @@ import {
   FONT_WEIGHT,
   TYPOGRAPHY,
   MOTION,
-  Z_INDEX
+  Z_INDEX,
+  ICON_SIZE
 } from "../../ui_primitives";
-import type { StatusType } from "../../ui_primitives";
+import { GENERATION_STATUS } from "../../ui_primitives";
 import { useClipThumbnails } from "./useClipThumbnails";
 import { useModel3DClipThumbnails } from "./useModel3DClipThumbnails";
 import { useAudioPeaks } from "./useAudioPeaks";
@@ -53,7 +54,7 @@ import {
 import { useAssetUrl } from "./useAssetUrl";
 import { ClipMediaOffline } from "./ClipMediaOffline";
 import { openPersistedFold } from "../Inspector/usePersistedFold";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const TRIM_HANDLE_WIDTH_PX = 8;
 /** Hit area for the same grip under a finger; the visible width stays 8px. */
@@ -76,17 +77,8 @@ const FILMSTRIP_CELL_PX = 60;
 const MIN_FADE_HANDLE_CLIP_WIDTH_PX = 32;
 const FADE_HANDLE_SIZE_PX = 9;
 
-// Status mapping (PRD §5.5)
-export const CLIP_STATUS_MAP = {
-  draft: { status: "default", label: "Draft", pulse: false },
-  queued: { status: "pending", label: "Queued", pulse: false },
-  generating: { status: "pending", label: "Generating", pulse: true },
-  generated: { status: "success", label: "Generated", pulse: false },
-  stale: { status: "warning", label: "Stale", pulse: false },
-  failed: { status: "error", label: "Failed", pulse: false },
-  locked: { status: "info", label: "Locked", pulse: false },
-  missing: { status: "error", label: "Missing", pulse: false }
-} satisfies Record<ClipStatus, { status: StatusType; label: string; pulse: boolean }>;
+// Status mapping (PRD §5.5), shared with sketch layers
+export const CLIP_STATUS_MAP = GENERATION_STATUS satisfies Record<ClipStatus, unknown>;
 
 
 const clipStyles = (
@@ -664,7 +656,6 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
     onKeyframeClick,
     interactionLocked
   }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const clipId = clip.id;
 
@@ -974,7 +965,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
               style={{ left: handleLeftPx }}
               data-clip-fade-handle
               data-testid={`clip-fade-handle-${edge}-${clipId}`}
-              aria-label={`${edge === "in" ? t("timeline:attrs.fadeIn", { defaultValue: "Fade in" }) : t("timeline:attrs.fadeOut", { defaultValue: "Fade out" })} ${(
+              aria-label={`${edge === "in" ? "Fade in" : "Fade out"} ${(
                 lengthMs / 1000
               ).toFixed(2)} seconds`}
               onPointerDown={(e) => fade?.onFadePointerDown(edge, e)}
@@ -1003,7 +994,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
               onPointerMove={handleTransitionPointerMove}
               onPointerUp={handleTransitionPointerEnd}
               onPointerCancel={handleTransitionPointerEnd}
-              aria-label={t("timeline:attrs.transitionLength", { defaultValue: "Transition length" })}
+              aria-label={i18n.t("timeline:attrs.transitionLength", { defaultValue: "Transition length" })}
               data-testid={`clip-transition-handle-${clipId}`}
             />
           </div>
@@ -1066,7 +1057,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
             }}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={handleAnimationMarkerClick}
-            aria-label={t("timeline:attrs.openEntranceAnimationControls", { defaultValue: "Open entrance animation controls" })}
+            aria-label={i18n.t("timeline:attrs.openEntranceAnimationControls", { defaultValue: "Open entrance animation controls" })}
           />
         )}
 
@@ -1080,7 +1071,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
             }}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={handleAnimationMarkerClick}
-            aria-label={t("timeline:attrs.openExitAnimationControls", { defaultValue: "Open exit animation controls" })}
+            aria-label={i18n.t("timeline:attrs.openExitAnimationControls", { defaultValue: "Open exit animation controls" })}
           />
         )}
 
@@ -1090,7 +1081,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
             css={loopIconCss}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={handleAnimationMarkerClick}
-            aria-label={t("timeline:attrs.openLoopAndEmphasisAnimationControls", { defaultValue: "Open loop and emphasis animation controls" })}
+            aria-label={i18n.t("timeline:attrs.openLoopAndEmphasisAnimationControls", { defaultValue: "Open loop and emphasis animation controls" })}
           >
             <LoopOutlinedIcon />
           </button>
@@ -1101,7 +1092,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
           <span css={dotCss} aria-hidden />
           {clip.mediaType === "adjustment" && (
             <TuneOutlinedIcon
-              sx={{ fontSize: 12, flexShrink: 0, color: accent }}
+              sx={{ fontSize: ICON_SIZE.xs, flexShrink: 0, color: accent }}
               aria-hidden
             />
           )}
@@ -1119,7 +1110,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
           onPointerMove={handleTrimStartPointerMove}
           onPointerUp={handleTrimPointerEnd}
           onPointerCancel={handleTrimPointerEnd}
-          aria-label={t("timeline:attrs.trimClipStart", { defaultValue: "Trim clip start" })}
+          aria-label={i18n.t("timeline:attrs.trimClipStart", { defaultValue: "Trim clip start" })}
           data-testid={`clip-trim-start-${clipId}`}
         />
 
@@ -1131,7 +1122,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
           onPointerMove={handleTrimEndPointerMove}
           onPointerUp={handleTrimPointerEnd}
           onPointerCancel={handleTrimPointerEnd}
-          aria-label={t("timeline:attrs.trimClipEnd", { defaultValue: "Trim clip end" })}
+          aria-label={i18n.t("timeline:attrs.trimClipEnd", { defaultValue: "Trim clip end" })}
           data-testid={`clip-trim-end-${clipId}`}
           data-focus-id={`timeline-trim-end-${clipId}`}
         />
@@ -1145,7 +1136,7 @@ export const ClipBody: React.FC<ClipBodyProps> = memo(
 
         {clip.locked && (
           <div css={lockIconStyles}>
-            <LockOutlinedIcon sx={{ fontSize: 12 }} aria-label={t("timeline:attrs.clipLocked", { defaultValue: "Clip locked" })} />
+            <LockOutlinedIcon sx={{ fontSize: ICON_SIZE.xs }} aria-label={i18n.t("timeline:attrs.clipLocked", { defaultValue: "Clip locked" })} />
           </div>
         )}
 

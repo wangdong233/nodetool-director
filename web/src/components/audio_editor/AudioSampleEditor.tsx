@@ -1,30 +1,34 @@
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   Box,
-  Caption,
   EmptyState,
   FlexColumn,
   FlexRow,
-  LoadingSpinner
+  LoadingSpinner,
+  SPACING,
+  TruncatedText,
+  TYPOGRAPHY
 } from "../ui_primitives";
 import { useDocumentDraftStore } from "../../stores/DocumentDraftStore";
 import { BASE_URL } from "../../stores/BASE_URL";
 import type { Asset } from "../../stores/ApiTypes";
 import { useSaveAudioToAsset } from "../../hooks/audio/useSaveAudioToAsset";
+import ReportBugButton from "../support/ReportBugButton";
 import WaveformView, { type Selection } from "./WaveformView";
 import AudioEditorToolbar from "./AudioEditorToolbar";
+import AudioTransportBar from "./AudioTransportBar";
+import { formatEditorTime } from "./formatEditorTime";
+import AudioEffectDialog from "./AudioEffectDialog";
+import {
+  applyEffect,
+  defaultEffectParams,
+  getAudioEffect,
+  type AudioEffect,
+  type EffectParams
+} from "./audioEffects";
 import { useEditHistory } from "./useEditHistory";
-import { createPlayheadStore, type PlayheadStore } from "./playheadStore";
+import { createPlayheadStore } from "./playheadStore";
 import {
   applyGain,
   audioBufferToSample,
@@ -38,11 +42,20 @@ import {
   silenceRange,
   type AudioSample
 } from "./audioSample";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface AudioSampleEditorProps {
   asset: Asset;
   onClose: () => void;
   active?: boolean;
+  /**
+   * Replaces the default save, which overwrites the asset's bytes. Resolves
+   * true when the sample was stored, so the editor can mark it clean.
+   */
+  onSaveSample?: (sample: AudioSample) => Promise<boolean>;
+  /** Region (seconds) selected once the audio has loaded. */
+  initialSelection?: Selection;
 }
 
 const MIN_ZOOM = 1;
@@ -66,38 +79,11 @@ const getAudioContextCtor = (): typeof AudioContext | null => {
   return null;
 };
 
-const formatTime = (seconds: number): string => {
-  const safe = Math.max(0, seconds);
-  const m = Math.floor(safe / 60);
-  const s = Math.floor(safe % 60);
-  const ms = Math.floor((safe % 1) * 1000);
-  return `${m}:${String(s).padStart(2, "0")}.${String(ms).padStart(3, "0")}`;
-};
-
-/** Clock in the footer — the only editor text that updates during playback. */
-const PlaybackClock = memo(function PlaybackClock({
-  playhead,
-  duration
-}: {
-  playhead: PlayheadStore;
-  duration: number;
-}) {
-  const seconds = useSyncExternalStore(
-    playhead.subscribe,
-    playhead.get,
-    playhead.get
-  );
-  return (
-    <Caption>
-      {formatTime(seconds)} / {formatTime(duration)}
-    </Caption>
-  );
-});
-
 /**
  * In-browser audio sample editor (Audacity-style): decode an asset into PCM,
  * select a region on the waveform, apply destructive edits (trim, delete,
- * silence, fade, normalize, reverse, gain) with undo/redo, audition with the
+ * silence, fade, normalize, reverse, gain) and effects from `audioEffects.ts`
+ * (EQ, dynamics, reverb, echo, speed, …) with undo/redo, audition with the
  * transport, and save the result back to the asset as WAV.
  *
  * The playhead advances every animation frame during playback, so it lives in
@@ -108,7 +94,9 @@ const PlaybackClock = memo(function PlaybackClock({
 const AudioSampleEditor = ({
   asset,
   onClose,
-  active = true
+  active = true,
+  onSaveSample,
+  initialSelection
 }: AudioSampleEditorProps) => {
   const { t } = useTranslation();
   const history = useEditHistory<AudioSample>();
@@ -147,7 +135,23 @@ const AudioSampleEditor = ({
   const getUrlRef = useRef(asset.get_url);
   getUrlRef.current = asset.get_url;
 
-  const { save, saving } = useSaveAudioToAsset(asset);
+  const { save: saveToAsset, saving: savingToAsset } =
+    useSaveAudioToAsset(asset);
+  const [savingCustom, setSavingCustom] = useState(false);
+  const saving = savingToAsset || savingCustom;
+  const save = useCallback(
+    async (next: AudioSample): Promise<boolean> => {
+      if (!onSaveSample) return saveToAsset(next);
+      setSavingCustom(true);
+      try {
+        return await onSaveSample(next);
+      } finally {
+        setSavingCustom(false);
+      }
+    },
+    [onSaveSample, saveToAsset]
+  );
+  const initialSelectionRef = useRef(initialSelection);
 
   const getCtx = useCallback((): AudioContext => {
     if (!audioCtxRef.current) {
@@ -302,6 +306,14 @@ const AudioSampleEditor = ({
         const initial = audioBufferToSample(decoded);
         resetHistory(initial);
         setSavedSample(initial);
+        const region = initialSelectionRef.current;
+        const duration = sampleDuration(initial);
+        if (region && region.end > region.start && region.start < duration) {
+          setSelection({
+            start: Math.max(0, region.start),
+            end: Math.min(duration, region.end)
+          });
+        }
         setLoading(false);
       } catch (e) {
         if (cancelled) return;
@@ -421,6 +433,62 @@ const AudioSampleEditor = ({
   const handleQuieten = useCallback(() => handleGain(0.7), [handleGain]);
   const handleToggleLoop = useCallback(() => setLoop((v) => !v), []);
 
+  const [openEffect, setOpenEffect] = useState<AudioEffect | null>(null);
+  // Last-used settings per effect, so reopening an effect keeps its values.
+  const [effectParams, setEffectParams] = useState<
+    Record<string, EffectParams>
+  >({});
+  const [effectError, setEffectError] = useState<string | null>(null);
+
+  const runEffect = useCallback(
+    async (effect: AudioEffect, params: EffectParams) => {
+      const current = sampleRef.current;
+      if (!current) return;
+      const sel = selectionRef.current;
+      const result = await applyEffect(
+        current,
+        effect,
+        params,
+        sel?.start,
+        sel?.end
+      );
+      // Edits made while an async render ran win; drop this result.
+      if (sampleRef.current !== current) return;
+      history.commit(result);
+      if (effect.changesLength) {
+        setSelection(null);
+      }
+    },
+    [history]
+  );
+
+  const handleApplyEffect = useCallback(
+    async (effect: AudioEffect, params: EffectParams) => {
+      setEffectParams((prev) => ({ ...prev, [effect.id]: params }));
+      await runEffect(effect, params);
+    },
+    [runEffect]
+  );
+
+  const handleEffect = useCallback(
+    (effectId: string) => {
+      const effect = getAudioEffect(effectId);
+      if (!effect) return;
+      pause();
+      setEffectError(null);
+      if (effect.params.length > 0) {
+        setOpenEffect(effect);
+        return;
+      }
+      runEffect(effect, {}).catch((e: unknown) =>
+        setEffectError(e instanceof Error ? e.message : String(e))
+      );
+    },
+    [pause, runEffect]
+  );
+
+  const closeEffect = useCallback(() => setOpenEffect(null), []);
+
   const handleSave = useCallback(async () => {
     const savingSample = sampleRef.current;
     if (savingSample && (await save(savingSample)))
@@ -459,28 +527,42 @@ const AudioSampleEditor = ({
     );
   }
 
+  const statusText = hasSelection && selection
+    ? `Selection ${formatEditorTime(selection.start)} – ${formatEditorTime(
+        selection.end
+      )} · ${formatEditorTime(selection.end - selection.start)}`
+    : "Drag to select, click to seek";
+  const status = effectError ? (
+    <FlexRow align="center" gap={SPACING.xs} sx={{ minWidth: 0 }}>
+      <TruncatedText
+        showTooltip
+        color="error.main"
+        sx={TYPOGRAPHY.sans.caption}
+      >
+        {effectError}
+      </TruncatedText>
+      <ReportBugButton
+        context={{
+          source: "operation-failure",
+          summary: "Audio editor effect failed",
+          errorText: effectError
+        }}
+      />
+    </FlexRow>
+  ) : (
+    <TruncatedText color="text.secondary" sx={TYPOGRAPHY.sans.caption}>
+      {statusText}
+    </TruncatedText>
+  );
+
   return (
     <FlexColumn fullWidth fullHeight sx={{ overflow: "hidden" }}>
       <AudioEditorToolbar
-        isPlaying={isPlaying}
-        loop={loop}
-        zoom={zoom}
-        minZoom={MIN_ZOOM}
-        maxZoom={MAX_ZOOM}
-        canZoomIn={zoom < MAX_ZOOM}
-        canZoomOut={zoom > MIN_ZOOM}
         hasSelection={hasSelection}
         canUndo={history.canUndo}
         canRedo={history.canRedo}
         saving={saving}
         canSave={!loading && !error}
-        onTogglePlay={togglePlay}
-        onStop={stop}
-        onToggleLoop={handleToggleLoop}
-        onZoomIn={zoomIn}
-        onZoomOut={zoomOut}
-        onZoomFit={zoomFit}
-        onZoomChange={setZoom}
         onTrim={handleTrim}
         onDelete={handleDelete}
         onSilence={handleSilence}
@@ -490,6 +572,7 @@ const AudioSampleEditor = ({
         onAmplify={handleAmplify}
         onQuieten={handleQuieten}
         onReverse={handleReverse}
+        onEffect={handleEffect}
         onUndo={history.undo}
         onRedo={history.redo}
         onSave={handleSave}
@@ -510,25 +593,38 @@ const AudioSampleEditor = ({
         />
       </Box>
 
-      <FlexRow
-        align="center"
-        justify="space-between"
-        sx={{
-          flexShrink: 0,
-          px: 1.5,
-          py: 0.5,
-          borderTop: "1px solid var(--palette-divider)"
-        }}
-      >
-        <Caption>
-          {hasSelection && selection
-            ? `Selection ${formatTime(selection.start)} – ${formatTime(
-                selection.end
-              )} (${formatTime(selection.end - selection.start)})`
-            : i18n.t("editor:ui.dragToSelectClickToSeek", { defaultValue: "Drag to select · Click to seek" })}
-        </Caption>
-        <PlaybackClock playhead={playhead} duration={duration} />
-      </FlexRow>
+      <AudioTransportBar
+        isPlaying={isPlaying}
+        loop={loop}
+        playhead={playhead}
+        duration={duration}
+        zoom={zoom}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
+        status={status}
+        onTogglePlay={togglePlay}
+        onStop={stop}
+        onToggleLoop={handleToggleLoop}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onZoomFit={zoomFit}
+        onZoomChange={setZoom}
+      />
+
+      {openEffect && (
+        <AudioEffectDialog
+          key={openEffect.id}
+          effect={openEffect}
+          sample={sample}
+          selection={hasSelection ? selection : null}
+          initialParams={
+            effectParams[openEffect.id] ?? defaultEffectParams(openEffect)
+          }
+          getAudioContext={getCtx}
+          onApply={handleApplyEffect}
+          onClose={closeEffect}
+        />
+      )}
     </FlexColumn>
   );
 };

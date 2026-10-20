@@ -15,7 +15,8 @@
  */
 
 import { forwardRef, memo, useCallback, useMemo } from "react";
-import { IconButton, IconButtonProps, Tooltip } from "@mui/material";
+import { IconButton, IconButtonProps } from "@mui/material";
+import { Tooltip } from "./Tooltip";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import StopIcon from "@mui/icons-material/Stop";
@@ -26,7 +27,7 @@ import {
   TOOLTIP_ENTER_NEXT_DELAY
 } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
-import { MOTION } from "./tokens";
+import { BORDER_RADIUS, MOTION } from "./tokens";
 
 export type PlaybackState = "stopped" | "playing" | "paused";
 
@@ -237,7 +238,7 @@ export const PlaybackButton = memo(
             sx={{
               ...sizeStyles,
               ...colorStyles,
-              borderRadius: "var(--rounded-circle)",
+              borderRadius: BORDER_RADIUS.circle,
               transition: MOTION.all,
               ...sx
             }}

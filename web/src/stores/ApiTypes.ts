@@ -258,6 +258,8 @@ export interface KieUnitPricing {
 }
 
 export interface NodeMetadata extends BaseNodeMetadata {
+  descriptionKey?: string;
+  titleKey?: string;
   searchInfo?: {
     score?: number;
     matches?: Array<{

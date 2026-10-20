@@ -9,19 +9,20 @@
 import { memo, useCallback, useState, type MouseEvent } from "react";
 
 import { useLinkedWorkflows, type LinkedWorkflow } from "../../hooks/useApplications";
-import { useTranslation } from "react-i18next";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import {
   Button,
   Caption,
   Chip,
+  ContextMenu,
   FlexColumn,
   FlexRow,
-  Menu,
+  ListItemText,
   MenuItem,
-  SPACING,
-  Text
+  SPACING
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface LinkedWorkflowsMenuProps {
   applicationId: string;
@@ -74,17 +75,15 @@ const LinkedWorkflowsMenu = ({
       >
         {`Linked workflows (${links.length})`}
       </Button>
-      <Menu
+      <ContextMenu
         anchorEl={anchorEl}
         open={anchorEl !== null}
         onClose={close}
-        MenuListProps={{ "aria-label": "Linked workflows" }}
+        slotProps={{ list: { "aria-label": "Linked workflows" } }}
       >
         {links.length === 0 && (
           <MenuItem disabled>
-            <Caption color="secondary">
-              {t("editor:ui.thisAppBindsNoWorkflowYet")}
-            </Caption>
+            <ListItemText primary={i18n.t("editor:ui.thisAppBindsNoWorkflowYet", { defaultValue: "This app binds no workflow yet." })} />
           </MenuItem>
         )}
         {links.map((link) => {
@@ -95,33 +94,33 @@ const LinkedWorkflowsMenu = ({
               disabled={broken}
               onClick={() => openWorkflow(link)}
             >
-              <FlexColumn gap={SPACING.xs} sx={{ minWidth: 0 }}>
+              <FlexColumn gap={SPACING.micro} sx={{ minWidth: 0 }}>
                 <FlexRow align="center" gap={SPACING.xs}>
-                  <Text size="small" truncate>
-                    {broken ? t("editor:ui.workflowUnavailable", { defaultValue: "Workflow unavailable" }) : link.name}
-                  </Text>
+                  <ListItemText
+                    primary={broken ? t("editor:ui.workflowUnavailable", { defaultValue: "Workflow unavailable" }) : link.name}
+                    slotProps={{ primary: { noWrap: true } }}
+                  />
                   {link.isPinned && (
                     <Chip
                       compact
                       color="info"
                       label={
                         link.pinnedVersion === null
-                          ? t("editor:ui.pinned", { defaultValue: "Pinned" })
-                          : t("editor:ui.pinnedVersion", { defaultValue: "Pinned v{{version}}", version: link.pinnedVersion })
+                          ? t("editor:ui.pinned", { defaultValue: "Pinned" }) : `Pinned v${link.pinnedVersion}`
                       }
                     />
                   )}
                 </FlexRow>
                 <Caption color={broken ? "error" : "secondary"}>
                   {broken
-                    ? `${link.workflowId} — ${link.error?.message ?? t("editor:ui.couldNotBeLoaded", { defaultValue: "could not be loaded" })}`
+                    ? `${link.workflowId} — ${link.error?.message ?? "could not be loaded"}`
                     : usedBy(link)}
                 </Caption>
               </FlexColumn>
             </MenuItem>
           );
         })}
-      </Menu>
+      </ContextMenu>
     </>
   );
 };

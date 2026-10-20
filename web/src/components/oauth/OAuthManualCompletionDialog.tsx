@@ -16,15 +16,17 @@
 import { useCallback, useState } from "react";
 
 import {
-  Caption,
+  Code,
   Dialog,
   FlexColumn,
+  SPACING,
   Text,
   TextInput,
   TextLink
 } from "../ui_primitives";
 import type { OAuthManualPrompt } from "../../hooks/useOAuthConnection";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface OAuthManualCompletionDialogProps {
   /** The pending login, or null when nothing is waiting on a paste. */
@@ -64,41 +66,32 @@ export const OAuthManualCompletionDialog = ({
     <Dialog
       open
       onClose={handleCancel}
-      title={t("editor:ui.finishSigningInWith", {
-        defaultValue: "Finish signing in with {{name}}",
-        name: label
-      })}
-      showActions
+      title={`Finish signing in with ${label}`}
       onConfirm={handleConfirm}
-      onCancel={handleCancel}
-      confirmText={
-        isSubmitting
-          ? t("editor:ui.connecting", { defaultValue: "Connecting…" })
-          : t("editor:ui.connect2", { defaultValue: "Connect" })
-      }
+      confirmText={isSubmitting ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : i18n.t("editor:ui.connect2", { defaultValue: "Connect" })}
       confirmDisabled={value.trim().length === 0 || isSubmitting}
       isLoading={isSubmitting}
-      minWidth="520px"
+      maxWidth="sm"
+      fullWidth
     >
-      <FlexColumn gap={2}>
+      <FlexColumn gap={SPACING.lg}>
         {prompt.input === "code" ? (
           <Text size="small">
-            {t("editor:ui.oauthCodeExplainer", {
-              defaultValue:
-                "This server cannot receive the sign-in callback, so {{name}} shows you a code instead. Approve the sign-in, then copy the code the page displays and paste it below.",
-              name: label
-            })}
+            This server cannot receive the sign-in callback, so {label} shows
+            you a code instead. Approve the sign-in, then copy the code the page
+            displays and paste it below.
           </Text>
         ) : (
           <Text size="small">
-            {label}{" "}
-            {t("editor:ui.oauthRedirectExplainer1", { defaultValue: "sends the browser to" })}{" "}
-            <code>{prompt.redirectUri ?? t("editor:ui.aLocalAddress", { defaultValue: "a local address" })}</code>
-            {t("editor:ui.oauthRedirectExplainer2", { defaultValue: ", which only exists on your own machine — so this server never sees it. Approve the sign-in, then copy the whole address the browser ends up on (an error page is expected) and paste it below." })}
+            {label} sends the browser to{" "}
+            <Code>{prompt.redirectUri ?? "a local address"}</Code>, which only
+            exists on your own machine — so this server never sees it. Approve
+            the sign-in, then copy the whole address the browser ends up on (an
+            error page is expected) and paste it below.
           </Text>
         )}
         <TextInput
-          label={prompt.input === "code" ? t("editor:ui.authorizationCode", { defaultValue: "Authorization code" }) : t("editor:ui.redirectAddress", { defaultValue: "Redirect address" })}
+          label={prompt.input === "code" ? t("editor:ui.authorizationCode", { defaultValue: "Authorization code" }) : i18n.t("editor:ui.redirectAddress", { defaultValue: "Redirect address" })}
           placeholder={
             prompt.input === "code"
               ? "code#state"
@@ -109,18 +102,16 @@ export const OAuthManualCompletionDialog = ({
           multiline
           rows={3}
           autoFocus
+          helperText={
+            <>
+              Sign-in window closed?{" "}
+              <TextLink href={prompt.authUrl} external>
+                Open it again
+              </TextLink>
+              . The link expires after 10 minutes.
+            </>
+          }
         />
-        <Caption sx={{ opacity: 0.6 }}>
-          {t("editor:ui.signInWindowClosed", {
-            defaultValue: "Sign-in window closed?"
-          })}{" "}
-          <TextLink href={prompt.authUrl} external>
-            {t("editor:ui.openItAgain")}
-          </TextLink>
-          {t("editor:ui.linkExpiresAfter10Minutes", {
-            defaultValue: ". The link expires after 10 minutes."
-          })}
-        </Caption>
       </FlexColumn>
     </Dialog>
   );

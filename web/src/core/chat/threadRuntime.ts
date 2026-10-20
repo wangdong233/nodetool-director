@@ -16,6 +16,7 @@ import type {
 } from "../../stores/ApiTypes";
 import type { GlobalChatState } from "../../stores/GlobalChatStore";
 import type { ActiveMediaPrediction } from "./mediaPrediction";
+import { i18n } from "../../i18n";
 
 /**
  * A thread's generation lifecycle. "idle" means no generation in flight — the
@@ -146,8 +147,7 @@ export const mirrorsForThread = (
       rt.status !== "idle"
         ? rt.status
         : RUNTIME_STATUSES.includes(state.status)
-          ? "connected"
-          : state.status,
+          ? "connected" : state.status,
     statusMessage: rt.statusMessage,
     progress: rt.progress,
     currentPlanningUpdate: rt.planningUpdate,

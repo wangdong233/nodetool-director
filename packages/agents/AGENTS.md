@@ -218,7 +218,8 @@ progress bar.
 `image`, `audio`, `video`, and `canvas` are the media namespaces. Image and
 canvas are host bridges over a real
 2D canvas (`src/sandbox-media.ts`). The backend is picked at first use:
-`@napi-rs/canvas` (Skia) on Node, loaded through `importHidden` so no bundler
+`@napi-rs/canvas` (Skia) on Node, loaded through `loadCanvas` from
+`@nodetool-ai/runtime` so no bundler
 pulls the native addon into a browser graph — it is already staged as an
 external by `scripts/bundle-backend.mjs` — and `OffscreenCanvas` +
 `createImageBitmap` in the browser runner. Ops: `info`, `stats`, `decode`,
@@ -862,7 +863,7 @@ A user's own MCP servers — Blender, Hugging Face, a local script — join the
 belt as ordinary `Tool`s named `mcp_<server>_<tool>`. That one shape is why
 every loop reaches them the same way: the base provider loop and the OpenAI
 Responses loop (Codex included) dispatch through the harness `executeTool`,
-the Claude Agent SDK wraps the belt in its in-process MCP server, and a
+the Claude Agent provider serves the belt to the CLI as an MCP server, and a
 CodeAct guest imports them from `@nodetool-ai/sandbox-nodetool/mcp`
 (`graftedModuleFor` in `codeact/capability-modules.ts`). No provider knows
 they are remote.
@@ -978,6 +979,7 @@ result as an asset, and write it back onto the persisted board.
 | `render_storyboard_clips` | the shot's clip: `image_to_video` seeded by the keyframe, or `text_to_video` from the prompt |
 | `revise_storyboard_clip` | `video_to_video` revision of one shot's clip |
 | `assemble_storyboard_timeline` | Rendered clips → a saved `timeline_sequences` row |
+| `derive_shot_from_clip` | Frames of a shot clip → a new reference-to-video shot after its source, and a draft clip following it on a new track above the source clip |
 | `get_storyboard_one_take` | The creator's one-take prompt, the block compiled from the board, the full prompt, `[Image N]` references and warnings |
 | `update_storyboard_one_take` | Sets the creator's one-take prompt and shots' `end_state` / `sound` |
 
@@ -1041,6 +1043,9 @@ and the BS.1770 reference signal reads -20.0 LUFS. `media-decode.ts` is the
 Mediabunny seam (PCM out of an audio track, RGBA frames at chosen timestamps,
 container metadata), and the capability file resolves the reference, picks the
 analysis parameters, and shapes the answer.
+The onset and tempo detector lives in `@nodetool-ai/timeline`
+(`src/audioOnsets.ts`) so the timeline editor's Detect beats action runs the
+same code in the browser. `audio-dsp.ts` re-exports it.
 
 `src/analysis/mediabunny-runtime.ts` is where the Node codec adapter is
 registered, once per process. `sandbox-av-media.ts` imports it rather than
@@ -1514,14 +1519,16 @@ and the research it follows (CodeAct, ICML 2024): docs/codeact-design.md.
 - On `claude_agent_sdk` the built-in wins outright. The provider drops every
   tool `SDK_NATIVE_TOOL_REPLACEMENTS` maps (`read_file`→`Read`,
   `write_file`→`Write`, `edit_file`→`Edit`, `glob`→`Glob`, `grep`→`Grep`,
-  `web_search`→`WebSearch`, `todo_write`→`TodoWrite`) from its MCP toolset and
-  lets the SDK's own tool serve the call. The path-scoped five are substituted
+  `web_search`→`WebSearch`) from its MCP toolset and lets the SDK's own tool
+  serve the call. The path-scoped five are substituted
   only when the caller passes a `workspaceDir`, which becomes the session
   `cwd` — without it the SDK would resolve paths outside the run's workspace,
   so NodeTool's contained versions stay. `list_directory`, `browser`,
   `http_request`, `download_file` and `run_subtask` are never substituted: no
   built-in covers what they do (`Task` would hand the child SDK tools, not the
-  NodeTool belt). See `packages/runtime/src/providers/core-tools.ts`.
+  NodeTool belt). Neither is `todo_write`: `TodoWrite` keeps the list inside
+  the SDK session, and the chat's task list is drawn from the `todo_update`
+  that NodeTool's version posts. See `packages/runtime/src/providers/core-tools.ts`.
 - Progressive disclosure: resident tools (`CODEACT_RESIDENT_TOOL_NAMES` —
   the search family incl. `web_search`/`search_nodes`/`run_search`/
   `asset_search`/`grep`/`glob`, the Claude-agent file set
@@ -1596,7 +1603,8 @@ and the research it follows (CodeAct, ICML 2024): docs/codeact-design.md.
   (`profile/record`), `nodetool.email` (`search/archive/label`), plus `assets`
   (`list/search/images/get/save/read`), `jobs` (with
   `wait(id, {timeoutMs, pollMs})` polling a background job to settlement),
-  `collections` (full RAG loop: `index/indexBatch/search/hybridSearch/query`),
+  `collections` (`list/query`; `index/indexBatch/search/hybridSearch` work
+  only on a run with a bound collection, which no chat or CLI host binds),
   `timelines`, `sketches`, `scripts`, and `storyboards`. `workflows` also
   carries `resolve(sessionId, escalationId, action)` for interactive-run
   escalations and `example("<package>/<name>")` feeding `copyFrom`
@@ -1656,7 +1664,7 @@ and the research it follows (CodeAct, ICML 2024): docs/codeact-design.md.
   seventy-two namespace modules one prompt line. Tests:
   `tests/codeact-graph-dsl.test.ts`.
 - Timeline authoring uses `@nodetool-ai/sandbox-timeline` for scene builders,
-  loops, custom curves and `saveTimeline`. `withTimelinePackage`
+  loops, custom curves and `video(...).save(nodetool.timelines)`. `withTimelinePackage`
   (`src/codeact/timeline-package.ts`) adds the installed pack to chat and step
   session allowlists when their catalog serves it. Saving still goes through
   the session's timeline tools and their permission gates. Tests:
@@ -2331,7 +2339,7 @@ SDK's own agent loop (not the harness):
   `IS_SANDBOX=yes` (as in Claude Code on the web) does **not** satisfy it and the
   child exits with code 1 and zero tool calls, which looks like an auth/spawn
   failure but isn't. Override it explicitly: `IS_SANDBOX=1 npm run …`. See
-  [docs/AGENTS.md § Claude Agent SDK](../../docs/AGENTS.md) for the full
+  [docs/AGENTS.md § Claude Agent provider](../../docs/AGENTS.md#claude-agent-provider) for the full
   nested-session recipe.
 
 ```bash
@@ -2427,7 +2435,7 @@ The CLI renders a real-time tree view during agent execution:
 ◆ Plan  (3/5 tasks)
 ├─ ✓ Task 1: Search sources            3.2s (1/1 steps)
 ├─ ◐ Task 2: Analyze findings
-│  ├─ ✓ google_search(query: "AI trends")
+│  ├─ ✓ web_search(query: "AI trends")
 │  └─ ◐ llm_call
 └─ ○ Task 3: Write report              waiting
 ```
@@ -2622,9 +2630,12 @@ at runtime**. The tier exists because the two properties a user row cannot have
 both matter: every install has the skill on day one with no seeding migration to
 drift per machine, and nothing — including an agent acting on its own
 mis-read instructions — can edit or delete the document it is working from.
-`system-skills.ts` reads them (cached per process) from `_skills/` beside the
-bundled `server.mjs`, else `packages/system-skills` on the way up from the
-module, else `NODETOOL_SYSTEM_SKILLS_DIR` — the same two-root shape as the
+`system-skills.ts` reads them (cached per process) from
+`NODETOOL_SYSTEM_SKILLS_DIR` when it is set, else `_skills/` beside the bundled
+`server.mjs` or the npm package's `dist/`, else `packages/system-skills` on the
+way up from the module. The workspace build stages the npm copy through
+[`NPM_RUNTIME_RESOURCE_DIRS`](../config/src/package-asset-registry.ts). The
+same resolution applies to the
 sandbox packs, and for the same reason: nothing imports them, so they are not
 workspaces and npm links nothing. `bundle-backend.mjs` stages them and
 `verify-backend-bundle.mjs` fails a build that ships none.
@@ -2637,8 +2648,9 @@ image (`nano-banana-pro-prompting`, `gpt-image-2-prompting`,
 (`elevenlabs-audio-prompting`, `stable-audio-prompting`).
 `MODEL_PROMPTING_SKILLS` in
 `model-prompting-skills.ts` maps a model id onto one, and `find_model` attaches
-the answer as `prompting_skill` on every matching route — the catalog line is
-the other path in, for an agent that never called `find_model`.
+the answer as `prompting_skill` on every matching route. The guides are not
+featured, so an agent that never called `find_model` finds one with
+`list_skills({query})`, which matches the model ids each description lists.
 `tests/model-prompting-skills.test.ts` checks the table against the skills on
 disk, the ids the shipped provider manifests name, and the capability registry.
 

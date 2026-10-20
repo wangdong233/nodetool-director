@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ load: vi.fn() }));
 vi.mock("@nodetool-ai/config", async (original) => ({
@@ -11,12 +11,31 @@ function setPlatform(platform: string): void {
   Object.defineProperty(process, "platform", { value: platform });
 }
 
+// The first import transforms binding.js and the real @nodetool-ai/config,
+// which can outlast a test's 5s timeout on a loaded CI runner. Later
+// imports after resetModules reuse the transformed code.
+beforeAll(async () => {
+  await import("../src/binding.js");
+}, 60_000);
+
 beforeEach(() => {
   vi.resetModules();
   mocks.load.mockReset();
 });
 afterEach(() => {
   setPlatform(originalPlatform);
+  vi.unstubAllEnvs();
+});
+
+it("keeps the failed specifier, cause, and source install command on the loader error", async () => {
+  vi.stubEnv("NODETOOL_HOST", "source");
+  const cause = new Error("fixture binding unavailable");
+  mocks.load.mockRejectedValue(cause);
+  const { loadWhisperNode } = await import("../src/binding.js");
+  const error = await loadWhisperNode().catch((failure: unknown) => failure);
+  expect(error).toMatchObject({ cause, details: { runtimePackage: "whisper-cpp", missing: "@fugood/whisper.node" } });
+  expect(String(error)).toContain("npm run dev:nodetool -- runtime add whisper-cpp");
+  expect(String(error)).not.toContain("Package Manager");
 });
 
 it("keeps an explicit backend without probing", async () => {

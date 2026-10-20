@@ -5,7 +5,7 @@ import { useShallow } from "zustand/react/shallow";
 import ReactDOM from "react-dom";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { Text, Caption, Tooltip, FlexRow, FlexColumn, EditorButton, TabGroup, BORDER_RADIUS, SPACING, Z_INDEX, getSpacingPx, activateOnKey, SHADOW } from "../ui_primitives";
+import { Text, Caption, Tooltip, FlexRow, FlexColumn, EditorButton, TabGroup, BORDER_RADIUS, SPACING, Z_INDEX, getSpacingPx, activateOnKey, SHADOW, ICON_SIZE } from "../ui_primitives";
 import type { TabItem } from "../ui_primitives";
 import { CloseButton } from "../ui_primitives";
 import CheckIcon from "@mui/icons-material/Check";
@@ -385,7 +385,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
       { value: "swatches", label: "Swatches" },
       { value: "harmonies", label: "Harmonies" },
       ...(showGradient ? [{ value: "gradient", label: "Gradient" }] : []),
-      ...(showContrast ? [{ value: "contrast", label: "Contrast" }] : [])
+      ...(showContrast ? [{ value: "contrast", label: "Contrast", labelKey: "storyboard:attrs.contrast" }] : [])
     ],
     [showContrast, showGradient]
   );
@@ -402,12 +402,13 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
       >
         <FlexColumn className="modal-content" onClick={(e) => e.stopPropagation()}>
           <FlexRow className="modal-header" align="center" justify="space-between" fullWidth>
-            <Text className="modal-title">{t("ui2:attrs.colorPicker", { defaultValue: "Color Picker" })}</Text>
+            <Text className="modal-title">{t("ui2:attrs.colorPicker", { defaultValue: "Color picker" })}</Text>
             <FlexRow className="header-actions" align="center">
               <EyedropperButton onColorPicked={handleEyedropperPick} />
               <CloseButton
                 onClick={handleApply}
-                tooltip={t("editor:ui.closeEsc", { defaultValue: "Close (Esc)" })}
+                tooltip={t("ui2:attrs.close", { defaultValue: "Close" })}
+                shortcut={["Esc"]}
                 buttonSize="small"
               />
             </FlexRow>
@@ -464,7 +465,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
                     </span>
                     {copiedFormat === "hex" && (
                       <FlexRow className="copy-feedback" align="center">
-                        <CheckIcon sx={{ fontSize: 12 }} /> Copied
+                        <CheckIcon sx={{ fontSize: ICON_SIZE.xs }} /> Copied
                       </FlexRow>
                     )}
                   </FlexRow>
@@ -512,7 +513,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
 
           <FlexRow className="modal-footer" align="center" justify="space-between" fullWidth>
             <Caption color="secondary">
-              {t("editor:ui.pressEscToClose")}
+              Press Esc to close
             </Caption>
             <FlexRow className="footer-actions" align="center">
               <EditorButton variant="outlined" density="compact" onClick={onClose}>

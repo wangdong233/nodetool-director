@@ -14,6 +14,8 @@ export type SerpProviderId =
   | "gemini";
 
 interface SearchProviderConfig {
+  getApiKeyLabelKey?: string;
+  descriptionKey?: string;
   id: SerpProviderId;
   label: string;
   description: string;
@@ -33,55 +35,55 @@ export const SEARCH_PROVIDER_CONFIGS: Record<SerpProviderId, SearchProviderConfi
   brave: {
     id: "brave",
     label: "Brave Search",
-    description: "Privacy-focused search with a free tier — a good default.",
+    description: "Privacy-focused search with a free tier — a good default.", descriptionKey: "tools:menus.searchProviders.brave.description",
     credentialFields: ["BRAVE_API_KEY"],
     getApiKeyUrl:
       "https://api-dashboard.search.brave.com/app/documentation/web-search/get-started",
-    getApiKeyLabel: "Get a free Brave API key",
+    getApiKeyLabel: "Get a free Brave API key", getApiKeyLabelKey: "tools:menus.searchProviders.brave.get",
     free: true
   },
   serpapi: {
     id: "serpapi",
     label: "SerpAPI",
     description:
-      "Fast and reliable search API with Google, Bing, and other engines.",
+      "Fast and reliable search API with Google, Bing, and other engines.", descriptionKey: "tools:menus.searchProviders.serpapi.description",
     credentialFields: ["SERPAPI_API_KEY"],
     getApiKeyUrl: "https://serpapi.com/manage-api-key",
-    getApiKeyLabel: "Get SerpAPI Key"
+    getApiKeyLabel: "Get SerpAPI key"
   },
   dataforseo: {
     id: "dataforseo",
     label: "DataForSEO",
-    description: "Professional SEO and search intelligence platform.",
+    description: "Professional SEO and search intelligence platform.", descriptionKey: "tools:menus.searchProviders.dataforseo.description",
     credentialFields: ["DATA_FOR_SEO_LOGIN", "DATA_FOR_SEO_PASSWORD"],
     getApiKeyUrl: "https://app.dataforseo.com/register",
-    getApiKeyLabel: "Get DataForSEO Credentials"
+    getApiKeyLabel: "Get DataForSEO credentials"
   },
   apify: {
     id: "apify",
     label: "Apify",
-    description: "Reliable Google search scraping via Apify actors.",
+    description: "Reliable Google search scraping via Apify actors.", descriptionKey: "tools:menus.searchProviders.apify.description",
     credentialFields: ["APIFY_API_TOKEN"],
     getApiKeyUrl: "https://console.apify.com/account/integrations",
-    getApiKeyLabel: "Get Apify API Token"
+    getApiKeyLabel: "Get Apify API token"
   },
   openai: {
     id: "openai",
-    label: "OpenAI Web Search",
+    label: "OpenAI web search",
     description:
-      "Reuses your OpenAI key. Answers in prose and cites the pages it read.",
+      "Reuses your OpenAI key. Answers in prose and cites the pages it read.", descriptionKey: "tools:menus.searchProviders.openai.description",
     credentialFields: ["OPENAI_API_KEY"],
     getApiKeyUrl: "https://platform.openai.com/api-keys",
-    getApiKeyLabel: "Get OpenAI API Key"
+    getApiKeyLabel: "Get OpenAI API key"
   },
   gemini: {
     id: "gemini",
-    label: "Gemini Grounded Search",
+    label: "Gemini grounded search",
     description:
-      "Reuses your Gemini key. Answers in prose and cites the pages it read.",
+      "Reuses your Gemini key. Answers in prose and cites the pages it read.", descriptionKey: "tools:menus.searchProviders.gemini.description",
     credentialFields: ["GEMINI_API_KEY"],
     getApiKeyUrl: "https://aistudio.google.com/app/apikey",
-    getApiKeyLabel: "Get Gemini API Key"
+    getApiKeyLabel: "Get Gemini API key"
   }
 };
 

@@ -2,8 +2,8 @@
 import { memo, useCallback, useState, type ChangeEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "@mui/material/styles";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/AddOutlined";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import HubIcon from "@mui/icons-material/Hub";
 import {
   customProviderBaseUrlError,
@@ -22,12 +22,14 @@ import {
   FlexRow,
   Text,
   TextInput,
-  MOTION
+  MOTION,
+  SPACING
 } from "../ui_primitives";
 import { ConfirmDialog } from "../ui_primitives";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient, type RouterOutputs } from "../../trpc/client";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 type CustomProviderRow = RouterOutputs["customProviders"]["list"][number];
 type TestResult = RouterOutputs["customProviders"]["test"];
@@ -86,7 +88,6 @@ const ProviderRow = memo(function ProviderRow({
   testing: boolean;
   testResult: TestResult | null;
 }) {
-  const { t } = useTranslation();
   const theme = useTheme();
   const handleEdit = useCallback(() => onEdit(provider), [onEdit, provider]);
   const handleDelete = useCallback(() => onDelete(provider), [onDelete, provider]);
@@ -132,41 +133,31 @@ const ProviderRow = memo(function ProviderRow({
             </Text>
             <Chip label={provider.provider_id} compact variant="outlined" />
             {provider.has_api_key && (
-              <Chip label={t("editor:ui.keySet", { defaultValue: "Key set" })} compact variant="outlined" color="success" />
+              <Chip label={i18n.t("editor:ui.keySet", { defaultValue: "Key set" })} compact variant="outlined" color="success" />
             )}
           </FlexRow>
           <Caption sx={{ opacity: 0.55, wordBreak: "break-all" }}>
-            {provider.base_url ||
-              t("editor:ui.noEndpointSet", { defaultValue: "No endpoint set" })}
+            {provider.base_url || i18n.t("editor:ui.noEndpointSet", { defaultValue: "No endpoint set" })}
           </Caption>
           {handListed > 0 && (
             <Caption size="smaller" sx={{ opacity: 0.45 }}>
-              {t("editor:ui.modelsListedByHand", { n: handListed })}
+              {handListed} model{handListed === 1 ? "" : "s"} listed by hand
             </Caption>
           )}
           {testResult?.counts && testResult.ok && (
             <FlexRow align="center" gap={0.5} sx={{ flexWrap: "wrap" }}>
               <Chip
-                label={t("editor:ui.chatModelsCount", {
-                  defaultValue: "Chat {{n}}",
-                  n: testResult.counts.language
-                })}
+                label={`Chat ${testResult.counts.language}`}
                 compact
                 variant="outlined"
               />
               <Chip
-                label={t("editor:ui.imageModelsCount", {
-                  defaultValue: "Image {{n}}",
-                  n: testResult.counts.image
-                })}
+                label={`Image ${testResult.counts.image}`}
                 compact
                 variant="outlined"
               />
               <Chip
-                label={t("editor:ui.videoModelsCount", {
-                  defaultValue: "Video {{n}}",
-                  n: testResult.counts.video
-                })}
+                label={`Video ${testResult.counts.video}`}
                 compact
                 variant="outlined"
               />
@@ -192,7 +183,7 @@ const ProviderRow = memo(function ProviderRow({
           onClick={handleTest}
           disabled={testing}
         >
-          {testing ? t("editor:ui.testing") : t("editor:ui.test")}
+          {testing ? i18n.t("editor:ui.testing", { defaultValue: "Testing…" }) : i18n.t("editor:ui.test2", { defaultValue: "Test" })}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -200,17 +191,17 @@ const ProviderRow = memo(function ProviderRow({
           size="small"
           onClick={handleEdit}
         >
-          {t("editor:ui.edit")}
+          Edit
         </EditorButton>
         <EditorButton
           density="compact"
           variant="text"
           size="small"
           color="error"
-          startIcon={<DeleteIcon sx={{ fontSize: 14 }} />}
+          startIcon={<DeleteIcon />}
           onClick={handleDelete}
         >
-          {t("editor:ui.remove", { defaultValue: "Remove" })}
+          Remove
         </EditorButton>
       </FlexRow>
     </Card>
@@ -271,11 +262,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       addNotification({
         type: "success",
         alert: true,
-        content: t("tools:menus.providerSavedAs", {
-          defaultValue: "{{name}} saved as {{id}}",
-          name: saved.name,
-          id: saved.provider_id
-        })
+        content: `${saved.name} saved as ${saved.provider_id}`
       });
       // Show right away which chat, image and video models the endpoint
       // serves, so a missed image or video model is visible before the user
@@ -299,9 +286,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       addNotification({
         type: "success",
         alert: true,
-        content: t("tools:menus.providerRemoved", {
-          defaultValue: "Provider removed"
-        })
+        content: "Provider removed", contentKey: "tools:menus.providerRemoved"
       });
     }
   });
@@ -417,6 +402,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
   const handleCancelDelete = useCallback(() => setPendingDelete(null), []);
 
   const rows = providers ?? [];
+  const envSlug = (draft.slug || "SLUG").toUpperCase();
 
   return (
     <div>
@@ -427,31 +413,29 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       >
         <FlexColumn gap={0.5}>
           <Text size="normal" weight={600}>
-            {t("editor:ui.openaiCompatibleEndpoints")}
+            OpenAI-compatible endpoints
           </Text>
           <Caption sx={{ opacity: 0.55 }}>
-            {t("editor:ui.pointNodeToolAtAnyProxyOrGatewayThatSpeaksTheOpenaiApi")}
+            Point NodeTool at any proxy or gateway that speaks the OpenAI API.
+            Its chat, image and video models appear in the matching nodes.
           </Caption>
         </FlexColumn>
         <EditorButton
           density="compact"
           variant="outlined"
           size="small"
-          startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+          startIcon={<AddIcon />}
           onClick={handleAdd}
         >
-          {t("editor:ui.addEndpoint")}
+          Add endpoint
         </EditorButton>
       </FlexRow>
 
       {rows.length === 0 ? (
         <EmptyState
           variant="no-results"
-          title={t("editor:ui.noEndpointsYet", { defaultValue: "No endpoints yet" })}
-          description={t("tools:menus.addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider", {
-            defaultValue:
-              "Add a base URL and an API key to use any OpenAI-compatible provider."
-          })}
+          title={i18n.t("editor:ui.noEndpointsYet", { defaultValue: "No endpoints yet" })}
+          description={i18n.t("tools:menus.addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider", { defaultValue: "Add a base URL and an API key to use any OpenAI-compatible provider." })}
         />
       ) : (
         <FlexColumn sx={{ gap: theme.spacing(2) }}>
@@ -473,38 +457,26 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
         open={dialogOpen}
         onClose={handleClose}
         fullWidth
-        title={
-          <Text size="normal" weight={600}>
-            {editingSlug ? t("editor:ui.editEndpoint", { defaultValue: "Edit endpoint" }) : t("editor:ui.addOpenAICompatibleEndpoint", { defaultValue: "Add OpenAI-compatible endpoint" })}
-          </Text>
-        }
+        title={editingSlug ? i18n.t("editor:ui.editEndpoint", { defaultValue: "Edit endpoint" }) : i18n.t("editor:ui.addOpenAICompatibleEndpoint", { defaultValue: "Add OpenAI-compatible endpoint" })}
         onConfirm={handleSave}
-        onCancel={handleClose}
-        confirmText={
-          editingSlug
-            ? t("editor:ui.save", { defaultValue: "Save" })
-            : t("ui2:attrs.add", { defaultValue: "Add" })
-        }
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText={editingSlug ? "Save" : "Add"}
         confirmDisabled={
           Boolean(slugError) || Boolean(urlError) || duplicateSlug
         }
       >
-        <FlexColumn
-          sx={{ marginTop: theme.spacing(4), gap: theme.spacing(3) }}
-        >
+        <FlexColumn gap={SPACING.lg}>
           <TextInput
-            label={t("editor:asset.info.name", { defaultValue: "Name" })}
+            label={i18n.t("editor:asset.info.name", { defaultValue: "Name" })}
             value={draft.name}
             onChange={handleNameChange}
             fullWidth
-            placeholder={t("editor:ui.myProxy", { defaultValue: "My Proxy" })}
+            placeholder={i18n.t("editor:ui.myProxy", { defaultValue: "My Proxy" })}
             autoFocus
             variant="outlined"
             size="small"
           />
           <TextInput
-            label={t("editor:ui.slug", { defaultValue: "Slug" })}
+            label={i18n.t("editor:ui.slug", { defaultValue: "Slug" })}
             value={draft.slug}
             onChange={handleSlugChange}
             fullWidth
@@ -514,16 +486,12 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             size="small"
             errorMessage={
               duplicateSlug
-                ? t("editor:ui.thatSlugIsAlreadyInUse", { defaultValue: "That slug is already in use." })
-                : (slugError ?? undefined)
+                ? i18n.t("editor:ui.thatSlugIsAlreadyInUse", { defaultValue: "That slug is already in use." }) : (slugError ?? undefined)
             }
-            helperText={t("editor:ui.providerIdHelper", {
-              defaultValue: "Provider id: custom_{{slug}}",
-              slug: draft.slug || "…"
-            })}
+            helperText={`Provider id: custom_${draft.slug || "…"}`}
           />
           <TextInput
-            label={t("editor:ui.baseURL", { defaultValue: "Base URL" })}
+            label={i18n.t("editor:ui.baseURL", { defaultValue: "Base URL" })}
             value={draft.baseUrl}
             onChange={handleBaseUrlChange}
             fullWidth
@@ -531,85 +499,61 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             variant="outlined"
             size="small"
             errorMessage={urlError ?? undefined}
-            helperText={t("tools:menus.includeTheVersionPathTheEndpointServesUsuallyV1", {
-              defaultValue: "Include the version path the endpoint serves, usually /v1."
-            })}
+            helperText={i18n.t("tools:menus.includeTheVersionPathTheEndpointServesUsuallyV1", { defaultValue: "Include the version path the endpoint serves, usually /v1." })}
           />
           <TextInput
-            label={t("tools:menus.apiKey2", { defaultValue: "API key" })}
+            label={i18n.t("tools:menus.apiKey2", { defaultValue: "API key" })}
             type="password"
             value={draft.apiKey}
             onChange={handleApiKeyChange}
             fullWidth
             placeholder={
-              editingSlug ? t("editor:ui.leaveBlankToKeepTheStoredKey", { defaultValue: "Leave blank to keep the stored key" }) : t("editor:ui.optional", { defaultValue: "Optional" })
+              editingSlug ? i18n.t("editor:ui.leaveBlankToKeepTheStoredKey", { defaultValue: "Leave blank to keep the stored key" }) : i18n.t("editor:ui.optional", { defaultValue: "Optional" })
             }
             variant="outlined"
             size="small"
+            helperText={`The URL and key are encrypted and stored per account. The same values can come from the environment instead, as CUSTOM_${envSlug}_BASE_URL and CUSTOM_${envSlug}_API_KEY.`}
           />
           <TextInput
-            label={t("editor:ui.models", { defaultValue: "Models" })}
+            label={i18n.t("editor:ui.models", { defaultValue: "Models" })}
             value={draft.models}
             onChange={handleModelsChange}
             fullWidth
-            placeholder={t("editor:ui.leaveBlankToReadGETModels", { defaultValue: "Leave blank to read GET /models" })}
+            placeholder={i18n.t("editor:ui.leaveBlankToReadGETModels", { defaultValue: "Leave blank to read GET /models" })}
             variant="outlined"
             size="small"
-            helperText={t("tools:menus.commaSeparatedModelIdsForEndpointsWithNoModelsRoute", {
-              defaultValue:
-                "Comma-separated model ids, for endpoints with no /models route."
-            })}
+            helperText={i18n.t("tools:menus.commaSeparatedModelIdsForEndpointsWithNoModelsRoute", { defaultValue: "Comma-separated model ids, for endpoints with no /models route." })}
           />
           <TextInput
-            label={t("editor:ui.imageModels", { defaultValue: "Image models" })}
+            label={i18n.t("editor:ui.imageModels", { defaultValue: "Image models" })}
             value={draft.imageModels}
             onChange={handleImageModelsChange}
             fullWidth
-            placeholder={t("editor:ui.optionalEgFluxdevSeedream4", { defaultValue: "Optional, e.g. flux-dev, seedream-4" })}
+            placeholder={i18n.t("editor:ui.optionalEgFluxdevSeedream4", { defaultValue: "Optional, e.g. flux-dev, seedream-4" })}
             variant="outlined"
             size="small"
-            helperText={t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations", {
-              defaultValue:
-                "Detected from the model list. Add ids that Test misses. Calls go to /images/generations."
-            })}
+            helperText={i18n.t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations", { defaultValue: "Detected from the model list. Add ids that Test misses. Calls go to /images/generations." })}
           />
           <TextInput
-            label={t("editor:ui.videoModels", { defaultValue: "Video models" })}
+            label={i18n.t("editor:ui.videoModels", { defaultValue: "Video models" })}
             value={draft.videoModels}
             onChange={handleVideoModelsChange}
             fullWidth
-            placeholder={t("editor:ui.optionalEgKlingv2Veo3", { defaultValue: "Optional, e.g. kling-v2, veo-3" })}
+            placeholder={i18n.t("editor:ui.optionalEgKlingv2Veo3", { defaultValue: "Optional, e.g. kling-v2, veo-3" })}
             variant="outlined"
             size="small"
-            helperText={t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos", {
-              defaultValue:
-                "Detected from the model list. Add ids that Test misses. Calls go to /videos."
-            })}
+            helperText={i18n.t("tools:menus.detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos", { defaultValue: "Detected from the model list. Add ids that Test misses. Calls go to /videos." })}
           />
-          <Caption sx={{ opacity: 0.6 }}>
-            {t("tools:menus.customProviderEncryptionNote", {
-              defaultValue:
-                "The URL and key are encrypted and stored per account. The same values can come from the environment instead, as {{baseUrlEnv}} and {{apiKeyEnv}}.",
-              baseUrlEnv: `CUSTOM_${(draft.slug || "SLUG").toUpperCase()}_BASE_URL`,
-              apiKeyEnv: `CUSTOM_${(draft.slug || "SLUG").toUpperCase()}_API_KEY`
-            })}
-          </Caption>
         </FlexColumn>
       </Dialog>
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
-        title={t("editor:ui.removeEndpoint", { defaultValue: "Remove endpoint" })}
-        content={t(
-          "editor:ui.removeNameWorkflowsThatReferenceItsModelsStopResolving",
-          {
-            defaultValue:
-              "Remove {{name}}? Workflows that reference its models stop resolving.",
-            name: pendingDelete?.name ?? ""
-          }
-        )}
-        confirmText={t("editor:ui.remove", { defaultValue: "Remove" })}
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+        title={i18n.t("tools:ui.removeEndpoint", { defaultValue: "Remove endpoint?" })}
+        content={`Remove ${pendingDelete?.name ?? ""}? Workflows that reference its models stop resolving.`}
+        confirmText={i18n.t("timeline:attrs.remove", { defaultValue: "Remove" })}
+        cancelText="Cancel"
+        destructive
         onConfirm={confirmDelete}
         onClose={handleCancelDelete}
       />

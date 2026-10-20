@@ -6,7 +6,20 @@
 import React, { useCallback } from "react";
 import RestoreIcon from "@mui/icons-material/Restore";
 import CompareIcon from "@mui/icons-material/Compare";
-import { Caption, Chip, DeleteButton, LoadingSpinner, Text, Tooltip, ToolbarIconButton, MOTION, SPACING, getSpacingPx } from "../ui_primitives";
+import {
+  Caption,
+  Chip,
+  DeleteButton,
+  HoverActionGroup,
+  LoadingSpinner,
+  SelectableListItem,
+  Text,
+  Tooltip,
+  ToolbarIconButton,
+  SPACING,
+  getSpacingPx,
+  ICON_SIZE
+} from "../ui_primitives";
 import { SaveType } from "../../stores/VersionHistoryStore";
 import { relativeTime } from "../../utils/formatDateAndTime";
 import { formatDateTime } from "../../utils/formatUtils";
@@ -91,52 +104,16 @@ const VersionListItem = React.memo(function VersionListItem({
 
   const fullDate = formatDateTime(new Date(version.created_at));
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        handleClick();
-      }
-    },
-    [handleClick]
-  );
-
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <SelectableListItem
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
+      selected={isSelected}
+      secondary={isCompareTarget}
       className="version-list-item"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: getSpacingPx(SPACING.md),
-        padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)}`,
-        cursor: "pointer",
-        borderLeft: isSelected
-          ? "3px solid var(--palette-primary-main)"
-          : isCompareTarget
-            ? "3px dashed var(--palette-secondary-main)"
-            : "3px solid transparent",
-        backgroundColor: isSelected
-          ? "rgba(var(--palette-primary-mainChannel) / 0.08)"
-          : isCompareTarget
-            ? "rgba(var(--palette-action-hoverChannel) / 0.04)"
-            : "transparent",
-        opacity: isRestoring ? 0.6 : 1,
-        position: "relative"
-      }}
-      onMouseEnter={(e) => {
-        if (!isSelected && !isCompareTarget) {
-          e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.03)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isSelected && !isCompareTarget) {
-          e.currentTarget.style.backgroundColor = "transparent";
-        }
-      }}
+      gap={SPACING.md}
+      paddingX={SPACING.md}
+      paddingY={SPACING.xs}
+      sx={{ opacity: isRestoring ? 0.6 : 1 }}
     >
       <div style={{ flexShrink: 0 }}>
         <WorkflowMiniPreview
@@ -148,20 +125,11 @@ const VersionListItem = React.memo(function VersionListItem({
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: getSpacingPx(SPACING.sm) }}>
-          <Text size="small" weight={600}>
-            v{version.version}
-          </Text>
+          <Text size="small">v{version.version}</Text>
           <Chip
             label={getSaveTypeLabel(version.save_type)}
             compact
             variant="outlined"
-            size="small"
-            sx={{
-              height: "16px",
-              fontSize: "var(--fontSizeSmaller)",
-              opacity: 0.7,
-              "& .MuiChip-label": { px: 0.5 }
-            }}
           />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: getSpacingPx(SPACING.xs) }}>
@@ -191,20 +159,17 @@ const VersionListItem = React.memo(function VersionListItem({
         )}
       </div>
 
-      <div
+      <HoverActionGroup
         className="version-item-actions"
-        style={{
-          display: "flex",
-          gap: getSpacingPx(SPACING.micro),
-          flexShrink: 0
-        }}
+        triggerSelector=".version-list-item:hover"
+        gap={SPACING.micro}
       >
         {compareMode ? (
           <ToolbarIconButton
             size="small"
             onClick={handleClick}
             tooltip={t("editor:ui.selectForComparison", { defaultValue: "Select for comparison" })}
-            icon={<CompareIcon sx={{ fontSize: 14 }} />}
+            icon={<CompareIcon sx={{ fontSize: ICON_SIZE.xs }} />}
             sx={{ padding: getSpacingPx(SPACING.micro) }}
             nodrag={false}
           />
@@ -216,29 +181,19 @@ const VersionListItem = React.memo(function VersionListItem({
               size="small"
               onClick={handleRestore}
               tooltip={t("editor:ui.restoreThisVersion", { defaultValue: "Restore this version" })}
-              icon={<RestoreIcon sx={{ fontSize: 14 }} />}
+              icon={<RestoreIcon sx={{ fontSize: ICON_SIZE.xs }} />}
               sx={{ padding: getSpacingPx(SPACING.micro) }}
               nodrag={false}
             />
             <DeleteButton
               onClick={handleDelete}
               tooltip={t("editor:ui.deleteVersion", { defaultValue: "Delete version" })}
-              sx={{ padding: getSpacingPx(SPACING.micro), "& .MuiSvgIcon-root": { fontSize: 14 } }}
+              sx={{ padding: getSpacingPx(SPACING.micro), "& .MuiSvgIcon-root": { fontSize: ICON_SIZE.xs } }}
             />
           </>
         )}
-      </div>
-
-      <style>{`
-        .version-list-item .version-item-actions {
-          opacity: 0;
-          transition: ${MOTION.opacity};
-        }
-        .version-list-item:hover .version-item-actions {
-          opacity: 1;
-        }
-      `}</style>
-    </div>
+      </HoverActionGroup>
+    </SelectableListItem>
   );
 });
 

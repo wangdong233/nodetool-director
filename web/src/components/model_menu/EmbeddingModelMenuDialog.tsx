@@ -5,6 +5,9 @@ import { useEmbeddingModelsByProvider } from "../../hooks/useEmbeddingModels";
 import { useEmbeddingModelMenuStore } from "../../stores/ModelMenuStore";
 import { useTranslation } from "react-i18next";
 
+/** The provider capability this picker serves, for local providers to install. */
+const LOCAL_CAPABILITIES = ["generate_embedding"];
+
 interface EmbeddingModelMenuDialogProps {
   open: boolean;
   onClose: () => void;
@@ -33,10 +36,11 @@ function EmbeddingModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title={t("editor:ui.selectEmbeddingModel", { defaultValue: "Select Embedding Model" })}
-      searchPlaceholder={t("editor:ui.searchEmbeddingModels", { defaultValue: "Search embedding models..." })}
+      title={t("editor:ui.selectEmbeddingModel", { defaultValue: "Select embedding model" })}
+      searchPlaceholder="Search embedding models"
       storeHook={useEmbeddingModelMenuStore}
       modelType="embedding_model"
+      localCapabilities={LOCAL_CAPABILITIES}
       recommendedModels={recommendedModels}
       modelPacks={modelPacks}
     />

@@ -12,13 +12,13 @@ import {
   Checkbox,
   FormControlLabel,
   Slider,
-  TYPOGRAPHY
+  TYPOGRAPHY,
+  ICON_SIZE
 } from "../../ui_primitives";
 import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import {
-  sketchSliderSx,
   sketchButtonSmallSx,
   sketchHintTextSx,
   SKETCH_COLORS
@@ -27,6 +27,7 @@ import { SketchModeToggle, SketchModeOption } from "./SketchModeToggle";
 import { TransformMode } from "../types";
 import { getToolbarTransformModes } from "../transform/modes";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface AdjustmentsSettingsPanelProps {
   brightness: number;
@@ -56,7 +57,6 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
       <Box className="setting-row">
         <Text className="setting-label">{t("ui2:attrs.brightness", { defaultValue: "Brightness" })}</Text>
         <Slider
-          sx={sketchSliderSx}
           size="small"
           min={-100}
           max={100}
@@ -68,7 +68,6 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
       <Box className="setting-row">
         <Text className="setting-label">{t("ui2:attrs.contrast", { defaultValue: "Contrast" })}</Text>
         <Slider
-          sx={sketchSliderSx}
           size="small"
           min={-100}
           max={100}
@@ -80,7 +79,6 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
       <Box className="setting-row">
         <Text className="setting-label">{t("ui2:attrs.saturation", { defaultValue: "Saturation" })}</Text>
         <Slider
-          sx={sketchSliderSx}
           size="small"
           min={-100}
           max={100}
@@ -107,7 +105,9 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
           disabled={!hasChanges}
           onClick={onCancel}
           sx={{ ...sketchButtonSmallSx, flex: 1 }}
-        >{t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
+        >
+          Cancel
+        </EditorButton>
       </FlexRow>
     </>
   );
@@ -205,11 +205,7 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
           {getToolbarTransformModes().map((modeHandler) => {
             const button = (
               <SketchModeOption key={modeHandler.id} value={modeHandler.id}>
-                {modeHandler.labelKey
-                  ? t(modeHandler.labelKey, {
-                      defaultValue: modeHandler.label
-                    })
-                  : modeHandler.label}
+                {modeHandler.label}
               </SketchModeOption>
             );
             return modeHandler.tooltip ? (
@@ -240,21 +236,23 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
       </Box>
       <FlexRow sx={{ gap: getSpacingPx(SPACING.micro), ml: 1 }}>
         <ToolbarIconButton
-          icon={<CheckIcon sx={{ fontSize: 18 }} />}
-          tooltip={t("editor:ui.commitEnter", { defaultValue: "Commit (Enter)" })}
+          icon={<CheckIcon sx={{ fontSize: ICON_SIZE.md }} />}
+          tooltip={t("sketch:attrs.commit", { defaultValue: "Commit" })}
+          shortcut={["Enter"]}
           tooltipPlacement="bottom"
           onClick={onCommit}
           sx={{ padding: 1, color: "success.main" }}
         />
         <ToolbarIconButton
-          icon={<CloseIcon sx={{ fontSize: 18 }} />}
-          tooltip={t("editor:ui.cancelEsc", { defaultValue: "Cancel (Esc)" })}
+          icon={<CloseIcon sx={{ fontSize: ICON_SIZE.md }} />}
+          tooltip={t("sketch:attrs.cancel", { defaultValue: "Cancel" })}
+          shortcut={["Esc"]}
           tooltipPlacement="bottom"
           onClick={onCancel}
           sx={{ padding: 1, color: "error.main" }}
         />
         <ToolbarIconButton
-          icon={<RestartAltIcon sx={{ fontSize: 18 }} />}
+          icon={<RestartAltIcon sx={{ fontSize: ICON_SIZE.md }} />}
           tooltip={t("sketch:attrs.reset", { defaultValue: "Reset" })}
           tooltipPlacement="bottom"
           onClick={onReset}
@@ -266,10 +264,9 @@ export const TransformSettingsPanel = memo(function TransformSettingsPanel({
 });
 
 export const NoSettingsMessage = memo(function NoSettingsMessage() {
-  const { t } = useTranslation();
   return (
     <Text sx={{ ...sketchHintTextSx }}>
-      {t("editor:ui.noSettingsForThisTool")}
+      No settings for this tool.
     </Text>
   );
 });
@@ -283,7 +280,6 @@ export const CropSettingsPanel = memo(function CropSettingsPanel({
   onApply: () => void;
   onCancel: () => void;
 }) {
-  const { t } = useTranslation();
   return (
     <>
       <Text sx={{ ...sketchHintTextSx }}>
@@ -294,16 +290,18 @@ export const CropSettingsPanel = memo(function CropSettingsPanel({
       </Text>
       <FlexRow sx={{ gap: getSpacingPx(SPACING.micro), ml: 1 }}>
         <ToolbarIconButton
-          icon={<CheckIcon sx={{ fontSize: 18 }} />}
-          tooltip={t("editor:ui.applyCropEnter", { defaultValue: "Apply crop (Enter)" })}
+          icon={<CheckIcon sx={{ fontSize: ICON_SIZE.md }} />}
+          tooltip={i18n.t("sketch:attrs.applyCrop", { defaultValue: "Apply crop" })}
+          shortcut={["Enter"]}
           tooltipPlacement="bottom"
           disabled={!hasPendingCrop}
           onClick={onApply}
           sx={{ padding: 1, color: "success.main" }}
         />
         <ToolbarIconButton
-          icon={<CloseIcon sx={{ fontSize: 18 }} />}
-          tooltip={t("editor:ui.cancelCropPreviewEsc", { defaultValue: "Cancel crop preview (Esc)" })}
+          icon={<CloseIcon sx={{ fontSize: ICON_SIZE.md }} />}
+          tooltip={i18n.t("sketch:attrs.cancelCropPreview", { defaultValue: "Cancel crop preview" })}
+          shortcut={["Esc"]}
           tooltipPlacement="bottom"
           disabled={!hasPendingCrop}
           onClick={onCancel}

@@ -20,6 +20,7 @@ import {
   Surface,
   Box,
   FlexColumn,
+  Code,
   FlexRow,
   Panel,
   TextInput,
@@ -38,7 +39,10 @@ import { useModelDownloadStore } from "../../stores/ModelDownloadStore";
 import { useModelManagerStore } from "../../stores/ModelManagerStore";
 import { useSystemStatsStore } from "../../stores/systemStatsHandler";
 import { useProviderOnboardingStore } from "../../stores/ProviderOnboardingStore";
-import { useTranslation } from "react-i18next";
+import { DIALOG_PREVIEWS } from "./DialogPreviews";
+import PreviewProgressStates from "./ProgressPreviews";
+import PreviewModelPicker from "./ModelPickerPreview";
+import { i18n } from "../../i18n";
 
 const CostsDashboard = React.lazy(() => import("../costs/CostsDashboard"));
 const ModelListIndex = React.lazy(
@@ -80,140 +84,124 @@ const ProviderOnboardingDialog = React.lazy(
 );
 
 interface PreviewEntry {
+  labelKey?: string;
+  descriptionKey?: string;
   id: string;
   label: string;
-  labelKey?: string;
   description: string;
-  descriptionKey?: string;
   viewport?: { width: number; height: number };
 }
 
 const PREVIEWS: PreviewEntry[] = [
   {
     id: "app-header",
-    label: "App Header",
-    labelKey: "timeline:attrs.previewAppHeader",
-    description: "The global navigation header bar",
-    descriptionKey: "timeline:attrs.previewGlobalHeaderDesc",
+    label: "App Header", labelKey: "timeline:attrs.previewAppHeader",
+    description: "The global navigation header bar", descriptionKey: "timeline:attrs.previewGlobalHeaderDesc",
     viewport: { width: 1920, height: 80 }
   },
   {
     id: "costs",
-    label: "Costs Dashboard",
-    labelKey: "timeline:attrs.previewCostsDashboard",
-    description: "Spend analytics: stat cards, stacked bar chart and table",
-    descriptionKey: "timeline:attrs.previewSpendAnalyticsDesc",
+    label: "Costs Dashboard", labelKey: "timeline:attrs.previewCostsDashboard",
+    description: "Spend analytics: stat cards, stacked bar chart and table", descriptionKey: "timeline:attrs.previewSpendAnalyticsDesc",
     viewport: { width: 1500, height: 1080 }
   },
   {
     id: "models",
-    label: "Models Manager",
-    labelKey: "nav:settings.docsTopics.modelsManager",
-    description: "Model list and download manager",
-    descriptionKey: "timeline:attrs.previewModelListDesc",
+    label: "Models Manager", labelKey: "nav:settings.docsTopics.modelsManager",
+    description: "Model list and download manager", descriptionKey: "timeline:attrs.previewModelListDesc",
     viewport: { width: 1920, height: 1080 }
   },
   {
     id: "model-onboarding",
-    label: "Model Onboarding",
-    labelKey: "timeline:attrs.previewModelOnboarding",
-    description: "Hardware-aware 'Get Started' guide for local models",
-    descriptionKey: "timeline:attrs.previewHardwareGuideDesc",
+    label: "Model Onboarding", labelKey: "timeline:attrs.previewModelOnboarding",
+    description: "Hardware-aware 'Get Started' guide for local models", descriptionKey: "timeline:attrs.previewHardwareGuideDesc",
     viewport: { width: 1440, height: 1080 }
   },
   {
     id: "assets",
-    label: "Asset Explorer",
-    labelKey: "timeline:attrs.previewAssetExplorer",
-    description: "Asset browser and file manager",
-    descriptionKey: "timeline:attrs.previewAssetBrowserDesc",
+    label: "Asset Explorer", labelKey: "timeline:attrs.previewAssetExplorer",
+    description: "Asset browser and file manager", descriptionKey: "timeline:attrs.previewAssetBrowserDesc",
     viewport: { width: 1920, height: 1080 }
   },
   {
     id: "confirm-dialog",
-    label: "Confirm Dialog",
-    labelKey: "timeline:attrs.previewConfirmDialog",
-    description: "Generic confirm prompt",
-    descriptionKey: "timeline:attrs.previewGenericConfirmDesc"
+    label: "Confirm Dialog", labelKey: "timeline:attrs.previewConfirmDialog",
+    description: "Generic confirm prompt", descriptionKey: "timeline:attrs.previewGenericConfirmDesc",
   },
   {
     id: "color-picker",
-    label: "Color Picker Modal",
-    labelKey: "timeline:attrs.previewColorPickerModal",
-    description: "Rich color picker with harmony, swatches and gradient",
-    descriptionKey: "timeline:attrs.previewRichColorPickerDesc"
+    label: "Color Picker Modal", labelKey: "timeline:attrs.previewColorPickerModal",
+    description: "Rich color picker with harmony, swatches and gradient", descriptionKey: "timeline:attrs.previewRichColorPickerDesc",
   },
   {
     id: "text-editor",
-    label: "Text / Code Editor Modal",
-    labelKey: "timeline:attrs.previewTextCodeEditor",
-    description: "Expanded editor for long string properties",
-    descriptionKey: "timeline:attrs.previewExpandedEditorDesc"
+    label: "Text / Code Editor Modal", labelKey: "timeline:attrs.previewTextCodeEditor",
+    description: "Expanded editor for long string properties", descriptionKey: "timeline:attrs.previewExpandedEditorDesc",
   },
   {
     id: "dataframe-editor",
-    label: "DataFrame Editor Modal",
-    labelKey: "timeline:attrs.previewDataframeEditor",
-    description: "Spreadsheet-style editor for tabular properties",
-    descriptionKey: "timeline:attrs.previewSpreadsheetDesc"
+    label: "DataFrame Editor Modal", labelKey: "timeline:attrs.previewDataframeEditor",
+    description: "Spreadsheet-style editor for tabular properties", descriptionKey: "timeline:attrs.previewSpreadsheetDesc",
   },
   {
     id: "image-compare",
-    label: "Image Compare",
-    labelKey: "appbuilder:attrs.imageCompare",
-    description: "Side-by-side comparison of two images",
-    descriptionKey: "timeline:attrs.previewSideBySideDesc"
+    label: "Image Compare", labelKey: "appbuilder:attrs.imageCompare",
+    description: "Side-by-side comparison of two images", descriptionKey: "timeline:attrs.previewSideBySideDesc",
   },
   {
     id: "recommended-models",
-    label: "Recommended Models",
-    labelKey: "ui2:attrs.recommendedModels",
-    description: "Recommended-models picker shown for missing models",
-    descriptionKey: "timeline:attrs.previewRecommendedModelsDesc"
+    label: "Recommended Models", labelKey: "ui2:attrs.recommendedModels",
+    description: "Recommended-models picker shown for missing models", descriptionKey: "timeline:attrs.previewRecommendedModelsDesc",
   },
   {
     id: "delete-model",
-    label: "Delete Model Confirmation",
-    labelKey: "timeline:attrs.previewDeleteModelConfirm",
-    description: "Safety prompt before removing a model",
-    descriptionKey: "timeline:attrs.previewSafetyPromptDesc"
+    label: "Delete Model Confirmation", labelKey: "timeline:attrs.previewDeleteModelConfirm",
+    description: "Safety prompt before removing a model", descriptionKey: "timeline:attrs.previewSafetyPromptDesc",
   },
   {
     id: "download-manager",
-    label: "Download Manager",
-    labelKey: "timeline:attrs.previewDownloadManager",
-    description: "Track, retry and pause model downloads",
-    descriptionKey: "timeline:attrs.previewTrackDownloadsDesc"
+    label: "Download Manager", labelKey: "timeline:attrs.previewDownloadManager",
+    description: "Track, retry and pause model downloads", descriptionKey: "timeline:attrs.previewTrackDownloadsDesc",
   },
   {
     id: "node-readme",
-    label: "Node README / Help",
-    labelKey: "timeline:attrs.previewNodeReadme",
-    description: "In-app documentation for a single node",
-    descriptionKey: "timeline:attrs.previewNodeReadmeDesc"
+    label: "Node README / Help", labelKey: "timeline:attrs.previewNodeReadme",
+    description: "In-app documentation for a single node", descriptionKey: "timeline:attrs.previewNodeReadmeDesc",
   },
   {
     id: "workflow-form",
-    label: "Workflow Form",
-    labelKey: "appbuilder:attrs.workflowForm",
-    description: "Edit workflow metadata",
-    descriptionKey: "timeline:attrs.previewEditWorkflowMeta"
+    label: "Workflow Form", labelKey: "appbuilder:attrs.workflowForm",
+    description: "Edit workflow metadata", descriptionKey: "timeline:attrs.previewEditWorkflowMeta",
   },
   {
     id: "workflow-delete",
-    label: "Workflow Delete Confirmation",
-    labelKey: "timeline:attrs.previewWorkflowDeleteConfirm",
-    description: "Safe-delete prompt for workflows",
-    descriptionKey: "timeline:attrs.previewSafeDeleteDesc"
+    label: "Workflow Delete Confirmation", labelKey: "timeline:attrs.previewWorkflowDeleteConfirm",
+    description: "Safe-delete prompt for workflows", descriptionKey: "timeline:attrs.previewSafeDeleteDesc",
   },
   {
     id: "provider-onboarding",
-    label: "Provider Onboarding",
-    labelKey: "timeline:attrs.previewProviderOnboarding",
+    label: "Provider Onboarding", labelKey: "timeline:attrs.previewProviderOnboarding",
     description:
       "Blocked-provider onboarding: OAuth sign-in, API keys, and cost guidance",
     viewport: { width: 900, height: 1200 }
-  }
+  },
+  {
+    id: "progress-states",
+    label: "Progress States",
+    description: "Spinners, progress bars and running steps with sample data",
+    viewport: { width: 1440, height: 1100 }
+  },
+  {
+    id: "model-picker",
+    label: "Model Picker",
+    description: "Model picker opened under its select button with sample models",
+    viewport: { width: 760, height: 720 }
+  },
+  ...Object.entries(DIALOG_PREVIEWS).map(([id, { label }]) => ({
+    id,
+    label: `${label} dialog`,
+    description: "Dialog opened with sample data"
+  }))
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -449,24 +437,22 @@ const PreviewAssets: React.FC = () => (
   </FullscreenBox>
 );
 
-const PreviewConfirmDialog: React.FC = () => {
-  const { t } = useTranslation();
-  return (
+const PreviewConfirmDialog: React.FC = () => (
   <Box data-preview="confirm-dialog" sx={{ width: "100%", height: "100vh" }}>
     <Suspense fallback={null}>
       <ConfirmDialog
         open
         onClose={() => undefined}
         onConfirm={() => undefined}
-        title={t("editor:ui.deleteThisWorkflow", { defaultValue: "Delete this workflow?" })}
-        content={t("timeline:attrs.previewDeleteWorkflowWarning", { defaultValue: "This action cannot be undone. The workflow and its run history will be removed from the workspace." })}
-        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+        title={i18n.t("editor:ui.deleteThisWorkflow", { defaultValue: "Delete this workflow?" })}
+        content={i18n.t("timeline:attrs.previewDeleteWorkflowWarning", { defaultValue: "This action cannot be undone. The workflow and its run history will be removed from the workspace." })}
+        confirmText="Delete"
+        cancelText="Cancel"
+        destructive
       />
     </Suspense>
   </Box>
 );
-};
 
 const PreviewColorPicker: React.FC = () => (
   <Box data-preview="color-picker" sx={{ width: "100%", height: "100vh" }}>
@@ -529,7 +515,6 @@ const PreviewImageCompare: React.FC = () => (
 );
 
 const PreviewRecommendedModels: React.FC = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <Box
@@ -538,14 +523,14 @@ const PreviewRecommendedModels: React.FC = () => {
         width: "100%",
         minHeight: "100vh",
         p: 4,
-        bgcolor: theme.palette.background.paper
+        bgcolor: theme.vars.palette.background.paper
       }}
     >
       <Text size="big" weight={600} sx={{ mb: 1, display: "block" }}>
         Recommended Models
       </Text>
       <Text size="small" color="secondary" sx={{ mb: 3, display: "block" }}>
-        {t("editor:ui.theseModelsAreRecommendedForTheSelectedNode")}
+        These models are recommended for the selected node.
       </Text>
       <Suspense fallback={<LoadingSpinner />}>
         <RecommendedModels
@@ -602,16 +587,16 @@ const PreviewNodeReadme: React.FC = () => {
         width: "100%",
         minHeight: "100vh",
         p: 4,
-        bgcolor: theme.palette.background.default
+        bgcolor: theme.vars.palette.background.default
       }}
     >
       <Box
         sx={{
           maxWidth: 720,
           mx: "auto",
-          bgcolor: theme.palette.background.paper,
+          bgcolor: theme.vars.palette.background.paper,
           borderRadius: BORDER_RADIUS.xs,
-          border: `1px solid ${theme.palette.divider}`,
+          border: `1px solid ${theme.vars.palette.divider}`,
           overflow: "hidden"
         }}
       >
@@ -673,23 +658,21 @@ const FORM_CONTROL_OPTIONS = [
 // The CONTROL height contract, side by side: a TextInput and a SelectField at
 // each size (and each Select variant) must render at exactly the same height.
 // The visual suite measures what jsdom cannot.
-const PreviewFormControls: React.FC = () => {
-  const { t } = useTranslation();
-  return (
+const PreviewFormControls: React.FC = () => (
   <Box data-preview="form-controls" sx={{ width: 560, p: 4 }}>
     <Panel padding="normal">
       <FlexColumn gap={3}>
         <FlexRow gap={2} align="flex-end">
-          <TextInput label={t("editor:ui.mediumText", { defaultValue: "Medium text" })} placeholder="36px" />
+          <TextInput label={i18n.t("editor:ui.mediumText", { defaultValue: "Medium text" })} placeholder="36px" />
           <SelectField
-            label={t("editor:ui.mediumOutlined", { defaultValue: "Medium outlined" })}
+            label={i18n.t("editor:ui.mediumOutlined", { defaultValue: "Medium outlined" })}
             variant="outlined"
             value="widescreen"
             onChange={() => undefined}
             options={FORM_CONTROL_OPTIONS}
           />
           <SelectField
-            label={t("editor:ui.mediumStandard", { defaultValue: "Medium standard" })}
+            label={i18n.t("editor:ui.mediumStandard", { defaultValue: "Medium standard" })}
             variant="standard"
             value="widescreen"
             onChange={() => undefined}
@@ -697,9 +680,9 @@ const PreviewFormControls: React.FC = () => {
           />
         </FlexRow>
         <FlexRow gap={2} align="flex-end">
-          <TextInput label={t("editor:ui.smallText", { defaultValue: "Small text" })} placeholder="28px" compact />
+          <TextInput label={i18n.t("editor:ui.smallText", { defaultValue: "Small text" })} placeholder="28px" compact />
           <SelectField
-            label={t("editor:ui.smallOutlined", { defaultValue: "Small outlined" })}
+            label={i18n.t("editor:ui.smallOutlined", { defaultValue: "Small outlined" })}
             variant="outlined"
             size="small"
             value="square"
@@ -707,7 +690,7 @@ const PreviewFormControls: React.FC = () => {
             options={FORM_CONTROL_OPTIONS}
           />
           <SelectField
-            label={t("editor:ui.smallStandard", { defaultValue: "Small standard" })}
+            label={i18n.t("editor:ui.smallStandard", { defaultValue: "Small standard" })}
             variant="standard"
             size="small"
             value="square"
@@ -719,27 +702,25 @@ const PreviewFormControls: React.FC = () => {
     </Panel>
   </Box>
 );
-};
 
 // ─── Preview index page ────────────────────────────────────────────────────────
 
 const PreviewIndex: React.FC = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   return (
     <Box
       sx={{
         p: 4,
-        bgcolor: theme.palette.background.default,
+        bgcolor: theme.vars.palette.background.default,
         minHeight: "100vh"
       }}
     >
       <Text size="big" weight={600} sx={{ mb: 1, display: "block" }}>
-        {t("editor:ui.componentPreviews")}
+        Component Previews
       </Text>
       <Text size="small" color="secondary" sx={{ mb: 4, display: "block" }}>
         Isolated component views for documentation screenshots. Navigate to{" "}
-        <code>/preview/:id</code> to render a component in isolation.
+        <Code>/preview/:id</Code> to render a component in isolation.
       </Text>
 
       <Box
@@ -759,19 +740,19 @@ const PreviewIndex: React.FC = () => {
               elevation={0}
               sx={{
                 p: 3,
-                border: `1px solid ${theme.palette.divider}`,
+                border: `1px solid ${theme.vars.palette.divider}`,
                 "&:hover": {
-                  borderColor: theme.palette.primary.main,
-                  boxShadow: `0 0 0 2px ${theme.palette.primary.main}22`
+                  borderColor: theme.vars.palette.primary.main,
+                  boxShadow: `0 0 0 2px rgb(${theme.vars.palette.primary.mainChannel} / 0.13)`
                 },
                 transition: `${MOTION.border}, ${MOTION.shadow}`
               }}
             >
               <Text size="normal" weight={600} sx={{ mb: 0.5, display: "block" }}>
-                {p.labelKey ? t(p.labelKey, { defaultValue: p.label }) : p.label}
+                {p.label}
               </Text>
               <Text size="small" color="secondary" sx={{ mb: 1, display: "block" }}>
-                {p.descriptionKey ? t(p.descriptionKey, { defaultValue: p.description }) : p.description}
+                {p.description}
               </Text>
               {p.viewport && (
                 <Caption sx={{ color: "text.disabled" }}>
@@ -816,7 +797,12 @@ const COMPONENT_MAP: Record<string, React.FC> = {
   "workflow-form": PreviewWorkflowForm,
   "workflow-delete": PreviewWorkflowDelete,
   "provider-onboarding": PreviewProviderOnboarding,
-  "form-controls": PreviewFormControls
+  "form-controls": PreviewFormControls,
+  "progress-states": PreviewProgressStates,
+  "model-picker": PreviewModelPicker,
+  ...Object.fromEntries(
+    Object.entries(DIALOG_PREVIEWS).map(([id, { component }]) => [id, component])
+  )
 };
 
 const ComponentPreview: React.FC = () => {
@@ -834,7 +820,7 @@ const ComponentPreview: React.FC = () => {
       <Box
         sx={{
           p: 4,
-          bgcolor: theme.palette.background.default,
+          bgcolor: theme.vars.palette.background.default,
           minHeight: "100vh"
         }}
       >
@@ -856,7 +842,7 @@ const ComponentPreview: React.FC = () => {
       sx={{
         width: "100%",
         minHeight: "100vh",
-        bgcolor: theme.palette.background.default
+        bgcolor: theme.vars.palette.background.default
       }}
     >
       <PreviewComponent />

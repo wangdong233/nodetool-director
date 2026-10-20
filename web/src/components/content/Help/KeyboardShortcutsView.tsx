@@ -20,6 +20,8 @@ import { keyboardLayouts } from "./keyboard_layouts";
 import { useKeyPressedStore } from "../../../stores/KeyPressedStore";
 import { physicalKeyToLayoutButtonId } from "./physicalKeyboardLayoutKey";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
+import { useAppLanguage } from "../../../i18n";
 
 interface KeyboardShortcutsViewProps {
   shortcuts?: Shortcut[];
@@ -52,6 +54,7 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
   imageEditorShortcuts = false
 }) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const [os, setOs] = useState<"mac" | "win">(isMac() ? "mac" : "win");
   const [layoutName, setLayoutName] = useState<"english" | "german">(() => {
     if (typeof navigator !== "undefined") {
@@ -267,13 +270,13 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
       capslock: "⇪",
       shift: "⇧",
       control: os === "mac" ? "⌃" : "CTRL",
-      meta: os === "mac" ? "⌘" : "Win",
+      meta: os === "mac" ? "⌘" : i18n.t("editor:ui.winCondition", { defaultValue: "Win" }),
       alt: os === "mac" ? "⌥" : "Alt",
       enter: "⏎",
       space: "SPACE",
       escape: "ESC"
     } as Record<string, string>),
-    [os]
+    [os, languageVersion]
   );
 
   const setPaused = useKeyPressedStore((state) => state.setPaused);
@@ -383,7 +386,7 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
         sx={{ mb: 2, ml: imageEditorShortcuts ? 2 : 8 }}
       >
         {imageEditorShortcuts ? (
-          <ToggleOption value="image-editor">{t("ui2:attrs.imageEditor", { defaultValue: "Image Editor" })}</ToggleOption>
+          <ToggleOption value="image-editor">{t("ui2:attrs.imageEditor", { defaultValue: "Image editor" })}</ToggleOption>
         ) : (
           <>
             <ToggleOption value="editor">{t("ui2:attrs.editor", { defaultValue: "Editor" })}</ToggleOption>
@@ -429,7 +432,7 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
                 <React.Fragment key={idx}>
                   {slug === "switchToTabGroup" ? (
                     <div className="tooltip-span">
-                      <div className="tooltip-title">{t("ui2:attrs.switchToTab", { defaultValue: "Switch to Tab" })}</div>
+                      <div className="tooltip-title">{t("ui2:attrs.switchToTab", { defaultValue: "Switch to tab" })}</div>
                       <div className="tooltip-key">
                         <kbd>{os === "mac" ? "⌘" : "CTRL"}</kbd>+<kbd>1-9</kbd>
                       </div>
@@ -444,7 +447,6 @@ const KeyboardShortcutsView: React.FC<KeyboardShortcutsViewProps> = ({
               ))}
             </div>
           }
-          arrow
           slotProps={{
             popper: {
               style: {

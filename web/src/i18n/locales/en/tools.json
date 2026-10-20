@@ -1,6 +1,18 @@
 {
   "attrs": {},
-  "ui": {},
+  "ui": {
+    "installFromTerminal": "Install from a terminal",
+    "runThis": "Run this",
+    "copyCommand": "Copy command",
+    "clientConnectsToServer": "The client connects to this server. It works while NodeTool runs.",
+    "clientStartsNodetool": "The client starts NodeTool itself. It works whether or not this app runs.",
+    "copyServerUrl": "Copy server URL",
+    "copyConfiguration": "Copy configuration",
+    "removeServer": "Remove server?",
+    "loadUnlistedPacks": "Load packs that are not on the allowlist",
+    "unlistedPacksDesc": "Off in production by default. When off, only packs you've explicitly trusted will load.",
+    "removeEndpoint": "Remove endpoint?"
+  },
   "ctx": {
     "audioList": "Audio List",
     "imageList": "Image List",
@@ -8,11 +20,11 @@
     "videoList": "Video List"
   },
   "menus": {
+    "register": "Register",
     "addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider": "Add a base URL and an API key to use any OpenAI-compatible provider.",
     "addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage": "Add a command or a URL. Its tools join the agent's toolbelt on the next message.",
     "aiAgentForProcessing": "AI agent for processing",
     "allFieldsAreRequired": "All fields are required",
-    "apiDocumentation": "API Documentation",
     "apiKey": "API Key",
     "apiKey2": "API key",
     "centerAllNodesInView": "Center all nodes in view",
@@ -22,33 +34,26 @@
     "commonIssuesFixes": "Common issues & fixes",
     "copiedToClipboard": "Copied to clipboard!",
     "copiedWorkflowJsonToClipboard": "Copied workflow JSON to Clipboard!",
-    "dataStorage": "Data & Storage",
     "decimalNumberInput": "Decimal number input",
     "detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations": "Detected from the model list. Add ids that Test misses. Calls go to /images/generations.",
     "detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos": "Detected from the model list. Add ids that Test misses. Calls go to /videos.",
     "failedToCopySystemInformationToClipboard": "Failed to copy system information to clipboard",
     "failedToDisconnectGoogleWorkspace": "Failed to disconnect Google Workspace",
     "failedToImportWorkflowInvalidJsonFile": "Failed to import workflow — invalid JSON file",
-    "couldNotSaveSettings": "Could not save settings: {{message}}",
-    "couldNotSaveFolderSettings": "Could not save folder settings: {{message}}",
-    "visitProviderForCredentials": "Visit {{label}} to get your credentials",
     "folderSettingsHaveBeenSavedSuccessfully": "Folder settings have been saved successfully",
     "groupContainerForNodes": "Group container for nodes",
     "imageFileInput": "Image file input",
     "includeTheVersionPathTheEndpointServesUsuallyV1": "Include the version path the endpoint serves, usually /v1.",
     "localModelServers": "Local Model Servers",
-    "npmPackages": "NPM Packages",
+    "npmPackages": "NPM packages",
     "observability": "Observability",
     "oneArgumentPerLineSoAPathWithASpaceStaysOneArgument": "One argument per line, so a path with a space stays one argument.",
     "oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "One Header=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys.",
     "oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "One KEY=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys.",
     "packageSpecPlaceholder": "@scope/package or package@version",
     "providerGuidesLinks": "Provider guides & links",
-    "providerOptions": "Provider Options",
     "providerRemoved": "Provider removed",
-    "providerSavedAs": "{{name}} saved as {{id}}",
     "disconnectedGoogleWorkspace": "Disconnected Google Workspace. Use Connect to restore access.",
-    "customProviderEncryptionNote": "The URL and key are encrypted and stored per account. The same values can come from the environment instead, as {{baseUrlEnv}} and {{apiKeyEnv}}.",
     "providers": {
       "AKI_API_KEY": {
         "description": "AKI.IO AI Model Hub."
@@ -118,7 +123,6 @@
       },
       "HIGGSFIELD_API_KEY_ID": {
         "credentialLabel": "API key",
-        "credentialPlaceholder": "Paste key-id:secret",
         "description": "Curated image and video generation models."
       },
       "JINA_API_KEY": {
@@ -228,12 +232,10 @@
     "secretValueIsRequired": "Secret value is required",
     "seeModelsByProvider": "See models by provider",
     "streamableHTTPWithSSEAsTheFallback": "Streamable HTTP, with SSE as the fallback.",
-    "supportedModels": "Supported Models",
     "systemInformationCopiedToClipboard": "System information copied to clipboard!",
     "textCommentNote": "Text comment note",
     "textInputField": "Text input field",
     "wholeNumberInput": "Whole number input",
-    "yourSettingsHaveBeenSavedSuccessfully": "Your settings have been saved successfully",
     "sections": {
       "popular": "Popular",
       "language": "Language Models",
@@ -243,35 +245,26 @@
       "compute": "Compute & Local",
       "advanced": "Services & Advanced"
     },
-    "languageModels": "Language Models",
-    "mediaGeneration": "Media Generation",
-    "gatewaysAndHubs": "Gateways & Hubs",
-    "webSearch": "Web Search",
-    "computeAndLocal": "Compute & Local",
-    "servicesAndAdvanced": "Services & Advanced",
-    "nameApiKeyUpdated": "{{name}} API key updated",
-    "failedToUpdateSecret": "Failed to update secret: {{error}}",
-    "nameApiKeyDeleted": "{{name}} API key deleted",
-    "failedToDeleteSecret": "Failed to delete secret: {{error}}",
     "tags": {
       "Popular": "Popular"
     },
-    "other": "Other"
+    "other": "Other",
+    "pmHintRuntimes": "Local AI, media tools, languages",
+    "pmHintIncluded": "Show or hide node groups",
+    "pmHintPython": "Extra nodes from PyPI",
+    "pmHintThirdparty": "Packs from other authors",
+    "pmSubIncluded": "Packs that ship with NodeTool. Turn a pack off to hide its nodes. A pack toggle takes effect after the server restarts. Provider nodes appear when you add their API key.",
+    "pmSubPython": "Node packs from PyPI that run in the Python worker. The server restarts after you install, update or uninstall a pack.",
+    "pmSubThirdparty": "Third-party packs run in-process as the server user. Only trust packs you know.",
+    "pmSubRuntimes": "Programs that run on this computer: local AI engines such as llama.cpp and stable-diffusion.cpp, media tools such as FFmpeg, and languages. Local models and some nodes need them."
   },
   "misc": {
-    "onboardingPacks": {
-      "ollama": "Chat and embedding nodes backed by your local Ollama models."
-    }
+    "onboardingPacks": {}
   },
   "tutorials": {
     "subtitle": "Short, beginner-friendly walkthroughs of NodeTool",
-    "countOne": "{{count}} tutorial",
-    "countMany": "{{count}} tutorials",
-    "startBuilding": "Start building",
     "openingTask": "Opening task…",
-    "browseExamples": "Browse examples",
     "backToWorkspace": "Workspace",
-    "playTutorialAria": "Play tutorial: {{title}}",
     "level": {
       "Beginner": "Beginner",
       "Intermediate": "Intermediate"
@@ -405,6 +398,17 @@
       "tagline": "Timeline editor · trim, arrange, caption",
       "task": "Place two clips, trim their cut, add a caption, and preview the finished sequence.",
       "description": "Watch the opening clip shorten, the next shot meet its edge, and a caption appear on its track. Then preview the finished cut."
-    }
+    },
+    "tryItYourself": "Try it yourself",
+    "startHere": "Start here",
+    "yourTask": "Your task",
+    "checkTheResult": "Check the result"
+  },
+  "jsScript": {
+    "agentsReadHelper": "Agents read this to decide whether to call the script."
+  },
+  "packages": {
+    "searchPlaceholder": "Search (press /)",
+    "pageTitle": "Package manager"
   }
 }

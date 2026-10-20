@@ -1,4 +1,4 @@
-import { NODE_EDITOR_SHORTCUTS, Shortcut, shortcutComboText } from "../shortcuts";
+import { NODE_EDITOR_SHORTCUTS, Shortcut } from "../shortcuts";
 
 describe("NODE_EDITOR_SHORTCUTS", () => {
   describe("resetZoom shortcut", () => {
@@ -19,7 +19,7 @@ describe("NODE_EDITOR_SHORTCUTS", () => {
     });
 
     it("should have title", () => {
-      expect(resetZoomShortcut?.title).toBe("Reset Zoom");
+      expect(resetZoomShortcut?.title).toBe("Reset zoom");
     });
   });
 
@@ -84,39 +84,4 @@ describe("NODE_EDITOR_SHORTCUTS", () => {
     });
   });
 
-  describe("shortcutComboText", () => {
-    it("renders a bare key with no separators", () => {
-      expect(shortcutComboText("fitView", "mac")).toBe("F");
-      expect(shortcutComboText("fitView", "win")).toBe("F");
-    });
-
-    it("attaches mac modifier glyphs directly to the key", () => {
-      expect(shortcutComboText("duplicate", "mac")).toBe("⌘D");
-      expect(shortcutComboText("redo", "mac")).toBe("⌘⇧Z");
-      expect(shortcutComboText("runWorkflow", "mac")).toBe("⌘Enter");
-      expect(shortcutComboText("resetZoom", "mac")).toBe("⌘0");
-    });
-
-    it("joins non-glyph modifiers with +", () => {
-      expect(shortcutComboText("duplicate", "win")).toBe("Ctrl+D");
-      expect(shortcutComboText("redo", "win")).toBe("Ctrl+Shift+Z");
-      expect(shortcutComboText("runWorkflow", "win")).toBe("Ctrl+Enter");
-    });
-
-    it("honours an explicit mac combo that keeps literal Control", () => {
-      // assetViewerPrevJump pins Control+ArrowLeft on mac — Control stays ⌃,
-      // it must not become the ⌘ that mapKeyForMac derives from keyCombo.
-      expect(shortcutComboText("assetViewerPrevJump", "mac")).toBe("⌃←");
-    });
-
-    it("humanizes space and arrow keys", () => {
-      expect(shortcutComboText("openNodeMenu", "win")).toBe("Space");
-      expect(shortcutComboText("moveLeft", "win")).toBe("←");
-    });
-
-    it("returns an empty string for an unknown slug", () => {
-      expect(shortcutComboText("noSuchShortcut", "mac")).toBe("");
-      expect(shortcutComboText("noSuchShortcut", "win")).toBe("");
-    });
-  });
 });

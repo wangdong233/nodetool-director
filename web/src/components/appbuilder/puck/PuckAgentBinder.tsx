@@ -41,6 +41,7 @@ import {
 import type { WorkflowState } from "../workflowState";
 import { useOperationScripts } from "../useOperationScripts";
 import { isString } from "../../../utils/typePredicates";
+import { i18n } from "../../../i18n";
 
 interface PuckAgentBinderProps {
   config: Config;
@@ -152,7 +153,7 @@ const PuckAgentBinder: React.FC<PuckAgentBinderProps> = ({
             label: (component as { label?: string }).label,
             fields: Object.entries(fields).map(([name, field]) => ({
               name,
-              type: field?.type ?? "unknown"
+              type: field?.type ?? i18n.t("setup:workflow.pill_unknown", { defaultValue: "unknown" })
             }))
           };
         }),

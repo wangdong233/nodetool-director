@@ -8,7 +8,6 @@
  * save after that must send the server's revision again.
  */
 import { QueryClient } from "@tanstack/react-query";
-import { create } from "zustand";
 import type { Workflow } from "../ApiTypes";
 
 jest.mock("../../trpc/client", () => ({
@@ -21,52 +20,25 @@ jest.mock("../../trpc/client", () => ({
   }
 }));
 
-jest.mock("../NodeStore", () => ({
-  createNodeStore: (workflow: Workflow) =>
-    create(
-      (
-        set: (fn: (state: { workflow: Workflow }) => object) => void,
-        get: () => { workflow: Workflow }
-      ) => ({
-        workflow,
-        nodes: [],
-        edges: [],
-        workflowIsDirty: false,
-        getWorkflow: () => get().workflow,
-        setWorkflowDirty: jest.fn(),
-        setWorkflowUpdatedAt: (updatedAt: string, etag?: string | null) =>
-          set((state) => ({
-            workflow: {
-              ...state.workflow,
-              updated_at: updatedAt,
-              etag: etag ?? state.workflow.etag
-            }
-          })),
-        adoptSavedWorkflow: (saved: Workflow) => set(() => ({ workflow: saved })),
-        cleanup: jest.fn()
-      })
-    )
-}));
+jest.mock("../NodeStore", () =>
+  jest.requireActual("../../test-utils/workflowManagerMocks").nodeStoreMock()
+);
 
-jest.mock("../workflowUpdates", () => ({
-  subscribeToWorkflowUpdates: jest.fn(),
-  unsubscribeFromWorkflowUpdates: jest.fn()
-}));
+jest.mock("../workflowUpdates", () =>
+  jest.requireActual("../../test-utils/workflowManagerMocks").workflowUpdatesMock()
+);
 
-jest.mock("../WorkflowRunner", () => ({
-  getWorkflowRunnerStore: jest.fn(() => ({ getState: () => ({}) })),
-  disposeWorkflowRunnerStore: jest.fn()
-}));
+jest.mock("../WorkflowRunner", () =>
+  jest.requireActual("../../test-utils/workflowManagerMocks").workflowRunnerMock()
+);
 
-jest.mock("../runReconciliation", () => ({
-  startRunReconciliation: jest.fn(),
-  stopRunReconciliation: jest.fn()
-}));
+jest.mock("../runReconciliation", () =>
+  jest.requireActual("../../test-utils/workflowManagerMocks").runReconciliationMock()
+);
 
-jest.mock("../../components/appbuilder/runtime/appRuntimeStore", () => ({
-  disposeAppRuntimeStore: jest.fn(),
-  workflowInstanceId: (id: string) => id
-}));
+jest.mock("../../components/appbuilder/runtime/appRuntimeStore", () =>
+  jest.requireActual("../../test-utils/workflowManagerMocks").appRuntimeStoreMock()
+);
 
 import { trpcClient } from "../../trpc/client";
 import { createWorkflowManagerStore } from "../WorkflowManagerStore";
@@ -173,6 +145,59 @@ describe("saveWorkflow first save", () => {
       .saveWorkflow(store.getState().getWorkflow("wf-edited") as Workflow);
     expect(updateMutate.mock.calls[1][0].expected_updated_at).toBe(
       savedUpdatedAt
+    );
+  });
+
+  // UX study 3 (D13): a run saves the workflow, and while that save is in
+  // flight React Flow re-measures the nodes the results grew. That replaces
+  // the node array but is no edit, so the unsaved dot must still clear.
+  it("marks the workflow clean when only a re-measure landed during the save", async () => {
+    const store = createWorkflowManagerStore(new QueryClient());
+    const serverWorkflow: Workflow = {
+      id: "wf-measured",
+      name: "Trip summary",
+      description: "",
+      access: "private",
+      graph: { nodes: [], edges: [] },
+      created_at: "2026-08-01T00:00:00.000Z",
+      updated_at: "2026-08-02T00:00:00.000Z"
+    };
+    store.getState().addWorkflow(serverWorkflow);
+    const nodeStore = store.getState().getNodeStore("wf-measured");
+    nodeStore?.setState({ editGeneration: 3 });
+
+    updateMutate.mockImplementation(async () => {
+      nodeStore?.setState({ nodes: [] });
+      return { ...serverWorkflow, updated_at: "2026-08-03T00:00:00.000Z" };
+    });
+    await store.getState().saveWorkflow(serverWorkflow);
+
+    expect(nodeStore?.getState().setWorkflowDirty).toHaveBeenCalledWith(false);
+  });
+
+  it("keeps the workflow dirty when the user edited during the save", async () => {
+    const store = createWorkflowManagerStore(new QueryClient());
+    const serverWorkflow: Workflow = {
+      id: "wf-user-edit",
+      name: "Trip summary",
+      description: "",
+      access: "private",
+      graph: { nodes: [], edges: [] },
+      created_at: "2026-08-01T00:00:00.000Z",
+      updated_at: "2026-08-02T00:00:00.000Z"
+    };
+    store.getState().addWorkflow(serverWorkflow);
+    const nodeStore = store.getState().getNodeStore("wf-user-edit");
+    nodeStore?.setState({ editGeneration: 3 });
+
+    updateMutate.mockImplementation(async () => {
+      nodeStore?.setState({ editGeneration: 4 });
+      return { ...serverWorkflow, updated_at: "2026-08-03T00:00:00.000Z" };
+    });
+    await store.getState().saveWorkflow(serverWorkflow);
+
+    expect(nodeStore?.getState().setWorkflowDirty).not.toHaveBeenCalledWith(
+      false
     );
   });
 

@@ -3,8 +3,10 @@ import { css } from "@emotion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 
+import ErrorBanner from "../support/ErrorBanner";
 import {
   BORDER_RADIUS,
   Caption,
@@ -14,8 +16,8 @@ import {
   MOTION,
   SearchInput,
   SPACING,
-  TYPOGRAPHY,
-  getSpacingPx
+  getSpacingPx,
+  LoadingSpinner
 } from "../ui_primitives";
 import {
   LOOSE_PROJECT_ID,
@@ -27,10 +29,12 @@ import {
   useProjects
 } from "../../hooks/useProjects";
 import { useAuth } from "../../stores/useAuth";
-import { PROJECT_COLOR, PROJECT_GLYPH, personalDisplayName } from "./projectIdentity";
+import NewProjectDialog from "./NewProjectDialog";
+import { PROJECT_COLOR, PROJECT_GLYPH } from "./projectIdentity";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
-const selectorStyles = (theme: Theme, inline: boolean) =>
+const selectorStyles = (theme: Theme, inline: boolean, mobile: boolean) =>
   css({
     WebkitAppRegion: "no-drag",
     display: "flex",
@@ -78,23 +82,34 @@ const selectorStyles = (theme: Theme, inline: boolean) =>
       flexShrink: 0,
       lineHeight: 1
     },
-    [theme.breakpoints.down("sm")]: inline
-      ? {}
-      : {
-          "& .selector-name, & .selector-caret": { display: "none" },
-          "& .selector-button": {
-            justifyContent: "center",
-            minWidth: CONTROL.height.xl,
-            padding: `0 ${getSpacingPx(SPACING.md)}`
+    // The mobile header row names the project in full, so it is not
+    // collapsed to the glyph like the desktop selector on a narrow window.
+    [theme.breakpoints.down("sm")]:
+      inline || mobile
+        ? {}
+        : {
+            "& .selector-name, & .selector-caret": { display: "none" },
+            "& .selector-button": {
+              justifyContent: "center",
+              minWidth: CONTROL.height.xl,
+              padding: `0 ${getSpacingPx(SPACING.md)}`
+            }
           }
-        }
   });
 
 interface ProjectSelectorProps {
   inline?: boolean;
+  /**
+   * Mobile header variant: the button shows the project name, and the menu
+   * leads with the project home, which has no button of its own on a phone.
+   */
+  mobile?: boolean;
 }
 
-const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
+const ProjectSelector = ({
+  inline = false,
+  mobile = false
+}: ProjectSelectorProps) => {
   const { t } = useTranslation();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
@@ -124,17 +139,12 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
     const tab = state.tabs.find((entry) => entry.id === state.activeTabId);
     return tab?.projectId === activeProjectId ? tab.title : undefined;
   });
-  // Personal default swap lives in projectIdentity.personalDisplayName —
-  // the shared guarded mapping (system default → localized label; a renamed
-  // personal project is the user's data and renders verbatim).
   const name =
-    activeProject
-      ? personalDisplayName(activeProject, t)
-      : activeProjectId === personalProjectId
-        ? t("editor:ui.personal", { defaultValue: "Personal" })
-        : activeProjectId
-          ? (activeTabTitle ?? t("editor:ui.project", { defaultValue: "Project" }))
-          : t("editor:ui.personal", { defaultValue: "Personal" });
+    activeProject?.name ??
+    (activeProjectId === personalProjectId
+      ? t("editor:ui.personal", { defaultValue: "Personal" }) : activeProjectId
+        ? (activeTabTitle ?? "Project")
+        : "Personal");
   const personalProject = projects?.find((project) => project.isPersonal);
   const resolvedPersonalId =
     personalProject?.id ??
@@ -178,11 +188,17 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
     [close, inline, openNewProjectTab, openProject]
   );
 
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
   const openNewProject = useCallback(() => {
     close();
-    setActiveProjectId(null);
+    setNewProjectOpen(true);
+  }, [close]);
+  const closeNewProject = useCallback(() => setNewProjectOpen(false), []);
+
+  const openProjectHome = useCallback(() => {
+    close();
     openNewProjectTab();
-  }, [close, openNewProjectTab, setActiveProjectId]);
+  }, [close, openNewProjectTab]);
 
   const needle = search.trim().toLowerCase();
   const visibleProjects = (projects ?? []).filter(
@@ -191,23 +207,26 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
   );
 
   return (
-    <div css={selectorStyles(theme, inline)} className="project-selector">
+    <div
+      css={selectorStyles(theme, inline, mobile)}
+      className="project-selector"
+    >
       <button
         ref={anchorRef}
         type="button"
         className="selector-button"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={inline
-          ? t("editor:ui.selectedProjectAria", { defaultValue: "Selected project: {{name}}", name })
-          : t("editor:ui.selectProject", { defaultValue: "Select project" })}
+        aria-label={
+          inline || mobile ? `Selected project: ${name}` : i18n.t("editor:ui.selectProject", { defaultValue: "Select project" })
+        }
         onClick={() => setOpen((value) => !value)}
       >
         <span className="selector-glyph" aria-hidden>
           {PROJECT_GLYPH}
         </span>
         <span className="selector-name">
-          {inline ? name : t("editor:ui.project", { defaultValue: "Project" })}
+          {inline || mobile ? name : "Project"}
         </span>
         <span className="selector-caret" aria-hidden>
           ▾
@@ -218,17 +237,8 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
         anchorEl={anchorRef.current}
         onClose={close}
         paperSx={{
-          p: SPACING.xs,
           width: getSpacingPx(80),
           maxWidth: `calc(100vw - ${getSpacingPx(SPACING.xxxl)})`,
-          "& .MuiMenu-list": { py: SPACING.none },
-          "& .MuiMenu-list .menu-item-primitive.MuiMenuItem-root": {
-            minHeight: `${CONTROL.height.md}px`,
-            px: SPACING.md,
-            py: SPACING.xs
-          },
-          "& .search-input-wrapper .search-input .MuiInputBase-input":
-            TYPOGRAPHY.sans.label,
           "& .project-menu-item .MuiListItemText-primary": {
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -236,13 +246,20 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
           }
         }}
       >
+        {mobile && (
+          <MenuItemPrimitive
+            label={t("editor:ui.projectHome", { defaultValue: "Project home" })}
+            icon={<HomeRoundedIcon />}
+            onClick={openProjectHome}
+            dividerAfter
+          />
+        )}
         {!inline && (
           <MenuItemPrimitive
             label={t("editor:ui.newProject", { defaultValue: "New project" })}
-            icon={<AddRoundedIcon />}
+            icon={<AddOutlinedIcon />}
             onClick={openNewProject}
             color="primary"
-            dense
             dividerAfter
           />
         )}
@@ -250,14 +267,13 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
           value={search}
           onChange={setSearch}
           placeholder={t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
-          ariaLabel={t("editor:ui.searchProjects", { defaultValue: "Search projects" })}
+          ariaLabel="Search projects"
           fullWidth
-          sx={{ my: SPACING.xs }}
+          sx={{ my: SPACING.xs, px: SPACING.xs, boxSizing: "border-box" }}
         />
         <MenuItemPrimitive
           label={t("editor:ui.personal", { defaultValue: "Personal" })}
           className="project-menu-item"
-          dense
           selected={
             activeProjectId === resolvedPersonalId ||
             activeProjectId === null ||
@@ -266,31 +282,36 @@ const ProjectSelector = ({ inline = false }: ProjectSelectorProps) => {
           onClick={selectPersonal}
         />
         {isPending && (
-          <Caption sx={{ px: SPACING.md, py: SPACING.sm }}>
-            Loading projects…
-          </Caption>
+          <LoadingSpinner size="small" text="Loading projects" />
         )}
         {error && (
-          <Caption color="error" sx={{ px: SPACING.md, py: SPACING.sm }}>
+          <ErrorBanner
+            sx={{ mx: SPACING.sm, my: SPACING.xs }}
+            report={{
+              source: "operation-failure",
+              summary: "Project list failed to load",
+              errorText: error.message
+            }}
+          >
             Could not load projects
-          </Caption>
+          </ErrorBanner>
         )}
         {visibleProjects.map((project) => (
           <MenuItemPrimitive
             key={project.id}
             label={project.name}
             className="project-menu-item"
-            dense
             selected={project.id === activeProjectId}
             onClick={() => selectProject(project)}
           />
         ))}
         {!isPending && !error && visibleProjects.length === 0 && (
-          <Caption sx={{ px: SPACING.md, py: SPACING.sm }}>
-            {needle ? t("editor:ui.noMatchingProjects", { defaultValue: "No matching projects" }) : t("editor:ui.noNamedProjectsYet", { defaultValue: "No named projects yet" })}
+          <Caption sx={{ px: SPACING.lg, py: SPACING.sm }}>
+            {needle ? t("editor:ui.noMatchingProjects", { defaultValue: "No matching projects" }) : i18n.t("editor:ui.noNamedProjectsYet", { defaultValue: "No named projects yet" })}
           </Caption>
         )}
       </ContextMenu>
+      <NewProjectDialog open={newProjectOpen} onClose={closeNewProject} />
     </div>
   );
 };

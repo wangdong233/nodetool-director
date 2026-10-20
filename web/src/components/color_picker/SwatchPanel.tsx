@@ -13,12 +13,15 @@ import {
   Box,
   EditorMenu,
   EditorMenuItem,
+  ListItemText,
+  MenuItemPrimitive,
   BORDER_RADIUS,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  ICON_SIZE
 } from "../ui_primitives";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/AddOutlined";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import { DeleteButton, ColorSwatch } from "../ui_primitives";
 import {
@@ -258,7 +261,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
               tabIndex={0}
               aria-label={t("editor:ui.saveCurrentColorAsSwatch", { defaultValue: "Save current color as swatch" })}
             >
-              <AddIcon sx={{ fontSize: 16 }} />
+              <AddIcon sx={{ fontSize: ICON_SIZE.sm }} />
             </FlexRow>
           </Tooltip>
         </FlexRow>
@@ -275,7 +278,7 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
                 <Text className="palette-name">{palette.name}</Text>
                 <DeleteButton
                   onClick={handlePaletteRemove(palette.id)}
-                  tooltip={`Remove palette ${palette.name}`}
+                  tooltip={`Delete palette ${palette.name}`}
                   iconVariant="clear"
                   nodrag={false}
                 />
@@ -314,21 +317,19 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
         >
           {PRESET_PALETTES.map((palette) => (
             <EditorMenuItem key={palette.id} onClick={handleLoadPresetPalette(palette)}>
-              <FlexRow gap={1} align="center">
-                <Text size="small">{palette.name}</Text>
-                <FlexRow gap={0.5}>
-                  {palette.colors.slice(0, 6).map((color, i) => (
-                    <Box
-                      key={`${palette.id}-${color}-${i}`}
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: BORDER_RADIUS.xs,
-                        backgroundColor: color
-                      }}
-                    />
-                  ))}
-                </FlexRow>
+              <ListItemText primary={palette.name} />
+              <FlexRow gap={0.5}>
+                {palette.colors.slice(0, 6).map((color, i) => (
+                  <Box
+                    key={`${palette.id}-${color}-${i}`}
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: BORDER_RADIUS.xs,
+                      backgroundColor: color
+                    }}
+                  />
+                ))}
               </FlexRow>
             </EditorMenuItem>
           ))}
@@ -340,9 +341,12 @@ const SwatchPanel: React.FC<SwatchPanelProps> = ({
         open={Boolean(swatchMenuAnchor)}
         onClose={handleSwatchMenuClose}
       >
-        <EditorMenuItem onClick={handleDeleteSwatch}>
-          <DeleteIcon sx={{ fontSize: 16, mr: 1 }} /> Delete
-        </EditorMenuItem>
+        <MenuItemPrimitive
+          label={t("editor:ui.deleteSwatch", { defaultValue: "Delete swatch" })}
+          icon={<DeleteIcon />}
+          color="error"
+          onClick={handleDeleteSwatch}
+        />
       </EditorMenu>
     </FlexColumn>
   );

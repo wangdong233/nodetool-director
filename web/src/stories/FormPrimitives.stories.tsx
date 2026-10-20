@@ -5,6 +5,7 @@ import { FormGrid } from "../components/ui_primitives/FormGrid";
 import { Panel } from "../components/ui_primitives/Panel";
 import { TextInput } from "../components/ui_primitives/TextInput";
 import { SelectField } from "../components/ui_primitives/SelectField";
+import { useTranslation } from "react-i18next";
 
 const aspectOptions = [
   { value: "16:9", label: "16:9 Landscape" },
@@ -72,17 +73,18 @@ export const GridTwoColumn: Story = {
 };
 
 const SettingsFormExample = () => {
+  const { t } = useTranslation("storyboard");
   const [aspect, setAspect] = useState("16:9");
   const [voice, setVoice] = useState("nova");
   return (
     <Panel
-      title="Board settings"
+      title={t("storyboard:attrs.boardSettings", { defaultValue: "Board settings" })}
       subtitle="Script and run configuration"
       sx={{ maxWidth: 960 }}
     >
       <FormGrid>
         <FormSection label="Script">
-          <TextInput label="Title" defaultValue="Untitled board" />
+          <TextInput label={t("storyboard:attrs.title", { defaultValue: "Title" })} defaultValue="Untitled board" />
           <TextInput
             label="Logline"
             multiline
@@ -99,7 +101,7 @@ const SettingsFormExample = () => {
             size="small"
           />
           <SelectField
-            label="Voice"
+            label={t("storyboard:attrs.voice", { defaultValue: "Voice" })}
             value={voice}
             onChange={setVoice}
             options={voiceOptions}

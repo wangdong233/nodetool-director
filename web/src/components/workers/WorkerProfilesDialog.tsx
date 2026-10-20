@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
+  Button,
   FlexColumn,
   FlexRow,
   Card,
@@ -9,11 +9,16 @@ import {
   Chip,
   Dialog,
   EditorButton,
+  FormSection,
+  SectionHeader,
+  SPACING,
+  NumberField,
   TextInput,
   SelectField,
   CollapsibleSection,
   AlertBanner,
-  WarningBanner
+  InspectorSectionTitle,
+  EmptyState
 } from "../ui_primitives";
 import type {
   CreateWorkerProfileInput,
@@ -22,6 +27,8 @@ import type {
   WorkerTarget,
   TokenPolicy
 } from "../../hooks/useWorkers";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 // The secrets each provider's API needs before a worker can be provisioned.
 // Verda authenticates with an OAuth2 client id AND secret, so this is a list.
@@ -44,9 +51,9 @@ const COMFY_WORKER_IMAGE = "ghcr.io/nodetool-ai/nodetool-worker-comfy:latest";
 // Sentinel select value that keeps the free-text image field for a custom build.
 const CUSTOM_IMAGE = "__custom_image__";
 const IMAGE_PRESETS = [
-  { value: DEFAULT_WORKER_IMAGE, label: "NodeTool Worker", labelKey: "nodetoolWorker" },
-  { value: COMFY_WORKER_IMAGE, label: "NodeTool Worker + ComfyUI", labelKey: "nodetoolWorkerComfyUI" },
-  { value: CUSTOM_IMAGE, label: "Custom…", labelKey: "custom" }
+  { value: DEFAULT_WORKER_IMAGE, label: i18n.t("editor:ui.nodetoolWorker", { defaultValue: "NodeTool Worker" }) },
+  { value: COMFY_WORKER_IMAGE, label: i18n.t("editor:ui.nodetoolWorkerComfyUI", { defaultValue: "NodeTool Worker + ComfyUI" }) },
+  { value: CUSTOM_IMAGE, label: "Custom…", labelKey: "timeline:project.custom" }
 ] as const;
 const DEFAULT_IDLE_TIMEOUT = "30";
 // Persistent volume default — big enough for several HF image models. Models
@@ -73,31 +80,31 @@ const TARGET_OPTIONS = [
 const CPU_MACHINE = "";
 
 const RUNPOD_GPU_OPTIONS = [
-  { value: CPU_MACHINE, label: "CPU only (no GPU)", labelKey: "cpuOnlyNoGPU" },
-  { value: "NVIDIA RTX A5000", label: "RTX A5000 · 24 GB", labelKey: "rtxA500024GB" },
-  { value: "NVIDIA GeForce RTX 4090", label: "RTX 4090 · 24 GB", labelKey: "rtx409024GB" },
-  { value: "NVIDIA L4", label: "L4 · 24 GB", labelKey: "l424GB" },
-  { value: "NVIDIA RTX A6000", label: "RTX A6000 · 48 GB", labelKey: "rtxA600048GB" },
-  { value: "NVIDIA A40", label: "A40 · 48 GB", labelKey: "a4048GB" },
-  { value: "NVIDIA L40S", label: "L40S · 48 GB", labelKey: "l40s48GB" },
-  { value: "NVIDIA A100 80GB PCIe", label: "A100 · 80 GB", labelKey: "a10080GB" },
-  { value: "NVIDIA H100 80GB HBM3", label: "H100 · 80 GB", labelKey: "h10080GB" },
-  { value: CUSTOM_GPU, label: "Other (enter GPU id)…", labelKey: "otherEnterGPUId" }
+  { value: CPU_MACHINE, label: i18n.t("editor:ui.cpuOnlyNoGPU", { defaultValue: "CPU only (no GPU)" }) },
+  { value: "NVIDIA RTX A5000", label: i18n.t("editor:ui.rtxA500024GB", { defaultValue: "RTX A5000 · 24 GB" }) },
+  { value: "NVIDIA GeForce RTX 4090", label: i18n.t("editor:ui.rtx409024GB", { defaultValue: "RTX 4090 · 24 GB" }) },
+  { value: "NVIDIA L4", label: "L4 · 24 GB" },
+  { value: "NVIDIA RTX A6000", label: i18n.t("editor:ui.rtxA600048GB", { defaultValue: "RTX A6000 · 48 GB" }) },
+  { value: "NVIDIA A40", label: "A40 · 48 GB" },
+  { value: "NVIDIA L40S", label: "L40S · 48 GB" },
+  { value: "NVIDIA A100 80GB PCIe", label: "A100 · 80 GB" },
+  { value: "NVIDIA H100 80GB HBM3", label: "H100 · 80 GB" },
+  { value: CUSTOM_GPU, label: i18n.t("editor:ui.otherEnterGPUId", { defaultValue: "Other (enter GPU id)…" }) }
 ] as const;
 
 // Vast searches the marketplace, so "Any" (empty id) is valid and picks the
 // cheapest offer. RunPod provisions a specific pod type, so a GPU is required.
 const VAST_GPU_OPTIONS = [
-  { value: "", label: "Any (cheapest offer)", labelKey: "anyCheapestOffer" },
-  { value: "RTX_3090", label: "RTX 3090 · 24 GB", labelKey: "rtx309024GB" },
-  { value: "RTX_4090", label: "RTX 4090 · 24 GB", labelKey: "rtx409024GB" },
-  { value: "RTX_A6000", label: "RTX A6000 · 48 GB", labelKey: "rtxA600048GB" },
-  { value: "A40", label: "A40 · 48 GB", labelKey: "a4048GB" },
-  { value: "L40S", label: "L40S · 48 GB", labelKey: "l40s48GB" },
-  { value: "A100_PCIE", label: "A100 · 80 GB", labelKey: "a10080GB" },
-  { value: "A100_SXM4", label: "A100 SXM4 · 80 GB", labelKey: "a100SXM480GB" },
-  { value: "H100_PCIE", label: "H100 · 80 GB", labelKey: "h10080GB" },
-  { value: CUSTOM_GPU, label: "Other (enter GPU id)…", labelKey: "otherEnterGPUId" }
+  { value: "", label: i18n.t("editor:ui.anyCheapestOffer", { defaultValue: "Any (cheapest offer)" }) },
+  { value: "RTX_3090", label: i18n.t("editor:ui.rtx309024GB", { defaultValue: "RTX 3090 · 24 GB" }) },
+  { value: "RTX_4090", label: "RTX 4090 · 24 GB" },
+  { value: "RTX_A6000", label: "RTX A6000 · 48 GB" },
+  { value: "A40", label: "A40 · 48 GB" },
+  { value: "L40S", label: "L40S · 48 GB" },
+  { value: "A100_PCIE", label: "A100 · 80 GB" },
+  { value: "A100_SXM4", label: i18n.t("editor:ui.a100SXM480GB", { defaultValue: "A100 SXM4 · 80 GB" }) },
+  { value: "H100_PCIE", label: "H100 · 80 GB" },
+  { value: CUSTOM_GPU, label: "Other (enter GPU id)…" }
 ] as const;
 
 // Verda rents whole machines, so its selector is an INSTANCE TYPE
@@ -128,8 +135,8 @@ const VCPU_OPTIONS = [
 const DEFAULT_VCPU = "4";
 
 const TOKEN_POLICY_OPTIONS = [
-  { value: "generate", label: "Generate (recommended)", labelKey: "generateRecommended" },
-  { value: "fixed", label: "Fixed", labelKey: "fixed" }
+  { value: "generate", label: i18n.t("editor:ui.generateRecommended", { defaultValue: "Generate (recommended)" }) },
+  { value: "fixed", label: "Fixed" }
 ] as const;
 
 interface WorkerProfilesDialogProps {
@@ -303,24 +310,24 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
       open={open}
       onClose={onClose}
       title={t("editor:ui.manageWorkerProfiles", { defaultValue: "Manage worker profiles" })}
-      minWidth={480}
+      maxWidth="sm"
+      fullWidth
       actions={
-        <FlexRow gap={2}>
-          <EditorButton variant="text" onClick={onClose}>
-            {t("common:action.close", { defaultValue: "Close" })}
-          </EditorButton>
-          <EditorButton
-            variant="outlined"
+        <>
+          <Button variant="text" color="inherit" onClick={onClose}>
+            Close
+          </Button>
+          <Button
+            variant="contained"
             onClick={handleCreate}
             disabled={!canCreate}
-            aria-label={t("editor:ui.createProfile", { defaultValue: "Create profile" })}
           >
-            {t("editor:ui.createProfile")}
-          </EditorButton>
-        </FlexRow>
+            Create profile
+          </Button>
+        </>
       }
     >
-      <FlexColumn gap={3} sx={{ pt: 1 }}>
+      <FlexColumn gap={SPACING.lg}>
         {error && (
           <AlertBanner
             severity="error"
@@ -331,20 +338,20 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           </AlertBanner>
         )}
 
-        <FlexColumn gap={1}>
-          <Text size="small" weight={600}>
-            {t("editor:ui.existingProfiles")}
-          </Text>
+        <FlexColumn gap={SPACING.xs}>
+          <SectionHeader size="small" title={t("editor:ui.existingProfiles", { defaultValue: "Existing profiles" })} />
           {profiles.length === 0 ? (
-            <Caption size="small">
-              {t("editor:ui.noProfilesYetCreateOneBelow")}
-            </Caption>
+            <EmptyState
+              size="small"
+              title={i18n.t("editor:ui.noProfilesYet", { defaultValue: "No profiles yet" })}
+              description={i18n.t("editor:ui.createOneBelow", { defaultValue: "Create one below." })}
+            />
           ) : (
             profiles.map((profile) => (
               <Card key={profile.id} variant="outlined" padding="compact">
-                <FlexRow align="center" justify="space-between" gap={2}>
-                  <FlexColumn gap={0.5}>
-                    <FlexRow gap={1.5} align="center">
+                <FlexRow align="center" justify="space-between" gap={SPACING.md}>
+                  <FlexColumn gap={SPACING.micro}>
+                    <FlexRow gap={SPACING.sm} align="center">
                       <Text size="normal" weight={600}>
                         {profile.name}
                       </Text>
@@ -356,10 +363,10 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
                     density="compact"
                     variant="text"
                     disabled={busy}
-                    aria-label={t("editor:ui.deleteProfile", { defaultValue: "Delete profile {{name}}", name: profile.name })}
+                    aria-label={`Delete profile ${profile.name}`}
                     onClick={() => handleDelete(profile.name)}
                   >
-                    {t("common:action.delete", { defaultValue: "Delete" })}
+                    Delete
                   </EditorButton>
                 </FlexRow>
               </Card>
@@ -367,16 +374,11 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           )}
         </FlexColumn>
 
-        <FlexColumn gap={2}>
-          <FlexColumn gap={0.5}>
-            <Text size="small" weight={600}>
-              {t("editor:ui.createAProfile")}
-            </Text>
-            <Caption size="small">
-              A profile is a saved template. Provisioning it rents one GPU box
-              and connects this app to it.
-            </Caption>
-          </FlexColumn>
+        <FormSection label={t("editor:ui.createAProfile", { defaultValue: "Create a profile" })}>
+          <Caption size="small">
+            A profile is a saved template. Provisioning it rents one GPU box
+            and connects this app to it.
+          </Caption>
 
           <TextInput
             label={t("editor:asset.info.name", { defaultValue: "Name" })}
@@ -398,13 +400,15 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
           />
 
           {apiKeyMissing && (
-            <WarningBanner
+            <AlertBanner
+              severity="warning"
               compact
-              message={`No ${apiKeyName} configured`}
-              description={`Add it in Settings → Models & Providers before provisioning a ${
-                target === "runpod" ? "RunPod" : "Vast.ai"
+              title={`No ${apiKeyName} configured`}
+            >
+              {`Add it in Settings → Models & Providers before provisioning a ${
+                target === "runpod" ? t("editor:ui.runpod", { defaultValue: "RunPod" }) : i18n.t("editor:ui:vastAi", { defaultValue: "Vast.ai" })
               } worker — provisioning fails without it.`}
-            />
+            </AlertBanner>
           )}
 
           <SelectField
@@ -416,23 +420,21 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             size="small"
             description={
               target === "runpod"
-                ? t("editor:ui.whichMachineToRent", { defaultValue: "Which machine to rent. Pick a GPU for model inference, or “CPU only” for a cheaper CPU pod (e.g. data/text nodes). More VRAM runs larger models." })
-                : t("editor:ui.whichGPUToRentMoreVRAMRunsLargerModelsPickTheSmallestThatFitsToSaveMoney", { defaultValue: "Which GPU to rent. More VRAM runs larger models; pick the smallest that fits to save money." })
+                ? i18n.t("editor:ui.whichMachineToRent", { defaultValue: "Which machine to rent. Pick a GPU for model inference, or “CPU only” for a cheaper CPU pod (e.g. data/text nodes). More VRAM runs larger models." })
+                : i18n.t("editor:ui.whichGPUToRentMoreVRAMRunsLargerModelsPickTheSmallestThatFitsToSaveMoney", { defaultValue: "Which GPU to rent. More VRAM runs larger models; pick the smallest that fits to save money." })
             }
           />
           {gpu === CUSTOM_GPU && (
             <TextInput
               label={
                 target === "runpod"
-                  ? t("editor:ui.gpuIdRunpodGpuTypeId", { defaultValue: "GPU id (RunPod gpuTypeId)" })
-                  : t("editor:ui.gpuIdVastGpuName", { defaultValue: "GPU id (Vast gpu_name)" })
+                  ? t("editor:ui.gpuIdRunpodGpuTypeId", { defaultValue: "GPU id (RunPod gpuTypeId)" }) : "GPU id (Vast gpu_name)"
               }
               value={customGpu}
               onChange={(e) => setCustomGpu(e.target.value)}
               helperText={
                 target === "runpod"
-                  ? t("editor:ui.exactRunPodIdEgNVIDIARTX6000AdaGeneration", { defaultValue: "Exact RunPod id, e.g. “NVIDIA RTX 6000 Ada Generation”." })
-                  : t("editor:ui.exactVastNameEgRTX_6000Ada", { defaultValue: "Exact Vast name, e.g. “RTX_6000Ada”." })
+                  ? t("editor:ui.exactRunPodIdEgNVIDIARTX6000AdaGeneration", { defaultValue: "Exact RunPod id, e.g. “NVIDIA RTX 6000 Ada Generation”." }) : i18n.t("editor:ui.exactVastNameEgRTX_6000Ada", { defaultValue: "Exact Vast name, e.g. “RTX_6000Ada”." })
               }
               fullWidth
               compact
@@ -450,35 +452,29 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
             />
           )}
 
-          <TextInput
+          <NumberField
             label={t("editor:ui.diskGB", { defaultValue: "Disk (GB)" })}
             value={disk}
             onChange={(e) => setDisk(e.target.value)}
-            type="number"
-            helperText={t("editor:ui.persistentVolumeForModelCache", { defaultValue: "Persistent volume for the model cache. Models download here once and survive a stop/resume. HF models are large — keep this generous." })}
+            helperText={i18n.t("editor:ui.persistentVolumeForModelCache", { defaultValue: "Persistent volume for the model cache. Models download here once and survive a stop/resume. HF models are large — keep this generous." })}
             fullWidth
             compact
           />
 
-          <TextInput
+          <NumberField
             label={t("editor:ui.idleTimeoutMinutes", { defaultValue: "Idle timeout (minutes)" })}
             value={idleTimeout}
             onChange={(e) => setIdleTimeout(e.target.value)}
-            type="number"
             helperText={t("editor:ui.idleThisLongPause", { defaultValue: "Idle this long → pause (GPU freed, volume + models kept). Your main guard against runaway GPU bills. Blank = never." })}
             fullWidth
             compact
           />
 
           <CollapsibleSection
-            title={
-              <Text size="small" weight={600}>
-                {t("editor:ui.advanced", { defaultValue: "Advanced" })}
-              </Text>
-            }
+            title={<InspectorSectionTitle title={t("editor:ui.advanced", { defaultValue: "Advanced" })} />}
             defaultOpen={false}
           >
-            <FlexColumn gap={2} sx={{ pt: 1 }}>
+            <FlexColumn gap={SPACING.lg} sx={{ pt: SPACING.xs }}>
               <SelectField
                 label={t("editor:ui.workerImagePreset", { defaultValue: "Worker image preset" })}
                 value={
@@ -511,18 +507,17 @@ const WorkerProfilesDialog: React.FC<WorkerProfilesDialogProps> = ({
                 size="small"
                 description={t("editor:ui.generateIssuesFreshAuthToken", { defaultValue: "Generate issues a fresh auth token per worker (recommended). Fixed reuses a token you set elsewhere." })}
               />
-              <TextInput
+              <NumberField
                 label={t("editor:ui.maxLifetimeMinutes", { defaultValue: "Max lifetime (minutes)" })}
                 value={maxLifetime}
                 onChange={(e) => setMaxLifetime(e.target.value)}
-                type="number"
-                helperText={t("editor:ui.hardCapWorkerTerminated", { defaultValue: "Hard cap: at this age the worker is TERMINATED — pod and volume destroyed (models lost) — to stop all billing. Blank = no cap." })}
+                helperText={i18n.t("editor:ui.hardCapWorkerTerminated", { defaultValue: "Hard cap: at this age the worker is TERMINATED — pod and volume destroyed (models lost) — to stop all billing. Blank = no cap." })}
                 fullWidth
                 compact
               />
             </FlexColumn>
           </CollapsibleSection>
-        </FlexColumn>
+        </FormSection>
       </FlexColumn>
     </Dialog>
   );

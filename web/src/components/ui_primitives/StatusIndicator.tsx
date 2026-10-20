@@ -3,14 +3,15 @@ import React, { memo } from "react";
 import { css, keyframes } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { Box, Typography, Tooltip } from "@mui/material";
-import { reducedMotion } from "./tokens";
-import CircleIcon from "@mui/icons-material/Circle";
+import { Box, Typography } from "@mui/material";
+import { GAP } from "./spacing";
+import { MOTION, TYPOGRAPHY, reducedMotion } from "./tokens";
+import { Tooltip } from "./Tooltip";
+import { StatusDot, type StatusDotTone } from "./StatusDot";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
 import PendingIcon from "@mui/icons-material/Pending";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 
 const pulseAnimation = keyframes`
   0% { opacity: 1; }
@@ -22,19 +23,33 @@ const styles = (theme: Theme, pulse: boolean) =>
   css({
     display: "inline-flex",
     alignItems: "center",
-    gap: theme.spacing(1),
+    gap: theme.spacing(GAP.tight),
     ".status-icon": {
       fontSize: 12,
-      animation: pulse ? `${pulseAnimation} 2s infinite` : "none",
+      animation: pulse ? `${pulseAnimation} ${MOTION.pulse} infinite` : "none",
       ...reducedMotion({ animation: "none" })
     },
-    ".status-label": {
-      fontSize: 12,
-      fontWeight: 500
-    }
+    ".status-label": TYPOGRAPHY.sans.caption
   });
 
-export type StatusType = "success" | "error" | "warning" | "info" | "pending" | "default";
+const LABEL_STYLE = {
+  small: TYPOGRAPHY.sans.caption,
+  medium: TYPOGRAPHY.sans.label
+} as const;
+
+/**
+ * `running` is work in flight (generating, rendering), `pending` is work
+ * waiting its turn. See `GENERATION_STATUS` for the mapping of generated
+ * items onto these.
+ */
+export type StatusType =
+  | "success"
+  | "error"
+  | "warning"
+  | "info"
+  | "running"
+  | "pending"
+  | "default";
 
 export interface StatusIndicatorProps {
   /** Status type */
@@ -61,12 +76,24 @@ export interface StatusIndicatorProps {
   className?: string;
 }
 
+/** The same tones `StatusDot` and `StatusPill` use, so one state reads as one colour. */
+const STATUS_DOT_TONE = {
+  success: "success",
+  error: "error",
+  warning: "warning",
+  info: "info",
+  running: "primary",
+  pending: "neutral",
+  default: "neutral"
+} satisfies Record<StatusType, StatusDotTone>;
+
 const statusColors = {
   success: "success.main",
   error: "error.main",
   warning: "warning.main",
   info: "info.main",
-  pending: "grey.500",
+  running: "primary.main",
+  pending: "text.secondary",
   default: "text.secondary"
 } satisfies Record<StatusType, string>;
 
@@ -95,13 +122,20 @@ const StatusIndicatorInternal: React.FC<StatusIndicatorProps> = ({
         case "warning":
           return <WarningIcon className="status-icon" fontSize={iconSize} />;
         case "pending":
+        case "running":
           return <PendingIcon className="status-icon" fontSize={iconSize} />;
         default:
-          return <CircleIcon className="status-icon" fontSize={iconSize} />;
+          break;
       }
     }
-    
-    return <CircleIcon className="status-icon" fontSize={iconSize} />;
+
+    return (
+      <StatusDot
+        className="status-icon"
+        tone={STATUS_DOT_TONE[status]}
+        size="medium"
+      />
+    );
   };
 
   const statusClassName = `status-indicator status-${status}${className ? ` ${className}` : ""}`;
@@ -115,8 +149,8 @@ const StatusIndicatorInternal: React.FC<StatusIndicatorProps> = ({
           color: statusColors[status]
         },
         ".status-label": {
-          color: labelTone === "muted" ? "text.secondary" : statusColors[status],
-          fontSize: size === "small" ? 12 : 14
+          ...LABEL_STYLE[size],
+          color: labelTone === "muted" ? "text.secondary" : statusColors[status]
         }
       }}
     >
@@ -131,7 +165,7 @@ const StatusIndicatorInternal: React.FC<StatusIndicatorProps> = ({
 
   if (tooltip) {
     return (
-      <Tooltip title={tooltip} enterDelay={TOOLTIP_ENTER_DELAY}>
+      <Tooltip title={tooltip}>
         {content}
       </Tooltip>
     );

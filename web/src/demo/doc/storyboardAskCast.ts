@@ -26,6 +26,7 @@ import {
   type StoryboardCastDoc,
   type StoryboardDocCast
 } from "./docCastTypes";
+import { i18n } from "../../i18n";
 
 const QUESTION_TURN = "storyboard-ask-1";
 const PLAN_TURN = "storyboard-ask-2";
@@ -115,7 +116,7 @@ export const storyboardAskCast: StoryboardDocCast = {
   durationMs: 19000,
   fps: 30,
   docId: "demo-storyboard-ask",
-  assistantTitle: "Storyboard Assistant",
+  assistantTitle: i18n.t("storyboard:attrs.storyboardAssistant", { defaultValue: "Storyboard Assistant" }),
   assistantModel: {
     type: "language_model",
     id: "claude-sonnet-5",

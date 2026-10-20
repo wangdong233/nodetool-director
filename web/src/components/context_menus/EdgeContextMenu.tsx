@@ -1,14 +1,15 @@
 /** @jsxImportSource @emotion/react */
 import React, { useCallback, memo } from "react";
 import { shallow } from "zustand/shallow";
-import { ContextMenu } from "../ui_primitives";
+import { ContextMenu, Divider } from "../ui_primitives";
 import ContextMenuItem from "./ContextMenuItem";
 import { REROUTE_NODE_TYPE } from "../../constants/nodeTypes";
 import useContextMenuStore from "../../stores/ContextMenuStore";
-import { useNodes } from "../../contexts/NodeContext";
+import { useNodeStoreRef, useNodes } from "../../contexts/NodeContext";
+import { runAsOneUndoEntry } from "../../utils/runAsOneUndoEntry";
 import { useReactFlow } from "@xyflow/react";
 import useMetadataStore from "../../stores/MetadataStore";
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import RouteIcon from "@mui/icons-material/Route";
 import { useTranslation } from "react-i18next";
 
@@ -35,6 +36,15 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
     shallow
   );
 
+  const isLink = useNodes((state) =>
+    state.links.some((link) => link.id === edgeId)
+  );
+  // A reroute forwards data, so it cannot sit on an agent's control edge.
+  const isControlEdge = useNodes((state) => {
+    const edge = edgeId ? state.findEdge(edgeId) : undefined;
+    return edge?.type === "control" || edge?.data?.edge_type === "control";
+  });
+  const nodeStore = useNodeStoreRef();
   const getMetadata = useMetadataStore((state) => state.getMetadata);
   const reactFlowInstance = useReactFlow();
 
@@ -70,8 +80,6 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
     }
 
     const rerouteNode = createNode(rerouteMetadata, flowPosition);
-    addNode(rerouteNode);
-    deleteEdge(edgeId);
 
     // Create new edges: source -> reroute -> target
     const sourceToReroute = {
@@ -90,8 +98,13 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
       targetHandle: edge.targetHandle
     };
 
-    addEdge(sourceToReroute);
-    addEdge(rerouteToTarget);
+    // One undo step, so Ctrl+Z restores the original edge in one go.
+    runAsOneUndoEntry(nodeStore, () => {
+      addNode(rerouteNode);
+      deleteEdge(edgeId);
+      addEdge(sourceToReroute);
+      addEdge(rerouteToTarget);
+    });
 
     closeContextMenu();
   }, [
@@ -104,10 +117,31 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
     deleteEdge,
     getMetadata,
     reactFlowInstance,
+    nodeStore,
     closeContextMenu
   ]);
 
   if (!menuPosition) {return null;}
+
+  if (isLink) {
+    return (
+      <ContextMenu
+        open={true}
+        onClose={closeContextMenu}
+        position={menuPosition}
+        maxHeight="400px"
+        minWidth="200px"
+      >
+        <ContextMenuItem
+          onClick={handleDeleteEdge}
+          IconComponent={<DeleteIcon />}
+          label={t("editor:edge.deleteLink", { defaultValue: "Delete link" })}
+          destructive
+          tooltip={t("editor:edge.removeLineageLink", { defaultValue: "Remove this lineage link. Data connections are not affected." })}
+        />
+      </ContextMenu>
+    );
+  }
 
   return (
     <ContextMenu
@@ -117,16 +151,20 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
       maxHeight="400px"
       minWidth="200px"
     >
-      <ContextMenuItem
-        onClick={handleInsertReroute}
-        IconComponent={<RouteIcon />}
-        label={t("editor:edge.insertReroute", { defaultValue: "Insert Reroute" })}
-        tooltip={t("editor:edge.insertRerouteTip", { defaultValue: "Insert a reroute node at this position" })}
-      />
+      {!isControlEdge && (
+        <ContextMenuItem
+          onClick={handleInsertReroute}
+          IconComponent={<RouteIcon />}
+          label={t("editor:edge.insertReroute", { defaultValue: "Insert reroute" })}
+          tooltip={t("editor:edge.insertRerouteTip", { defaultValue: "Insert a reroute node at this position" })}
+        />
+      )}
+      {!isControlEdge && <Divider />}
       <ContextMenuItem
         onClick={handleDeleteEdge}
         IconComponent={<DeleteIcon />}
-        label={t("editor:edge.deleteEdge", { defaultValue: "Delete Edge" })}
+        label={t("editor:edge.deleteEdge", { defaultValue: "Delete edge" })}
+        destructive
         tooltip={
           <span
             style={{
@@ -137,7 +175,9 @@ const EdgeContextMenuComponent: React.FC<EdgeContextMenuProps> = () => {
           >
             <span>{t("editor:edge.deleteTip1", { defaultValue: "Delete this connection" })}</span>
             <span style={{ textAlign: "center" }}>
-              {t("editor:edge.deleteTip2", { defaultValue: "Middle Mouse Button or select the edge and press Delete or Backspace. Select many edges by holding CTRL or Meta while clicking." })}
+              <kbd>{t("editor:edge.middleMouseButton", { defaultValue: "Middle mouse button" })}</kbd> or select the edge and press{" "}
+              <kbd>Delete</kbd> or <kbd>Backspace</kbd>. Select many edges by
+              holding <kbd>CTRL</kbd> or <kbd>Meta</kbd> while clicking.
             </span>
           </span>
         }

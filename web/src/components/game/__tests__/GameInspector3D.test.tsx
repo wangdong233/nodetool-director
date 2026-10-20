@@ -9,6 +9,45 @@ import { getGameDraftStore } from "../../../stores/game/GameDraftStore";
 import mockTheme from "../../../__mocks__/themeMock";
 import GameInspector3D from "../panels/inspector/GameInspector3D";
 
+it("registers named environment presets for the selected scene and applies the public operation", async () => {
+  const initial = createNative3DGame("preset-inspector");
+  const other = structuredClone(initial.scenes[0]);
+  other.id = "other-scene";
+  initial.scenes.push(other);
+  const received: GameDocumentOp3D[][] = [];
+  let updated = initial;
+  render(<ThemeProvider theme={mockTheme}><GameInspector3D document={initial} sceneId={other.id}
+    onScript={() => undefined} onOperationError={(message) => { throw new Error(message); }} onOps={(ops) => {
+      received.push(ops);
+      updated = applyGameOps3D(initial, ops);
+    }} /></ThemeProvider>);
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("combobox", { name: "Environment preset" }));
+  await user.click(screen.getByRole("option", { name: "Night" }));
+  expect(received).toEqual([]);
+  await user.click(screen.getByRole("button", { name: "Apply preset" }));
+  expect(received).toEqual([[{ op: "apply_environment_preset", scene_id: other.id, preset: "night" }]]);
+  expect(updated.scenes[0]).toEqual(initial.scenes[0]);
+  expect(updated.scenes[1].environment.sky?.kind).toBe("color");
+  expect(updated.scenes[1].entities.some((entity) => entity.tags?.includes("environment-preset-sun"))).toBe(true);
+});
+
+it("replays and undoes a preset command through the actual draft store", () => {
+  const initial = createNative3DGame("preset-command-history");
+  const store = getGameDraftStore(initial.id);
+  store.getState().load(initial, "before");
+  store.getState().apply([{ op: "apply_environment_preset", preset: "night" }], { label: "Apply Environment Preset" });
+  const authored = structuredClone(store.getState().document);
+  expect(applyAnyGameOps(initial, store.getState().captureSaveOps())).toEqual(authored);
+  expect(store.getState().captureSaveDocument()?.document).toEqual(authored);
+  store.getState().undo();
+  expect(store.getState().document).toEqual(initial);
+  expect(applyAnyGameOps(initial, store.getState().captureSaveOps())).toEqual(initial);
+  store.getState().redo();
+  expect(store.getState().document).toEqual(authored);
+  expect(applyAnyGameOps(initial, store.getState().captureSaveOps())).toEqual(authored);
+});
+
 function Fixture({ onDocument, onOperations, entityId = "player-visual", music = false }: {
   onDocument: (document: GameDocument3D) => void;
   onOperations?: (ops: GameDocumentOp3D[], label?: string) => void;
@@ -154,7 +193,8 @@ describe("3D inspector removal", () => {
     expect(screen.getByRole("button", { name: /^Primitive/ })).toHaveAttribute("aria-expanded", "true");
     await user.click(screen.getByRole("button", { name: "Remove Primitive" }));
     expect(visual(changed.mock.lastCall?.[0])?.primitive).toBeUndefined();
-    expect(screen.getByRole("button", { name: "Add Primitive" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Add component" }));
+    expect(screen.getByRole("menuitem", { name: "Primitive" })).toBeVisible();
   });
 
   it("removes a nested optional value without preserving the old merged value", async () => {
@@ -183,8 +223,8 @@ describe("3D inspector removal", () => {
     const changed = jest.fn();
     render(<Fixture onDocument={changed} entityId={null} />);
     expect(screen.getByRole("button", { name: "Environment" })).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("button", { name: /^Fog/ })).toHaveAttribute("aria-expanded", "true");
-    await user.click(screen.getByRole("button", { name: "Remove Fog" }));
+    await user.click(screen.getByRole("combobox", { name: "Fog mode" }));
+    await user.click(screen.getByRole("option", { name: "None" }));
     expect(changed.mock.lastCall?.[0].scenes[0].environment.fog).toBeUndefined();
   });
 });

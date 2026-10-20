@@ -6,8 +6,12 @@ import {
   useASRModelMenuStore
 } from "../../stores/ModelMenuStore";
 import { useASRModelsByProvider } from "../../hooks/useModelsByProvider";
-import { useTranslation } from "react-i18next";
 import { trpc } from "../../lib/trpc";
+import { useTranslation } from "react-i18next";
+
+/** The provider capability this picker serves, for local providers to install. */
+const LOCAL_CAPABILITIES = ["automatic_speech_recognition"];
+
 interface ASRModelMenuDialogProps {
   open: boolean;
   onClose: () => void;
@@ -48,10 +52,11 @@ function ASRModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title={t("editor:ui.selectASRModel", { defaultValue: "Select ASR Model" })}
-      searchPlaceholder={t("editor:ui.searchSpeechToTextModels", { defaultValue: "Search speech-to-text models..." })}
+      title={t("editor:ui.selectASRModel", { defaultValue: "Select ASR model" })}
+      searchPlaceholder="Search speech-to-text models"
       storeHook={useASRModelMenuStore}
       modelType="asr_model"
+      localCapabilities={LOCAL_CAPABILITIES}
       recommendedModels={recommendedModels}
       modelPacks={modelPacks}
     />

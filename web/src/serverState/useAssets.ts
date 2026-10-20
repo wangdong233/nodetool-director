@@ -10,14 +10,14 @@ import {
   useAssetGridStoreApi
 } from "../stores/AssetGridStore";
 import { SIZE_FILTERS } from "../utils/formatUtils";
-import { getAssetCategory } from "../components/assets/assetGridUtils";
+import {
+  countAssetGroups,
+  getAssetGroup
+} from "../components/assets/assetGridUtils";
 import { trpcClient } from "../trpc/client";
 import { normalizeAssetList } from "../utils/normalizeAsset";
 import { useNotificationStore } from "../stores/NotificationStore";
-import {
-  LOOSE_PROJECT_ID,
-  useWorkspaceTabsStore
-} from "../stores/WorkspaceTabsStore";
+import { useAssetProjectScope } from "../hooks/assets/useAssetProjectScope";
 import { i18n } from "../i18n";
 
 type FilterOptions = {
@@ -94,10 +94,12 @@ export const useAssets = () => {
     (state) => state.scopeProjectId
   );
   const resetForProject = useAssetGridStore((state) => state.resetForProject);
-  const activeProjectId = useWorkspaceTabsStore(
-    (state) =>
-      state.activeProjectId ?? state.personalProjectId ?? LOOSE_PROJECT_ID
-  );
+  const currentFolder = useAssetGridStore((state) => state.currentFolder);
+  const {
+    projectId: scopeProjectId,
+    scopeKey,
+    activeProjectId
+  } = useAssetProjectScope();
   const addNotification = useNotificationStore(
     (state) => state.addNotification
   );
@@ -107,30 +109,39 @@ export const useAssets = () => {
     () => ({
       workflow_id: workflowFilter ?? undefined,
       favorite: favoritesOnly || undefined,
-      project_id: activeProjectId
+      project_id: scopeProjectId
     }),
-    [workflowFilter, favoritesOnly, activeProjectId]
+    [workflowFilter, favoritesOnly, scopeProjectId]
   );
 
   if (currentUser === null) {
     throw new Error("User not logged");
   }
 
-  const projectScopeReady = gridScopeProjectId === activeProjectId;
+  const projectScopeReady = gridScopeProjectId === scopeKey;
 
   useEffect(() => {
     if (!projectScopeReady) {
-      resetForProject(activeProjectId);
+      resetForProject(scopeKey);
     }
-  }, [activeProjectId, projectScopeReady, resetForProject]);
+  }, [scopeKey, projectScopeReady, resetForProject]);
+
+  // New folders and uploads land in the listed project. Across every project
+  // they follow the open folder, or the workspace's project at the root.
+  const writeProjectId =
+    scopeProjectId ??
+    (currentFolder && currentFolder.id !== currentUser.id
+      ? currentFolder.project_id
+      : undefined) ??
+    activeProjectId;
 
   const fetchAssets = useCallback(async () => {
     const result = await load({
       parent_id: currentFolderId || currentUser.id,
-      project_id: activeProjectId
+      project_id: scopeProjectId
     });
     return result;
-  }, [load, currentFolderId, currentUser.id, activeProjectId]);
+  }, [load, currentFolderId, currentUser.id, scopeProjectId]);
 
   const {
     data: currentFolderAssets,
@@ -139,7 +150,7 @@ export const useAssets = () => {
   } = useQuery({
     queryKey: [
       "assets",
-      { parent_id: currentFolderId, project_id: activeProjectId }
+      { parent_id: currentFolderId, project_id: scopeProjectId }
     ],
     queryFn: fetchAssets,
     enabled: projectScopeReady && !!currentFolderId && !isFilteredScope,
@@ -175,7 +186,7 @@ export const useAssets = () => {
     return queryClient.invalidateQueries({
       queryKey: [
         "assets",
-        { parent_id: currentFolderId, project_id: activeProjectId }
+        { parent_id: currentFolderId, project_id: scopeProjectId }
       ]
     });
   }, [
@@ -183,27 +194,30 @@ export const useAssets = () => {
     currentFolderId,
     isFilteredScope,
     filteredScopeKey,
-    activeProjectId
+    scopeProjectId
   ]);
 
   const fetchAllFolders = useCallback(async () => {
-    return await loadFolderTree(settings.assetsOrder, activeProjectId);
-  }, [loadFolderTree, settings.assetsOrder, activeProjectId]);
+    return await loadFolderTree(settings.assetsOrder, scopeProjectId);
+  }, [loadFolderTree, settings.assetsOrder, scopeProjectId]);
 
   const {
     data: folderTree,
     error: folderTreeError,
     isLoading: isLoadingFolderTree
   } = useQuery({
-    queryKey: ["folderTree", settings.assetsOrder, activeProjectId],
-    queryFn: fetchAllFolders
+    queryKey: ["folderTree", settings.assetsOrder, scopeKey],
+    queryFn: fetchAllFolders,
+    // Every component that calls useAssets mounts this query. Without a
+    // staleTime each later mount refetched the whole folder list.
+    staleTime: 30_000
   });
 
   const refetchFolders = useCallback(() => {
     return queryClient.invalidateQueries({
-      queryKey: ["folderTree", settings.assetsOrder, activeProjectId]
+      queryKey: ["folderTree", settings.assetsOrder, scopeKey]
     });
-  }, [queryClient, settings.assetsOrder, activeProjectId]);
+  }, [queryClient, settings.assetsOrder, scopeKey]);
 
   const refetchAssetsAndFolders = useCallback(() => {
     refetchAssets();
@@ -272,11 +286,11 @@ export const useAssets = () => {
           }
         }
 
-        // Asset-category filtering (image / video / audio / etc.)
+        // Type-group filtering (image / video / audio / etc.)
         let categoryMatch = true;
         if (options.typeFilter && options.typeFilter !== "all") {
-          const category = getAssetCategory(asset.content_type || "");
-          categoryMatch = category === options.typeFilter;
+          categoryMatch =
+            getAssetGroup(asset.content_type || "") === options.typeFilter;
         }
 
         const modelMatch = options.modelFilter
@@ -290,22 +304,30 @@ export const useAssets = () => {
     },
     []
   );
-  const folderFilesFiltered = useMemo(() => {
+  // Every filter except the type, so the type filter can count each group.
+  const folderFilesAnyType = useMemo(() => {
     return filterAssets(processedAssets, {
       searchTerm: assetSearchTerm || "",
       contentType: null,
       sizeFilter: sizeFilter,
-      typeFilter: typeFilter,
       modelFilter: modelFilter
     });
-  }, [
-    filterAssets,
-    processedAssets,
-    assetSearchTerm,
-    sizeFilter,
-    typeFilter,
-    modelFilter
-  ]);
+  }, [filterAssets, processedAssets, assetSearchTerm, sizeFilter, modelFilter]);
+
+  const folderFilesFiltered = useMemo(() => {
+    if (typeFilter === "all") {
+      return folderFilesAnyType;
+    }
+    return folderFilesAnyType.filter(
+      (asset) => getAssetGroup(asset.content_type || "") === typeFilter
+    );
+  }, [folderFilesAnyType, typeFilter]);
+
+  // Assets per type group under the other filters, for the type filter chips.
+  const typeCounts = useMemo(
+    () => countAssetGroups(folderFilesAnyType),
+    [folderFilesAnyType]
+  );
 
   // The models behind the assets in view, for the model filter menu.
   const modelOptions = useMemo(() => {
@@ -326,14 +348,14 @@ export const useAssets = () => {
     queryClient.invalidateQueries({
       queryKey: [
         "assets",
-        { parent_id: currentFolderId, project_id: activeProjectId }
+        { parent_id: currentFolderId, project_id: scopeProjectId }
       ]
     });
     if (isFilteredScope) {
       queryClient.invalidateQueries({ queryKey: ["assets", filteredScopeKey] });
     }
     queryClient.invalidateQueries({ queryKey: ["folderTree"] });
-  }, [queryClient, currentFolderId, isFilteredScope, filteredScopeKey, activeProjectId]);
+  }, [queryClient, currentFolderId, isFilteredScope, filteredScopeKey, scopeProjectId]);
 
   const notifyMutationError = useCallback(
     (content: string) => (err: Error) => {
@@ -350,7 +372,7 @@ export const useAssets = () => {
 
   const createFolderMutation = useMutation({
     mutationFn: (name: string) =>
-      createFolder(currentFolderId, name, activeProjectId),
+      createFolder(currentFolderId, name, writeProjectId),
     onSuccess: invalidateAssetSiblings,
     onError: notifyMutationError(i18n.t("editor:ui.errorCreatingFolder", { defaultValue: "Error creating folder." }))
   });
@@ -364,7 +386,7 @@ export const useAssets = () => {
   const updateAssetMutation = useMutation({
     mutationFn: (updateData: AssetUpdate) => update(updateData),
     onSuccess: invalidateAssetSiblings,
-    onError: notifyMutationError(i18n.t("editor:ui.errorUpdatingAsset", { defaultValue: "Error updating asset." }))
+    onError: notifyMutationError("Error updating asset.")
   });
 
   const navigateToFolder = useCallback(
@@ -375,7 +397,7 @@ export const useAssets = () => {
         setCurrentFolderId(folder.id || currentUser?.id || "");
         setCurrentFolder(folder || null);
         setSelectedAssetIds([]);
-        loadCurrentFolder(gridStore, activeProjectId);
+        loadCurrentFolder(gridStore, scopeProjectId);
       }
     },
     [
@@ -387,13 +409,13 @@ export const useAssets = () => {
       setSelectedAssetIds,
       loadCurrentFolder,
       gridStore,
-      activeProjectId
+      scopeProjectId
     ]
   );
   const navigateToFolderId = useCallback(
     async (folderId: string | null) => {
       const getAsset = useAssetStore.getState().get;
-      const folder: Asset = await getAsset(folderId || "", activeProjectId);
+      const folder: Asset = await getAsset(folderId || "", scopeProjectId);
 
       if (folder) {
         setSelectedFolderId(folderId);
@@ -401,7 +423,7 @@ export const useAssets = () => {
         setCurrentFolderId(folderId || currentUser?.id || "");
         setCurrentFolder(folder || null);
         setSelectedAssetIds([]);
-        loadCurrentFolder(gridStore, activeProjectId);
+        loadCurrentFolder(gridStore, scopeProjectId);
       }
     },
     [
@@ -413,7 +435,7 @@ export const useAssets = () => {
       setSelectedAssetIds,
       loadCurrentFolder,
       gridStore,
-      activeProjectId
+      scopeProjectId
     ]
   );
 
@@ -428,21 +450,22 @@ export const useAssets = () => {
     async (folderId: string) => {
       const result = await load({
         parent_id: folderId,
-        project_id: activeProjectId,
+        project_id: scopeProjectId,
         recursive: true
       });
       return result;
     },
-    [load, activeProjectId]
+    [load, scopeProjectId]
   );
 
   return {
     folderFiles: processedAssets, // Processed and sorted non-folder assets from the current folder
     folderFilesFiltered, // Filtered assets based on search term and content type
+    typeCounts, // Assets per type group under every filter but the type
     folderAssets: currentFolderAssets, // Raw data returned from the API for the current folder, including both files and folders
     folderTree, // Tree structure of all folders in the system
     modelOptions, // models that generated the assets in view
-    projectId: activeProjectId,
+    projectId: writeProjectId,
     currentFolderId, // ID of the currently selected folder
     isLoading, // if assets are currently being loaded
     error, // error during asset fetching

@@ -12,15 +12,13 @@ import React, { memo, useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import ImageIcon from "@mui/icons-material/Image";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 
 import { SPACING,
-  CheckerDropzone,
   FlexRow,
   StateIconButton, BORDER_RADIUS } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
-import ImageRefPreview from "../../node/ImageRefPreview";
+import ImagePreview from "./ImagePreview";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
 
@@ -29,26 +27,26 @@ import type { NodeData } from "../../../stores/NodeData";
 import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { CURVES_NODE_TYPE } from "../../../constants/nodeTypes";
-import { useTranslation } from "react-i18next";
 import {
   AdjustmentSlider,
   adjustmentSliderStyles,
   clamp,
   type SliderSpec
 } from "./AdjustmentSlider";
+import { useTranslation } from "react-i18next";
 
 const TONAL_SLIDERS: ReadonlyArray<SliderSpec> = [
-  { name: "black_point", label: "Black Point", labelKey: "editor:ui.blackPoint", min: 0, max: 0.5, step: 0.01, default: 0, bipolar: false },
-  { name: "white_point", label: "White Point", labelKey: "editor:ui.whitePoint", min: 0.5, max: 1, step: 0.01, default: 1, bipolar: false },
-  { name: "shadows", label: "Shadows", labelKey: "timeline:attrs.shadows", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
-  { name: "midtones", label: "Midtones", labelKey: "editor:ui.midtones", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
-  { name: "highlights", label: "Highlights", labelKey: "timeline:attrs.highlights", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true }
+  { name: "black_point", label: "Black point", min: 0, max: 0.5, step: 0.01, default: 0, bipolar: false },
+  { name: "white_point", label: "White point", min: 0.5, max: 1, step: 0.01, default: 1, bipolar: false },
+  { name: "shadows", label: "Shadows", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
+  { name: "midtones", label: "Midtones", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
+  { name: "highlights", label: "Highlights", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true }
 ];
 
 const RGB_SLIDERS: ReadonlyArray<SliderSpec> = [
-  { name: "red_midtones", label: "Red", labelKey: "editor:ui.red", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
-  { name: "green_midtones", label: "Green", labelKey: "editor:ui.green", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
-  { name: "blue_midtones", label: "Blue", labelKey: "editor:ui.blue", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true }
+  { name: "red_midtones", label: "Red", labelKey: "sketch:attrs.redChannel", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
+  { name: "green_midtones", label: "Green", labelKey: "sketch:attrs.greenChannel", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true },
+  { name: "blue_midtones", label: "Blue", labelKey: "sketch:attrs.blueChannel", min: -0.5, max: 0.5, step: 0.01, default: 0, bipolar: true }
 ];
 
 const ALL_SLIDERS: ReadonlyArray<SliderSpec> = [...TONAL_SLIDERS, ...RGB_SLIDERS];
@@ -122,15 +120,6 @@ const styles = (theme: Theme) =>
       flex: "0 0 auto"
     }
   });
-
-const ImagePreview: React.FC<{ value: unknown }> = ({ value }) => (
-  <ImageRefPreview
-    value={value}
-    placeholder={
-      <CheckerDropzone message="Connect an image, then run" icon={<ImageIcon />} />
-    }
-  />
-);
 
 const channelClass = (name: string): string => {
   if (name === "red_midtones") return "red";
@@ -207,7 +196,7 @@ const CurvesBodyInner: React.FC<CurvesBodyProps> = ({
             size="small"
             icon={<RestartAltIcon fontSize="small" />}
             tooltip={t("editor:ui.resetAllCurves", { defaultValue: "Reset all curves" })}
-            ariaLabel={t("editor:ui.resetAllCurves", { defaultValue: "Reset all curves" })}
+            ariaLabel="Reset all curves"
             onClick={handleReset}
           />
         </FlexRow>

@@ -7,6 +7,9 @@ import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import { EditorButton } from "../../editor_ui";
 import {
   Caption,
+  Card,
+  CardActions,
+  CodeBlock,
   CollapsibleSection,
   FlexColumn,
   FlexRow,
@@ -48,11 +51,6 @@ const QUESTIONS: Record<string, string> = {
 
 const styles = (theme: Theme) =>
   css({
-    border: `1px solid ${theme.vars.palette.divider}`,
-    borderLeft: `3px solid ${theme.vars.palette.warning.main}`,
-    borderRadius: BORDER_RADIUS.lg,
-    background: theme.vars.palette.background.paper,
-    overflow: "hidden",
     ".approval-body": {
       padding: theme.spacing(SPACING.lg, SPACING.lg, SPACING.md)
     },
@@ -77,9 +75,6 @@ const styles = (theme: Theme) =>
       overflowWrap: "anywhere"
     },
     ".approval-actions": {
-      padding: theme.spacing(SPACING.md, SPACING.lg),
-      borderTop: `1px solid ${theme.vars.palette.divider}`,
-      flexWrap: "wrap",
       button: {
         ...TYPOGRAPHY.sans.label,
         borderRadius: BORDER_RADIUS.pill,
@@ -93,19 +88,6 @@ const styles = (theme: Theme) =>
           color: theme.vars.palette.error.main
         }
       }
-    },
-    ".approval-detail": {
-      ...TYPOGRAPHY.mono.code,
-      margin: 0,
-      padding: theme.spacing(SPACING.md, SPACING.lg),
-      borderRadius: BORDER_RADIUS.md,
-      background: theme.vars.palette.background.default,
-      border: `1px solid ${theme.vars.palette.divider}`,
-      color: theme.vars.palette.text.secondary,
-      whiteSpace: "pre-wrap",
-      wordBreak: "break-word",
-      maxHeight: 320,
-      overflow: "auto"
     }
   });
 
@@ -164,7 +146,9 @@ const ToolApprovalCard: React.FC<ToolApprovalCardProps> = ({
   );
 
   return (
-    <div
+    <Card
+      variant="inline"
+      tone="warning"
       css={cssStyles}
       className="tool-approval-card"
       role="group"
@@ -187,7 +171,7 @@ const ToolApprovalCard: React.FC<ToolApprovalCardProps> = ({
               </Caption>
             }
           >
-            <pre className="approval-detail approval-code">{code}</pre>
+            <CodeBlock>{code}</CodeBlock>
           </CollapsibleSection>
         )}
         {argsText && (
@@ -201,11 +185,11 @@ const ToolApprovalCard: React.FC<ToolApprovalCardProps> = ({
               </Caption>
             }
           >
-            <pre className="approval-detail approval-args">{argsText}</pre>
+            <CodeBlock>{argsText}</CodeBlock>
           </CollapsibleSection>
         )}
       </FlexColumn>
-      <FlexRow gap={SPACING.md} align="center" className="approval-actions">
+      <CardActions className="approval-actions">
         <EditorButton
           variant="contained"
           color="primary"
@@ -232,8 +216,8 @@ const ToolApprovalCard: React.FC<ToolApprovalCardProps> = ({
         >
           Deny
         </EditorButton>
-      </FlexRow>
-    </div>
+      </CardActions>
+    </Card>
   );
 };
 

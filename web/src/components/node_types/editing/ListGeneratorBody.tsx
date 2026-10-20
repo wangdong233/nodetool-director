@@ -40,7 +40,8 @@ import {
   reducedMotion,
   FONT_WEIGHT,
   SPACING,
-  thinScrollbarStyles
+  thinScrollbarStyles,
+  ICON_SIZE
 } from "../../ui_primitives";
 import MarkdownRenderer from "../../../utils/MarkdownRenderer";
 import { NodeOutputs } from "../../node/NodeOutputs";
@@ -283,18 +284,18 @@ const ListGeneratorBodyInner: React.FC<BespokeBodyProps> = ({
         <HandleColumn id={id} properties={inputProperties} layout="stacked" />
       )}
       <div className="list-header">
-        <FormatListNumberedRoundedIcon sx={{ fontSize: "var(--fontSizeSmall)" }} />
+        <FormatListNumberedRoundedIcon sx={{ fontSize: ICON_SIZE.xs }} />
         <span>
           {items.length === 0
             ? isRunning
               ? t("editor:ui.generating", { defaultValue: "Generating…" })
               : t("editor:ui.list", { defaultValue: "List" })
             : t("editor:ui.itemCount", {
-                defaultValue: "{{count}} item",
+                defaultValue: "{{count}} items",
                 count: items.length
               })}
         </span>
-        {isRunning && <LoadingSpinner inline size={12} color="inherit" />}
+        {isRunning && <LoadingSpinner inline size={14} color="inherit" />}
       </div>
 
       {items.length === 0 ? (

@@ -1,8 +1,9 @@
 import React, { Suspense } from "react";
 
-import { LoadingSpinner } from "../ui_primitives";
-import { pageTitle, type PageTabKey } from "./pageTabs";
-import { useAppLanguage } from "../../i18n";
+import { isCloudProfile } from "../../lib/runtimeConfig";
+import { EmptyState, LoadingSpinner } from "../ui_primitives";
+import { PAGE_TAB_TITLES, type PageTabKey } from "./pageTabs";
+import { i18n } from "../../i18n";
 
 const AssetExplorer = React.lazy(() => import("../assets/AssetExplorer"));
 const TutorialsPage = React.lazy(() => import("../tutorials/TutorialsPage"));
@@ -15,9 +16,7 @@ const PackagesPage = React.lazy(() => import("../packages/PackagesPage"));
 const CollectionsExplorer = React.lazy(
   () => import("../collections/CollectionsExplorer")
 );
-const WorkspacesPage = React.lazy(
-  () => import("../workspaces/WorkspacesPage")
-);
+const WorkspacesPage = React.lazy(() => import("../workspaces/WorkspacesPage"));
 const SettingsPage = React.lazy(() => import("../menus/SettingsMenu"));
 const EntityLibrary = React.lazy(() => import("../entities/EntityLibrary"));
 const MemoryPage = React.lazy(() => import("../memory/MemoryPage"));
@@ -58,6 +57,15 @@ const SELF_SCROLLING_PAGES = new Set<PageTabKey>([
   "memory"
 ]);
 
+// Pages that manage the server's own machine: downloading models into its
+// caches and installing node packs into its process. The cloud never offers
+// them (the server refuses those calls too), so a tab restored from an older
+// session says so instead of rendering controls that cannot work.
+export const LOCAL_ONLY_PAGES: ReadonlySet<PageTabKey> = new Set<PageTabKey>([
+  "models",
+  "packages"
+]);
+
 interface PageSurfaceProps {
   pageKey: PageTabKey;
 }
@@ -68,13 +76,22 @@ interface PageSurfaceProps {
  * lazily loaded so it only costs bundle weight once its tab is opened.
  */
 const PageSurface = ({ pageKey }: PageSurfaceProps) => {
-  useAppLanguage(); // re-render on language change: aria title (R6-6)
+  if (LOCAL_ONLY_PAGES.has(pageKey) && isCloudProfile()) {
+    return (
+      <div style={surfaceStyle} aria-label={PAGE_TAB_TITLES[pageKey]}>
+        <EmptyState
+          title={`${PAGE_TAB_TITLES[pageKey]} is not available on this server`}
+          description={i18n.t("editor:ui.pageSurfaceDesc", { defaultValue: "It manages files on the machine the server runs on. Use the desktop app or a self-hosted install for it." })}
+        />
+      </div>
+    );
+  }
   const Component = PAGE_COMPONENTS[pageKey];
   const style = SELF_SCROLLING_PAGES.has(pageKey)
     ? surfaceStyle
     : SCROLLING_SURFACE_STYLE;
   return (
-    <div style={style} aria-label={pageTitle(pageKey)}>
+    <div style={style} aria-label={PAGE_TAB_TITLES[pageKey]}>
       <Suspense fallback={<LoadingSpinner />}>
         <Component />
       </Suspense>

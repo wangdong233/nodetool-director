@@ -22,7 +22,8 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  ICON_SIZE
 } from "../ui_primitives";
 import type { SelectToolMode, SketchTool } from "./types";
 import {
@@ -32,8 +33,7 @@ import {
 } from "./toolDefinitions";
 import { displayCombo } from "./shortcuts";
 import ColorSwatchPair from "./ColorSwatchPair";
-import { SKETCH_TOOLTIP_DELAY_MS } from "./sketchStyles";
-import { i18n } from "../../i18n";
+
 const BTN = 32; // button size px
 
 const styles = (theme: Theme) =>
@@ -98,10 +98,7 @@ const styles = (theme: Theme) =>
   });
 
 function renderToolButton(def: ToolDefinition, selectMode: SelectToolMode) {
-  const { tool, Icon } = def;
-  const label = def.labelKey
-    ? i18n.t(def.labelKey, { defaultValue: def.label })
-    : def.label;
+  const { tool, label, Icon } = def;
   const actionId = getToolShortcutActionId(tool, selectMode);
   const shortcut = actionId ? displayCombo(actionId) : "";
   const tooltipText = shortcut ? `${label} (${shortcut})` : label;
@@ -115,10 +112,8 @@ function renderToolButton(def: ToolDefinition, selectMode: SelectToolMode) {
       <Tooltip
         title={tooltip}
         placement="right"
-        enterDelay={SKETCH_TOOLTIP_DELAY_MS}
-        enterNextDelay={SKETCH_TOOLTIP_DELAY_MS}
       >
-        <Icon sx={{ fontSize: "var(--fontSizeBig)" }} />
+        <Icon sx={{ fontSize: ICON_SIZE.md }} />
       </Tooltip>
     </ToggleButton>
   );

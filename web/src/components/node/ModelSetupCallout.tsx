@@ -3,14 +3,14 @@ import { css, keyframes } from "@emotion/react";
 import { memo, useCallback, useMemo } from "react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import KeyRoundedIcon from "@mui/icons-material/KeyRounded";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import { useProviders } from "../../hooks/useProviders";
 import { openProviderOnboarding } from "../../stores/ProviderOnboardingStore";
-import { Text, EditorButton, ToolbarIconButton, MOTION } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import { Text, EditorButton, ToolbarIconButton, MOTION, ICON_SIZE } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const enter = keyframes({
   from: { opacity: 0, transform: "translateY(-4px)" },
@@ -94,7 +94,7 @@ const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
         aria-label={t("editor:ui.dismiss", { defaultValue: "Dismiss" })}
         tooltip={t("editor:ui.dismiss", { defaultValue: "Dismiss" })}
         onClick={onDismiss}
-        icon={<CloseRoundedIcon sx={{ fontSize: 14 }} />}
+        icon={<CloseOutlinedIcon sx={{ fontSize: ICON_SIZE.xs }} />}
       />
       <div className="callout-row">
         {noProvider ? (
@@ -104,8 +104,7 @@ const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
         )}
         <Text size="small" sx={{ pr: 2 }}>
           {noProvider
-            ? t("editor:ui.connectAnAIProviderToUseModelsAddAnAPIKeyToGetStarted", { defaultValue: "Connect an AI provider to use models — add an API key to get started." })
-            : t("editor:ui.pickAModelHereBeforeRunningThisWorkflow", { defaultValue: "Pick a model here before running this workflow." })}
+            ? t("editor:ui.connectAnAIProviderToUseModelsAddAnAPIKeyToGetStarted", { defaultValue: "Connect an AI provider to use models — add an API key to get started." }) : i18n.t("editor:ui.pickAModelHereBeforeRunningThisWorkflow", { defaultValue: "Pick a model here before running this workflow." })}
         </Text>
       </div>
       {noProvider && (
@@ -113,7 +112,7 @@ const ModelSetupCallout: React.FC<ModelSetupCalloutProps> = ({ onDismiss }) => {
           variant="contained"
           color="primary"
           size="small"
-          startIcon={<KeyRoundedIcon sx={{ fontSize: 14 }} />}
+          startIcon={<KeyRoundedIcon />}
           onClick={handleAddKeys}
           sx={{ alignSelf: "flex-start" }}
         >

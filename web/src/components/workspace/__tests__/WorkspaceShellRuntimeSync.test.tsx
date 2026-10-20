@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 
 const workspaceTabsState = {
   tabs: [],
@@ -9,8 +9,7 @@ const workspaceTabsState = {
 jest.mock("../../../stores/WorkspaceTabsStore", () => ({
   useWorkspaceTabsStore: (
     selector: (state: typeof workspaceTabsState) => unknown
-  ) =>
-    selector(workspaceTabsState)
+  ) => selector(workspaceTabsState)
 }));
 
 const workflowManagerState = {
@@ -26,9 +25,18 @@ jest.mock("../../../contexts/WorkflowManagerContext", () => ({
 const panelState = {
   panel: { isVisible: false, isDragging: false, panelSize: 0 }
 };
+const panelListeners = new Set<() => void>();
 jest.mock("../../../stores/PanelStore", () => ({
-  usePanelStore: (selector: (state: typeof panelState) => unknown) =>
-    selector(panelState)
+  usePanelStore: Object.assign(
+    (selector: (state: typeof panelState) => unknown) => selector(panelState),
+    {
+      getState: () => panelState,
+      subscribe: (listener: () => void) => {
+        panelListeners.add(listener);
+        return () => panelListeners.delete(listener);
+      }
+    }
+  )
 }));
 
 jest.mock("../../../hooks/useWorkspaceMenuShortcuts", () => ({
@@ -55,6 +63,11 @@ jest.mock("@mui/material/styles", () => ({
   })
 }));
 
+// The real spinner styles itself from theme fields the mocked theme lacks.
+jest.mock("../../ui_primitives", () => ({
+  ...jest.requireActual("../../ui_primitives"),
+  LoadingSpinner: () => <div role="status" aria-label="Loading" />
+}));
 jest.mock("../../panels/FrontendToolRuntimeSync", () => ({
   __esModule: true,
   default: () => <div data-testid="frontend-tool-runtime-sync" />
@@ -93,12 +106,48 @@ jest.mock("../../node_editor/Alert", () => ({
 }));
 
 import WorkspaceShell from "../WorkspaceShell";
+import { TOOLBAR_WIDTH } from "../../../config/constants";
+
+// First in the file: the lazy home surface suspends only until it has loaded once.
+describe("WorkspaceShell first load", () => {
+  it("shows a loading indicator while the home surface loads", async () => {
+    render(<WorkspaceShell />);
+
+    expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument();
+    expect(await screen.findByText("New project")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("status", { name: "Loading" })
+    ).not.toBeInTheDocument();
+  });
+});
 
 describe("WorkspaceShell frontend tool runtime", () => {
   it("initializes the runtime while the New Project surface is active", async () => {
     render(<WorkspaceShell />);
 
     expect(await screen.findByText("New project")).toBeInTheDocument();
-    expect(screen.getByTestId("frontend-tool-runtime-sync")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("frontend-tool-runtime-sync")
+    ).toBeInTheDocument();
+  });
+});
+
+describe("WorkspaceShell drawer gutter", () => {
+  it("publishes the left drawer's width for guided flows and follows resizes", () => {
+    const { container } = render(<WorkspaceShell />);
+    const shell = container.querySelector<HTMLElement>(".workspace-shell");
+
+    expect(shell?.style.getPropertyValue("--workspace-drawer-gutter")).toBe(
+      `${TOOLBAR_WIDTH}px`
+    );
+
+    act(() => {
+      panelState.panel = { isVisible: true, isDragging: false, panelSize: 600 };
+      panelListeners.forEach((listener) => listener());
+    });
+
+    expect(shell?.style.getPropertyValue("--workspace-drawer-gutter")).toBe(
+      "600px"
+    );
   });
 });

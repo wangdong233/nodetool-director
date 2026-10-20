@@ -292,3 +292,11 @@ nodetool workflows run <id>            # Run a workflow (uses the local DB)
 nodetool jobs list                     # List execution jobs
 nodetool secrets store OPENAI_API_KEY  # Store an API key
 ```
+
+鉴权:本地模式(Supabase 变量未设)回环连接以用户 `"1"` 运行、免令牌;`NODETOOL_TRUST_LOCALHOST=false` 与 `NODETOOL_TRUST_LOCAL_NETWORKS` 控制范围,`nodetool deploy users-add` 可建用户。Supabase 模式(`SUPABASE_URL`+`SUPABASE_KEY` 均设置)每个非公开请求需有效 JWT;`NODETOOL_TRUST_LOCALHOST=true` 可覆盖。两种模式下,在 **Settings → MCP → Connect** 创建的访问令牌(`ntk_…`)以 `Authorization: Bearer <token>` 传递;无法设头的 WebSocket 客户端在 `/ws` URL 上带 `?api_key=<token>`。
+
+运行:REST 的 `/api/workflows/:id/run` 是 `run_workflow`、`debug_workflow` 与 `nodetool debug` 使用的路由;编辑器走 WebSocket。请求体还接受 `background: true`(立即返回任务 id)与 `interactive: true`(以调试会话方式停在需人工确认处)。
+
+tRPC 路由:`documents`、`workflows`、`projects`、`assets`、`collections`、`jobs`、`runs`、`appRuns`、`appInstances`、`resources`、`models`、`customProviders`、`nodes`、`externalMcp`、`agentAccess`、`users`、`worker`、`workspace`。索引接口对 PDF、Office 与图片返回 `415`,需先用工作流抽取文本。
+
+WebSocket:服务器默认以 MsgPack 回复,客户端需先发 `set_mode` 为 `"text"` 切到 JSON,否则 `JSON.parse` 每次都会失败。没有暂停/恢复;未知命令返回 `Unknown command`。

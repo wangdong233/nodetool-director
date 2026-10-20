@@ -17,6 +17,7 @@ import { useSkill, useUpdateSkill } from "../../hooks/skills/useSkills";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import ReportBugButton from "../support/ReportBugButton";
+import ErrorBanner from "../support/ErrorBanner";
 import MonacoPane from "../workspace/MonacoPane";
 import EditorToolbar from "../textEditor/EditorToolbar";
 import {
@@ -27,8 +28,8 @@ import {
   LoadingSpinner,
   TextInput,
   FormField,
-  BORDER_RADIUS,
   SPACING,
+  StatusDot,
   getSpacingPx
 } from "../ui_primitives";
 import { useMonacoEditor } from "../../hooks/editor/useMonacoEditor";
@@ -38,6 +39,7 @@ import {
   shouldApplyServerSkill
 } from "./skillEditorState";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface SkillEditorPaneProps {
   skillId: string;
@@ -60,13 +62,6 @@ const styles = (theme: Theme) =>
       borderBottom: `1px solid ${theme.vars.palette.divider}`,
       backgroundColor: theme.vars.palette.background.paper
     },
-    ".dirty-dot": {
-      width: getSpacingPx(SPACING.md),
-      height: getSpacingPx(SPACING.md),
-      borderRadius: BORDER_RADIUS.circle,
-      backgroundColor: theme.vars.palette.warning.main,
-      flex: "0 0 auto"
-    },
     ".editor-host": {
       flex: 1,
       minHeight: 0,
@@ -79,11 +74,6 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
   const theme = useTheme();
   const editorStyles = styles(theme);
   const setTabTitle = useWorkspaceTabsStore((state) => state.setTitle);
-  // A shipped skill reaches this pane read-only (the tab bar can flip any tab
-  // to Edit); its header fields then mirror the viewer's zh overlay while the
-  // name state — the thing saves and dirty-checks compare — stays the raw
-  // slug. User skills render and edit their stored values verbatim.
-  const isSystemSkill = skillId.startsWith("system:");
 
   const { data: skill, isLoading, error } = useSkill(skillId);
   const utils = trpc.useUtils();
@@ -161,7 +151,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
     setSavedContent(skill.content ?? "");
     setBaseUpdatedAt(skill.updatedAt);
     initializedSkillIdRef.current = skill.id;
-    setTabTitle(skillId, "skill", skill.name || "Untitled skill");
+    setTabTitle(skillId, "skill", skill.name || i18n.t("editor:ui.untitledSkill", { defaultValue: "Untitled skill" }));
   }, [
     skill,
     skillId,
@@ -416,15 +406,16 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
         fullHeight
         sx={{ alignItems: "center", justifyContent: "center" }}
       >
-        <Caption sx={{ color: "error.main" }}>{t("ui2:attrs.failedToLoadSkill", { defaultValue: "Failed to load skill" })}</Caption>
-        <ReportBugButton
-          context={{
+        <ErrorBanner
+          report={{
             source: "panel-crash",
             summary: "Skill editor failed to load",
             errorText: error.message,
             stackTrace: error instanceof Error ? error.stack : undefined
           }}
-        />
+        >
+          Could not load this skill.
+        </ErrorBanner>
       </FlexColumn>
     );
   }
@@ -453,7 +444,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
         />
         <FlexRow align="center" gap={SPACING.micro} sx={{ px: SPACING.xs }}>
           {isDirty && (
-            <span className="dirty-dot" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
+            <StatusDot tone="warning" size="medium" label={t("ui2:attrs.unsavedChangesCapitalized", { defaultValue: "Unsaved changes" })} />
           )}
           {updateMutation.error && (
             <ReportBugButton
@@ -471,9 +462,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
             disabled={!isDirty || updateMutation.isPending || readOnly}
             onClick={handleManualSave}
           >
-            {updateMutation.isPending
-              ? t("editor:ui.saving", { defaultValue: "Saving…" })
-              : t("editor:ui.save", { defaultValue: "Save" })}
+            {updateMutation.isPending ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
           </EditorButton>
         </FlexRow>
       </FlexRow>
@@ -481,11 +470,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
       <FlexColumn className="meta-row">
         <FormField label={t("editor:asset.info.name", { defaultValue: "Name" })} required>
           <TextInput
-            value={
-              isSystemSkill
-                ? t(`catalog:skills.${name}.name`, { defaultValue: name })
-                : name
-            }
+            value={name}
             onChange={handleNameChange}
             placeholder="my-skill"
             disabled={readOnly}
@@ -497,13 +482,7 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
           helperText={t("editor:ui.matchedAgainstAgentObjective", { defaultValue: "Matched against the agent objective (words >=4 chars)" })}
         >
           <TextInput
-            value={
-              isSystemSkill
-                ? t(`catalog:skills.${name}.description`, {
-                    defaultValue: description
-                  })
-                : description
-            }
+            value={description}
             onChange={handleDescriptionChange}
             placeholder={t("editor:ui.whenToUseThisSkill", { defaultValue: "When to use this skill" })}
             disabled={readOnly}
@@ -525,14 +504,15 @@ const SkillEditorPane = ({ skillId, readOnly = false }: SkillEditorPaneProps) =>
           />
         ) : monacoLoadError ? (
           <FlexColumn gap={SPACING.xs} sx={{ p: SPACING.md }}>
-            <Caption sx={{ color: "error.main" }}>{monacoLoadError}</Caption>
-            <ReportBugButton
-              context={{
+            <ErrorBanner
+              report={{
                 source: "panel-crash",
                 summary: "Skill editor could not start",
                 errorText: monacoLoadError
               }}
-            />
+            >
+              {monacoLoadError}
+            </ErrorBanner>
           </FlexColumn>
         ) : isMonacoLoading ? (
           <FlexColumn fullWidth fullHeight sx={{ alignItems: "center", justifyContent: "center" }}>

@@ -1,7 +1,6 @@
 /** @jsxImportSource @emotion/react */
 /** The selected MIDI track's instrument in the right-panel Instruments tab. */
-import { useTranslation } from "react-i18next";
-import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import React, { Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -13,7 +12,11 @@ import { useTimelineUIStore } from "../../../stores/timeline/TimelineUIStore";
 import { playAuditionNote } from "../preview/audition";
 import SamplerInstrumentEditor from "./SamplerInstrumentEditor";
 import FableSynthInstrumentEditor, { InstrumentKeyboard } from "./FableSynthInstrumentEditors";
-import { Button, Caption, FlexColumn, SelectField, SPACING } from "../../ui_primitives";
+import { Button, Caption, FlexColumn, LoadingSpinner, SelectField, SPACING } from "../../ui_primitives";
+import PanelErrorBoundary from "../../common/PanelErrorBoundary";
+import { instrumentView } from "../daw/devices/deviceViews";
+import { i18n } from "../../../i18n";
+import "../daw/devices/registerDeviceViews";
 export const AUDITION_DEBOUNCE_MS = 120;
 const containerStyles = (theme: Theme) => css({
   width: "100%", height: "100%", padding: theme.spacing(SPACING.xs),
@@ -28,7 +31,6 @@ interface TrackInstrumentPanelProps {
 
 export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
   ({ trackId }) => {
-  const { t } = useTranslation();
     const theme = useTheme();
     const [auditionError, setAuditionError] = useState("");
     const instrument = useTimelineStore(
@@ -40,6 +42,8 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
     const toggleKeyboard = useTimelineUIStore(s => s.toggleInstrumentKeyboard);
     const presetId = instrument.type === "subtractive" ? "custom" : presetIdForInstrument(instrument) ?? "custom";
     const setTrackInstrument = useTimelineStore((s) => s.setTrackInstrument);
+    // The device's own view, when one is registered for this instrument.
+    const DeviceView = instrumentView(instrument.type);
 
     // One pending audition at a time: a slider drag writes the track on every
     // frame, and each write would otherwise start a note.
@@ -79,7 +83,7 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
       >
         <FlexColumn gap={SPACING.md}>
           <SelectField
-            label={t("timeline:attrs.instrumentPreset", { defaultValue: "Instrument preset" })}
+            label={i18n.t("timeline:attrs.instrumentPreset", { defaultValue: "Instrument preset" })}
             css={css({ width: "100%", alignSelf: "flex-start" })}
             size="small"
             value={presetId}
@@ -97,22 +101,24 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
           />
           <Button size="small" variant="text" aria-pressed={showKeyboard}
             sx={{ alignSelf: "flex-start", color: showKeyboard ? "primary.main" : "text.secondary", backgroundColor: showKeyboard ? "action.selected" : "transparent" }}
-            onClick={() => toggleKeyboard(trackId)}>{t("timeline:attrs.keyboard", { defaultValue: "Keyboard" })}</Button>
+            onClick={() => toggleKeyboard(trackId)}>Keyboard</Button>
           {showKeyboard && <div className={`fs-editor fs-${instrument.type}`}>
             <InstrumentKeyboard start={instrument.type === "sampler" ? Math.min(103, auditionPitch(instrument)) : instrument.type === "drum" ? instrument.baseNote : instrument.type === "bass" ? 36 : 48}
               onPlay={pitch => commit(instrument, pitch)} />
           </div>}
-          {instrument.type === "sampler" ? <SamplerInstrumentEditor key={trackId} instrument={instrument} onChange={commit} /> : instrument.type === "subtractive" ? <Caption color="muted">{t("timeline:attrs.chooseAWT1BL1OrDR1PresetToEditThisTracksInstrument", { defaultValue: "Choose a sampler, WT-1, BL-1, or DR-1 preset to edit this track’s instrument." })}</Caption> : (
+          {DeviceView ? (
+            <PanelErrorBoundary panelName="Instrument device">
+              <Suspense fallback={<LoadingSpinner size="small" text="Loading instrument" />}>
+                <DeviceView trackId={trackId} />
+              </Suspense>
+            </PanelErrorBoundary>
+          ) : instrument.type === "sampler" ? <SamplerInstrumentEditor key={trackId} instrument={instrument} onChange={commit} /> : instrument.type === "subtractive" ? <Caption color="muted">{i18n.t("timeline:attrs.chooseAWT1BL1OrDR1PresetToEditThisTracksInstrument", { defaultValue: "Choose a sampler, WT-1, BL-1, or DR-1 preset to edit this track’s instrument." })}</Caption> : (
             <FableSynthInstrumentEditor key={trackId} instrument={instrument} onChange={commit} />
           )}
           {auditionError && <Caption role="alert">{auditionError}</Caption>}
           <Caption color="muted">
-            {t("timeline:attrs.everyClipOnThisTrackPlaysThisVoiceChangesAreAuditionedOn", { defaultValue: "Every clip on this track plays this voice. Changes are auditioned on " })}
-            {instrument.type === "drum"
-              ? t("timeline:attrs.theSelectedPad", { defaultValue: "the selected pad" })
-              : instrument.type === "sampler"
-                ? t("timeline:attrs.theMappedSampleKey", { defaultValue: "the mapped sample key" })
-                : t("timeline:attrs.middleC", { defaultValue: "middle C" })}.
+            Every clip on this track plays this voice. Changes are auditioned on{" "}
+            {instrument.type === "drum" ? i18n.t("timeline:attrs.theSelectedPad", { defaultValue: "the selected pad" }) : instrument.type === "sampler" ? i18n.t("timeline:attrs.theMappedSampleKey", { defaultValue: "the mapped sample key" }) : i18n.t("timeline:attrs.middleC", { defaultValue: "middle C" })}.
           </Caption>
         </FlexColumn>
       </div>

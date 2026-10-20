@@ -15,15 +15,13 @@
  */
 
 import React, { forwardRef, memo, useMemo } from "react";
-import { IconButton, IconButtonProps, Tooltip, Box } from "@mui/material";
+import { IconButton, IconButtonProps } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import {
-  TOOLTIP_ENTER_DELAY,
-  TOOLTIP_ENTER_NEXT_DELAY
-} from "../../config/constants";
+import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
-import { ShortcutHint } from "./ShortcutHint";
+import { Tooltip, tooltipWithShortcut } from "./Tooltip";
 import { isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export interface ToolbarIconButtonProps
   extends Omit<IconButtonProps, "children" | "title"> {
@@ -94,6 +92,11 @@ export interface ToolbarIconButtonProps
    */
   ariaLabel?: string;
   /**
+   * Why the button is disabled. Replaces the tooltip while `disabled` is set,
+   * so the user learns what to do instead of seeing nothing.
+   */
+  disabledReason?: React.ReactNode;
+  /**
    * Render as an anchor element. When provided, `href`, `target`, and `rel` are forwarded.
    */
   component?: React.ElementType;
@@ -127,6 +130,8 @@ export const ToolbarIconButton = memo(
         sx,
         tabIndex = 0,
         ariaLabel,
+        disabledReason,
+        disabled,
         ...props
       },
       ref
@@ -164,54 +169,51 @@ export const ToolbarIconButton = memo(
         }
       }, [variant, theme]);
 
-      const tooltipContent = shortcut ? (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 0.5,
-          }}
-        >
-          <Box>{resolvedTooltip}</Box>
-          <ShortcutHint shortcut={shortcut} size="small" />
-        </Box>
-      ) : resolvedTooltip;
+      const tooltipContent =
+        disabled && disabledReason
+          ? disabledReason
+          : tooltipWithShortcut(resolvedTooltip, shortcut);
 
       const label = ariaLabel || (isString(resolvedTooltip) ? resolvedTooltip : undefined);
 
+      const button = (
+        <IconButton
+          ref={ref}
+          aria-label={label}
+          className={cn(
+            "toolbar-icon-button",
+            nodrag && editorClassNames.nodrag,
+            active && "active",
+            className
+          )}
+          size={size}
+          tabIndex={tabIndex}
+          disabled={disabled}
+          sx={{
+            ...variantStyles,
+            ...(active && {
+              backgroundColor: theme.vars.palette.grey[800],
+              color: "var(--palette-primary-main)"
+            }),
+            ...sx
+          }}
+          {...props}
+        >
+          {resolvedIcon}
+        </IconButton>
+      );
+
+      // A disabled button fires no hover events, so a span receives them instead.
       return (
         <Tooltip
           title={tooltipContent}
-          // A node title would otherwise rename the button to "Undo Ctrl + Z" while the tooltip is open.
-          describeChild={Boolean(label) && !isString(tooltipContent)}
+          // A node title would otherwise rename the button to "Undo Ctrl + Z" while the tooltip
+          // is open, and the span around a disabled button would take the tooltip as its name.
+          describeChild={Boolean(label) && (disabled || !isString(tooltipContent))}
           enterDelay={delay ?? TOOLTIP_ENTER_DELAY}
-          enterNextDelay={TOOLTIP_ENTER_NEXT_DELAY}
           placement={tooltipPlacement}
         >
-          <IconButton
-            ref={ref}
-            aria-label={label}
-            className={cn(
-              "toolbar-icon-button",
-              nodrag && editorClassNames.nodrag,
-              active && "active",
-              className
-            )}
-            size={size}
-            tabIndex={tabIndex}
-            sx={{
-              ...variantStyles,
-              ...(active && {
-                backgroundColor: theme.vars.palette.grey[800],
-                color: "var(--palette-primary-main)"
-              }),
-              ...sx
-            }}
-            {...props}
-          >
-            {resolvedIcon}
-          </IconButton>
+          {disabled ? <span style={{ display: "inline-flex" }}>{button}</span> : button}
         </Tooltip>
       );
     }

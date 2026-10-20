@@ -26,7 +26,7 @@ import {
 } from "../../ui_primitives";
 import { PlanReview } from "../PlanReview";
 import type { PlanReviewField, PlanReviewSection } from "../PlanReview";
-import ReportBugButton from "../../support/ReportBugButton";
+import ErrorBanner from "../../support/ErrorBanner";
 import { describeGameSlot } from "./gameSetupModel";
 
 export interface GameReviewStepProps {
@@ -200,19 +200,16 @@ const ReviewStepInternal: React.FC<GameReviewStepProps> = ({
       <PlanReview sections={sections} />
 
       {error ? (
-        <FlexRow gap={GAP.normal} align="center" wrap>
-          <Text size="small" color="error" role="alert">
-            {error}
-          </Text>
-          <ReportBugButton
-            context={{
-              source: "operation-failure",
-              summary: "Designing a game failed",
-              errorText: error,
-              workflowId
-            }}
-          />
-        </FlexRow>
+        <ErrorBanner
+          report={{
+            source: "operation-failure",
+            summary: "Designing a game failed",
+            errorText: error,
+            workflowId
+          }}
+        >
+          {error}
+        </ErrorBanner>
       ) : null}
 
       <FlexRow gap={GAP.normal} align="center" wrap>

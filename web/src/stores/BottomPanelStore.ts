@@ -28,11 +28,12 @@ export const BOTTOM_PANEL_GROUPS: ReadonlyArray<{
   id: BottomPanelGroup;
   label: string;
   views: readonly BottomPanelView[];
+  labelKey?: string;
 }> = [
   { id: "run", label: "Run", views: ["logs", "queue", "workers"] },
   {
     id: "workflow",
-    label: "Workflow",
+    label: "Workflow", labelKey: "home:flowError.kind.workflow",
     views: ["versions"]
   },
   { id: "debug", label: "Debug", views: ["trace"] }

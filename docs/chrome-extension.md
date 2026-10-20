@@ -34,6 +34,8 @@ The chat panel talks to a NodeTool server. The CDP proxy does not: the backend a
 
 The extension is not published to the Chrome Web Store — build and load it unpacked from source.
 
+On a local install, the first launch with no API key stored opens a two-step onboarding. It signs in to ChatGPT and Claude, then sets up the extension with a live connection status. The app registers the native host itself, and the desktop app points Load unpacked at the extension folder it ships, so no terminal step is needed. **Settings → Browser Extension** has the same **Connect to Chrome** button. ChatGPT image generation and every Gemini request (chat, images, Veo video) run through the extension.
+
 ```bash
 git clone https://github.com/nodetool-ai/nodetool.git
 cd nodetool/chrome-extension
@@ -143,7 +145,7 @@ The Chrome Extension solves this by reusing the browser you already use every da
 
 1. **Install** the extension (see [Installing](#installing) above) and pin it to your toolbar.
 2. **Sign in** to the target site (e.g. Midjourney) in a normal Chrome tab, as you would manually.
-3. **Register the native host once**: `nodetool extension install`, then reload the extension in `chrome://extensions`. Check it with `nodetool extension status`. No server needs to run.
+3. **Register the native host once**: click **Connect to Chrome** in the app (onboarding or **Settings → Browser Extension**), or run `nodetool extension install`. Then reload the extension in `chrome://extensions`. Check it with `nodetool extension status`. No server needs to run.
 4. **Open the extension popup** on the signed-in tab and click **Attach to this tab**. Chrome shows its standard "Nodetool is debugging this browser" banner while attached.
 5. **Ask the agent**, run a workflow, or call a provider such as `nodetool generate dreamina …`. The `browser_*` tools drive the attached tab — `browser_status` first to confirm the extension is connected, then `browser_restart` with `transport: "extension"` if the process is still on its headless Chrome (or set `NODETOOL_BROWSER_TRANSPORT=extension` before starting it — see [Transport selection](#transport-selection)).
 6. **Run it**. The action loop drives your attached tab: it types the prompt, submits the form, waits for the result, and captures a screenshot or the generated asset into your library.
@@ -272,7 +274,7 @@ The action loop itself is `@nodetool-ai/browser` (`packages/browser/`), which kn
 - **Not published to the Chrome Web Store.** Install as an unpacked extension from source.
 - **Mutually exclusive with DevTools.** You can't have Chrome DevTools open on a tab while the extension is attached to it (both use `chrome.debugger`).
 - **Session-only.** Attaching does not persist across Chrome restarts — reattach after restarting your browser.
-- **One session per server process.** The browser session is a process singleton shared by every agent and workflow on that server, so two concurrent runs drive the same tab. Sequence them, or give each its own server.
+- **Exclusive tab ownership.** The native host queues clients across server and CLI processes. Each browser provider holds the tab through submission, response polling, and downloads, then releases it. Update the extension alongside the native host so release acknowledgments can advance the queue. The popup cannot change tabs while a client owns the debugger.
 - **Chat only in the panel.** Media generation and the workflow editor are the full app's job. Tool, plan and secret approvals do render in the panel.
 - **Manual build.** The `chrome-extension/` package isn't part of `npm run build:packages` — build it on demand. A diff touching it does run the `live-browser` surface's selfcheck through `nodetool harness gate`, but that covers the capability seam, not the relay: the extension → `chrome.debugger` → page round trip runs only in `npm run test:integration --workspace=packages/browser`, which needs Chrome and port 7777. Keep the two protocol definitions (`chrome-extension/src/lib/protocol.ts` and `packages/browser/src/extension/protocol.ts`) in sync by hand if you change the wire format, and likewise `chrome-extension/src/lib/chat-socket.ts` with `packages/sdk/src/chat.ts` for the chat panel.
 
@@ -286,7 +288,7 @@ Check the server URL in the panel's settings (gear icon). If it names a host tha
 
 ### Popup shows "disconnected"
 
-- The popup shows the Chrome error when the native host is missing ("Specified native messaging host not found"). Run `nodetool extension install` and reload the extension.
+- The popup shows the Chrome error when the native host is missing ("Specified native messaging host not found"). Click **Connect to Chrome** in the app (or run `nodetool extension install`) and reload the extension.
 - The host is registered for one extension ID. If you loaded the extension from another folder, check that its ID matches `nodetool extension install` output.
 
 ### "No browser extension is connected" error from a workflow

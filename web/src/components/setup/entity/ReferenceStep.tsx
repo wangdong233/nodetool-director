@@ -1,5 +1,3 @@
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { EntityKind } from "@nodetool-ai/protocol";
 import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
@@ -29,14 +27,15 @@ import {
   LoadingSpinner,
   ResponsiveImage,
   Text,
-  TextInput
+  TextArea
 } from "../../ui_primitives";
 import {
   SETUP_CONTENT_WIDTH,
-  SETUP_FIELD_WIDTH,
   SETUP_MEDIA_WIDTH
 } from "../layout";
 import { GalleryFrame } from "../MediaGallery";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ReferenceStepProps {
   readonly name: string;
@@ -53,6 +52,7 @@ interface ReferenceStepProps {
 }
 
 interface ReferencePromptOption {
+  labelKey?: string;
   readonly id: string;
   readonly label: string;
   readonly instruction: string;
@@ -66,21 +66,21 @@ const PROMPT_OPTIONS: Record<
   character: [
     {
       id: "full-body",
-      label: "Full body",
+      label: i18n.t("setup:entity.view.fullBody", { defaultValue: "Full body" }), labelKey: "setup:entity.view.fullBody",
       instruction:
         "Show one full-body, front-facing pose, head to toe. Center the character against a neutral background with even studio lighting. Make their face, clothing, and distinctive features clear.",
       aspectRatio: "1:1"
     },
     {
       id: "portrait",
-      label: "Portrait",
+      label: i18n.t("setup:entity.view.portrait", { defaultValue: "Portrait" }), labelKey: "setup:entity.view.portrait",
       instruction:
         "Show a head-and-shoulders portrait with the face fully visible and a neutral expression. Use a simple background and even lighting so facial features and hair are easy to identify.",
       aspectRatio: "2:3"
     },
     {
       id: "character-sheet",
-      label: "Character sheet",
+      label: i18n.t("setup:entity.view.characterSheet", { defaultValue: "Character sheet" }), labelKey: "setup:entity.view.characterSheet",
       instruction:
         "Create a character sheet with front, side, and back views plus a close-up of the face. Keep proportions, clothing, colors, and distinctive features consistent across views. Use a clean background without text or labels.",
       aspectRatio: "3:2"
@@ -89,21 +89,21 @@ const PROMPT_OPTIONS: Record<
   location: [
     {
       id: "establishing-view",
-      label: "Establishing view",
+      label: i18n.t("setup:entity.view.establishingView", { defaultValue: "Establishing view" }), labelKey: "setup:entity.view.establishingView",
       instruction:
         "Show a wide establishing view of the location. Make its layout, architecture, landmarks, and atmosphere clear in one coherent scene.",
       aspectRatio: "3:2"
     },
     {
       id: "detail-view",
-      label: "Detail view",
+      label: i18n.t("setup:entity.view.detailView", { defaultValue: "Detail view" }), labelKey: "setup:entity.view.detailView",
       instruction:
         "Show a closer view of the location's defining materials, objects, and architectural details. Keep the setting and atmosphere recognizable.",
       aspectRatio: "1:1"
     },
     {
       id: "location-sheet",
-      label: "Location sheet",
+      label: i18n.t("setup:entity.view.locationSheet", { defaultValue: "Location sheet" }), labelKey: "setup:entity.view.locationSheet",
       instruction:
         "Create a location sheet with three views of the same place from different angles. Keep the architecture, landmarks, lighting, and color palette consistent. No text or labels.",
       aspectRatio: "3:2"
@@ -112,21 +112,21 @@ const PROMPT_OPTIONS: Record<
   style: [
     {
       id: "style-sample",
-      label: "Style sample",
+      label: i18n.t("setup:entity.view.styleSample", { defaultValue: "Style sample" }), labelKey: "setup:entity.view.styleSample",
       instruction:
         "Create one cohesive scene that clearly shows this visual style's palette, lighting, texture, and rendering treatment.",
       aspectRatio: "1:1"
     },
     {
       id: "style-sheet",
-      label: "Style sheet",
+      label: i18n.t("setup:entity.view.styleSheet", { defaultValue: "Style sheet" }), labelKey: "setup:entity.view.styleSheet",
       instruction:
         "Create a visual style sheet with three different subjects rendered in the same style. Keep the palette, lighting, texture, and rendering treatment consistent. No text or labels.",
       aspectRatio: "3:2"
     },
     {
       id: "texture-detail",
-      label: "Texture detail",
+      label: i18n.t("setup:entity.view.textureDetail", { defaultValue: "Texture detail" }), labelKey: "setup:entity.view.textureDetail",
       instruction:
         "Show a close-up sample of this style's defining textures, brushwork, materials, and color relationships, with enough detail to reuse the treatment.",
       aspectRatio: "1:1"
@@ -135,44 +135,26 @@ const PROMPT_OPTIONS: Record<
   prop: [
     {
       id: "product-view",
-      label: "Product view",
+      label: i18n.t("setup:entity.view.productView", { defaultValue: "Product view" }), labelKey: "setup:entity.view.productView",
       instruction:
         "Show one clear three-quarter view of the object, fully visible and centered against a neutral background. Use even studio lighting to reveal its shape, materials, and colors.",
       aspectRatio: "1:1"
     },
     {
       id: "detail-view",
-      label: "Detail view",
+      label: i18n.t("setup:entity.view.detailView", { defaultValue: "Detail view" }), labelKey: "setup:entity.view.detailView",
       instruction:
         "Show a close-up of the object's distinctive details, materials, markings, and construction. Keep the object recognizable against a simple background.",
       aspectRatio: "1:1"
     },
     {
       id: "turnaround-sheet",
-      label: "Turnaround sheet",
+      label: i18n.t("setup:entity.view.turnaroundSheet", { defaultValue: "Turnaround sheet" }), labelKey: "setup:entity.view.turnaroundSheet",
       instruction:
         "Create an object turnaround sheet with front, side, and back views. Keep its shape, scale, materials, colors, and details consistent across views. Use a clean background without text or labels.",
       aspectRatio: "3:2"
     }
   ]
-};
-
-/**
- * zh display labels for the reference views, keyed by option id; the ids and
- * prompt instructions stay locale-independent (the instruction is model input).
- */
-export const PROMPT_OPTION_LABEL_KEYS: Readonly<Record<string, string>> = {
-  "full-body": "setup:entity.view.fullBody",
-  portrait: "setup:entity.view.portrait",
-  "character-sheet": "setup:entity.view.characterSheet",
-  "establishing-view": "setup:entity.view.establishingView",
-  "detail-view": "setup:entity.view.detailView",
-  "location-sheet": "setup:entity.view.locationSheet",
-  "style-sample": "setup:entity.view.styleSample",
-  "style-sheet": "setup:entity.view.styleSheet",
-  "texture-detail": "setup:entity.view.textureDetail",
-  "product-view": "setup:entity.view.productView",
-  "turnaround-sheet": "setup:entity.view.turnaroundSheet"
 };
 
 const referencePrompt = (
@@ -302,55 +284,52 @@ const GenerateReferenceDialog = ({
       })
     : null;
   const modelHelper = !model
-    ? i18n.t("setup:entity.pickAnImageModelToGenerateTheReference", { defaultValue: "Pick an image model to generate the reference." })
-    : estimate
-      ? i18n.t("setup:entity.usedToCreateReferenceImageAbout", { defaultValue: "Used to create the reference image. About {{estimate}}.", estimate: estimate.label })
+    ? i18n.t("setup:entity.pickAnImageModelToGenerateTheReference", { defaultValue: "Pick an image model to generate the reference." }) : estimate
+      ? `Used to create the reference image. About ${estimate.label}.`
       : i18n.t("storyboard:attrs.usedToCreateReferenceImage", { defaultValue: "Used to create the reference image." });
 
   return (
     <Dialog
       open={open}
       onClose={handleClose}
-      title={t("storyboard:attrs.generateAReferenceImage", { defaultValue: "Generate a reference image" })}
-      showActions
+      title={i18n.t("storyboard:attrs.generateAReferenceImage", { defaultValue: "Generate a reference image" })}
+      maxWidth="sm"
+      fullWidth
       onConfirm={() => void handleGenerate()}
-      confirmText={generating ? i18n.t("storyboard:attrs.generating", { defaultValue: "Generating" }) : i18n.t("storyboard:attrs.generateReference", { defaultValue: "Generate reference" })}
+      confirmText={generating ? i18n.t("editor:ui.generating", { defaultValue: "Generating…" }) : i18n.t("storyboard:attrs.generateReference", { defaultValue: "Generate reference" })}
       confirmDisabled={generating || !prompt.trim() || !model || !provider}
       isLoading={generating}
     >
-      <FlexColumn gap={GAP.comfortable} sx={{ minWidth: SETUP_FIELD_WIDTH }}>
+      <FlexColumn gap={GAP.comfortable}>
         <Caption color="secondary">
-          {t("setup:entity.chooseAViewThenEdit", {
-            defaultValue: "Choose a view, then edit the prompt to refine the image."
-          })}
+          Choose a view, then edit the prompt to refine the image.
         </Caption>
-        <FlexRow gap={GAP.tight} wrap>
-          {options.map((option) => (
-            <Chip
-              key={option.id}
-              label={t(PROMPT_OPTION_LABEL_KEYS[option.id] ?? "", {
-                defaultValue: option.label
-              })}
-              active={selectedOption === option.id}
-              aria-pressed={selectedOption === option.id}
-              onClick={() => {
-                setSelectedOption(option.id);
-                setPrompt(referencePrompt(name, kind, descriptor, option));
-              }}
-              disabled={generating}
-            />
-          ))}
-        </FlexRow>
-        <TextInput
-          label={t("storyboard:attrs.prompt", { defaultValue: "Prompt" })}
+        <FormField label="View">
+          <FlexRow gap={GAP.tight} wrap role="group" aria-label="View">
+            {options.map((option) => (
+              <Chip
+                key={option.id}
+                label={option.label}
+                active={selectedOption === option.id}
+                aria-pressed={selectedOption === option.id}
+                onClick={() => {
+                  setSelectedOption(option.id);
+                  setPrompt(referencePrompt(name, kind, descriptor, option));
+                }}
+                disabled={generating}
+              />
+            ))}
+          </FlexRow>
+        </FormField>
+        <TextArea
+          label={i18n.t("storyboard:attrs.prompt", { defaultValue: "Prompt" })}
           value={prompt}
-          onChange={(event) => setPrompt(event.target.value)}
-          multiline
+          onChange={(value) => setPrompt(value)}
           rows={4}
           autoFocus
         />
         <FormField
-          label={t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}
+          label={i18n.t("storyboard:attrs.imageModel", { defaultValue: "Image model" })}
           helperText={modelHelper}
         >
           <ImageModelSelect
@@ -379,7 +358,7 @@ const GenerateReferenceDialog = ({
         {generating ? (
           <FlexRow gap={GAP.tight} align="center">
             <LoadingSpinner inline size="small" />
-            <Caption>{t("storyboard:attrs.creatingYourReferenceImage", { defaultValue: "Creating your reference image…" })}</Caption>
+            <Caption>{i18n.t("storyboard:attrs.creatingYourReferenceImage", { defaultValue: "Creating your reference image…" })}</Caption>
           </FlexRow>
         ) : null}
       </FlexColumn>
@@ -407,13 +386,11 @@ export const ReferenceStep = ({
     <FlexColumn gap={GAP.spacious} sx={{ maxWidth: SETUP_CONTENT_WIDTH }}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h1">
-          {t("storyboard:attrs.chooseAReferenceImage", { defaultValue: "Choose a reference image" })}
+          Choose a reference image
         </Text>
         <Text color="secondary">
-          {t("setup:entity.pickTheClearestImage", {
-            defaultValue:
-              "Pick the clearest image of the traits you want future generations to preserve, or create one with AI."
-          })}
+          Pick the clearest image of the traits you want future generations to
+          preserve, or create one with AI.
         </Text>
       </FlexColumn>
 
@@ -421,15 +398,11 @@ export const ReferenceStep = ({
         <GalleryFrame
           locator={`asset://${assetId}`}
           kind="image"
-          caption={
-            name
-              ? t("setup:entity.nameReference", { defaultValue: "{{name}} reference", name })
-              : t("setup:entity.selectedReference", { defaultValue: "Selected reference" })
-          }
+          caption={name ? `${name} reference` : i18n.t("setup:entity.selectedReference", { defaultValue: "Selected reference" })}
         >
           <ResponsiveImage
             locator={`asset://${assetId}`}
-            alt={t("editor:ui.selectedEntityReference", { defaultValue: "Selected entity reference" })}
+            alt={i18n.t("editor:ui.selectedEntityReference", { defaultValue: "Selected entity reference" })}
             // Stable hook for the reference slot. The rendered <img> is not one:
             // jsdom fetches a src but has no image codec, so it fires `error`
             // for even a valid data: URI and the error fallback replaces the
@@ -456,19 +429,16 @@ export const ReferenceStep = ({
           disabled={assetsLoading || assetsError}
         >
           {assetsError
-            ? i18n.t("storyboard:attrs.assetsUnavailable", { defaultValue: "Assets unavailable" })
-            : assetsLoading
-              ? i18n.t("editor:explorer.loading", { defaultValue: "Loading assets" })
-              : assetId
-                ? i18n.t("storyboard:attrs.changeReference", { defaultValue: "Change reference" })
-                : i18n.t("storyboard:attrs.chooseFromAssets", { defaultValue: "Choose from assets" })}
+            ? i18n.t("storyboard:attrs.assetsUnavailable", { defaultValue: "Assets unavailable" }) : assetsLoading
+              ? i18n.t("editor:explorer.loading", { defaultValue: "Loading assets" }) : assetId
+                ? i18n.t("storyboard:attrs.changeReference", { defaultValue: "Change reference" }) : i18n.t("storyboard:attrs.chooseFromAssets", { defaultValue: "Choose from assets" })}
         </EditorButton>
         <EditorButton
           variant="outlined"
           startIcon={<AutoAwesomeOutlinedIcon />}
           onClick={() => setGeneratorOpen(true)}
         >
-          {t("storyboard:attrs.generateWithAI", { defaultValue: "Generate with AI" })}
+          Generate with AI
         </EditorButton>
       </FlexRow>
 

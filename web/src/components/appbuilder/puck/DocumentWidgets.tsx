@@ -176,7 +176,7 @@ export const TimelineWidget: React.FC<
       <FlexColumn gap={SPACING.sm}>
         <Box sx={timelineFrame(props.height)}>
           <React.Suspense
-            fallback={<LoadingSpinner size="small" text="Loading preview" />}
+            fallback={<LoadingSpinner size="small" text={t("storyboard:attrs.loadingPreview", { defaultValue: "Loading preview" })} />}
           >
             <LazyTimelineRenderer
               sequence={sequence}

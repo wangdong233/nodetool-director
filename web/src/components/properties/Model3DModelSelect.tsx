@@ -6,15 +6,14 @@ import { BASE_URL } from "../../stores/BASE_URL";
 import { Model3DModelValue } from "../../stores/ApiTypes";
 import { useQuery } from "@tanstack/react-query";
 import ModelSelectButton from "./shared/ModelSelectButton";
-import { useTranslation } from "react-i18next";
 
 import {
-  Caption,
   Divider,
   EditorMenu,
-  EditorMenuItem,
-  ListItemText
+  ListSubheader,
+  MenuItemPrimitive
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 // Local type until codegen adds Model3DModel to ApiTypes
 interface Model3DModel {
@@ -38,16 +37,12 @@ const ModelMenuItem = React.memo<ModelMenuItemProps>(
     }, [model, onSelect]);
 
     return (
-      <EditorMenuItem
-        onClick={handleClick}
+      <MenuItemPrimitive
+        label={model.name || model.id}
+        secondary={model.supported_tasks?.join(", ")}
         selected={isSelected}
-        sx={{ pl: 3 }}
-      >
-        <ListItemText
-          primary={model.name || model.id}
-          secondary={model.supported_tasks?.join(", ")}
-        />
-      </EditorMenuItem>
+        onClick={handleClick}
+      />
     );
   },
   (prevProps, nextProps) =>
@@ -157,8 +152,8 @@ const Model3DModelSelect: React.FC<Model3DModelSelectProps> = ({
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || t("editor:ui.select3DModel", { defaultValue: "Select 3D Model" })}
-        subLabel={t("editor:ui.select3DModel", { defaultValue: "Select 3D Model" })}
+        label={currentSelectedModelDetails?.name || value || "Select 3D model"}
+        subLabel="Select 3D model"
         onClick={handleClick}
       />
       <EditorMenu
@@ -178,37 +173,29 @@ const Model3DModelSelect: React.FC<Model3DModelSelectProps> = ({
           minWidth: 250
         }}
       >
-        {isLoading && (
-          <EditorMenuItem disabled>
-            <ListItemText primary={t("editor:ui.loadingModels", { defaultValue: "Loading models..." })} />
-          </EditorMenuItem>
-        )}
+        {isLoading && <MenuItemPrimitive label={t("editor:ui.loadingModels", { defaultValue: "Loading models…" })} disabled />}
         {!isLoading && filteredModels.length === 0 && (
-          <EditorMenuItem disabled>
-            <ListItemText primary={t("editor:ui.no3DModelsAvailable", { defaultValue: "No 3D models available" })} />
-          </EditorMenuItem>
+          <MenuItemPrimitive label={t("editor:ui.no3DModelsAvailable", { defaultValue: "No 3D models available" })} disabled />
         )}
-        {Object.entries(modelsByProvider).map(([provider, providerModels], index) => (
-          <React.Fragment key={provider}>
-            {index > 0 && <Divider />}
-            <EditorMenuItem disabled sx={{ opacity: 1 }}>
-              <Caption color="secondary" >
-                {provider}
-              </Caption>
-            </EditorMenuItem>
-            {providerModels.map((model) => (
+        {Object.entries(modelsByProvider).flatMap(
+          ([groupProvider, providerModels], index) => [
+            index > 0 ? <Divider key={`${groupProvider}-divider`} /> : null,
+            <ListSubheader key={`${groupProvider}-header`}>
+              {groupProvider}
+            </ListSubheader>,
+            ...providerModels.map((model) => (
               <ModelMenuItem
-                key={model.id}
+                key={`${groupProvider}-${model.id}`}
                 model={model}
                 isSelected={
                   model.id === value && (!provider || model.provider === provider)
                 }
                 onSelect={handleModelSelect}
               />
-            ))}
-          </React.Fragment>
-        ))}
-        <EditorMenuItem onClick={openSetup}>{t("ui2:attrs.addProviders", { defaultValue: "Add providers" })}</EditorMenuItem>
+            ))
+          ]
+        )}
+        <MenuItemPrimitive label={t("ui2:attrs.addProviders", { defaultValue: "Add providers" })} dividerBefore onClick={openSetup} />
       </EditorMenu>
     </>
   );

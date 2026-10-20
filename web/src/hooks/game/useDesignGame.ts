@@ -113,7 +113,7 @@ export const useDesignGame = (workflowId: string): UseDesignGameResult => {
         readSource() === origin;
       const setAside = () =>
         controller.signal.aborted
-          ? "Designing was canceled."
+          ? i18n.t("game:status.designingCanceled", { defaultValue: "Designing was canceled." })
           : DESIGN_SET_ASIDE_REASON;
       setError(null);
       setDesigning(true);
@@ -156,7 +156,7 @@ export const useDesignGame = (workflowId: string): UseDesignGameResult => {
         const parsed = parseGameDesign(raw, template.manifest);
         if (!parsed) {
           const reason = input.model?.id
-            ? "The designer did not return a design. Try again, or pick another model."
+            ? i18n.t("game:status.noDesignReturned", { defaultValue: "The designer did not return a design. Try again, or pick another model." })
             : "Pick a model to design this, or start from one of the examples.";
           setError(reason);
           return reason;

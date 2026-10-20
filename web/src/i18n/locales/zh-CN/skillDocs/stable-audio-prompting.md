@@ -81,3 +81,9 @@ Stable Audio 3 上给类型加前缀。`TrackType: Music, VocalType: Instrumenta
 改编自 Stability 的 Stable Audio 2.5 提示词指南与 Stable Audio 3 提示词指南:
 https://stability.ai/implementations/stable-audio-25-prompt-guide
 https://github.com/Stability-AI/stable-audio-3/blob/main/docs/guides/prompting.md
+
+字段只在该路由自己的节点上:用 `search_nodes` 找到它,`get_node_info` 读字段,`run_node` 运行。每次运行都是付费生成,先与用户确认范围。
+
+Replicate 路由的模型是 `stability-ai/stable-audio-2.5`,两条路由 2.5 版都默认 190 秒;`duration_seconds` 可代为设置时长。
+
+| `num_inference_steps` | 采样步数(Replicate 上叫 `steps`) | 蒸馏检查点默认 8,指南建议不超过该值 |

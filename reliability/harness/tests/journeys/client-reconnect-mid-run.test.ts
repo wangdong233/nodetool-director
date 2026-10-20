@@ -62,6 +62,7 @@ import {
 import { initTestDb, Job } from "@nodetool-ai/models";
 import { initMasterKey } from "@nodetool-ai/security";
 import { WsFaultProxy } from "../../src/faults/net-proxy.js";
+import { buildJourneyRegistry } from "../../src/drivers/registry.js";
 import { checkStateMachine } from "../../src/core/invariants/state-machine.js";
 import type { RecordedTransition, RunRecord } from "../../src/core/record.js";
 
@@ -149,12 +150,12 @@ describe("journey 9: client reconnect mid-run (task D2)", () => {
     await initMasterKey();
   });
 
-  let srv: ReturnType<typeof createTestUiServer>;
+  let srv: Awaited<ReturnType<typeof createTestUiServer>>;
   let proxy: WsFaultProxy;
   let proxyPort: number;
 
   beforeEach(async () => {
-    srv = createTestUiServer({ host: "127.0.0.1", port: 0 });
+    srv = await createTestUiServer({ host: "127.0.0.1", port: 0, registry: buildJourneyRegistry() });
     await srv.listen();
     const address = srv.server.address();
     const serverPort = typeof address === "object" && address !== null ? address.port : 0;

@@ -496,7 +496,7 @@ describe("useWorkflowSetupFlow", () => {
     expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
 
     await userEvent.type(
-      screen.getByPlaceholderText("Summarize a PDF and email it"),
+      screen.getByPlaceholderText("Make a cover image for each title in a list"),
       "x"
     );
     rerender(
@@ -703,7 +703,7 @@ describe("useWorkflowSetupFlow", () => {
     settings = writeWorkflowSetup({}, { stage: "idea", brief: "" });
     renderFlow();
     await userEvent.type(
-      screen.getByPlaceholderText("Summarize a PDF and email it"),
+      screen.getByPlaceholderText("Make a cover image for each title in a list"),
       "abc"
     );
     // Each keystroke reached the document at once.
@@ -721,7 +721,7 @@ describe("useWorkflowSetupFlow", () => {
 
     // The host's default is the first language model a provider offers; the
     // picker replaces it.
-    await userEvent.click(screen.getByRole("button", { name: /^m$/ }));
+    await userEvent.click(screen.getByRole("button", { name: /^m(\s|$)/ }));
     await userEvent.click(screen.getByRole("button", { name: "pick gemini" }));
 
     // On the workflow, so a reload plans with it rather than the default.
@@ -890,7 +890,7 @@ describe("useWorkflowSetupFlow", () => {
       { stage: "setup", brief: "b", plan: PLAN_WITH_ROLE }
     );
     const { unmount } = renderFlow();
-    await userEvent.click(screen.getByRole("button", { name: "m" }));
+    await userEvent.click(screen.getByRole("button", { name: /^m(\s|$)/ }));
     await userEvent.click(screen.getByRole("button", { name: "pick other" }));
     expect(readWorkflowSetup(settings)?.["role_models"]).toEqual({
       language: "p:other"
@@ -1171,7 +1171,7 @@ describe("useWorkflowSetupFlow", () => {
         }
       );
       renderFlow();
-      expect(screen.getByRole("button", { name: "other" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^other/ })).toBeInTheDocument();
       expect(
         screen.queryByRole("radiogroup", { name: "Language model" })
       ).toBeNull();

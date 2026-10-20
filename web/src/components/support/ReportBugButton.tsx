@@ -45,7 +45,7 @@ const ReportBugButton = ({
         variant={variant}
         size={size}
         onClick={handleClick}
-        startIcon={<BugReportIcon fontSize="inherit" />}
+        startIcon={<BugReportIcon />}
       >
         {label}
       </EditorButton>

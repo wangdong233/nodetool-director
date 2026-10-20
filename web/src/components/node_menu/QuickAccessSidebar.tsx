@@ -6,7 +6,6 @@ import {
   Tooltip,
   ToolbarIconButton
 } from "../ui_primitives";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import {
   isDocumentPanelView,
   isMorePanelView,
@@ -49,7 +48,6 @@ const QuickAccessButton = ({
     <Tooltip
       title={label}
       placement="right-start"
-      delay={TOOLTIP_ENTER_DELAY}
     >
       <ToolbarIconButton
         tabIndex={-1}

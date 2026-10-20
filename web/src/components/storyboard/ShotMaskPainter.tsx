@@ -12,7 +12,6 @@
  */
 
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   Box,
@@ -28,6 +27,7 @@ import {
   SPACING
 } from "../ui_primitives";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
+import { useTranslation } from "react-i18next";
 
 interface ShotMaskPainterProps {
   /** The resolved URL of the still being masked. */
@@ -233,21 +233,9 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
       onClose={onCancel}
       title={t("storyboard:attrs.paintTheAreaToChange", { defaultValue: "Paint the area to change" })}
       maxWidth="lg"
-      actions={
-        <FlexRow align="center" gap={SPACING.sm}>
-          <EditorButton onClick={onCancel}>
-            {t("storyboard:attrs.cancel", { defaultValue: "Cancel" })}
-          </EditorButton>
-          <EditorButton
-            variant="contained"
-            color="primary"
-            onClick={handleDone}
-            disabled={!ready}
-          >
-            {t("storyboard:attrs.useThisArea", { defaultValue: "Use this area" })}
-          </EditorButton>
-        </FlexRow>
-      }
+      onConfirm={handleDone}
+      confirmText={t("storyboard:attrs.useThisArea", { defaultValue: "Use this area" })}
+      confirmDisabled={!ready}
     >
       <FlexColumn gap={SPACING.md} align="center">
         <FlexRow align="center" gap={SPACING.md} wrap sx={{ alignSelf: "stretch" }}>
@@ -263,16 +251,12 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
             }}
             aria-label={t("storyboard:attrs.paintingTool", { defaultValue: "Painting tool" })}
           >
-            <ToggleOption value="brush">
-              {t("editor:ui.brush", { defaultValue: "Brush" })}
-            </ToggleOption>
-            <ToggleOption value="eraser">
-              {t("editor:ui.eraser", { defaultValue: "Eraser" })}
-            </ToggleOption>
+            <ToggleOption value="brush">{t("editor:ui.brush", { defaultValue: "Brush" })}</ToggleOption>
+            <ToggleOption value="eraser">{t("editor:ui.eraser", { defaultValue: "Eraser" })}</ToggleOption>
           </ToggleGroup>
           <FlexRow align="center" gap={SPACING.sm}>
             <Caption color="secondary" id="shot-mask-brush-label">
-              {t("storyboard:attrs.brushSize", { defaultValue: "Brush size" })}
+              Brush size
             </Caption>
             <Slider
               density="compact"
@@ -287,7 +271,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
             />
           </FlexRow>
           <EditorButton size="small" onClick={handleClear}>
-            {t("storyboard:attrs.clear", { defaultValue: "Clear" })}
+            Clear
           </EditorButton>
         </FlexRow>
         <Box sx={frameSx}>
@@ -314,9 +298,7 @@ const ShotMaskPainterInner: React.FC<ShotMaskPainterProps> = ({
           />
         </Box>
         <Caption color="secondary">
-          {t("storyboard:attrs.paintOverWhatShouldChange", {
-            defaultValue: "Paint over what should change. The rest of the still is kept."
-          })}
+          Paint over what should change. The rest of the still is kept.
         </Caption>
       </FlexColumn>
     </Dialog>

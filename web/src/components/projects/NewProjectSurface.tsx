@@ -13,7 +13,6 @@
  * menu always did.
  */
 
-import { useTranslation } from "react-i18next";
 import {
   useCallback,
   useEffect,
@@ -33,6 +32,7 @@ import { createTopDownRoomGame, createNative3DGame } from "@nodetool-ai/game-run
 import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
+import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 
 import {
@@ -49,8 +49,8 @@ import {
   Label,
   InspectorSelect,
   MenuItemPrimitive,
+  ContextMenu,
   MOTION,
-  Popover,
   ResponsiveImage,
   ScrollArea,
   CONTROL,
@@ -61,8 +61,14 @@ import {
   Tooltip,
   TYPOGRAPHY
 } from "../ui_primitives";
-import type { Asset, MessageContent, Workflow } from "../../stores/ApiTypes";
-import type { TFunction } from "i18next";
+import type {
+  Asset,
+  LanguageModel,
+  MessageContent,
+  Workflow
+} from "../../stores/ApiTypes";
+import { useProjectDocumentTotal } from "./useProjectDocumentTotal";
+import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
 import type { DroppedFile } from "../chat/types/chat.types";
 import { useAssetStore } from "../../stores/AssetStore";
 import {
@@ -104,13 +110,17 @@ import {
   useExampleStoryboards
 } from "../../hooks/storyboard/useStoryboards";
 import { useLanguageProviderReadiness } from "../../hooks/useHasConfiguredProvider";
-import { openProviderOnboarding } from "../../stores/ProviderOnboardingStore";
+import {
+  openProviderOnboarding,
+  useProviderOnboardingStore
+} from "../../stores/ProviderOnboardingStore";
 import useOnboardingStore, {
   isOnboardingFinished
 } from "../../stores/OnboardingStore";
 import GettingStartedChecklist from "../onboarding/GettingStartedChecklist";
 import StartExamples from "./StartExamples";
 import CurrentProjectDocuments from "./CurrentProjectDocuments";
+import RecentChats from "./RecentChats";
 import LanguageModelMenuDialog from "../model_menu/LanguageModelMenuDialog";
 import ReportBugButton from "../support/ReportBugButton";
 import { openPageTab } from "../workspace/openPageTab";
@@ -125,6 +135,7 @@ import VideoSetupHost from "../setup/video/VideoSetupHost";
 import ScriptSetupHost from "../setup/script/ScriptSetupHost";
 import WorkflowSetupHost from "../setup/workflow/WorkflowSetupHost";
 import GameSetupHost from "../setup/game/GameSetupHost";
+import AppSetupHost, { type BuiltApp } from "../setup/app/AppSetupHost";
 import type { GameStartAlternative } from "../setup/game/IdeaStep";
 import type { BuildGameResult } from "../../hooks/game/useBuildGame";
 import EntitySetupHost from "../setup/entity/EntitySetupHost";
@@ -147,6 +158,7 @@ import {
 import { newDocumentId } from "../../lib/newDocumentId";
 import { newStoryboardSetupDocument } from "../setup/storyboard/useStoryboardSetupFlow";
 import { stageChatTurn } from "../chat/pendingChatTurn";
+import { openSpeechChat } from "../chat/openSpeechChat";
 import { PROJECT_COLOR } from "./projectIdentity";
 import {
   composeFirstTurn,
@@ -154,6 +166,7 @@ import {
   formatEstimate,
   invokedStarter,
   projectNameFromPrompt,
+  promptWithoutStarter,
   rankStarters,
   starterLabel,
   toggleStarterInPrompt,
@@ -166,14 +179,18 @@ import scriptBackground from "../../assets/guided-flows/script.webp";
 import imageBackground from "../../assets/guided-flows/image.webp";
 import workflowBackground from "../../assets/guided-flows/workflow.webp";
 import gameBackground from "../../assets/guided-flows/game.webp";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const ENTRY_BACKGROUNDS: Partial<Record<EntryFlowId, string>> = {
   storyboard: storyboardBackground,
   video: videoBackground,
   script: scriptBackground,
+  speech: scriptBackground,
   image: imageBackground,
   workflow: workflowBackground,
-  game: gameBackground
+  game: gameBackground,
+  app: workflowBackground
 };
 
 /** Width of the centered column, per the new-project mockup. */
@@ -187,20 +204,6 @@ const SUBMENU_WIDTH = 320;
 const SUBMENU_MAX_WIDTH = 340;
 
 /** A starter pill at rest: outlined, quiet, the project's colour on hover. */
-const starterPillSx = {
-  borderRadius: BORDER_RADIUS.pill,
-  color: "text.secondary",
-  "&:hover": { borderColor: PROJECT_COLOR, color: "text.primary" }
-} as const;
-
-/** The picked starter: drawn in the project colour on a tint of it. */
-const activeStarterPillSx = {
-  color: PROJECT_COLOR,
-  borderColor: PROJECT_COLOR,
-  backgroundColor: "rgba(var(--palette-info-lightChannel) / 0.12)",
-  "&:hover": { backgroundColor: "rgba(var(--palette-info-lightChannel) / 0.2)" }
-} as const;
-
 /** A context control in the composer's toolbar: quiet until pointed at. */
 const composerToolSx = {
   color: "text.secondary",
@@ -227,6 +230,9 @@ interface SubmenuAnchor {
  */
 type SetupTarget = GuidedFlowTarget;
 
+/** The notice asking for a model; dismissed once the model is picked. */
+const PICK_MODEL_NOTICE_KEY = "new-project-pick-model";
+
 const SETUP_TARGET_STORAGE_KEY = "nodetool-guided-setup-target";
 const SETUP_TARGET_KINDS: ReadonlySet<string> = new Set([
   "entity",
@@ -234,7 +240,8 @@ const SETUP_TARGET_KINDS: ReadonlySet<string> = new Set([
   "video",
   "script",
   "workflow",
-  "game"
+  "game",
+  "app"
 ]);
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -264,7 +271,9 @@ const readSetupTarget = (): SetupTarget | null => {
       typeof value["name"] !== "string" ||
       typeof value["ownsProject"] !== "boolean" ||
       (value["initialAssetId"] !== undefined &&
-        typeof value["initialAssetId"] !== "string")
+        typeof value["initialAssetId"] !== "string") ||
+      (value["initialDescriptor"] !== undefined &&
+        typeof value["initialDescriptor"] !== "string")
     ) {
       return null;
     }
@@ -276,6 +285,9 @@ const readSetupTarget = (): SetupTarget | null => {
       ownsProject: value["ownsProject"],
       ...(typeof value["initialAssetId"] === "string" && {
         initialAssetId: value["initialAssetId"]
+      }),
+      ...(typeof value["initialDescriptor"] === "string" && {
+        initialDescriptor: value["initialDescriptor"]
       })
     };
   } catch {
@@ -307,7 +319,8 @@ const SETUP_TAB_TYPE = {
   video: "timeline",
   script: "script",
   workflow: "workflow",
-  game: "game"
+  game: "game",
+  app: "application"
 } as const;
 
 /** What a flow makes, in the creator's words. */
@@ -317,19 +330,9 @@ const SETUP_KIND_NOUN: Record<SetupTarget["kind"], string> = {
   video: "video",
   script: "script",
   workflow: "workflow",
-  game: "game"
+  game: "game",
+  app: "app"
 };
-
-/**
- * The flow-kind noun for user-visible sentences. English uses the lowercase
- * word above (the sentence reads "your workflow"); zh resolves the catalog's
- * flowError.kind entry so the sentence carries a proper noun.
- */
-const flowKindNoun = (
-  t: TFunction,
-  kind: SetupTarget["kind"]
-): string =>
-  t(`home:flowError.kind.${kind}`, { defaultValue: SETUP_KIND_NOUN[kind] });
 
 /**
  * One composer attachment, as a setup document may hold it.
@@ -375,7 +378,8 @@ const uploadComposerReferences = async (
 
 /** Drop the draft document an entry card made. */
 const deleteSetupDocument = async (target: SetupTarget): Promise<void> => {
-  if (target.kind === "entity") {
+  // Neither flow writes a document before it finishes.
+  if (target.kind === "entity" || target.kind === "app") {
     return;
   }
   if (target.kind === "storyboard") {
@@ -490,9 +494,20 @@ const NewProjectSurface = ({
   // the handlers read this rather than the render's copy of the state.
   const setupTargetRef = useRef<SetupTarget | null>(setupTarget);
   // Whether this guided tab is the one on screen. The New Project tab itself
-  // (no `flowRef`) only finishes from a click, so it always is.
+  // (no `flowRef`) only finishes from a click, so it always is. The workflow
+  // build opens the flow's own document to reach its canvas, and a creator
+  // looking at that document is looking at the flow too.
   const guidedTabActive = useWorkspaceTabsStore(
-    (state) => !flowRef || state.activeTabId === tabId("guided-flow", flowRef)
+    (state) =>
+      !flowRef ||
+      state.activeTabId === tabId("guided-flow", flowRef) ||
+      (setupTarget !== null &&
+        setupTarget.kind in SETUP_TAB_TYPE &&
+        state.activeTabId ===
+          tabId(
+            SETUP_TAB_TYPE[setupTarget.kind as keyof typeof SETUP_TAB_TYPE],
+            setupTarget.id
+          ))
   );
   const guidedTabActiveRef = useRef(guidedTabActive);
   guidedTabActiveRef.current = guidedTabActive;
@@ -501,6 +516,7 @@ const NewProjectSurface = ({
   const [heldFinish, setHeldFinish] = useState<{
     result?: BuildFromPlanResult | null;
     game?: BuildGameResult;
+    app?: BuiltApp;
   } | null>(null);
   const [finishError, setFinishError] = useState<string | null>(null);
   const refInputRef = useRef<HTMLInputElement>(null);
@@ -518,6 +534,9 @@ const NewProjectSurface = ({
     getFileContents
   } = useFileHandling();
   const { uploadFiles, isUploading } = useComposerAssetUpload(addDroppedFiles);
+  const referenceImageCount = droppedFiles.filter((file) =>
+    file.type.startsWith("image/")
+  ).length;
   const { data: entities } = useEntities();
   // Both the user's own skills and the ones NodeTool ships: either is a
   // starter, and either is invoked the same way.
@@ -547,6 +566,9 @@ const NewProjectSurface = ({
   );
   const addNotification = useNotificationStore(
     (state) => state.addNotification
+  );
+  const removeNotificationsByKey = useNotificationStore(
+    (state) => state.removeNotificationsByKey
   );
   const providerReadiness = useLanguageProviderReadiness();
   const hasConfiguredProvider = providerReadiness.ready;
@@ -588,6 +610,7 @@ const NewProjectSurface = ({
   const activeProjectId = useWorkspaceTabsStore(
     (state) => state.activeProjectId
   );
+  const projectDocumentTotal = useProjectDocumentTotal();
 
   /**
    * Make a document's project the one on screen before its tab opens. The
@@ -622,6 +645,14 @@ const NewProjectSurface = ({
   const starter = useMemo(
     () => invokedStarter(prompt, starters),
     [prompt, starters]
+  );
+
+  // A guided flow takes the prompt as its idea, without the `/name` a starter
+  // pill wrote: the flow has no use for it, and it would land in the idea
+  // field and the tab name.
+  const flowPrompt = useMemo(
+    () => (starter ? promptWithoutStarter(prompt, starter.name) : prompt),
+    [prompt, starter]
   );
 
   // The folded row still shows the picked starter, wherever it ranks, so the
@@ -716,13 +747,26 @@ const NewProjectSurface = ({
   const handleRefImages = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(event.target.files ?? []);
-      if (files.length > 0) {
-        uploadFiles(files);
+      // The picker's image filter is a default a person can switch off, and a
+      // text file taken as a reference showed as a broken picture.
+      const images = files.filter((file) => file.type.startsWith("image/"));
+      const skipped = files.filter((file) => !file.type.startsWith("image/"));
+      if (skipped.length > 0) {
+        addNotification({
+          type: "warning",
+          alert: true,
+          content: `Reference images take pictures only. ${skipped
+            .map((file) => file.name)
+            .join(", ")} ${skipped.length === 1 ? "was" : "were"} not added.`
+        });
+      }
+      if (images.length > 0) {
+        uploadFiles(images);
       }
       // Clear the input so picking the same file twice still registers.
       event.target.value = "";
     },
-    [uploadFiles]
+    [addNotification, uploadFiles]
   );
 
   const handleStart = useCallback(async () => {
@@ -736,7 +780,7 @@ const NewProjectSurface = ({
       addNotification({
         type: "info",
         alert: true,
-        content: t("home:notices.checkingModels", { defaultValue: "Still checking your language models. Try again in a moment." })
+        content: "Still checking your language models. Try again in a moment.", contentKey: "home:notices.checkingModels"
       });
       return;
     }
@@ -744,7 +788,7 @@ const NewProjectSurface = ({
       setPendingStart(true);
       openProviderOnboarding({
         capability: "generate_message",
-        reason: t("home:notices.needModel", { defaultValue: "Almost there — chat needs a model to run." })
+        reason: "Almost there — chat needs a model to run.", reasonKey: "home:notices.needModel"
       });
       return;
     }
@@ -752,13 +796,30 @@ const NewProjectSurface = ({
     // starts on the "empty" sentinel, and a send with it never leaves the
     // client. Open this surface's own model menu rather than point at a
     // composer that is not on this screen, and start once a model is picked.
-    if (!isModelSelected(selectedModel)) {
+    // The Settings default language model counts: a connected account starts
+    // the chat at once, and the model menu stays a way to change it.
+    let sendModel = selectedModel;
+    if (!isModelSelected(sendModel)) {
+      const languageDefault =
+        useModelPreferencesStore.getState().defaults["language_model"];
+      if (languageDefault) {
+        sendModel = {
+          type: "language_model",
+          provider: languageDefault.provider,
+          id: languageDefault.id,
+          name: languageDefault.name
+        } as LanguageModel;
+        setSelectedModel(sendModel);
+      }
+    }
+    if (!isModelSelected(sendModel)) {
       setPendingModelStart(true);
       setModelAnchor(modelButtonRef.current);
       addNotification({
         type: "info",
         alert: true,
-        content: t("home:notices.pickModel", { defaultValue: "Pick a language model and the chat starts." })
+        content: "Pick a language model and the chat starts.", contentKey: "home:notices.pickModel",
+        dedupeKey: PICK_MODEL_NOTICE_KEY
       });
       return;
     }
@@ -782,9 +843,10 @@ const NewProjectSurface = ({
         type: "chat",
         ref: threadId,
         mode: "view",
-        title: t("editor:ui.menuLabel.chat", { defaultValue: "New chat" }),
+        title: "New chat",
         projectId
       });
+      useOnboardingStore.getState().markIdeaDescribed();
       closeTab(
         tabId(flowRef ? "guided-flow" : "project-new", flowRef ?? PROJECT_NEW_REF)
       );
@@ -812,6 +874,7 @@ const NewProjectSurface = ({
     prompt,
     selectedEntities,
     selectedModel,
+    setSelectedModel,
     starter,
     starting
   ]);
@@ -952,7 +1015,7 @@ const NewProjectSurface = ({
       if (starting) {
         return;
       }
-      const text = prompt.trim();
+      const text = flowPrompt.trim();
       const name =
         text.length > 0 ? projectNameFromPrompt(text, null) : "New storyboard";
       setStarting(true);
@@ -989,7 +1052,7 @@ const NewProjectSurface = ({
       createStoryboard,
       entityIds,
       noteUncarriedContext,
-      prompt,
+      flowPrompt,
       reportEntryFailure,
       starting
     ]
@@ -1002,9 +1065,9 @@ const NewProjectSurface = ({
       if (starting) {
         return;
       }
-      const text = prompt.trim();
+      const text = flowPrompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : "New video";
+        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newVideo", { defaultValue: "New video" });
       setStarting(true);
       // The sequence made before its setup PATCH. A failure in between
       // deletes it, so no empty timeline is left in the project (F15).
@@ -1079,7 +1142,7 @@ const NewProjectSurface = ({
       droppedFiles,
       entityIds,
       noteUncarriedContext,
-      prompt,
+      flowPrompt,
       reportEntryFailure,
       seedTimelineDetail,
       selectedEntities,
@@ -1092,7 +1155,7 @@ const NewProjectSurface = ({
       if (starting) {
         return;
       }
-      const text = prompt.trim();
+      const text = flowPrompt.trim();
       const name =
         text.length > 0 ? projectNameFromPrompt(text, null) : "New script";
       setStarting(true);
@@ -1130,7 +1193,7 @@ const NewProjectSurface = ({
       droppedFiles,
       entityIds,
       noteUncarriedContext,
-      prompt,
+      flowPrompt,
       reportEntryFailure,
       starting
     ]
@@ -1144,7 +1207,7 @@ const NewProjectSurface = ({
       if (starting) {
         return;
       }
-      const text = prompt.trim();
+      const text = flowPrompt.trim();
       const name =
         text.length > 0 ? projectNameFromPrompt(text, null) : "New image";
       setStarting(true);
@@ -1194,7 +1257,7 @@ const NewProjectSurface = ({
       hasHomeTab,
       noteUncarriedContext,
       openTab,
-      prompt,
+      flowPrompt,
       reportEntryFailure,
       showDocumentProject,
       starting
@@ -1206,9 +1269,9 @@ const NewProjectSurface = ({
       if (starting) {
         return;
       }
-      const text = prompt.trim();
+      const text = flowPrompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : "New workflow";
+        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newWorkflowLower", { defaultValue: "New workflow" });
       setStarting(true);
       try {
         const created = await createWorkflow({
@@ -1240,10 +1303,28 @@ const NewProjectSurface = ({
       applySetupTarget,
       createWorkflow,
       noteUncarriedContext,
-      prompt,
+      flowPrompt,
       reportEntryFailure,
       starting
     ]
+  );
+
+  // Nothing is created until the build is green, so the flow's target names
+  // the project and carries the description.
+  const startAppFlow = useCallback(
+    async (projectId: string) => {
+      const text = flowPrompt.trim();
+      noteUncarriedContext("app", { entities: false, references: false });
+      applySetupTarget({
+        kind: "app",
+        id: crypto.randomUUID(),
+        projectId,
+        name: text.length > 0 ? projectNameFromPrompt(text, null) : "New app",
+        ownsProject: false,
+        initialDescriptor: text
+      });
+    },
+    [applySetupTarget, flowPrompt, noteUncarriedContext]
   );
 
   const startGameFlow = useCallback(
@@ -1251,9 +1332,9 @@ const NewProjectSurface = ({
       if (starting) {
         return;
       }
-      const text = prompt.trim();
+      const text = flowPrompt.trim();
       const name =
-        text.length > 0 ? projectNameFromPrompt(text, null) : "New game";
+        text.length > 0 ? projectNameFromPrompt(text, null) : i18n.t("editor:ui.newGame", { defaultValue: "New game" });
       setStarting(true);
       try {
         // A 2D game is designed first: the flow's document is a workflow row
@@ -1317,7 +1398,7 @@ const NewProjectSurface = ({
       gameDimension,
       noteUncarriedContext,
       openTab,
-      prompt,
+      flowPrompt,
       reportEntryFailure,
       showDocumentProject,
       starting
@@ -1329,7 +1410,7 @@ const NewProjectSurface = ({
       if (starting) {
         return;
       }
-      const text = prompt.trim();
+      const text = flowPrompt.trim();
       const name =
         text.length > 0 ? projectNameFromPrompt(text, null) : "New entity";
       setStarting(true);
@@ -1366,10 +1447,25 @@ const NewProjectSurface = ({
       applySetupTarget,
       droppedFiles,
       noteUncarriedContext,
-      prompt,
+      flowPrompt,
       reportEntryFailure,
       starting
     ]
+  );
+
+  const startSpeechFlow = useCallback(
+    async (projectId: string) => {
+      try {
+        await openSpeechChat(projectId, flowPrompt.trim());
+        noteUncarriedContext("chat", { entities: false, references: false });
+        closeTab(
+          tabId(flowRef ? "guided-flow" : "project-new", flowRef ?? PROJECT_NEW_REF)
+        );
+      } catch (error) {
+        reportEntryFailure("chat", error);
+      }
+    },
+    [closeTab, flowRef, flowPrompt, noteUncarriedContext, reportEntryFailure]
   );
 
   const runDestinationFlow = useCallback(
@@ -1382,9 +1478,11 @@ const NewProjectSurface = ({
         storyboard: startStoryboardFlow,
         video: startVideoFlow,
         script: startScriptFlow,
+        speech: startSpeechFlow,
         image: startImageProject,
         workflow: startWorkflowFlow,
-        game: startGameFlow
+        game: startGameFlow,
+        app: startAppFlow
       };
       // Marked before the first await, so the card reads as busy on the click
       // rather than on the create's first render.
@@ -1392,10 +1490,12 @@ const NewProjectSurface = ({
       void starters[id](creationProjectId()).finally(() => setPendingFlow(null));
     },
     [
+      startAppFlow,
       startEntityFlow,
       startGameFlow,
       startImageProject,
       startScriptFlow,
+      startSpeechFlow,
       startStoryboardFlow,
       startVideoFlow,
       startWorkflowFlow
@@ -1418,22 +1518,30 @@ const NewProjectSurface = ({
     [isUploading, pendingFlow, runDestinationFlow, starting]
   );
 
+  const handleMakeGame = useCallback(
+    () => handleEntryCard("game"),
+    [handleEntryCard]
+  );
+
   // The chosen card says what it is doing; the other cards are off, because a
   // second flow started over the first would create an unwanted draft.
   const entryOptions = useMemo<readonly OptionCardItem[]>(() => {
     const cards = ENTRY_CARDS.filter((card) =>
-      showMoreFlows || ["storyboard", "image", "workflow"].includes(card.id)
+      showMoreFlows ||
+      ["storyboard", "image", "speech", "workflow", "game", "app"].includes(
+        card.id
+      )
     ).map((card) => ({
       ...card,
-      // The grid resolves descriptionKey over description, so the 3D variant
-      // swaps both — overriding description alone renders nothing.
+      // The 3D override must drop `descriptionKey` too: the card renderer
+      // prefers the key, so a surviving key would mask the override.
       description:
         card.id === "game" && gameDimension === "3d"
           ? t("home:entry.game.desc3d", { defaultValue: "Start with a playable 3D exploration scene in the built-in engine." })
           : card.description,
       descriptionKey:
         card.id === "game" && gameDimension === "3d"
-          ? "home:entry.game.desc3d"
+          ? undefined
           : card.descriptionKey,
       image: ENTRY_BACKGROUNDS[card.id]
     }));
@@ -1443,7 +1551,7 @@ const NewProjectSurface = ({
         ? cards.map((card) => ({
             ...card,
             disabled: true,
-            disabledReason: t("home:surface.waitingUploads", { defaultValue: "Waiting for your reference images to upload." })
+            disabledReason: t("home:surface.waitingUploads", { defaultValue: "Waiting for your reference images to upload." }), disabledReasonKey: "home:surface.waitingUploads",
           }))
         : cards;
     }
@@ -1451,18 +1559,18 @@ const NewProjectSurface = ({
       card.id === pendingFlow
         ? {
             ...card,
-            meta: t("home:surface.creatingMeta", { defaultValue: "Creating…" }),
+            meta: "Creating…",
             disabled: true,
             // Every card files a draft into the open project and makes none.
-            disabledReason: t("home:surface.creatingDraft", { defaultValue: "Creating your draft…" })
+            disabledReason: "Creating your draft…"
           }
         : {
             ...card,
             disabled: true,
-            disabledReason: t("home:surface.oneFlowStarting", { defaultValue: "One flow is already starting." })
+            disabledReason: t("home:surface.oneFlowStarting", { defaultValue: "One flow is already starting." }), disabledReasonKey: "home:surface.oneFlowStarting",
           }
     );
-  }, [isUploading, pendingFlow, showMoreFlows, gameDimension, t]);
+  }, [isUploading, pendingFlow, showMoreFlows, gameDimension]);
 
   /**
    * The flow's last step wrote stage `done`: hand the finished board its own
@@ -1473,9 +1581,17 @@ const NewProjectSurface = ({
    * here, because this tab is the last place that holds them.
    */
   const handleSetupFinished = useCallback(
-    async (result?: BuildFromPlanResult | null, game?: BuildGameResult) => {
+    async (
+      result?: BuildFromPlanResult | null,
+      game?: BuildGameResult,
+      app?: BuiltApp
+    ) => {
       const target = setupTargetRef.current;
       if (!target || target.kind === "entity") {
+        return;
+      }
+      // The App flow makes its app only when the build is green.
+      if (target.kind === "app" && !app) {
         return;
       }
       // The Game flow's document is the workflow that carried the setup; the
@@ -1488,18 +1604,15 @@ const NewProjectSurface = ({
       // project then would pull them away, so the hand-off waits until this
       // tab is in view again.
       if (!guidedTabActiveRef.current) {
-        setHeldFinish({ result, game });
+        setHeldFinish({ result, game, app });
         return;
       }
       if (!(await showDocumentProject(target.projectId, target.name))) {
         // The document is done, so the flow has no step left to show. The
         // hand-off is kept with a way to try it again.
-        setHeldFinish({ result, game });
+        setHeldFinish({ result, game, app });
         setFinishError(
-          t("home:flowError.notOpened", {
-            kind: flowKindNoun(t, target.kind),
-            defaultValue: `Your ${SETUP_KIND_NOUN[target.kind]} is ready, but its project did not open.`
-          })
+          `Your ${SETUP_KIND_NOUN[target.kind]} is ready, but its project did not open.`
         );
         return;
       }
@@ -1513,18 +1626,14 @@ const NewProjectSurface = ({
         addNotification({
           type: "warning",
           alert: true,
-          content: t("home:flowError.openedWithFailures", {
-            kind: flowKindNoun(t, target.kind),
-            failures: failures.join(" "),
-            defaultValue: `Opened your ${SETUP_KIND_NOUN[target.kind]}, but ${failures.join(" ")}`
-          })
+          content: `Opened your ${SETUP_KIND_NOUN[target.kind]}, but ${failures.join(" ")}`
         });
       }
       openTab({
         type: SETUP_TAB_TYPE[target.kind],
-        ref: game ? game.gameId : target.id,
+        ref: game ? game.gameId : app ? app.appId : target.id,
         mode: "edit",
-        title: game ? game.name : target.name,
+        title: game ? game.name : app ? app.name : target.name,
         projectId: target.projectId
       });
       if (game) {
@@ -1542,7 +1651,11 @@ const NewProjectSurface = ({
   useEffect(() => {
     if (heldFinish && guidedTabActive && finishError === null) {
       setHeldFinish(null);
-      void handleSetupFinished(heldFinish.result, heldFinish.game);
+      void handleSetupFinished(
+        heldFinish.result,
+        heldFinish.game,
+        heldFinish.app
+      );
     }
   }, [finishError, guidedTabActive, handleSetupFinished, heldFinish]);
 
@@ -1550,8 +1663,15 @@ const NewProjectSurface = ({
     const held = heldFinish;
     setHeldFinish(null);
     setFinishError(null);
-    void handleSetupFinished(held?.result, held?.game);
+    void handleSetupFinished(held?.result, held?.game, held?.app);
   }, [handleSetupFinished, heldFinish]);
+
+  const handleAppFinished = useCallback(
+    (app: BuiltApp) => {
+      void handleSetupFinished(null, undefined, app);
+    },
+    [handleSetupFinished]
+  );
 
   const handleGameFinished = useCallback(
     (game: BuildGameResult) => {
@@ -1782,7 +1902,9 @@ const NewProjectSurface = ({
   );
 
   // A start that was parked on provider onboarding resumes on its own once a
-  // provider is connected, so the user finishes the thing they asked for.
+  // provider is connected, so the user finishes the thing they asked for. The
+  // dialog has done its job then: left open, it covered the model menu the
+  // resumed start opens and then the chat that start opened.
   const resumeProject = useRef(handleStart);
   resumeProject.current = handleStart;
   useEffect(() => {
@@ -1790,6 +1912,7 @@ const NewProjectSurface = ({
       return;
     }
     setPendingStart(false);
+    useProviderOnboardingStore.getState().dismiss();
     void resumeProject.current();
   }, [pendingStart, hasConfiguredProvider]);
 
@@ -1798,8 +1921,9 @@ const NewProjectSurface = ({
       return;
     }
     setPendingModelStart(false);
+    removeNotificationsByKey(PICK_MODEL_NOTICE_KEY);
     void resumeProject.current();
-  }, [pendingModelStart, selectedModel]);
+  }, [pendingModelStart, selectedModel, removeNotificationsByKey]);
 
   // The handler rides the field wrapper, where MUI puts unknown props, and the
   // keydown reaches it by bubbling from the textarea. Both pickers only read
@@ -1898,10 +2022,7 @@ const NewProjectSurface = ({
           onClick={retryFinish}
           sx={{ alignSelf: "flex-start" }}
         >
-          {t("home:flowError.open", {
-            kind: flowKindNoun(t, setupTarget.kind),
-            defaultValue: `Open your ${SETUP_KIND_NOUN[setupTarget.kind]}`
-          })}
+          {`Open your ${SETUP_KIND_NOUN[setupTarget.kind]}`}
         </EditorButton>
       </FlexColumn>
     );
@@ -1915,7 +2036,7 @@ const NewProjectSurface = ({
           <EntitySetupHost
             projectId={setupTarget.projectId}
             draftKey={flowRef}
-            initialDescriptor={setupTarget.initialDescriptor ?? prompt.trim()}
+            initialDescriptor={setupTarget.initialDescriptor ?? flowPrompt.trim()}
             initialAssetId={setupTarget.initialAssetId}
             onFinish={handleEntityFinished}
             onChangeFlow={handleChangeFlow}
@@ -1926,7 +2047,7 @@ const NewProjectSurface = ({
         <EntitySetupHost
           projectId={setupTarget.projectId}
           draftKey={flowRef}
-          initialDescriptor={setupTarget.initialDescriptor ?? prompt.trim()}
+          initialDescriptor={setupTarget.initialDescriptor ?? flowPrompt.trim()}
           onFinish={handleEntityFinished}
           onChangeFlow={handleChangeFlow}
         />
@@ -1965,6 +2086,16 @@ const NewProjectSurface = ({
         />
       );
     }
+    if (setupTarget.kind === "app") {
+      return (
+        <AppSetupHost
+          projectId={setupTarget.projectId}
+          initialBrief={setupTarget.initialDescriptor ?? flowPrompt.trim()}
+          onFinish={handleAppFinished}
+          onChangeFlow={handleChangeFlow}
+        />
+      );
+    }
     if (setupTarget.kind === "workflow") {
       return (
         <WorkflowSetupHost
@@ -1983,6 +2114,16 @@ const NewProjectSurface = ({
       />
     );
   }
+
+  // One project's work: its documents, then its latest chats, both scoped by
+  // the project picker in the documents header.
+  const noDocuments = projectDocumentTotal === 0;
+  const projectWork = (
+    <FlexColumn gap={SPACING.xl}>
+      <CurrentProjectDocuments />
+      <RecentChats />
+    </FlexColumn>
+  );
 
   return (
     <ScrollArea fullHeight>
@@ -2016,17 +2157,19 @@ const NewProjectSurface = ({
               above it (`mentionMenuPosition`). */}
           <FlexColumn
             component="section"
-            aria-label={t("home:surface.title", { defaultValue: "What do you want to make?" })}
+            aria-label={t("home:checklist.describeIdea", { defaultValue: "Describe what you want to make" })}
             gap={SPACING.lg}
             sx={{ pt: showOnboarding ? 0 : SPACING.xxl }}
           >
             <FlexColumn gap={SPACING.sm} align="center">
-              <Text size="giant" component="h1" sx={{ textAlign: "center" }}>{t("home:surface.title", { defaultValue: "What do you want to make?" })}</Text>
+              <Text size="giant" component="h1" sx={{ textAlign: "center" }}>
+                {t("home:surface.title", { defaultValue: "What do you want to make?" })}
+              </Text>
               <Text
                 color="secondary"
                 sx={{ maxWidth: INTRO_TEXT_WIDTH, textAlign: "center" }}
               >
-                {t("home:surface.subtitle", { defaultValue: "An agent plans the documents and builds them while you watch. Everything it makes stays editable." })}
+                {t("home:surface.intro", { defaultValue: "Ask a question and get an answer, or describe something to make. An agent plans it and builds it while you watch, and everything it makes stays editable." })}
               </Text>
             </FlexColumn>
 
@@ -2051,7 +2194,7 @@ const NewProjectSurface = ({
                 label={t("home:composer.promptLabel", { defaultValue: "Chat prompt" })}
                 hideLabel
                 inputRef={promptRef}
-                placeholder={t("home:composer.placeholder", { defaultValue: "A 30-second launch spot for our desk lamp — warm, minimal, night-time mood. Type / for a skill, @ for an asset or entity." })}
+                placeholder={t("home:composer.placeholder", { defaultValue: "Ask a question, or describe what to make: a 30-second launch spot for our desk lamp. Type / for a skill, @ for a file or entity." })}
                 onChange={(event) => setPrompt(event.target.value)}
                 onKeyDown={handlePromptKeyDown}
                 slotProps={{ input: { disableUnderline: true } }}
@@ -2062,7 +2205,17 @@ const NewProjectSurface = ({
 
               {droppedFiles.length > 0 && (
                 <FlexRow gap={SPACING.md} wrap sx={{ px: SPACING.xl }}>
-                  {droppedFiles.map((file) => (
+                  {droppedFiles.map((file) =>
+                    // A text file or a document has no picture to show, so
+                    // it reads as its name rather than a broken thumbnail.
+                    !file.type.startsWith("image/") ? (
+                      <Chip
+                        key={file.id}
+                        icon={<InsertDriveFileOutlinedIcon />}
+                        label={file.name}
+                        onDelete={() => removeFile(file.id)}
+                      />
+                    ) : (
                     <Box key={file.id} sx={{ position: "relative" }}>
                       <ResponsiveImage
                         locator={file.dataUri}
@@ -2074,7 +2227,7 @@ const NewProjectSurface = ({
                       />
                       <CloseButton
                         onClick={() => removeFile(file.id)}
-                        tooltip={t("home:composer.removeFile", { name: file.name, defaultValue: "Remove {{name}}" })}
+                        tooltip={`Remove ${file.name}`}
                         buttonSize="small"
                         iconVariant="clear"
                         sx={{
@@ -2084,7 +2237,8 @@ const NewProjectSurface = ({
                         }}
                       />
                     </Box>
-                  ))}
+                    )
+                  )}
                 </FlexRow>
               )}
 
@@ -2104,9 +2258,8 @@ const NewProjectSurface = ({
                   onClick={() => refInputRef.current?.click()}
                   sx={composerToolSx}
                 >
-                  {droppedFiles.length === 0
-                    ? t("home:composer.refImagesAria", { defaultValue: "Reference images" })
-                    : t("home:composer.refImages", { count: droppedFiles.length, defaultValue: "Ref images · {{count}}" })}
+                  {referenceImageCount === 0
+                    ? t("home:composer.refImagesAria", { defaultValue: "Reference images" }) : `Ref images · ${referenceImageCount}`}
                 </EditorButton>
                 <input
                   ref={refInputRef}
@@ -2126,8 +2279,9 @@ const NewProjectSurface = ({
                   sx={composerToolSx}
                 >
                   {selectedEntities.length === 0
-                    ? t("home:composer.entitiesNone", { defaultValue: "Entities · none" })
-                    : t("home:composer.entitiesList", { list: selectedEntities.map((entity) => entity.name).join(", "), defaultValue: "Entities · {{list}}" })}
+                    ? t("home:composer.entitiesNone", { defaultValue: "Entities · none" }) : `Entities · ${selectedEntities
+                        .map((entity) => entity.name)
+                        .join(", ")}`}
                 </EditorButton>
                 <EditorButton
                   ref={modelButtonRef}
@@ -2139,8 +2293,8 @@ const NewProjectSurface = ({
                   sx={composerToolSx}
                 >
                   {isModelSelected(selectedModel)
-                    ? t("home:composer.modelName", { name: selectedModel?.name || selectedModel?.id, defaultValue: "Model · {{name}}" })
-                    : t("home:composer.selectModel", { defaultValue: "Select a model" })}
+                    ? `Model · ${selectedModel?.name || selectedModel?.id}`
+                    : i18n.t("home:composer.selectModel", { defaultValue: "Select a model" })}
                 </EditorButton>
                 <Box sx={{ flex: 1 }} />
                 {estimate && (
@@ -2148,14 +2302,7 @@ const NewProjectSurface = ({
                     component="span"
                     sx={{ ...TYPOGRAPHY.mono.caption, color: "text.secondary" }}
                   >
-                    {estimate
-                      ? t("home:composer.estimate", {
-                          min: estimate.minUsd.toFixed(2),
-                          max: estimate.maxUsd.toFixed(2),
-                          count: estimate.samples,
-                          defaultValue: formatEstimate(estimate)
-                        })
-                      : null}
+                    {formatEstimate(estimate)}
                   </Box>
                 )}
                 <Caption
@@ -2176,7 +2323,7 @@ const NewProjectSurface = ({
                   onClick={() => void handleStart()}
                   sx={{ borderRadius: BORDER_RADIUS.pill }}
                 >
-                  {t("home:composer.send", { defaultValue: "Send to chat" })}
+                  Send to chat
                 </EditorButton>
               </FlexRow>
             </FlexColumn>
@@ -2195,40 +2342,33 @@ const NewProjectSurface = ({
                     return (
                       <Tooltip
                         key={entry.name}
-                        title={t(`catalog:skills.${entry.name}.description`, { defaultValue: entry.description })}
+                        title={entry.description}
                         placement="bottom"
                         // Described by, not named by: the pill's name stays
                         // the skill's label.
                         describeChild
                       >
                         <Chip
-                          clickable
                           compact
-                          variant="outlined"
-                          label={t(`catalog:skills.${entry.name}.name`, { defaultValue: starterLabel(entry.name) })}
-                          aria-pressed={active}
+                          label={starterLabel(entry.name)}
+                          active={active}
+                          // The picked starter is drawn in the project colour.
+                          accent={active ? PROJECT_COLOR : undefined}
                           onClick={() => handleToggleStarter(entry.name)}
-                          sx={{
-                            ...starterPillSx,
-                            ...(active && activeStarterPillSx)
-                          }}
                         />
                       </Tooltip>
                     );
                   })}
                   {(hiddenStarterCount > 0 || showAllStarters) && (
                     <Chip
-                      clickable
                       compact
-                      variant="outlined"
                       aria-expanded={showAllStarters}
                       label={
                         showAllStarters
-                          ? t("home:composer.showFewer", { defaultValue: "Show fewer" })
-                          : t("home:composer.moreCount", { count: hiddenStarterCount, defaultValue: "{{count}} more" })
+                          ? t("home:composer.showFewer", { defaultValue: "Show fewer" }) : `${hiddenStarterCount} more`
                       }
                       onClick={() => setShowAllStarters((shown) => !shown)}
-                      sx={{ ...starterPillSx, borderStyle: "dashed" }}
+                      sx={{ borderStyle: "dashed" }}
                     />
                   )}
                 </FlexRow>
@@ -2237,18 +2377,18 @@ const NewProjectSurface = ({
                     color="secondary"
                     sx={{ maxWidth: INTRO_TEXT_WIDTH, textAlign: "center" }}
                   >
-                    {t(`catalog:skills.${starter.name}.description`, { defaultValue: starter.description })}
+                    {starter.description}
                   </Caption>
                 ) : (
                   <Caption color="muted">
-                    {t("home:surface.orDescribe", { defaultValue: "Pick a skill to start from, or just describe what you want." })}
+                    Pick a skill to start from, or just describe what you want.
                   </Caption>
                 )}
               </FlexColumn>
             )}
           </FlexColumn>
 
-          <CurrentProjectDocuments />
+          {!noDocuments && projectWork}
 
           <FlexColumn
             component="section"
@@ -2276,7 +2416,9 @@ const NewProjectSurface = ({
           >
             <FlexRow align="flex-end" gap={SPACING.md} wrap>
               <FlexColumn gap={SPACING.xs} sx={{ flex: 1, minWidth: 0 }}>
-                <Text size="big" component="h2">{t("home:surface.startGuided", { defaultValue: "Start with a guided flow" })}</Text>
+                <Text size="big" component="h2">
+                  {t("home:surface.startGuided", { defaultValue: "Start with a guided flow" })}
+                </Text>
                 <Caption color="secondary">
                   {t("home:surface.guidedLede", { defaultValue: "A few short steps, each ending in a document you keep editing." })}
                 </Caption>
@@ -2287,8 +2429,8 @@ const NewProjectSurface = ({
                   label={t("home:surface.gameDimension", { defaultValue: "Game dimension" })}
                   value={gameDimension}
                   options={[
-                    { value: "2d", label: t("home:surface.game2d", { defaultValue: "2D game" }) },
-                    { value: "3d", label: t("home:surface.game3d", { defaultValue: "3D exploration" }) }
+                    { value: "2d", label: "2D game", labelKey: "home:surface.game2d" },
+                    { value: "3d", label: "3D exploration", labelKey: "home:surface.game3d" }
                   ]}
                   onChange={(value) => {
                     if (value === "2d" || value === "3d") {
@@ -2312,15 +2454,20 @@ const NewProjectSurface = ({
               aria-expanded={showMoreFlows}
               onClick={() => setShowMoreFlows((shown) => !shown)}
             >
-              {showMoreFlows
-                ? t("home:surface.fewerFormats", { defaultValue: "Fewer formats" })
-                : t("home:surface.moreFormats", { defaultValue: "More formats" })}
+              {showMoreFlows ? t("home:surface.fewerFormats", { defaultValue: "Fewer formats" }) : i18n.t("home:surface.moreFormats", { defaultValue: "More formats" })}
             </EditorButton>
           </FlexColumn>
 
+          {/* A project with no documents has nothing to resume, so the flow
+              cards come first and stay on the first screen. */}
+          {noDocuments && projectWork}
+
           {/* Examples come after the flows: they are a place to browse, not
               the first thing to do. */}
-          <StartExamples onBrowseAll={handleOpenExamples} />
+          <StartExamples
+            onBrowseAll={handleOpenExamples}
+            onMakeGame={handleMakeGame}
+          />
         </FlexColumn>
 
         <Box sx={{ flex: 1, minHeight: SPACING.xxxl }} />
@@ -2343,10 +2490,10 @@ const NewProjectSurface = ({
               color="muted"
               sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}
             >
-              {t("home:blank.title", { defaultValue: "Blank document" })}
+              Blank document
             </Caption>
             <Caption color="muted">
-              {t("home:blank.lede", { defaultValue: "— opens as a loose tab, outside any project" })}
+              — opens as a loose tab, outside any project
             </Caption>
             <Box sx={{ flex: 1 }} />
             <EditorButton
@@ -2354,14 +2501,14 @@ const NewProjectSurface = ({
               density="compact"
               onClick={handleOpenExamples}
             >
-              {t("home:blank.browseExamples", { defaultValue: "Browse examples" })}
+              Browse examples
             </EditorButton>
             <EditorButton
               variant="text"
               density="compact"
               onClick={handleOpenTutorials}
             >
-              {t("home:blank.tutorials", { defaultValue: "Tutorials" })}
+              Tutorials
             </EditorButton>
           </FlexRow>
           <Box
@@ -2412,12 +2559,8 @@ const NewProjectSurface = ({
                 >
                   {TYPE_GLYPH[entry.type]}
                 </Box>
-                {/* The strip's buttons are create actions, so their names —
-                  what a11y reads and what distinguishes them from the same
-                  noun elsewhere in the app — carry the "New" verb, same as
-                  the + menu (editor:ui.menuLabel.*). */}
                 <Label>
-                  {`${t(`editor:ui.menuLabel.${entry.key}`, { defaultValue: entry.menuLabel })}${entry.submenu ? " ▸" : ""}`}
+                  {entry.submenu ? `${entry.label} ▸` : entry.label}
                 </Label>
               </Box>
             ))}
@@ -2446,60 +2589,58 @@ const NewProjectSurface = ({
           setSelectedModel(model);
           setModelAnchor(null);
         }}
+        selectedModel={
+          isModelSelected(selectedModel) ? selectedModel : undefined
+        }
         requireToolSupport
       />
 
-      <Popover
+      <ContextMenu
         open={submenu !== null}
         anchorEl={submenu?.element ?? null}
         onClose={() => setSubmenu(null)}
-        placement="top-left"
-        maxWidth={SUBMENU_MAX_WIDTH}
+        anchorOrigin={{ vertical: "top", horizontal: "left" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "left" }}
         maxHeight="50vh"
+        paperSx={{ width: SUBMENU_WIDTH, maxWidth: SUBMENU_MAX_WIDTH }}
       >
-        <FlexColumn sx={{ width: SUBMENU_WIDTH, py: SPACING.micro }}>
-          {submenu?.kind === "texts" &&
-            TEXT_FILE_TEMPLATES.map((template) => (
-              <MenuItemPrimitive
-                key={template.filename}
-                label={template.label}
-                compact
-                disabled={creating !== null}
-                onClick={() => {
-                  void createTextFile(template);
-                }}
-              />
-            ))}
-          {submenu?.kind === "storyboards" && (
-            <>
-              <MenuItemPrimitive
-                label={t("editor:ui.blankStoryboard", { defaultValue: "Blank storyboard" })}
-                compact
-                dividerAfter
-                disabled={creating !== null}
-                onClick={() => {
-                  void createBlankStoryboard();
-                }}
-              />
-              {!examplesLoading &&
-                (exampleData ?? []).map((example) => (
-                  <MenuItemPrimitive
-                    key={example.slug}
-                    label={example.name}
-                    secondary={`${example.shotCount} shot${
-                      example.shotCount === 1 ? "" : "s"
-                    }, already rendered`}
-                    compact
-                    disabled={creating !== null}
-                    onClick={() => {
-                      void installStoryboardExample(example.slug, example.name);
-                    }}
-                  />
-                ))}
-            </>
-          )}
-        </FlexColumn>
-      </Popover>
+        {submenu?.kind === "texts" &&
+          TEXT_FILE_TEMPLATES.map((template) => (
+            <MenuItemPrimitive
+              key={template.filename}
+              label={template.label}
+              disabled={creating !== null}
+              onClick={() => {
+                void createTextFile(template);
+              }}
+            />
+          ))}
+        {submenu?.kind === "storyboards" && (
+          <MenuItemPrimitive
+            label={t("editor:ui.blankStoryboard", { defaultValue: "Blank storyboard" })}
+            dividerAfter
+            disabled={creating !== null}
+            onClick={() => {
+              void createBlankStoryboard();
+            }}
+          />
+        )}
+        {submenu?.kind === "storyboards" &&
+          !examplesLoading &&
+          (exampleData ?? []).map((example) => (
+            <MenuItemPrimitive
+              key={example.slug}
+              label={example.name}
+              secondary={`${example.shotCount} shot${
+                example.shotCount === 1 ? "" : "s"
+              }, already rendered`}
+              disabled={creating !== null}
+              onClick={() => {
+                void installStoryboardExample(example.slug, example.name);
+              }}
+            />
+          ))}
+      </ContextMenu>
     </ScrollArea>
   );
 };

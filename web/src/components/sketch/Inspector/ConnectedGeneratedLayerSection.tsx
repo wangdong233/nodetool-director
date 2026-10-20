@@ -16,8 +16,10 @@ import { useLayerBinding } from "../../../stores/sketch/SketchSessionStore";
 import { SketchAIToolbar } from "./SketchAIToolbar";
 import { VectorLayerPanel } from "./VectorLayerPanel";
 import { SketchInspector } from "./SketchInspector";
-import { useTranslation } from "react-i18next";
 import { sketchSectionSx } from "./sketchSectionSx";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
+
 const ConnectedGeneratedLayerSectionInner: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -29,11 +31,7 @@ const ConnectedGeneratedLayerSectionInner: React.FC = () => {
   if (layer?.type === "vector") {
     return (
       <CollapsibleSection
-        title={
-          <InspectorSectionTitle
-            title={t("sketch:attrs.vectorLayer", { defaultValue: "Vector layer" })}
-          />
-        }
+        title={<InspectorSectionTitle title={t("sketch:attrs.vectorLayer", { defaultValue: "Vector layer" })} />}
         defaultOpen
         compact
         sx={sectionSx}
@@ -50,7 +48,7 @@ const ConnectedGeneratedLayerSectionInner: React.FC = () => {
   // Direct-gen layers (text-to-image / image-to-image) share the "Prompt"
   // section, matching the timeline inspector; workflow-bound layers keep
   // their own label.
-  const titleText = isWorkflowBound ? t("sketch:attrs.generatedLayer", { defaultValue: "Generated Layer" }) : t("sketch:attrs.prompt", { defaultValue: "Prompt" });
+  const titleText = isWorkflowBound ? t("ui2:attrs.generatedLayer", { defaultValue: "Generated layer" }) : i18n.t("editor:asset.info.prompt", { defaultValue: "Prompt" });
 
   return (
     <CollapsibleSection

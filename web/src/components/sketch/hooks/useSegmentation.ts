@@ -423,7 +423,7 @@ export function useSegmentation({
         sourceImageDataUrl: exportedLayer.imageDataUrl,
         sourceMetadata: exportedLayer.sourceMetadata,
         preserveSourceLayer: true,
-        historyLabel: "Split Selected Layer"
+        historyLabel: "Split selected layer"
       });
       setResult(null);
       setStatus("idle");
@@ -456,7 +456,7 @@ export function useSegmentation({
         nodeType: result.nodeType,
         masks: result.masks,
         sourceMetadata: result.sourceMetadata,
-        historyLabel: "Segment Objects"
+        historyLabel: "Segment objects"
       });
 
       setResult(null);

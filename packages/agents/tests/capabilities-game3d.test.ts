@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -29,13 +29,18 @@ async function agent(user = USER, sourceAssets: ReadonlyMap<string, Uint8Array> 
   if (!workspace) { throw new Error("Workspace missing"); }
   return { workspace, run: createCapabilityRun({ context: { userId: user, workspace, assetStorage: new InMemoryStorageAdapter(), resolveAssetBytes: async (uri: string) => ({ bytes: sourceAssets.get(uri) ?? null }) } as ProcessingContext, gate: UNGATED }) };
 }
-function closedGlb(): Uint8Array {
-  const raw = new TextEncoder().encode(JSON.stringify({ asset: { version: "2.0" }, scene: 0, scenes: [{ nodes: [0] }], nodes: [{ name: "Visual" }] }));
+function closedGlb(animated = false): Uint8Array {
+  const binary = new Float32Array([0, 2, 0, 0, 0, 2, 0, 0]);
+  const raw = new TextEncoder().encode(JSON.stringify({ asset: { version: "2.0" }, scene: 0, scenes: [{ nodes: [0] }], nodes: [{ name: "Visual" }],
+    ...(animated ? { buffers: [{ byteLength: binary.byteLength }], bufferViews: [{ buffer: 0, byteLength: 8 }, { buffer: 0, byteOffset: 8, byteLength: 24 }],
+      accessors: [{ bufferView: 0, componentType: 5126, count: 2, type: "SCALAR" }, { bufferView: 1, componentType: 5126, count: 2, type: "VEC3" }],
+      animations: [{ samplers: [{ input: 0, output: 1 }], channels: [{ sampler: 0, target: { node: 0, path: "translation" } }] }] } : {}) }));
   const padded = Math.ceil(raw.length / 4) * 4;
-  const bytes = new Uint8Array(20 + padded); bytes.fill(32, 20);
+  const bytes = new Uint8Array(20 + padded + (animated ? 8 + binary.byteLength : 0)); bytes.fill(32, 20);
   const view = new DataView(bytes.buffer);
   view.setUint32(0, 0x46546c67, true); view.setUint32(4, 2, true); view.setUint32(8, bytes.length, true);
   view.setUint32(12, padded, true); view.setUint32(16, 0x4e4f534a, true); bytes.set(raw, 20);
+  if (animated) { view.setUint32(20 + padded, binary.byteLength, true); view.setUint32(24 + padded, 0x004e4942, true); bytes.set(new Uint8Array(binary.buffer), 28 + padded); }
   return bytes;
 }
 
@@ -108,6 +113,24 @@ describe("native game tools in 3D", () => {
     expect(JSON.stringify(outline)).toContain("\"collisionMatrix\":[[\"debris\",\"world\"]]");
   });
 
+  it("declares physics materials and points colliders at them through edit_native_game", async () => {
+    const { run } = await agent();
+    const created = replyDocument(await run.invoke("create_native_game", { project_id: PROJECT, name: "Materials", dimension: "3d" }));
+    const missing = readRecord(await run.invoke("edit_native_game", { game_id: created.document.id,
+      ops: [{ op: "update_entity", entity_id: "crate", set: { collider3d: { physicsMaterial: "rubber" } } }] }));
+    expect(JSON.stringify(missing)).toContain("Physics material rubber is not declared");
+    const edited = replyDocument(await run.invoke("edit_native_game", { game_id: created.document.id, ops: [
+      { op: "set_game", physics_materials: { rubber: { restitution: 0.85, restitutionCombine: "max" } } },
+      { op: "update_entity", entity_id: "crate", set: { collider3d: { physicsMaterial: "rubber" } } }
+    ] }));
+    if (edited.document.schemaVersion !== 3) { throw new Error("Expected 3D document"); }
+    expect(edited.document.physicsMaterials).toEqual({ rubber: { friction: 0.5, restitution: 0.85, frictionCombine: "average", restitutionCombine: "max" } });
+    expect(edited.document.scenes[0].entities.find((entity) => entity.id === "crate")?.collider3d).toMatchObject({ physicsMaterial: "rubber", friction: 0.5, restitution: 0 });
+    const outline = JSON.stringify(readRecord(await run.invoke("get_native_game", { game_id: created.document.id })));
+    expect(outline).toContain("\"physicsMaterials\":{\"rubber\"");
+    expect(outline).toContain("\"physicsMaterial\":\"rubber\"");
+  });
+
   it("stores and removes a document animation graph through edit_native_game", async () => {
     const { run } = await agent();
     const created = replyDocument(await run.invoke("create_native_game", { project_id: PROJECT, name: "Locomotion", dimension: "3d" }));
@@ -123,6 +146,25 @@ describe("native game tools in 3D", () => {
       ops: [{ op: "remove_animation_graph", graph_id: "locomotion" }] }));
     if (removed.document.schemaVersion !== 3) { throw new Error("Expected 3D document"); }
     expect(removed.document.animationGraphs).toBeUndefined();
+  });
+
+  it("sets and clears a 3D HUD widget tree through edit_native_game", async () => {
+    const { run } = await agent();
+    const created = replyDocument(await run.invoke("create_native_game", { project_id: PROJECT, name: "HUD", dimension: "3d" }));
+    const ui = { nodes: [
+      { kind: "panel", id: "scorePanel", anchor: { x: 1, y: 0 }, width: 140, height: 40 },
+      { kind: "text", id: "score", parent: "scorePanel", anchor: { x: 0.5, y: 0.5 }, text: "Score 0" },
+      { kind: "button", id: "jumpButton", anchor: { x: 0.5, y: 1 }, width: 112, height: 40, action: "jump", text: "Jump" }
+    ] };
+    const edited = replyDocument(await run.invoke("edit_native_game", { game_id: created.document.id, ops: [{ op: "set_ui", ui }] }));
+    if (edited.document.schemaVersion !== 3) { throw new Error("Expected 3D document"); }
+    expect(edited.document.ui).toEqual(ui);
+    expect(JSON.stringify(await run.invoke("edit_native_game", { game_id: created.document.id,
+      ops: [{ op: "set_ui", scene_id: edited.document.scenes[0].id, ui: { nodes: [{ kind: "button", id: "fly", action: "fly", width: 4, height: 4 }] } }] })))
+      .toContain("HUD button fly presses undeclared input action fly");
+    const cleared = replyDocument(await run.invoke("edit_native_game", { game_id: created.document.id, ops: [{ op: "set_ui", ui: null }] }));
+    if (cleared.document.schemaVersion !== 3) { throw new Error("Expected 3D document"); }
+    expect(cleared.document.ui).toBeUndefined();
   });
 
   it("consumes analog input and restores the same physics/script snapshot hash", async () => {
@@ -152,6 +194,17 @@ describe("native game tools in 3D", () => {
     expect(installed.document.assets.character).toMatchObject({ mediaKind: "model", nodeIds: ["node:0", "node:1"] });
     expect(installed.document.assets.character.assetId).toHaveLength(32);
     expect(await run.invoke("generate_game_asset", { game_id: created.document.id, slot: "character", kind: "model", input_file: "../private.glb" })).toMatchObject({ error: expect.stringContaining("workspace-relative") });
+  });
+
+  it("derives clip durations during generation and rederives them when installing a candidate", async () => {
+    const { run, workspace } = await agent();
+    const created = replyDocument(await run.invoke("create_native_game", { project_id: PROJECT, name: "Animated import", dimension: "3d" }));
+    await workspace.write("animated.glb", closedGlb(true), "model/gltf-binary");
+    const candidate = readRecord(await run.invoke("generate_game_asset", { game_id: created.document.id, slot: "character", kind: "model", input_file: "animated.glb" }));
+    expect(candidate).toMatchObject({ installed: false, binding: { clipDurations: { "clip:0": 2 } } });
+    const binding = readRecord(candidate.binding);
+    const installed = replyDocument(await run.invoke("install_native_game_asset", { game_id: created.document.id, slot: "character", binding: { ...binding, clipDurations: { "clip:0": 999 } } }));
+    expect(installed.document.assets.character).toMatchObject({ clipDurations: { "clip:0": 2 } });
   });
 
   it("stages the model_3d ref a TextTo3D node returns", async () => {
@@ -247,5 +300,32 @@ describe("native game tools in 3D", () => {
     const manifest = JSON.parse(await readFile(join(directory, built.build_path, "manifest.json"), "utf8"));
     expect(manifest).toMatchObject({ dimension: "3d", sourceRevision: created.document.revision });
     expect(manifest.files["emscripten-module.wasm"]).toHaveLength(64);
+    expect(await run.invoke("build_native_game", { game_id: created.document.id })).toMatchObject({ cached: true, build_path: built.build_path });
+  });
+
+  it.each([
+    { name: "game3d-player.js", damage: "missing" },
+    { name: "game3d-player.js", damage: "changed" },
+    { name: "emscripten-module.wasm", damage: "missing" },
+    { name: "emscripten-module.wasm", damage: "changed" },
+    { name: "manifest.json", damage: "missing" },
+    { name: "manifest.json", damage: "changed" }
+  ])("repairs a $damage $name in a cached 3D export", async ({ name, damage }) => {
+    const { run } = await agent();
+    const created = replyDocument(await run.invoke("create_native_game", { project_id: PROJECT, name: "Export", dimension: "3d" }));
+    const args = { game_id: created.document.id };
+    const built = readRecord(await run.invoke("build_native_game", args));
+    expect(built).toMatchObject({ game_id: created.document.id, revision: created.document.revision, cached: false });
+    if (typeof built.build_path !== "string") { throw new Error("Build path missing"); }
+    const path = join(directory, built.build_path, name);
+    const original = await readFile(path);
+    if (damage === "missing") {
+      await rm(path);
+    } else {
+      await writeFile(path, new Uint8Array(original.byteLength));
+    }
+    expect(await run.invoke("build_native_game", args)).toMatchObject({ cached: false, build_path: built.build_path });
+    expect(await readFile(path)).toEqual(original);
+    expect(await run.invoke("build_native_game", args)).toMatchObject({ cached: true, build_path: built.build_path });
   });
 });

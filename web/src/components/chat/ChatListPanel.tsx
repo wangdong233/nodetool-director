@@ -2,7 +2,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 
 import useGlobalChatStore from "../../stores/GlobalChatStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
@@ -26,7 +26,6 @@ import {
   Tooltip,
   ToolbarIconButton
 } from "../ui_primitives";
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 /** Opens a thread as a chat tab, leaving the rest of the workspace in place. */
@@ -41,7 +40,7 @@ const useOpenThreadTab = () => {
         type: "chat",
         ref: threadId,
         mode: "view",
-        title: title || i18n.t("editor:chat.newChat", { defaultValue: "New chat" }),
+        title: title || "New chat",
         projectId
       });
       if (!location.pathname.startsWith("/workspace")) {
@@ -77,7 +76,7 @@ export const CreateChatButton = memo(function CreateChatButton({
       console.error("Failed to create new chat thread:", error);
       addNotification({
         type: "error",
-        content: i18n.t("editor:chat.startFailed", { defaultValue: "Could not start a new conversation. Please try again." })
+        content: "Could not start a new conversation. Please try again.", contentKey: "editor:chat.startFailed"
       });
     }
   }, [createNewThread, openThreadTab, addNotification, projectId]);
@@ -85,7 +84,7 @@ export const CreateChatButton = memo(function CreateChatButton({
   return (
     <Tooltip title={t("editor:chat.newChat", { defaultValue: "New chat" })} placement="right-start">
       <ToolbarIconButton
-        ariaLabel={t("editor:chat.newChat", { defaultValue: "New chat" })}
+        ariaLabel="New chat"
         onClick={() => void handleCreate()}
         tabIndex={-1}
         icon={<AddIcon />}
@@ -140,7 +139,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
     (threadId: string) =>
       threads[threadId]
         ? threadPreview(threads[threadId].title, messageCache[threadId])
-        : t("editor:chat.emptyConversation", { defaultValue: "Empty conversation" }),
+        : "Empty conversation",
     [threads, messageCache]
   );
 
@@ -183,7 +182,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
         console.error("Failed to delete thread:", error);
         addNotification({
           type: "error",
-          content: i18n.t("editor:chat.deleteFailed", { defaultValue: "Could not delete the conversation. Please try again." })
+          content: "Could not delete the conversation. Please try again."
         });
       });
     },
@@ -211,7 +210,7 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
           ref={searchRef}
           value={filterValue}
           onChange={setFilterValue}
-          placeholder={t("editor:chat.searchConversations", { defaultValue: "Search conversations…" })}
+          placeholder={t("editor:chat.searchConversations", { defaultValue: "Search conversations" })}
         />
       </FlexColumn>
 
@@ -246,9 +245,13 @@ const ChatListPanel = ({ projectId }: ChatListPanelProps) => {
           align="center"
           sx={{ flex: 1, px: 2 }}
         >
+          {/* UX research study 4: this line used to point at another menu,
+              and newcomers lost several actions finding "New chat". */}
           <EmptyState
             title={t("editor:chat.noneYet", { defaultValue: "No conversations yet" })}
-            description={t("editor:chat.noneYetDesc", { defaultValue: "Start a chat from the workspace New menu." })}
+            description={t("editor:chat.askToStart", { defaultValue: "Ask a question to start one." })}
+            actionText={t("editor:chat.newChat", { defaultValue: "New chat" })}
+            onAction={() => void handleNewThread()}
           />
         </FlexColumn>
       ) : (

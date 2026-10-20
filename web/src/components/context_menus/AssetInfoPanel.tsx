@@ -11,6 +11,7 @@ import {
   FlexRow,
   BORDER_RADIUS,
   SPACING,
+  TextLink,
   getSpacingPx
 } from "../ui_primitives";
 import { useTheme } from "@mui/material/styles";
@@ -23,14 +24,19 @@ import {
   formatFileSize
 } from "../../utils/formatUtils";
 import { secondsToHMS } from "../../utils/formatDateAndTime";
-import { useAppLanguage } from "../../i18n";
+import {
+  openverseLicenseLabel,
+  readOpenverseCredit
+} from "../../utils/openverseLicense";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
-import { useTranslation } from "react-i18next";
 import { useOpenAssetWorkflow } from "../../hooks/useOpenAssetWorkflow";
 import { useJobSnapshot } from "../../serverState/useJobSnapshot";
+import { useTranslation } from "react-i18next";
+
 /** Metadata keys rendered by their own section, not by the raw dump. */
-const RENDERED_METADATA_KEYS = new Set(["prompt", "generation"]);
+const RENDERED_METADATA_KEYS = new Set(["prompt", "generation", "openverse"]);
+
 
 const styles = (theme: Theme) =>
   css({
@@ -119,8 +125,6 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  // Subscribe so formatContentType/date reads re-render on language change.
-  useAppLanguage();
   const currentFolder = useAssetGridStore((state) => state.currentFolder);
   const getWorkflow = useWorkflowManager((state) => state.getWorkflow);
   const { openWorkflow, openSnapshot } = useOpenAssetWorkflow();
@@ -130,7 +134,7 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
   const runGraphSnapshot = snapshot?.graph ? snapshot : null;
 
   const handleOpenWorkflow = useCallback(() => {
-    openWorkflow(asset);
+    void openWorkflow(asset);
     onOpenWorkflow?.();
   }, [asset, onOpenWorkflow, openWorkflow]);
 
@@ -171,6 +175,7 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
     [metadata]
   );
   const settings = generation?.params;
+  const credit = useMemo(() => readOpenverseCredit(metadata), [metadata]);
   const otherMetadata = useMemo(
     () =>
       Object.entries(metadata ?? {}).filter(
@@ -207,9 +212,9 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
               {asset.workflow_id && (
                 <EditorButton
                   variant="outlined"
-                  startIcon={<AccountTreeIcon fontSize="small" />}
+                  startIcon={<AccountTreeIcon />}
                   onClick={handleOpenWorkflow}
-                  title={t("editor:ui.openTheSavedWorkflowAndShowTheNodeThatMadeThisAsset")}
+                  tooltip={t("editor:ui.openTheSavedWorkflowAndShowTheNodeThatMadeThisAsset", { defaultValue: "Open the saved workflow and show the node that made this asset" })}
                 >
                   Open workflow
                 </EditorButton>
@@ -217,28 +222,78 @@ const AssetInfoPanel: React.FC<AssetInfoPanelProps> = ({
               {runGraphSnapshot && (
                 <EditorButton
                   variant="outlined"
-                  startIcon={<HistoryIcon fontSize="small" />}
+                  startIcon={<HistoryIcon />}
                   onClick={handleOpenSnapshot}
-                  title={t("editor:ui.openTheGraphAndInputsThisAssetWasMadeWithAsANewUnsavedWorkflow")}
+                  tooltip={t("editor:ui.openTheGraphAndInputsThisAssetWasMadeWithAsANewUnsavedWorkflow", { defaultValue: "Open the graph and inputs this asset was made with as a new unsaved workflow" })}
                 >
                   Open as it was when made
                 </EditorButton>
               )}
             </FlexRow>
-          )}        </div>
+          )}
+        </div>
       )}
 
       {prompt && (
         <div className="info-section">
           <FlexRow align="center" justify="space-between">
             <Text className="info-section-title" component="span">
-              {t("editor:asset.info.prompt", { defaultValue: "Prompt" })}
+              Prompt
             </Text>
             <CopyButton value={prompt} tooltip={t("editor:asset.info.copyPrompt", { defaultValue: "Copy prompt" })} buttonSize="small" />
           </FlexRow>
           <Text className="info-prompt" component="p">
             {prompt}
           </Text>
+        </div>
+      )}
+
+      {credit && (
+        <div className="info-section">
+          <FlexRow align="center" justify="space-between">
+            <Text className="info-section-title" component="span">
+              License
+            </Text>
+            {credit.attribution && (
+              <CopyButton
+                value={credit.attribution}
+                tooltip={t("editor:ui.copyAttribution", { defaultValue: "Copy attribution" })}
+                buttonSize="small"
+              />
+            )}
+          </FlexRow>
+          <div className="info-row">
+            <Text className="info-label" component="span">
+              License
+            </Text>
+            <Text className="info-value" component="span">
+              {credit.license_url ? (
+                <TextLink href={credit.license_url} external>
+                  {openverseLicenseLabel(credit)}
+                </TextLink>
+              ) : (
+                openverseLicenseLabel(credit)
+              )}
+            </Text>
+          </div>
+          <InfoRow label="Creator" value={credit.creator} />
+          {credit.landing_url && (
+            <div className="info-row">
+              <Text className="info-label" component="span">
+                Source
+              </Text>
+              <Text className="info-value" component="span">
+                <TextLink href={credit.landing_url} external>
+                  {credit.source || "Original page"}
+                </TextLink>
+              </Text>
+            </div>
+          )}
+          {credit.attribution && (
+            <Text className="info-prompt" component="p">
+              {credit.attribution}
+            </Text>
+          )}
         </div>
       )}
 

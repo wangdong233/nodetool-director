@@ -1,6 +1,8 @@
 import { renderHook } from "@testing-library/react";
 import { useFolderTree } from "../useFolderTree";
 import { useQuery } from "@tanstack/react-query";
+import { asMock } from "../../test-utils/doubles";
+import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
 
 const mockLoadFolderTree = jest.fn();
 const mockFolderTree = {
@@ -28,7 +30,26 @@ jest.mock("@tanstack/react-query", () => ({
 describe("useFolderTree", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useQuery as jest.Mock).mockReturnValue({ data: mockFolderTree });
+    asMock(useQuery).mockReturnValue({ data: mockFolderTree });
+    useWorkspaceTabsStore.setState({
+      activeProjectId: null,
+      personalProjectId: null
+    });
+  });
+
+  it("lists the Personal project's folders when no project is open", () => {
+    // The Assets panel creates folders in Personal when no project is open,
+    // so the folder picker must read the same project.
+    useWorkspaceTabsStore.setState({
+      activeProjectId: null,
+      personalProjectId: "personal:1"
+    });
+    renderHook(() => useFolderTree());
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ["folderTree", "name", "personal:1"]
+      })
+    );
   });
 
   it("returns folder tree with default sort order", () => {
@@ -53,7 +74,7 @@ describe("useFolderTree", () => {
   it("calls loadFolderTree with correct sort order", async () => {
     let capturedQueryFn: (() => Promise<unknown>) | undefined;
     mockLoadFolderTree.mockResolvedValue(mockFolderTree);
-    (useQuery as jest.Mock).mockImplementation((config) => {
+    asMock(useQuery).mockImplementation((config) => {
       capturedQueryFn = config.queryFn;
       return { data: mockFolderTree };
     });

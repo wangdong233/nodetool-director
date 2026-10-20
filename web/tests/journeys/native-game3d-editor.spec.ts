@@ -6,6 +6,7 @@ import type { AppRouter } from "@nodetool-ai/websocket/trpc";
 import { createNative3DGame } from "@nodetool-ai/game-runtime";
 import { test, expect, waitForAppReady } from "./fixtures";
 
+import { dragGameDockTab } from "./helpers/gameDock";
 import { observeNativeGameReadiness, settleNativeGameEdit, finishNativeGameReadiness } from "./helpers/nativeGameReadiness";
 
 const PROJECT_ID = "proj-scrapheart";
@@ -42,11 +43,12 @@ test("edits, undoes, installs a model, plays and publishes the same 3D draft", a
     }, { id: created.game.id, projectId: PROJECT_ID });
     await page.goto("/workspace", { waitUntil: "domcontentloaded" });
     await waitForAppReady(page);
-    await expect(page.getByRole("button", { name: "Add box", exact: true })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "Add entity", exact: true })).toBeEnabled();
     await expect(page.locator('canvas[aria-label="3D game viewport"]')).toBeVisible();
     await expect(page.getByText(/WebGL2/)).toBeVisible();
     const initial = (await client.games.getDraft.query({ id: created.game.id })).document;
-    await page.getByRole("button", { name: "Add box", exact: true }).click();
+    await page.getByRole("button", { name: "Add entity", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Box", exact: true }).click();
     await expect.poll(async () => (await client.games.getDraft.query({ id: created.game.id })).document.scenes[0].entities.length).toBe(initial.scenes[0].entities.length + 1);
     await page.getByRole("button", { name: "Frame selection", exact: true }).click();
     const viewport = page.locator('canvas[aria-label="3D game viewport"]');
@@ -172,15 +174,9 @@ test("releases native 3D pointer lock when its dock tab becomes inactive and pre
   await expect(page.getByRole("button", { name: "Play", exact: true })).toBeEnabled();
   const original = await canvas.elementHandle();
   if (!original) { throw new Error("Native 3D canvas did not mount"); }
-  const inspectorDrag = await page.getByRole("button", { name: "Drag inspector panel", exact: true }).boundingBox();
-  const viewportGroup = await page.getByRole("tab", { name: "Viewport", exact: true }).locator("..").boundingBox();
-  if (!inspectorDrag || !viewportGroup) { throw new Error("Native controller docking targets have no bounds"); }
-  await page.mouse.move(inspectorDrag.x + inspectorDrag.width / 2, inspectorDrag.y + inspectorDrag.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(viewportGroup.x + viewportGroup.width / 2, viewportGroup.y + viewportGroup.height / 2, { steps: 8 });
-  await page.mouse.up();
+  await dragGameDockTab(page, "Inspector Close Inspector", '[data-game-dock-group]:has([data-dock-tab="viewport"]) [data-game-dock-body]');
   const viewportTab = page.getByRole("tab", { name: "Viewport", exact: true });
-  const inspectorTab = page.getByRole("tab", { name: "Inspector", exact: true });
+  const inspectorTab = page.getByRole("tab").filter({ has: page.getByText("Inspector", { exact: true }) });
   expect(await inspectorTab.evaluate((node) => node.closest("[data-game-dock-group]")?.getAttribute("data-game-dock-group")))
     .toEqual(await viewportTab.evaluate((node) => node.closest("[data-game-dock-group]")?.getAttribute("data-game-dock-group")));
   await viewportTab.click();

@@ -12,7 +12,8 @@ import {
   FlexColumn,
   LabeledSwitch,
   ScrollArea,
-  Text,
+  NumberField,
+  TextArea,
   TextInput,
   SPACING
 } from "../ui_primitives";
@@ -25,9 +26,10 @@ import {
 import JsScriptPortsEditor from "./JsScriptPortsEditor";
 import JsScriptSecretsEditor from "./JsScriptSecretsEditor";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /** What a newly exposed script lands under until its owner names a category. */
-const DEFAULT_CATEGORY = "My Nodes";
+const DEFAULT_CATEGORY = i18n.t("editor:ui.myNodes", { defaultValue: "My Nodes" });
 
 interface JsScriptSettingsPanelProps {
   scriptId: string;
@@ -69,23 +71,18 @@ const JsScriptSettingsPanel = ({
   return (
     <ScrollArea>
       <FlexColumn gap={SPACING.lg} padding={2}>
-        <FlexColumn gap={SPACING.xs}>
-          <TextInput
-            label={t("editor:ui.description", { defaultValue: "Description" })}
-            size="small"
-            multiline
-            minRows={2}
-            value={document.description}
-            placeholder={t("editor:ui.whatThisScriptDoes", { defaultValue: "What this script does" })}
-            disabled={readOnly}
-            onChange={(event) =>
-              setDescription(scriptId, event.target.value)
-            }
-          />
-          <Text size="small" color="secondary">
-            Agents read this to decide whether to call the script.
-          </Text>
-        </FlexColumn>
+        <TextArea
+          label={t("editor:ui.description", { defaultValue: "Description" })}
+          size="small"
+          minRows={1}
+          value={document.description}
+          placeholder={t("editor:ui.whatThisScriptDoes", { defaultValue: "What this script does" })}
+          helperText={t("tools:jsScript.agentsReadHelper", { defaultValue: "Agents read this to decide whether to call the script." })}
+          disabled={readOnly}
+          onChange={(value) =>
+            setDescription(scriptId, value)
+          }
+        />
 
         <Divider />
         <FlexColumn data-focus-id="jsscript-ports" gap={SPACING.lg}>
@@ -111,21 +108,21 @@ const JsScriptSettingsPanel = ({
         />
 
         <Divider />
-        <FlexColumn gap={SPACING.xs}>
+        <FlexColumn gap={SPACING.lg}>
           <LabeledSwitch
             label={t("editor:ui.showInNodeMenu", { defaultValue: "Show in node menu" })}
             size="small"
             checked={document.palette !== undefined}
             disabled={readOnly}
             onChange={handleShowInMenu}
-            description={t("editor:ui.addsThisScriptToMyNodesSoItDropsOntoAGraphLikeAnyNode")}
+            description={t("editor:ui.addsThisScriptToMyNodesSoItDropsOntoAGraphLikeAnyNode", { defaultValue: "Adds this script to My Nodes, so it drops onto a graph like any node." })}
           />
           {document.palette !== undefined ? (
             <TextInput
               label={t("editor:ui.category", { defaultValue: "Category" })}
               size="small"
               value={document.palette.category}
-              placeholder={t("editor:ui.myNodes", { defaultValue: DEFAULT_CATEGORY })}
+              placeholder={DEFAULT_CATEGORY}
               disabled={readOnly}
               onChange={(event) =>
                 setPalette(scriptId, { category: event.target.value })
@@ -135,10 +132,11 @@ const JsScriptSettingsPanel = ({
         </FlexColumn>
 
         <Divider />
-        <TextInput
+        <NumberField
           label={`Timeout (seconds, max ${JS_SCRIPT_MAX_TIMEOUT_SECONDS})`}
           size="small"
-          type="number"
+          min={0}
+          max={JS_SCRIPT_MAX_TIMEOUT_SECONDS}
           value={String(document.timeoutSeconds)}
           disabled={readOnly}
           onChange={(event) => {

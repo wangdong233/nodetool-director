@@ -34,6 +34,7 @@ import {
   type StoryboardCastDoc,
   type StoryboardDocCast
 } from "./docCastTypes";
+import { i18n } from "../../i18n";
 
 const ASSISTANT_ID = "storyboard-assistant-1";
 /** The answer is its own message: it follows the tool results, as in a real turn. */
@@ -172,7 +173,7 @@ export const storyboardAssistantCast: StoryboardDocCast = {
   durationMs: 25000,
   fps: 30,
   docId: "demo-storyboard-1",
-  assistantTitle: "Storyboard Assistant",
+  assistantTitle: i18n.t("storyboard:attrs.storyboardAssistant", { defaultValue: "Storyboard Assistant" }),
   assistantModel: {
     type: "language_model",
     id: "claude-sonnet-5",

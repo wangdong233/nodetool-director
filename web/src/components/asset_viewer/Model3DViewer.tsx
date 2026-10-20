@@ -13,7 +13,6 @@ import React, {
 } from "react";
 import { useGlobalCombo } from "../../stores/KeyPressedStore";
 import { Asset } from "../../stores/ApiTypes";
-import type { SelectChangeEvent } from "../ui_primitives";
 import {
   Text,
   LoadingSpinner,
@@ -25,9 +24,7 @@ import {
   BORDER_RADIUS,
   SPACING,
   getSpacingPx,
-  Select,
-  MenuItem,
-  FormControl,
+  SelectField,
   Z_INDEX
 } from "../ui_primitives";
 import { useTheme } from "@mui/material/styles";
@@ -49,10 +46,10 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
-import LightModeIcon from "@mui/icons-material/LightMode";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import { cn, reactFlowClasses } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 // Lighting presets (must match drei Environment preset types)
 type LightingPreset =
@@ -68,16 +65,16 @@ type LightingPreset =
   | "park";
 
 const LIGHTING_PRESETS: { value: LightingPreset; label: string; labelKey?: string; }[] = [
-  { value: "studio", label: "Studio", labelKey: "studio" },
-  { value: "dawn", label: "Dawn", labelKey: "dawn" },
-  { value: "warehouse", label: "Warehouse", labelKey: "warehouse" },
-  { value: "city", label: "City", labelKey: "city" },
-  { value: "sunset", label: "Sunset", labelKey: "sunset" },
-  { value: "forest", label: "Forest", labelKey: "forest" },
-  { value: "park", label: "Park", labelKey: "park" },
-  { value: "apartment", label: "Apartment", labelKey: "apartment" },
-  { value: "lobby", label: "Lobby", labelKey: "lobby" },
-  { value: "night", label: "Night", labelKey: "night" }
+  { value: "studio", label: "Studio", labelKey: "editor:studio.studioBack" },
+  { value: "dawn", label: "Dawn" },
+  { value: "warehouse", label: "Warehouse" },
+  { value: "city", label: "City" },
+  { value: "sunset", label: "Sunset" },
+  { value: "forest", label: "Forest" },
+  { value: "park", label: "Park" },
+  { value: "apartment", label: "Apartment" },
+  { value: "lobby", label: "Lobby" },
+  { value: "night", label: "Night" }
 ];
 
 type BackgroundColor =
@@ -90,14 +87,13 @@ type BackgroundColor =
 const BACKGROUND_COLORS: {
   value: BackgroundColor;
   label: string;
-  labelKey?: string;
   color: string;
 }[] = [
-  { value: "dark", label: "Dark", labelKey: "dark", color: "#1a1a1a" },
-  { value: "light", label: "Light", labelKey: "light", color: "#f5f5f5" },
-  { value: "neutral", label: "Neutral", labelKey: "neutral", color: "#404040" },
-  { value: "transparent", label: "Transparent", labelKey: "transparent", color: "transparent" },
-  { value: "gradient", label: "Gradient", labelKey: "gradient", color: "#2a2a3a" }
+  { value: "dark", label: "Dark", color: "#1a1a1a" },
+  { value: "light", label: "Light", color: "#f5f5f5" },
+  { value: "neutral", label: "Neutral", color: "#404040" },
+  { value: "transparent", label: "Transparent", color: "transparent" },
+  { value: "gradient", label: "Gradient", color: "#2a2a3a" }
 ];
 
 interface Model3DViewerProps {
@@ -178,9 +174,7 @@ const styles = (theme: Theme, compact: boolean, backgroundColor: string) =>
     ".controls-select": {
       minWidth: "100px",
       "& .MuiSelect-select": {
-        color: theme.vars.palette.grey[100],
-        padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)}`,
-        fontSize: "var(--fontSizeSmall)"
+        color: theme.vars.palette.grey[100]
       },
       "& .MuiOutlinedInput-notchedOutline": {
         borderColor: theme.vars.palette.action.disabled
@@ -617,12 +611,12 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
     [asset?.name, captureScreenshot]
   );
 
-  const handleLightingChange = useCallback((event: SelectChangeEvent) => {
-    setLightingPreset(event.target.value as LightingPreset);
+  const handleLightingChange = useCallback((value: string) => {
+    setLightingPreset(value as LightingPreset);
   }, []);
 
-  const handleBackgroundChange = useCallback((event: SelectChangeEvent) => {
-    setBackgroundColor(event.target.value as BackgroundColor);
+  const handleBackgroundChange = useCallback((value: string) => {
+    setBackgroundColor(value as BackgroundColor);
   }, []);
 
   const handleToggleGrid = useCallback(() => {
@@ -641,7 +635,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
         fullWidth
       >
         <Text size="small" color="secondary">
-          {t("editor:ui.no3DModelLoaded")}
+          No 3D model loaded
         </Text>
       </FlexColumn>
     );
@@ -666,12 +660,10 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
         <FlexColumn className="canvas-container" fullWidth fullHeight>
           {isLoading && !loadError && (
             <FlexColumn className="loading-overlay" align="center" gap={SPACING.xs}>
-              <LoadingSpinner size={compact ? "small" : "medium"} />
-              {!compact && (
-                <Text size="small" color="secondary">
-                  Loading model…
-                </Text>
-              )}
+              <LoadingSpinner
+                size={compact ? "small" : "medium"}
+                text={compact ? undefined : "Loading model"}
+              />
             </FlexColumn>
           )}
           {loadError && (
@@ -778,7 +770,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
           <FlexRow className="controls-toolbar" gap={SPACING.micro} align="center">
             <ToolbarIconButton
               icon={<GridOnIcon fontSize="small" />}
-              tooltip={t("ui2:attrs.toggleGrid", { defaultValue: "Toggle Grid" })}
+              tooltip={t("ui2:attrs.toggleGrid", { defaultValue: "Toggle grid" })}
               onClick={handleToggleGrid}
               active={showGrid}
               size="small"
@@ -786,7 +778,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
 
             <ToolbarIconButton
               icon={<ViewInArIcon fontSize="small" />}
-              tooltip={t("ui2:attrs.toggleAxes", { defaultValue: "Toggle Axes" })}
+              tooltip={t("ui2:attrs.toggleAxes", { defaultValue: "Toggle axes" })}
               onClick={handleToggleAxes}
               active={showAxes}
               size="small"
@@ -802,51 +794,42 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
                 Solid
               </ToggleOption>
               <ToggleOption value="wireframe" size="small">
-                {t("editor:ui.wire")}
+                Wire
               </ToggleOption>
             </ToggleGroup>
 
-            <FormControl size="small" className="controls-select">
-              <Select
-                value={lightingPreset}
-                onChange={handleLightingChange}
-                variant="outlined"
-                aria-label={t("ui2:attrs.lightingPreset", { defaultValue: "Lighting preset" })}
-                IconComponent={LightModeIcon}
-              >
-                {LIGHTING_PRESETS.map((preset) => (
-                  <MenuItem key={preset.value} value={preset.value}>
-                    {t(`editor:ui.${"labelKey" in preset ? preset.labelKey : ""}`, { defaultValue: preset.label })}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <SelectField
+              className="controls-select"
+              label={t("ui2:attrs.lightingPreset", { defaultValue: "Lighting preset" })}
+              hideLabel
+              size="small"
+              appearance="inspector"
+              value={lightingPreset}
+              onChange={handleLightingChange}
+              options={LIGHTING_PRESETS}
+            />
 
-            <FormControl size="small" className="controls-select">
-              <Select
-                value={backgroundColor}
-                onChange={handleBackgroundChange}
-                variant="outlined"
-                aria-label={t("ui2:attrs.backgroundColor", { defaultValue: "Background color" })}
-              >
-                {BACKGROUND_COLORS.map((bg) => (
-                  <MenuItem key={bg.value} value={bg.value}>
-                    {t(`editor:ui.${"labelKey" in bg ? bg.labelKey : ""}`, { defaultValue: bg.label })}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <SelectField
+              className="controls-select"
+              label={t("ui2:attrs.backgroundColor", { defaultValue: "Background color" })}
+              hideLabel
+              size="small"
+              appearance="inspector"
+              value={backgroundColor}
+              onChange={handleBackgroundChange}
+              options={BACKGROUND_COLORS}
+            />
 
             <ToolbarIconButton
               icon={<RestartAltIcon fontSize="small" />}
-              tooltip={t("ui2:attrs.resetCamera", { defaultValue: "Reset Camera" })}
+              tooltip={t("ui2:attrs.resetCamera", { defaultValue: "Reset camera" })}
               onClick={handleResetCamera}
               size="small"
             />
 
             <ToolbarIconButton
               icon={<CameraAltIcon fontSize="small" />}
-              tooltip={t("ui2:attrs.takeScreenshot", { defaultValue: "Take Screenshot" })}
+              tooltip={t("ui2:attrs.takeScreenshot", { defaultValue: "Take screenshot" })}
               onClick={handleScreenshot}
               size="small"
             />
@@ -859,7 +842,7 @@ const Model3DViewer: React.FC<Model3DViewerProps> = ({
                   <FullscreenIcon fontSize="small" />
                 )
               }
-              tooltip={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
+              tooltip={isFullscreen ? t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
               onClick={toggleFullscreen}
               size="small"
             />

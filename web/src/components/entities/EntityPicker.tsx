@@ -11,11 +11,12 @@
 import React, { memo, useMemo, useState } from "react";
 import type { Entity, EntityKind } from "@nodetool-ai/protocol";
 
+import { useEntityLibraryStore } from "../../stores/EntityLibraryStore";
 import { useEntities } from "../../serverState/useEntities";
+import { openPageTab } from "../workspace/openPageTab";
 import ImageRefPreview from "../node/ImageRefPreview";
 import { filterEntities } from "./filterEntities";
-import { useTranslation } from "react-i18next";
-import { ENTITY_KIND_ICON, getEntityKindChipSx } from "./entityKind";
+import { ENTITY_KIND_ICON, ENTITY_KIND_COLOR } from "./entityKind";
 import {
   AutoGrid,
   Box,
@@ -30,27 +31,20 @@ import {
   SPACING,
   Text,
   ToggleGroup,
-  ToggleOption
+  ToggleOption,
+  Tooltip
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
 
 type KindFilter = "all" | EntityKind;
 
-const KIND_FILTERS: { value: KindFilter; label: string }[] = [
-  { value: "all", label: "All" },
+const KIND_FILTERS: { value: KindFilter; label: string; labelKey?: string; }[] = [
+  { value: "all", label: "All", labelKey: "storyboard:attrs.all" },
   { value: "character", label: "Characters" },
-  { value: "location", label: "Locations" },
-  { value: "style", label: "Styles" },
-  { value: "prop", label: "Props" }
+  { value: "location", label: "Locations", labelKey: "storyboard:attrs.locations" },
+  { value: "style", label: "Styles", labelKey: "storyboard:attrs.styles" },
+  { value: "prop", label: "Props", labelKey: "storyboard:attrs.props" }
 ];
-
-/** Dictionary keys for the kind filter labels (All has no kind word). */
-const KIND_FILTER_LABEL_KEYS: Partial<Record<KindFilter, string>> = {
-  all: "storyboard:attrs.all",
-  character: "storyboard:attrs.characters",
-  location: "storyboard:attrs.locations",
-  style: "storyboard:attrs.styles",
-  prop: "storyboard:attrs.props"
-};
 
 export interface EntityPickerProps {
   /** Called with the entity a card was clicked for. */
@@ -62,7 +56,19 @@ export interface EntityPickerProps {
   /** Height of the scrolling card grid. */
   height?: number | string;
   autoFocus?: boolean;
+  /**
+   * Offer "New entity" when nothing matches. The picker opens the Entities
+   * page in its add flow, then calls this so the host can close
+   * (study-7-I2).
+   */
+  onCreateStarted?: () => void;
 }
+
+/** Open the Entities page in its guided "Add entity" flow. */
+const startEntityCreate = (): void => {
+  useEntityLibraryStore.getState().requestCreate();
+  openPageTab("entities");
+};
 
 const EntityPickCard: React.FC<{
   entity: Entity;
@@ -72,65 +78,66 @@ const EntityPickCard: React.FC<{
   const Icon = ENTITY_KIND_ICON[entity.kind];
   const name = entity.name || "Untitled";
   return (
-    <Card
-      variant="outlined"
-      padding="none"
-      clickable
-      aria-label={name}
-      aria-pressed={selected}
-      title={entity.descriptor || name}
-      onClick={() => onSelect(entity)}
-      sx={{
-        overflow: "hidden",
-        borderColor: selected ? "primary.main" : undefined,
-        boxShadow: selected
-          ? (theme) => `0 0 0 1px ${theme.vars.palette.primary.main}`
-          : undefined
-      }}
-    >
-      <Box
+    <Tooltip title={entity.descriptor || name} describeChild>
+      <Card
+        variant="outlined"
+        padding="none"
+        clickable
+        aria-label={name}
+        aria-pressed={selected}
+        onClick={() => onSelect(entity)}
         sx={{
-          width: "100%",
-          aspectRatio: "1 / 1",
           overflow: "hidden",
-          bgcolor: "background.default"
+          borderColor: selected ? "primary.main" : undefined,
+          boxShadow: selected
+            ? (theme) => `0 0 0 1px ${theme.vars.palette.primary.main}`
+            : undefined
         }}
       >
-        <ImageRefPreview
-          value={entity.reference_images?.[0]}
-          placeholder={
-            <FlexRow
-              align="center"
-              justify="center"
-              sx={{ width: "100%", height: "100%", color: "text.disabled" }}
-            >
-              <Icon fontSize="large" />
-            </FlexRow>
-          }
-        />
-      </Box>
-      <FlexColumn gap={SPACING.micro} sx={{ p: SPACING.sm, minWidth: 0 }}>
-        <Text
-          size="small"
+        <Box
           sx={{
-            fontWeight: 500,
+            width: "100%",
+            aspectRatio: "1 / 1",
             overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap"
+            bgcolor: "background.default"
           }}
         >
-          {name}
-        </Text>
-        <FlexRow>
-          <Chip
-            label={entity.kind}
-            compact
-            variant="outlined"
-            sx={getEntityKindChipSx(entity.kind)}
+          <ImageRefPreview
+            value={entity.reference_images?.[0]}
+            placeholder={
+              <FlexRow
+                align="center"
+                justify="center"
+                sx={{ width: "100%", height: "100%", color: "text.disabled" }}
+              >
+                <Icon fontSize="large" />
+              </FlexRow>
+            }
           />
-        </FlexRow>
-      </FlexColumn>
-    </Card>
+        </Box>
+        <FlexColumn gap={SPACING.micro} sx={{ p: SPACING.sm, minWidth: 0 }}>
+          <Text
+            size="small"
+            sx={{
+              fontWeight: 500,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap"
+            }}
+          >
+            {name}
+          </Text>
+          <FlexRow>
+            <Chip
+              label={entity.kind}
+              compact
+              variant="outlined"
+              color={ENTITY_KIND_COLOR[entity.kind]}
+            />
+          </FlexRow>
+        </FlexColumn>
+      </Card>
+    </Tooltip>
   );
 });
 EntityPickCard.displayName = "EntityPickCard";
@@ -140,9 +147,10 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
   selectedIds,
   entities: entitiesOverride,
   height = 360,
-  autoFocus = false
+  autoFocus = false,
+  onCreateStarted
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("editor");
   const { data, isLoading } = useEntities();
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<KindFilter>("all");
@@ -155,14 +163,20 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
   const selected = useMemo(() => new Set(selectedIds ?? []), [selectedIds]);
 
   const libraryEmpty = !isLoading && (library ?? []).length === 0;
+  const handleCreate = onCreateStarted
+    ? () => {
+        startEntityCreate();
+        onCreateStarted();
+      }
+    : undefined;
 
   return (
     <FlexColumn gap={SPACING.md}>
       <SearchInput
         value={query}
         onChange={setQuery}
-        placeholder={t("editor:ui.searchEntitiesByNameKindOrTag")}
-        ariaLabel={t("storyboard:attrs.searchEntities", { defaultValue: "Search entities" })}
+        placeholder={t("editor:ui.searchEntitiesByNameKindOrTag", { defaultValue: "Search entities by name, kind, or tag" })}
+        ariaLabel="Search entities"
         size="small"
         autoFocus={autoFocus}
         fullWidth
@@ -172,7 +186,7 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
         exclusive
         segmented
         size="small"
-        aria-label={t("editor:ui.entityKind")}
+        aria-label={t("editor:ui.entityKind", { defaultValue: "Entity kind" })}
         onChange={(_, value: KindFilter | null) => {
           if (value) {
             setKind(value);
@@ -181,29 +195,29 @@ const EntityPickerInternal: React.FC<EntityPickerProps> = ({
       >
         {KIND_FILTERS.map((filter) => (
           <ToggleOption key={filter.value} value={filter.value}>
-            {KIND_FILTER_LABEL_KEYS[filter.value] !== undefined
-              ? t(KIND_FILTER_LABEL_KEYS[filter.value] as string, {
-                  defaultValue: filter.label
-                })
-              : filter.label}
+            {filter.label}
           </ToggleOption>
         ))}
       </ToggleGroup>
       <Box sx={{ height, overflowY: "auto" }}>
         {!library && isLoading ? (
-          <LoadingSpinner size="small" text={t("editor:ui.loadingEntities")} />
+          <LoadingSpinner size="small" text="Loading entities" />
         ) : libraryEmpty ? (
           <EmptyState
             variant="empty"
-            title={t("editor:ui.noEntitiesYet")}
-            description={t("editor:ui.charactersLocationsStylesAndPropsYouCreateShowUpHere")}
+            title={t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
+            description={t("editor:ui.charactersLocationsStylesAndPropsYouCreateShowUpHere", { defaultValue: "Characters, locations, styles, and props you create show up here." })}
+            actionText={handleCreate ? t("editor:ui.newEntity", { defaultValue: "New entity" }) : undefined}
+            onAction={handleCreate}
             size="small"
           />
         ) : visible.length === 0 ? (
           <EmptyState
             variant="no-results"
-            title={t("editor:ui.noEntitiesMatchPlain")}
-            description={t("editor:ui.tryAnotherNameKindOrTag")}
+            title={t("editor:ui.noEntitiesMatchPlain", { defaultValue: "No entities match" })}
+            description={t("editor:ui.tryAnotherNameKindOrTag", { defaultValue: "Try another name, kind, or tag." })}
+            actionText={handleCreate ? "New entity" : undefined}
+            onAction={handleCreate}
             size="small"
           />
         ) : (

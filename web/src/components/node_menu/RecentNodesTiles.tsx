@@ -6,9 +6,9 @@ import { memo, useCallback, useMemo, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { DragEvent as ReactDragEvent } from "react";
-import { Tooltip, Text, ToolbarIconButton, thinScrollbarStyles, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
+import { ConfirmDialog, Tooltip, Text, ToolbarIconButton, thinScrollbarStyles, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../ui_primitives";
 import ClearIcon from "@mui/icons-material/Clear";
-import { TOOLTIP_ENTER_DELAY, NOTIFICATION_TIMEOUT_MEDIUM } from "../../config/constants";
+import { NOTIFICATION_TIMEOUT_MEDIUM } from "../../config/constants";
 import useNodeMenuStore from "../../stores/NodeMenuStore";
 import useMetadataStore from "../../stores/MetadataStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
@@ -16,15 +16,13 @@ import usePendingNodeCreateStore from "../../stores/PendingNodeCreateStore";
 import { serializeDragData } from "../../lib/dragdrop";
 import { useDragDropStore } from "../../lib/dragdrop/store";
 import { useRecentNodesStore } from "../../stores/RecentNodesStore";
-import ConfirmDialog from "../dialogs/ConfirmDialog";
 import { QUICK_ACTION_BUTTONS } from "./QuickActionTiles.constants";
 import { colorForType } from "../../config/data_types";
 import { IconForType } from "../../config/IconForType";
-import { useAppLanguage } from "../../i18n";
-import { nodeMenuTitle } from "../../i18n/nodeDisplayName";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
-const QUICK_ACTION_NODE_TYPES = new Set(
+const QUICK_ACTION_NODE_TYPES = new Set<string>(
   QUICK_ACTION_BUTTONS.map((action) => action.nodeType)
 );
 
@@ -120,9 +118,10 @@ const tileStyles = (theme: Theme) =>
       transition: `transform ${MOTION.slow}`,
       "& svg": {
         fontSize: "var(--fontSizeBig)",
-        filter: theme.palette.mode === "dark"
-          ? `drop-shadow(0 3px 5px ${theme.vars.palette.c_scrim_soft})`
-          : "none"
+        filter: "none",
+        [theme.getColorSchemeSelector("dark")]: {
+          filter: `drop-shadow(0 3px 5px ${theme.vars.palette.c_scrim_soft})`
+        }
       }
     },
     ".tile-label": {
@@ -160,7 +159,6 @@ const tileStyles = (theme: Theme) =>
 
 const RecentNodesTiles = memo(function RecentNodesTiles() {
   const { t } = useTranslation();
-  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const memoizedStyles = useMemo(() => tileStyles(theme), [theme]);
 
@@ -292,10 +290,7 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
         if (metadata) {
           names.set(
             nodeType,
-            nodeMenuTitle(
-              nodeType,
-              metadata.title || metadata.node_type.split(".").pop() || nodeType
-            )
+            metadata.title || metadata.node_type.split(".").pop() || nodeType
           );
         } else {
           names.set(
@@ -306,7 +301,7 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
       });
       return names;
     },
-    [filteredRecentNodes, getMetadata, languageVersion]
+    [filteredRecentNodes, getMetadata]
   );
 
   if (filteredRecentNodes.length === 0) {
@@ -316,7 +311,7 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
   return (
     <div css={memoizedStyles}>
       <div className="tiles-header">
-        <Text size="normal" weight={600}>{t("ui2:attrs.recentNodes", { defaultValue: "Recent Nodes" })}</Text>
+        <Text size="normal" weight={600}>{t("ui2:attrs.recentNodes", { defaultValue: "Recent nodes" })}</Text>
         <ToolbarIconButton
           icon={<ClearIcon fontSize="small" />}
           tooltip={t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}
@@ -348,13 +343,11 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
                       marginTop: getSpacingPx(SPACING.xs)
                     }}
                   >
-                    {t("editor:ui.clickToPlaceDragToCanvas")}
+                    Click to place · Drag to canvas
                   </div>
                 </div>
               }
               placement="top"
-              delay={TOOLTIP_ENTER_DELAY}
-              enterNextDelay={TOOLTIP_ENTER_DELAY}
             >
               <div
                 className="recent-tile"
@@ -386,10 +379,11 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
         open={clearConfirmOpen}
         onClose={() => setClearConfirmOpen(false)}
         onConfirm={handleClearRecent}
-        title={t("editor:ui.clearRecentNodes")}
-        content={t("editor:ui.thisClearsYourRecentlyUsedNodesListThisCannotBeUndone")}
-        confirmText={t("editor:ui.clearRecent", { defaultValue: "Clear recent" })}
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+        title={t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes?" })}
+        content={i18n.t("editor:ui.thisClearsYourRecentlyUsedNodesListThisCannotBeUndone", { defaultValue: "This clears your recently used nodes list. This cannot be undone." })}
+        confirmText={i18n.t("editor:ui.clearRecent", { defaultValue: "Clear recent" })}
+        destructive
+        cancelText="Cancel"
         notificationMessage="Recent nodes cleared"
         notificationType="success"
       />

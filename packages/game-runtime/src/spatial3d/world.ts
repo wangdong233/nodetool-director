@@ -1,10 +1,12 @@
-import type { Collider, ColliderDesc, KinematicCharacterController, RigidBody, World } from "@dimforge/rapier3d-compat";
-import type { GameCollider3D, GameInputFrame3D, GameScene3D, GameScriptCommand3D, GameSnapshot3D, GameVector3 } from "@nodetool-ai/protocol";
-import { add3, approach, multiplyQuaternion, quaternionArray, quaternionObject, quantizeSpatial3D, scale3, ZERO3 } from "./math.js";
+import type { Collider, ColliderDesc, KinematicCharacterController, RayIntersection, RigidBody, World } from "@dimforge/rapier3d-compat";
+import { IS_NODE, importOptionalModule } from "@nodetool-ai/config";
+import { missingRuntimePackageError } from "@nodetool-ai/protocol";
+import type { GameQuaternion3D, GameCollider3D, GameInputFrame3D, GameScene3D, GameScriptCommand3D, GameSnapshot3D, GameVector3 } from "@nodetool-ai/protocol";
+import { add3, approach, multiplyQuaternion, quaternionArray, quaternionObject, quantizeSpatial3D, rotate3, scale3, ZERO3 } from "./math.js";
 import { base64ToBytes, bytesToBase64 } from "./digest.js";
 import { pairKey3D, type Contact3D, type EntityState3D } from "./state.js";
 
-export const GAME_PHYSICS_BUILD_3D = "rapier3d-compat@0.19.3:sha256:1ce1c8c4036b4dcd3bde86c6efdb0f270cf5e274979b1de6ab8052947ef166c5";
+export const GAME_PHYSICS_BUILD_3D = "rapier3d-compat@0.19.3:sha256:1ce1c8c4036b4dcd3bde86c6efdb0f270cf5e274979b1de6ab8052947ef166c5:runtime-2";
 const CONTROLLER_OFFSET = 0.01;
 const MAX_SPATIAL_OBSERVATIONS = 512;
 const MAX_SENSOR_CASTS = 16_384;
@@ -17,10 +19,30 @@ export interface PreparedCollider3D {
 }
 
 export async function prepareRapier3D(): Promise<Rapier> {
-  preparedRapier ??= import("@dimforge/rapier3d-compat").then(async (module) => {
-    await module.default.init();
-    return module.default;
-  });
+  if (!preparedRapier) {
+    const attempt = import("@dimforge/rapier3d-compat").catch(async (cause: unknown) => {
+      if (cause instanceof Error && "code" in cause &&
+          (cause.code === "ERR_MODULE_NOT_FOUND" || cause.code === "MODULE_NOT_FOUND") &&
+          /Cannot find (?:package|module) ['"]@dimforge\/rapier3d-compat['"]/.test(cause.message)) {
+        if (IS_NODE) {
+          try {
+            return await importOptionalModule<typeof import("@dimforge/rapier3d-compat")>("@dimforge/rapier3d-compat");
+          } catch (fallbackCause) {
+            throw missingRuntimePackageError("@dimforge/rapier3d-compat", "rapier", fallbackCause);
+          }
+        }
+        throw missingRuntimePackageError("@dimforge/rapier3d-compat", "rapier", cause);
+      }
+      throw cause;
+    }).then(async (module) => {
+      await module.default.init();
+      return module.default;
+    });
+    preparedRapier = attempt;
+    attempt.catch(() => {
+      if (preparedRapier === attempt) { preparedRapier = undefined; }
+    });
+  }
   return preparedRapier;
 }
 
@@ -34,10 +56,35 @@ function compatible(a: Collider, b: Collider): boolean {
   return ((ag >>> 16) & (bg & 0xffff)) !== 0 && ((bg >>> 16) & (ag & 0xffff)) !== 0;
 }
 
+function assertCharacterRotation3D(state: EntityState3D, rotation: GameQuaternion3D): void {
+  if (state.definition.character3d && (rotation[0] !== 0 || rotation[2] !== 0)) {
+    throw new Error(`Character capsule ${state.definition.id} must remain upright`);
+  }
+}
+
 interface BodyRecord3D {
   readonly body?: RigidBody;
   readonly collider?: Collider;
   readonly controller?: KinematicCharacterController;
+}
+
+interface KinematicMotion3D {
+  readonly position: GameVector3;
+  readonly nextPosition: GameVector3;
+  readonly rotation: GameQuaternion3D;
+  readonly inverseRotation: GameQuaternion3D;
+}
+
+function inverseQuaternion3D(rotation: GameQuaternion3D): GameQuaternion3D {
+  return [-rotation[0], -rotation[1], -rotation[2], rotation[3]];
+}
+
+function movedPoint3D(motion: KinematicMotion3D, point: GameVector3): GameVector3 {
+  return add3(motion.nextPosition, rotate3(add3(point, scale3(motion.position, -1)), motion.rotation));
+}
+
+function previousPoint3D(motion: KinematicMotion3D, point: GameVector3): GameVector3 {
+  return add3(motion.position, rotate3(add3(point, scale3(motion.nextPosition, -1)), motion.inverseRotation));
 }
 
 export interface SpatialStep3D {
@@ -54,18 +101,25 @@ export class SpatialWorld3D {
   private readonly colliderEntities = new Map<number, string>();
   private readonly prepared: ReadonlyMap<string, PreparedCollider3D>;
   private disposed = false;
+  private readonly loadedBodies = new Set<string>();
 
   constructor(rapier: Rapier, scene: GameScene3D, states: readonly EntityState3D[], prepared: ReadonlyMap<string, PreparedCollider3D>, snapshot?: GameSnapshot3D["physics"]) {
     this.rapier = rapier;
     this.prepared = prepared;
     this.gravity = { ...scene.gravity };
+    for (const state of states) {
+      assertCharacterRotation3D(state, state.transform.rotation);
+      assertCharacterRotation3D(state, state.previousTransform.rotation);
+      assertCharacterRotation3D(state, state.localTransform.rotation);
+    }
     this.world = snapshot ? rapier.World.restoreSnapshot(base64ToBytes(snapshot.bytes)) : new rapier.World(scene.gravity);
     this.world.timestep = 1 / 60;
     try {
+      if (snapshot) { this.validateSnapshotOwnership(states, snapshot); }
       for (const state of states) {
         if (snapshot) {
-          const bodyHandle = snapshot.bodies[state.definition.id];
-          const colliderHandle = snapshot.colliders[state.definition.id];
+          const bodyHandle = Object.hasOwn(snapshot.bodies, state.definition.id) ? snapshot.bodies[state.definition.id] : undefined;
+          const colliderHandle = Object.hasOwn(snapshot.colliders, state.definition.id) ? snapshot.colliders[state.definition.id] : undefined;
           const body = bodyHandle === undefined ? undefined : this.world.getRigidBody(bodyHandle);
           const collider = colliderHandle === undefined ? undefined : this.world.getCollider(colliderHandle);
           if (state.active && (state.definition.body3d && !body || state.definition.collider3d && !collider)) {
@@ -81,6 +135,60 @@ export class SpatialWorld3D {
     } catch (error) {
       this.world.free();
       throw error;
+    }
+  }
+
+  private validateSnapshotOwnership(states: readonly EntityState3D[], snapshot: GameSnapshot3D["physics"]): void {
+    const bodies = states.filter((state) => state.active && (state.definition.body3d || state.definition.collider3d));
+    const colliders = states.filter((state) => state.active && state.definition.collider3d);
+    const validMap = (mapping: Readonly<Record<string, number>>, expected: readonly EntityState3D[], count: number): boolean => {
+      const keys = Object.keys(mapping);
+      return keys.length === expected.length && count === expected.length &&
+        new Set(Object.values(mapping)).size === keys.length && expected.every((state) => Object.hasOwn(mapping, state.definition.id));
+    };
+    if (!validMap(snapshot.bodies, bodies, this.world.bodies.len()) ||
+        !validMap(snapshot.colliders, colliders, this.world.colliders.len())) {
+      throw new Error("Physics snapshot entity handles do not match the active scene");
+    }
+    const sameVector = (actual: GameVector3, expected: GameVector3): boolean =>
+      actual.x === Math.fround(expected.x) && actual.y === Math.fround(expected.y) && actual.z === Math.fround(expected.z);
+    const sameRotation = (actual: { x: number; y: number; z: number; w: number }, expected: GameQuaternion3D): boolean =>
+      actual.x === Math.fround(expected[0]) && actual.y === Math.fround(expected[1]) &&
+      actual.z === Math.fround(expected[2]) && actual.w === Math.fround(expected[3]);
+    const shapeTypes = { box: this.rapier.ShapeType.Cuboid, sphere: this.rapier.ShapeType.Ball,
+      capsule: this.rapier.ShapeType.Capsule, convexHull: this.rapier.ShapeType.ConvexPolyhedron,
+      triangleMesh: this.rapier.ShapeType.TriMesh } as const;
+    for (const state of bodies) {
+      const id = state.definition.id;
+      const bodyHandle = snapshot.bodies[id];
+      if (bodyHandle === undefined) { throw new Error(`Physics snapshot body is missing ${id}`); }
+      const body = this.world.getRigidBody(bodyHandle);
+      const kind = state.definition.body3d?.type;
+      const expectedType = kind === "dynamic" ? this.rapier.RigidBodyType.Dynamic : kind === "kinematic" ?
+        this.rapier.RigidBodyType.KinematicPositionBased : this.rapier.RigidBodyType.Fixed;
+      const rotation = body?.rotation();
+      if (!body || body.bodyType() !== expectedType || !sameVector(body.translation(), state.transform.position) ||
+          !rotation || !sameRotation(rotation, state.transform.rotation) ||
+          (!state.definition.character3d && (!sameVector(body.linvel(), state.velocity) || !sameVector(body.angvel(), state.angularVelocity)))) {
+        throw new Error(`Physics snapshot body does not match ${id}`);
+      }
+      const definition = state.definition.collider3d;
+      if (definition) {
+        const colliderHandle = snapshot.colliders[id];
+        if (colliderHandle === undefined) { throw new Error(`Physics snapshot collider is missing ${id}`); }
+        const collider = this.world.getCollider(colliderHandle);
+        const offset = collider?.translationWrtParent();
+        const localRotation = collider?.rotationWrtParent();
+        if (!collider || collider.parent()?.handle !== body.handle || collider.isSensor() !== definition.sensor ||
+            collider.collisionGroups() !== collisionGroups(definition) || collider.shape.type !== shapeTypes[definition.kind] ||
+            !offset || !sameVector(offset, definition.offset) || !localRotation ||
+            !sameRotation(localRotation, definition.rotation) ||
+            (definition.kind === "box" && !sameVector(collider.halfExtents(), definition.halfExtents)) ||
+            ((definition.kind === "sphere" || definition.kind === "capsule") && collider.radius() !== Math.fround(definition.radius)) ||
+            (definition.kind === "capsule" && collider.halfHeight() !== Math.fround(definition.halfHeight))) {
+          throw new Error(`Physics snapshot collider does not match ${id}`);
+        }
+      }
     }
   }
 
@@ -118,6 +226,11 @@ export class SpatialWorld3D {
       }
     }
     if (!description) throw new Error("Prepared convex collider is degenerate");
+    // An unset rule keeps Rapier's default, average, so colliders without one build exactly as before.
+    const rules = this.rapier.CoefficientCombineRule;
+    const rule = { average: rules.Average, min: rules.Min, multiply: rules.Multiply, max: rules.Max } as const;
+    if (definition.frictionCombine) description.setFrictionCombineRule(rule[definition.frictionCombine]);
+    if (definition.restitutionCombine) description.setRestitutionCombineRule(rule[definition.restitutionCombine]);
     return description.setTranslation(definition.offset.x, definition.offset.y, definition.offset.z)
       .setRotation(quaternionObject(definition.rotation)).setSensor(definition.sensor).setCollisionGroups(collisionGroups(definition))
       .setActiveCollisionTypes(this.rapier.ActiveCollisionTypes.DEFAULT | this.rapier.ActiveCollisionTypes.KINEMATIC_FIXED | this.rapier.ActiveCollisionTypes.KINEMATIC_KINEMATIC)
@@ -125,6 +238,7 @@ export class SpatialWorld3D {
   }
 
   add(state: EntityState3D): void {
+    assertCharacterRotation3D(state, state.transform.rotation);
     const definition = state.definition;
     const settings = definition.body3d;
     let body: RigidBody | undefined;
@@ -137,16 +251,22 @@ export class SpatialWorld3D {
         description.setLinvel(state.velocity.x, state.velocity.y, state.velocity.z).setAngvel(state.angularVelocity)
           .setGravityScale(settings.gravityScale).setLinearDamping(settings.linearDamping).setAngularDamping(settings.angularDamping).setCcdEnabled(settings.ccd);
       }
+      if (settings?.type === "dynamic" && !definition.collider3d) { description.setAdditionalMass(settings.mass); }
       if (definition.character3d) description.lockRotations();
       body = this.world.createRigidBody(description);
     }
-    const collider = definition.collider3d ? this.world.createCollider(this.colliderDescription(definition.collider3d), body) : undefined;
-    if (settings?.type === "dynamic" && collider) collider.setMass(settings.mass);
+    let collider: Collider | undefined;
+    if (definition.collider3d) {
+      const description = this.colliderDescription(definition.collider3d);
+      if (settings?.type === "dynamic") { description.setMass(settings.mass); }
+      collider = this.world.createCollider(description, body);
+    }
     if (collider) this.colliderEntities.set(collider.handle, definition.id);
     this.records.set(definition.id, { body, collider, controller: this.createController(state) });
   }
 
   remove(entityId: string): void {
+    this.loadedBodies.delete(entityId);
     const record = this.records.get(entityId);
     if (!record) return;
     if (record.collider) this.colliderEntities.delete(record.collider.handle);
@@ -157,6 +277,7 @@ export class SpatialWorld3D {
   }
 
   teleport(state: EntityState3D, command: Extract<GameScriptCommand3D, { kind: "teleport" }>): void {
+    assertCharacterRotation3D(state, command.rotation ?? state.transform.rotation);
     const record = this.records.get(state.definition.id);
     state.transform = { ...state.transform, position: { ...command.position }, rotation: command.rotation ?? state.transform.rotation };
     state.previousTransform = structuredClone(state.transform);
@@ -191,6 +312,36 @@ export class SpatialWorld3D {
   impulse(state: EntityState3D, impulse: GameVector3): void {
     if (state.definition.body3d?.type !== "dynamic") throw new Error(`Impulse requires a dynamic body (${state.definition.id})`);
     this.records.get(state.definition.id)?.body?.applyImpulse(impulse, true);
+  }
+
+  private forceBody(state: EntityState3D): RigidBody {
+    if (!state.active || state.definition.body3d?.type !== "dynamic") {
+      throw new Error(`Force requires an active dynamic body (${state.definition.id})`);
+    }
+    const body = this.records.get(state.definition.id)?.body;
+    if (!body) { throw new Error(`Force body missing (${state.definition.id})`); }
+    return body;
+  }
+
+  addForce(state: EntityState3D, force: GameVector3): void {
+    const body = this.forceBody(state);
+    if (force.x === 0 && force.y === 0 && force.z === 0) { return; }
+    body.addForce(force, true);
+    this.loadedBodies.add(state.definition.id);
+  }
+
+  addTorque(state: EntityState3D, torque: GameVector3): void {
+    const body = this.forceBody(state);
+    if (torque.x === 0 && torque.y === 0 && torque.z === 0) { return; }
+    body.addTorque(torque, true);
+    this.loadedBodies.add(state.definition.id);
+  }
+
+  addForceAtPoint(state: EntityState3D, force: GameVector3, point: GameVector3): void {
+    const body = this.forceBody(state);
+    if (force.x === 0 && force.y === 0 && force.z === 0) { return; }
+    body.addForceAtPoint(force, point, true);
+    this.loadedBodies.add(state.definition.id);
   }
 
   setKinematicPose(state: EntityState3D, command: Extract<GameScriptCommand3D, { kind: "setKinematicPose" }>): void {
@@ -238,7 +389,7 @@ export class SpatialWorld3D {
       if (!existing || time < existing.time) contacts.set(key, { entityId, otherId, sensor, normal: { ...normal }, time });
       if (contacts.size > MAX_SPATIAL_OBSERVATIONS) throw new Error("3D contact observation limit exceeded");
     };
-    const platformMoves = new Map<string, GameVector3>();
+    const platformMoves = new Map<string, KinematicMotion3D>();
     for (const state of states) {
       if (!state.active || state.definition.body3d?.type !== "kinematic" || state.definition.character3d) continue;
       const body = this.records.get(state.definition.id)?.body;
@@ -255,9 +406,18 @@ export class SpatialWorld3D {
           )));
         }
       }
-      platformMoves.set(state.definition.id, delta);
+      const rotation = multiplyQuaternion(quaternionArray(body.nextRotation()), inverseQuaternion3D(quaternionArray(body.rotation())));
+      platformMoves.set(state.definition.id, { position: { ...body.translation() }, nextPosition: { ...body.nextTranslation() },
+        rotation, inverseRotation: inverseQuaternion3D(rotation) });
     }
-    const sensors = [...this.records.values()].flatMap((record) => record.collider?.isSensor() ? [record.collider] : []);
+    const sensors = [...this.records.entries()].flatMap(([id, record]) => {
+      const collider = record.collider;
+      if (!collider?.isSensor()) { return []; }
+      const motion = platformMoves.get(id);
+      const position = collider.translation();
+      const movement = motion ? add3(movedPoint3D(motion, position), scale3(position, -1)) : ZERO3;
+      return [{ collider, movement }];
+    });
     let sensorCasts = 0;
     for (const state of states) {
       if (!state.active || !state.definition.character3d) continue;
@@ -287,25 +447,38 @@ export class SpatialWorld3D {
         jumped = true;
       }
       controllerState.verticalVelocity += this.gravity.y * (state.definition.body3d?.gravityScale ?? 1) / 60;
-      const carry = !jumped && controllerState.supportId ? platformMoves.get(controllerState.supportId) ?? ZERO3 : ZERO3;
+      const supportMotion = !jumped && controllerState.supportId ? platformMoves.get(controllerState.supportId) : undefined;
+      const center = record.collider.translation();
+      const carry = supportMotion ? add3(movedPoint3D(supportMotion, center), scale3(center, -1)) : ZERO3;
       const desired = add3({ x: state.velocity.x / 60, y: controllerState.verticalVelocity / 60, z: state.velocity.z / 60 }, carry);
       const previousSupportId = !jumped ? controllerState.supportId : undefined;
       const support = previousSupportId ? this.records.get(previousSupportId)?.collider : undefined;
+      const characterCollider = record.collider;
+      const supportHeight = state.definition.collider3d?.kind === "capsule"
+        ? state.definition.collider3d.halfHeight + state.definition.collider3d.radius : undefined;
+      const supportHit = (movement: GameVector3): RayIntersection | undefined => {
+        if (!support || supportHeight === undefined || controllerState.verticalVelocity > 0) { return undefined; }
+        const candidate = add3(characterCollider.translation(), movement);
+        const origin = supportMotion ? previousPoint3D(supportMotion, candidate) : candidate;
+        const down = supportMotion ? rotate3({ x: 0, y: -1, z: 0 }, supportMotion.inverseRotation) : { x: 0, y: -1, z: 0 };
+        const ray = new this.rapier.Ray(origin, down);
+        const hit = support.castRayAndGetNormal(ray, supportHeight + character.groundSnap + CONTROLLER_OFFSET, true);
+        if (!hit || hit.timeOfImpact <= 0) { return undefined; }
+        if (supportMotion) { hit.normal = rotate3(hit.normal, supportMotion.rotation); }
+        return hit.normal.y >= Math.cos(character.slopeLimit * Math.PI / 180) ? hit : undefined;
+      };
+      const requestedSupport = supportHit(desired);
+      if (requestedSupport && supportHeight !== undefined) {
+        desired.y += supportHeight + CONTROLLER_OFFSET - requestedSupport.timeOfImpact;
+      }
       record.controller.computeColliderMovement(record.collider, desired, this.rapier.QueryFilterFlags.EXCLUDE_SENSORS, record.collider.collisionGroups(),
         (collider) => collider.handle !== support?.handle);
-
       const movement = record.controller.computedMovement();
-      let supported = false;
-      if (support && previousSupportId && controllerState.verticalVelocity <= 0 && state.definition.collider3d?.kind === "capsule") {
-        const center = add3(add3(record.collider.translation(), movement), scale3(carry, -1));
-        const height = state.definition.collider3d.halfHeight + state.definition.collider3d.radius;
-        const ray = new this.rapier.Ray(center, { x: 0, y: -1, z: 0 });
-        const hit = support.castRayAndGetNormal(ray, height + character.groundSnap + CONTROLLER_OFFSET, true);
-        if (hit && hit.normal.y >= Math.cos(character.slopeLimit * Math.PI / 180) && hit.timeOfImpact > 0) {
-          movement.y += height + CONTROLLER_OFFSET - hit.timeOfImpact;
-          supported = true;
-          observe(state.definition.id, previousSupportId, false, hit.normal, 0);
-        }
+      const resolvedSupport = supportHit(movement);
+      const supported = resolvedSupport !== undefined && supportHeight !== undefined &&
+        resolvedSupport.timeOfImpact >= supportHeight - 0.00001;
+      if (supported && previousSupportId) {
+        observe(state.definition.id, previousSupportId, false, resolvedSupport.normal, 0);
       }
       const grounded = (record.controller.computedGrounded() || supported) && controllerState.verticalVelocity <= 0;
       controllerState.grounded = grounded;
@@ -321,11 +494,11 @@ export class SpatialWorld3D {
       if (!grounded && controllerState.coyoteRemaining > 0) controllerState.coyoteRemaining -= 1;
       if (controllerState.jumpBufferRemaining > 0) controllerState.jumpBufferRemaining -= 1;
       state.velocity.y = controllerState.verticalVelocity;
-      for (const sensor of sensors) {
+      for (const { collider: sensor, movement: sensorMovement } of sensors) {
         if (!compatible(record.collider, sensor)) continue;
         sensorCasts += 1;
         if (sensorCasts > MAX_SENSOR_CASTS) throw new Error("3D sensor query limit exceeded");
-        const hit = sensor.castShape(ZERO3, record.collider.shape, record.collider.translation(), record.collider.rotation(), movement, 0, 1, true);
+        const hit = sensor.castShape(sensorMovement, record.collider.shape, record.collider.translation(), record.collider.rotation(), movement, 0, 1, true);
         const otherId = this.colliderEntities.get(sensor.handle);
         if (hit && otherId) observe(state.definition.id, otherId, true, hit.normal1, hit.time_of_impact);
       }
@@ -336,6 +509,13 @@ export class SpatialWorld3D {
 
   stepPhysics(): void {
     this.world.step();
+    // Rapier retains user loads. Clear only this tick's loaded bodies before snapshotting.
+    for (const id of this.loadedBodies) {
+      const body = this.records.get(id)?.body;
+      body?.resetForces(false);
+      body?.resetTorques(false);
+    }
+    this.loadedBodies.clear();
   }
 
   collectContacts(states: readonly EntityState3D[], step: SpatialStep3D): Contact3D[] {
@@ -426,6 +606,7 @@ export class SpatialWorld3D {
     this.disposed = true;
     this.world.free();
     this.records.clear();
+    this.loadedBodies.clear();
     this.colliderEntities.clear();
   }
 }

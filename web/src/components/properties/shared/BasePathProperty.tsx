@@ -5,7 +5,7 @@ import isEqual from "../../../utils/isEqual";
 import PropertyLabel from "../../node/PropertyLabel";
 import { PropertyProps } from "../../node/PropertyInput";
 import { useTheme } from "@mui/material/styles";
-import { Text, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../../ui_primitives";
+import { Text, SPACING, getSpacingPx, EditorButton, CloseButton } from "../../ui_primitives";
 import type { Theme } from "@mui/material/styles";
 import FileBrowserDialog from "../../dialogs/FileBrowserDialog";
 import { isString } from "../../../utils/typePredicates";
@@ -44,19 +44,6 @@ const createPathPropertyStyles = (theme: Theme) =>
       flex: 1
     },
 
-    ".path-picker__browse-button": {
-      backgroundColor: theme.vars.palette.grey[600],
-      border: `1px solid ${theme.vars.palette.grey[500]}`,
-      borderRadius: BORDER_RADIUS.xs,
-      color: theme.vars.palette.common.white,
-      cursor: "pointer",
-      padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.xs)}`,
-      height: "100%",
-      transition: MOTION.all,
-      "&:hover": {
-        backgroundColor: theme.vars.palette.grey[500]
-      }
-    },
 
     ".path-picker__preview": {
       display: "flex",
@@ -69,23 +56,6 @@ const createPathPropertyStyles = (theme: Theme) =>
       minHeight: "20px"
     },
 
-    ".path-picker__reset-button": {
-      backgroundColor: "transparent",
-      border: "none",
-      borderRadius: BORDER_RADIUS.circle,
-      color: theme.vars.palette.grey[400],
-      cursor: "pointer",
-      padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)}`,
-      minWidth: "20px",
-      height: "24px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      transition: MOTION.all,
-      "&:hover": {
-        color: "var(--palette-primary-main)"
-      }
-    }
   });
 
 const PathPreview = ({
@@ -96,20 +66,13 @@ const PathPreview = ({
 }: PathPreviewProps) => {
   return (
     <div className="path-picker__inputs">
-      <button type="button" onClick={onBrowseClick} className="path-picker__browse-button">
+      <EditorButton variant="outlined" onClick={onBrowseClick}>
         Browse
-      </button>
+      </EditorButton>
       <div className="path-picker__preview">
         <Text>{value?.toString()}</Text>
         {value?.toString() && (
-          <button
-            type="button"
-            onClick={onClear}
-            className="path-picker__reset-button"
-            aria-label={ariaLabel}
-          >
-            ×
-          </button>
+          <CloseButton onClick={onClear} tooltip={ariaLabel} />
         )}
       </div>
     </div>

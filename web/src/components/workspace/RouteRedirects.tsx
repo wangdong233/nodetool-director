@@ -76,7 +76,7 @@ export const SettingsRedirect = () => {
     const section: SettingsSection =
       SETTINGS_SECTIONS[legacyTab] ?? "general";
     setSection(section);
-    openTab({ type: "page", ref: "settings", mode: "view", title: "Settings" });
+    openTab({ type: "page", ref: "settings", mode: "view", title: "Settings", titleKey: "nav:settings.title" });
   }, [legacyTab, openTab, setSection]);
 
   return <Navigate to="/workspace" replace />;

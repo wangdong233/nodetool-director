@@ -182,3 +182,11 @@ showcase、hero、发布或"要最好的"片子,宣布完成之前要像导演�
 5. **修改,然后重跑这一轮。** 宣布完成之前,至少做一次改变构图本身的
    修改,而不只是修校验器报的错。然后对结果重复 1–4。停在第一次干净渲染
    上,正是这一轮要抓的失败。
+
+`@nodetool-ai/sandbox-timeline` 的 `video()` 用场景列表构建文档。
+
+4. **以 showcase 档验证。** `validate_timeline` 配 `{"timeline_id": "<id>", "tier": "showcase"}`(代码里为 `nodetool.timelines.validate(id, {tier: "showcase"})`)返回 `errors`;构建调用在验证错误时返回 `{timeline_id, warnings}` 加 `code`。
+
+它(`@nodetool-ai/sandbox-timeline`)的 `video()` 用场景列表构建文档。
+
+该库(`@nodetool-ai/sandbox-timeline`)的 `video()` 用场景列表构建文档。

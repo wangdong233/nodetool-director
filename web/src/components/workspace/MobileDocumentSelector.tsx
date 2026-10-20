@@ -12,10 +12,8 @@ import type {
 import { useIsWorkflowRunning } from "../../hooks/useWorkflowRunnerState";
 import { useWorkflowDirty } from "../../hooks/useWorkflowDirty";
 import { useSettingsStore } from "../../stores/SettingsStore";
-import { i18n, useAppLanguage } from "../../i18n";
 import {
   BORDER_RADIUS,
-  Caption,
   CloseButton,
   Divider,
   List,
@@ -26,18 +24,22 @@ import {
   MobileBottomSheet,
   MOTION,
   SPACING,
-  getSpacingPx
+  StatusDot,
+  getSpacingPx,
+  EmptyState
 } from "../ui_primitives";
-import { tabDisplayTitle, tabTypeName } from "./tabTypeIdentity";
-
-const t18 = (key: string, fallback: string, options?: Record<string, string>) =>
-  i18n.t(`nav:tabs.${key}`, { defaultValue: fallback, ...options });
+import { PROJECT_HOME_GLYPH, tabDisplayTitle } from "./tabTypeIdentity";
+import { PROJECT_COLOR } from "../projects/projectIdentity";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface MobileDocumentSelectorProps {
   tabs: WorkspaceTab[];
   activeTabId: string | null;
   typeColor: Record<WorkspaceTabType, string>;
   typeGlyph: Record<WorkspaceTabType, string>;
+  /** The project home is showing, which is not one of the listed documents. */
+  homeIsActive?: boolean;
   onActivate: (tabId: string) => void;
   onClose: (tab: WorkspaceTab) => void;
   onCloseAll: () => void;
@@ -105,13 +107,6 @@ const sheetStyles = (theme: Theme) =>
       width: "20px",
       textAlign: "center"
     },
-    "& .dirty-dot": {
-      width: "8px",
-      height: "8px",
-      borderRadius: BORDER_RADIUS.circle,
-      backgroundColor: theme.vars.palette.warning.main,
-      flexShrink: 0
-    },
     "& .row-close": {
       flexShrink: 0,
       width: "44px",
@@ -130,8 +125,7 @@ const DocumentStatus = memo(function DocumentStatus({
 }: {
   tab: WorkspaceTab;
 }) {
-  // Subscribe so the raw-i18n.t aria-label re-renders on language change.
-  useAppLanguage();
+  const { t } = useTranslation("ui2");
   const workflowId = tab.type === "workflow" ? tab.ref : undefined;
   const isDirty = useWorkflowDirty(workflowId);
   const isRunning = useIsWorkflowRunning(workflowId);
@@ -143,20 +137,10 @@ const DocumentStatus = memo(function DocumentStatus({
   return (
     <>
       {isRunning && !instantUpdate && (
-        <LoadingSpinner
-          inline
-          variant="circular"
-          size={12}
-          thickness={4}
-          color="primary"
-        />
+        <LoadingSpinner inline size={14} color="primary" />
       )}
       {isDirty && (
-        <span
-          className="dirty-dot"
-          role="img"
-          aria-label={t18("unsaved", "unsaved changes")}
-        />
+        <StatusDot tone="warning" size="medium" label={t("ui2:attrs.unsavedChanges", { defaultValue: "unsaved changes" })} />
       )}
     </>
   );
@@ -173,13 +157,13 @@ const MobileDocumentSelector = ({
   activeTabId,
   typeColor,
   typeGlyph,
+  homeIsActive = false,
   onActivate,
   onClose,
   onCloseAll
 }: MobileDocumentSelectorProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
-  // Subscribe so raw-i18n.t reads below re-render on language change.
-  useAppLanguage();
   const buttonStyles = useMemo(() => styles(theme), [theme]);
   const listStyles = useMemo(() => sheetStyles(theme), [theme]);
   const [open, setOpen] = useState(false);
@@ -214,42 +198,51 @@ const MobileDocumentSelector = ({
         aria-expanded={open}
         aria-label={
           activeTab
-            ? t18("openDocument", "Open document: {{title}}", {
-                title: tabDisplayTitle(activeTab)
-              })
-            : t18("openDocuments", "Open documents")
+            ? `Open document: ${tabDisplayTitle(activeTab)}`
+            : homeIsActive
+              ? t("editor:ui.projectHomeSwitchDoc", { defaultValue: "Project home, switch document" })
+              : t("editor:ui.openDocuments", { defaultValue: "Open documents" })
         }
         onClick={() => setOpen(true)}
       >
-        {activeTab && (
+        {activeTab ? (
           <span className="glyph" style={{ color: typeColor[activeTab.type] }}>
             {typeGlyph[activeTab.type]}
           </span>
+        ) : (
+          homeIsActive && (
+            <span className="glyph" style={{ color: PROJECT_COLOR }}>
+              {PROJECT_HOME_GLYPH}
+            </span>
+          )
         )}
         <span className="doc-title">
           {activeTab
             ? tabDisplayTitle(activeTab)
-            : t18("noDocumentOpen", "No document open")}
+            : homeIsActive
+              ? "Project home"
+              : i18n.t("nav:tabs.noDocumentOpen", { defaultValue: "No document open" })}
         </span>
         {activeTab && <DocumentStatus tab={activeTab} />}
-        {tabs.length > 1 && <span className="doc-count">{tabs.length}</span>}
+        {tabs.length > 1 && (
+          <span className="doc-count">{tabs.length} open</span>
+        )}
         <ExpandMoreRoundedIcon className="caret" aria-hidden />
       </button>
 
       <MobileBottomSheet
         open={open}
         onClose={closeSheet}
-        title={t18("openDocuments", "Open documents")}
-        ariaLabel={t18("switchDocs", "Switch between open documents")}
+        title={t("nav:tabs.openDocuments", { defaultValue: "Open documents" })}
+        ariaLabel={t("nav:tabs.switchDocs", { defaultValue: "Switch between open documents" })}
       >
         <div css={listStyles}>
           {tabs.length === 0 && (
-            <Caption color="secondary" sx={{ px: 2.5, py: 2 }}>
-              {t18(
-                "emptyDocs",
-                "No documents open — use + to open or create one."
-              )}
-            </Caption>
+            <EmptyState
+              size="small"
+              title={t("editor:ui.noDocumentsOpen", { defaultValue: "No documents open" })}
+              description={t("editor:ui.tapNewToOpen", { defaultValue: "Tap New to open or create one." })}
+            />
           )}
           <List dense disablePadding>
             {tabs.map((tab) => (
@@ -259,9 +252,7 @@ const MobileDocumentSelector = ({
                 secondaryAction={
                   <CloseButton
                     className="row-close"
-                    tooltip={t18("closeNamed", "Close {{title}}", {
-                      title: tabDisplayTitle(tab)
-                    })}
+                    tooltip={`Close ${tabDisplayTitle(tab)}`}
                     onClick={() => onClose(tab)}
                   />
                 }
@@ -280,7 +271,7 @@ const MobileDocumentSelector = ({
                   </span>
                   <ListItemText
                     primary={tabDisplayTitle(tab)}
-                    secondary={tabTypeName(tab.type)}
+                    secondary={tab.type}
                   />
                   <DocumentStatus tab={tab} />
                 </ListItemButton>
@@ -296,9 +287,7 @@ const MobileDocumentSelector = ({
                     className="close-all"
                     onClick={handleCloseAll}
                   >
-                    <ListItemText
-                      primary={t18("closeAllDocs", "Close all documents")}
-                    />
+                    <ListItemText primary={t("nav:tabs.closeAllDocs", { defaultValue: "Close all documents" })} />
                   </ListItemButton>
                 </ListItem>
               </List>

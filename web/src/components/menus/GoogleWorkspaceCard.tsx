@@ -140,7 +140,7 @@ const GoogleWorkspaceCard = () => {
             density="compact"
             variant="text"
             size="small"
-            startIcon={<LinkOffIcon sx={{ fontSize: 14 }} />}
+            startIcon={<LinkOffIcon />}
             onClick={disconnect}
           >
             {t("editor:ui.disconnect", { defaultValue: "Disconnect" })}

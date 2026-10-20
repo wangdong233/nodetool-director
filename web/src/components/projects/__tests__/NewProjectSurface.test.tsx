@@ -8,11 +8,17 @@ import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import mockTheme from "../../../__mocks__/themeMock";
+import useModelPreferencesStore from "../../../stores/ModelPreferencesStore";
 import { useBugReportStore } from "../../../stores/BugReportStore";
 
 jest.mock("../CurrentProjectDocuments", () => ({
   __esModule: true,
   default: () => <div data-testid="current-project-documents" />
+}));
+
+jest.mock("../RecentChats", () => ({
+  __esModule: true,
+  default: () => <div data-testid="recent-chats" />
 }));
 
 jest.mock("../../portal/DashboardTemplates", () => ({
@@ -32,7 +38,14 @@ jest.mock("../../portal/DashboardExampleTimelines", () => ({
 
 jest.mock("../../portal/DashboardExampleGames", () => ({
   __esModule: true,
-  default: () => <div>Game examples</div>
+  default: ({ onMakeGame }: { onMakeGame?: () => void }) => (
+    <div>
+      Game examples
+      <button type="button" onClick={onMakeGame}>
+        Make a game
+      </button>
+    </div>
+  )
 }));
 
 const createProject = jest.fn(async () => ({
@@ -200,8 +213,21 @@ const storyboardDelete = jest.fn().mockResolvedValue({ ok: true });
 const workflowDelete = jest.fn().mockResolvedValue({ ok: true });
 const projectDelete = jest.fn().mockResolvedValue({ ok: true });
 const createGame = jest.fn(async () => ({ game: { id: "game-1" } }));
+let mockDocumentTotal: number | null = 3;
 jest.mock("../../../trpc/client", () => ({
   __esModule: true,
+  trpc: {
+    projects: {
+      documentPage: {
+        useQuery: () => ({
+          data:
+            mockDocumentTotal === null
+              ? undefined
+              : { total: mockDocumentTotal, documents: [] }
+        })
+      }
+    }
+  },
   trpcClient: {
     games: { create: { mutate: createGame } },
     timeline: { update: { mutate: timelineUpdate } },
@@ -306,6 +332,30 @@ jest.mock("../../setup/workflow/WorkflowSetupHost", () => ({
       >
         Copy the example
       </button>
+      <button type="button" onClick={() => onFinish(null)}>
+        Build
+      </button>
+    </div>
+  )
+}));
+
+jest.mock("../../setup/app/AppSetupHost", () => ({
+  __esModule: true,
+  default: ({
+    initialBrief,
+    onFinish
+  }: {
+    initialBrief: string;
+    onFinish: (app: { appId: string; name: string }) => void;
+  }) => (
+    <div data-testid="app-setup-flow">
+      {initialBrief}
+      <button
+        type="button"
+        onClick={() => onFinish({ appId: "app-1", name: "Blurb page" })}
+      >
+        Finish app
+      </button>
     </div>
   )
 }));
@@ -358,10 +408,14 @@ jest.mock("../../../stores/WorkspaceTabsStore", () => ({
 }));
 
 const addNotification = jest.fn();
+const removeNotificationsByKey = jest.fn();
 jest.mock("../../../stores/NotificationStore", () => ({
   useNotificationStore: <T,>(
-    selector: (s: { addNotification: jest.Mock }) => T
-  ) => selector({ addNotification })
+    selector: (s: {
+      addNotification: jest.Mock;
+      removeNotificationsByKey: jest.Mock;
+    }) => T
+  ) => selector({ addNotification, removeNotificationsByKey })
 }));
 
 // The surface reads the chat's model selection to decide whether the project
@@ -389,12 +443,20 @@ jest.mock("../../model_menu/LanguageModelMenuDialog", () => ({
   __esModule: true,
   default: ({
     open,
-    onModelChange
+    onModelChange,
+    selectedModel: current
   }: {
     open: boolean;
     onModelChange?: (model: unknown) => void;
+    selectedModel?: { id: string; provider?: string };
   }) =>
     open ? (
+      <>
+      {current && (
+        <span data-testid="picker-current">
+          {`${current.provider}/${current.id}`}
+        </span>
+      )}
       <button
         type="button"
         onClick={() =>
@@ -408,6 +470,7 @@ jest.mock("../../model_menu/LanguageModelMenuDialog", () => ({
       >
         Pick Claude
       </button>
+      </>
     ) : null
 }));
 
@@ -427,6 +490,7 @@ jest.mock("../../workspace/openPageTab", () => ({
 
 // The `@` picker's search fans out to the asset store and the entity library;
 // this surface only needs the picked row to reach the prompt.
+let mockMentionAssets: unknown[] = [];
 jest.mock(
   "../../node_types/editing/promptComposer/useAssetMentionSearch",
   () => ({
@@ -445,7 +509,7 @@ jest.mock(
                 reference_images: []
               }
             ],
-      displayedAssets: [],
+      displayedAssets: query === null ? [] : mockMentionAssets,
       hasMoreSaved: false,
       loadMoreSaved: jest.fn(),
       handleRename: jest.fn()
@@ -463,6 +527,7 @@ import { OPTION_CARD_CLASS } from "../../setup/OptionCardGrid";
 import { clearChatTurn, peekChatTurn } from "../../chat/pendingChatTurn";
 import useOnboardingStore from "../../../stores/OnboardingStore";
 import { useProviderOnboardingStore } from "../../../stores/ProviderOnboardingStore";
+import type { Asset } from "../../../stores/ApiTypes";
 
 // The real tab store behind the suite's selector mock: `creationProjectId`
 // reads it, so a "current project" pick files where these tests point it.
@@ -515,14 +580,21 @@ const renderSurface = (initialFlowTab: FlowTab | null = null, expandFormats = tr
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockMentionAssets = [];
   localStorage.clear();
   sessionStorage.clear();
   openProject.mockResolvedValue(true);
   hasConfiguredProvider = true;
   selectedModel = { provider: "anthropic", id: "claude-sonnet-5" };
+  mockDocumentTotal = 3;
+  useModelPreferencesStore.setState({ defaults: {} });
   actualTabsStore.useWorkspaceTabsStore.setState({ activeProjectId: null, personalProjectId: null });
   clearChatTurn("chat-1");
-  useOnboardingStore.setState({ completedSteps: [], dismissed: false });
+  useOnboardingStore.setState({
+    completedSteps: [],
+    dismissed: false,
+    ideaDescribed: false
+  });
   skills = [
     {
       id: "system:launch-commercial",
@@ -543,6 +615,17 @@ beforeEach(() => {
 });
 
 describe("NewProjectSurface", () => {
+  // UX research study 4: newcomers read the home box as a document builder
+  // and went looking for a chat to ask their question.
+  it("says the home box answers questions as well as making things", () => {
+    renderSurface();
+
+    expect(screen.getByPlaceholderText(/^Ask a question/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Ask a question and get an answer/)
+    ).toBeInTheDocument();
+  });
+
   it("offers every skill as a starter, the user's own and the shipped ones", () => {
     renderSurface();
     expect(useSkillsOptions).toHaveBeenCalledWith({ includeSystem: true });
@@ -750,6 +833,35 @@ describe("NewProjectSurface", () => {
     });
   });
 
+  it("keeps a non-image out of the reference images and says so", async () => {
+    createAsset.mockResolvedValue({
+      id: "reference-asset",
+      name: "lamp.png",
+      content_type: "image/png",
+      thumb_url: "https://example.test/lamp-thumb.png",
+      get_url: "https://example.test/lamp.png"
+    });
+    renderSurface();
+    // A person can switch the file picker's image filter off.
+    const user = userEvent.setup({ applyAccept: false });
+    await user.upload(screen.getByLabelText("Reference images"), [
+      new File(["notes"], "trip-notes.txt", { type: "text/plain" }),
+      new File(["image bytes"], "lamp.png", { type: "image/png" })
+    ]);
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Ref images · 1" })).toBeInTheDocument()
+    );
+    expect(createAsset).toHaveBeenCalledTimes(1);
+    expect(createAsset.mock.calls[0]?.[0]).toMatchObject({ name: "lamp.png" });
+    expect(addNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "warning",
+        content: "Reference images take pictures only. trip-notes.txt was not added."
+      })
+    );
+  });
+
   // A card started mid-upload would take only the images already uploaded,
   // and say it took them all.
   it("holds the entry cards while reference images upload", async () => {
@@ -873,7 +985,7 @@ describe("NewProjectSurface", () => {
   it("opens blank documents outside any project", async () => {
     renderSurface();
     expect(catalogOptions).toHaveBeenCalledWith({ projectId: "default" });
-    await userEvent.click(screen.getByRole("button", { name: "New workflow" }));
+    await userEvent.click(screen.getByRole("button", { name: "Workflow" }));
     expect(createWorkflow).toHaveBeenCalled();
   });
 
@@ -890,6 +1002,8 @@ describe("NewProjectSurface", () => {
     expect(useOnboardingStore.getState().completedSteps).not.toContain(
       "describe-idea"
     );
+    // The finished run that follows completes it (see workflowUpdates).
+    expect(useOnboardingStore.getState().ideaDescribed).toBe(true);
   });
 
   it("does not complete a guided flow when an entry card starts", async () => {
@@ -911,7 +1025,7 @@ describe("NewProjectSurface", () => {
 
   it("marks keep-creating when a blank document opens", async () => {
     renderSurface();
-    await userEvent.click(screen.getByRole("button", { name: "New workflow" }));
+    await userEvent.click(screen.getByRole("button", { name: "Workflow" }));
     expect(createWorkflow).toHaveBeenCalled();
     expect(useOnboardingStore.getState().completedSteps).toContain(
       "keep-creating"
@@ -995,6 +1109,27 @@ describe("NewProjectSurface", () => {
     await waitFor(() => expect(createNewThread).toHaveBeenCalled());
   });
 
+  // QA round 7: once the key verified, the model menu opened over the still
+  // open provider dialog, and the dialog stayed over the started chat.
+  it("closes the provider dialog when the parked start resumes", async () => {
+    hasConfiguredProvider = false;
+    selectedModel = { provider: "empty", id: "gpt-4o" };
+    const { refresh } = renderSurface();
+    await userEvent.type(
+      screen.getByPlaceholderText(/30-second launch spot/),
+      "A spot for our desk lamp"
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Send to chat" }));
+    expect(useProviderOnboardingStore.getState().open).toBe(true);
+
+    hasConfiguredProvider = true;
+    refresh();
+    expect(
+      await screen.findByRole("button", { name: "Pick Claude" })
+    ).toBeInTheDocument();
+    expect(useProviderOnboardingStore.getState().open).toBe(false);
+  });
+
   // A configured provider does not mean a model was picked.
   it("refuses to start with no model selected, and stages nothing", async () => {
     selectedModel = { provider: "empty", id: "gpt-4o" };
@@ -1016,6 +1151,53 @@ describe("NewProjectSurface", () => {
     );
   });
 
+  // 11 of 12 study sessions stopped here after connecting a key.
+  it("starts with the Settings default language model instead of opening the picker", async () => {
+    selectedModel = { provider: "empty", id: "gpt-4o" };
+    useModelPreferencesStore.getState().setDefault("language_model", {
+      provider: "openai",
+      id: "gpt-5",
+      name: "GPT-5"
+    });
+    renderSurface();
+    await userEvent.type(
+      screen.getByPlaceholderText(/30-second launch spot/),
+      "A spot for our desk lamp"
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Send to chat" }));
+
+    await waitFor(() => expect(createNewThread).toHaveBeenCalled());
+    expect(setSelectedModel).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: "openai", id: "gpt-5" })
+    );
+    expect(screen.queryByRole("button", { name: "Pick Claude" })).toBeNull();
+    expect(addNotification).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: "Pick a language model and the chat starts."
+      })
+    );
+  });
+
+  it("shows the guided flows before the documents when the project has none", () => {
+    mockDocumentTotal = 0;
+    renderSurface();
+    const flows = document.getElementById("guided-flows") as HTMLElement;
+    const docs = screen.getByTestId("current-project-documents");
+    expect(
+      flows.compareDocumentPosition(docs) & 4 /* DOCUMENT_POSITION_FOLLOWING */
+    ).toBeTruthy();
+  });
+
+  it("keeps the documents before the guided flows when the project has some", () => {
+    mockDocumentTotal = 2;
+    renderSurface();
+    const flows = document.getElementById("guided-flows") as HTMLElement;
+    const docs = screen.getByTestId("current-project-documents");
+    expect(
+      docs.compareDocumentPosition(flows) & 4 /* DOCUMENT_POSITION_FOLLOWING */
+    ).toBeTruthy();
+  });
+
   // A first-time user who sends before picking a model got an error and had
   // to send again after picking one. The start now resumes on the pick.
   it("starts the parked chat once a model is picked", async () => {
@@ -1034,6 +1216,12 @@ describe("NewProjectSurface", () => {
     selectedModel = { provider: "anthropic", id: "claude-sonnet-5" };
     refresh();
     await waitFor(() => expect(createNewThread).toHaveBeenCalled());
+    // Round 6 F2: the "pick a model" notice stayed over the started chat.
+    const notice = addNotification.mock.calls
+      .map(([n]) => n)
+      .find((n) => n.content === "Pick a language model and the chat starts.");
+    expect(notice?.dedupeKey).toBeDefined();
+    expect(removeNotificationsByKey).toHaveBeenCalledWith(notice.dedupeKey);
   });
 
   // BUG F1: the refusal was a dead end — no picker on this screen, and a
@@ -1069,6 +1257,23 @@ describe("NewProjectSurface", () => {
     expect(
       screen.getByRole("button", { name: "Model · Claude Sonnet 5" })
     ).toBeInTheDocument();
+  });
+
+  // UX study 4 D6: the picker opened here marked the current model only with
+  // a pin, where a node's picker marks it with a check.
+  it("tells the picker which model is current", async () => {
+    selectedModel = {
+      provider: "anthropic",
+      id: "claude-sonnet-5",
+      name: "Claude Sonnet 5"
+    };
+    renderSurface();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Model · Claude Sonnet 5" })
+    );
+    expect(await screen.findByTestId("picker-current")).toHaveTextContent(
+      "anthropic/claude-sonnet-5"
+    );
   });
 
   it("keeps the compose tab when a chat cannot be created", async () => {
@@ -1112,6 +1317,30 @@ describe("NewProjectSurface", () => {
       type: "text",
       text: "/launch-commercial A spot for our desk lamp"
     });
+  });
+
+  // UX research study 4: a text file picked with `@` showed as a broken
+  // picture and was counted as "Ref images · 1".
+  it("shows a file picked with `@` by its name, not as a reference image", async () => {
+    mockMentionAssets = [
+      {
+        id: "notes-asset",
+        name: "meeting-notes.txt",
+        content_type: "text/plain",
+        get_url: "https://example.test/meeting-notes.txt"
+      } as Asset
+    ];
+    renderSurface();
+    const prompt = screen.getByPlaceholderText(/30-second launch spot/);
+    await userEvent.type(prompt, "When is the next meeting? @meet");
+    await screen.findByText("meeting-notes.txt");
+    // The entity row comes first; the file is the second row.
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "meeting-notes.txt" })).toBeInTheDocument()
+    );
+    expect(screen.getByRole("button", { name: "Reference images" })).toBeInTheDocument();
   });
 
   it("writes an entity picked from `@` into the prompt as its token", async () => {
@@ -1183,6 +1412,31 @@ describe("NewProjectSurface", () => {
     expect(screen.queryByText("Start Storyboard in…")).not.toBeInTheDocument();
     await waitFor(() => expect(createStoryboard).toHaveBeenCalled());
     expect(createProject).not.toHaveBeenCalled();
+  });
+
+  // Study 6: a pill then a guided card put "/game-direction" in the flow's
+  // idea field and its tab name. The flow takes the ask, not the command.
+  it("leaves a starter's command out of the idea a guided card carries", async () => {
+    renderSurface();
+    const prompt = screen.getByPlaceholderText(/30-second launch spot/);
+    await userEvent.type(prompt, "A spot for our desk lamp");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Launch commercial" })
+    );
+    expect(prompt).toHaveValue("/launch-commercial A spot for our desk lamp");
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: /^Storyboard From a sentence to a rendered board/
+      })
+    );
+
+    await waitFor(() => expect(createStoryboard).toHaveBeenCalled());
+    expect(createStoryboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "A spot for our desk lamp",
+        document: expect.objectContaining({ brief: "A spot for our desk lamp" })
+      })
+    );
   });
 
   it("opens the storyboard flow on the card, carrying the typed prompt", async () => {
@@ -1274,7 +1528,8 @@ describe("NewProjectSurface", () => {
       "Script",
       "Image",
       "Workflow",
-      "Game"
+      "Game",
+      "App"
     ]) {
       expect(
         within(cards).getByRole("button", {
@@ -1424,6 +1679,51 @@ describe("NewProjectSurface", () => {
     );
     expect(createGame).not.toHaveBeenCalled();
     expect(createProject).not.toHaveBeenCalled();
+  });
+
+  // Study 6 (I1): a page with a box, a button and a result had no entry on
+  // home, and the blank app builder ran nothing.
+  it("starts the App flow with the brief and opens the built app", async () => {
+    const user = userEvent.setup();
+    renderSurface(null, false);
+    await user.type(
+      screen.getByPlaceholderText(/30-second launch spot/),
+      "A page that writes a product blurb"
+    );
+    const cards = screen.getByRole("group", {
+      name: "Guided creation flows"
+    });
+    await user.click(within(cards).getByRole("button", { name: /^App / }));
+
+    expect(await screen.findByTestId("app-setup-flow")).toHaveTextContent(
+      "A page that writes a product blurb"
+    );
+    await user.click(screen.getByRole("button", { name: "Finish app" }));
+    await waitFor(() =>
+      expect(openTab).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "application", ref: "app-1" })
+      )
+    );
+  });
+
+  // Study 6 (I6): people looking for the game maker tried the Games examples
+  // tab and missed the Game card behind "More formats".
+  it("shows the Game card on the first screen and starts it from the Games tab", async () => {
+    const user = userEvent.setup();
+    renderSurface(null, false);
+    const cards = screen.getByRole("group", {
+      name: "Guided creation flows"
+    });
+    expect(
+      within(cards).getByRole("button", { name: /^Game / })
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "Games" }));
+    await user.click(await screen.findByRole("button", { name: "Make a game" }));
+
+    expect(await screen.findByTestId("game-setup-flow")).toHaveTextContent(
+      "wf-new"
+    );
   });
 
   it.each(["Workflow", "Game"])(
@@ -1704,6 +2004,29 @@ describe("NewProjectSurface", () => {
         openTab.mock.calls.some(([input]) => input.type === "workflow")
       ).toBe(true)
     );
+  });
+
+  // The build opens the flow's own workflow so its node tools can reach the
+  // canvas. The creator is then looking at the document the flow made, so the
+  // hand-off goes ahead and the guided tab closes instead of staying beside it.
+  it("finishes while the flow's own workflow tab is in front", async () => {
+    const user = userEvent.setup();
+    const view = renderSurface();
+    const cards = screen.getByRole("group", {
+      name: "Guided creation flows"
+    });
+    await user.click(within(cards).getByRole("button", { name: /^Workflow / }));
+    await screen.findByTestId("setup-flow");
+    const guidedTab = mockActiveTabId;
+    mockActiveTabId = "workflow:wf-new";
+    view.refresh();
+
+    await user.click(screen.getByRole("button", { name: "Build" }));
+
+    await waitFor(() => expect(closeTab).toHaveBeenCalledWith(guidedTab));
+    expect(
+      openTab.mock.calls.some(([input]) => input.type === "workflow")
+    ).toBe(true);
   });
 
   // The document is done, so the flow has no step left: a failed project
@@ -1989,12 +2312,15 @@ describe("NewProjectSurface", () => {
   });
 });
 
-it("starts with three formats and reveals other formats on request", async () => {
+it("starts with six formats and reveals other formats on request", async () => {
     renderSurface(null, false);
     const cards = screen.getByRole("group", { name: "Guided creation flows" });
-    expect(within(cards).getAllByRole("button")).toHaveLength(3);
+    expect(within(cards).getAllByRole("button")).toHaveLength(6);
+    expect(
+      within(cards).getByRole("button", { name: /Read aloud/ })
+    ).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "More formats" }));
-    expect(within(cards).getAllByRole("button")).toHaveLength(7);
+    expect(within(cards).getAllByRole("button")).toHaveLength(9);
     await userEvent.click(screen.getByRole("combobox", { name: "Game dimension" }));
     await userEvent.click(screen.getByRole("option", { name: "3D exploration" }));
     expect(within(cards).getByRole("button", { name: /Game Start with a playable 3D exploration scene/ })).toBeInTheDocument();

@@ -1,6 +1,6 @@
 {
   "name": "@nodetool-ai/agents",
-  "version": "0.8.2",
+  "version": "0.8.4",
   "description": "Agent system for planning and executing multi-step LLM tasks",
   "type": "module",
   "engines": {
@@ -20,30 +20,26 @@
   "dependencies": {
     "@jitl/quickjs-ng-wasmfile-release-sync": "^0.31.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
-    "@mediabunny/server": "^1.54.0",
-    "@napi-rs/canvas": "^0.1.65",
+    "@mediabunny/server": "1.54.0",
     "@nodetool-ai/app-runtime": "*",
-    "@nodetool-ai/blender-nodes": "*",
     "@nodetool-ai/browser": "*",
     "@nodetool-ai/config": "*",
     "@nodetool-ai/execution": "*",
-    "@nodetool-ai/game-nodes": "*",
-    "@nodetool-ai/game-renderer": "*",
     "@nodetool-ai/game-runtime": "*",
     "@nodetool-ai/image-editor": "*",
     "@nodetool-ai/kernel": "*",
     "@nodetool-ai/model-pricing": "*",
     "@nodetool-ai/model3d": "*",
     "@nodetool-ai/models": "*",
+    "@nodetool-ai/node-catalog": "*",
     "@nodetool-ai/node-sdk": "*",
     "@nodetool-ai/protocol": "*",
     "@nodetool-ai/runtime": "*",
     "@nodetool-ai/storage": "*",
     "@nodetool-ai/storyboard": "*",
     "@nodetool-ai/timeline": "*",
-    "@nodetool-ai/video-nodes": "*",
     "@nodetool-ai/vectorstore": "*",
-    "@sebastianwessel/quickjs": "^3.0.1",
+    "@sebastianwessel/quickjs": "~3.0.1",
     "acorn": "^8.16.0",
     "cheerio": "^1.2.0",
     "chrome-launcher": "^1.2.0",
@@ -56,9 +52,8 @@
     "fast-xml-parser": "^5.7.3",
     "fflate": "^0.8.2",
     "ics": "^3.12.0",
-    "js-tiktoken": "^1.0.18",
     "js-yaml": "^4.3.2",
-    "mediabunny": "^1.54.0",
+    "mediabunny": "1.54.0",
     "papaparse": "^5.5.3",
     "subtitle": "^4.2.2",
     "turndown": "^7.2.2"
@@ -85,15 +80,17 @@
     "exceljs": "^4.4.0",
     "fabric": "^7.4.0",
     "imapflow": "^1.7.1",
+    "js-tiktoken": "^1.0.18",
     "mailparser": "^3.9.15",
     "mammoth": "^1.11.0",
-    "office-text-extractor": "^4.0.0",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "pptxgenjs": "^4.0.1",
     "tesseract.js": "^7.0.0",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.1",
+    "office-text-extractor": "^4.0.0",
+    "@napi-rs/canvas": "^0.1.65"
   },
   "peerDependencies": {
     "@llamaindex/liteparse": "^1.5.2",
@@ -106,13 +103,15 @@
     "exceljs": "^4.4.0",
     "fabric": "^7.4.0",
     "imapflow": "^1.7.1",
+    "js-tiktoken": "^1.0.18",
     "mailparser": "^3.9.15",
     "mammoth": "^1.11.0",
     "office-text-extractor": "^4.0.0",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "pptxgenjs": "^4.0.1",
-    "tesseract.js": "^7.0.0"
+    "tesseract.js": "^7.0.0",
+    "@napi-rs/canvas": "^0.1.65"
   },
   "peerDependenciesMeta": {
     "@llamaindex/liteparse": {
@@ -145,6 +144,9 @@
     "imapflow": {
       "optional": true
     },
+    "js-tiktoken": {
+      "optional": true
+    },
     "mailparser": {
       "optional": true
     },
@@ -164,6 +166,9 @@
       "optional": true
     },
     "tesseract.js": {
+      "optional": true
+    },
+    "@napi-rs/canvas": {
       "optional": true
     }
   },
@@ -203,6 +208,12 @@
       "types": "./dist/game-examples.d.ts",
       "import": "./dist/game-examples.js",
       "default": "./dist/game-examples.js"
+    },
+    "./game-build": {
+      "nodetool-dev": "./src/game-build.ts",
+      "types": "./dist/game-build.d.ts",
+      "import": "./dist/game-build.js",
+      "default": "./dist/game-build.js"
     }
   },
   "license": "MIT",

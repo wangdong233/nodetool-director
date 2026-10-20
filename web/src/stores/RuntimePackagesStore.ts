@@ -2,7 +2,7 @@
  * RuntimePackagesStore
  *
  * Web-side wrapper around the Electron `window.api.packages` runtime IPC — the
- * "Software" half of the unified Package Manager (Python, FFmpeg, Node, pandoc,
+ * "Engines & tools" list of the unified Package Manager (Python, FFmpeg, Node, pandoc,
  * yt-dlp, …, installed via conda/micromamba or npm in the desktop app).
  *
  * Runtime installation only exists in the Electron main process, so every
@@ -31,10 +31,12 @@ const SERVER_RUNTIME_LABELS: Record<string, string> = {
   pandoc: "Pandoc",
   pdftotext: "PDF Tools (pdftotext)",
   pdftoppm: "PDF Tools (pdftoppm)",
-  "yt-dlp": "yt-dlp"
+  "yt-dlp": "yt-dlp",
+  manimgx: "ManimGX"
 };
 
 interface RuntimePackageStatus {
+  bundled?: boolean;
   id: string;
   name: string;
   description: string;

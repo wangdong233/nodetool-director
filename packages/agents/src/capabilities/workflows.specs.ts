@@ -305,6 +305,49 @@ export const updateWorkflowSpec: CapabilitySpec = {
   userMessage: (params) => `Updating workflow ${params["workflow_id"]}`
 };
 
+export const addWorkflowLinkSpec: CapabilitySpec = {
+  name: "add_workflow_link",
+  description:
+    "Draw a lineage link between two nodes of a workflow you own, for example " +
+    "'this clip comes from this shot'. A link carries no value and implies no " +
+    "execution order, so a run behaves the same with or without it. Links are " +
+    "listed in get_workflow under graph.links. Repeating the same source, " +
+    "target and kind returns the existing link.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      workflow_id: { type: "string", description: "The ID of the workflow." },
+      source: { type: "string", description: "Node id the link starts at." },
+      target: { type: "string", description: "Node id the link ends at." },
+      label: { type: "string", description: "Optional text shown on the link." },
+      kind: {
+        type: "string",
+        description: "Optional free-form category, such as 'reference'."
+      }
+    },
+    required: ["workflow_id", "source", "target"]
+  },
+  category: "write",
+  userMessage: (params) => `Linking ${params["source"]} to ${params["target"]}`
+};
+
+export const removeWorkflowLinkSpec: CapabilitySpec = {
+  name: "remove_workflow_link",
+  description:
+    "Remove one lineage link from a workflow you own, by the link id that " +
+    "add_workflow_link or get_workflow returned.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      workflow_id: { type: "string", description: "The ID of the workflow." },
+      link_id: { type: "string", description: "The ID of the link." }
+    },
+    required: ["workflow_id", "link_id"]
+  },
+  category: "write",
+  userMessage: (params) => `Removing link ${params["link_id"]}`
+};
+
 export const deleteWorkflowSpec: CapabilitySpec = {
   name: "delete_workflow",
   description:
@@ -609,7 +652,8 @@ export const getExampleWorkflowSpec: CapabilitySpec = {
 export const exportWorkflowDigraphSpec: CapabilitySpec = {
   name: "export_workflow_digraph",
   description:
-    "Export a workflow as a Graphviz Digraph (DOT format) for visualization.",
+    "Export a workflow as TypeScript DSL in the source field. " +
+    "This tool keeps its legacy digraph name. The result is executable workflow code.",
   inputSchema: {
     type: "object",
     properties: {
@@ -619,7 +663,7 @@ export const exportWorkflowDigraphSpec: CapabilitySpec = {
       },
       descriptive_names: {
         type: "boolean",
-        description: "Use descriptive node names instead of UUIDs",
+        description: "Deprecated compatibility argument. Ignored by the TypeScript DSL exporter.",
         default: true
       }
     },
@@ -627,7 +671,7 @@ export const exportWorkflowDigraphSpec: CapabilitySpec = {
   },
   category: "read",
   userMessage: (params) =>
-    `Exporting workflow ${params["workflow_id"]} as digraph`
+    `Exporting workflow ${params["workflow_id"]} as TypeScript DSL`
 };
 
 
@@ -981,6 +1025,8 @@ export const workflowsSpecs: readonly CapabilitySpec[] = [
   getWorkflowSpec,
   createWorkflowSpec,
   updateWorkflowSpec,
+  addWorkflowLinkSpec,
+  removeWorkflowLinkSpec,
   deleteWorkflowSpec,
   listWorkflowVersionsSpec,
   getWorkflowVersionSpec,

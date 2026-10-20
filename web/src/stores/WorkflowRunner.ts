@@ -43,6 +43,7 @@ import { queryClient } from "../queryClient";
 import { clearRunSignatures, recordRunSignatures } from "./runSignatures";
 import { computeRunSignatures } from "../utils/computeRunSignatures";
 import { getNodeGenerations } from "./nodeGenerationAccessor";
+import { noteWorkflowRunStarted } from "../lib/analytics";
 import { i18n } from "../i18n";
 
 /**
@@ -347,7 +348,7 @@ export const createWorkflowRunnerStore = (
         jobReplayCursor: lastSeq,
         isBrowserRun: false,
         state: "connecting",
-        statusMessage: "Reconnecting to running job..."
+        statusMessage: "Reconnecting to running job…"
       });
 
       await globalWebSocketManager.send({
@@ -493,6 +494,8 @@ export const createWorkflowRunnerStore = (
             }
           )
       );
+      // Anonymous, opt-in analytics: only the bucketed node count is recorded.
+      noteWorkflowRunStarted(jobId, activeNodeTypes.length);
 
       if (!queueRun) {
         if (stuck) {
@@ -518,7 +521,7 @@ export const createWorkflowRunnerStore = (
           jobReplayCursor: 0,
           isBrowserRun: false,
           queuePosition: null,
-          statusMessage: i18n.t("editor:ui.workflowStarting", { defaultValue: "Workflow starting..." }),
+          statusMessage: "Workflow starting…",
           notifications: [],
           state: "connecting"
         });
@@ -712,7 +715,7 @@ export const createWorkflowRunnerStore = (
           state: "error",
           job_id: null,
           statusMessage:
-            error instanceof Error ? error.message : i18n.t("editor:ui.failedToStartJob", { defaultValue: "Failed to start job" })
+            error instanceof Error ? error.message : "Failed to start job"
         });
         throw error;
       }

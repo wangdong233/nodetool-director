@@ -84,3 +84,7 @@ than [PRODUCT]".
 Cast from stills first: generate the character reference, show me, then tag it.
 Slug every shot so I can say "fix 2a".
 ```
+
+构图写在 `camera.angle`,其运动写在 `camera.movement`。静态图提示词读的是景别与主体,不读镜头运动。
+
+核心循环:静态图、选条(用户点名某条时用 `select_version`)、再出片。

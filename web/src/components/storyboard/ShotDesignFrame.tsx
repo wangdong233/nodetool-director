@@ -27,9 +27,11 @@ import {
   Caption,
   LoadingSpinner,
   ToolbarIconButton,
+  MOTION,
   SPACING
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const PreviewCompositor = lazy(async () => {
   const module = await import("../timeline/preview/PreviewCompositor");
@@ -39,12 +41,15 @@ const PreviewCompositor = lazy(async () => {
 interface ShotDesignFrameProps {
   boardId: string;
   shot: Shot;
+  /** Show the play button only while the shot card is hovered or focused. */
+  hoverControls?: boolean;
 }
 
 /** Live derived media. This instance never becomes an editable Timeline or a source asset. */
 export default function ShotDesignFrame({
   boardId,
-  shot
+  shot,
+  hoverControls = false
 }: ShotDesignFrameProps): React.ReactElement {
   const { t } = useTranslation();
   // The preview memo resolves diagnostic copy through i18n; this dep
@@ -208,6 +213,7 @@ export default function ShotDesignFrame({
                 <ComposedShotPlayback
                   startMs={preview.startMs}
                   endMs={preview.endMs}
+                  hoverControls={hoverControls}
                 />
               )}
             </>
@@ -231,12 +237,24 @@ export default function ShotDesignFrame({
   );
 }
 
+/** Hidden until the shot card is hovered or focused, like its toolbar. */
+const hoverRevealSx = {
+  opacity: 0,
+  transition: MOTION.opacity,
+  ".shot-card:hover &": { opacity: 1 },
+  "&:focus-within": { opacity: 1 },
+  // Touch devices cannot hover; keep the button reachable.
+  "@media (pointer: coarse)": { opacity: 1 }
+} as const;
+
 function ComposedShotPlayback({
   startMs,
-  endMs
+  endMs,
+  hoverControls
 }: {
   startMs: number;
   endMs: number;
+  hoverControls: boolean;
 }): React.ReactElement {
   const { t } = useTranslation();
   const playback = useTimelinePlaybackStoreApi();
@@ -270,12 +288,15 @@ function ComposedShotPlayback({
   };
   return (
     <Box
-      sx={{
-        position: "absolute",
-        bottom: SPACING.sm,
-        left: SPACING.sm,
-        pointerEvents: "auto"
-      }}
+      sx={[
+        {
+          position: "absolute",
+          bottom: SPACING.sm,
+          left: SPACING.sm,
+          pointerEvents: "auto"
+        },
+        hoverControls && hoverRevealSx
+      ]}
     >
       <ToolbarIconButton
         icon={playing ? <PauseIcon /> : <PlayArrowIcon />}

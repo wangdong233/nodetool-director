@@ -1,25 +1,22 @@
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 import { useModelProviderSetup } from "../../hooks/useModelProviderSetup";
 import React, { useState, useCallback, useMemo, useRef, memo } from "react";
 import isEqual from "../../utils/isEqual";
 
+import ErrorBanner from "../support/ErrorBanner";
 import {
-  Text,
   Caption,
   LoadingSpinner,
   FlexRow,
-  ListItemText,
-  ListItemIcon,
+  MenuItemPrimitive,
   SPACING,
   getSpacingPx
 } from "../ui_primitives";
-import CheckIcon from "@mui/icons-material/Check";
 import { useOllamaModels } from "../../hooks/useOllamaModels";
 import type { LlamaModelValue } from "../../stores/ApiTypes";
 import ModelSelectButton from "./shared/ModelSelectButton";
-import { EditorMenu, EditorMenuItem } from "../editor_ui";
+import { EditorMenu } from "../editor_ui";
 import { isString } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
 
 interface LlamaModelSelectProps {
   onChange: (value: LlamaModelValue) => void;
@@ -90,8 +87,8 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || t("editor:ui.selectModel", { defaultValue: "Select Model" })}
-        subLabel={t("editor:ui.selectModel", { defaultValue: "Select Model" })}
+        label={currentSelectedModelDetails?.name || value || "Select model"}
+        subLabel="Select model"
         onClick={handleClick}
       />
       <EditorMenu
@@ -120,17 +117,20 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
           </FlexRow>
         ) : ollamaError ? (
           <div style={{ padding: getSpacingPx(SPACING.md), maxWidth: 300 }}>
-            <Text size="small" color="error" sx={{ mb: 1 }}>
-              Could not load Ollama models
-            </Text>
-            <Caption
-              color="secondary"
-              sx={{ display: "block", mb: 1 }}
+            <ErrorBanner
+              title={t("editor:ui.couldNotLoadOllamaModels", { defaultValue: "Could not load Ollama models" })}
+              report={{
+                source: "operation-failure",
+                summary: "Ollama models failed to load",
+                errorText: isString((ollamaError as { detail?: unknown })?.detail)
+                  ? (ollamaError as { detail?: string }).detail
+                  : String(ollamaError)
+              }}
             >
               {isString((ollamaError as { detail?: unknown })?.detail)
                 ? (ollamaError as { detail?: string }).detail
-                : i18n.t("editor:ui.pleaseCheckThatOllamaIsRunning", { defaultValue: "Please check that Ollama is running" })}
-            </Caption>
+                : "Check that Ollama is running."}
+            </ErrorBanner>
             <Caption
               color="secondary"
               sx={{ display: "block", mt: 1 }}
@@ -149,29 +149,18 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
             </Caption>
           </div>
         ) : sortedModels.length === 0 ? (
-          <EditorMenuItem disabled>
-            <ListItemText primary={t("editor:ui.noModelsAvailable", { defaultValue: "No models available" })} />
-          </EditorMenuItem>
+          <MenuItemPrimitive label={t("editor:ui.noModelsAvailable", { defaultValue: "No models available" })} disabled />
         ) : (
           sortedModels.map((model) => (
-            <EditorMenuItem
+            <MenuItemPrimitive
               key={model.repo_id}
+              label={model.name}
               onClick={handleMenuItemClick(model.repo_id)}
               selected={value === model.repo_id}
-            >
-              {value === model.repo_id && (
-                <ListItemIcon>
-                  <CheckIcon fontSize="small" />
-                </ListItemIcon>
-              )}
-              <ListItemText
-                inset={value !== model.repo_id}
-                primary={model.name}
-              />
-            </EditorMenuItem>
+            />
           ))
         )}
-        <EditorMenuItem onClick={openSetup}>{t("ui2:attrs.addProviders", { defaultValue: "Add providers" })}</EditorMenuItem>
+        <MenuItemPrimitive label={t("ui2:attrs.addProviders", { defaultValue: "Add providers" })} dividerBefore onClick={openSetup} />
       </EditorMenu>
     </>
   );

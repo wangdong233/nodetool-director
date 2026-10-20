@@ -22,6 +22,7 @@ interface NotificationAction {
 }
 
 export interface Notification {
+  contentKey?: string;
   id: string;
   type: NotificationType;
   content: string;
@@ -57,6 +58,8 @@ export interface NotificationStore {
     notification: Omit<Notification, "id" | "timestamp">
   ) => void;
   removeNotification: (id: string) => void;
+  /** Dismiss every notification added with this `dedupeKey`. */
+  removeNotificationsByKey: (dedupeKey: string) => void;
   clearNotifications: () => void;
   updateLastDisplayedTimestamp: (timestamp: Date) => void;
 }
@@ -125,6 +128,13 @@ export const useNotificationStore = create<NotificationStore>()((set, get) => ({
     set((state) => ({
       notifications: state.notifications.filter(
         (notification) => notification.id !== id
+      )
+    }));
+  },
+  removeNotificationsByKey: (dedupeKey: string) => {
+    set((state) => ({
+      notifications: state.notifications.filter(
+        (notification) => notification.dedupeKey !== dedupeKey
       )
     }));
   },

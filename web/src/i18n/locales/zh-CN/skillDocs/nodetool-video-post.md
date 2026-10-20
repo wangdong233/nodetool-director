@@ -122,3 +122,7 @@ nodetool timeline versions list <timeline_id> --save-type manual
 - `docs/harnesses.md` § nodetool timeline validate / debug
 - `docs/harnesses.md` § Generated mattes
 - `docs/harnesses.md` § Audio-driven timeline motion
+
+`timeline-edit-ops` 承载时间线 op 契约:用 `load_skill {name: "timeline-edit-ops"}` 加载。
+
+放大选档:人物用 `"Portrait"`,毛发用 `"Matting"`,一般用 `"General Use (Light)"`,不要凭空拼档名。

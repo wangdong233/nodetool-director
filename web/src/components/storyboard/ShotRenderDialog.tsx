@@ -9,12 +9,12 @@
  */
 
 import React, { useCallback, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { CLIP_RESOLUTION, shotRenderMode } from "@nodetool-ai/protocol";
 import type { Shot, ShotModelRef } from "@nodetool-ai/protocol";
 import { formatUsd } from "@nodetool-ai/model-pricing";
 
 import {
+  AlertBanner,
   Caption,
   Dialog,
   FlexColumn,
@@ -49,6 +49,8 @@ import {
 } from "../../stores/lastModelStore";
 import type { ImageModelValue, VideoModelValue } from "../../stores/ApiTypes";
 import { VIDEO_RESOLUTIONS } from "../../stores/MediaGenerationStore";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 export type ShotRenderStep = "still" | "clip";
 
@@ -193,9 +195,7 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
 
   const isClip = step === "clip";
   const priced = estimate.pricedRequestCount > 0 && estimate.cost > 0;
-  const verb = isClip
-    ? t("storyboard:attrs.renderClip", { defaultValue: "Render clip" })
-    : t("storyboard:attrs.renderStill", { defaultValue: "Render still" });
+  const verb = isClip ? t("storyboard:attrs.renderClip", { defaultValue: "Render clip" }) : i18n.t("timeline:shot.renderStill", { defaultValue: "Render still" });
 
   return (
     <Dialog
@@ -206,17 +206,10 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
       confirmText={`${verb}${priced ? ` · ~${formatUsd(estimate.cost)}` : ""}`}
       confirmDisabled={!selection || (isClip && needsStill)}
     >
-      <FlexColumn gap={SPACING.md}>
+      <FlexColumn gap={SPACING.lg}>
         <Caption color="secondary">
           {isClip
-            ? t("storyboard:attrs.pickTheModelForThisShotsClip", {
-                defaultValue:
-                  "Pick the model for this shot's clip. The shot keeps the choice for the next render."
-              })
-            : t("storyboard:attrs.pickTheModelForThisShotsStill", {
-                defaultValue:
-                  "Pick the model for this shot's still. The shot keeps the choice for the next render."
-              })}
+            ? t("storyboard:attrs.pickTheModelForThisShotsClip", { defaultValue: "Pick the model for this shot's clip. The shot keeps the choice for the next render." }) : i18n.t("storyboard:attrs.pickTheModelForThisShotsStill", { defaultValue: "Pick the model for this shot's still. The shot keeps the choice for the next render." })}
         </Caption>
         {isClip ? (
           <>
@@ -228,14 +221,12 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
                 onChange={setPickedClip}
               />
             </FormField>
-            <FormField label={t("storyboard:attrs.resolution", { defaultValue: "Resolution" })}>
-              <SelectField
-                label={t("storyboard:attrs.resolution", { defaultValue: "Resolution" })}
-                value={resolution}
-                onChange={setPickedResolution}
-                options={resolutionOptions}
-              />
-            </FormField>
+            <SelectField
+              label={t("storyboard:attrs.resolution", { defaultValue: "Resolution" })}
+              value={resolution}
+              onChange={setPickedResolution}
+              options={resolutionOptions}
+            />
           </>
         ) : (
           <FormField label={t("storyboard:attrs.stillModel", { defaultValue: "Still model" })} sx={modelFieldSx}>
@@ -254,12 +245,10 @@ export const ShotRenderDialog: React.FC<ShotRenderDialogProps> = ({
           </FormField>
         )}
         {isClip && needsStill ? (
-          <Caption role="alert" sx={{ color: "error.main" }}>
-            {t("storyboard:attrs.thisShotAnimatesItsStill", {
-              defaultValue:
-                "This shot animates its still. Render a still first, or set the shot to render directly from its prompt."
-            })}
-          </Caption>
+          <AlertBanner severity="error">
+            This shot animates its still. Render a still first, or set the shot
+            to render directly from its prompt.
+          </AlertBanner>
         ) : (
           <RenderCostSummary estimate={estimate} />
         )}

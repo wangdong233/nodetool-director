@@ -18,8 +18,7 @@
  * rather than pretending the button applies it (F12).
  */
 
-import { useTranslation } from "react-i18next";
-import React, { memo, useCallback, useMemo, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import type { ScriptPace } from "@nodetool-ai/protocol/api-schemas/scripts.js";
 
 import { formatUsd } from "@nodetool-ai/model-pricing";
@@ -27,6 +26,7 @@ import { formatUsd } from "@nodetool-ai/model-pricing";
 import {
   AlertBanner,
   AudioPlayback,
+  CONTROL,
   Caption,
   EditorButton,
   FlexColumn,
@@ -37,7 +37,9 @@ import {
   Text
 } from "../../ui_primitives";
 import TTSModelSelect from "../../properties/TTSModelSelect";
+import ScriptSpeakerAvatar from "../../script/ScriptSpeakerAvatar";
 import { getScriptAgentHandler } from "../../../components/script/scriptAgentBridge";
+import useModelPreferencesStore from "../../../stores/ModelPreferencesStore";
 import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore";
 import {
   useScriptStore,
@@ -53,8 +55,10 @@ import type { TTSModelValue } from "../../../stores/ApiTypes";
 import { getModelUnitPrice } from "../../../utils/modelUnitPricing";
 import type { BugReportContext } from "../../../utils/bugReportBundle";
 import ReportBugButton from "../../support/ReportBugButton";
+import { REVIEW_BLOCK, REVIEW_CONTENT_WIDTH } from "../reviewStyles";
 import { useSetupVoices } from "./useSetupVoices";
 import type { SetupVoice } from "./useSetupVoices";
+import { useTranslation } from "react-i18next";
 import { i18n } from "../../../i18n";
 
 /** The languages the flow offers to write and read in. */
@@ -71,18 +75,11 @@ const LANGUAGES = [
   "Hindi"
 ];
 
-const PACES: ReadonlyArray<{ value: ScriptPace; label: string }> = [
-  { value: "slow", label: "Slow" },
-  { value: "normal", label: "Normal" },
-  { value: "fast", label: "Fast" }
+const PACES: ReadonlyArray<{ value: ScriptPace; label: string; labelKey?: string; }> = [
+  { value: "slow", label: "Slow", labelKey: "setup:script.paceSlowLabel" },
+  { value: "normal", label: "Normal", labelKey: "setup:script.paceNormalLabel" },
+  { value: "fast", label: "Fast", labelKey: "setup:script.paceFastLabel" }
 ];
-
-/** zh labels for the paces, keyed by the stored pace id. */
-const PACE_LABEL_KEYS: Readonly<Record<ScriptPace, string>> = {
-  slow: "setup:script.paceSlowLabel",
-  normal: "setup:script.paceNormalLabel",
-  fast: "setup:script.paceFastLabel"
-};
 
 /** The line a speaker's samples read: the first thing they say. */
 const firstLineOf = (
@@ -130,12 +127,8 @@ const auditionCost = (
   const low = Math.min(...prices);
   const high = Math.max(...prices);
   return low === high
-    ? i18n.t("setup:script.aboutEach", { defaultValue: "about {{cost}} each", cost: formatUsd(low) })
-    : i18n.t("setup:script.aboutRangeEach", {
-        defaultValue: "about {{low}}–{{high}} each",
-        low: formatUsd(low),
-        high: formatUsd(high)
-      });
+    ? `about ${formatUsd(low)} each`
+    : `about ${formatUsd(low)}–${formatUsd(high)} each`;
 };
 
 interface SpeakerVoiceRowProps {
@@ -165,6 +158,26 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
   // A model with no preset voices hands back no voice to bind.
   const [noPresetVoice, setNoPresetVoice] = useState(false);
   const bound = speaker.voice;
+  const ttsDefault = useModelPreferencesStore((s) => s.defaults["tts_model"]);
+  // A speaker with no voice yet starts on the Settings speech model, so a
+  // connected provider is enough to hear the script.
+  useEffect(() => {
+    if (readOnly || bound || !ttsDefault) {
+      return;
+    }
+    const first = voices.find(
+      (voice) =>
+        voice.provider === ttsDefault.provider &&
+        voice.model === ttsDefault.id
+    );
+    if (first) {
+      getScriptAgentHandler(scriptId).setSpeakerVoice(speaker.id, {
+        provider: first.provider,
+        model: first.model,
+        voice: first.voice
+      });
+    }
+  }, [readOnly, bound, ttsDefault, voices, scriptId, speaker.id]);
   // A bound voice the list does not carry (still loading, or a provider that
   // dropped it) is still the speaker's voice, so it stays playable.
   const selectedVoice = useMemo<SetupVoice | undefined>(() => {
@@ -235,10 +248,7 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
     selectedVoice &&
     speed !== undefined &&
     !providerAppliesPace(selectedVoice.provider)
-      ? t("setup:script.providerOwnPace", {
-          defaultValue: "This provider reads at its own pace, not {{pace}}.",
-          pace: t(PACE_LABEL_KEYS[pace], { defaultValue: pace })
-        })
+      ? `This provider reads at its own pace, not ${pace}.`
       : null;
   const sampleErrorContext = useMemo<BugReportContext | null>(
     () =>
@@ -255,59 +265,54 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
   );
 
   return (
-    <FlexColumn gap={GAP.normal} component="section">
-      <FlexColumn gap={GAP.micro}>
-        <Text size="normal" component="h3">
-          {speaker.name}
-        </Text>
-        <Caption color="secondary" component="p">
-          {hasLine
-            ? t("setup:script.samplesRead", {
-                defaultValue: "Samples read: “{{spoken}}”",
-                spoken
-              })
-            : t("storyboard:attrs.thisSpeakerHasNoLinesYetSoThereIsNothingToSample", {
-                defaultValue:
-                  "This speaker has no lines yet, so there is nothing to sample."
-              })}
-        </Caption>
-        {/* Every audition is a speech call, so the step says so before one is
-            pressed rather than after it is billed (F23). */}
-        {hasLine ? (
+    <FlexColumn
+      gap={GAP.normal}
+      component="section"
+      aria-label={speaker.name}
+      sx={REVIEW_BLOCK}
+    >
+      {/* The portrait and colour the editor gives this speaker, so the card
+          reads as the same person the review's gutter named. */}
+      <FlexRow gap={GAP.normal} align="center">
+        <ScriptSpeakerAvatar speaker={speaker} size={CONTROL.height.md} />
+        <FlexColumn gap={GAP.micro} sx={{ minWidth: 0 }}>
+          <Text size="normal" weight={600} component="h3">
+            {speaker.name}
+          </Text>
           <Caption color="secondary" component="p">
-            {t("setup:script.eachSampleCall", {
-              defaultValue:
-                "Each sample is one speech call of {{count}} characters{{cost}}.",
-              count: spoken.length,
-              cost: cost === null ? "" : ` · ${cost}`
-            })}
+            {hasLine
+              ? `Samples read: “${spoken}”`
+              : i18n.t("storyboard:attrs.thisSpeakerHasNoLinesYetSoThereIsNothingToSample", { defaultValue: "This speaker has no lines yet, so there is nothing to sample." })}
           </Caption>
-        ) : null}
-      </FlexColumn>
+          {/* Every audition is a speech call, so the step says so before one
+              is pressed rather than after it is billed (F23). */}
+          {hasLine ? (
+            <Caption color="muted" component="p">
+              {`Each sample is one speech call of ${spoken.length} characters${cost === null ? "" : ` · ${cost}`}.`}
+            </Caption>
+          ) : null}
+        </FlexColumn>
+      </FlexRow>
       <FlexRow gap={GAP.comfortable} wrap align="flex-end">
         {readOnly ? (
           <Text size="normal">
             {selectedVoice
-              ? t("setup:script.voiceLabel", {
-                  defaultValue: "Voice: {{label}}",
-                  label: selectedVoice.label
-                })
-              : t("setup:script.noVoiceChosen", { defaultValue: "No voice chosen" })}
+              ? `Voice: ${selectedVoice.label}`
+              : i18n.t("setup:script.noVoiceChosen", { defaultValue: "No voice chosen" })}
           </Text>
         ) : (
           <FormField
-            label={t("setup:script.ttsModelFor", {
-              defaultValue: "TTS model for {{name}}",
-              name: speaker.name
-            })}
+            label={`TTS model for ${speaker.name}`}
+            helperText={paceNote ?? undefined}
+            error={
+              noPresetVoice
+                ? t("setup:script.noPresetVoices", { defaultValue: "This model has no preset voices. Pick another model." }) : undefined
+            }
           >
             <TTSModelSelect
               value={modelValue}
               onChange={selectModel}
-              voiceLabel={t("setup:script.voiceFor", {
-                defaultValue: "Voice for {{name}}",
-                name: speaker.name
-              })}
+              voiceLabel={`Voice for ${speaker.name}`}
             />
           </FormField>
         )}
@@ -323,15 +328,8 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
             }
             aria-label={
               selectedVoice
-                ? t("setup:script.hearLabelFor", {
-                    defaultValue: "Hear {{label}} for {{name}}",
-                    label: selectedVoice.label,
-                    name: speaker.name
-                  })
-                : t("setup:script.hearVoiceFor", {
-                    defaultValue: "Hear voice for {{name}}",
-                    name: speaker.name
-                  })
+                ? `Hear ${selectedVoice.label} for ${speaker.name}`
+                : `Hear voice for ${speaker.name}`
             }
             onClick={() => {
               if (selectedVoice) {
@@ -341,23 +339,12 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
             }}
           >
             {sample?.pending
-              ? t("storyboard:attrs.generatingSample", { defaultValue: "Generating sample" })
-              : selectedVoice
-                ? t("storyboard:attrs.hearName", {
-                    defaultValue: "Hear {{name}}",
-                    name: selectedVoice.label
-                  })
-                : t("storyboard:attrs.hearVoice", { defaultValue: "Hear voice" })}
+              ? t("storyboard:attrs.generatingSample", { defaultValue: "Generating sample" }) : selectedVoice
+                ? `Hear ${selectedVoice.label}`
+                : i18n.t("storyboard:attrs.hearVoice", { defaultValue: "Hear voice" })}
           </EditorButton>
         ) : null}
       </FlexRow>
-      {noPresetVoice ? (
-        <Caption color="secondary" role="status">
-          {t("setup:script.noPresetVoices", {
-            defaultValue: "This model has no preset voices. Pick another model."
-          })}
-        </Caption>
-      ) : null}
       {sample?.error && sampleErrorContext ? (
         <AlertBanner
           severity="error"
@@ -366,7 +353,7 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
           {sample.error}
         </AlertBanner>
       ) : null}
-      {paceNote ? (
+      {readOnly && paceNote ? (
         <Caption color="secondary" role="status">
           {paceNote}
         </Caption>
@@ -375,26 +362,10 @@ const SpeakerVoiceRow: React.FC<SpeakerVoiceRowProps> = ({
         <AudioPlayback
           key={playRequest}
           locator={`asset://${sample.assetId}`}
-          label={
-            selectedVoice
-              ? t("setup:script.labelSample", {
-                  defaultValue: "{{label}} sample",
-                  label: selectedVoice.label
-                })
-              : t("storyboard:attrs.voice", { defaultValue: "Voice" })
-          }
+          label={`${selectedVoice?.label ?? "Voice"} sample`}
           autoPlay={playRequest > 0}
         />
       ) : null}
-      {readOnly ? null : (
-        <EditorButton
-          variant="text"
-          size="small"
-          onClick={() => openProviderOnboarding()}
-        >
-          {t("setup:script.addAVoiceProvider", { defaultValue: "Add a voice provider" })}
-        </EditorButton>
-      )}
     </FlexColumn>
   );
 };
@@ -430,16 +401,16 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({
   const language = setup?.language ?? "English";
 
   return (
-    <FlexColumn gap={GAP.spacious}>
+    <FlexColumn
+      gap={GAP.spacious}
+      sx={{ width: "100%", maxWidth: REVIEW_CONTENT_WIDTH }}
+    >
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          {t("storyboard:attrs.chooseTheVoices", { defaultValue: "Choose the voices" })}
+          Choose the voices
         </Text>
         <Text size="normal" color="secondary">
-          {t("setup:script.hearEachOneReadYourOwnWords", {
-            defaultValue:
-              "Hear each one read your own words before you pick it."
-          })}
+          Hear each one read your own words before you pick it.
         </Text>
       </FlexColumn>
 
@@ -448,50 +419,39 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({
         component="section"
         aria-label={t("storyboard:attrs.readSettings", { defaultValue: "Read settings" })}
       >
-        <FlexRow gap={GAP.comfortable} wrap align="flex-end">
+        {/* Each control says what it reaches. Pace was reaching nothing at
+            all, and language belongs to the writer, not to the speech call
+            this step's button makes (F12). */}
+        <FlexRow gap={GAP.comfortable} wrap align="flex-start">
           <SelectField
             label={t("storyboard:attrs.language", { defaultValue: "Language" })}
             value={language}
             options={LANGUAGES.map((name) => ({ value: name, label: name }))}
             disabled={readOnly}
             onChange={setLanguage}
+            description={i18n.t("setup:script.languageDescription", { defaultValue: "What the script is written in. Change it, then rewrite on the Format step to apply it." })}
           />
           <SelectField
             label={t("setup:script.paceLabel", { defaultValue: "Pace" })}
             value={pace}
-            options={PACES.map((entry) => ({
-              value: entry.value,
-              label: t(PACE_LABEL_KEYS[entry.value], { defaultValue: entry.label })
-            }))}
+            options={PACES}
             disabled={readOnly}
             onChange={setPace}
+            description={i18n.t("setup:script.paceDescription", { defaultValue: "Sent with every sample and every take." })}
           />
         </FlexRow>
-        {/* Each control says what it reaches. Pace was reaching nothing at
-            all, and language belongs to the writer, not to the speech call
-            this step's button makes (F12). */}
-        <Caption color="secondary" component="p">
-          {t("setup:script.paceSentWithEverySample", {
-            defaultValue:
-              "Pace is sent with every sample and every take. Language is what the script is written in: change it, then rewrite on the Format step to apply it."
-          })}
-        </Caption>
       </FlexColumn>
 
       {cast.length === 0 ? (
         <Caption color="secondary" component="p">
-          {t("setup:script.noCastYet", {
-            defaultValue:
-              "The script has no cast yet. Write it first and every speaker will show up here."
-          })}
+          The script has no cast yet. Write it first and every speaker will show
+          up here.
         </Caption>
       ) : null}
 
       {loading && voices.length === 0 ? (
         <Caption color="secondary" component="p">
-          {t("storyboard:attrs.lookingUpTheVoicesYourProvidersOffer", {
-            defaultValue: "Looking up the voices your providers offer…"
-          })}
+          Looking up the voices your providers offer…
         </Caption>
       ) : null}
 
@@ -500,14 +460,11 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({
           severity="error"
           action={
             <EditorButton variant="text" size="small" onClick={retry}>
-              {t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}
+              Try again
             </EditorButton>
           }
         >
-          {t("setup:script.voiceListCouldNotBeLoaded", {
-            defaultValue: "The voice list could not be loaded. {{error}}",
-            error
-          })}
+          {`The voice list could not be loaded. ${error}`}
         </AlertBanner>
       ) : null}
 
@@ -520,28 +477,45 @@ const VoicesStepInternal: React.FC<VoicesStepProps> = ({
               size="small"
               onClick={() => openProviderOnboarding()}
             >
-              {t("storyboard:attrs.connectAProvider", { defaultValue: "Connect a provider" })}
+              Connect a provider
             </EditorButton>
           }
         >
-          {t("storyboard:attrs.noConnectedProviderOffersAVoiceYet", {
-            defaultValue: "No connected provider offers a voice yet."
-          })}
+          No connected provider offers a voice yet.
         </AlertBanner>
       ) : null}
 
-      {cast.map((speaker) => (
-        <SpeakerVoiceRow
-          key={speaker.id}
-          scriptId={scriptId}
-          speaker={speaker}
-          line={firstLineOf(script?.sections ?? [], speaker.id)}
-          voices={voices}
-          pace={pace}
-          speed={speed}
-          readOnly={readOnly}
-        />
-      ))}
+      <FlexColumn gap={GAP.comfortable}>
+        {cast.map((speaker) => (
+          <SpeakerVoiceRow
+            key={speaker.id}
+            scriptId={scriptId}
+            speaker={speaker}
+            line={firstLineOf(script?.sections ?? [], speaker.id)}
+            voices={voices}
+            pace={pace}
+            speed={speed}
+            readOnly={readOnly}
+          />
+        ))}
+      </FlexColumn>
+
+      {/* Once for the step, not once per speaker: every card's link opened
+          the same provider settings. */}
+      {readOnly || noProvider ? null : (
+        <FlexRow gap={GAP.normal} align="center" wrap>
+          <Caption color="secondary">
+            Missing a voice you want?
+          </Caption>
+          <EditorButton
+            variant="text"
+            size="small"
+            onClick={() => openProviderOnboarding()}
+          >
+            Add a voice provider
+          </EditorButton>
+        </FlexRow>
+      )}
     </FlexColumn>
   );
 };

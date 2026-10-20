@@ -4,9 +4,9 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 
 import React, { useCallback, memo, useMemo } from "react";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
-import FolderIcon from "@mui/icons-material/Folder";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
+import AddIcon from "@mui/icons-material/AddOutlined";
+import FolderIcon from "@mui/icons-material/FolderOutlined";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,9 +19,9 @@ import {
   WORKSPACES_QUERY_KEY
 } from "../../hooks/useWorkspaces";
 import { useFolderPicker } from "./useFolderPicker";
-import { ConfirmDialog } from "../ui_primitives";
+import ErrorBanner from "../support/ErrorBanner";
+import { ConfirmDialog, EmptyState } from "../ui_primitives";
 import {
-  Box,
   Chip,
   EditorButton,
   FlexColumn,
@@ -34,6 +34,7 @@ import {
   ListItemSecondaryAction
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -136,7 +137,7 @@ const WorkspacesManager: React.FC = () => {
       addNotification({
         type: "success",
         alert: true,
-        content: t("editor:studio.workspaceAdded", { defaultValue: "Workspace added" }),
+        content: "Workspace added", contentKey: "editor:studio.workspaceAdded",
         dismissable: true
       });
     },
@@ -176,7 +177,7 @@ const WorkspacesManager: React.FC = () => {
       addNotification({
         type: "success",
         alert: true,
-        content: t("editor:studio.workspaceRemoved", { defaultValue: "Workspace removed" }),
+        content: "Workspace removed", contentKey: "editor:studio.workspaceRemoved",
         dismissable: true
       });
     },
@@ -228,20 +229,20 @@ const WorkspacesManager: React.FC = () => {
         <div className="workspaces-manager">
           {isLoading ? (
             <FlexRow justify="center" align="center" sx={{ py: 4 }}>
-              <LoadingSpinner size={30} />
+              <LoadingSpinner size="medium" />
             </FlexRow>
           ) : error ? (
-            <Box className="empty-state">
-              <Text color="error" sx={{ mb: 1 }}>
-                {t("editor:ui.unableToLoadWorkspaces")}
-              </Text>
-              <Text size="small" color="secondary" sx={{ mb: 2 }}>
-                {t("editor:ui.checkYourConnectionAndTryAgain")}
-              </Text>
-              <EditorButton variant="outlined" onClick={handleRetry}>
-                Retry
-              </EditorButton>
-            </Box>
+            <ErrorBanner
+              title={t("editor:ui.workspacesLoadFailed", { defaultValue: "Could not load workspaces" })}
+              onRetry={handleRetry}
+              report={{
+                source: "operation-failure",
+                summary: "Workspaces failed to load",
+                errorText: error instanceof Error ? error.message : String(error)
+              }}
+            >
+              Check your connection and try again.
+            </ErrorBanner>
           ) : workspaces.length > 0 ? (
             <List className="workspace-list">
               {workspaces.map((workspace) => (
@@ -273,8 +274,7 @@ const WorkspacesManager: React.FC = () => {
                       }
                       tooltip={
                         workspace.is_default
-                          ? t("editor:ui.defaultWorkspace2")
-                          : t("editor:ui.setAsDefault2")
+                          ? t("ui2:attrs.defaultWorkspace", { defaultValue: "Default workspace" }) : i18n.t("editor:ui.setAsDefault2", { defaultValue: "Set as default" })
                       }
                       onClick={() => handleToggleDefault(workspace)}
                       sx={{
@@ -289,7 +289,7 @@ const WorkspacesManager: React.FC = () => {
                     {!workspace.is_default && (
                       <ToolbarIconButton
                         icon={<DeleteIcon fontSize="small" />}
-                        tooltip={t("editor:ui.remove", { defaultValue: "Remove" })}
+                        tooltip="Remove"
                         onClick={() => handleDeleteWorkspace(workspace.id)}
                       />
                     )}
@@ -298,15 +298,14 @@ const WorkspacesManager: React.FC = () => {
               ))}
             </List>
           ) : (
-            <Box className="empty-state">
-              <FolderIcon sx={{ fontSize: 48, mb: 1, opacity: 0.5 }} />
-              <Text>{t("ui2:attrs.noWorkspacesConfigured", { defaultValue: "No workspaces configured" })}</Text>
-              <Text size="small">
-                {canManage
-                  ? t("editor:ui.addAWorkspaceToAllowAgentsToAccessLocalFolders")
-                  : t("editor:ui.thisDeploymentManagesYourWorkspaceForYou", { defaultValue: "This deployment manages your workspace for you" })}
-              </Text>
-            </Box>
+            <EmptyState
+              icon={<FolderIcon />}
+              title={t("ui2:attrs.noWorkspacesConfigured", { defaultValue: "No workspaces configured" })}
+              description={
+                canManage
+                  ? t("editor:ui.addAWorkspaceToAllowAgentsToAccessLocalFolders", { defaultValue: "Add a workspace to allow agents to access local folders" }) : i18n.t("editor:ui.thisDeploymentManagesYourWorkspaceForYou", { defaultValue: "This deployment manages your workspace for you" })
+              }
+            />
           )}
 
           {canManage && (
@@ -317,7 +316,7 @@ const WorkspacesManager: React.FC = () => {
                 fullWidth
                 disabled={createMutation.isPending}
               >
-                {createMutation.isPending ? t("editor:ui.adding") : t("editor:ui.addWorkspace2")}
+                {createMutation.isPending ? t("editor:ui.adding", { defaultValue: "Adding…" }) : i18n.t("editor:ui.addWorkspace2", { defaultValue: "Add Workspace" })}
               </EditorButton>
             </div>
           )}
@@ -337,8 +336,8 @@ const WorkspacesManager: React.FC = () => {
             not be deleted.
           </Text>
         }
-        confirmText={t("common:action.remove", { defaultValue: "Remove" })}
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText="Remove"
+        cancelText="Cancel"
       />
     </>
   );

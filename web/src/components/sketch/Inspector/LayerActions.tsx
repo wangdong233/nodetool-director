@@ -25,7 +25,6 @@ import { useGenerateLayer } from "../../../hooks/sketch/useGenerateLayer";
 import {
   ToolbarIconButton,
   FlexRow,
-  Toast,
   Tooltip,
   MOTION,
   BORDER_RADIUS,
@@ -35,9 +34,8 @@ import {
   reducedMotion
 } from "../../ui_primitives";
 import { cn } from "../../editor_ui/editorUtils";
-import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
+import { useAlertNotifier } from "../../../hooks/useAlertNotifier";
 import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 
 const actionsRowStyles = (theme: Theme) =>
   css({
@@ -128,7 +126,6 @@ interface LayerActionsProps {
 
 export const LayerActions: React.FC<LayerActionsProps> = memo(
   ({ layerId, binding }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -162,8 +159,8 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
 
     const duplicateBusyRef = useRef(false);
     const [duplicateBusy, setDuplicateBusy] = useState(false);
-    const [duplicateError, setDuplicateError] = useState<string | null>(null);
-    const [generationError, setGenerationError] = useState<string | null>(null);
+    const reportDuplicateError = useAlertNotifier("error");
+    const reportGenerationError = useAlertNotifier("error");
     // Re-entrancy guard for the run button: a second click before the
     // job state propagates back from the runner would otherwise call
     // generateLayer() twice and the second call gets dropped by the
@@ -188,7 +185,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
         setActiveLayer(newLayerId);
       } catch (err) {
         removeLayer(newLayerId);
-        setDuplicateError(
+        reportDuplicateError(
           err instanceof Error ? err.message : i18n.t("sketch:attrs.failedToDuplicateLayer", { defaultValue: "Failed to duplicate layer" })
         );
       } finally {
@@ -222,7 +219,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
       try {
         await generateLayer();
       } catch (err) {
-        setGenerationError(
+        reportGenerationError(
           err instanceof Error
             ? err.message
             : i18n.t("sketch:attrs.failedToStartLayerGeneration", { defaultValue: "Failed to start layer generation" })
@@ -237,7 +234,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
       try {
         await cancelLayerGeneration();
       } catch (err) {
-        setGenerationError(
+        reportGenerationError(
           err instanceof Error ? err.message : i18n.t("sketch:attrs.failedToCancelGeneration", { defaultValue: "Failed to cancel generation" })
         );
       }
@@ -255,17 +252,15 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
     return (
       <>
         <FlexRow css={actionsRowStyles(theme)}>
-          <span css={sectionLabelStyles(theme)}>{t("ui2:attrs.layer", { defaultValue: "Layer" })}</span>
+          <span css={sectionLabelStyles(theme)}>Layer</span>
 
           <Tooltip
             title={
               isActive
-                ? t("sketch:attrs.cancelGeneration", { defaultValue: "Cancel generation" })
-                : generatePending
-                  ? t("timeline:attrs.starting", { defaultValue: "Starting…" })
-                  : t("sketch:attrs.generateLayerFromBoundWorkflow", { defaultValue: "Generate layer from the bound workflow and overrides" })
+                ? i18n.t("sketch:attrs.cancelGeneration", { defaultValue: "Cancel generation" }) : generatePending
+                  ? "Starting…"
+                  : i18n.t("sketch:attrs.generateLayerFromBoundWorkflow", { defaultValue: "Generate layer from the bound workflow and overrides" })
             }
-            delay={TOOLTIP_ENTER_DELAY}
             placement="top"
           >
             <span style={{ display: "inline-flex" }}>
@@ -285,7 +280,7 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
                 }
                 disableRipple
                 aria-label={
-                  isActive ? t("sketch:attrs.cancelLayerGeneration", { defaultValue: "Cancel layer generation" }) : t("sketch:attrs.generateLayer2", { defaultValue: "Generate layer" })
+                  isActive ? i18n.t("sketch:attrs.cancelLayerGeneration", { defaultValue: "Cancel layer generation" }) : i18n.t("sketch:attrs.generateLayer2", { defaultValue: "Generate layer" })
                 }
                 data-testid="layer-action-generate"
               >
@@ -296,10 +291,10 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
 
           <ToolbarIconButton
             icon={<ContentCopyIcon fontSize="small" />}
-            tooltip={t("timeline:attrs.duplicateCopiesOverrides;TweakParamsForAVariation", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
+            tooltip={i18n.t("sketch:attrs.duplicateLayerTip", { defaultValue: "Duplicate — copies overrides; tweak params for a variation" })}
             onClick={() => void handleDuplicate()}
             disabled={duplicateBusy || !documentId}
-            aria-label={t("editor:ui.duplicateLayer", { defaultValue: "Duplicate layer" })}
+            aria-label={i18n.t("sketch:attrs.duplicateLayer", { defaultValue: "Duplicate layer" })}
             data-testid="layer-action-duplicate"
           />
 
@@ -313,52 +308,33 @@ export const LayerActions: React.FC<LayerActionsProps> = memo(
             }
             tooltip={
               isLocked
-                ? t("timeline:attrs.lockedSuccessfulGenerationsDoNotReplaceCurrentOutput", { defaultValue: "Locked — successful generations do not replace current output" })
-                : t("sketch:attrs.unlockedSuccessfulGenerationsReplaceCurrentOutput", { defaultValue: "Unlocked — successful generations replace current output" })
+                ? i18n.t("timeline:attrs.lockedSuccessfulGenerationsDoNotReplaceCurrentOutput", { defaultValue: "Locked — successful generations do not replace current output" }) : i18n.t("sketch:attrs.unlockedSuccessfulGenerationsReplaceCurrentOutput", { defaultValue: "Unlocked — successful generations replace current output" })
             }
             active={isLocked}
             onClick={handleToggleLock}
-            aria-label={isLocked ? t("sketch:attrs.unlockLayer", { defaultValue: "Unlock layer" }) : t("sketch:attrs.lockLayer", { defaultValue: "Lock layer" })}
+            aria-label={isLocked ? i18n.t("sketch:attrs.unlockLayer", { defaultValue: "Unlock layer" }) : i18n.t("sketch:attrs.lockLayer", { defaultValue: "Lock layer" })}
             data-testid="layer-action-lock"
           />
 
           <ToolbarIconButton
             icon={<RestartAltIcon fontSize="small" />}
-            tooltip={t("editor:ui.revertClearTheCurrentGenerationBackToDraft", { defaultValue: "Revert — clear the current generation back to draft" })}
+            tooltip={i18n.t("editor:ui.revertClearTheCurrentGenerationBackToDraft", { defaultValue: "Revert — clear the current generation back to draft" })}
             onClick={handleRevert}
             disabled={!binding.lastGeneratedHash}
-            aria-label={t("editor:ui.revertLayerToDraft", { defaultValue: "Revert layer to draft" })}
+            aria-label={i18n.t("editor:ui.revertLayerToDraft", { defaultValue: "Revert layer to draft" })}
             data-testid="layer-action-revert"
           />
 
           {binding.workflowId && documentId && (
             <ToolbarIconButton
               icon={<OpenInNewIcon fontSize="small" />}
-              tooltip={t("editor:ui.openInNodeEditor", { defaultValue: "Open in Node Editor" })}
+              tooltip={i18n.t("sketch:attrs.openInNodeEditor", { defaultValue: "Open in node editor" })}
               onClick={handleOpenInNodeEditor}
-              aria-label={t("editor:ui.openLayerWorkflowInNodeEditor", { defaultValue: "Open layer workflow in node editor" })}
+              aria-label={i18n.t("editor:ui.openLayerWorkflowInNodeEditor", { defaultValue: "Open layer workflow in node editor" })}
               data-testid="layer-action-open-in-editor"
             />
           )}
         </FlexRow>
-
-        <Toast
-          open={duplicateError !== null}
-          message={duplicateError ?? ""}
-          severity="error"
-          onClose={() => setDuplicateError(null)}
-          vertical="top"
-          horizontal="center"
-        />
-
-        <Toast
-          open={generationError !== null}
-          message={generationError ?? ""}
-          severity="error"
-          onClose={() => setGenerationError(null)}
-          vertical="top"
-          horizontal="center"
-        />
       </>
     );
   }

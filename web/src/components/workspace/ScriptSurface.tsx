@@ -53,9 +53,9 @@ type DockTab = "cast" | "assistant";
  * Workspace surface for a script tab. `refId` is the script id. Ensures the
  * script exists in the singleton store, mounts the server-sync/autosave hook,
  * registers the agent bridge (registering this script under its id for the
- * ui_script_* tools), keeps the tab label in sync with the title, and lays out the document
- * pane beside a right dock that toggles between the cast panel and the
- * assistant (ElevenLabs-Studio style).
+ * ui_script_* tools), keeps the tab label in sync with the title, and lays out
+ * the cast rail, the document pane, and the assistant dock side by side. On
+ * mobile the cast and assistant share a bottom sheet.
  */
 const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
   const { t } = useTranslation();
@@ -203,7 +203,7 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
               <EditorButton
                 size="small"
                 variant="contained"
-                startIcon={<GroupsIcon fontSize="small" />}
+                startIcon={<GroupsIcon />}
                 onClick={() => openSheet("cast")}
               >
                 {t("editor:ui.cast", { defaultValue: "Cast" })}
@@ -211,7 +211,7 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
               <EditorButton
                 size="small"
                 variant="contained"
-                startIcon={<AutoAwesomeIcon fontSize="small" />}
+                startIcon={<AutoAwesomeIcon />}
                 onClick={() => openSheet("assistant")}
               >
                 {t("editor:ui.assistant", { defaultValue: "Assistant" })}
@@ -242,9 +242,31 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
     );
   }
 
+  // Desktop reads like a call sheet: the cast down the left, the lines in the
+  // middle, the assistant on the right.
   return (
     <FlexRow fullHeight sx={{ minHeight: 0, position: "relative" }}>
       {conflictBanner}
+      <ResizableSideDock
+        side="left"
+        storageKey="script_cast"
+        defaultWidth={300}
+        minWidth={260}
+        maxWidth={440}
+        ariaLabel="Resize script cast"
+      >
+        <FlexColumn
+          fullWidth
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflow: "hidden",
+            backgroundColor: "background.default"
+          }}
+        >
+          <ScriptCastPanel scriptId={refId} cast={cast} readOnly={readOnly} />
+        </FlexColumn>
+      </ResizableSideDock>
       <ScriptDocumentPane
         scriptId={refId}
         readOnly={readOnly}
@@ -255,12 +277,11 @@ const ScriptSurface = ({ refId, mode, active }: ScriptSurfaceProps) => {
           storageKey="script_assistant"
           ariaLabel={t("ui2:attrs.resizeScriptAssistant", { defaultValue: "Resize script assistant" })}
         >
-          {dockTabGroup}
           <FlexColumn
             fullWidth
             sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}
           >
-            {dockPanel}
+            <ScriptAgentPanel scriptId={refId} />
           </FlexColumn>
         </ResizableSideDock>
       )}

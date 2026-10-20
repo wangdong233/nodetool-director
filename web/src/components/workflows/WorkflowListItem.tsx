@@ -9,11 +9,10 @@ import { useShowGraphPreview } from "../../stores/WorkflowListViewStore";
 import { useIsWorkflowFavorite, useFavoriteWorkflowActions } from "../../stores/FavoriteWorkflowsStore";
 import { relativeTime } from "../../utils/formatDateAndTime";
 import StarIcon from "@mui/icons-material/Star";
-import { TOOLTIP_ENTER_DELAY, TOOLTIP_ENTER_NEXT_DELAY } from "../../config/constants";
-import { FavoriteButton, FlexColumn, FlexRow, Text, Tooltip, Checkbox, Box, BORDER_RADIUS, FONT_WEIGHT, InlineEditableText, SPACING, getSpacingPx } from "../ui_primitives";
+import { FavoriteButton, FlexColumn, FlexRow, Text, Tooltip, Checkbox, Box, FONT_WEIGHT, InlineEditableText, SPACING, getSpacingPx, Chip, ICON_SIZE } from "../ui_primitives";
 import { WorkflowTriggerIndicator } from "./WorkflowTriggerIndicator";
 import { useTranslation } from "react-i18next";
-import { seededDocDisplayName } from "../workspace/tabTypeIdentity";
+import { i18n } from "../../i18n";
 
 // Single-click on the row opens the workflow. Double-clicking the name renames
 // it inline instead, so the open is deferred briefly to let a following
@@ -190,21 +189,7 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
         {hasTags && (
           <FlexRow gap={SPACING.micro} sx={{ flexWrap: "wrap", mt: SPACING.xs }}>
             {workflow.tags?.map((tag) => (
-              <Text
-                key={tag}
-                size="smaller"
-                weight={400}
-                family="secondary"
-                sx={{
-                  color: "grey.900",
-                  backgroundColor: "grey.200",
-                  borderRadius: BORDER_RADIUS.pill,
-                  padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.md)}`,
-                  margin: `${getSpacingPx(SPACING.lg)} 0`
-                }}
-              >
-                {tag}
-              </Text>
+              <Chip key={tag} compact label={tag} />
             ))}
           </FlexRow>
         )}
@@ -240,7 +225,7 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
       }
       role="button"
       tabIndex={0}
-      aria-label={`${showCheckboxes ? "Select" : "Open"} workflow ${workflow.name}`}
+      aria-label={`${showCheckboxes ? t("common:action.select", { defaultValue: "Select" }) : i18n.t("editor:ui:openAction", { defaultValue: "Open" })} workflow ${workflow.name}`}
       aria-pressed={showCheckboxes ? isSelected : undefined}
       onClick={handleRowClick}
       onKeyDown={handleRowKeyDown}
@@ -269,24 +254,27 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
           editing={isEditing}
           onEditingChange={setIsEditing}
           onCommit={handleRename}
-          ariaLabel={t("editor:ui.workflowName", { defaultValue: "Workflow name" })}
+          ariaLabel="Workflow name"
           sx={inputSx}
         >
-          <Text
-            className="name"
-            size="small"
-            weight={500}
-            sx={{ lineHeight: 1.35 }}
-            onDoubleClick={handleNameDoubleClick}
-            title={t("editor:ui.doubleclickToRename", { defaultValue: "Double-click to rename" })}
-          >
-            {workflow.name}
-          </Text>
+          <Tooltip title={t("editor:ui.doubleclickToRename", { defaultValue: "Double-click to rename" })} describeChild>
+            <Text
+              className="name"
+              size="small"
+              weight={500}
+              sx={{ lineHeight: 1.35 }}
+              onDoubleClick={handleNameDoubleClick}
+            >
+              {workflow.name}
+            </Text>
+          </Tooltip>
         </InlineEditableText>
         <Box className="actions">
           <FavoriteButton
             isFavorite={isFavorite}
             onToggle={handleToggleFavorite}
+            addTooltip="Add to favorites"
+            removeTooltip="Remove from favorites"
             buttonSize="small"
             className="favorite-button"
             stopPropagation
@@ -295,7 +283,7 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
       </Box>
       <Box className="date-container">
         <WorkflowTriggerIndicator workflowId={workflow.id} />
-        {isFavorite && <StarIcon className="favorite-indicator" sx={{ fontSize: "var(--fontSizeNormal)", color: "warning.main" }} />}
+        {isFavorite && <StarIcon className="favorite-indicator" sx={{ fontSize: ICON_SIZE.sm, color: "warning.main" }} />}
         {!hideDate && (
           <Text
             className="date"
@@ -314,9 +302,6 @@ const WorkflowListItem: React.FC<WorkflowListItemProps> = ({
     <Tooltip
       title={tooltipContent}
       placement="right"
-      arrow
-      delay={TOOLTIP_ENTER_DELAY}
-      nextDelay={TOOLTIP_ENTER_NEXT_DELAY}
       slotProps={{
         tooltip: {
           sx: {

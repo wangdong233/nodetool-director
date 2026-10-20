@@ -13,8 +13,8 @@ export { WORKFLOW_NODE_TYPE };
 
 const defaultMetadata = {
   [PREVIEW_NODE_TYPE]: {
-    title: "Preview",
-    description: "Preview",
+    title: "Preview", titleKey: "storyboard:attrs.preview",
+    description: "Preview", descriptionKey: "storyboard:attrs.preview",
     namespace: "default",
     node_type: PREVIEW_NODE_TYPE,
     layout: "default",
@@ -48,7 +48,7 @@ const defaultMetadata = {
     required_settings: []
   },
   [WORKFLOW_NODE_TYPE]: {
-    title: "Workflow",
+    title: "Workflow", titleKey: "home:flowError.kind.workflow",
     description:
       "Execute a sub-workflow. Select a workflow to populate its inputs and outputs dynamically.",
     namespace: "nodetool.workflows",

@@ -2,7 +2,6 @@
 import React, { useMemo } from "react";
 import type { CustomField } from "@puckeditor/core";
 import { useGetPuck } from "@puckeditor/core";
-import { i18n } from "../../../i18n";
 
 import {
   SelectField,
@@ -35,7 +34,7 @@ import {
   useBuilderWorkflow
 } from "./BuilderWorkflowContext";
 import type { WorkflowInputIO } from "../workflowIO";
-import { tAttr, tAttrOptions, tAttrTpl } from "../i18nAttrs";
+import { i18n } from "../../../i18n";
 
 type Option = { label: string; value: string };
 const NONE: Option = { label: "— none —", value: "" };
@@ -83,7 +82,7 @@ const OperationSelect: React.FC<{
   if (operations.length < 2) return null;
   return (
     <SelectField
-      label={tAttr("Operation")}
+      label="Operation"
       value={value}
       options={operations.map((op) => ({
         label: op.name || op.id,
@@ -123,20 +122,17 @@ const Picker: React.FC<{
   const hasOptions = options.length > 0;
   const showHint = hintVisible ?? !hasOptions;
   // Rebuilt inline, this array would defeat SelectField's memo.
-  const withNone = useMemo(
-    () => [{ ...NONE, label: tAttr(NONE.label) }, ...tAttrOptions(options)],
-    [options]
-  );
+  const withNone = useMemo(() => [NONE, ...options], [options]);
   return (
     <FlexColumn gap={0.5}>
       <SelectField
-        label={tAttr(label)}
+        label={label}
         value={value}
         options={withNone}
         disabled={readOnly || !hasOptions}
         onChange={onChange}
       />
-      {showHint && emptyHint && <Caption color="secondary">{tAttr(emptyHint)}</Caption>}
+      {showHint && emptyHint && <Caption color="secondary">{emptyHint}</Caption>}
     </FlexColumn>
   );
 };
@@ -148,9 +144,7 @@ const Picker: React.FC<{
  */
 export const bindingField = (
   mode: "write" | "read",
-  // Param-default position (D§9 class): the hook's t is not visible here,
-  // so the fallback reads the global instance — live language at each call.
-  label = i18n.t("appbuilder:attrs.bindTo", { defaultValue: "Bind to" })
+  label = "Bind to"
 ): CustomField<string> => ({
   type: "custom",
   label,
@@ -184,9 +178,7 @@ const ReadBindingPicker: React.FC<{
   const scope = useBuilderBindingScope();
   const options: Option[] = [
     ...outputs.map((o) => ({
-      label: tAttrTpl("bindingOptionOutput", "output · {{label}}", {
-        label: o.label
-      }),
+      label: `output · ${o.label}`,
       value: encodeBinding({
         kind: "output",
         operationId,
@@ -194,9 +186,7 @@ const ReadBindingPicker: React.FC<{
       })
     })),
     ...scope.variables.map((variable) => ({
-      label: tAttrTpl("bindingOptionVariable", "variable · {{name}}", {
-        name: variable.name
-      }),
+      label: `variable · ${variable.name}`,
       value: encodeBinding({ kind: "variable", variableId: variable.id })
     })),
     ...executionOptions(operationId)
@@ -289,15 +279,13 @@ const WriteBindingPicker: React.FC<{
 
   const options = useMemo<BindingOption[]>(() => {
     const inputOptions: BindingOption[] = inputs.map((input) => ({
-      label: tAttrTpl("bindingOptionInput", "input · {{label}}", {
-        label: input.label
-      }),
+      label: `input · ${input.label}`,
       value: encodeBinding({
         kind: "input",
         operationId,
         nodeId: input.nodeId
       }),
-      group: tAttr(INPUTS_GROUP),
+      group: INPUTS_GROUP,
       rowLabel: input.label,
       target: numericTargetFromInput(input)
     }));
@@ -326,18 +314,12 @@ const WriteBindingPicker: React.FC<{
     for (const { node, meta, title } of titled) {
       const group =
         (titleCounts.get(title) ?? 0) > 1
-          ? tAttrTpl("nodeGroupDisambiguated", "{{title}} · {{id}}", {
-              title,
-              id: node.id.slice(0, 6)
-            })
+          ? `${title} · ${node.id.slice(0, 6)}`
           : title;
       for (const prop of meta.properties) {
         const rowLabel = prop.title || prop.name;
         nodeOptions.push({
-          label: tAttrTpl("nodePropertyOption", "{{group}} · {{label}}", {
-            group,
-            label: rowLabel
-          }),
+          label: `${group} · ${rowLabel}`,
           value: encodeBinding({
             kind: "nodeProperty",
             operationId,
@@ -364,15 +346,12 @@ const WriteBindingPicker: React.FC<{
     const parsed = parseBinding(canonical);
     const label =
       parsed?.kind === "nodeProperty"
-        ? tAttrTpl("nodePropertyOption", "{{group}} · {{label}}", {
-            group: parsed.nodeId.slice(0, 6),
-            label: parsed.property
-          })
-        : tAttrTpl("bindingOptionInput", "input · {{label}}", { label: value });
+        ? `${parsed.nodeId.slice(0, 6)} · ${parsed.property}`
+        : `input · ${value}`;
     const orphan: BindingOption = {
       label,
       value: canonical,
-      group: tAttr("Unavailable"),
+      group: "Unavailable",
       rowLabel: label
     };
     return {
@@ -426,8 +405,8 @@ const WriteBindingPicker: React.FC<{
         }}
       />
       <Autocomplete<BindingOption>
-        label={tAttr(label)}
-        placeholder={tAttr("Search inputs and node properties…")}
+        label={label}
+        placeholder={i18n.t("appbuilder:attrs.searchInputsAndNodeProperties", { defaultValue: "Search inputs and node properties" })}
         options={resolvedOptions}
         value={selectedOption}
         disabled={readOnly || !hasOptions}
@@ -446,9 +425,7 @@ const WriteBindingPicker: React.FC<{
       />
       {!hasOptions && (
         <Caption color="secondary">
-          {tAttr(
-            "Add an Input node — or any node with properties — to bind this control."
-          )}
+          Add an Input node — or any node with properties — to bind this control.
         </Caption>
       )}
     </FlexColumn>
@@ -484,10 +461,10 @@ const EventOperationPicker: React.FC<{
   if (operations.length < 2) return null;
   return (
     <SelectField
-      label={tAttr(label)}
+      label={label}
       value={operations.some((op) => op.id === value) ? value : ""}
       options={[
-        { label: tAttr("— default —"), value: "" },
+        { label: "— default —", value: "" },
         ...operations.map((op) => ({ label: op.name || op.id, value: op.id }))
       ]}
       disabled={readOnly}
@@ -568,9 +545,7 @@ const EXECUTION_FIELDS = [
 
 const executionOptions = (operationId: string): Option[] =>
   EXECUTION_FIELDS.map(([field, label]) => ({
-    label: tAttrTpl("bindingOptionExecution", "run · {{label}}", {
-      label: tAttr(label)
-    }),
+    label: `run · ${label}`,
     value: encodeBinding({ kind: "execution", operationId, field })
   }));
 
@@ -607,9 +582,7 @@ const ConditionEditor: React.FC<{
   const scope = useBuilderBindingScope();
   const options: Option[] = [
     ...outputs.map((o) => ({
-      label: tAttrTpl("bindingOptionOutput", "output · {{label}}", {
-        label: o.label
-      }),
+      label: `output · ${o.label}`,
       value: encodeBinding({
         kind: "output",
         operationId,
@@ -617,9 +590,7 @@ const ConditionEditor: React.FC<{
       })
     })),
     ...inputs.map((i) => ({
-      label: tAttrTpl("bindingOptionInput", "input · {{label}}", {
-        label: i.label
-      }),
+      label: `input · ${i.label}`,
       value: encodeBinding({
         kind: "input",
         operationId,
@@ -627,9 +598,7 @@ const ConditionEditor: React.FC<{
       })
     })),
     ...scope.variables.map((variable) => ({
-      label: tAttrTpl("bindingOptionVariable", "variable · {{name}}", {
-        name: variable.name
-      }),
+      label: `variable · ${variable.name}`,
       value: encodeBinding({ kind: "variable", variableId: variable.id })
     })),
     ...executionOptions(operationId)
@@ -660,15 +629,15 @@ const ConditionEditor: React.FC<{
       {value.binding ? (
         <>
           <SelectField
-            label={tAttr("Condition")}
+            label="Condition"
             value={op}
-            options={tAttrOptions(CONDITION_OPS)}
+            options={CONDITION_OPS}
             disabled={readOnly}
             onChange={(next) => onChange({ ...value, op: next })}
           />
           {OPS_WITH_VALUE.has(op) ? (
             <TextInput
-              label={tAttr("Value")}
+              label="Value"
               value={value.value ?? ""}
               disabled={readOnly}
               onChange={(event) =>
@@ -714,10 +683,7 @@ const ResourceBindingPicker: React.FC<{
       label={label}
       value={value}
       options={resources.map((r) => ({
-        label: tAttrTpl("resourceBindingOption", "{{kind}} · {{name}}", {
-          kind: tAttr(r.kind),
-          name: r.name
-        }),
+        label: `${r.kind} · ${r.name}`,
         value: r.id
       }))}
       emptyHint="Add a resource binding to the app to connect a collection."

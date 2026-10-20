@@ -6,6 +6,8 @@ import {
   toTitleCase,
   getProviderBaseName,
   formatGenericProviderName,
+  getProviderDisplayName,
+  groupProvidersBySite,
   getProviderUrl
 } from "../providerDisplay";
 
@@ -34,6 +36,21 @@ describe("providerDisplay", () => {
       expect(isHuggingFaceProvider("")).toBe(false);
       expect(isHuggingFaceProvider(undefined)).toBe(false);
       expect(isHuggingFaceProvider(null as any)).toBe(false);
+    });
+  });
+
+  describe("getProviderDisplayName", () => {
+    it("names the hosting provider for a HuggingFace route", () => {
+      expect(getProviderDisplayName("huggingface_groq")).toBe(
+        getProviderBaseName("huggingface_groq")
+      );
+    });
+
+    it("formats any other provider id", () => {
+      expect(getProviderDisplayName("google")).toBe("Gemini");
+      expect(getProviderDisplayName("llama_cpp")).toBe("llama-server");
+      expect(getProviderDisplayName("node_llama_cpp")).toBe("llama.cpp");
+      expect(getProviderDisplayName(undefined)).toBe("");
     });
   });
 
@@ -112,6 +129,11 @@ describe("providerDisplay", () => {
   });
 
   describe("formatGenericProviderName", () => {
+    it("names subscription providers by their product", () => {
+      expect(formatGenericProviderName("chatgpt")).toBe("ChatGPT");
+      expect(formatGenericProviderName("claude_agent_sdk")).toBe("Claude");
+    });
+
     it("should format generic provider names", () => {
       expect(formatGenericProviderName("openai")).toBe("OpenAI");
       expect(formatGenericProviderName("anthropic")).toBe("Anthropic");
@@ -145,10 +167,10 @@ describe("providerDisplay", () => {
       expect(formatGenericProviderName("kimi")).toBe("Moonshot AI");
     });
 
-    it("should handle Llama.cpp variants", () => {
-      expect(formatGenericProviderName("llama_cpp")).toBe("Llama.cpp");
-      expect(formatGenericProviderName("llama-cpp")).toBe("Llama.cpp");
-      expect(formatGenericProviderName("llamacpp")).toBe("Llama.cpp");
+    it("names the llama.cpp server provider after the server", () => {
+      expect(formatGenericProviderName("llama_cpp")).toBe("llama-server");
+      expect(formatGenericProviderName("llama-cpp")).toBe("llama-server");
+      expect(formatGenericProviderName("llamacpp")).toBe("llama-server");
     });
 
     it("should handle FAL AI variants", () => {
@@ -321,6 +343,28 @@ describe("providerDisplay", () => {
     });
   });
 
+  describe("groupProvidersBySite", () => {
+    it("splits enabled providers into cloud and local, and keeps disabled ones apart", () => {
+      const groups = groupProvidersBySite(
+        ["openai", "stable_diffusion_cpp", "huggingface-local", "anthropic", "ollama"],
+        { ollama: false }
+      );
+      expect(groups.cloud.map((g) => g.label)).toEqual(["Anthropic", "OpenAI"]);
+      expect(groups.local.map((g) => g.label)).toEqual([
+        "Hugging Face",
+        "sd.cpp"
+      ]);
+      expect(groups.disabled.map((g) => g.provider)).toEqual(["ollama"]);
+    });
+  });
+
+  describe("the local Hugging Face provider", () => {
+    it("names the provider, not where it runs", () => {
+      expect(getProviderDisplayName("huggingface-local")).toBe("Hugging Face");
+      expect(getProviderDisplayName("huggingface")).toBe("Hugging Face");
+    });
+  });
+
   describe("isLocalProvider", () => {
     it("returns true for local providers", () => {
       expect(isLocalProvider("huggingface-local")).toBe(true);
@@ -329,6 +373,20 @@ describe("providerDisplay", () => {
       expect(isLocalProvider("llama-cpp")).toBe(true);
       expect(isLocalProvider("llamacpp")).toBe(true);
       expect(isLocalProvider("mlx")).toBe(true);
+    });
+
+    it("counts the in-process and self-hosted engines as local", () => {
+      for (const id of [
+        "node_llama_cpp",
+        "stable_diffusion_cpp",
+        "transformers_js",
+        "whisper_cpp",
+        "whisper_cpp_server",
+        "lmstudio",
+        "vllm"
+      ]) {
+        expect(isLocalProvider(id)).toBe(true);
+      }
     });
 
     it("is case-insensitive", () => {

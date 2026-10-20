@@ -12,22 +12,19 @@
  */
 
 import React, { memo, useCallback, useMemo } from "react";
-import { useTranslation } from "react-i18next";
-import { useAppLanguage } from "../../i18n";
 import {
   Box,
-  Card,
-  Caption,
   Chip,
   EditorButton,
   FlexColumn,
-  Label,
+  FormField,
   SelectField,
   FormSection,
   Text,
+  TextArea,
   TextInput,
-  BORDER_RADIUS,
-  SPACING
+  SPACING,
+  Tooltip
 } from "../ui_primitives";
 import {
   ANGLE_OPTIONS,
@@ -43,6 +40,8 @@ import {
   withDurationSourceToggled,
   type ShotDraft
 } from "./shotDraft";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface ShotEditTableProps {
   draft: ShotDraft;
@@ -60,17 +59,6 @@ interface ShotEditTableProps {
   onEditInScript?: () => void;
 }
 
-/** One field: its label above the control. */
-const Cell: React.FC<{
-  label: string;
-  children: React.ReactNode;
-}> = ({ label, children }) => (
-  <FlexColumn gap={SPACING.xs} sx={{ minWidth: 0 }}>
-    <Label sx={{ color: "text.secondary" }}>{label}</Label>
-    {children}
-  </FlexColumn>
-);
-
 /** Two fields to a row, as the specs read in pairs. */
 const pairGridSx = {
   display: "grid",
@@ -79,20 +67,13 @@ const pairGridSx = {
   alignItems: "start"
 } as const;
 
-type Translate = ReturnType<typeof useTranslation>["t"];
-
-const RENDER_MODE_OPTIONS = (t: Translate): { value: string; label: string }[] => [
-  { value: "keyframe", label: t("storyboard:attrs.renderModeKeyframe", { defaultValue: "Keyframe" }) },
-  { value: "direct", label: t("storyboard:attrs.renderModeDirect", { defaultValue: "Direct" }) },
-  { value: "reference", label: t("storyboard:attrs.renderModeReference", { defaultValue: "Reference" }) }
+const RENDER_MODE_OPTIONS = [
+  { value: "keyframe", label: "Keyframe", labelKey: "storyboard:attrs.renderModeKeyframe" },
+  { value: "direct", label: "Direct", labelKey: "storyboard:attrs.renderModeDirect" },
+  { value: "reference", label: "Reference", labelKey: "storyboard:attrs.renderModeReference" }
 ];
 
-const chipSx = {
-  borderRadius: BORDER_RADIUS.pill,
-  color: "text.secondary",
-  borderColor: "divider",
-  alignSelf: "flex-start"
-} as const;
+const chipSx = { alignSelf: "flex-start" } as const;
 
 const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
   draft,
@@ -105,9 +86,6 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
   onEditInScript
 }) => {
   const { t } = useTranslation();
-  // The camera option labels resolve through i18n; this dep recomputes the
-  // memoized option lists when the language changes.
-  const { version: languageVersion } = useAppLanguage();
   const set = useCallback(
     (patch: Partial<ShotDraft>) => onChange({ ...draft, ...patch }),
     [onChange, draft]
@@ -125,240 +103,193 @@ const ShotEditTableInner: React.FC<ShotEditTableProps> = ({
 
   const framingOptions = useMemo(
     () => cameraOptions(FRAMING_OPTIONS, draft.framing),
-    [draft.framing, languageVersion]
+    [draft.framing]
   );
   const angleOptions = useMemo(
     () => cameraOptions(ANGLE_OPTIONS, draft.angle),
-    [draft.angle, languageVersion]
+    [draft.angle]
   );
   const movementOptions = useMemo(
     () => cameraOptions(MOVEMENT_OPTIONS, draft.movement),
-    [draft.movement, languageVersion]
+    [draft.movement]
   );
   const equipmentOptions = useMemo(
     () => cameraOptions(EQUIPMENT_OPTIONS, draft.equipment),
-    [draft.equipment, languageVersion]
+    [draft.equipment]
   );
   const lensOptions = useMemo(
     () => cameraOptions(LENS_OPTIONS, draft.lens),
-    [draft.lens, languageVersion]
+    [draft.lens]
   );
 
   const pinned = draft.durationSource === "manual";
 
   return (
-    <FlexColumn gap={SPACING.lg} data-testid="shot-edit-table">
-      <Card variant="outlined" padding="normal">
-        <FlexColumn gap={SPACING.lg}>
-          <Cell label={t("storyboard:attrs.description", { defaultValue: "Description" })}>
+    <FlexColumn gap={SPACING.xl} data-testid="shot-edit-table">
+      <FormSection>
+        <TextArea
+          compact
+          size="small"
+          minRows={1}
+          label={i18n.t("storyboard:attrs.description", { defaultValue: "Description" })}
+          placeholder={i18n.t("storyboard:attrs.whatTheShotShows", { defaultValue: "What the shot shows" })}
+          disabled={readOnly}
+          value={draft.action}
+          onChange={(value) => set({ action: value })}
+        />
+        <TextArea
+          compact
+          size="small"
+          minRows={1}
+          label={i18n.t("storyboard:attrs.shotMotion", { defaultValue: "Shot motion" })}
+          placeholder={i18n.t("storyboard:attrs.whatMovesAndHowTheCameraMovesOverTheClip", { defaultValue: "What moves, and how the camera moves, over the clip" })}
+          disabled={readOnly}
+          value={draft.motion}
+          onChange={(value) => set({ motion: value })}
+        />
+        <TextArea
+          compact
+          size="small"
+          minRows={1}
+          label={i18n.t("storyboard:attrs.end", { defaultValue: "End" })}
+          placeholder={i18n.t("storyboard:attrs.thePictureTheShotEndsOn", { defaultValue: "The picture the shot ends on" })}
+          disabled={readOnly}
+          value={draft.endState}
+          onChange={(value) => set({ endState: value })}
+        />
+        <TextArea
+          compact
+          size="small"
+          minRows={1}
+          label={i18n.t("storyboard:attrs.sound", { defaultValue: "Sound" })}
+          placeholder={i18n.t("storyboard:attrs.whatIsHeard", { defaultValue: "What is heard" })}
+          disabled={readOnly}
+          value={draft.sound}
+          onChange={(value) => set({ sound: value })}
+        />
+
+        {linksLines ? (
+          <FormField label={i18n.t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" })} helperText={i18n.t("storyboard:attrs.theScriptOwnsTheseWords", { defaultValue: "The script owns these words." })}>
+            <FlexColumn gap={SPACING.xs}>
+              <Text
+                sx={{ whiteSpace: "pre-wrap" }}
+                data-testid="shot-dialogue-readonly"
+              >
+                {draft.dialogue || "—"}
+              </Text>
+              <EditorButton
+                size="small"
+                onClick={onEditInScript}
+                sx={{ alignSelf: "flex-start" }}
+              >
+                Edit in script
+              </EditorButton>
+            </FlexColumn>
+          </FormField>
+        ) : (
+          <TextArea
+            compact
+            size="small"
+            minRows={1}
+            label={i18n.t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" })}
+            placeholder={i18n.t("storyboard:attrs.whatIsSaidInShot", { defaultValue: "What is said in shot" })}
+            disabled={readOnly}
+            autoFocus={focusDialogue}
+            value={draft.dialogue}
+            onChange={(value) => set({ dialogue: value })}
+          />
+        )}
+      </FormSection>
+
+      {entities}
+
+      <FormSection label={i18n.t("storyboard:attrs.shotDetails", { defaultValue: "Shot details" })}>
+        <Box sx={pairGridSx}>
+          <SelectField
+            size="small"
+            label={i18n.t("storyboard:attrs.size", { defaultValue: "Size" })}
+            disabled={readOnly}
+            value={draft.framing}
+            onChange={(value) => set({ framing: value })}
+            options={framingOptions}
+          />
+          <SelectField
+            size="small"
+            label={i18n.t("storyboard:attrs.focalLength", { defaultValue: "Focal length" })}
+            disabled={readOnly}
+            value={draft.lens}
+            onChange={(value) => set({ lens: value })}
+            options={lensOptions}
+          />
+          <SelectField
+            size="small"
+            label={i18n.t("storyboard:attrs.perspective", { defaultValue: "Perspective" })}
+            disabled={readOnly}
+            value={draft.angle}
+            onChange={(value) => set({ angle: value })}
+            options={angleOptions}
+          />
+          <SelectField
+            size="small"
+            label={i18n.t("storyboard:attrs.movement", { defaultValue: "Movement" })}
+            disabled={readOnly}
+            value={draft.movement}
+            onChange={(value) => set({ movement: value })}
+            options={movementOptions}
+          />
+          <SelectField
+            size="small"
+            label={i18n.t("storyboard:attrs.equipment", { defaultValue: "Equipment" })}
+            disabled={readOnly}
+            value={draft.equipment}
+            onChange={(value) => set({ equipment: value })}
+            options={equipmentOptions}
+          />
+          <FlexColumn gap={SPACING.xs}>
             <TextInput
               compact
               size="small"
-              multiline
-              minRows={4}
-              label={t("storyboard:attrs.description", { defaultValue: "Description" })}
-              hideLabel
-              placeholder={t("storyboard:attrs.whatTheShotShows", { defaultValue: "What the shot shows" })}
+              type="number"
+              label={i18n.t("storyboard:attrs.durationSecondsLabel", { defaultValue: "Duration (seconds)" })}
+              placeholder={
+                !pinned && takesDuration != null
+                  ? String(takesDuration)
+                  : "Model default"
+              }
               disabled={readOnly}
-              value={draft.action}
-              onChange={(event) => set({ action: event.target.value })}
+              value={draft.durationSeconds}
+              onChange={handleDuration}
+              errorMessage={
+                isDurationInvalid(draft.durationSeconds)
+                  ? i18n.t("storyboard:attrs.enterALengthAbove0Seconds", { defaultValue: "Enter a length above 0 seconds" }) : undefined
+              }
+              inputProps={{
+                min: 1,
+                step: 1,
+                "aria-label": "Duration in seconds"
+              }}
             />
-          </Cell>
-
-          <Cell label={t("storyboard:attrs.shotMotion", { defaultValue: "Shot motion" })}>
-            <TextInput
-              compact
-              size="small"
-              multiline
-              minRows={3}
-              label={t("storyboard:attrs.shotMotion", { defaultValue: "Shot motion" })}
-              hideLabel
-              placeholder={t("storyboard:attrs.whatMovesAndHowTheCameraMovesOverTheClip", { defaultValue: "What moves, and how the camera moves, over the clip" })}
-              disabled={readOnly}
-              value={draft.motion}
-              onChange={(event) => set({ motion: event.target.value })}
-            />
-          </Cell>
-
-          <Cell label={t("storyboard:attrs.end", { defaultValue: "End" })}>
-            <TextInput
-              compact
-              size="small"
-              multiline
-              minRows={2}
-              label={t("storyboard:attrs.end", { defaultValue: "End" })}
-              hideLabel
-              placeholder={t("storyboard:attrs.thePictureTheShotEndsOn", { defaultValue: "The picture the shot ends on" })}
-              disabled={readOnly}
-              value={draft.endState}
-              onChange={(event) => set({ endState: event.target.value })}
-            />
-          </Cell>
-
-          <Cell label={t("storyboard:attrs.sound", { defaultValue: "Sound" })}>
-            <TextInput
-              compact
-              size="small"
-              multiline
-              minRows={2}
-              label={t("storyboard:attrs.sound", { defaultValue: "Sound" })}
-              hideLabel
-              placeholder={t("storyboard:attrs.whatIsHeard", { defaultValue: "What is heard" })}
-              disabled={readOnly}
-              value={draft.sound}
-              onChange={(event) => set({ sound: event.target.value })}
-            />
-          </Cell>
-
-          <Cell label={t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" })}>
-            {linksLines ? (
-              <FlexColumn gap={SPACING.xs}>
-                <Text
-                  sx={{ whiteSpace: "pre-wrap" }}
-                  data-testid="shot-dialogue-readonly"
-                >
-                  {draft.dialogue || "—"}
-                </Text>
-                <Caption color="muted">
-                  {t("storyboard:attrs.theScriptOwnsTheseWords", { defaultValue: "The script owns these words." })}
-                </Caption>
-                <EditorButton
-                  size="small"
-                  onClick={onEditInScript}
-                  sx={{ alignSelf: "flex-start" }}
-                >
-                  {t("storyboard:attrs.editInScript", { defaultValue: "Edit in script" })}
-                </EditorButton>
-              </FlexColumn>
-            ) : (
-              <TextInput
-                compact
-                size="small"
-                multiline
-                minRows={2}
-                label={t("storyboard:attrs.dialogue", { defaultValue: "Dialogue" })}
-                hideLabel
-                placeholder={t("storyboard:attrs.whatIsSaidInShot", { defaultValue: "What is said in shot" })}
-                disabled={readOnly}
-                autoFocus={focusDialogue}
-                value={draft.dialogue}
-                onChange={(event) => set({ dialogue: event.target.value })}
-              />
-            )}
-          </Cell>
-        </FlexColumn>
-      </Card>
-
-      {entities && (
-        <Card variant="outlined" padding="normal">
-          {entities}
-        </Card>
-      )}
-
-      <Card variant="outlined" padding="normal">
-        <FormSection label={t("storyboard:attrs.shotDetails", { defaultValue: "Shot details" })}>
-          <Box sx={pairGridSx}>
-            <Cell label={t("storyboard:attrs.size", { defaultValue: "Size" })}>
-              <SelectField
-                size="small"
-                label={t("storyboard:attrs.size", { defaultValue: "Size" })}
-                hideLabel
-                disabled={readOnly}
-                value={draft.framing}
-                onChange={(value) => set({ framing: value })}
-                options={framingOptions}
-              />
-            </Cell>
-            <Cell label={t("storyboard:attrs.focalLength", { defaultValue: "Focal length" })}>
-              <SelectField
-                size="small"
-                label={t("storyboard:attrs.focalLength", { defaultValue: "Focal length" })}
-                hideLabel
-                disabled={readOnly}
-                value={draft.lens}
-                onChange={(value) => set({ lens: value })}
-                options={lensOptions}
-              />
-            </Cell>
-            <Cell label={t("storyboard:attrs.perspective", { defaultValue: "Perspective" })}>
-              <SelectField
-                size="small"
-                label={t("storyboard:attrs.perspective", { defaultValue: "Perspective" })}
-                hideLabel
-                disabled={readOnly}
-                value={draft.angle}
-                onChange={(value) => set({ angle: value })}
-                options={angleOptions}
-              />
-            </Cell>
-            <Cell label={t("storyboard:attrs.movement", { defaultValue: "Movement" })}>
-              <SelectField
-                size="small"
-                label={t("storyboard:attrs.movement", { defaultValue: "Movement" })}
-                hideLabel
-                disabled={readOnly}
-                value={draft.movement}
-                onChange={(value) => set({ movement: value })}
-                options={movementOptions}
-              />
-            </Cell>
-            <Cell label={t("storyboard:attrs.equipment", { defaultValue: "Equipment" })}>
-              <SelectField
-                size="small"
-                label={t("storyboard:attrs.equipment", { defaultValue: "Equipment" })}
-                hideLabel
-                disabled={readOnly}
-                value={draft.equipment}
-                onChange={(value) => set({ equipment: value })}
-                options={equipmentOptions}
-              />
-            </Cell>
-            <Cell label={t("storyboard:attrs.ert", { defaultValue: "ERT" })}>
-              <FlexColumn gap={SPACING.xs}>
-                <TextInput
+            {linksLines && (
+              <Tooltip
+                title={
+                  pinned
+                    ? "The duration is the value you typed. Click to use the length of the voice takes for this shot's lines."
+                    : "The duration is the length of the voice takes for this shot's lines. Click to type your own value."
+                }
+                describeChild
+              >
+                <Chip
                   compact
-                  size="small"
-                  type="number"
-                  label={t("storyboard:attrs.estimatedRunningTimeInSeconds", { defaultValue: "Estimated running time in seconds" })}
-                  hideLabel
-                  placeholder={
-                    !pinned && takesDuration != null
-                      ? String(takesDuration)
-                      : t("storyboard:attrs.auto", { defaultValue: "auto" })
-                  }
-                  disabled={readOnly}
-                  value={draft.durationSeconds}
-                  onChange={handleDuration}
-                  errorMessage={
-                    isDurationInvalid(draft.durationSeconds)
-                      ? t("storyboard:attrs.enterALengthAbove0Seconds", { defaultValue: "Enter a length above 0 seconds" })
-                      : undefined
-                  }
-                  inputProps={{
-                    min: 1,
-                    step: 1,
-                    "aria-label": t("storyboard:attrs.estimatedRunningTimeInSeconds", { defaultValue: "Estimated running time in seconds" })
-                  }}
+                  variant="outlined"
+                  label={pinned ? i18n.t("storyboard:attrs.setByHand", { defaultValue: "Set by hand" }) : i18n.t("storyboard:attrs.fromVoiceTakes", { defaultValue: "From voice takes" })}
+                  sx={chipSx}
+                  onClick={readOnly ? undefined : handleToggleDurationSource}
                 />
-                {linksLines && (
-                  <Chip
-                    compact
-                    variant="outlined"
-                    label={pinned ? t("storyboard:attrs.pinned", { defaultValue: "pinned" }) : t("storyboard:attrs.fromTakes", { defaultValue: "from takes" })}
-                    sx={chipSx}
-                    title={
-                      pinned
-                        ? t("storyboard:attrs.lengthIsPinnedToTheShotsOwnValueClickToTakeItFromTheLinesThisShotCovers", { defaultValue: "Length is pinned to the shot's own value. Click to take it from the lines this shot covers." })
-                        : t("storyboard:attrs.lengthComesFromTheTakesOfTheLinesThisShotCoversClickToPinItToTheShotsOwnValue", { defaultValue: "Length comes from the takes of the lines this shot covers. Click to pin it to the shot's own value." })
-                    }
-                    onClick={readOnly ? undefined : handleToggleDurationSource}
-                  />
-                )}
-              </FlexColumn>
-            </Cell>
-          </Box>
-        </FormSection>
-      </Card>
+              </Tooltip>
+            )}
+          </FlexColumn>
+        </Box>
+      </FormSection>
     </FlexColumn>
   );
 };
@@ -368,38 +299,29 @@ const ShotAdvancedFieldsInner: React.FC<{
   draft: ShotDraft;
   onChange: (draft: ShotDraft) => void;
   readOnly?: boolean;
-}> = ({ draft, onChange, readOnly }) => {
-  const { t } = useTranslation();
-  return (
-    <Box sx={pairGridSx}>
-      <Cell label={t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}>
-        <TextInput
-          compact
-          size="small"
-          label={t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}
-          hideLabel
-          placeholder={t("storyboard:attrs.untitledShot", { defaultValue: "Untitled shot" })}
-          disabled={readOnly}
-          value={draft.slug}
-          onChange={(event) => onChange({ ...draft, slug: event.target.value })}
-        />
-      </Cell>
-      <Cell label={t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}>
-        <SelectField
-          size="small"
-          label={t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}
-          hideLabel
-          disabled={readOnly}
-          value={draft.renderMode}
-          onChange={(value) =>
-            onChange({ ...draft, renderMode: value as ShotDraft["renderMode"] })
-          }
-          options={RENDER_MODE_OPTIONS(t)}
-        />
-      </Cell>
-    </Box>
-  );
-};
+}> = ({ draft, onChange, readOnly }) => (
+  <Box sx={pairGridSx}>
+    <TextInput
+      compact
+      size="small"
+      label={i18n.t("storyboard:attrs.shotTitle", { defaultValue: "Shot title" })}
+      placeholder={i18n.t("storyboard:attrs.untitledShot", { defaultValue: "Untitled shot" })}
+      disabled={readOnly}
+      value={draft.slug}
+      onChange={(event) => onChange({ ...draft, slug: event.target.value })}
+    />
+    <SelectField
+      size="small"
+      label={i18n.t("storyboard:attrs.renderMode", { defaultValue: "Render mode" })}
+      disabled={readOnly}
+      value={draft.renderMode}
+      onChange={(value) =>
+        onChange({ ...draft, renderMode: value as ShotDraft["renderMode"] })
+      }
+      options={RENDER_MODE_OPTIONS}
+    />
+  </Box>
+);
 
 export const ShotAdvancedFields = memo(ShotAdvancedFieldsInner);
 

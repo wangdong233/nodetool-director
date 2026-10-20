@@ -91,3 +91,7 @@ The instructions.
 - `packages/system-skills/README.md` —— 已发布技能全集,以及一项任务如何在其中路由。
 - `packages/agents/src/system-skills.ts` —— 加载器与发现规则。
 - `packages/protocol/src/skill-document.ts` —— 解析器与校验器。
+
+创建技能用 `{name, description, content}`,`content` 只含正文。`load_skill` 返回整个文档;`##` 标题为读者组织正文。
+
+技能名须以已知动词前缀开头(`add_`、`create_`、`get_`、`list_` 等);`web_search`、`request_secret` 这类名字不进注册表。

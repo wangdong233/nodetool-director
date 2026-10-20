@@ -55,6 +55,7 @@ import {
   SANDBOX_CAPABILITY_DISPATCH_GLOBAL,
   SANDBOX_WASM_DISPATCH_GLOBAL,
   type RuntimePackageId,
+  type MissingRuntimeDetails,
   type SandboxModuleResolution
 } from "@nodetool-ai/protocol";
 
@@ -124,6 +125,7 @@ import {
 } from "./sandbox-json-transport.js";
 import type { RunInWorkerOptions } from "./js-sandbox-worker/host.js";
 import { MAX_RANDOM_BYTES } from "./sandbox-constants.js";
+import { isHostAccessEnabled } from "./host-access-gate.js";
 import {
   deriveBridgeShape,
   precheckCloneSafety,
@@ -447,11 +449,15 @@ export function resolveSandboxLimits(
       120_000
     ),
     // Not clamped — these are capability switches, not magnitudes. Both
-    // resolve to the restrictive value unless the host explicitly opts out.
-    allowPrivateNetwork: limits?.allowPrivateNetwork === true,
+    // resolve to the restrictive value unless the host explicitly opts out,
+    // and the cloud profile never lets them out (see isHostAccessEnabled).
+    allowPrivateNetwork:
+      limits?.allowPrivateNetwork === true && isHostAccessEnabled(),
     userAgent: limits?.userAgent ?? "",
     filesystemAccess:
-      limits?.filesystemAccess === "host" ? "host" : "workspace",
+      limits?.filesystemAccess === "host" && isHostAccessEnabled()
+        ? "host"
+        : "workspace",
     secretScope: resolveSecretScope(limits?.secretScope)
   };
 }
@@ -2766,6 +2772,7 @@ export interface RunSandboxResult {
    * editor offer the install.
    */
   missingRuntimePackage?: RuntimePackageId;
+  missingRuntime?: MissingRuntimeDetails;
 }
 
 const IDENTIFIER_RE = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
@@ -2878,18 +2885,25 @@ export async function runInSandbox(
   options: RunSandboxOptions
 ): Promise<RunSandboxResult> {
   let missingRuntimePackage: RuntimePackageId | undefined;
-  const result = await executeInSandbox(options, (runtimePackage) => {
+  let missingRuntime: MissingRuntimeDetails | undefined;
+  const result = await executeInSandbox(options, (runtimePackage, details) => {
     missingRuntimePackage ??= runtimePackage;
+    missingRuntime ??= details ?? undefined;
   });
   // A guest that caught the failure and finished anyway did not need it.
-  return !result.success && missingRuntimePackage !== undefined
-    ? { ...result, missingRuntimePackage }
-    : result;
+  if (!result.success && missingRuntimePackage !== undefined) {
+    const failed: RunSandboxResult = { ...result, missingRuntimePackage };
+    if (missingRuntime) {
+      failed.missingRuntime = missingRuntime;
+    }
+    return failed;
+  }
+  return result;
 }
 
 async function executeInSandbox(
   options: RunSandboxOptions,
-  onMissingRuntimePackage: (runtimePackage: RuntimePackageId) => void
+  onMissingRuntimePackage: (runtimePackage: RuntimePackageId, details: MissingRuntimeDetails | null) => void
 ): Promise<RunSandboxResult> {
   const {
     code,

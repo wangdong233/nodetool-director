@@ -1,12 +1,13 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import ModelMenuDialogBase from "./shared/ModelMenuDialogBase";
 import type { ImageModel, ModelPack, UnifiedModel } from "../../stores/ApiTypes";
 import { useImageModelMenuStore } from "../../stores/ModelMenuStore";
-import { useTranslation } from "react-i18next";
+import { imageTaskCapabilities } from "../../hooks/useProviders";
 import {
   useImageModelsByProvider,
   type ImageModelTask
 } from "../../hooks/useModelsByProvider";
+import { useTranslation } from "react-i18next";
 
 interface ImageModelMenuDialogProps {
   open: boolean;
@@ -16,6 +17,8 @@ interface ImageModelMenuDialogProps {
   anchorEl?: HTMLElement | null;
   recommendedModels?: UnifiedModel[];
   modelPacks?: ModelPack[];
+  /** The model the control holds now. Its row is marked in the list. */
+  selectedModel?: { id: string; provider?: string };
 }
 
 function ImageModelMenuDialog({
@@ -25,10 +28,15 @@ function ImageModelMenuDialog({
   task,
   anchorEl,
   recommendedModels,
-  modelPacks
+  modelPacks,
+  selectedModel
 }: ImageModelMenuDialogProps) {
   const { t } = useTranslation();
   const modelData = useImageModelsByProvider({ task });
+  const localCapabilities = useMemo(
+    () => imageTaskCapabilities(task === undefined ? undefined : [task].flat()),
+    [task]
+  );
   return (
     <ModelMenuDialogBase<ImageModel>
       open={open}
@@ -36,12 +44,15 @@ function ImageModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title={t("editor:ui.selectImageModel", { defaultValue: "Select Image Model" })}
-      searchPlaceholder={t("editor:ui.searchImageModels", { defaultValue: "Search image models..." })}
+      title={t("editor:ui.selectImageModel", { defaultValue: "Select image model" })}
+      searchPlaceholder="Search image models"
       storeHook={useImageModelMenuStore}
       modelType="image_model"
+      localCapabilities={localCapabilities}
       recommendedModels={recommendedModels}
       modelPacks={modelPacks}
+      selectedModel={selectedModel}
+      promptForApiKey
     />
   );
 }

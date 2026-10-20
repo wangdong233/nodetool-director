@@ -6,14 +6,14 @@
  * reads what is declared here.
  */
 import { memo, useCallback } from "react";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 
 import {
   Box,
   EditorButton,
   FlexColumn,
   FlexRow,
-  Label,
+  SectionHeader,
   SelectField,
   Text,
   TextInput,
@@ -76,18 +76,21 @@ const JsScriptPortsEditor = ({
 
   return (
     <FlexColumn gap={SPACING.sm}>
-      <FlexRow align="center" justify="space-between">
-        <Label>{label}</Label>
-        {!readOnly && (
-          <EditorButton
-            density="compact"
-            startIcon={<AddIcon fontSize="small" />}
-            onClick={add}
-          >
-            Add
-          </EditorButton>
-        )}
-      </FlexRow>
+      <SectionHeader
+        size="small"
+        title={label}
+        action={
+          readOnly ? undefined : (
+            <EditorButton
+              density="compact"
+              startIcon={<AddIcon />}
+              onClick={add}
+            >
+              Add
+            </EditorButton>
+          )
+        }
+      />
       {ports.length === 0 ? (
         <Text size="small" color="secondary">
           {t("editor:ui.noneDeclared")}
@@ -118,7 +121,7 @@ const JsScriptPortsEditor = ({
             </Box>
             {!readOnly && (
               <DeleteButton
-                ariaLabel={`Remove ${label} ${index + 1}`}
+                ariaLabel={`Delete ${label} ${index + 1}`}
                 onClick={() => remove(index)}
               />
             )}

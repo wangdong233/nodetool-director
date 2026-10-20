@@ -123,7 +123,7 @@ export const EasingField: React.FC<EasingFieldProps> = memo(
         <InspectorRow label={label}>
           <InspectorPillInput
             value={value ?? ""}
-            placeholder="linear"
+            placeholder={t("ui2:attrs.linear", { defaultValue: "linear" })}
             allowEmpty
             minWidth={140}
             onCommit={handleCommit}

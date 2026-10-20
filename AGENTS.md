@@ -57,6 +57,7 @@ Guidelines](docs/BRAND.md).
 - **[Development Standards](docs/DEVELOPMENT_STANDARDS.md)** — Required for all work.
 - **[Repository Skills](#repository-skills)** — Task-specific engineering and NodeTool authoring workflows.
 - **[Design System](docs/DESIGN.md)** — Required for UI work.
+- **[UX Guidelines](docs/UX_GUIDELINES.md)** — Required for UI work: entry points, model defaults, keeping work, empty states, errors, labels, small windows. Drawn from the UX research studies.
 - **[UI Primitives Strategy](web/src/components/ui_primitives/STRATEGY.md)** — Required for frontend work.
 - **[Harness-First Engineering](docs/HARNESS_FIRST.md)** — The doctrine: every surface headlessly drivable, the registry, `nodetool harness audit`
 - **[Agent Harnesses & Tooling](#agent-harnesses--tooling)** — Validate, debug, run, single-node, browser, deploy, trace (the tools that close the build→verify loop)
@@ -76,6 +77,7 @@ Guidelines](docs/BRAND.md).
 - **[Marketing site](marketing/AGENTS.md)** — Recipe pages, production media, generated catalog data, and media verification
 - **[Workflow Runner Example](examples/workflow_runner/AGENTS.md)** — Embeddable workflow-runner example app
 - **[Error Tracing](docs/error-tracing.md)** — Redacted error traces in the deployment database: capture points, redaction, agent tools, Supabase RLS and opt-in sync
+- **[Product Analytics](docs/analytics.md)** — Opt-in anonymous analytics: the typed event schema, consent per client, the ingest route, retention
 - **[URL Egress Inventory](docs/url-egress-inventory.md)** — Every surface that fetches a caller-provided URL, the one address table, and the SSRF policy each surface applies
 - **[Writing Style](docs/WRITING_STYLE.md)** — Anti-slop prose rules and the forbidden-expressions list for all docs and Markdown
 - **[Brand & Verbal Guidelines](docs/BRAND.md)** — Positioning, voice, messaging pillars, and product lexicon for anything user-facing
@@ -123,6 +125,7 @@ document and nothing else in the directory reaches the product.
 | Develop behavior test-first | [tdd](.claude/skills/tdd/SKILL.md) |
 | Write or repair web and workflow Playwright tests | [e2e-testing](.claude/skills/yts806379-everything-claude-code-e2e-testing/SKILL.md) |
 | Run blind first-time-user QA through the browser (typed only) | [agentic-qa](.claude/skills/agentic-qa/SKILL.md) |
+| Run a UX research study with blind agent participants and track its insights (typed only) | [ux-research](.claude/skills/ux-research/SKILL.md) |
 | Map source structure before reading selected code | [ast-grep-outline](.claude/skills/ast-grep-outline/SKILL.md) |
 | Design module interfaces and test boundaries | [codebase-design](.claude/skills/codebase-design/SKILL.md) |
 | Turn an agreed discussion into a spec or dependent tickets | [to-spec](.claude/skills/to-spec/SKILL.md), [to-tickets](.claude/skills/to-tickets/SKILL.md) |
@@ -213,8 +216,9 @@ workspace manifests. Build in dependency order with `npm run build:packages`.
 
 ### Frontend Rules
 
-Read [Design System](docs/DESIGN.md) and [Primitives Strategy](web/src/components/ui_primitives/STRATEGY.md)
-before UI work. Use [Standards by Task](#standards-by-task) for React, state,
+Read [Design System](docs/DESIGN.md), [UX Guidelines](docs/UX_GUIDELINES.md)
+and [Primitives Strategy](web/src/components/ui_primitives/STRATEGY.md) before
+UI work. Use [Standards by Task](#standards-by-task) for React, state,
 accessibility, and performance rules.
 
 - Use `web/src/components/ui_primitives/`. Raw MUI components are allowed only
@@ -420,12 +424,12 @@ verification requirements.
 
 ### Nested Claude Agent Sessions
 
-The Claude Agent SDK spawns a native `claude` subprocess. In nested sessions,
-strip `CLAUDECODE` and `CLAUDE_CODE_*`, `CLAUDE_SESSION_*`, `CLAUDE_ENABLE_*`,
-`CLAUDE_AFTER_*`, `CLAUDE_AUTO_*` variables. Run as a non-root user because the
-SDK refuses `--dangerously-skip-permissions` at uid 0. Preserve
-`ANTHROPIC_BASE_URL`, `HTTP_PROXY`, and `HTTPS_PROXY` for routing. See
-[Claude Agent SDK](docs/AGENTS.md#claude-agent-sdk).
+The Claude Agent provider runs the installed `claude` CLI headless. In nested
+sessions, strip `CLAUDECODE` and `CLAUDE_CODE_*`, `CLAUDE_SESSION_*`,
+`CLAUDE_ENABLE_*`, `CLAUDE_AFTER_*`, `CLAUDE_AUTO_*` variables. Run as a
+non-root user because the CLI refuses `bypassPermissions` at uid 0 outside a
+sandbox. Preserve `ANTHROPIC_BASE_URL`, `HTTP_PROXY`, and `HTTPS_PROXY` for
+routing. See [Claude Agent provider](docs/AGENTS.md#claude-agent-provider).
 
 ## Agent Harnesses & Tooling
 
@@ -497,8 +501,3 @@ Follow [Security](docs/DEVELOPMENT_STANDARDS.md#16-security) and
   checking the initial URL does not validate redirects. Maintain the
   [URL Egress Inventory](docs/url-egress-inventory.md). Its audit is
   `packages/runtime/tests/url-egress-audit.test.ts`.
-- Code scanning uses advanced setup in `.github/workflows/codeql.yml`.
-  Default setup must stay off, or GitHub rejects its uploads. Dismiss false
-  positives in the Security UI and test the premise that makes them false, as
-  in `packages/models/tests/access-token.test.ts`. Custom exclusions need an
-  explicit `config-file:` in that workflow.

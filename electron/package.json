@@ -1,8 +1,8 @@
 {
   "name": "nodetool-electron",
-  "version": "0.8.2",
+  "version": "0.8.4",
   "private": true,
-  "description": "node-based AI development tool",
+  "description": "Open-source agent-first creative workspace",
   "homepage": "https://nodetool.ai",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -39,6 +39,7 @@
     "@eslint/eslintrc": "^3.3.7",
     "@eslint/js": "^9.39.5",
     "@jest/globals": "^29.7.0",
+    "@nodetool-ai/config": "*",
     "@nodetool-ai/node-sdk": "*",
     "@nodetool-ai/websocket": "*",
     "@trpc/client": "^11.17.0",

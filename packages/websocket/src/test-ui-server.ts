@@ -961,7 +961,8 @@ export interface TestUiServerOptions extends HttpApiOptions {
   host?: string;
   examplesDir?: string;
   /**
-   * Called after built-in nodes are registered, before the server starts.
+   * Called with the supplied registry or after the default registry is built,
+   * before the server starts.
    * Lets callers register extra node classes / metadata (e.g. an e2e harness
    * registering test-only node types) on the same registry the runner uses.
    */
@@ -983,6 +984,12 @@ export interface TestUiServerOptions extends HttpApiOptions {
    * that use test-only node types such as `test.Input`.
    */
   passthroughUnknownNodes?: boolean;
+  /**
+   * When true, the stand-in images for the mock photo and entity assets are
+   * not served, so the bytes a seed stored under those ids come from the asset
+   * store instead. The documentation screenshots seed real pictures there.
+   */
+  seededMediaFromStore?: boolean;
   /**
    * Extends node-TYPE resolution (property/output shape used during graph
    * hydration — distinct from `resolveExecutor`, which only resolves how a
@@ -1321,19 +1328,21 @@ export function resolvePackageAsset(pathname: string, roots: string[]): string |
   return null;
 }
 
-export function createTestUiServer(options: TestUiServerOptions = {}) {
+export async function createTestUiServer(options: TestUiServerOptions = {}) {
   const host = options.host ?? "127.0.0.1";
   const port = options.port ?? Number(process.env.PORT ?? 7777);
   const examplesDir = resolveExamplesDir(options);
 
   const metadataRoots = resolveMetadataRoots(options);
-  const registry = new NodeRegistry();
-  registry.loadPythonMetadata({
-    roots: metadataRoots,
-    maxDepth: options.metadataMaxDepth ?? 8
-  });
-  registerBuiltInNodes(registry);
-  applyProductionNodePolicy(registry);
+  const registry = options.registry ?? new NodeRegistry();
+  if (!options.registry) {
+    registry.loadPythonMetadata({
+      roots: metadataRoots,
+      maxDepth: options.metadataMaxDepth ?? 8
+    });
+    await registerBuiltInNodes(registry);
+    applyProductionNodePolicy(registry);
+  }
   options.configureRegistry?.(registry);
   const resolvedApiOptions: HttpApiOptions = {
     ...options,
@@ -1501,9 +1510,11 @@ export function createTestUiServer(options: TestUiServerOptions = {}) {
       return;
     }
     if (
-      /^\/api\/storage\/(?:[^/]+\/)?(?:asset-photo[1-4](?:_thumb)?\.(?:jpg|jpeg|png)|asset-doc1_thumb\.jpg)$/i.test(
-        url.pathname
-      )
+      (!options.seededMediaFromStore &&
+        /^\/api\/storage\/(?:[^/]+\/)?asset-photo[1-4](?:_thumb)?\.(?:jpg|jpeg|png)$/i.test(
+          url.pathname
+        )) ||
+      /^\/api\/storage\/(?:[^/]+\/)?asset-doc1_thumb\.jpg$/i.test(url.pathname)
     ) {
       res.statusCode = 200;
       res.setHeader("content-type", "image/png");
@@ -1516,7 +1527,10 @@ export function createTestUiServer(options: TestUiServerOptions = {}) {
       const entityMatch = url.pathname.match(
         /^\/api\/storage\/(?:[^/]+\/)?(entity-[a-z]+)(?:_thumb)?\.(?:jpg|jpeg|png)$/i
       );
-      const entityPng = entityMatch ? ENTITY_IMAGE_PNGS[entityMatch[1]] : null;
+      const entityPng =
+        entityMatch && !options.seededMediaFromStore
+          ? ENTITY_IMAGE_PNGS[entityMatch[1]]
+          : null;
       if (entityPng) {
         res.statusCode = 200;
         res.setHeader("content-type", "image/png");
@@ -1648,7 +1662,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     // DB unavailable — secrets will appear unconfigured
   }
 
-  const srv = createTestUiServer();
+  const srv = await createTestUiServer();
   void srv.listen().then(() => {
     log.info("Server listening", {
       host: srv.info.host,

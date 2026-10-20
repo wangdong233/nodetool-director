@@ -46,7 +46,7 @@ import { useImportNotice } from "../../../hooks/storyboard/useImportNotice";
 import { useImportSource } from "../../../hooks/storyboard/useImportSource";
 import { sceneOrder } from "../../../lib/storyboard/sceneOrder";
 import { PlanReview } from "../PlanReview";
-import ReportBugButton from "../../support/ReportBugButton";
+import ErrorBanner from "../../support/ErrorBanner";
 import { REVIEW_WIDE_WIDTH } from "../reviewStyles";
 import {
   productionFields,
@@ -628,18 +628,15 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
         {/* A failed rewrite is read where it was pressed, not below a
             screenplay that can run to dozens of shots. */}
         {error ? (
-          <FlexRow gap={GAP.normal} align="center" wrap>
-            <Text size="small" color="error" role="alert">
-              {error}
-            </Text>
-            <ReportBugButton
-              context={{
-                source: "provider-call",
-                summary: "Storyboard screenplay rewrite failed",
-                errorText: error
-              }}
-            />
-          </FlexRow>
+          <ErrorBanner
+            report={{
+              source: "provider-call",
+              summary: "Storyboard screenplay rewrite failed",
+              errorText: error
+            }}
+          >
+            {error}
+          </ErrorBanner>
         ) : null}
         <Suspense
           fallback={<Caption color="secondary">{t("storyboard:attrs.loadingEstimate", { defaultValue: "Loading estimate…" })}</Caption>}

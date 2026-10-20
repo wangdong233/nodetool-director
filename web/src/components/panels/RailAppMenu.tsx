@@ -15,13 +15,11 @@ import Logo from "../Logo";
 import { useAppMenuActions } from "./useAppMenuActions";
 import { useTranslation } from "react-i18next";
 import {
-  Popover,
+  ContextMenu,
   MenuItemPrimitive,
   Tooltip,
   MOTION,
-  BORDER_RADIUS,
-  SPACING,
-  getSpacingPx
+  BORDER_RADIUS
 } from "../ui_primitives";
 
 const logoButtonStyles = (theme: Theme) =>
@@ -47,12 +45,6 @@ const logoButtonStyles = (theme: Theme) =>
       outline: `2px solid ${theme.vars.palette.primary.main}`,
       outlineOffset: "-2px"
     }
-  });
-
-const menuStyles = () =>
-  css({
-    minWidth: "208px",
-    padding: `${getSpacingPx(SPACING.xs)} 0`
   });
 
 interface RailAppMenuProps {
@@ -141,7 +133,7 @@ const RailAppMenu: React.FC<RailAppMenuProps> = ({ onAction }) => {
   }, [onAction]);
 
   const actions = useAppMenuActions(finish).filter(
-    (action) => action.placement === "logo"
+    (action) => action.placement !== "sidebar"
   );
 
   return (
@@ -167,25 +159,25 @@ const RailAppMenu: React.FC<RailAppMenuProps> = ({ onAction }) => {
         </button>
       </Tooltip>
 
-      <Popover
+      <ContextMenu
         open={open}
         anchorEl={anchorRef.current}
         onClose={close}
-        placement="bottom-left"
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
+        minWidth={208}
       >
-        <div css={menuStyles()} role="menu">
-          {actions.map((action) => (
-            <MenuItemPrimitive
-              key={action.key}
-              label={action.label}
-              icon={action.icon}
-              onClick={action.onClick}
-              secondary={action.secondary}
-              dividerAfter={action.dividerAfter}
-            />
-          ))}
-        </div>
-      </Popover>
+        {actions.map((action) => (
+          <MenuItemPrimitive
+            key={action.key}
+            label={action.label}
+            icon={action.icon}
+            onClick={action.onClick}
+            secondary={action.secondary}
+            dividerAfter={action.dividerAfter}
+          />
+        ))}
+      </ContextMenu>
 
     </>
   );

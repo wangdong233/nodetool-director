@@ -19,7 +19,6 @@ import type { WorkflowCostEstimateDetail } from "@nodetool-ai/node-sdk/cost-esti
 import { Box, Caption, ExternalLink, Tooltip } from "../ui_primitives";
 import { genspendPricingCatalog } from "@nodetool-ai/model-pricing/genspend-catalog";
 import { useCostEstimateSummary } from "./useCostEstimateSummary";
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 /** Date the shipped GenSpend prices last moved, e.g. "2026-07-29". */
@@ -145,10 +144,7 @@ export interface CostEstimateSummaryProps {
 const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
   estimate,
   unavailableMessage = "Open a workflow to see its cost estimate.",
-  emptyMessage = i18n.t("editor:ui.addNodeUsingAiModelToEstimate", {
-    defaultValue:
-      "Add a node that uses an AI model to estimate a run's cost."
-  }),
+  emptyMessage = "Add a node that uses an AI model to estimate a run's cost.",
   showPriceCredit = true
 }) => {
   const { t } = useTranslation();
@@ -177,7 +173,7 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
           <span className="cost-col-head">{t("ui2:attrs.node", { defaultValue: "Node" })}</span>
           <span className="cost-col-head">{t("ui2:attrs.providerModel", { defaultValue: "Provider / model" })}</span>
           <span className="cost-col-head" style={{ textAlign: "right" }}>
-            {t("editor:ui.units")}
+            Units
           </span>
           <span className="cost-col-head" style={{ textAlign: "right" }}>
             Cost
@@ -190,7 +186,7 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
                 {row.nodeTitle}
               </span>
               {row.unknown ? (
-                <Tooltip title={row.unknownReason} arrow>
+                <Tooltip title={row.unknownReason}>
                   <span className="cost-unknown" aria-label={t("editor:ui.priceUnknown", { defaultValue: "Price unknown" })}>
                     <HelpOutlineIcon fontSize="inherit" />
                   </span>
@@ -209,7 +205,7 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
           return (
             <div className="cost-item" key={row.key}>
               {row.tooltip ? (
-                <Tooltip title={row.tooltip} arrow>
+                <Tooltip title={row.tooltip}>
                   {rowEl}
                 </Tooltip>
               ) : (
@@ -249,9 +245,8 @@ const CostEstimateSummaryInternal: React.FC<CostEstimateSummaryProps> = ({
           title={
             genspendSnapshotOn
               ? `Prices read from the genspend.io catalog snapshot of ${genspendSnapshotOn}`
-              : t("editor:ui.pricesShipWithTheAppANightlySyncMovesThem", { defaultValue: "Prices ship with the app; a nightly sync moves them" })
+              : "Prices ship with the app; a nightly sync moves them"
           }
-          arrow
         >
           <span className="cost-credit">
             List prices from provider catalogs and{" "}

@@ -93,3 +93,14 @@ nodetool sketch versions list <id> --save-type manual --limit 10
 
 - `docs/harnesses.md` § nodetool sketch validate / debug
 - `docs/harnesses.md` § nodetool sketch versions
+
+| `add_layer` | `{name?, type?: "raster"\|"mask", index?, image?, x?, y?, width?, height?}`;`image` 为媒体引用 |
+| `target` | 图层 id、图层名或 `"active"`;索引 0 是栈底 |
+| `use_case` | `product`、`portrait`、`key-art`、`social`、`logo`、`concept`、`texture` 之一,同时决定画布尺寸 |
+| `stage` | 引导流续点:`idea`、`useCase`、`review`、`look` 或 `done`(普通编辑器) |
+
+像素操作走画布工具:`ui_sketch_get_state`、`ui_sketch_place_image`、`ui_sketch_stroke`、`ui_sketch_fill`、`ui_sketch_gradient`、`ui_sketch_draw_shape`、`ui_sketch_adjust_layer`、`ui_sketch_transform`、`ui_sketch_crop`、`ui_sketch_merge_down`、`ui_sketch_flatten_visible`、`ui_sketch_get_layer_image`、`ui_sketch_generate`、`ui_sketch_render_to_asset`。
+
+放置外部图:`edit_sketch` 配 `add_layer {image}` 或 `set_layer_image {target, image}`。要在工作流里使用成品,`nodetool.sketch.RenderSketch` 接 `sketch` 输入,摊平为 `image` 与 `mask`。CLI 从源码运行:`npm run dev:nodetool -- <command>`。
+
+创建:`create_sketch {name, width?, height?, background_color?, project_id?}`;加层:`{name?, type?: "raster"\|"mask", index?, image?, x?, y?, width?, height?}`。

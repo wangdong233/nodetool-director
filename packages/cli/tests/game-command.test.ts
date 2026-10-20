@@ -5,8 +5,8 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Command } from "commander";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createGameSession, createScriptedGameSession, createTopDownRoomGame } from "@nodetool-ai/game-runtime";
-import { gameParticles } from "@nodetool-ai/protocol";
+import { applyGameOps, applyGameOps3D, createGameSession, createNative3DGame, createScriptedGameSession, createTopDownRoomGame } from "@nodetool-ai/game-runtime";
+import { gameEntity, gameEntity3D, gameParticles } from "@nodetool-ai/protocol";
 import { registerGameCommands } from "../src/commands/game.js";
 
 vi.mock("@nodetool-ai/game-runtime", async (importOriginal) => {
@@ -168,7 +168,7 @@ describe("game simulate behavioral contracts", () => {
     await writeFile(gamePath, JSON.stringify({ ...base, scenes: base.scenes.map((scene) => ({
       ...scene,
       entities: scene.entities.map((entity) => entity.id === "player"
-        ? { ...entity, behaviors: [{ kind: "script", maxTickMs: 50,
+        ? { ...entity, behaviors: [{ kind: "script", maxTickMs: 20,
           source: "({state}) => ({state: {count: (state?.count ?? 0) + 1}, commands: []})" }] }
         : entity)
     })) }));
@@ -291,7 +291,7 @@ it("simulates authored metadata commands and verifies property snapshot replay",
   if (!player) { throw new Error("CLI fixture requires player"); }
   player.tags = ["hero"];
   player.props = {health:10};
-  player.behaviors = [{kind:"script",source:"({entity})=>({state:{tags:entity.tags,health:entity.props.health},commands:[{kind:'setProp',key:'health',value:entity.props.health-1}]})",maxCommands:1,maxTickMs:30}];
+  player.behaviors = [{kind:"script",source:"({entity})=>({state:{tags:entity.tags,health:entity.props.health},commands:[{kind:'setProp',key:'health',value:entity.props.health-1}]})",maxCommands:1,maxTickMs:20}];
   await writeFile(gamePath,JSON.stringify(document));
   const report = await runSimulation("--ticks","3","--verify-replay");
   expect(report).toMatchObject({ok:true,replay:{verified:true}});
@@ -346,7 +346,7 @@ it("simulates script params and verifies replay", async () => {
   document.engineVersion = "3";
   const player = document.scenes[0].entities.find(entity=>entity.id==="player");
   if (!player) { throw new Error("CLI fixture requires player"); }
-  player.behaviors = [{kind:"script",source:"(input)=>({state:input.params,commands:[{kind:'setVelocity',x:input.params.speed,y:0}]})",maxCommands:1,maxTickMs:30,
+  player.behaviors = [{kind:"script",source:"(input)=>({state:input.params,commands:[{kind:'setVelocity',x:input.params.speed,y:0}]})",maxCommands:1,maxTickMs:20,
     params:{speed:{type:"number",default:1,minimum:0,maximum:5},target:{type:"entity"}},values:{speed:3,target:"gem"}}];
   await writeFile(gamePath,JSON.stringify(document));
   const report = await runSimulation("--ticks","3","--verify-replay");
@@ -376,7 +376,7 @@ it("simulates particle emitters and emitParticles commands with a verified repla
   const player = document.scenes[0].entities.find(entity=>entity.id==="player");
   if (!player) { throw new Error("CLI fixture requires player"); }
   player.particles = gameParticles.parse({ emitters: [{ id: "dust", rate: 12, lifetime: { min: 0.2, max: 0.6 } }] });
-  player.behaviors = [{kind:"script",source:"({tick})=>({state:null,commands:tick%10===0?[{kind:'emitParticles',count:4}]:[]})",maxCommands:1,maxTickMs:50}];
+  player.behaviors = [{kind:"script",source:"({tick})=>({state:null,commands:tick%10===0?[{kind:'emitParticles',count:4}]:[]})",maxCommands:1,maxTickMs:20}];
   await writeFile(gamePath,JSON.stringify(document));
   const report = await runSimulation("--ticks","30","--verify-replay");
   expect(report).toMatchObject({ok:true,replay:{verified:true}});
@@ -388,7 +388,7 @@ it("simulates lifecycle hooks and timers and verifies replay from the midpoint",
   const document = createTopDownRoomGame("c".repeat(32));
   const player = document.scenes[0].entities.find(entity=>entity.id==="player");
   if (!player) { throw new Error("CLI fixture requires player"); }
-  player.behaviors.push({kind:"script",maxCommands:2,maxTickMs:30,source:"({ onStart() { every(7, 'beat'); return { state: 0 }; }, beat(input) { return { state: input.state + 1, commands: [{ kind: 'emit', event: 'heartbeat' }] }; } })"});
+  player.behaviors.push({kind:"script",maxCommands:2,maxTickMs:20,source:"({ onStart() { every(7, 'beat'); return { state: 0 }; }, beat(input) { return { state: input.state + 1, commands: [{ kind: 'emit', event: 'heartbeat' }] }; } })"});
   await writeFile(gamePath,JSON.stringify(document));
   const report = await runSimulation("--ticks","120","--verify-replay");
   expect(report).toMatchObject({ok:true,replay:{verified:true}});
@@ -406,8 +406,8 @@ it("simulates typed events with payloads and targets and verifies replay from th
   const player = document.scenes[0].entities.find(entity=>entity.id==="player");
   const gem = document.scenes[0].entities.find(entity=>entity.id==="gem");
   if (!player || !gem) { throw new Error("CLI fixture requires player and gem"); }
-  player.behaviors.push({kind:"script",maxCommands:2,maxTickMs:30,source:"(input) => ({ state: null, commands: input.tick % 10 === 0 ? [{ kind: 'emit', event: 'bonus', payload: { points: input.tick }, target: { entityId: 'gem' } }] : [] })"});
-  gem.behaviors.push({kind:"script",maxCommands:2,maxTickMs:30,source:"({ onEvent(input, event) { return { state: (input.state ?? 0) + event.payload.points }; } })"});
+  player.behaviors.push({kind:"script",maxCommands:2,maxTickMs:20,source:"(input) => ({ state: null, commands: input.tick % 10 === 0 ? [{ kind: 'emit', event: 'bonus', payload: { points: input.tick }, target: { entityId: 'gem' } }] : [] })"});
+  gem.behaviors.push({kind:"script",maxCommands:2,maxTickMs:20,source:"({ onEvent(input, event) { return { state: (input.state ?? 0) + event.payload.points }; } })"});
   await writeFile(gamePath,JSON.stringify(document));
   const report = await runSimulation("--ticks","120","--verify-replay");
   expect(report).toMatchObject({ok:true,replay:{verified:true}});
@@ -416,4 +416,65 @@ it("simulates typed events with payloads and targets and verifies replay from th
     for (let tick = 0; tick < 50; tick += 1) { session.step({pressed:[]}); }
     expect(Object.values(session.snapshot().scriptState)).toContainEqual({$lifecycle:1,state:0+10+20+30+40,timers:[]});
   } finally { session.dispose(); }
+});
+
+it("validates a 2D document with 3D-only particle fields and prints the warnings", async () => {
+  const document = createTopDownRoomGame("a".repeat(32));
+  await writeFile(gamePath, JSON.stringify({ ...document, schemaVersion: 2, scenes: document.scenes.map((scene) => ({ ...scene,
+    entities: scene.entities.map((entity) => entity.id === "gem" ? { ...entity, particles: { emitters: [{ id: "glint", softness: 1 }] } } : entity) })) }));
+  const json = new Command();
+  registerGameCommands(json);
+  await json.parseAsync(["node", "nodetool", "game", "validate", gamePath, "--json"]);
+  const report = JSON.parse(output.trim()) as { valid: boolean; warnings: { message: string }[] };
+  expect(report.valid).toBe(true);
+  expect(report.warnings.map((warning) => warning.message)).toEqual(["2D particles ignore softness, which only fades 3D billboards"]);
+  output = "";
+  const text = new Command();
+  registerGameCommands(text);
+  await text.parseAsync(["node", "nodetool", "game", "validate", gamePath]);
+  expect(output).toMatch(/^Game document is valid\nWarning scenes\.0\.entities\.\d+\.particles\.emitters\.0\.softness: 2D particles ignore softness/);
+});
+
+it.each(["2D", "3D"])("validates and replays %s streamed scene music through the CLI", async (dimension) => {
+  const document = dimension === "3D" ? createNative3DGame("a".repeat(32)) : { ...createTopDownRoomGame("a".repeat(32)), schemaVersion: 2 as const };
+  if (dimension === "3D") {
+    document.assets["music.theme"] = { assetId: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", digest: "music-theme-fixture", mediaKind: "audio", required: false };
+  } else {
+    document.assets["music.theme"] = { assetId: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", digest: "music-theme-fixture", mediaKind: "audio", width: 1, height: 1 };
+  }
+  await writeFile(gamePath, JSON.stringify({ ...document, scenes: document.scenes.map(scene => ({ ...scene,
+    music: { assetId: "music.theme", volume: 0.6, fadeInTicks: 30, fadeOutTicks: 45,
+      streaming: { loopStartSeconds: 12, loopEndSeconds: 90 } }
+  })) }));
+  const program = new Command();
+  registerGameCommands(program);
+  await program.parseAsync(["node", "nodetool", "game", "validate", gamePath, "--json"]);
+  expect(JSON.parse(output.trim())).toMatchObject({ valid: true });
+  output = "";
+  const report = await runSimulation("--ticks", "120", "--seed", "1", "--verify-replay");
+  expect(report).toMatchObject({ ok: true, replay: { resumeTick: 60, verified: true } });
+  expect(report.error).toBeUndefined();
+  expect(report.replay).not.toHaveProperty("divergence");
+  expect(report.snapshot).toMatchObject({ tick: 120, music: { assetId: "music.theme", startTick: 0 } });
+  expect(report.snapshot).not.toHaveProperty("music.streaming");
+});
+
+it.each(["2D", "3D"])("simulates an ops-authored %s script source edit and replays from tick 60", async dimension => {
+  const behavior = { kind: "script", source: "(input) => ({ state: input.state, commands: [] })", maxCommands: 4, maxTickMs: 20 };
+  const source = "(input) => ({ state: (input.state ?? 0) + 1, commands: [{ kind: 'emit', event: 'updated-speed' }] })";
+  const op = { op: "set_script" as const, entity_id: "mover", index: 0, source };
+  const document = dimension === "3D" ? (() => {
+    const initial = createNative3DGame("b".repeat(32));
+    initial.scenes[0].entities.push(gameEntity3D.parse({ id: "mover", transform3d: { position: { x: 4, y: 1, z: 0 } }, behaviors: [behavior] }));
+    return applyGameOps3D(initial, [op]);
+  })() : (() => {
+    const initial = { ...createTopDownRoomGame("a".repeat(32)), schemaVersion: 2 as const };
+    initial.scenes[0].entities.push(gameEntity.parse({ id: "mover", transform2d: { x: -5, y: 2 }, behaviors: [behavior] }));
+    return applyGameOps(initial, [op]);
+  })();
+  await writeFile(gamePath, JSON.stringify(document));
+  const report = await runSimulation("--ticks", "120", "--seed", "1", "--verify-replay");
+  expect(report).toMatchObject({ ok: true, replay: { verified: true, resumeTick: 60 },
+    snapshot: { tick: 120, scriptState: { [JSON.stringify([document.entrySceneId, "mover", 0])]: 120 } } });
+  expect(report).toHaveProperty("events", expect.arrayContaining([expect.objectContaining({ kind: "trigger", event: "updated-speed" })]));
 });

@@ -13,7 +13,7 @@ const EmptyCollectionState = () => {
   return (
     <Box sx={{ marginTop: 2, maxWidth: 600 }}>
       <Text size="big" sx={{ margin: `${getSpacingPx(SPACING.xl)} 0 ${getSpacingPx(SPACING.md)} 0` }}>
-        {t("editor:ui.vectorCollections")}
+        Vector collections
       </Text>
       <Text sx={{ marginBottom: 1 }}>
         Collections organize vector representations of your text and images in a
@@ -29,7 +29,7 @@ const EmptyCollectionState = () => {
 
       <FlexColumn gap={2}>
         <Text size="big">
-          {t("editor:ui.noCollectionsFoundCreateOneToGetStarted")}
+          No collections found. Create one to get started.
         </Text>
 
         <Text>{t("editor:ui.withACollectionYouCan", { defaultValue: "With a collection, you can:" })}</Text>

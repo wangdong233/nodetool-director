@@ -4,6 +4,7 @@
  */
 
 import { useCallback } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 import { trpc, trpcClient } from "../trpc/client";
 import {
@@ -14,7 +15,7 @@ import {
   type WorkspaceTabType
 } from "../stores/WorkspaceTabsStore";
 import { useNotificationStore } from "../stores/NotificationStore";
-import { useTranslation } from "react-i18next";
+import { exportProjectFile, importProjectFile } from "../utils/projectArchive";
 
 /**
  * Open the surface a project is started from. One tab, so every entry point —
@@ -22,7 +23,6 @@ import { useTranslation } from "react-i18next";
  * the same one rather than stacking copies.
  */
 export const useOpenNewProjectTab = () => {
-  const { t } = useTranslation();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   return useCallback(
     () =>
@@ -30,7 +30,7 @@ export const useOpenNewProjectTab = () => {
         type: "project-new",
         ref: PROJECT_NEW_REF,
         mode: "view",
-        title: t("nav:tabs.home", { defaultValue: "Home" })
+        title: "Home"
       }),
     [openTab]
   );
@@ -61,6 +61,7 @@ export const useInvalidateProjects = () => {
     // Every id — an open overview tab has no refetch trigger of its own, so a
     // targeted invalidate (rather than this blanket one) would leave it stale.
     void utils.projects.get.invalidate();
+    void utils.projects.documentPage.invalidate();
   }, [utils]);
 };
 
@@ -82,6 +83,19 @@ export const useArchiveProject = () => {
 export const useRestoreProject = () => {
   const invalidate = useInvalidateProjects();
   return trpc.projects.restore.useMutation({ onSuccess: invalidate });
+};
+
+/** Download a project as a `.nodetool-project` file. */
+export const useExportProject = () =>
+  useMutation({
+    mutationFn: (project: { id: string; name: string }) =>
+      exportProjectFile(project.id, project.name)
+  });
+
+/** Create a new project from a `.nodetool-project` file. */
+export const useImportProject = () => {
+  const invalidate = useInvalidateProjects();
+  return useMutation({ mutationFn: importProjectFile, onSuccess: invalidate });
 };
 
 export const useDeleteProject = () => {

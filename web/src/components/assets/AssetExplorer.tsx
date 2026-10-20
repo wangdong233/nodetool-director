@@ -2,17 +2,19 @@
 import { css } from "@emotion/react";
 import React, { memo } from "react";
 import PermMediaOutlinedIcon from "@mui/icons-material/PermMediaOutlined";
-import ManagerPageLayout from "../panels/ManagerPageLayout";
 import AssetGrid from "./AssetGrid";
 import StorageAnalytics from "./StorageAnalytics";
 import {
   Box,
   EmptyState,
   FlexColumn,
-  LoadingSpinner
+  LoadingSpinner,
+  PageLayout,
+  ICON_SIZE
 } from "../ui_primitives";
 import useAssets from "../../serverState/useAssets";
 import { ContextMenuProvider } from "../../providers/ContextMenuProvider";
+import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 // AssetGrid sizes itself for the narrow left panel (a top margin and a
@@ -54,9 +56,9 @@ const AssetExplorer: React.FC = memo(() => {
     useAssets();
 
   return (
-    <ManagerPageLayout
-      icon={<PermMediaOutlinedIcon sx={{ fontSize: 22 }} />}
-      title={t("editor:explorer.title", { defaultValue: "Assets" })}
+    <PageLayout
+      icon={<PermMediaOutlinedIcon sx={{ fontSize: ICON_SIZE.lg }} />}
+      title={i18n.t("editor:explorer.title", { defaultValue: "Assets" })}
       subtitle={t("editor:explorer.subtitle", { defaultValue: "Browse, organize, and preview your images, audio, video, and other files." })}
       docsTopic="assets"
       padded={false}
@@ -65,15 +67,15 @@ const AssetExplorer: React.FC = memo(() => {
       <Box css={gridFillStyles}>
         {isLoading ? (
           <FlexColumn justify="center" align="center" sx={{ flex: 1 }}>
-            <LoadingSpinner size="large" text={t("editor:explorer.loading", { defaultValue: "Loading assets" })} />
+            <LoadingSpinner size="large" text="Loading assets" />
           </FlexColumn>
         ) : error ? (
           <FlexColumn justify="center" align="center" sx={{ flex: 1 }}>
             <EmptyState
               variant="error"
-              title={t("editor:explorer.loadFailed", { defaultValue: "Could not load assets" })}
-              description={error.message || t("editor:explorer.errorGeneric", { defaultValue: "An error occurred. Please try again." })}
-              actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
+              title={i18n.t("editor:explorer.loadFailed", { defaultValue: "Could not load assets" })}
+              description={error.message || "An error occurred. Please try again."}
+              actionText="Retry"
               onAction={refetchAssetsAndFolders}
             />
           </FlexColumn>
@@ -90,7 +92,7 @@ const AssetExplorer: React.FC = memo(() => {
           </ContextMenuProvider>
         )}
       </Box>
-    </ManagerPageLayout>
+    </PageLayout>
   );
 });
 

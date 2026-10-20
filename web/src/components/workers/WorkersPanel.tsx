@@ -9,15 +9,14 @@ import {
   Caption,
   LoadingSpinner,
   EditorButton,
+  ConfirmDialog,
   Dialog,
   SelectField,
   StatusIndicator,
   AlertBanner,
-  WarningBanner,
   PanelHeader,
-  type StatusType,
-  getSpacingPx,
-  SPACING
+  type StatusType, getSpacingPx, SPACING,
+  EmptyState
 } from "../ui_primitives";
 import {
   useWorkers,
@@ -25,8 +24,8 @@ import {
   type WorkerInstance
 } from "../../hooks/useWorkers";
 import WorkerProfilesDialog from "./WorkerProfilesDialog";
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /**
  * Workers panel — the live GPU-worker surface. Lists provisioned instances with
@@ -36,29 +35,30 @@ import { useTranslation } from "react-i18next";
  */
 
 const STATUS_TONE: Record<string, StatusType> = {
-  provisioning: "pending",
+  provisioning: "running",
   running: "info",
   attached: "success",
-  stopping: "pending",
+  stopping: "running",
   stopped: "default",
   error: "error"
 };
 
-const panelStyles = css({
-  "&": {
-    height: "100%"
-  },
-  ".workers-body": {
-    flex: 1,
-    minHeight: 0,
-    padding: getSpacingPx(SPACING.lg)
-  },
-  ".scrollable-content": {
-    flex: 1,
-    overflowY: "auto",
-    overflowX: "hidden"
-  }
-});
+const panelStyles =
+  css({
+    "&": {
+      height: "100%"
+    },
+    ".workers-body": {
+      flex: 1,
+      minHeight: 0,
+      padding: getSpacingPx(SPACING.lg)
+    },
+    ".scrollable-content": {
+      flex: 1,
+      overflowY: "auto",
+      overflowX: "hidden"
+    }
+  });
 
 function formatUptime(createdAt: string, now: number): string {
   const startedMs = Date.parse(createdAt);
@@ -120,34 +120,18 @@ const ProvisionDialog: React.FC<ProvisionDialogProps> = ({
       open={open}
       onClose={onClose}
       title={t("editor:ui.startAWorker", { defaultValue: "Start a worker" })}
-      minWidth={420}
-      actions={
-        <FlexRow gap={2}>
-          <EditorButton variant="text" onClick={onClose}>
-            {t("common:action.cancel", { defaultValue: "Cancel" })}
-          </EditorButton>
-          <EditorButton
-            variant="outlined"
-            onClick={handleProvision}
-            disabled={!effective || isProvisioning}
-          >
-            {t("editor:ui.provision")}
-          </EditorButton>
-        </FlexRow>
-      }
+      maxWidth="xs"
+      fullWidth
+      onConfirm={handleProvision}
+      confirmText="Provision"
+      confirmDisabled={!effective}
+      isLoading={isProvisioning}
     >
-      <FlexColumn gap={2} sx={{ pt: 1 }}>
+      <FlexColumn gap={SPACING.md}>
         {profileNames.length === 0 ? (
           <Caption size="small">
-            {t("editor:ui.noWorkerProfilesYetOpen", {
-              defaultValue: "No worker profiles yet. Open "
-            })}
-            <strong>
-              {t("ui2:attrs.manageProfiles", {
-                defaultValue: "Manage Profiles"
-              })}
-            </strong>
-            {t("editor:ui.toCreateOne", { defaultValue: " to create one." })}
+            No worker profiles yet. Open <strong>{t("editor:ui.manageProfiles", { defaultValue: "Manage profiles" })}</strong> to
+            create one.
           </Caption>
         ) : (
           <SelectField
@@ -207,17 +191,11 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
   const displayTone: StatusType = isRunning
     ? isHealthy
       ? "success"
-      : "pending"
+      : "running"
     : statusTone(instance.status);
   const statusHint = isBooting
-    ? t("editor:ui.gpuUpWorkerStillLoading", {
-        defaultValue: "GPU up — worker still loading"
-      })
-    : isRunning && isHealthy
-      ? t("editor:ui.workerIsAnsweringSafeToAttach", {
-          defaultValue: "Worker is answering — safe to attach"
-        })
-      : null;
+    ? t("editor:ui.gpuUpWorkerStillLoading", { defaultValue: "GPU up — worker still loading" }) : isRunning && isHealthy
+      ? t("editor:ui.workerIsAnsweringSafeToAttach", { defaultValue: "Worker is answering — safe to attach" }) : null;
 
   return (
     <Card variant="outlined" padding="normal">
@@ -259,7 +237,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
               disabled={busy}
               onClick={onDetach}
             >
-              {t("editor:ui.detach")}
+              Detach
             </EditorButton>
           ) : isPaused ? (
             <EditorButton
@@ -269,7 +247,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
               disabled={stopping}
               onClick={() => onResume(instance.id)}
             >
-              {t("editor:ui.resume", { defaultValue: "Resume" })}
+              Resume
             </EditorButton>
           ) : (
             <EditorButton
@@ -281,9 +259,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
               disabled={busy || !isRunning || !isHealthy}
               onClick={() => onAttach(instance.id)}
             >
-              {isBooting
-                ? t("editor:ui.booting", { defaultValue: "Booting…" })
-                : t("editor:ui.attach", { defaultValue: "Attach" })}
+              {isBooting ? t("editor:ui.booting", { defaultValue: "Booting…" }) : i18n.t("appbuilder:attrs.attach", { defaultValue: "Attach" })}
             </EditorButton>
           )}
           {/* Pause (keep the volume) — only meaningful while the pod runs. */}
@@ -306,7 +282,7 @@ const InstanceRow: React.FC<InstanceRowProps> = ({
             disabled={stopping}
             onClick={() => onTerminate(instance.id)}
           >
-            {t("editor:ui.terminate")}
+            Terminate
           </EditorButton>
         </FlexRow>
       </FlexRow>
@@ -365,7 +341,8 @@ const WorkersPanel: React.FC = () => {
   const [stoppingId, setStoppingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [orphanWarning, setOrphanWarning] = useState<OrphanWarning | null>(
+  const [orphanWarning, setOrphanWarning] = useState<OrphanWarning | null>(null);
+  const [terminateTargetId, setTerminateTargetId] = useState<string | null>(
     null
   );
   const now = Date.now();
@@ -431,25 +408,24 @@ const WorkersPanel: React.FC = () => {
     [resume, runAction]
   );
 
-  const handleTerminate = useCallback(
-    async (id: string) => {
-      // Destroying the volume loses the cached models — confirm first.
-      if (
-        !window.confirm(
-          i18n.t("editor:notify.terminateWorkerConfirm", {
-            defaultValue:
-              "Terminate this worker? Its volume and all cached models are permanently deleted. This stops all billing."
-          })
-        )
-      ) {
-        return;
-      }
+  // Destroying the volume loses the cached models — confirm first.
+  const handleTerminate = useCallback((id: string) => {
+    setTerminateTargetId(id);
+  }, []);
+
+  const closeTerminateConfirm = useCallback(() => {
+    setTerminateTargetId(null);
+  }, []);
+
+  const handleConfirmTerminate = useCallback(() => {
+    const id = terminateTargetId;
+    if (id === null) return;
+    void (async () => {
       setStoppingId(id);
       await runAction(() => terminate(id));
       setStoppingId(null);
-    },
-    [terminate, runAction]
-  );
+    })();
+  }, [terminateTargetId, terminate, runAction]);
 
   const handleStopAll = useCallback(() => {
     void runAction(() => stopAll());
@@ -502,45 +478,35 @@ const WorkersPanel: React.FC = () => {
               density="compact"
               variant="text"
               onClick={() => setProfilesOpen(true)}
-              aria-label={t("editor:ui.manageProfiles", {
-                defaultValue: "Manage profiles"
-              })}
+              aria-label={t("editor:ui.manageProfiles", { defaultValue: "Manage profiles" })}
             >
-              {t("ui2:attrs.manageProfiles", {
-                defaultValue: "Manage Profiles"
-              })}
+              Manage profiles
             </EditorButton>
             <EditorButton
               density="compact"
               variant="outlined"
               onClick={() => setDialogOpen(true)}
-              aria-label={t("editor:ui.startWorker", {
-                defaultValue: "Start worker"
-              })}
+              aria-label={t("editor:ui.startWorker", { defaultValue: "Start worker" })}
             >
-              Start Worker
+              Start worker
             </EditorButton>
             <EditorButton
               density="compact"
               variant="text"
               onClick={handleReconcile}
               disabled={busy}
-              aria-label={t("editor:ui.reconcileWorkers", {
-                defaultValue: "Reconcile workers"
-              })}
+              aria-label={t("editor:ui.reconcileWorkers", { defaultValue: "Reconcile workers" })}
             >
-              {t("editor:ui.reconcile", { defaultValue: "Reconcile" })}
+              Reconcile
             </EditorButton>
             <EditorButton
               density="compact"
               variant="text"
               onClick={handleStopAll}
               disabled={shownInstances.length === 0}
-              aria-label={t("editor:notify.stopAllAria", {
-                defaultValue: "Stop all workers"
-              })}
+              aria-label={t("editor:notify.stopAllAria", { defaultValue: "Stop all workers" })}
             >
-              {t("editor:notify.stopAll", { defaultValue: "Stop All" })}
+              Stop all
             </EditorButton>
           </>
         }
@@ -558,17 +524,17 @@ const WorkersPanel: React.FC = () => {
         )}
 
         {orphanWarning && (
-          <WarningBanner
-            variant="warning"
-            message={`${orphanWarning.count} orphaned worker(s) may still be billing — stop them in your provider console`}
-            description={`${orphanWarning.liveCount} live, ~${formatRate(
-              orphanWarning.estimatedCostUsd
-            )}`}
-            dismissible
-            onDismiss={() => setOrphanWarning(null)}
+          <AlertBanner
+            severity="warning"
+            title={`${orphanWarning.count} orphaned worker(s) may still be billing — stop them in your provider console`}
+            onClose={() => setOrphanWarning(null)}
             className="nodrag"
             compact
-          />
+          >
+            {`${orphanWarning.liveCount} live, ~${formatRate(
+              orphanWarning.estimatedCostUsd
+            )}`}
+          </AlertBanner>
         )}
 
         <FlexColumn className="scrollable-content" gap={2} sx={{ mt: 2 }}>
@@ -577,9 +543,11 @@ const WorkersPanel: React.FC = () => {
               <LoadingSpinner size="small" />
             </FlexRow>
           ) : shownInstances.length === 0 ? (
-            <Caption size="small">
-              No workers running. Start one to rent a GPU for your graphs.
-            </Caption>
+            <EmptyState
+              size="small"
+              title={t("editor:ui.noWorkersRunning", { defaultValue: "No workers running" })}
+              description={t("editor:ui.startOneToRentGpu", { defaultValue: "Start one to rent a GPU for your graphs." })}
+            />
           ) : (
             shownInstances.map((instance) => (
               <InstanceRow
@@ -614,6 +582,17 @@ const WorkersPanel: React.FC = () => {
         createProfile={createProfile}
         deleteProfile={deleteProfile}
         apiKeyStatus={apiKeyStatus}
+      />
+
+      <ConfirmDialog
+        open={terminateTargetId !== null}
+        onClose={closeTerminateConfirm}
+        onConfirm={handleConfirmTerminate}
+        title={t("editor:ui.terminateWorker", { defaultValue: "Terminate worker?" })}
+        content={t("editor:ui.terminateWorkerContent", { defaultValue: "Its volume and all cached models are permanently deleted. This stops all billing." })}
+        confirmText={i18n.t("editor:ui.terminate", { defaultValue: "Terminate" })}
+        cancelText="Cancel"
+        destructive
       />
     </FlexColumn>
   );

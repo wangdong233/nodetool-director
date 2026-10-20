@@ -27,6 +27,7 @@ import {
   EditorButton,
   FlexColumn,
   FlexRow,
+  FormField,
   GAP,
   SelectField,
   Text
@@ -42,7 +43,7 @@ import {
   SetupFooterField
 } from "../SetupFooterField";
 import { PresetTileGrid, type PresetTile } from "../PresetTileGrid";
-import { ASPECT_OPTIONS, aspectOptionLabel } from "../../storyboard/aspectOptions";
+import { ASPECT_OPTIONS } from "../../storyboard/aspectOptions";
 import { useInStudio } from "../../../studio/StudioContext";
 import { useStoryboardStore } from "../../../stores/storyboard/StoryboardStore";
 import { useEntities } from "../../../serverState/useEntities";
@@ -52,11 +53,12 @@ import {
 } from "../../../serverState/useStylePresets";
 import { useGenerateShot } from "../../../hooks/storyboard/useGenerateShot";
 import { useRenderBatchCostEstimate } from "../../../hooks/storyboard/useRenderBatchCostEstimate";
-import { STYLE_DESCRIPTIONS, STYLE_DESCRIPTION_KEYS } from "../styleDescriptions";
+import { STYLE_DESCRIPTIONS } from "../styleDescriptions";
 import { AddStyleDialog } from "./AddStyleDialog";
 import { useCustomStyle, useStyleSaving } from "./useCustomStyle";
 import { setShotlistImport, useShotlistImportSummary } from "./setupChoices";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 export interface LookStepProps {
   boardId: string;
@@ -111,7 +113,6 @@ export interface LookStepControls {
  * to reassemble the batch path to fill it in.
  */
 export function useLookStep(boardId: string): LookStepControls {
-  const { t } = useTranslation();
   const setSetup = useStoryboardStore((state) => state.setSetup);
   const style = useStoryboardStore(
     useCallback((state) => state.getBoard(boardId)?.style ?? "", [boardId])
@@ -144,11 +145,7 @@ export function useLookStep(boardId: string): LookStepControls {
 
   const primaryDetail =
     estimate.pricedCount > 0 && estimate.cost > 0
-      ? t("setup:storyboard.stillCountAbout", {
-          defaultValue: "{{count}} stills · about {{cost}}",
-          count: estimate.shotCount,
-          cost: formatUsd(estimate.cost)
-        })
+      ? `${estimate.shotCount} still${estimate.shotCount === 1 ? "" : "s"} · about ${formatUsd(estimate.cost)}`
       : undefined;
 
   // The one spending click on the whole flow. It does not fire until the
@@ -158,12 +155,10 @@ export function useLookStep(boardId: string): LookStepControls {
   // A style still being saved replaces the board's style when it lands, so
   // generating now would render in the look it is about to replace (F8).
   const blockedReason = savingStyle
-    ? t("setup:storyboard.savingYourStyle", { defaultValue: "Saving your style" })
-    : style.trim().length === 0
-      ? t("storyboard:attrs.pickAnArtStyle", { defaultValue: "Pick an art style" })
-      : hasStillModel
+    ? i18n.t("setup:storyboard.savingYourStyle", { defaultValue: "Saving your style" }) : style.trim().length === 0
+      ? i18n.t("storyboard:attrs.pickAnArtStyle", { defaultValue: "Pick an art style" }) : hasStillModel
         ? undefined
-        : t("storyboard:attrs.pickAStillModel", { defaultValue: "Pick a still model" });
+        : i18n.t("storyboard:attrs.pickAStillModel", { defaultValue: "Pick a still model" });
 
   return {
     canAdvance: blockedReason === undefined,
@@ -214,9 +209,7 @@ export const LookFooterControls: React.FC<{
   return inStudio ? (
     <Box sx={{ width: SETUP_FOOTER_CONTROL_WIDTH }}>{select}</Box>
   ) : (
-    <SetupFooterField label={t("storyboard:attrs.stills", { defaultValue: "Stills" })}>
-      {select}
-    </SetupFooterField>
+    <SetupFooterField label={i18n.t("storyboard:attrs.stills", { defaultValue: "Stills" })}>{select}</SetupFooterField>
   );
 };
 
@@ -273,14 +266,12 @@ export const LookStep: React.FC<LookStepProps> = ({
     () =>
       (presets ?? []).map((preset) => ({
         id: preset.entityId,
-        title: t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name }),
-        description: t(
-          STYLE_DESCRIPTION_KEYS[preset.presetId] ?? "",
-          { defaultValue: STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim() }
-        ),
+        title: preset.name,
+        description:
+          STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim(),
         image: preset.thumbnail
       })),
-    [presets, t]
+    [presets]
   );
 
   const selectedId = useMemo(() => {
@@ -342,19 +333,13 @@ export const LookStep: React.FC<LookStepProps> = ({
   // board is on one, and the Director's style bible when it is not.
   const appliedStyle =
     selectedEntity !== null
-      ? t("setup:storyboard.appliedStyle", {
-          defaultValue: "Applied: {{name}}{{descriptor}}",
-          name: selectedEntity.name,
-          descriptor:
-            selectedEntity.descriptor.trim().length > 0
-              ? t("setup:storyboard.appliedStyleDescriptor", {
-                  defaultValue: " — {{descriptor}}",
-                  descriptor: selectedEntity.descriptor.trim()
-                })
-              : ""
-        })
+      ? `Applied: ${selectedEntity.name}${
+          selectedEntity.descriptor.trim().length > 0
+            ? ` — ${selectedEntity.descriptor.trim()}`
+            : ""
+        }`
       : style.trim().length > 0
-        ? t("storyboard:attrs.yourDirectorWroteTheLook", { defaultValue: "Your Director wrote the look: {{style}}", style: style.trim() })
+        ? `Your Director wrote the look: ${style.trim()}`
         : null;
 
   const shotlistImport = useShotlistImportSummary(boardId);
@@ -382,41 +367,34 @@ export const LookStep: React.FC<LookStepProps> = ({
           do (PRD § 7.3, F32). */}
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          {t("storyboard:attrs.chooseYourAspectRatioAndArtStyle", {
-            defaultValue: "Choose your aspect ratio and art style"
-          })}
+          Choose your aspect ratio and art style
         </Text>
         <Text size="normal" color="secondary">
-          {t("setup:storyboard.setTheLookBody", {
-            defaultValue:
-              "Set the look with a preset or your own references. You can change it later."
-          })}
+          Set the look with a preset or your own references. You can change it
+          later.
         </Text>
       </FlexColumn>
       {blockedReason && !readOnly ? (
-        <AlertBanner severity="info" title={t("editor:ui.beforeYouGenerate", { defaultValue: "Before you generate" })}>
+        <AlertBanner severity="info" title={i18n.t("editor:ui.beforeYouGenerate", { defaultValue: "Before you generate" })}>
           {blockedReason}
         </AlertBanner>
       ) : null}
       {/* A shotlist import lands here rather than on the story steps, so what
           it wrote is said here — inline, and only expanded on request (F29). */}
       {shotlistImport ? (
-        <AlertBanner
-          severity="info"
-          title={t("storyboard:attrs.shotlistImported", { defaultValue: "Shotlist imported" })}
-        >
+        <AlertBanner severity="info" title={i18n.t("storyboard:attrs.shotlistImported", { defaultValue: "Shotlist imported" })}>
           <FlexColumn gap={GAP.tight}>
             <Caption component="span">
-              {shotlistImport.shotCount === 1
-                ? t("storyboard:attrs.countShotIsOnYourBoard", { defaultValue: "{{count}} shot is on your board.", count: shotlistImport.shotCount })
-                : t("storyboard:attrs.countShotsAreOnYourBoard", { defaultValue: "{{count}} shots are on your board.", count: shotlistImport.shotCount })}
+              {`${shotlistImport.shotCount} shot${
+                shotlistImport.shotCount === 1 ? "" : "s"
+              } are on your board.`}
             </Caption>
             {shotlistImport.entries.length > 0 ? (
               <Box component="details">
                 <Caption component="summary">
-                  {shotlistImport.entries.length === 1
-                    ? t("storyboard:attrs.countValueDidNotComeWithThem", { defaultValue: "{{count}} value did not come with them", count: shotlistImport.entries.length })
-                    : t("storyboard:attrs.countValuesDidNotComeWithThem", { defaultValue: "{{count}} values did not come with them", count: shotlistImport.entries.length })}
+                  {`${shotlistImport.entries.length} value${
+                    shotlistImport.entries.length === 1 ? "" : "s"
+                  } did not come with them`}
                 </Caption>
                 <FlexColumn
                   gap={GAP.tight}
@@ -434,11 +412,7 @@ export const LookStep: React.FC<LookStepProps> = ({
                       component="li"
                       color="secondary"
                     >
-                      {t("setup:storyboard.rowColumn", {
-                        defaultValue: "Row {{row}}, {{column}}",
-                        row: entry.row,
-                        column: entry.column
-                      })}
+                      Row {entry.row}, {entry.column}
                       {entry.value === "" ? "" : ` — “${entry.value}”`}:{" "}
                       {entry.reason}
                     </Caption>
@@ -453,7 +427,7 @@ export const LookStep: React.FC<LookStepProps> = ({
                 onClick={dismissImportSummary}
                 disabled={readOnly}
               >
-                {t("storyboard:attrs.dismiss", { defaultValue: "Dismiss" })}
+                Dismiss
               </EditorButton>
             </FlexRow>
           </FlexColumn>
@@ -461,27 +435,19 @@ export const LookStep: React.FC<LookStepProps> = ({
       ) : null}
       <Box sx={{ maxWidth: SETUP_FIELD_WIDTH }}>
         <SelectField
-          label={t("storyboard:attrs.aspectRatio", { defaultValue: "Aspect ratio" })}
+          label={i18n.t("storyboard:attrs.aspectRatio", { defaultValue: "Aspect ratio" })}
           value={aspectRatio}
           onChange={handleAspect}
-          options={ASPECT_OPTIONS.map((option) => ({ value: option.value, label: aspectOptionLabel(option) }))}
+          options={ASPECT_OPTIONS}
           disabled={readOnly}
         />
       </Box>
-      <FlexColumn gap={GAP.normal}>
-        <Text size="small" component="h3">
-          {t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
-        </Text>
-        {/* What the board will actually draw in, always — a style the creator
-            made themselves and a style bible the Director wrote are both real
-            looks, and neither of them used to say anything here (F19). */}
-        {appliedStyle ? (
-          <Caption component="p" color="secondary">
-            {appliedStyle}
-          </Caption>
-        ) : null}
+      {/* What the board will actually draw in, always — a style the creator
+          made themselves and a style bible the Director wrote are both real
+          looks, and neither of them used to say anything here (F19). */}
+      <FormField label={i18n.t("storyboard:attrs.artStyle", { defaultValue: "Art style" })} helperText={appliedStyle ?? undefined}>
         <PresetTileGrid
-          label={t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
+          label={i18n.t("storyboard:attrs.artStyle", { defaultValue: "Art style" })}
           presets={tiles.map((tile) => ({
             ...tile,
             disabled: readOnly || tile.disabled
@@ -489,10 +455,10 @@ export const LookStep: React.FC<LookStepProps> = ({
           selectedId={selectedId}
           onSelect={handleSelect}
           onAddOwn={openAddStyle}
-          addOwnLabel={t("storyboard:attrs.addYourOwnStyle", { defaultValue: "Add your own style" })}
+          addOwnLabel="Add your own style"
           addOwnDisabled={readOnly || customStyle.saving}
         />
-      </FlexColumn>
+      </FormField>
       <AddStyleDialog
         open={addingStyle}
         saving={customStyle.saving}

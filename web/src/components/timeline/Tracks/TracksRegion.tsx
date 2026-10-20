@@ -95,6 +95,7 @@ import {
 import { TrackHeader } from "./TrackHeader";
 import { TrackFolderHeader } from "./TrackFolderHeader";
 import { TrackLane } from "./TrackLane";
+import { ChordLane } from "./ChordLane";
 import { RubberBandOverlay } from "./RubberBandOverlay";
 import { SnapGuideOverlay } from "./SnapGuideOverlay";
 import { GestureReadout } from "./GestureReadout";
@@ -119,6 +120,7 @@ import {
   FlexRow,
   HelpButton,
   ResizeHandle,
+  Toolbar,
   ToolbarIconButton,
   Tooltip,
   TYPOGRAPHY,
@@ -137,12 +139,15 @@ import { assetMediaType } from "../dnd/assetToClipAdapter";
 import { getSourceCapMs } from "./useClipSourceDuration";
 import { buildTypedIndexMap } from "./trackVisuals";
 import { partitionTimelineWheel, normalizeWheelDeltaPx } from "./timelineWheel";
+import { followScrollLeft } from "./followPlayhead";
+import { nextToolbarFit, type ToolbarFit } from "./toolbarFit";
 import {
   pinchMsPerPx,
   supportsWebKitGestures,
   type WebKitGestureEvent
 } from "./timelineGesture";
 import { resolveTimelineAction } from "../timelineKeymap";
+import { useTimelineLayoutStore } from "../../../stores/timeline/TimelineLayoutStore";
 import { performSourceEdit } from "../sourceEdit";
 import { getSelectedAssetForExplorer } from "../../../stores/AssetGridStore";
 import { usePanelStore } from "../../../stores/PanelStore";
@@ -184,16 +189,17 @@ const TOOLBAR_HEIGHT_PX = 36;
 /** Phone toolbar: tall enough for the app-wide 44px touch target. */
 const TOUCH_TOOLBAR_HEIGHT_PX = 44;
 
-const toolbarStyles = (theme: Theme, compact: boolean) =>
-  css({
-    height: compact ? TOUCH_TOOLBAR_HEIGHT_PX : TOOLBAR_HEIGHT_PX,
-    flexShrink: 0,
-    padding: compact
-      ? `0 ${getSpacingPx(SPACING.sm)}`
-      : `0 ${getSpacingPx(SPACING.lg)} 0 ${getSpacingPx(SPACING.md)}`,
-    borderBottom: `1px solid ${theme.vars.palette.divider}`,
-    backgroundColor: theme.vars.palette.background.paper
-  });
+/** The bar's fixed height and inset; `Toolbar` draws the surface and rule. */
+const toolbarSx = (compact: boolean) => ({
+  height: compact ? TOUCH_TOOLBAR_HEIGHT_PX : TOOLBAR_HEIGHT_PX,
+  gap: SPACING.micro,
+  pl: compact ? SPACING.sm : SPACING.md,
+  pr: compact ? SPACING.sm : SPACING.lg,
+  // Labelled controls keep their width, so a row that does not fit overflows
+  // (and switches to the compact controls) instead of wrapping a label onto
+  // two lines.
+  ...(compact ? null : { whiteSpace: "nowrap" as const, "& > *": { flexShrink: 0 } })
+});
 
 const tracksSectionHeaderStyles = (theme: Theme, compact: boolean) =>
   css({
@@ -343,6 +349,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
 
     const msPerPx = useTimelineUIStore((s) => s.msPerPx);
     const verticalZoom = useTimelineUIStore((s) => s.verticalZoom);
+    const dawMode = useTimelineLayoutStore((s) => s.dawMode);
     const setScrollLeftPx = useTimelineUIStore((s) => s.setScrollLeftPx);
 
     const setActiveTool = useTimelineUIStore((s) => s.setActiveTool);
@@ -369,27 +376,35 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
 
     const scrollableRef = useRef<HTMLDivElement>(null);
     const headerColumnRef = useRef<HTMLDivElement>(null);
+    // The whole region, so a pinch over the ruler, a track header or the
+    // playhead zooms the timeline instead of the page.
+    const regionRef = useRef<HTMLDivElement>(null);
     const [verticalScrollTop, setVerticalScrollTop] = useState(0);
     const toolbarRef = useRef<HTMLDivElement>(null);
-    const [toolbarNarrow, setToolbarNarrow] = useState(false);
+    const [toolbarFit, setToolbarFit] = useState<ToolbarFit>({
+      narrow: false,
+      neededWidthPx: 0
+    });
 
     useEffect(() => {
       const element = toolbarRef.current;
       if (!element) return;
       // The labelled tool group is wider than the editor once the inspector
-      // or asset panel is open. Switch to the compact controls before the
-      // right-side actions are forced outside the toolbar.
-      const update = () => {
-        if (element.clientWidth === 0) return;
-        setToolbarNarrow(element.clientWidth < 1100);
-      };
+      // or asset panel is open. Switch to the compact controls as soon as
+      // the labelled row overflows, before a label wraps or the right-side
+      // actions are pushed out of the toolbar.
+      const update = () =>
+        setToolbarFit((current) =>
+          nextToolbarFit(current, element.clientWidth, element.scrollWidth)
+        );
       update();
       const observer = new ResizeObserver(update);
       observer.observe(element);
+      for (const child of Array.from(element.children)) observer.observe(child);
       return () => observer.disconnect();
-    }, []);
+    }, [toolbarFit.narrow]);
 
-    const toolbarCompact = isMobile || toolbarNarrow;
+    const toolbarCompact = isMobile || toolbarFit.narrow;
 
     // Keyboard-shortcut reference sheet (opened with `?` or the toolbar button).
     const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -510,6 +525,27 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
       }
     }, [revealRequest, uiStoreApi]);
 
+    // Follow playhead: while playing, page the lanes when the playhead nears
+    // the right edge. Reads the transient time channel, so playback never
+    // re-renders the region; only a page jump moves the scroll.
+    const followPlayhead = useTimelineUIStore((s) => s.followPlayhead);
+    useEffect(() => {
+      if (!followPlayhead) return;
+      return playbackStore.getState().subscribeTime((timeMs) => {
+        const el = scrollableRef.current;
+        if (!el || !playbackStore.getState().isPlaying) return;
+        const next = followScrollLeft(
+          timeMs,
+          uiStoreApi.getState().msPerPx,
+          el.scrollLeft,
+          el.clientWidth
+        );
+        if (next !== null) {
+          el.scrollLeft = next;
+        }
+      });
+    }, [followPlayhead, playbackStore, uiStoreApi]);
+
     const handleScroll = useCallback(
       (e: React.UIEvent<HTMLDivElement>) => {
         setScrollLeftPx(e.currentTarget.scrollLeft);
@@ -576,7 +612,8 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
 
     useEffect(() => {
       const el = scrollableRef.current;
-      if (!el) return;
+      const region = regionRef.current;
+      if (!el || !region) return;
 
       const flushZoom = () => {
         zoomRafIdRef.current = null;
@@ -595,9 +632,13 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
         if (next === current) return;
 
         // The container rect is read at most once per flushed frame, not
-        // once per wheel event.
+        // once per wheel event. A pinch over the headers or past the lanes
+        // anchors at the nearer lanes edge.
         const rect = el.getBoundingClientRect();
-        const cursorPx = pendingZoomClientXRef.current - rect.left;
+        const cursorPx = Math.min(
+          el.clientWidth,
+          Math.max(0, pendingZoomClientXRef.current - rect.left)
+        );
         zoomAnchorRef.current = {
           timeMs: (el.scrollLeft + cursorPx) * current,
           cursorPx
@@ -605,20 +646,24 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
         uiStoreApi.getState().setZoom(next);
       };
 
-      const onWheel = (e: WheelEvent) => {
-        const { zoomDelta, scrollDelta } = partitionTimelineWheel(e);
-
-        if (e.ctrlKey || e.metaKey) {
-          e.preventDefault();
-          if (webkitGestureActiveRef.current) return;
-          pendingZoomFactorRef.current *= 1 + zoomDelta * ZOOM_SENSITIVITY;
-          pendingZoomClientXRef.current = e.clientX;
-          if (zoomRafIdRef.current === null) {
-            zoomRafIdRef.current = requestAnimationFrame(flushZoom);
-          }
-          return;
+      const onZoomWheel = (e: WheelEvent) => {
+        if (!e.ctrlKey && !e.metaKey) return;
+        e.preventDefault();
+        if (webkitGestureActiveRef.current) return;
+        const { zoomDelta } = partitionTimelineWheel(e);
+        // Exponential, so a large delta (a fast mouse wheel, a hard flick)
+        // zooms by a bounded factor instead of crossing zero and pinning the
+        // zoom to its limit, and equal opposite deltas cancel exactly.
+        pendingZoomFactorRef.current *= Math.exp(zoomDelta * ZOOM_SENSITIVITY);
+        pendingZoomClientXRef.current = e.clientX;
+        if (zoomRafIdRef.current === null) {
+          zoomRafIdRef.current = requestAnimationFrame(flushZoom);
         }
+      };
 
+      const onWheel = (e: WheelEvent) => {
+        if (e.ctrlKey || e.metaKey) return;
+        const { scrollDelta } = partitionTimelineWheel(e);
         if (scrollDelta !== 0) {
           // Take the gesture over so a horizontal swipe past the edge can't
           // trigger the browser's back/forward navigation.
@@ -642,8 +687,10 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
       // the store inside flushZoom, never from this closure, so events landing
       // between renders always compute from the current scale.
       el.addEventListener("wheel", onWheel, { passive: false });
+      region.addEventListener("wheel", onZoomWheel, { passive: false });
       return () => {
         el.removeEventListener("wheel", onWheel);
+        region.removeEventListener("wheel", onZoomWheel);
         if (zoomRafIdRef.current !== null) {
           cancelAnimationFrame(zoomRafIdRef.current);
           zoomRafIdRef.current = null;
@@ -658,7 +705,8 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
     // setZoom + `zoomAnchorRef` path, so the time under the fingers stays put.
     useEffect(() => {
       const el = scrollableRef.current;
-      if (!el || !supportsWebKitGestures(window)) return;
+      const region = regionRef.current;
+      if (!el || !region || !supportsWebKitGestures(window)) return;
 
       let startMsPerPx = 0;
       let pendingScale = 1;
@@ -678,7 +726,10 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
         if (next === current) return;
 
         const rect = el.getBoundingClientRect();
-        const cursorPx = pendingClientX - rect.left;
+        const cursorPx = Math.min(
+          el.clientWidth,
+          Math.max(0, pendingClientX - rect.left)
+        );
         zoomAnchorRef.current = {
           timeMs: (el.scrollLeft + cursorPx) * current,
           cursorPx
@@ -719,13 +770,13 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
 
       // Non-passive so preventDefault() actually suppresses Safari's own page
       // zoom.
-      el.addEventListener("gesturestart", onGestureStart, { passive: false });
-      el.addEventListener("gesturechange", onGestureChange, { passive: false });
-      el.addEventListener("gestureend", endGesture, { passive: false });
+      region.addEventListener("gesturestart", onGestureStart, { passive: false });
+      region.addEventListener("gesturechange", onGestureChange, { passive: false });
+      region.addEventListener("gestureend", endGesture, { passive: false });
       return () => {
-        el.removeEventListener("gesturestart", onGestureStart);
-        el.removeEventListener("gesturechange", onGestureChange);
-        el.removeEventListener("gestureend", endGesture);
+        region.removeEventListener("gesturestart", onGestureStart);
+        region.removeEventListener("gesturechange", onGestureChange);
+        region.removeEventListener("gestureend", endGesture);
         webkitGestureActiveRef.current = false;
         if (rafId !== null) cancelAnimationFrame(rafId);
       };
@@ -855,16 +906,21 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
       if (anchor) {
         zoomAnchorRef.current = null;
         el.scrollLeft = Math.max(0, anchor.timeMs / msPerPx - anchor.cursorPx);
+      } else if (prevMsPerPx !== msPerPx) {
+        // A button/slider zoom: keep the playhead at the same viewport x while
+        // the lanes rescale ("zoom into the playhead").
+        const playMs = playbackStore.getState().currentTimeMs;
+        const playheadViewportPx = playMs / prevMsPerPx - el.scrollLeft;
+        el.scrollLeft = Math.max(0, playMs / msPerPx - playheadViewportPx);
+      } else {
         return;
       }
-
-      // Otherwise this is a button/slider zoom: keep the playhead at the same
-      // viewport x while the lanes rescale ("zoom into the playhead").
-      if (prevMsPerPx === msPerPx) return;
-      const playMs = playbackStore.getState().currentTimeMs;
-      const playheadViewportPx = playMs / prevMsPerPx - el.scrollLeft;
-      el.scrollLeft = Math.max(0, playMs / msPerPx - playheadViewportPx);
-    }, [msPerPx, playbackStore]);
+      // The scroll event that normally syncs the store fires a frame later.
+      // Until then the ruler, the playhead and clip virtualization would draw
+      // the new scale at the old offset, so every pinch step jittered. Sync
+      // now, before paint, from the offset the browser actually clamped to.
+      uiStoreApi.getState().setScrollLeftPx(el.scrollLeft);
+    }, [msPerPx, playbackStore, uiStoreApi]);
 
     // Keyboard shortcuts.
     // Attached at window level so the shortcuts work regardless of which
@@ -1044,6 +1100,11 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             // Ignore auto-repeat so holding the key doesn't flip the dialog
             // open/closed every repeat tick.
             if (!e.repeat) setShortcutsOpen((open) => !open);
+            return;
+
+          case "toggleDawMode":
+            e.preventDefault();
+            if (!e.repeat) useTimelineLayoutStore.getState().toggleDawMode();
             return;
 
           case "deleteSelected":
@@ -1431,8 +1492,8 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
     const typedIndexMap = useMemo(() => buildTypedIndexMap(tracks), [tracks]);
 
     const trackLayout = useMemo(
-      () => layoutTrackRows(tracks, hasScript, expandedFxTrackId, verticalZoom, trackFolders, collapsedFolderIds),
-      [tracks, hasScript, expandedFxTrackId, verticalZoom, trackFolders, collapsedFolderIds]
+      () => layoutTrackRows(tracks, hasScript, expandedFxTrackId, verticalZoom, trackFolders, collapsedFolderIds, dawMode),
+      [tracks, hasScript, expandedFxTrackId, verticalZoom, trackFolders, collapsedFolderIds, dawMode]
     );
     const previousTrackLayoutRef = useRef(trackLayout);
     const previousVerticalZoomRef = useRef(verticalZoom);
@@ -1516,15 +1577,15 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             [TRACK_HEADER_WIDTH_VAR]: `${headerWidthPx}px`
           } as React.CSSProperties
         }
+        ref={regionRef}
         data-testid="tracks-region"
         aria-label={t("timeline:attrs.tracksRegion", { defaultValue: "Tracks region" })}
       >
         {/* ── Tool toolbar (above the ruler) ──────────────────────────── */}
-        <FlexRow
+        <Toolbar
           ref={toolbarRef}
-          align="center"
-          gap={SPACING.micro}
-          css={toolbarStyles(theme, toolbarCompact)}
+          density="compact"
+          sx={toolbarSx(toolbarCompact)}
           data-testid="timeline-toolbar"
         >
           <ToolToggle compact={toolbarCompact} />
@@ -1556,7 +1617,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             <EditorButton
               variant="contained"
               size="small"
-              startIcon={<AutoAwesomeIcon fontSize="small" />}
+              startIcon={<AutoAwesomeIcon />}
               onClick={onGenerate}
               aria-label={t("ui2:attrs.generate", { defaultValue: "Generate" })}
               data-testid="timeline-generate"
@@ -1588,7 +1649,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
             compact={toolbarCompact}
             onZoomToFit={zoomToFit}
           />
-        </FlexRow>
+        </Toolbar>
 
         {/* ── Sub-header: TRACKS label + ruler ────────────────────────── */}
         <FlexRow align="stretch" fullWidth>
@@ -1652,7 +1713,10 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
           <div
             ref={headerColumnRef}
             css={headerColumnStyles(theme)}
-            style={{ height: lanesHeight }}
+            // The column keeps its width with no tracks, so the empty lanes
+            // start where the ruler's zero is and a first drop lands under
+            // the pointer instead of a header width later.
+            style={{ height: lanesHeight, width: headerWidthPx }}
           >
             <div style={{ height: trackWindow.top }} aria-hidden="true" />
             {visibleRows.map((row) =>
@@ -1723,7 +1787,11 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
                   />
                 ) : (
                   <React.Fragment key={row.track.id}>
-                    <TrackLane track={row.track} virtualizeClips collapsedFolderIds={collapsedFolderIds} />
+                    {row.track.type === "chord" ? (
+                      <ChordLane track={row.track} />
+                    ) : (
+                      <TrackLane track={row.track} virtualizeClips collapsedFolderIds={collapsedFolderIds} />
+                    )}
                     {expandedFxTrackId === row.track.id && (
                       <div
                         style={{
@@ -1762,7 +1830,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
                 data-testid="tracks-empty-hint"
               >
                 <Caption size="small" color="secondary">
-                  Drag media here from Assets, or add a track to start.
+                  Drag media here from the Library, or add a track to start.
                 </Caption>
               </FlexRow>
             )}
@@ -1795,6 +1863,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
         >
           <Playhead
             heightPx={RULER_HEIGHT + lanesHeight}
+            grabTopPx={RULER_HEIGHT}
             trackAreaOffsetPx={0}
             endMs={contentEndMs}
           />

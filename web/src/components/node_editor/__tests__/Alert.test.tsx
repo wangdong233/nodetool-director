@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import { ThemeProvider } from "@mui/material/styles";
 import Alert from "../Alert";
 import mockTheme from "../../../__mocks__/themeMock";
+import { useRightPanelStore } from "../../../stores/RightPanelStore";
 
 jest.useFakeTimers();
 
@@ -61,7 +62,7 @@ describe("Alert", () => {
     renderWithStore([notification]);
     expect(screen.getByText("Error message")).toBeInTheDocument();
     const btn = await screen.findByRole("button", {
-      name: "Copy to clipboard"
+      name: "Copy message"
     });
     fireEvent.click(btn);
     expect(mockWriteClipboard).toHaveBeenCalledWith("Error message", true);
@@ -84,7 +85,7 @@ describe("Alert", () => {
     expect(screen.getByRole("button", { name: "Show" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Copy to clipboard" })
+      screen.queryByRole("button", { name: "Copy message" })
     ).not.toBeInTheDocument();
   });
 
@@ -95,5 +96,26 @@ describe("Alert", () => {
       jest.advanceTimersByTime(300);
     });
     expect(mockRemoveNotification).toHaveBeenCalledWith("1");
+  });
+
+  it("places the list left of the open inspector", () => {
+    useRightPanelStore.setState((state) => ({
+      panel: { ...state.panel, isVisible: true, panelSize: 350 }
+    }));
+    const notifications = [notification];
+    asMock(useNotificationStore).mockImplementation(
+      (sel: (state: ReturnType<typeof makeStoreState>) => unknown) =>
+        sel(makeStoreState(notifications))
+    );
+    const { container } = render(
+      <ThemeProvider theme={mockTheme}>
+        <Alert inspectorShown />
+      </ThemeProvider>
+    );
+    const list = container.querySelector(".alert-list");
+    expect(list).not.toBeNull();
+    // jsdom folds the calc() to one length.
+    const right = getComputedStyle(list as Element).right;
+    expect(parseFloat(right.replace("calc(", ""))).toBeGreaterThan(350);
   });
 });

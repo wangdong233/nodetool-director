@@ -63,14 +63,14 @@ function buildBreadcrumbPath(
   folderTree: FolderTree | undefined,
   currentFolderId: string | null,
   rootId: string
-): Array<{ id: string; name: string }> {
+): Array<{ id: string; name: string; nameKey?: string; }> {
   if (!folderTree || !currentFolderId) {
-    return [{ id: rootId, name: "Assets" }];
+    return [{ id: rootId, name: "Assets", nameKey: "timeline:attrs.kindAssets" }];
   }
 
   // If we're at root, just show root
   if (currentFolderId === rootId) {
-    return [{ id: rootId, name: "Assets" }];
+    return [{ id: rootId, name: "Assets", nameKey: "timeline:attrs.kindAssets" }];
   }
 
   // Build a lookup map from the tree
@@ -90,7 +90,7 @@ function buildBreadcrumbPath(
   traverse(rootNodes, rootId);
 
   // Walk up from current folder to root
-  const path: Array<{ id: string; name: string }> = [];
+  const path: Array<{ id: string; name: string; nameKey?: string }> = [];
   let nodeId: string | undefined = currentFolderId;
 
   while (nodeId && nodeId !== rootId) {
@@ -101,7 +101,7 @@ function buildBreadcrumbPath(
   }
 
   // Always prepend root
-  path.unshift({ id: rootId, name: "Assets" });
+  path.unshift({ id: rootId, name: "Assets", nameKey: "timeline:attrs.kindAssets" });
 
   return path;
 }

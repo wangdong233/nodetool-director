@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { EditorButton, FlexRow, Text, SearchInput, ListGroup, getSpacingPx, SPACING } from "../ui_primitives";
+import { EditorButton, FlexRow, Text, SearchInput, ListGroup, getSpacingPx, SPACING, LoadingSpinner } from "../ui_primitives";
 import { UnifiedModel } from "../../stores/ApiTypes";
 import ModelListItem from "./model_list/ModelListItem";
 import { useTheme } from "@mui/material/styles";
@@ -13,12 +13,12 @@ import {
 import { isLocalhost } from "../../lib/env";
 import { useHfCacheStatusStore } from "../../stores/HfCacheStatusStore";
 import { useShallow } from "zustand/react/shallow";
-import { useTranslation } from "react-i18next";
 import {
   buildHfCacheRequest,
   canCheckHfCache,
   getHfCacheKey
 } from "../../utils/hfCache";
+import { i18n } from "../../i18n";
 
 interface RecommendedModelsProps {
   recommendedModels: UnifiedModel[];
@@ -29,7 +29,6 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
   recommendedModels,
   startDownload
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const { cacheStatuses, cachePending, cacheVersion, ensureStatuses } =
@@ -95,7 +94,7 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
   }, [displayModels, handleDownload]);
 
   if (!recommendedModels) {
-    return <div>{t("common:status.loading", { defaultValue: "Loading…" })}</div>;
+    return <LoadingSpinner size="small" />;
   }
 
   return (
@@ -108,7 +107,7 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
       >
         <SearchInput
           className="search-models-input"
-          placeholder={t("editor:ui.searchModels", { defaultValue: "Search models..." })}
+          placeholder={i18n.t("editor:ui.searchModelsPlaceholder", { defaultValue: "Search models" })}
           size="small"
           value={searchQuery}
           onChange={setSearchQuery}
@@ -182,16 +181,16 @@ const RecommendedModelsInner: React.FC<RecommendedModelsProps> = ({
             density="normal"
             onClick={openHuggingfacePath}
           >
-            <FolderOutlined sx={{ mr: 0.5, fontSize: "1em" }} />
-            {t("editor:ui.openHuggingFaceFolder")}
+            <FolderOutlined sx={{ mr: 0.5, fontSize: "inherit" }} />
+            Open HuggingFace folder
           </EditorButton>
           <EditorButton
             variant="outlined"
             density="normal"
             onClick={openOllamaPath}
           >
-            <FolderOutlined sx={{ mr: 0.5, fontSize: "1em" }} />
-            {t("editor:ui.openOllamaFolder")}
+            <FolderOutlined sx={{ mr: 0.5, fontSize: "inherit" }} />
+            Open Ollama folder
           </EditorButton>
         </FlexRow>
       )}

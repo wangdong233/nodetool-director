@@ -233,7 +233,7 @@ const classifyProviderError = (error: {
   return {
     kind: detail ? "provider" : "unknown",
     message: detail
-      ? "The provider's job failed. Try again, or use another model."
+      ? i18n.t("editor:ui.providerJobFailed", { defaultValue: "The provider's job failed. Try again, or use another model." })
       : "The provider's job failed and gave no reason.",
     detail
   };

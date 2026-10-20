@@ -6,7 +6,7 @@
  *
  * @example
  * <AutocompleteTagInput
- *   label={i18n.t("editor:ui.tags", { defaultValue: "Tags" })}
+ *   label="Tags"
  *   value={tags}
  *   onChange={setTags}
  *   suggestions={["image", "audio", "video"]}
@@ -32,7 +32,6 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { Label } from "./Label";
 import { isString } from "../../utils/typePredicates";
-import { i18n } from "../../i18n";
 
 export interface AutocompleteTagInputProps {
   /** Label for the input */
@@ -60,7 +59,7 @@ const AutocompleteTagInputInternal: React.FC<AutocompleteTagInputProps> = ({
   value,
   onChange,
   suggestions = [],
-  placeholder = i18n.t("ui:attrs.typeOrSelect", { defaultValue: "Type or select..." }),
+  placeholder = "Type or select…",
   description,
   disabled = false,
   size = "small"
@@ -152,7 +151,7 @@ const AutocompleteTagInputInternal: React.FC<AutocompleteTagInputProps> = ({
           style={{
             display: "block",
             marginTop: theme.spacing(0.5),
-            color: theme.palette.text.secondary,
+            color: theme.vars.palette.text.secondary,
             fontSize: theme.fontSizeSmaller
           }}
         >

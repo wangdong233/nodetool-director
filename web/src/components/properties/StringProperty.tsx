@@ -30,6 +30,7 @@ import { useUndoGroup } from "../../hooks/useUndoGroup";
 import { getCodeNodeLanguage } from "../node/codeNodeUi";
 import { isString } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../i18n";
 
 const propertyStyles = (theme: Theme) =>
   css({
@@ -77,6 +78,7 @@ const StringProperty = ({
   onPropertyContextMenu
 }: PropertyProps<string>) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const id = `textfield-${property.name}-${propertyIndex}`;
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -135,7 +137,7 @@ const StringProperty = ({
       <>
         <ToolbarIconButton
           className="inspector-supplemental-action"
-          tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+          tooltip={t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}
           icon={<OpenInFullIcon />}
           onClick={toggleExpand}
           size="small"
@@ -149,7 +151,7 @@ const StringProperty = ({
         />
       </>
     ),
-    [t, inspectorToolbarActionSx, toggleExpand, value]
+    [inspectorToolbarActionSx, toggleExpand, value, languageVersion]
   );
 
   useInspectorHeaderSupplementalRegistration(
@@ -183,7 +185,7 @@ const StringProperty = ({
         {!isInspector ? (
           <div className="string-action-buttons">
             <ToolbarIconButton
-              tooltip={t("editor:ui.openEditor", { defaultValue: "Open Editor" })}
+              tooltip={t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}
               icon={<OpenInFullIcon />}
               onClick={toggleExpand}
               size="small"

@@ -1,5 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -7,20 +6,26 @@ import type { Theme } from "@mui/material/styles";
 import {
   EmptyState,
   TYPOGRAPHY,
-  Tooltip,
+  TabGroup,
+  type TabItem,
   FlexColumn,
   CONTROL,
   SHADOW,
   Z_INDEX,
   reducedMotion,
   MOTION,
-  BORDER_RADIUS,
   SPACING,
   getSpacingPx,
   Drawer,
-  PanelHeader
+  PanelHeader,
+  StatusDot,
+  ResizeHandle
 } from "../ui_primitives";
-import { useResizeBottomPanel } from "../../hooks/handlers/useResizeBottomPanel";
+import {
+  useResizeBottomPanel,
+  BOTTOM_PANEL_MIN_DRAG_SIZE,
+  BOTTOM_PANEL_MAX_SIZE
+} from "../../hooks/handlers/useResizeBottomPanel";
 import {
   BOTTOM_PANEL_GROUPS,
   BottomPanelView,
@@ -39,14 +44,17 @@ import {
 } from "../version/VersionHistoryPanel";
 import { useCombo } from "../../stores/KeyPressedStore";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
-import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
+import {
+  useWorkflowManager,
+  useWorkflowManagerStore
+} from "../../contexts/WorkflowManagerContext";
 import { ContextMenuProvider } from "../../providers/ContextMenuProvider";
 import ContextMenus from "../context_menus/ContextMenus";
 import { WorkflowVersion } from "../../stores/ApiTypes";
 import { useRunningJobs } from "../../hooks/useRunningJobs";
 import { useSystemStatsStore } from "../../stores/systemStatsHandler";
 import { globalWebSocketManager } from "../../lib/websocket/GlobalWebSocketManager";
+import { isCloudProfile } from "../../lib/runtimeConfig";
 import { BASE_URL } from "../../stores/BASE_URL";
 import type { NodeStoreState } from "../../stores/NodeStore";
 import PanelErrorBoundary from "../common/PanelErrorBoundary";
@@ -57,6 +65,8 @@ import ArticleIcon from "@mui/icons-material/Article";
 import HistoryIcon from "@mui/icons-material/History";
 import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay";
 import MemoryIcon from "@mui/icons-material/Memory";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const HEADER_HEIGHT = CONTROL.height.md;
 
@@ -87,7 +97,6 @@ const readWsStatus = (): WsStatus => {
 };
 
 export const useWsStatus = (): WsStatus => {
-  const { t } = useTranslation();
   const [status, setStatus] = useState(readWsStatus);
   useEffect(() => {
     const sync = () => setStatus(readWsStatus());
@@ -142,22 +151,34 @@ export const useGraphCounts = (
 };
 
 interface ViewSpec {
+  labelKey?: string;
   id: BottomPanelView;
   label: string;
   icon: React.ReactNode;
 }
 
 const VIEW_SPECS = {
-  logs: { id: "logs", label: "Logs", icon: <ArticleIcon /> },
+  logs: { id: "logs", label: "Logs", labelKey: "game:console.logMany", icon: <ArticleIcon /> },
   queue: { id: "queue", label: "Queue", icon: <PlaylistPlayIcon /> },
   workers: { id: "workers", label: "Workers", icon: <MemoryIcon /> },
-  versions: { id: "versions", label: "Versions", icon: <HistoryIcon /> },
-  trace: { id: "trace", label: "Trace", icon: <TimelineIcon /> }
+  versions: { id: "versions", label: "Versions", labelKey: "editor:bottom.versions", icon: <HistoryIcon /> },
+  trace: { id: "trace", label: "Trace", labelKey: "editor:bottom.trace", icon: <TimelineIcon /> }
 } satisfies Record<BottomPanelView, ViewSpec>;
 
 const PANEL_VIEWS = BOTTOM_PANEL_GROUPS.flatMap((g) => g.views);
 
-const styles = (theme: Theme) =>
+const isPanelView = (value: string): value is BottomPanelView =>
+  PANEL_VIEWS.some((view) => view === value);
+
+/**
+ * Width of the status bar below which the cpu/mem and node-count readout is
+ * hidden. The tabs, the worker status and that readout need about this much
+ * together. With a side panel docked at 1280 the bar is narrower, and the
+ * readout used to cover the last tab ("Trace" cut to "T").
+ */
+export const STATUS_BAR_READOUT_MIN_WIDTH = 900;
+
+export const styles = (theme: Theme) =>
   css({
     position: "fixed",
     bottom: "0",
@@ -168,51 +189,6 @@ const styles = (theme: Theme) =>
       flexShrink: 0,
       position: "relative",
       backgroundColor: theme.vars.palette.background.default
-    },
-    ".panel-resize-button": {
-      height: getSpacingPx(SPACING.sm),
-      width: "100%",
-      position: "absolute",
-      zIndex: Z_INDEX.overlay,
-      top: getSpacingPx(-SPACING.xs),
-      left: "0",
-      backgroundColor: "transparent",
-      border: 0,
-      borderRadius: 0,
-      cursor: "ns-resize",
-      transition: MOTION.all,
-      ...reducedMotion({ transition: MOTION.none }),
-      "&::before": {
-        content: '""',
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: getSpacingPx(SPACING.xxxl),
-        height: getSpacingPx(SPACING.xs),
-        borderRadius: BORDER_RADIUS.xs,
-        backgroundColor: theme.vars.palette.grey[600],
-        opacity: 0.5,
-        transition: MOTION.all
-      },
-      "&:hover": {
-        backgroundColor: theme.vars.palette.primary.main,
-        boxShadow: SHADOW(theme).sm,
-        transform: "scaleY(1.5)",
-        "&::before": {
-          opacity: 1,
-          backgroundColor: theme.vars.palette.common.white
-        }
-      },
-      "&:active": {
-        backgroundColor: theme.vars.palette.primary.main,
-        boxShadow: SHADOW(theme).md,
-        transform: "scaleY(2)",
-        "&::before": {
-          opacity: 1,
-          backgroundColor: theme.vars.palette.common.white
-        }
-      }
     },
     ".panel-content": {
       display: "flex",
@@ -235,6 +211,10 @@ const styles = (theme: Theme) =>
       lineHeight: 1,
       color: theme.vars.palette.text.secondary,
       userSelect: "none",
+      // Sized by the bar's own width, not the window's: a docked side panel
+      // narrows the bar without narrowing the window.
+      containerType: "inline-size",
+      containerName: "statusbar",
 
       "& .status-cluster": {
         display: "inline-flex",
@@ -245,84 +225,26 @@ const styles = (theme: Theme) =>
         whiteSpace: "nowrap"
       },
 
-      "& .status-dot": {
-        width: getSpacingPx(SPACING.sm),
-        height: getSpacingPx(SPACING.sm),
-        borderRadius: BORDER_RADIUS.circle,
-        backgroundColor: theme.vars.palette.success.main,
-        flexShrink: 0,
-        boxShadow: SHADOW(theme).sm,
-        "&.disconnected": {
-          backgroundColor: theme.vars.palette.text.disabled,
-          boxShadow: "none"
-        }
-      },
-
       "& .sep": {
         color: theme.vars.palette.text.disabled,
         margin: `0 ${getSpacingPx(SPACING.micro)}`
       },
 
       "& .tab-rail": {
-        display: "flex",
-        alignItems: "stretch",
-        gap: 0,
-        overflowX: "auto",
         flexShrink: 1,
         minWidth: 0,
-        scrollbarWidth: "none",
-        msOverflowStyle: "none",
-        WebkitOverflowScrolling: "touch",
-        "&::-webkit-scrollbar": { display: "none" }
-      },
-
-      "& .tab-button": {
+        minHeight: 0,
         height: "100%",
-        padding: `0 ${getSpacingPx(SPACING.lg)}`,
-        color: theme.vars.palette.text.secondary,
-        ...TYPOGRAPHY.sans.label,
-        lineHeight: 1,
-        textTransform: "none",
-        minWidth: "auto",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: getSpacingPx(SPACING.md),
-        cursor: "pointer",
-        backgroundColor: "transparent",
-        border: "none",
-        whiteSpace: "nowrap",
-        transition: `${MOTION.background}, color ${MOTION.fast}`,
-        ...reducedMotion({ transition: MOTION.none }),
-        "& svg": {
-          fontSize: "var(--fontSizeNormal)",
-          color: theme.vars.palette.text.disabled
+        "& .MuiTab-root": {
+          minHeight: 0,
+          height: `${HEADER_HEIGHT}px`,
+          paddingTop: 0,
+          paddingBottom: 0
         },
-        "&:hover": {
-          backgroundColor: theme.vars.palette.c_overlay_subtle,
-          color: theme.vars.palette.text.primary,
-          "& svg": { color: theme.vars.palette.text.secondary }
-        },
-        "&.active": {
-          color: theme.vars.palette.text.primary,
-          backgroundColor: theme.vars.palette.c_overlay_subtle,
-          "& svg": { color: theme.vars.palette.primary.main },
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "1px",
-            background: theme.vars.palette.primary.main
-          }
-        },
-        position: "relative"
-      },
-
-      "& .tab-count": {
-        color: theme.vars.palette.text.disabled,
-        fontVariantNumeric: "tabular-nums",
-        ...TYPOGRAPHY.sans.caption
+        "& .MuiTab-iconWrapper": { color: theme.vars.palette.text.disabled },
+        "& .Mui-selected .MuiTab-iconWrapper": {
+          color: theme.vars.palette.primary.main
+        }
       },
 
       "& .meta-cluster": {
@@ -349,6 +271,11 @@ const styles = (theme: Theme) =>
 
       "& .meta-value": {
         color: theme.vars.palette.text.secondary
+      },
+
+      // After the readout's own rule, so it wins at equal specificity.
+      [`@container statusbar (max-width: ${STATUS_BAR_READOUT_MIN_WIDTH}px)`]: {
+        "& .meta-cluster": { display: "none" }
       }
     },
     ".panel-body": {
@@ -359,40 +286,6 @@ const styles = (theme: Theme) =>
       flexDirection: "column"
     }
   });
-
-interface TabButtonProps {
-  spec: ViewSpec;
-  active: boolean;
-  count?: number;
-  onClick: () => void;
-}
-
-const TabButton = memo(function TabButton({
-  spec,
-  active,
-  count,
-  onClick
-}: TabButtonProps) {
-  const { t } = useTranslation();
-  const label = t(`editor:bottom.${spec.id}`, { defaultValue: spec.label });
-  return (
-    <Tooltip title={label} placement="top" delay={TOOLTIP_ENTER_DELAY}>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={active}
-        className={`tab-button ${active ? "active" : ""}`}
-        onClick={onClick}
-      >
-        {spec.icon}
-        <span>{label}</span>
-        {count !== undefined && count > 0 && (
-          <span className="tab-count">{count}</span>
-        )}
-      </button>
-    </Tooltip>
-  );
-});
 
 export const PanelBodyContent = memo(function PanelBodyContent({
   activeView
@@ -407,31 +300,29 @@ export const PanelBodyContent = memo(function PanelBodyContent({
   const activeNodeStore = useWorkflowManager((state) =>
     currentWorkflowId ? state.nodeStores[currentWorkflowId] : undefined
   );
+  const workflowManagerStore = useWorkflowManagerStore();
 
   const handleRestoreVersion = useCallback(
     async (version: WorkflowVersion, restored: RestoredWorkflowTokens) => {
       if (!activeNodeStore || !currentWorkflowId) {
         return;
       }
+      const { restoreWorkflowVersion } = await import(
+        "./restoreWorkflowVersion"
+      );
+      const closedTabKeys = restoreWorkflowVersion(
+        activeNodeStore,
+        currentWorkflowId,
+        version.graph
+      );
+      if (closedTabKeys.length > 0) {
+        workflowManagerStore.setState((state) => {
+          const nodeStores = { ...state.nodeStores };
+          closedTabKeys.forEach((key) => delete nodeStores[key]);
+          return { nodeStores };
+        });
+      }
       const storeState = activeNodeStore.getState();
-      const workflow = storeState.getWorkflow();
-
-      const [{ graphNodeToReactFlowNode }, { graphEdgeToReactFlowEdge }] =
-        await Promise.all([
-          import("../../stores/graphNodeToReactFlowNode"),
-          import("../../stores/graphEdgeToReactFlowEdge")
-        ]);
-
-      const graph = version.graph;
-      const newNodes = graph.nodes.map((n) =>
-        graphNodeToReactFlowNode(workflow, n)
-      );
-      const newEdges = graph.edges.map((e) =>
-        graphEdgeToReactFlowEdge(e)
-      );
-
-      storeState.setNodes(newNodes);
-      storeState.setEdges(newEdges);
       // The restore rewrote the row on the server. Without its new tokens
       // the next save fails as an optimistic-concurrency conflict.
       if (restored.updated_at) {
@@ -439,14 +330,14 @@ export const PanelBodyContent = memo(function PanelBodyContent({
       }
       storeState.setWorkflowDirty(true);
     },
-    [activeNodeStore, currentWorkflowId]
+    [activeNodeStore, currentWorkflowId, workflowManagerStore]
   );
 
   const closeView = useBottomPanelStore((s) => s.closePanel);
 
   switch (activeView) {
     case "logs":
-      return <PanelErrorBoundary panelName="Run logs"><TracePanel view="logs" /></PanelErrorBoundary>;
+      return <PanelErrorBoundary panelName={i18n.t("editor:ui.runLogs", { defaultValue: "Run logs" })}><TracePanel view="logs" workflowId={currentWorkflowId} /></PanelErrorBoundary>;
     case "queue":
       return (
         <FlexColumn
@@ -480,17 +371,12 @@ export const PanelBodyContent = memo(function PanelBodyContent({
         />
       ) : (
         <EmptyState
-          title={t("editor:ui.selectAWorkflowToViewItsVersions", {
-            defaultValue: "Select a workflow to view its versions"
-          })}
-          description={t("editor:ui.versionsFollowsTheSelectedWorkflowTab", {
-            defaultValue:
-              "Versions follows the selected workflow tab. Open a workflow or select one of your workflow tabs."
-          })}
+          title={t("editor:ui.selectAWorkflowToViewItsVersions", { defaultValue: "Select a workflow to view its versions" })}
+          description={t("editor:ui.versionsFollowsTheSelectedWorkflowTab", { defaultValue: "Versions follows the selected workflow tab. Open a workflow or select one of your workflow tabs." })}
         />
       );
     case "trace":
-      return <PanelErrorBoundary panelName="Run trace"><TracePanel /></PanelErrorBoundary>;
+      return <PanelErrorBoundary panelName="Run trace"><TracePanel workflowId={currentWorkflowId} /></PanelErrorBoundary>;
     default:
       return null;
   }
@@ -506,7 +392,9 @@ const PanelBottom: React.FC = () => {
     size: panelSize,
     isVisible,
     isDragging,
-    handleMouseDown,
+    handleResizeStart,
+    handleResize,
+    handleResizeEnd,
     handlePanelToggle
   } = useResizeBottomPanel();
 
@@ -529,6 +417,34 @@ const PanelBottom: React.FC = () => {
   );
 
   const systemStats = useSystemStatsStore((state) => state.stats);
+
+  // Clicking the open view's tab again collapses the panel.
+  const handleTabToggle = useCallback(
+    (view: string) => {
+      if (isPanelView(view)) {
+        handlePanelToggle(view);
+      }
+    },
+    [handlePanelToggle]
+  );
+
+  const visibleTabs = useMemo<TabItem[]>(
+    () =>
+      PANEL_VIEWS.filter(
+        // Workers are remote runners the server provisions, which the
+        // cloud refuses.
+        (view) => view !== "workers" || !isCloudProfile()
+      ).map((view) => {
+        const spec = VIEW_SPECS[view];
+        return {
+          value: view,
+          label: spec.label,
+          icon: spec.icon,
+          count: view === "queue" && queuedCount > 0 ? queuedCount : undefined
+        };
+      }),
+    [queuedCount]
+  );
 
   useCombo(["Control", "Shift", "T"], () => handlePanelToggle("trace"), false);
   const timelineEditing = useWorkspaceTabsStore((state) => {
@@ -585,16 +501,19 @@ const PanelBottom: React.FC = () => {
         open={true}
       >
         {isVisible && (
-          <div
-            className="panel-resize-button"
-            onMouseDown={handleMouseDown}
-            style={{ cursor: "ns-resize" }}
-            role="slider"
-            aria-label={t("editor:bottom.resizeAria", { defaultValue: "Resize panel" })}
-            aria-valuenow={panelSize}
-            aria-valuemin={40}
-            aria-valuemax={600}
-            tabIndex={-1}
+          <ResizeHandle
+            orientation="horizontal"
+            edge="start"
+            invert
+            grip
+            value={panelSize}
+            min={BOTTOM_PANEL_MIN_DRAG_SIZE}
+            max={BOTTOM_PANEL_MAX_SIZE}
+            ariaLabel={t("editor:bottom.resizeAria", { defaultValue: "Resize panel" })}
+            onResize={handleResize}
+            onResizeStart={handleResizeStart}
+            onResizeEnd={handleResizeEnd}
+            sx={{ top: getSpacingPx(-SPACING.xs), zIndex: Z_INDEX.overlay }}
           />
         )}
         <div className="panel-content">
@@ -604,31 +523,33 @@ const PanelBottom: React.FC = () => {
               role="status"
               aria-label={`Worker ${wsStatus}`}
             >
-              <span
-                className={`status-dot ${isConnected ? "" : "disconnected"}`}
-                aria-hidden
+              <StatusDot
+                size="medium"
+                sx={{
+                  bgcolor: isConnected ? "success.main" : "text.disabled",
+                  boxShadow: (theme) =>
+                    isConnected ? SHADOW(theme).sm : "none"
+                }}
               />
               <span>{wsStatus}</span>
               <span className="sep" aria-hidden>·</span>
               <span>{workerLabel}</span>
               <WorkerStatusIndicator />
             </div>
-            <div className="tab-rail" role="tablist">
-              {PANEL_VIEWS.map((view) => (
-                <TabButton
-                  key={view}
-                  spec={VIEW_SPECS[view]}
-                  active={isVisible && activeView === view}
-                  count={view === "queue" ? queuedCount : undefined}
-                  onClick={() => handlePanelToggle(view)}
-                />
-              ))}
-            </div>
+            <TabGroup
+              className="tab-rail"
+              size="small"
+              aria-label={t("editor:ui.bottomPanelViews", { defaultValue: "Bottom panel views" })}
+              tabs={visibleTabs}
+              value={isVisible ? activeView : false}
+              onChange={handleTabToggle}
+              onReselect={handleTabToggle}
+            />
             <div className="meta-cluster" aria-label={t("editor:ui.workflowStats", { defaultValue: "Workflow stats" })}>
               {currentWorkflowId && (
                 <span className="meta-pair">
                   <span className="meta-value">{nodeCount}</span>
-                  <span className="meta-key">nodes</span>
+                  <span className="meta-key">{t("nav:settings.docsTopics.nodes", { defaultValue: "nodes" })}</span>
                   <span className="sep" aria-hidden>·</span>
                   <span className="meta-value">{edgeCount}</span>
                   <span className="meta-key">edges</span>

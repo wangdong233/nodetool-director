@@ -1,10 +1,10 @@
 import type { EntityState } from "./state2d.js";
-import { resolveGameUiFrame, type GameDocument, type GameHudLabel, type GameRenderFrame, type GameScene, type GameUiOverride } from "@nodetool-ai/protocol";
+import { gameRenderFrame, resolveGameUiFrame, type GameDocument, type GameHudLabel, type GameRenderFrame, type GameScene, type GameUiOverride } from "@nodetool-ai/protocol";
 import { projectGameplayHud } from "../gameplay/lifecycle.js";
 import { evaluateVisual } from "../visual-animation.js";
 import type { GameSystemContext2D } from "./context2d.js";
 type PresentationContext2D = Readonly<
-  Pick<GameSystemContext2D, "tick" | "events" | "frameFor" | "document" | "scene" | "states" | "score" | "won" | "hud" | "ui" | "scriptStats" | "queues">
+  Pick<GameSystemContext2D, "tick" | "events" | "frameFor" | "document" | "scene" | "states" | "score" | "won" | "hud" | "ui" | "scriptStats" | "scriptLogs" | "scriptSaves" | "queues">
 > &
   Pick<GameSystemContext2D, "presentationEvents" | "result">;
 export function stepPresentation2D(context: PresentationContext2D): void {
@@ -16,6 +16,12 @@ export function stepPresentation2D(context: PresentationContext2D): void {
   };
   if (context.scriptStats) {
     context.result = { ...context.result, scriptStats: context.scriptStats };
+  }
+  if (context.scriptLogs) {
+    context.result = { ...context.result, scriptLogs: context.scriptLogs };
+  }
+  if (context.scriptSaves) {
+    context.result = { ...context.result, saveRequests: context.scriptSaves };
   }
 }
 export function readStepResult2D(context: GameSystemContext2D): NonNullable<GameSystemContext2D["result"]> {
@@ -35,6 +41,12 @@ function animationFrame(state: EntityState, tick: number): GameRenderFrame["spri
   const index = Math.floor(Math.max(0, age) / clip.ticksPerFrame);
   return clip.frames[clip.loop ? index % clip.frames.length : Math.min(index, clip.frames.length - 1)];
 }
+/** A read-only presentation view. It does not replace the scene camera or enter snapshots. */
+export interface GamePresentationView2D {
+  readonly camera?: GameRenderFrame["camera"];
+  readonly aspectRatio?: number;
+}
+
 export function frameFor(
   document: GameDocument,
   scene: GameScene,
@@ -43,7 +55,8 @@ export function frameFor(
   score: number,
   won: boolean,
   hud: ReadonlyMap<string, GameHudLabel>,
-  ui: ReadonlyMap<string, GameUiOverride>
+  ui: ReadonlyMap<string, GameUiOverride>,
+  view?: GamePresentationView2D
 ): GameRenderFrame {
   const cameraState = states.find((state) => state.active && state.definition.camera2d);
   const camera = cameraState?.definition.camera2d;
@@ -51,16 +64,25 @@ export function frameFor(
   const tiles: GameRenderFrame["tiles"] = [];
   const particles: NonNullable<GameRenderFrame["particles"]> = [];
   const audioEmitters: NonNullable<GameRenderFrame["audioEmitters"]> = [];
-  const cameraX = cameraState?.x ?? 0;
-  const cameraY = cameraState?.y ?? 0;
+  const height = camera?.height ?? 9;
+  const width = view?.aspectRatio !== undefined ? height * view.aspectRatio : camera?.width ?? 16;
+  const shownCamera = view?.camera ? gameRenderFrame.shape.camera.parse(view.camera) : {
+    x: cameraState?.x ?? 0, y: cameraState?.y ?? 0,
+    previousX: cameraState?.previousX ?? 0, previousY: cameraState?.previousY ?? 0, zoom: camera?.zoom ?? 1
+  };
+  if (view && (!Number.isFinite(width) || width <= 0)) { throw new Error("Presentation aspect ratio must produce a finite positive width"); }
+  const cameraX = shownCamera.x;
+  const cameraY = shownCamera.y;
   // Tiles and lights outside the view plus a margin never reach the renderer, so large levels stay cheap.
-  const viewHalfWidth = (camera?.width ?? 16) / (2 * (camera?.zoom ?? 1));
-  const viewHalfHeight = (camera?.height ?? 9) / (2 * (camera?.zoom ?? 1));
+  const viewHalfWidth = width / (2 * shownCamera.zoom);
+  const viewHalfHeight = height / (2 * shownCamera.zoom);
   const cullHalfWidth = viewHalfWidth * 1.5 + 2;
   const cullHalfHeight = viewHalfHeight * 1.5 + 2;
   const entityLights: {
     x: number;
     y: number;
+    previousX?: number;
+    previousY?: number;
     color: string;
     intensity: number;
     radius: number;
@@ -157,7 +179,7 @@ export function frameFor(
       if (opacity !== 1 || entity.sprite.opacity !== undefined) {
         sprite.opacity = Math.max(0, Math.min(1, opacity));
       }
-      if (previousOpacity !== 1 || entity.sprite.opacity !== undefined) {
+      if (previousOpacity !== 1 || previousOpacity !== opacity || entity.sprite.opacity !== undefined) {
         sprite.previousOpacity = Math.max(0, Math.min(1, previousOpacity));
       }
       if (entity.sprite.blend === "additive") {
@@ -210,8 +232,15 @@ export function frameFor(
       const light = entity.light2d;
       const x = state.x + (light.offset?.x ?? 0);
       const y = state.y + (light.offset?.y ?? 0);
-      if (Math.abs(x - cameraX) - light.radius <= viewHalfWidth && Math.abs(y - cameraY) - light.radius <= viewHalfHeight) {
-        entityLights.push({
+      const previousX = state.previousX + (light.offset?.x ?? 0);
+      const previousY = state.previousY + (light.offset?.y ?? 0);
+      const previousRelativeX = previousX - (shownCamera.previousX ?? cameraX);
+      const previousRelativeY = previousY - (shownCamera.previousY ?? cameraY);
+      if (Math.min(previousRelativeX, x - cameraX) - light.radius <= viewHalfWidth &&
+        Math.max(previousRelativeX, x - cameraX) + light.radius >= -viewHalfWidth &&
+        Math.min(previousRelativeY, y - cameraY) - light.radius <= viewHalfHeight &&
+        Math.max(previousRelativeY, y - cameraY) + light.radius >= -viewHalfHeight) {
+        const projectedLight: (typeof entityLights)[number] = {
           x,
           y,
           color: light.color,
@@ -219,7 +248,10 @@ export function frameFor(
           radius: light.radius,
           falloff: light.falloff,
           distance: Math.hypot(x - cameraX, y - cameraY)
-        });
+        };
+        if (previousX !== x) { projectedLight.previousX = previousX; }
+        if (previousY !== y) { projectedLight.previousY = previousY; }
+        entityLights.push(projectedLight);
       }
     }
   }
@@ -229,16 +261,10 @@ export function frameFor(
     gameId: document.id,
     fonts: Object.fromEntries(Object.entries(document.assets).filter(([, binding]) => binding.mediaKind === "font")),
     tick,
-    width: camera?.width ?? 16,
-    height: camera?.height ?? 9,
+    width,
+    height,
     pixelsPerUnit: document.pixelsPerUnit,
-    camera: {
-      x: cameraState?.x ?? 0,
-      y: cameraState?.y ?? 0,
-      previousX: cameraState?.previousX ?? 0,
-      previousY: cameraState?.previousY ?? 0,
-      zoom: camera?.zoom ?? 1
-    },
+    camera: shownCamera,
     sprites,
     tiles,
     backgrounds: (scene.backgrounds ?? []).map((layer) =>

@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 
 import { FlexRow, LoadingSpinner, Text, SPACING } from "../../ui_primitives";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
@@ -60,6 +60,7 @@ import { useChatDraftStore } from "../../../stores/ChatDraftStore";
 import { StopGenerationButton } from "./StopGenerationButton";
 import MediaCostEstimate from "./MediaCostEstimate";
 import PermissionSelector from "./PermissionSelector";
+import ReasoningSelector from "./ReasoningSelector";
 import { useAutoFocusEnabled } from "../../../hooks/useAutoFocusEnabled";
 import { useFirstRunLanguageModel } from "../../../hooks/useFirstRunLanguageModel";
 import { useTranslation } from "react-i18next";
@@ -957,10 +958,16 @@ const MediaChatComposer: React.FC<MediaChatComposerProps> = ({
                   title={chatProviderLabel}
                   picker={{
                     kind: "language",
+                    selected: chatModel,
                     allowedProviders,
                     requireToolSupport,
                     onPick: (model) => onModelChange?.(model)
                   }}
+                />
+                <ReasoningSelector
+                  provider={chatModel?.provider}
+                  model={chatModel?.id}
+                  compact={isCompact}
                 />
                 <PermissionSelector threadId={threadId} compact={isCompact} />
               </>

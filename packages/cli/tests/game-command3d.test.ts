@@ -5,9 +5,10 @@ import { join, resolve } from "node:path";
 import { Command } from "commander";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { gameSnapshot3D } from "@nodetool-ai/protocol";
-import { createNative3DGame, createTopDownRoomGame, validateGame } from "@nodetool-ai/game-runtime";
+import { applyGameOps3D, createNative3DGame, createTopDownRoomGame, validateGame } from "@nodetool-ai/game-runtime";
 import { prepareGameModelBinding3D } from "@nodetool-ai/game-renderer/preparation3d";
 import { registerGameCommands } from "../src/commands/game.js";
+import { cleanupGameCliProcesses, runGameCli } from "./gameCliProcess.js";
 
 let directory: string;
 let gamePath: string;
@@ -42,6 +43,7 @@ beforeEach(async () => {
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 afterEach(async () => {
+  await cleanupGameCliProcesses();
   vi.restoreAllMocks(); process.exitCode = originalExitCode;
   await rm(directory, { recursive: true, force: true });
 });
@@ -88,7 +90,7 @@ describe("native 3D game CLI commands", () => {
     delete visual.primitive;
     visual.model = { assetId: "hero", castShadow: true, receiveShadow: true };
     visual.animator3d = { clips: { idle: "clip:0", walk: "clip:1", run: "clip:2" }, playbackRate: 1, loop: true, transitionTicks: 6, graph: "locomotion" };
-    visual.behaviors = [{ kind: "script", maxTickMs: 50, maxCommands: 4,
+    visual.behaviors = [{ kind: "script", maxTickMs: 20, maxCommands: 4,
       source: "input=>({state:null,commands:[{kind:'setAnimParam',name:'speed',value:Math.min(6,input.tick/10)},...(input.tick%20===10?[{kind:'setAnimParam',name:'jump',value:true}]:[])]})" }];
     await writeFile(gamePath, JSON.stringify(document));
     const report = await run("simulate", "--ticks", "60", "--verify-replay");
@@ -111,6 +113,21 @@ describe("native 3D game CLI commands", () => {
     expect(report).toMatchObject({ ok: true, replay: { verified: true } });
     const crate = gameSnapshot3D.parse(report.snapshot).entities.find((entity) => entity.id === "crate");
     expect(crate?.transform.position.y).toBeLessThan(-1);
+  });
+
+  it("simulates and replays a crate that bounces on a named rubber physics material", async () => {
+    const document = createNative3DGame("a".repeat(32));
+    document.physicsMaterials = { rubber: { friction: 0.5, restitution: 0.9, frictionCombine: "average", restitutionCombine: "max" } };
+    for (const entity of document.scenes[0].entities) {
+      if (entity.id === "crate" && entity.collider3d) {
+        entity.collider3d.physicsMaterial = "rubber";
+        entity.transform3d.position.y = 3;
+      }
+    }
+    await writeFile(gamePath, JSON.stringify(document));
+    expect(await run("validate")).toMatchObject({ valid: true });
+    const report = await run("simulate", "--ticks", "120", "--verify-replay");
+    expect(report).toMatchObject({ ok: true, replay: { verified: true } });
   });
 
   it("reports failed z/grounded assertions and rejects misspelled 3D event fields", async () => {
@@ -168,4 +185,39 @@ describe("native 3D game CLI commands", () => {
     await writeFile(gamePath, JSON.stringify(document));
     expect(await run("build", "--out", join(directory, "unsafe-build"), "--assets-dir", assets)).toMatchObject({ error: expect.stringContaining("full 32-character resource ID") });
   });
+});
+
+it("validates and simulates public force-script edits for 120 ticks with exact replay", async (test) => {
+  const runCli = async (command: string, ...args: string[]): Promise<Record<string, unknown>> => {
+    const captured = await runGameCli(["game", command, gamePath, "--json", ...args], { signal: test.signal });
+    if (captured.exitCode !== 0) { process.exitCode = captured.exitCode; }
+    expect(captured.exitCode, captured.stderr).toBe(0);
+    return JSON.parse(captured.stdout.trim());
+  };
+  const document = applyGameOps3D(createNative3DGame("a".repeat(32)), [
+    { op: "update_entity", entity_id: "crate", set: {
+      transform3d: { position: { x: 20, y: 10, z: 20 } },
+      body3d: { gravityScale: 0 },
+      behaviors: [{ kind: "script", source: "input => ({ state: input.state, commands: input.tick === 0 ? [{ kind: 'addForce', force: { x: 120, y: 0, z: 0 } }, { kind: 'addTorque', torque: { x: 0, y: 60, z: 0 } }, { kind: 'addForceAtPoint', force: { x: 0, y: 0, z: 120 }, point: { x: 20, y: 11, z: 20 } }] : [] })" }]
+    } }
+  ]);
+  await writeFile(gamePath, JSON.stringify(document));
+  expect(await runCli("validate")).toMatchObject({ valid: true });
+  const firstTick = await runCli("simulate", "--ticks", "1", "--seed", "1");
+  const firstCrate = gameSnapshot3D.parse(firstTick.snapshot).entities.find(entity => entity.id === "crate");
+  if (!firstCrate) { throw new Error("Force fixture crate must survive its first tick"); }
+  expect(Math.abs(firstCrate.angularVelocity.x)).toBeGreaterThan(0);
+  expect(Math.abs(firstCrate.angularVelocity.y)).toBeGreaterThan(0);
+  const report = await runCli("simulate", "--ticks", "120", "--seed", "1", "--verify-replay");
+  expect(report).toMatchObject({ dimension: "3d", ticks: 120, seed: 1, ok: true, replay: { resumeTick: 60, verified: true } });
+  const crate = gameSnapshot3D.parse(report.snapshot).entities.find(entity => entity.id === "crate");
+  if (!crate) { throw new Error("Force fixture crate must survive"); }
+  expect(crate.transform.position.x).toBeGreaterThan(20);
+  expect(crate.transform.position.z).toBeGreaterThan(20);
+  expect(crate.velocity.x).toBeCloseTo(0.25, 4);
+  expect(crate.velocity.z).toBeCloseTo(0.25, 4);
+  expect(crate.angularVelocity.x).toBeCloseTo(firstCrate.angularVelocity.x, 4);
+  expect(crate.angularVelocity.y).toBeCloseTo(firstCrate.angularVelocity.y, 4);
+  expect(crate.transform.rotation).not.toEqual([0, 0, 0, 1]);
+  expect(process.exitCode).toBe(originalExitCode);
 });

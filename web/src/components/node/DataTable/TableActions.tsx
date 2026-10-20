@@ -3,9 +3,9 @@ import { TabulatorFull as Tabulator, RowComponent } from "tabulator-tables";
 import { useClipboard } from "../../../hooks/browser/useClipboard";
 import { useNotificationStore } from "../../../stores/NotificationStore";
 import { ColumnDef } from "../../../stores/ApiTypes";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import { DeleteButton, RefreshButton, DownloadButton, Divider, ToolbarIconButton } from "../../ui_primitives";
+import { DeleteButton, RefreshButton, DownloadButton, Divider, ToolbarIconButton, ICON_SIZE } from "../../ui_primitives";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import NumbersIcon from "@mui/icons-material/Numbers";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
@@ -19,7 +19,6 @@ import type {
 } from "./DataTable";
 import { isNumber, isString } from "../../../utils/typePredicates";
 import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 
 /**
  * Union type for all possible table data formats
@@ -76,7 +75,6 @@ const TableActions: React.FC<TableActionsProps> = memo(({
   onHistoryChange,
   children
 }) => {
-  const { t } = useTranslation();
   TableActions.displayName = 'TableActions';
   const { writeClipboard } = useClipboard();
   const addNotification = useNotificationStore(
@@ -98,7 +96,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
     }
     writeClipboard(JSON.stringify(dataToStringify), true);
     addNotification({
-      content: t("editor:ui.copiedToClipboard2", { defaultValue: "Copied to clipboard" }),
+      content: i18n.t("editor:ui.copiedToClipboard2", { defaultValue: "Copied to clipboard" }),
       type: "success",
       alert: true
     });
@@ -418,13 +416,13 @@ const TableActions: React.FC<TableActionsProps> = memo(({
     <div className="table-actions">
       {editable && (
         <>
-          <ToolbarIconButton title={t("editor:ui.addNewRow", { defaultValue: "Add new row" })} onClick={handleAddRow}>
-            <AddIcon sx={{ fontSize: 12 }} />
+          <ToolbarIconButton title={i18n.t("editor:ui.addNewRow", { defaultValue: "Add new row" })} onClick={handleAddRow}>
+            <AddIcon sx={{ fontSize: ICON_SIZE.xs }} />
           </ToolbarIconButton>
 
           <DeleteButton
             onClick={handleDeleteRowsClick}
-            tooltip={t("editor:ui.deleteSelectedRows", { defaultValue: "Delete selected rows" })}
+            tooltip={i18n.t("editor:ui.deleteSelectedRows", { defaultValue: "Delete selected rows" })}
             disabled={selectedRows.length === 0}
             iconVariant="clear"
             nodrag={false}
@@ -432,11 +430,11 @@ const TableActions: React.FC<TableActionsProps> = memo(({
 
           {isModalMode && (
             <ToolbarIconButton
-              title={t("editor:ui.duplicateSelectedRows", { defaultValue: "Duplicate selected rows" })}
+              title={i18n.t("editor:ui.duplicateSelectedRows", { defaultValue: "Duplicate selected rows" })}
               className={selectedRows.length === 0 ? "disabled" : ""}
               onClick={handleDuplicateRows}
             >
-              <FileCopyIcon sx={{ fontSize: 12 }} />
+              <FileCopyIcon sx={{ fontSize: ICON_SIZE.xs }} />
             </ToolbarIconButton>
           )}
         </>
@@ -445,7 +443,7 @@ const TableActions: React.FC<TableActionsProps> = memo(({
       {showSortingButton && (
         <RefreshButton
           onClick={handleResetSorting}
-          tooltip={t("editor:ui.resetTableSorting", { defaultValue: "Reset table sorting" })}
+          tooltip={i18n.t("editor:ui.resetTableSorting", { defaultValue: "Reset table sorting" })}
           iconVariant="reset"
           nodrag={false}
         />
@@ -455,24 +453,26 @@ const TableActions: React.FC<TableActionsProps> = memo(({
         <>
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
           <ToolbarIconButton
-            title={t("editor:ui.undoCtrl+Z", { defaultValue: "Undo (Ctrl+Z)" })}
+            title="Undo"
+            shortcut={["Ctrl", "Z"]}
             onClick={handleUndo}
             disabled={!canUndo}
             className={!canUndo ? "disabled" : ""}
           >
-            <UndoIcon sx={{ fontSize: 12 }} />
+            <UndoIcon sx={{ fontSize: ICON_SIZE.xs }} />
           </ToolbarIconButton>
           <ToolbarIconButton
-            title={t("editor:ui.redoCtrl+Y", { defaultValue: "Redo (Ctrl+Y)" })}
+            title="Redo"
+            shortcut={["Ctrl", "Y"]}
             onClick={handleRedo}
             disabled={!canRedo}
             className={!canRedo ? "disabled" : ""}
           >
-            <RedoIcon sx={{ fontSize: 12 }} />
+            <RedoIcon sx={{ fontSize: ICON_SIZE.xs }} />
           </ToolbarIconButton>
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-          <ToolbarIconButton title={t("editor:ui.pasteFromClipboard", { defaultValue: "Paste from clipboard" })} onClick={handlePaste}>
-            <ContentPasteIcon sx={{ fontSize: 12 }} />
+          <ToolbarIconButton title={i18n.t("editor:ui.pasteFromClipboard", { defaultValue: "Paste from clipboard" })} onClick={handlePaste}>
+            <ContentPasteIcon sx={{ fontSize: ICON_SIZE.xs }} />
           </ToolbarIconButton>
         </>
       )}
@@ -482,32 +482,32 @@ const TableActions: React.FC<TableActionsProps> = memo(({
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
           <DownloadButton
             onClick={handleExportCSV}
-            tooltip={t("editor:ui.exportAsCSV", { defaultValue: "Export as CSV" })}
+            tooltip={i18n.t("editor:ui.exportAsCSV", { defaultValue: "Export as CSV" })}
             nodrag={false}
           />
         </>
       )}
 
       <ToolbarIconButton
-        title={t("editor:ui.showSelectColumn", { defaultValue: "Show Select column" })}
+        title={i18n.t("editor:ui.showSelectColumn", { defaultValue: "Show select column" })}
         onClick={handleToggleSelect}
         color={showSelect ? "primary" : "default"}
       >
-        <CheckBoxIcon sx={{ fontSize: 12 }} />
+        <CheckBoxIcon sx={{ fontSize: ICON_SIZE.xs }} />
       </ToolbarIconButton>
 
       {showRowNumbersButton && Array.isArray(data) && setShowRowNumbers && (
         <ToolbarIconButton
-          title={t("editor:ui.showRowNumbers", { defaultValue: "Show Row Numbers" })}
+          title={i18n.t("editor:ui.showRowNumbers", { defaultValue: "Show row numbers" })}
           onClick={handleToggleRowNumbers}
           color={showRowNumbers ? "primary" : "default"}
         >
-          <NumbersIcon sx={{ fontSize: 12 }} />
+          <NumbersIcon sx={{ fontSize: ICON_SIZE.xs }} />
         </ToolbarIconButton>
       )}
 
-      <ToolbarIconButton title={t("editor:ui.copyTableDataToClipboard", { defaultValue: "Copy table data to clipboard" })} onClick={handleCopyData}>
-        <ContentCopyIcon sx={{ fontSize: 12 }} />
+      <ToolbarIconButton title={i18n.t("editor:ui.copyTableData", { defaultValue: "Copy table data" })} onClick={handleCopyData}>
+        <ContentCopyIcon sx={{ fontSize: ICON_SIZE.xs }} />
       </ToolbarIconButton>
 
       {children && <div className="table-actions-extra">{children}</div>}

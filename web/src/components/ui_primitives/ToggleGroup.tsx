@@ -15,6 +15,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { BORDER_RADIUS, MOTION, reducedMotion } from "./tokens";
 import { SPACING } from "./spacing";
+import { i18n } from "../../i18n";
 
 // --- ToggleGroup ---
 
@@ -46,15 +47,15 @@ const SEGMENTED_HEIGHT = 32;
  * @example
  * // Exclusive selection (radio-like)
  * <ToggleGroup value={view} exclusive onChange={handleView}>
- *   <ToggleOption value="grid">Grid</ToggleOption>
+ *   <ToggleOption value="grid">{i18n.t("game:viewport.grid", { defaultValue: "Grid" })}</ToggleOption>
  *   <ToggleOption value="list">List</ToggleOption>
  * </ToggleGroup>
  *
  * @example
  * // Multi-select
  * <ToggleGroup value={filters} onChange={handleFilters} compact>
- *   <ToggleOption value="images">Images</ToggleOption>
- *   <ToggleOption value="videos">Videos</ToggleOption>
+ *   <ToggleOption value="images">{t("timeline:attrs.kindImages", { defaultValue: "Images" })}</ToggleOption>
+ *   <ToggleOption value="videos">{i18n.t("timeline:attrs.kindVideos", { defaultValue: "Videos" })}</ToggleOption>
  *   <ToggleOption value="audio">Audio</ToggleOption>
  * </ToggleGroup>
  */
@@ -77,7 +78,7 @@ const ToggleGroupInternal: React.FC<ToggleGroupProps> = ({
   const segmentedSx = segmented
     ? {
         height: SEGMENTED_HEIGHT,
-        borderRadius: "var(--rounded-lg)",
+        borderRadius: BORDER_RADIUS.lg,
         border: `1px solid ${palette.divider}`,
         backgroundColor: palette.action.hover,
         overflow: "hidden",
@@ -171,7 +172,7 @@ export interface ToggleOptionProps extends ToggleButtonProps {
  * ToggleOption - A single option within a ToggleGroup
  *
  * @example
- * <ToggleOption value="grid" icon={<GridIcon />}>Grid View</ToggleOption>
+ * <ToggleOption value="grid" icon={<GridIcon />}>Grid view</ToggleOption>
  */
 const ToggleOptionInternal: React.FC<ToggleOptionProps> = ({
   icon,

@@ -19,11 +19,12 @@ import {
   ListItemText,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  EmptyState
 } from "../ui_primitives";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import RemoveIcon from "@mui/icons-material/Remove";
-import EditIcon from "@mui/icons-material/Edit";
+import EditIcon from "@mui/icons-material/EditOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import TimelineIcon from "@mui/icons-material/Timeline";
 import LinkOffIcon from "@mui/icons-material/LinkOff";
@@ -114,9 +115,8 @@ const NodeDiffItem: React.FC<{
     />
     <Chip
       label={type === "added" ? "Added" : "Removed"}
-      size="small"
+      compact
       color={type === "added" ? "success" : "error"}
-      sx={{ height: 20, fontSize: "var(--fontSizeSmaller)" }}
     />
   </ListItem>
 ));
@@ -147,9 +147,9 @@ const ModifiedNodeItem: React.FC<{ nodeChange: NodeChange }> = memo(({
         </Text>
         <Chip
           label={`${nodeChange.changes.length} change(s)`}
-          size="small"
+          compact
           color="warning"
-          sx={{ height: 20, fontSize: "var(--fontSizeSmaller)", ml: "auto", mr: 1 }}
+          sx={{ ml: "auto", mr: 1 }}
         />
       </FlexRow>
     </AccordionSummary>
@@ -201,8 +201,8 @@ export const VersionDiff: React.FC<VersionDiffProps> = ({
   const { t } = useTranslation();
   if (!diff.hasChanges) {
     return (
-      <Surface sx={{ p: 2, textAlign: "center" }}>
-        <Text color="secondary">{t("ui2:attrs.noChangesDetected", { defaultValue: "No changes detected" })}</Text>
+      <Surface>
+        <EmptyState variant="no-data" size="small" title={t("ui2:attrs.noChangesDetected", { defaultValue: "No changes detected" })} />
       </Surface>
     );
   }
@@ -265,7 +265,7 @@ export const VersionDiff: React.FC<VersionDiffProps> = ({
           <Caption
             sx={{ display: "block", mb: 1, fontWeight: 500 }}
           >
-            {t("editor:ui.connectionChanges")}
+            Connection changes
           </Caption>
           <List dense disablePadding>
             {diff.addedEdges.map((edge) => (

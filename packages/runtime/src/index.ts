@@ -49,6 +49,15 @@ export {
   createLocalWorkspace
 } from "./storage-workspace.js";
 export { PrefixedStorageAdapter } from "./prefixed-storage-adapter.js";
+export {
+  publishModelLoad,
+  subscribeModelLoads,
+  activeModelLoads,
+  resetModelLoadsForTesting,
+  type ModelLoadPhase,
+  type ModelLoadUpdate,
+  type ModelLoadListener
+} from "./model-load-events.js";
 export type { SandboxModuleCatalog } from "./sandbox-module-catalog.js";
 export {
   getProcessSandboxModuleCatalog,
@@ -188,7 +197,7 @@ export {
   type ZodOrJsonSchema
 } from "@nodetool-ai/protocol/zod-schema";
 export { VariableChannel } from "./variable-channel.js";
-export { countTokens, truncateToTokens } from "./token-counter.js";
+export { countTokens, truncateToTokens, initializeTokenCounter } from "./token-counter.js";
 export {
   PythonStdioBridge,
   type PythonBridgeOptions,
@@ -255,12 +264,14 @@ export {
   MIN_NODETOOL_CORE_VERSION
 } from "@nodetool-ai/protocol/bridge-protocol";
 export {
+  loadSharpOrThrow,
   encodeRawRgbaToPng,
   encodeRawImageRef,
   extractImageRegion,
   rasterizeSvg
 } from "./image-codec.js";
 export type { ImageRegion } from "./image-codec.js";
+export { loadCanvas } from "./canvas-codec.js";
 export { PythonNodeExecutor } from "./python-node-executor.js";
 export {
   connectPythonBridgeForGraph,

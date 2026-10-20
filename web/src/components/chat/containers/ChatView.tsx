@@ -16,7 +16,7 @@ import {
   LanguageModel,
   TodoItem
 } from "../../../stores/ApiTypes";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import {
   FlexColumn,
@@ -62,7 +62,12 @@ const styles = (theme: Theme) =>
       flexDirection: "row",
       overflow: "hidden",
       minHeight: 0,
-      padding: theme.spacing(0, 6, 6, 6)
+      padding: theme.spacing(0, 6, 6, 6),
+      // On a phone the 24px gutters plus the assistant turn's own inset
+      // leave the reply a narrow strip down the middle of the screen.
+      [theme.breakpoints.down("sm")]: {
+        padding: theme.spacing(0, SPACING.md, SPACING.md)
+      }
     },
     ".chat-main": {
       position: "relative",
@@ -78,7 +83,8 @@ const styles = (theme: Theme) =>
       position: "absolute",
       top: getSpacingPx(SPACING.md),
       right: getSpacingPx(SPACING.lg),
-      zIndex: Z_INDEX.dropdown
+      zIndex: Z_INDEX.dropdown,
+      "& svg": { fontSize: "var(--fontSizeNormal)" }
     },
     "&::before": {
       content: '""',
@@ -175,8 +181,6 @@ type ChatViewProps = {
    * with its own new-chat button leave it off. Defaults to off.
    */
   showNewChatButton?: boolean;
-  /** Workspace chat keeps its current project's documents in the right rail. */
-  projectDocumentsSidebar?: React.ReactNode;
   /**
    * Bind thread-scoped store reads (todos) to this thread instead of the
    * store's current one. Pass it when the surface renders a specific thread
@@ -239,7 +243,6 @@ const ChatView = ({
   hideModePicker,
   hideModelPicker,
   showNewChatButton = false,
-  projectDocumentsSidebar,
   threadId,
   focusMessage
 }: ChatViewProps) => {
@@ -329,12 +332,7 @@ const ChatView = ({
   });
   const clearError = useGlobalChatStore((state) => state.clearError);
 
-  // Keep documents visible beside chat from `md` upward. Task rails need
-  // more room when documents are present, so they use the picker until `xl`.
-  const documentsFit = useMediaQuery(theme.breakpoints.up("md"));
-  const railsFit = useMediaQuery(
-    theme.breakpoints.up(projectDocumentsSidebar ? "xl" : "md")
-  );
+  const railsFit = useMediaQuery(theme.breakpoints.up("md"));
   // Copying a conversation is a desktop gesture and the button crowds the
   // phone header. New chat stays: the composer has no new-chat action.
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -351,11 +349,6 @@ const ChatView = ({
   const [mobileRail, setMobileRail] = useState<MobileRail>("chat");
   const mobileRails = useMemo<MobileRail[]>(() => {
     const rails: MobileRail[] = ["chat"];
-    // Phones get no documents rail: a Chat/Documents picker crowds the
-    // conversation, and documents stay reachable from the side panel.
-    if (projectDocumentsSidebar && !documentsFit && !isMobile) {
-      rails.push("documents");
-    }
     if (!railsFit && todos.length > 0) {
       rails.push("todos");
     }
@@ -363,14 +356,7 @@ const ChatView = ({
       rails.push("task");
     }
     return rails;
-  }, [
-    todos.length,
-    hasTaskRail,
-    projectDocumentsSidebar,
-    documentsFit,
-    railsFit,
-    isMobile
-  ]);
+  }, [todos.length, hasTaskRail, railsFit]);
   const showMobileRails = mobileRails.length > 1;
   // A rail whose content went away leaves the conversation hidden behind an
   // option that is no longer offered.
@@ -567,7 +553,6 @@ const ChatView = ({
             sx={{ flex: 1, minHeight: 0, width: "100%" }}
           >
             {activeMobileRail === "todos" && <TodoSidebar todos={todos} />}
-            {activeMobileRail === "documents" && projectDocumentsSidebar}
             {activeMobileRail === "task" && currentTaskUpdate && (
               <TaskUpdateSidebar taskUpdate={currentTaskUpdate} />
             )}
@@ -609,7 +594,6 @@ const ChatView = ({
         <TaskUpdateSidebar taskUpdate={currentTaskUpdate} />
       )}
       {showTodoSidebar && <TodoSidebar todos={todos} />}
-      {documentsFit && projectDocumentsSidebar}
     </div>
   );
 };

@@ -12,9 +12,7 @@ import { memo, useCallback, useMemo, useState } from "react";
 
 import {
   Dialog,
-  EditorButton,
   FlexColumn,
-  FlexRow,
   Text,
   TextInput,
   SPACING
@@ -31,6 +29,7 @@ import {
 import { workflowInputForScriptPort } from "../appbuilder/workflowIO";
 import type { JsScriptPort } from "../../stores/jsScript/JsScriptStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /** What the dialog hands back: buffered values, or items staged per handle. */
 export interface JsScriptRunRequest {
@@ -82,6 +81,15 @@ const getEmptyStore = () => {
     emptyStore = createNodeStore();
   }
   return emptyStore;
+};
+
+/**
+ * A text input takes several lines, since a script's text often spans
+ * paragraphs and a one-line field dropped the line breaks of pasted text.
+ */
+const runDialogInput = (port: JsScriptPort) => {
+  const input = workflowInputForScriptPort(port);
+  return input.kind === "string" ? { ...input, multiline: true } : input;
 };
 
 const usesJsonField = (port: JsScriptPort, streaming: boolean): boolean =>
@@ -161,30 +169,22 @@ const JsScriptRunDialog = ({
       title={t("editor:ui.runScript", { defaultValue: "Run script" })}
       fullWidth
       maxWidth="sm"
-      actions={
-        <FlexRow gap={SPACING.md}>
-          <EditorButton onClick={onClose}>{t("common:action.cancel", { defaultValue: "Cancel" })}</EditorButton>
-          <EditorButton variant="contained" onClick={handleRun}>
-            Run
-          </EditorButton>
-        </FlexRow>
-      }
+      onConfirm={handleRun}
+      confirmText="Run"
     >
       <NodeContext.Provider value={store}>
         <EditorUiProvider scope="inspector">
-          {/* Phones are narrower than the 380px the controls want, so the
-              floor only applies once there is room for it. */}
-          <FlexColumn gap={SPACING.md} sx={{ minWidth: { xs: 0, sm: 380 } }}>
+          <FlexColumn gap={SPACING.md}>
             {inputs.length === 0 ? (
               <Text size="small" color="secondary">
-                {t("editor:ui.thisScriptDeclaresNoInputsRunItAsItIs")}
+                This script declares no inputs. Run it as it is.
               </Text>
             ) : (
               <>
                 <Text size="small" color="secondary">
                   {streaming
-                    ? t("editor:ui.thisScriptReadsItsInputsWithStreamGiveEachHandleAJsonArrayOfTheItemsToStageEg123", { defaultValue: "This script reads its inputs with stream(). Give each handle a JSON array of the items to stage, e.g. [1, 2, 3]." })
-                    : t("editor:ui.eachInputUsesTheControlForItsDeclaredType", { defaultValue: "Each input uses the control for its declared type." })}
+                    ? i18n.t("editor:ui.thisScriptReadsItsInputsWithStreamGiveEachHandleAJsonArrayOfTheItemsToStageEg123", { defaultValue: "This script reads its inputs with stream(). Give each handle a JSON array of the items to stage, e.g. [1, 2, 3]." })
+                    : i18n.t("editor:ui.eachInputUsesTheControlForItsDeclaredType", { defaultValue: "Each input uses the control for its declared type." })}
                 </Text>
                 {inputs.map((port) =>
                   usesJsonField(port, streaming) ? (
@@ -203,7 +203,7 @@ const JsScriptRunDialog = ({
                   ) : (
                     <WorkflowInputControl
                       key={port.name}
-                      input={workflowInputForScriptPort(port)}
+                      input={runDialogInput(port)}
                       value={
                         values[port.name] !== undefined
                           ? values[port.name]

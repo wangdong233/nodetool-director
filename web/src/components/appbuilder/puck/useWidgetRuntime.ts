@@ -26,6 +26,7 @@ import {
   useBindingValue,
   useRuntimeSelector
 } from "../runtime/AppRuntimeContext";
+import { i18n } from "../../../i18n";
 
 export type WidgetBindingMode = BindingMode;
 

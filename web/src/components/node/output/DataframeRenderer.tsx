@@ -131,7 +131,7 @@ const DataframeRenderer: React.FC<DataframeRendererProps> = ({ dataframe }) => {
   return (
     <div css={memoizedStyles} className="dataframe-renderer">
       <div className="dataframe-action-buttons">
-        <ToolbarIconButton title={t("editor:ui.openInFullView", { defaultValue: "Open in Full View" })} size="small" onClick={toggleExpand}>
+        <ToolbarIconButton title={t("editor:ui.openInFullView", { defaultValue: "Open in full view" })} size="small" onClick={toggleExpand}>
           <OpenInFullIcon />
         </ToolbarIconButton>
       </div>

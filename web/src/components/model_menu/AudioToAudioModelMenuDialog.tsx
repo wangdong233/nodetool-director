@@ -26,7 +26,7 @@ function AudioToAudioModelMenuDialog({
   recommendedModels,
   modelPacks
 }: AudioToAudioModelMenuDialogProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation("editor");
   const modelData = useAudioToAudioModelsByProvider();
   return (
     <ModelMenuDialogBase<AudioToAudioModel>
@@ -35,8 +35,8 @@ function AudioToAudioModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title={t("editor:ui.selectAudioToAudioModel", { defaultValue: "Select Audio To Audio Model" })}
-      searchPlaceholder={t("editor:ui.searchVoiceChangers", { defaultValue: "Search voice changers, separators, denoisers..." })}
+      title={t("editor:ui.selectAudioToAudioModel2", { defaultValue: "Select audio-to-audio model" })}
+      searchPlaceholder="Search voice changers, separators, denoisers"
       storeHook={useAudioToAudioModelMenuStore}
       modelType="audio_to_audio_model"
       recommendedModels={recommendedModels}

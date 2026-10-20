@@ -103,3 +103,13 @@ cyan, and she whispers "That wasn't a drop."
 
 Stop after the board. Stills before clips.
 ```
+
+预告片/先导片另加载 `/trailer-template`:它定八个节拍与音床。旁白与配乐提示经 `edit_storyboard` → `set_board {narration, music_prompt}` 设置。
+
+| 风格圣经 | `set_board {style}`(板风格即风格圣经) | 任意 |
+| 片名+故事线 | 仅经 `direct_storyboard`,它写导演自己的前提进 `brief`,以及 `narration` 与 `music_prompt` |
+| 场景与片头 | `set_setup {brief, genre}` 之后无头生成剧本 |
+
+把情绪放进 `action`,不放进 `motion`——"紧绷"是表演,不是运镜。
+
+把情绪放进 `action` 而不是 `motion`——"紧绷"是表演,不是运镜。

@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useMemo } from "react";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
-import { DeleteButton, FlexRow, FlexColumn, Text, Caption, Tooltip, LoadingSpinner, EditorButton, ProgressBar, MOTION, BORDER_RADIUS, SPACING, Z_INDEX } from "../ui_primitives";
+import { DeleteButton, FlexRow, FlexColumn, Text, Caption, Tooltip, LoadingSpinner, EditorButton, ProgressBar, MOTION, BORDER_RADIUS, SPACING, TYPOGRAPHY, DropZoneOverlay, getSpacingPx } from "../ui_primitives";
 import { CollectionResponse } from "../../stores/ApiTypes";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import WorkflowSelect from "./WorkflowSelect";
@@ -8,6 +7,7 @@ import { useState } from "react";
 import { trpcClient } from "../../trpc/client";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface CollectionItemProps {
   collection: CollectionResponse;
@@ -26,6 +26,9 @@ interface CollectionItemProps {
   deletingCollection: string | null;
 }
 
+const formatEta = (seconds: number): string =>
+  seconds < 60 ? `${seconds}s` : `${Math.round(seconds / 60)}m ${seconds % 60}s`;
+
 const IndexingProgress = memo(function IndexingProgress({
   indexProgress
 }: {
@@ -33,43 +36,21 @@ const IndexingProgress = memo(function IndexingProgress({
 }) {
   if (!indexProgress) { return null; }
 
+  const { current, total, startTime } = indexProgress;
+  let label = `Indexing ${current} of ${total} documents`;
+  if (current > 0) {
+    const avgTimePerItem = (Date.now() - startTime) / current;
+    const etaSeconds = Math.round((avgTimePerItem * (total - current)) / 1000);
+    label += ` · ETA ${formatEta(etaSeconds)}`;
+  }
+
   return (
-    <>
-      <ProgressBar
-        value={(indexProgress.current / indexProgress.total) * 100}
-        showValue={false}
-        sx={{
-          ml: 2,
-          width: 100,
-          display: "inline-block",
-          verticalAlign: "middle"
-        }}
-      />
-      <br />
-      <LoadingSpinner size={16} inline />
-      <Caption sx={{ ml: 1 }}>
-        Indexing {indexProgress.current}&nbsp;of&nbsp;
-        {indexProgress.total} documents
-        {indexProgress.current > 0 && (
-          <>
-            {" "}
-            • ETA:{" "}
-            {(() => {
-              const elapsed = Date.now() - indexProgress.startTime;
-              const avgTimePerItem = elapsed / indexProgress.current;
-              const remainingItems =
-                indexProgress.total - indexProgress.current;
-              const etaSeconds = Math.round(
-                (avgTimePerItem * remainingItems) / 1000
-              );
-              return etaSeconds < 60
-                ? `${etaSeconds}s`
-                : `${Math.round(etaSeconds / 60)}m ${etaSeconds % 60}s`;
-            })()}
-          </>
-        )}
-      </Caption>
-    </>
+    <ProgressBar
+      value={(current / total) * 100}
+      label={label}
+      showValue={false}
+      size="small"
+    />
   );
 });
 
@@ -100,7 +81,7 @@ const CollectionItem = ({
       addNotification({
         alert: true,
         type: "success",
-        content: t("editor:ui.collectionUpdatedSuccessfully", { defaultValue: "Collection updated successfully" })
+        content: i18n.t("editor:ui.collectionUpdatedSuccessfully", { defaultValue: "Collection updated successfully" })
       });
       queryClient.invalidateQueries({ queryKey: ["collections"] });
     },
@@ -144,13 +125,7 @@ const CollectionItem = ({
     backgroundColor: "transparent",
     ...(dragOverCollection === collection.name && {
       backgroundColor: "action.hover",
-      borderStyle: "dashed",
-      borderWidth: 2,
-      borderColor: "primary.main",
       borderRadius: BORDER_RADIUS.md,
-      m: 0.5,
-      width: "calc(100% - 8px)",
-      boxShadow: "0 0 0 1px rgb(var(--mui-palette-primary-mainChannel) / 0.08)",
       "& > :not(.drop-zone-overlay)": {
         opacity: 0.12,
         filter: "blur(1px)"
@@ -173,9 +148,13 @@ const CollectionItem = ({
       sx={listItemSx}
       gap={2}
     >
-      <FlexRow justify="flex-end" sx={{ position: "absolute", top: 8, right: 8 }}>
+      <FlexRow justify="flex-end" sx={{
+          position: "absolute",
+          top: getSpacingPx(SPACING.md),
+          right: getSpacingPx(SPACING.md)
+        }}>
         {deletingCollection === collection.name ? (
-          <LoadingSpinner size={20} inline />
+          <LoadingSpinner size="small" inline />
         ) : (
           <DeleteButton
             onClick={handleDeleteClick}
@@ -186,44 +165,14 @@ const CollectionItem = ({
           />
         )}
       </FlexRow>
-      {dragOverCollection === collection.name && (
-        <FlexRow
-          className="drop-zone-overlay"
-          align="center"
-          justify="center"
-          sx={{
-            position: "absolute",
-            inset: 0,
-            backgroundColor: "transparent",
-            pointerEvents: "none",
-            zIndex: Z_INDEX.raised
-          }}
-        >
-          <Text
-            size="normal"
-            weight={600}
-            sx={{
-              color: "primary.main",
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              pointerEvents: "none",
-              textShadow: "0 0 10px rgb(var(--mui-palette-primary-mainChannel) / 0.2)"
-            }}
-          >
-            <UploadFileIcon sx={{ fontSize: "var(--fontSizeBig)" }} />
-            Drop files to upload
-          </Text>
-        </FlexRow>
-      )}
+      {dragOverCollection === collection.name && <DropZoneOverlay />}
       <FlexRow align="center" gap={SPACING.lg} fullWidth>
         <Tooltip title={`Collection: ${collection.name}`}>
           <Text
-            weight={600}
+            size="small"
             truncate
             sx={{
               color: "text.primary",
-              fontSize: "var(--fontSizeBig)",
               flexShrink: 0,
               maxWidth: "150px"
             }}
@@ -238,21 +187,13 @@ const CollectionItem = ({
 
       <FlexRow align="center" gap={SPACING.lg} fullWidth>
         <Tooltip title={t("editor:ui.numberOfDocumentsInThisCollection", { defaultValue: "Number of documents in this collection" })}>
-          <Text
-            size="small"
-            color="secondary"
-            sx={{
-              fontSize: "0.8em",
-              flexShrink: 0
-            }}
-          >
+          <Caption color="secondary" sx={{ flexShrink: 0 }}>
             {collection.count} item{collection.count === 1 ? "" : "s"}
-          </Text>
+          </Caption>
         </Tooltip>
         <Tooltip title={t("editor:ui.modelUsedForEmbeddingDocuments", { defaultValue: "Model used for embedding documents" })}>
           <Caption
             sx={{
-              fontSize: "0.8em",
               flexShrink: 1,
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -285,8 +226,8 @@ const CollectionItem = ({
             <EditorButton
               variant="text"
               sx={{
+                ...TYPOGRAPHY.sans.caption,
                 color: "text.secondary",
-                fontSize: "0.8em",
                 cursor: "pointer",
                 flexShrink: 1,
                 overflow: "hidden",

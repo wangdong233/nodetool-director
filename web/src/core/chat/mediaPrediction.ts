@@ -1,3 +1,4 @@
+import { i18n } from "../../i18n";
 /**
  * Media provider calls that ChatUI should surface while they run.
  * Judge / embed / ASR / chat-model predictions stay silent.
@@ -43,7 +44,7 @@ export function mediaPredictionLabel(capability: string): string {
     case "text_to_music":
       return "Generating audio";
     default:
-      return "Generating";
+      return i18n.t("storyboard:attrs.generating", { defaultValue: "Generating" });
   }
 }
 

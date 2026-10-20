@@ -52,8 +52,8 @@ describe("GameSceneTree", () => {
     const child = screen.getByRole("button", { name: "Child" });
     const groupIndent = parseFloat(getComputedStyle(group.parentElement!).paddingLeft) +
       parseFloat(getComputedStyle(group).paddingLeft);
-    const parentIndent = parseFloat(getComputedStyle(parent).paddingLeft);
-    const childIndent = parseFloat(getComputedStyle(child).paddingLeft);
+    const parentIndent = parseFloat(getComputedStyle(parent.parentElement!).paddingLeft);
+    const childIndent = parseFloat(getComputedStyle(child.parentElement!).paddingLeft);
 
     expect(parent).toHaveStyle({ fontSize: "var(--fontSizeSmall)" });
     expect(parentIndent).toBeGreaterThan(groupIndent);
@@ -70,6 +70,16 @@ describe("GameSceneTree", () => {
     expect(screen.getByRole("button", { name: "Scene Arena" })).toHaveAttribute("aria-pressed", "false");
     await userEvent.click(screen.getByRole("button", { name: "Scene Arena" }));
     expect(onSelectScene).toHaveBeenCalledWith("arena");
+    expect(screen.getByRole("button", { name: "Child" })).toBeInTheDocument();
+  });
+
+  it("collapses an entity's children", async () => {
+    renderTree();
+    expect(screen.queryByRole("button", { name: "Collapse Sibling" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Collapse Parent" }));
+    expect(screen.queryByRole("button", { name: "Child" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Expand Parent" })).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(screen.getByRole("button", { name: "Expand Parent" }));
     expect(screen.getByRole("button", { name: "Child" })).toBeInTheDocument();
   });
 
@@ -126,7 +136,7 @@ describe("GameSceneTree", () => {
     const wall = next.scenes[0].entities.at(-1);
     expect(wall?.body2d?.type).toBe("static");
     expect(wall?.collider2d).toBeDefined();
-    expect(onSelect).toHaveBeenCalledWith(wall?.id, false);
+    expect(onSelect).toHaveBeenCalledWith({ sceneId: "room", entityId: wall?.id }, false);
   });
 
   it("reparents and reorders entities through reducer ops", () => {
@@ -189,4 +199,15 @@ it("keeps a child at its world position when dropped into another parent", () =>
   const child = updated.scenes[0].entities.find(entity => entity.id === "child")!;
   expect(child.parentId).toBe("sibling");
   expect(child.transform2d.x).toBe(-3);
+});
+
+
+it("preserves the scene component of a clicked entity target when two scenes reuse an ID (E1)", async () => {
+  const document = fixture();
+  const original = document.scenes[0].entities.find((entity) => entity.id === "parent");
+  if (!original) { throw new Error("Hierarchy fixture parent is missing"); }
+  document.scenes.push({ id: "arena", name: "Arena", entities: [{ ...structuredClone(original), name: "Other Parent" }] });
+  const { onSelect } = renderTree(document);
+  await userEvent.click(screen.getByRole("button", { name: "Other Parent" }));
+  expect(onSelect).toHaveBeenCalledWith({ sceneId: "arena", entityId: "parent" }, false);
 });

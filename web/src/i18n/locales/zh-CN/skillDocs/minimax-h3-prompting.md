@@ -49,3 +49,11 @@ H3 是通用多模态视频模型,不是一组任务模型。文字、图像、�
 
 改编自 fal 的 MiniMax H3 提示词指南:
 https://fal.ai/learn/devs/minimax-h3-prompting-guide
+
+参考转视频:`find_model` 查 `reference_to_video` 再走 `generate_video_from_references`;路由级字段用 `search_nodes` 找到,`get_node_info` 读字段,`run_node` 运行。
+
+提示词扩展:fal 的 `/lora` 路由默认 `prompt_expansion_mode: balanced`;`extend-video` 与 `insert-video` 默认 `enable_prompt_expansion: true`;AtlasCloud 的 `prompt_expansion` 默认关。首尾帧:fal 叫 `end_image_url`,AtlasCloud 叫 `end_image`。
+
+**4. 写清不想要的。** H3 各路由没有 `negative_prompt` 字段,负面内容写进正向提示词。H3-Max 另有单用途路由(`3d-to-video`、`camera-controls`、`multi-angle`、`insert-video`、`extend-video`、`lip-sync`、`styles/*`)。
+
+扩展开关:fal `/lora` 设 `prompt_expansion_mode` 为 `balanced`;`extend-video`/`insert-video` 设 `enable_prompt_expansion` 为真。

@@ -26,6 +26,7 @@ import {
   type JsScriptCastDoc,
   type JsScriptDocCast
 } from "./docCastTypes";
+import { i18n } from "../../i18n";
 
 const FIND_TURN = "jsscript-repair-1";
 const FIX_TURN = "jsscript-repair-2";
@@ -127,7 +128,7 @@ export const jsScriptRepairCast: JsScriptDocCast = {
   durationMs: 22000,
   fps: 30,
   docId: "demo-jsscript-repair",
-  assistantTitle: "JS Script Assistant",
+  assistantTitle: i18n.t("editor:ui.jsScriptAssistant", { defaultValue: "JS Script Assistant" }),
   assistantModel: {
     type: "language_model",
     id: "claude-sonnet-5",

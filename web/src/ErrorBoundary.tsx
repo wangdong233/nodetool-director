@@ -1,6 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { i18n } from "./i18n";
-import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 
 import React, { useEffect, useState } from "react";
@@ -10,6 +8,8 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { openBugReport } from "./stores/BugReportStore";
 import { reportClientError } from "./utils/errorTraceReporting";
+import { useTranslation } from "react-i18next";
+import { i18n } from "./i18n";
 
 const errorBoundaryStyles = (theme: Theme) =>
   css({
@@ -213,11 +213,10 @@ const ErrorBoundary: React.FC = () => {
   return (
     <Box css={errorBoundaryStyles(theme)}>
       <Box className="hero">
-        <img src="/logo192.png" alt={t("editor:ui.nodeToolLogo", { defaultValue: "NodeTool Logo" })} className="logo" />
+        <img src="/logo192.png" alt={t("editor:ui.nodeToolLogo", { defaultValue: "NodeTool logo" })} className="logo" />
         <Text className="heading">{t("editor:ui.somethingWentWrong", { defaultValue: "Something went wrong" })}</Text>
         <Text className="subtext">
-          An unexpected error occurred. You can try reloading the page. If
-          this keeps happening, please reach out so we can fix it.
+          {t("editor:ui.unexpectedErrorOccurred", { defaultValue: "An unexpected error occurred. You can try reloading the page. If this keeps happening, please reach out so we can fix it." })}
         </Text>
       </Box>
 
@@ -245,7 +244,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleCopy}
             className="copy-error-button"
           >
-            {copied ? "Copied!" : i18n.t("editor:ui.copyError", { defaultValue: "Copy error" })}
+            {copied ? i18n.t("editor:ui.copied2", { defaultValue: "Copied!" }) : "Copy error"}
           </EditorButton>
         </Box>
         <Box className="contact-row">
@@ -258,7 +257,7 @@ const ErrorBoundary: React.FC = () => {
             Join our Discord
           </a>
           <a href="mailto:hello@nodetool.ai" className="contact-link">
-            Email hello@nodetool.ai
+            {i18n.t("editor:ui.emailHello@nodetoolAi", { defaultValue: "Email hello@nodetool.ai" })}
           </a>
         </Box>
       </Box>
@@ -269,7 +268,7 @@ const ErrorBoundary: React.FC = () => {
           disableRipple
           onClick={() => setShowDetails((prev) => !prev)}
         >
-          {showDetails ? i18n.t("editor:ui.hideDetails", { defaultValue: "Hide details ▲" }) : i18n.t("editor:ui.showDetails", { defaultValue: "Show details ▼" })}
+          {showDetails ? i18n.t("editor:ui.hideDetails", { defaultValue: "Hide details ▲" }) : "Show details ▼"}
         </EditorButton>
 
         {showDetails && (

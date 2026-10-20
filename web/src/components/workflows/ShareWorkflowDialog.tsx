@@ -13,6 +13,7 @@ import {
   FlexRow,
   Text,
   Caption,
+  SectionHeader,
   Chip,
   Divider,
   CopyButton,
@@ -30,18 +31,18 @@ import {
   type ShareRole
 } from "../../serverState/useWorkflowSharing";
 import { useNotificationStore } from "../../stores/NotificationStore";
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const ROLE_LABELS: Record<ShareRole, string> = {
-  viewer: "Can view",
-  editor: "Can edit",
+  viewer: i18n.t("editor:ui.canView", { defaultValue: "Can view" }),
+  editor: i18n.t("editor:ui.canEdit", { defaultValue: "Can edit" }),
   public: "Public view"
 };
 
 const ROLE_OPTIONS = [
-  { value: "viewer", label: ROLE_LABELS.viewer, labelKey: "editor:ui.canView" },
-  { value: "editor", label: ROLE_LABELS.editor, labelKey: "editor:ui.canEdit" }
+  { value: "viewer", label: ROLE_LABELS.viewer },
+  { value: "editor", label: ROLE_LABELS.editor }
 ] as const;
 
 interface ShareWorkflowDialogProps {
@@ -114,7 +115,7 @@ const ShareWorkflowDialog = ({
       maxWidth="sm"
       fullWidth
     >
-      <FlexColumn gap={SPACING.md} sx={{ pb: 2 }}>
+      <FlexColumn gap={SPACING.md}>
         <Caption>
           Anyone signed in to this server who opens a view or edit link gets
           the link&apos;s role. Revoking a link stops new joins; people who
@@ -129,14 +130,14 @@ const ShareWorkflowDialog = ({
             disabled={createLink.isPending}
             onClick={() => void handleCreateLink("viewer")}
           >
-            {t("editor:ui.copyViewLink")}
+            Copy view link
           </EditorButton>
           <EditorButton
             variant="outlined"
             disabled={createLink.isPending}
             onClick={() => void handleCreateLink("editor")}
           >
-            {t("editor:ui.copyEditLink")}
+            Copy edit link
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -151,7 +152,7 @@ const ShareWorkflowDialog = ({
 
         {activeShares.length > 0 && (
           <FlexColumn gap={SPACING.xs}>
-            <Text size="small">{t("ui2:attrs.activeLinks", { defaultValue: "Active links" })}</Text>
+            <SectionHeader size="small" title={t("ui2:attrs.activeLinks", { defaultValue: "Active links" })} />
             {activeShares.map((share) => (
               <FlexRow
                 key={share.id}
@@ -163,14 +164,15 @@ const ShareWorkflowDialog = ({
                   <Chip label={ROLE_LABELS[share.role]} size="small" />
                   <CopyButton
                     value={shareUrlForToken(share.token, share.role)}
-                    tooltip={t("editor:ui.copyShareLink", { defaultValue: "Copy share link" })}                  />
+                    tooltip={t("editor:ui.copyShareLink", { defaultValue: "Copy share link" })}
+                  />
                 </FlexRow>
                 <EditorButton
                   density="compact"
                   disabled={revokeLink.isPending}
                   onClick={() => revokeLink.mutate(share.id)}
                 >
-                  {t("editor:ui.revoke", { defaultValue: "Revoke" })}
+                  Revoke
                 </EditorButton>
               </FlexRow>
             ))}
@@ -179,12 +181,12 @@ const ShareWorkflowDialog = ({
 
         <Divider />
 
-        <Text size="small">{t("ui2:attrs.peopleWithAccess", { defaultValue: "People with access" })}</Text>
+        <SectionHeader size="small" title={t("ui2:attrs.peopleWithAccess", { defaultValue: "People with access" })} />
         {collaborators.length === 0 && !query.isLoading && (
           <EmptyState
             variant="empty"
             title={t("editor:ui.noCollaboratorsYet", { defaultValue: "No collaborators yet" })}
-            description={t("editor:ui.copyALinkAboveAndSendItToSomeone")}
+            description={t("editor:ui.copyALinkAboveAndSendItToSomeone", { defaultValue: "Copy a link above and send it to someone." })}
           />
         )}
         {collaborators.map((collaborator) => (
@@ -202,10 +204,11 @@ const ShareWorkflowDialog = ({
             </Text>
             <FlexRow gap={SPACING.sm} align="center">
               <SelectField
-                label=""
+                label={`Role for ${collaborator.user_id}`}
+                hideLabel
                 size="small"
                 value={collaborator.role}
-                options={ROLE_OPTIONS.map((o) => ({ ...o, label: t(o.labelKey, { defaultValue: o.label }) }))}
+                options={ROLE_OPTIONS}
                 disabled={setRole.isPending}
                 onChange={(value) =>
                   setRole.mutate({

@@ -1,4 +1,3 @@
-/** @jsxImportSource @emotion/react */
 /**
  * BottomStatusBar — Timeline Editor bottom status bar.
  *
@@ -8,15 +7,14 @@
 
 import React, { memo } from "react";
 import { useTheme } from "@mui/material/styles";
-import { css } from "@emotion/react";
-import type { Theme } from "@mui/material/styles";
 import {
   FlexRow,
   Caption,
+  StatusBar,
   ZoomControls,
   StatusIndicator,
-  BORDER_RADIUS,
-  FONT_SIZE_SANS
+  StatusDot,
+  ICON_SIZE
 } from "../ui_primitives";
 import type { StatusType } from "../ui_primitives";
 import CostEstimateLine, {
@@ -25,31 +23,6 @@ import CostEstimateLine, {
 import CloudIcon from "@mui/icons-material/Cloud";
 import ComputerIcon from "@mui/icons-material/Computer";
 import { useTranslation } from "react-i18next";
-
-const styles = (theme: Theme) =>
-  css({
-    height: 32,
-    borderTop: `1px solid ${theme.vars.palette.divider}`,
-    backgroundColor: theme.vars.palette.background.paper,
-    padding: `0 ${theme.spacing(1.5)}`,
-    flexShrink: 0,
-    ".count-badge": {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: theme.spacing(0.5)
-    },
-    ".dot": {
-      width: 6,
-      height: 6,
-      borderRadius: BORDER_RADIUS.circle
-    },
-    ".dot-generating": {
-      backgroundColor: theme.vars.palette.primary.main
-    },
-    ".dot-failed": {
-      backgroundColor: theme.vars.palette.error.main
-    }
-  });
 
 interface BottomStatusBarProps {
   /** Whether the session is local or cloud */
@@ -101,34 +74,29 @@ export const BottomStatusBar: React.FC<BottomStatusBarProps> = memo(
     const ModeIcon = mode === "cloud" ? CloudIcon : ComputerIcon;
 
     return (
-      <FlexRow
-        align="center"
-        justify="space-between"
-        fullWidth
-        css={styles(theme)}
-      >
+      <StatusBar sx={{ justifyContent: "space-between" }}>
         {/* Left: panel toggle + local/cloud + counts */}
         <FlexRow gap={2} align="center" sx={{ minWidth: 0 }}>
           {actionSlot}
 
           <FlexRow gap={1} align="center">
             <ModeIcon
-              sx={{ fontSize: FONT_SIZE_SANS.label, color: theme.vars.palette.text.secondary }}
+              sx={{ fontSize: ICON_SIZE.xs, color: theme.vars.palette.text.secondary }}
               aria-hidden={true}
             />
             <StatusIndicator status={modeStatus} label={modeLabel} size="small" />
           </FlexRow>
 
           {generatingCount > 0 && (
-            <FlexRow gap={0.5} align="center" className="count-badge">
-              <span className="dot dot-generating" aria-hidden />
+            <FlexRow gap={0.5} align="center">
+              <StatusDot tone="primary" />
               <Caption>{generatingCount} generating</Caption>
             </FlexRow>
           )}
 
           {failedCount > 0 && (
-            <FlexRow gap={0.5} align="center" className="count-badge">
-              <span className="dot dot-failed" aria-hidden />
+            <FlexRow gap={0.5} align="center">
+              <StatusDot tone="error" />
               <Caption color="error">{failedCount} failed</Caption>
             </FlexRow>
           )}
@@ -153,7 +121,7 @@ export const BottomStatusBar: React.FC<BottomStatusBarProps> = memo(
             tooltipPlacement="top"
           />
         </FlexRow>
-      </FlexRow>
+      </StatusBar>
     );
   }
 );

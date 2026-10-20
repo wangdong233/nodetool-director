@@ -11,45 +11,36 @@
  * `useTimelineExport`.
  */
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import {
   Dialog,
-  EditorButton,
   FlexColumn,
   LabeledSwitch,
   SelectField,
-  Text,
   SPACING,
   type SelectOption
 } from "../ui_primitives";
+import { useTimelineStore } from "../../stores/timeline/TimelineStore";
 import type { BrowserExportFormat } from "./render/TimelineRenderer";
+import { canEncodeMp4 } from "./render/canEncodeMp4";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
-const FORMAT_OPTIONS: readonly SelectOption[] = [
-  { value: "mp4", label: "MP4 (H.264)" },
-  { value: "webm", label: "WebM (VP9)" },
-  { value: "png_sequence", label: "PNG sequence (.zip)" }
+const formatOptions = (mp4Supported: boolean): readonly SelectOption[] => [
+  { value: "mp4", label: "MP4 (H.264)", disabled: !mp4Supported },
+  { value: "webm", label: "WebM (VP9)", labelKey: "timeline:export.webm" },
+  { value: "png_sequence", label: "PNG sequence (.zip)", labelKey: "timeline:export.PNGSequenceZip" }
 ];
 
-const FORMAT_LABEL_KEYS: Record<string, string> = {
-  mp4: "timeline:export.MP4H264",
-  webm: "timeline:export.webm",
-  png_sequence: "timeline:export.PNGSequenceZip"
-};
+const MP4_UNSUPPORTED_NOTE = "This browser cannot write MP4, so it is turned off.";
 
 /** One line under the picker saying what the choice actually produces. */
 const FORMAT_NOTE: Record<BrowserExportFormat, string> = {
   mp4: "Plays everywhere. No transparency.",
   webm: "VP9 video with Opus audio.",
   png_sequence:
-    "One PNG per frame in a zip, with a manifest.json naming the rate and size. No audio."
-};
-
-const FORMAT_NOTE_KEYS: Record<BrowserExportFormat, string> = {
-  mp4: "timeline:export.playsEverywhereNoTransparency",
-  webm: "timeline:export.VP9VideoWithOpusAudio",
-  png_sequence: "timeline:export.onePNGPerFrameInAZipWithAManifestjsonNamingTheRateAndSizeNoAudio"
+    i18n.t("timeline:export.onePNGPerFrameInAZipWithAManifestjsonNamingTheRateAndSizeNoAudio", { defaultValue: "One PNG per frame in a zip, with a manifest.json naming the rate and size. No audio." })
 };
 
 /** What the dialog hands back when the user starts the render. */
@@ -59,19 +50,13 @@ export interface ExportVideoChoice {
   alpha: boolean;
 }
 
-const ALPHA_LABEL = "Export with transparency"; // localized at render via timeline:export.alpha
+const ALPHA_LABEL = i18n.t("timeline:export.alpha", { defaultValue: "Export with transparency" });
 
 /** Why the switch is off, or what turning it on does. */
 const ALPHA_NOTE: Record<BrowserExportFormat, string> = {
-  mp4: "MP4 carries no alpha channel. Choose WebM or a PNG sequence.",
-  webm: "Composites over a transparent ground and keeps the alpha channel.",
-  png_sequence: "Every PNG keeps its alpha channel."
-};
-
-const ALPHA_NOTE_KEYS: Record<BrowserExportFormat, string> = {
-  mp4: "timeline:export.MP4CarriesNoAlphaChannelChooseWebMOrAPNGSequence",
-  webm: "timeline:export.compositesOverATransparentGroundAndKeepsTheAlphaChannel",
-  png_sequence: "timeline:export.everyPNGKeepsItsAlphaChannel"
+  mp4: i18n.t("timeline:export.MP4CarriesNoAlphaChannelChooseWebMOrAPNGSequence", { defaultValue: "MP4 carries no alpha channel. Choose WebM or a PNG sequence." }),
+  webm: i18n.t("timeline:export.compositesOverATransparentGroundAndKeepsTheAlphaChannel", { defaultValue: "Composites over a transparent ground and keeps the alpha channel." }),
+  png_sequence: i18n.t("timeline:export.everyPNGKeepsItsAlphaChannel", { defaultValue: "Every PNG keeps its alpha channel." })
 };
 
 export interface ExportVideoDialogProps {
@@ -91,8 +76,28 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
   onExport
 }) => {
   const { t } = useTranslation();
+  const width = useTimelineStore((state) => state.width);
+  const height = useTimelineStore((state) => state.height);
   const [format, setFormat] = useState<BrowserExportFormat>("mp4");
   const [alpha, setAlpha] = useState(false);
+  const [mp4Supported, setMp4Supported] = useState(true);
+
+  // Ask the encoder before the render does: a browser without H.264 would
+  // otherwise fail the default export with the encoder's configuration string.
+  useEffect(() => {
+    if (!open) return;
+    let current = true;
+    void canEncodeMp4(width, height).then((supported) => {
+      if (!current) return;
+      setMp4Supported(supported);
+      if (!supported) {
+        setFormat((chosen) => (chosen === "mp4" ? "webm" : chosen));
+      }
+    });
+    return () => {
+      current = false;
+    };
+  }, [open, width, height]);
 
   const handleFormatChange = useCallback((value: string) => {
     if (!isExportFormat(value)) return;
@@ -107,41 +112,34 @@ export const ExportVideoDialog: React.FC<ExportVideoDialogProps> = ({
     onClose();
   }, [format, alpha, onExport, onClose]);
 
-  const actions = useMemo(
-    () => (
-      <>
-        <EditorButton variant="outlined" size="small" onClick={onClose}>{t("timeline:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
-        <EditorButton variant="contained" size="small" onClick={handleExport}>{t("timeline:attrs.export", { defaultValue: "Export" })}</EditorButton>
-      </>
-    ),
-    [t, onClose, handleExport]
-  );
-
   return (
     <Dialog
       open={open}
       onClose={onClose}
       title={t("timeline:export.title", { defaultValue: "Export timeline" })}
-      actions={actions}
+      onConfirm={handleExport}
+      confirmText="Export"
     >
-      <FlexColumn gap={SPACING.md} sx={{ py: SPACING.xs }}>
+      <FlexColumn gap={SPACING.lg}>
         <SelectField
           label={t("timeline:export.format", { defaultValue: "Format" })}
           value={format}
           onChange={handleFormatChange}
-          options={FORMAT_OPTIONS.map((o) => ({ ...o, label: t(FORMAT_LABEL_KEYS[o.value] ?? "", { defaultValue: o.label }) }))}
+          options={formatOptions(mp4Supported)}
+          description={
+            mp4Supported
+              ? FORMAT_NOTE[format]
+              : `${FORMAT_NOTE[format]} ${MP4_UNSUPPORTED_NOTE}`
+          }
         />
-        <Text size="small" sx={{ color: "text.secondary" }}>
-          {t(FORMAT_NOTE_KEYS[format], { defaultValue: FORMAT_NOTE[format] })}
-        </Text>
         <LabeledSwitch
           id="timeline-export-alpha"
           size="small"
-          label={t("timeline:export.alpha", { defaultValue: ALPHA_LABEL })}
+          label={ALPHA_LABEL}
           checked={alpha}
           onChange={setAlpha}
           disabled={format === "mp4"}
-          description={t(ALPHA_NOTE_KEYS[format], { defaultValue: ALPHA_NOTE[format] })}
+          description={ALPHA_NOTE[format]}
         />
       </FlexColumn>
     </Dialog>

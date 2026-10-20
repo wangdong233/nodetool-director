@@ -5,21 +5,21 @@ import type { Theme } from "@mui/material/styles";
 import { memo, useMemo } from "react";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import AutorenewIcon from "@mui/icons-material/Autorenew";
 import {
   FlexColumn,
   FlexRow,
   Text,
   ScrollArea,
+  LoadingSpinner,
   MOTION,
   BORDER_RADIUS,
   SPACING,
   FONT_SIZE_SANS,
   getSpacingPx,
-  reducedMotion
+  EmptyState
 } from "../../ui_primitives";
 import type { TodoItem } from "../../../stores/ApiTypes";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const TODO_SIDEBAR_WIDTH = 280;
 
@@ -32,14 +32,20 @@ const styles = (theme: Theme) =>
     width: TODO_SIDEBAR_WIDTH,
     flexShrink: 0,
     height: "100%",
-    borderLeft: `1px solid rgb(${theme.vars.palette.common.whiteChannel} / 0.08)`,
-    background: `rgb(${theme.vars.palette.common.blackChannel} / 0.20)`,
+    borderLeft: `1px solid ${theme.vars.palette.divider}`,
+    // A 20% black rail reads as a grey slab on the light shell.
+    // theme.palette.mode is fixed to the default scheme under the CSS-vars
+    // theme, so the dark rail goes through the `.dark` color-scheme selector.
+    background: theme.vars.palette.c_overlay_subtle,
+    [theme.getColorSchemeSelector("dark")]: {
+      background: `rgb(${theme.vars.palette.common.blackChannel} / 0.20)`
+    },
     display: "flex",
     flexDirection: "column",
     minHeight: 0,
     ".todo-header": {
       padding: theme.spacing(4, 4, 3),
-      borderBottom: `1px solid rgb(${theme.vars.palette.common.whiteChannel} / 0.06)`,
+      borderBottom: `1px solid ${theme.vars.palette.divider}`,
       display: "flex",
       alignItems: "baseline",
       justifyContent: "space-between",
@@ -68,11 +74,15 @@ const styles = (theme: Theme) =>
       marginTop: theme.spacing(SPACING.micro),
       flexShrink: 0
     },
-    ".todo-icon.pending": { color: `rgb(${theme.vars.palette.common.whiteChannel} / 0.45)` },
+    ".todo-icon.pending": { color: theme.vars.palette.text.disabled },
+    // The spinner sits in an icon-sized box so the text column lines up
+    // with the pending and completed rows.
     ".todo-icon.in_progress": {
-      color: theme.vars.palette.primary.main,
-      animation: `spin ${MOTION.spin} infinite`,
-      ...reducedMotion({ animation: "none" })
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "1em",
+      height: "1em"
     },
     ".todo-icon.completed": { color: theme.vars.palette.success.main },
     ".todo-text": {
@@ -84,25 +94,14 @@ const styles = (theme: Theme) =>
       textDecoration: "line-through",
       opacity: 0.55
     },
-    ".empty-state": {
-      padding: theme.spacing(8, 6),
-      textAlign: "center",
-      opacity: 0.55
-    },
-    "@keyframes spin": {
-      from: { transform: "rotate(0deg)" },
-      to: { transform: "rotate(360deg)" }
-    }
   });
 
 const STATUS_ICONS = {
   pending: RadioButtonUncheckedIcon,
-  in_progress: AutorenewIcon,
   completed: CheckCircleIcon
 } as const;
 
 export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const counts = useMemo(() => todos.reduce(
@@ -121,7 +120,7 @@ export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
           weight={600}
           sx={{ letterSpacing: 0.6, textTransform: "uppercase" }}
         >
-          {t("editor:ui.tasks")}
+          Tasks
         </Text>
         {todos.length > 0 && (
           <Text size="smaller" sx={{ opacity: 0.6 }}>
@@ -131,18 +130,25 @@ export const TodoSidebar: React.FC<TodoSidebarProps> = memo(({ todos }) => {
       </FlexRow>
       <ScrollArea className="todo-list">
         {todos.length === 0 ? (
-          <div className="empty-state">
-            <Text size="small">
-              {t("editor:ui.noTasksYetTheAgentWillListItsPlanHereAsItWorks")}
-            </Text>
-          </div>
+          <EmptyState
+            size="small"
+            title={i18n.t("editor:chat.noTasksYet", { defaultValue: "No tasks yet" })}
+            description={i18n.t("editor:chat.agentListsPlanHere", { defaultValue: "The agent will list its plan here as it works." })}
+          />
         ) : (
           <FlexColumn gap={0}>
             {todos.map((todo, i) => {
-              const Icon = STATUS_ICONS[todo.status];
+              const Icon =
+                todo.status === "in_progress" ? null : STATUS_ICONS[todo.status];
               return (
                 <div key={`${i}-${todo.content}`} className={`todo-item ${todo.status}`}>
-                  <Icon className={`todo-icon ${todo.status}`} />
+                  {Icon ? (
+                    <Icon className={`todo-icon ${todo.status}`} />
+                  ) : (
+                    <span className="todo-icon in_progress">
+                      <LoadingSpinner inline size={14} />
+                    </span>
+                  )}
                   <Text size="small" className={`todo-text ${todo.status}`}>
                     {todo.content}
                   </Text>

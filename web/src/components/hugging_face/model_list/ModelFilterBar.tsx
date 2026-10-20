@@ -16,10 +16,11 @@ import type {
   ModelAvailabilityFilter,
   ModelSource
 } from "../../../stores/ModelManagerStore";
-import { MODEL_GOALS, GOAL_LABEL_KEYS, GOAL_DESCRIPTION_KEYS } from "./modelFit";
+import { MODEL_GOALS } from "./modelFit";
 import { MODEL_FORMATS } from "./modelFormat";
 import type { UseModelsResult } from "./useModels";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const AVAILABILITY_FILTERS: {
   value: ModelAvailabilityFilter;
@@ -27,15 +28,14 @@ const AVAILABILITY_FILTERS: {
   labelKey?: string;
   color: "default" | "success" | "warning";
 }[] = [
-  { value: "all", label: "All", labelKey: "editor:ui.all", color: "default" },
-  { value: "ready", label: "Ready", labelKey: "editor:ui.ready", color: "success" },
+  { value: "all", label: i18n.t("editor:ui.catAll", { defaultValue: "All" }), color: "default" },
+  { value: "ready", label: "Ready", color: "success" },
   {
     value: "download_required",
-    label: "Download required",
-    labelKey: "editor:ui.downloadRequired",
+    label: "Download required", labelKey: "editor:ui.downloadRequired",
     color: "warning"
   },
-  { value: "unavailable", label: "Unavailable", labelKey: "editor:ui.unavailable", color: "default" }
+  { value: "unavailable", label: "Unavailable", color: "default" }
 ];
 
 interface FilterRowProps {
@@ -129,9 +129,9 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
     >
       <FilterRow label={t("editor:ui.iWantTo", { defaultValue: "I want to" })}>
         {MODEL_GOALS.map((goal) => (
-          <Tooltip key={goal.id} title={t(GOAL_DESCRIPTION_KEYS[goal.id] ?? "", { defaultValue: goal.description })} delay={400}>
+          <Tooltip key={goal.id} title={goal.description}>
             <Chip
-              label={t(GOAL_LABEL_KEYS[goal.id] ?? "", { defaultValue: goal.label })}
+              label={goal.label}
               compact
               active={selectedGoal === goal.id}
               color={selectedGoal === goal.id ? "primary" : "default"}
@@ -156,10 +156,10 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
 
       {source === "installed" && (
         <FilterRow label={t("editor:ui.status", { defaultValue: "Status" })}>
-          {AVAILABILITY_FILTERS.map(({ value, label, labelKey, color }) => (
+          {AVAILABILITY_FILTERS.map(({ value, label, color }) => (
             <Chip
               key={value}
-              label={`${labelKey ? t(labelKey, { defaultValue: label }) : label} ${availabilityCounts[value]}`}
+              label={`${label} ${availabilityCounts[value]}`}
               compact
               color={color}
               active={selectedAvailability === value}
@@ -182,7 +182,7 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
             value={maxModelSizeGB}
             onChange={handleSizeChange}
             valueLabelDisplay="auto"
-            valueLabelFormat={(value) => (value === 0 ? t("editor:ui.all", { defaultValue: "All" }) : `${value} GB`)}
+            valueLabelFormat={(value) => (value === 0 ? i18n.t("editor:ui.catAll", { defaultValue: "All" }) : `${value} GB`)}
             step={1}
             min={0}
             max={50}

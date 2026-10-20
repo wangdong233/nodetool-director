@@ -1,6 +1,18 @@
 {
   "attrs": {},
-  "ui": {},
+  "ui": {
+    "installFromTerminal": "从终端安装",
+    "runThis": "运行这条命令",
+    "copyCommand": "复制命令",
+    "clientConnectsToServer": "客户端连接到这个服务器。NodeTool 运行期间它可用。",
+    "clientStartsNodetool": "客户端会自行启动 NodeTool。无论本应用是否在运行,它都可用。",
+    "copyServerUrl": "复制服务器 URL",
+    "copyConfiguration": "复制配置",
+    "removeServer": "移除服务器?",
+    "loadUnlistedPacks": "加载不在允许清单里的节点包",
+    "unlistedPacksDesc": "生产环境默认关闭。关闭时,只有你明确信任过的包才会加载。",
+    "removeEndpoint": "移除端点?"
+  },
   "ctx": {
     "audioList": "音频列表",
     "imageList": "图像列表",
@@ -8,11 +20,11 @@
     "videoList": "视频列表"
   },
   "menus": {
+    "register": "注册",
     "addABaseURLAndAnAPIKeyToUseAnyOpenAICompatibleProvider": "添加 Base URL 和 API 密钥，即可使用任何 OpenAI 兼容的服务商。",
     "addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage": "添加一条命令或一个 URL。其工具会在下一条消息加入智能体的工具箱。",
     "aiAgentForProcessing": "用于处理的 AI 智能体",
     "allFieldsAreRequired": "所有字段均为必填",
-    "apiDocumentation": "API 文档",
     "apiKey": "API 密钥",
     "apiKey2": "API 密钥",
     "centerAllNodesInView": "将所有节点在视图中居中",
@@ -22,16 +34,12 @@
     "commonIssuesFixes": "常见问题与修复",
     "copiedToClipboard": "已复制到剪贴板！",
     "copiedWorkflowJsonToClipboard": "已复制工作流 JSON 到剪贴板！",
-    "dataStorage": "数据与存储",
     "decimalNumberInput": "小数输入",
     "detectedFromTheModelListAddIdsThatTestMissesCallsGoToImagesGenerations": "从模型列表检测得出。可补上 Test 漏掉的 id。调用会发往 /images/generations。",
     "detectedFromTheModelListAddIdsThatTestMissesCallsGoToVideos": "从模型列表检测得出。可补上 Test 漏掉的 id。调用会发往 /videos。",
     "failedToCopySystemInformationToClipboard": "复制系统信息到剪贴板失败",
     "failedToDisconnectGoogleWorkspace": "断开 Google Workspace 失败",
     "failedToImportWorkflowInvalidJsonFile": "导入工作流失败——无效的 JSON 文件",
-    "couldNotSaveSettings": "无法保存设置：{{message}}",
-    "couldNotSaveFolderSettings": "无法保存文件夹设置：{{message}}",
-    "visitProviderForCredentials": "访问 {{label}} 获取你的凭据",
     "folderSettingsHaveBeenSavedSuccessfully": "文件夹设置已成功保存",
     "groupContainerForNodes": "节点分组容器",
     "imageFileInput": "图像文件输入",
@@ -44,11 +52,8 @@
     "oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys": "每行一条 KEY=value。字面值会被加密存储；${NAME} 表示从你的 API 密钥库读取名为 NAME 的密钥。",
     "packageSpecPlaceholder": "@scope/package 或 package@version",
     "providerGuidesLinks": "服务商指南与链接",
-    "providerOptions": "服务商选项",
     "providerRemoved": "已移除服务商",
-    "providerSavedAs": "{{name}} 已保存为 {{id}}",
     "disconnectedGoogleWorkspace": "已断开 Google Workspace。重新连接即可恢复访问。",
-    "customProviderEncryptionNote": "URL 和密钥会按账户加密存储。这些值也可以改由环境变量提供，即 {{baseUrlEnv}} 和 {{apiKeyEnv}}。",
     "providers": {
       "AKI_API_KEY": {
         "description": "AKI.IO AI 模型中心。"
@@ -118,7 +123,6 @@
       },
       "HIGGSFIELD_API_KEY_ID": {
         "credentialLabel": "API 密钥",
-        "credentialPlaceholder": "粘贴 key-id:secret",
         "description": "精选的图像与视频生成模型。"
       },
       "JINA_API_KEY": {
@@ -228,12 +232,10 @@
     "secretValueIsRequired": "密钥值不能为空",
     "seeModelsByProvider": "按服务商查看模型",
     "streamableHTTPWithSSEAsTheFallback": "Streamable HTTP，以 SSE 作为回退。",
-    "supportedModels": "支持的模型",
     "systemInformationCopiedToClipboard": "系统信息已复制到剪贴板！",
     "textCommentNote": "文本注释便签",
     "textInputField": "文本输入字段",
     "wholeNumberInput": "整数输入",
-    "yourSettingsHaveBeenSavedSuccessfully": "你的设置已成功保存",
     "sections": {
       "popular": "热门",
       "language": "语言模型",
@@ -243,35 +245,26 @@
       "compute": "算力与本地",
       "advanced": "服务与高级"
     },
-    "languageModels": "语言模型",
-    "mediaGeneration": "媒体生成",
-    "gatewaysAndHubs": "网关与枢纽",
-    "webSearch": "网页搜索",
-    "computeAndLocal": "算力与本地",
-    "servicesAndAdvanced": "服务与高级",
-    "nameApiKeyUpdated": "已更新 {{name}} API 密钥",
-    "failedToUpdateSecret": "更新密钥失败：{{error}}",
-    "nameApiKeyDeleted": "已删除 {{name}} API 密钥",
-    "failedToDeleteSecret": "删除密钥失败：{{error}}",
     "tags": {
       "Popular": "热门"
     },
-    "other": "其他"
+    "other": "其他",
+    "pmHintRuntimes": "本地 AI、媒体工具、语言运行时",
+    "pmHintIncluded": "显示或隐藏节点分组",
+    "pmHintPython": "来自 PyPI 的扩展节点",
+    "pmHintThirdparty": "其他作者的节点包",
+    "pmSubIncluded": "NodeTool 自带的节点包。关闭一个包会隐藏其节点，重启服务器后生效。添加对应 API 密钥后会出现服务商节点。",
+    "pmSubPython": "从 PyPI 安装 Python 包，为 NodeTool 扩展社区节点。",
+    "pmSubThirdparty": "内置集合之外、由其他作者分发的节点包。",
+    "pmSubRuntimes": "在这台电脑上运行的程序：本地 AI 引擎，如 llama.cpp 与 stable-diffusion-webui。"
   },
   "misc": {
-    "onboardingPacks": {
-      "ollama": "由本地 Ollama 模型支持的对话与嵌入节点。"
-    }
+    "onboardingPacks": {}
   },
   "tutorials": {
     "subtitle": "简短易懂的 NodeTool 上手演示",
-    "countOne": "{{count}} 个教程",
-    "countMany": "{{count}} 个教程",
-    "startBuilding": "开始搭建",
     "openingTask": "正在打开任务…",
-    "browseExamples": "浏览示例",
     "backToWorkspace": "工作区",
-    "playTutorialAria": "播放教程：{{title}}",
     "level": {
       "Beginner": "入门",
       "Intermediate": "进阶"
@@ -405,6 +398,17 @@
       "tagline": "时间线编辑器 · 修剪、编排、字幕",
       "task": "放两个片段，修剪剪辑点，加字幕，预览成品序列。",
       "description": "看开场片段变短、下一镜贴上剪辑点、字幕落到自己的轨道上，然后预览剪好的成片。"
-    }
+    },
+    "tryItYourself": "亲手试一试",
+    "startHere": "从这里开始",
+    "yourTask": "你的任务",
+    "checkTheResult": "检查结果"
+  },
+  "jsScript": {
+    "agentsReadHelper": "智能体会读这段描述来决定是否调用该脚本。"
+  },
+  "packages": {
+    "searchPlaceholder": "搜索(按 /)",
+    "pageTitle": "包管理器"
   }
 }

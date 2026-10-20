@@ -1,6 +1,16 @@
 import type { Components, Theme } from "@mui/material/styles";
 import { editorUiClasses } from "../../../constants/editorUiClasses";
-import { SPACING, getSpacingPx } from "../../ui_primitives";
+import {
+  BORDER_RADIUS,
+  CONTROL,
+  MOTION,
+  SPACING,
+  focusRing,
+  getSpacingPx,
+  menuItemStyles,
+  menuListStyles,
+  menuPaperStyles
+} from "../../ui_primitives";
 
 /**
  * Editor controls theme slice
@@ -152,111 +162,82 @@ export const editorControlsComponents: Components<Theme> = {
 
   MuiPaper: {
     styleOverrides: {
-      root: ({ theme }) => {
-        const editor = theme.editor;
-        return {
-          // Remove MUI dark-mode elevation gradient overlay for a flat, Linear-like look.
-          backgroundImage: "none",
-          [`&.${editorUiClasses.menuPaper}`]: {
-            backgroundColor: theme.vars.palette.Paper.overlay,
-            border: `1px solid ${theme.vars.palette.divider}`,
-            borderRadius: editor.menuRadius,
-            boxShadow: editor.menuShadow,
-            overflow: "hidden"
-          }
-        };
-      }
+      root: () => ({
+        // Remove MUI dark-mode elevation gradient overlay for a flat, Linear-like look.
+        backgroundImage: "none"
+      })
     }
   },
 
+  // Every menu, context menu and select dropdown shares one surface and one
+  // row style. See "Menus" in docs/DESIGN.md.
   MuiMenu: {
     styleOverrides: {
-      list: () => ({
-        [`&.${editorUiClasses.menuList}`]: {
-          padding: 0
-        }
-      })
+      paper: ({ theme }) => menuPaperStyles(theme),
+      list: ({ theme }) => menuListStyles(theme)
     }
   },
 
   MuiMenuItem: {
     styleOverrides: {
-      root: ({ theme }) => ({
-        [`&.${editorUiClasses.menuItem}`]: {
-          fontWeight: 400,
-          fontSize: theme.fontSizeSmaller,
-          padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)}`,
-          transition: theme.transitions.create(["background-color"], {
-            duration: theme.transitions.duration.shortest
-          }),
-          "&:hover": {
-            backgroundColor: theme.vars.palette.action.selected
-          },
-          "&.Mui-selected": {
-            backgroundColor: theme.vars.palette.action.selected,
-            color: theme.vars.palette.primary.main
-          },
-          "&.Mui-selected:hover": {
-            backgroundColor: theme.vars.palette.action.selected
-          }
-        }
-      })
+      root: ({ theme }) => menuItemStyles(theme)
     }
   },
 
+  // One switch skin for every Switch: a pill track that turns primary when on.
+  // Node bodies (the editor switch class) draw the same switch smaller.
   MuiSwitch: {
     styleOverrides: {
       root: ({ theme }) => ({
-        [`&.${editorUiClasses.switchRoot}`]: {
-          margin: 0,
+        width: CONTROL.height.sm,
+        height: getSpacingPx(SPACING.xl),
+        padding: 0,
+        overflow: "visible",
+
+        "& .MuiSwitch-switchBase": {
           padding: 0,
-          width: 24,
-          height: 12,
-          overflow: "visible",
-
-          "& .MuiSwitch-thumb": {
-            width: 12,
-            height: 12,
-            borderRadius: theme.rounded.sm,
-            margin: 0,
-            padding: 0,
-            boxShadow: "none",
-            backgroundColor: "currentColor"
+          margin: getSpacingPx(SPACING.micro),
+          color: theme.vars.palette.common.white,
+          transition: MOTION.transform,
+          "&:hover": {
+            backgroundColor: "transparent"
           },
-
-          "& .MuiSwitch-track": {
-            borderRadius: theme.rounded.sm,
-            backgroundColor: theme.vars.palette.grey[600],
-            opacity: 1
-          },
-
-          "& .MuiSwitch-switchBase": {
-            margin: 0,
-            padding: 0,
-            // Thumb color when OFF
-            color: theme.vars.palette.grey[400],
-            transition: theme.transitions.create(["transform"], {
-              duration: theme.transitions.duration.shortest
-            }),
-            "&.Mui-checked": {
-              // Thumb color when ON
-              color: theme.vars.palette.grey[50],
-              transform: "translateX(12px)",
-              "& + .MuiSwitch-track": {
-                // Track color when ON
-                backgroundColor: theme.vars.palette.grey[500],
-                opacity: 0.9
-              }
-            },
-            "&:hover": {
-              backgroundColor: "transparent"
-            },
-            "&.Mui-disabled": {
-              opacity: 0.6,
-              "& + .MuiSwitch-track": {
-                opacity: 0.4
-              }
+          "&.Mui-checked": {
+            transform: `translateX(${getSpacingPx(SPACING.lg)})`,
+            color: theme.vars.palette.primary.contrastText,
+            "& + .MuiSwitch-track": {
+              backgroundColor: theme.vars.palette.primary.main,
+              opacity: 1
             }
+          },
+          "&.Mui-focusVisible + .MuiSwitch-track": focusRing(theme),
+          "&.Mui-disabled": {
+            opacity: 0.6,
+            "& + .MuiSwitch-track": {
+              opacity: 0.4
+            }
+          }
+        },
+
+        "& .MuiSwitch-thumb": {
+          boxSizing: "border-box",
+          width: getSpacingPx(SPACING.lg),
+          height: getSpacingPx(SPACING.lg),
+          boxShadow: `0 1px 2px ${theme.vars.palette.c_scrim}`
+        },
+
+        "& .MuiSwitch-track": {
+          borderRadius: BORDER_RADIUS.pill,
+          backgroundColor: theme.vars.palette.c_overlay_strong,
+          opacity: 1
+        },
+
+        [`&.${editorUiClasses.switchRoot}`]: {
+          width: CONTROL.height.xs,
+          height: getSpacingPx(SPACING.lg),
+          "& .MuiSwitch-thumb": {
+            width: getSpacingPx(SPACING.md),
+            height: getSpacingPx(SPACING.md)
           }
         }
       })

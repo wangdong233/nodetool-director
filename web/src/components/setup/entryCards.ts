@@ -1,13 +1,14 @@
 /**
  * The creation-flow entry cards (PRD § 6.1) — one list, two hosts.
  *
- * New Project starts with Image, Storyboard, and Workflow and reveals the
- * other formats on request. Studio shows Storyboard, Video, and Script
+ * New Project starts with Image, Storyboard, Read aloud, Workflow, Game
+ * (study-6-I6), and App (study-6-I1) and reveals the other formats on request. Read aloud opens a chat whose
+ * composer speaks the next line (study-5-I3). Studio shows Storyboard, Video, and Script
  * (D24 and D30: Image, Workflow and Game are workspace flows). Shared copy
  * comes from PRD § 6.1 and game-prd Appendix A. Entity adds library creation.
  *
  * `disabled` with a `disabledReason` naming the phase is how a card waits for
- * its flow to be built. All seven are live now; the field stays on the type for
+ * its flow to be built. All nine are live now; the field stays on the type for
  * the next one.
  */
 
@@ -18,63 +19,62 @@ export type EntryFlowId =
   | "storyboard"
   | "video"
   | "script"
+  | "speech"
   | "image"
   | "workflow"
-  | "game";
+  | "game"
+  | "app";
 
 export interface EntryCard extends OptionCardItem {
+  descriptionKey?: string;
   id: EntryFlowId;
 }
 
 export const ENTRY_CARDS: readonly EntryCard[] = [
   {
     id: "entity",
-    title: "Entity",
-    titleKey: "home:entry.entity.title",
-    description: "Create a reusable character, place, style, or prop.",
-    descriptionKey: "editor:ui.createReusableCharacterPlaceStyleProp"
+    title: "Entity", titleKey: "home:entry.entity.title",
+    description: "Create a reusable character, place, style, or prop.", descriptionKey: "editor:ui.createReusableCharacterPlaceStyleProp",
   },
   {
     id: "storyboard",
-    title: "Storyboard",
-    titleKey: "editor:ui.storyboard",
-    description: "From a sentence to a rendered board in four steps.",
-    descriptionKey: "editor:ui.fromSentenceToRenderedBoard"
+    title: "Storyboard", titleKey: "editor:ui.storyboard",
+    description: "From a sentence to a rendered board in four steps.", descriptionKey: "editor:ui.fromSentenceToRenderedBoard",
   },
   {
     id: "video",
-    title: "Video",
-    titleKey: "editor:ui.video",
-    description: "From a sentence to a cut on the timeline, no board.",
-    descriptionKey: "editor:ui.fromSentenceToCutNoBoard"
+    title: "Video", titleKey: "editor:ui.video",
+    description: "From a sentence to a cut on the timeline, no board.", descriptionKey: "editor:ui.fromSentenceToCutNoBoard",
   },
   {
     id: "script",
-    title: "Script",
-    titleKey: "editor:ui.script",
-    description: "From a topic to voiced lines, ready to place.",
-    descriptionKey: "editor:ui.fromTopicToVoicedLines"
+    title: "Script", titleKey: "editor:ui.script",
+    description: "From a topic to voiced lines, ready to place.", descriptionKey: "editor:ui.fromTopicToVoicedLines",
+  },
+  {
+    id: "speech",
+    title: "Read aloud",
+    description: "Type a line and hear it spoken.", descriptionKey: "home:entry.speech.desc"
   },
   {
     id: "image",
-    title: "Image",
-    titleKey: "editor:ui.image",
-    description: "From a description to a picked variation in the editor.",
-    descriptionKey: "editor:ui.fromDescriptionToPickedVariation"
+    title: "Image", titleKey: "editor:ui.image",
+    description: "From a description to a picked variation in the editor.", descriptionKey: "editor:ui.fromDescriptionToPickedVariation",
   },
   {
     id: "workflow",
-    title: "Workflow",
-    titleKey: "editor:ui.workflow",
-    description: "From a task to a running graph, with the plan reviewed first.",
-    descriptionKey: "editor:ui.fromTaskToRunningGraph"
+    title: "Workflow", titleKey: "editor:ui.workflow",
+    description: "From a task to a running graph, with the plan reviewed first.", descriptionKey: "editor:ui.fromTaskToRunningGraph",
   },
   {
     id: "game",
-    title: "Game",
-    titleKey: "home:entry.game.title",
-    description: "From an idea to a playable game, with the design reviewed first.",
-    descriptionKey: "editor:ui.fromAnIdeaToAPlayableGameWithTheDesignReviewedFirst"
+    title: "Game", titleKey: "home:entry.game.title",
+    description: "From an idea to a playable game, with the design reviewed first.", descriptionKey: "editor:ui.fromAnIdeaToAPlayableGameWithTheDesignReviewedFirst",
+  },
+  {
+    id: "app",
+    title: "App",
+    description: "A page someone else can use, with the workflow behind it built and tested."
   }
 ];
 

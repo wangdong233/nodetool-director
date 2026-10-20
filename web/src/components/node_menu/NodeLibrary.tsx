@@ -2,7 +2,15 @@
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  isValidElement,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -16,7 +24,10 @@ import {
   SPACING,
   getSpacingPx,
   reducedMotion,
-  PanelHeader
+  PanelHeader,
+  EmptyState,
+  TabGroup,
+  type TabItem
 } from "../ui_primitives";
 import NodeLibraryRow from "./NodeLibraryRow";
 import NodeInfo from "./NodeInfo";
@@ -36,7 +47,7 @@ import {
 } from "../../config/quickAccessCategories";
 import type { NodeCategoryId } from "../../stores/PanelStore";
 import type { NodeMetadata } from "../../stores/ApiTypes";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const ROW_HEIGHT = 36;
 
@@ -170,74 +181,74 @@ const styles = (theme: Theme, isMobile: boolean) =>
       width: isMobile ? "124px" : "156px",
       maxWidth: "42%",
       flexShrink: 0,
-      display: "flex",
-      flexDirection: "column",
-      gap: getSpacingPx(SPACING.micro),
       padding: theme.spacing(
         SPACING.xs,
         SPACING.xs,
         SPACING.xs,
         isMobile ? SPACING.xs : SPACING.lg
       ),
-      overflowY: "auto",
-      ...thinScrollbarStyles(theme)
-    },
-    ".nl-cat": {
-      position: "relative",
-      display: "flex",
-      alignItems: "center",
-      gap: theme.spacing(SPACING.xs),
-      width: "100%",
-      padding: theme.spacing(SPACING.xs),
-      border: "none",
-      background: "transparent",
-      borderRadius: BORDER_RADIUS.md,
-      color: theme.vars.palette.text.secondary,
-      fontSize: "var(--fontSizeSmall)",
-      lineHeight: 1.2,
-      textAlign: "left",
-      cursor: "pointer",
-      transition: `${MOTION.background}, color ${MOTION.fast}`,
-      ...reducedMotion({ transition: MOTION.none }),
-      "& .nl-cat-icon": {
-        display: "inline-flex",
-        flexShrink: 0,
-        "& svg": { fontSize: "var(--fontSizeBig)" }
-      },
-      "& .nl-cat-label": {
-        flex: 1,
-        minWidth: 0,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis"
-      },
-      "& .nl-cat-count": {
-        fontSize: "var(--fontSizeSmaller)",
-        opacity: 0.7,
-        fontVariantNumeric: "tabular-nums"
-      },
-      "&:hover": {
-        backgroundColor: theme.vars.palette.action.hover,
-        color: theme.vars.palette.text.primary
-      },
-      "&.active": {
-        backgroundColor: theme.vars.palette.action.selected,
-        color: theme.vars.palette.text.primary,
-        "& .nl-cat-icon svg": { color: theme.vars.palette.primary.main },
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          left: 0,
-          top: "22%",
-          bottom: "22%",
-          width: "2px",
-          borderRadius: `0 ${BORDER_RADIUS.xs} ${BORDER_RADIUS.xs} 0`,
-          backgroundColor: theme.vars.palette.primary.main
+      "& .MuiTabs-scroller": thinScrollbarStyles(theme),
+      "& .MuiTabs-flexContainer": { gap: getSpacingPx(SPACING.micro) },
+      // The selected row draws its own bar, so the sliding indicator goes.
+      "& .MuiTabs-indicator": { display: "none" },
+      "& .MuiTab-root": {
+        position: "relative",
+        justifyContent: "flex-start",
+        gap: theme.spacing(SPACING.xs),
+        width: "100%",
+        maxWidth: "none",
+        minHeight: 0,
+        padding: theme.spacing(SPACING.xs),
+        borderRadius: BORDER_RADIUS.md,
+        color: theme.vars.palette.text.secondary,
+        lineHeight: 1.2,
+        textAlign: "left",
+        transition: `${MOTION.background}, color ${MOTION.fast}`,
+        ...reducedMotion({ transition: MOTION.none }),
+        "& .MuiTab-iconWrapper": {
+          display: "inline-flex",
+          flexShrink: 0,
+          margin: 0,
+          "& svg": { fontSize: "var(--fontSizeBig)" }
+        },
+        "& .tab-group-label": {
+          flex: 1,
+          minWidth: 0,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis"
+        },
+        "& .tab-group-count": {
+          marginLeft: 0,
+          color: "inherit",
+          opacity: 0.7
+        },
+        "&:hover": {
+          backgroundColor: theme.vars.palette.action.hover,
+          color: theme.vars.palette.text.primary
+        },
+        "&.Mui-selected": {
+          backgroundColor: theme.vars.palette.action.selected,
+          color: theme.vars.palette.text.primary,
+          "& .tab-group-count": { color: "inherit" },
+          "& .MuiTab-iconWrapper svg": {
+            color: theme.vars.palette.primary.main
+          },
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            left: 0,
+            top: "22%",
+            bottom: "22%",
+            width: "2px",
+            borderRadius: `0 ${BORDER_RADIUS.xs} ${BORDER_RADIUS.xs} 0`,
+            backgroundColor: theme.vars.palette.primary.main
+          }
+        },
+        "&.Mui-focusVisible": {
+          outline: `2px solid ${theme.vars.palette.primary.main}`,
+          outlineOffset: "-2px"
         }
-      },
-      "&:focus-visible": {
-        outline: `2px solid ${theme.vars.palette.primary.main}`,
-        outlineOffset: "-2px"
       }
     },
 
@@ -252,16 +263,6 @@ const styles = (theme: Theme, isMobile: boolean) =>
         SPACING.xs
       ),
       ...thinScrollbarStyles(theme)
-    },
-    ".nl-empty": {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      height: "100%",
-      padding: theme.spacing(2),
-      textAlign: "center",
-      color: theme.vars.palette.text.secondary,
-      fontSize: "var(--fontSizeNormal)"
     },
 
     ".nl-footer": {
@@ -294,7 +295,6 @@ interface NodeLibraryProps {
  */
 const NodeLibrary = memo<NodeLibraryProps>(
   ({ activeSubcategory, onSubcategoryChange, isMobile = false }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const cssStyles = useMemo(() => styles(theme, isMobile), [theme, isMobile]);
     const [query, setQuery] = useState("");
@@ -320,8 +320,10 @@ const NodeLibrary = memo<NodeLibraryProps>(
       }
     }, [autoFocusEnabled]);
 
+    // Hidden nodes stay runnable but never appear in the palette, so the
+    // rail counts must leave them out to match the listed rows.
     const allNodes = useMemo(
-      () => Object.values(metadataRecord),
+      () => Object.values(metadataRecord).filter((node) => !node.hidden),
       [metadataRecord]
     );
 
@@ -404,14 +406,36 @@ const NodeLibrary = memo<NodeLibraryProps>(
 
     const handleListLeave = useCallback(() => setHoveredType(null), []);
 
+    const railTabs = useMemo<TabItem[]>(
+      () =>
+        NODE_SUBCATEGORIES.map((sub) => ({
+          value: sub.id,
+          label: sub.label,
+          icon: isValidElement(sub.icon) ? sub.icon : undefined,
+          count: counts[sub.id] ?? 0
+        })),
+      [counts]
+    );
+
+    const handleRailChange = useCallback(
+      (id: string) => {
+        const sub = NODE_SUBCATEGORIES.find((item) => item.id === id);
+        if (sub) {
+          onSubcategoryChange(sub.id);
+        }
+      },
+      [onSubcategoryChange]
+    );
+
     return (
       <div css={cssStyles} className="nl-root">
         <PanelHeader
-          title={t("nav:settings.docsTopics.nodes", { defaultValue: "Nodes" })}
+          title="Nodes"
           count={nodes.length}
           docsTopic="nodes"
           description={getTopLevelCategory("nodes").description}
         />
+
         <div className="nl-search">
           <SearchIcon className="nl-search-icon" />
           <input
@@ -419,15 +443,15 @@ const NodeLibrary = memo<NodeLibraryProps>(
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
-            aria-label={t("editor:ui.searchNodes", { defaultValue: "Search nodes" })}
+            placeholder={i18n.t("ui2:attrs.searchNodes", { defaultValue: "Search nodes" })}
+            aria-label={i18n.t("ui2:attrs.searchNodes", { defaultValue: "Search nodes" })}
           />
           {query && (
             <button
               type="button"
               className="nl-search-clear"
               onClick={() => setQuery("")}
-              aria-label={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
+              aria-label={i18n.t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
             >
               <ClearIcon />
             </button>
@@ -436,36 +460,23 @@ const NodeLibrary = memo<NodeLibraryProps>(
 
         <div className="nl-body">
           <div className="nl-browse">
-            <nav
+            <TabGroup
               className="nl-rail"
-              role="tablist"
-              aria-label={t("editor:ui.nodeCategories", { defaultValue: "Node categories" })}
-            >
-              {NODE_SUBCATEGORIES.map((sub) => (
-                <button
-                  key={sub.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeSubcategory === sub.id}
-                  className={`nl-cat ${activeSubcategory === sub.id ? "active" : ""}`}
-                  onClick={() => onSubcategoryChange(sub.id)}
-                >
-                  <span className="nl-cat-icon">{sub.icon}</span>
-                  <span className="nl-cat-label">
-                    {"labelKey" in sub && sub.labelKey
-                      ? t(`editor:ui.${sub.labelKey}`, {
-                          defaultValue: sub.label
-                        })
-                      : sub.label}
-                  </span>
-                  <span className="nl-cat-count">{counts[sub.id] ?? 0}</span>
-                </button>
-              ))}
-            </nav>
+              orientation="vertical"
+              size="small"
+              aria-label={i18n.t("editor:ui.nodeCategories", { defaultValue: "Node categories" })}
+              tabs={railTabs}
+              value={activeSubcategory}
+              onChange={handleRailChange}
+            />
 
             {nodes.length === 0 ? (
               <div className="nl-list">
-                <div className="nl-empty">{t("ui2:attrs.noMatchingNodes", { defaultValue: "No matching nodes" })}</div>
+                <EmptyState
+                  size="small"
+                  variant="no-results"
+                  title={i18n.t("ui2:attrs.noMatchingNodes", { defaultValue: "No matching nodes" })}
+                />
               </div>
             ) : (
               <div
@@ -512,7 +523,7 @@ const NodeLibrary = memo<NodeLibraryProps>(
             ) : (
               <div className="nl-info-empty">
                 <Text component="span" size="small" color="secondary">
-                  {t("editor:ui.dragANodeOntoTheCanvasHoverForDetails")}
+                  Drag a node onto the canvas. Hover for details.
                 </Text>
               </div>
             )}

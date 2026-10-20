@@ -17,17 +17,15 @@ import React, { memo, useCallback, useMemo, useState } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import ImageIcon from "@mui/icons-material/Image";
 
 import { SPACING,
-  CheckerDropzone,
   FlexColumn,
   FlexRow,
   RunModelButton,
   ToggleGroup,
   ToggleOption, BORDER_RADIUS } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
-import ImageRefPreview from "../../node/ImageRefPreview";
+import ImagePreview from "./ImagePreview";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
 
@@ -40,6 +38,7 @@ import {
 } from "../../../hooks/nodes/useNodeIO";
 import { asImageRef } from "../../../utils/imageRef";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 // Node types bound to this bespoke body — the Bria + 851-labs
 // background-removal variants.
@@ -112,17 +111,6 @@ const styles = (theme: Theme) =>
     }
   });
 
-const ImagePreview: React.FC<{ value: unknown; placeholder: string }> = memo(({
-  value,
-  placeholder
-}) => (
-  <ImageRefPreview
-    value={value}
-    placeholder={<CheckerDropzone message={placeholder} icon={<ImageIcon />} />}
-  />
-));
-ImagePreview.displayName = "ImagePreview";
-
 interface MasksExtractorBodyProps {
   id: string;
   nodeType: string;
@@ -190,12 +178,12 @@ const MasksExtractorBodyInner: React.FC<MasksExtractorBodyProps> = ({
         {tab === "image" ? (
           <ImagePreview
             value={imageTabValue}
-            placeholder={t("editor:ui.connectAnImage", { defaultValue: "Connect an image" })}
+            message="Connect an image"
           />
         ) : (
           <ImagePreview
             value={maskTabValue}
-            placeholder={t("editor:ui.runTheNodeToExtractAMask", { defaultValue: "Run the node to extract a mask" })}
+            message={i18n.t("editor:ui.runTheNodeToExtractAMask", { defaultValue: "Run the node to extract a mask" })}
           />
         )}
       </div>
@@ -221,7 +209,7 @@ const MasksExtractorBodyInner: React.FC<MasksExtractorBodyProps> = ({
         </FlexRow>
         <div className="action-row">
           <RunModelButton
-            label={t("editor:ui.recalculateMask", { defaultValue: "Recalculate Mask" })}
+            label={t("editor:ui.recalculateMask", { defaultValue: "Recalculate mask" })}
             isRunning={isRunning}
             onClick={runSingleNode}
           />

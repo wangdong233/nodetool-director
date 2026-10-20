@@ -25,12 +25,12 @@ export type OnboardingCapability =
   | "embedding";
 
 export const CAPABILITY_LABELS = {
-  chat: "Chat & Reasoning",
+  chat: "Chat & reasoning",
   vision: "Vision (image understanding)",
-  image: "Image Generation",
-  "speech-to-text": "Speech to Text",
-  "text-to-speech": "Text to Speech",
-  embedding: "Embeddings & Search"
+  image: "Image generation",
+  "speech-to-text": "Speech to text",
+  "text-to-speech": "Text to speech",
+  embedding: "Embeddings & search"
 } satisfies Record<OnboardingCapability, string>;
 
 export const CAPABILITY_LABEL_KEYS: Record<OnboardingCapability, string> = {
@@ -55,7 +55,7 @@ export interface OnboardingEngine {
   /** Platform restriction, when there is one (e.g. Apple Silicon only). */
   platform?: string;
   /**
-   * Runtime id in the desktop Package Manager's "Software" tab, when the engine
+   * Runtime id in the desktop Package Manager's "Engines & tools" list, when the engine
    * is installed as a runtime rather than bundled. Matches
    * {@link RuntimePackagesStore} status ids.
    */

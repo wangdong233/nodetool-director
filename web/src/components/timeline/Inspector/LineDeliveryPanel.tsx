@@ -1,14 +1,13 @@
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 import React, { memo, useMemo, useState } from "react";
 import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
+import ErrorBanner from "../../support/ErrorBanner";
 import {
   Caption,
   CollapsibleSection,
   EditorButton,
   EmptyState,
   FlexColumn,
-  TextInput,
+  TextArea,
   SPACING
 } from "../../ui_primitives";
 import { findClipById } from "../../../stores/timeline/clipLookup";
@@ -18,6 +17,8 @@ import { useLineDeliveryRevision } from "../../../hooks/timeline/useLineDelivery
 import { useScriptStore, effectiveVoice } from "../../../stores/script/ScriptStore";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface LineDeliveryPanelProps {
   clipId: string;
@@ -78,7 +79,7 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
       instructions: instructions.trim() || undefined
     });
     if (!requestId) {
-      setError(i18n.t("timeline:attrs.theLineDeliveryCouldNotBeSubmittedCheckTheScriptVoiceAndConnection", { defaultValue: "The line delivery could not be submitted. Check the Script voice and connection." }));
+      setError(t("timeline:attrs.theLineDeliveryCouldNotBeSubmittedCheckTheScriptVoiceAndConnection", { defaultValue: "The line delivery could not be submitted. Check the Script voice and connection." }));
     } else {
       setInstructions("");
     }
@@ -99,11 +100,10 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
         {line.direction && (
           <Caption color="secondary">Direction: {line.direction}</Caption>
         )}
-        <TextInput
+        <TextArea
           value={instructions}
-          onChange={(event) => setInstructions(event.target.value)}
+          onChange={(value) => setInstructions(value)}
           placeholder={t("timeline:attrs.optionalDeliveryDirection", { defaultValue: "Optional delivery direction…" })}
-          multiline
           minRows={2}
           maxRows={5}
           compact
@@ -120,7 +120,17 @@ const LineDeliveryPanel: React.FC<LineDeliveryPanelProps> = ({ clipId }) => {
         >
           {pending ? i18n.t("timeline:attrs.generatingDelivery", { defaultValue: "Generating delivery…" }) : i18n.t("timeline:attrs.changeLineDelivery", { defaultValue: "Change line delivery" })}
         </EditorButton>
-        {error && <Caption color="error">{error}</Caption>}
+        {error && (
+          <ErrorBanner
+            report={{
+              source: "operation-failure",
+              summary: "Changing line delivery failed",
+              errorText: error
+            }}
+          >
+            {error}
+          </ErrorBanner>
+        )}
       </FlexColumn>
     </CollapsibleSection>
   );

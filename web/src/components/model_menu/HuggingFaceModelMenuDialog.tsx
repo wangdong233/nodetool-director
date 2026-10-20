@@ -103,8 +103,8 @@ function HuggingFaceModelMenuDialog({
       onClose={onClose}
       modelData={sortedModelData}
       onModelChange={onModelChange}
-      title={t("editor:ui.selectHuggingFaceModel", { defaultValue: "Select HuggingFace Model" })}
-      searchPlaceholder={t("editor:ui.searchHuggingFaceModels", { defaultValue: "Search HuggingFace models..." })}
+      title={t("editor:ui.selectHuggingFaceModel", { defaultValue: "Select HuggingFace model" })}
+      searchPlaceholder="Search HuggingFace models"
       storeHook={useHuggingFaceImageModelMenuStore}
       recommendedModels={recommendedModels}
       modelPacks={modelPacks}

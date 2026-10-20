@@ -4,7 +4,7 @@ import type { Metadata, Viewport } from "next";
 export const metadata: Metadata = {
   title: "AI for Advertising | NodeTool",
   description:
-    "Put generative models into your creative and production pipeline, from the first idea through to delivery. Product videos, ad creative, thumbnails, and brand assets from every major model, on your own keys. Teams move faster, pitch more ambitious work, and spend less doing it.",
+    "Turn product photos into editable video ads. An agent storyboards the spot, renders the shots, and cuts a timeline you can adapt to 9:16, 4:5, and 1:1.",
   metadataBase: new URL("https://nodetool.ai"),
   alternates: {
     canonical: "/marketing",
@@ -27,12 +27,6 @@ export const metadata: Metadata = {
       "From the first idea through to delivery: product videos, ad creative, thumbnails, and brand assets, from every major model, on your own keys.",
     url: "https://nodetool.ai/marketing",
     siteName: "NodeTool",
-    images: [
-      {
-        url: "/preview.png",
-        alt: "NodeTool Marketing Workflow Canvas",
-      },
-    ],
     locale: "en_US",
     type: "website",
   },
@@ -41,7 +35,6 @@ export const metadata: Metadata = {
     title: "AI for Advertising | NodeTool",
     description:
       "Every model. Your keys. Your agent. Advertising production end to end.",
-    images: ["/preview.png"],
   },
 };
 
@@ -67,7 +60,7 @@ export default function MarketingLayout({
           applicationCategory: "MultimediaApplication",
           operatingSystem: "macOS, Windows, Linux, Web browser",
           url: "https://nodetool.ai/marketing",
-          license: "https://github.com/nodetool-ai/nodetool/blob/main/LICENSE",
+          license: "https://github.com/nodetool-ai/nodetool/blob/main/LICENSE.txt",
           author: { "@type": "Organization", name: "NodeTool", url: "https://nodetool.ai" },
         }}
       />

@@ -57,8 +57,8 @@ import ShotDesignFrame from "./ShotDesignFrame";
 import { isShotGenerating } from "./ShotStatusPill";
 import { copiedStill, flippedStill } from "./shotImageEdits";
 import { syncShotClipToTimeline } from "../../stores/storyboard/timelineSync";
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface ShotEditViewerProps {
   boardId: string;
@@ -108,7 +108,7 @@ const reportFailure = (error: unknown, what: string): void => {
     type: "error",
     alert: true,
     dismissable: true,
-    content: `${what} ${getErrorMessage(error, i18n.t("storyboard:attrs.tryAgain2", { defaultValue: "Try again." }))}`
+    content: `${what} ${getErrorMessage(error, "Try again.")}`
   });
 };
 
@@ -250,6 +250,9 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
   const acceptClipVersion = useStoryboardStore(
     (state) => state.acceptClipVersion
   );
+  const setShotKeyframe = useStoryboardStore(
+    (state) => state.setShotKeyframe
+  );
   const appendShotKeyframeVersion = useStoryboardStore(
     (state) => state.appendShotKeyframeVersion
   );
@@ -367,25 +370,21 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
     [shot.id]
   );
 
-  /** Upload a rendered still as a candidate without changing current media. */
+  /** Upload a rendered still and make it the shot's current still. */
   const addVersion = useCallback(
     (file: File, failure: string) =>
       uploadAsset({
         file,
         onCompleted: (asset) => {
           setBusy(false);
-          appendShotKeyframeVersion(
-            boardId,
-            shot.id,
-            mediaRefFromAsset(asset, "image")
-          );
+          setShotKeyframe(boardId, shot.id, mediaRefFromAsset(asset, "image"));
         },
         onFailed: (error) => {
           setBusy(false);
           reportFailure(error, failure);
         }
       }),
-    [uploadAsset, appendShotKeyframeVersion, boardId, shot.id]
+    [uploadAsset, setShotKeyframe, boardId, shot.id]
   );
 
   const handleStageKeyDown = useCallback(
@@ -445,9 +444,8 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
         "The flip could not be saved."
       );
     } catch (error) {
-      reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeFlipped", { defaultValue: "The still could not be flipped." }));
-    } finally {
       setBusy(false);
+      reportFailure(error, i18n.t("storyboard:attrs.theStillCouldNotBeFlipped", { defaultValue: "The still could not be flipped." }));
     }
   }, [stillUrl, stillName, addVersion]);
 
@@ -589,9 +587,9 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
           </ToggleGroup>
         )}
         <ToolbarIconButton
-          icon={<ChevronLeftIcon sx={{ fontSize: "1em" }} />}
+          icon={<ChevronLeftIcon fontSize="inherit" />}
           tooltip={t("storyboard:attrs.previousVersion", { defaultValue: "Previous version" })}
-          ariaLabel={t("storyboard:attrs.previousVersion", { defaultValue: "Previous version" })}
+          ariaLabel="Previous version"
           onClick={handlePrevious}
           disabled={index <= 0}
         />
@@ -599,9 +597,9 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
           {versions.length > 0 ? `${index + 1} / ${versions.length}` : "0 / 0"}
         </Box>
         <ToolbarIconButton
-          icon={<ChevronRightIcon sx={{ fontSize: "1em" }} />}
+          icon={<ChevronRightIcon fontSize="inherit" />}
           tooltip={t("storyboard:attrs.nextVersion", { defaultValue: "Next version" })}
-          ariaLabel={t("storyboard:attrs.nextVersion", { defaultValue: "Next version" })}
+          ariaLabel="Next version"
           onClick={handleNext}
           disabled={index >= versions.length - 1}
         />
@@ -621,30 +619,30 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
           sx={{ "@media (pointer: coarse)": { display: "none" } }}
         >
           <ToolbarIconButton
-            icon={<ArrowUpwardIcon sx={{ fontSize: "1em" }} />}
+            icon={<ArrowUpwardIcon fontSize="inherit" />}
             tooltip={t("storyboard:attrs.panUp", { defaultValue: "Pan up" })}
-            ariaLabel={t("storyboard:attrs.panUp", { defaultValue: "Pan up" })}
+            ariaLabel="Pan up"
             onClick={() => nudgePan(0, -PAN_STEP)}
             disabled={!previewed}
           />
           <ToolbarIconButton
-            icon={<ArrowDownwardIcon sx={{ fontSize: "1em" }} />}
+            icon={<ArrowDownwardIcon fontSize="inherit" />}
             tooltip={t("storyboard:attrs.panDown", { defaultValue: "Pan down" })}
-            ariaLabel={t("storyboard:attrs.panDown", { defaultValue: "Pan down" })}
+            ariaLabel="Pan down"
             onClick={() => nudgePan(0, PAN_STEP)}
             disabled={!previewed}
           />
           <ToolbarIconButton
-            icon={<ArrowBackIcon sx={{ fontSize: "1em" }} />}
+            icon={<ArrowBackIcon fontSize="inherit" />}
             tooltip={t("storyboard:attrs.panLeft", { defaultValue: "Pan left" })}
-            ariaLabel={t("storyboard:attrs.panLeft", { defaultValue: "Pan left" })}
+            ariaLabel="Pan left"
             onClick={() => nudgePan(-PAN_STEP, 0)}
             disabled={!previewed}
           />
           <ToolbarIconButton
-            icon={<ArrowForwardIcon sx={{ fontSize: "1em" }} />}
+            icon={<ArrowForwardIcon fontSize="inherit" />}
             tooltip={t("storyboard:attrs.panRight", { defaultValue: "Pan right" })}
-            ariaLabel={t("storyboard:attrs.panRight", { defaultValue: "Pan right" })}
+            ariaLabel="Pan right"
             onClick={() => nudgePan(PAN_STEP, 0)}
             disabled={!previewed}
           />
@@ -663,15 +661,17 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
             size="small"
             onClick={handleAccept}
             aria-label={`Set ${shown} ${index + 1} as current ${shown}`}
-          >{t("storyboard:attrs.setCurrent", { defaultValue: "Set current" })}</EditorButton>
+          >
+            Set current
+          </EditorButton>
         )}
         <Box sx={{ flex: 1 }} />
         {!readOnly && (
           <>
             <ToolbarIconButton
-              icon={<FlipIcon sx={{ fontSize: "1em" }} />}
+              icon={<FlipIcon fontSize="inherit" />}
               tooltip={t("storyboard:attrs.mirrorThisStillAsANewVersion", { defaultValue: "Mirror this still as a new version" })}
-              ariaLabel={t("storyboard:attrs.flipHorizontal", { defaultValue: "Flip horizontal" })}
+              ariaLabel="Flip horizontal"
               onClick={() => void handleFlip()}
               disabled={!canEditStill}
             />
@@ -679,8 +679,10 @@ const ShotEditViewerInner: React.FC<ShotEditViewerProps> = ({
               size="small"
               onClick={() => void handleOpenImageEditor()}
               disabled={!canEditStill}
-              title={t("storyboard:attrs.editACopyOfThisStillTheEditComesBackAsANewVersion", { defaultValue: "Edit a copy of this still; the edit comes back as a new version" })}
-            >{t("storyboard:attrs.openInImageEditor", { defaultValue: "Open in image editor" })}</EditorButton>
+              tooltip={t("storyboard:attrs.editACopyOfThisStillTheEditComesBackAsANewVersion", { defaultValue: "Edit a copy of this still; the edit comes back as a new version" })}
+            >
+              Open in image editor
+            </EditorButton>
           </>
         )}
       </FlexRow>

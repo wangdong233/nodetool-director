@@ -1,14 +1,16 @@
 import { gameAuthoringBaseline } from "./authoring-reconcile.js";
 import {
-  gameDocument3D, gameAudioSourceIssues, gameInputBindingIssues, gameParticleIssues, parseGameDocument, type AnyGameDocument, type GameDiagnostic,
+  gameDocument3D, gameAudioSourceIssues, gameInputBindingIssues, gameParticleIssues, gameParticleRenderWarnings, gameUiIssues, parseGameDocument, type AnyGameDocument, type GameDiagnostic,
   type GameDocument3D, type GameEntity3D, type GamePrefab3D
 } from "@nodetool-ai/protocol";
-import { GAME_LOCAL_SHADOW_LIGHT_BUDGET_3D, gameScriptParamValueOf } from "@nodetool-ai/protocol";
+import { GAME_LOCAL_SHADOW_LIGHT_BUDGET_3D, GAME_MAX_DECALS_3D, gameScriptParamValueOf } from "@nodetool-ai/protocol";
 import { scriptParamReferenceIssues } from "./script-params.js";
 import { GAME_ENGINE_4_UNAVAILABLE, validateGame } from "./validate.js";
 import { audioMixerReferenceIssues } from "./audio-mixer-references.js";
 import { validateAnimationGraph3D, validateAnimatorGraph3D } from "./validate-animation-graph3d.js";
 import { collisionLayerIssues3D } from "./spatial3d/layers.js";
+import { physicsMaterialIssues3D } from "./spatial3d/materials.js";
+import { materialReferenceIssues3D } from "./material-references3d.js";
 
 export interface GameValidationResult3D {
   readonly valid: boolean;
@@ -16,6 +18,8 @@ export interface GameValidationResult3D {
   readonly diagnostics: readonly GameDiagnostic[];
   readonly issues: readonly GameDiagnostic[];
   readonly errors: readonly string[];
+  /** Findings that do not stop the document from playing, such as fields this dimension ignores. */
+  readonly warnings: readonly GameDiagnostic[];
 }
 
 /** Structural and semantic validation happens before preparing assets or physics. */
@@ -25,6 +29,7 @@ export function validateGame3D(value: unknown): GameValidationResult3D {
   const add = (code: string, path: (string | number)[], message: string): void => {
     diagnostics.push({ code, path, message });
   };
+  const warnings: GameDiagnostic[] = [];
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {
       add("invalid_schema", issue.path.map((part) => typeof part === "symbol" ? part.toString() : part), issue.message);
@@ -51,6 +56,9 @@ export function validateGame3D(value: unknown): GameValidationResult3D {
     }
     for (const issue of gameInputBindingIssues(document)) { add("missing_input_binding_target", issue.path, issue.message); }
     for (const issue of collisionLayerIssues3D(document)) { add(issue.code, issue.path, issue.message); }
+    for (const issue of physicsMaterialIssues3D(document)) { add(issue.code, issue.path, issue.message); }
+    for (const issue of materialReferenceIssues3D(document)) { add(issue.code, issue.path, issue.message); }
+    for (const issue of gameUiIssues(document)) { add("invalid_ui", issue.path, issue.message); }
     for (const [slot, asset] of Object.entries(document.assets)) {
       if (asset.mediaKind === "model" || asset.mediaKind === "collider") {
         if (["x", "y", "z"].some((axis) => {
@@ -63,6 +71,9 @@ export function validateGame3D(value: unknown): GameValidationResult3D {
         if (new Set(asset.nodeIds).size !== asset.nodeIds.length || new Set(asset.clipIds).size !== asset.clipIds.length) {
           add("ambiguous_selector", ["assets", slot], "Prepared node and clip IDs must be unique");
         }
+        if (asset.clipDurations && (Object.keys(asset.clipDurations).length !== asset.clipIds.length || asset.clipIds.some(id => asset.clipDurations?.[id] === undefined))) {
+          add("invalid_animation_duration", ["assets", slot, "clipDurations"], "Prepared clip durations must cover exactly the model clip IDs");
+        }
       }
     }
     for (const [graphId, graph] of Object.entries(document.animationGraphs ?? {})) {
@@ -70,6 +81,9 @@ export function validateGame3D(value: unknown): GameValidationResult3D {
     }
 
     function validateEntities(entities: readonly GameEntity3D[], path: (string | number)[], prefab?: GamePrefab3D): void {
+      if (entities.filter((entity) => entity.decal3d).length > GAME_MAX_DECALS_3D) {
+        add("decal_budget", path, `At most ${GAME_MAX_DECALS_3D} decals may be authored per scene or prefab`);
+      }
       const byId = new Map<string, GameEntity3D>();
       for (const [index, entity] of entities.entries()) {
         if (byId.has(entity.id)) { add("duplicate_entity", [...path, index, "id"], `Duplicate entity ${entity.id}`); }
@@ -145,6 +159,14 @@ export function validateGame3D(value: unknown): GameValidationResult3D {
             add("missing_model_node", [...entityPath, "model", "nodeId"], "Stable model node ID does not exist");
           }
         }
+        if (entity.decal3d) {
+          checkAsset(entity.decal3d.assetId, "image", [...entityPath, "decal3d", "assetId"]);
+          const receiver = byId.get(entity.decal3d.receiverId);
+          if (!receiver || receiver.id === entity.id || receiver.templateOnly ||
+            !(receiver.primitive || receiver.model && !receiver.animator3d)) {
+            add("invalid_decal_receiver", [...entityPath, "decal3d", "receiverId"], "Decal receiver must be another active primitive or rigid model in the same scene or prefab");
+          }
+        }
         if (entity.collider3d?.kind === "convexHull" || entity.collider3d?.kind === "triangleMesh") {
           checkAsset(entity.collider3d.assetId, "collider", [...entityPath, "collider3d", "assetId"]);
           const binding = document.assets[entity.collider3d.assetId];
@@ -157,6 +179,9 @@ export function validateGame3D(value: unknown): GameValidationResult3D {
           for (const issue of gameAudioSourceIssues(entity.audioSource)) { add("invalid_audio_source", [...entityPath, "audioSource", ...issue.path], issue.message); }
         }
         for (const issue of entity.particles ? gameParticleIssues(entity.particles) : []) { add("invalid_particles", [...entityPath, "particles", ...issue.path], issue.message); }
+        for (const warning of entity.particles ? gameParticleRenderWarnings(entity.particles, "3d") : []) {
+          warnings.push({ code: "ignored_particle_field", path: [...entityPath, "particles", ...warning.path], message: warning.message });
+        }
         for (const [index, emitter] of (entity.particles?.emitters ?? []).entries()) {
           if (emitter.sprite) { checkAsset(emitter.sprite.assetId, "image", [...entityPath, "particles", "emitters", index, "sprite", "assetId"]); }
         }
@@ -172,6 +197,10 @@ export function validateGame3D(value: unknown): GameValidationResult3D {
             add("missing_animation_clip", [...entityPath, "animator3d", "initialClip"], "Initial clip alias does not exist");
           }
           validateAnimatorGraph3D(document, entity, asset || undefined, [...entityPath, "animator3d"], add);
+          const graph = entity.animator3d.graph && document.animationGraphs?.[entity.animator3d.graph];
+          if (asset?.mediaKind === "model" && !asset.clipDurations && graph && graph.layers.some(layer => Object.values(layer.states).some(node => node.motion.kind !== "clip"))) {
+            warnings.push({ code: "legacy_animation_phase", path: [...entityPath, "animator3d"], message: "Reprepare the model to preserve blend phase when parameters change. Legacy bindings without clip durations use elapsed-time sampling." });
+          }
         }
         for (const [behaviorIndex, behavior] of entity.behaviors.entries()) {
           if (behavior.kind === "script") {
@@ -206,7 +235,7 @@ export function validateGame3D(value: unknown): GameValidationResult3D {
       if (scene.entities.filter((entity) => !entity.templateOnly && entity.light3d && entity.light3d.kind !== "directional" && entity.light3d.castShadow === true).length > GAME_LOCAL_SHADOW_LIGHT_BUDGET_3D) {
         add("shadow_budget", [...path, "entities"], `At most ${GAME_LOCAL_SHADOW_LIGHT_BUDGET_3D} point and spot lights may cast shadows`);
       }
-      if (scene.environment.fog && scene.environment.fog.near >= scene.environment.fog.far) { add("invalid_fog", [...path, "environment", "fog"], "Fog near must be less than far"); }
+      if (scene.environment.fog && "near" in scene.environment.fog && scene.environment.fog.near >= scene.environment.fog.far) { add("invalid_fog", [...path, "environment", "fog"], "Fog near must be less than far"); }
       const sky = scene.environment.sky;
       if (sky?.kind === "hdri" && document.assets[sky.assetId]?.mediaKind !== "hdri") { add("missing_asset", [...path, "environment", "sky", "assetId"], "HDRI sky requires an hdri binding"); }
       if (sky?.kind === "procedural" && sky.sunEntityId !== undefined) {
@@ -226,26 +255,27 @@ export function validateGame3D(value: unknown): GameValidationResult3D {
     }
   }
   const valid = parsed.success && diagnostics.length === 0;
-  const result: { valid: boolean; document?: GameDocument3D; diagnostics: GameDiagnostic[]; issues: GameDiagnostic[]; errors: string[] } = {
-    valid, diagnostics, issues: diagnostics, errors: diagnostics.map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+  const result: { valid: boolean; document?: GameDocument3D; diagnostics: GameDiagnostic[]; issues: GameDiagnostic[]; errors: string[]; warnings: GameDiagnostic[] } = {
+    valid, diagnostics, issues: diagnostics, errors: diagnostics.map((issue) => `${issue.path.join(".")}: ${issue.message}`), warnings
   };
   if (valid && parsed.success) { result.document = parsed.data; }
   return result;
 }
 
-export type AnyGameValidationResult = { readonly valid: true; readonly document: AnyGameDocument; readonly diagnostics: readonly GameDiagnostic[] } |
+export type AnyGameValidationResult = { readonly valid: true; readonly document: AnyGameDocument; readonly diagnostics: readonly GameDiagnostic[]; readonly warnings: readonly GameDiagnostic[] } |
   { readonly valid: false; readonly diagnostics: readonly GameDiagnostic[] };
 export function validateAnyGame(value: unknown): AnyGameValidationResult {
   const parsed = parseGameDocument(value);
   if (!parsed.ok) { return { valid: false, diagnostics: parsed.diagnostics }; }
   if (parsed.document.schemaVersion === 3) {
     const result = validateGame3D(parsed.document);
-    return result.valid && result.document ? { valid: true, document: result.document, diagnostics: [] } : { valid: false, diagnostics: result.diagnostics };
+    return result.valid && result.document ? { valid: true, document: result.document, diagnostics: [], warnings: result.warnings } : { valid: false, diagnostics: result.diagnostics };
   }
   if (parsed.document.engineVersion === "4") {
     return { valid: false, diagnostics: [{ code: "engine_unavailable", path: ["engineVersion"], message: GAME_ENGINE_4_UNAVAILABLE }] };
   }
   const result = validateGame(parsed.document);
-  return result.valid && result.document ? { valid: true, document: result.document, diagnostics: [] } :
+  return result.valid && result.document ? { valid: true, document: result.document, diagnostics: [],
+    warnings: (result.warnings ?? []).map((warning) => ({ ...warning, path: [...warning.path], code: "ignored_particle_field" })) } :
     { valid: false, diagnostics: result.issues.map((issue) => ({ ...issue, path: [...issue.path], code: "invalid_document" })) };
 }

@@ -1,15 +1,17 @@
 /**
  * Step 2's review — the script before anything is voiced (PRD § 9.2, D4).
  *
- * The words, the speaker on each line and the direction note, laid out the way
- * the editor lays them out, and editable in place. Every edit goes through the
- * same handler the `ui_script_set_line_text` and `ui_script_set_speaker` tools
- * call, so what a creator can fix here an agent can fix headlessly and neither
- * path can drift from the other (§ 9.6, criterion 6).
+ * The script laid out the way the editor prints it: a plain page, a heading
+ * per section when there is more than one, and each line's speaker in the gutter, its direction in italics and its
+ * words beside them, all editable in place. Text and speaker edits go through
+ * the same handler the `ui_script_set_line_text` and `ui_script_set_speaker`
+ * tools call, so what a creator can fix here an agent can fix headlessly and
+ * neither path can drift from the other (§ 9.6, criterion 6).
  *
  * Nothing here spends anything: no take is recorded and no provider is called
- * until step 3's button — except `Rewrite`, which is a writer call, and so
- * carries the same result/model/cost/wait summary the write itself does (F23).
+ * until step 3's button — except `Rewrite`, which is a writer call, and so sits
+ * with its model and the estimate line every secondary paid action in the
+ * flows carries (F23).
  *
  * A script can also end here. `Open the editor without voicing` writes stage
  * `done` and hands the text over, because a script is a finished thing whether
@@ -17,37 +19,56 @@
  * back to step 1 and start blank (F16).
  */
 
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
-import React, { memo, useCallback, useMemo } from "react";
+import React, { memo, useCallback, useMemo, useState } from "react";
+import type { ChangeEvent } from "react";
+import AddIcon from "@mui/icons-material/AddOutlined";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import TheaterComedyIcon from "@mui/icons-material/TheaterComedy";
 import {
   countScriptWords,
   estimateSpokenSeconds,
   type ScriptPaceId
 } from "@nodetool-ai/protocol";
 
+import useGlobalChatStore from "../../../stores/GlobalChatStore";
 import {
+  useScriptStore,
+  useScriptSetup
+} from "../../../stores/script/ScriptStore";
+import type {
+  ScriptLine,
+  ScriptSection,
+  ScriptSpeaker
+} from "../../../stores/script/ScriptStore";
+import { getScriptAgentHandler } from "../../../components/script/scriptAgentBridge";
+import { ScriptSpeakerPicker } from "../../../components/script/ScriptSpeakerPicker";
+import LanguageModelSelect from "../../properties/LanguageModelSelect";
+import ReportBugButton from "../../support/ReportBugButton";
+import {
+  AlertBanner,
+  BORDER_RADIUS,
   Box,
   Caption,
   EditorButton,
   FlexColumn,
   FlexRow,
   GAP,
-  Label,
-  Text
+  MOTION,
+  SPACING,
+  SPACING_PX,
+  Text,
+  TextArea,
+  TextInput,
+  ToolbarIconButton,
+  TYPOGRAPHY,
+  reducedMotion
 } from "../../ui_primitives";
-import GenerationSummary from "../GenerationSummary";
-import LanguageModelSelect from "../../properties/LanguageModelSelect";
-import useGlobalChatStore from "../../../stores/GlobalChatStore";
 import type { LanguageModelValue } from "../../../stores/ApiTypes";
-import { getScriptAgentHandler } from "../../../components/script/scriptAgentBridge";
-import {
-  useScriptStore,
-  useScriptSetup
-} from "../../../stores/script/ScriptStore";
 import { readScriptSource } from "../../../lib/script/importedScript";
-import { PlanReview } from "../PlanReview";
-import type { PlanReviewSection } from "../PlanReview";
+import { GenerationEstimateLine } from "../GenerationSummary";
+import { useTranslation } from "react-i18next";
+
+import { i18n } from "../../../i18n";
 
 /** A duration as the review states it: seconds under a minute, else m:ss. */
 const spokenLength = (seconds: number): string => {
@@ -59,10 +80,321 @@ const spokenLength = (seconds: number): string => {
 };
 
 /** The picker holds one model name; left free it outweighs the script. */
-const MODEL_PICKER_WIDTH = 260;
+const MODEL_PICKER_WIDTH = 240;
 
 /** What a rewrite is allowed to write, matching step 2's own budget. */
 const REWRITE_MAX_TOKENS = 8192;
+
+/**
+ * The script reads as a page: wide enough for the speaker gutter and a line of
+ * dialogue at a comfortable measure, and no wider.
+ */
+const SCRIPT_REVIEW_WIDTH = 880;
+
+/** The speaker column: a dot and a name, which truncates past this width. */
+const SPEAKER_COLUMN = 112;
+
+/** Below this card width the speaker sits above the words. */
+const STACK_BELOW = 560;
+
+const wordsIn = (lines: readonly ScriptLine[]): number =>
+  lines.reduce((sum, line) => sum + countScriptWords(line.text), 0);
+
+const plural = (count: number, noun: string): string =>
+  `${count} ${count === 1 ? noun : `${noun}s`}`;
+
+/**
+ * A field that reads as part of the page until its line is pointed at: the
+ * box shows when the pointer is on the line and when the field has focus. A
+ * box on every line at rest made the script read as a form, not a page.
+ */
+const quietOutline = {
+  "& .MuiOutlinedInput-root.MuiInputBase-root": {
+    backgroundColor: "transparent",
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "transparent",
+      transition: MOTION.border
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "divider" },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "primary.main"
+    }
+  }
+} as const;
+
+const directionFieldSx = {
+  ...quietOutline,
+  "& .MuiOutlinedInput-input": {
+    ...TYPOGRAPHY.sans.label,
+    fontStyle: "italic",
+    color: "text.secondary"
+  }
+} as const;
+
+const lineFieldSx = {
+  ...quietOutline,
+  "& .MuiOutlinedInput-input": {
+    ...TYPOGRAPHY.sans.body,
+    color: "text.primary"
+  }
+} as const;
+
+interface ReviewLineProps {
+  scriptId: string;
+  line: ScriptLine;
+  cast: readonly ScriptSpeaker[];
+  locked: boolean;
+}
+
+/** One line of the script: speaker, direction, words, and its two actions. */
+const ReviewLine: React.FC<ReviewLineProps> = memo(
+  ({ scriptId, line, cast, locked }) => {
+    const [directionOpen, setDirectionOpen] = useState(false);
+    const speaker = cast.find((entry) => entry.id === line.speakerId) ?? null;
+    const hasDirection = line.direction !== undefined && line.direction !== "";
+    const showDirection = hasDirection || directionOpen;
+
+    const setText = useCallback(
+      (value: string) =>
+        getScriptAgentHandler(scriptId).setLineText(
+          line.id,
+          value
+        ),
+      [line.id, scriptId]
+    );
+    const setSpeaker = useCallback(
+      (speakerId: string | null) =>
+        getScriptAgentHandler(scriptId).setLineSpeaker(line.id, speakerId),
+      [line.id, scriptId]
+    );
+    // The editor writes a direction straight onto the line, and so does the
+    // review: the two are the same field.
+    const setDirection = useCallback(
+      (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+        useScriptStore
+          .getState()
+          .patchLine(scriptId, line.id, { direction: event.target.value }),
+      [line.id, scriptId]
+    );
+    const toggleDirection = useCallback(() => {
+      if (showDirection) {
+        useScriptStore
+          .getState()
+          .patchLine(scriptId, line.id, { direction: "" });
+        setDirectionOpen(false);
+      } else {
+        setDirectionOpen(true);
+      }
+    }, [line.id, scriptId, showDirection]);
+    const remove = useCallback(
+      () => useScriptStore.getState().removeLine(scriptId, line.id),
+      [line.id, scriptId]
+    );
+
+    // Every row has the same two icons, so each names the line it acts on.
+    const words = line.text.trim().split(/\s+/).filter(Boolean);
+    const excerpt =
+      words.length === 0
+        ? "empty line"
+        : `“${words.slice(0, 4).join(" ")}${words.length > 4 ? "…" : ""}”`;
+
+    return (
+      <Box
+        data-line-id={line.id}
+        sx={{
+          display: "grid",
+          gridTemplateColumns: `${SPEAKER_COLUMN}px minmax(0, 1fr) auto`,
+          columnGap: `${SPACING_PX.lg}px`,
+          rowGap: SPACING.sm,
+          alignItems: "start",
+          paddingX: SPACING.md,
+          paddingY: SPACING.xs,
+          borderRadius: BORDER_RADIUS.sm,
+          transition: MOTION.background,
+          ...reducedMotion({ transition: MOTION.none }),
+          "&:hover": { backgroundColor: "action.hover" },
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "divider"
+          },
+          "& .review-line-actions": {
+            opacity: 0,
+            transition: MOTION.opacity
+          },
+          "&:hover .review-line-actions, &:focus-within .review-line-actions":
+            { opacity: 1 },
+          [`@container script-review (max-width: ${STACK_BELOW}px)`]: {
+            gridTemplateColumns: "minmax(0, 1fr) auto",
+            "& > .review-line-speaker": { gridColumn: "1 / 2" },
+            "& > .review-line-words": { gridColumn: "1 / 3" },
+            "& > .review-line-actions": { gridColumn: "2 / 3", gridRow: "1" }
+          }
+        }}
+      >
+        <FlexColumn
+          className="review-line-speaker"
+          gap={GAP.tight}
+          sx={{ minWidth: 0, paddingTop: SPACING.xs }}
+        >
+          <ScriptSpeakerPicker
+            scriptId={scriptId}
+            lineId={line.id}
+            speaker={speaker}
+            cast={cast}
+            readOnly={locked}
+            mobile={false}
+            onAssign={setSpeaker}
+            quiet
+          />
+          {/* A subtitle import brought its own timing, and the take has to
+              hit it — so it shows beside the words it belongs to rather than
+              sitting unseen on the document (PRD § 9.1). */}
+          {line.targetDurationMs === undefined ? null : (
+            <Caption color="muted">
+              {`Target ${(line.targetDurationMs / 1000).toFixed(1)}s`}
+            </Caption>
+          )}
+        </FlexColumn>
+
+        <FlexColumn
+          className="review-line-words"
+          gap={GAP.micro}
+          sx={{ minWidth: 0 }}
+        >
+          {showDirection ? (
+            <TextInput
+              autoFocus={!hasDirection}
+              value={line.direction ?? ""}
+              onChange={setDirection}
+              placeholder={i18n.t("setup:script.directionPlaceholder", { defaultValue: "Direction, e.g. whispering, tired" })}
+              hideLabel
+              label="Direction"
+              compact
+              fullWidth
+              slotProps={{ input: { readOnly: locked } }}
+              sx={directionFieldSx}
+            />
+          ) : null}
+          <TextArea
+            value={line.text}
+            onChange={setText}
+            placeholder={i18n.t("setup:script.writeALine", { defaultValue: "Write a line" })}
+            minRows={1}
+            hideLabel
+            label={i18n.t("editor:ui.scriptLine", { defaultValue: "Line" })}
+            compact
+            fullWidth
+            slotProps={{ input: { readOnly: locked } }}
+            sx={lineFieldSx}
+          />
+        </FlexColumn>
+
+        {locked ? (
+          <Box className="review-line-actions" />
+        ) : (
+          <FlexRow
+            className="review-line-actions"
+            gap={GAP.micro}
+            align="center"
+            sx={{ paddingTop: SPACING.xs }}
+          >
+            <ToolbarIconButton
+              icon={<TheaterComedyIcon fontSize="small" />}
+              tooltip={showDirection ? i18n.t("storyboard:attrs:deleteDirection", { defaultValue: "Delete direction" }) : i18n.t("editor:ui.addDirection", { defaultValue: "Add direction" })}
+              ariaLabel={`${showDirection ? i18n.t("setup:script.deleteDirectionFrom", { defaultValue: "Delete direction from" }) : i18n.t("setup:script.addDirectionTo", { defaultValue: "Add direction to" })} ${excerpt}`}
+              onClick={toggleDirection}
+            />
+            <ToolbarIconButton
+              icon={<DeleteOutlineIcon fontSize="small" />}
+              tooltip={i18n.t("editor:ui.deleteLine", { defaultValue: "Delete line" })}
+              ariaLabel={`Delete ${excerpt}`}
+              variant="error"
+              onClick={remove}
+            />
+          </FlexRow>
+        )}
+      </Box>
+    );
+  }
+);
+ReviewLine.displayName = "ScriptReviewLine";
+
+interface ReviewSectionProps {
+  scriptId: string;
+  section: ScriptSection;
+  cast: readonly ScriptSpeaker[];
+  pace: ScriptPaceId;
+  locked: boolean;
+  /** One section repeats the step's own totals, so its header is left out. */
+  showHeader: boolean;
+}
+
+/** A section of the script: its name and size, then its lines. */
+const ReviewSection: React.FC<ReviewSectionProps> = memo(
+  ({ scriptId, section, cast, pace, locked, showHeader }) => {
+    const title = section.title ?? "Script";
+    const words = wordsIn(section.lines);
+
+    // The step asks for at least one line with words in it, so each section
+    // carries the control that produces one (F20). The new line goes to the
+    // speaker the section ended on, so it does not open blocked on a speaker.
+    const addLine = useCallback(() => {
+      const lastSpeaker = section.lines.at(-1)?.speakerId ?? null;
+      const lineId = useScriptStore.getState().addLine(scriptId, section.id);
+      if (lastSpeaker) {
+        getScriptAgentHandler(scriptId).setLineSpeaker(lineId, lastSpeaker);
+      }
+    }, [scriptId, section.id, section.lines]);
+
+    return (
+      <Box
+        component="section"
+        aria-label={title}
+        sx={{
+          containerType: "inline-size",
+          containerName: "script-review"
+        }}
+      >
+        {showHeader ? (
+          <FlexRow
+            gap={GAP.normal}
+            align="baseline"
+            wrap
+            sx={{ paddingX: SPACING.md, paddingBottom: SPACING.sm }}
+          >
+            <Text size="normal" weight={600} component="h3">
+              {title}
+            </Text>
+            <Caption color="muted">
+              {`${plural(section.lines.length, "line")} · about ${spokenLength(estimateSpokenSeconds(words, pace))}`}
+            </Caption>
+          </FlexRow>
+        ) : null}
+        {section.lines.map((line) => (
+          <ReviewLine
+            key={line.id}
+            scriptId={scriptId}
+            line={line}
+            cast={cast}
+            locked={locked}
+          />
+        ))}
+        <Box sx={{ paddingX: SPACING.md, paddingTop: SPACING.xs }}>
+          <EditorButton
+            variant="text"
+            size="small"
+            startIcon={<AddIcon fontSize="small" />}
+            disabled={locked}
+            onClick={addLine}
+            aria-label={`Add a line to ${title}`}
+          >
+            Add a line
+          </EditorButton>
+        </Box>
+      </Box>
+    );
+  }
+);
+ReviewSection.displayName = "ScriptReviewSection";
 
 export interface ReviewStepProps {
   scriptId: string;
@@ -103,6 +435,8 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   // the rewrite would happily use one.
   const chatModel = useGlobalChatStore((state) => state.selectedModel);
   const writerModel = setup?.writer_model ?? chatModel ?? null;
+  const sections = useMemo(() => script?.sections ?? [], [script?.sections]);
+  const cast = useMemo(() => script?.cast ?? [], [script?.cast]);
 
   const setWriterModel = useCallback(
     (value: LanguageModelValue) => {
@@ -113,127 +447,32 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     [scriptId, setSetup]
   );
 
-  const addLine = useCallback(() => {
-    // The store the `ui_script_add_line` handler writes to, so a line added
-    // here and a line added headlessly are the same line.
+  const addFirstLine = useCallback(() => {
     useScriptStore.getState().addLine(scriptId);
   }, [scriptId]);
 
-  const removeLine = useCallback(
-    (lineId: string) => {
-      useScriptStore.getState().removeLine(scriptId, lineId);
-    },
-    [scriptId]
-  );
-
-  const setLineText = useCallback(
-    (lineId: string, text: string) => {
-      getScriptAgentHandler(scriptId).setLineText(lineId, text);
-    },
-    [scriptId]
-  );
-
-  const setLineSpeaker = useCallback(
-    (lineId: string, speakerId: string) => {
-      getScriptAgentHandler(scriptId).setLineSpeaker(
-        lineId,
-        speakerId === "" ? null : speakerId
-      );
-    },
-    [scriptId]
-  );
-
-  // The empty value is a named choice, so a line nobody says reads as
-  // unassigned rather than as a blank box (F7).
-  const speakerOptions = useMemo(
-    () => [
-      { value: "", label: t("editor:ui.noSpeaker", { defaultValue: "No speaker" }) },
-      ...(script?.cast ?? []).map((speaker) => ({
-        value: speaker.id,
-        label: speaker.name
-      }))
-    ],
-    [script?.cast, t]
-  );
-
-  const sections = useMemo<PlanReviewSection[]>(
-    () =>
-      (script?.sections ?? []).map((section) => ({
-        id: section.id,
-        header: section.title ?? i18n.t("storyboard:attrs.script", { defaultValue: "Script" }),
-        rows: section.lines.flatMap((line) => [
-          {
-            id: `${line.id}-speaker`,
-            label: i18n.t("editor:ui.speaker", { defaultValue: "Speaker" }),
-            hideLabel: true,
-            compact: true,
-            value: line.speakerId ?? "",
-            options: speakerOptions,
-            readOnly: locked,
-            onChange: (value: string) => setLineSpeaker(line.id, value)
-          },
-          {
-            id: line.id,
-            label: t("editor:ui.scriptLine", { defaultValue: "Line" }),
-            hideLabel: true,
-            placeholder: t("editor:ui.scriptLine", { defaultValue: "Line" }),
-            value: line.text,
-            multiline: true,
-            readOnly: locked,
-            onChange: (value: string) => setLineText(line.id, value)
-          },
-          ...(line.direction === undefined
-            ? []
-            : [
-                {
-                  id: `${line.id}-direction`,
-                  label: i18n.t("editor:ui.direction", { defaultValue: "Direction" }),
-                  value: line.direction,
-                  readOnly: true,
-                  onChange: () => undefined
-                }
-              ]),
-          // A subtitle import brought its own timing, and the take has to hit
-          // it — so it is shown beside the words it belongs to rather than
-          // sitting unseen on the document (PRD § 9.1).
-          ...(line.targetDurationMs === undefined
-            ? []
-            : [
-                {
-                  id: `${line.id}-target`,
-                  label: i18n.t("editor:ui.targetLength", { defaultValue: "Target length" }),
-                  value: `${(line.targetDurationMs / 1000).toFixed(1)}s`,
-                  readOnly: true,
-                  onChange: () => undefined
-                }
-              ])
-        ])
-      })),
-    [locked, script?.sections, setLineSpeaker, setLineText, speakerOptions]
-  );
-
   const emptyLineIds = useMemo(
     () =>
-      (script?.sections ?? []).flatMap((section) =>
+      sections.flatMap((section) =>
         section.lines
           .filter((line) => line.text.trim() === "")
           .map((line) => line.id)
       ),
-    [script?.sections]
+    [sections]
   );
+  const removeEmptyLines = useCallback(() => {
+    const { removeLine } = useScriptStore.getState();
+    emptyLineIds.forEach((lineId) => removeLine(scriptId, lineId));
+  }, [emptyLineIds, scriptId]);
 
+  const lineCount = sections.reduce(
+    (count, section) => count + section.lines.length,
+    0
+  );
   const words = useMemo(
     () =>
-      (script?.sections ?? []).reduce(
-        (total, section) =>
-          total +
-          section.lines.reduce(
-            (sum, line) => sum + countScriptWords(line.text),
-            0
-          ),
-        0
-      ),
-    [script?.sections]
+      sections.reduce((total, section) => total + wordsIn(section.lines), 0),
+    [sections]
   );
 
   // A rewrite sends the script as it stands along with the brief, so the
@@ -242,111 +481,124 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
     () =>
       [
         setup?.brief ?? "",
-        ...(script?.sections ?? []).flatMap((section) =>
-          section.lines.map((line) => line.text)
-        )
+        ...sections.flatMap((section) => section.lines.map((line) => line.text))
       ].join("\n"),
-    [script?.sections, setup?.brief]
+    [sections, setup?.brief]
   );
 
   return (
-    <FlexColumn gap={GAP.spacious}>
-      <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">
-          {t("storyboard:attrs.readItThrough", { defaultValue: "Read it through" })}
-        </Text>
-        <Caption color="secondary" component="p">
-          {t("setup:script.wordsAboutSpoken", {
-            defaultValue:
-              "{{words}} words · about {{length}} spoken at a {{pace}} read",
-            words,
-            length: spokenLength(estimateSpokenSeconds(words, pace)),
-            pace: t(
-              pace === "slow"
-                ? "setup:script.paceSlow"
-                : pace === "fast"
-                  ? "setup:script.paceFast"
-                  : "setup:script.paceNormal",
-              { defaultValue: pace }
-            )
-          })}
-        </Caption>
-      </FlexColumn>
-
-      {/* The model and the rewrite belong together: picking a different
-          writer is only useful next to the button that runs it. */}
-      <FlexRow gap={GAP.normal} align="center" wrap>
-        <Label>{t("storyboard:attrs.writeWith", { defaultValue: "Write with" })}</Label>
-        <Box sx={{ width: MODEL_PICKER_WIDTH }}>
-          <LanguageModelSelect
-            value={writerModel?.id ?? ""}
-            provider={writerModel?.provider}
-            placeholder={t("storyboard:attrs.selectWriterModel", { defaultValue: "Select writer model" })}
-            disabled={readOnly}
-            onChange={setWriterModel}
+    <FlexColumn
+      gap={GAP.spacious}
+      sx={{ width: "100%", maxWidth: SCRIPT_REVIEW_WIDTH }}
+    >
+      {/* The heading on the left, the step's one paid action on the right:
+          the layout the storyboard's Find entities uses. */}
+      <FlexRow gap={GAP.spacious} align="flex-start" justify="space-between" wrap>
+        <FlexColumn gap={GAP.tight}>
+          <Text size="big" component="h2">
+            Read it through
+          </Text>
+          <Caption color="secondary" component="p">
+            {`${words} words · about ${spokenLength(estimateSpokenSeconds(words, pace))} spoken at a ${pace} read`}
+          </Caption>
+        </FlexColumn>
+        <FlexColumn gap={GAP.tight} align="flex-end">
+          <FlexRow gap={GAP.normal} align="center">
+            <Box sx={{ width: MODEL_PICKER_WIDTH }}>
+              <LanguageModelSelect
+                value={writerModel?.id ?? ""}
+                provider={writerModel?.provider}
+                placeholder={i18n.t("storyboard:attrs.writerModel", { defaultValue: "Writer model" })}
+                disabled={readOnly}
+                onChange={setWriterModel}
+              />
+            </Box>
+            <EditorButton
+              variant="outlined"
+              disabled={locked}
+              onClick={onRewrite}
+            >
+              {rewriting ? i18n.t("storyboard:attrs.rewriting", { defaultValue: "Rewriting…" }) : i18n.t("storyboard:attrs.rewrite", { defaultValue: "Rewrite" })}
+            </EditorButton>
+          </FlexRow>
+          {/* A rewrite is a model call like any other, so it says what it
+              will cost before it is pressed rather than after (F23). */}
+          <GenerationEstimateLine
+            result={`Rewrite ${words} words, keeping the lines it keeps`}
+            next={t("storyboard:attrs.editsYouHaveMadeAreGivenToTheWriterAsContext", { defaultValue: "Edits you have made are given to the writer as context." })}
+            model={writerModel}
+            brief={estimatedInput}
+            maxOutputTokens={REWRITE_MAX_TOKENS}
+            hideModel
           />
-        </Box>
-        <EditorButton
-          variant="outlined"
-          size="small"
-          disabled={locked}
-          onClick={onRewrite}
-        >
-          {rewriting ? i18n.t("storyboard:attrs.rewriting", { defaultValue: "Rewriting…" }) : i18n.t("storyboard:attrs.rewrite", { defaultValue: "Rewrite" })}
-        </EditorButton>
+          {source ? (
+            <Caption color="warning" component="p">
+              A rewrite replaces your imported words with the model's.
+            </Caption>
+          ) : null}
+        </FlexColumn>
       </FlexRow>
 
-      {/* A rewrite is a model call like any other, so it says what it will
-          cost before it is pressed rather than after (F23). */}
-      <GenerationSummary
-        result={t("setup:script.rewriteWordsResult", {
-          defaultValue: "Rewrite {{words}} words, keeping the lines it keeps",
-          words
-        })}
-        next={
-          source
-            ? i18n.t("storyboard:attrs.thisReplacesYourImportedWordsWithTheModelsYourOwnTextIsDropped", { defaultValue: "This replaces your imported words with the model's. Your own text is dropped." })
-            : i18n.t("storyboard:attrs.editsYouHaveMadeAreGivenToTheWriterAsContext", { defaultValue: "Edits you have made are given to the writer as context." })
-        }
-        model={writerModel}
-        brief={estimatedInput}
-        maxOutputTokens={REWRITE_MAX_TOKENS}
-      />
-
-      {/* The step asks for at least one line with words in it, so it carries
-          the control that produces one. It used to say "add a line" with
-          nothing on the screen that could (F20). */}
-      <FlexRow gap={GAP.normal} align="center" wrap>
-        <EditorButton
-          variant="outlined"
-          size="small"
-          onClick={addLine}
-          disabled={locked}
+      {emptyLineIds.length > 0 ? (
+        <AlertBanner
+          severity="info"
+          action={
+            <EditorButton
+              variant="text"
+              size="small"
+              disabled={locked}
+              onClick={removeEmptyLines}
+            >
+              {`Delete ${plural(emptyLineIds.length, "empty line")}`}
+            </EditorButton>
+          }
         >
-          {t("setup:script.addALine", { defaultValue: "Add a line" })}
-        </EditorButton>
-        {emptyLineIds.length > 0 ? (
-          <EditorButton
-            variant="text"
-            size="small"
-            disabled={locked}
-            onClick={() => emptyLineIds.forEach(removeLine)}
-          >
-            {t("setup:script.removeEmptyLines", {
-              defaultValue: "Remove {{count}} empty lines",
-              count: emptyLineIds.length
-            })}
-          </EditorButton>
-        ) : null}
-      </FlexRow>
-
-      <PlanReview sections={sections} />
+          {`${plural(emptyLineIds.length, "line")} ${emptyLineIds.length === 1 ? "has" : "have"} no words yet. Write ${emptyLineIds.length === 1 ? "it" : "them"} or remove ${emptyLineIds.length === 1 ? "it" : "them"} before voicing.`}
+        </AlertBanner>
+      ) : null}
 
       {error ? (
-        <Text size="small" color="error" role="alert">
+        <AlertBanner
+          severity="error"
+          action={
+            <ReportBugButton
+              context={{
+                source: "provider-call",
+                summary: "Script rewrite failed",
+                errorText: error
+              }}
+            />
+          }
+        >
           {error}
-        </Text>
+        </AlertBanner>
       ) : null}
+
+      <FlexColumn gap={GAP.spacious}>
+        {sections.map((section) => (
+          <ReviewSection
+            key={section.id}
+            scriptId={scriptId}
+            section={section}
+            cast={cast}
+            pace={pace}
+            locked={locked}
+            showHeader={sections.length > 1}
+          />
+        ))}
+        {lineCount === 0 && sections.length === 0 ? (
+          <Box sx={{ paddingX: SPACING.md }}>
+            <EditorButton
+              variant="outlined"
+              startIcon={<AddIcon fontSize="small" />}
+              disabled={locked}
+              onClick={addFirstLine}
+            >
+              Add a line
+            </EditorButton>
+          </Box>
+        ) : null}
+      </FlexColumn>
 
       <FlexRow gap={GAP.normal} align="center" wrap>
         <EditorButton
@@ -355,15 +607,10 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
           disabled={readOnly}
           onClick={onOpenEditor}
         >
-          {t("storyboard:attrs.openTheEditorWithoutVoicing", {
-            defaultValue: "Open the editor without voicing"
-          })}
+          Open the editor without voicing
         </EditorButton>
         <Caption color="secondary">
-          {t("editor:ui.finishHereWithTheTextYouCanVoiceItInTheEditorLater", {
-            defaultValue:
-              "Finish here with the text. You can voice it in the editor later."
-          })}
+          Finish here with the text. You can voice it in the editor later.
         </Caption>
       </FlexRow>
     </FlexColumn>

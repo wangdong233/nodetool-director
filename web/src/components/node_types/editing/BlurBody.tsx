@@ -2,33 +2,31 @@
 /**
  * BlurBody — bespoke body for `nodetool.image.Blur`.
  *
- * Top: preview of the server output. Bottom: type dropdown (Gaussian /
- * Box / Motion) and a 0–100 size slider. The preview reflects whatever
- * the server most recently produced — no client-side approximation.
+ * Top: preview of the node's output. Bottom: type dropdown (Gaussian /
+ * Box / Motion) and a 0–100 size slider. Edits re-run the node in the
+ * browser (`useLiveSliderWriter`), so the preview updates while dragging.
  */
 
 import React, { memo, useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import ImageIcon from "@mui/icons-material/Image";
 
 import { SPACING,
-  CheckerDropzone,
   NodeSlider,
   BORDER_RADIUS,
-  MenuItem,
-  Select,
+  NodeSelect,
+  NodeMenuItem,
   type SelectChangeEvent
 } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
-import ImageRefPreview from "../../node/ImageRefPreview";
+import ImagePreview from "./ImagePreview";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
 
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
-import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
+import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { BLUR_NODE_TYPE } from "../../../constants/nodeTypes";
 import { useTranslation } from "react-i18next";
@@ -100,25 +98,12 @@ const styles = (theme: Theme) =>
     },
     ".type-select": {
       gridColumn: "2 / span 2",
-      width: "100%",
-      fontSize: theme.fontSizeSmaller,
-      ".MuiSelect-select": {
-        padding: `${theme.spacing(SPACING.micro)} ${theme.spacing(SPACING.xs)} ${theme.spacing(SPACING.micro)} 0`
-      }
+      width: "100%"
     },
     ".outputs-row": {
       flex: "0 0 auto"
     }
   });
-
-const ImagePreview: React.FC<{ value: unknown }> = ({ value }) => (
-  <ImageRefPreview
-    value={value}
-    placeholder={
-      <CheckerDropzone message="Connect an image, then run" icon={<ImageIcon />} />
-    }
-  />
-);
 
 interface BlurBodyProps {
   id: string;
@@ -157,14 +142,14 @@ const BlurBodyInner: React.FC<BlurBodyProps> = ({
 
   const previewValue = useNodeOutput(workflowId, id);
 
-  const { setProperty, setPropertyComplete } = useBespokePropertyWriter({
+  const { setProperty, setPropertyComplete } = useLiveSliderWriter({
     nodeId: id,
     nodeType
   });
 
   const handleTypeChange = useCallback(
-    (event: SelectChangeEvent<BlurType>) => {
-      setProperty("blur_type", event.target.value);
+    (event: SelectChangeEvent<unknown>) => {
+      setProperty("blur_type", event.target.value as BlurType);
       setPropertyComplete();
     },
     [setProperty, setPropertyComplete]
@@ -192,21 +177,18 @@ const BlurBodyInner: React.FC<BlurBodyProps> = ({
 
       <div className="controls">
         <span className="ctrl-label">{t("editor:asset.info.type", { defaultValue: "Type" })}</span>
-        <Select
-          className="type-select nodrag"
-          size="small"
-          variant="standard"
+        <NodeSelect
+          className="type-select"
           value={blurType}
           onChange={handleTypeChange}
           aria-label={t("editor:ui.blurType", { defaultValue: "Blur type" })}
-          disableUnderline
         >
           {BLUR_TYPES.map((t) => (
-            <MenuItem key={t.value} value={t.value} dense>
+            <NodeMenuItem key={t.value} value={t.value}>
               {t.label}
-            </MenuItem>
+            </NodeMenuItem>
           ))}
-        </Select>
+        </NodeSelect>
 
         <span className="ctrl-label">{t("ui2:attrs.size", { defaultValue: "Size" })}</span>
         <NodeSlider

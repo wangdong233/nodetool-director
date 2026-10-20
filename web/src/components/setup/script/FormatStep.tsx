@@ -11,9 +11,9 @@ import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   Box,
-  Caption,
   FlexColumn,
   FlexRow,
+  FormField,
   GAP,
   Text,
   TextInput
@@ -27,13 +27,12 @@ import {
 } from "../../../stores/script/ScriptStore";
 import { OptionCardGrid } from "../OptionCardGrid";
 import { SetupCardButton, useRovingRadioGroup } from "../SetupCardButton";
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 import {
   DEFAULT_LENGTH_SECONDS,
   FORMAT_CARDS,
   LENGTH_CHOICES
 } from "./formats";
+import { useTranslation } from "react-i18next";
 
 /** The fourth option in the length row, not a toggle beside the other three. */
 const CUSTOM_LENGTH_ID = "custom";
@@ -52,10 +51,10 @@ const LENGTH_CARD_WIDTH = 96;
 const customSecondsError = (draft: string): string | null => {
   const value = Number(draft.trim());
   if (draft.trim() === "" || !Number.isInteger(value)) {
-    return i18n.t("storyboard:attrs.enterAWholeNumberOfSecondsMinMax", { defaultValue: "Enter a whole number of seconds, {{min}}–{{max}}.", min: MIN_CUSTOM_SECONDS, max: MAX_CUSTOM_SECONDS });
+    return `Enter a whole number of seconds, ${MIN_CUSTOM_SECONDS}–${MAX_CUSTOM_SECONDS}.`;
   }
   if (value < MIN_CUSTOM_SECONDS || value > MAX_CUSTOM_SECONDS) {
-    return i18n.t("storyboard:attrs.scriptsRunBetweenMinSecondsAndMaxMinutes", { defaultValue: "Scripts run between {{min}} seconds and {{max}} minutes.", min: MIN_CUSTOM_SECONDS, max: MAX_CUSTOM_SECONDS / 60 });
+    return `Scripts run between ${MIN_CUSTOM_SECONDS} seconds and ${MAX_CUSTOM_SECONDS / 60} minutes.`;
   }
   return null;
 };
@@ -148,13 +147,9 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
         label: choice.label,
         disabled: readOnly
       })),
-      {
-        id: CUSTOM_LENGTH_ID,
-        label: t("storyboard:attrs.custom", { defaultValue: "Custom" }),
-        disabled: readOnly
-      }
+      { id: CUSTOM_LENGTH_ID, label: "Custom", disabled: readOnly }
     ],
-    [readOnly, t]
+    [readOnly]
   );
 
   const selectedLengthId = custom
@@ -225,10 +220,10 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
     <FlexColumn gap={GAP.spacious}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h2">
-          {t("storyboard:attrs.chooseYourFormat", { defaultValue: "Choose your format" })}
+          Choose your format
         </Text>
         <Text size="normal" color="secondary">
-          {i18n.t("editor:ui.itSetsWhoSpeaksAndHowTheScriptIsLaidOut")}
+          It sets who speaks and how the script is laid out.
         </Text>
       </FlexColumn>
 
@@ -239,21 +234,13 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
         onSelect={selectFormat}
       />
 
-      <FlexColumn gap={GAP.normal}>
-        <Caption color="secondary" component="p">
-          {t("storyboard:attrs.howLongShouldItRun", { defaultValue: "How long should it run?" })}
-        </Caption>
-        <FlexRow gap={GAP.normal} align="center" wrap>
-          {/* One choice among four, so one tab stop and arrow keys between the
-              options — four cards announcing themselves as independent
-              toggles described the wrong control (F26). The seconds field is
-              not one of the options and stays outside the group. */}
-          <FlexRow
-            role="radiogroup"
-            aria-label={t("storyboard:attrs.length", { defaultValue: "Length" })}
-            gap={GAP.normal}
-            wrap
-          >
+      <FlexRow gap={GAP.normal} align="flex-start" wrap>
+        {/* One choice among four, so one tab stop and arrow keys between the
+            options — four cards announcing themselves as independent toggles
+            described the wrong control (F26). The seconds field is not one of
+            the options and stays outside the group. */}
+        <FormField label={t("storyboard:attrs.howLongShouldItRun", { defaultValue: "How long should it run?" })}>
+          <FlexRow role="radiogroup" aria-label={t("storyboard:attrs.length", { defaultValue: "Length" })} gap={GAP.normal} wrap>
             {lengthOptions.map((option) => {
               const radio = radioProps(option);
               return (
@@ -271,34 +258,31 @@ const FormatStepInternal: React.FC<FormatStepProps> = ({
               );
             })}
           </FlexRow>
-          {custom ? (
-            <Box sx={{ width: CUSTOM_FIELD_WIDTH }}>
-              <TextInput
-                type="number"
-                label={t("storyboard:attrs.customSeconds", { defaultValue: "Custom seconds" })}
-                value={customDraft}
-                slotProps={{
-                  htmlInput: {
-                    min: MIN_CUSTOM_SECONDS,
-                    max: MAX_CUSTOM_SECONDS,
-                    step: 1
-                  }
-                }}
-                placeholder={t("storyboard:attrs.custom", { defaultValue: "Custom" })}
-                disabled={readOnly}
-                error={customError !== null}
-                helperText={
-                  customError ??
-                  i18n.t("storyboard:attrs.minMaxSeconds", { defaultValue: "{{min}}–{{max}} seconds", min: MIN_CUSTOM_SECONDS, max: MAX_CUSTOM_SECONDS })
+        </FormField>
+        {custom ? (
+          <Box sx={{ width: CUSTOM_FIELD_WIDTH }}>
+            <TextInput
+              type="number"
+              label={t("storyboard:attrs.customSeconds", { defaultValue: "Custom seconds" })}
+              value={customDraft}
+              slotProps={{
+                htmlInput: {
+                  min: MIN_CUSTOM_SECONDS,
+                  max: MAX_CUSTOM_SECONDS,
+                  step: 1
                 }
-                onChange={handleCustom}
-                onBlur={commitCustom}
-                onKeyDown={handleCustomKeyDown}
-              />
-            </Box>
-          ) : null}
-        </FlexRow>
-      </FlexColumn>
+              }}
+              placeholder={t("storyboard:attrs.custom", { defaultValue: "Custom" })}
+              disabled={readOnly}
+              errorMessage={customError ?? undefined}
+              helperText={`${MIN_CUSTOM_SECONDS}–${MAX_CUSTOM_SECONDS} seconds`}
+              onChange={handleCustom}
+              onBlur={commitCustom}
+              onKeyDown={handleCustomKeyDown}
+            />
+          </Box>
+        ) : null}
+      </FlexRow>
     </FlexColumn>
   );
 };

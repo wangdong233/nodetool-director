@@ -1,6 +1,4 @@
 /** @jsxImportSource @emotion/react */
-// Class component (D-registry §1 exemption): keeps global `i18n.t` — hooks
-// cannot live in a class body, no HOC conversion per the C merge ruling.
 import { css } from "@emotion/react";
 import { Component } from "react";
 import type { ReactNode, ErrorInfo } from "react";
@@ -94,7 +92,7 @@ class SearchErrorBoundary extends Component<
       return (
         <Box css={boundaryStyles}>
           <Text size="normal" weight={600} className="error-title">
-            {this.props.fallbackTitle || "Search Error"}
+            {this.props.fallbackTitle || "Search error"}
           </Text>
           <Text size="small" className="error-message">
             Something went wrong with the search functionality. Please try
@@ -106,10 +104,10 @@ class SearchErrorBoundary extends Component<
             className="retry-button"
             density="normal"
           >
-            {i18n.t("editor:ui.tryAgain")}
+            Try again
           </EditorButton>
           <ReportBugButton
-            label={i18n.t("common:action.reportBug", { defaultValue: "Report a bug" })}
+            label={i18n.t("editor:ui.reportABug", { defaultValue: "Report a bug" })}
             context={{
               source: "panel-crash",
               summary: this.props.fallbackTitle || "Search error",

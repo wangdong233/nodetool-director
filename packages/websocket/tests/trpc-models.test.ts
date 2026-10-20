@@ -444,6 +444,39 @@ describe("models router", () => {
       expect(result[0].id).toBe("sd-1-5");
     });
 
+    it("scans a full production installation but excludes a development cloud profile", async () => {
+      try {
+        vi.stubEnv("NODETOOL_ENV", "production");
+        vi.stubEnv("NODETOOL_NODE_PROFILE", "full");
+        (getModelsByHfType as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+        const caller = createCaller(makeCtx());
+        await caller.models.huggingfaceByType({ model_type: "diffusers" });
+        expect(getModelsByHfType).toHaveBeenCalledOnce();
+        vi.mocked(getModelsByHfType).mockClear();
+        vi.stubEnv("NODETOOL_ENV", "development");
+        vi.stubEnv("NODETOOL_NODE_PROFILE", "cloud");
+        expect(await caller.models.huggingfaceByType({ model_type: "diffusers" })).toEqual([]);
+        expect(getModelsByHfType).not.toHaveBeenCalled();
+      } finally {
+        vi.unstubAllEnvs();
+      }
+    });
+    it("does not scan the server's cache in production", async () => {
+      const saved = process.env.NODETOOL_ENV;
+      process.env.NODETOOL_ENV = "production";
+      try {
+        const caller = createCaller(makeCtx());
+        const result = await caller.models.huggingfaceByType({
+          model_type: "diffusers"
+        });
+        expect(result).toEqual([]);
+        expect(getModelsByHfType).not.toHaveBeenCalled();
+      } finally {
+        if (saved === undefined) delete process.env.NODETOOL_ENV;
+        else process.env.NODETOOL_ENV = saved;
+      }
+    });
+
     it("returns empty array on error", async () => {
       (getModelsByHfType as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error("hf error")
@@ -855,6 +888,45 @@ describe("models router", () => {
   // ── huggingfaceCacheStatus ─────────────────────────────────────────────────
 
   describe("huggingfaceCacheStatus", () => {
+    it("reports nothing from the server's cache in production", async () => {
+      // Every path exists and the repo has one snapshot, so outside
+      // production the file reads as downloaded.
+      (access as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+      (readdir as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { name: "abc", isDirectory: () => true }
+      ]);
+      const item = {
+        key: "k",
+        repo_id: "some/repo",
+        model_type: null,
+        path: "model.safetensors",
+        allow_patterns: null,
+        ignore_patterns: null
+      };
+      const saved = process.env.NODETOOL_ENV;
+      const savedProfile = process.env.NODETOOL_NODE_PROFILE;
+      try {
+        const caller = createCaller(makeCtx());
+        expect(
+          (await caller.models.huggingfaceCacheStatus([item]))[0].downloaded
+        ).toBe(true);
+        process.env.NODETOOL_ENV = "production";
+        expect(
+          (await caller.models.huggingfaceCacheStatus([item]))[0].downloaded
+        ).toBe(false);
+        process.env.NODETOOL_NODE_PROFILE = "full";
+        expect((await caller.models.huggingfaceCacheStatus([item]))[0].downloaded).toBe(true);
+        process.env.NODETOOL_ENV = "development";
+        process.env.NODETOOL_NODE_PROFILE = "cloud";
+        expect((await caller.models.huggingfaceCacheStatus([item]))[0].downloaded).toBe(false);
+      } finally {
+        if (savedProfile === undefined) delete process.env.NODETOOL_NODE_PROFILE;
+        else process.env.NODETOOL_NODE_PROFILE = savedProfile;
+        if (saved === undefined) delete process.env.NODETOOL_ENV;
+        else process.env.NODETOOL_ENV = saved;
+      }
+    });
+
     it("returns downloaded:false for a non-cached repo", async () => {
       const caller = createCaller(makeCtx());
       const result = await caller.models.huggingfaceCacheStatus([

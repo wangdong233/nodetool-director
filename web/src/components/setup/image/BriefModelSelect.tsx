@@ -1,9 +1,9 @@
 import { isModelSelected } from "@nodetool-ai/protocol";
-import { useTranslation } from "react-i18next";
-import { Box, FlexColumn, GAP, Label } from "../../ui_primitives";
+import { FormField } from "../../ui_primitives";
 import LanguageModelSelect from "../../properties/LanguageModelSelect";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
 import { SetupFooterField } from "../SetupFooterField";
+import { useTranslation } from "react-i18next";
 
 function BriefModelPicker({ readOnly = false }: { readOnly?: boolean }) {
   const { t } = useTranslation();
@@ -24,7 +24,7 @@ function BriefModelPicker({ readOnly = false }: { readOnly?: boolean }) {
 export function BriefModelFooterField({ readOnly }: { readOnly?: boolean }) {
   const { t } = useTranslation();
   return (
-    <SetupFooterField label={t("ui2:attrs.model", { defaultValue: "Model" })}>
+    <SetupFooterField label={t("setup:image.briefModel", { defaultValue: "Brief model" })}>
       <BriefModelPicker readOnly={readOnly} />
     </SetupFooterField>
   );
@@ -33,15 +33,11 @@ export function BriefModelFooterField({ readOnly }: { readOnly?: boolean }) {
 export default function BriefModelSelect() {
   const { t } = useTranslation();
   return (
-    <FlexColumn gap={GAP.normal}>
-      <Label>
-        {t("storyboard:attrs.languageModelForTheBrief", {
-          defaultValue: "Language model for the brief"
-        })}
-      </Label>
-      <Box sx={{ width: "100%", maxWidth: 320 }}>
-        <BriefModelPicker />
-      </Box>
-    </FlexColumn>
+    <FormField
+      label={t("storyboard:attrs.languageModelForTheBrief", { defaultValue: "Language model for the brief" })}
+      sx={{ width: "100%", maxWidth: 320 }}
+    >
+      <BriefModelPicker />
+    </FormField>
   );
 }

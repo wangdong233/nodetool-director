@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import type { SxProps, Theme } from "@mui/material";
-import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { useEditorScope } from "../../editor_ui";
 import { i18n } from "../../../i18n";
 import {
@@ -11,16 +11,19 @@ import {
   Caption,
   Tooltip,
   EditorButton,
+  CONTROL,
   MOTION,
   SPACING,
-  getSpacingPx,
   BORDER_RADIUS
 } from "../../ui_primitives";
+import { TOOLTIP_DESCRIPTION_DELAY } from "../../../config/constants";
 
 interface ModelSelectButtonProps {
   label: React.ReactNode;
   secondaryLabel?: string;
-  subLabel?: string; // "Select Model", "Select Image Model", etc.
+  subLabel?: string; // "Select model", "Select image model", etc.
+  /** Why the selected model cannot run yet, such as a missing API key. */
+  warning?: string;
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
   active?: boolean;
   disabled?: boolean;
@@ -30,10 +33,16 @@ interface ModelSelectButtonProps {
   ref?: React.Ref<HTMLButtonElement>;
 }
 
+/**
+ * The field that opens a model picker. It reads as a select: an outlined
+ * field with the model name, its provider or file in secondary text, and a
+ * chevron.
+ */
 function ModelSelectButton({
   label,
   secondaryLabel,
   subLabel,
+  warning,
   onClick,
   active,
   disabled,
@@ -48,71 +57,62 @@ function ModelSelectButton({
     <Tooltip
       title={
         tooltipTitle || (
-          <FlexColumn gap={0.5} sx={{ textAlign: "center" }}>
-            <Text>{label}</Text>
-            {secondaryLabel && (
-              <Caption size="smaller">{secondaryLabel}</Caption>
+          <FlexColumn gap={SPACING.xs}>
+            <Text size="small" weight={500}>
+              {label}
+            </Text>
+            {secondaryLabel && <Caption>{secondaryLabel}</Caption>}
+            {warning && (
+              <Caption sx={{ color: "warning.main" }}>{warning}</Caption>
             )}
             {subLabel && (
-              <Caption size="smaller" color="secondary">
-                {subLabel}
-              </Caption>
+              <Caption sx={{ color: "text.secondary" }}>{subLabel}</Caption>
             )}
           </FlexColumn>
         )
       }
-      delay={TOOLTIP_ENTER_DELAY * 2}
-      nextDelay={TOOLTIP_ENTER_DELAY * 2}
-      slotProps={{
-        tooltip: {
-          sx: {
-            maxWidth: "350px !important"
-          }
-        }
-      }}
+      delay={TOOLTIP_DESCRIPTION_DELAY}
+      nextDelay={TOOLTIP_DESCRIPTION_DELAY}
     >
       <EditorButton
         ref={ref}
         className={`select-model-button ${className || ""} ${
           active ? "active" : ""
         }`}
-        sx={{
-          border: "1px solid var(--palette-divider)",
-          backgroundColor: active
-            ? "var(--palette-action-selected)"
-            : "var(--palette-Paper-overlay)",
-          borderRadius: BORDER_RADIUS.sm,
-          color: "var(--palette-text-primary)",
-          textTransform: "none",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          lineHeight: 1.2,
-          minHeight: "28px",
-          height: "auto",
-          padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)}`,
-          width: "100%",
-          transition: MOTION.all,
-          "&:hover": {
-            backgroundColor: "var(--palette-action-hover)",
-            borderColor: "var(--palette-text-secondary)"
-          },
-          ...sx
-        }}
+        sx={[
+          (theme) => ({
+            width: "100%",
+            minHeight: CONTROL.height.sm,
+            height: "auto",
+            justifyContent: "space-between",
+            gap: SPACING.sm,
+            px: SPACING.md,
+            py: SPACING.xs,
+            textTransform: "none",
+            color: theme.vars.palette.text.primary,
+            backgroundColor: theme.vars.palette.Paper.overlay,
+            border: `1px solid ${theme.vars.palette.divider}`,
+            borderRadius: BORDER_RADIUS.sm,
+            transition: MOTION.all,
+            "&:hover": {
+              backgroundColor: theme.vars.palette.action.hover,
+              borderColor: theme.vars.palette.text.secondary
+            }
+          }),
+          ...(Array.isArray(sx) ? sx : [sx])
+        ]}
         onClick={onClick}
         disabled={disabled}
+        // Focus returns here when the picker closes on Escape. The focus
+        // ring marks it; the pulsating ripple read as a text highlight.
+        disableFocusRipple
         size="small"
       >
         <FlexRow
           className="model-select-button-label"
-          gap={1}
-          align="center"
-          sx={{
-            textAlign: "left",
-            flexGrow: 1,
-            overflow: "hidden",
-            marginRight: getSpacingPx(SPACING.xs)
-          }}
+          gap={SPACING.sm}
+          align="baseline"
+          sx={{ flex: 1, minWidth: 0, overflow: "hidden", textAlign: "left" }}
         >
           <Text
             className="model-select-button-label-text"
@@ -121,7 +121,8 @@ function ModelSelectButton({
             truncate
             sx={{
               flexShrink: 1,
-              minWidth: 0
+              minWidth: 0,
+              color: active ? "text.primary" : "text.secondary"
             }}
           >
             {label}
@@ -129,9 +130,8 @@ function ModelSelectButton({
           {secondaryLabel && (
             <Caption
               className="model-select-button-label-text-secondary"
-              size={scope === "inspector" ? "small" : "smaller"}
               sx={{
-                opacity: 0.6,
+                color: "text.secondary",
                 flexShrink: 0,
                 whiteSpace: "nowrap"
               }}
@@ -140,15 +140,17 @@ function ModelSelectButton({
             </Caption>
           )}
         </FlexRow>
+        {warning && (
+          <WarningAmberIcon
+            className="model-select-button-warning"
+            titleAccess={warning}
+            fontSize="small"
+            sx={{ color: "warning.main", flexShrink: 0 }}
+          />
+        )}
         <ExpandMoreIcon
-          sx={{
-            fontSize: 14,
-            color: "inherit",
-            opacity: 0.7,
-            flexShrink: 0,
-            ml: 0,
-            mr: `-${getSpacingPx(SPACING.xs)}`
-          }}
+          fontSize="small"
+          sx={{ color: "text.secondary", flexShrink: 0 }}
         />
       </EditorButton>
     </Tooltip>

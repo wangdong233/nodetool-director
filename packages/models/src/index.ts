@@ -52,7 +52,9 @@ export {
   runInboxMessages,
   triggerRegistrations,
   externalIdentities,
-  userEvents
+  userEvents,
+  analyticsEvents,
+  analyticsDaily
 } from "./schema/index.js";
 
 // ── Drizzle Schema (PostgreSQL) ─────────────────────────────────────
@@ -306,11 +308,13 @@ export {
   storyboardStatus,
   storyboardThumbnails,
   summarizeProject,
+  summarizeProjectDocumentPage,
   summarizeSpend,
   timelineStatus
 } from "./project-summary.js";
 export type {
   CategorySpend,
+  ProjectDocumentPage,
   ProjectDocumentRef,
   ProjectEntitySummary,
   ProjectDocumentStatus,
@@ -330,7 +334,8 @@ export { listDocumentIndex } from "./document-index.js";
 export type {
   DocumentIndex,
   DocumentIndexEntry,
-  DocumentIndexType
+  DocumentIndexType,
+  ProjectDocumentKind
 } from "./document-index.js";
 export {
   moveDocumentToProject,
@@ -338,6 +343,17 @@ export {
   reassignProjectDocuments
 } from "./project-membership.js";
 export type { ProjectMemberType } from "./project-membership.js";
+export {
+  PROJECT_ARCHIVE_TABLE_NAMES,
+  PROJECT_ARCHIVE_TABLES,
+  persistProjectArchive,
+  projectArchiveColumns,
+  projectArchivePrimaryKey,
+  readProjectArchiveRecords,
+  type ProjectArchiveRecords,
+  type ProjectArchiveRow,
+  type ProjectArchiveTableName
+} from "./project-archive.js";
 export {
   persistProjectCopy,
   type ProjectCopyAsset,
@@ -432,6 +448,12 @@ export {
   recordUserEvent,
   sanitizeUserEventMetadata
 } from "./user-event.js";
+export {
+  DEFAULT_ANALYTICS_RETENTION_DAYS,
+  pruneAnalyticsEvents,
+  recordAnalyticsEvents
+} from "./analytics-event.js";
+export type { AnalyticsEventInput } from "./analytics-event.js";
 export { createBugReport } from "./bug-report.js";
 export type { BugReportRow, CreateBugReportInput } from "./bug-report.js";
 export {

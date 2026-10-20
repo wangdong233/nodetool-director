@@ -1,6 +1,5 @@
 import React, { memo, useState } from "react";
-import ManagerPageLayout from "../panels/ManagerPageLayout";
-import { TabGroup } from "../ui_primitives";
+import { PageLayout, TabGroup } from "../ui_primitives";
 import DashboardExampleApps from "./DashboardExampleApps";
 import DashboardExampleGames from "./DashboardExampleGames";
 import DashboardExampleModels from "./DashboardExampleModels";
@@ -17,15 +16,15 @@ const ExamplesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("apps");
 
   return (
-    <ManagerPageLayout padded={false} scrollable showHeader={false}>
+    <PageLayout padded={false} scrollable showHeader={false}>
       <TabGroup
         tabs={[
           { value: "apps", label: "Apps" },
-          { value: "workflows", label: "Workflows" },
+          { value: "workflows", label: "Workflows", labelKey: "ui2:attrs.workflows" },
           { value: "storyboards", label: "Storyboards" },
           { value: "timelines", label: "Timelines" },
           { value: "sketches", label: "Sketches" },
-          { value: "models", label: "3D models" },
+          { value: "models", label: "3D models", labelKey: "timeline:attrs.kind3dModels" },
           { value: "games", label: "Games" }
         ]}
         value={activeTab}
@@ -47,7 +46,7 @@ const ExamplesPage: React.FC = () => {
       ) : (
         <DashboardExampleGames />
       )}
-    </ManagerPageLayout>
+    </PageLayout>
   );
 };
 

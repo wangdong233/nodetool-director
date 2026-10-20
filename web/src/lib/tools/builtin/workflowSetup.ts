@@ -26,6 +26,7 @@ import {
   PLAN_SOURCE_KEY,
   planSourceOf
 } from "../../../components/setup/workflow/setupExtras";
+import { i18n } from "../../../i18n";
 
 /**
  * The four tools that drive the Workflow creation flow from an agent
@@ -347,7 +348,7 @@ FrontendToolRegistry.register({
       }
       const added: WorkflowSetupPlan["steps"][number] = {
         id: step_id ?? freeStepId(steps),
-        title: fields.title ?? "New step",
+        title: fields.title ?? i18n.t("editor:ui.newStep", { defaultValue: "New step" }),
         summary: fields.summary ?? "",
         node_type: fields.node_type ?? null
       };

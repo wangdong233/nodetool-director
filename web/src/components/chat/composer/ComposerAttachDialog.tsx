@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 import EntityPicker from "../../entities/EntityPicker";
 import { TYPE_COLOR, TYPE_GLYPH } from "../../workspace/tabTypeIdentity";
 import {
+  AlertBanner,
   Box,
   Caption,
   Card,
@@ -75,10 +76,15 @@ type DocumentEntry = DocumentIndexEntry & {
 
 /**
  * The resource URI for a document index row. The index spells a mini app as
- * its tab type, `application`; the resource scheme calls it `app`.
+ * its tab type, `application`; the resource scheme calls it `app`. A text file
+ * is an asset.
  */
-export const documentResourceUri = (entry: DocumentEntry): string =>
-  `${entry.type === "application" ? "app" : entry.type}://${entry.id}`;
+export const documentResourceUri = (entry: DocumentEntry): string => {
+  if (entry.type === "text") {
+    return `asset://${entry.id}`;
+  }
+  return `${entry.type === "application" ? "app" : entry.type}://${entry.id}`;
+};
 
 const AssetsTab: React.FC<{
   query: string;
@@ -165,7 +171,7 @@ const DocumentsTab: React.FC<{
     return <LoadingSpinner size="small" text={t("editor:ui.loadingDocuments")} />;
   }
   if (error) {
-    return <Caption color="error">{error.message}</Caption>;
+    return <AlertBanner severity="error">{error.message}</AlertBanner>;
   }
   if (documents.length === 0) {
     return (
@@ -347,7 +353,12 @@ export const ComposerAttachDialog: React.FC<ComposerAttachDialogProps> = ({
         )}
         {tab === "assets" && <AssetsTab query={query} onSelect={pickAsset} />}
         {tab === "entities" && (
-          <EntityPicker onSelect={pickEntity} height={PANEL_HEIGHT} autoFocus />
+          <EntityPicker
+            onSelect={pickEntity}
+            height={PANEL_HEIGHT}
+            autoFocus
+            onCreateStarted={onClose}
+          />
         )}
         {tab === "documents" && (
           <DocumentsTab query={query} onSelect={pickDocument} />

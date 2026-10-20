@@ -3,10 +3,12 @@
   "private": true,
   "workspaces": [
     "packages/protocol",
+    "packages/analytics",
     "packages/gpu",
     "packages/timeline",
     "packages/storyboard",
     "packages/app-runtime",
+    "packages/app-export",
     "packages/game-runtime",
     "packages/game-renderer",
     "packages/image-editor",
@@ -15,6 +17,7 @@
     "packages/runtime",
     "packages/models",
     "packages/node-sdk",
+    "packages/node-catalog",
     "packages/execution",
     "reliability/harness",
     "packages/base-nodes",
@@ -31,6 +34,7 @@
     "packages/transformers-js-nodes",
     "packages/transformers-js-provider",
     "packages/websocket",
+    "packages/server",
     "packages/agents",
     "packages/chat",
     "packages/security",
@@ -50,7 +54,6 @@
     "packages/reve-nodes",
     "packages/atlascloud-nodes",
     "packages/higgsfield-nodes",
-    "packages/mediagen-nodes",
     "packages/together-nodes",
     "packages/sandbox-compiler",
     "packages/workflow-runner",
@@ -64,6 +67,7 @@
     "packages/audio-nodes",
     "packages/video-nodes",
     "packages/blender-nodes",
+    "packages/manimgx-nodes",
     "packages/game-nodes",
     "packages/integration-nodes",
     "packages/code-nodes",
@@ -95,6 +99,7 @@
     "build": "node scripts/run-turbo.mjs run build",
     "test:packages": "npm run test:oxlint-rules && npm run test:scripts && node scripts/run-turbo.mjs run test --filter=\"./packages/*\" --filter=\"./reliability/*\"",
     "test:oxlint-rules": "node scripts/run-vitest.mjs run --config vitest.config.ts tools/oxlint",
+    "measure:cli-closure": "node scripts/measure-cli-closure.mjs",
     "test:scripts": "node scripts/run-vitest.mjs run --config vitest.config.ts scripts/__tests__",
     "turbo": "turbo",
     "turbo:build": "node scripts/run-turbo.mjs run build",
@@ -112,7 +117,7 @@
     "dev:server": "node scripts/dev-server.mjs",
     "dev:server:fast": "npm run dev:server",
     "dev:dist": "node scripts/run-turbo.mjs run dev --filter=@nodetool-ai/websocket --filter=nodetool",
-    "dev:server:dist": "node scripts/run-turbo.mjs run dev --filter=@nodetool-ai/websocket",
+    "dev:server:dist": "node packages/server/dist/main.js",
     "dev:watch": "npm run dev",
     "dev:watch:server": "npm run dev:server",
     "lint": "oxlint packages/*/src web/src electron mobile/src && npm run lint:anti-slop:enforced && npm run lint:design --workspace=web",
@@ -129,6 +134,8 @@
     "chat": "node ./packages/cli/dist/index.js",
     "nodetool": "node ./packages/cli/dist/nodetool.js",
     "generate:node-docs": "node scripts/generate-node-docs.mjs && node scripts/build-node-index.mjs",
+    "generate:node-catalog": "node scripts/generate-node-catalog.mjs",
+    "check:node-catalog": "node scripts/generate-node-catalog.mjs --check",
     "generate:node-index": "node scripts/build-node-index.mjs",
     "generate:fal": "npm run generate --workspace=packages/fal-codegen -- --strict",
     "generate:replicate": "npm run generate --workspace=packages/replicate-codegen -- --all --strict",
@@ -193,6 +200,7 @@
     "check:keys": "node scripts/check-key-boundaries.mjs",
     "check:coupled-deps": "node scripts/check-coupled-deps.mjs",
     "check:lockfile": "node scripts/check-lockfile-sync.mjs",
+    "check:npm-audit": "node scripts/check-npm-audit.mjs",
     "check:typescript": "node scripts/check-typescript-policy.mjs",
     "check:lockfile-libc": "node scripts/patch-lockfile-libc.mjs --check",
     "fix:lockfile-libc": "node scripts/patch-lockfile-libc.mjs",
@@ -201,6 +209,7 @@
     "check:agents-docs": "node scripts/check-agents-docs.mjs",
     "sync:genspend": "node scripts/sync-genspend-pricing.mjs",
     "sync:genspend:check": "node scripts/sync-genspend-pricing.mjs --check",
+    "sync:gguf-trending": "node scripts/sync-gguf-trending.mjs",
     "sync:model-rankings": "node scripts/sync-model-rankings.mjs",
     "sync:model-rankings:check": "node scripts/sync-model-rankings.mjs --check",
     "check": "npm run check:deps && npm run check:circular && npm run check:keys && npm run check:coupled-deps && npm run check:lockfile && npm run check:lockfile-libc && npm run check:typescript && npm run check:execution-boundary && npm run check:document-sync && npm run check:agents-docs && npm run build:packages && npm run typecheck && npm run lint && npm run test:packages && npm run test",
@@ -241,7 +250,16 @@
     "sharp": "^0.35.3",
     "ts-node": "^10.9.2"
   },
+  "optionalDependencies": {
+    "office-text-extractor": "^4.0.0"
+  },
   "overrides": {
+    "epub2": {
+      "adm-zip": "^0.6.1"
+    },
+    "pptxgenjs": {
+      "image-size": "^2.0.4"
+    },
     "unzipper": ">=0.12.3",
     "sharp": "^0.35.3"
   },

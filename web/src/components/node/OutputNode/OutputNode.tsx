@@ -32,8 +32,9 @@ import { useSyncEdgeSelection } from "../../../hooks/nodes/useSyncEdgeSelection"
 import useMetadataStore from "../../../stores/MetadataStore";
 import { NODE_COLLAPSED_LAYOUT } from "../../../styles/collapsedNodeTokens";
 import { isObjectLike } from "../../../utils/typePredicates";
-import { i18n } from "../../../i18n";
+import { emptyOutputMessage } from "./emptyOutputMessage";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css([
@@ -277,6 +278,9 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
     [current]
   );
   const result = streamBuffer !== undefined ? streamBuffer : settledValue;
+  const focusedRunState = useWorkflowRunsStore((s) =>
+    focusedJob ? s.runs[workflowId]?.[focusedJob]?.state : undefined
+  );
 
   const outputValue = useMemo(() => getOutputFromResult(result), [result]);
 
@@ -325,13 +329,13 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
       });
       addNotification({
         type: "success",
-        content: i18n.t("editor:ui.downloadStartedSuccessfully", { defaultValue: "Download started successfully" })
+        content: "Download started successfully"
       });
     } catch (error) {
       console.error("Error in handleDownload:", error);
       addNotification({
         type: "error",
-        content: i18n.t("editor:ui.failedToStartDownload", { defaultValue: "Failed to start download" })
+        content: "Failed to start download"
       });
     }
   }, [outputValue, result, props.id, addNotification]);
@@ -453,7 +457,7 @@ const OutputNode: React.FC<OutputNodeProps> = (props) => {
         >
           {result === null || result === undefined ? (
             <CheckerDropzone
-              message="Run to see the output"
+              message={emptyOutputMessage(focusedRunState)}
               icon={<OutputIcon />}
             />
           ) : (

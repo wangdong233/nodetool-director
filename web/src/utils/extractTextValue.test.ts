@@ -21,7 +21,7 @@ describe("extractTextValue", () => {
   });
 
   it("extracts .text from objects", () => {
-    expect(extractTextValue({ text: "from text" })).toBe("from text");
+    expect(extractTextValue({ text: "from text", textKey: "sketch:attrs.fromText" })).toBe("from text");
   });
 
   it("extracts .data from objects", () => {

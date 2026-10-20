@@ -10,6 +10,11 @@
  *   TracksArea (user-resizable, default 240 px)
  *   BottomStatusBar (32 px)
  *
+ * DAW mode (TopBar switch, Alt+M) swaps the preview row, the tracks divider
+ * and the piano-roll strip for `DawWorkspace`: a transport strip (the preview
+ * mounted audio-only), the tracks, and a resizable dock with the mixer, the
+ * device chain, the piano roll and harmony. The transcript is hidden.
+ *
  * On phones there is no room for three columns: the transcript and inspector
  * leave the row entirely and the preview takes the full width, so preview and
  * tracks — the two surfaces you need simultaneously to edit — stay stacked and
@@ -22,17 +27,16 @@
  * chrome (tracks, inspector, status bar) stay mounted so the URL remains stable.
  */
 
-import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import type { TFunction } from "i18next";
 
 import {
-  Caption,
+  AlertBanner,
+  Button,
   ConflictBanner,
   Dialog,
   EditorButton,
@@ -45,17 +49,19 @@ import {
   SPACING,
   TabGroup,
   type TabItem,
-  Text,
   ToolbarIconButton,
-  BORDER_RADIUS,
-  MOTION,
-  getSpacingPx
+  ResizeHandle
 } from "../ui_primitives";
 import { isElectron, isLocalhost } from "../../lib/env";
 import ReportBugButton from "../support/ReportBugButton";
+import ErrorBanner from "../support/ErrorBanner";
 import { useDocumentConflicts } from "../../hooks/useDocumentConflicts";
 import { useNotificationStore } from "../../stores/NotificationStore";
-import { exportTimelineZip } from "../../utils/timelineBundle";
+import {
+  exportTimelineMedia,
+  exportTimelinePremiere,
+  exportTimelineZip
+} from "../../utils/timelineBundle";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import SubtitlesOutlinedIcon from "@mui/icons-material/SubtitlesOutlined";
@@ -91,7 +97,8 @@ import { TimelineProvider } from "../../stores/timeline/TimelineInstance";
 import { VideoLandingStrip } from "../setup/video/VideoLandingStrip";
 import { useReattachSequenceJobs } from "../../hooks/timeline/useReattachSequenceJobs";
 import { PreviewArea } from "./preview/PreviewArea";
-import { SelectFieldDensityContext } from "../ui_primitives";
+import { DawWorkspace } from "./daw/dock/DawWorkspace";
+import { FieldDensityContext } from "../ui_primitives";
 import { TimelineInstrumentsPanel } from "./TimelineInstrumentsPanel";
 import { TimelineInspector } from "./Inspector/TimelineInspector";
 import { SourceViewerPanel } from "./SourceViewerPanel";
@@ -128,21 +135,28 @@ import { useTimelineIsMobile } from "../../hooks/timeline/useTimelineIsMobile";
 import { useGuardedPanelTab } from "../../hooks/timeline/useGuardedPanelTab";
 import { ensureBundledFontsLoaded } from "./preview/fontLoading";
 import { useWorkspaceHeaderActions } from "../workspace/WorkspaceHeaderActionsContext";
+import { i18n } from "../../i18n";
+import { useTranslation } from "react-i18next";
 
 // The `@font-face` rules for the bundled corpus, pointing at the same files
 // the server rasterizer registers (D8). Imported by the editor rather than
 // globally so a session that never opens a timeline never fetches them.
 import "./fonts.css";
 
-const HANDLE_HEIGHT_PX = 6;
 /** Phone drag handle — 6px is under any reasonable touch target. */
-const TOUCH_HANDLE_HEIGHT_PX = 20;
+const TOUCH_HANDLE_HEIGHT_PX = SPACING.xxl * 4;
 const DEFAULT_TRACKS_HEIGHT_PX = 240;
 const MIN_TRACKS_HEIGHT_PX = 80;
 const MAX_TRACKS_HEIGHT_PX = 600;
 /** The preview row never shrinks below this while the tracks panel grows. */
 const MIN_PREVIEW_HEIGHT_PX = 160;
 const TRACKS_HEIGHT_STORAGE_KEY = "nodetool.timeline.tracksHeight";
+/** What an archive export's failure notification calls it. */
+const EXPORT_LABEL = {
+  bundle: "Project download",
+  premiere: "Premiere export",
+  media: "Media export"
+} as const;
 
 const clampTracksHeight = (height: number): number =>
   Math.min(MAX_TRACKS_HEIGHT_PX, Math.max(MIN_TRACKS_HEIGHT_PX, height));
@@ -216,54 +230,11 @@ const inspectorRegionStyles = (theme: Theme) =>
     justifyContent: "flex-start"
   });
 
-const dragHandleStyles = (theme: Theme, tall: boolean) =>
-  css({
-    height: tall ? TOUCH_HANDLE_HEIGHT_PX : HANDLE_HEIGHT_PX,
-    cursor: "ns-resize",
-    flexShrink: 0,
-    backgroundColor: theme.vars.palette.background.default,
-    boxShadow: `inset 0 1px ${theme.vars.palette.divider}`,
-    transition: MOTION.background,
-    outline: "none",
-    // The handle is a drag target, not a scroll surface: without this a touch
-    // drag scrolls the page instead of resizing (and the pointermove stream
-    // ends in a pointercancel).
-    touchAction: "none",
-    // Grip affordance — a bare 6px line reads as a border, not a control.
-    ...(tall
-      ? {
-          position: "relative",
-          backgroundColor: theme.vars.palette.background.paper,
-          borderTop: `1px solid ${theme.vars.palette.divider}`,
-          borderBottom: `1px solid ${theme.vars.palette.divider}`,
-          "&::after": {
-            content: '""',
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: getSpacingPx(SPACING.xxxl),
-            height: getSpacingPx(SPACING.micro),
-            borderRadius: BORDER_RADIUS.sm,
-            backgroundColor: theme.vars.palette.text.disabled
-          }
-        }
-      : null),
-    "&:hover, &.dragging": {
-      backgroundColor: theme.vars.palette.primary.main
-    },
-    "&:focus-visible": {
-      backgroundColor: theme.vars.palette.primary.main,
-      outline: `2px solid ${theme.vars.palette.primary.main}`,
-      outlineOffset: 0
-    }
-  });
-
 /** Human-readable label for the current export phase. */
 function exportPhaseLabel(
   progress: { phase: string; frame: number; totalFrames: number } | null
 ): string {
-  if (!progress) return "Preparing…";
+  if (!progress) return i18n.t("storyboard:attrs.preparing", { defaultValue: "Preparing…" });
   switch (progress.phase) {
     case "audio":
       return "Mixing audio…";
@@ -272,7 +243,7 @@ function exportPhaseLabel(
     case "finalizing":
       return "Finalizing…";
     default:
-      return "Preparing…";
+      return i18n.t("storyboard:attrs.preparing", { defaultValue: "Preparing…" });
   }
 }
 
@@ -294,7 +265,6 @@ const PreviewRegion: React.FC<{
   createSequenceErrorMessage,
   fullWidth = false
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   // Canvas size + fps come from the store — the single source of truth the
   // compositor and the export already read — so Project settings changes show
@@ -313,7 +283,7 @@ const PreviewRegion: React.FC<{
       }
     >
       {isLoading ? (
-        <LoadingSpinner text="Loading sequence…" />
+        <LoadingSpinner text="Loading sequence" />
       ) : sequenceUnavailable ? (
         <FlexColumn
           align="center"
@@ -323,8 +293,8 @@ const PreviewRegion: React.FC<{
         >
           <EmptyState
             variant="error"
-            title={t("timeline:editor.seqNotFound", { defaultValue: "Sequence not found" })}
-            description={t("timeline:editor.seqNotFoundDesc", { defaultValue: "The timeline sequence you requested does not exist or you do not have access to it." })}
+            title={i18n.t("timeline:editor.seqNotFound", { defaultValue: "Sequence not found" })}
+            description={i18n.t("timeline:editor.seqNotFoundDesc", { defaultValue: "The timeline sequence you requested does not exist or you do not have access to it." })}
           />
           <FlexRow gap={1} align="center" justify="center" sx={{ flexWrap: "wrap" }}>
             {onRetryFetch ? (
@@ -333,7 +303,7 @@ const PreviewRegion: React.FC<{
                 size="small"
                 onClick={onRetryFetch}
                 disabled={createSequencePending}
-                aria-label={t("timeline:editor.retryLoad", { defaultValue: "Retry loading sequence" })}
+                aria-label={i18n.t("timeline:editor.retryLoad", { defaultValue: "Retry loading sequence" })}
               >
                 Retry
               </EditorButton>
@@ -344,18 +314,22 @@ const PreviewRegion: React.FC<{
                 size="small"
                 onClick={onCreateNewSequence}
                 disabled={createSequencePending}
-                aria-label={t("timeline:editor.createNew", { defaultValue: "Create new sequence" })}
+                aria-label={i18n.t("timeline:editor.createNew", { defaultValue: "Create new sequence" })}
               >
-                {createSequencePending
-                  ? t("editor:ui.creating", { defaultValue: "Creating…" })
-                  : t("timeline:attrs.newSequence", { defaultValue: "New sequence" })}
+                {createSequencePending ? i18n.t("editor:ui.creating", { defaultValue: "Creating…" }) : i18n.t("timeline:attrs.newSequence", { defaultValue: "New sequence" })}
               </EditorButton>
             ) : null}
           </FlexRow>
           {createSequenceErrorMessage ? (
-            <Caption sx={{ color: "error.main", textAlign: "center" }}>
+            <ErrorBanner
+              report={{
+                source: "operation-failure",
+                summary: "Creating a sequence failed",
+                errorText: createSequenceErrorMessage
+              }}
+            >
               {createSequenceErrorMessage}
-            </Caption>
+            </ErrorBanner>
           ) : null}
         </FlexColumn>
       ) : (
@@ -372,58 +346,29 @@ PreviewRegion.displayName = "PreviewRegion";
 
 type InspectorTab = "inspector" | "shot" | "source" | "instrument" | "agent" | "history" | "script" | "code";
 
-/** One inspector tab entry; value is the InspectorTab union (TabItem widens
- *  it to string, so the arrays below carry the narrower type). */
-interface InspectorTabItem extends TabItem {
-  value: InspectorTab;
-}
-
-const INSPECTOR_TABS: readonly InspectorTabItem[] = [
-  { value: "inspector", label: "Inspector", icon: <TuneOutlinedIcon fontSize="small" /> },
-  { value: "instrument", label: "Instruments", icon: <PianoOutlinedIcon fontSize="small" /> },
+const INSPECTOR_TABS = [
+  { value: "inspector", label: "Inspector", labelKey: "timeline:editor.inspector", icon: <TuneOutlinedIcon fontSize="small" /> },
+  { value: "instrument", label: "Instruments", labelKey: "timeline:editor.instruments", icon: <PianoOutlinedIcon fontSize="small" /> },
   { value: "source", label: "Source", icon: <MovieFilterOutlinedIcon fontSize="small" /> },
   { value: "agent", label: "Assistant", icon: <AutoAwesomeIcon fontSize="small" /> },
-  { value: "history", label: "History", icon: <HistoryOutlinedIcon fontSize="small" /> }
+  { value: "history", label: "History", labelKey: "timeline:editor.history", icon: <HistoryOutlinedIcon fontSize="small" /> }
 ];
 
-/** Resolve a tab's label through the i18n catalog (module tables above are
- *  the byte-identical English fallbacks). */
-const tabLabel = (t: TFunction, tab: InspectorTab): string => {
-  switch (tab) {
-    case "inspector":
-      return t("timeline:editor.inspector", { defaultValue: "Inspector" });
-    case "instrument":
-      return t("timeline:editor.instruments", { defaultValue: "Instruments" });
-    case "source":
-      return t("timeline:editor.source", { defaultValue: "Source" });
-    case "agent":
-      return t("timeline:editor.assistant", { defaultValue: "Assistant" });
-    case "history":
-      return t("timeline:editor.history", { defaultValue: "History" });
-    case "shot":
-      return t("editor:ui.shot", { defaultValue: "Shot" });
-    case "script":
-      return t("editor:ui.script", { defaultValue: "Script" });
-    case "code":
-      return t("ui2:attrs.code", { defaultValue: "Code" });
-  }
-};
-
-const SCRIPT_TAB: InspectorTabItem = {
+const SCRIPT_TAB = {
   value: "script",
   label: "Script",
   icon: <SubtitlesOutlinedIcon fontSize="small" />
 };
 
-const SHOT_TAB: InspectorTabItem = {
+const SHOT_TAB = {
   value: "shot",
   label: "Shot",
   icon: <MovieCreationOutlinedIcon fontSize="small" />
 };
 
-const CODE_TAB: InspectorTabItem = {
+const CODE_TAB = {
   value: "code",
-  label: "Code",
+  label: "Code", labelKey: "timeline:code.title",
   icon: <CodeIcon fontSize="small" />
 };
 
@@ -431,7 +376,7 @@ const useAvailableInspectorTabs = (
   tab: InspectorTab,
   hasScript = false,
   hasCode = false
-): { tabs: InspectorTabItem[]; activeTab: InspectorTab } => {
+): { tabs: TabItem[]; activeTab: InspectorTab } => {
   const hasMidiTrack = useTimelineStore((s) => s.tracks.some((track) => track.type === "midi"));
   const activeExplorer = usePanelStore((s) => s.panel.activeView);
   const assetsAsset = useAssetsSelectedAsset();
@@ -460,12 +405,7 @@ const InspectorRegion: React.FC<{
   const theme = useTheme();
   const hasCode = useTimelineHasCode(sequenceId);
 
-  const { t } = useTranslation();
   const { tabs, activeTab } = useAvailableInspectorTabs(tab, false, hasCode);
-  const localizedTabs = tabs.map((item) => ({
-    ...item,
-    label: tabLabel(t, item.value)
-  }));
   useEffect(() => {
     if (activeTab !== tab) setTab(activeTab);
   }, [activeTab, tab, setTab]);
@@ -474,11 +414,11 @@ const InspectorRegion: React.FC<{
     <ResizableSideDock
       storageKey="timeline_assistant"
       defaultWidth={360}
-      ariaLabel={t("timeline:editor.resizeSide", { defaultValue: "Resize timeline side panel" })}
+      ariaLabel={i18n.t("timeline:editor.resizeSide", { defaultValue: "Resize timeline side panel" })}
     >
       <FlexColumn css={inspectorRegionStyles(theme)} fullHeight sx={{ minHeight: 0 }}>
         <TabGroup
-          tabs={localizedTabs}
+          tabs={tabs}
           value={activeTab}
           onChange={(value) => setTab(value as InspectorTab)}
           size="small"
@@ -512,6 +452,7 @@ const InspectorRegion: React.FC<{
 InspectorRegion.displayName = "InspectorRegion";
 
 const TranscriptRegion: React.FC = memo(() => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const hasScript = useHasScript();
 
@@ -545,7 +486,6 @@ const MobilePanelSheet: React.FC<{
   tab: InspectorTab;
   onTabChange: (tab: InspectorTab) => void;
 }> = memo(({ open, onClose, sequenceId, tab, onTabChange }) => {
-  const { t } = useTranslation();
   const hasScript = useHasScript();
   const hasCode = useTimelineHasCode(sequenceId);
   const { tabs, activeTab } = useAvailableInspectorTabs(tab, hasScript, hasCode);
@@ -572,7 +512,7 @@ const MobilePanelSheet: React.FC<{
       maxHeight="62vh"
       showDragHandle
       showClose={false}
-      ariaLabel={t("timeline:attrs.timelinePanels", { defaultValue: "Timeline panels" })}
+      ariaLabel={i18n.t("timeline:attrs.timelinePanels", { defaultValue: "Timeline panels" })}
     >
       <FlexColumn fullWidth sx={{ height: "52vh", minHeight: 0 }}>
         {activeTab === "inspector" ? (
@@ -656,7 +596,6 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
   sequenceId: sequenceIdProp,
   active = true
 }) => {
-  const { t } = useTranslation();
   const { sequenceId: sequenceIdParam } = useParams<{ sequenceId: string }>();
   const sequenceId = sequenceIdProp ?? sequenceIdParam;
   const [searchParams] = useSearchParams();
@@ -688,6 +627,8 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
   const sidePanelVisible = useTimelineLayoutStore((s) => s.sidePanelVisible);
   const toggleTranscript = useTimelineLayoutStore((s) => s.toggleTranscript);
   const toggleSidePanel = useTimelineLayoutStore((s) => s.toggleSidePanel);
+  const dawMode = useTimelineLayoutStore((s) => s.dawMode);
+  const setDawMode = useTimelineLayoutStore((s) => s.setDawMode);
   const handleOpenCode = useCallback(() => {
     setPanelTab("code");
     if (isMobile) setPanelSheetOpen(true);
@@ -757,33 +698,81 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
     [exportVideo, sequence?.name]
   );
 
-  // Whole-project archive: save the visible document before the server packs
-  // it with every referenced asset.
-  const [isExportingBundle, setIsExportingBundle] = useState(false);
-  const handleExportBundle = useCallback(async () => {
-    if (!sequenceId) return;
-    setIsExportingBundle(true);
-    try {
-      const saveResult = await flushAutosave();
-      if (!saveResult.ok) {
-        throw new Error(
-          `Could not save the current timeline. ${saveResult.error}`
-        );
+  // Server-packed archives: the whole project, a Premiere Pro XML with its
+  // media, or the media alone. Each saves the visible document first.
+  const [exportingArchive, setExportingArchive] = useState<
+    "bundle" | "premiere" | "media" | null
+  >(null);
+  const exportArchive = useCallback(
+    async (kind: "bundle" | "premiere" | "media") => {
+      if (!sequenceId) return;
+      setExportingArchive(kind);
+      const notify = useNotificationStore.getState().addNotification;
+      try {
+        const saveResult = await flushAutosave();
+        if (!saveResult.ok) {
+          throw new Error(
+            `Could not save the current timeline. ${saveResult.error}`
+          );
+        }
+        const name = sequence?.name || "timeline";
+        if (kind === "bundle") {
+          await exportTimelineZip(sequenceId, name);
+          return;
+        }
+        if (kind === "media") {
+          const missing = await exportTimelineMedia(sequenceId, name);
+          if (missing) {
+            notify({
+              type: "warning",
+              dismissable: true,
+              content: `Media downloaded. ${missing} ${
+                missing === 1 ? "file was" : "files were"
+              } unavailable and left out.`
+            });
+          }
+          return;
+        }
+        const warnings = await exportTimelinePremiere(sequenceId, name);
+        if (warnings) {
+          notify({
+            type: "warning",
+            dismissable: true,
+            content: `Premiere export downloaded. ${warnings} ${
+              warnings === 1 ? "clip needs" : "clips need"
+            } attention, see export-report.txt in the zip.`
+          });
+        }
+      } catch (error) {
+        notify({
+          type: "error",
+          alert: true,
+          dismissable: true,
+          content: `${EXPORT_LABEL[kind]} failed. ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        });
+      } finally {
+        setExportingArchive(null);
       }
-      await exportTimelineZip(sequenceId, sequence?.name || "timeline");
-    } catch (error) {
-      useNotificationStore.getState().addNotification({
-        type: "error",
-        alert: true,
-        dismissable: true,
-        content: `Project download failed. ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      });
-    } finally {
-      setIsExportingBundle(false);
-    }
-  }, [flushAutosave, sequenceId, sequence?.name]);
+    },
+    [flushAutosave, sequenceId, sequence?.name]
+  );
+  const handleExportBundle = useCallback(
+    () => void exportArchive("bundle"),
+    [exportArchive]
+  );
+  const handleExportPremiere = useCallback(
+    () => void exportArchive("premiere"),
+    [exportArchive]
+  );
+  const isExportingBundle = exportingArchive === "bundle";
+  const isExportingPremiere = exportingArchive === "premiere";
+  const handleExportMedia = useCallback(
+    () => void exportArchive("media"),
+    [exportArchive]
+  );
+  const isExportingMedia = exportingArchive === "media";
 
   // "Save as asset" — anchor the folder chooser to the TopBar button, then
   // render the timeline into a new asset in the chosen folder.
@@ -844,38 +833,75 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
   useEffect(() => {
     if (pianoRollOpen) setTracksHeight((height) => Math.min(height, DEFAULT_TRACKS_HEIGHT_PX));
   }, [pianoRollOpen]);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartYRef = useRef(0);
-  const dragStartHeightRef = useRef(DEFAULT_TRACKS_HEIGHT_PX);
-  const handleRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const latestHeightRef = useRef(effectiveTracksHeight);
+  latestHeightRef.current = effectiveTracksHeight;
   // Latest computed height + pending rAF id for the throttled resize below.
   const pendingHeightRef = useRef<number | null>(null);
   const resizeRafIdRef = useRef<number | null>(null);
 
-  /** Begin drag — capture start position and activate drag state. */
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      dragStartYRef.current = e.clientY;
-      dragStartHeightRef.current = effectiveTracksHeight;
-      setIsDragging(true);
-    },
-    [effectiveTracksHeight]
-  );
+  const cancelPendingFlush = useCallback(() => {
+    if (resizeRafIdRef.current !== null) {
+      cancelAnimationFrame(resizeRafIdRef.current);
+      resizeRafIdRef.current = null;
+    }
+  }, []);
 
   /**
-   * Register / unregister window-level pointer listeners for the duration of a
-   * drag. Cleanup runs on unmount, preventing listener leaks if the user
-   * navigates away mid-drag.
-   *
-   * Pointer events (not mouse) so the handle drags under touch as well as a
-   * mouse; `pointercancel` ends the drag when the OS takes the gesture over.
-   *
-   * `pointermove` fires far more often than the display refreshes, so it only
-   * records the latest height in a ref and schedules at most one
+   * `pointermove` fires far more often than the display refreshes, so a drag
+   * only records the latest height in a ref and schedules at most one
    * `setTracksHeight` per animation frame — otherwise every move tick
-   * re-rendered the whole shell.
+   * re-rendered the whole shell. Keyboard steps commit straight away.
    */
+  const handleTracksResize = useCallback(
+    (delta: number) => {
+      const next = clampTracksHeight(
+        (pendingHeightRef.current ?? latestHeightRef.current) + delta
+      );
+      if (!isDraggingRef.current) {
+        commitTracksHeight(next);
+        return;
+      }
+      pendingHeightRef.current = next;
+      if (resizeRafIdRef.current === null) {
+        resizeRafIdRef.current = requestAnimationFrame(() => {
+          resizeRafIdRef.current = null;
+          if (pendingHeightRef.current !== null) {
+            setTracksHeight(pendingHeightRef.current);
+          }
+        });
+      }
+    },
+    [commitTracksHeight]
+  );
+
+  const handleTracksResizeStart = useCallback(() => {
+    isDraggingRef.current = true;
+    pendingHeightRef.current = null;
+    // Prevent text selection in adjacent regions during drag.
+    document.body.style.userSelect = "none";
+  }, []);
+
+  const handleTracksResizeEnd = useCallback(() => {
+    cancelPendingFlush();
+    // Flush the final position synchronously so a pointerup landing between
+    // animation frames doesn't leave the panel at a stale height.
+    if (pendingHeightRef.current !== null) {
+      commitTracksHeight(pendingHeightRef.current);
+      pendingHeightRef.current = null;
+    }
+    isDraggingRef.current = false;
+    document.body.style.userSelect = "";
+  }, [cancelPendingFlush, commitTracksHeight]);
+
+  useEffect(
+    () => () => {
+      cancelPendingFlush();
+      document.body.style.userSelect = "";
+    },
+    [cancelPendingFlush]
+  );
+
   // Start the font fetch when the editor mounts, so the first title is drawn
   // with its real face instead of the fallback. `TextRasterizer` also refuses
   // to cache a bitmap until this resolves, which is what makes a slow fetch a
@@ -883,81 +909,6 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
   useEffect(() => {
     void ensureBundledFontsLoaded();
   }, []);
-
-  useEffect(() => {
-    if (!isDragging) {
-      return;
-    }
-
-    // Prevent text selection in adjacent regions during drag.
-    document.body.style.userSelect = "none";
-    const handleEl = handleRef.current;
-    handleEl?.classList.add("dragging");
-
-    const flushPendingHeight = () => {
-      resizeRafIdRef.current = null;
-      if (pendingHeightRef.current !== null) {
-        setTracksHeight(pendingHeightRef.current);
-      }
-    };
-
-    const onPointerMove = (ev: PointerEvent) => {
-      const deltaY = dragStartYRef.current - ev.clientY; // drag up → taller
-      pendingHeightRef.current = clampTracksHeight(
-        dragStartHeightRef.current + deltaY
-      );
-      if (resizeRafIdRef.current === null) {
-        resizeRafIdRef.current = requestAnimationFrame(flushPendingHeight);
-      }
-    };
-
-    const onPointerUp = () => {
-  const { t } = useTranslation();
-      if (resizeRafIdRef.current !== null) {
-        cancelAnimationFrame(resizeRafIdRef.current);
-        resizeRafIdRef.current = null;
-      }
-      // Flush the final position synchronously so a mouseup landing between
-      // animation frames doesn't leave the panel at a stale height.
-      if (pendingHeightRef.current !== null) {
-        commitTracksHeight(pendingHeightRef.current);
-        pendingHeightRef.current = null;
-      }
-      setIsDragging(false);
-    };
-
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("pointercancel", onPointerUp);
-
-    return () => {
-      if (resizeRafIdRef.current !== null) {
-        cancelAnimationFrame(resizeRafIdRef.current);
-        resizeRafIdRef.current = null;
-      }
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-      window.removeEventListener("pointercancel", onPointerUp);
-      document.body.style.userSelect = "";
-      handleEl?.classList.remove("dragging");
-    };
-  }, [isDragging, commitTracksHeight]);
-
-  /** Keyboard resize: ↑ enlarges, ↓ shrinks the tracks panel. */
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        commitTracksHeight(
-          Math.min(maxTracksHeight, effectiveTracksHeight + KEYBOARD_RESIZE_STEP_PX)
-        );
-      } else if (e.key === "ArrowDown") {
-        e.preventDefault();
-        commitTracksHeight(effectiveTracksHeight - KEYBOARD_RESIZE_STEP_PX);
-      }
-    },
-    [commitTracksHeight, effectiveTracksHeight, maxTracksHeight]
-  );
 
   /** Double-click the grip to return the tracks panel to its default height. */
   const handleResetTracksHeight = useCallback(
@@ -967,6 +918,8 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
 
   /** Query finished without a usable row (disabled id, error, or empty). */
   const sequenceUnavailable = !isLoading && (isError || !sequence);
+  /** Loading and error states keep the video layout, which shows them. */
+  const dawActive = dawMode && !isLoading && !sequenceUnavailable;
 
   const { data: userTimelines } = useTimelines(undefined, {
     enabled: sequenceUnavailable
@@ -1019,6 +972,12 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
         isExporting={isExporting}
         onExportBundle={sequenceUnavailable ? undefined : handleExportBundle}
         isExportingBundle={isExportingBundle}
+        onExportPremiere={
+          sequenceUnavailable ? undefined : handleExportPremiere
+        }
+        isExportingPremiere={isExportingPremiere}
+        onExportMedia={sequenceUnavailable ? undefined : handleExportMedia}
+        isExportingMedia={isExportingMedia}
         onSave={sequenceUnavailable ? undefined : handleSave}
         isSaving={isSaving}
         onSaveToAssets={sequenceUnavailable ? undefined : handleSaveToAssets}
@@ -1029,14 +988,18 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
         onOpenCode={handleOpenCode}
         sequenceId={sequenceUnavailable ? undefined : sequenceId}
         onToggleTranscript={
-          !isMobile && hasScript ? toggleTranscript : undefined
+          !isMobile && hasScript && !dawMode ? toggleTranscript : undefined
         }
         transcriptVisible={transcriptVisible}
         onToggleSidePanel={isMobile ? undefined : toggleSidePanel}
         sidePanelVisible={sidePanelVisible}
+        onSetDawMode={sequenceUnavailable ? undefined : setDawMode}
+        dawMode={dawMode}
       />
     ),
     [
+      dawMode,
+      setDawMode,
       hasScript,
       isMobile,
       sidePanelVisible,
@@ -1045,6 +1008,8 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
       transcriptVisible,
       activitySlot,
       handleExportBundle,
+      handleExportMedia,
+      handleExportPremiere,
       handleExportVideo,
       handleOpenCode,
       handleOpenSettings,
@@ -1054,6 +1019,8 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
       hasCode,
       isExporting,
       isExportingBundle,
+      isExportingMedia,
+      isExportingPremiere,
       isSaving,
       sequenceId,
       sequenceUnavailable
@@ -1083,21 +1050,16 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
 
   // Export dialog action button — memoized so re-renders unrelated to export
   // state (e.g. the tracks-resize drag) don't allocate a fresh element that
-  // would defeat Dialog's memo.
+  // would defeat Dialog's memo. A failed export closes from the title X.
   const hasExportError = exportError != null;
   const exportDialogActions = useMemo(
-    () => (
-      <EditorButton
-        variant={isExporting ? "outlined" : "contained"}
-        size="small"
-        onClick={isExporting ? cancelExport : clearExportError}
-      >
-        {isExporting
-          ? t("timeline:attrs.cancel", { defaultValue: "Cancel" })
-          : t("common:action.close", { defaultValue: "Close" })}
-      </EditorButton>
-    ),
-    [isExporting, cancelExport, clearExportError, t]
+    () =>
+      isExporting ? (
+        <Button variant="text" color="inherit" onClick={cancelExport}>
+          Cancel
+        </Button>
+      ) : undefined,
+    [isExporting, cancelExport]
   );
 
   // External writes that the dirty draft refused — offered per merge unit.
@@ -1112,7 +1074,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
   );
 
   return (
-    <SelectFieldDensityContext.Provider value="compact">
+    <FieldDensityContext.Provider value="compact">
     <FlexColumn fullWidth fullHeight css={editorStyles(theme)}>
       {!workspaceHeader && headerActions}
       {conflictBanner}
@@ -1130,6 +1092,10 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
 
       <FlexRow fullWidth sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
       <FlexColumn ref={editorColumnRef} sx={{ flex: 1, minWidth: 0, minHeight: 0 }}>
+      {dawActive ? (
+        <DawWorkspace onGenerate={openGenerate} />
+      ) : (
+      <>
       {/* ── Middle: assets + preview ──────────────────────────────── */}
       {/* Basis 0 (not `auto`): the middle row absorbs all leftover height via
        *  flex-grow, but its *content* never contributes to the column's size.
@@ -1157,19 +1123,20 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
 
       {/* ── Horizontal drag handle (pointer + keyboard resizable) ─── */}
       {!pianoRollFullScreen && (
-        <div
-          ref={handleRef}
-          role="separator"
-          aria-orientation="horizontal"
-          aria-label={t("timeline:editor.resizeTracks", { defaultValue: "Resize tracks panel" })}
-          aria-valuenow={effectiveTracksHeight}
-          aria-valuemin={MIN_TRACKS_HEIGHT_PX}
-          aria-valuemax={maxTracksHeight}
-          tabIndex={0}
-          css={dragHandleStyles(theme, isMobile)}
-          onPointerDown={handlePointerDown}
+        <ResizeHandle
+          orientation="horizontal"
+          invert
+          value={effectiveTracksHeight}
+          min={MIN_TRACKS_HEIGHT_PX}
+          max={maxTracksHeight}
+          thickness={isMobile ? SPACING.xxl : SPACING.sm}
+          grip={isMobile}
+          keyboardStep={KEYBOARD_RESIZE_STEP_PX}
+          ariaLabel={i18n.t("timeline:editor.resizeTracks", { defaultValue: "Resize tracks panel" })}
+          onResize={handleTracksResize}
+          onResizeStart={handleTracksResizeStart}
+          onResizeEnd={handleTracksResizeEnd}
           onDoubleClick={handleResetTracksHeight}
-          onKeyDown={handleKeyDown}
         />
       )}
 
@@ -1185,6 +1152,8 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
 
       {/* ── Clip editor (piano roll) ──────────────────────────────── */}
       <PianoRollPanel fullHeight={pianoRollFullScreen} />
+      </>
+      )}
       </FlexColumn>
       {!isMobile && sidePanelVisible && (
         <InspectorRegion
@@ -1201,8 +1170,8 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
           isMobile ? (
             <ToolbarIconButton
               onClick={openPanelSheet}
-              tooltip={t("timeline:editor.panels", { defaultValue: "Panels" })}
-              aria-label={t("timeline:editor.openPanels", { defaultValue: "Open panels" })}
+              tooltip={i18n.t("timeline:editor.panels", { defaultValue: "Panels" })}
+              aria-label={i18n.t("timeline:editor.openPanels", { defaultValue: "Open panels" })}
               // Tinted while a clip is selected: that's when the Inspector has
               // something to show, and it's the only hint on a phone that
               // tapping a clip led somewhere.
@@ -1257,16 +1226,12 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
       <Dialog
         open={isExporting || hasExportError}
         onClose={isExporting ? undefined : clearExportError}
-        title={hasExportError
-          ? t("timeline:attrs.exportFailed", { defaultValue: "Export failed" })
-          : t("timeline:attrs.exportingVideo", { defaultValue: "Exporting video" })}
+        title={hasExportError ? i18n.t("timeline:attrs.exportFailed", { defaultValue: "Export failed" }) : i18n.t("timeline:attrs.exportingVideo", { defaultValue: "Exporting video" })}
         actions={exportDialogActions}
       >
         {exportError != null ? (
           <FlexColumn gap={SPACING.md}>
-            <Text size="small" sx={{ color: "error.main" }}>
-              {exportError}
-            </Text>
+            <AlertBanner severity="error">{exportError}</AlertBanner>
             <ReportBugButton
               context={{
                 source: "operation-failure",
@@ -1276,7 +1241,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
             />
           </FlexColumn>
         ) : (
-          <FlexColumn gap={1} sx={{ py: 1 }}>
+          <FlexColumn gap={SPACING.xs}>
             <ProgressBar
               value={Math.round((exportProgress?.ratio ?? 0) * 100)}
               progressVariant={
@@ -1291,7 +1256,7 @@ const TimelineEditorBody: React.FC<TimelineEditorProps> = memo(({
       </Dialog>
 
     </FlexColumn>
-    </SelectFieldDensityContext.Provider>
+    </FieldDensityContext.Provider>
   );
 });
 

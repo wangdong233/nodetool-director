@@ -17,7 +17,7 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import CollectionsBookmarkRoundedIcon from "@mui/icons-material/CollectionsBookmarkRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import ClearAllRoundedIcon from "@mui/icons-material/ClearAllRounded";
 
 import {
@@ -28,7 +28,8 @@ import {
   MOTION,
   reducedMotion,
   SPACING,
-  thinScrollbarStyles
+  thinScrollbarStyles,
+  ICON_SIZE
 } from "../../ui_primitives";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
@@ -314,13 +315,13 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
     <div css={bodyStyles} className={`nodrag ${dropProps.className ?? ""}`}>
       <div className="col-header">
         <CollectionsBookmarkRoundedIcon
-          sx={{ fontSize: "var(--fontSizeSmall)" }}
+          sx={{ fontSize: ICON_SIZE.xs }}
         />
         <span>
           {items.length === 0
             ? t("editor:ui.collection", { defaultValue: "Collection" })
             : t("editor:ui.itemCount", {
-                defaultValue: "{{count}} item",
+                defaultValue: "{{count}} items",
                 count: items.length
               })}
         </span>
@@ -364,7 +365,7 @@ const CollectionBodyInner: React.FC<BespokeBodyProps> = ({
                   tooltip={t("editor:ui.remove", { defaultValue: "Remove" })}
                   onClick={() => removeAt(i)}
                 >
-                  <CloseRoundedIcon fontSize="inherit" />
+                  <CloseOutlinedIcon fontSize="inherit" />
                 </ToolbarIconButton>
               </span>
             </div>

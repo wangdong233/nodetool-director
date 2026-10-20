@@ -10,15 +10,17 @@ The TypeScript DSL (`@nodetool-ai/dsl`) provides type-safe factory functions for
 
 1. [Installation](#installation)
 2. [Core Concepts](#core-concepts)
-3. [Basic Workflow](#basic-workflow)
-4. [Connecting Nodes](#connecting-nodes)
-5. [Multi-Output Nodes](#multi-output-nodes)
-6. [Typed workflows and composition](#typed-workflows-and-composition)
-7. [Runtime branches, maps, and text](#runtime-branches-maps-and-text)
+3. [Typed workflows and composition](#typed-workflows-and-composition)
+4. [Runtime branches, maps, and text](#runtime-branches-maps-and-text)
+5. [Basic Workflow](#basic-workflow)
+6. [Connecting Nodes](#connecting-nodes)
+7. [Multi-Output Nodes](#multi-output-nodes)
 8. [Building the Workflow Graph](#building-the-workflow-graph)
 9. [Namespaces](#namespaces)
 10. [Code Generation](#code-generation)
-11. [Best Practices](#best-practices)
+11. [Calling nodes directly (flow API)](#calling-nodes-directly-flow-api)
+12. [Best Practices](#best-practices)
+13. [Canonical source and visual editing](#canonical-source-and-visual-editing)
 
 ---
 
@@ -323,20 +325,22 @@ async function runGraph(...terminals: DslNode<never>[]): Promise<WorkflowResult>
 
 `run()` executes the graph locally and returns the last value each result node produced. An `Output` node is keyed by its `name` property, and any other node with no outgoing data edge is keyed by its node id. It throws if the run fails or a node reports an error. `runGraph(...terminals)` is `run(workflow(...terminals))`.
 
-`run()` resolves each node in this order: `RunOptions.registry`, then `NodeRegistry.global`, then the built-in packs (`base-nodes` plus the ElevenLabs, MiniMax, Transformers.js, Hugging Face, and Reve packs, each skipped if it cannot load), then the Python bridge. An unknown type throws `Unknown node type`.
+`run()` resolves each node in this order: `RunOptions.registry`, then `NodeRegistry.global`, then the built-in packs, then the Python bridge. The built-in packs are the base node domains plus the whisper.cpp, ElevenLabs, MiniMax, Transformers.js, Reve, and Hugging Face packs. The FAL, Kie, Topaz, AtlasCloud, Higgsfield, Together, and Replicate packs are not loaded, so pass a `registry` for their nodes. A node from a pack that cannot load throws a missing-pack error. An unknown type throws `Unknown node type`.
 
 | `RunOptions` field | Meaning |
 |---|---|
 | `params` | Values for the workflow's typed parameters (the schema form), or Input node values. |
 | `userId` | User whose secrets resolve. Defaults to `"1"`, the CLI's local user. |
-| `authToken` | Bearer token for calls back to the owning NodeTool API. |
+| `authToken` | Declared on the type. `run()` does not read it. |
 | `registry` | A `NodeRegistry` consulted first. Use it for custom pack nodes. |
 | `secretResolver` | `(key, userId) => string \| null`. Without it, secrets come from environment variables only and a node with `requiredSettings` warns that its secret is missing. |
 | `bridgeOptions` | Python worker bridge options (`wsUrl`, `workerToken`). Otherwise `NODETOOL_WORKER_URL` and `NODETOOL_WORKER_TOKEN` apply. Graphs with Python nodes connect the bridge automatically. |
 
 ### Running from the CLI
 
-`nodetool run <file.ts>` imports a TypeScript or JavaScript file, finds every exported `Workflow` (or workflow definition), runs each, and prints the outputs per export name. It fails with `No Workflow exports found` when the file exports none. `nodetool validate <file.ts>` checks the graph without running it, and `nodetool workflows export-dsl <id_or_file> [-o file]` writes a saved workflow as DSL source. See the [CLI reference](../cli.md).
+`nodetool run <file.ts>` imports a TypeScript or JavaScript file, finds every exported `Workflow` (or workflow definition), runs each with `run()` and no `params`, and prints the outputs per export name. It fails with `No Workflow exports found` when the file exports none. It accepts `--json` and `--install-missing`. A definition whose schema has required parameters fails that run, so give it a parameter-less wrapper export.
+
+`nodetool validate <file.ts>` checks the graph without running it. `nodetool debug <file.ts>` and `nodetool workflows run <file.ts>` also accept a `.ts` file. These three commands load the file differently from `nodetool run`: they need exactly one exported workflow and fail with `Multiple Workflow exports found` otherwise. When the file exports none, they fall back to JSON the file prints with `console.log`. `nodetool workflows export-dsl <id_or_file> [-o file]` writes a saved workflow as DSL source. See the [CLI reference](../cli.md).
 
 ### Using nodes from a custom pack
 
@@ -391,9 +395,9 @@ The factory functions are auto-generated from node metadata. To regenerate after
 npm run codegen --workspace=packages/dsl
 ```
 
-This reads all nodes in `ALL_BASE_NODES` from `@nodetool-ai/base-nodes`, introspects their metadata (inputs, outputs, types, defaults), and emits typed factory functions into `packages/dsl/src/generated/`. The same pass also writes the guest-side native flow modules into `packages/dsl/src/flow/generated/`. Pass `--graph` or `--flow` to regenerate one tree.
+This reads all nodes in `ALL_BASE_NODES` from `@nodetool-ai/base-nodes` and the whisper.cpp nodes, introspects their metadata (inputs, outputs, types, defaults), and emits typed factory functions into `packages/dsl/src/generated/`. The same pass also writes the guest-side native flow modules into `packages/dsl/src/flow/generated/`. Pass `--graph` or `--flow` to regenerate one tree.
 
-Generated files are committed to git. `npm run codegen:check --workspace=packages/dsl` writes nothing and exits 1 when either tree differs from the registry, and CI runs it. The codegen script is at `packages/dsl/scripts/codegen.ts`.
+Generated files are committed to git. The root scripts `npm run codegen:dsl` and `npm run codegen:dsl:check` run the same commands. `npm run codegen:check --workspace=packages/dsl` writes nothing and exits 1 when either tree differs from the registry, and CI runs it. The codegen script is at `packages/dsl/scripts/codegen.ts`.
 
 ### Type Mapping
 
@@ -414,7 +418,70 @@ Generated files are committed to git. `npm run codegen:check --workspace=package
 | `enum` (with values) | string literal union |
 | optional types | `T \| undefined` |
 | `union[...]` | union of the mapped types |
+| `entity` | `Entity` |
+| `game_slot` | `GameSlotSpec` |
+| `slot_fill` | `SlotFill` |
 | `any` and any unmapped type (models, messages, 3D refs) | `unknown` |
+
+---
+
+## Calling nodes directly (flow API)
+
+`@nodetool-ai/dsl/flow` runs a single node as an async function. There is no graph, no `WorkflowRunner`, and no sandbox: a call resolves the node in the registry and runs its `process()`. You write the control flow in plain JavaScript.
+
+This is an internal surface. Its users in the repository are the exported-script generator (`packages/dsl/src/script-export.ts`, which emits `import { startFlow, invoke, invokeStream } from "@nodetool-ai/dsl/flow"`) and the sandbox `flow` capability (`packages/agents/src/capabilities/flow.ts`), which loads it through `importHidden`. [docs/harnesses.md](../harnesses.md) calls it internal. A program that must open in the editor, be validated, or run on the server should build a graph with `workflow()` and `run()` instead. The `./flow` export in `packages/dsl/package.json` exists so those two callers can resolve it. Design record: [dsl-native-flow-design](../dsl-native-flow-design.md).
+
+### Host API
+
+All names below are exported from `@nodetool-ai/dsl/flow` (`packages/dsl/src/flow/index.ts`).
+
+| Export | Signature and behavior |
+|--------|------------------------|
+| `startFlow(opts?)` | `(opts?: FlowOptions) => Promise<Flow>`. Creates a flow with its own `ProcessingContext` (job id `flow-<uuid>`, user id `"1"` unless `opts.userId` is set). |
+| `createFlowForContext(context, opts?)` | `(context: ProcessingContext, opts?: Omit<FlowOptions, "userId" \| "secretResolver">) => Promise<Flow>`. Runs on a context the caller owns, so cost, secrets and storage stay with that run. |
+| `invoke(nodeType, inputs, opts?)` | `Promise<Record<string, unknown>>`. Runs the node and returns its outputs. A node that yields several records is drained and folded to the last value per output slot. |
+| `invokeStream(nodeType, inputs, opts?)` | `AsyncGenerator<Record<string, unknown> \| StreamEmission>`. Yields one record per `genProcess` yield, or one `{ slot, value }` emission per `emit()` for a node that implements the `run(inputs, outputs, context)` contract. |
+| `invokeGenStream`, `invokeRunStream` | The two paths behind `invokeStream`, with the same arguments. The first yields records only, the second yields `StreamEmission` only. |
+| `foldEmissions(emissions)` | `(AsyncIterable<StreamEmission>) => Promise<Record<string, unknown>>`. Folds emissions to the last value per slot. |
+| `assertNodeAvailable(nodeType, opts?)` | `Promise<void>`. Checks that the node's pack is available without running the node. |
+| `resolveFlow(opts?)` | Returns the flow a call would use: `opts.flow`, else the ambient flow from an enclosing `flow.run()`, else a process-default flow (environment-variable secrets only, never closed automatically). |
+| `resetDefaultFlow()` | Closes and drops the process-default flow. Intended for tests. |
+| `FlowClosedError`, `FlowAbortError`, `EmissionCancelledError` | Thrown for a call on a closed flow, an abort with no reason of its own (`name` is `"AbortError"`), and a node's pending `emit()` when the consumer stops reading. |
+| `DEFAULT_EMISSION_QUEUE_LIMIT` | `1024`. |
+
+Types: `Flow`, `FlowOptions`, `FlowCallEvent`, `FlowCallPhase` (`"start" | "end" | "error"`), `CallOptions`, `StreamEmission`, `StreamSource<T>` (`AsyncIterable<T> | ReadonlyArray<T> | T`, what a caller may pass for a stream-typed input).
+
+`FlowOptions`: `userId`, `secretResolver`, `registry` (custom `NodeRegistry`, consulted before the global and builtin ones), `bridgeOptions` (Python worker bridge), `signal` (aborts every call), `onCall(event)` (receives `{ type, phase, durationMs, error? }`), and `maxQueuedEmissions` (default 1024).
+
+`CallOptions`: `flow` (use this flow instead of the ambient one), `signal` (aborts this call, combined with the flow's signal), and `maxQueuedEmissions`.
+
+`Flow` has `run(body)` (makes the flow ambient for every call inside `body`), `context` (the `ProcessingContext`), `close()` (idempotent), and `[Symbol.asyncDispose]()`, so `await using` closes it.
+
+```ts
+import { startFlow, invoke, invokeStream } from "@nodetool-ai/dsl/flow";
+
+await using flow = await startFlow({
+  onCall: (e) => console.log(e.type, e.phase)
+});
+
+await flow.run(async () => {
+  const { output } = await invoke("nodetool.text.Concat", {
+    a: "Hello, ",
+    b: "world"
+  });
+  console.log(output); // "Hello, world"
+
+  // For a node with streaming output, take items as they arrive.
+  // "my.pack.Tokens" is a placeholder type name.
+  for await (const item of invokeStream("my.pack.Tokens", { prompt: "hi" })) {
+    console.log(item);
+  }
+});
+```
+
+### Relation to the sandbox guest
+
+`packages/dsl/src/flow/generated/` holds typed per-namespace callables, such as `text.concat(inputs)` and `text.concat.stream(inputs)`. Codegen writes them (`npm run codegen --workspace=packages/dsl`, or `--flow` for this tree only). They are not host functions. `guest-core.ts` is the runtime behind them and runs only inside the QuickJS guest, as part of the `@nodetool-ai/sandbox-flow` pack. It calls four host capabilities from the `flow` capability module: `invoke_node`, `open_node_stream`, `take_node_stream` and `close_node_stream`. The host runs each one through the API above, on the invoking run's `ProcessingContext`. Guest authors should read the `nodetool-js-scripting` skill (`packages/system-skills/nodetool-js-scripting/SKILL.md`) rather than this section.
 
 ---
 
@@ -448,6 +515,8 @@ The exporter emits only the terminal form `workflow(...terminals)`. It does
 not emit typed schema callbacks, returned output objects, or `choose` and
 `map`. A saved graph exports as lowered nodes, and Input and Output nodes
 export as ordinary nodes.
+
+`workflowToScript(graph, { target })` is a second exporter. It turns a graph into a JavaScript body that calls each node as an async function, with `target` set to `"sandbox"` (a script document or Code node body) or `"node"` (a standalone `.mjs`). It returns `{ code, inputs, outputs, unsupported }`. See the [native flow design](../dsl-native-flow-design.md).
 
 Arbitrary `if`, loops, mutation, dynamic property access, reflection, unknown
 spreads, and filesystem/network behavior fall outside the guaranteed visual

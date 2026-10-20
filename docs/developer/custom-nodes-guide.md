@@ -24,6 +24,7 @@ A custom node lives in a standalone npm package — a **pack** — that the serv
 10. [`ProcessingContext` — the runtime surface](#10-processingcontext--the-runtime-surface)
 11. [Streaming nodes (`genProcess`)](#11-streaming-nodes-genprocess)
 12. [Lifecycle hooks](#12-lifecycle-hooks)
+    - [Advanced node features](#12a-advanced-node-features): triggers, `primaryOutput`, `autoSaveAsset`, dynamic slots, `appendStaticInputs`, `requiredRuntimes`
 13. [Registering nodes](#13-registering-nodes)
 14. [Building the pack](#14-building-the-pack)
 15. [Testing nodes](#15-testing-nodes)
@@ -44,7 +45,7 @@ npm install --save @nodetool-ai/node-sdk @nodetool-ai/runtime @nodetool-ai/proto
 npm install --save-dev typescript @types/node vitest
 ```
 
-`nodetool package init` scaffolds a similar package. It writes the `nodetool` field and an empty `export function register(...)`, but its `tsconfig.json` lacks `experimentalDecorators`. Add the compiler flags from [§5](#5-tsconfigjson) before you write nodes.
+`nodetool package init` scaffolds a similar package. It writes the `nodetool` field and an empty `export function register(...)`, but its `tsconfig.json` lacks `experimentalDecorators`. Add the compiler flags from [§5](#5-tsconfigjson) before you write nodes. The scaffold's `build` script is `node ../../scripts/run-tsc.mjs`, a path that only exists inside the NodeTool monorepo, so outside it change the script to `tsc`.
 
 `src/nodes/reverse.ts`:
 
@@ -165,7 +166,7 @@ To avoid silently running whatever happens to be in `node_modules` in production
 - **Allowlist** — a list of trusted pack names; `"*"` allows everything. Set via:
   - The env var `NODETOOL_PACKS_ALLOWLIST` (comma-separated names), which takes precedence, or
   - The `allow` field of `~/.config/nodetool/packs.json` (path overridable with the `NODETOOL_PACKS_CONFIG` env var).
-- **`allowUnlisted`** — whether packs not on the allowlist load anyway. Defaults to **`true` in development** (so installing a pack just works) and **`false`** when either `NODETOOL_ENV=production` or `NODETOOL_PACKS_REQUIRE_ALLOWLIST=1` is set. The packaged desktop app sets the latter — it needs the allowlist without production mode, which would disable local-only features. Override via the `allowUnlisted` field of the config file. The `packs.getTrust` and `packs.setTrust` tRPC procedures read and write the same file, and `setTrust` does not copy an env override into it.
+- **`allowUnlisted`** — whether packs not on the allowlist load anyway. Defaults to **`true` in development** (so installing a pack just works) and **`false`** when either `NODETOOL_ENV=production` or `NODETOOL_PACKS_REQUIRE_ALLOWLIST=1` is set. The packaged desktop app sets the latter — it needs the allowlist without production mode, which would disable local-only features. Override via the `allowUnlisted` field of the config file. The `packs.getTrust` and `packs.setTrust` tRPC procedures read and write the same file, and `setTrust` does not copy an env override into it. With `NODETOOL_ENV=production`, `setTrust` and `packs.reload` are refused.
 
 Two further guards protect the registry regardless of trust:
 
@@ -247,9 +248,11 @@ export class AddOffsetNode extends BaseNode {
 
 | Member        | Type      | Purpose |
 |---------------|-----------|---------|
-| `nodeType`    | `string`  | Unique dotted identifier. By convention: `<namespace>.<category>.<Name>`. |
-| `title`       | `string`  | Display name in the node menu. |
-| `description` | `string`  | One-line tooltip. |
+| `nodeType`    | `string`  | Unique dotted identifier. By convention: `<namespace>.<category>.<Name>`. `registry.register` throws without it. |
+| `title`       | `string`  | Display name in the node menu. Falls back to `nodeType` when empty. |
+| `description` | `string`  | One-line tooltip. Falls back to an empty string. |
+
+Set all three. Only `nodeType` is enforced.
 
 ### Common optional static members
 
@@ -278,6 +281,7 @@ abstract process(context?: ProcessingContext): Promise<Record<string, unknown>>
 - Reads inputs from `this.<field>`. The runtime has already populated them via `assign()`.
 - The `context` parameter is optional. Many pure-compute nodes ignore it. Anything that touches secrets, storage, HTTP, or providers will use it — see [§10](#10-processingcontext--the-runtime-surface).
 - Throwing an `Error` fails the node and surfaces the message to the UI. Throw `Error` objects, not strings.
+- To hand the workflow supervisor the malformed value that caused the failure, throw `RecoverableNodeError(message, { candidateOutput, code? })`, exported from `@nodetool-ai/node-sdk`. `code` is a stable category such as an HTTP status, never request-specific text.
 
 > **Do not** add an `inputs` parameter — that pattern is from an older draft of this guide and does not match the runtime contract. Property assignment happens before `process()` runs.
 
@@ -522,7 +526,13 @@ To read the bytes of an image, audio, video, or model reference, call `loadMedia
 ```ts
 if (await context.isProviderConfigured("openai")) {
   const provider = await context.getProvider("openai");
-  const stream = provider.streamChat({ messages, model: "gpt-5.4-mini" });
+  // generateMessage returns one Message. generateMessages streams
+  // ProviderStreamItem values.
+  const reply = await provider.generateMessage({
+    messages: [{ role: "user", content: "Say hello" }],
+    model: "gpt-4o-mini",
+    signal: context.signal
+  });
 }
 ```
 
@@ -634,6 +644,92 @@ async finalize(): Promise<void>    { /* once when the node finishes, even after 
 
 ---
 
+## 12a. Advanced node features
+
+These statics are optional. Each one changes how the kernel, the websocket runner, or the editor treats the node.
+
+### Trigger nodes (`isTrigger`, `emitTriggerEvent`)
+
+Set `static readonly isTrigger = true` to mark a node that starts runs from outside events. When a run carries a `trigger_event` addressed to the node, the kernel calls `emitTriggerEvent(event, outputs)` instead of `genProcess()` (`packages/node-sdk/src/base-node.ts:356`, `:696`). A run with no event keeps the normal streaming path, which is what an editor test uses.
+
+`TriggerEvent` is `{ node_id: string; payload: unknown; input_id: string }` (`packages/runtime/src/node-executor.ts:148`). The base `emitTriggerEvent` copies each key of an object `payload` onto the declared output of the same name and drops the rest. Override it to shape the payload yourself, as `ManualTriggerNode` does (`packages/automation-nodes/src/nodes/triggers.ts:155`):
+
+```ts
+import { BaseNode } from "@nodetool-ai/node-sdk";
+import type { StreamingOutputs, TriggerEvent } from "@nodetool-ai/node-sdk";
+
+export class PingTriggerNode extends BaseNode {
+  static readonly nodeType = "mypack.triggers.Ping";
+  static readonly isTrigger = true;
+  static readonly metadataOutputTypes = { data: "any", received_at: "str" };
+
+  async process(): Promise<Record<string, unknown>> {
+    return {}; // a trigger emits from emitTriggerEvent
+  }
+
+  async emitTriggerEvent(event: TriggerEvent, outputs: StreamingOutputs): Promise<void> {
+    await outputs.emit("data", event.payload);
+    await outputs.emit("received_at", new Date().toISOString());
+  }
+}
+```
+
+To start a run with an event from the CLI, pass `--trigger-event '{"node_id":"<id>","payload":{...}}'` to `nodetool workflows run` (`packages/cli/src/nodetool-main.ts:514`). `node_id` is required and `input_id` defaults to a generated value. On a server, an activated workflow receives events through `POST /api/webhooks/:token` (`packages/websocket/src/triggers/webhook-route.ts:151`), which `WebhookTriggerNode` consumes. See [Suspendable Nodes](suspendable-nodes.md#writing-a-trigger-node) and [Triggers design](../triggers-design.md).
+
+### `primaryOutput`
+
+`static readonly primaryOutput = "<output name>"` names the output that carries the node's main result. The saved generation and the content-card preview use it. Without it, the first declared output is used (`packages/execution/src/partial-run.ts:316`, `packages/websocket/src/session/asset-autosave.ts:89`). Set it when the main result is not the first output. `DirectorNode` sets `primaryOutput = "screenplay"` (`packages/llm-nodes/src/nodes/director.ts:192`).
+
+### `autoSaveAsset`
+
+`static readonly autoSaveAsset = true` is a static, not a property. It is published as `auto_save_asset` in node metadata (`packages/node-sdk/src/node-metadata.ts:298`). The websocket runner then saves the node's generated outputs as assets after each generation, rewriting the media refs to `asset://` URIs, and the primary output is also saved when it is text. This happens only in runs with `assetPersistence` set to `"auto"` (`packages/websocket/src/session/job-execution.ts:2299`, `autoSaveAssets` in `packages/websocket/src/session/asset-autosave.ts:284`). The node returns the media ref as usual and writes no asset itself.
+
+```ts
+// packages/elevenlabs-nodes/src/nodes/text-to-speech.ts:46
+static readonly metadataOutputTypes = { output: "audio" };
+static readonly autoSaveAsset = true;
+```
+
+### Dynamic inputs and outputs
+
+A node opts in with `supportsDynamicInputs` and `supportsDynamicOutputs`, which are published as `supports_dynamic_inputs` and `supports_dynamic_outputs`. There is no `isDynamic` static. `isDynamic` is only the name of an editor component prop that receives `supports_dynamic_inputs` (`web/src/components/node/NodeContent.tsx:180`). When either flag is set, the editor shows a form where the user adds slots.
+
+Dynamic inputs are stored on the graph node in two maps: `dynamic_properties` holds values and `dynamic_inputs` holds optional type declarations (`packages/protocol/src/graph.ts:125`). On a node with `supportsDynamicInputs`, `assign()` puts every undeclared, non-`_` property into `this.dynamicProps` (`packages/node-sdk/src/base-node.ts:566`). Read them with `getDynamic(key)`, set them with `setDynamic(key, value)`, or iterate `this.dynamicProps` in a subclass. Keys starting with `_` are framework internals and never appear in `dynamicProps`.
+
+```ts
+// packages/image-nodes/src/nodes/image.ts:881
+export class ImagesToListNode extends BaseNode {
+  static readonly nodeType = "nodetool.image.ImagesToList";
+  static readonly metadataOutputTypes = { output: "list[image]" };
+  static readonly supportsDynamicInputs = true;
+
+  async process(): Promise<Record<string, unknown>> {
+    const out: unknown[] = [];
+    for (const [, value] of this.dynamicProps) {
+      if (value != null) out.push(value);
+    }
+    return { output: out };
+  }
+}
+```
+
+Dynamic outputs are stored in the graph node's `dynamic_outputs`, a map from handle name to type. The kernel treats those handles as outputs even though `metadataOutputTypes` does not list them, so return a key with the handle's name from `process()`. `CodeNode` does this: its sandbox emits values under whatever handles the user declared (`packages/code-nodes/src/nodes/code-node.ts:483`, `:874`). `supportsDynamicOutputs` does not require `supportsDynamicInputs`. `allowedDynamicSlotTypes` restricts the types a user can pick.
+
+### `appendStaticInputs`
+
+`static readonly appendStaticInputs = ["value"]` lists list properties whose own items are kept when an edge feeds the same handle. The node then receives the connected items followed by its own items. Without it, the edge value replaces the property (`packages/kernel/src/actor.ts:1278`). The list constants use it (`packages/core-nodes/src/nodes/constant.ts:196`):
+
+```ts
+static readonly metadataOutputTypes = { output: "list[str]" };
+static readonly appendStaticInputs = ["value"];
+```
+
+### `requiredRuntimes`
+
+`static readonly requiredRuntimes = ["ffmpeg"]` declares host binaries or runtimes the node needs. It is metadata only. It does not install or check anything when the node runs. The editor shows a missing-runtime warning on the node (`web/src/components/node/NodeDependencyWarning.tsx:79`) and the SDK preflight reports it as a `runtime` requirement (`packages/websocket/src/sdk/sdk-static-preflight-service.ts:320`). `RenderTimelineNode` declares it (`packages/video-nodes/src/nodes/timeline.ts:1129`). Your `process()` still has to fail clearly when the binary is absent.
+
+---
+
 ## 13. Registering nodes
 
 Your pack's `register` function — the export named in the manifest — receives the registry and adds each node class:
@@ -653,7 +749,7 @@ export function register(registry: NodeRegistry): void {
 }
 ```
 
-Things the loader will refuse — silently dropping the offending node and warning in the log:
+Things the loader will refuse. It drops the offending node and warns in the log:
 
 - A `nodeType` under a [reserved namespace](#4-trust-model-and-governance).
 - A `nodeType` already registered by a built-in or an earlier pack (no shadowing).
@@ -662,7 +758,7 @@ The `register` function may be `async` — useful if you build node classes from
 
 ### What `NodeRegistry` exposes
 
-Pack authors only need:
+The loader does not pass your `register` function the real registry. It passes a guarded wrapper that has only `register(nodeClass)` and `has(nodeType)`, so inside a pack's `register` function the other methods below are not available. They apply to a registry you construct yourself, as in [§15](#15-testing-nodes):
 
 | Method                        | Purpose |
 |-------------------------------|---------|
@@ -685,6 +781,8 @@ npm run test        # vitest run
 ```
 
 Ship the `dist/` directory plus `package.json` and a `README.md`. Don't ship `src/` — it won't be loaded.
+
+`nodetool package docs`, `nodetool package node-docs`, and `nodetool package workflow-docs` generate Markdown for a pack from its registered nodes and shipped workflows. See [`nodetool package`](../cli.md#nodetool-package).
 
 ### Recommended `package.json` "files" allowlist
 
@@ -729,6 +827,8 @@ const result = await node.process(handle.context);
 handle.cleanup();
 ```
 
+A node that lists `requiredSettings` reads them from `this._secrets`, which the executor fills before `process()`. Calling `node.process()` directly skips that step, so seed them in the test with `node.setDynamic("_secrets", { API_KEY: "test" })`.
+
 To run one node against the real registry from the command line, use `nodetool node run <type> --props '{"text":"hello"}'`. Add `--no-secrets` for a hermetic run and `--json` for the full result. See [CLI reference](../cli.md).
 
 ### Testing streaming nodes
@@ -751,7 +851,8 @@ For a published pack:
 ```bash
 cd /path/to/nodetool
 npm install @acme/cool-nodes
-# in production, allowlist it:
+# in production, allowlist it (this overwrites an existing packs.json):
+mkdir -p ~/.config/nodetool
 echo '{ "allow": ["@acme/cool-nodes"] }' > ~/.config/nodetool/packs.json
 npm run dev:server
 ```
@@ -813,7 +914,7 @@ import { ReverseTextNode } from "./nodes/reverse";      // bad
 
 **Loading from `src/` instead of `dist/`.** The loader resolves the package's `exports`/`main`, which points at `dist/`. Forgetting to build before installing means the pack loads stale code (or nothing).
 
-**Reserved-namespace `nodeType`s.** A `nodeType` of `nodetool.foo.MyNode` will be silently rejected. Use your own namespace (`mypack.foo.MyNode`, `@acme.foo.MyNode`, …).
+**Reserved-namespace `nodeType`s.** A `nodeType` of `nodetool.foo.MyNode` is rejected with a warning in the log. Use your own namespace (`mypack.foo.MyNode`, `acme.foo.MyNode`, …).
 
 **Collision with built-ins.** If a built-in already owns the `nodeType` you picked, your node is dropped. Pick a unique name and check the server log for `skipped node … (collision)`.
 

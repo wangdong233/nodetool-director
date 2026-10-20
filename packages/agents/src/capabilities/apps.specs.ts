@@ -74,9 +74,10 @@ export const debugAppSpec: CapabilitySpec = {
     "costs nothing; use it after every wiring change. A full run executes " +
     "the real workflows and spends real money, so run it to confirm the app " +
     "works, not to explore. Use `interact` to script the user actions to " +
-    "simulate. A long run takes minutes; pass poll=true to get a session id " +
-    "back immediately, then read GET /api/debug/sessions/<id> until it " +
-    "settles.",
+    "simulate. A long run takes minutes; bound it with `timeout_ms`. " +
+    "poll=true returns a session id that only the HTTP API " +
+    "(GET /api/debug/sessions/<id>) can read, so an agent should leave it " +
+    "off and wait for the result.",
   inputSchema: DEBUG_APP_SCHEMA,
   category: "execute",
   userMessage: (params) => {
@@ -205,10 +206,12 @@ export const EDIT_APP_SCHEMA: JsonSchema = {
           },
           input: {
             type: "object",
-            description: "That tool's arguments"
+            description:
+              "That tool's arguments. Example: {tool: 'ui_app_set_title', input: {title: 'My app'}}."
           }
         },
-        required: ["tool"]
+        required: ["tool", "input"],
+        additionalProperties: false
       },
       description:
         "The edits to apply, in order. They run against the saved " +
@@ -239,7 +242,8 @@ export const editAppSpec: CapabilitySpec = {
   description:
     "Edit a mini APP by driving the App Builder tools headlessly: place " +
     "and wire widgets, declare operations, variables and resources. Each " +
-    "step names one `ui_app_*` tool and its arguments; they apply in order " +
+    "step is {tool: 'ui_app_set_title', input: {title: 'My app'}}. " +
+    "Use input for each tool's arguments. Malformed arguments reject the batch before edits. Valid steps apply in order " +
     "to the saved document, which is written back once at the end. Call it " +
     "with no steps to read the tool catalog and the app's current state. " +
     "Check the result with debug_app({run: false}) — free and instant — " +

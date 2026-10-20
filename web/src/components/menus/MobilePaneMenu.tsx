@@ -12,7 +12,9 @@ import {
   ListItem,
   ListItemButton,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  ListSubheader,
+  menuGroupHeaderStyles
 } from "../ui_primitives";
 import { css } from "@emotion/react";
 import type { Theme } from "@mui/material/styles";
@@ -38,6 +40,7 @@ import {
 } from "../../utils/nodeUtils";
 import { shallow } from "zustand/shallow";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -55,28 +58,13 @@ const styles = (theme: Theme) =>
     },
     ".menu-item-icon": {
       minWidth: "40px",
-      color: theme.vars.palette.primary.main
+      color: theme.vars.palette.text.secondary
     },
-    ".menu-item-text": {
-      "& .MuiListItemText-primary": {
-        fontSize: "var(--fontSizeNormal)",
-        fontWeight: 500
-      },
-      "& .MuiListItemText-secondary": {
-        fontSize: "var(--fontSizeSmall)",
-        opacity: 0.7
-      }
-    },
-    ".menu-section-title": {
-      fontSize: "var(--fontSizeSmall)",
-      fontWeight: 600,
-      textTransform: "uppercase",
-      letterSpacing: "0.05em",
-      color: theme.vars.palette.text.secondary,
-      padding: `${getSpacingPx(SPACING.lg)} ${getSpacingPx(SPACING.xl)} ${getSpacingPx(SPACING.sm)} ${getSpacingPx(SPACING.xl)}`,
-      "&:first-of-type": {
-        paddingTop: getSpacingPx(SPACING.xs)
-      }
+    "& .MuiListSubheader-root": {
+      ...menuGroupHeaderStyles(theme),
+      backgroundColor: "transparent",
+      paddingTop: getSpacingPx(SPACING.sm),
+      paddingBottom: getSpacingPx(SPACING.xs)
     }
   });
 
@@ -182,12 +170,12 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
     <MobileBottomSheet
       open={open}
       onClose={onClose}
-      title={t("editor:ui.canvasMenu", { defaultValue: "Canvas Menu" })}
-      ariaLabel={t("editor:ui.canvasActionsAndNodeInsertion", { defaultValue: "Canvas actions and node insertion" })}
+      title={t("editor:ui.canvasMenu", { defaultValue: "Canvas menu" })}
+      ariaLabel={i18n.t("editor:ui.canvasActionsAndNodeInsertion", { defaultValue: "Canvas actions and node insertion" })}
     >
       <div className="menu-content" css={styles(theme)}>
         <List dense>
-          <div className="menu-section-title">{t("ui2:attrs.actions", { defaultValue: "Actions" })}</div>
+          <ListSubheader disableSticky>{t("ui2:attrs.actions", { defaultValue: "Actions" })}</ListSubheader>
           <ListItem className={`menu-item ${!isClipboardValid ? "disabled" : ""}`}>
             <ListItemButton onClick={handlePasteAction} disabled={!isClipboardValid}>
               <ListItemIcon className="menu-item-icon">
@@ -196,7 +184,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               <ListItemText 
                 className="menu-item-text"
                 primary="Paste" 
-                secondary={!isClipboardValid ? t("editor:ui.noValidNodesInClipboard", { defaultValue: "No valid nodes in clipboard" }) : t("editor:ui.pasteCopiedNodes", { defaultValue: "Paste copied nodes" })}
+                secondary={!isClipboardValid ? t("editor:ui.noValidNodesInClipboard", { defaultValue: "No valid nodes in clipboard" }) : i18n.t("editor:ui.pasteCopiedNodes", { defaultValue: "Paste copied nodes" })}
               />
             </ListItemButton>
           </ListItem>
@@ -208,7 +196,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText 
                 className="menu-item-text"
-                primary="Fit Screen" 
+                primary="Fit screen" 
                 secondary={t("tools:menus.centerAllNodesInView", { defaultValue: "Center all nodes in view" })}
               />
             </ListItemButton>
@@ -216,7 +204,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
 
           <Divider sx={dividerSx} />
 
-          <div className="menu-section-title">{t("editor:ui.aiNodes", { defaultValue: "AI Nodes" })}</div>
+          <ListSubheader disableSticky>{t("editor:ui.aiNodes", { defaultValue: "AI nodes" })}</ListSubheader>
           <ListItem className="menu-item">
             <ListItemButton onClick={addAgentNode}>
               <ListItemIcon className="menu-item-icon">
@@ -224,7 +212,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText 
                 className="menu-item-text"
-                primary={t("editor:ui.addAgent", { defaultValue: "Add Agent" })} 
+                primary="Add agent" 
                 secondary={t("tools:menus.aiAgentForProcessing", { defaultValue: "AI agent for processing" })}
               />
             </ListItemButton>
@@ -232,7 +220,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
 
           <Divider sx={dividerSx} />
 
-          <div className="menu-section-title">{t("ui2:attrs.inputNodes", { defaultValue: "Input Nodes" })}</div>
+          <ListSubheader disableSticky>{t("ui2:attrs.inputNodes", { defaultValue: "Input nodes" })}</ListSubheader>
           <ListItem className="menu-item">
             <ListItemButton onClick={addInputNode} data-node-type="StringInput">
               <ListItemIcon className="menu-item-icon">
@@ -240,7 +228,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary={t("editor:ui.stringInput", { defaultValue: "String Input" })}
+                primary="String input"
                 secondary={t("tools:menus.textInputField", { defaultValue: "Text input field" })}
               />
             </ListItemButton>
@@ -253,7 +241,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary={t("editor:ui.integerInput", { defaultValue: "Integer Input" })}
+                primary="Integer input"
                 secondary={t("tools:menus.wholeNumberInput", { defaultValue: "Whole number input" })}
               />
             </ListItemButton>
@@ -266,7 +254,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary={t("editor:ui.floatInput", { defaultValue: "Float Input" })}
+                primary="Float input"
                 secondary={t("tools:menus.decimalNumberInput", { defaultValue: "Decimal number input" })}
               />
             </ListItemButton>
@@ -279,7 +267,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary={t("editor:ui.chatInput", { defaultValue: "Chat Input" })}
+                primary="Chat input"
                 secondary={t("tools:menus.chatMessageInput", { defaultValue: "Chat message input" })}
               />
             </ListItemButton>
@@ -292,7 +280,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary="Image Input"
+                primary="Image input"
                 secondary={t("tools:menus.imageFileInput", { defaultValue: "Image file input" })}
               />
             </ListItemButton>
@@ -300,7 +288,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
 
           <Divider sx={dividerSx} />
 
-          <div className="menu-section-title">{t("ui2:attrs.organization", { defaultValue: "Organization" })}</div>
+          <ListSubheader disableSticky>{t("ui2:attrs.organization", { defaultValue: "Organization" })}</ListSubheader>
           <ListItem className="menu-item">
             <ListItemButton onClick={addComment}>
               <ListItemIcon className="menu-item-icon">
@@ -308,7 +296,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText 
                 className="menu-item-text"
-                primary="Add Comment" 
+                primary="Add comment" 
                 secondary={t("tools:menus.textCommentNote", { defaultValue: "Text comment note" })}
               />
             </ListItemButton>
@@ -321,7 +309,7 @@ const MobilePaneMenu: React.FC<MobilePaneMenuProps> = ({ open, onClose }) => {
               </ListItemIcon>
               <ListItemText
                 className="menu-item-text"
-                primary="Add Group"
+                primary="Add group"
                 secondary={t("tools:menus.groupContainerForNodes", { defaultValue: "Group container for nodes" })}
               />
             </ListItemButton>

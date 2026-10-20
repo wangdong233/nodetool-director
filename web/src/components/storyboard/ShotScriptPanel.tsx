@@ -18,8 +18,8 @@ import type { Shot } from "@nodetool-ai/protocol";
 import GraphicEqIcon from "@mui/icons-material/GraphicEq";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 
+import ErrorBanner from "../support/ErrorBanner";
 import {
-  Box,
   Caption,
   Card,
   Chip,
@@ -31,7 +31,6 @@ import {
   Text,
   ToolbarIconButton,
   Tooltip,
-  BORDER_RADIUS,
   SPACING,
   type StatusType
 } from "../ui_primitives";
@@ -58,10 +57,10 @@ interface ShotScriptPanelProps {
   readOnly?: boolean;
 }
 
-const STATUS_META: Record<LineStatus, { status: StatusType; label: string }> = {
-  draft: { status: "default", label: "Not voiced" },
-  stale: { status: "warning", label: "Stale" },
-  voiced: { status: "success", label: "Voiced" }
+const STATUS_META: Record<LineStatus, { status: StatusType; label: string; labelKey?: string; }> = {
+  draft: { status: "default", label: "Not voiced", labelKey: "storyboard:attrs.notVoiced" },
+  stale: { status: "warning", label: i18n.t("storyboard:attrs.stale", { defaultValue: "Stale" }) },
+  voiced: { status: "success", label: "Voiced", labelKey: "storyboard:attrs.voiced" }
 };
 
 const ScriptLineEntry = ({
@@ -100,7 +99,7 @@ const ScriptLineEntry = ({
         compact
         label={speaker?.name ?? "Narrator"}
         variant="outlined"
-        sx={{ borderRadius: BORDER_RADIUS.sm, flexShrink: 0 }}
+        sx={{ flexShrink: 0 }}
       />
       <Text size="small" sx={{ flex: 1, minWidth: 0 }} lineClamp={2}>
         {line.text}
@@ -108,7 +107,7 @@ const ScriptLineEntry = ({
       <FlexRow align="center" gap={SPACING.micro} sx={{ flexShrink: 0 }}>
         <StatusIndicator status={meta.status} label={meta.label} />
         {voicing ? (
-          <LoadingSpinner size={20} />
+          <LoadingSpinner size="small" />
         ) : (
           <Tooltip
             title={
@@ -219,9 +218,15 @@ const LinkedScriptSection: React.FC<ShotScriptPanelProps> = ({
         )}
 
         {error && (
-          <Box>
-            <Caption color="error">{error}</Caption>
-          </Box>
+          <ErrorBanner
+            report={{
+              source: "operation-failure",
+              summary: "Shot script action failed",
+              errorText: error
+            }}
+          >
+            {error}
+          </ErrorBanner>
         )}
       </FlexColumn>
     </Card>

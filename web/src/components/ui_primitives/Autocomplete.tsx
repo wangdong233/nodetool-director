@@ -53,7 +53,7 @@ export interface AutocompleteProps<
  * // Basic usage with options
  * <Autocomplete
  *   options={[{ label: "Option 1", value: "1" }, { label: "Option 2", value: "2" }]}
- *   placeholder={i18n.t("ui:attrs.search", { defaultValue: "Search..." })}
+ *   placeholder="Search"
  *   onChange={(e, value) => setValue(value)}
  * />
  *
@@ -62,7 +62,7 @@ export interface AutocompleteProps<
  * <Autocomplete
  *   freeSolo
  *   options={suggestions}
- *   label={i18n.t("editor:ui.tags", { defaultValue: "Tags" })}
+ *   label="Tags"
  *   placeholder="Add tag..."
  * />
  *

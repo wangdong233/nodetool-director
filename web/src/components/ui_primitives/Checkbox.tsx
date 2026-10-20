@@ -13,6 +13,7 @@ import {
   FormControlLabelProps
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { i18n } from "../../i18n";
 
 export interface CheckboxProps
   extends Omit<MuiCheckboxProps, "size"> {

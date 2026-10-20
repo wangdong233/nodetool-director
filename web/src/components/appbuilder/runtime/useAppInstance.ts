@@ -26,6 +26,7 @@ import {
   loadPersistedVariables
 } from "./variablePersistence";
 import type { AppRuntimeStore } from "./appRuntimeStore";
+import { i18n } from "../../../i18n";
 
 export interface AppInstanceOptions {
   document?: ApplicationDocument;
@@ -435,7 +436,7 @@ export const useAppInstance = (
         Boolean(instance && readyBinding !== `${account}:${instance.id}`)),
     error:
       account === "anonymous" && !visitor && !designMode
-        ? "Sign in to load this app instance."
+        ? i18n.t("appbuilder:attrs.signInToLoadInstance", { defaultValue: "Sign in to load this app instance." })
         : (query.error?.message ?? saveError)
   };
 };

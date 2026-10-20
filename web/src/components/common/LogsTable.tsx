@@ -9,8 +9,8 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import DataObjectIcon from "@mui/icons-material/DataObject";
 import { CopyButton } from "../ui_primitives";
 import { formatTimeOfDay } from "../../utils/formatUtils";
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 export type Severity = "info" | "warning" | "error";
 
@@ -241,7 +241,6 @@ const RowItem = memo(({
   onToggle,
   onRevealNode
 }: RowItemProps) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const colors = SEVERITY_COLORS(theme)[row.severity];
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -312,7 +311,6 @@ const RowItem = memo(({
         <Tooltip
           title={timeTooltip}
           placement="top-start"
-          delay={500}
           disabled={showTimestampColumn}
         >
           <div className={`cell content${isExpanded ? " expanded" : ""}`}>
@@ -354,7 +352,7 @@ const RowItem = memo(({
         <div className="cell actions" onClick={handleActionsClick}>
           <CopyButton
             value={row.content}
-            tooltip={t("editor:ui.copyLogToClipboard", { defaultValue: "Copy log to clipboard" })}
+            tooltip={i18n.t("editor:ui.copyLog", { defaultValue: "Copy log" })}
             tooltipPlacement="top"
             className="copy-btn"
             sx={{ padding: getSpacingPx(SPACING.micro) }}
@@ -363,7 +361,7 @@ const RowItem = memo(({
             <>
               <ToolbarIconButton
                 icon={<DataObjectIcon fontSize="inherit" />}
-                tooltip={t("editor:ui.viewLogData", { defaultValue: "View log data" })}
+                tooltip={i18n.t("editor:ui.viewLogData", { defaultValue: "View log data" })}
               onClick={handleClick}
               size="small"
               sx={{ padding: getSpacingPx(SPACING.micro) }}
@@ -394,7 +392,7 @@ const RowItem = memo(({
                       }}
                       onClick={handleClose}
                     >
-                      {t("common:action.close", { defaultValue: "Close" })}
+                      Close
                     </Text>
                   </FlexRow>
                 </FlexColumn>
@@ -412,9 +410,7 @@ export const LogsTable: React.FC<LogsTableProps> = ({
   rows,
   rowHeight = 36,
   height,
-  emptyText = i18n.t("editor:ui.noLogsToDisplay", {
-    defaultValue: "No logs to display"
-  }),
+  emptyText = "No logs to display",
   severities,
   autoScroll = true,
   showTimestampColumn = true,
@@ -558,8 +554,8 @@ export const LogsTable: React.FC<LogsTableProps> = ({
       <Card variant="outlined" className="table" sx={{ flex: 1, minHeight: 0 }}>
         <FlexColumn fullWidth fullHeight sx={{ minHeight: 0 }}>
           <div className="header" style={{ gridTemplateColumns: columns }}>
-            <span>{t("ui2:attrs.message", { defaultValue: "Message" })}</span>
-            {showTimestampColumn && <span>{t("ui2:attrs.time", { defaultValue: "Time" })}</span>}
+            <span>{i18n.t("ui2:attrs.message", { defaultValue: "Message" })}</span>
+            {showTimestampColumn && <span>{i18n.t("ui2:attrs.time", { defaultValue: "Time" })}</span>}
             <span style={{ textAlign: "right" }}></span>
           </div>
           <FlexColumn className="list-container" fullWidth sx={{ flex: 1, minHeight: 0 }}>
@@ -578,7 +574,7 @@ export const LogsTable: React.FC<LogsTableProps> = ({
                 overscan={theme.virtualScroll.overscan.small}
                 getItemKey={getItemKey}
                 getItemProps={getItemProps}
-                ariaLabel={t("editor:ui.logMessages", { defaultValue: "Log messages" })}
+                ariaLabel="Log messages"
                 renderItem={renderRow}
               />
             )}
@@ -589,7 +585,7 @@ export const LogsTable: React.FC<LogsTableProps> = ({
       {showScrollButton && (
         <ToolbarIconButton
           icon={<KeyboardArrowDownIcon />}
-          tooltip={t("editor:ui.scrollToLatest", { defaultValue: "Scroll to latest" })}
+          tooltip={i18n.t("editor:ui.scrollToLatest", { defaultValue: "Scroll to latest" })}
           className="scroll-to-bottom"
           onClick={scrollToBottom}
           size="small"

@@ -1,3 +1,6 @@
+import { validateGraph } from "@nodetool-ai/node-sdk";
+import { findMissingPacks } from "../missing-packs.js";
+import type { MissingPackDetails } from "@nodetool-ai/protocol";
 import { registerWorkflowRunTrace } from "./run-trace-lifecycle.js";
 /**
  * Running a saved workflow, as a service every host can call in-process.
@@ -23,6 +26,7 @@ import {
   type NodeRegistry
 } from "@nodetool-ai/node-sdk";
 import type { NodeDescriptor } from "@nodetool-ai/protocol";
+import { isPythonNodeType } from "@nodetool-ai/protocol";
 import type {
   NodeExecutor,
   ProcessingContext,
@@ -55,6 +59,7 @@ import {
   collectInterventionWarnings
 } from "../debug/verdict.js";
 import { rewriteOutputNames } from "../output-names.js";
+import { registerActiveRun } from "./active-runs.js";
 import {
   debugSessions,
   DebugSession,
@@ -269,7 +274,7 @@ export interface RunWorkflowOptions {
  */
 export type RunWorkflowOutcome =
   | { kind: "payload"; payload: Record<string, unknown> }
-  | { kind: "error"; status: number; detail: string };
+  | { kind: "error"; status: number; detail: string; missingPack?: MissingPackDetails };
 
 /**
  * Server-side ceilings for the interactive bounds a caller may ask for. A
@@ -297,11 +302,14 @@ export function boundedRunOption(
   return Math.min(value, max);
 }
 
-/** Mark a job failed and persist it, best effort. */
+/**
+ * Mark a job failed and persist it, best effort. A row that already settled,
+ * a cancel above all, keeps its status.
+ */
 async function markJobFailed(job: Job, message: string): Promise<void> {
   try {
     job.markFailed(message);
-    await job.save();
+    await job.saveIfActive();
   } catch (saveError) {
     log.warn("failed to persist failed job status", {
       jobId: job.id,
@@ -461,7 +469,9 @@ async function finalizeWorkflowRunJob(
     outputs: persistableOutputs(withoutInlineAssetBytes(result.outputs ?? {}))
   };
   job.logs = persistableLogs(collectExecutionSummary(result.messages));
-  await job.save();
+  // Conditional: a run cancelled through `jobs.cancel` or `cancel_job` may
+  // still finish on its own, and its outcome must not replace the cancel.
+  await job.saveIfActive();
 }
 
 export function buildWorkflowRunPayload(
@@ -471,6 +481,10 @@ export function buildWorkflowRunPayload(
   debug: boolean,
   extras: { background: boolean }
 ) {
+  const packDetails: Pick<WorkflowRunResult, "missingPack"> = {};
+  if (result.missingPack) {
+    packDetails.missingPack = result.missingPack;
+  }
   if (debug) {
     // The debug surface reports what actually happened — per-node status and
     // errors, logs, edges, LLM calls, outputs — plus the same verdict the CLI
@@ -485,6 +499,7 @@ export function buildWorkflowRunPayload(
     // completed — but without them a supervised run reads as "ran clean".
     const warnings = collectInterventionWarnings("Server", summary);
     return {
+      ...packDetails,
       job_id: jobId,
       workflow_id: workflowId,
       status: result.status,
@@ -505,6 +520,7 @@ export function buildWorkflowRunPayload(
   }
 
   return {
+    ...packDetails,
     job_id: jobId,
     workflow_id: workflowId,
     status: result.status,
@@ -557,9 +573,6 @@ export interface PartialRunReport {
   reused: ReusedNode[];
 }
 
-/** How many saved assets a generation lookup reads, newest first. */
-const PREVIOUS_GENERATION_SCAN = 50;
-
 /**
  * The node's previous generation from the assets its earlier runs saved, in
  * this workflow. A multi-selection (`selected_generations`) streams several
@@ -575,15 +588,20 @@ async function loadPreviousGeneration(
   const selected = ui["selected_generations"];
   if (Array.isArray(selected) && selected.length >= 2) return null;
   const pinned = ui["selected_generation"];
-  const [rows] = await Asset.paginate(userId, {
-    workflowId,
-    nodeId: node.id,
-    limit: PREVIOUS_GENERATION_SCAN
-  });
+  const pinnedId = isString(pinned) && pinned !== "" ? pinned : undefined;
+  const chosen = pinnedId
+    ? await Asset.find(userId, pinnedId)
+    : (await Asset.paginate(userId, { workflowId, nodeId: node.id, limit: 1 }))[0][0];
+  if (!chosen || chosen.workflow_id !== workflowId || chosen.node_id !== node.id) {
+    return null;
+  }
+  const rows = chosen.job_id
+    ? await Asset.listByJobNode(userId, workflowId, node.id, chosen.job_id)
+    : [chosen];
   return previousGenerationFromAssets(
     rows,
     metadata,
-    isString(pinned) && pinned !== "" ? pinned : undefined
+    chosen.id
   );
 }
 
@@ -758,7 +776,7 @@ export async function runWorkflow(
       deps.loadPreviousGeneration = (node, metadata) =>
         loadPreviousGeneration(userId, workflowId, node, metadata);
     }
-    const plan = await planPartialRun(runnableGraph, nodeIds, deps);
+    const plan = await planPartialRun(hydrateRunGraph(runnableGraph, registry), nodeIds, deps);
     if (plan.kind === "unknown_nodes") {
       return {
         kind: "error",
@@ -790,6 +808,18 @@ export async function runWorkflow(
   const environment = await resolveEnvironment();
 
   const registry = environment.registry;
+  const missingPack = await findMissingPacks(runnableGraph, registry, { loadWorkflow: (id) => Workflow.find(userId, id) });
+  if (missingPack) {
+    return { kind: "error", status: 424, detail: "Workflow requires node packs that are not installed.", missingPack };
+  }
+  if (runnableGraph.nodes.some((node) => registry.availability(node.type) === "catalog")) {
+    const report = validateGraph(runnableGraph, registry);
+    return {
+      kind: "error",
+      status: 400,
+      detail: report.issues.filter((issue) => issue.severity === "error").map((issue) => issue.message).join("\n")
+    };
+  }
   // The cheap preflight above ran before the registry existed. Unpicked models
   // need its metadata, and are refused here, still before the job row.
   const unsetModels = unsetModelErrors(runnableGraph, registry);
@@ -804,10 +834,9 @@ export async function runWorkflow(
   }
   const hasPythonNode = runnableGraph.nodes.some((node) => {
     const nodeType = isString(node.type) ? node.type : "";
-    return (
-      nodeType !== "" &&
-      Boolean(registry.getMetadata(nodeType)) &&
-      !registry.has(nodeType)
+    const availability = registry.availability(nodeType);
+    return nodeType !== "" && (
+      availability === "python" || (availability === "unknown" && isPythonNodeType(nodeType))
     );
   });
   if (hasPythonNode && environment.ensurePythonBridge) {
@@ -920,6 +949,12 @@ export async function runWorkflow(
     supervisorHandle?.close();
     throw error instanceof Error ? error : new Error(message);
   }
+
+  // Reachable by `jobs.cancel` and `cancel_job` until the run settles.
+  const unregister = registerActiveRun(job.id, userId, () =>
+    execution.cancel("cancelled")
+  );
+  execution.result.then(unregister, unregister);
 
   if (!interactive && (options.background ?? false)) {
     // Detached: the payload is the receipt, not the result. Awaiting the run

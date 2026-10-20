@@ -21,11 +21,12 @@
  *      resets the seed.
  */
 
-import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useGlobalCombo } from "../../stores/KeyPressedStore";
 import { css } from "@emotion/react";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import LayersOutlinedIcon from "@mui/icons-material/LayersOutlined";
+import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
 import { useTheme } from "@mui/material/styles";
@@ -57,6 +58,8 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import { useSaveSketchDocument } from "../../hooks/sketch/useSaveSketchDocument";
 import { useSaveSketchAsAsset } from "../../hooks/sketch/useSaveSketchAsAsset";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const containerStyles = (theme: Theme) =>
   css({
@@ -128,7 +131,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
     active = true,
     suspendKeyboardShortcuts = false
   }) {
-  const { t } = useTranslation();
+    const { t } = useTranslation();
     const theme = useTheme();
     const styles = useMemo(() => containerStyles(theme), [theme]);
     const editorRef = useRef<SketchEditorHandle | null>(null);
@@ -205,7 +208,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
     };
 
     // Document actions live in the tool bar's overflow menu so the editor
-    // chrome stays one slim row. "Save as Asset" opens a folder popover
+    // chrome stays one slim row. "Save as asset" opens a folder popover
     // anchored to its own menu item, so it leaves the menu open and closes
     // both once a folder is chosen.
     const documentMenuItems = (close: () => void) => [
@@ -221,11 +224,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
         <ListItemIcon>
           <SaveOutlinedIcon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>
-          {saving
-            ? t("editor:ui.saving", { defaultValue: "Saving…" })
-            : t("editor:ui.save", { defaultValue: "Save" })}
-        </ListItemText>
+        <ListItemText>{saving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}</ListItemText>
       </EditorMenuItem>,
       <EditorMenuItem
         key="save-as-asset"
@@ -240,9 +239,7 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
           <AddPhotoAlternateOutlinedIcon fontSize="small" />
         </ListItemIcon>
         <ListItemText>
-          {savingAsAsset
-            ? t("editor:ui.saving", { defaultValue: "Saving…" })
-            : t("editor:ui.saveAsAsset", { defaultValue: "Save as Asset" })}
+          {savingAsAsset ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("timeline:topbar.saveAsAsset", { defaultValue: "Save as asset" })}
         </ListItemText>
       </EditorMenuItem>,
       <EditorMenuItem
@@ -257,6 +254,32 @@ const StandaloneSketchEditorBody: React.FC<StandaloneSketchEditorProps> = memo(
           <FileDownloadOutlinedIcon fontSize="small" />
         </ListItemIcon>
         <ListItemText>{t("sketch:attrs.exportPNG", { defaultValue: "Export PNG" })}</ListItemText>
+      </EditorMenuItem>,
+      <EditorMenuItem
+        key="export-psd"
+        onClick={() => {
+          close();
+          editorRef.current?.exportPsd();
+        }}
+        data-testid="sketch-export-psd"
+      >
+        <ListItemIcon>
+          <LayersOutlinedIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>{i18n.t("sketch:attrs.exportPsd", { defaultValue: "Export PSD" })}</ListItemText>
+      </EditorMenuItem>,
+      <EditorMenuItem
+        key="import-psd"
+        onClick={() => {
+          close();
+          editorRef.current?.importPsd();
+        }}
+        data-testid="sketch-import-psd"
+      >
+        <ListItemIcon>
+          <FileUploadOutlinedIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>{i18n.t("sketch:attrs.importPsd", { defaultValue: "Import PSD…" })}</ListItemText>
       </EditorMenuItem>
     ];
 

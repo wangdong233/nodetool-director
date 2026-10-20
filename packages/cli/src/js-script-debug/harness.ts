@@ -20,7 +20,9 @@ import type {
   JsScriptValidation
 } from "@nodetool-ai/execution/js-script-debug";
 import type { JsScriptBridgeFinalState } from "@nodetool-ai/agents";
+import type { SandboxModuleCatalog } from "@nodetool-ai/runtime";
 import type { JsScriptDocument } from "@nodetool-ai/protocol/api-schemas/js-scripts.js";
+import type { MissingRuntimeDetails } from "@nodetool-ai/protocol";
 import type { JsScriptInteractionStep } from "./interactions.js";
 import { runInteractionSteps } from "../interaction-script.js";
 import { writeDebugBundle } from "../debug-bundle.js";
@@ -37,6 +39,7 @@ export interface JsScriptRunResult {
   streamed?: unknown[];
   logs: string[];
   error?: string;
+  missingRuntime?: MissingRuntimeDetails;
   duration_ms: number;
 }
 
@@ -48,6 +51,7 @@ export interface JsScriptCaseResult {
   streamed?: unknown[];
   logs: string[];
   error?: string;
+  missingRuntime?: MissingRuntimeDetails;
   mismatches: { output: string; expected: unknown; actual: unknown }[];
 }
 
@@ -56,6 +60,7 @@ export interface JsScriptTestReport {
   passed: number;
   failed: number;
   results: JsScriptCaseResult[];
+  missingRuntime?: MissingRuntimeDetails;
 }
 
 /** The pieces of the shared core this host calls. */
@@ -65,6 +70,7 @@ export interface JsScriptDebugCore {
     options?: {
       knownSecrets?: readonly string[];
       packDtsSources?: ReadonlyMap<string, string>;
+      sandboxModuleCatalog?: SandboxModuleCatalog | null;
     }
   ) => Promise<JsScriptValidation>;
   buildJsScriptDebugReport: (input: {
@@ -293,6 +299,23 @@ async function asDocument(raw: unknown): Promise<JsScriptDocument> {
   return parsed.data;
 }
 
+async function executableDocument(
+  raw: unknown,
+  deps: JsScriptDebugDeps
+): Promise<JsScriptDocument> {
+  const document = await asDocument(raw);
+  const core = deps.core ?? (await loadCore());
+  const validation = await core.validateJsScriptDoc(document);
+  if (!validation.ok) {
+    throw new Error(
+      `The script failed validation: ${validation.errors
+        .map((issue) => `[${issue.code}] ${issue.message}`)
+        .join("; ")}`
+    );
+  }
+  return document;
+}
+
 /** Load a script and validate it — no sandbox, no bundle. */
 export async function runJsScriptValidate(
   ref: string,
@@ -300,9 +323,13 @@ export async function runJsScriptValidate(
 ): Promise<JsScriptValidateResult> {
   const resolved = await resolveJsScriptTarget(ref, deps);
   const core = deps.core ?? (await loadCore());
-  const { discoverPackDtsSources } = await import("../sandbox-catalog.js");
+  const { discoverPackDtsSources, installSandboxCatalog } =
+    await import("../sandbox-catalog.js");
+  // The catalog reports an import no installed pack offers; the type check
+  // leaves those to it.
   const validation = await core.validateJsScriptDoc(resolved.raw, {
-    packDtsSources: discoverPackDtsSources()
+    packDtsSources: discoverPackDtsSources(),
+    sandboxModuleCatalog: installSandboxCatalog()
   });
   return { target: resolved.target, validation };
 }
@@ -320,7 +347,7 @@ export async function runJsScriptOnce(
   inputStreams?: Record<string, unknown[]>
 ): Promise<JsScriptRunOutcome> {
   const resolved = await resolveJsScriptTarget(ref, deps);
-  const document = await asDocument(resolved.raw);
+  const document = await executableDocument(resolved.raw, deps);
   if (inputStreams) {
     const declared = new Set(document.inputs.map((port) => port.name));
     const undeclared = Object.keys(inputStreams).filter(
@@ -353,7 +380,7 @@ export async function runJsScriptTests(
   deps: JsScriptDebugDeps
 ): Promise<JsScriptTestOutcome> {
   const resolved = await resolveJsScriptTarget(ref, deps);
-  const document = await asDocument(resolved.raw);
+  const document = await executableDocument(resolved.raw, deps);
   if (document.tests.length === 0) {
     throw new Error(
       `${ref} has no saved test cases; there is nothing to run. Add some to the document's \`tests\`.`

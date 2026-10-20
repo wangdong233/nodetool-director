@@ -82,6 +82,22 @@ function websocketTest(name) {
  */
 export const PATH_CHECKS = [
   {
+    path: /^scripts\/(?:test-affected\.mjs|smoke-backend-bundle\.mjs|__tests__\/(?:test-affected|smoke-backend-bundle|desktop-release-recovery)\.test\.mjs)$/,
+    steps: [{ label: "script regressions", command: "npm", args: ["run", "test:scripts"] }]
+  },
+  {
+    path: /^scripts\/(?:bump-version\.mjs|__tests__\/bump-version\.test\.mjs)$/,
+    steps: [{ label: "catalog version bump", command: "node", args: ["scripts/run-vitest.mjs", "run", "--config", "vitest.config.ts", "scripts/__tests__/bump-version.test.mjs"] }]
+  },
+
+  {
+    path: /^scripts\/(?:node-catalog\/|generate-node-catalog\.mjs$|__tests__\/node-catalog\.test\.mjs$)/,
+    steps: [
+      { label: "node catalog generator", command: "node", args: ["scripts/run-vitest.mjs", "run", "--config", "vitest.config.ts", "scripts/__tests__/node-catalog.test.mjs"] },
+      { label: "node catalog drift", command: "npm", args: ["run", "check:node-catalog"] }
+    ]
+  },
+  {
     path: /^(?:scripts\/__tests__\/browser-tracing-stub\.test\.mjs|web\/vite-node-stubs\/tracing-stub\.js)$/,
     steps: [{ label: "browser tracing shim", command: "node", args: ["scripts/run-vitest.mjs", "run", "--config", "vitest.config.ts", "scripts/__tests__/browser-tracing-stub.test.mjs"] }]
   },
@@ -104,7 +120,7 @@ export const PATH_CHECKS = [
   { path: /^scripts\/validate-examples\.mjs$/, steps: [VALIDATE_EXAMPLES] },
   {
     // The `desktop-backend` surface in the harness registry runs the same smoke.
-    path: /^scripts\/(bundle-backend|verify-backend-bundle)\.mjs$/,
+    path: /^scripts\/(bundle-backend|verify-backend-bundle|smoke-backend-bundle)\.mjs$/,
     steps: [{ label: "backend:smoke", command: "npm", args: ["run", "backend:smoke"] }]
   },
   {
@@ -286,7 +302,7 @@ function resolveBase(baseArg) {
   return null;
 }
 
-function changedFiles(baseArg) {
+export function changedFiles(baseArg) {
   const files = new Set([
     ...gitLines(["diff", "--name-only", "HEAD"]),
     ...gitLines(["ls-files", "--others", "--exclude-standard"])

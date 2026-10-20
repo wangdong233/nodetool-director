@@ -7,14 +7,18 @@ import {
   FlexColumn,
   FlexRow,
   PanelHeader,
+  SectionHeader,
+  ProgressBar,
   Text,
   ToolbarIconButton,
   Tooltip,
   MOTION,
   reducedMotion,
   BORDER_RADIUS,
+  StatusDot,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  ICON_SIZE
 } from "../ui_primitives";
 import type { SxProps } from "@mui/material/styles";
 import LayersIcon from "@mui/icons-material/Layers";
@@ -22,7 +26,7 @@ import PlayArrowOutlinedIcon from "@mui/icons-material/PlayArrowOutlined";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import RemoveIcon from "@mui/icons-material/Remove";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useRunningJobs } from "../../hooks/useRunningJobs";
 import { useWorkflow } from "../../serverState/useWorkflow";
@@ -33,6 +37,7 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import useWorkflowRunsStore from "../../stores/WorkflowRunsStore";
 import { notifyMutationError } from "../../utils/notifyMutationError";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const RUNNING = new Set(["running"]);
 const QUEUED = new Set(["queued", "scheduled", "starting"]);
@@ -50,11 +55,6 @@ const formatClock = (startedAt: string | null | undefined, now: number) => {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 };
 
-const sweep = keyframes`
-  0% { transform: translateX(-110%); }
-  100% { transform: translateX(320%); }
-`;
-
 const panelEnter = keyframes`
   from { opacity: 0; transform: translateY(-6px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
@@ -65,31 +65,18 @@ const panelExit = keyframes`
   to { opacity: 0; transform: translateY(-6px) scale(0.98); }
 `;
 
-const progressStyles = (theme: Theme) =>
-  css({
-    position: "relative",
-    height: "4px",
-    borderRadius: BORDER_RADIUS.pill,
-    overflow: "hidden",
-    backgroundColor: theme.vars.palette.c_overlay,
-    "&::after": {
-      content: '""',
-      position: "absolute",
-      inset: 0,
-      width: "35%",
-      borderRadius: "inherit",
-      background: `linear-gradient(90deg, ${theme.vars.palette.primary.main}, ${theme.vars.palette.secondary.main})`,
-      animation: `${sweep} ${MOTION.pulse} infinite`
-    },
-    ...reducedMotion({
-      "&::after": { animation: "none", width: "100%", opacity: 0.5 }
-    })
-  });
-
-/** Indeterminate gradient progress bar shown under a running job. */
+/** Indeterminate progress bar shown under a running job. */
 const RunBar = memo(function RunBar() {
-  const theme = useTheme();
-  return <Box css={progressStyles(theme)} />;
+  const { t } = useTranslation();
+  return (
+    <ProgressBar
+      value={0}
+      progressVariant="indeterminate"
+      showValue={false}
+      size="small"
+      aria-label={i18n.t("editor:ui.running", { defaultValue: "Running" })}
+    />
+  );
 });
 
 /** Job title — the stored run name, falling back to the workflow name. */
@@ -105,18 +92,6 @@ const cardSx: SxProps<Theme> = {
   px: 1.5,
   py: 1
 };
-
-const Dot = ({ color = "primary.main" }: { color?: string }) => (
-  <Box
-    sx={{
-      width: 8,
-      height: 8,
-      flex: "0 0 auto",
-      borderRadius: BORDER_RADIUS.circle,
-      backgroundColor: color
-    }}
-  />
-);
 
 const IconButton = ({
   icon,
@@ -164,7 +139,6 @@ const RunningCard = memo(function RunningCard({
   isFocused: boolean;
   onFocusJob?: (jobId: string) => void;
 }) {
-  const { t } = useTranslation();
   const theme = useTheme();
   const name = useJobName(job);
   const elapsed = formatClock(job.started_at, now);
@@ -197,7 +171,7 @@ const RunningCard = memo(function RunningCard({
       }}
     >
       <FlexRow align="center" gap={1} sx={{ minWidth: 0 }}>
-        <Dot color={isFocused ? "primary.main" : undefined} />
+        <StatusDot tone="primary" size="medium" />
         <Text size="small" weight={500} truncate sx={{ flex: 1, minWidth: 0 }}>
           {name}
         </Text>
@@ -207,9 +181,9 @@ const RunningCard = memo(function RunningCard({
             gap={0.4}
             sx={{ flex: "0 0 auto", color: "primary.main" }}
           >
-            <VisibilityIcon sx={{ fontSize: 12 }} />
+            <VisibilityIcon sx={{ fontSize: ICON_SIZE.xs }} />
             <Text size="smaller" sx={{ color: "primary.main" }}>
-              {t("editor:ui.onCanvas")}
+              On canvas
             </Text>
           </FlexRow>
         )}
@@ -221,8 +195,8 @@ const RunningCard = memo(function RunningCard({
           onClick={(e: React.MouseEvent) => e.stopPropagation()}
         >
           <IconButton
-            icon={<CloseIcon sx={{ fontSize: 15 }} />}
-            label={t("editor:ui.stopRun", { defaultValue: "Stop run" })}
+            icon={<CloseIcon sx={{ fontSize: ICON_SIZE.sm }} />}
+            label={i18n.t("editor:ui.stopRun", { defaultValue: "Stop run" })}
             onClick={() => onCancel(job.id)}
             hoverColor="error.main"
           />
@@ -239,7 +213,7 @@ const RunningCard = memo(function RunningCard({
       <Box
         role="button"
         tabIndex={0}
-        aria-label={t("editor:ui.showRunOnCanvas", { defaultValue: "Show run on canvas" })}
+        aria-label={i18n.t("editor:ui.showRunOnCanvas", { defaultValue: "Show run on canvas" })}
         aria-pressed={isFocused}
         onClick={handleFocus}
         onKeyDown={(e: React.KeyboardEvent) => {
@@ -278,7 +252,6 @@ const EnqueuedCard = memo(function EnqueuedCard({
   index: number;
   onCancel: (id: string) => void;
 }) {
-  const { t } = useTranslation();
   const name = useJobName(job);
   return (
     <Box sx={cardSx}>
@@ -291,8 +264,8 @@ const EnqueuedCard = memo(function EnqueuedCard({
           {name}
         </Text>
         <IconButton
-          icon={<CloseIcon sx={{ fontSize: 15 }} />}
-          label={t("editor:ui.removeFromQueue", { defaultValue: "Remove from queue" })}
+          icon={<CloseIcon sx={{ fontSize: ICON_SIZE.sm }} />}
+          label={i18n.t("editor:ui.removeFromQueue", { defaultValue: "Remove from queue" })}
           onClick={() => onCancel(job.id)}
           hoverColor="error.main"
         />
@@ -302,11 +275,12 @@ const EnqueuedCard = memo(function EnqueuedCard({
 });
 
 const CancelledCard = memo(function CancelledCard({ job }: { job: Job }) {
+  const { t } = useTranslation();
   const name = useJobName(job);
   return (
     <Box sx={{ ...cardSx, opacity: 0.55 }}>
       <FlexRow align="center" gap={1} sx={{ minWidth: 0 }}>
-        <Dot color="grey.600" />
+        <StatusDot tone="neutral" size="medium" />
         <Text size="small" truncate sx={{ flex: 1, minWidth: 0 }}>
           {name}
         </Text>
@@ -319,15 +293,11 @@ const CancelledCard = memo(function CancelledCard({ job }: { job: Job }) {
 });
 
 const SectionLabel = ({ children }: { children: string }) => (
-  <Text size="smaller" color="secondary"
-  sx={{
-    display: "block",
-    px: 0.5,
-    pt: 2,
-    pb: 1,
-    textTransform: "uppercase",
-    letterSpacing: "0.07em"
-  }}>{children}</Text>
+  <SectionHeader
+    title={children}
+    size="small"
+    sx={{ px: SPACING.micro, pt: SPACING.md, pb: SPACING.xs }}
+  />
 );
 
 const HEADER_COUNT_ICON_SX = { fontSize: "var(--fontSizeSmall)" };
@@ -500,7 +470,7 @@ const QueueOverlay = memo(function QueueOverlay() {
       <Box css={[overlayStyles(theme), mobileOverlayStyles(theme)]} data-state={hasJobs ? "open" : "closed"}>
         <FlexColumn gap={1} sx={{ p: 1.5 }}>
           <FlexRow align="center" gap={1} sx={{ minWidth: 0 }}>
-            <Dot color={running.length ? "primary.main" : "grey.600"} />
+            <StatusDot tone={running.length ? "primary" : "neutral"} size="medium" />
             <Text
               size="small"
               weight={500}
@@ -510,31 +480,25 @@ const QueueOverlay = memo(function QueueOverlay() {
               {single ? (
                 <SingleName job={single} />
               ) : running.length ? (
-                t("editor:ui.jobsRunning", {
-                  defaultValue: "{{count}} jobs running",
-                  count: running.length
-                })
+                `${running.length} jobs running`
               ) : (
-                t("editor:bottom.queue", { defaultValue: "Queue" })
+                "Queue"
               )}
             </Text>
             {single && (
               <Text size="smaller" color="secondary" family="secondary">{formatClock(single.started_at, now)}</Text>
             )}
             <IconButton
-              icon={<KeyboardArrowDownIcon sx={{ fontSize: 18 }} />}
-              label={t("editor:ui.expandQueue", { defaultValue: "Expand queue" })}
+              icon={<KeyboardArrowDownIcon sx={{ fontSize: ICON_SIZE.md }} />}
+              label={i18n.t("editor:ui.expandQueue", { defaultValue: "Expand queue" })}
               onClick={() => setExpanded(true)}
             />
           </FlexRow>
           {running.length > 0 && <RunBar />}
           {queued.length > 0 && (
             <FlexRow align="center" gap={0.5} sx={{ color: "text.secondary" }}>
-              <ScheduleIcon sx={{ fontSize: 13 }} />
-              <Text size="smaller" color="secondary">{t("editor:ui.queuedCount", {
-                defaultValue: "{{count}} queued",
-                count: queued.length
-              })}
+              <ScheduleIcon sx={{ fontSize: ICON_SIZE.xs }} />
+              <Text size="smaller" color="secondary">{queued.length} queued
                             </Text>
             </FlexRow>
           )}
@@ -546,13 +510,13 @@ const QueueOverlay = memo(function QueueOverlay() {
   return (
     <Box css={[overlayStyles(theme), mobileOverlayStyles(theme)]} data-state={hasJobs ? "open" : "closed"}>
       <PanelHeader
-        title={t("editor:bottom.queue", { defaultValue: "Queue" })}
+        title={i18n.t("editor:bottom.queue", { defaultValue: "Queue" })}
         icon={<LayersIcon />}
         actions={
           <ToolbarIconButton
             icon={<RemoveIcon />}
-            tooltip={t("editor:ui.collapseQueue", { defaultValue: "Collapse queue" })}
-            ariaLabel={t("editor:ui.collapseQueue", { defaultValue: "Collapse queue" })}
+            tooltip={i18n.t("editor:ui.collapseQueue", { defaultValue: "Collapse queue" })}
+            ariaLabel="Collapse queue"
             onClick={() => setExpanded(false)}
           />
         }
@@ -572,7 +536,7 @@ const QueueOverlay = memo(function QueueOverlay() {
       <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", px: 2, pb: 2 }}>
         {running.length > 0 && (
           <>
-            <SectionLabel>{t("editor:ui.running", { defaultValue: "Running" })}</SectionLabel>
+            <SectionLabel>{i18n.t("editor:ui.running", { defaultValue: "Running" })}</SectionLabel>
             <FlexColumn gap={1}>
               {running.map((job) => {
                 const isCurrentWf =
@@ -595,7 +559,7 @@ const QueueOverlay = memo(function QueueOverlay() {
         )}
         {queued.length > 0 && (
           <>
-            <SectionLabel>{t("ui2:attrs.enqueued", { defaultValue: "Enqueued" })}</SectionLabel>
+            <SectionLabel>{i18n.t("ui2:attrs.enqueued", { defaultValue: "Enqueued" })}</SectionLabel>
             <FlexColumn gap={1}>
               {queued.map((job, index) => (
                 <EnqueuedCard
@@ -610,7 +574,7 @@ const QueueOverlay = memo(function QueueOverlay() {
         )}
         {cancelled.length > 0 && (
           <>
-            <SectionLabel>{t("ui2:attrs.cancelled", { defaultValue: "Cancelled" })}</SectionLabel>
+            <SectionLabel>{i18n.t("ui2:attrs.cancelled", { defaultValue: "Cancelled" })}</SectionLabel>
             <FlexColumn gap={1}>
               {cancelled.map((job) => (
                 <CancelledCard key={job.id} job={job} />

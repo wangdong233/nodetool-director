@@ -3,33 +3,42 @@ import { css } from "@emotion/react";
 import { useTheme, type Theme } from "@mui/material/styles";
 import { memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import type { ExampleTimelineSummary } from "@nodetool-ai/protocol/api-schemas/timeline.js";
 import { useExampleTimelines, useInstallExampleTimeline } from "../../hooks/useTimelineSequence";
 import { useResolvedMediaUri } from "../../hooks/useResolvedMediaUri";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { creationProjectId, useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
-import { BORDER_RADIUS, EmptyState, LoadingSpinner, MOTION, SPACING, VideoPlayer, getSpacingPx } from "../ui_primitives";
-import { SectionHeader, useSectionWrap } from "./dashboardChrome";
+import useOnboardingStore from "../../stores/OnboardingStore";
+import {
+  AutoGrid,
+  BORDER_RADIUS,
+  EditorButton,
+  EmptyState,
+  LoadingSpinner,
+  SPACING,
+  TYPOGRAPHY,
+  VideoPlayer,
+  getSpacingPx
+} from "../ui_primitives";
+import { NO_EXAMPLE_NEEDS } from "../../utils/exampleNeeds";
+import { DashboardSectionHeader, useSectionWrap } from "./dashboardChrome";
+import ExampleNeedsPill from "./ExampleNeedsPill";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) => css({
   paddingTop: getSpacingPx(SPACING.xxl),
   paddingBottom: getSpacingPx(SPACING.xxxl),
   ".timeline-lede": {
     margin: `0 0 ${getSpacingPx(SPACING.sm)}`,
-    fontSize: "var(--fontSizeSmall)",
+    ...TYPOGRAPHY.sans.caption,
     color: theme.vars.palette.text.secondary
-  },
-  ".timeline-grid": {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))",
-    gap: getSpacingPx(SPACING.md)
   },
   ".timeline-card": {
     minWidth: 0,
     overflow: "hidden",
     border: `1px solid ${theme.vars.palette.divider}`,
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.md,
     background: theme.vars.palette.c_node_bg
   },
   ".timeline-preview": { aspectRatio: "16 / 9", background: theme.vars.palette.common.black },
@@ -39,21 +48,9 @@ const styles = (theme: Theme) => css({
     gap: getSpacingPx(SPACING.xs),
     padding: getSpacingPx(SPACING.md)
   },
-  ".timeline-name": { fontSize: "var(--fontSizeNormal)" },
-  ".timeline-description": { fontSize: "var(--fontSizeSmaller)", color: theme.vars.palette.text.secondary },
-  ".timeline-meta": { fontSize: "var(--fontSizeSmaller)", color: theme.vars.palette.text.disabled },
-  ".timeline-action": {
-    alignSelf: "flex-start",
-    padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.md)}`,
-    border: `1px solid ${theme.vars.palette.primary.main}`,
-    borderRadius: BORDER_RADIUS.sm,
-    background: theme.vars.palette.primary.main,
-    color: theme.vars.palette.primary.contrastText,
-    cursor: "pointer",
-    transition: MOTION.background,
-    "&:hover": { background: theme.vars.palette.primary.dark },
-    "&:disabled": { opacity: 0.5, cursor: "wait" }
-  },
+  ".timeline-name": TYPOGRAPHY.sans.label,
+  ".timeline-description": { ...TYPOGRAPHY.sans.caption, color: theme.vars.palette.text.secondary },
+  ".timeline-meta": { ...TYPOGRAPHY.sans.caption, color: theme.vars.palette.text.disabled },
   ".timeline-state": { display: "flex", justifyContent: "center", padding: `${getSpacingPx(SPACING.xl)} 0` }
 });
 
@@ -69,25 +66,22 @@ const TimelineCard = memo(function TimelineCard({ timeline, installing, onInstal
   return (
     <article className="timeline-card">
       <div className="timeline-preview">
-        <VideoPlayer locator={timeline.videoUri} poster={poster} label={t("editor:ui.timelinePreviewAria", { defaultValue: "{{name}} preview", name: timeline.name })} prominentPlay />
+        <VideoPlayer locator={timeline.videoUri} poster={poster} label={`${timeline.name} preview`} prominentPlay />
       </div>
       <div className="timeline-body">
         <span className="timeline-name">{timeline.name}</span>
         <span className="timeline-description">{timeline.description}</span>
-        <span className="timeline-meta">
-          {t("editor:ui.timelineCardMeta", {
-            defaultValue:
-              "{{seconds}} seconds · {{clips}} editable clips · {{fps}} fps",
-            seconds: String(Math.round(timeline.durationMs / 1000)),
-            clips: String(timeline.clipCount),
-            fps: String(timeline.fps)
-          })}
-        </span>
-        <button className="timeline-action" type="button" disabled={installing} onClick={() => onInstall(timeline)}>
-          {installing
-            ? t("editor:ui.addingTimeline", { defaultValue: "Adding timeline…" })
-            : t("editor:ui.installTimeline", { defaultValue: "Install timeline" })}
-        </button>
+        <ExampleNeedsPill needs={NO_EXAMPLE_NEEDS} />
+        <span className="timeline-meta">{Math.round(timeline.durationMs / 1000)} seconds · {timeline.clipCount} editable clips · {timeline.fps} fps</span>
+        <EditorButton
+          variant="contained"
+          density="compact"
+          disabled={installing}
+          onClick={() => onInstall(timeline)}
+          sx={{ alignSelf: "flex-start" }}
+        >
+          {installing ? t("editor:ui.addingTimeline", { defaultValue: "Adding timeline…" }) : i18n.t("editor:ui.installTimeline", { defaultValue: "Install timeline" })}
+        </EditorButton>
       </div>
     </article>
   );
@@ -109,31 +103,32 @@ const DashboardExampleTimelines = () => {
       onSuccess: (created) => {
         openTab({ type: "timeline", ref: created.id, mode: "view", title: created.name, projectId: created.projectId });
         navigate("/workspace");
+        useOnboardingStore.getState().markStep("keep-creating");
       },
       onError: (error) => {
-        addNotification({ type: "error", alert: true, content: t("editor:ui.couldntAddNameError", { defaultValue: "Couldn't add {{name}}: {{error}}", name: timeline.name, error: error.message }) });
+        addNotification({ type: "error", alert: true, content: `Couldn't add ${timeline.name}: ${error.message}` });
       }
     });
-  }, [addNotification, install, navigate, openTab, t]);
+  }, [addNotification, install, navigate, openTab]);
 
   const timelines = data ?? [];
   return (
     <section css={styles(theme)} aria-label={t("editor:ui.exampleTimelines", { defaultValue: "Example timelines" })}>
       <div css={sectionWrap}>
-        <SectionHeader title={t("editor:ui.startFromATimeline", { defaultValue: "Start from a timeline" })} count={t("editor:ui.timelinesCount", { defaultValue: "{{count}} timelines", count: String(timelines.length) })} />
+        <DashboardSectionHeader title={t("editor:ui.startFromATimeline", { defaultValue: "Start from a timeline" })} count={`${timelines.length} timelines`} />
         <p className="timeline-lede">{t("editor:ui.exampleTimelinesLede", { defaultValue: "Watch a timeline directly, or install a copy to make your own version." })}</p>
         {isLoading ? (
-          <div className="timeline-state"><LoadingSpinner size="medium" text={t("editor:ui.loadingTimelines", { defaultValue: "Loading timelines" })} /></div>
+          <div className="timeline-state"><LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingTimelines", { defaultValue: "Loading timelines" })} /></div>
         ) : isError ? (
           <div className="timeline-state"><EmptyState variant="error" title={t("editor:ui.couldntLoadTimelines", { defaultValue: "Couldn't load timelines" })} description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })} actionText={t("editor:explorer.retry", { defaultValue: "Retry" })} onAction={() => refetch()} /></div>
         ) : timelines.length === 0 ? (
           <div className="timeline-state"><EmptyState variant="no-data" title={t("editor:ui.noTimelinesAvailable", { defaultValue: "No timelines available" })} description={t("editor:ui.exampleTimelinesWillAppearHereWhenThisInstallShipsThem", { defaultValue: "Example timelines will appear here when this install ships them." })} /></div>
         ) : (
-          <div className="timeline-grid">
+          <AutoGrid minItemWidth={360} fill="fit">
             {timelines.map((timeline) => (
               <TimelineCard key={timeline.slug} timeline={timeline} installing={install.isPending && install.variables?.slug === timeline.slug} onInstall={handleInstall} />
             ))}
-          </div>
+          </AutoGrid>
         )}
       </div>
     </section>

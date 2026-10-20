@@ -35,7 +35,8 @@
  */
 
 import React, { memo, forwardRef, useCallback } from "react";
-import { IconButton, Tooltip } from "@mui/material";
+import { IconButton } from "@mui/material";
+import { Tooltip } from "./Tooltip";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { useTheme, SxProps, Theme } from "@mui/material/styles";
 import {
@@ -45,6 +46,7 @@ import {
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { MOTION } from "./tokens";
 import { isObjectLike, isString } from "../../utils/typePredicates";
+import { i18n } from "../../i18n";
 
 export interface CircularActionButtonProps {
   /**

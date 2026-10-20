@@ -26,6 +26,8 @@ import RecipeShowcase from "../../components/RecipeShowcase";
 import TimelineShowcase from "../../components/TimelineShowcase";
 import { SmartDownloadButton } from "../SmartDownloadButton";
 import { adRecipes } from "../../data/adLibrary";
+import PageUpdated from "@/components/PageUpdated";
+import { FROM_LINK_INTRO, FROM_LINK_ROUTES, MARKETING_LEAD } from "@/data/marketingPage";
 
 const campaignFormats = [
   {
@@ -157,9 +159,7 @@ export default function MarketingSegmentPage() {
                 </h1>
 
                 <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-3xl mx-auto leading-relaxed">
-                  Go from a product brief to finished ads in every format.
-                  Describe the campaign, and the AI agent builds a workflow you
-                  can run again for every product, market, and screen size.
+                  {MARKETING_LEAD}
                 </p>
 
                 {/* Two countable credibility chips beside the CTA
@@ -182,7 +182,7 @@ export default function MarketingSegmentPage() {
                   />
                   <a
                     href="#example-timelines"
-                    className="inline-flex items-center gap-2.5 px-9 py-4 rounded-full border border-white/15 bg-[#0a0a14]/70 backdrop-blur-sm text-white font-semibold hover:bg-white/5 hover:border-white/25 transition-all"
+                    className="inline-flex items-center gap-2.5 px-9 py-4 rounded-full border border-white/15 bg-[#0a0a14]/70 backdrop-blur-xs text-white font-semibold hover:bg-white/5 hover:border-white/25 transition-all"
                   >
                     <Play className="w-5 h-5" />
                     Watch examples
@@ -342,6 +342,31 @@ export default function MarketingSegmentPage() {
 
         {/* Product Video Generator: the workflow available today, next to the
             ones on the way */}
+        <section aria-labelledby="from-link-title" className="relative py-20">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <h2
+              id="from-link-title"
+              className="max-w-2xl text-balance text-3xl font-semibold tracking-tight text-white md:text-5xl"
+            >
+              Start from a product page link.
+            </h2>
+            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-400">
+              {FROM_LINK_INTRO}
+            </p>
+            <ul className="mt-10 grid gap-6 md:grid-cols-3">
+              {FROM_LINK_ROUTES.map((route) => (
+                <li
+                  key={route.title}
+                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-6"
+                >
+                  <h3 className="text-lg font-semibold text-white">{route.title}</h3>
+                  <p className="mt-2 leading-relaxed text-slate-300">{route.body}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
         <section id="product-video" className="relative scroll-mt-28 py-20">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <motion.div
@@ -439,7 +464,7 @@ export default function MarketingSegmentPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.08 }}
-                  className="flex items-start gap-4 rounded-2xl border border-white/10 bg-[#0a0a14]/70 backdrop-blur-sm p-6"
+                  className="flex items-start gap-4 rounded-2xl border border-white/10 bg-[#0a0a14]/70 backdrop-blur-xs p-6"
                 >
                   <div className="w-11 h-11 shrink-0 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                     <wf.icon className="w-5 h-5 text-emerald-400" />
@@ -503,6 +528,9 @@ export default function MarketingSegmentPage() {
         </section>
       </div>
 
+      <div className="mx-auto max-w-7xl px-6 pb-12 lg:px-8">
+        <PageUpdated route="/marketing" className="text-sm text-slate-400" />
+      </div>
       <SiteFooter />
     </main>
   );

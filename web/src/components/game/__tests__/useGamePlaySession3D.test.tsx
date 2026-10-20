@@ -3,12 +3,20 @@ import { createHash } from "node:crypto";
 import { deserialize, serialize } from "node:v8";
 import { act, render, renderHook, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { gameAuthoring, gameDocument3D, type GameDocument3D, type GameRenderFrame3D } from "@nodetool-ai/protocol";
+import { gameAuthoring, gameDocument3D, gameParticles, type GameDocument3D, type GameRenderFrame3D } from "@nodetool-ai/protocol";
 import { createGameSession3D, decodePreparedGameCollider3D } from "@nodetool-ai/game-runtime";
 import { useGamePlaySession3D } from "../useGamePlaySession3D";
-import { FixedTickClock } from "@nodetool-ai/game-renderer";
+import { useGameConsoleFeed } from "../panels/console/useGameConsoleFeed";
+import { getGameConsoleStore } from "../../../stores/game/GameConsoleStore";
+import { FixedTickClock, gameParticleSamples3D, type GameParticleField } from "@nodetool-ai/game-renderer";
+import { createGameRenderer3D } from "@nodetool-ai/game-renderer/browser3d";
 import { GameAudioPlayer, gameAudioSpatialView3D } from "@nodetool-ai/game-renderer/audio";
 import { asResolvedMediaUrl, resolveMediaUri } from "../../../utils/resolveMediaUri";
+
+jest.mock("@nodetool-ai/game-runtime", () => {
+  const runtime = jest.requireActual<typeof import("@nodetool-ai/game-runtime")>("@nodetool-ai/game-runtime");
+  return { ...runtime, createGameSession3D: jest.fn(runtime.createGameSession3D) };
+});
 
 const mockRenderers: { render: jest.Mock; dispose: jest.Mock }[] = [];
 
@@ -20,7 +28,7 @@ jest.mock("@nodetool-ai/game-renderer/browser3d", () => ({
   })
 }), { virtual: true });
 jest.mock("@nodetool-ai/game-renderer/audio", () => ({ gameAudioSpatialView2D: jest.fn(() => ({})), gameAudioSpatialView3D: jest.fn(() => ({})),
-  GameAudioPlayer: jest.fn().mockImplementation(() => ({ updateAssets: jest.fn(), updateMixer: jest.fn(), preload: jest.fn(), sync: jest.fn(), resume: jest.fn(), pause: jest.fn(),
+  GameAudioPlayer: jest.fn().mockImplementation(() => ({ updateScenes: jest.fn(), updateAssets: jest.fn(), updateMixer: jest.fn(), preload: jest.fn(), sync: jest.fn(), resume: jest.fn(), pause: jest.fn(),
     reset: jest.fn(), handle: jest.fn(), updateSpatial: jest.fn(), dispose: jest.fn() }))
 }));
 jest.mock("../../../utils/resolveMediaUri", () => ({
@@ -28,6 +36,7 @@ jest.mock("../../../utils/resolveMediaUri", () => ({
 }));
 
 const colliderBytes = new TextEncoder().encode(JSON.stringify({ vertices: [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], indices: [0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3] }));
+const mockAssetBytes = new Map<string, Uint8Array>();
 const installedId = "b".repeat(32);
 function fixture(): GameDocument3D {
   return gameDocument3D.parse({ schemaVersion: 3, engineVersion: "2", dimension: "3d", id: "hook3d", revision: "saved", entrySceneId: "level",
@@ -42,7 +51,10 @@ function fixture(): GameDocument3D {
 
 function Harness({ document, sceneId = "level" }: { document: GameDocument3D; sceneId?: string }) {
   const session = useGamePlaySession3D({ refId: "hook3d", document, active: true, editorSceneId: sceneId });
+  useGameConsoleFeed("hot-reload-3d", { runtimeError: session.error, scriptError: null, diagnosticError: null,
+    tick: session.inspection?.tick ?? 0, scriptLogs: session.scriptLogs });
   return <>
+    <button onClick={session.restart}>Restart</button>
     <canvas ref={session.canvasRef} tabIndex={0} />
     <button onClick={session.beginPlay}>{session.playing ? "Pause" : "Play"}</button>
     <button onClick={session.stop}>Stop</button>
@@ -76,16 +88,87 @@ const originalFetch = global.fetch;
 const originalClone = global.structuredClone;
 beforeEach(() => {
   mockRenderers.length = 0;
+  mockAssetBytes.clear();
   localStorage.clear();
   // The shared Jest JSON clone cannot restore optional snapshot fields.
   global.structuredClone = (value) => deserialize(serialize(value));
   jest.mocked(resolveMediaUri).mockResolvedValue(asResolvedMediaUrl("https://owned.example/ground.json") ?? "");
-  global.fetch = jest.fn(async () => {
-    if ("Response" in globalThis) { return new Response(colliderBytes.slice()); }
-    return { ok: true, arrayBuffer: async () => colliderBytes.slice().buffer } as Response;
+  global.fetch = jest.fn(async (url) => {
+    const bytes = mockAssetBytes.get(String(url)) ?? colliderBytes;
+    if ("Response" in globalThis) { return new Response(bytes.slice()); }
+    return { ok: true, arrayBuffer: async () => bytes.slice().buffer } as Response;
   });
 });
 afterEach(() => { global.fetch = originalFetch; global.structuredClone = originalClone; jest.clearAllMocks(); });
+
+it.each([false, true])("ticks 3D particles in editor Play and clears them when Stop creates a new session (deferred Stop: %s)", async (deferredStop) => {
+  const document = fixture();
+  document.scenes[0].entities[1].particles = gameParticles.parse({ emitters: [{ id: "burst", loop: false, rate: 0, speed: 0, lifetime: 60, bursts: [{ count: 4 }] }] });
+  const view = render(<Harness document={gameDocument3D.parse(document)} />);
+  let releaseStop: (() => void) | undefined;
+  try {
+    await waitFor(() => expect(screen.getByTestId("backend")).toHaveTextContent("WebGL2"));
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Play" }));
+    await waitFor(() => {
+      const submitted = mockRenderers.at(-1)?.render.mock.calls.at(-1);
+      expect(submitted?.[0].tick).toBeGreaterThan(0);
+      expect(gameParticleSamples3D(submitted?.[2])).toHaveLength(4);
+    });
+    const submittedBeforeStop = mockRenderers.at(-1)?.render.mock.calls.length ?? 0;
+    if (deferredStop) {
+      jest.mocked(createGameSession3D).mockImplementationOnce(async (...args) => {
+        const runtime = jest.requireActual<typeof import("@nodetool-ai/game-runtime")>("@nodetool-ai/game-runtime");
+        const next = await runtime.createGameSession3D(...args);
+        await new Promise<void>((resolve) => { releaseStop = resolve; });
+        return next;
+      });
+    }
+    await user.click(screen.getByRole("button", { name: "Stop" }));
+    if (deferredStop) {
+      await waitFor(() => expect(releaseStop).toBeDefined());
+      expect(gameParticleSamples3D(mockRenderers.at(-1)?.render.mock.calls.at(-1)?.[2])).toHaveLength(4);
+      await act(async () => { releaseStop?.(); });
+    }
+    await waitFor(() => expect(screen.getByTestId("tick")).toHaveTextContent("0"));
+    await waitFor(() => {
+      const submissions = mockRenderers.at(-1)?.render.mock.calls;
+      expect(submissions?.length).toBeGreaterThan(submittedBeforeStop);
+      const submitted = submissions?.at(-1);
+      expect(submitted?.[0].tick).toBe(0);
+      expect(gameParticleSamples3D(submitted?.[2])).toHaveLength(0);
+    });
+  } finally { await act(async () => { releaseStop?.(); }); view.unmount(); }
+});
+
+it("keeps submitted particles stable while rendering waits and Stop replaces the session", async () => {
+  const document = fixture();
+  document.scenes[0].entities[1].particles = gameParticles.parse({ emitters: [{ id: "burst", loop: false, rate: 0, speed: 6, lifetime: 60, bursts: [{ count: 1 }] }] });
+  const view = render(<Harness document={document} />);
+  let finishRender: (() => void) | undefined;
+  let submitted: GameParticleField | undefined;
+  try {
+    await waitFor(() => expect(screen.getByTestId("backend")).toHaveTextContent("WebGL2"));
+    const renderer = mockRenderers.at(-1);
+    if (!renderer) { throw new Error("Expected initialized renderer"); }
+    renderer.render.mockImplementationOnce((_frame, _alpha, particles) => {
+      submitted = particles;
+      return new Promise<void>((resolve) => { finishRender = resolve; });
+    });
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Step" }));
+    if (!submitted) { throw new Error("Expected submitted particles"); }
+    const original = gameParticleSamples3D(submitted);
+    expect(original).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Step" }));
+    expect(gameParticleSamples3D(submitted)).toEqual(original);
+    await user.click(screen.getByRole("button", { name: "Stop" }));
+    expect(gameParticleSamples3D(submitted)).toEqual(original);
+  } finally {
+    await act(async () => { finishRender?.(); });
+    view.unmount();
+  }
+});
 
 it("loads installed collider bytes after the runtime parses and clones document bindings", async () => {
   const document = fixture();
@@ -100,6 +183,29 @@ it("loads installed collider bytes after the runtime parses and clones document 
   await waitFor(() => expect(mockRenderers).toHaveLength(1));
   expect(screen.getByTestId("error")).toBeEmptyDOMElement();
   expect(fetch).toHaveBeenCalledTimes(1);
+  view.unmount();
+});
+
+it("passes owned image bytes and bindings to the renderer and rejects non-image slots", async () => {
+  const document = fixture();
+  const imageBytes = new Uint8Array(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEklEQVQImWP4v5ThPzJmIF0AAKAXKjHRs1nSAAAAAElFTkSuQmCC", "base64"));
+  const imageUrl = asResolvedMediaUrl("https://owned.example/paint.png");
+  if (!imageUrl) { throw new Error("Invalid fixture URL"); }
+  mockAssetBytes.set(imageUrl, imageBytes);
+  jest.mocked(resolveMediaUri).mockImplementation(async (locator) => locator === `asset://${"c".repeat(32)}`
+    ? imageUrl : asResolvedMediaUrl("https://owned.example/ground.json") ?? "");
+  document.assets.paint = { mediaKind: "image", assetId: "c".repeat(32), required: true,
+    digest: createHash("sha256").update(imageBytes).digest("hex"), format: "png", width: 4, height: 4,
+    byteLength: imageBytes.length, preparationVersion: "1" };
+  const view = render(<Harness document={document} />);
+  await waitFor(() => expect(screen.getByTestId("backend")).toHaveTextContent("WebGL2"));
+  const options = jest.mocked(createGameRenderer3D).mock.calls[0]?.[0];
+  if (!options?.resolveImage) { throw new Error("Missing image resolver"); }
+  const controller = new AbortController();
+  expect(await options.resolveImage("paint", controller.signal)).toEqual({ bytes: imageBytes, binding: document.assets.paint });
+  expect(resolveMediaUri).toHaveBeenCalledWith(`asset://${"c".repeat(32)}`);
+  expect(await options.resolveImage("ground", controller.signal)).toBeNull();
+  expect(await options.resolveImage("constructor", controller.signal)).toBeNull();
   view.unmount();
 });
 
@@ -338,4 +444,210 @@ it.each(["Restore", "Replay failure", "Restart"])("preserves the first 3D failur
     await user.click(screen.getByRole("button", { name: "Step" }));
     expect(screen.getByTestId("tick").textContent).toBe("1");
   } finally { view.unmount(); animation.mockRestore(); }
+});
+
+it("delivers edited scenes to the retained 3D audio player", async () => {
+  const document = fixture();
+  const initialCalls = jest.mocked(GameAudioPlayer).mock.calls.length;
+  const view = render(<Harness document={document} />);
+  try {
+    await waitFor(() => expect(screen.getByTestId("backend")).toHaveTextContent("WebGL2"));
+    const audio = jest.mocked(GameAudioPlayer).mock.results[initialCalls].value;
+    expect(audio.updateScenes).toHaveBeenCalledWith(document.scenes);
+    const edited = { ...document, assets: { ...document.assets, music: { mediaKind: "audio" as const, assetId: "a".repeat(32), digest: "music", required: false } },
+      scenes: document.scenes.map(scene => ({ ...scene, music: { assetId: "music", volume: 0.5, fadeInTicks: 0, fadeOutTicks: 0 } })) };
+    view.rerender(<Harness document={edited} />);
+    await waitFor(() => expect(audio.updateScenes).toHaveBeenLastCalledWith(edited.scenes));
+    expect(jest.mocked(GameAudioPlayer).mock.calls).toHaveLength(initialCalls + 1);
+  } finally { view.unmount(); }
+});
+
+function hotReloadFixture3D(source: string): GameDocument3D {
+  const base = fixture();
+  return gameDocument3D.parse({ ...base, scenes: base.scenes.map((scene) => ({ ...scene, entities: scene.entities.map((entity) =>
+    entity.id === "floor" ? { ...entity, behaviors: [{ kind: "script", source, maxTickMs: 20 }] } : entity) })) });
+}
+
+it("hot reloads 3D source without recreating play, logs invalid edits, and restarts from the latest draft", async () => {
+  const animation = jest.spyOn(window, "requestAnimationFrame").mockImplementation(() => 1);
+  const user = userEvent.setup();
+  const source = (speed: number) => `(input) => ({ state: (input.state ?? 0) + 1, commands: [{ kind: "log", message: "speed ${speed} state " + (input.state ?? 0) }] })`;
+  const actual = jest.requireActual<typeof import("@nodetool-ai/game-runtime")>("@nodetool-ai/game-runtime");
+  const store = getGameConsoleStore("hot-reload-3d");
+  store.getState().clear();
+  jest.mocked(createGameSession3D).mockImplementation(async (candidate, seed, snapshot, options) => {
+    const silent = { ...candidate, scenes: candidate.scenes.map((scene) => ({ ...scene,
+      entities: scene.entities.map((entity) => ({ ...entity, behaviors: entity.behaviors.filter((behavior) => behavior.kind !== "script") })) })) };
+    let session = await actual.createGameSession3D(silent, seed, undefined, options);
+    if (snapshot) {
+      expect(snapshot.gameRevision).toBe(candidate.revision);
+      expect(snapshot.contentDigest).toBe(createHash("sha256").update(candidate.revision).digest("hex"));
+      // The mocked compiler removes script behaviors. Its backing physics session needs that fixture's digest.
+      const backingSnapshot = { ...snapshot, contentDigest: session.snapshot().contentDigest };
+      session.dispose();
+      session = await actual.createGameSession3D(silent, seed, backingSnapshot, options);
+    }
+    let effective = candidate;
+    let count = snapshot?.tick ?? 0;
+    return { ...session, snapshot: () => ({ ...session.snapshot(), gameRevision: effective.revision,
+      contentDigest: createHash("sha256").update(effective.revision).digest("hex") }), reloadScripts: jest.fn(async (edited) => {
+      const code = edited.scenes[0].entities.find((entity) => entity.id === "floor")?.behaviors[0];
+      if (code?.kind === "script" && code.source === "(input) => {") { return { ok: false as const, error: "Game script compilation failed" }; }
+      effective = { ...edited, revision: `script:test-speed-${code?.kind === "script" ? code.source.match(/speed (\d+)/)?.[1] : "unknown"}` };
+      return { ok: true as const, changed: true, document: effective };
+    }), step: (input) => {
+      const result = session.step(input);
+      const code = effective.scenes[0].entities.find((entity) => entity.id === "floor")?.behaviors[0];
+      const speed = code?.kind === "script" ? code.source.match(/speed (\d+)/)?.[1] : undefined;
+      return { ...result, scriptLogs: [{ level: "log" as const, message: `speed ${speed} state ${count++}`, tick: result.tick }] };
+    } };
+  });
+  const view = render(<Harness document={hotReloadFixture3D(source(1))} />);
+  try {
+    await waitFor(() => expect(screen.getByTestId("backend")).toHaveTextContent("WebGL2"));
+    const previewCreations = jest.mocked(createGameSession3D).mock.calls.length;
+    await user.click(screen.getByRole("button", { name: "Play" }));
+    await waitFor(() => expect(jest.mocked(createGameSession3D)).toHaveBeenCalledTimes(previewCreations + 1));
+    await user.click(screen.getByRole("button", { name: "Step" }));
+    const creations = jest.mocked(createGameSession3D).mock.calls.length;
+    view.rerender(<Harness document={hotReloadFixture3D(source(4))} />);
+    await waitFor(() => expect(jest.mocked(createGameSession3D).mock.results.at(-1)).toBeDefined());
+    await act(async () => { await Promise.resolve(); });
+    await user.click(screen.getByRole("button", { name: "Pause" }));
+    await user.click(screen.getByRole("button", { name: "Step" }));
+    expect(screen.getByTestId("tick")).toHaveTextContent("2");
+    expect(store.getState().groups.at(-1)?.message).toBe("speed 4 state 1");
+    expect(jest.mocked(createGameSession3D)).toHaveBeenCalledTimes(creations);
+    await user.click(screen.getByRole("button", { name: "Play" }));
+    view.rerender(<Harness document={hotReloadFixture3D("(input) => {")} />);
+    await waitFor(() => expect(store.getState().groups.some((entry) => entry.level === "error")).toBe(true));
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Pause" }));
+    await user.click(screen.getByRole("button", { name: "Step" }));
+    expect(store.getState().groups.at(-1)?.message).toBe("speed 4 state 2");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    view.rerender(<Harness document={hotReloadFixture3D(source(4))} />);
+    await user.click(screen.getByRole("button", { name: "Restart" }));
+    await waitFor(() => expect(screen.getByTestId("tick")).toHaveTextContent("0"));
+    await user.click(screen.getByRole("button", { name: "Pause" }));
+    await user.click(screen.getByRole("button", { name: "Step" }));
+    await user.click(screen.getByRole("button", { name: "Restore" }));
+    await waitFor(() => expect(screen.getByTestId("tick")).toHaveTextContent("3"));
+    await user.click(screen.getByRole("button", { name: "Step" }));
+    expect(store.getState().groups.at(-1)?.message).toBe("speed 4 state 3");
+    expect(jest.mocked(createGameSession3D).mock.calls.at(-1)?.[0].scenes[0].entities.find((entity) => entity.id === "floor")?.behaviors[0]).toMatchObject({ source: source(4) });
+    expect(jest.mocked(createGameSession3D).mock.calls.at(-1)?.[0].revision).toBe("script:test-speed-4");
+    expect(jest.mocked(createGameSession3D).mock.calls.at(-1)?.[0].revision).not.toBe(fixture().revision);
+    expect(jest.mocked(createGameSession3D).mock.calls.at(-1)?.[2]?.gameRevision).toBe("script:test-speed-4");
+    await user.click(screen.getByRole("button", { name: "Replay failure" }));
+    await act(async () => { await jest.mocked(createGameSession3D).mock.results.at(-1)?.value; });
+    expect(jest.mocked(createGameSession3D).mock.calls.at(-1)?.[0].revision).toBe("script:test-speed-4");
+    expect(jest.mocked(createGameSession3D).mock.calls.at(-1)?.[2]?.gameRevision).toBe("script:test-speed-4");
+    view.rerender(<Harness document={hotReloadFixture3D(source(8))} />);
+    await act(async () => { await Promise.resolve(); });
+    await user.click(screen.getByRole("button", { name: "Restart" }));
+    await waitFor(() => expect(screen.getByTestId("tick")).toHaveTextContent("0"));
+    await user.click(screen.getByRole("button", { name: "Pause" }));
+    await user.click(screen.getByRole("button", { name: "Step" }));
+    expect(store.getState().groups.at(-1)?.message).toBe("speed 8 state 0");
+  } finally { view.unmount(); animation.mockRestore(); jest.mocked(createGameSession3D).mockImplementation(actual.createGameSession3D); }
+});
+
+it("mounts actual viewport-scoped 3D stick, look and action controls and releases them on pause", async () => {
+  const game = gameDocument3D.parse({ ...fixture(), inputActions: ["fire"], inputAxes: ["moveX", "moveZ"],
+    inputBindings: { actions: { fire: [{ kind: "touchButton" }] }, look: [{ kind: "touchDrag" }] } });
+  let input: import("@nodetool-ai/game-renderer").GameInput3D | undefined;
+  function TouchHarness() {
+    const host = useGamePlaySession3D({ refId: "touch-hook3d", document: game, active: true });
+    input = host.inputRef.current;
+    return <><canvas ref={host.canvasRef} aria-label="Touch game" /><button onClick={host.beginPlay}>{host.playing ? "Pause" : "Play"}</button>
+      <output aria-label="Touch backend">{host.backend}</output></>;
+  }
+  const originalObserver = global.ResizeObserver;
+  const observers: Array<{ targets: Set<Element>; notify(): void; disconnected: boolean }> = [];
+  global.ResizeObserver = class implements ResizeObserver {
+    targets = new Set<Element>();
+    disconnected = false;
+    constructor(private readonly callback: ResizeObserverCallback) { observers.push(this); }
+    observe(target: Element) { this.targets.add(target); }
+    unobserve(target: Element) { this.targets.delete(target); }
+    disconnect() { this.disconnected = true; }
+    notify() { this.callback([], this); }
+  };
+  const matchMedia = window.matchMedia;
+  window.matchMedia = jest.fn(() => ({ matches: true }) as MediaQueryList);
+  const view = render(<TouchHarness />);
+  try {
+    await waitFor(() => expect(screen.getByLabelText("Touch backend")).toHaveTextContent("WebGL2"));
+    const canvas = screen.getByLabelText("Touch game") as HTMLCanvasElement;
+    let bounds = { left: 100, top: 50, width: 640, height: 360 };
+    jest.spyOn(canvas, "getBoundingClientRect").mockImplementation(() => bounds as DOMRect);
+    await userEvent.setup().click(screen.getByRole("button", { name: "Play" }));
+    const root = window.document.querySelector("[data-game-touch-controls]") as HTMLElement | null;
+    expect(root?.style.left).toBe("100px");
+    expect(root?.style.width).toBe("640px");
+    const zones = [root?.querySelector(".touch-stick-zone"), root?.querySelector(".touch-look-zone"), root?.querySelector(".touch-button")];
+    const touch = (target: EventTarget, type: string, id: number, x: number, y: number) => act(() => {
+      const event = new MouseEvent(type, { clientX: x, clientY: y, bubbles: true, cancelable: true });
+      Object.defineProperties(event, { pointerId: { value: id }, pointerType: { value: "touch" } });
+      target.dispatchEvent(event);
+    });
+    if (!zones.every((zone) => zone instanceof HTMLElement)) { throw new Error("Actual 3D touch controls are missing"); }
+    const [stick, look, fire] = zones as HTMLElement[];
+    for (const zone of [stick, look, fire]) { zone.setPointerCapture = jest.fn(); }
+    touch(stick, "pointerdown", 1, 200, 250);
+    touch(stick, "pointermove", 1, 256, 250);
+    touch(look, "pointerdown", 2, 600, 250);
+    touch(look, "pointermove", 2, 612, 258);
+    touch(fire, "pointerdown", 3, 700, 350);
+    expect(input?.sample(game)).toEqual({ pressed: ["fire"], justPressed: ["fire"], axes: { moveX: 1, moveZ: 0 }, look: { x: 12, y: 8 } });
+    bounds = { left: 160, top: 80, width: 480, height: 270 };
+    act(() => { for (const observer of observers) { if (observer.targets.has(canvas)) { observer.notify(); } } });
+    expect(root?.style.left).toBe("160px");
+    expect(root?.style.top).toBe("80px");
+    expect(root?.style.width).toBe("480px");
+    expect(root?.style.height).toBe("270px");
+    expect(input?.sample(game).pressed).toEqual([]);
+    touch(window, "pointercancel", 1, 256, 250);
+    expect(input?.sample(game).axes).toEqual({ moveX: 0, moveZ: 0 });
+    await userEvent.setup().click(screen.getByRole("button", { name: "Pause" }));
+    expect(window.document.querySelector("[data-game-touch-controls]")).toBeNull();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Play" }));
+    touch(look, "pointermove", 2, 630, 270);
+    expect(input?.sample(game)).toEqual({ pressed: [], justPressed: [], axes: { moveX: 0, moveZ: 0 }, look: { x: 0, y: 0 } });
+  } finally { view.unmount(); window.matchMedia = matchMedia; global.ResizeObserver = originalObserver; }
+  expect(window.document.querySelector("[data-game-touch-controls]")).toBeNull();
+  expect(observers.every((observer) => observer.disconnected)).toBe(true);
+});
+
+
+it("marks paused and resumed profiler frame intervals from actual 3D playback state", async () => {
+  const animation = jest.spyOn(window, "requestAnimationFrame").mockImplementation(() => 1);
+  const document = fixture();
+  const hook = renderHook(({ active }) => useGamePlaySession3D({ refId: "profile-pause", active, document }), { initialProps: { active: true } });
+  let detach: (() => void) | undefined;
+  try {
+    await act(async () => { hook.result.current.beginPlay(); });
+    expect(hook.result.current.playing).toBe(true);
+    const profiler = hook.result.current.profiler;
+    if (!profiler) { throw new Error("Missing game profiler"); }
+    detach = profiler.attach();
+    profiler.clearLive();
+    profiler.recordRender({ drawCalls: 1, textureBytes: 0 }, 1000);
+    profiler.recordRender({ drawCalls: 2, textureBytes: 0 }, 2501);
+    await act(async () => { hook.rerender({ active: false }); });
+    profiler.recordRender({ drawCalls: 7, textureBytes: 0 }, 3000);
+    profiler.recordRender({ drawCalls: 8, textureBytes: 0 }, 3500);
+    await act(async () => { hook.rerender({ active: true }); });
+    profiler.recordRender({ drawCalls: 9, textureBytes: 0 }, 4000);
+    profiler.recordRender({ drawCalls: 10, textureBytes: 0 }, 4016);
+    await act(async () => { hook.result.current.beginPlay(); });
+    expect(hook.result.current.playing).toBe(false);
+    profiler.recordRender({ drawCalls: 3, textureBytes: 0 }, 5000);
+    profiler.recordRender({ drawCalls: 4, textureBytes: 0 }, 9000);
+    await act(async () => { hook.result.current.beginPlay(); });
+    profiler.recordRender({ drawCalls: 5, textureBytes: 0 }, 12000);
+    profiler.recordRender({ drawCalls: 6, textureBytes: 0 }, 12016);
+    expect(Array.from(profiler.live().frames.frameMs)).toEqual([Number.NaN, 1501, Number.NaN, Number.NaN, Number.NaN, 16, Number.NaN, Number.NaN, Number.NaN, 16]);
+  } finally { detach?.(); hook.unmount(); animation.mockRestore(); }
 });

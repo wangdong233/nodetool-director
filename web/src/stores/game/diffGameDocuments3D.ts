@@ -17,9 +17,13 @@ function hasRemovedProperty(from: unknown, to: unknown): boolean {
 }
 
 export function diffGameDocuments3D(from: GameDocument3D, to: GameDocument3D): GameDocumentOp3D[] {
+  if (!changed(from, to)) { return []; }
   const ops: GameDocumentOp3D[] = [];
   for (const [slot, binding] of Object.entries(to.assets)) {
     if (changed(from.assets[slot], binding)) { ops.push({ op: "bind_asset", slot, binding }); }
+  }
+  for (const [materialId, material] of Object.entries(to.materials ?? {})) {
+    if (changed(from.materials?.[materialId], material)) { ops.push({ op: "set_material", material_id: materialId, material }); }
   }
   for (const [prefabId, prefab] of Object.entries(to.prefabs)) {
     if (changed(from.prefabs[prefabId], prefab)) { ops.push({ op: "set_prefab", prefab_id: prefabId, prefab }); }
@@ -29,13 +33,14 @@ export function diffGameDocuments3D(from: GameDocument3D, to: GameDocument3D): G
   }
   if (changed(from.presentation, to.presentation) || changed(from.inputActions, to.inputActions)
     || changed(from.inputAxes, to.inputAxes) || changed(from.entrySceneId, to.entrySceneId)
-    || changed(from.collisionLayers, to.collisionLayers) || changed(from.collisionMatrix, to.collisionMatrix) || changed(from.inputBindings, to.inputBindings)) {
+    || changed(from.collisionLayers, to.collisionLayers) || changed(from.collisionMatrix, to.collisionMatrix) || changed(from.physicsMaterials, to.physicsMaterials) || changed(from.inputBindings, to.inputBindings)) {
     ops.push({ op: "set_game", presentation: to.presentation, input_actions: to.inputActions,
       input_axes: to.inputAxes, input_bindings: to.inputBindings ?? null, entry_scene_id: to.entrySceneId, collision_layers: to.collisionLayers ?? null,
-      collision_matrix: to.collisionMatrix ?? null });
+      collision_matrix: to.collisionMatrix ?? null, physics_materials: to.physicsMaterials ?? null });
   }
   if (changed(from.audio?.mixer, to.audio?.mixer)) { ops.push({ op: "set_audio", mixer: to.audio?.mixer ?? null }); }
   if (changed(from.performance, to.performance)) { ops.push({ op: "set_performance", performance: to.performance ?? null }); }
+  if (changed(from.ui, to.ui)) { ops.push({ op: "set_ui", ui: to.ui ?? null }); }
   // There is no scene move operation. Reinsert reordered scenes at their requested indices.
   const retainedSceneIds = from.scenes.filter((scene) => to.scenes.some((entry) => entry.id === scene.id)).map((scene) => scene.id);
   const desiredRetainedSceneIds = to.scenes.filter((scene) => from.scenes.some((entry) => entry.id === scene.id)).map((scene) => scene.id);
@@ -52,9 +57,10 @@ export function diffGameDocuments3D(from: GameDocument3D, to: GameDocument3D): G
       ops.push({ op: "add_scene", scene_id: scene.id, scene, index: to.scenes.indexOf(scene) });
       continue;
     }
-    const { id: _sceneId, entities: _entities, ...settings } = scene;
-    const { id: _previousSceneId, entities: _previousEntities, ...previousSettings } = previous;
+    const { id: _sceneId, entities: _entities, ui: sceneUi, ...settings } = scene;
+    const { id: _previousSceneId, entities: _previousEntities, ui: previousUi, ...previousSettings } = previous;
     if (changed(previousSettings, settings)) { ops.push({ op: "update_scene", scene_id: scene.id, set: { ...settings, music: scene.music ?? null } }); }
+    if (changed(previousUi, sceneUi)) { ops.push({ op: "set_ui", scene_id: scene.id, ui: sceneUi ?? null }); }
     const entities = new Map(previous.entities.map((entity) => [entity.id, entity]));
     for (const entity of scene.entities) {
       const before = entities.get(entity.id);
@@ -113,9 +119,18 @@ export function diffGameDocuments3D(from: GameDocument3D, to: GameDocument3D): G
   for (const graphId of Object.keys(from.animationGraphs ?? {})) {
     if (!(graphId in (to.animationGraphs ?? {}))) { ops.push({ op: "remove_animation_graph", graph_id: graphId }); }
   }
+  for (const materialId of Object.keys(from.materials ?? {})) {
+    if (!Object.hasOwn(to.materials ?? {}, materialId)) { ops.push({ op: "remove_material", material_id: materialId }); }
+  }
+  if (to.materials && Object.keys(to.materials).length === 0 && changed(from.materials, to.materials)) {
+    ops.push({ op: "set_game", materials: {} });
+  } else if (to.materials === undefined && from.materials && Object.keys(from.materials).length === 0) {
+    ops.push({ op: "set_game", materials: null });
+  }
   for (const slot of Object.keys(from.assets)) {
     if (!(slot in to.assets)) { ops.push({ op: "unbind_asset", slot }); }
   }
+  if (ops.length > 0 && ops.every((op) => op.op === "set_animation_graph" || op.op === "remove_animation_graph")) { return ops; }
   const applied = applyGameOps3D(from, ops);
   return [...ops, ...diffGameOwnership(from, to, applied).map((op) => gameDocumentOp3D.parse(op))];
 }

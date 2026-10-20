@@ -108,7 +108,8 @@ const prettyResult = (text: string): string => {
   }
 };
 
-type ToolEntry = Extract<ActivityEntry, { kind: "tool" }>;
+type ToolEntry = Extract<ActivityEntry, {
+  descriptionKey?: string; kind: "tool" }>;
 
 /**
  * One tool call, phrased and laid out like the chat's tool-call timeline: a
@@ -221,7 +222,7 @@ const ToolRow: React.FC<{ entry: ToolEntry; connected: boolean; runId?: string; 
               className="chevron"
               aria-hidden
               sx={{
-                fontSize: "1em",
+                fontSize: "inherit",
                 color: "text.disabled",
                 flexShrink: 0,
                 opacity: open ? 1 : 0,

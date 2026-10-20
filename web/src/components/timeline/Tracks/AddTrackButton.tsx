@@ -3,27 +3,28 @@
  * AddTrackButton
  *
  * Compact "+ Track" affordance in the timeline toolbar. Opens a popover with
- * the track types (video / audio / overlay / subtitle / MIDI); selecting one
- * calls `TimelineStore.addTrack(type)`, which appends a new track with an
- * auto-generated name.
+ * the track types (video / audio / overlay / subtitle / MIDI / chord);
+ * selecting one calls `TimelineStore.addTrack(type)`, which appends a new
+ * track with an auto-generated name.
  */
 
 import React, { memo, useCallback, useState } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
 import AudiotrackOutlinedIcon from "@mui/icons-material/AudiotrackOutlined";
 import LayersOutlinedIcon from "@mui/icons-material/LayersOutlined";
 import SubtitlesOutlinedIcon from "@mui/icons-material/SubtitlesOutlined";
 import PianoOutlinedIcon from "@mui/icons-material/PianoOutlined";
+import QueueMusicOutlinedIcon from "@mui/icons-material/QueueMusicOutlined";
 import CreateNewFolderOutlinedIcon from "@mui/icons-material/CreateNewFolderOutlined";
 
 import type { TimelineTrack } from "@nodetool-ai/timeline";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import {
-  Popover,
+  ContextMenu,
   MenuItemPrimitive,
   MOTION,
   BORDER_RADIUS,
@@ -31,9 +32,10 @@ import {
   FONT_SIZE_SANS,
   FONT_WEIGHT,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  Tooltip
 } from "../../ui_primitives";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const buttonStyles = (theme: Theme, compact: boolean) =>
   css({
@@ -78,32 +80,33 @@ interface TrackTypeOption {
 const TRACK_TYPES: TrackTypeOption[] = [
   {
     type: "video",
-    label: "Video",
-    labelKey: "editor:ui.video",
+    label: "Video", labelKey: "editor:ui.video",
     icon: <VideocamOutlinedIcon fontSize="small" />
   },
   {
     type: "audio",
-    label: "Audio",
-    labelKey: "timeline:attrs.audio",
+    label: "Audio", labelKey: "timeline:attrs.audio",
     icon: <AudiotrackOutlinedIcon fontSize="small" />
   },
   {
     type: "overlay",
-    label: "Overlay",
-    labelKey: "sketch:attrs.overlay",
+    label: "Overlay", labelKey: "sketch:attrs.overlay",
     icon: <LayersOutlinedIcon fontSize="small" />
   },
   {
     type: "subtitle",
-    label: "Subtitle",
-    labelKey: "timeline:attrs.subtitle",
+    label: "Subtitle", labelKey: "timeline:attrs.subtitle",
     icon: <SubtitlesOutlinedIcon fontSize="small" />
   },
   {
     type: "midi",
     label: "MIDI",
     icon: <PianoOutlinedIcon fontSize="small" />
+  },
+  {
+    type: "chord",
+    label: "Chord track",
+    icon: <QueueMusicOutlinedIcon fontSize="small" />
   }
 ];
 
@@ -113,7 +116,6 @@ interface AddTrackButtonProps {
 }
 
 export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = false }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const addTrack = useTimelineStore((s) => s.addTrack);
   const addTrackFolder = useTimelineStore((s) => s.addTrackFolder);
@@ -137,45 +139,44 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
 
   return (
     <>
-      <button
-        type="button"
-        css={buttonStyles(theme, compact)}
-        onClick={handleOpen}
-        aria-label={t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
-        title={t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
-        aria-haspopup="menu"
-        data-testid="add-track-button"
-      >
-        <AddIcon />
-        {!compact && <span>{t("timeline:attrs.track", { defaultValue: "Track" })}</span>}
-      </button>
-      <Popover
+      <Tooltip title={i18n.t("timeline:attrs.addTrack", { defaultValue: "Add track" })} describeChild>
+        <button
+          type="button"
+          css={buttonStyles(theme, compact)}
+          onClick={handleOpen}
+          aria-label={i18n.t("timeline:attrs.addTrack", { defaultValue: "Add track" })}
+          aria-haspopup="menu"
+          data-testid="add-track-button"
+        >
+          <AddIcon />
+          {!compact && <span>Track</span>}
+        </button>
+      </Tooltip>
+      <ContextMenu
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}
         onClose={handleClose}
-        placement="bottom-left"
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
       >
         {TRACK_TYPES.map((opt) => (
           <MenuItemPrimitive
             key={opt.type}
-            label={
-              opt.labelKey
-                ? t(opt.labelKey, { defaultValue: opt.label })
-                : opt.label
-            }
+            label={opt.label}
             icon={opt.icon}
             onClick={() => handleSelect(opt.type)}
           />
         ))}
         <MenuItemPrimitive
-          label={t("timeline:attrs.newTrackFolder", { defaultValue: "New track folder" })}
+          dividerBefore
+          label={i18n.t("timeline:attrs.newTrackFolder", { defaultValue: "New track folder" })}
           icon={<CreateNewFolderOutlinedIcon fontSize="small" />}
           onClick={() => {
             addTrackFolder();
             setAnchorEl(null);
           }}
         />
-      </Popover>
+      </ContextMenu>
     </>
   );
 });

@@ -19,6 +19,7 @@ export type OnboardingCapability =
   | "image_to_3d";
 
 interface OpenOptions {
+  reasonKey?: string;
   /** Feature the user was blocked on — filters and orders the provider list. */
   capability?: OnboardingCapability;
   /** Friendly one-liner explaining why the dialog appeared. */

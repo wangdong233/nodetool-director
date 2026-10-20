@@ -41,6 +41,8 @@ import { useWidgetRuntime } from "./useWidgetRuntime";
 import { MarkdownBlock, renderOutputItem, resolveImageSrc } from "./widgets";
 import { isString } from "../../../utils/typePredicates";
 import { tAttr } from "../i18nAttrs";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -128,6 +130,7 @@ export const ChatThreadWidget: React.FC<ChatThreadWidgetProps> = ({
   maxHeight,
   placeholder
 }) => {
+  const { t } = useTranslation("appbuilder");
   const { write, designMode } = useAppRuntimeContext();
   const historyRef = useBindingRef(binding, "read");
   const historyValue = useBindingValue(historyRef);
@@ -212,8 +215,7 @@ export const ChatThreadWidget: React.FC<ChatThreadWidgetProps> = ({
             {placeholder ??
               tAttr(
                 designMode
-                  ? "Messages appear here once the app runs."
-                  : "No messages yet"
+                  ? t("appbuilder:attrs.messagesAppearHereOnceTheAppRuns", { defaultValue: "Messages appear here once the app runs." }) : i18n.t("appbuilder:attrs.noMessagesYet", { defaultValue: "No messages yet" })
               )}
           </Caption>
         ) : (
@@ -388,7 +390,7 @@ export const ChatComposerWidget: React.FC<ChatComposerWidgetProps> = ({
           size="small"
           fullWidth
           disabled={disabled}
-          inputProps={{ "aria-label": label || tAttr("Message") }}
+          inputProps={{ "aria-label": label || tAttr(i18n.t("editor:ui.logColMessage", { defaultValue: "Message" })) }}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setDraft(e.target.value)
           }

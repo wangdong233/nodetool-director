@@ -15,15 +15,17 @@ import {
   SPACING,
   getSpacingPx,
   ListItem,
-  ListItemButton
+  ListItemButton,
+  Tooltip,
+  EmptyState,
+  SearchInput
 } from "../ui_primitives";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import ClearIcon from "@mui/icons-material/Clear";
 import { CloseButton, SHADOW } from "../ui_primitives";
 import { useFindInWorkflow } from "../../hooks/useFindInWorkflow";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -54,49 +56,9 @@ const styles = (theme: Theme) =>
       borderBottom: `1px solid ${theme.vars.palette.divider}`,
       backgroundColor: theme.vars.palette.action.hover
     },
-    "& .search-icon-wrapper": {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: theme.vars.palette.text.secondary,
-      marginRight: getSpacingPx(SPACING.lg)
-    },
-    "& .search-input-wrapper": {
+    "& .find-search": {
       flex: 1,
       position: "relative"
-    },
-    "& .search-input": {
-      width: "100%",
-      padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.lg)}`,
-      fontSize: "var(--fontSizeNormal)",
-      border: `1px solid ${theme.vars.palette.divider}`,
-      borderRadius: BORDER_RADIUS.lg,
-      backgroundColor: theme.vars.palette.background.default,
-      color: theme.vars.palette.text.primary,
-      outline: "none",
-      "&:focus": {
-        borderColor: theme.vars.palette.primary.main
-      },
-      "&::placeholder": {
-        color: theme.vars.palette.text.disabled
-      }
-    },
-    "& .clear-button": {
-      position: "absolute",
-      right: "8px",
-      top: "50%",
-      transform: "translateY(-50%)",
-      background: "none",
-      border: "none",
-      cursor: "pointer",
-      color: theme.vars.palette.text.disabled,
-      padding: getSpacingPx(SPACING.xs),
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      "&:hover": {
-        color: theme.vars.palette.text.primary
-      }
     },
     "& .results-count": {
       padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xl)}`,
@@ -187,23 +149,6 @@ const styles = (theme: Theme) =>
         opacity: 0.5,
         cursor: "not-allowed"
       }
-    },
-    "& .empty-state": {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: `${getSpacingPx(SPACING.xxxl)} ${getSpacingPx(SPACING.xl)}`,
-      color: theme.vars.palette.text.secondary,
-      textAlign: "center"
-    },
-    "& .empty-icon": {
-      fontSize: "var(--fontSizeBig)",
-      marginBottom: getSpacingPx(SPACING.md),
-      opacity: 0.5
-    },
-    "& .empty-text": {
-      fontSize: "var(--fontSizeSmall)"
     }
   });
 
@@ -213,7 +158,6 @@ interface FindInWorkflowDialogProps {
 
 const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
   ({ workflowId: _workflowId }: FindInWorkflowDialogProps) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const cssStyles = useMemo(() => styles(theme), [theme]);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -290,13 +234,6 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
     useGlobalCombo("control+f", () => undefined, inInputs);
     useGlobalCombo("f+meta", () => undefined, inInputs);
 
-    const handleInputChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        performSearch(event.target.value);
-      },
-      [performSearch]
-    );
-
     const handleResultClick = useCallback(
       (event: React.MouseEvent<HTMLElement>) => {
         const index = Number(event.currentTarget.dataset.index);
@@ -305,11 +242,6 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
       },
       [activateResult, closeFind]
     );
-
-    const handleClear = useCallback(() => {
-      clearSearch();
-      inputRef.current?.focus();
-    }, [clearSearch]);
 
     if (!isOpen) {
       return null;
@@ -330,55 +262,55 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
         css={cssStyles}
       >
         <Box className="find-header">
-          <Box className="search-icon-wrapper">
-            <SearchIcon fontSize="small" />
-          </Box>
-          <Box className="search-input-wrapper">
-            <input
+          <Box className="find-search">
+            <SearchInput
               ref={inputRef}
-              aria-label={t("editor:ui.findNodes", { defaultValue: "Find nodes" })}
-              className="search-input"
-              type="text"
-              placeholder={t("editor:ui.findNodes")}
+              ariaLabel={i18n.t("editor:ui.findNodes", { defaultValue: "Find nodes" })}
+              placeholder={i18n.t("editor:ui.findNodes", { defaultValue: "Find nodes" })}
               value={searchTerm}
-              onChange={handleInputChange}
+              onChange={performSearch}
+              onClear={clearSearch}
+              escapeClears={false}
+              fullWidth
             />
-            {searchTerm && (
-              <button
-                type="button"
-                className="clear-button"
-                aria-label={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
-                onClick={handleClear}
-              >
-                <ClearIcon fontSize="small" />
-              </button>
-            )}
           </Box>
           <Box className="navigation-buttons">
-            <button
-              type="button"
-              className="nav-button"
-              onClick={navigatePrevious}
+            <Tooltip
+              title={i18n.t("editor:ui.previousMatch", { defaultValue: "Previous match" })}
+              shortcut={["Shift", "Enter"]}
+              describeChild
               disabled={results.length === 0}
-              title={t("editor:ui.previousShift+Enter", { defaultValue: "Previous (Shift+Enter)" })}
-              aria-label={t("editor:ui.previousMatch", { defaultValue: "Previous match" })}
             >
-              <ArrowUpwardIcon fontSize="small" />
-            </button>
-            <button
-              type="button"
-              className="nav-button"
-              onClick={navigateNext}
+              <button
+                type="button"
+                className="nav-button"
+                onClick={navigatePrevious}
+                disabled={results.length === 0}
+                aria-label="Previous match"
+              >
+                <ArrowUpwardIcon fontSize="small" />
+              </button>
+            </Tooltip>
+            <Tooltip
+              title={i18n.t("editor:ui.nextMatch", { defaultValue: "Next match" })}
+              shortcut={["Enter"]}
+              describeChild
               disabled={results.length === 0}
-              title={t("editor:ui.nextEnter", { defaultValue: "Next (Enter)" })}
-              aria-label={t("editor:ui.nextMatch", { defaultValue: "Next match" })}
             >
-              <ArrowDownwardIcon fontSize="small" />
-            </button>
+              <button
+                type="button"
+                className="nav-button"
+                onClick={navigateNext}
+                disabled={results.length === 0}
+                aria-label="Next match"
+              >
+                <ArrowDownwardIcon fontSize="small" />
+              </button>
+            </Tooltip>
           </Box>
           <CloseButton
             onClick={closeFind}
-            tooltip={t("editor:ui.closeEscape", { defaultValue: "Close (Escape)" })}
+            shortcut={["Esc"]}
             buttonSize="small"
             nodrag={false}
             sx={{ marginLeft: getSpacingPx(SPACING.md) }}
@@ -392,9 +324,9 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
               {results.length !== 1 ? "s" : ""} found
             </>
           ) : searchTerm ? (
-            <>{t("ui2:attrs.noNodesFound", { defaultValue: "No nodes found" })}</>
+            <>{i18n.t("ui2:attrs.noNodesFound", { defaultValue: "No nodes found" })}</>
           ) : (
-            <>{t("ui2:attrs.typeToSearchNodes", { defaultValue: "Type to search nodes" })}</>
+            <>{i18n.t("ui2:attrs.typeToSearchNodes", { defaultValue: "Type to search nodes" })}</>
           )}
         </Box>
 
@@ -433,10 +365,12 @@ const FindInWorkflowDialog: React.FC<FindInWorkflowDialogProps> = memo(
             ))}
           </ListGroup>
         ) : searchTerm ? (
-          <Box className="empty-state">
-            <SearchIcon className="empty-icon" />
-            <Text className="empty-text">{t("ui2:attrs.noMatchingNodes", { defaultValue: "No matching nodes" })}</Text>
-          </Box>
+          <EmptyState
+            size="small"
+            variant="no-results"
+            icon={<SearchIcon />}
+            title={i18n.t("ui2:attrs.noMatchingNodes", { defaultValue: "No matching nodes" })}
+          />
         ) : null}
       </Box>
     );

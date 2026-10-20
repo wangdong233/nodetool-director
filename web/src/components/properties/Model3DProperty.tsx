@@ -12,12 +12,16 @@ import { useIsConnectedSelector } from "../../hooks/nodes/useIsConnected";
 import ConnectedBadge from "./ConnectedBadge";
 import { useFileDrop } from "../../hooks/handlers/useFileDrop";
 import { Asset } from "../../stores/ApiTypes";
-import { Tooltip, EditorButton, NodeTextField, MOTION, BORDER_RADIUS, SPACING, Z_INDEX, getSpacingPx } from "../ui_primitives";
+import { Tooltip, DropZone, EditorButton, NodeTextField, MOTION, BORDER_RADIUS, SPACING, TYPOGRAPHY, Z_INDEX, getSpacingPx } from "../ui_primitives";
 import AssetViewer from "../assets/AssetViewer";
 import LazyModel3DViewer from "../asset_viewer/LazyModel3DViewer";
 import { resolveAssetUri } from "../node/output/hooks";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
+import { deserializeDragData } from "../../lib/dragdrop";
+import { useAddExampleModelAsset } from "../../hooks/useAddExampleModelAsset";
+import { notifyMutationError } from "../../utils/notifyMutationError";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -48,8 +52,7 @@ const styles = (theme: Theme) =>
       zIndex: Z_INDEX.raised,
       color: theme.vars.palette.grey[500],
       backgroundColor: "transparent",
-      fontSize: "var(--fontSizeSmaller)",
-      fontWeight: 600,
+      ...TYPOGRAPHY.sans.caption,
       lineHeight: "1",
       height: "auto",
       minWidth: "unset",
@@ -83,33 +86,17 @@ const styles = (theme: Theme) =>
     ".url-input fieldset": {
       border: "0"
     },
+    // DropZone draws the idle outline and the drag-over look.
     ".dropzone": {
       minHeight: 0,
       width: "100%",
       height: "100%",
       flex: 1,
-      border: "0",
       maxWidth: "none",
       textAlign: "center",
-      transition: MOTION.all,
-      backgroundColor: theme.vars.palette.grey[800],
-      borderRadius: 0,
       cursor: "pointer",
       display: "flex",
-      flexDirection: "column",
-      "&.drag-over": {
-        backgroundColor: theme.vars.palette.grey[600],
-        outline: `2px dashed ${theme.vars.palette.grey[100]}`,
-        outlineOffset: "-2px"
-      }
-    },
-    ".dropzone.dropped": {
-      width: "100%",
-      border: "0",
-      maxWidth: "none",
-      minHeight: 0,
-      height: "100%",
-      flex: 1
+      flexDirection: "column"
     },
     ".dropzone p": {
       textAlign: "center",
@@ -119,7 +106,7 @@ const styles = (theme: Theme) =>
     ".prop-drop": {
       fontSize: theme.fontSizeSmaller,
       lineHeight: "1.1em",
-      color: theme.vars.palette.grey[400]
+      color: theme.vars.palette.text.secondary
     },
     ".model-preview": {
       width: "100%",
@@ -148,7 +135,6 @@ const Model3DProperty = (props: PropertyProps) => {
 
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [openViewer, setOpenViewer] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
 
   const handleToggleUrlInput = useCallback(() => {
     setShowUrlInput((prev) => !prev);
@@ -161,24 +147,24 @@ const Model3DProperty = (props: PropertyProps) => {
     type: "all" // Accept all file types for 3D models (GLB, GLTF, OBJ, etc.)
   });
 
-  const handleDragOver = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      onDragOver(e);
-      setIsDragOver(true);
-    },
-    [onDragOver]
-  );
-
-  const handleDragLeave = useCallback(() => {
-    setIsDragOver(false);
-  }, []);
-
+  const addExampleModelAsset = useAddExampleModelAsset();
+  const { onChange } = props;
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
-      onDrop(e);
-      setIsDragOver(false);
+      const dragData = deserializeDragData(e.dataTransfer);
+      if (dragData?.type !== "example-model") {
+        onDrop(e);
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      addExampleModelAsset(dragData.payload)
+        .then((asset) => onChange(mediaRefFromAsset(asset, "model_3d")))
+        .catch((error: unknown) =>
+          notifyMutationError("add the example model", error)
+        );
     },
-    [onDrop]
+    [onDrop, onChange, addExampleModelAsset]
   );
 
   const handleUrlChange = useCallback(
@@ -233,7 +219,7 @@ const Model3DProperty = (props: PropertyProps) => {
           )}
 
           <Tooltip
-            title={showUrlInput ? t("editor:ui.hideUrlInput", { defaultValue: "Hide URL input" }) : t("editor:ui.showInputToEnterAUrl", { defaultValue: "Show input to enter a URL" })}
+            title={showUrlInput ? t("editor:ui.hideUrlInput", { defaultValue: "Hide URL input" }) : i18n.t("editor:ui.showInputToEnterAUrl", { defaultValue: "Show input to enter a URL" })}
           >
             <EditorButton
               className="toggle-url-button"
@@ -247,12 +233,9 @@ const Model3DProperty = (props: PropertyProps) => {
             </EditorButton>
           </Tooltip>
 
-          <div
-            className={`dropzone ${uri ? "dropped" : ""} ${
-              isDragOver ? "drag-over" : ""
-            }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
+          <DropZone
+            className={`dropzone ${uri ? "dropped" : ""}`}
+            onDragOver={onDragOver}
             onDrop={handleDrop}
             onDoubleClick={uri ? handlePreviewClick : undefined}
           >
@@ -267,7 +250,7 @@ const Model3DProperty = (props: PropertyProps) => {
             ) : (
               <p className="prop-drop">{t("ui2:attrs.drop3DModelGLBGLTF", { defaultValue: "Drop 3D model (GLB, GLTF)" })}</p>
             )}
-          </div>
+          </DropZone>
 
           <AssetViewer
             contentType="model/gltf-binary"

@@ -1,6 +1,4 @@
-import { i18n } from "../../i18n";
 /** @jsxImportSource @emotion/react */
-import { useTranslation } from "react-i18next";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 import { appDeploymentPath } from "@nodetool-ai/protocol";
@@ -38,13 +36,15 @@ import {
   SPACING
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 type Version = RouterOutputs["applications"]["versions"][number];
 type BudgetPeriod = RouterOutputs["applications"]["setBudget"]["period"];
 
 const PERIOD_OPTIONS = [
-  { value: "day", label: "Per day" },
-  { value: "month", label: "Per month" },
+  { value: "day", label: i18n.t("editor:ui.perDay", { defaultValue: "Per day" }) },
+  { value: "month", label: i18n.t("editor:ui.perMonth", { defaultValue: "Per month" }) },
   { value: "total", label: "Lifetime" }
 ] as const;
 
@@ -172,12 +172,12 @@ const BudgetSection = memo(function BudgetSection({
     });
   }, [applicationId, maxInvocations, maxUsd, period, setBudget]);
 
-  if (isLoading) return <LoadingSpinner text="Loading budget" />;
+  if (isLoading) return <LoadingSpinner text={i18n.t("editor:ui.loadingBudget", { defaultValue: "Loading budget" })} />;
 
   if (isError) {
     return (
       <AlertBanner severity="error">
-        {`Could not load the budget: ${error?.message ?? "try again later."}`}
+        {`Could not load the budget: ${error?.message ?? i18n.t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." })}`}
       </AlertBanner>
     );
   }
@@ -276,7 +276,7 @@ const DeploySection = memo(function DeploySection({
     ? `${window.location.origin}${appDeploymentPath(deployment.token)}`
     : null;
 
-  if (isLoading) return <LoadingSpinner text="Loading link" />;
+  if (isLoading) return <LoadingSpinner text={i18n.t("editor:ui.loadingLink", { defaultValue: "Loading link" })} />;
 
   return (
     <FlexColumn gap={SPACING.md} fullWidth>
@@ -289,7 +289,7 @@ const DeploySection = memo(function DeploySection({
       ) : isError ? (
         <FlexColumn gap={SPACING.xs}>
           <AlertBanner severity="error">
-            {`Could not load the public link: ${error?.message ?? "try again later."}`}
+            {`Could not load the public link: ${error?.message ?? i18n.t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." })}`}
           </AlertBanner>
           <ReportBugButton
             label={t("editor:ui.reportDeploymentIssue", { defaultValue: "Report deployment issue" })}
@@ -311,13 +311,13 @@ const DeploySection = memo(function DeploySection({
           {url && (
             <FlexRow align="center" gap={SPACING.md} fullWidth>
               <TextInput
-                label="Link"
+                label={t("editor:ui.link", { defaultValue: "Link" })}
                 size="small"
                 value={url}
                 slotProps={{ htmlInput: { readOnly: true } }}
                 fullWidth
               />
-              <CopyButton value={url} tooltip={t("editor:ui.copyTheLink", { defaultValue: "Copy the link" })} />
+              <CopyButton value={url} tooltip={t("editor:ui.copyLink", { defaultValue: "Copy link" })} />
             </FlexRow>
           )}
           {deployment?.blockedReason && (
@@ -401,12 +401,12 @@ const InvocationsSection = memo(function InvocationsSection({
   const { data, isLoading, isError, error } =
     useApplicationInvocations(applicationId);
 
-  if (isLoading) return <LoadingSpinner text="Loading invocations" />;
+  if (isLoading) return <LoadingSpinner text={i18n.t("editor:ui.loadingInvocations", { defaultValue: "Loading invocations" })} />;
 
   if (isError) {
     return (
       <AlertBanner severity="error">
-        {`Could not load invocations: ${error?.message ?? "try again later."}`}
+        {`Could not load invocations: ${error?.message ?? i18n.t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." })}`}
       </AlertBanner>
     );
   }
@@ -419,7 +419,7 @@ const InvocationsSection = memo(function InvocationsSection({
       {invocations.length === 0 ? (
         <EmptyState
           title={t("editor:ui.noInvocationsYet", { defaultValue: "No invocations yet" })}
-          description={t("editor:ui.runsOfTheReleasedAppShowUpHereWithTheirCost")}
+          description={t("editor:ui.runsOfTheReleasedAppShowUpHereWithTheirCost", { defaultValue: "Runs of the released app show up here with their cost." })}
         />
       ) : (
         <FlexColumn gap={SPACING.sm} fullWidth>
@@ -566,15 +566,15 @@ const ApplicationGovernancePanel = ({
       <FlexColumn gap={SPACING.md} fullWidth>
         <SectionHeader title={t("editor:ui.versions", { defaultValue: "Versions" })} />
         {isLoading ? (
-          <LoadingSpinner text="Loading versions" />
+          <LoadingSpinner text={i18n.t("editor:ui.loadingVersions", { defaultValue: "Loading versions" })} />
         ) : isError ? (
           <AlertBanner severity="error">
-            {`Could not load versions: ${error?.message ?? "try again later."}`}
+            {`Could not load versions: ${error?.message ?? i18n.t("editor:ui.tryAgainLaterLower", { defaultValue: "try again later." })}`}
           </AlertBanner>
         ) : sortedVersions.length === 0 ? (
           <EmptyState
             title={t("editor:ui.noVersionsYet", { defaultValue: "No versions yet" })}
-            description={t("editor:ui.publishTheAppToCutItsFirstVersion")}
+            description={t("editor:ui.publishTheAppToCutItsFirstVersion", { defaultValue: "Publish the app to cut its first version." })}
           />
         ) : (
           <FlexColumn gap={SPACING.md} fullWidth>

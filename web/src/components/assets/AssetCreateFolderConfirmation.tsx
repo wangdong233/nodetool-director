@@ -1,28 +1,18 @@
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useMemo
-} from "react";
-import { Text, FlexRow, AlertBanner, Surface, TextInput, BORDER_RADIUS, FONT_WEIGHT, SPACING, getSpacingPx } from "../ui_primitives";
-import { EditorButton } from "../editor_ui";
-import { getMousePosition } from "../../utils/MousePosition";
+  AlertBanner,
+  Dialog,
+  FlexColumn,
+  SPACING,
+  TextInput
+} from "../ui_primitives";
 import { useAssetStore } from "../../stores/AssetStore";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import useAssets from "../../serverState/useAssets";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { Asset } from "../../stores/ApiTypes";
-import { useTheme } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
-
-const VIEWPORT_MARGIN = 16;
-
-const clampToViewport = (desired: number, size: number, viewport: number) => {
-  const max = Math.max(VIEWPORT_MARGIN, viewport - size - VIEWPORT_MARGIN);
-  return Math.min(Math.max(desired, VIEWPORT_MARGIN), max);
-};
+import { i18n } from "../../i18n";
 
 const AssetCreateFolderConfirmation: React.FC = () => {
   const { t } = useTranslation();
@@ -38,23 +28,17 @@ const AssetCreateFolderConfirmation: React.FC = () => {
   const setSelectedAssets = useAssetGridStore(
     (state) => state.setSelectedAssets
   );
-
-  const [position, setPosition] = useState<{
-    left: number;
-    top: number;
-  } | null>(null);
-  const [folderName, setFolderName] = useState(() =>
-    t("editor:asset.newFolderDefaultName", { defaultValue: "New Folder" })
+  const setFoldersVisible = useAssetGridStore(
+    (state) => state.setFoldersVisible
   );
+
+  const [folderName, setFolderName] = useState("New Folder");
   const [showAlert, setShowAlert] = useState<string | null>(null);
   const handleClose = useCallback(() => {
     setDialogOpen(false);
   }, [setDialogOpen]);
   const dismissAlert = useCallback(() => setShowAlert(null), []);
   const inputRef = useRef<HTMLInputElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const anchorRef = useRef<{ x: number; y: number } | null>(null);
-  const theme = useTheme();
   const createFolder = useAssetStore((state) => state.createFolder);
   const updateAsset = useAssetStore((state) => state.update);
   const { refetchAssetsAndFolders, folderFilesFiltered, projectId } =
@@ -85,16 +69,18 @@ const AssetCreateFolderConfirmation: React.FC = () => {
 
   useEffect(() => {
     if (dialogOpen) {
-      setFolderName(t("editor:asset.newFolderDefaultName", { defaultValue: "New Folder" }));
+      setFolderName("New Folder");
       setShowAlert(null);
       const timer = setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.focus();
+          // Typing replaces the default name instead of appending to it.
+          inputRef.current.select();
         }
       }, 10);
       return () => clearTimeout(timer);
     }
-  }, [dialogOpen, t]);
+  }, [dialogOpen]);
 
   const handleCreateFolder = useCallback(async () => {
     const invalidCharsRegex = /[/*?"<>|#%{}^[\]`'=&$§!°äüö;+~|$!]+/g;
@@ -130,7 +116,7 @@ const AssetCreateFolderConfirmation: React.FC = () => {
       const uniqueInvalidChars = invalidCharsFound.filter(
         (char, index, array) => array.indexOf(char) === index
       );
-      setShowAlert(t("editor:asset.invalidCharacters", { defaultValue: "Invalid characters: {{chars}}", chars: uniqueInvalidChars.join(", ") }));
+      setShowAlert(`Invalid characters: ${uniqueInvalidChars.join(", ")}`);
       return;
     }
 
@@ -151,11 +137,9 @@ const AssetCreateFolderConfirmation: React.FC = () => {
 
         addNotification({
           type: "success",
-          content: t("editor:asset.createdFolderAndMoved", {
-            defaultValue: 'Created folder "{{name}}" and moved {{count}} items',
-            name: cleanedName,
-            count: selectedAssetIds.length
-          })
+          content: `Created folder "${cleanedName}" and moved ${
+            selectedAssetIds.length
+          } item${selectedAssetIds.length === 1 ? "" : "s"}`
         });
 
         setSelectedAssetIds([]);
@@ -163,13 +147,13 @@ const AssetCreateFolderConfirmation: React.FC = () => {
       } else {
         addNotification({
           type: "success",
-          content: t("editor:asset.createdFolder", {
-            defaultValue: 'Created folder "{{name}}"',
-            name: cleanedName
-          })
+          content: `Created folder "${cleanedName}"`
         });
       }
 
+      // The sidebar hides its folder tree by default. Show it, so the folder
+      // just made is on screen rather than behind a toggle.
+      setFoldersVisible(true);
       setDialogOpen(false);
       refetchAssetsAndFolders();
     } catch (error) {
@@ -188,175 +172,61 @@ const AssetCreateFolderConfirmation: React.FC = () => {
     refetchAssetsAndFolders,
     setSelectedAssetIds,
     setSelectedAssets,
-    projectId,
-    t
+    setFoldersVisible,
+    projectId
   ]);
 
-  // Place from the measured size, not an assumed one: a fixed upward offset put
-  // the name field above the viewport whenever the New Folder button sat near
-  // the top of the window. Re-runs when an alert or the move notice changes the
-  // height, keeping the anchor the cursor had when the dialog opened.
-  useLayoutEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialogOpen || !dialog) {
-      anchorRef.current = null;
-      return;
-    }
-    const anchor = anchorRef.current ?? getMousePosition();
-    anchorRef.current = anchor;
-    const { width, height } = dialog.getBoundingClientRect();
-    setPosition({
-      left: clampToViewport(anchor.x - width, width, window.innerWidth),
-      top: clampToViewport(anchor.y - height, height, window.innerHeight)
-    });
-  }, [dialogOpen, showAlert, hasSelectedAssets]);
-
-  const handleBackdropClick = useCallback(
-    (event: React.MouseEvent) => {
-      if (event.target === event.currentTarget) {
-        setDialogOpen(false);
-      }
-    },
-    [setDialogOpen]
-  );
-
-  if (!dialogOpen) {
-    return null;
-  }
-
   return (
-    <div
-      className="asset-create-folder-backdrop"
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "transparent",
-        zIndex: theme.zIndex.modal
+    <Dialog
+      className="asset-create-folder-dialog"
+      open={dialogOpen}
+      onClose={handleClose}
+      maxWidth="xs"
+      fullWidth
+      title={hasSelectedAssets ? t("editor:asset.moveToNew", { defaultValue: "Move to new folder" }) : i18n.t("editor:explorer.createFolder", { defaultValue: "Create folder" })}
+      onConfirm={() => void handleCreateFolder()}
+      confirmText={hasSelectedAssets ? "Move" : "Create"}
+      actionButtonsProps={{
+        confirmButtonProps: {
+          className: "asset-create-folder-confirm-button button-confirm"
+        },
+        cancelButtonProps: {
+          className: "asset-create-folder-cancel-button button-cancel"
+        }
       }}
-      onClick={handleBackdropClick}
     >
-      <Surface
-        className="asset-create-folder-dialog"
-        ref={dialogRef}
-        elevation={3}
-        style={{
-          left: `${position?.left ?? 0}px`,
-          top: `${position?.top ?? 0}px`,
-          // Placement happens before the browser paints, so nothing is ever
-          // seen at the fallback origin.
-          visibility: position ? "visible" : "hidden"
-        }}
-        sx={{
-          position: "absolute",
-          width: 400,
-          maxWidth: "calc(100vw - 32px)",
-          maxHeight: `calc(100vh - ${VIEWPORT_MARGIN * 2}px)`,
-          backgroundColor: `rgba(${theme.vars.palette.background.defaultChannel} / 0.9)`,
-          backdropFilter: "blur(10px)",
-          borderRadius: BORDER_RADIUS.sm,
-          overflowX: "hidden",
-          overflowY: "auto"
-        }}
-      >
-        <Text
-          className="asset-create-folder-dialog-title"
-          size="small"
-          family="primary"
-          sx={{
-            color: theme.vars.palette.grey[100],
-            margin: `${getSpacingPx(SPACING.md)} 0 0`,
-            padding: getSpacingPx(SPACING.xl)
-          }}
-        >
-          {hasSelectedAssets
-            ? t("editor:asset.moveSelectedToNewFolder", { defaultValue: "Move selected to new folder" })
-            : t("editor:asset.createNewFolder", { defaultValue: "Create new folder" })}
-        </Text>
-
-        <div style={{ padding: `0 ${getSpacingPx(SPACING.md)}` }}>
-          {showAlert && (
-            <AlertBanner
-              className="asset-create-folder-error-alert"
-              severity="error"
-              onClose={dismissAlert}
-            >
-              {showAlert}
-            </AlertBanner>
-          )}
-          <TextInput
-            className="asset-create-folder-input"
-            inputRef={inputRef}
-            value={folderName}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleCreateFolder();
-              }
-            }}
-            onChange={(e) => setFolderName(e.target.value)}
-            fullWidth
-            autoCorrect="off"
-            spellCheck="false"
-            sx={{
-              padding: getSpacingPx(SPACING.xs),
-              "& input": {
-                fontFamily: theme.fontFamily1,
-                padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.sm)}`
-              }
-            }}
-          />
-        </div>
-
-        <FlexRow
-          justify="flex-end"
-          gap={SPACING.xs}
-          sx={{
-            padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xl)}`
-          }}
-        >
-          <EditorButton
-            className="asset-create-folder-cancel-button"
-            onClick={handleClose}
-            sx={{ color: theme.vars.palette.grey[100] }}
+      <FlexColumn gap={SPACING.md}>
+        {showAlert && (
+          <AlertBanner
+            className="asset-create-folder-error-alert"
+            severity="error"
+            onClose={dismissAlert}
           >
-            {t("common:action.cancel", { defaultValue: "Cancel" })}
-          </EditorButton>
-          <EditorButton
-            className="asset-create-folder-confirm-button"
-            onClick={handleCreateFolder}
-            sx={{
-              color: "var(--palette-primary-main)",
-              fontWeight: FONT_WEIGHT.semibold
-            }}
-          >
-            {hasSelectedAssets ? t("editor:asset.moveToNewFolder", { defaultValue: "Move to New Folder" }) : t("editor:asset.createFolderButton", { defaultValue: "Create Folder" })}
-          </EditorButton>
-        </FlexRow>
-
-        {hasSelectedAssets && (
-          <div className="asset-create-folder-notice-container">
-            <Text
-              className="asset-create-folder-notice"
-              size="small"
-              family="primary"
-              sx={{
-                backgroundColor: theme.vars.palette.c_attention,
-                color: theme.vars.palette.grey[1000],
-                padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xl)}`
-              }}
-            >
-              <span className="asset-create-folder-selected-count">
-                {t("editor:asset.assetsSelectedCount", { defaultValue: "{{count}} assets selected:", count: selectedAssets.length })}
-              </span>{" "}
-              <br />
-              {t("editor:ui.theyWillBeMovedToTheNewFolder")}
-            </Text>
-          </div>
+            {showAlert}
+          </AlertBanner>
         )}
-      </Surface>
-    </div>
+        <TextInput
+          className="asset-create-folder-input"
+          label="Name"
+          inputRef={inputRef}
+          value={folderName}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleCreateFolder();
+            }
+          }}
+          onChange={(e) => setFolderName(e.target.value)}
+          fullWidth
+          autoCorrect="off"
+          spellCheck="false"
+          helperText={
+            hasSelectedAssets
+              ? `${selectedAssets.length} assets selected: they will be moved to the new folder.`
+              : undefined
+          }
+        />
+      </FlexColumn>
+    </Dialog>
   );
 };
 

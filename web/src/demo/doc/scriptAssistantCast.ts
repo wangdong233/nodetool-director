@@ -21,6 +21,7 @@ import {
 import type { ScriptTake } from "../../stores/script/ScriptStore";
 import { patch, scriptLine, scriptSection } from "./docCastHelpers";
 import { DOC_CAST_VERSION, type ScriptDocCast } from "./docCastTypes";
+import { i18n } from "../../i18n";
 
 const ASSISTANT_ID = "script-assistant-1";
 const SPEAKER_CALL = "script-call-add-speaker";
@@ -94,7 +95,7 @@ export const scriptAssistantCast: ScriptDocCast = {
   durationMs: 19000,
   fps: 30,
   docId: "demo-script-1",
-  assistantTitle: "Script Assistant",
+  assistantTitle: i18n.t("editor:ui.scriptAssistant", { defaultValue: "Script Assistant" }),
   assistantModel: {
     type: "language_model",
     id: "claude-sonnet-5",

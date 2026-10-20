@@ -1,14 +1,72 @@
 # @nodetool-ai/cli
 
-Command-line tools for [NodeTool](https://nodetool.ai) — interactive AI chat and workflow management from the terminal.
+The [NodeTool](https://nodetool.ai) MCP server and command-line tools. One
+command gives Claude Code, Codex, and OpenCode NodeTool's toolbelt: image,
+video, and audio generation, workflows, assets, the video timeline, and the
+built-in game engine. The desktop app is optional.
 
-Ships two executables: `nodetool` for managing workflows, jobs, assets, models, secrets, and servers, and `nodetool-chat` for an interactive multi-provider LLM chat with tool support.
+## Use NodeTool from Claude Code, Codex, or OpenCode
+
+You need Node.js 22 or later.
+
+```bash
+npx -y --package=@nodetool-ai/cli nodetool mcp install
+```
+
+The command finds Claude Code, Codex, and OpenCode on the machine, starts the
+server once to check that it lists its tools, and writes a `nodetool` entry
+into each client's config. The entry starts `nodetool mcp serve` over stdio.
+Restart the client, then ask it to use NodeTool.
+
+```bash
+nodetool mcp install --claude       # One client only (also --codex, --opencode)
+nodetool mcp install --http         # Connect to a running NodeTool server at http://127.0.0.1:7777/mcp
+nodetool mcp status --check         # Start each registered server and list its tools
+nodetool mcp config                 # Print an mcpServers block for Cursor, Claude Desktop, or another client
+nodetool mcp uninstall
+```
+
+Generation tools need provider keys. Store one with
+`nodetool secrets store FAL_API_KEY`, or set the environment variable of the
+same name. See [NodeTool as an MCP Server](https://docs.nodetool.ai/mcp-server)
+for what each client's config gets and what the agent can call.
+
+The package also ships `nodetool` for workflows, jobs, assets, models,
+secrets, and servers, and `nodetool-chat` for a terminal chat with the
+NodeTool agent.
 
 ## Install
 
 ```bash
 npm install -g @nodetool-ai/cli
 ```
+
+## Agents and headless machines
+
+The CLI needs Node.js 22 or later and nothing else: no repository, no `.env`,
+and no desktop session. Provider keys are read from the environment.
+
+```bash
+# Run as an MCP server over stdio for Claude Code, Codex, or any MCP client
+npx -y -p @nodetool-ai/cli nodetool mcp serve
+
+# Serve the HTTP + WebSocket API (health check at /health)
+npx -y -p @nodetool-ai/cli nodetool serve --port 7777
+
+# Run a workflow file and print its outputs as JSON
+OPENAI_API_KEY=sk-... npx -y -p @nodetool-ai/cli nodetool \
+  workflows run workflow.json --params '{"prompt":"hello"}' --json
+```
+
+Keep `-p @nodetool-ai/cli nodetool`. The package installs two executables, so
+`npx @nodetool-ai/cli` cannot tell which one to run.
+
+On a machine without a system keychain (a container, CI, or a server without
+a D-Bus session) the encrypted secret store stays locked. The API server, the
+MCP server, and workflow runs still start, and stored secrets are unavailable.
+To store secrets there, set `SECRETS_MASTER_KEY` to a base64
+32-byte key, for example from `openssl rand -base64 32`, and keep the same
+value for every run.
 
 ## Executables
 
@@ -47,14 +105,9 @@ nodetool secrets list
 nodetool secrets store OPENAI_API_KEY
 nodetool secrets get OPENAI_API_KEY
 
-# Settings and MCP
+# Settings
 nodetool settings show
-nodetool mcp install                # Register the MCP server for Claude Code, Codex, OpenCode
-nodetool mcp status --check         # Start each registered server and list its tools
-nodetool mcp config                 # Print an mcpServers block for any other client
 ```
-
-See [NodeTool as an MCP Server](https://docs.nodetool.ai/mcp-server).
 
 The `workflows`, `jobs`, `assets`, and `models` read commands hit the local database, providers, and caches by default. Pass `--api-url <url>` (env `NODETOOL_API_URL`) to query a remote server instead, and `--json` for machine-readable output.
 

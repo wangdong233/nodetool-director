@@ -4,7 +4,7 @@ import {
   applyAdvancedModelFilters,
   executionForDisplay,
   executionLabelsByProvider,
-  modelDownloadTarget,
+  modelDownloadTargets,
   modelLabelFromId,
   type ModelSelectorModel
 } from "../modelNormalization";
@@ -150,36 +150,6 @@ describe("modelNormalization", () => {
       });
     });
 
-    it("should extract type tags", () => {
-      const testCases = [
-        { name: "Model Instruct", tags: ["instruct"] },
-        { name: "Model Chat", tags: ["chat"] },
-        { name: "Model Base", tags: ["base"] },
-        { name: "Model SFT", tags: ["sft"] },
-        { name: "Model DPO", tags: ["dpo"] },
-        { name: "Model Reasoning", tags: ["reasoning"] },
-        { name: "Model R1", tags: ["reasoning"] },
-        { name: "QwQ Model", tags: ["reasoning"] },
-        { name: "Model Code", tags: ["code"] },
-        { name: "Model Coder", tags: ["code"] },
-        { name: "Model Math", tags: ["math"] },
-        { name: "Instruct Chat Model", tags: ["instruct", "chat"] },
-        { name: "Code Math Instruct", tags: ["instruct", "code", "math"] }
-      ];
-
-      testCases.forEach(({ name, tags }) => {
-        const model: LanguageModel = {
-          id: "test",
-          name,
-          type: "language_model",
-          provider: "local"
-        };
-
-        const result = normalizeModelMeta(model);
-        expect(result.typeTags).toEqual(expect.arrayContaining(tags));
-        expect(result.typeTags).toHaveLength(tags.length);
-      });
-    });
 
     it("should extract family from model name", () => {
       const testCases = [
@@ -263,8 +233,6 @@ describe("modelNormalization", () => {
 
       const result = normalizeModelMeta(model);
       expect(result.family).toBe("qwen");
-      expect(result.typeTags).toContain("code");
-      expect(result.typeTags).toContain("instruct");
       expect(result.sizeB).toBe(7);
     });
 
@@ -278,7 +246,6 @@ describe("modelNormalization", () => {
 
       const result1 = normalizeModelMeta(model1);
       expect(result1.sizeB).toBe(7);
-      expect(result1.typeTags).toContain("instruct");
 
       const model2: LanguageModel = {
         id: "test-7b",
@@ -301,7 +268,6 @@ describe("modelNormalization", () => {
 
       const result = normalizeModelMeta(model);
       expect(result.family).toBe("llama");
-      expect(result.typeTags).toContain("instruct");
       expect(result.sizeB).toBe(7);
     });
   });
@@ -323,26 +289,15 @@ describe("modelNormalization", () => {
 
     it("returns all models when no filters are applied", () => {
       const result = applyAdvancedModelFilters(models, {
-        selectedTypes: [],
         sizeBucket: null,
         families: [],
       });
       expect(result).toHaveLength(4);
     });
 
-    it("filters by type tag", () => {
-      const result = applyAdvancedModelFilters(models, {
-        selectedTypes: ["instruct"],
-        sizeBucket: null,
-        families: [],
-      });
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe("Llama 3 7B Instruct");
-    });
 
     it("filters by size bucket", () => {
       const result = applyAdvancedModelFilters(models, {
-        selectedTypes: [],
         sizeBucket: "3-7B",
         families: [],
       });
@@ -353,7 +308,6 @@ describe("modelNormalization", () => {
 
     it("filters by family", () => {
       const result = applyAdvancedModelFilters(models, {
-        selectedTypes: [],
         sizeBucket: null,
         families: ["qwen"],
       });
@@ -363,7 +317,6 @@ describe("modelNormalization", () => {
 
     it("combines multiple filters with AND logic", () => {
       const result = applyAdvancedModelFilters(models, {
-        selectedTypes: ["base"],
         sizeBucket: "35-70B",
         families: ["mistral"],
       });
@@ -373,15 +326,14 @@ describe("modelNormalization", () => {
 
     it("returns empty array when no models match", () => {
       const result = applyAdvancedModelFilters(models, {
-        selectedTypes: ["reasoning"],
-        sizeBucket: null,
-        families: [],
+        sizeBucket: "70B+",
+        families: ["qwen"],
       });
       expect(result).toHaveLength(0);
     });
   });
 
-  describe("modelDownloadTarget", () => {
+  describe("modelDownloadTargets", () => {
     const needsDownload = {
       kind: "server" as const,
       state: "download_required" as const,
@@ -409,13 +361,37 @@ describe("modelNormalization", () => {
       }) as ModelSelectorModel;
 
     it("downloads the adapter's artifact with its file patterns", () => {
-      expect(modelDownloadTarget(bark())).toEqual({
-        repoId: "suno/bark",
-        path: null,
-        allowPatterns: ["*.bin", "*.json", "*.txt"],
-        ignorePatterns: null,
-        modelType: null
+      expect(modelDownloadTargets(bark())).toEqual([
+        {
+          repoId: "suno/bark",
+          path: null,
+          allowPatterns: ["*.bin", "*.json", "*.txt"],
+          ignorePatterns: null,
+          modelType: null
+        }
+      ]);
+    });
+
+    it("downloads every repository a model loads files from", () => {
+      const zImage = bark({
+        adapter: {
+          state: "installed",
+          artifact_ref: {
+            source: "huggingface",
+            repo_id: "acme/diffusion",
+            allow_patterns: ["model.gguf"]
+          },
+          extra_artifact_refs: [
+            { source: "huggingface", repo_id: "acme/encoder", allow_patterns: ["te.gguf"] }
+          ]
+        }
       });
+      expect(
+        modelDownloadTargets(zImage).map((t) => [t.repoId, t.allowPatterns])
+      ).toEqual([
+        ["acme/diffusion", ["model.gguf"]],
+        ["acme/encoder", ["te.gguf"]]
+      ]);
     });
 
     it("downloads with the artifact's model type when it names one", () => {
@@ -432,21 +408,21 @@ describe("modelNormalization", () => {
           }
         }
       });
-      expect(modelDownloadTarget(whisper)?.modelType).toBe(
+      expect(modelDownloadTargets(whisper)[0]?.modelType).toBe(
         "tjs.automatic_speech_recognition"
       );
     });
 
     it("offers nothing for a model that is ready", () => {
       expect(
-        modelDownloadTarget(
+        modelDownloadTargets(
           bark({ execution: { ...needsDownload, state: "ready" } })
         )
-      ).toBeNull();
+      ).toEqual([]);
     });
 
     it("offers nothing when the model names no repository", () => {
-      expect(modelDownloadTarget(bark({ adapter: null }))).toBeNull();
+      expect(modelDownloadTargets(bark({ adapter: null }))).toEqual([]);
     });
   });
 

@@ -15,7 +15,8 @@ import {
   EmptyState,
   ToolbarIconButton,
   Box,
-  TextInput
+  TextInput,
+  ICON_SIZE
 } from "../ui_primitives";
 import { useChainEditorStore } from "./useChainEditorStore";
 import { ChainNodeCard } from "./ChainNodeCard";
@@ -116,11 +117,11 @@ export const ChainEditor: React.FC<ChainEditorProps> = ({ onSave }) => {
         />
         <ToolbarIconButton
           size="small"
-          ariaLabel={t("editor:ui.saveWorkflow", { defaultValue: "Save workflow" })}
+          ariaLabel="Save workflow"
           tooltip={t("editor:ui.saveWorkflow", { defaultValue: "Save workflow" })}
           onClick={handleSave}
           disabled={saving}
-          icon={<SaveOutlinedIcon sx={{ fontSize: 20 }} />}
+          icon={<SaveOutlinedIcon sx={{ fontSize: ICON_SIZE.lg }} />}
           sx={{ color: theme.vars.palette.text.secondary }}
         />
       </FlexRow>
@@ -140,7 +141,7 @@ export const ChainEditor: React.FC<ChainEditorProps> = ({ onSave }) => {
           <FlexColumn align="center" justify="center" sx={{ pt: 8 }}>
             <EmptyState
               icon={<AccountTreeOutlinedIcon sx={{ fontSize: 48 }} />}
-              title={t("editor:ui.buildYourWorkflow", { defaultValue: "Build Your Workflow" })}
+              title={t("storyboard:attrs.buildYourWorkflow", { defaultValue: "Build your workflow" })}
               description={
                 "Add nodes to create a processing chain.\nEach node's output flows into the next."
               }

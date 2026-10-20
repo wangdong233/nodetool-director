@@ -25,24 +25,22 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { SPACING, ToggleGroup, ToggleOption, BORDER_RADIUS } from "../../ui_primitives";
-import ImageIcon from "@mui/icons-material/Image";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 
 import {
-  CheckerDropzone,
   FlexColumn,
   FlexRow,
   NodeSlider,
   StateIconButton
 } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
-import ImageRefPreview from "../../node/ImageRefPreview";
+import ImagePreview from "./ImagePreview";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
 
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
-import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
+import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { computeHistogramAsync } from "../../../utils/histogram/histogramAsync";
 import type { ImageHistogram } from "../../../utils/histogram/computeHistogram";
@@ -182,15 +180,6 @@ const asImageRef = (value: unknown): ImageRefLike | undefined => {
     data: v.data
   };
 };
-
-const ImagePreview: React.FC<{ value: unknown }> = ({ value }) => (
-  <ImageRefPreview
-    value={value}
-    placeholder={
-      <CheckerDropzone message="Connect an image, then run" icon={<ImageIcon />} />
-    }
-  />
-);
 
 /** Decode any image source the result store gives us into RGBA pixels. */
 async function loadRgba(
@@ -370,7 +359,7 @@ const LevelsBodyInner: React.FC<LevelsBodyProps> = ({
   }, [histogram, histView]);
 
   const { setProperty, setProperties, setPropertyComplete } =
-    useBespokePropertyWriter({ nodeId: id, nodeType });
+    useLiveSliderWriter({ nodeId: id, nodeType });
 
   const [channel, setChannel] = useState<ChannelKey>("r");
 

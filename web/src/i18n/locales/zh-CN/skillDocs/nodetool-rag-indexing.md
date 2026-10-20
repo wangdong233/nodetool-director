@@ -1,140 +1,103 @@
-你帮用户在 NodeTool 里搭建检索增强生成(RAG)管线。
+你帮用户在 NodeTool 里搭建文档摄入、向量索引、检索与 RAG 管线。适用于:文档要切块进向量集合并按语义检索;回答要从用户自己的文档得出。按名字或标签找已存的图像、视频或文件,用 `asset_search`。
 
-# RAG 架构
+# 为文档建索引并据此回答
 
-```
-INDEXING:  Documents → Load → Split → Embed → Store (vector collection)
-QUERY:     Question → Embed → Search → Format → LLM → Answer
-```
-
-# 向量库后端
-
-NodeTool 的向量库(`@nodetool-ai/vectorstore`)后端可插拔。无论用哪个后端,工作流节点
-都一样——后端靠配置选择。
-
-| 后端 | 最适合 | 备注 |
-|---------|----------|-------|
-| **SQLite-vec** | 默认、本地、内嵌 | 无外部服务 |
-| **ChromaDB** | 自托管 / 远程 | `CHROMA_URL`、`CHROMA_PATH`、`CHROMA_TOKEN` |
-| **Pinecone** | 托管云 | 基于 API 密钥 |
-| **Supabase (pgvector)** | Postgres 支撑 | 与 Supabase 鉴权/存储配套 |
-
-**没有 FAISS 节点**;上述后端已覆盖本地与托管场景。
-
-# 向量节点(`vector.*`)
-
-所有 RAG 节点都在 `vector.*` 这一个命名空间下(不是 `vector.chroma.*`,也不是
-`vector.faiss.*`)。
-
-| 节点 | 用途 |
-|------|---------|
-| `vector.Collection` | 按名引用/选择一个知识库(供其他节点消费的知识库引用) |
-| `vector.IndexTextChunk` | 连同嵌入一起索引单个文本块 |
-| `vector.IndexString` | 索引一个字符串值 |
-| `vector.IndexAggregatedText` | 索引聚合后的文本 |
-| `vector.IndexEmbedding` | 索引预计算的嵌入 |
-| `vector.IndexImage` | 索引一张图像 |
-| `vector.QueryText` | 文本向量相似度检索 |
-| `vector.QueryImage` | 图像向量相似度检索 |
-| `vector.HybridSearch` | 向量 + 关键词检索(精度最好) |
-| `vector.GetDocuments` | 取回指定文档 |
-| `vector.Count` | 统计知识库中的文档数 |
-| `vector.Peek` | 预览知识库内容 |
-| `vector.RemoveOverlap` | 对结果中相互重叠的块去重 |
-
-检索节点(`QueryText`、`QueryImage`、`HybridSearch`)输出 `ids`、`documents`、
-`metadatas` 与 `distances`(HybridSearch 还返回 `scores`)。
-
-# 文档加载与切分
-
-| 节点 | 命名空间 | 用途 |
-|------|-----------|---------|
-| `Code` | `nodetool.code` | 用 `await workspace.list(dir)` 枚举文件 |
-| `LoadDocumentFile` | `nodetool.document` | 把 PDF/TXT/MD 加载为文档 |
-| `Chunk` | `nodetool.text` | 定长分词切块带重叠(通用) |
-| `RegexSplit` | `nodetool.text` | 按分隔符模式做结构感知切分 |
-
-## 块大小指引
-
-| 内容类型 | 块大小 | 重叠 |
-|--------------|-----------|---------|
-| 技术文档 | 200-500 token | 50 token |
-| 散文/文章 | 300-600 token | 75 token |
-| 代码 | 100-300 token | 25 token |
-
-# 建索引 —— 工作流模式
+**集合**(collection)是一个命名的向量库。索引把文档切成块,用集合的嵌入模型嵌入每一块并存入;检索用同一模型嵌入问题,返回最近的块,由语言模型据此作答。
 
 ```
-ListFiles → LoadDocumentFile → Chunk → IndexTextChunk(collection)
+INDEX:  documents → text → chunks → vector.IndexTextChunk → collection
+QUERY:  question → vector.HybridSearch / QueryText → context → Agent → answer
 ```
 
-每个索引/检索节点都配一个 `vector.Collection` 节点(或知识库名),让它们对准同一个
-库。建索引与检索用**同一个嵌入模型**。
+## 检索已索引的内容
 
-# 建索引 —— HTTP API
+两个工具在每次聊天里都在智能体工具带上:
+
+- `list_collections` 返回用户可访问的每个集合及其元数据(含 `embedding_model`)。
+- `query_collection {collection, query, n_results?}` 以 `{id, document, score}` 返回最近的块,`n_results` 默认 5。
+
+从返回的块作答,并说明答案用了哪些块 id。结果为空意味着集合里没有相近内容,不代表主题未知。
+
+`vector_index`、`vector_batch_index`、`vector_text_search`、`vector_hybrid_search`、`vector_recursive_split_and_index` 和 `vector_markdown_split_and_index` 只作用于宿主绑定到本次运行的集合。聊天不绑定任何集合,所以在聊天里它们报错。建索引走下面的节点。
+
+## 通过节点建索引
+
+所有向量节点都在 `vector` 命名空间。
+
+| 节点 | 输入 | 作用 |
+|---|---|---|
+| `vector.Collection` | `name`、`embedding_model` | 取或建集合,输出 `{type: "collection", name}` 引用 |
+| `vector.IndexTextChunk` | `collection`、`document_id`、`text`、`metadata` | 追加一个块;同一 `document_id` 重写整篇 |
+| `vector.IndexString` | `collection`、`text`、`document_id`、`metadata` | 追加一个字符串 |
+| `vector.IndexImage`、`vector.IndexEmbedding` | | 索引一张图像或预计算的嵌入 |
+| `vector.QueryText` | `collection`、`text`、`n_results` | 向量检索,输出 `ids`、`documents`、`metadatas`、`distances` |
+| `vector.HybridSearch` | `collection`、`text`、`n_results`、`k_constant`、`min_keyword_length` | 向量+关键词检索,倒数排名融合,多出 `scores` |
+| `vector.QueryImage` | `collection`、`image`、`n_results` | 以图搜图 |
+| `vector.GetDocuments`、`vector.Peek`、`vector.Count` | `collection` | 查看库里存了什么 |
+| `vector.RemoveOverlap` | `documents` | 去掉重叠块之间重复的文字 |
+
+嵌入模型只在 `vector.Collection` 的 `embedding_model` 上设一次,存进集合元数据。索引与检索节点只接集合,所以建索引和搜索永远用同一个模型。自带示例用 Ollama 的 `nomic-embed-text`。换模型意味着新建集合。
+
+块不多时 `run_node` 就够:先 `run_node {node_type: "vector.Collection", inputs: {name, embedding_model}}` 一次,然后每块跑 `vector.IndexTextChunk`、传 `collection: {type: "collection", name}`。一整个文件夹的文档,搭个工作流跑。
+
+### 索引工作流
+
+1. **列文件。** Code 节点 `await workspace.list(dir)`,或 `nodetool.document.ListDocuments {folder, pattern, recursive}`。
+2. **读文本。** 文本与 Markdown 用 `nodetool.document.LoadDocumentFile {path}`;PDF 用 `lib.pdf.ExtractText` 或 `lib.pdf.ExtractMarkdown`。
+3. **切块。** 没有切块节点。用 Code 节点,从 "Chunk Text" 片段起步,用 `await output("chunks", chunks)` 记录列表;文档输入用 `await media.text(inputs.document)` 读。
+4. **扇出。** `nodetool.control.ForEach` 把每块从 `output` 发出、序号放 `index`。由文件名与序号拼唯一 `document_id`,例如用 `nodetool.text.Template`。
+5. **入库。** `vector.IndexTextChunk`:接集合引用、块作 `text`、id 作 `document_id`、`{source: <file name>}` 作 `metadata`。
+
+用 `validate_workflow` 校验后运行。托管嵌入模型按 token 计费,大文件夹建索引前先与用户确认语料规模。
+
+| 内容 | 块大小 | 重叠 |
+|---|---|---|
+| 技术文档 | 200–500 token | 约 50 token |
+| 散文 | 300–600 token | 约 75 token |
+| 代码 | 100–300 token | 约 25 token |
+
+### 检索工作流
+
+`StringInput`(问题)→ `vector.HybridSearch {collection, n_results: 5}` → Code 节点把 `documents` 拼成一个上下文字符串 → 带上下文与问题的 `nodetool.text.Prompt` 或 `Template` → `nodetool.agents.Agent`(系统提示限定只能依据上下文)→ `Output`。
+
+自带示例 **Chat With Your Documents** 建集合、索引三份文档并据此回答。用 `get_example_workflow {package_name: "nodetool-base", example_name: "Chat With Your Documents"}` 加载后改造,别从零开始。
+
+## 存储后端
+
+工作流节点与工具在每个后端上都一样。服务器启动时凭 `NODETOOL_VECTOR_PROVIDER` 选一个:
+
+| 值 | 存储 | 配置 |
+|---|---|---|
+| `sqlite-vec`(默认) | 本地 SQLite 文件 | `VECTORSTORE_DB_PATH` 移动位置 |
+| `pinecone` | Pinecone | `PINECONE_API_KEY`,可选 `PINECONE_ENVIRONMENT`、`PINECONE_CONTROLLER_HOST` |
+| `supabase` | 带 pgvector 的 Postgres | `SUPABASE_URL` 配 `SUPABASE_KEY` 或 `SUPABASE_SERVICE_ROLE_KEY`,并在项目上执行 `packages/vectorstore/sql/supabase-migration.sql` |
+
+其他值会让服务器启动报错。这些是服务器环境变量,由运行服务器的人设置,不是 agent 设。
+
+## 从 shell 或经 HTTP
+
+有 shell 的人用 `nodetool collections` CLI 管理本地服务器上的集合:
 
 ```bash
-# Index a file into a collection
-curl -X POST http://localhost:7777/api/collections/<name>/index \
-  -H "Authorization: Bearer TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"file_path": "/path/to/document.pdf"}'
+nodetool collections create handbook --embedding-model nomic-embed-text --embedding-provider ollama
+nodetool collections index handbook ./docs/*.md
+nodetool collections query handbook "refund policy" -n 5
+nodetool collections list
+nodetool collections delete handbook --yes
 ```
 
-服务器解析知识库,若注册了摄入工作流就运行它,否则回落到 切分 → 嵌入 → 入库。
-
-# 检索 —— 工作流模式
-
-```
-ChatInput → HybridSearch(collection, top_k) → FormatText → Agent → Output
-```
-
-| 节点 | 用途 |
-|------|---------|
-| `ChatInput` | 用户提问 |
-| `vector.HybridSearch` | 向量 + 关键词检索(精度最好) |
-| `vector.QueryText` | 纯向量检索(更快) |
-| `FormatText` | 为 LLM 拼上下文字符串 |
-| `Agent` | 基于上下文 + 问题生成回答 |
-| `Output` | 返回回答 |
-
-# 完整 RAG 示例
-
-## 建索引
-```
-ListFiles("/docs/") → LoadDocumentFile → Chunk(length=400, overlap=50)
-                                                  ↓
-                                  IndexTextChunk(collection="my-docs")
-```
-
-## 检索
-```
-ChatInput("What is...?") → HybridSearch(collection="my-docs", top_k=5)
-                                  ↓
-                         FormatText(template="Context:\n{documents}\n\nQuestion: {query}")
-                                  ↓
-                         Agent(model=gpt-5.4, system="Answer using only the context provided.")
-                                  ↓
-                         Output
-```
-
-# 环境变量
+`POST /api/collections/<name>/index` 以 `multipart/form-data` 的 `file` 字段收一个文本文件,分块并索引进已有嵌入模型的集合。接受纯文本、Markdown、HTML、CSV 与 JSON。PDF、Office 文件和图像需要索引工作流。
 
 ```bash
-# ChromaDB backend (only when using Chroma — SQLite-vec needs no config)
-CHROMA_URL=                          # Remote Chroma URL (empty = local)
-CHROMA_PATH=~/.local/share/nodetool/chroma  # Local storage path
-CHROMA_TOKEN=                        # Optional auth token
+curl -X POST http://localhost:7777/api/collections/handbook/index \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@./docs/refunds.md"
 ```
 
-嵌入模型在索引/检索节点上通过模型选择指定(如 `text-embedding-3-small`,或本地
-sentence-transformers 模型)。
+## 常见坑
 
-# 常见坑
-
-- **嵌入模型不一致**: 建索引与检索必须用同一个嵌入模型。
-- **块太大**: 稀释 LLM 上下文——守住 200-500 token。
-- **块太小**: 句子被切碎;用 10-20% 重叠。
-- **知识库是空的**: 先建索引再检索——没建过索引的知识库什么都查不到。
-- **节点名写错**: 是 `vector.IndexTextChunk` / `vector.QueryText` / `vector.HybridSearch`,不是 `IndexTextChunks` / `TextSearch`,也不存在 `vector.chroma.*`/`vector.faiss.*` 命名空间。
-- **没有 `nodetool collections` CLI**: 知识库经编辑器 UI 或 `/api/collections/...` 端点管理。
+- **没有嵌入模型的集合**无法检索,建的时候就带上。
+- **块太大**稀释上下文;**块太小**切断句子。保持 10–20% 重叠。
+- **复用 `document_id`** 会互相覆盖,id 里放文件名。
+- **建索引之前检索**什么都查不到。
+- **节点名**:是 `vector.IndexTextChunk`、`vector.QueryText`、`vector.HybridSearch`。没有 `vector.chroma.*` 或 `vector.faiss.*`,也没有 `nodetool.text.Chunk`。

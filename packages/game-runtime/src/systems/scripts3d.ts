@@ -1,19 +1,25 @@
-import { gameParticleEmissionOf, type GameEntityProps } from "@nodetool-ai/protocol";
+import { applyGameUiCommand, gameParticleEmissionOf, gameUiCommandTarget, type GameEntityProps, type GameUiScriptCommand } from "@nodetool-ai/protocol";
+import { applySpatialScriptCommand3D } from "../spatial3d/script-commands.js";
 import type { EntityState3D } from "../spatial3d/state.js";
 import type { GameSystemContext3D } from "./context3d.js";
 import { applyGameplayCommand, queueGameplayBehavior, type GameplayCommand } from "../gameplay/lifecycle.js";
 import { assertDestroyCommands, awaitsDestroy, removedDestroyCall, scriptContacts, scriptEvents, scriptLifecycle } from "../script-lifecycle.js";
 import { planScriptProps } from "../script-props.js";
 import type { GameScriptCall3D } from "../scripts3d.js";
-import { scriptSourceKey } from "../scripts.js";
+import { parseScriptSourceKey, prefabScriptSourceKey, sceneScriptSourceKey, scriptSourceKey } from "../script-source.js";
 import { playAnimationGraphState3D, setAnimationParameter3D } from "./animation-graph3d.js";
 
 const NO_TAGS: readonly string[] = Object.freeze([]);
 /** Fields of a removed instance's last call that its onDestroy hook reads. */
-const REMOVED_FIELDS_3D = ["position", "velocity", "grounded", "tags", "rotation"] as const;
+const REMOVED_FIELDS_3D = ["position", "velocity", "grounded", "tags", "rotation", "props"] as const;
 
 function scriptMetadata(state: EntityState3D): Pick<GameScriptCall3D, "tags" | "active" | "rotation"> {
   return { tags: state.definition.tags ?? NO_TAGS, active: state.active, rotation: [...state.transform.rotation] };
+}
+
+function sourceKey3D(sceneId: string, state: EntityState3D, index: number): string {
+  const keyOf = state.prefabId === undefined ? sceneScriptSourceKey : prefabScriptSourceKey;
+  return keyOf(state.prefabId ?? sceneId, state.sourceId ?? state.definition.id, index);
 }
 
 /** A script call without its state, built from the entity at the current point of the tick. */
@@ -23,11 +29,7 @@ export function scriptCall3D(context: GameSystemContext3D, state: EntityState3D,
     throw new Error(`Behavior ${index} of ${state.definition.id} is not a script`);
   }
   return {
-    sourceKey: scriptSourceKey(
-      state.prefabId ? `prefab:${state.prefabId}` : context.currentScene().id,
-      state.sourceId ?? state.definition.id,
-      index
-    ),
+    sourceKey: sourceKey3D(context.currentScene().id, state, index),
     stateKey: scriptSourceKey(context.currentScene().id, state.definition.id, index),
     entityId: state.definition.id,
     source: state.sourceId ?? state.definition.id,
@@ -35,6 +37,7 @@ export function scriptCall3D(context: GameSystemContext3D, state: EntityState3D,
     velocity: { ...state.velocity },
     grounded: state.controller?.grounded ?? false,
     ...scriptMetadata(state),
+    props: state.props ?? {},
     maxCommands: behavior.maxCommands,
     maxTickMs: behavior.maxTickMs
   };
@@ -53,7 +56,7 @@ function destroyCalls3D(context: GameSystemContext3D, hookSources: ReadonlySet<s
         return;
       }
       const record = context.scriptState[scriptSourceKey(sceneId, state.definition.id, index)];
-      if (!awaitsDestroy(record) || !hookSources.has(scriptSourceKey(state.prefabId ? `prefab:${state.prefabId}` : sceneId, state.sourceId ?? state.definition.id, index))) {
+      if (!awaitsDestroy(record) || !hookSources.has(sourceKey3D(sceneId, state, index))) {
         return;
       }
       calls.push({ ...scriptCall3D(context, state, index), state: record as GameScriptCall3D["state"], lifecycle: { destroy: true } });
@@ -63,10 +66,11 @@ function destroyCalls3D(context: GameSystemContext3D, hookSources: ReadonlySet<s
   const destroyContext = {
     sceneId, hookSources, exists: (id: string) => ids.has(id), fields: REMOVED_FIELDS_3D,
     limitsOf: (sourceKey: string) => {
-      const [scope, sourceId, index] = JSON.parse(sourceKey) as [string, string, number];
-      const entities = scope.startsWith("prefab:") ? context.document.prefabs[scope.slice("prefab:".length)]?.entities
-        : scope === sceneId ? context.currentScene().entities : undefined;
-      const behavior = entities?.find((entity) => entity.id === sourceId)?.behaviors[index];
+      const source = parseScriptSourceKey(sourceKey);
+      if (!source) { return undefined; }
+      const entities = source.kind === "prefab" ? context.document.prefabs[source.scopeId]?.entities
+        : source.scopeId === sceneId ? context.currentScene().entities : undefined;
+      const behavior = entities?.find((entity) => entity.id === source.entityId)?.behaviors[source.behaviorIndex];
       return behavior?.kind === "script" ? behavior : undefined;
     }
   };
@@ -75,6 +79,13 @@ function destroyCalls3D(context: GameSystemContext3D, hookSources: ReadonlySet<s
     if (call) { calls.push(call as unknown as GameScriptCall3D); }
   }
   return calls;
+}
+
+/** Checks that a `ui` command names a node of the document or scene HUD tree that takes its fields, then applies it. */
+function applyUiCommand3D(context: GameSystemContext3D, command: GameUiScriptCommand): void {
+  const target = gameUiCommandTarget([...(context.document.ui?.nodes ?? []), ...(context.currentScene().ui?.nodes ?? [])], command);
+  if (typeof target === "string") { throw new Error(target); }
+  applyGameUiCommand(context.ui, command);
 }
 
 export function stepScripts3D(context: GameSystemContext3D): void {
@@ -92,11 +103,7 @@ export function stepScripts3D(context: GameSystemContext3D): void {
     state.definition.behaviors.forEach((behavior, index) => {
       queueGameplayBehavior(behavior, state.definition.id, state.spawnTick, context.tick, context.previousEvents, context.queues, state.definition.tags);
       if (behavior.kind === "script") {
-        const sourceKey = scriptSourceKey(
-          state.prefabId ? `prefab:${state.prefabId}` : context.currentScene().id,
-          state.sourceId ?? state.definition.id,
-          index
-        );
+        const sourceKey = sourceKey3D(context.currentScene().id, state, index);
         const stateKey = scriptSourceKey(context.currentScene().id, state.definition.id, index);
         const lifecycle = hasHooks && hookSources.has(sourceKey)
           ? scriptLifecycle(sceneEnter, scriptContacts(state.definition.id, sceneContacts, (event) => event.sensor === true),
@@ -122,7 +129,7 @@ export function stepScripts3D(context: GameSystemContext3D): void {
   context.runner?.retain?.(new Set(context.calls.map((call) => call.stateKey)));
   if (context.runner && context.calls.length > 0) {
     // Each active entity's props travel once; scripts read them on `entity`, `world` and `world.get`.
-    const props: Record<string, GameEntityProps> = {};
+    const props: Record<string, GameEntityProps> = Object.create(null);
     for (const state of context.states) {
       if (state.active && state.props !== undefined && Object.keys(state.props).length > 0) { props[state.definition.id] = state.props; }
     }
@@ -148,6 +155,8 @@ export function stepScripts3D(context: GameSystemContext3D): void {
       },
       context.rngState
     );
+    context.scriptLogs = batch.logs;
+    context.scriptSaves = batch.saves;
     const byId = new Map(context.states.map((state) => [state.definition.id, state]));
     for (const [index, result] of batch.results.entries()) {
       if (context.calls[index].lifecycle?.destroy) { assertDestroyCommands(result.commands, result.entityId, context.tick); }
@@ -161,7 +170,8 @@ export function stepScripts3D(context: GameSystemContext3D): void {
         if (!byId.has(result.entityId)) { delete context.scriptState[call.stateKey]; }
         else { context.scriptState[call.stateKey] = result.state; }
         for (const command of result.commands) {
-          applyGameplayCommand(command as GameplayCommand, result.entityId, context.queues, context.hud, context.emit);
+          if (command.kind === "ui") { applyUiCommand3D(context, command); }
+          else { applyGameplayCommand(command as GameplayCommand, result.entityId, context.queues, context.hud, context.emit); }
         }
         continue;
       }
@@ -171,6 +181,9 @@ export function stepScripts3D(context: GameSystemContext3D): void {
         throw new Error(`Script target missing: ${result.entityId}`);
       }
       for (const command of result.commands) {
+        if (applySpatialScriptCommand3D(context.currentSpatial(), state, command)) {
+          continue;
+        }
         switch (command.kind) {
           case "setProp":
           case "removeProp":
@@ -190,9 +203,6 @@ export function stepScripts3D(context: GameSystemContext3D): void {
               throw new Error(`Velocity requires a dynamic body or platform (${result.entityId})`);
             }
             context.currentSpatial().setVelocity(state, command.velocity);
-            break;
-          case "impulse":
-            context.currentSpatial().impulse(state, command.impulse);
             break;
           case "teleport":
             if (!state.definition.body3d || state.definition.body3d.type === "static") {
@@ -258,6 +268,9 @@ export function stepScripts3D(context: GameSystemContext3D): void {
             break;
           case "emitParticles":
             (context.queues.particles ??= []).push(gameParticleEmissionOf(command, result.entityId));
+            break;
+          case "ui":
+            applyUiCommand3D(context, command);
             break;
           default:
             applyGameplayCommand(command, result.entityId, context.queues, context.hud, context.emit);

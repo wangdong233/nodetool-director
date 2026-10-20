@@ -4,9 +4,8 @@ import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { Tooltip, ToolbarIconButton, MOTION, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
 import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { memo, useMemo } from "react";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme, isBypassed: boolean) =>
   css({
@@ -47,7 +46,6 @@ const BypassGroupButton: React.FC<BypassGroupButtonProps> = memo(({
   isBypassed,
   onClick
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
 
   const tooltipContainerStyles = useMemo(
@@ -89,14 +87,13 @@ const BypassGroupButton: React.FC<BypassGroupButtonProps> = memo(({
           style={tooltipContainerStyles}
         >
           <span style={titleTextStyles}>
-            {isBypassed ? t("editor:ui.enableNodes", { defaultValue: "Enable Nodes" }) : t("editor:ui.disableNodes", { defaultValue: "Disable Nodes" })}
+            {isBypassed ? i18n.t("editor:ui.enableAllNodes", { defaultValue: "Enable all nodes" }) : i18n.t("editor:ui.disableAllNodes", { defaultValue: "Disable all nodes" })}
           </span>
           <span style={shortcutStyles}>
             <kbd>B</kbd>
           </span>
         </div>
       }
-      delay={TOOLTIP_ENTER_DELAY}
     >
       <ToolbarIconButton
         title=""

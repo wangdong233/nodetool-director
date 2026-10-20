@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gameDocument, gameDocument3D, gameInputFrame3D, type GameDocument, type GameDocument3D } from "@nodetool-ai/protocol";
+import { gameDocument, gameDocument3D, gameInputFrame3D, gameParticleRenderWarnings, gameParticles, type GameDocument, type GameDocument3D } from "@nodetool-ai/protocol";
 
 import {
   applyGameOps,
@@ -18,6 +18,14 @@ const particles = {
     { id: "spark", playOnStart: false, rate: 0 }
   ]
 };
+
+it("warns explicitly when a 3D emitter requests an unsupported particle sprite", () => {
+  const component = gameParticles.parse({ emitters: [{ id: "sheet", sprite: { assetId: "sheet", columns: 2 } }] });
+  expect(gameParticleRenderWarnings(component, "2d")).toEqual([]);
+  expect(gameParticleRenderWarnings(component, "3d")).toEqual([
+    { path: ["emitters", 0, "sprite"], message: "3D particles ignore sprite textures and sprite sheets" }
+  ]);
+});
 const emitScript = "({tick}) => ({ state: null, commands: tick % 2 === 0 ? [{ kind: 'emitParticles', emitter: 'spark', count: 3 }] : [] })";
 
 function document2D(withParticles: boolean): GameDocument {
@@ -30,7 +38,7 @@ function document2D(withParticles: boolean): GameDocument {
       entities: [...scene.entities, {
         id: "torch", transform2d: { x: 1, y: 2 },
         ...(withParticles ? { particles } : {}),
-        behaviors: [{ kind: "script", maxTickMs: 50, source: emitScript }]
+        behaviors: [{ kind: "script", maxTickMs: 20, source: emitScript }]
       }]
     } : scene)
   });
@@ -43,7 +51,7 @@ function document3D(withParticles: boolean): GameDocument3D {
     scenes: [{ ...base.scenes[0], entities: [...base.scenes[0].entities, {
       id: "torch", transform3d: { position: { x: 1, y: 2, z: 3 } },
       ...(withParticles ? { particles } : {}),
-      behaviors: [{ kind: "script", maxTickMs: 50, source: emitScript }]
+      behaviors: [{ kind: "script", maxTickMs: 20, source: emitScript }]
     }] }]
   });
 }
@@ -155,6 +163,30 @@ describe("particles component authoring", () => {
     const updated = applyGameOps(document2D(false), [{ op: "update_entity", entity_id: "torch", set: { particles: component } }]);
     expect(updated.scenes[0].entities.at(-1)?.particles?.emitters[0]).toMatchObject({ sprite: { assetId: "gem", columns: 2, rows: 1, cycles: 1 }, blend: "additive", unlit: true, layer: 3 });
     expect(validateGame(updated).errors).toEqual([]);
+  });
+
+  it("warns, without failing, about draw fields the dimension ignores", () => {
+    const component = { emitters: [
+      { id: "mesh", render: { kind: "mesh", shape: "box" }, softness: 1 },
+      { id: "streak", render: { kind: "stretched" }, softness: 0.5 },
+      { id: "plain" }
+    ] };
+    const in2D = applyGameOps(document2D(false), [{ op: "update_entity", entity_id: "torch", set: { particles: component } }]);
+    const flat = validateGame(in2D);
+    expect(flat.valid).toBe(true);
+    expect(flat.warnings?.map((warning) => [warning.path.slice(-2).join("."), warning.message])).toEqual([
+      ["0.render", "2D particles ignore render, which only sets how 3D particles draw"],
+      ["0.softness", "2D particles ignore softness, which only fades 3D billboards"],
+      ["1.render", "2D particles ignore render, which only sets how 3D particles draw"],
+      ["1.softness", "2D particles ignore softness, which only fades 3D billboards"]
+    ]);
+    const in3D = applyGameOps3D(document3D(false), [{ op: "update_entity", entity_id: "torch", set: { particles: component } }]);
+    const deep = validateGame3D(in3D);
+    expect(deep.valid).toBe(true);
+    expect(deep.warnings).toEqual([{ code: "ignored_particle_field", path: expect.arrayContaining(["particles", "emitters", 0, "softness"]),
+      message: "Mesh particles ignore softness, which only fades billboards" }]);
+    expect(validateGame3D(document3D(true)).warnings).toEqual([]);
+    expect(validateGame(document2D(true)).warnings).toEqual([]);
   });
 
   it("requires 2D schema version 2", () => {

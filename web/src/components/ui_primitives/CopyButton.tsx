@@ -7,16 +7,17 @@
  * @example
  * <CopyButton
  *   value="Text to copy"
- *   tooltip={i18n.t("settings:general.apiIntCopyTooltip", { defaultValue: "Copy to clipboard" })}
+ *   tooltip="Copy prompt"
  * />
  */
 
 import { useState, useCallback, useRef, useEffect, memo, forwardRef } from "react";
-import { IconButton, Tooltip } from "@mui/material";
+import { IconButton } from "@mui/material";
+import { Tooltip } from "./Tooltip";
 import { SxProps, Theme } from "@mui/material/styles";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import { useTheme } from "@mui/material/styles";
 import { useClipboard } from "../../hooks/browser/useClipboard";
 import {
@@ -26,7 +27,6 @@ import {
 import { editorClassNames, cn } from "../editor_ui/editorUtils";
 import { isString } from "../../utils/typePredicates";
 import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 const FEEDBACK_TIMEOUT = 2000;
 
@@ -37,7 +37,7 @@ export interface CopyButtonProps {
   value: unknown;
   /**
    * Tooltip text when not copied
-   * @default "Copy to clipboard"
+   * @default "Copy"
    */
   tooltip?: string;
   /**
@@ -99,7 +99,7 @@ export const CopyButton = memo(
     (
       {
         value,
-        tooltip = i18n.t("ui:attrs.copyToClipboard", { defaultValue: "Copy to clipboard" }),
+        tooltip = "Copy",
         tooltipPlacement = "bottom",
         buttonSize = "small",
         nodrag = true,
@@ -112,11 +112,6 @@ export const CopyButton = memo(
       },
       ref
     ) => {
-      // Param-default site above (tooltip default) intentionally stays on the
-      // global i18n instance: parameter defaults evaluate before the body runs,
-      // where the hook's `t` is not yet in scope (migration ruling R4-adjacent;
-      // re-evaluated on every render call, so it tracks language changes).
-      const { t } = useTranslation();
       const theme = useTheme();
       const { writeClipboard } = useClipboard();
       const [state, setState] = useState<"idle" | "copied" | "error">("idle");
@@ -168,7 +163,7 @@ export const CopyButton = memo(
       }, [value, disabled, writeClipboard, onCopySuccess, onCopyError]);
 
       const tooltipText =
-        state === "error" ? t("editor:ui.nothingToCopy", { defaultValue: "Nothing to copy" }) : state === "copied" ? t("editor:ui.copied", { defaultValue: "Copied!" }) : tooltip;
+        state === "error" ? i18n.t("editor:ui.nothingToCopy", { defaultValue: "Nothing to copy" }) : state === "copied" ? "Copied!" : tooltip;
 
       const iconSize =
         buttonSize === "small"

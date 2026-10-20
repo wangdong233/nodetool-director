@@ -1,5 +1,18 @@
 你帮用户配置 AI 模型服务商,并为任务挑对模型。
 
+# 产品内
+
+产品内 agent 没有 shell。用这些工具配密钥、选模型:
+
+1. `list_secrets` 显示哪些凭证已配置,永不返回值。
+2. `request_secret {key, reason, help_url}` 打开对话框让用户输入缺失的密钥。值从对话框保存,不经过 agent。绝不让用户把密钥贴进聊天。运行没有交互客户端时,点名缺失的密钥并指引用户去 Settings > Secrets。
+3. `find_model {capability}` 返回真实的 `{provider, model_id}` 和一个 `ref`,原样赋给节点的 model 属性。加任何通用 AI 节点之前先调它。绝不凭记忆写模型 id,包括下面示例里的。
+4. `list_provider_models {provider}` 列出某一家的语言模型。
+
+代码动作里同样的调用是 `nodetool.secrets` / `nodetool.settings`(加载 `api-settings`)和 `nodetool.models`(加载 `api-models`)。
+
+`nodetool` 服务商是 NodeTool 的托管服务,其模型跑在平台密钥上、从用户余额扣费,不需要用户自己的密钥。其他服务商都计费到用户自己的账户。
+
 # 服务商总览
 
 | 服务商 | 类型 | 密钥环境变量 | 模型 |
@@ -27,7 +40,9 @@
 `lmstudio`。跑 `nodetool models
 providers` 看已配置的服务商,`nodetool models recommended` 看精选模型清单。
 
-# API 密钥配置
+# 从 shell(自托管)
+
+这些在用户终端里跑,不在产品内。`nodetool models providers` 看已配置的服务商,`nodetool models recommended` 看精选清单,`nodetool models by-provider <provider>` 看某一家的模型 id。密钥配置:
 
 ```bash
 # Via CLI (encrypted storage)
@@ -300,3 +315,13 @@ export class MyProvider extends BaseProvider {
   `NODETOOL_PYTHON_ON_DEMAND=true` 且还没有工作流启动过 worker
 - **限流**: 云端服务商有限流;做重试或改用本地
 - **模型 ID 不匹配**: 用服务商的准确模型 ID(如 `gpt-5.4`、`claude-sonnet-4-6`)——`nodetool models by-provider <provider>` 可列出
+
+配钥匙四步:1. `list_secrets` 查已配置的凭据(永不返回值);2. `request_secret {key, reason, help_url}` 打开对话框让用户输入;3. `find_model {capability}` 返回真实的 `{provider, model_id}` 与 `ref`;4. `list_provider_models {provider}` 列单个服务商的语言模型。代码动作里对应 `nodetool.secrets`、`nodetool.settings`(先加载 `api-settings`)与 `nodetool.models`(先加载 `api-models`)。
+
+`nodetool` 服务商是 NodeTool 托管服务。
+
+云端服务商:**FAL**(`fal_ai`,`FAL_API_KEY`,快速图像/视频)、**KIE**(`kie`,`KIE_API_KEY`,多厂商图像/视频/音乐)、**ElevenLabs**(`elevenlabs`,`ELEVENLABS_API_KEY`,TTS 与音效);另有 `azure_openai`(`AZURE_OPENAI_API_KEY`、`AZURE_OPENAI_ENDPOINT`、`AZURE_OPENAI_DEPLOYMENTS`)与 `bedrock`(`BEDROCK_ACCESS_KEY_ID`、`BEDROCK_SECRET_ACCESS_KEY`、`BEDROCK_REGION`)。
+
+CLI:`nodetool providers` 列已配置服务商,`nodetool models recommended` 列精选推荐;模型 id 以 `find_model` 或 `list_provider_models` 的结果为准,不要凭记忆填。密钥贴进聊天时用 `request_secret` 重新录入。
+
+CLI `nodetool providers` 显示已配置的服务商,`nodetool models recommended` 显示精选。

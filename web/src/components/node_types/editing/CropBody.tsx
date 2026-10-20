@@ -33,9 +33,10 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import { SPACING,
   CheckerDropzone,
   BORDER_RADIUS,
-  MenuItem,
-  Select,
-  type SelectChangeEvent
+  NodeSelect,
+  NodeMenuItem,
+  type SelectChangeEvent,
+  Tooltip
 } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
 import { NodeOutputs } from "../../node/NodeOutputs";
@@ -44,20 +45,21 @@ import NumberInput from "../../inputs/NumberInput";
 
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
-import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
+import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput, useUpstreamValue } from "../../../hooks/nodes/useNodeIO";
 import { CROP_NODE_TYPE } from "../../../constants/nodeTypes";
-import { useTranslation } from "react-i18next";
 import {
   isNumber,
   isObjectLike,
   isString
 } from "../../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /** Aspect-ratio dropdown options. `free` means no constraint. */
 const ASPECT_OPTIONS = [
-  { value: "free", label: "Free", labelKey: "editor:ui.free" },
-  { value: "1:1", label: "1:1 Square", labelKey: "editor:ui.oneToOneSquare" },
+  { value: "free", label: "Free" },
+  { value: "1:1", label: i18n.t("editor:ui.oneToOneSquare", { defaultValue: "1:1 Square" }) },
   { value: "4:3", label: "4:3" },
   { value: "3:2", label: "3:2" },
   { value: "16:9", label: "16:9" },
@@ -172,11 +174,7 @@ const styles = (theme: Theme) =>
     },
     ".aspect-select": {
       gridColumn: "2 / span 2",
-      width: "100%",
-      fontSize: theme.fontSizeSmaller,
-      ".MuiSelect-select": {
-        padding: `${theme.spacing(SPACING.micro)} ${theme.spacing(SPACING.xs)} ${theme.spacing(SPACING.micro)} 0`
-      }
+      width: "100%"
     },
     ".dims-cluster": {
       display: "flex",
@@ -374,7 +372,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
   const [aspect, setAspect] = useState<AspectKey>("free");
   const aspectRatio = useMemo(() => parseAspect(aspect), [aspect]);
 
-  const { setProperties, setPropertyComplete } = useBespokePropertyWriter({
+  const { setProperties, setPropertyComplete } = useLiveSliderWriter({
     nodeId: id,
     nodeType
   });
@@ -531,8 +529,8 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
 
   // ── Aspect / W / H / Reset handlers ───────────────────────────────
   const handleAspectChange = useCallback(
-    (event: SelectChangeEvent<AspectKey>) => {
-      const key = event.target.value;
+    (event: SelectChangeEvent<unknown>) => {
+      const key = event.target.value as AspectKey;
       setAspect(key);
       const ratio = parseAspect(key);
       if (!ratio || !imgDims) return;
@@ -704,21 +702,18 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
 
       <div className="controls">
         <span className="ctrl-label">{t("ui2:attrs.aspect", { defaultValue: "Aspect" })}</span>
-        <Select
-          className="aspect-select nodrag"
-          size="small"
-          variant="standard"
+        <NodeSelect
+          className="aspect-select"
           value={aspect}
           onChange={handleAspectChange}
           aria-label={t("editor:ui.aspectRatio", { defaultValue: "Aspect ratio" })}
-          disableUnderline
         >
           {ASPECT_OPTIONS.map((o) => (
-            <MenuItem key={o.value} value={o.value} dense>
-              {"labelKey" in o && o.labelKey ? t(o.labelKey, { defaultValue: o.label }) : o.label}
-            </MenuItem>
+            <NodeMenuItem key={o.value} value={o.value}>
+              {o.label}
+            </NodeMenuItem>
           ))}
-        </Select>
+        </NodeSelect>
 
         <span className="ctrl-label">{t("ui2:attrs.size", { defaultValue: "Size" })}</span>
         <div className="dims-cluster">
@@ -727,7 +722,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
               id={`crop-width-${id}`}
               nodeId={id}
               name="width"
-              description={widthProperty?.description ?? t("editor:ui.cropWidth", { defaultValue: "Crop width" })}
+              description={widthProperty?.description ?? i18n.t("editor:ui.cropWidth", { defaultValue: "Crop width" })}
               value={cropW}
               min={1}
               max={imgDims?.w ?? 8192}
@@ -746,7 +741,7 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
               id={`crop-height-${id}`}
               nodeId={id}
               name="height"
-              description={heightProperty?.description ?? t("editor:ui.cropHeight", { defaultValue: "Crop height" })}
+              description={heightProperty?.description ?? i18n.t("editor:ui.cropHeight", { defaultValue: "Crop height" })}
               value={cropH}
               min={1}
               max={imgDims?.h ?? 8192}
@@ -760,15 +755,16 @@ const CropBodyInner: React.FC<CropBodyProps> = ({
             />
           </div>
         </div>
-        <button
-          type="button"
-          className="reset-btn"
-          onClick={handleReset}
-          aria-label={t("editor:ui.resetCrop", { defaultValue: "Reset crop" })}
-          title={t("editor:ui.resetCrop", { defaultValue: "Reset crop" })}
-        >
-          <RestartAltIcon fontSize="small" />
-        </button>
+        <Tooltip title={t("editor:ui.resetCrop", { defaultValue: "Reset crop" })} describeChild>
+          <button
+            type="button"
+            className="reset-btn"
+            onClick={handleReset}
+            aria-label={t("editor:ui.resetCrop", { defaultValue: "Reset crop" })}
+          >
+            <RestartAltIcon fontSize="small" />
+          </button>
+        </Tooltip>
       </div>
 
       {!isOutputNode && (

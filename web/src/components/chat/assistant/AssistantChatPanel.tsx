@@ -132,8 +132,7 @@ const AssistantChatPanel = ({
 
   const chatStatus =
     runtime.status === "idle" || runtime.status === "stopping"
-      ? "connected"
-      : runtime.status;
+      ? "connected" : runtime.status;
 
   const handleNewChat = useCallback(async () => {
     try {

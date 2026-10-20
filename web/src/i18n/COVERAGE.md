@@ -70,6 +70,9 @@ matching keeps its original weights. Bilingual behavior is covered by
 | Prompt-example text inside translated docs | Model input — translating changes behavior |
 | Package-manager catalog rows | Data class until an explicit ruling says otherwise (record the request in `terminology.json` notes) |
 | Upstream dead code (e.g. DashboardRecipes strings) | Not rendered; fix belongs upstream |
+| Chat streaming status sentinels (`Conjuring image/video/sound` in `chatProtocol.ts`) | The verb is the protocol signal `ChatThreadView` keys the spellcasting indicator off — localizing breaks detection (2026-10-19 ruling) |
+| WCAG level labels (`AA Normal (4.5:1)` etc. in `ContrastChecker`) | Standard accessibility designations stay Latin |
+| Internal showcase components (`preview/ProgressPreviews`, `ComponentPreview`, `ModelPickerPreview`) | Style demos with hardcoded mock state, not shipped product UI |
 
 Ruling hygiene: reversals require an explicit decision recorded in
 `terminology.json` + the commit message. A new instruction never silently

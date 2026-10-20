@@ -1,7 +1,6 @@
 {
   "checklist": {
     "aria": "快速上手清单",
-    "title": "快速上手 ·{{done}}/{{total}}",
     "connectProvider": "连接 AI 服务商",
     "startGuidedFlow": "开始一个引导流程",
     "describeIdea": "描述你想做什么",
@@ -9,30 +8,25 @@
     "dismissAria": "忽略快速上手清单"
   },
   "surface": {
-    "title": "你想做什么？",
-    "subtitle": "智能体会规划文档，并在你眼前逐步搭建。所有产物保持可编辑。",
     "startGuided": "从引导流程开始",
-    "orDescribe": "从技能开始，或直接描述你想做什么。",
+    "guidedLede": "每条流程只需几步，每步都以一个可继续编辑的文档收尾。",
     "guidedFlowsLabel": "引导创作流程",
-    "creating": "正在创建项目…",
     "creatingMeta": "创建中…",
     "oneFlowStarting": "已有流程正在启动。",
-    "guidedLede": "每条流程只需几步，每步都以一个可继续编辑的文档收尾。",
     "gameStartsAs": "游戏卡片初始为",
     "gameDimension": "游戏维度",
     "game2d": "2D 游戏",
     "game3d": "3D 探索",
     "fewerFormats": "收起格式",
-    "moreFormats": "更多格式",
     "waitingUploads": "正在等待参考图上传完成。",
-    "creatingDraft": "正在创建草稿…"
+    "creatingDraft": "正在创建草稿…",
+    "moreFormats": "更多格式",
+    "title": "你想做什么？",
+    "intro": "提一个问题得到答案，或者描述你想做的东西。智能体会规划并当着你的面把它做出来，做完的一切都可继续编辑。"
   },
   "flowError": {
     "title": "暂时还打不开",
     "report": "报告问题",
-    "open": "打开你的{{kind}}",
-    "notOpened": "你的{{kind}}已就绪，但它的项目没有打开。",
-    "openedWithFailures": "已打开你的{{kind}}，但{{failures}}",
     "kind": {
       "entity": "实体",
       "storyboard": "分镜",
@@ -71,56 +65,41 @@
       "title": "游戏",
       "desc": "从一句话到可运行的 Godot 项目，素材齐备。",
       "desc3d": "从内置引擎中一个可游玩的 3D 探索场景开始。"
-    }
+    },
+    "speech": {
+      "desc": "输入一行文字，听它被读出来。"
+    },
+    "makeAGame": "做一个游戏",
+    "searchTemplates": "按名称、标签搜索模板",
+    "noInputsDeclared": "未声明任何输入"
   },
   "composer": {
+    "selectModel": "选择模型",
     "promptLabel": "对话提示词",
-    "placeholder": "输入想法，例如：为台灯做一支 30 秒上市广告片——温暖、极简、夜晚氛围。/ 选技能，@ 选素材或实体，Ctrl+Enter 发送。",
-    "refImages": "参考图 ·{{count}}",
     "refImagesAria": "参考图",
     "entitiesNone": "实体 · 未选",
-    "entitiesList": "实体 ·{{list}}",
-    "modelName": "模型 ·{{name}}",
-    "selectModel": "选择模型",
-    "send": "发送到对话",
     "skillGroup": "从技能开始",
     "showFewer": "收起",
-    "moreCount": "还有{{count}}个",
-    "removeFile": "移除{{name}}",
-    "estimate": "预估 ${{min}}–${{max}} · 来自 {{count}} 个历史项目 · 按服务商费率，无加价"
+    "placeholder": "提问,或描述要做什么:为台灯做一支 30 秒上市广告片。输入 / 选技能,@ 选文件或实体。"
   },
   "docs": {
-    "title": "文档 ·{{count}}",
     "titleEmpty": "文档",
-    "empty": "此项目还没有文档。",
     "previous": "上一页",
     "next": "下一页",
-    "range": "第{{first}}–{{last}}条，共{{total}}条",
+    "nextCapitalized": "下一页",
     "sectionAria": "当前项目文档"
   },
   "apps": {
     "title": "从小程序开始",
-    "countOne": "{{count}}个小程序",
-    "countMany": "{{count}}个小程序",
-    "workflowCountOne": "{{count}}个工作流",
-    "workflowCountMany": "{{count}}个工作流",
-    "seeAll": "查看全部",
-    "lede": "一次上传，几个选项，一个结果。添加小程序也会一并添加它运行的工作流，随时可打开其背后的图谱。",
-    "addTitle": "将{{name}}添加到小程序",
-    "added": "已将“{{name}}”添加到小程序",
-    "addFailed": "无法添加{{name}}：{{error}}"
+    "useOrEditLede": "打开小程序即可使用，或编辑副本来定制它的工作流。"
   },
   "notices": {
     "checkingModels": "仍在检查语言模型，请稍后再试。",
     "needModel": "就差一步——对话需要先选定模型。",
-    "noModelSelected": "未选择模型。请先在此选择语言模型再打开对话。",
     "pickModel": "选择一个语言模型，对话随即开始。"
   },
   "entitiesPickerTitle": "此项目的实体",
   "blank": {
-    "title": "空白文档",
-    "lede": "——作为独立标签页打开，不归属于任何项目",
-    "browseExamples": "浏览示例",
     "tutorials": "教程"
   }
 }

@@ -1,11 +1,20 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
 
-import { Caption, Dialog, FlexColumn, Text } from "../ui_primitives";
+import {
+  AlertBanner,
+  Button,
+  Caption,
+  Dialog,
+  FlexColumn,
+  SPACING,
+  Text
+} from "../ui_primitives";
 import useRuntimePackagePromptStore from "../../stores/RuntimePackagePromptStore";
 import useRuntimePackagesStore from "../../stores/RuntimePackagesStore";
 import { useOpenPackageManagerInNewTab } from "../../hooks/useOpenPackageManager";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /** Model lists a newly installed local runtime can add entries to. */
 const MODEL_QUERY_KEYS = [
@@ -79,15 +88,14 @@ const InstallRuntimePackageDialog: React.FC = () => {
         open
         onClose={dismiss}
         title={`${name} is not installed`}
-        showActions
         onConfirm={() => {
           openPackageManager();
           dismiss();
         }}
-        onCancel={dismiss}
-        confirmText="Open Package Manager"
+        confirmText="Open package manager"
         cancelText="Close"
-        minWidth="440px"
+        maxWidth="xs"
+        fullWidth
       >
         <Text size="small">
           This needs {name}. Only the desktop app can install it. Install it
@@ -102,20 +110,16 @@ const InstallRuntimePackageDialog: React.FC = () => {
       <Dialog
         open
         onClose={dismiss}
-        title={t("editor:ui.runtimeInstalledTitle", {
-          defaultValue: "{{name}} is installed",
-          name
-        })}
-        showActions
-        onConfirm={dismiss}
-        onCancel={dismiss}
-        confirmText={t("editor:ui.done", { defaultValue: "Done" })}
-        cancelText={t("ui:attrs.close", { defaultValue: "Close" })}
-        minWidth="440px"
+        title={`${name} is installed`}
+        maxWidth="xs"
+        fullWidth
+        actions={
+          <Button variant="contained" onClick={dismiss} autoFocus>
+            Done
+          </Button>
+        }
       >
-        <Text size="small">
-          {t("editor:ui.tryAgainToUseIt", { defaultValue: "Try again to use it." })}
-        </Text>
+        <Text size="small">{t("editor:ui.tryAgainToUseIt", { defaultValue: "Try again to use it." })}</Text>
       </Dialog>
     );
   }
@@ -124,42 +128,27 @@ const InstallRuntimePackageDialog: React.FC = () => {
     <Dialog
       open
       onClose={phase === "installing" ? undefined : dismiss}
-      title={t("editor:ui.installNameQuestion", {
-        defaultValue: "Install {{name}}?",
-        name
-      })}
-      showActions
+      title={`Install ${name}?`}
       onConfirm={handleInstall}
-      onCancel={dismiss}
-      confirmText={
-        phase === "installing"
-          ? t("editor:ui.installing", { defaultValue: "Installing…" })
-          : t("editor:ui.install", { defaultValue: "Install" })
-      }
-      cancelText={t("editor:ui.notNow", { defaultValue: "Not now" })}
+      confirmText={phase === "installing" ? t("editor:ui.installing", { defaultValue: "Installing…" }) : i18n.t("editor:ui.install", { defaultValue: "Install" })}
+      cancelText={i18n.t("editor:ui.notNow", { defaultValue: "Not now" })}
       confirmDisabled={phase === "installing"}
       cancelDisabled={phase === "installing"}
       isLoading={phase === "installing"}
-      minWidth="440px"
+      maxWidth="xs"
+      fullWidth
     >
-      <FlexColumn gap={2}>
+      <FlexColumn gap={SPACING.md}>
         <Text size="small">
-          {t("editor:ui.nameIsNotInstalledInstallItNowThenTryAgain", {
-            defaultValue: "{{name}} is not installed. Install it now, then try again.",
-            name
-          })}
+          {name} is not installed. Install it now, then try again.
         </Text>
         {status?.description && (
-          <Caption sx={{ opacity: 0.7 }}>{status.description}</Caption>
+          <Caption color="secondary">{status.description}</Caption>
         )}
         {phase === "failed" && (
-          <Caption sx={{ color: "error.main" }}>
-            {error ??
-              t("editor:ui.theInstallFailedTryAgainFromThePackageManager", {
-                defaultValue:
-                  "The install failed. Try again from the Package Manager."
-              })}
-          </Caption>
+          <AlertBanner severity="error" compact>
+            {error ?? i18n.t("editor:ui.theInstallFailedTryAgainFromThePackageManager", { defaultValue: "The install failed. Try again from the Package Manager." })}
+          </AlertBanner>
         )}
       </FlexColumn>
     </Dialog>

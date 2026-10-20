@@ -1,23 +1,28 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
+import { z } from "zod";
+import { importPack } from "@nodetool-ai/node-catalog";
 import { createLogger, getManagedWorkspaceDir, managedWorkspaceKey, workspaceStorageKind } from "@nodetool-ai/config";
 import { AmbiguousGameIdError, MissingGameDraftSourceError, Asset, Game, Prediction, Project, Workspace } from "@nodetool-ai/models";
 import { anyGameAssetBinding as gameAssetBinding, gameAssetBinding as legacyAssetBinding, gameAssetBinding3D, anyGameDocument as gameDocument, gameInputFrame, shortResourceId, type AnyGameAssetBinding, type AnyGameDocument as GameDocument, type GameDocument as LegacyGameDocument, type GameDocument3D, type GameInputFrame, type GameRenderFrame } from "@nodetool-ai/protocol";
-import { autoplayNativeGame, MAX_GAME_ROUTE_TICKS, createScriptedGameSession, createTopDownRoomGame, createNative3DGame, decodePreparedGameCollider3D, validateAnyGame, trackGameAuthoringEdits, anyGameDocumentOp as gameDocumentOp, GameOpError, type GameAutoplayOptions } from "@nodetool-ai/game-runtime";
+import { autoplayNativeGame, MAX_GAME_ROUTE_TICKS, createMemoryGameSaveStorage, createScriptedGameSession, GamePlayerSaves, createTopDownRoomGame, createNative3DGame, decodePreparedGameCollider3D, validateAnyGame, trackGameAuthoringEdits, anyGameDocumentOp as gameDocumentOp, GameOpError, type GameAutoplayOptions } from "@nodetool-ai/game-runtime";
 import { workspaceFromRow } from "@nodetool-ai/execution/service";
 import { assetKeyCandidates, assetObjectKey } from "@nodetool-ai/storage";
-import type { Workspace as RunWorkspace } from "@nodetool-ai/runtime";
+import { loadCanvas, type Workspace as RunWorkspace, type StorageAdapter } from "@nodetool-ai/runtime";
+import type { TauriAppMetadata } from "@nodetool-ai/game-renderer/build-tauri";
 import type { CapabilityExport, CapabilityModule, CapabilityRun } from "./types.js";
 import { gameOutline3D, inputFrames3D, playtestGame3D, captureFrames3D, colliderBinding3D, stageModelGameAsset3D } from "./game3d.js";
 import type { PublishNativeGameRequest } from "./GamePublishRequest.js";
 import { gameSpecs } from "./game.specs.js";
+import { gameAssertions2D } from "./gameAssertions.js";
 import { persistOutput } from "../tools/asset-persist.js";
 import { getExampleGameBundle, installExampleGameAssets, listExampleGames } from "../game-examples.js";
 import { previewGameAuthoring, applyGameAuthoring } from "../game-authoring.js";
 import { gameDocumentDigest } from "../game-code-bake.js";
 import { previewGameAuthoringSpec, applyGameAuthoringSpec, browseGameAssetsSpec } from "./game.specs.js";
 import { browseGameAssets } from "./game-asset-browser.js";
+import { GAME_BUILD_INTEGRITY_FILE, gameBuildIntegrityManifest, verifiedGameBuildCache } from "../game-build-integrity.js";
 
 const log = createLogger("capabilities.game");
 
@@ -189,8 +194,8 @@ async function captureFrames(run: CapabilityRun, user: string, document: LegacyG
     wallTimeLimited = Date.now() >= deadlineAt;
     return cancelled || wallTimeLimited;
   };
-  const { captureGameFrame } = await import("@nodetool-ai/game-renderer/node");
-  const { GameParticles2D } = await import("@nodetool-ai/game-renderer");
+  const { captureGameFrame } = await importPack<typeof import("@nodetool-ai/game-renderer/node")>("game", "@nodetool-ai/game-renderer/node");
+  const { GameParticles2D } = await importPack<typeof import("@nodetool-ai/game-renderer")>("game", "@nodetool-ai/game-renderer");
   const particles = new GameParticles2D(document.tickRate);
   const diagnostics: string[] = [];
   const storage = run.context.assetStorage;
@@ -256,7 +261,7 @@ async function captureFrames(run: CapabilityRun, user: string, document: LegacyG
       const pixelScale = frame.pixelsPerUnit * frame.camera.zoom * scale;
       const overlays = Array.isArray(options.overlays) ? options.overlays.filter((value): value is string => typeof value === "string") : [];
       if (overlays.length > 0) {
-        const { createCanvas, loadImage } = await import("@napi-rs/canvas");
+        const { createCanvas, loadImage } = await loadCanvas();
         const source = await loadImage(Buffer.from(png));
         const canvas = createCanvas(source.width, source.height);
         const context = canvas.getContext("2d");
@@ -556,15 +561,25 @@ const install: CapabilityExport = {
     if (!candidate || createHash("sha256").update(candidate.bytes).digest("hex") !== parsed.data.digest) {
       return { error: "Candidate asset is missing or changed" };
     }
-    const { path, extension, contentType, bytes } = candidate;
+    const { path, bytes } = candidate;
+    let { extension, contentType } = candidate;
+    let targetPath = path;
     if (base !== undefined && base !== game.current_revision) return { error: "Game was modified concurrently" };
     const draft = await Game.readDraft(user, game.id, workspace);
     if (!draft) return { error: "Game draft is missing" };
     const expectedUpdatedAt = typeof args["base_updated_at"] === "string" ? args["base_updated_at"] : draft.game.draft_updated_at;
     let binding: AnyGameAssetBinding = parsed.data;
     try {
-      if (binding.mediaKind === "model") {
-        const { prepareGameModelBinding3D } = await import("@nodetool-ai/game-renderer/preparation3d");
+      if (draft.document.schemaVersion === 3 && binding.mediaKind === "image") {
+        const { prepareGameImage3D } = await importPack<typeof import("@nodetool-ai/game-renderer/preparation3d")>("game", "@nodetool-ai/game-renderer/preparation3d");
+        const prepared = await prepareGameImage3D(bytes, { assetId: binding.assetId, expectedDigest: binding.digest, signal: run.context.signal });
+        if (!prepared.ok) { return { error: "Image preparation failed", diagnostics: prepared.diagnostics }; }
+        binding = { ...prepared.image.binding, required: binding.required ?? true };
+        extension = prepared.image.binding.format === "jpeg" ? "jpg" : prepared.image.binding.format;
+        contentType = `image/${prepared.image.binding.format}`;
+        targetPath = `${game.source_root}/assets/${binding.digest}.${extension}`;
+      } else if (binding.mediaKind === "model") {
+        const { prepareGameModelBinding3D } = await importPack<typeof import("@nodetool-ai/game-renderer/preparation3d")>("game", "@nodetool-ai/game-renderer/preparation3d");
         const prepared = await prepareGameModelBinding3D(bytes, { assetId: binding.assetId, expectedDigest: binding.digest, signal: run.context.signal });
         if (!prepared.ok) { return { error: "Model preparation failed", diagnostics: prepared.diagnostics }; }
         const sourceAsset = binding.sourceAssetId ? await Asset.find(user, binding.sourceAssetId) : null;
@@ -584,7 +599,7 @@ const install: CapabilityExport = {
     if (!targetBinding.success) { return { error: "Asset binding does not match the game dimension" }; }
     const storage = run.context.assetStorage;
     if (!storage) return { error: "Asset storage is unavailable" };
-    if (candidateWorkspace !== workspace) await workspace.write(path, bytes, contentType);
+    if (candidateWorkspace !== workspace || targetPath !== path) await workspace.write(targetPath, bytes, contentType);
     const installed = await Asset.create({
       user_id: user,
       project_id: game.project_id,
@@ -639,12 +654,14 @@ const playtest: CapabilityExport = {
     }
     const captures = captureTicks(args["capture_ticks"], []);
     if ("error" in captures) return captures;
-    const assertions = Array.isArray(args["assertions"]) ? args["assertions"] : [];
-    const assertionHorizon = assertions.reduce((maximum, item) => {
-      if (!item || typeof item !== "object") return maximum;
-      const assertion = item as Record<string, unknown>;
-      const tick = assertion.at_tick ?? assertion.before_tick;
-      return typeof tick === "number" && Number.isSafeInteger(tick) && tick >= 0 ? Math.max(maximum, tick) : maximum;
+    const parsedAssertions = gameAssertions2D.safeParse(args["assertions"] === undefined ? [] : args["assertions"]);
+    if (!parsedAssertions.success) {
+      return { error: "Invalid 2D assertions", diagnostics: parsedAssertions.error.issues };
+    }
+    const assertions = parsedAssertions.data;
+    const assertionHorizon = assertions.reduce((maximum, assertion) => {
+      const tick = "at_tick" in assertion ? assertion.at_tick : "before_tick" in assertion ? assertion.before_tick : undefined;
+      return Math.max(maximum, tick ?? 0);
     }, 0);
     const inputs = inputFrames(args["inputs"], Math.max(0, ...captures, assertionHorizon));
     if ("error" in inputs) return inputs;
@@ -654,16 +671,16 @@ const playtest: CapabilityExport = {
     const session = await createScriptedGameSession(document, seed);
     const events: unknown[] = [];
     const contacts = new Map<string, number>();
-    const inspectionTicks = new Set(assertions.flatMap((item) => {
-      if (!item || typeof item !== "object" || !("at_tick" in item)) return [];
-      return typeof item.at_tick === "number" ? [item.at_tick] : [];
-    }));
+    const inspectionTicks = new Set(assertions.flatMap((assertion) =>
+      "at_tick" in assertion && assertion.at_tick !== undefined ? [assertion.at_tick] : []));
     let state = session.inspect();
     const inspections = new Map<number, ReturnType<typeof session.inspect>>([[0, state]]);
     const started = Date.now();
     let wallTimeLimited = false;
     let cancelled = false;
     let scriptError: { tick: number; message: string } | null = null;
+    // Script saves stay in memory for the playtest, so a run never reads or writes a player's saves.
+    const saves = new GamePlayerSaves(createMemoryGameSaveStorage());
     try {
       for (const input of inputs) {
         if (state.tick % 240 === 0) await new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -671,7 +688,8 @@ const playtest: CapabilityExport = {
         if (Date.now() - started > 15_000) { wallTimeLimited = true; break; }
         let result;
         try {
-          result = session.step(input);
+          result = session.step(saves.withLoaded(input));
+          if (result.saveRequests) { saves.handle(result.saveRequests, () => session.snapshot()); await saves.idle(); }
         } catch (error) {
           scriptError = { tick: state.tick + 1, message: error instanceof Error ? error.message : String(error) };
           break;
@@ -688,28 +706,27 @@ const playtest: CapabilityExport = {
           }
         }
       }
-      const assertion_results = assertions.map((item) => {
-        if (!item || typeof item !== "object") return { passed: false, error: "Invalid assertion" };
-        const assertion = item as Record<string, unknown>;
-        if (assertion.no_script_errors === true) return { passed: scriptError === null, assertion, observed: scriptError };
-        if (typeof assertion.event === "string") {
+      const assertion_results = assertions.map((assertion) => {
+        if ("no_script_errors" in assertion) {
+          return { passed: scriptError === null, assertion, observed: scriptError };
+        }
+        if ("event" in assertion) {
           const observed = events.find((event) => {
-            if (typeof event !== "object" || event === null || !("kind" in event)) return false;
-            if (event.kind === assertion.event) return true;
+            if (typeof event !== "object" || event === null || !("kind" in event)) {
+              return false;
+            }
+            if (event.kind === assertion.event) {
+              return true;
+            }
             return event.kind === "trigger" && "event" in event && (event.event === assertion.event || assertion.event === "win" && event.event === "victory");
           });
           const tick = typeof observed === "object" && observed !== null && "tick" in observed && typeof observed.tick === "number" ? observed.tick : Infinity;
-          return { passed: observed !== undefined && (typeof assertion.before_tick !== "number" || tick <= assertion.before_tick), assertion, observed: observed ?? null };
+          return { passed: observed !== undefined && (assertion.before_tick === undefined || tick <= assertion.before_tick), assertion, observed: observed ?? null };
         }
-        if (typeof assertion.entity_id === "string" && assertion.near && typeof assertion.near === "object") {
-          const near = assertion.near as Record<string, unknown>;
-          const observed = typeof assertion.at_tick === "number" ? inspections.get(assertion.at_tick) : state;
-          const entity = observed?.entities.find((candidate) => candidate.id === assertion.entity_id);
-          const tolerance = typeof near.tolerance === "number" ? near.tolerance : 0;
-          const passed = !!entity && typeof near.x === "number" && typeof near.y === "number" && Math.hypot(entity.x - near.x, entity.y - near.y) <= tolerance;
-          return { passed, assertion, observed: entity ?? null };
-        }
-        return { passed: false, assertion, error: "Unsupported assertion" };
+        const observed = assertion.at_tick === undefined ? state : inspections.get(assertion.at_tick);
+        const entity = observed?.entities.find((candidate) => candidate.id === assertion.entity_id);
+        const passed = !!entity && Math.hypot(entity.x - assertion.near.x, entity.y - assertion.near.y) <= (assertion.near.tolerance ?? 0);
+        return { passed, assertion, observed: entity ?? null };
       });
       const images = captures.length && scriptError === null && !cancelled && !wallTimeLimited && state.tick === inputs.length
         ? await captureFrames(run, user, document, captures, inputs, seed, { sheet: true, deadlineAt: started + 15_000 })
@@ -793,11 +810,16 @@ const generateAsset: CapabilityExport = {
       try { return await stageModelGameAsset3D(run, game, workspace, draft.document, args); }
       catch (error) { run.context.signal?.throwIfAborted(); return { error: error instanceof Error ? error.message : String(error) }; }
     }
-    if (draft.document.schemaVersion === 3 && kind === "image") { return { error: "3D games use model assets with embedded textures" }; }
+    if (draft.document.schemaVersion === 3 && kind === "image" && args["preparation"] !== undefined) {
+      const preparation = z.record(z.string(), z.unknown()).safeParse(args["preparation"]);
+      if (!preparation.success || Object.keys(preparation.data).length > 0) {
+        return { error: "3D images do not support sprite preparation. Set UV tiling and offset on the material's texture slots." };
+      }
+    }
     const reference = typeof args["reference_slot"] === "string" ? draft.document.assets[args["reference_slot"]] : undefined;
     if (args["reference_slot"] !== undefined && !reference) { return { error: "reference_slot is not bound" }; }
     if (reference && kind !== "image") { return { error: "reference_slot requires kind image" }; }
-    const { imagePreparationSettings, prepareGameImage, imagePreparationMetadata, gameFontFormat } = await import("@nodetool-ai/game-nodes");
+    const { imagePreparationSettings, prepareGameImage, imagePreparationMetadata, gameFontFormat } = await importPack<typeof import("@nodetool-ai/game-nodes")>("game", "@nodetool-ai/game-nodes");
     const settings = kind === "image" ? imagePreparationSettings.safeParse(args["preparation"] ?? {}) : null;
     if (settings && !settings.success) { return { error: "Invalid image preparation", issues: settings.error.issues }; }
     if (kind !== "image" && args["preparation"] !== undefined) { return { error: "preparation requires kind image" }; }
@@ -875,6 +897,18 @@ const generateAsset: CapabilityExport = {
       if (!sourceBytes) { return { error: "Generated asset bytes are unavailable", generation_id: generated.generation_id }; }
     }
     if (sourceBytes.byteLength > MAX_BUILD_ASSET_BYTES) { return { error: "Game asset exceeds the supported asset size" }; }
+    if (draft.document.schemaVersion === 3 && kind === "image") {
+      const { prepareGameImage3D } = await importPack<typeof import("@nodetool-ai/game-renderer/preparation3d")>("game", "@nodetool-ai/game-renderer/preparation3d");
+      const digest = createHash("sha256").update(sourceBytes).digest("hex");
+      const prepared = await prepareGameImage3D(sourceBytes, { assetId: `generated:${digest}`, expectedDigest: digest, signal: run.context.signal });
+      if (!prepared.ok) { return { error: "Image preparation failed", diagnostics: prepared.diagnostics }; }
+      const binding = prepared.image.binding;
+      const extension = binding.format === "jpeg" ? "jpg" : binding.format;
+      await workspace.write(`${game.source_root}/assets/${binding.digest}.${extension}`, prepared.image.bytes, `image/${binding.format}`);
+      return { game_id: shortResourceId(game.id), slot, binding, candidate_workspace_id: game.workspace_id,
+        draft_updated_at: draft.game.draft_updated_at, installed: false,
+        next: "Call install_native_game_asset with this binding to install the verified candidate." };
+    }
     let bytes = sourceBytes;
     let width = 1;
     let height = 1;
@@ -974,125 +1008,194 @@ const generateAsset: CapabilityExport = {
   }
 };
 
+export type NativeGameBuildTarget = "web" | "tauri";
+
+export interface NativeGameBuildRequest {
+  readonly userId: string;
+  readonly gameId: string;
+  readonly revision?: string;
+  readonly target?: NativeGameBuildTarget;
+  readonly storage: StorageAdapter | null | undefined;
+  readonly signal?: AbortSignal;
+}
+
+export type NativeGameBuildResult =
+  | { readonly error: string }
+  | { readonly game_id: string; readonly revision: string; readonly target: NativeGameBuildTarget; readonly build_path: string;
+    readonly entry_path: string; readonly cached: boolean; readonly workspace: RunWorkspace;
+    /** The desktop app's name, identifier and binary name for a `tauri` build, else null. */
+    readonly app: TauriAppMetadata | null };
+
+const BUILD_CONTENT_TYPES: Readonly<Record<string, string>> = {
+  js: "text/javascript", css: "text/css", json: "application/json", html: "text/html", png: "image/png", jpg: "image/jpeg",
+  webp: "image/webp", wav: "audio/wav", ogg: "audio/ogg", mp3: "audio/mpeg", ttf: "font/ttf", otf: "font/otf",
+  glb: "model/gltf-binary", wasm: "application/wasm", md: "text/markdown", toml: "text/plain", rs: "text/plain",
+  ico: "image/vnd.microsoft.icon", icns: "image/icns"
+};
+
+/**
+ * Builds an owned, published game revision into its project workspace: a static web player under
+ * `game-builds/<game-id>/<revision>-<target>-<runtime-fingerprint>`.
+ * The capability and the editor's export download share this path.
+ */
+export async function buildOwnedNativeGame(request: NativeGameBuildRequest): Promise<NativeGameBuildResult> {
+  const user = request.userId;
+  const target = request.target ?? "web";
+  const game = await ownedGame(user, request.gameId);
+  if (!game) return { error: "Game not found" };
+  const workspace = await workspaceOf(user, game);
+  if (!workspace) return { error: "Game workspace is unavailable" };
+  const revision = request.revision ?? game.current_revision;
+  const document = await readDocument(workspace, game, revision);
+  if (!document) return { error: "Game revision not found" };
+  if (Object.keys(document.assets).length > MAX_BUILD_ASSETS) {
+    return { error: `A standalone build supports at most ${MAX_BUILD_ASSETS} assets` };
+  }
+  const expectedDigests = new Map<string, Set<string>>();
+  for (const binding of Object.values(document.assets)) {
+    if (binding.assetId.startsWith("builtin:")) continue;
+    const digests = expectedDigests.get(binding.assetId) ?? new Set<string>();
+    digests.add(binding.digest);
+    expectedDigests.set(binding.assetId, digests);
+  }
+  if ([...expectedDigests.values()].some((digests) => digests.size !== 1)) {
+    return { error: "One source asset has conflicting digests in this revision" };
+  }
+  let tauriApp: { name: string } | undefined;
+  let metadata: TauriAppMetadata | undefined;
+  let fingerprint: string;
+  try {
+    request.signal?.throwIfAborted();
+    if (target === "tauri") {
+      tauriApp = { name: game.name };
+      const renderer = await importPack<typeof import("@nodetool-ai/game-renderer/build-tauri")>("game", "@nodetool-ai/game-renderer/build-tauri");
+      metadata = renderer.tauriAppMetadata(document, tauriApp);
+      fingerprint = await renderer.tauriGameRuntimeFingerprint(document, tauriApp);
+    } else if (document.schemaVersion === 3) {
+      const renderer = await importPack<typeof import("@nodetool-ai/game-renderer/build3d")>("game", "@nodetool-ai/game-renderer/build3d");
+      fingerprint = await renderer.standaloneGame3DRuntimeFingerprint();
+    } else {
+      const renderer = await importPack<typeof import("@nodetool-ai/game-renderer/build")>("game", "@nodetool-ai/game-renderer/build");
+      fingerprint = await renderer.standaloneGameRuntimeFingerprint();
+    }
+    request.signal?.throwIfAborted();
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) };
+  }
+  const buildPath = `game-builds/${game.id}/${revision}-${target}-${fingerprint}`;
+  const entryFile = target === "web" ? "index.html" : "src-tauri/tauri.conf.json";
+  const entryPath = `${buildPath}/${entryFile}`;
+  const done = { game_id: game.id, revision, target, build_path: buildPath, entry_path: entryPath, workspace, app: metadata ?? null };
+  try {
+    const cached = await verifiedGameBuildCache(workspace, buildPath, fingerprint, entryFile, { files: MAX_BUILD_FILES, bytes: MAX_BUILD_BYTES }, request.signal);
+    request.signal?.throwIfAborted();
+    if (cached) {
+      return { ...done, cached: true };
+    }
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) };
+  }
+  const storage = request.storage;
+  const cache = new Map<string, { bytes: Uint8Array; mimeType: string }>();
+  let totalAssetBytes = 0;
+  const resolveAsset = async (assetId: string): Promise<{ bytes: Uint8Array; mimeType: string } | null> => {
+    const cached = cache.get(assetId);
+    if (cached) return cached;
+    if (!/^[a-f0-9]{32}$/.test(assetId)) return null;
+    const asset = await Asset.find(user, assetId);
+    if (!asset || !storage) return null;
+    const extension = MEDIA_EXTENSIONS[asset.content_type];
+    if (!extension || (asset.size !== null && asset.size > MAX_BUILD_ASSET_BYTES)) return null;
+    const keys = assetKeyCandidates(user, `${asset.id}.${extension}`);
+    let bytes: Uint8Array | null = null;
+    for (const key of keys) {
+      bytes = await storage.retrieve(storage.uriForKey(key));
+      if (bytes) break;
+    }
+    if (!bytes || bytes.byteLength > MAX_BUILD_ASSET_BYTES) return null;
+    const digest = createHash("sha256").update(bytes).digest("hex");
+    if (!expectedDigests.get(assetId)?.has(digest)) {
+      throw new Error(`Asset digest changed for ${assetId}`);
+    }
+    totalAssetBytes += bytes.byteLength;
+    if (totalAssetBytes > MAX_BUILD_BYTES) {
+      throw new Error(`A standalone build supports at most ${MAX_BUILD_BYTES} asset bytes`);
+    }
+    const resolved = { bytes, mimeType: asset.content_type };
+    cache.set(assetId, resolved);
+    return resolved;
+  };
+  const scratch = await workspace.scratchDir();
+  const staging = await mkdtemp(join(scratch, ".native-game-build-"));
+  try {
+    const output = join(staging, "player");
+    if (tauriApp) {
+      const { buildTauriGameProject } = await importPack<typeof import("@nodetool-ai/game-renderer/build-tauri")>("game", "@nodetool-ai/game-renderer/build-tauri");
+      await buildTauriGameProject({ document, outputDir: output, resolveAsset, app: tauriApp, signal: request.signal });
+    } else if (document.schemaVersion === 3) {
+      const { buildStandaloneGame3D } = await importPack<typeof import("@nodetool-ai/game-renderer/build3d")>("game", "@nodetool-ai/game-renderer/build3d");
+      await buildStandaloneGame3D({ document, outputDir: output, resolveAsset, signal: request.signal });
+    } else {
+      const { buildStandaloneGame } = await importPack<typeof import("@nodetool-ai/game-renderer/build")>("game", "@nodetool-ai/game-renderer/build");
+      await buildStandaloneGame({ document, outputDir: output, resolveAsset, signal: request.signal });
+    }
+    const files: Array<{ path: string; bytes: Uint8Array }> = [];
+    const pending = [""];
+    let totalBytes = 0;
+    while (pending.length > 0) {
+      const directory = pending.pop() ?? "";
+      for (const entry of await readdir(join(output, directory), { withFileTypes: true })) {
+        const path = directory ? `${directory}/${entry.name}` : entry.name;
+        if (entry.isDirectory()) {
+          pending.push(path);
+        } else if (entry.isFile()) {
+          const bytes = await readFile(join(output, path));
+          totalBytes += bytes.byteLength;
+          if (files.length >= MAX_BUILD_FILES || totalBytes > MAX_BUILD_BYTES) {
+            throw new Error("Standalone build exceeds file or byte limits");
+          }
+          files.push({ path, bytes });
+        }
+      }
+    }
+    const entry = files.find((file) => file.path === entryFile);
+    if (!entry) throw new Error("Standalone build entry is missing");
+    const integrity = gameBuildIntegrityManifest(buildPath, fingerprint, entryFile, files);
+    if (files.length + 1 > MAX_BUILD_FILES || totalBytes + Buffer.byteLength(integrity) > MAX_BUILD_BYTES) {
+      throw new Error("Standalone build exceeds file or byte limits");
+    }
+    const contentType = (path: string): string => BUILD_CONTENT_TYPES[path.slice(path.lastIndexOf(".") + 1)] ?? "application/octet-stream";
+    // Publish the integrity manifest only after all of its files have been written successfully.
+    for (const file of files.filter((item) => item !== entry)) {
+      await workspace.write(`${buildPath}/${file.path}`, file.bytes, contentType(file.path));
+    }
+    await workspace.write(entryPath, entry.bytes, contentType(entry.path));
+    await workspace.write(`${buildPath}/${GAME_BUILD_INTEGRITY_FILE}`, integrity, "application/json");
+    return { ...done, cached: false };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) };
+  } finally {
+    await rm(staging, { recursive: true, force: true });
+  }
+}
+
 const buildGame: CapabilityExport = {
   spec: gameSpecs[5],
   impl: async (run, args) => {
     const user = userId(run);
     const id = args["game_id"];
     if (!user || typeof id !== "string") return { error: "game_id is required in a user session" };
-    const game = await ownedGame(user, id);
-    if (!game) return { error: "Game not found" };
-    const workspace = await workspaceOf(user, game);
-    if (!workspace) return { error: "Game workspace is unavailable" };
-    const revision = typeof args["revision"] === "string" ? args["revision"] : game.current_revision;
-    const document = await readDocument(workspace, game, revision);
-    if (!document) return { error: "Game revision not found" };
-    if (Object.keys(document.assets).length > MAX_BUILD_ASSETS) {
-      return { error: `A standalone build supports at most ${MAX_BUILD_ASSETS} assets` };
-    }
-    const expectedDigests = new Map<string, Set<string>>();
-    for (const binding of Object.values(document.assets)) {
-      if (binding.assetId.startsWith("builtin:")) continue;
-      const digests = expectedDigests.get(binding.assetId) ?? new Set<string>();
-      digests.add(binding.digest);
-      expectedDigests.set(binding.assetId, digests);
-    }
-    if ([...expectedDigests.values()].some((digests) => digests.size !== 1)) {
-      return { error: "One source asset has conflicting digests in this revision" };
-    }
-    const buildPath = `game-builds/${game.id}/${revision}`;
-    const indexPath = `${buildPath}/index.html`;
-    if (await workspace.exists(indexPath)) {
-      return { game_id: game.id, revision, build_path: buildPath, entry_path: indexPath, cached: true };
-    }
-    const storage = run.context.assetStorage;
-    const cache = new Map<string, { bytes: Uint8Array; mimeType: string }>();
-    let totalAssetBytes = 0;
-    const resolveAsset = async (assetId: string): Promise<{ bytes: Uint8Array; mimeType: string } | null> => {
-      const cached = cache.get(assetId);
-      if (cached) return cached;
-      if (!/^[a-f0-9]{32}$/.test(assetId)) return null;
-      const asset = await Asset.find(user, assetId);
-      if (!asset || !storage) return null;
-      const extension = MEDIA_EXTENSIONS[asset.content_type];
-      if (!extension || (asset.size !== null && asset.size > MAX_BUILD_ASSET_BYTES)) return null;
-      const keys = assetKeyCandidates(user, `${asset.id}.${extension}`);
-      let bytes: Uint8Array | null = null;
-      for (const key of keys) {
-        bytes = await storage.retrieve(storage.uriForKey(key));
-        if (bytes) break;
-      }
-      if (!bytes || bytes.byteLength > MAX_BUILD_ASSET_BYTES) return null;
-      const digest = createHash("sha256").update(bytes).digest("hex");
-      if (!expectedDigests.get(assetId)?.has(digest)) {
-        throw new Error(`Asset digest changed for ${assetId}`);
-      }
-      totalAssetBytes += bytes.byteLength;
-      if (totalAssetBytes > MAX_BUILD_BYTES) {
-        throw new Error(`A standalone build supports at most ${MAX_BUILD_BYTES} asset bytes`);
-      }
-      const resolved = { bytes, mimeType: asset.content_type };
-      cache.set(assetId, resolved);
-      return resolved;
-    };
-    const scratch = await workspace.scratchDir();
-    const staging = await mkdtemp(join(scratch, ".native-game-build-"));
-    try {
-      if (document.schemaVersion === 3) {
-        const { buildStandaloneGame3D } = await import("@nodetool-ai/game-renderer/build3d");
-        await buildStandaloneGame3D({ document, outputDir: join(staging, "player"), resolveAsset, signal: run.context.signal });
-      } else {
-        const { buildStandaloneGame } = await import("@nodetool-ai/game-renderer/build");
-        await buildStandaloneGame({ document, outputDir: join(staging, "player"), resolveAsset });
-      }
-      const files: Array<{ path: string; bytes: Uint8Array }> = [];
-      const pending = [""];
-      let totalBytes = 0;
-      while (pending.length > 0) {
-        const directory = pending.pop() ?? "";
-        for (const entry of await readdir(join(staging, "player", directory), { withFileTypes: true })) {
-          const path = directory ? `${directory}/${entry.name}` : entry.name;
-          if (entry.isDirectory()) {
-            pending.push(path);
-          } else if (entry.isFile()) {
-            const bytes = await readFile(join(staging, "player", path));
-            totalBytes += bytes.byteLength;
-            if (files.length >= MAX_BUILD_FILES || totalBytes > MAX_BUILD_BYTES) {
-              throw new Error("Standalone build exceeds file or byte limits");
-            }
-            files.push({ path, bytes });
-          }
-        }
-      }
-      if (!files.some((file) => file.path === "index.html")) {
-        throw new Error("Standalone player entry is missing");
-      }
-      for (const file of files.filter((item) => item.path !== "index.html")) {
-        const contentType = file.path.endsWith(".js") ? "text/javascript"
-          : file.path.endsWith(".css") ? "text/css"
-          : file.path.endsWith(".json") ? "application/json"
-          : file.path.endsWith(".png") ? "image/png"
-          : file.path.endsWith(".jpg") ? "image/jpeg"
-          : file.path.endsWith(".webp") ? "image/webp"
-          : file.path.endsWith(".wav") ? "audio/wav"
-          : file.path.endsWith(".ogg") ? "audio/ogg"
-          : file.path.endsWith(".mp3") ? "audio/mpeg"
-          : file.path.endsWith(".ttf") ? "font/ttf"
-          : file.path.endsWith(".otf") ? "font/otf"
-          : file.path.endsWith(".glb") ? "model/gltf-binary"
-          : file.path.endsWith(".wasm") ? "application/wasm"
-          : "application/octet-stream";
-        await workspace.write(`${buildPath}/${file.path}`, file.bytes, contentType);
-      }
-      const index = files.find((file) => file.path === "index.html");
-      if (!index) throw new Error("Standalone player entry is missing");
-      await workspace.write(indexPath, index.bytes, "text/html");
-      return { game_id: game.id, revision, build_path: buildPath, entry_path: indexPath, cached: false };
-    } catch (error) {
-      return { error: error instanceof Error ? error.message : String(error) };
-    } finally {
-      await rm(staging, { recursive: true, force: true });
-    }
+    const target = args["target"] ?? "web";
+    if (target !== "web" && target !== "tauri") return { error: "target must be web or tauri" };
+    const revision = args["revision"];
+    const result = await buildOwnedNativeGame({ userId: user, gameId: id, revision: typeof revision === "string" ? revision : undefined,
+      target, storage: run.context.assetStorage, signal: run.context.signal });
+    if ("error" in result) return { error: result.error };
+    const report = { game_id: result.game_id, revision: result.revision, target: result.target, build_path: result.build_path,
+      entry_path: result.entry_path, cached: result.cached };
+    return target === "tauri"
+      ? { ...report, next: "The project builds desktop installers with `npm install && npm run build` in a checkout that has Rust and the Tauri prerequisites." }
+      : report;
   }
 };
 
@@ -1142,17 +1245,18 @@ const installExample: CapabilityExport = {
     if (!storage) return { error: "Asset storage is unavailable" };
     if (!getExampleGameBundle({}, slug)) return { error: "Example game not found" };
     const installed = await installExampleGameAssets(user, projectId, {}, slug, storage);
+    let created: Awaited<ReturnType<typeof createNativeGame>>;
     try {
-      const created = await createNativeGame(user, projectId, typeof name === "string" ? name.trim() : installed.bundle.name, installed.document, installed.document.schemaVersion === 3 ? "3d" : "2d");
-      if ("error" in created) {
-        await installed.rollback();
-        return created;
-      }
-      return { game: summary(created.game), document: created.document };
+      created = await createNativeGame(user, projectId, typeof name === "string" ? name.trim() : installed.bundle.name, installed.document, installed.document.schemaVersion === 3 ? "3d" : "2d");
     } catch (error) {
-      await installed.rollback();
+      await installed.rollback(error);
       throw error;
     }
+    if ("error" in created) {
+      await installed.rollback(new Error(created.error));
+      return created;
+    }
+    return { game: summary(created.game), document: created.document };
   }
 };
 

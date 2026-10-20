@@ -34,3 +34,9 @@
 ## 当创意方案变成成片
 
 上面算出的小节网格只是计划;`beat-sync-editing` 用 `detect_audio_events` 从曲目推导真实网格,并把剪切吸附上去,所以两套网格必须先对齐才能修剪任何东西。这里曲目就是连贯性的载体,所以各段落剪辑分开渲染并静音各自的音频——某段素材没有自己的音轨时的处理见 `video-audio-continuity`。`motion-graphics` 承载时间线操作契约,`color-motion` 承载分段调色与 drop 上任何随节拍变动的色彩,`frame-composition` 承载副歌间反复出现的钩子构图,`caption-titles` 承载屏幕上的歌词卡与艺人卡。
+
+一段通常比一条生成的片段长(20 秒的副歌对 5–10 秒的片段),所以给每段多个镜头,按 `slug` 命名区分。
+
+上文算出的节拍栅格只是计划;`beat-sync-editing` 用 `detect_audio_events` 从音轨推出真实栅格,`timeline-edit-ops` 承载对齐用的 op 契约。
+
+分镜板操作走 `storyboard-core`:先 `render_storyboard_stills` 出静态图,逐张用 `view_image` 检查并修正漂移。

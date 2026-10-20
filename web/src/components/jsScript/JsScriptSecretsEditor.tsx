@@ -5,14 +5,14 @@
  * never widen what the script reaches.
  */
 import { memo, useCallback } from "react";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 
 import {
   DeleteButton,
   EditorButton,
   FlexColumn,
   FlexRow,
-  Label,
+  SectionHeader,
   Text,
   TextInput,
   SPACING
@@ -47,21 +47,24 @@ const JsScriptSecretsEditor = ({
 
   return (
     <FlexColumn gap={SPACING.sm}>
-      <FlexRow align="center" justify="space-between">
-        <Label>{t("ui2:attrs.secrets", { defaultValue: "Secrets" })}</Label>
-        {!readOnly && (
-          <EditorButton
-            density="compact"
-            startIcon={<AddIcon fontSize="small" />}
-            onClick={() => onChange([...secrets, ""])}
-          >
-            Add
-          </EditorButton>
-        )}
-      </FlexRow>
+      <SectionHeader
+        size="small"
+        title={t("ui2:attrs.secrets", { defaultValue: "Secrets" })}
+        action={
+          readOnly ? undefined : (
+            <EditorButton
+              density="compact"
+              startIcon={<AddIcon />}
+              onClick={() => onChange([...secrets, ""])}
+            >
+              Add
+            </EditorButton>
+          )
+        }
+      />
       {secrets.length === 0 ? (
         <Text size="small" color="secondary">
-          {t("editor:ui.theBodyReadsNoSecrets")}
+          The body reads no secrets.
         </Text>
       ) : (
         secrets.map((name, index) => (

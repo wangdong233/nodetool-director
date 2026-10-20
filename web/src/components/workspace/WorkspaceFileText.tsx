@@ -15,9 +15,9 @@ import MonacoPane from "./MonacoPane";
 import { workspaceFileName } from "./workspaceFileRef";
 import type { WorkspaceFileKind } from "./workspaceFileKind";
 import type { WorkspaceTabMode } from "../../stores/WorkspaceTabsStore";
+import ErrorBanner from "../support/ErrorBanner";
 import {
   AlertBanner,
-  BORDER_RADIUS,
   Caption,
   CopyButton,
   DataTable,
@@ -26,9 +26,13 @@ import {
   FlexRow,
   LoadingSpinner,
   ScrollArea,
-  Text, getSpacingPx, SPACING
+  Text, getSpacingPx, SPACING,
+  SaveState,
+  Toolbar,
+  EmptyState
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface WorkspaceFileTextProps {
   workspaceId: string;
@@ -48,13 +52,6 @@ const styles = (theme: Theme) =>
     width: "100%",
     height: "100%",
     backgroundColor: theme.vars.palette.background.default,
-    ".file-header": {
-      flex: "0 0 auto",
-      height: "2.5em",
-      padding: `0 ${getSpacingPx(SPACING.md)} 0 ${getSpacingPx(SPACING.lg)}`,
-      borderBottom: `1px solid ${theme.vars.palette.divider}`,
-      backgroundColor: theme.vars.palette.background.paper
-    },
     ".filename": {
       color: theme.vars.palette.text.primary,
       fontWeight: 500
@@ -66,13 +63,6 @@ const styles = (theme: Theme) =>
     ".file-body": {
       flex: 1,
       minHeight: 0
-    },
-    ".dirty-dot": {
-      width: 8,
-      height: 8,
-      borderRadius: BORDER_RADIUS.circle,
-      backgroundColor: theme.vars.palette.warning.main,
-      flex: "0 0 auto"
     },
     ".csv-note": {
       padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xl)}`
@@ -86,7 +76,6 @@ const styles = (theme: Theme) =>
   });
 
 const CsvTableView = ({ text, name }: { text: string; name: string }) => {
-  const { t } = useTranslation();
   const { columns, rows, truncated } = useMemo(() => {
     const df = parseCsvToDataframe(text, csvDelimiterFor(name));
     const cols = (df.columns ?? []).map((c, i) => ({
@@ -111,7 +100,7 @@ const CsvTableView = ({ text, name }: { text: string; name: string }) => {
   if (columns.length === 0) {
     return (
       <FlexColumn className="status">
-        <Caption>{t("ui2:attrs.emptyTable", { defaultValue: "Empty table" })}</Caption>
+        <EmptyState size="small" variant="no-data" title={t("editor:ui.thisTableIsEmpty", { defaultValue: "This table is empty" })} />
       </FlexColumn>
     );
   }
@@ -235,9 +224,15 @@ const WorkspaceFileText = ({
     if (error) {
       return (
         <FlexColumn className="status">
-          <Text size="normal" weight={600} sx={{ color: "error.main" }}>
-            Failed to load {name}
-          </Text>
+          <ErrorBanner
+            report={{
+              source: "operation-failure",
+              summary: "Workspace file failed to load",
+              errorText: error.message
+            }}
+          >
+            {`Could not load ${name}.`}
+          </ErrorBanner>
         </FlexColumn>
       );
     }
@@ -280,11 +275,9 @@ const WorkspaceFileText = ({
 
   return (
     <FlexColumn css={paneStyles} sx={{ width: "100%", height: "100%" }}>
-      <FlexRow
+      <Toolbar
         className="file-header"
-        align="center"
-        justify="space-between"
-        gap={1}
+        sx={{ justifyContent: "space-between", pl: SPACING.lg }}
       >
         <FlexRow align="center" gap={1} sx={{ minWidth: 0 }}>
           <Text className="filename" size="small">
@@ -298,9 +291,7 @@ const WorkspaceFileText = ({
           )}
           {mode === "edit" && (
             <>
-              {isDirty && (
-                <span className="dirty-dot" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
-              )}
+              <SaveState state={isDirty ? "dirty" : "idle"} showLabel={false} />
               <EditorButton
                 variant="contained"
                 size="small"
@@ -308,14 +299,12 @@ const WorkspaceFileText = ({
                 disabled={!canSave}
                 onClick={handleSave}
               >
-                {isSaving
-                  ? t("editor:ui.saving", { defaultValue: "Saving…" })
-                  : t("common:action.save", { defaultValue: "Save" })}
+                {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
               </EditorButton>
             </>
           )}
         </FlexRow>
-      </FlexRow>
+      </Toolbar>
       {truncated && (
         <AlertBanner severity="warning" compact>
           Showing the first part of this file only — it is too large to load in

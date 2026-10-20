@@ -346,7 +346,7 @@ export const usePlanWorkflow = (workflowId: string): UsePlanWorkflowResult => {
         !controller.signal.aborted;
       const setAside = () =>
         controller.signal.aborted
-          ? "Planning was canceled."
+          ? i18n.t("editor:ui.planningCanceled", { defaultValue: "Planning was canceled." })
           : PLAN_SET_ASIDE_REASON;
       setError(null);
       setPlanning(true);

@@ -176,3 +176,13 @@ bundle 是小程序加上它运行的每个工作流的完整图,其中每个操
 | `invocations` | 任务 id | `{id, operationId, status, progress, error, startedAt}` |
 
 输出状态为 `empty`、`pending`、`streaming` 或 `done`。流式值会累积: 文本拼接,结构化条目收进列表。输出槽在每次运行开始时清空。
+
+改应用时把工作流传进 `edit_app {workflow_ids: [...]}`。绑定指向节点,不会自动更新。
+
+`run` 默认为 `true`,裸调用即会真实运行工作流并产生费用;`debug_app {application_id}` 也会运行。运行前与用户确认;长任务以分钟计,调高 `timeout_ms`,`poll: true` 轮询返回。
+
+布局:交互步骤用 `"items": [...]` 或 `resource:<binding>`;按钮设 `fullWidth: false` 可贴合文字,`align: "end"` 靠右;Heading 支持 `subtitle`,Text 支持 `tone`。文档为 `schemaVersion: 4`,设置 `recipe` 时为 5。
+
+交互步骤用 `"items": [...]`,或 `resource:<binding>` 键;`align: "end"` 靠右,Heading 带 `subtitle`,Text 带 `tone`。
+
+其余:`"items": [...]` 作为交互步骤,或 `resource:<binding>` 键;`align: "end"` 靠右,Heading 带 `subtitle`,Text 带 `tone`。

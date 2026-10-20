@@ -5,7 +5,7 @@
  * opening a workspace tab per row.
  */
 
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import React, { memo, useCallback, useState } from "react";
 import type { Entity } from "@nodetool-ai/protocol";
 
@@ -14,7 +14,7 @@ import {
   AutoGrid,
   EditorButton,
   EmptyState,
-  FlexRow,
+  FlexColumn,
   LoadingSpinner,
   ScrollArea,
   SPACING,
@@ -27,6 +27,7 @@ import EntityCard from "./EntityCard";
 import EntityEditorDialog from "./EntityEditorDialog";
 import { creationProjectId } from "../../stores/WorkspaceTabsStore";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /** Picks an image asset, then opens the editor to describe it. */
 interface CreateEntityButtonProps {
@@ -75,7 +76,7 @@ export const CreateEntityButton = memo(function CreateEntityButton({
       ) : (
         <Tooltip title={t("editor:ui.newEntity", { defaultValue: "New entity" })} placement="right-start">
           <ToolbarIconButton
-            ariaLabel={t("editor:ui.newEntity", { defaultValue: "New entity" })}
+            ariaLabel="New entity"
             onClick={() => setPickerOpen(true)}
             tabIndex={-1}
             icon={<AddIcon />}
@@ -125,9 +126,9 @@ const EntityListPanelInternal: React.FC<EntityListPanelProps> = ({
 
   if (isLoading) {
     return (
-      <FlexRow align="center" justify="center" sx={{ p: 3 }}>
-        <LoadingSpinner />
-      </FlexRow>
+      <FlexColumn gap={2} justify="center" align="center" sx={{ flex: 1 }}>
+        <LoadingSpinner size="large" text={i18n.t("editor:ui.loadingEntities", { defaultValue: "Loading entities" })} />
+      </FlexColumn>
     );
   }
 
@@ -136,7 +137,7 @@ const EntityListPanelInternal: React.FC<EntityListPanelProps> = ({
       <EmptyState
         variant="empty"
         title={t("editor:ui.noEntitiesYet", { defaultValue: "No entities yet" })}
-        description={t("editor:ui.tagAnImageAsACharacterLocationStyleOrPropWithThe+ButtonAbove")}
+        description={t("storyboard:attrs.tagImagePanelHint", { defaultValue: "Tag an image as a character, location, style, or prop with the + button above, or right-click an image in the Library and choose Use as entity." })}
         size="small"
       />
     );

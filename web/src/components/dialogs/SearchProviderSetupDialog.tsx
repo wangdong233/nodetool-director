@@ -7,6 +7,7 @@ import {
   TextInput,
   FlexColumn,
   SelectField,
+  SPACING,
   type SelectOption
 } from "../ui_primitives";
 import ExternalLink from "../common/ExternalLink";
@@ -14,13 +15,13 @@ import { useSearchProviderCalloutStore } from "../../stores/SearchProviderCallou
 import useRemoteSettingsStore from "../../stores/RemoteSettingStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { formatSettingLabel } from "../menus/settingsLabel";
-import { i18n } from "../../i18n";
 import {
   SEARCH_PROVIDER_CONFIGS,
   SUGGESTED_SERP_PROVIDER,
   type SerpProviderId
 } from "../../utils/searchProviders";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const PROVIDER_OPTIONS: SelectOption[] = Object.values(
   SEARCH_PROVIDER_CONFIGS
@@ -126,17 +127,15 @@ const SearchProviderSetupDialog: React.FC = () => {
       onClose={dismiss}
       title={t("editor:ui.setUpWebSearch", { defaultValue: "Set up web search" })}
       onConfirm={handleSave}
-      onCancel={dismiss}
-      confirmText={t("editor:ui.saveContinue", { defaultValue: "Save & continue" })}
-      cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+      confirmText={i18n.t("editor:ui.saveContinue", { defaultValue: "Save & continue" })}
       confirmDisabled={!allFilled}
       isLoading={saving}
       content={
-        <FlexColumn gap={2}>
+        <FlexColumn gap={SPACING.lg}>
           <Text>
             {nodeNames
               ? `${nodeNames} uses a web-search tool, but no search provider is configured. `
-              : t("editor:ui.thisAgentUsesAWebsearchToolButNoSearchProviderIsConfigured", { defaultValue: "This agent uses a web-search tool, but no search provider is configured. " })}
+              : i18n.t("editor:ui.thisAgentUsesAWebsearchToolButNoSearchProviderIsConfigured", { defaultValue: "This agent uses a web-search tool, but no search provider is configured. " })}
             Add one below to run the workflow.
           </Text>
 
@@ -158,7 +157,6 @@ const SearchProviderSetupDialog: React.FC = () => {
               label={formatSettingLabel(field)}
               value={credentials[field] ?? ""}
               onChange={handleCredentialChange(field)}
-              variant="standard"
               size="small"
               onKeyDown={(e: React.KeyboardEvent) => e.stopPropagation()}
             />

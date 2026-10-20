@@ -27,10 +27,6 @@
     "loading": "加载中…"
   },
   "boot": {
-    "loading": "正在加载 NodeTool…",
-    "errorDetail": "加载应用元数据出错。",
-    "refresh": "刷新页面",
-    "preparing": "正在准备工作区…"
   },
   "mime": {
     "image/png": "PNG 图片",
@@ -93,13 +89,6 @@
     "dayAgo": "{{count}} 天前"
   },
   "list": {
-    "searchPlaceholder": "搜索{{plural}}…",
-    "loadingPlural": "正在加载{{plural}}…",
-    "couldNotLoad": "无法加载{{plural}}",
-    "tryAgainLater": "请稍后再试。",
-    "noMatching": "没有匹配的{{plural}}",
-    "noneYet": "还没有{{plural}}",
-    "deleteTitle": "删除{{singular}}",
-    "deleteContent": "删除“{{name}}”？此操作无法撤销。"
+    "tryAgainLater": "请稍后再试。"
   }
 }

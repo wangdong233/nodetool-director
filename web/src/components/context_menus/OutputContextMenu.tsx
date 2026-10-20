@@ -12,7 +12,8 @@ import {
   SPACING,
   getSpacingPx,
   InputAdornment,
-  TextField
+  TextField,
+  ICON_SIZE
 } from "../ui_primitives";
 import { PREVIEW_NODE_TYPE, REROUTE_NODE_TYPE } from "../../constants/nodeTypes";
 import { useTheme } from "@mui/material/styles";
@@ -38,14 +39,16 @@ import { useRecentNodesStore } from "../../stores/RecentNodesStore";
 import NodeItem from "../node_menu/NodeItem";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { useCodeGenFromHandle } from "../../hooks/useCodeGenFromHandle";
+import ContextMenuItem from "./ContextMenuItem";
 import { useHandleNodePlacement } from "../../hooks/useHandleNodePlacement";
 import { isNumber } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 import { useAddConnectedNode } from "../../hooks/nodes/useAddConnectedNode";
 import {
   outputQuickActionsFor,
   type OutputQuickAction
 } from "../../config/outputQuickActions";
+import { useTranslation } from "react-i18next";
+
 const NODE_ROW_HEIGHT = 28;
 
 const OutputContextMenu: React.FC = () => {
@@ -144,23 +147,20 @@ const OutputContextMenu: React.FC = () => {
     return getMetadata(saveNodePath);
   }, [sourceType, getMetadata]);
 
-  type HandleType = "value" | "image" | "df" | "values";
+  // Preview and Output take `value`. Any other node connects to its first
+  // input that accepts the output's type (Save Text takes `text`, Save Video
+  // `video`).
   const getTargetHandle = useCallback(
-    (type: string, nodeType: string): HandleType => {
-      const typeMap: { [key: string]: HandleType } = {
-        image: "image",
-        dataframe: "df",
-        list: "values"
-      };
-      if (nodeType === "preview") {
+    (metadata: NodeMetadata, nodeType: string): string => {
+      if (nodeType === "preview" || nodeType === "output" || !sourceType) {
         return "value";
-      } else if (nodeType === "output") {
-        return "value";
-      } else {
-        return typeMap[type] || "value";
       }
+      const match = metadata.properties.find((property) =>
+        isConnectable(sourceType, property.type, false)
+      );
+      return match?.name ?? "value";
     },
-    []
+    [sourceType]
   );
 
   /**
@@ -226,7 +226,7 @@ const OutputContextMenu: React.FC = () => {
       };
 
       if (!targetHandle) {
-        targetHandle = getTargetHandle(sourceType?.type || "", nodeType);
+        targetHandle = getTargetHandle(metadata as NodeMetadata, nodeType);
       }
 
       if (sourceHandle && newNode.data.properties.name !== undefined) {
@@ -488,45 +488,6 @@ const OutputContextMenu: React.FC = () => {
   }`;
   const showStaticActions = searchTerm.trim().length === 0;
 
-  // Shared by every action row: serialize the sx object once, not once per row per render.
-  const actionRowStyles = useMemo(
-    () => ({
-      alignItems: "center",
-      backgroundColor: "transparent",
-      border: 0,
-      borderRadius: BORDER_RADIUS.md,
-      color: "text.primary",
-      cursor: "pointer",
-      display: "flex",
-      font: "inherit",
-      gap: getSpacingPx(SPACING.md),
-      margin: 0,
-      minHeight: "28px",
-      padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.sm)}`,
-      textAlign: "left",
-      width: "100%",
-      "&:hover": { backgroundColor: theme.vars.palette.action.hover },
-      ".icon-bg": {
-        alignItems: "center",
-        backgroundColor: theme.vars.palette.grey[900],
-        borderRadius: `0 0 ${BORDER_RADIUS.xs} 0`,
-        boxShadow: `inset 1px 1px 2px ${theme.vars.palette.action.disabledBackground}`,
-        display: "flex",
-        flexShrink: 0,
-        height: "18px",
-        justifyContent: "center",
-        padding: getSpacingPx(SPACING.micro),
-        width: "18px"
-      },
-      ".icon-bg svg": {
-        color: theme.vars.palette.grey[100],
-        height: "13px",
-        width: "13px"
-      }
-    }),
-    [theme]
-  );
-
   if (!menuPosition) {return null;}
   return (
     <>
@@ -539,19 +500,10 @@ const OutputContextMenu: React.FC = () => {
         transformOrigin={{ vertical: "top", horizontal: "left" }}
         marginThreshold={0}
         paperSx={{
-          borderRadius: BORDER_RADIUS.xl,
-          backgroundColor: theme.vars.palette.background.paper,
-          border: `1px solid ${theme.vars.palette.divider}`,
-          boxShadow: theme.shadows[8],
           maxHeight: `calc(100vh - ${menuPosition.y}px)`,
-          minWidth: "320px",
-          overflow: "hidden",
-          padding: getSpacingPx(SPACING.xs),
-          "& .MuiDivider-root": {
-            margin: `${getSpacingPx(SPACING.xs)} 0`,
-            borderColor: theme.vars.palette.divider
-          }
+          overflow: "hidden"
         }}
+        minWidth="320px"
         transitionDuration={200}
       >
         <Box sx={{ px: 1, py: 0.5 }}>
@@ -559,7 +511,7 @@ const OutputContextMenu: React.FC = () => {
             inputRef={searchInputRef}
             size="small"
             fullWidth
-            placeholder={t("editor:io.searchNodes", { defaultValue: "Search nodes…" })}
+            placeholder={t("ui2:attrs.searchNodes", { defaultValue: "Search nodes" })}
             value={searchTerm}
             onChange={handleSearchChange}
             onClick={(event) => event.stopPropagation()}
@@ -591,7 +543,7 @@ const OutputContextMenu: React.FC = () => {
                 startAdornment: (
                   <InputAdornment position="start">
                     <SearchIcon
-                      sx={{ color: "action.disabled", fontSize: 16 }}
+                      sx={{ color: "action.disabled", fontSize: ICON_SIZE.sm }}
                     />
                   </InputAdornment>
                 ),
@@ -601,7 +553,7 @@ const OutputContextMenu: React.FC = () => {
                       aria-label={t("editor:io.clearSearch", { defaultValue: "clear search" })}
                       onClick={handleClearSearch}
                       size="small"
-                      icon={<ClearIcon sx={{ fontSize: 16 }} />}
+                      icon={<ClearIcon sx={{ fontSize: ICON_SIZE.sm }} />}
                       nodrag={false}
                     />
                   </InputAdornment>
@@ -610,106 +562,69 @@ const OutputContextMenu: React.FC = () => {
             }}
           />
         </Box>
-        {showStaticActions && isDynamicOutput && (
-          <>
-            <Box sx={{ px: 1, py: 0.5 }}>
-              <Box
-                component="button"
-                type="button"
-                className="delete-output"
-                onClick={handleDeleteDynamicOutput}
-                sx={actionRowStyles}
-              >
-                <span className="icon-bg">
-                  <DeleteOutlineIcon />
-                </span>
-                <Text size="small">{t("editor:io.deleteOutput", { defaultValue: "Delete output" })}</Text>
-              </Box>
-            </Box>
-            <Divider />
-          </>
-        )}
         {showStaticActions && (
-          <Box sx={{ px: 1, py: 0.5 }}>
-            <Box
-            component="button"
-            type="button"
+          <ContextMenuItem
             className="create-preview-node"
             onClick={handleCreatePreviewNode}
-            sx={actionRowStyles}
-          >
-            <span className="icon-bg"><VisibilityIcon /></span>
-            <Text size="small">{t("editor:io.preview", { defaultValue: "Preview" })}</Text>
-          </Box>
-          {outputNodeMetadata != null && (
-            <Box
-              component="button"
-              type="button"
-              className="create-output-node"
-              onClick={handleCreateOutputNode}
-              sx={actionRowStyles}
-            >
-              <span className="icon-bg"><DataObjectIcon /></span>
-              <Text size="small">{t("editor:io.output", { defaultValue: "Output" })}</Text>
-            </Box>
-          )}
-          <Box
-            component="button"
-            type="button"
+            label={t("editor:io.preview", { defaultValue: "Preview" })}
+            IconComponent={<VisibilityIcon />}
+          />
+        )}
+        {showStaticActions && outputNodeMetadata != null && (
+          <ContextMenuItem
+            className="create-output-node"
+            onClick={handleCreateOutputNode}
+            label={t("editor:io.outputCapitalized", { defaultValue: "Output" })}
+            IconComponent={<DataObjectIcon />}
+          />
+        )}
+        {showStaticActions && (
+          <ContextMenuItem
             className="create-reroute-node"
             onClick={handleCreateRerouteNode}
-            sx={actionRowStyles}
-          >
-            <span className="icon-bg"><AltRouteIcon /></span>
-            <Text size="small">{t("editor:io.reroute", { defaultValue: "Reroute" })}</Text>
-          </Box>
-            {saveNodeMetadata != null && (
-              <Box
-                component="button"
-                type="button"
-                className="create-save-node"
-                onClick={handleCreateSaveNode}
-                sx={actionRowStyles}
-              >
-                <span className="icon-bg"><SaveAltIcon /></span>
-                <Text size="small">{saveLabel}</Text>
-              </Box>
-            )}
-            {sourceType != null && sourceHandle != null && (
-              <Box
-                component="button"
-                type="button"
-                className="transform-output-with-ai"
-                onClick={handleTransformWithAI}
-                sx={actionRowStyles}
-              >
-                <span className="icon-bg"><AutoAwesomeIcon /></span>
-                <Text size="small">{t("editor:ui.transformThisOutput", { defaultValue: "Transform this output…" })}</Text>
-              </Box>
-            )}
-          </Box>
+            label={t("editor:io.reroute", { defaultValue: "Reroute" })}
+            IconComponent={<AltRouteIcon />}
+          />
+        )}
+        {showStaticActions && saveNodeMetadata != null && (
+          <ContextMenuItem
+            className="create-save-node"
+            onClick={handleCreateSaveNode}
+            label={saveLabel}
+            IconComponent={<SaveAltIcon />}
+          />
+        )}
+        {showStaticActions && sourceType != null && sourceHandle != null && (
+          <ContextMenuItem
+            className="transform-output-with-ai"
+            onClick={handleTransformWithAI}
+            label={t("editor:ui.transformThisOutput", { defaultValue: "Transform this output…" })}
+            IconComponent={<AutoAwesomeIcon />}
+          />
         )}
         {showStaticActions && sourceHandle != null && quickActions.length > 0 && (
-          <>
-            <Divider />
-            <Box sx={{ px: 1, py: 0.5 }}>
-              {quickActions.map((action) => (
-                <Box
-                  key={action.key}
-                  component="button"
-                  type="button"
-                  className={`output-quick-action output-quick-action-${action.key}`}
-                  onClick={(event: React.MouseEvent<HTMLElement>) =>
-                    handleQuickAction(action, event)
-                  }
-                  sx={actionRowStyles}
-                >
-                  <span className="icon-bg"><action.Icon /></span>
-                  <Text size="small">{action.label}</Text>
-                </Box>
-              ))}
-            </Box>
-          </>
+          <Divider />
+        )}
+        {showStaticActions &&
+          sourceHandle != null &&
+          quickActions.map((action) => (
+            <ContextMenuItem
+              key={action.key}
+              className={`output-quick-action output-quick-action-${action.key}`}
+              onClick={(event) => handleQuickAction(action, event)}
+              label={action.label}
+              IconComponent={<action.Icon />}
+            />
+          ))}
+        {showStaticActions && isDynamicOutput && <Divider />}
+        {showStaticActions && isDynamicOutput && (
+          <ContextMenuItem
+            className="delete-output"
+            onClick={handleDeleteDynamicOutput}
+            label={t("editor:io.deleteOutput", { defaultValue: "Delete output" })}
+            IconComponent={<DeleteOutlineIcon />}
+            destructive
+          />
         )}
         {showStaticActions && <Divider />}
         <Box
@@ -722,9 +637,9 @@ const OutputContextMenu: React.FC = () => {
             px: 0,
             "& .node-item-container": { py: 0 },
             "& .node": {
-              margin: 0,
+              margin: `0 ${getSpacingPx(SPACING.xs)}`,
               padding: `0 ${getSpacingPx(SPACING.micro)}`,
-              borderRadius: BORDER_RADIUS.md,
+              borderRadius: BORDER_RADIUS.sm,
               cursor: "pointer",
               "&:hover": { backgroundColor: theme.vars.palette.action.hover },
               ".node-button": { padding: 0 },

@@ -101,3 +101,5 @@ D. One 30s 16:9 film, slugged and timed. Assemble, mute the Shot Audio clips
 Same grade and the same two models from A through D. Report counts before each
 render, not dollars.
 ```
+
+`edit_storyboard` → `{op: "add_keyframe_version", target, asset_id}` 把它作为该镜头的新版本挂上去。

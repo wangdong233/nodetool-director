@@ -12,10 +12,27 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { ImageComparer } from "../widgets";
 import AssetViewer from "../assets/AssetViewer";
 import { CopyAssetButton } from "../common/CopyAssetButton";
-import { Checkbox, Dialog, Tooltip, EditorButton, ToolbarIconButton, Box, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX } from "../ui_primitives";
+import {
+  AutoGrid,
+  Checkbox,
+  Dialog,
+  Tooltip,
+  EditorButton,
+  ToolbarIconButton,
+  Box,
+  MOTION,
+  BORDER_RADIUS,
+  SPACING,
+  getSpacingPx,
+  Z_INDEX,
+  reducedMotion,
+  selectableTileStyles,
+  selectedTileStyles
+} from "../ui_primitives";
 import { alphaSurfaceBg } from "../../styles/AlphaSurface";
 import { isString } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 export type ImageSource = Uint8Array | string;
 
@@ -45,7 +62,6 @@ const ImageTile = memo<ImageTileProps>(({
   onOpenInViewer,
   onToggleSelect
 }) => {
-  const { t } = useTranslation();
   const handleDownloadClick = useCallback((e: React.MouseEvent) => onDownload(idx, e), [onDownload, idx]);
   const handleOpenClick = useCallback((e: React.MouseEvent) => onOpenInViewer(idx, e), [onOpenInViewer, idx]);
   const handleCheckboxClick = useCallback((e: React.MouseEvent) => onToggleSelect(idx, e), [onToggleSelect, idx]);
@@ -92,9 +108,7 @@ const ImageTile = memo<ImageTileProps>(({
           draggable={false}
         />
       ) : (
-        <div className="placeholder">
-          {t("editor:ui.imagePlaceholderBadge", { defaultValue: "IMAGE" })}
-        </div>
+        <div className="placeholder">{i18n.t("editor:ui.imagePlaceholderBadge", { defaultValue: "IMAGE" })}</div>
       )}
       {showActions && !selectionMode && (
         <div className="tile-actions">
@@ -104,7 +118,7 @@ const ImageTile = memo<ImageTileProps>(({
             className="tile-action-btn"
           />
           <ToolbarIconButton
-            tooltip={t("editor:ui.download", { defaultValue: "Download" })}
+            tooltip={i18n.t("editor:ui.download", { defaultValue: "Download" })}
             tooltipPlacement="top"
             icon={<DownloadIcon />}
             className="tile-action-btn"
@@ -113,7 +127,7 @@ const ImageTile = memo<ImageTileProps>(({
             ariaLabel={`Download image ${idx + 1}`}
           />
           <ToolbarIconButton
-            tooltip={t("editor:ui.openInViewerDoubleclick", { defaultValue: "Open in Viewer (double-click)" })}
+            tooltip={i18n.t("editor:ui.openInViewerDoubleclick", { defaultValue: "Open in Viewer (double-click)" })}
             tooltipPlacement="top"
             icon={<OpenInNewIcon />}
             className="tile-action-btn"
@@ -157,9 +171,6 @@ const styles = (theme: Theme, gap: number) =>
       overflow: "auto"
     },
     ".grid": {
-      display: "grid",
-      gridTemplateColumns: `repeat(auto-fill, minmax(128px, 1fr))`,
-      gap: `${gap}px`,
       padding: `${gap}px`,
       alignContent: "start"
     },
@@ -167,17 +178,10 @@ const styles = (theme: Theme, gap: number) =>
       position: "relative",
       width: "100%",
       aspectRatio: "1 / 1",
-      borderRadius: BORDER_RADIUS.md,
       overflow: "hidden",
       ...alphaSurfaceBg,
-      border: `1px solid ${theme.vars.palette.divider}`,
       cursor: "pointer",
-      transition: `${MOTION.transform}, box-shadow ${MOTION.fast}`,
-      boxShadow: "none",
-      ["&:hover"]: {
-        transform: "translateY(-1px)",
-        boxShadow: theme.shadows[2]
-      }
+      ...selectableTileStyles(theme)
     },
     ".img": {
       width: "100%",
@@ -187,8 +191,8 @@ const styles = (theme: Theme, gap: number) =>
     },
     ".kind-badge": {
       position: "absolute",
-      top: 6,
-      left: 6,
+      top: getSpacingPx(SPACING.sm),
+      left: getSpacingPx(SPACING.sm),
       padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.sm)}`,
       fontSize: "var(--fontSizeSmaller)",
       borderRadius: BORDER_RADIUS.sm,
@@ -205,7 +209,7 @@ const styles = (theme: Theme, gap: number) =>
       fontSize: "var(--fontSizeSmaller)",
       color: theme.vars.palette.text.primary,
       background:
-        `linear-gradient(180deg, rgba(${theme.vars.palette.common.blackChannel || "0, 0, 0"}, 0) 0%, rgba(${theme.vars.palette.common.blackChannel || "0, 0, 0"}, 0.55) 100%)`,
+        `linear-gradient(180deg, transparent 0%, ${theme.vars.palette.c_scrim} 100%)`,
       WebkitLineClamp: 1,
       display: "-webkit-box",
       WebkitBoxOrient: "vertical" as const,
@@ -222,19 +226,20 @@ const styles = (theme: Theme, gap: number) =>
       color: theme.vars.palette.text.secondary,
       background: theme.vars.palette.grey[900]
     },
-    ".tile.selected": {
-      outline: `3px solid ${theme.vars.palette.primary.main}`,
-      outlineOffset: -3
-    },
+    ".tile.selected": selectedTileStyles(theme),
     ".tile-actions": {
       position: "absolute",
-      top: 4,
-      right: 4,
+      top: getSpacingPx(SPACING.xs),
+      right: getSpacingPx(SPACING.xs),
       display: "flex",
-      gap: 2,
+      gap: getSpacingPx(SPACING.micro),
       zIndex: Z_INDEX.raised,
       opacity: 0,
-      transition: MOTION.opacity
+      transition: MOTION.opacity,
+      ...reducedMotion({ transition: MOTION.none })
+    },
+    ".tile:focus-within .tile-actions": {
+      opacity: 1
     },
     ".tile:hover .tile-actions": {
       opacity: 1
@@ -246,12 +251,12 @@ const styles = (theme: Theme, gap: number) =>
     ".tile-action-btn": {
       width: 24,
       height: 24,
-      padding: 4,
-      backgroundColor: `rgba(${theme.vars.palette.common.blackChannel || "0, 0, 0"}, 0.6)`,
+      padding: getSpacingPx(SPACING.xs),
+      backgroundColor: theme.vars.palette.c_scrim,
       color: theme.vars.palette.common.white,
       borderRadius: BORDER_RADIUS.sm,
       "&:hover": {
-        backgroundColor: `rgba(${theme.vars.palette.common.blackChannel || "0, 0, 0"}, 0.85)`
+        backgroundColor: theme.vars.palette.c_scrim_strong
       },
       "& svg": {
         fontSize: "var(--fontSizeSmall)"
@@ -259,26 +264,26 @@ const styles = (theme: Theme, gap: number) =>
     },
     ".tile .select-checkbox": {
       position: "absolute",
-      top: 4,
-      right: 4,
+      top: getSpacingPx(SPACING.xs),
+      right: getSpacingPx(SPACING.xs),
       zIndex: Z_INDEX.raised,
-      padding: 2,
-      backgroundColor: `rgba(${theme.vars.palette.common.blackChannel || "0, 0, 0"}, 0.5)`,
+      padding: getSpacingPx(SPACING.micro),
+      backgroundColor: `rgba(${theme.vars.palette.common.blackChannel} / 0.5)`,
       borderRadius: BORDER_RADIUS.sm,
       color: theme.vars.palette.common.white,
       "&:hover": {
-        backgroundColor: `rgba(${theme.vars.palette.common.blackChannel || "0, 0, 0"}, 0.7)`
+        backgroundColor: `rgba(${theme.vars.palette.common.blackChannel} / 0.7)`
       }
     },
     ".action-bar": {
       position: "absolute",
-      bottom: 16,
+      bottom: getSpacingPx(SPACING.xl),
       left: "50%",
       transform: "translateX(-50%)",
       display: "flex",
-      gap: 8,
+      gap: getSpacingPx(SPACING.md),
       padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xl)}`,
-      backgroundColor: `rgba(${theme.vars.palette.common.blackChannel || "0, 0, 0"}, 0.85)`,
+      backgroundColor: theme.vars.palette.c_scrim_strong,
       borderRadius: BORDER_RADIUS.lg,
       zIndex: Z_INDEX.overlay,
       alignItems: "center"
@@ -290,17 +295,17 @@ const styles = (theme: Theme, gap: number) =>
     },
     ".select-mode-toggle": {
       position: "absolute",
-      top: 2,
-      right: 4,
+      top: getSpacingPx(SPACING.micro),
+      right: getSpacingPx(SPACING.xs),
       zIndex: Z_INDEX.sticky,
-      backgroundColor: `rgba(${theme.vars.palette.common.blackChannel || "0, 0, 0"}, 0.6)`,
+      backgroundColor: theme.vars.palette.c_scrim,
       color: theme.vars.palette.common.white,
       fontSize: "var(--fontSizeSmaller)",
       textTransform: "none",
       padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.md)}`,
       minWidth: "unset",
       "&:hover": {
-        backgroundColor: `rgba(${theme.vars.palette.common.blackChannel || "0, 0, 0"}, 0.8)`
+        backgroundColor: `rgba(${theme.vars.palette.common.blackChannel} / 0.8)`
       }
     },
     ".compare-dialog .MuiPaper-root": {
@@ -509,10 +514,6 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
     };
   }, [images]);
 
-  const gridStyle = useMemo(() => ({
-    gridTemplateColumns: `repeat(auto-fill, minmax(${itemSize}px, 1fr))`
-  }), [itemSize]);
-
   return (
     <div className="preview-image-grid" css={gridCss} ref={containerRef}>
       {/* Selection mode toggle button */}
@@ -523,14 +524,11 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
           onClick={toggleSelectionMode}
           startIcon={selectionMode ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />}
         >
-          {selectionMode ? t("editor:ui.exitSelect", { defaultValue: "Exit Select" }) : t("editor:ui.selectPlain", { defaultValue: "Select" })}
+          {selectionMode ? i18n.t("editor:ui.exitSelect", { defaultValue: "Exit select" }) : i18n.t("appbuilder:attrs.select", { defaultValue: "Select" })}
         </EditorButton>
       )}
 
-      <div
-        className="grid"
-        style={gridStyle}
-      >
+      <AutoGrid className="grid" minItemWidth={itemSize} gap={gap / 4}>
         {images.map((img, idx) => {
           if (img === null || img === undefined) {
             return null;
@@ -553,12 +551,12 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
             />
           );
         })}
-      </div>
+      </AutoGrid>
 
       {/* Action bar when items are selected */}
       {selectionMode && selectedIndices.size > 0 && (
         <Box className="action-bar">
-          <Tooltip title={t("editor:ui.compareTheTwoSelectedImages", { defaultValue: "Compare the two selected images" })}>
+          <Tooltip title={i18n.t("editor:ui.compareTheTwoSelectedImages", { defaultValue: "Compare the two selected images" })}>
             <span>
               <EditorButton
                 className="action-button"
@@ -567,19 +565,19 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
                 onClick={handleCompare}
                 disabled={selectedIndices.size !== 2}
               >
-                {t("editor:ui.compare", { defaultValue: "Compare" })}
+                Compare
               </EditorButton>
             </span>
           </Tooltip>
           <ToolbarIconButton
-            title={t("editor:ui.clearSelection", { defaultValue: "Clear selection" })}
+            title={i18n.t("editor:ui.clearSelection", { defaultValue: "Clear selection" })}
             size="small"
             onClick={clearSelection}
             sx={{ color: theme.vars.palette.common.white }}
           >
             <ClearIcon fontSize="small" />
           </ToolbarIconButton>
-          <Box sx={{ fontSize: "var(--fontSizeSmall)", color: "grey.400", ml: 1 }}>
+          <Box sx={{ fontSize: "var(--fontSizeSmall)", color: "grey.400", ml: SPACING.xs }}>
             {selectedIndices.size} selected
           </Box>
         </Box>
@@ -592,20 +590,20 @@ const PreviewImageGrid: React.FC<PreviewImageGridProps> = ({
           open={compareDialogOpen}
           onClose={handleCloseCompare}
           maxWidth={false}
-          aria-label={t("editor:ui.compareOutputs", { defaultValue: "Compare outputs" })}
+          aria-label={i18n.t("editor:ui.compareOutputs", { defaultValue: "Compare outputs" })}
         >
           <Box sx={{ width: "90vw", height: "90vh", position: "relative" }}>
             <ToolbarIconButton
-              title={t("editor:ui.closeImageComparisonDialog", { defaultValue: "Close image comparison dialog" })}
+              title={i18n.t("editor:ui.closeImageComparisonDialog", { defaultValue: "Close image comparison dialog" })}
               onClick={handleCloseCompare}
               sx={{
                 position: "absolute",
-                top: 8,
-                right: 8,
+                top: getSpacingPx(SPACING.md),
+                right: getSpacingPx(SPACING.md),
                 zIndex: Z_INDEX.dropdown,
-                backgroundColor: `rgba(${theme.vars.palette.common.blackChannel || "0, 0, 0"}, 0.6)`,
+                backgroundColor: theme.vars.palette.c_scrim,
                 color: theme.vars.palette.common.white,
-                "&:hover": { backgroundColor: `rgba(${theme.vars.palette.common.blackChannel || "0, 0, 0"}, 0.8)` }
+                "&:hover": { backgroundColor: `rgba(${theme.vars.palette.common.blackChannel} / 0.8)` }
               }}
             >
               <ClearIcon />

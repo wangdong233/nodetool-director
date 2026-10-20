@@ -15,6 +15,7 @@ import {
   FormFieldContext,
   type FormFieldContextValue
 } from "./formFieldContext";
+import { i18n } from "../../i18n";
 
 export interface FormFieldProps extends Omit<BoxProps, 'onChange'> {
   /** Field label */
@@ -141,6 +142,7 @@ export const FormField: React.FC<FormFieldProps> = ({
         </FormFieldContext.Provider>
         {bottomText && (
           <Typography
+            variant="body2"
             sx={{
               fontSize: theme.fontSizeSmaller,
               color: error

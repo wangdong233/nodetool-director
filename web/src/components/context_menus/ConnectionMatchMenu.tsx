@@ -2,15 +2,15 @@ import React, { useCallback, memo } from "react";
 
 import {
   Caption,
-  Divider,
-  Text,
-  Box,
   ContextMenu,
-  MenuItem,
-  ListItemText, getSpacingPx, SPACING
+  FlexColumn,
+  ListItemText,
+  ListSubheader,
+  MenuItem
 } from "../ui_primitives";
 import { Connection } from "@xyflow/react";
 import useContextMenu from "../../stores/ContextMenuStore";
+import { i18n } from "../../i18n";
 
 export interface ConnectionMatchOption {
   id: string;
@@ -60,47 +60,22 @@ const ConnectionMatchMenu: React.FC = () => {
       className="context-menu connection-match-menu"
       open
       onClose={closeContextMenu}
-      sx={{
-        "& .MuiList-root": {
-          maxWidth: "300px"
-        }
-      }}
+      paperSx={{ maxWidth: "300px" }}
       onContextMenu={(event) => event.preventDefault()}
       position={menuPosition}
     >
-      <MenuItem disabled>
-        <Text size="small" weight={600}>
-          Select Connection
-        </Text>
-      </MenuItem>
-      {options.map((option) => [
-        <Divider key={`divider-${option.id}`} />,
-        <MenuItem
-          sx={{
-            "& .MuiListItemText-root": {
-              padding: `${getSpacingPx(SPACING.md)} 0`
-            }
-          }}
-          key={option.id}
-          onClick={createSelectOptionHandler(option)}
-        >
+      <ListSubheader>{i18n.t("editor:ui.selectConnection", { defaultValue: "Select connection" })}</ListSubheader>
+      {options.map((option) => (
+        <MenuItem key={option.id} onClick={createSelectOptionHandler(option)}>
           <ListItemText
-            primary={
-              <Text size="small" weight={600}>
-                {option.label}
-              </Text>
-            }
+            primary={option.label}
             secondary={
-              <Box
-                component="span"
-                display="flex"
-                flexDirection="column"
-              >
+              <FlexColumn component="span">
                 {option.typeLabel && (
                   <Caption
                     color="secondary"
                     component="span"
-                    sx={{ whiteSpace: "normal", lineHeight: 1.4 }}
+                    sx={{ whiteSpace: "normal" }}
                   >
                     {option.typeLabel.toUpperCase()}
                   </Caption>
@@ -109,16 +84,16 @@ const ConnectionMatchMenu: React.FC = () => {
                   <Caption
                     color="secondary"
                     component="span"
-                    sx={{ whiteSpace: "normal", lineHeight: 1.4 }}
+                    sx={{ whiteSpace: "normal" }}
                   >
                     {option.description}
                   </Caption>
                 )}
-              </Box>
+              </FlexColumn>
             }
           />
         </MenuItem>
-      ])}
+      ))}
     </ContextMenu>
   );
 };

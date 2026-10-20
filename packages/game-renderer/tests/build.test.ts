@@ -1,6 +1,7 @@
+import { musicWav } from "./fixtures/music-wav.js";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFile, mkdtemp, readFile, readdir, rm, symlink } from "node:fs/promises";
+import { copyFile, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -81,7 +82,7 @@ describe("standalone game build", () => {
     const game = createTopDownRoomGame("music-export");
     game.schemaVersion = 2;
     game.scenes[0].music = { assetId: "music", volume: 0.5, fadeInTicks: 30, fadeOutTicks: 30 };
-    const bytes = Buffer.from("RIFF0000WAVE");
+    const bytes = musicWav();
     const sourceId = "b".repeat(32);
     const digest = createHash("sha256").update(bytes).digest("hex");
     game.assets.music = { assetId: sourceId, digest, mediaKind: "audio", width: 1, height: 1,
@@ -95,12 +96,15 @@ describe("standalone game build", () => {
   });
 });
 
-it("exports from a flattened backend using its staged player bundle", async () => {
+it.each([false, true])("exports the staged player bundle when a compiled entry is present: %s", async (compiledEntry) => {
   const directory = await mkdtemp(join(tmpdir(), "nodetool-packaged-game-export-"));
   directories.push(directory);
   const game = createTopDownRoomGame("packaged-export");
   const staged = await buildStandaloneGame({ document: game, outputDir: join(directory, "staged"), resolveAsset: async () => null });
   await copyFile(staged.playerPath, join(directory, "player-v1.js"));
+  if (compiledEntry) {
+    await writeFile(join(directory, "standalone-player.js"), 'import "@nodetool-ai/absent-development-source";');
+  }
   await symlink(resolve("../../node_modules"), join(directory, "node_modules"), "junction");
   const backend = join(directory, "server.mjs");
   await bundle({ entryPoints: [resolve("src/build.ts")], outfile: backend,

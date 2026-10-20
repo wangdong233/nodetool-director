@@ -26,20 +26,12 @@ import {
   SPACING,
   SPACING_PX,
   Text,
+  TextArea,
   TextInput,
   ToolbarIconButton
 } from "../ui_primitives";
 import type { SelectOption } from "../ui_primitives";
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
-
-/** Section nouns a plan review names in its last-row tooltip, localized. */
-const NOUN_KEYS: Readonly<Record<string, string>> = {
-  item: "storyboard:attrs.item",
-  beat: "timeline:attrs.beat"
-};
 import {
-  EDITABLE_FIELD,
   REVIEW_BLOCK,
   REVIEW_COMPACT_MAX_WIDTH,
   REVIEW_COMPACT_WIDTH,
@@ -50,6 +42,8 @@ import {
   REVIEW_SELECT_WIDTH,
   REVIEW_WIDE_WIDTH
 } from "./reviewStyles";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 export interface PlanReviewField {
   id: string;
@@ -143,7 +137,7 @@ export interface PlanReviewSection {
   /** The section's blocks, drawn one after another under its own rows. */
   groups?: readonly PlanReviewGroup[];
   /**
-   * The remove control's name, when `Remove {header}` is not what it removes —
+   * The remove control's name, when `Delete {header}` is not what it removes —
    * a slugline header makes a long name. Only read when the flow supports
    * removal.
    */
@@ -256,17 +250,42 @@ const PlanReviewControl: React.FC<{ row: PlanReviewField }> = ({ row }) => {
       </EditorButton>
     );
   }
-  const hint = row.hint ? (
-    <Caption color="muted" component="p">
-      {row.hint}
-    </Caption>
-  ) : null;
+  const textProps = {
+    compact: true,
+    minRows: 1,
+    label: row.label,
+    hideLabel: row.hideLabel,
+    value: row.value,
+    placeholder: row.placeholder,
+    helperText: row.hint,
+    onFocus: () => {
+      committed.current = row.value;
+    },
+    onBlur: (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      commit(event.target.value, committed.current),
+    onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+      // Enter is a line break in a body field, so only a single-line field
+      // commits on it. Plain Enter stays local. The shell's advertised
+      // modified shortcut bubbles after the commit so it can validate the
+      // settled value before advancing.
+      if (event.key !== "Enter" || row.multiline === true) {
+        return;
+      }
+      event.preventDefault();
+      commit((event.target as HTMLInputElement).value, committed.current);
+      if (!(event.metaKey || event.ctrlKey)) {
+        event.stopPropagation();
+      }
+    },
+    slotProps: { input: { readOnly: row.readOnly } }
+  };
   const control = row.options ? (
     <SelectField
       label={row.label}
       hideLabel={row.hideLabel}
       value={row.value}
       options={row.options}
+      description={row.hint}
       disabled={row.readOnly}
       onChange={(value) => {
         const before = row.value;
@@ -274,43 +293,23 @@ const PlanReviewControl: React.FC<{ row: PlanReviewField }> = ({ row }) => {
         commit(value, before);
       }}
     />
+  ) : row.multiline === true ? (
+    <TextArea
+      {...textProps}
+      onChange={(value) => row.onChange(value)}
+      onAssistApply={(value) => {
+        const before = row.value;
+        row.onChange(value);
+        commit(value, before);
+      }}
+    />
   ) : (
     <TextInput
-      compact
-      minRows={1}
-      label={row.label}
-      hideLabel={row.hideLabel}
-      value={row.value}
-      multiline={row.multiline}
-      placeholder={row.placeholder}
+      {...textProps}
       onChange={(event) => row.onChange(event.target.value)}
-      onFocus={() => {
-        committed.current = row.value;
-      }}
-      onBlur={(event) => commit(event.target.value, committed.current)}
-      onKeyDown={(event) => {
-        // Enter is a line break in a body field, so only a single-line field
-        // commits on it. Plain Enter stays local. The shell's advertised
-        // modified shortcut bubbles after the commit so it can validate the
-        // settled value before advancing.
-        if (event.key !== "Enter" || row.multiline === true) {
-          return;
-        }
-        event.preventDefault();
-        commit((event.target as HTMLInputElement).value, committed.current);
-        if (!(event.metaKey || event.ctrlKey)) {
-          event.stopPropagation();
-        }
-      }}
-      slotProps={{ input: { readOnly: row.readOnly } }}
     />
   );
-  return (
-    <FlexColumn ref={holder} gap={GAP.tight}>
-      {control}
-      {hint}
-    </FlexColumn>
-  );
+  return <FlexColumn ref={holder}>{control}</FlexColumn>;
 };
 
 /**
@@ -321,7 +320,7 @@ const PlanReviewControl: React.FC<{ row: PlanReviewField }> = ({ row }) => {
  * column is sized for the shortest value and clips every longer one.
  */
 const fieldSx = (row: PlanReviewField, packed: boolean): SxProps<Theme> => {
-  const box: Record<string, unknown> = { ...EDITABLE_FIELD };
+  const box: Record<string, unknown> = {};
   if (row.compact) {
     // It keeps its narrow column while the line holds, and takes the full
     // width once the line has wrapped.
@@ -370,7 +369,7 @@ export const advancedSummary = (rows: readonly PlanReviewField[]): string =>
 const PackedLines: React.FC<{ rows: readonly PlanReviewField[] }> = ({
   rows
 }) => (
-  <FlexColumn gap={GAP.compact}>
+  <FlexColumn gap={GAP.comfortable}>
     {toLines(rows).map((line) => {
       const packed = line.length > 1 && line.every((row) => row.compact);
       return (
@@ -408,7 +407,7 @@ const PlanReviewLines: React.FC<{ rows: readonly PlanReviewField[] }> = ({
   }
   const summary = open ? "" : advancedSummary(advanced);
   return (
-    <FlexColumn gap={GAP.compact}>
+    <FlexColumn gap={GAP.comfortable}>
       {basic.length > 0 ? <PackedLines rows={basic} /> : null}
       <FlexRow gap={GAP.normal} align="center" wrap>
         <EditorButton
@@ -418,14 +417,11 @@ const PlanReviewLines: React.FC<{ rows: readonly PlanReviewField[] }> = ({
           onClick={() => setOpen((value) => !value)}
           endIcon={
             <ExpandMoreIcon
-              fontSize="small"
               sx={{ transform: open ? "rotate(180deg)" : "none" }}
             />
           }
         >
-          {open
-            ? t("setup:plan.fewerOptions", { defaultValue: "Fewer options" })
-            : t("setup:plan.moreOptions", { defaultValue: "More options" })}
+          {open ? t("setup:plan.fewerOptions", { defaultValue: "Fewer options" }) : i18n.t("setup:plan.moreOptions", { defaultValue: "More options" })}
         </EditorButton>
         {summary ? <Caption color="muted">{summary}</Caption> : null}
       </FlexRow>
@@ -465,13 +461,7 @@ const RemoveSectionControl: React.FC<{
   onRemove: (id: string) => void;
   register: (id: string) => (node: HTMLButtonElement | null) => void;
 }> = ({ section, last, noun, onRemove, register }) => {
-  const { t } = useTranslation();
-  const localizedNoun = NOUN_KEYS[noun]
-    ? t(NOUN_KEYS[noun], { defaultValue: noun }).toLowerCase()
-    : noun;
-  const name =
-    section.removeLabel ??
-    t("storyboard:attrs.removeHeader", { defaultValue: "Remove {{header}}", header: section.header });
+  const name = section.removeLabel ?? `Delete ${section.header}`;
   return (
     <ToolbarIconButton
       ref={register(section.id)}
@@ -479,7 +469,7 @@ const RemoveSectionControl: React.FC<{
       variant="error"
       aria-disabled={last || undefined}
       ariaLabel={name}
-      tooltip={last ? t("storyboard:attrs.aPlanKeepsAtLeastOneNoun", { defaultValue: "A plan keeps at least one {{noun}}.", noun: localizedNoun }) : name}
+      tooltip={last ? `A plan keeps at least one ${noun}.` : name}
       onClick={() => {
         if (!last) {
           onRemove(section.id);
@@ -491,20 +481,55 @@ const RemoveSectionControl: React.FC<{
 };
 
 /** A section's name and size, in the one tone every plan header uses. */
-const PlanReviewHeader: React.FC<{ section: PlanReviewSection }> = ({
-  section
+const PlanReviewHeader: React.FC<{ header: string; subheader?: string }> = ({
+  header,
+  subheader
 }) => (
   <>
     {/* A section header is a heading, so it reads as one. The small uppercase
         label tone put it below the block headings under it, which is backwards:
         18/600 for the section, 13/500 for its blocks. */}
     <Text size="big" component="h3">
-      {section.header}
+      {header}
     </Text>
-    {section.subheader ? (
-      <Caption color="muted">{section.subheader}</Caption>
-    ) : null}
+    {subheader ? <Caption color="muted">{subheader}</Caption> : null}
   </>
+);
+
+export interface PlanReviewHeadingProps {
+  header: string;
+  subheader?: string;
+  /** Controls at the end of the heading's line, e.g. a remove button. */
+  children?: React.ReactNode;
+}
+
+/**
+ * The ruled heading over a flat section. Exported so a step that draws its own
+ * items — the workflow step list — heads them the same way as the sections
+ * around them.
+ */
+export const PlanReviewHeading: React.FC<PlanReviewHeadingProps> = ({
+  header,
+  subheader,
+  children
+}) => (
+  // Name and size share the header's line: stacked, a two-word subheader read
+  // as a row of its own and pushed the section's first field a line further
+  // down on every scene.
+  <FlexRow
+    gap={GAP.normal}
+    align="baseline"
+    wrap
+    sx={{
+      borderBottom: "1px solid",
+      borderColor: "divider",
+      pb: `${SPACING_PX.sm}px`,
+      maxWidth: REVIEW_CONTENT_WIDTH
+    }}
+  >
+    <PlanReviewHeader header={header} subheader={subheader} />
+    {children}
+  </FlexRow>
 );
 
 /**
@@ -521,7 +546,10 @@ const PlanReviewSceneSection: React.FC<{
       <FlexColumn gap={GAP.comfortable} sx={REVIEW_SCENE_RAIL}>
         <FlexRow gap={GAP.normal} align="flex-start">
           <FlexColumn gap={GAP.tight} sx={{ minWidth: 0 }}>
-            <PlanReviewHeader section={section} />
+            <PlanReviewHeader
+              header={section.header}
+              subheader={section.subheader}
+            />
           </FlexColumn>
           {remove}
         </FlexRow>
@@ -610,23 +638,12 @@ const PlanReviewInternal: React.FC<PlanReviewProps> = ({
           />
         ) : (
           <FlexColumn key={section.id} gap={GAP.compact} component="section">
-            {/* Name and size share the header's line: stacked, a two-word
-                subheader read as a row of its own and pushed the section's
-                first field a line further down on every scene. */}
-            <FlexRow
-              gap={GAP.normal}
-              align="baseline"
-              wrap
-              sx={{
-                borderBottom: "1px solid",
-                borderColor: "divider",
-                pb: `${SPACING_PX.sm}px`,
-                maxWidth: REVIEW_CONTENT_WIDTH
-              }}
+            <PlanReviewHeading
+              header={section.header}
+              subheader={section.subheader}
             >
-              <PlanReviewHeader section={section} />
               {removeControl(section)}
-            </FlexRow>
+            </PlanReviewHeading>
             {section.rows.length > 0 ? (
               <Box sx={{ maxWidth: REVIEW_CONTENT_WIDTH }}>
                 <PlanReviewLines rows={section.rows} />

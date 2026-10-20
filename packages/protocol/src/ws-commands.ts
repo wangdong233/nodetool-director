@@ -218,7 +218,10 @@ export const generateMediaDataSchema = z
     capability: z.literal("reference_to_video").optional(),
     reference_asset_ids: z.array(z.string().trim().min(1)).optional(),
     entity_ids: z.array(z.string().trim().min(1)).optional(),
-    /** Ordered, owned assets with distinct image-reference and video-reference roles. */
+    /**
+     * Ordered, owned assets with distinct image-reference and video-reference
+     * roles. "image_edit" sends them to the model after `source_asset_id`.
+     */
     reference_images: z
       .array(
         z.object({
@@ -616,6 +619,22 @@ export const runTraceMessageOutSchema = storedRunTraceUpdateSchema.extend({
   resnapshot_required: z.boolean().optional()
 });
 
+/** A local model loading inside a run (`ModelLoadUpdate` in runtime). */
+export const modelLoadProgressMessageOutSchema = z
+  .object({
+    type: z.literal("model_load_progress"),
+    repo_id: z.string(),
+    runtime: z.string(),
+    phase: z.enum(["downloading", "loading", "ready", "error"]),
+    loaded_bytes: z.number(),
+    total_bytes: z.number(),
+    error: z.string().optional()
+  })
+  .passthrough();
+export type ModelLoadProgressMessage = z.infer<
+  typeof modelLoadProgressMessageOutSchema
+>;
+
 export const resourceChangeMessageOutSchema = z
   .object({
     type: z.literal("resource_change"),
@@ -720,6 +739,7 @@ export const outboundControlMessageSchemas = {
   rpc_response: rpcResponseMessageOutSchema,
   system_stats: systemStatsMessageOutSchema,
   resource_change: resourceChangeMessageOutSchema,
+  model_load_progress: modelLoadProgressMessageOutSchema,
   run_trace: runTraceMessageOutSchema,
   renderer_registered: rendererRegisteredMessageOutSchema,
   renderer_tool_call: rendererToolCallMessageOutSchema,

@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
-import React, { useCallback, useMemo, useRef, useState, useEffect, memo } from "react";
+import React, { useCallback, useMemo, useRef, useEffect, memo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Asset } from "../../stores/ApiTypes";
 import { useAssetSelection } from "../../hooks/assets/useAssetSelection";
@@ -9,14 +9,37 @@ import { formatFileSize } from "../../utils/formatUtils";
 import { assetTypeLabel } from "./assetTypeLabels";
 import { secondsToHMS } from "../../utils/formatDateAndTime";
 import { IconForType } from "../../config/IconForType";
-import { getAssetCategory } from "./assetGridUtils";
-import FolderIcon from "@mui/icons-material/Folder";
+import {
+  ASSET_GROUP_KEYS,
+  getAssetCategory,
+  getAssetGroup
+} from "./assetGridUtils";
+import { AssetGroupIcon } from "./assetGroupIcons";
+import { colorForType } from "../../config/data_types";
+import { useAssetGridStore } from "../../stores/AssetGridStore";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import FolderIcon from "@mui/icons-material/FolderOutlined";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { ExpandCollapseButton, EmptyState, Text, Box, MOTION, BORDER_RADIUS, Z_INDEX, getSpacingPx, SPACING } from "../ui_primitives";
+import {
+  Caption,
+  EmptyState,
+  MOTION,
+  Text,
+  Box,
+  MediaThumbnail,
+  BORDER_RADIUS,
+  EYEBROW,
+  TYPOGRAPHY,
+  Z_INDEX,
+  getSpacingPx,
+  SPACING,
+  focusRing,
+  selectableRowStyles,
+  selectedRowStyles,
+  ICON_SIZE
+} from "../ui_primitives";
 import { useSettingsStore } from "../../stores/SettingsStore";
-import { systemPresetAssetInfo } from "../../serverState/useEntities";
-import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
 import { isCoarsePointer } from "../../utils/isCoarsePointer";
 import { useVideoThumbnail } from "../../hooks/useVideoThumbnail";
 import { useTranslation } from "react-i18next";
@@ -32,11 +55,6 @@ const ROW_HEIGHT = 40;
 const TYPE_SECTION_HEIGHT = 36;
 
 // Hoisted so a fresh literal per render does not defeat the memo on IconForType.
-const HEADER_ICON_STYLE = {
-  width: "24px",
-  height: "24px",
-  marginRight: getSpacingPx(SPACING.md)
-};
 const ROW_ICON_STYLE = {
   width: "24px",
   height: "24px",
@@ -107,21 +125,21 @@ const styles = (theme: Theme) =>
     ".asset-content-type-header": {
       display: "flex",
       alignItems: "center",
+      gap: getSpacingPx(SPACING.sm),
       padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`,
       marginBottom: getSpacingPx(SPACING.md),
       backgroundColor: "transparent",
-      borderBottom: "2px solid ",
+      borderBottom: `1px solid ${theme.vars.palette.divider}`,
       cursor: "pointer",
+      userSelect: "none",
       "&:hover": {
-        backgroundColor: theme.vars.palette.grey[800]
-      }
+        backgroundColor: theme.vars.palette.action.hover
+      },
+      "&:focus-visible": focusRing(theme)
     },
     ".asset-content-type-title": {
-      fontSize: theme.fontSizeNormal,
-      color: theme.vars.palette.grey[100],
-      textTransform: "uppercase",
-      marginLeft: getSpacingPx(SPACING.md),
-      flex: 1
+      ...EYEBROW,
+      color: theme.vars.palette.text.secondary
     },
     ".asset-list-item": {
       display: "flex",
@@ -129,14 +147,8 @@ const styles = (theme: Theme) =>
       padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xl)}`,
       borderBottom: `1px solid ${theme.vars.palette.grey[800]}`,
       cursor: "pointer",
-      transition: MOTION.background,
-      "&:hover": {
-        backgroundColor: theme.vars.palette.grey[800]
-      },
-      "&.selected": {
-        backgroundColor: "var(--palette-primary-main)" + "22",
-        borderLeft: `1px solid ${"var(--palette-primary-main)"}`
-      }
+      ...selectableRowStyles(theme),
+      "&.selected": selectedRowStyles(theme)
     },
     ".asset-item-icon": {
       marginRight: getSpacingPx(SPACING.lg),
@@ -178,7 +190,7 @@ const styles = (theme: Theme) =>
         left: 0,
         right: 0,
         bottom: 0,
-        border: `1px solid ${theme.vars.palette.grey[500]}22`,
+        border: `1px solid ${theme.vars.palette.divider}`,
         borderRadius: BORDER_RADIUS.sm,
         pointerEvents: "none"
       }
@@ -186,16 +198,15 @@ const styles = (theme: Theme) =>
     ".asset-item-name": {
       flex: "1 1 200px",
       minWidth: "150px",
-      fontSize: theme.fontSizeNormal,
+      ...TYPOGRAPHY.sans.label,
       userSelect: "none",
-      color: theme.vars.palette.grey[0],
+      color: theme.vars.palette.text.primary,
       overflow: "hidden",
       textOverflow: "ellipsis",
       whiteSpace: "nowrap"
     },
     ".asset-item-name.folder": {
-      fontWeight: 500,
-      color: "var(--palette-primary-main)"
+      color: theme.vars.palette.primary.main
     },
     ".asset-item-size": {
       flex: "0 0 80px",
@@ -245,12 +256,15 @@ const AssetRowThumbnail: React.FC<{
   return (
     <div
       className="asset-item-thumbnail"
-      style={{
-        backgroundImage: `url(${src})`,
-        backgroundSize: isSvg ? "contain" : undefined
-      }}
       title={`${asset.content_type} thumbnail`}
-    />
+    >
+      <MediaThumbnail
+        asset={{ content_type: asset.content_type, thumb_url: src }}
+        alt={asset.name ?? "Thumbnail"}
+        fit={isSvg ? "contain" : "cover"}
+        borderRadius={0}
+      />
+    </div>
   );
 };
 
@@ -275,46 +289,36 @@ const AssetListView: React.FC<AssetListViewProps> = ({
     selectedAssetIdsRef.current = selectedAssetIds;
   }, [selectedAssetIds]);
 
+  // Folders lead, then the type groups in the type filter's order.
   const assetsByType = useMemo(() => {
-    const grouped: Record<string, Asset[]> = {};
-
+    const grouped = new Map<string, Asset[]>([
+      ["folder", []],
+      ...ASSET_GROUP_KEYS.map((key): [string, Asset[]] => [key, []])
+    ]);
     assets.forEach((asset) => {
       const type =
         asset.content_type === "folder"
           ? "folder"
-          : getAssetCategory(asset.content_type);
-
-      if (!grouped[type]) {
-        grouped[type] = [];
-      }
-      grouped[type].push(asset);
+          : getAssetGroup(asset.content_type);
+      grouped.get(type)?.push(asset);
     });
-
-    return grouped;
+    return [...grouped.entries()].filter(([, group]) => group.length > 0);
   }, [assets]);
 
-  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(
-    new Set(["folder", "image", "audio", "video", "model_3d", "text", "other"])
+  // Shared with the grid view and remembered across reloads.
+  const collapsedAssetGroups = useAssetGridStore(
+    (state) => state.collapsedAssetGroups
   );
-
-  const toggleExpanded = useCallback((type: string) => {
-    setExpandedTypes((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(type)) {
-        newSet.delete(type);
-      } else {
-        newSet.add(type);
-      }
-      return newSet;
-    });
-  }, []);
+  const toggleExpanded = useAssetGridStore(
+    (state) => state.toggleAssetGroupCollapsed
+  );
 
   // Create a flat list of items for virtualization (alternating headers and assets)
   const virtualListItems = useMemo(() => {
     const items: VirtualListItemData[] = [];
     
-    Object.entries(assetsByType).forEach(([type, typeAssets]) => {
-      const isExpanded = expandedTypes.has(type);
+    assetsByType.forEach(([type, typeAssets]) => {
+      const isExpanded = !collapsedAssetGroups.includes(type);
 
       items.push({
         type: 'header',
@@ -334,7 +338,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
     });
     
     return items;
-  }, [assetsByType, expandedTypes]);
+  }, [assetsByType, collapsedAssetGroups]);
 
   const handleContextMenu = useCallback(
     (event: React.MouseEvent, assetId?: string) => {
@@ -377,7 +381,6 @@ const AssetListView: React.FC<AssetListViewProps> = ({
   const showDate = assetsOrder === "date" || containerWidth > dateThreshold;
 
   // Empty callback for disabled button - prevents new function creation on each render
-  const emptyCallback = useCallback(() => {}, []);
 
   const virtualizer = useVirtualizer({
     count: virtualListItems.length,
@@ -392,7 +395,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
 
   useEffect(() => {
     virtualizer.measure();
-  }, [virtualListItems.length, expandedTypes, virtualizer]);
+  }, [virtualListItems.length, collapsedAssetGroups, virtualizer]);
 
   const renderRow = useCallback((index: number, key: React.Key, style: React.CSSProperties) => {
     const item = virtualListItems[index];
@@ -422,21 +425,28 @@ const AssetListView: React.FC<AssetListViewProps> = ({
             }
           }}
         >
-          <IconForType
-            iconName={type}
-            showTooltip={false}
-            containerStyle={HEADER_ICON_STYLE}
+          <ExpandMoreIcon
+            sx={{
+              fontSize: ICON_SIZE.sm,
+              color: "text.secondary",
+              transform: isExpanded ? "none" : "rotate(-90deg)",
+              transition: MOTION.transform
+            }}
           />
-          <Text className="asset-content-type-title">
-            {assetTypeLabel(type)} ({count})
+          {type === "folder" ? (
+            <FolderIcon sx={{ fontSize: ICON_SIZE.sm, color: "text.secondary" }} />
+          ) : (
+            <AssetGroupIcon
+              group={type}
+              sx={{ fontSize: ICON_SIZE.sm, color: colorForType(type) }}
+            />
+          )}
+          <Text component="span" className="asset-content-type-title">
+            {assetTypeLabel(type)}
           </Text>
-          <ExpandCollapseButton
-            expanded={isExpanded}
-            onClick={emptyCallback}
-            size="small"
-            nodrag={false}
-            sx={{ pointerEvents: 'none' }}
-          />
+          <Caption component="span" color="muted">
+            {count}
+          </Caption>
         </div>
       );
     }
@@ -449,24 +459,16 @@ const AssetListView: React.FC<AssetListViewProps> = ({
     const isSvg =
       asset.content_type === "image/svg+xml" ||
       (asset.name ?? "").toLowerCase().endsWith(".svg");
-    // Seeded style presets carry no bytes (get_url 404s); their package://
-    // tile art resolves statically. Names read through catalog:styles.
-    const preset = systemPresetAssetInfo(asset);
-    const presetImageUrl = preset?.thumbnail
-      ? resolveStaticMediaUri(preset.thumbnail)
-      : null;
     const hasVisualContent =
       (asset.content_type?.startsWith("image/") ||
         asset.content_type?.startsWith("video/") ||
         isSvg) &&
-      (presetImageUrl !== null ||
-        (asset.get_url && asset.get_url !== "/images/placeholder.png"));
+      asset.get_url &&
+      asset.get_url !== "/images/placeholder.png";
     const isVideo = asset.content_type?.startsWith("video/") ?? false;
     // No browser paints an MP4 as a background image, so a video with a
     // missing server thumbnail gets a poster decoded in the browser instead.
-    const previewUrl = presetImageUrl
-      ? presetImageUrl
-      : isSvg
+    const previewUrl = isSvg
       ? asset.get_url
       : isVideo
         ? asset.thumb_url
@@ -479,7 +481,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
         style={style}
         role="button"
         tabIndex={0}
-        aria-label={preset ? t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name }) : asset.name}
+        aria-label={asset.name}
         onClick={(e) => {
           e.stopPropagation();
           handleSelectAsset(asset.id);
@@ -505,7 +507,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
               <FolderIcon
                 style={{
                   color: "var(--palette-grey-200)",
-                  fontSize: "var(--fontSizeBig)"
+                  fontSize: ICON_SIZE.md
                 }}
               />
             ) : (
@@ -521,9 +523,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
         <div
           className={`asset-item-name ${isFolder ? "folder" : ""}`}
         >
-          {preset
-            ? t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name })
-            : asset.name}
+          {asset.name}
           {asset.duration && (
             <span className="asset-item-duration">
               {secondsToHMS(asset.duration)}
@@ -542,8 +542,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
         {showType && (
           <div className="asset-item-type">
             {isFolder
-              ? t("editor:ui.folder", { defaultValue: "Folder" })
-              : asset.content_type?.split("/")[1] || t("editor:ui.unknown", { defaultValue: "Unknown" })}
+              ? t("editor:ui.folder", { defaultValue: "Folder" }) : asset.content_type?.split("/")[1] || "Unknown"}
           </div>
         )}
 
@@ -554,7 +553,7 @@ const AssetListView: React.FC<AssetListViewProps> = ({
         )}
       </div>
     );
-  }, [virtualListItems, handleSelectAsset, onDoubleClick, handleContextMenu, toggleExpanded, showSize, showType, showDate, emptyCallback, formatDate, t]);
+  }, [virtualListItems, handleSelectAsset, onDoubleClick, handleContextMenu, toggleExpanded, showSize, showType, showDate, formatDate]);
 
   if (assets.length === 0) {
     return (

@@ -23,11 +23,10 @@ import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import { useTranslation } from "react-i18next";
 
+import ErrorBanner from "../support/ErrorBanner";
 import {
   AlertBanner,
-  Caption,
   Chip,
   ConflictBanner,
   type ConflictBannerConflict,
@@ -56,6 +55,8 @@ import {
 } from "../../serverState/useTimelineCode";
 import { useDocumentDraftStore } from "../../stores/DocumentDraftStore";
 import { notifyMutationError } from "../../utils/notifyMutationError";
+import { i18n } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
 
 const editorBoxStyles = (theme: Theme) =>
   css({
@@ -81,7 +82,6 @@ const SceneRow: React.FC<{
   onSelect: (groupId: string) => void;
 }> = memo(({ scene, onSelect }) => {
   const theme = useTheme();
-  const { t } = useTranslation();
   const handleClick = useCallback(
     () => onSelect(scene.groupId),
     [onSelect, scene.groupId]
@@ -95,7 +95,7 @@ const SceneRow: React.FC<{
       onClick={handleClick}
       role="button"
       tabIndex={0}
-      aria-label={t("timeline:code.selectSceneAria", { defaultValue: "Select scene {{name}} on the timeline", name: scene.name })}
+      aria-label={`Select scene ${scene.name} on the timeline`}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
@@ -107,7 +107,7 @@ const SceneRow: React.FC<{
         {scene.name}
       </Text>
       {scene.edited && (
-        <Chip label={t("ui2:attrs.edited", { defaultValue: "Edited" })} compact color="warning" size="small" />
+        <Chip label="Edited" compact color="warning" size="small" />
       )}
     </FlexRow>
   );
@@ -123,8 +123,8 @@ const emptyBakeResult: TimelineCodeBakeResult = {
 };
 
 export const CodePanel: React.FC = memo(() => {
+  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
-  const { t } = useTranslation();
   const sequenceId = useTimelineStore((s) => s.sequenceId);
   const clips = useTimelineStore((s) => s.clips);
   const uiStoreApi = useTimelineUIStoreApi();
@@ -261,14 +261,9 @@ export const CodePanel: React.FC = memo(() => {
     () =>
       bakeResult.conflicts.map((conflict) => ({
         unitId: conflict.scene,
-        label: t("timeline:attrs.rebakeConflict", {
-          defaultValue:
-            "Scene \"{{scene}}\" was edited in the editor since the last bake — kept. ({{reason}})",
-          scene: conflict.scene,
-          reason: conflict.reason
-        })
+        label: `Scene "${conflict.scene}" was edited in the editor since the last bake — kept. (${conflict.reason})`
       })),
-    [bakeResult.conflicts, t]
+    [bakeResult.conflicts]
   );
 
   const toolbarActions = useMemo(
@@ -280,18 +275,16 @@ export const CodePanel: React.FC = memo(() => {
           onClick={handleRebake}
           disabled={!sequenceId || isSettingCode || !dirty}
         >
-          {isSettingCode
-            ? t("timeline:attrs.rebaking", { defaultValue: "Rebaking…" })
-            : t("timeline:attrs.rebake", { defaultValue: "Rebake" })}
+          {isSettingCode ? i18n.t("timeline:attrs.rebaking", { defaultValue: "Rebaking…" }) : i18n.t("timeline:attrs.rebake", { defaultValue: "Rebake" })}
         </EditorButton>
       ) : null,
-    [hasCode, handleRebake, sequenceId, isSettingCode, dirty, t]
+    [hasCode, handleRebake, sequenceId, isSettingCode, dirty, languageVersion]
   );
 
   if (isLoading) {
     return (
       <FlexColumn align="center" justify="center" fullHeight sx={{ flex: 1 }}>
-        <LoadingSpinner size="small" text={t("timeline:attrs.loadingCode", { defaultValue: "Loading code…" })} />
+        <LoadingSpinner size="small" text="Loading code" />
       </FlexColumn>
     );
   }
@@ -299,12 +292,16 @@ export const CodePanel: React.FC = memo(() => {
   if (error) {
     return (
       <FlexColumn gap={SPACING.micro} sx={{ p: SPACING.md }}>
-        <Text color="error">
-          {t("timeline:attrs.failedToLoadCode", { defaultValue: "Failed to load the timeline's code" })}
-        </Text>
-        <Caption size="smaller" color="secondary">
+        <ErrorBanner
+          title={i18n.t("timeline:editor.codeLoadFailed", { defaultValue: "Could not load the timeline's code" })}
+          report={{
+            source: "operation-failure",
+            summary: "Timeline code failed to load",
+            errorText: error instanceof Error ? error.message : String(error)
+          }}
+        >
           {error instanceof Error ? error.message : String(error)}
-        </Caption>
+        </ErrorBanner>
       </FlexColumn>
     );
   }
@@ -318,8 +315,8 @@ export const CodePanel: React.FC = memo(() => {
         sx={{ flex: 1, px: SPACING.md }}
       >
         <EmptyState
-          title={t("timeline:code.noCode", { defaultValue: "No code" })}
-          description={t("timeline:code.noCodeDesc", { defaultValue: "This timeline wasn't built from code, so there is nothing to edit here." })}
+          title={i18n.t("timeline:code.noCode", { defaultValue: "No code" })}
+          description={i18n.t("timeline:code.noCodeDesc", { defaultValue: "This timeline wasn't built from code, so there is nothing to edit here." })}
         />
       </FlexColumn>
     );
@@ -328,7 +325,7 @@ export const CodePanel: React.FC = memo(() => {
   return (
     <FlexColumn fullWidth fullHeight sx={{ minHeight: 0, overflow: "hidden" }}>
       <PanelHeader
-        title={t("timeline:code.title", { defaultValue: "Code" })}
+        title={i18n.t("timeline:code.title", { defaultValue: "Code" })}
         count={scenes.length || undefined}
         actions={toolbarActions}
       />
@@ -347,8 +344,8 @@ export const CodePanel: React.FC = memo(() => {
           <ConflictBanner
             sx={{ m: SPACING.sm }}
             conflicts={conflictRows}
-            acceptLabel={t("timeline:attrs.overwriteWithCode", { defaultValue: "Overwrite with code" })}
-            discardLabel={t("timeline:attrs.detach", { defaultValue: "Detach" })}
+            acceptLabel={i18n.t("timeline:attrs.overwriteWithCode", { defaultValue: "Overwrite with code" })}
+            discardLabel={i18n.t("timeline:attrs.detach", { defaultValue: "Detach" })}
             onAccept={handleOverwriteScene}
             onDiscard={handleDetachScene}
           />
@@ -383,9 +380,15 @@ export const CodePanel: React.FC = memo(() => {
             }}
           />
         ) : monacoLoadError ? (
-          <Text size="small" color="error">
+          <ErrorBanner
+            report={{
+              source: "panel-crash",
+              summary: "Timeline code editor could not start",
+              errorText: monacoLoadError
+            }}
+          >
             {monacoLoadError}
-          </Text>
+          </ErrorBanner>
         ) : isMonacoLoading ? (
           <LoadingSpinner />
         ) : null}

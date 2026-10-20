@@ -11,7 +11,8 @@ import {
   AlertBanner,
   EditorButton,
   FlexRow,
-  SPACING
+  SPACING,
+  Text
 } from "../../ui_primitives";
 import ProviderFailureReportButton from "../../support/ProviderFailureReportButton";
 import { i18n } from "../../../i18n";
@@ -34,8 +35,14 @@ const ChatErrorBanner = ({
     compact
     onClose={onDismiss}
   >
-    <FlexRow align="center" gap={SPACING.sm}>
-      <span>{error}</span>
+    <FlexRow align="center" gap={SPACING.sm} wrap>
+      <Text
+        component="span"
+        size="small"
+        sx={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}
+      >
+        {error}
+      </Text>
       <ProviderFailureReportButton errorText={error} />
       {onRetry && (
         <EditorButton density="compact" onClick={onRetry}>

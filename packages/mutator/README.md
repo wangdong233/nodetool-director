@@ -102,7 +102,7 @@ expanding to the mutated file relative to that directory.
 
 | Package | Default test command | Default coverage |
 | --- | --- | --- |
-| Uses Vitest | `npx --no-install vitest related --run --passWithNoTests {file}` | a V8 coverage run of the package suite |
+| Uses Vitest | `npx --no-install vitest related --run --passWithNoTests --maxWorkers=1 {file}` | a V8 coverage run of the package suite |
 | Has a `coverage` script | `npm test` | `npm run coverage`, read from `coverage/` |
 | Other | `npm test` | none, so every site is uncovered |
 
@@ -121,6 +121,30 @@ The package itself is a private copy, with `node_modules`, `dist`, and other
 build output linked. The project tree is never written. Overlays are removed
 at the end of the run, and an interrupted run's overlays are removed at the
 start of the next.
+
+The default Vitest command allocates one inner test worker per mutation
+worker. The baseline runs the complete related test selection. Mutants add
+`--bail=1` to stop after the first failure establishes a killed outcome.
+Surviving mutants still run the complete selection. Custom `--test-command`
+values are used unchanged. Baseline durations and the resulting numeric
+mutant deadlines can change with scheduling. The timeout factor and minimum
+remain unchanged.
+
+`--shard 1/2` and `--shard 2/2` divide the canonical selected mutation IDs
+deterministically. Each shard reports only its own sites and outcomes. Give
+each shard a separate `--metrics-dir` and run concurrent shards in separate
+checkouts. Startup cleanup removes old worker overlays within a checkout.
+
+The changed-function CI workflow freezes the source commit and base before
+running source-file partitions on separate machines. Each partition runs one
+file with the full baseline and canonical test command. The plan splits each
+file by mutation ID hash until its partitions fit the execution capacity,
+including empty buckets that own unchanged form metrics.
+`scripts/mutation-ci.mjs` verifies that actual completed outcomes cover the
+complete selection exactly once before reporting a global score. Missing,
+cancelled, duplicate, or incomplete partitions fail that check. Execution jobs
+have a 90-minute capacity budget. Baseline and mutant test commands and
+timeouts remain unchanged.
 
 ## Differences from unclebob/mutator
 

@@ -20,6 +20,24 @@
   ],
   "references": [
     {
+      "path": "../analytics"
+    },
+    {
+      "path": "../code-nodes"
+    },
+    {
+      "path": "../core-nodes"
+    },
+    {
+      "path": "../data-nodes"
+    },
+    {
+      "path": "../llm-nodes"
+    },
+    {
+      "path": "../text-nodes"
+    },
+    {
       "path": "../agents"
     },
     {
@@ -56,6 +74,9 @@
       "path": "../models"
     },
     {
+      "path": "../node-catalog"
+    },
+    {
       "path": "../node-sdk"
     },
     {
@@ -87,6 +108,9 @@
     },
     {
       "path": "../app-runtime"
+    },
+    {
+      "path": "../app-export"
     },
     {
       "path": "../compute"

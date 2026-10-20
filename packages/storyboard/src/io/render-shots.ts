@@ -29,6 +29,18 @@ import type {
 import type { StoryboardDocument } from "../document.js";
 import type { ShotRenderPlan } from "../render-plan.js";
 
+/** The generation request body the renderer builds for one shot. */
+type RenderParams = {
+  prompt: string;
+  entities: ShotRenderPlan["entities"];
+  aspect_ratio: string;
+  resolution: string;
+  duration_seconds?: number;
+  image?: Uint8Array;
+  images?: Uint8Array[];
+  reference_images?: Array<Uint8Array | null | undefined>;
+};
+
 /** The provider call a plan turns into. */
 export interface RenderGenerationRequest {
   /** Minted by the caller of `runGeneration`, so a background caller has it early. */
@@ -41,7 +53,7 @@ export interface RenderGenerationRequest {
     | "reference_to_video"
     | "text_to_video";
   model: string;
-  params: Record<string, unknown>;
+  params: RenderParams;
   /** Save the result as an asset: the board can only reference persisted media. */
   persist: { name: string; mime?: string };
   /** Server-side destination retained if the caller disappears before attach. */
@@ -124,18 +136,6 @@ export interface ShotRenderOutcome {
   error?: string;
 }
 
-/** The generation request body the renderer builds for one shot. */
-type RenderParams = {
-  prompt: string;
-  entities: ShotRenderPlan["entities"];
-  aspect_ratio: string;
-  resolution: string;
-  duration_seconds?: number;
-  image?: Uint8Array;
-  images?: Uint8Array[];
-  reference_images?: Array<Uint8Array | null | undefined>;
-};
-
 interface PatchError {
   error: string;
 }
@@ -163,6 +163,20 @@ async function mapWithConcurrency<T, R>(
   );
   await Promise.all(workers);
   return results;
+}
+
+/**
+ * Runs each task once the one queued before it has settled. One render call's
+ * shot writes go through one queue: renders finishing together would otherwise
+ * all read the same update token, and every CAS but one would fail.
+ */
+function serialQueue(): <T>(task: () => Promise<T>) => Promise<T> {
+  let tail: Promise<unknown> = Promise.resolve();
+  return (task) => {
+    const run = tail.then(task, task);
+    tail = run.catch(() => undefined);
+    return run;
+  };
 }
 
 /**
@@ -238,6 +252,9 @@ export async function renderShots(
   options: RenderShotsOptions = {}
 ): Promise<ShotRenderOutcome[]> {
   const newId = options.newId ?? (() => crypto.randomUUID());
+  const serialize = serialQueue();
+  const writeShot = (shotId: string, patch: (shot: Shot) => Shot) =>
+    serialize(() => patchShot(host, ref.id, shotId, patch));
   return mapWithConcurrency(plans, options.concurrency ?? 1, async (plan) => {
     const base: ShotRenderOutcome = {
       shotId: plan.shotId,
@@ -377,9 +394,7 @@ export async function renderShots(
         }
         const assetId = asset.asset_id;
         const assetUri = asset.uri ?? "";
-        const updated = await patchShot(
-          host,
-          ref.id,
+        const updated = await writeShot(
           plan.shotId,
           (current) => {
             if (plan.kind === "keyframe") {
@@ -436,7 +451,7 @@ export async function renderShots(
       }
       return outcome;
     } catch (e) {
-      await patchShot(host, ref.id, plan.shotId, (current) => ({
+      await writeShot(plan.shotId, (current) => ({
         ...current,
         status: "failed"
       }));

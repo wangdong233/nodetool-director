@@ -4,15 +4,13 @@ import { useMemo, useCallback, memo } from "react";
 
 import {
   FlexRow,
+  FlexColumn,
   Box,
   Chip,
-  Stack,
   BORDER_RADIUS,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  type SelectChangeEvent, getSpacingPx, SPACING
+  SelectField,
+  getSpacingPx,
+  SPACING
 } from "../ui_primitives";
 import { formatSettingLabel } from "./settingsLabel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -27,6 +25,7 @@ import {
 } from "../../utils/searchProviders";
 import { matchesSearch } from "./settingsSearch";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface SearchProviderSectionProps {
   settingValues: Record<string, string>;
@@ -51,12 +50,22 @@ const SearchProviderSection = memo(function SearchProviderSection({
       (field) => settingValues[field] && settingValues[field].trim().length > 0
     );
   }, [config, settingValues]);
+  const credentialTone = hasAllCredentials ? "success" : "warning";
 
   const handleProviderChange = useCallback(
-    (e: SelectChangeEvent<string>) => {
-      onChange("SERP_PROVIDER", e.target.value);
+    (value: string) => {
+      onChange("SERP_PROVIDER", value);
     },
     [onChange]
+  );
+
+  const providerOptions = useMemo(
+    () =>
+      Object.entries(PROVIDER_CONFIGS).map(([key, cfg]) => ({
+        value: key,
+        label: cfg.label
+      })),
+    []
   );
 
   const handleCredentialChange = useCallback(
@@ -78,135 +87,100 @@ const SearchProviderSection = memo(function SearchProviderSection({
   return (
     <div className="settings-section">
       <Text size="big" id="search-provider" className="settings-heading">
-        {t("editor:ui.searchProvider")}
+        Search provider
       </Text>
 
       <div className="settings-item large">
-        <FormControl variant="standard" fullWidth sx={{ marginBottom: getSpacingPx(SPACING.xxl) }}>
-          <InputLabel id="provider-select-label">{t("ui2:attrs.provider", { defaultValue: "Provider" })}</InputLabel>
-          <Select
-            labelId="provider-select-label"
-            id="provider-select"
-            value={selectedProvider}
-            onChange={handleProviderChange}
-          >
-            {Object.entries(PROVIDER_CONFIGS).map(([key, cfg]) => (
-              <MenuItem key={key} value={key}>
-                {cfg.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <SelectField
+          id="provider-select"
+          label={t("ui2:attrs.provider", { defaultValue: "Provider" })}
+          value={selectedProvider}
+          onChange={handleProviderChange}
+          options={providerOptions}
+          description={config?.description}
+        />
 
         <FlexRow
           align="center"
           sx={{
             gap: getSpacingPx(SPACING.md),
-            marginBottom: getSpacingPx(SPACING.xl),
             padding: getSpacingPx(SPACING.lg),
-            backgroundColor:
-              hasAllCredentials ?
-                theme.palette.success.light :
-                theme.palette.warning.light,
+            // Tinted fill + main-colour text from theme.vars so the banner
+            // follows the active light/dark scheme.
+            backgroundColor: `rgb(${theme.vars.palette[credentialTone].mainChannel} / 0.12)`,
             borderRadius: BORDER_RADIUS.sm
           }}
         >
           {hasAllCredentials ? (
             <CheckCircleIcon
-              sx={{ color: theme.palette.success.dark, fontSize: "1.2em" }}
+              sx={{ color: theme.vars.palette.success.main, fontSize: "1.2em" }}
             />
           ) : (
             <ErrorIcon
-              sx={{ color: theme.palette.warning.dark, fontSize: "1.2em" }}
+              sx={{ color: theme.vars.palette.warning.main, fontSize: "1.2em" }}
             />
           )}
           <Text
             size="small"
             sx={{
-              color: hasAllCredentials ?
-                theme.palette.success.dark :
-                theme.palette.warning.dark,
+              color: theme.vars.palette[credentialTone].main,
               margin: 0
             }}
           >
             {hasAllCredentials
-              ? t("editor:ui.credentialsConfigured", { defaultValue: "✓ Credentials configured" })
-              : t("editor:ui.missingCredentials", { defaultValue: "✗ Missing credentials" })}
+              ? i18n.t("editor:ui.credentialsConfigured", { defaultValue: "✓ Credentials configured" })
+              : i18n.t("editor:ui.missingCredentials", { defaultValue: "✗ Missing credentials" })}
           </Text>
         </FlexRow>
-
-        <Text className="description">{config ? t(`tools:menus.searchProviders.${config.id}.description`, { defaultValue: config.description }) : ""}</Text>
       </div>
 
       {config && (
-        <div
-          style={{
-            marginTop: getSpacingPx(SPACING.xxl),
-            padding: getSpacingPx(SPACING.xl),
-            backgroundColor: theme.vars.palette.c_overlay_subtle,
-            borderLeft: `4px solid ${theme.palette.primary.main}`,
-            borderRadius: BORDER_RADIUS.sm
-          }}
-        >
-          <Stack spacing={1.5}>
-            {config.credentialFields.map((field) => {
-              const value = settingValues[field] || "";
-              const isFilled = value.trim().length > 0;
+        <FlexColumn gap={SPACING.lg} className="settings-item large">
+        {config.credentialFields.map((field) => {
+          const value = settingValues[field] || "";
+          const isFilled = value.trim().length > 0;
 
-              return (
-                <Box key={field}>
-                  <TextInput
-                    type="password"
-                    autoComplete="off"
-                    id={`${field.toLowerCase()}-input`}
-                    label={formatSettingLabel(field)}
-                    value={value}
-                    onChange={(
-                      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-                    ) => {
-                      handleCredentialChange(field, e.target.value);
-                    }}
-                    variant="standard"
-                    size="small"
-                    onKeyDown={(e: React.KeyboardEvent) => e.stopPropagation()}
-                    sx={{
-                      "& .MuiInput-root": {
-                        color: isFilled ? theme.palette.success.main : undefined
-                      }
-                    }}
-                  />
-                  {isFilled && (
-                    <Chip
-                      icon={<CheckCircleIcon />}
-                      label={t("editor:ui.configured", { defaultValue: "Configured" })}
-                      size="small"
-                      sx={{
-                        marginTop: getSpacingPx(SPACING.md),
-                        height: "24px",
-                        backgroundColor: theme.palette.success.light,
-                        color: theme.palette.success.dark
-                      }}
-                    />
-                  )}
-                </Box>
-              );
-            })}
-
-            <Box sx={{ marginTop: getSpacingPx(SPACING.xl) }}>
-              <ExternalLink
-                href={config.getApiKeyUrl}
-                tooltipText={t("tools:menus.visitProviderForCredentials", {
-                  defaultValue: "Visit {{label}} to get your credentials",
-                  label: config.label
-                })}
-              >
-                {t(`tools:menus.searchProviders.${config.id}.get`, {
-                  defaultValue: config.getApiKeyLabel
-                })}
-              </ExternalLink>
+          return (
+            <Box key={field}>
+              <TextInput
+                type="password"
+                autoComplete="off"
+                id={`${field.toLowerCase()}-input`}
+                label={formatSettingLabel(field)}
+                value={value}
+                onChange={(
+                  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+                ) => {
+                  handleCredentialChange(field, e.target.value);
+                }}
+                size="small"
+                onKeyDown={(e: React.KeyboardEvent) => e.stopPropagation()}
+              />
+              {isFilled && (
+                <Chip
+                  icon={<CheckCircleIcon />}
+                  label={t("editor:ui.configured", { defaultValue: "Configured" })}
+                  size="small"
+                  color="success"
+                  sx={{
+                    marginTop: getSpacingPx(SPACING.md),
+                    height: "24px"
+                  }}
+                />
+              )}
             </Box>
-          </Stack>
-        </div>
+          );
+        })}
+
+        <Box>
+          <ExternalLink
+            href={config.getApiKeyUrl}
+            tooltipText={`Visit ${config.label} to get your credentials`}
+          >
+            {config.getApiKeyLabel}
+          </ExternalLink>
+        </Box>
+        </FlexColumn>
       )}
     </div>
   );

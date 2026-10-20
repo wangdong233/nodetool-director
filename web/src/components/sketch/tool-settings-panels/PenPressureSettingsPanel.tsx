@@ -9,7 +9,6 @@ import {
   Slider,
   Switch
 } from "../../ui_primitives";
-import { sketchSliderSx } from "../sketchStyles";
 import { SketchModeToggle, SketchModeOption } from "./SketchModeToggle";
 import { useTranslation } from "react-i18next";
 import {
@@ -73,7 +72,6 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
         {t("sketch:attrs.lightEnd", { defaultValue: "Light end" })}
       </Text>
       <Slider
-        sx={sketchSliderSx}
         size="small"
         min={0}
         max={100}
@@ -102,7 +100,6 @@ export const PenPressureSettingsPanel = memo(function PenPressureSettingsPanel({
         {t("editor:ui.curve")}
       </Text>
       <Slider
-        sx={sketchSliderSx}
         size="small"
         min={0.5}
         max={2.5}

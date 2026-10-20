@@ -334,7 +334,7 @@ const ImageView: React.FC<ImageViewProps> = ({ source, bitmap }) => {
   }, []);
 
   if (!imageUrl && !bitmap) {
-    return <Text>{t("ui2:attrs.noImageFound", { defaultValue: "No Image found" })}</Text>;
+    return <Text>{t("ui2:attrs.noImageFound", { defaultValue: "No image found" })}</Text>;
   }
 
   return (

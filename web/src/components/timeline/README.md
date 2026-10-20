@@ -166,6 +166,11 @@ mute/solo, the DSP chain, the offline export — because the notes become an
   magnet is on and the document either has a midi track or is read in bars.
   The status bar's readout follows the ruler: bar.beat.tick in bars mode,
   timecode otherwise.
+- **Detect beats** on an audio or video clip's context menu decodes the clip
+  in the browser, measures its tempo with `analyzeOnsets`, then sets the
+  document tempo and drops a "Bar N" marker on every bar inside the clip in
+  one undo step (`useDetectClipBeats`). The ruler switches to bars. A clip
+  without a steady beat changes nothing.
 - **Instrument**: a midi track header carries a preset select
   (`MIDI_INSTRUMENT_PRESETS`, reading "Custom" when the voice matches none) and
   an Edit toggle that expands `TrackInstrumentPanel` under the row, the way the
@@ -232,6 +237,37 @@ Seven agent tools drive it — `ui_timeline_add_midi_clip`,
 `ui_timeline_quantize_notes` and `ui_timeline_scale_velocity`.
 `ui_timeline_get_state` reports the resolved tempo, each track's instrument and
 the preset it matches, and each midi clip's note count.
+
+## DAW mode
+
+The TopBar's Video / DAW switch (or Alt+M in every keyboard layout) is a
+persisted layout flag, `dawMode` on `TimelineLayoutStore`. It changes the
+layout only; the document is the same.
+
+- **Body**: `daw/dock/DawWorkspace` replaces the preview row, the tracks
+  divider and the piano-roll strip. The lab page renders the same component
+  (`daw-lab.html?view=daw&tab=devices`).
+- **Transport**: `PreviewArea` stays mounted with `audioOnly`, so it keeps the
+  `AudioGraph`, the `PlaybackClock` and the Space binding, but renders no
+  compositor. `daw/transport/DawTransport` replaces its control bar: play,
+  stop, return to start, loop, metronome, bars:beats:ticks and timecode, BPM
+  and time signature (`setTempo`), listener volume and a master peak meter.
+  Loop on with no out point sets the in/out range over the selected clips, or
+  the whole bars on screen. The metronome (`daw/transport/metronome.ts`)
+  schedules its clicks on the graph's context from the clock's anchor and
+  connects to the destination, never the mix bus, so an export has no clicks.
+- **Tracks**: the ruler reads in bars while DAW mode is on, so snapping
+  follows the beat grid. `trackRowHeightPx` gives midi, audio and chord tracks
+  a 96 px default (a height the user set still wins) and collapses video,
+  overlay and subtitle tracks to a 32 px strip.
+- **Dock**: Mixer, Devices, Piano roll and Harmony tabs, resizable, height and
+  tab persisted. Opening the piano roll (double-click a midi clip) brings its
+  tab forward. Devices shows one channel's chain left to right: the
+  instrument (`instrumentView`, else `TrackInstrumentPanel`), each insert
+  (`fxView(type)` or `fxView("fable:<kind>")`, else the knob editor
+  `TrackEffectParams`), and an add card. Selecting a clip focuses its track,
+  the track header's instrument button focuses the track and opens the tab,
+  and the picker also offers the master.
 
 ## 3D clips
 
@@ -361,8 +397,11 @@ live preview, so an exported frame is identical to what playback showed:
   compositing. The renderer composites at full sequence resolution, encodes
   frames with WebCodecs, and muxes to MP4 via [mediabunny](https://mediabunny.dev).
 - `render/renderAudio.ts` — mixes the audio tracks down through the same
-  `AudioGraph` (clip gain, fades, speed, mute/solo, DSP chain) driven by an
-  `OfflineAudioContext`.
+  `AudioGraph` (clip gain, fades, speed, clip audio effects, mute/solo, DSP
+  chain) driven by an `OfflineAudioContext`. A clip's `audioEffects` run
+  between its gain and its track (`preview/audioEffectNodes.ts`), and their
+  echo and reverb tails ring past the clip's end. The server mix in
+  `packages/video-nodes` builds the same chain from ffmpeg filters.
 - `useTimelineExport` (`hooks/timeline/`) — wires the store + asset URLs to the
   renderer, reports progress, and downloads the resulting file.
 

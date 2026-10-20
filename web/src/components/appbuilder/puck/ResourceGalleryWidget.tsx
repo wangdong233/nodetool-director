@@ -10,18 +10,23 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import {
+  AutoGrid,
   Box,
   Caption,
+  EmptyState,
   FlexColumn,
   Label,
+  LoadingSpinner,
+  TruncatedText,
   BORDER_RADIUS,
-  MOTION,
   SPACING,
-  TYPOGRAPHY
+  TYPOGRAPHY,
+  selectableTileStyles
 } from "../../ui_primitives";
 import { trpc } from "../../../trpc/client";
 import { useBoundResource, type ResourceItem } from "./useBoundResource";
-import { tAttr, tAttrTpl } from "../i18nAttrs";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ResourceGalleryProps {
   /** Puck injects the placed widget's id. */
@@ -104,32 +109,20 @@ const GalleryTile: React.FC<TileProps> = ({
     onClick={onSelect}
     onFocus={onFocus}
     gap={SPACING.xs}
-    sx={{
+    sx={(theme) => ({
       height: size,
       p: SPACING.xs,
       cursor: "pointer",
-      borderRadius: BORDER_RADIUS.md,
-      border: "1px solid",
-      borderColor: selected ? "primary.main" : "divider",
-      outlineOffset: 2,
-      backgroundColor: selected ? "action.selected" : "transparent",
-      transition: `${MOTION.border}, ${MOTION.background}`,
-      "&:hover": { borderColor: "primary.light" }
-    }}
+      ...selectableTileStyles(theme, { selected })
+    })}
   >
     {isAsset ? <AssetThumbnail id={item.ref.id} enabled /> : null}
-    <Box
-      sx={{
-        ...TYPOGRAPHY.sans.caption,
-        color: "text.secondary",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap"
-      }}
+    <TruncatedText
+      sx={{ ...TYPOGRAPHY.sans.label, color: "text.primary" }}
       title={item.name}
     >
       {item.name}
-    </Box>
+    </TruncatedText>
   </FlexColumn>
 );
 
@@ -157,6 +150,7 @@ export const ResourceGalleryWidget: React.FC<ResourceGalleryProps> = ({
   tileSize,
   disabled
 }) => {
+  const { t } = useTranslation("appbuilder");
   const { binding, items, isLoading, designMode, selected, select } =
     useBoundResource(resourceBindingId);
 
@@ -198,8 +192,7 @@ export const ResourceGalleryWidget: React.FC<ResourceGalleryProps> = ({
     return (
       <Caption color="secondary">
         {designMode
-          ? tAttr("Pick a resource binding for this gallery.")
-          : tAttr("This gallery is not bound to a resource.")}
+          ? t("appbuilder:attrs.pickAResourceBindingForThisGallery", { defaultValue: "Pick a resource binding for this gallery." }) : i18n.t("appbuilder:attrs.thisGalleryIsNotBoundToAResource", { defaultValue: "This gallery is not bound to a resource." })}
       </Caption>
     );
   }
@@ -221,45 +214,45 @@ export const ResourceGalleryWidget: React.FC<ResourceGalleryProps> = ({
     <FlexColumn gap={SPACING.xs} fullWidth>
       <Label>{title}</Label>
       {items.length === 0 ? (
-        <Caption color="secondary">
-          {isLoading
-            ? tAttr("Loading…")
-            : tAttrTpl("noKindResourcesYet", "No {{kind}} resources in this collection yet.", {
-                kind: tAttr(binding.kind)
-              })}
-        </Caption>
+        isLoading ? (
+          <LoadingSpinner size="small" text="Loading" />
+        ) : (
+          <EmptyState
+            variant="empty"
+            size="small"
+            title={t("appbuilder:attrs.emptyCollection", { defaultValue: "Empty collection" })}
+            description={`No ${binding.kind} resources in this collection yet.`}
+          />
+        )
       ) : (
         <Box
           role="listbox"
           aria-label={title}
           aria-disabled={disabled || undefined}
           onKeyDown={onKeyDown}
-          sx={{
-            display: "grid",
-            gap: SPACING.sm,
-            width: "100%",
-            gridTemplateColumns: `repeat(auto-fill, minmax(${tileSize ?? TILE_SIZE}px, 1fr))`
-          }}
+          sx={{ width: "100%" }}
         >
-          {items.map((item, index) => (
-            <GalleryTile
-              key={item.ref.id}
-              item={item}
-              isAsset={binding.kind === "asset"}
-              size={tileSize ?? TILE_SIZE}
-              selected={selected?.id === item.ref.id}
-              focusable={index === focusIndex}
-              onSelect={() => {
-                if (disabled) return;
-                setFocusIndex(index);
-                select(item.ref);
-              }}
-              onFocus={() => setFocusIndex(index)}
-              registerRef={(el) => {
-                tileRefs.current[index] = el;
-              }}
-            />
-          ))}
+          <AutoGrid minItemWidth={tileSize ?? TILE_SIZE} gap={SPACING.sm}>
+            {items.map((item, index) => (
+              <GalleryTile
+                key={item.ref.id}
+                item={item}
+                isAsset={binding.kind === "asset"}
+                size={tileSize ?? TILE_SIZE}
+                selected={selected?.id === item.ref.id}
+                focusable={index === focusIndex}
+                onSelect={() => {
+                  if (disabled) return;
+                  setFocusIndex(index);
+                  select(item.ref);
+                }}
+                onFocus={() => setFocusIndex(index)}
+                registerRef={(el) => {
+                  tileRefs.current[index] = el;
+                }}
+              />
+            ))}
+          </AutoGrid>
         </Box>
       )}
     </FlexColumn>

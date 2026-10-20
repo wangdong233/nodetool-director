@@ -24,7 +24,7 @@ import {
   FlexColumn,
   FlexRow,
   StateIconButton,
-  Text, BORDER_RADIUS } from "../ui_primitives";
+  Text, BORDER_RADIUS, EmptyState } from "../ui_primitives";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import NumberInput from "../inputs/NumberInput";
 import LayerRow from "../node_types/editing/LayerRow";
@@ -34,7 +34,7 @@ import CompositorEditorCanvas, {
   type CanvasLayer
 } from "./CompositorEditorCanvas";
 import LayerTransformFields from "./LayerTransformFields";
-import { useLayerBitmaps } from "./useLayerBitmaps";
+import type { BitmapMap } from "./useLayerBitmaps";
 import { defaultTransform, type CompositorEditorLayer } from "./types";
 import { useTranslation } from "react-i18next";
 
@@ -42,6 +42,8 @@ export interface CompositorEditorProps {
   canvasWidth: number;
   canvasHeight: number;
   layers: CompositorEditorLayer[];
+  /** Decoded layer images keyed by layer id (see `useLayerBitmaps`). */
+  bitmaps: BitmapMap;
   onCanvasSizeChange: (width: number, height: number, complete: boolean) => void;
   onOpacityChange: (index: number, value: number) => void;
   onOpacityComplete: () => void;
@@ -116,13 +118,6 @@ const styles = (theme: Theme) =>
       "&.selected": {
         borderColor: theme.vars.palette.primary.main
       }
-    },
-    ".empty": {
-      color: theme.vars.palette.text.secondary,
-      fontFamily: theme.fontFamily2,
-      fontSize: theme.fontSizeSmaller,
-      textAlign: "center",
-      padding: theme.spacing(1)
     }
   });
 
@@ -130,6 +125,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
   canvasWidth,
   canvasHeight,
   layers,
+  bitmaps,
   onCanvasSizeChange,
   onOpacityChange,
   onOpacityComplete,
@@ -147,13 +143,6 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
     id: string;
     transform: LayerTransform2D;
   } | null>(null);
-
-  const urls = useMemo(() => {
-    const out: Record<string, string | undefined> = {};
-    for (const l of layers) out[l.id] = l.url;
-    return out;
-  }, [layers]);
-  const bitmaps = useLayerBitmaps(urls);
 
   const indexOf = useCallback(
     (id: string) => layers.findIndex((l) => l.id === id),
@@ -246,7 +235,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
   ]);
 
   // Render the stack top-first (lowest index on top of the composite).
-  // `state` and `image` are built here, not in JSX, so LayerRow's memo can
+  // `state` is built here, not in JSX, so LayerRow's memo can
   // bail — otherwise dragging one opacity slider re-rendered every row.
   const stack = useMemo(
     () =>
@@ -257,8 +246,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
           opacity: layer.opacity,
           blend_mode: layer.blendMode,
           visible: layer.visible
-        },
-        image: layer.url ? { uri: layer.url } : undefined
+        }
       })),
     [layers]
   );
@@ -340,7 +328,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
               <StateIconButton
                 icon={<RestartAltIcon fontSize="small" />}
                 onClick={handleResetTransform}
-                ariaLabel={t("editor:ui.resetTransform", { defaultValue: "Reset transform" })}
+                ariaLabel="Reset transform"
                 tooltip={t("editor:ui.resetTransform", { defaultValue: "Reset transform" })}
               />
             </FlexRow>
@@ -357,10 +345,14 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
         <FlexColumn gap={0.5}>
           <Caption>{t("sketch:attrs.layers", { defaultValue: "Layers" })}</Caption>
           {layers.length === 0 ? (
-            <div className="empty">{t("timeline:attrs.noLayersYetAddOneBelow", { defaultValue: "No layers yet - add one below." })}</div>
+            <EmptyState
+              size="small"
+              title={t("editor:ui.noLayersYet", { defaultValue: "No layers yet" })}
+              description={t("editor:ui.addOneBelow", { defaultValue: "Add one below." })}
+            />
           ) : (
             <div className="layer-stack">
-              {stack.map(({ layer, index, state, image }) => (
+              {stack.map(({ layer, index, state }) => (
                 <div
                   key={layer.id}
                   className={`layer-slot ${
@@ -372,7 +364,7 @@ const CompositorEditorInner: React.FC<CompositorEditorProps> = ({
                     index={index}
                     propertyKey={layer.id}
                     state={state}
-                    image={image}
+                    imageUrl={layer.url}
                     onOpacityChange={onOpacityChange}
                     onOpacityComplete={onOpacityComplete}
                     onBlendChange={onBlendChange}

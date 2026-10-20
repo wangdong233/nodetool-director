@@ -39,7 +39,7 @@ export const setupReasonForMode = (mode: MediaMode): string | null => {
   switch (mode) {
     case "chat":
       return i18n.t("editor:ui.setupReasonChat", {
-        defaultValue: "Chat needs a language model. Connect a provider to start."
+        defaultValue: i18n.t("editor:ui.chatNeedsALanguageModelConnectAProviderToStart", { defaultValue: "Chat needs a language model. Connect a provider to start." })
       });
     case "image":
       return i18n.t("editor:ui.setupReasonImage", {

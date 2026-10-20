@@ -12,7 +12,7 @@ import { IconForType } from "../../config/IconForType";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import OpenInNew from "@mui/icons-material/OpenInNew";
 import { NodeLogsDialog } from "./NodeLogs";
-import { BORDER_RADIUS, FlexRow, Tooltip, ToolbarIconButton, MOTION, SPACING, getSpacingPx } from "../ui_primitives";
+import { BORDER_RADIUS, Chip, FlexRow, Tooltip, ToolbarIconButton, MOTION, SPACING, getSpacingPx, ICON_SIZE } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
 
 interface NodeHeaderProps {
@@ -103,21 +103,6 @@ const headerCss = css({
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap"
-  },
-  ".code-badge": {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "16px",
-    height: "16px",
-    borderRadius: BORDER_RADIUS.pill,
-    fontSize: "var(--fontSizeSmaller)",
-    fontWeight: 600,
-    letterSpacing: "0.02em",
-    color: "var(--palette-text-primary)",
-    backgroundColor: "var(--palette-c_overlay_strong)",
-    border: "1px solid var(--palette-c_overlay_strong)",
-    flexShrink: 0
   },
   ".node-title-input": {
     width: "100%",
@@ -222,11 +207,15 @@ const NodeHeaderImpl: React.FC<NodeHeaderProps> = ({
 
   const commitTitleEdit = useCallback(() => {
     const trimmedTitle = draftTitle.trim();
-    updateNodeData(id, {
-      title: trimmedTitle || undefined
-    });
+    // A draft equal to the default stores nothing, so the title keeps
+    // following the node's metadata.
+    const nextTitle =
+      trimmedTitle && trimmedTitle !== metadataTitle ? trimmedTitle : undefined;
+    if (nextTitle !== (data.title?.trim() || undefined)) {
+      updateNodeData(id, { title: nextTitle });
+    }
     setIsEditingTitle(false);
-  }, [draftTitle, id, updateNodeData]);
+  }, [data.title, draftTitle, id, metadataTitle, updateNodeData]);
 
   const handleTitleDoubleClick = useCallback(
     (event: React.MouseEvent<HTMLSpanElement>) => {
@@ -306,8 +295,10 @@ const NodeHeaderImpl: React.FC<NodeHeaderProps> = ({
           onDoubleClick={handleTitleDoubleClick}
         >
           {showCodeBadge && (
-            <Tooltip title={codeBadgeTooltip} placement="top" delay={400}>
-              <span className="code-badge">C</span>
+            <Tooltip title={codeBadgeTooltip} placement="top">
+              <span style={{ display: "inline-flex", flexShrink: 0 }}>
+                <Chip compact label="C" />
+              </span>
             </Tooltip>
           )}
           {isEditingTitle ? (
@@ -343,7 +334,7 @@ const NodeHeaderImpl: React.FC<NodeHeaderProps> = ({
               }
             }}
           >
-            <OpenInNew sx={{ fontSize: "var(--fontSizeNormal)" }} />
+            <OpenInNew sx={{ fontSize: ICON_SIZE.sm }} />
           </ToolbarIconButton>
         )}
         {data.bypassed && (
@@ -356,7 +347,7 @@ const NodeHeaderImpl: React.FC<NodeHeaderProps> = ({
             onClick={handleOpenLogsDialog}
             sx={{ padding: getSpacingPx(SPACING.xs) }}
           >
-            <ListAltIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
+            <ListAltIcon sx={{ fontSize: ICON_SIZE.sm }} />
           </ToolbarIconButton>
         )}
       </FlexRow>

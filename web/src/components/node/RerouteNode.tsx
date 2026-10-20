@@ -21,14 +21,14 @@ import { DATA_TYPES } from "../../config/data_types";
 import { findOutputHandle } from "../../utils/handleUtils";
 import { useSyncEdgeSelection } from "../../hooks/nodes/useSyncEdgeSelection";
 import { edgesTargeting } from "../../hooks/nodes/edgeIndex";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { hexToRgba } from "../../utils/ColorUtils";
+import { TOOLTIP_DESCRIPTION_DELAY } from "../../config/constants";
 import { useTranslation } from "react-i18next";
 
+// Paper channel from theme.vars so the pill follows the active light/dark
+// scheme (theme.palette.mode is fixed to the default scheme).
 const rerouteBackground = (theme: Theme, alpha: number): string =>
-  theme.palette.mode === "dark"
-    ? `rgba(30 30 30 / ${alpha})`
-    : `rgba(255 255 255 / ${alpha})`;
+  `rgb(${theme.vars.palette.background.paperChannel} / ${alpha})`;
 
 const styles = (theme: Theme) =>
   css({
@@ -103,10 +103,12 @@ const RerouteNode: React.FC<RerouteNodeProps> = (props) => {
 
   const commitTitle = useCallback(
     (value: string) => {
-      updateNodeData(id, { title: value });
+      if (value !== title) {
+        updateNodeData(id, { title: value });
+      }
       setIsEditing(false);
     },
-    [id, updateNodeData]
+    [id, title, updateNodeData]
   );
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
@@ -230,7 +232,7 @@ const RerouteNode: React.FC<RerouteNodeProps> = (props) => {
   return (
     <Tooltip
       title={t("editor:ui.doubleclickToAddALabel", { defaultValue: "Double-click to add a label" })}
-      delay={TOOLTIP_ENTER_DELAY * 2}
+      delay={TOOLTIP_DESCRIPTION_DELAY}
       placement="top"
     >
       <Container

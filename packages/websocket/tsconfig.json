@@ -12,7 +12,13 @@
       "path": "../agents"
     },
     {
+      "path": "../analytics"
+    },
+    {
       "path": "../app-runtime"
+    },
+    {
+      "path": "../app-export"
     },
     {
       "path": "../auth"
@@ -73,6 +79,12 @@
     },
     {
       "path": "../model-pricing"
+    },
+    {
+      "path": "../node-catalog"
+    },
+    {
+      "path": "../nodes-utils"
     },
     {
       "path": "../node-sdk"

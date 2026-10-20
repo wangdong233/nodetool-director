@@ -4,10 +4,8 @@ import ReactDOM from "react-dom";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 
-import { Text, Box, BORDER_RADIUS, Z_INDEX, getSpacingPx, SPACING, SHADOW } from "../ui_primitives";
+import { Text, FlexColumn, ProgressBar, BORDER_RADIUS, Z_INDEX, getSpacingPx, SPACING, SHADOW } from "../ui_primitives";
 import { useAssetUpload } from "../../serverState/useAssetUpload";
-import LinearProgressWithLabel from "./LinearProgressWithLabel";
-import { useTranslation } from "react-i18next";
 
 const styles = (theme: Theme) =>
   css({
@@ -30,19 +28,15 @@ const styles = (theme: Theme) =>
       maxWidth: "600px",
       maxHeight: "500px",
       overflowY: "auto",
-      backgroundColor: theme.vars.palette.grey[600],
-      outline: `2px solid ${theme.vars.palette.grey[900]}`,
+      backgroundColor: theme.vars.palette.background.paper,
+      outline: `1px solid ${theme.vars.palette.divider}`,
       boxShadow: SHADOW(theme).lg,
       padding: getSpacingPx(SPACING.xl),
       borderRadius: BORDER_RADIUS.lg
-    },
-    ul: {
-      padding: `0 ${getSpacingPx(SPACING.xl)}`
     }
   });
 
 const AssetUploadOverlay = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const { files, isUploading, overallProgress, completed } = useAssetUpload();
 
@@ -52,24 +46,25 @@ const AssetUploadOverlay = () => {
 
   return ReactDOM.createPortal(
     <div css={styles(theme)} className="uploading-overlay">
-      <div className="uploading-message">
-        <Box>
-          <Text size="big" >{t("ui2:attrs.uploadingAssets", { defaultValue: "Uploading assets" })}</Text>
-          <Text size="normal" weight={600}>
-            {completed} / {files.length} files completed
-          </Text>
-        </Box>
-        <LinearProgressWithLabel value={overallProgress} />
-        <ul>
+      <FlexColumn className="uploading-message" gap={SPACING.lg}>
+        <Text size="big" weight={600}>
+          Uploading assets
+        </Text>
+        <ProgressBar
+          value={overallProgress}
+          label={`${completed} of ${files.length} files uploaded`}
+        />
+        <FlexColumn gap={SPACING.md} sx={{ px: SPACING.xl }}>
           {files.map((file) => (
-            <LinearProgressWithLabel
+            <ProgressBar
               key={file.id}
-              filename={file.file.name}
               value={file.progress || 0}
+              label={file.file.name}
+              size="small"
             />
           ))}
-        </ul>
-      </div>
+        </FlexColumn>
+      </FlexColumn>
     </div>,
     document.body
   );

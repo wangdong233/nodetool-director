@@ -1,4 +1,3 @@
-import { i18n } from "../../i18n";
 /**
  * usePackageManager — the data model behind the two-pane Package Manager.
  *
@@ -19,15 +18,16 @@ import useNodePacksStore, {
 import useOptionalNodePacksStore from "../../stores/OptionalNodePacksStore";
 import { OPTIONAL_NODE_PACKS } from "../../config/optionalNodePacks";
 import { getRequiredKeyForBuiltinPack } from "../../utils/providerPacks";
+import { i18n } from "../../i18n";
 
 /** The rail entries. Each one is a list in the right pane. */
 export type PMCategory = "included" | "python" | "thirdparty" | "runtimes";
 
 export const PM_CATEGORIES: readonly PMCategory[] = [
+  "runtimes",
   "included",
   "python",
-  "thirdparty",
-  "runtimes"
+  "thirdparty"
 ];
 
 /**
@@ -41,21 +41,24 @@ type RuntimeGroup = "language" | "media" | "ai";
 const RUNTIME_GROUP: Record<string, RuntimeGroup> = {
   python: "language",
   nodejs: "language",
+  rust: "language",
   ffmpeg: "media",
   pandoc: "media",
   pdftotext: "media",
   "yt-dlp": "media",
+  manimgx: "media",
   "transformers-js": "ai",
   "tensorflow-js": "ai",
   "node-llama-cpp": "ai",
   "whisper-cpp": "ai",
+  "sd-cpp": "ai",
   "tesseract-ocr": "ai",
   playwright: "media"
 };
 const runtimeGroup = (id: string): RuntimeGroup => RUNTIME_GROUP[id] ?? "media";
 const RUNTIME_GROUP_ORDER: RuntimeGroup[] = ["language", "media", "ai"];
 const RUNTIME_GROUP_LABEL: Record<RuntimeGroup, string> = {
-  language: i18n.t("editor:ui.languages", { defaultValue: "Languages" }),
+  language: "Languages",
   media: "Media & documents",
   ai: i18n.t("editor:ui.aiRuntimes", { defaultValue: "AI runtimes" })
 };
@@ -64,41 +67,42 @@ const RUNTIME_GROUP_LABEL: Record<RuntimeGroup, string> = {
  *  distinct from builtin pack ids. */
 const OPTIONAL_PREFIX = "optional:";
 
+/** Rail names say what the user does with a list, not where it comes from. */
 const LABELS: Record<PMCategory, string> = {
-  included: i18n.t("editor:ui.included", { defaultValue: "Included" }),
-  python: "Python packs",
-  thirdparty: i18n.t("editor:ui.thirdParty", { defaultValue: "Third-party" }),
-  runtimes: "Software"
+  runtimes: "Engines & tools",
+  included: "Built-in nodes",
+  python: "Python nodes",
+  thirdparty: "Community nodes"
 };
 
-const TITLES: Record<PMCategory, string> = {
-  included: "Included packs",
-  python: "Python packs",
-  thirdparty: "Third-party packs",
-  runtimes: "Software"
+/** One line under each rail name, so a first-time user can pick a list. */
+const HINTS: Record<PMCategory, string> = {
+  runtimes: i18n.t("tools:menus.pmHintRuntimes", { defaultValue: "Local AI, media tools, languages" }),
+  included: i18n.t("tools:menus.pmHintIncluded", { defaultValue: "Show or hide node groups" }),
+  python: i18n.t("tools:menus.pmHintPython", { defaultValue: "Extra nodes from PyPI" }),
+  thirdparty: i18n.t("tools:menus.pmHintThirdparty", { defaultValue: "Packs from other authors" }),
 };
 
 const SUBTITLES: Record<PMCategory, string> = {
-  included:
-    "Packs that ship with NodeTool. Turn a pack off to hide its nodes. A pack toggle takes effect after the server restarts. Provider nodes appear when you add their API key.",
-  python:
-    "Node packs from PyPI that run in the Python worker. The server restarts after you install, update or uninstall a pack.",
-  thirdparty:
-    "Third-party packs run in-process as the server user. Only trust packs you know.",
-  runtimes:
-    "Interpreters and tools NodeTool installs into your environment. Each runtime powers its own node types."
+  included: i18n.t("tools:menus.pmSubIncluded", { defaultValue: "Packs that ship with NodeTool. Turn a pack off to hide its nodes. A pack toggle takes effect after the server restarts. Provider nodes appear when you add their API key." }),
+  python: i18n.t("tools:menus.pmSubPython", { defaultValue: "Node packs from PyPI that run in the Python worker. The server restarts after you install, update or uninstall a pack." }),
+  thirdparty: i18n.t("tools:menus.pmSubThirdparty", { defaultValue: "Third-party packs run in-process as the server user. Only trust packs you know." }),
+  runtimes: i18n.t("tools:menus.pmSubRuntimes", { defaultValue: "Programs that run on this computer: local AI engines such as llama.cpp and stable-diffusion.cpp, media tools such as FFmpeg, and languages. Local models and some nodes need them." }),
 };
 
 /** Filter labels per list. Included packs are switched, not installed. */
 const FILTER_LABELS: Record<"switch" | "install", Record<PMFilter, string>> = {
   switch: { all: "All", installed: "On", available: "Off" },
-  install: { all: "All", installed: i18n.t("editor:ui.installed", { defaultValue: "Installed" }), available: i18n.t("editor:ui.notInstalled", { defaultValue: "Not installed" }) }
+  install: { all: "All", installed: "Installed", available: "Not installed" }
 };
 
 export interface PMCount {
   id: string;
   label: string;
+  hint: string;
   count: number;
+  /** Installed packages in the list with a newer version. */
+  updates: number;
 }
 
 export interface PMRow {
@@ -108,7 +112,7 @@ export interface PMRow {
   name: string;
   desc: string;
   version?: string;
-  badge: "alwaysOn" | "installed" | "update" | "notInstalled" | null;
+  badge: "alwaysOn" | "included" | "installed" | "update" | "notInstalled" | null;
   toggle?: {
     enabled: boolean;
     label: string;
@@ -311,7 +315,7 @@ export function usePackageManager(params: {
     const isSoftware = cat === "runtimes";
     const isThirdParty = cat === "thirdparty";
 
-    // The i18n.t("editor:ui.included", { defaultValue: "Included" }) list mirrors the node menu: the always-on core pack plus
+    // The "Included" list mirrors the node menu: the always-on core pack plus
     // keyless local packs (Transformers.js, Hugging Face) keep a manual toggle;
     // key-gated provider packs are hidden (their nodes come on with the API
     // key). The optional node-pack categories — which declutter the node menu —
@@ -362,10 +366,20 @@ export function usePackageManager(params: {
       thirdparty: thirdPartyPacks.length,
       runtimes: statuses.length
     };
+    const categoryUpdates: Record<PMCategory, number> = {
+      included: 0,
+      python: pythonPacks.filter((p) => p.installed?.hasUpdate).length,
+      thirdparty: 0,
+      runtimes: statuses.filter(
+        (rt) => !rt.bundled && rt.installed && rt.updateAvailable
+      ).length
+    };
     const categories: PMCount[] = PM_CATEGORIES.map((id) => ({
       id,
       label: LABELS[id],
-      count: categoryCounts[id]
+      hint: HINTS[id],
+      count: categoryCounts[id],
+      updates: categoryUpdates[id]
     }));
 
     let rows: PMRow[] = [];
@@ -408,13 +422,13 @@ export function usePackageManager(params: {
       );
       rows = ordered.map((rt) => {
         const busy = rtBusy.includes(rt.id) || rt.installing;
-        const hasUpdate = rt.installed && Boolean(rt.updateAvailable);
+        const hasUpdate = !rt.bundled && rt.installed && Boolean(rt.updateAvailable);
         const row: PMRow = {
           key: rt.id,
           group: RUNTIME_GROUP_LABEL[runtimeGroup(rt.id)],
           name: rt.name,
           desc: rt.description,
-          badge: hasUpdate
+          badge: rt.bundled ? "included" : hasUpdate
             ? "update"
             : rt.installed
               ? "installed"
@@ -427,7 +441,7 @@ export function usePackageManager(params: {
         }
         // Installing runs through the desktop app; in the browser the row is
         // status-only.
-        if (rtAvailable) {
+        if (rtAvailable && !rt.bundled) {
           row.buttons = {
             install: !rt.installed,
             update: hasUpdate,
@@ -534,7 +548,7 @@ export function usePackageManager(params: {
       isSoftware,
       isThirdParty,
       categories,
-      title: TITLES[cat],
+      title: LABELS[cat],
       subtitle: SUBTITLES[cat],
       count: baseCount,
       filters: notice ? [] : filters,

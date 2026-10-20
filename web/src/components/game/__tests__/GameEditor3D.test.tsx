@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import { createNative3DGame, applyAnyGameOps, anyGameDocumentOp, validateAnyGame } from "@nodetool-ai/game-runtime";
@@ -36,6 +36,12 @@ const mockInvalidate = jest.fn(async () => undefined);
 const mockSave = jest.fn(async (request: { id: string; baseUpdatedAt: string; ops: readonly unknown[] }) => ({ document: getGameDraftStore(request.id).getState().document, game: { draftUpdatedAt: mockSavedToken } }));
 const mockSaveDocument = jest.fn(async (request: { id: string; baseUpdatedAt: string; document: unknown }) => ({ document: request.document, game: { draftUpdatedAt: mockSavedToken } }));
 const mockRestore = jest.fn(async (request: { id: string; baseUpdatedAt: string; revision: string }) => ({ document: { ...mockDocument, id: request.id }, game: { draftUpdatedAt: mockRestoredToken } }));
+
+jest.mock("../panels/animation/AnimationGraphPanel", () => ({
+  __esModule: true,
+  default: ({ onOps }: { onOps: (ops: unknown[], label: string) => void }) => <button onClick={() => onOps([{ op: "set_animation_graph", graph_id: "keyboard",
+    graph: { parameters: {}, layers: [{ id: "base", mode: "override", weight: 1, initialState: "idle", states: { idle: { motion: { kind: "clip", clip: "idle" }, speed: 1, loop: true } }, transitions: [] }] } }], "Add Animation State")}>Animation canvas node</button>
+}));
 
 jest.mock("../../../trpc/client", () => ({
   trpc: {
@@ -75,8 +81,8 @@ jest.mock("../viewport3d/GameViewport3D", () => ({ __esModule: true, default: (p
 } }));
 jest.mock("../panels/hierarchy/GameHierarchy3D", () => ({
   __esModule: true, default: ({ onSelect }: ComponentProps<typeof GameHierarchy3D>) => <>
-    <button onClick={() => onSelect("player")}>Select player</button>
-    <button onClick={() => onSelect("player-visual")}>Select visual</button>
+    <button onClick={() => onSelect("player", false)}>Select player</button>
+    <button onClick={() => onSelect("player-visual", false)}>Select visual</button>
   </>
 }));
 jest.mock("../panels/inspector/GameInspector3D", () => ({
@@ -114,6 +120,26 @@ beforeEach(() => {
     entity.behaviors = [{ kind: "script", source: "original", maxCommands: 16, maxTickMs: 8 }];
   }
   getGameDraftStore(mockDocument.id).getState().load(mockDocument, mockToken);
+});
+
+it("keeps the draft warning hidden after an accepted source reload changes only the runtime revision", () => {
+  mockPlayDocument = { ...mockDocument, revision: "accepted-runtime-revision" };
+  render(<ThemeProvider theme={mockTheme}><GameEditor3D refId={mockDocument.id} active /></ThemeProvider>);
+  expect(screen.queryByText("The draft changed. Stop and play again to apply it.")).not.toBeInTheDocument();
+});
+
+it.each(["source", "name"])("warns when a %s draft change has not reached the play session", (field) => {
+  mockPlayDocument = structuredClone(mockDocument);
+  mockPlayDocument.revision = "accepted-runtime-revision";
+  const player = mockPlayDocument.scenes[0].entities.find((entity) => entity.id === "player");
+  if (!player) { throw new Error("Fixture player missing"); }
+  if (field === "source") {
+    player.behaviors = [{ kind: "script", source: "previous source", maxCommands: 16, maxTickMs: 8 }];
+  } else {
+    player.name = "Previous player name";
+  }
+  render(<ThemeProvider theme={mockTheme}><GameEditor3D refId={mockDocument.id} active /></ThemeProvider>);
+  expect(screen.getByText("The draft changed. Stop and play again to apply it.")).toBeInTheDocument();
 });
 
 it.each(["host", "diagnostic"])("offers 3D host replay only for host failures: %s", async (provenance) => {
@@ -289,25 +315,56 @@ it("keeps an opened script anchored after another entity is selected", async () 
   expect(document?.scenes[0].entities.find((entry) => entry.id === "player-visual")?.behaviors[0]).toMatchObject({ source: "original" });
 });
 
-it("confirms restore, flushes edits and uses the acknowledged token before resetting undo", async () => {
-  const user = userEvent.setup();
-  render(<ThemeProvider theme={mockTheme}><GameEditor3D refId={mockDocument.id} active /></ThemeProvider>);
-  await user.click(screen.getByRole("button", { name: "Select player" }));
-  await user.click(screen.getByRole("button", { name: "Edit selected script" }));
-  await user.type(screen.getByRole("textbox", { name: "Anchored script" }), " changed");
-  const store = getGameDraftStore(mockDocument.id);
-  expect(store.getState().commandHistory.past.length).toBeGreaterThan(0);
-  await user.click(screen.getByRole("tab", { name: /^Revisions$/ }));
-  await user.click(screen.getByRole("button", { name: "Revisions" }));
-  await user.click(screen.getByRole("button", { name: "Restore to draft" }));
-  expect(mockRestore).not.toHaveBeenCalled();
-  await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Restore to draft" }));
-  await waitFor(() => expect(mockRestore).toHaveBeenCalledWith({ id: mockDocument.id, baseUpdatedAt: mockSavedToken, revision: mockRevision }));
-  expect(mockSave).toHaveBeenCalledTimes(1);
-  await waitFor(() => expect(store.getState().baseUpdatedAt).toBe(mockRestoredToken));
-  expect(store.getState().pendingOps).toEqual([]);
-  expect(store.getState().commandHistory.past).toEqual([]);
-  expect(store.getState().document).toEqual(mockDocument);
+it.each(["confirmation", "autosave"])("confirms restore and uses the acknowledged %s token before resetting undo", async (saveTrigger) => {
+  jest.useFakeTimers();
+  let acknowledge: (() => void) | undefined;
+  const save = mockSave.getMockImplementation();
+  mockSave.mockImplementation((request) => new Promise((resolve) => {
+    acknowledge = () => resolve({ document: getGameDraftStore(request.id).getState().document, game: { draftUpdatedAt: mockSavedToken } });
+  }));
+  let view: ReturnType<typeof render> | undefined;
+  try {
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    view = render(<ThemeProvider theme={mockTheme}><GameEditor3D refId={mockDocument.id} active /></ThemeProvider>);
+    await user.click(screen.getByRole("button", { name: "Select player" }));
+    await user.click(screen.getByRole("button", { name: "Edit selected script" }));
+    await user.type(screen.getByRole("textbox", { name: "Anchored script" }), " changed");
+    const store = getGameDraftStore(mockDocument.id);
+    expect(store.getState().commandHistory.past.length).toBeGreaterThan(0);
+    await user.click(screen.getByRole("tab", { name: /^Revisions$/ }));
+    expect(mockSave).not.toHaveBeenCalled();
+    expect(store.getState().pendingOps.length).toBeGreaterThan(0);
+    if (saveTrigger === "autosave") {
+      await act(async () => { jest.advanceTimersByTime(500); });
+      expect(mockSave).toHaveBeenCalledTimes(1);
+      const restore = screen.getByRole("button", { name: "Restore to draft" });
+      expect(restore).toBeDisabled();
+      fireEvent.click(restore);
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(mockRestore).not.toHaveBeenCalled();
+      await act(async () => { acknowledge?.(); });
+    }
+    expect(screen.getByRole("button", { name: "Restore to draft" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "Restore to draft" }));
+    expect(mockRestore).not.toHaveBeenCalled();
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Restore to draft" }));
+    expect(mockSave).toHaveBeenCalledTimes(1);
+    if (saveTrigger === "confirmation") {
+      expect(mockRestore).not.toHaveBeenCalled();
+      expect(store.getState().commandHistory.past.length).toBeGreaterThan(0);
+      await act(async () => { acknowledge?.(); });
+    }
+    await waitFor(() => expect(mockRestore).toHaveBeenCalledWith({ id: mockDocument.id, baseUpdatedAt: mockSavedToken, revision: mockRevision }));
+    await waitFor(() => expect(store.getState().baseUpdatedAt).toBe(mockRestoredToken));
+    expect(store.getState().pendingOps).toEqual([]);
+    expect(store.getState().commandHistory.past).toEqual([]);
+    expect(store.getState().document).toEqual(mockDocument);
+  } finally {
+    await act(async () => { acknowledge?.(); });
+    if (save) { mockSave.mockImplementation(save); }
+    view?.unmount();
+    jest.useRealTimers();
+  }
 });
 
 it("keeps inspector-button undo outside the 3D editor keyboard scope", async () => {
@@ -430,6 +487,20 @@ it("uses the selected entity ID in a viewport command label when its stored name
   } finally { player.name = originalName; }
 });
 
+it("labels a viewport edit of several entities and Align to ground by count", async () => {
+  const store = getGameDraftStore(mockDocument.id);
+  store.getState().load(mockDocument, mockToken);
+  render(<ThemeProvider theme={mockTheme}><GameEditor3D refId={mockDocument.id} active /></ThemeProvider>);
+  const viewport = mockViewportProps;
+  if (!viewport?.onOps) { throw new Error("Viewport callbacks missing"); }
+  const [first, second] = mockDocument.scenes[0].entities;
+  const moves = (offset: number) => [first, second].map((entity) => ({ op: "update_entity" as const, scene_id: mockDocument.entrySceneId,
+    entity_id: entity.id, set: { transform3d: { position: { ...entity.transform3d.position, y: entity.transform3d.position.y + offset } } } }));
+  act(() => viewport.onOps?.(moves(1), undefined, "Move"));
+  act(() => viewport.onOps?.(moves(2), undefined, "Ground"));
+  expect(store.getState().commandHistory.past.map((command) => command.label)).toEqual(["Move 2 entities", "Align 2 entities to ground"]);
+});
+
 it("retries only the submitted movement after undo during a rejected save and then saves its inverse", async () => {
   const originalDocument = mockServer.document;
   const originalGame = { ...mockServer.game };
@@ -505,4 +576,20 @@ it("retries only the submitted movement after undo during a rejected save and th
       game: { draftUpdatedAt: mockSavedToken } }));
     mockGetDraftQuery.mockReset();
   }
+});
+
+it("routes undo and redo from a focused animation canvas node through the editor shell", async () => {
+  const user = userEvent.setup();
+  render(<ThemeProvider theme={mockTheme}><GameEditor3D refId={mockDocument.id} active /></ThemeProvider>);
+  act(() => { getGamePanelLayoutStore(useAuth.getState().user?.id ?? null).getState().dispatch({ type: "reveal", panelId: "animation-graph" }); });
+  await user.click(screen.getByRole("button", { name: "Animation canvas node" }));
+  const store = getGameDraftStore(mockDocument.id);
+  const document = store.getState().document;
+  expect(document?.schemaVersion === 3 && document.animationGraphs?.keyboard).toBeDefined();
+  await user.keyboard("{Control>}z{/Control}");
+  const undone = store.getState().document;
+  expect(undone?.schemaVersion === 3 && undone.animationGraphs?.keyboard).toBeUndefined();
+  await user.keyboard("{Control>}{Shift>}z{/Shift}{/Control}");
+  const redone = store.getState().document;
+  expect(redone?.schemaVersion === 3 && redone.animationGraphs?.keyboard).toBeDefined();
 });

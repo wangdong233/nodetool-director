@@ -11,18 +11,19 @@ import { createPortal } from "react-dom";
 
 import type { RouterOutputs } from "../../../trpc/client";
 import { useSkills } from "../../../hooks/skills/useSkills";
-import { i18n, useAppLanguage } from "../../../i18n";
-import { useTranslation } from "react-i18next";
+import { useTheme } from "@mui/material/styles";
 import {
-  BORDER_RADIUS,
-  SelectableListItem,
-  Surface,
-  Text
+  SPACING,
+  Text,
+  menuItemStyles,
+  menuListStyles,
+  menuPaperStyles
 } from "../../ui_primitives";
 import {
   MENTION_MENU_MAX_HEIGHT,
   mentionMenuPosition
 } from "./mentionMenuPosition";
+import { useTranslation } from "react-i18next";
 
 type Skill = RouterOutputs["skills"]["list"][number];
 
@@ -71,6 +72,11 @@ interface SkillMentionMenuProps {
   onHighlight: (index: number) => void;
 }
 
+/**
+ * The slash-command list under the composer. Focus stays in the textarea, so
+ * this is a listbox rather than an MUI Menu; it borrows the shared menu
+ * surface and row styles so it reads as one with every other menu.
+ */
 const SkillMentionMenu: React.FC<SkillMentionMenuProps> = ({
   skills,
   selectedIndex,
@@ -78,67 +84,52 @@ const SkillMentionMenu: React.FC<SkillMentionMenuProps> = ({
   onHighlight
 }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
   return (
-    <Surface
+    <div
       role="listbox"
       aria-label={t("editor:ui.skills", { defaultValue: "Skills" })}
-      elevation={2}
-      rounded="medium"
-      padding={1}
-      sx={{
-        minWidth: 280,
-        maxWidth: 420,
-        maxHeight: MENTION_MENU_MAX_HEIGHT,
-        overflowY: "auto",
-        border: "1px solid",
-        borderColor: "divider"
-      }}
+      css={[
+        menuPaperStyles(theme),
+        menuListStyles(theme),
+        {
+          minWidth: 280,
+          maxWidth: 420,
+          maxHeight: MENTION_MENU_MAX_HEIGHT,
+          overflowY: "auto"
+        }
+      ]}
     >
       {skills.map((skill, index) => (
-        <SelectableListItem
+        <div
           key={skill.id}
           role="option"
-          selected={index === selectedIndex}
+          className={index === selectedIndex ? "Mui-selected" : undefined}
           aria-selected={index === selectedIndex}
           data-testid={`skill-option-${skill.name}`}
           onMouseDown={(event) => event.preventDefault()}
           onMouseEnter={() => onHighlight(index)}
           onClick={() => onSelect(index)}
-          paddingX={1}
-          paddingY={0.5}
-          gap={0}
-          sx={{
-            display: "block",
-            borderRadius: BORDER_RADIUS.sm
-          }}
+          css={[menuItemStyles(theme), { display: "block", cursor: "pointer" }]}
         >
-          <Text size="small" weight={500} component="div">
-            /{skill.name}
-          </Text>
+          <div>/{skill.name}</div>
           {skill.description && (
-            <Text
-              size="smaller"
-              color="secondary"
-              truncate
-              component="div"
-              sx={{ mt: 0.5 }}
-            >
-              {/* Display-layer localization: the /slug above stays English
-                  (it is the invocation identifier); only this prose
-                  translates, falling back to the skill's own description. */}
-              {t(`catalog:skills.${skill.name}.description`, {
-                defaultValue: skill.description
-              })}
+            <Text size="smaller" color="secondary" truncate component="div">
+              {skill.description}
             </Text>
           )}
-        </SelectableListItem>
+        </div>
       ))}
       {skills.length === 0 && (
-        <Text size="small" color="secondary" sx={{ px: 1, py: 0.5 }}>
-          {t("editor:ui.noMatchingSkills")}
+        <Text
+          size="small"
+          color="secondary"
+          sx={{ px: SPACING.lg, py: SPACING.xs }}
+        >
+          No matching skills
         </Text>
       )}
-    </Surface>
+    </div>
   );
 };
 
@@ -164,9 +155,6 @@ export const useTextareaSkillMention = ({
   // The shipped skills answer to `/name` in a turn exactly as a user's own row
   // does, so the menu that completes that name offers both.
   const { data: skills = [] } = useSkills({ includeSystem: true });
-  // Re-runs the filter below on a language switch (F-26): the zh alias corpus
-  // must follow the localized descriptions the menu renders.
-  const { version: languageVersion } = useAppLanguage();
   const [trigger, setTrigger] = useState<SkillTrigger | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -179,22 +167,10 @@ export const useTextareaSkillMention = ({
     if (!trigger) {
       return [];
     }
-    return skills.filter((skill) => {
-      // The English slug+description keep their index weight; a shipped
-      // skill's zh overlay name+description join as an alias (nodeSearchAlias
-      // precedent) so 节奏 finds beat-sync-editing while "beat" still does.
-      const haystack = `${skill.name} ${skill.description}`;
-      if (!skill.system || !i18n.language.startsWith("zh")) {
-        return haystack.toLocaleLowerCase().includes(query);
-      }
-      const alias = `${i18n.t(`catalog:skills.${skill.name}.name`, {
-        defaultValue: ""
-      })} ${i18n.t(`catalog:skills.${skill.name}.description`, {
-        defaultValue: ""
-      })}`;
-      return `${haystack} ${alias}`.toLocaleLowerCase().includes(query);
-    });
-  }, [skills, trigger, languageVersion]);
+    return skills.filter((skill) =>
+      `${skill.name} ${skill.description}`.toLocaleLowerCase().includes(query)
+    );
+  }, [skills, trigger]);
 
   const measure = useCallback(() => {
     const element = textareaRef.current;

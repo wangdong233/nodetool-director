@@ -1,6 +1,6 @@
 {
   "name": "@nodetool-ai/browser",
-  "version": "0.8.2",
+  "version": "0.8.4",
   "description": "Driving one real Chrome page over CDP: the action loop, element indexing, media capture, file upload, and the Chrome-extension relay that reaches the user's own signed-in browser",
   "type": "module",
   "engines": {
@@ -25,6 +25,11 @@
   "devDependencies": {
     "@types/chrome-remote-interface": "^0.33.0",
     "@types/node": "^22.0.0",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "jsdom": "^26.1.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vitest": "^5.0.1"
   },

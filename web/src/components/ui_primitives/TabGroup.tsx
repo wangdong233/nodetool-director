@@ -8,10 +8,11 @@
 import React from "react";
 import { Tabs, Tab, TabsProps, Box, BoxProps } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { CONTROL, MOTION, TYPOGRAPHY } from "./tokens";
+import { CONTROL, FONT_SIZE_SANS, MOTION, TYPOGRAPHY, reducedMotion } from "./tokens";
 import { SPACING, getSpacingPx } from "./spacing";
 
 export interface TabItem {
+  labelKey?: string;
   /** Unique value for the tab */
   value: string;
   /** Display label */
@@ -20,15 +21,25 @@ export interface TabItem {
   icon?: React.ReactElement;
   /** Whether the tab is disabled */
   disabled?: boolean;
+  /**
+   * A count shown after the label in the caption mono style (muted, primary
+   * when selected). Omit it to draw no count.
+   */
+  count?: number;
 }
 
-export interface TabGroupProps extends Omit<TabsProps, 'onChange'> {
+export interface TabGroupProps extends Omit<TabsProps, 'onChange' | 'value'> {
   /** Tab items */
   tabs: TabItem[];
-  /** Currently selected tab value */
-  value: string;
+  /** Currently selected tab value, or `false` when no tab is selected */
+  value: string | false;
   /** Change handler */
   onChange: (value: string) => void;
+  /**
+   * Called when the already-selected tab is clicked again (MUI does not fire
+   * `onChange` then). Use it for a strip whose tabs also collapse their panel.
+   */
+  onReselect?: (value: string) => void;
   /** Size variant */
   size?: "small" | "medium";
   /** Full width tabs */
@@ -64,8 +75,10 @@ export const TabGroup: React.FC<TabGroupProps> = ({
   tabs,
   value,
   onChange,
+  onReselect,
   size = "medium",
   fullWidth = false,
+  orientation = "horizontal",
   sx,
   ...props
 }) => {
@@ -76,17 +89,25 @@ export const TabGroup: React.FC<TabGroupProps> = ({
   };
 
   const isSmall = size === "small";
+  const isVertical = orientation === "vertical";
 
   return (
     <Tabs
       value={value}
       onChange={handleChange}
+      orientation={orientation}
       variant={fullWidth ? "fullWidth" : "scrollable"}
       scrollButtons="auto"
       sx={{
         minHeight: isSmall ? `${CONTROL.height.lg}px` : "40px",
+        // Small tabs sit in docked panels whose body pads SPACING.lg: this
+        // inset plus the tab padding puts the first icon on that edge.
+        ...(isSmall && !isVertical && {
+          paddingLeft: getSpacingPx(SPACING.xs),
+          paddingRight: getSpacingPx(SPACING.xs),
+        }),
         "& .MuiTabs-indicator": {
-          height: "2px",
+          ...(isVertical ? { width: "2px" } : { height: "2px" }),
           backgroundColor: theme.vars.palette.primary.main,
         },
         ...sx,
@@ -97,23 +118,54 @@ export const TabGroup: React.FC<TabGroupProps> = ({
         <Tab
           key={tab.value}
           value={tab.value}
-          label={tab.label}
+          label={
+            tab.count === undefined ? (
+              tab.label
+            ) : (
+              <>
+                <span className="tab-group-label">{tab.label}</span>
+                <span className="tab-group-count">{tab.count}</span>
+              </>
+            )
+          }
           icon={tab.icon}
           disabled={tab.disabled}
           iconPosition="start"
+          onClick={
+            onReselect && tab.value === value
+              ? () => onReselect(tab.value)
+              : undefined
+          }
           sx={{
             minWidth: "auto",
             minHeight: isSmall ? `${CONTROL.height.lg}px` : "40px",
             padding: isSmall
-              ? `${getSpacingPx(SPACING.sm)} ${getSpacingPx(SPACING.lg)}`
+              ? `${getSpacingPx(SPACING.sm)} ${getSpacingPx(SPACING.md)}`
               : `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xl)}`,
+            // Small tabs sit in docked panels: an icon at the default 24px
+            // and wide padding pushed a fourth tab out of a 360px panel.
+            // Body size keeps the icon close to the 13px label it marks.
+            ...(isSmall && {
+              "& .MuiTab-iconWrapper": {
+                fontSize: FONT_SIZE_SANS.body,
+                marginRight: getSpacingPx(SPACING.sm),
+              },
+            }),
             // Tabs are controls: the sanctioned label style at both sizes.
             ...TYPOGRAPHY.sans.label,
             textTransform: "none",
             color: theme.vars.palette.text.secondary,
             transition: MOTION.all,
+            ...reducedMotion({ transition: MOTION.none }),
+            "& .tab-group-count": {
+              ...TYPOGRAPHY.mono.caption,
+              marginLeft: getSpacingPx(SPACING.sm),
+              color: theme.vars.palette.text.disabled,
+              fontVariantNumeric: "tabular-nums",
+            },
             "&.Mui-selected": {
               color: theme.vars.palette.primary.main,
+              "& .tab-group-count": { color: theme.vars.palette.primary.main },
             },
           }}
         />

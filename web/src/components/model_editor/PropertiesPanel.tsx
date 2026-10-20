@@ -1,6 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
 import { css } from "@emotion/react";
 import { memo, useState } from "react";
 import { useTheme } from "@mui/material/styles";
@@ -29,7 +27,8 @@ import {
   SPACING,
   TYPOGRAPHY,
   getSpacingPx,
-  type InspectorValueGesture
+  type InspectorValueGesture,
+  ICON_SIZE
 } from "../ui_primitives";
 import ColorPicker from "../inputs/ColorPicker";
 import {
@@ -41,6 +40,8 @@ import {
 } from "./geometryParams";
 import type { RecordEdit, ValueEdit } from "./editorCommands";
 import { isBoolean, isNumber } from "../../utils/typePredicates";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const headerStyles = (theme: Theme) =>
   css({
@@ -136,10 +137,7 @@ export const colorEdit = (
   picked: string,
   mergeKey: string
 ): ValueEdit<THREE.Color> => ({
-  label: i18n.t("editor:ui.historyChange", {
-    defaultValue: "Change {{field}}",
-    field: label.toLowerCase()
-  }),
+  label: `Change ${label.toLowerCase()}`,
   mergeKey,
   get: () => color.clone(),
   set: (value) => {
@@ -234,13 +232,9 @@ const Vector3Row = ({
   resetValue,
   record
 }: Vector3RowProps) => {
-  const { t } = useTranslation();
   const commit = (axis: Axis) => (display: number) =>
     record({
-      label: t("editor:ui.historyChange", {
-        defaultValue: "Change {{field}}",
-        field: label.toLowerCase()
-      }),
+      label: `Change ${label.toLowerCase()}`,
       mergeKey: `${objectUuid}:${label}:${axis}`,
       get: () => vector[axis],
       set: (v) => {
@@ -254,19 +248,13 @@ const Vector3Row = ({
       <FlexRow align="center" justify="space-between" sx={{ minHeight: CONTROL.height.xs }}>
         <Label component="span" sx={{ mb: 0 }}>{label}</Label>
         <ToolbarIconButton
-          icon={<RestartAltIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-          tooltip={t("editor:ui.historyReset", {
-            defaultValue: "Reset {{field}}",
-            field: label.toLowerCase()
-          })}
+          icon={<RestartAltIcon sx={{ fontSize: ICON_SIZE.sm }} />}
+          tooltip={`Reset ${label.toLowerCase()}`}
           size="small"
           disabled={isDefault}
           onClick={() =>
             record({
-              label: t("editor:ui.historyReset", {
-                defaultValue: "Reset {{field}}",
-                field: label.toLowerCase()
-              }),
+              label: `Reset ${label.toLowerCase()}`,
               get: () => [vector.x, vector.y, vector.z] as const,
               set: ([x, y, z]) => {
                 vector.x = x;
@@ -345,7 +333,7 @@ const MATERIAL_NUMBER_FIELDS: readonly MaterialNumberSpec[] = [
   { key: "emissiveIntensity", label: "Emission", min: 0, step: 0.05 },
   { key: "ior", label: "IOR", min: 1, max: 2.333, step: 0.01 },
   { key: "reflectivity", label: "Reflectivity", min: 0, max: 1, step: 0.05 },
-  { key: "specularIntensity", label: "Specular", min: 0, max: 1, step: 0.05 },
+  { key: "specularIntensity", label: i18n.t("editor:ui.specular", { defaultValue: "Specular" }), min: 0, max: 1, step: 0.05 },
   { key: "clearcoat", label: "Clearcoat", min: 0, max: 1, step: 0.05 },
   { key: "clearcoatRoughness", label: "Clearcoat roughness", min: 0, max: 1, step: 0.05 },
   { key: "sheen", label: "Sheen", min: 0, max: 1, step: 0.05 },
@@ -361,7 +349,7 @@ const MATERIAL_COLOR_FIELDS: readonly { key: string; label: string }[] = [
   { key: "color", label: "Base color" },
   { key: "emissive", label: "Emissive" },
   { key: "sheenColor", label: "Sheen color" },
-  { key: "specularColor", label: "Specular" },
+  { key: "specularColor", label: i18n.t("editor:ui.specular", { defaultValue: "Specular" }) },
   { key: "attenuationColor", label: "Attenuation color" }
 ];
 
@@ -380,9 +368,9 @@ const MATERIAL_FLAG_FIELDS: readonly {
 ];
 
 const SIDE_OPTIONS = [
-  { value: String(THREE.FrontSide), labelKey: "editor:ui.sideFront", label: "Front" },
-  { value: String(THREE.BackSide), labelKey: "editor:ui.sideBack", label: "Back" },
-  { value: String(THREE.DoubleSide), labelKey: "editor:ui.sideDouble", label: "Double" }
+  { value: String(THREE.FrontSide), label: i18n.t("editor:ui.sideFront", { defaultValue: "Front" }) },
+  { value: String(THREE.BackSide), label: i18n.t("editor:ui.sideBack", { defaultValue: "Back" }) },
+  { value: String(THREE.DoubleSide), label: i18n.t("editor:ui.sideDouble", { defaultValue: "Double" }) }
 ] as const;
 
 /**
@@ -415,16 +403,9 @@ interface MaterialSectionProps {
 const MaterialSection = ({ material, record }: MaterialSectionProps) => {
   const { t } = useTranslation();
   const key = (field: string) => `${material.uuid}:${field}`;
-  // Field labels resolve through i18n keyed by the material field name, so
-  // the stored property names stay English while the Inspector localizes.
-  const fieldLabel = (fieldKey: string, fallback: string): string =>
-    t(`editor:ui.mat.${fieldKey}`, { defaultValue: fallback });
   const setNumber = (field: string, label: string, value: number) =>
     record({
-      label: t("editor:ui.historyChange", {
-        defaultValue: "Change {{field}}",
-        field: label.toLowerCase()
-      }),
+      label: `Change ${label.toLowerCase()}`,
       mergeKey: key(field),
       get: () => getNumberProp(bagOf(material), field) ?? 0,
       set: (v) => {
@@ -440,13 +421,7 @@ const MaterialSection = ({ material, record }: MaterialSectionProps) => {
       {MATERIAL_COLOR_FIELDS.map(({ key: field, label }) => {
         const color = getColorProp(bagOf(material), field);
         return color ? (
-          <ColorRow
-            key={field}
-            label={fieldLabel(field, label)}
-            color={color}
-            record={record}
-            mergeKey={key(field)}
-          />
+          <ColorRow key={field} label={label} color={color} record={record} mergeKey={key(field)} />
         ) : null;
       })}
       {MATERIAL_NUMBER_FIELDS.map((spec) => {
@@ -454,7 +429,7 @@ const MaterialSection = ({ material, record }: MaterialSectionProps) => {
         return current === undefined ? null : (
           <NumberRow
             key={spec.key}
-            label={fieldLabel(spec.key, spec.label)}
+            label={spec.label}
             value={current}
             min={spec.min}
             max={spec.max}
@@ -467,7 +442,7 @@ const MaterialSection = ({ material, record }: MaterialSectionProps) => {
               if (spec.max !== undefined) {
                 next = Math.min(spec.max, next);
               }
-              setNumber(spec.key, fieldLabel(spec.key, spec.label), next);
+              setNumber(spec.key, spec.label, next);
             }}
           />
         );
@@ -480,10 +455,7 @@ const MaterialSection = ({ material, record }: MaterialSectionProps) => {
         step={0.05}
         onCommit={(v) =>
           record({
-            label: t("editor:ui.historyChange", {
-              defaultValue: "Change {{field}}",
-              field: t("editor:ui.opacity", { defaultValue: "Opacity" }).toLowerCase()
-            }),
+            label: "Change opacity",
             mergeKey: key("opacity"),
             get: () => material.opacity,
             set: (o) => applyOpacity(material, o),
@@ -499,10 +471,7 @@ const MaterialSection = ({ material, record }: MaterialSectionProps) => {
         step={0.05}
         onCommit={(v) =>
           record({
-            label: t("editor:ui.historyChange", {
-              defaultValue: "Change {{field}}",
-              field: t("editor:ui.materialAlphaTest", { defaultValue: "Alpha test" }).toLowerCase()
-            }),
+            label: "Change alpha test",
             mergeKey: key("alphaTest"),
             get: () => material.alphaTest,
             set: (a) => {
@@ -518,16 +487,10 @@ const MaterialSection = ({ material, record }: MaterialSectionProps) => {
           grow
           label={t("editor:ui.side", { defaultValue: "Side" })}
           value={String(material.side)}
-          options={SIDE_OPTIONS.map((option) => ({
-            value: option.value,
-            label: t(option.labelKey, { defaultValue: option.label })
-          }))}
+          options={SIDE_OPTIONS}
           onChange={(v) =>
             record({
-              label: t("editor:ui.historyChange", {
-                defaultValue: "Change {{field}}",
-                field: t("editor:ui.side", { defaultValue: "Side" }).toLowerCase()
-              }),
+              label: "Change side",
               get: () => material.side,
               set: (side) => {
                 material.side = side;
@@ -543,14 +506,11 @@ const MaterialSection = ({ material, record }: MaterialSectionProps) => {
         return checked === undefined ? null : (
           <ToggleRow
             key={field}
-            label={fieldLabel(field, label)}
+            label={label}
             checked={checked}
             onChange={(c) =>
               record({
-                label: t("editor:ui.historyToggle", {
-                  defaultValue: "Toggle {{field}}",
-                  field: fieldLabel(field, label).toLowerCase()
-                }),
+                label: `Toggle ${label.toLowerCase()}`,
                 get: () => getBoolProp(bagOf(material), field) ?? false,
                 set: (value) => {
                   setProp(bagOf(material), field, value);
@@ -591,9 +551,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
           size="small"
           icon={<TouchAppOutlinedIcon />}
           title={t("editor:ui.nothingSelected", { defaultValue: "Nothing selected" })}
-          description={t("editor:ui.clickAnObjectInTheViewportOrTheSceneList", {
-            defaultValue: "Click an object in the viewport or the scene list to inspect it."
-          })}
+          description={t("editor:ui.clickAnObjectInTheViewportOrTheSceneList", { defaultValue: "Click an object in the viewport or the scene list to inspect it." })}
         />
       </FlexColumn>
     );
@@ -624,7 +582,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
     const raw = isAngle ? toRadians(display) : display;
     const next: GeometryParams = { ...readGeometryParams(mesh.geometry), [key]: raw };
     record({
-      label: t("editor:ui.historyEditGeometry", { defaultValue: "Edit geometry" }),
+      label: i18n.t("editor:ui.historyEditGeometry", { defaultValue: "Edit geometry" }),
       mergeKey: `${uuid}:geometry:${key}`,
       get: () => mesh.geometry,
       set: (geometry) => {
@@ -642,10 +600,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
     value: number
   ) =>
     record({
-      label: t("editor:ui.historyChange", {
-        defaultValue: "Change {{field}}",
-        field: label.toLowerCase()
-      }),
+      label: `Change ${label.toLowerCase()}`,
       mergeKey: `${uuid}:${field}`,
       get: () => getNumberProp(bagOf(target), field) ?? 0,
       set: (v) => {
@@ -656,10 +611,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
 
   const setFlag = (label: string, field: string, target: THREE.Object3D, value: boolean) =>
     record({
-      label: t("editor:ui.historyToggle", {
-        defaultValue: "Toggle {{field}}",
-        field: label.toLowerCase()
-      }),
+      label: `Toggle ${label.toLowerCase()}`,
       get: () => getBoolProp(bagOf(target), field) ?? false,
       set: (v) => {
         setProp(bagOf(target), field, v);
@@ -678,7 +630,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
           value={object.name}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             record({
-              label: t("common:action.rename", { defaultValue: "Rename" }),
+              label: "Rename",
               mergeKey: `${uuid}:name`,
               get: () => object.name,
               set: (name) => {
@@ -717,7 +669,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
                 value={light.intensity}
                 min={0}
                 step={0.1}
-                onCommit={(v) => setNumber(t("editor:ui.intensity", { defaultValue: "Intensity" }), "intensity", light, Math.max(0, v))}
+                onCommit={(v) => setNumber("Intensity", "intensity", light, Math.max(0, v))}
               />
               {(pointLight ?? spotLight) && (
                 <>
@@ -726,14 +678,14 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
                     value={(pointLight ?? spotLight)?.distance ?? 0}
                     min={0}
                     step={0.5}
-                    onCommit={(v) => setNumber(t("editor:ui.range", { defaultValue: "Range" }), "distance", light, Math.max(0, v))}
+                    onCommit={(v) => setNumber("Range", "distance", light, Math.max(0, v))}
                   />
                   <NumberRow
                     label={t("editor:ui.decay", { defaultValue: "Decay" })}
                     value={(pointLight ?? spotLight)?.decay ?? 2}
                     min={0}
                     step={0.1}
-                    onCommit={(v) => setNumber(t("editor:ui.decay", { defaultValue: "Decay" }), "decay", light, Math.max(0, v))}
+                    onCommit={(v) => setNumber("Decay", "decay", light, Math.max(0, v))}
                   />
                 </>
               )}
@@ -745,7 +697,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
                     min={1}
                     max={90}
                     step={1}
-                    onCommit={(v) => setNumber(t("editor:ui.angle", { defaultValue: "Angle" }), "angle", spotLight, toRadians(THREE.MathUtils.clamp(v, 1, 90)))}
+                    onCommit={(v) => setNumber("Angle", "angle", spotLight, toRadians(THREE.MathUtils.clamp(v, 1, 90)))}
                   />
                   <NumberRow
                     label={t("editor:ui.penumbra", { defaultValue: "Penumbra" })}
@@ -753,7 +705,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
                     min={0}
                     max={1}
                     step={0.05}
-                    onCommit={(v) => setNumber(t("editor:ui.penumbra", { defaultValue: "Penumbra" }), "penumbra", spotLight, THREE.MathUtils.clamp(v, 0, 1))}
+                    onCommit={(v) => setNumber("Penumbra", "penumbra", spotLight, THREE.MathUtils.clamp(v, 0, 1))}
                   />
                 </>
               )}
@@ -771,7 +723,7 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
                 return (
                   <NumberRow
                     key={spec.key}
-                    label={t(`editor:ui.geoParam.${spec.key}`, { defaultValue: spec.label })}
+                    label={spec.label}
                     value={display}
                     integer={spec.kind === "int"}
                     min={isAngle ? 0 : spec.min}
@@ -805,20 +757,20 @@ const PropertiesPanel = ({ object, tick, record }: PropertiesPanelProps) => {
           )}
 
           <InspectorSection title={t("editor:ui.rendering", { defaultValue: "Rendering" })}>
-            <ToggleRow label={t("editor:ui.visible", { defaultValue: "Visible" })} checked={object.visible} onChange={(c) => setFlag(t("editor:ui.visible", { defaultValue: "Visible" }), "visible", object, c)} />
+            <ToggleRow label={t("editor:ui.visible", { defaultValue: "Visible" })} checked={object.visible} onChange={(c) => setFlag("Visible", "visible", object, c)} />
             {mesh && (
               <>
-                <ToggleRow label={t("editor:ui.meshCastShadow", { defaultValue: "Cast shadow" })} checked={mesh.castShadow} onChange={(c) => setFlag(t("editor:ui.meshCastShadow", { defaultValue: "Cast shadow" }), "castShadow", mesh, c)} />
-                <ToggleRow label={t("editor:ui.meshReceiveShadow", { defaultValue: "Receive shadow" })} checked={mesh.receiveShadow} onChange={(c) => setFlag(t("editor:ui.meshReceiveShadow", { defaultValue: "Receive shadow" }), "receiveShadow", mesh, c)} />
+                <ToggleRow label={t("editor:ui.meshCastShadow", { defaultValue: "Cast shadow" })} checked={mesh.castShadow} onChange={(c) => setFlag("Cast shadow", "castShadow", mesh, c)} />
+                <ToggleRow label={t("editor:ui.meshReceiveShadow", { defaultValue: "Receive shadow" })} checked={mesh.receiveShadow} onChange={(c) => setFlag("Receive shadow", "receiveShadow", mesh, c)} />
               </>
             )}
-            <ToggleRow label={t("editor:ui.objectFrustumCull", { defaultValue: "Frustum cull" })} checked={object.frustumCulled} onChange={(c) => setFlag(t("editor:ui.objectFrustumCull", { defaultValue: "Frustum cull" }), "frustumCulled", object, c)} />
+            <ToggleRow label={t("editor:ui.objectFrustumCull", { defaultValue: "Frustum cull" })} checked={object.frustumCulled} onChange={(c) => setFlag("Frustum cull", "frustumCulled", object, c)} />
             <NumberRow
               label={t("editor:ui.renderOrder", { defaultValue: "Render order" })}
               value={object.renderOrder}
               integer
               step={1}
-              onCommit={(v) => setNumber(t("editor:ui.renderOrder", { defaultValue: "Render order" }), "renderOrder", object, v)}
+              onCommit={(v) => setNumber("Render order", "renderOrder", object, v)}
             />
           </InspectorSection>
         </FlexColumn>

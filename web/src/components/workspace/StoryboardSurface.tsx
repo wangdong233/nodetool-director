@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { i18n, useAppLanguage } from "../../i18n";
 import TheatersIcon from "@mui/icons-material/Theaters";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import {
@@ -39,6 +38,7 @@ import {
   useStoryboardSetupStage
 } from "../setup/storyboard/useStoryboardSetupFlow";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface StoryboardSurfaceProps {
   refId: string;
@@ -51,10 +51,8 @@ interface StoryboardSurfaceProps {
 type MobilePane = "board" | "assistant";
 
 const MOBILE_TABS = [
-  // `labelKey`/`label` resolve per render in the component (see mobileTabs) —
-  // a module-level i18n.t would freeze before the lazy zh bundle lands (r12).
-  { value: "board", labelKey: "storyboard:attrs.board", label: "Board", icon: <TheatersIcon /> },
-  { value: "assistant", labelKey: "editor:ui.assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
+  { value: "board", label: i18n.t("storyboard:attrs.board", { defaultValue: "Board" }), icon: <TheatersIcon /> },
+  { value: "assistant", label: "Assistant", icon: <AutoAwesomeIcon /> }
 ];
 
 const MOBILE_PANES: readonly MobilePane[] = ["board", "assistant"];
@@ -75,7 +73,6 @@ const isMobilePane = (value: string): value is MobilePane =>
  */
 const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
   const { t } = useTranslation();
-  const { version: languageVersion } = useAppLanguage();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobilePane, setMobilePane] = useState<MobilePane>("board");
@@ -173,20 +170,12 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
       return [];
     }
     const commands: ContextCommand[] = [
-      {
-        id: "assemble",
-        label: i18n.t("editor:ui.assembleTimelineCommand", {
-          defaultValue: "Assemble Timeline"
-        }),
-        run: handleAssemble
-      }
+      { id: "assemble", label: "Assemble timeline", run: handleAssemble }
     ];
     if (desktopAssistant) {
       commands.push({
         id: "assistant",
-        label: assistantOpen
-          ? i18n.t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" })
-          : i18n.t("editor:ui.showAssistant", { defaultValue: "Show Assistant" }),
+        label: assistantOpen ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" }),
         run: toggleAssistant
       });
     }
@@ -198,8 +187,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
     handleAssemble,
     desktopAssistant,
     assistantOpen,
-    toggleAssistant,
-    languageVersion
+    toggleAssistant
   ]);
   useContextCommands("Storyboard", menuCommands, active);
 
@@ -235,17 +223,6 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
     ]
   );
 
-  // Labels resolve per render so a language switch re-renders the switcher
-  // immediately (F-26 discipline for module-level label arrays).
-  const mobileTabs = useMemo(
-    () =>
-      MOBILE_TABS.map(({ labelKey, label, ...rest }) => ({
-        ...rest,
-        label: t(labelKey, { defaultValue: label })
-      })),
-    [t]
-  );
-
   // The store seeds an empty board on mount, so rendering before the server
   // copy lands looks like a board with no shots.
   if (loadState !== "ready") {
@@ -255,7 +232,8 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
         label={t("ui2:attrs.docStoryboard", { defaultValue: "storyboard" })}
         onRetry={() => setRetryToken((value) => value + 1)}
       />
-    );  }
+    );
+  }
 
   if (setupStage !== "done") {
     return (
@@ -289,7 +267,7 @@ const StoryboardSurface = ({ refId, mode, active }: StoryboardSurfaceProps) => {
       {conflictBanner}
       {mobileEdit && (
         <TabGroup
-          tabs={mobileTabs}
+          tabs={MOBILE_TABS}
           value={mobilePane}
           onChange={(value) => {
             if (isMobilePane(value)) {

@@ -31,9 +31,10 @@ export interface PackageAssetRef {
 }
 
 export const PACKAGE_RUNTIME_ASSETS: readonly PackageAssetRef[] = [
+  { pkg: "@nodetool-ai/node-catalog", path: "index.json" },
+  { pkg: "@nodetool-ai/node-catalog", path: "nodes.ndjson.gz" },
   { pkg: "@nodetool-ai/atlascloud-nodes", path: "atlascloud-manifest.json" },
   { pkg: "@nodetool-ai/higgsfield-nodes", path: "higgsfield-manifest.json" },
-  { pkg: "@nodetool-ai/mediagen-nodes", path: "mediagen-manifest.json" },
   { pkg: "@nodetool-ai/fal-nodes", path: "fal-manifest.json" },
   { pkg: "@nodetool-ai/kie-nodes", path: "kie-manifest.json" },
   { pkg: "@nodetool-ai/replicate-nodes", path: "replicate-manifest.json" },
@@ -41,6 +42,7 @@ export const PACKAGE_RUNTIME_ASSETS: readonly PackageAssetRef[] = [
   { pkg: "@nodetool-ai/together-nodes", path: "together-manifest.json" },
   { pkg: "@nodetool-ai/topaz-nodes", path: "topaz-manifest.json" },
   { pkg: "@nodetool-ai/video-nodes", path: "render3d-page.js" },
+  { pkg: "@nodetool-ai/video-nodes", path: "timeline-render-page.js" },
   { pkg: "@nodetool-ai/game-renderer", path: "player-v1.js" },
   { pkg: "@nodetool-ai/game-renderer", path: "game3d-capture-page.js" },
   { pkg: "@nodetool-ai/game-renderer", path: "game3d-player.js" }
@@ -193,6 +195,18 @@ export const SHIPPED_SYSTEM_SKILLS_SOURCE_DIR = "packages/system-skills";
 
 /** The staged copy's directory name, relative to the bundled `server.mjs`. */
 export const SHIPPED_SYSTEM_SKILLS_BUNDLE_DIR = "_skills";
+
+/** Data staged into npm workspace dist directories after TypeScript compilation. */
+export const NPM_RUNTIME_RESOURCE_DIRS: readonly {
+  readonly pkg: string;
+  readonly sourceDir: string;
+  readonly distDir: string;
+}[] = [
+  { pkg: "@nodetool-ai/agents", sourceDir: SHIPPED_SYSTEM_SKILLS_SOURCE_DIR, distDir: SHIPPED_SYSTEM_SKILLS_BUNDLE_DIR },
+  { pkg: "@nodetool-ai/node-sdk", sourceDir: SHIPPED_SANDBOX_PACKS_SOURCE_DIR, distDir: SHIPPED_SANDBOX_PACKS_BUNDLE_DIR },
+  { pkg: "@nodetool-ai/timeline", sourceDir: "packages/base-nodes/nodetool/examples/timelines", distDir: "examples/timelines" },
+  { pkg: "@nodetool-ai/websocket", sourceDir: "packages/base-nodes/nodetool/examples/nodetool-base", distDir: "examples/nodetool-base" }
+];
 
 /** Registry lookup by exact pkg + path. */
 export function findPackageAsset(

@@ -292,6 +292,34 @@ describe("FakeProvider as a stand-in provider", () => {
     ).toEqual([]);
   });
 
+  it("calls an Agent node's submit_result tool, as a real model does", async () => {
+    const provider = new FakeProvider({}, "openai");
+    const calls: unknown[] = [];
+    for await (const item of provider.generateMessages({
+      messages: [{ role: "user", content: "Lisbon trip notes" }],
+      model: "test-chat-model",
+      tools: [
+        {
+          name: "submit_result",
+          description: "Submit the dynamic outputs",
+          inputSchema: {
+            type: "object",
+            properties: { summary: { type: "string" } },
+            required: ["summary"]
+          }
+        }
+      ]
+    })) {
+      calls.push(item);
+    }
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({
+      name: "submit_result",
+      args: { summary: expect.any(String) }
+    });
+  });
+
   it("lists models only for the providers in its catalog", async () => {
     expect(await new FakeProvider({}, "openai").getAvailableLanguageModels()).toEqual([
       { id: "test-chat-model", name: "Test Chat Model", provider: "openai" }
@@ -328,6 +356,32 @@ describe("FakeProvider as a stand-in provider", () => {
       model: { id: "test-image-model", name: "Test Image Model", provider: "openai" }
     } as Parameters<FakeProvider["imageToImage"]>[1]);
     expect(Buffer.from(bytes).toString("base64")).toBe(FAKE_IMAGE_PNG_BASE64);
+  });
+
+  it("voices text as silence whose length follows the text", async () => {
+    const openai = new FakeProvider({}, "openai");
+    expect(openai.getCapabilities()).toContain("text_to_speech");
+    expect(new FakeProvider({}, "anthropic").getCapabilities()).not.toContain("text_to_speech");
+    expect(await openai.getAvailableTTSModels()).toMatchObject([
+      { id: "test-voice-model", name: "Test Voice Model", voices: ["alloy", "verse"] }
+    ]);
+    const speak = async (text: string) =>
+      Buffer.from(
+        (
+          await openai.textToSpeechEncoded({
+            text,
+            model: "test-voice-model"
+          } as Parameters<FakeProvider["textToSpeechEncoded"]>[0])
+        ).data
+      );
+    const short = await speak("Hello.");
+    const long = await speak("The tide comes in slowly over the sand, and the gulls go quiet.");
+    expect(short.subarray(0, 4).toString("ascii")).toBe("RIFF");
+    expect(short.subarray(8, 12).toString("ascii")).toBe("WAVE");
+    // Data bytes: one second at least, then a quarter second per word.
+    expect(short.readUInt32LE(40)).toBe(8000 * 2);
+    expect(long.readUInt32LE(40)).toBe(Math.round(13 * 0.25 * 8000) * 2);
+    expect(long.length).toBe(44 + long.readUInt32LE(40));
   });
 
   it("keeps credential keys only when asked to", async () => {

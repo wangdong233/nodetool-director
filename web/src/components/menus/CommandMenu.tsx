@@ -1,11 +1,9 @@
-import { useTranslation } from "react-i18next";
 import React, { useCallback, useEffect, useRef, memo } from "react";
 import { Command } from "cmdk";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { shallow } from "zustand/shallow";
 import { useReactFlow } from "@xyflow/react";
-import { WorkflowGraph, WorkflowRequest } from "../../stores/ApiTypes";
 import { runCommandAndClose, useCommandMenuStore } from "../../stores/CommandMenuStore";
 import useAlignNodes from "../../hooks/useAlignNodes";
 import { useWebsocketRunner } from "../../stores/WorkflowRunner";
@@ -38,7 +36,6 @@ import { usePanelStore } from "../../stores/PanelStore";
 import { useCanvasChatDockStore } from "../../stores/CanvasChatDockStore";
 import { useFloatingToolbarActions } from "../../hooks/useFloatingToolbarActions";
 import CommandPalette from "./CommandPalette";
-import { i18n } from "../../i18n";
 
 // Icons — Workflow
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
@@ -48,8 +45,8 @@ import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
 import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded";
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import FolderZipRoundedIcon from "@mui/icons-material/FolderZipRounded";
 
 // Icons — Edit
@@ -59,7 +56,7 @@ import ContentCutRoundedIcon from "@mui/icons-material/ContentCutRounded";
 import ContentPasteRoundedIcon from "@mui/icons-material/ContentPasteRounded";
 import FileCopyRoundedIcon from "@mui/icons-material/FileCopyRounded";
 import SelectAllRoundedIcon from "@mui/icons-material/SelectAllRounded";
-import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import GroupWorkRoundedIcon from "@mui/icons-material/GroupWorkRounded";
 import BlockRoundedIcon from "@mui/icons-material/BlockRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
@@ -89,69 +86,16 @@ import GridOffRoundedIcon from "@mui/icons-material/GridOffRounded";
 import ChatRoundedIcon from "@mui/icons-material/ChatRounded";
 import AccountTreeRoundedIcon from "@mui/icons-material/AccountTreeRounded";
 import PermMediaRoundedIcon from "@mui/icons-material/PermMediaRounded";
-import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 
-import {
-  isBoolean,
-  isNumber,
-  isObjectLike,
-  isString
-} from "../../utils/typePredicates";
+import { readImportedWorkflow } from "../../utils/readImportedWorkflow";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 type CommandMenuProps = {
   undo: (steps?: number | undefined) => void;
   redo: (steps?: number | undefined) => void;
-};
-
-type WorkflowSettings = NonNullable<WorkflowRequest["settings"]>;
-
-const isSettingsRecord = (value: unknown): value is WorkflowSettings =>
-  typeof value === "object" &&
-  value !== null &&
-  !Array.isArray(value) &&
-  Object.values(value).every(
-    (entry) =>
-      entry === null ||
-      isString(entry) ||
-      isNumber(entry) ||
-      isBoolean(entry)
-  );
-
-// The file is whatever the user picked, so a field that isn't the shape it
-// claims is dropped rather than handed to the server.
-const readImportedWorkflow = (
-  text: string
-): Pick<
-  WorkflowRequest,
-  "name" | "description" | "graph" | "tags" | "settings" | "run_mode" | "html_app"
-> => {
-  const parsed: unknown = JSON.parse(text);
-  if (!isObjectLike(parsed)) {
-    throw new Error("Workflow file must contain a JSON object");
-  }
-  const source = parsed as Record<string, unknown>;
-  const graph = source.graph;
-  const isGraph =
-    typeof graph === "object" &&
-    graph !== null &&
-    Array.isArray((graph as WorkflowGraph).nodes) &&
-    Array.isArray((graph as WorkflowGraph).edges);
-
-  const asString = (value: unknown): string | undefined =>
-    isString(value) ? value : undefined;
-
-  return {
-    name: asString(source.name) ?? "",
-    description: asString(source.description),
-    graph: isGraph ? (graph as WorkflowGraph) : undefined,
-    tags: Array.isArray(source.tags)
-      ? source.tags.filter((tag): tag is string => typeof tag === "string")
-      : undefined,
-    settings: isSettingsRecord(source.settings) ? source.settings : undefined,
-    run_mode: asString(source.run_mode),
-    html_app: asString(source.html_app)
-  };
 };
 
 const WorkflowCommands = memo(function WorkflowCommands() {
@@ -204,9 +148,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
     addNotification({
       type: "info",
       alert: true,
-      content: i18n.t("editor:notify.copiedWorkflowJsonToClipboard", {
-        defaultValue: "Copied workflow JSON to Clipboard!"
-      })
+      content: "Copied workflow JSON to Clipboard!", contentKey: "tools:menus.copiedWorkflowJsonToClipboard"
     });
   }, [writeClipboard, workflowJSON, addNotification]);
 
@@ -216,20 +158,13 @@ const WorkflowCommands = memo(function WorkflowCommands() {
       try {
         await saveWorkflow(workflow);
         addNotification({
-          content: i18n.t("editor:notify.workflowSaved", {
-            defaultValue: 'Workflow "{{name}}" saved',
-            name: workflow.name
-          }),
+          content: `Workflow "${workflow.name}" saved`,
           type: "success",
           alert: true
         });
       } catch (error) {
         addNotification({
-          content: i18n.t("editor:notify.failedToSaveWorkflow", {
-            defaultValue:
-              "Failed to save workflow: {{message}}",
-            message: error instanceof Error ? error.message : "Unknown error"
-          }),
+          content: `Failed to save workflow: ${error instanceof Error ? error.message : "Unknown error"}`,
           type: "error",
           alert: true
         });
@@ -282,18 +217,13 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         addNotification({
           type: "success",
           alert: true,
-          content: i18n.t("editor:notify.importedWorkflow", {
-            defaultValue: 'Imported workflow "{{name}}"',
-            name: imported.name
-          })
+          content: `Imported workflow "${imported.name}"`
         });
       } catch {
         addNotification({
           type: "error",
           alert: true,
-          content: i18n.t("editor:notify.failedToImportWorkflowInvalidJson", {
-            defaultValue: "Failed to import workflow — invalid JSON file"
-          })
+          content: "Failed to import workflow — invalid JSON file", contentKey: "tools:menus.failedToImportWorkflowInvalidJsonFile"
         });
       }
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -309,10 +239,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
       addNotification({
         type: "error",
         alert: true,
-        content: i18n.t("editor:notify.failedToExportBundle", {
-          defaultValue: "Failed to export bundle: {{message}}",
-          message: error instanceof Error ? error.message : "Unknown error"
-        })
+        content: `Failed to export bundle: ${error instanceof Error ? error.message : "Unknown error"}`
       });
     }
   }, [currentWorkflow, addNotification]);
@@ -345,19 +272,13 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         addNotification({
           type: "success",
           alert: true,
-          content: i18n.t("editor:notify.importedWorkflowsFromBundle", {
-            defaultValue: "Imported {{count}} workflow(s) from bundle",
-            count: result.workflows.length
-          })
+          content: `Imported ${result.workflows.length} workflow(s) from bundle`
         });
       } catch (error) {
         addNotification({
           type: "error",
           alert: true,
-          content: i18n.t("editor:notify.failedToImportBundle", {
-            defaultValue: "Failed to import bundle: {{message}}",
-            message: error instanceof Error ? error.message : "Unknown error"
-          })
+          content: `Failed to import bundle: ${error instanceof Error ? error.message : "Unknown error"}`
         });
       }
       if (bundleInputRef.current) bundleInputRef.current.value = "";
@@ -371,7 +292,7 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         ref={fileInputRef}
         type="file"
         accept=".json"
-        aria-label={t("editor:ui.importWorkflowFile", { defaultValue: "Import workflow file" })}
+        aria-label={i18n.t("editor:ui.importWorkflowFile", { defaultValue: "Import workflow file" })}
         style={{ display: "none" }}
         onChange={handleImportFileChange}
       />
@@ -379,57 +300,46 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         ref={bundleInputRef}
         type="file"
         accept=".nodetool,application/zip"
-        aria-label={t("editor:ui.importWorkflowBundleFile", { defaultValue: "Import workflow bundle file" })}
+        aria-label={i18n.t("editor:ui.importWorkflowBundleFile", { defaultValue: "Import workflow bundle file" })}
         style={{ display: "none" }}
         onChange={handleBundleFileChange}
       />
-    <Command.Group heading={t("editor:ui.cmWorkflow", { defaultValue: "Workflow" })}>
+    <Command.Group heading="Workflow">
       <Command.Item onSelect={() => runCommandAndClose(handleRun)}>
-        <PlayArrowRoundedIcon />{" "}
-        {t("editor:ui.cmRunEntireWorkflow", { defaultValue: "Run Entire Workflow" })}
+        <PlayArrowRoundedIcon /> Run Entire Workflow
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleSave)}>
-        <SaveRoundedIcon />{" "}
-        {t("editor:ui.cmSaveWorkflow", { defaultValue: "Save Workflow" })}
+        <SaveRoundedIcon /> Save Workflow
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleNewWorkflow)}>
-        <AddRoundedIcon />{" "}
-        {t("editor:ui.newWorkflow2", { defaultValue: "New Workflow" })}
+        <AddOutlinedIcon /> New Workflow
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleCloseWorkflow)}>
-        <CloseRoundedIcon />{" "}
-        {t("editor:ui.cmCloseWorkflow", { defaultValue: "Close Workflow" })}
+        <CloseOutlinedIcon /> Close Workflow
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(downloadWorkflow)}>
-        <FileDownloadRoundedIcon />{" "}
-        {t("editor:ui.cmDownloadWorkflowAsJson", { defaultValue: "Download Workflow as JSON" })}
+        <FileDownloadRoundedIcon /> Download Workflow as JSON
       </Command.Item>
       <Command.Item onSelect={handleImportWorkflow}>
-        <FileUploadRoundedIcon />{" "}
-        {t("editor:ui.cmImportWorkflowFromJson", { defaultValue: "Import Workflow from JSON" })}
+        <FileUploadRoundedIcon /> Import Workflow from JSON
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(exportBundle)}>
-        <FolderZipRoundedIcon />{" "}
-        {t("editor:ui.cmExportWorkflowAsBundle", { defaultValue: "Export Workflow as Bundle (.nodetool)" })}
+        <FolderZipRoundedIcon /> Export Workflow as Bundle (.nodetool)
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(shareWorkflow)}>
-        {t("editor:ui.cmShareWorkflow", { defaultValue: "Share Workflow…" })}
+        Share Workflow…
       </Command.Item>
       <Command.Item onSelect={handleImportBundle}>
-        <FolderZipRoundedIcon />{" "}
-        {t("editor:ui.cmImportWorkflowFromBundle", { defaultValue: "Import Workflow from Bundle (.nodetool)" })}
+        <FolderZipRoundedIcon /> Import Workflow from Bundle (.nodetool)
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(copyWorkflow)}>
-        <ContentCopyRoundedIcon />{" "}
-        {t("editor:ui.cmCopyWorkflowAsJson", { defaultValue: "Copy Workflow as JSON" })}
+        <ContentCopyRoundedIcon /> Copy Workflow as JSON
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(cancel)}>
-        <CancelRoundedIcon />{" "}
-        {t("editor:ui.cmCancelWorkflow", { defaultValue: "Cancel Workflow" })}
+        <CancelRoundedIcon /> Cancel Workflow
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(autoLayout)}>
-        <AutoFixHighRoundedIcon />{" "}
-        {t("editor:ui.cmAutoLayout", { defaultValue: "Auto Layout" })}
+        <AutoFixHighRoundedIcon /> Auto Layout
       </Command.Item>
     </Command.Group>
     </>
@@ -445,7 +355,6 @@ const EditCommands = memo(function EditCommands({
   undo,
   redo
 }: HistoryActions) {
-  const { t } = useTranslation();
   const { handleCopy, handlePaste, handleCut } = useCopyPaste();
   // Combine multiple useNodes subscriptions into a single selector with shallow equality
   // to reduce unnecessary re-renders when other parts of the node state change
@@ -473,107 +382,87 @@ const EditCommands = memo(function EditCommands({
   }, [surroundWithGroup, selectedNodes]);
 
   return (
-    <Command.Group heading={t("editor:ui.cmEdit", { defaultValue: "Edit" })}>
+    <Command.Group heading="Edit">
       <Command.Item onSelect={() => runCommandAndClose(undo)}>
-        <UndoRoundedIcon /> {t("editor:ui.undo", { defaultValue: "Undo" })}
+        <UndoRoundedIcon /> Undo
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(redo)}>
-        <RedoRoundedIcon /> {t("editor:ui.redo", { defaultValue: "Redo" })}
+        <RedoRoundedIcon /> Redo
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleCopy)}>
-        <FileCopyRoundedIcon /> {t("common:action.copy", { defaultValue: "Copy" })}
+        <FileCopyRoundedIcon /> Copy
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleCut)}>
-        <ContentCutRoundedIcon /> {t("common:action.cut", { defaultValue: "Cut" })}
+        <ContentCutRoundedIcon /> Cut
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handlePaste)}>
-        <ContentPasteRoundedIcon />{" "}
-        {t("editor:common.paste", { defaultValue: "Paste" })}
+        <ContentPasteRoundedIcon /> Paste
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectAllNodes)}>
-        <SelectAllRoundedIcon />{" "}
-        {t("editor:ui.cmSelectAll", { defaultValue: "Select All" })}
+        <SelectAllRoundedIcon /> Select All
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.deleteSelected)}>
-        <DeleteRoundedIcon />{" "}
-        {t("editor:ui.cmDeleteSelected", { defaultValue: "Delete Selected" })}
+        <DeleteOutlineIcon /> Delete Selected
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(duplicateNodes)}>
-        <ContentCopyRoundedIcon />{" "}
-        {t("editor:ui.duplicate", { defaultValue: "Duplicate" })}
+        <ContentCopyRoundedIcon /> Duplicate
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(duplicateNodesVertical)}>
-        <ContentCopyRoundedIcon />{" "}
-        {t("editor:node.duplicateVertical", { defaultValue: "Duplicate Vertical" })}
+        <ContentCopyRoundedIcon /> Duplicate Vertical
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleGroup)}>
-        <GroupWorkRoundedIcon />{" "}
-        {t("editor:ui.cmGroupSelected", { defaultValue: "Group Selected" })}
+        <GroupWorkRoundedIcon /> Group Selected
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(toggleBypassSelected)}>
-        <BlockRoundedIcon />{" "}
-        {t("editor:ui.cmDisableSelectedNodes", { defaultValue: "Disable Selected Nodes" })}
+        <BlockRoundedIcon /> Disable Selected Nodes
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(openFind)}>
-        <SearchRoundedIcon />{" "}
-        {t("editor:ui.cmFindInWorkflow", { defaultValue: "Find in Workflow" })}
+        <SearchRoundedIcon /> Find in Workflow
       </Command.Item>
     </Command.Group>
   );
 });
 
 const LayoutCommands = memo(function LayoutCommands() {
-  const { t } = useTranslation();
   const alignNodes = useAlignNodes();
   const selectionActions = useSelectionActions();
 
   return (
-    <Command.Group
-      heading={t("editor:ui.cmLayoutAlignment", { defaultValue: "Layout & Alignment" })}
-    >
+    <Command.Group heading="Layout & alignment">
       <Command.Item
         onSelect={() =>
           runCommandAndClose(() => alignNodes({ arrangeSpacing: false }))
         }
       >
-        <AlignVerticalCenterRoundedIcon />{" "}
-        {t("editor:ui.cmAlignNodes", { defaultValue: "Align Nodes" })}
+        <AlignVerticalCenterRoundedIcon /> Align Nodes
       </Command.Item>
       <Command.Item
         onSelect={() =>
           runCommandAndClose(() => alignNodes({ arrangeSpacing: true }))
         }
       >
-        <SpaceBarRoundedIcon />{" "}
-        {t("editor:ui.cmAlignNodesWithSpacing", { defaultValue: "Align Nodes with Spacing" })}
+        <SpaceBarRoundedIcon /> Align Nodes with Spacing
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignLeft)}>
-        <AlignHorizontalLeftRoundedIcon />{" "}
-        {t("editor:ui.alignLeft", { defaultValue: "Align Left" })}
+        <AlignHorizontalLeftRoundedIcon /> Align Left
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignCenter)}>
-        <AlignHorizontalCenterRoundedIcon />{" "}
-        {t("editor:ui.alignCenter", { defaultValue: "Align Center" })}
+        <AlignHorizontalCenterRoundedIcon /> Align Center
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignRight)}>
-        <AlignHorizontalRightRoundedIcon />{" "}
-        {t("editor:ui.alignRight", { defaultValue: "Align Right" })}
+        <AlignHorizontalRightRoundedIcon /> Align Right
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignTop)}>
-        <VerticalAlignTopRoundedIcon />{" "}
-        {t("editor:ui.alignTop", { defaultValue: "Align Top" })}
+        <VerticalAlignTopRoundedIcon /> Align Top
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignMiddle)}>
-        <VerticalAlignCenterRoundedIcon />{" "}
-        {t("editor:ui.alignMiddle", { defaultValue: "Align Middle" })}
+        <VerticalAlignCenterRoundedIcon /> Align Middle
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignBottom)}>
-        <VerticalAlignBottomRoundedIcon />{" "}
-        {t("editor:ui.alignBottom", { defaultValue: "Align Bottom" })}
+        <VerticalAlignBottomRoundedIcon /> Align Bottom
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.distributeHorizontal)}>
-        <ViewColumnRoundedIcon />{" "}
-        {t("editor:ui.distributeHorizontally", { defaultValue: "Distribute Horizontally" })}
+        <ViewColumnRoundedIcon /> Distribute Horizontally
       </Command.Item>
     </Command.Group>
   );
@@ -589,58 +478,48 @@ const ViewCommands = memo(function ViewCommands() {
   const setSnapToGrid = useSettingsStore((state) => state.setSnapToGrid);
 
   return (
-    <Command.Group heading={t("editor:ui.cmView", { defaultValue: "View" })}>
+    <Command.Group heading="View">
       <Command.Item
         onSelect={() => runCommandAndClose(toggleVisible)}
       >
         {visible ? <MapOutlinedIcon /> : <MapRoundedIcon />}
-        {visible
-          ? t("editor:ui.hideMiniMap", { defaultValue: "Hide Mini Map" })
-          : t("editor:ui.showMiniMap", { defaultValue: "Show Mini Map" })}
+        {visible ? i18n.t("editor:ui.hideMiniMap", { defaultValue: "Hide mini map" }) : i18n.t("editor:ui.showMiniMap", { defaultValue: "Show mini map" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => setSnapToGrid(!snapToGrid))}
       >
         {snapToGrid ? <GridOffRoundedIcon /> : <GridOnRoundedIcon />}
-        {snapToGrid
-          ? t("editor:ui.turnOffSnapToGrid", { defaultValue: "Turn Off Snap to Grid" })
-          : t("settings:general.lblSnapToGrid", { defaultValue: "Snap to Grid" })}
+        {snapToGrid ? i18n.t("editor:ui.turnOffSnapToGrid", { defaultValue: "Turn off snap to grid" }) : i18n.t("settings:general.lblSnapToGrid", { defaultValue: "Snap to grid" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => handleFitView({ padding: 0.5 }))}
       >
-        <FitScreenRoundedIcon />{" "}
-        {t("editor:ui.cmFitView", { defaultValue: "Fit View" })}
+        <FitScreenRoundedIcon /> Fit View
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => reactFlow.zoomIn({ duration: 200 }))}
       >
-        <ZoomInRoundedIcon />{" "}
-        {t("editor:ui.cmZoomIn", { defaultValue: "Zoom In" })}
+        <ZoomInRoundedIcon /> Zoom In
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => reactFlow.zoomOut({ duration: 200 }))}
       >
-        <ZoomOutRoundedIcon />{" "}
-        {t("editor:ui.cmZoomOut", { defaultValue: "Zoom Out" })}
+        <ZoomOutRoundedIcon /> Zoom Out
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => reactFlow.zoomTo(0.5, { duration: 200 }))}
       >
-        <RestartAltRoundedIcon />{" "}
-        {t("editor:ui.cmResetZoom50", { defaultValue: "Reset Zoom (50%)" })}
+        <RestartAltRoundedIcon /> Reset Zoom (50%)
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => reactFlow.zoomTo(1, { duration: 200 }))}
       >
-        <ZoomInRoundedIcon />{" "}
-        {t("editor:ui.cmZoomTo100", { defaultValue: "Zoom to 100%" })}
+        <ZoomInRoundedIcon /> Zoom to 100%
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => reactFlow.zoomTo(2, { duration: 200 }))}
       >
-        <ZoomInRoundedIcon />{" "}
-        {t("editor:ui.cmZoomTo200", { defaultValue: "Zoom to 200%" })}
+        <ZoomInRoundedIcon /> Zoom to 200%
       </Command.Item>
     </Command.Group>
   );
@@ -655,36 +534,31 @@ const PanelCommands = memo(function PanelCommands() {
   );
 
   return (
-    <Command.Group heading={t("editor:ui.cmPanels", { defaultValue: "Panels" })}>
+    <Command.Group heading={i18n.t("timeline:shortcuts.panels", { defaultValue: "Panels" })}>
       <Command.Item
         onSelect={() => runCommandAndClose(rightPanelToggle)}
       >
-        <InfoRoundedIcon />{" "}
-        {t("editor:ui.cmToggleInspector", { defaultValue: "Toggle Inspector" })}
+        <InfoOutlinedIcon /> Toggle Inspector
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => leftPanelToggle("settings"))}
       >
-        <SettingsRoundedIcon />{" "}
-        {t("editor:ui.cmToggleWorkflowSettings", { defaultValue: "Toggle Workflow Settings" })}
+        <SettingsRoundedIcon /> Toggle Workflow Settings
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => toggleConversation())}
       >
-        <ChatRoundedIcon />{" "}
-        {t("editor:ui.cmToggleConversation", { defaultValue: "Toggle Conversation" })}
+        <ChatRoundedIcon /> Toggle Conversation
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => leftPanelToggle("assets"))}
       >
-        <PermMediaRoundedIcon />{" "}
-        {t("editor:ui.cmToggleAssets", { defaultValue: "Toggle Assets" })}
+        <PermMediaRoundedIcon /> Toggle Assets
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => leftPanelToggle("workflows"))}
       >
-        <AccountTreeRoundedIcon />{" "}
-        {t("editor:ui.cmToggleWorkflowsPanel", { defaultValue: "Toggle Workflows Panel" })}
+        <AccountTreeRoundedIcon /> Toggle Workflows Panel
       </Command.Item>
     </Command.Group>
   );

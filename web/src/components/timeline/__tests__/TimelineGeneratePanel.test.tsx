@@ -4,6 +4,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@mui/material/styles";
 import mockTheme from "../../../__mocks__/themeMock";
+import { useNotificationStore } from "../../../stores/NotificationStore";
 import type {
   Asset,
   MusicModel,
@@ -125,13 +126,13 @@ async function chooseSpeech() {
   await userEvent.click(screen.getByRole("button", { name: "Video" }));
   expect(screen.getAllByRole("menuitemradio")).toHaveLength(3);
   await userEvent.click(
-    screen.getByRole("menuitemradio", { name: "Generate Speech" })
+    screen.getByRole("menuitemradio", { name: "Read aloud" })
   );
 }
 
 async function pickSpeechModel() {
   await userEvent.click(
-    screen.getByRole("button", { name: "Select TTS Model" })
+    screen.getByRole("button", { name: "Select TTS model" })
   );
   await userEvent.click(
     screen.getByRole("button", { name: "Pick speech model" })
@@ -159,7 +160,7 @@ describe("TimelineGeneratePanel", () => {
       act(() => instance.playback.getState().setTimeMs(2500));
       await userEvent.click(screen.getByRole("button", { name: "Video" }));
       await userEvent.click(
-        screen.getByRole("menuitemradio", { name: "Generate Music" })
+        screen.getByRole("menuitemradio", { name: "Generate music" })
       );
       await userEvent.type(
         screen.getByRole("textbox", { name: "Quick text-to-music prompt" }),
@@ -169,7 +170,7 @@ describe("TimelineGeneratePanel", () => {
         screen.getByRole("button", { name: "Generate music" })
       ).toBeDisabled();
       await userEvent.click(
-        screen.getByRole("button", { name: "Select Music Model" })
+        screen.getByRole("button", { name: "Select music model" })
       );
       await userEvent.click(
         screen.getByRole("button", { name: "Pick music model" })
@@ -367,7 +368,7 @@ describe("TimelineGeneratePanel", () => {
     await pickSpeechModel();
     await userEvent.click(screen.getByRole("button", { name: "Speech" }));
     await userEvent.click(
-      screen.getByRole("menuitemradio", { name: "Generate Videos" })
+      screen.getByRole("menuitemradio", { name: "Generate videos" })
     );
     expect(
       screen.getByRole("button", { name: "Test video" })
@@ -446,8 +447,10 @@ describe("TimelineGeneratePanel", () => {
     );
     expect(mockSend).not.toHaveBeenCalled();
     expect(
-      screen.getByText("Unlock an audio track first.")
-    ).toBeInTheDocument();
+      useNotificationStore
+        .getState()
+        .notifications.map((notification) => notification.content)
+    ).toContain("Unlock an audio track first.");
     act(() => instance.doc.getState().addTrack("audio", "Unlocked"));
     await userEvent.click(
       screen.getByRole("button", { name: "Generate audio" })

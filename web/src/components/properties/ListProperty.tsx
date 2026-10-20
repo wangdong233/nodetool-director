@@ -58,13 +58,13 @@ const ListProperty = (props: PropertyProps) => {
     return (
       <>
         <div style={containerStyle}>
-          <PropertyLabel name={t("editor:ui.dataType", { defaultValue: "Data Type" })} id={id} />
+          <PropertyLabel name="Data type" id={id} />
           <Select
             value={dataType}
             onChange={handleDataTypeChange}
             options={options}
-            label={t("editor:ui.dataType", { defaultValue: "Data Type" })}
-            placeholder={t("editor:ui.selectType", { defaultValue: "Select type..." })}
+            label={t("editor:ui.dataType", { defaultValue: "Data type" })}
+            placeholder={t("editor:ui.selectType", { defaultValue: "Select type…" })}
           />
         </div>
         <ListTable

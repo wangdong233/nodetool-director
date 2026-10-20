@@ -19,12 +19,13 @@ import {
   ScrollArea,
   SPACING,
   Text,
-  VideoPlayer
+  VideoPlayer,
+  EmptyState
 } from "../ui_primitives";
 import { AskRunAgentButton } from "../runs/AskRunAgentButton";
 import ReportBugButton from "../support/ReportBugButton";
 import { StoredRunActivity } from "./puck/AgentActivityWidget";
-import { tAttr } from "./i18nAttrs";
+import { i18n } from "../../i18n";
 
 interface AppRunHistoryProps {
   instanceId: string;
@@ -48,17 +49,17 @@ function ReadOnlyValue({ value }: { value: unknown }): React.ReactElement {
         return (
           <ResponsiveImage
             locator={locator}
-            alt={tAttr("Historical output")}
+            alt={i18n.t("appbuilder:attrs.historicalOutput", { defaultValue: "Historical output" })}
             fit="contain"
           />
         );
       }
       if (media.data.type === "video") {
-        return <VideoPlayer locator={locator} />;
+        return <VideoPlayer locator={locator} label={i18n.t("appbuilder:attrs.historicalOutput", { defaultValue: "Historical output" })} />;
       }
       return <AudioPlayback locator={locator} />;
     }
-    return <Caption>{tAttr("Media reference unavailable.")}</Caption>;
+    return <Caption>{i18n.t("appbuilder:attrs.mediaReferenceUnavailable", { defaultValue: "Media reference unavailable." })}</Caption>;
   }
   return (
     <Text
@@ -115,7 +116,7 @@ export default function AppRunHistory({
   const error = history.error ?? detail.error;
   return (
     <FlexColumn gap={SPACING.md} padding={SPACING.lg}>
-      <Text weight={600}>{tAttr("Run history")}</Text>
+      <Text weight={600}>{i18n.t("appbuilder:attrs.runHistoryPanel", { defaultValue: "Run history" })}</Text>
       {error ? (
         <AlertBanner
           severity="error"
@@ -149,14 +150,14 @@ export default function AppRunHistory({
                 {record.app?.cost_state === "settled"
                   ? `$${record.app.actual_usd?.toFixed(4)}`
                   : record.app?.cost_state === "unsettled"
-                    ? tAttr("Cost pending")
-                    : tAttr("Cost unavailable")}
+                    ? i18n.t("appbuilder:attrs.costPending", { defaultValue: "Cost pending" })
+                    : "Cost unavailable"}
               </Caption>
               {record.app?.result_reference ? (
                 <ResponsiveImage
                   locator={`asset://${record.app.result_reference.asset_id}`}
                   preferThumbnail
-                  alt={tAttr("Run result thumbnail")}
+                  alt={i18n.t("appbuilder:attrs.runResultThumbnail", { defaultValue: "Run result thumbnail" })}
                 />
               ) : null}
             </FlexRow>
@@ -164,7 +165,7 @@ export default function AppRunHistory({
         </FlexColumn>
       </ScrollArea>
       {!history.isLoading && !records.length ? (
-        <Caption>{tAttr("No runs recorded for this instance.")}</Caption>
+        <EmptyState size="small" title={i18n.t("appbuilder:attrs.noRunsRecordedForInstance", { defaultValue: "No runs recorded for this instance" })} />
       ) : null}
       <FlexRow gap={SPACING.sm}>
         {pageIndex > 0 ? (
@@ -182,11 +183,11 @@ export default function AppRunHistory({
         ) : null}
       </FlexRow>
       {selectedRunId ? (
-        <FlexColumn gap={SPACING.md} role="region" aria-label={tAttr("Historical run")}>
+        <FlexColumn gap={SPACING.md} role="region" aria-label={i18n.t("appbuilder:attrs.historicalRun", { defaultValue: "Historical run" })}>
           <FlexRow gap={SPACING.sm}>
-            <Text weight={600}>{tAttr("Historical result (read-only)")}</Text>
+            <Text weight={600}>{i18n.t("appbuilder:attrs.historicalResultReadOnly", { defaultValue: "Historical result (read-only)" })}</Text>
             <EditorButton onClick={() => onSelect(null)}>
-              {tAttr("Close history selection")}
+              Close history selection
             </EditorButton>
           </FlexRow>
           {candidate && !run ? (
@@ -228,9 +229,7 @@ export default function AppRunHistory({
                   {(["inputs", "outputs"] as const).map((field) => (
                     <FlexColumn key={field} gap={SPACING.sm}>
                       <Text weight={600}>
-                        {field === "inputs"
-                          ? tAttr("Inputs")
-                          : tAttr("Outputs")}
+                        {field === "inputs" ? i18n.t("timeline:attrs.inputs", { defaultValue: "Inputs" }) : i18n.t("appbuilder:attrs.outputs", { defaultValue: "Outputs" })}
                       </Text>
                       {Object.entries(run.app?.[field] ?? {}).map(
                         ([name, value]) => (
@@ -243,8 +242,8 @@ export default function AppRunHistory({
                       {!Object.keys(run.app?.[field] ?? {}).length ? (
                         <Caption>
                           {run.app?.content_limited
-                            ? tAttr("Content exceeds the read limit.")
-                            : tAttr("No values recorded.")}
+                            ? i18n.t("appbuilder:attrs.contentExceedsReadLimit", { defaultValue: "Content exceeds the read limit." })
+                            : "No values recorded."}
                         </Caption>
                       ) : null}
                     </FlexColumn>
@@ -252,10 +251,10 @@ export default function AppRunHistory({
                 </>
               )}
               {run.app?.content_limited || summary?.truncated ? (
-                <Caption>{tAttr("Some recorded content was limited.")}</Caption>
+                <Caption>{i18n.t("appbuilder:attrs.someRecordedContentLimited", { defaultValue: "Some recorded content was limited." })}</Caption>
               ) : null}
               {summary?.incomplete ? (
-                <Caption>{tAttr("Recording is incomplete.")}</Caption>
+                <Caption>{i18n.t("appbuilder:attrs.recordingIncomplete", { defaultValue: "Recording is incomplete." })}</Caption>
               ) : null}
               {summary?.documents.map((document) => {
                 const type = documentType(document.kind);

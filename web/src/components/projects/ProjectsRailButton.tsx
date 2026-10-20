@@ -2,14 +2,11 @@ import { useCallback } from "react";
 
 import { Box, ToolbarIconButton, Tooltip } from "../ui_primitives";
 import type { TooltipProps } from "../ui_primitives";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import {
   PROJECT_LIST_REF,
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
 import { PROJECT_COLOR } from "./projectIdentity";
-import { useAppLanguage } from "../../i18n";
-import { useTranslation } from "react-i18next";
 
 const ProjectsIcon = ({ active }: { active: boolean }) => (
   <Box
@@ -44,10 +41,6 @@ const ProjectsRailButton = ({
   onSelect?: () => void;
   tooltipPlacement?: TooltipProps["placement"];
 }) => {
-  const { t } = useTranslation();
-  // Subscribe so catalog reads re-render on language change.
-  useAppLanguage();
-  const label = t("nav:tabs.projects", { defaultValue: "Projects" });
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const onProjectSurface = useWorkspaceTabsStore((state) => {
     const active = state.tabs.find((tab) => tab.id === state.activeTabId);
@@ -59,20 +52,16 @@ const ProjectsRailButton = ({
       type: "project-list",
       ref: PROJECT_LIST_REF,
       mode: "view",
-      title: label
+      title: "Projects"
     });
     onSelect?.();
-  }, [openTab, onSelect, label]);
+  }, [openTab, onSelect]);
 
   return (
-    <Tooltip
-      title={label}
-      placement={tooltipPlacement}
-      delay={TOOLTIP_ENTER_DELAY}
-    >
+    <Tooltip title="Projects" placement={tooltipPlacement}>
       <ToolbarIconButton
         tabIndex={-1}
-        ariaLabel={label}
+        ariaLabel="Projects"
         className={onProjectSurface ? "active" : ""}
         onClick={handleClick}
         icon={<ProjectsIcon active={onProjectSurface} />}

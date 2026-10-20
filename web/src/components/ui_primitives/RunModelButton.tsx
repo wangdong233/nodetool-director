@@ -18,7 +18,8 @@ import type { Theme } from "@mui/material/styles";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { Button } from "@mui/material";
 import { LoadingSpinner } from "./LoadingSpinner";
-import { MOTION } from "./tokens";
+import { BORDER_RADIUS, MOTION } from "./tokens";
+import { SPACING, getSpacingPx } from "./spacing";
 import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
@@ -31,8 +32,8 @@ const styles = (theme: Theme) =>
       letterSpacing: "0.01em",
       color: theme.vars.palette.common.black,
       backgroundColor: theme.vars.palette.primary.main,
-      borderRadius: "var(--rounded-sm)",
-      padding: "4px 12px",
+      borderRadius: BORDER_RADIUS.sm,
+      padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.lg)}`,
       minWidth: 0,
       gap: 6,
       boxShadow: `0 1px 3px rgba(${theme.vars.palette.common.blackChannel ?? '0 0 0'} / 0.25)`,
@@ -74,7 +75,7 @@ export interface RunModelButtonProps {
 const RunModelButtonInner = forwardRef<
   HTMLButtonElement,
   RunModelButtonProps
->(({ label = i18n.t("ui:attrs.runModel", { defaultValue: "Run Model" }), isRunning = false, disabled = false, onClick, className }, ref) => {
+>(({ label = "Run model", isRunning = false, disabled = false, onClick, className }, ref) => {
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
 
@@ -87,7 +88,7 @@ const RunModelButtonInner = forwardRef<
     <Button
       ref={ref}
       css={cssStyles}
-      className={`run-model-button nodrag ${isRunning ? "running" : ""} ${className ?? ""}`}
+      className={`run-model-button nodrag ${isRunning ? i18n.t("setup:workflow.pill_running", { defaultValue: "running" }) : ""} ${className ?? ""}`}
       onClick={handleClick}
       disabled={disabled}
       startIcon={

@@ -122,7 +122,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   },
   {
     value: "video",
-    label: "Video",
+    label: "Video", labelKey: "home:entry.video.title",
     description:
       "Video data for playback, editing, or generation. Supports MP4, WebM, and other formats.",
     color: colour("video"),
@@ -432,7 +432,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   },
   {
     value: "language_model",
-    label: "Language Model",
+    label: "Language Model", labelKey: "settings:defModels.mLanguage",
     description:
       "Reference to an LLM for text generation, chat, and language understanding tasks.",
     color: colour("reference"),
@@ -761,7 +761,7 @@ const NODETOOL_DATA_TYPES: DataType[] = [
   },
   {
     value: "date",
-    label: "Date",
+    label: "Date", labelKey: "ui2:attrs.date",
     description: "Calendar date without a time component.",
     descriptionKey: "calendarDateWithoutATimeComponent",
     color: colour("scalar"),

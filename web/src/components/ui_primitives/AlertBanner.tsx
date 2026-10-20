@@ -8,6 +8,8 @@
 
 import { forwardRef } from "react";
 import { Alert, AlertTitle, AlertProps as MuiAlertProps } from "@mui/material";
+import { BORDER_RADIUS } from "./tokens";
+import { i18n } from "../../i18n";
 
 export interface AlertBannerProps extends Omit<MuiAlertProps, 'variant'> {
   /** Alert title (optional) */
@@ -56,7 +58,7 @@ export const AlertBanner = forwardRef<HTMLDivElement, AlertBannerProps>(({
       ref={ref}
       variant={variant}
       sx={{
-        borderRadius: "var(--rounded-lg)",
+        borderRadius: BORDER_RADIUS.lg,
         ...(compact && {
           py: 0.5,
           px: 1.5,

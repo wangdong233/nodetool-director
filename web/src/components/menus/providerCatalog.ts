@@ -40,9 +40,13 @@ import voyageColorIcon from "../../icons/providers/voyage-color.svg";
 import evolinkIcon from "../../icons/evolink.svg";
 import gmiIcon from "../../icons/gmi.svg";
 import metaColorIcon from "../../icons/providers/meta-color.svg";
+import azureColorIcon from "../../icons/providers/azure-color.svg";
+import bedrockColorIcon from "../../icons/providers/bedrock-color.svg";
+import { i18n } from "../../i18n";
 
 
 export interface ProviderMeta {
+  descriptionKey?: string;
   key: string;
   name: string;
   description: string;
@@ -69,14 +73,15 @@ export interface ProviderMeta {
    */
   localOnly?: boolean;
   /** Multi-field credentials (e.g. login + password). Single-field providers omit this. */
-  fields?: Array<{ key: string; label: string; secret?: boolean }>;
+  fields?: Array<{ key: string; label: string; labelKey?: string; secret?: boolean }>;
   /** One copied value that is parsed into the separately stored credential fields. */
   combinedCredential?: {
-    label: string;
+    label: string; labelKey?: string;
     placeholder: string;
     errorMessage: string;
     parse: (value: string) => Record<string, string> | null;
   };
+  labelKey?: string;
   /**
    * The registry provider this card credentials, when there is one. A card can
    * hold a valid credential for a provider the server does not offer — a cloud
@@ -124,7 +129,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "OPENAI_API_KEY",
     providerId: PROVIDER_IDS.OPENAI,
     name: "OpenAI",
-    description: "GPT models, images, embeddings, and more.",
+    description: "GPT models, images, embeddings, and more.", descriptionKey: "tools:menus.providers.OPENAI_API_KEY.description",
     section: "popular",
     tag: "Popular",
     docsUrl: "https://platform.openai.com/docs",
@@ -140,12 +145,12 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "CLAUDE_SUBSCRIPTION",
     providerId: PROVIDER_IDS.CLAUDE_AGENT_SDK,
     name: "Claude Code",
-    description: "Use a Claude Pro or Max subscription instead of API credits.",
+    description: "Use a Claude Pro or Max subscription instead of API credits.", descriptionKey: "tools:menus.providers.CLAUDE_SUBSCRIPTION.description",
     section: "popular",
     docsUrl: "https://code.claude.com/docs/en/overview",
     icon: anthropicIcon,
     mono: true,
-    note: "Shares the credentials used by Claude Code.",
+    note: i18n.t("tools:menus.providers.CLAUDE_SUBSCRIPTION.note", { defaultValue: "Shares the credentials used by Claude Code." }),
     oauth: "claude",
     oauthOnly: true,
     localOnly: true
@@ -154,7 +159,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "ANTHROPIC_API_KEY",
     providerId: PROVIDER_IDS.ANTHROPIC,
     name: "Anthropic",
-    description: "Claude models for advanced reasoning.",
+    description: "Claude models for advanced reasoning.", descriptionKey: "tools:menus.providers.ANTHROPIC_API_KEY.description",
     section: "popular",
     docsUrl: "https://docs.anthropic.com",
     icon: anthropicIcon,
@@ -164,7 +169,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "OPENROUTER_API_KEY",
     providerId: PROVIDER_IDS.OPENROUTER,
     name: "OpenRouter",
-    description: "Access multiple AI models through one API.",
+    description: "Access multiple AI models through one API.", descriptionKey: "tools:menus.providers.OPENROUTER_API_KEY.description",
     section: "popular",
     docsUrl: "https://openrouter.ai/docs",
     icon: openrouterIcon,
@@ -174,7 +179,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "GEMINI_API_KEY",
     providerId: PROVIDER_IDS.GEMINI,
     name: "Gemini",
-    description: "Google Gemini AI models and services.",
+    description: "Google Gemini AI models and services.", descriptionKey: "tools:menus.providers.GEMINI_API_KEY.description",
     section: "popular",
     docsUrl: "https://ai.google.dev/docs",
     icon: geminiColorIcon
@@ -183,7 +188,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "GROQ_API_KEY",
     providerId: PROVIDER_IDS.GROQ,
     name: "Groq",
-    description: "Ultra-fast LLM inference on LPU hardware.",
+    description: "Ultra-fast LLM inference on LPU hardware.", descriptionKey: "tools:menus.providers.GROQ_API_KEY.description",
     section: "language",
     docsUrl: "https://console.groq.com/docs",
     icon: groqIcon,
@@ -193,7 +198,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "MISTRAL_API_KEY",
     providerId: PROVIDER_IDS.MISTRAL,
     name: "Mistral",
-    description: "Mistral AI models and embeddings.",
+    description: "Mistral AI models and embeddings.", descriptionKey: "tools:menus.providers.MISTRAL_API_KEY.description",
     section: "language",
     docsUrl: "https://docs.mistral.ai/",
     icon: mistralColorIcon
@@ -202,7 +207,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "DEEPSEEK_API_KEY",
     providerId: PROVIDER_IDS.DEEPSEEK,
     name: "DeepSeek",
-    description: "State-of-the-art open models.",
+    description: "State-of-the-art open models.", descriptionKey: "tools:menus.providers.DEEPSEEK_API_KEY.description",
     section: "language",
     docsUrl: "https://platform.deepseek.com/docs",
     icon: deepseekColorIcon
@@ -211,17 +216,46 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "XAI_API_KEY",
     providerId: PROVIDER_IDS.XAI,
     name: "xAI",
-    description: "Grok models via xAI's API.",
+    description: "Grok models via xAI's API.", descriptionKey: "tools:menus.providers.XAI_API_KEY.description",
     section: "language",
     docsUrl: "https://docs.x.ai/",
     icon: xaiIcon,
     mono: true
   },
   {
+    key: "AZURE_OPENAI_API_KEY",
+    providerId: PROVIDER_IDS.AZURE_OPENAI,
+    name: "Azure OpenAI",
+    description: "OpenAI models deployed on Azure or Microsoft Foundry.",
+    section: "language",
+    docsUrl: "https://learn.microsoft.com/azure/ai-foundry/openai/",
+    icon: azureColorIcon,
+    note: "List deployment names separated by commas, e.g. gpt-5.5, gpt-image-2.",
+    fields: [
+      { key: "AZURE_OPENAI_API_KEY", label: "API key", labelKey: "tools:menus.providers.HIGGSFIELD_API_KEY_ID.credentialLabel", secret: true },
+      { key: "AZURE_OPENAI_ENDPOINT", label: "Endpoint" },
+      { key: "AZURE_OPENAI_DEPLOYMENTS", label: "Deployments" }
+    ]
+  },
+  {
+    key: "BEDROCK_ACCESS_KEY_ID",
+    providerId: PROVIDER_IDS.BEDROCK,
+    name: "Amazon Bedrock",
+    description: "Claude, Llama, Mistral, Nova and image models on AWS.",
+    section: "language",
+    docsUrl: "https://docs.aws.amazon.com/bedrock/",
+    icon: bedrockColorIcon,
+    fields: [
+      { key: "BEDROCK_ACCESS_KEY_ID", label: "Access key ID", secret: true },
+      { key: "BEDROCK_SECRET_ACCESS_KEY", label: "Secret access key", secret: true },
+      { key: "BEDROCK_REGION", label: "Region" }
+    ]
+  },
+  {
     key: "META_API_KEY",
     providerId: PROVIDER_IDS.META,
     name: "Meta AI",
-    description: "Meta's Muse Spark models for agentic and coding work.",
+    description: "Meta's Muse Spark models for agentic and coding work.", descriptionKey: "tools:menus.providers.META_API_KEY.description",
     section: "language",
     docsUrl: "https://dev.meta.ai/docs/overview",
     icon: metaColorIcon
@@ -230,7 +264,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "CEREBRAS_API_KEY",
     providerId: PROVIDER_IDS.CEREBRAS,
     name: "Cerebras",
-    description: "Fast LLM inference on Cerebras hardware.",
+    description: "Fast LLM inference on Cerebras hardware.", descriptionKey: "tools:menus.providers.CEREBRAS_API_KEY.description",
     section: "language",
     docsUrl: "https://docs.cerebras.ai/",
     icon: cerebrasColorIcon
@@ -239,7 +273,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "TOGETHER_API_KEY",
     providerId: PROVIDER_IDS.TOGETHER,
     name: "Together AI",
-    description: "Open-source models through Together API.",
+    description: "Open-source models through Together API.", descriptionKey: "tools:menus.providers.TOGETHER_API_KEY.description",
     section: "language",
     docsUrl: "https://docs.together.ai/",
     icon: togetherColorIcon
@@ -248,7 +282,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "KIMI_API_KEY",
     providerId: PROVIDER_IDS.MOONSHOT,
     name: "Kimi",
-    description: "Moonshot AI models via Kimi API.",
+    description: "Moonshot AI models via Kimi API.", descriptionKey: "tools:menus.providers.KIMI_API_KEY.description",
     section: "language",
     docsUrl: "https://platform.moonshot.cn/docs",
     icon: moonshotIcon,
@@ -257,7 +291,7 @@ export const PROVIDER_META: ProviderMeta[] = [
   {
     key: "ZHIPU_API_KEY",
     name: "Z.AI",
-    description: "GLM models via Z.AI's OpenAI-compatible API.",
+    description: "GLM models via Z.AI's OpenAI-compatible API.", descriptionKey: "tools:menus.providers.ZHIPU_API_KEY.description",
     section: "language",
     docsUrl: "https://open.bigmodel.cn/",
     icon: zhipuColorIcon
@@ -266,7 +300,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "MINIMAX_API_KEY",
     providerId: PROVIDER_IDS.MINIMAX,
     name: "MiniMax",
-    description: "MiniMax AI models.",
+    description: "MiniMax AI models.", descriptionKey: "tools:menus.providers.MINIMAX_API_KEY.description",
     section: "language",
     docsUrl: "https://platform.minimax.chat/",
     icon: minimaxColorIcon
@@ -275,7 +309,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "DASHSCOPE_API_KEY",
     providerId: PROVIDER_IDS.ALIBABA,
     name: "Alibaba Cloud",
-    description: "Qwen models via Alibaba Cloud Model Studio.",
+    description: "Qwen models via Alibaba Cloud Model Studio.", descriptionKey: "tools:menus.providers.DASHSCOPE_API_KEY.description",
     section: "language",
     docsUrl: "https://www.alibabacloud.com/help/en/model-studio/",
     icon: alibabacloudColorIcon
@@ -284,7 +318,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "HF_TOKEN",
     providerId: PROVIDER_IDS.HUGGINGFACE,
     name: "HuggingFace",
-    description: "Inference providers and model hub access.",
+    description: "Inference providers and model hub access.", descriptionKey: "tools:menus.providers.HF_TOKEN.description",
     section: "language",
     docsUrl: "https://huggingface.co/docs",
     icon: huggingfaceColorIcon,
@@ -294,7 +328,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "COHERE_API_KEY",
     providerId: PROVIDER_IDS.COHERE,
     name: "Cohere",
-    description: "Embed v4 text embeddings and reranking.",
+    description: "Embed v4 text embeddings and reranking.", descriptionKey: "tools:menus.providers.COHERE_API_KEY.description",
     section: "language",
     docsUrl: "https://docs.cohere.com/",
     icon: cohereColorIcon
@@ -303,7 +337,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "JINA_API_KEY",
     providerId: PROVIDER_IDS.JINA,
     name: "Jina AI",
-    description: "Jina embeddings and reranker models.",
+    description: "Jina embeddings and reranker models.", descriptionKey: "tools:menus.providers.JINA_API_KEY.description",
     section: "language",
     docsUrl: "https://jina.ai/",
     icon: jinaIcon,
@@ -313,7 +347,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "VOYAGE_API_KEY",
     providerId: PROVIDER_IDS.VOYAGE,
     name: "Voyage AI",
-    description: "High-quality text and multimodal embeddings.",
+    description: "High-quality text and multimodal embeddings.", descriptionKey: "tools:menus.providers.VOYAGE_API_KEY.description",
     section: "language",
     docsUrl: "https://docs.voyageai.com/",
     icon: voyageColorIcon
@@ -322,7 +356,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "FAL_API_KEY",
     providerId: PROVIDER_IDS.FAL_AI,
     name: "FAL",
-    description: "Serverless AI image and video generation.",
+    description: "Serverless AI image and video generation.", descriptionKey: "tools:menus.providers.FAL_API_KEY.description",
     section: "media",
     docsUrl: "https://fal.ai/docs",
     icon: falColorIcon,
@@ -332,7 +366,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "REPLICATE_API_TOKEN",
     providerId: PROVIDER_IDS.REPLICATE,
     name: "Replicate",
-    description: "Run models on Replicate's cloud infrastructure.",
+    description: "Run models on Replicate's cloud infrastructure.", descriptionKey: "tools:menus.providers.REPLICATE_API_TOKEN.description",
     section: "media",
     docsUrl: "https://replicate.com/docs",
     icon: replicateIcon,
@@ -342,7 +376,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "ELEVENLABS_API_KEY",
     providerId: PROVIDER_IDS.ELEVENLABS,
     name: "ElevenLabs",
-    description: "High-quality text-to-speech services.",
+    description: "High-quality text-to-speech services.", descriptionKey: "tools:menus.providers.ELEVENLABS_API_KEY.description",
     section: "media",
     docsUrl: "https://elevenlabs.io/docs",
     icon: elevenlabsIcon,
@@ -353,7 +387,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     providerId: PROVIDER_IDS.COMFY_CLOUD,
     name: "Comfy Cloud",
     description:
-      "Run ComfyUI workflows on Comfy's hosted GPUs with your own key.",
+      "Run ComfyUI workflows on Comfy's hosted GPUs with your own key.", descriptionKey: "tools:menus.providers.COMFY_API_KEY.description",
     section: "media",
     docsUrl: "https://platform.comfy.org",
     icon: comfyuiIcon,
@@ -363,7 +397,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "TOPAZ_API_KEY",
     providerId: PROVIDER_IDS.TOPAZ,
     name: "Topaz",
-    description: "Topaz Labs image and video enhancement.",
+    description: "Topaz Labs image and video enhancement.", descriptionKey: "tools:menus.providers.TOPAZ_API_KEY.description",
     section: "media",
     docsUrl: "https://developer.topazlabs.com/",
     icon: topazlabsIcon,
@@ -373,7 +407,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "ATLASCLOUD_API_KEY",
     providerId: PROVIDER_IDS.ATLASCLOUD,
     name: "AtlasCloud",
-    description: "Chat, image, and video models behind one key.",
+    description: "Chat, image, and video models behind one key.", descriptionKey: "tools:menus.providers.ATLASCLOUD_API_KEY.description",
     section: "gateways",
     docsUrl: "https://www.atlascloud.ai/",
     icon: atlascloudIcon
@@ -382,7 +416,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "HIGGSFIELD_API_KEY_ID",
     providerId: PROVIDER_IDS.HIGGSFIELD,
     name: "Higgsfield",
-    description: "Curated image and video generation models.",
+    description: "Curated image and video generation models.", descriptionKey: "tools:menus.providers.HIGGSFIELD_API_KEY_ID.description",
     section: "media",
     docsUrl: "https://docs.higgsfield.ai/",
     fields: [
@@ -390,7 +424,7 @@ export const PROVIDER_META: ProviderMeta[] = [
       { key: "HIGGSFIELD_API_KEY_SECRET", label: "API key secret", secret: true }
     ],
     combinedCredential: {
-      label: "API key",
+      label: "API key", labelKey: "tools:menus.providers.HIGGSFIELD_API_KEY_ID.credentialLabel",
       placeholder: "Paste key-id:secret",
       errorMessage:
         "Paste the complete Higgsfield API key in the key-id:secret format.",
@@ -398,10 +432,18 @@ export const PROVIDER_META: ProviderMeta[] = [
     }
   },
   {
+    key: "VGENV_API_KEY",
+    providerId: PROVIDER_IDS.VGENV,
+    name: "vgenv",
+    description: "MiniMax H3 text, image, and reference video generation.",
+    section: "media",
+    docsUrl: "https://vgenv.com/developers/docs"
+  },
+  {
     key: "REVE_API_KEY",
     providerId: PROVIDER_IDS.REVE,
     name: "Reve",
-    description: "Image creation, editing, and remix with strong prompt adherence.",
+    description: "Image creation, editing, and remix with strong prompt adherence.", descriptionKey: "tools:menus.providers.REVE_API_KEY.description",
     section: "media",
     docsUrl: "https://api.reve.com/"
   },
@@ -409,7 +451,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "MESHY_API_KEY",
     providerId: PROVIDER_IDS.MESHY,
     name: "Meshy",
-    description: "3D model generation.",
+    description: "3D model generation.", descriptionKey: "tools:menus.providers.MESHY_API_KEY.description",
     section: "media",
     docsUrl: "https://docs.meshy.ai/",
     icon: meshyColorIcon
@@ -418,7 +460,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "RODIN_API_KEY",
     providerId: PROVIDER_IDS.RODIN,
     name: "Rodin",
-    description: "Rodin AI 3D model generation.",
+    description: "Rodin AI 3D model generation.", descriptionKey: "tools:menus.providers.RODIN_API_KEY.description",
     section: "media",
     docsUrl: "https://hyperhuman.deemos.com/"
   },
@@ -426,7 +468,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "EVOLINK_API_KEY",
     providerId: PROVIDER_IDS.EVOLINK,
     name: "Evolink",
-    description: "GPT, Claude, Gemini, DeepSeek and more through one gateway.",
+    description: "GPT, Claude, Gemini, DeepSeek and more through one gateway.", descriptionKey: "tools:menus.providers.EVOLINK_API_KEY.description",
     section: "gateways",
     docsUrl: "https://docs.evolink.ai",
     icon: evolinkIcon
@@ -435,7 +477,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "GMI_API_KEY",
     providerId: PROVIDER_IDS.GMI,
     name: "GMI Cloud",
-    description: "Open-weight LLMs through GMI's OpenAI-compatible API.",
+    description: "Open-weight LLMs through GMI's OpenAI-compatible API.", descriptionKey: "tools:menus.providers.GMI_API_KEY.description",
     section: "gateways",
     docsUrl: "https://docs.gmicloud.ai/",
     icon: gmiIcon
@@ -444,7 +486,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "AKI_API_KEY",
     providerId: PROVIDER_IDS.AKI,
     name: "AKI",
-    description: "AKI.IO AI Model Hub.",
+    description: "AKI.IO AI Model Hub.", descriptionKey: "tools:menus.providers.AKI_API_KEY.description",
     section: "gateways",
     docsUrl: "https://aki.io/"
   },
@@ -452,7 +494,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "KIE_API_KEY",
     providerId: PROVIDER_IDS.KIE,
     name: "Kie.ai",
-    description: "Kie.ai unified model access.",
+    description: "Kie.ai unified model access.", descriptionKey: "tools:menus.providers.KIE_API_KEY.description",
     section: "gateways",
     docsUrl: "https://kie.ai/"
   },
@@ -483,28 +525,28 @@ export const PROVIDER_META: ProviderMeta[] = [
   {
     key: "SERPAPI_API_KEY",
     name: "SerpAPI",
-    description: "Web search via SerpAPI.",
+    description: "Web search via SerpAPI.", descriptionKey: "tools:menus.providers.SERPAPI_API_KEY.description",
     section: "search",
     docsUrl: "https://serpapi.com/"
   },
   {
     key: "APIFY_API_TOKEN",
     name: "Apify",
-    description: "Web search via Apify Google Search Scraper.",
+    description: "Web search via Apify Google Search Scraper.", descriptionKey: "tools:menus.providers.APIFY_API_TOKEN.description",
     section: "search",
     docsUrl: "https://docs.apify.com/"
   },
   {
     key: "BRAVE_API_KEY",
     name: "Brave Search",
-    description: "Brave Search web API.",
+    description: "Brave Search web API.", descriptionKey: "tools:menus.providers.BRAVE_API_KEY.description",
     section: "search",
     docsUrl: "https://brave.com/search/api/"
   },
   {
     key: "DATA_FOR_SEO_LOGIN",
     name: "DataForSEO",
-    description: "Web search via DataForSEO.",
+    description: "Web search via DataForSEO.", descriptionKey: "tools:menus.providers.DATA_FOR_SEO_LOGIN.description",
     section: "search",
     docsUrl: "https://docs.dataforseo.com/",
     fields: [
@@ -515,14 +557,14 @@ export const PROVIDER_META: ProviderMeta[] = [
   {
     key: "RUNPOD_API_KEY",
     name: "RunPod",
-    description: "Rent GPU pods to run NodeTool workers.",
+    description: "Rent GPU pods to run NodeTool workers.", descriptionKey: "tools:menus.providers.RUNPOD_API_KEY.description",
     section: "compute",
     docsUrl: "https://docs.runpod.io/"
   },
   {
     key: "VAST_API_KEY",
     name: "Vast.ai",
-    description: "Rent marketplace GPUs to run NodeTool workers.",
+    description: "Rent marketplace GPUs to run NodeTool workers.", descriptionKey: "tools:menus.providers.VAST_API_KEY.description",
     section: "compute",
     docsUrl: "https://docs.vast.ai/"
   },
@@ -544,14 +586,14 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "LLAMA_API_KEY",
     providerId: PROVIDER_IDS.LLAMA_CPP,
     name: "llama.cpp",
-    description: "Bearer auth for a local llama-server instance.",
+    description: "Bearer auth for a local llama-server instance.", descriptionKey: "tools:menus.providers.LLAMA_API_KEY.description",
     section: "compute",
     docsUrl: "https://github.com/ggml-org/llama.cpp"
   },
   {
     key: "GOOGLE_MAIL_USER",
     name: "Google Mail",
-    description: "Email address and app password for Google mail integration.",
+    description: "Email address and app password for Google mail integration.", descriptionKey: "tools:menus.providers.GOOGLE_MAIL_USER.description",
     section: "advanced",
     docsUrl: "https://support.google.com/mail/",
     icon: googleColorIcon,
@@ -563,34 +605,34 @@ export const PROVIDER_META: ProviderMeta[] = [
   {
     key: "GITHUB_CLIENT_ID",
     name: "GitHub OAuth App",
-    description: "OAuth App credentials for GitHub PKCE flow.",
+    description: "OAuth App credentials for GitHub PKCE flow.", descriptionKey: "tools:menus.providers.GITHUB_CLIENT_ID.description",
     section: "advanced",
     docsUrl: "https://docs.github.com/en/apps/oauth-apps",
     icon: githubIcon,
     mono: true,
     fields: [
       { key: "GITHUB_CLIENT_ID", label: "Client ID" },
-      { key: "GITHUB_CLIENT_SECRET", label: "Client Secret", secret: true }
+      { key: "GITHUB_CLIENT_SECRET", label: "Client secret", secret: true }
     ]
   },
   {
     key: "NODE_SUPABASE_KEY",
     name: "NodeSupabase",
-    description: "Supabase service key for user-provided nodes.",
+    description: "Supabase service key for user-provided nodes.", descriptionKey: "tools:menus.providers.NODE_SUPABASE_KEY.description",
     section: "advanced",
     docsUrl: "https://supabase.com/docs"
   },
   {
     key: "TRACELOOP_API_KEY",
     name: "Traceloop",
-    description: "OpenLLMetry trace export to Traceloop.",
+    description: "OpenLLMetry trace export to Traceloop.", descriptionKey: "tools:menus.providers.TRACELOOP_API_KEY.description",
     section: "advanced",
     docsUrl: "https://www.traceloop.com/docs"
   },
   {
     key: "SERVER_AUTH_TOKEN",
-    name: "Server Auth Token",
-    description: "Bearer token to secure NodeTool server endpoints.",
+    name: "Server auth token",
+    description: "Bearer token to secure NodeTool server endpoints.", descriptionKey: "tools:menus.providers.SERVER_AUTH_TOKEN.description",
     section: "advanced",
     docsUrl: "https://github.com/nodetool-ai/nodetool"
   }

@@ -214,3 +214,9 @@ flex 容器,真实子元素经 `parentId` 指名):`flexDirection: "row" |
 不要跑两遍——接触印样、逐场景清单、示例对照、`tier: "showcase"` 校验,以及
 一次真实的修改。返回的结果也要对照本页规格来判:最忙的场景还守不守运动层级,
 示例的密度之下克制是否还在,收拢间距之后选定的运动性格是否仍然可辨。
+
+缓动:入场 `cubic-bezier(0.16,1,0.3,1)`,出场 `cubic-bezier(0.7,0,0.84,0)`。俏皮风可用 `easeOutBack` 或 `cubic-bezier(0.34,1.56,0.64,1)` 入,`easeIn` 出,`overshoot` 1.1–1.2。
+
+API:从 `@nodetool-ai/sandbox-timeline` 取 `defineScene({...})`/`fonts` 等;入场用 `title.enter({from: {scale: 1.35, blur: 26, opacity: 0}})`;计数用 `el.count()`,描线用 `el.draw()`。布局变化用 `flexDirection: "row" | "column"` 配 `gap`。
+
+场景与字体等从 `@nodetool-ai/sandbox-timeline` 引入。

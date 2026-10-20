@@ -6,6 +6,7 @@ import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import type { QUICK_ACTION_NODE_TYPES } from "./quickActionNodeTypes";
 
 export type OutputQuickAction = {
+  labelKey?: string;
   key: string;
   label: string;
   nodeType: (typeof QUICK_ACTION_NODE_TYPES)[number];
@@ -22,14 +23,14 @@ export type OutputQuickAction = {
 export const IMAGE_OUTPUT_QUICK_ACTIONS: readonly OutputQuickAction[] = [
   {
     key: "upscale",
-    label: "Upscale",
+    label: "Upscale", labelKey: "storyboard:attrs.stillTabUpscale",
     nodeType: "nodetool.image.Upscale",
     targetHandle: "image",
     Icon: HighQualityIcon
   },
   {
     key: "remove-background",
-    label: "Remove background",
+    label: "Remove background", labelKey: "game:inspector.removeBackground",
     nodeType: "nodetool.image.RemoveBackground",
     targetHandle: "image",
     Icon: LayersClearIcon

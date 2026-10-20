@@ -112,7 +112,9 @@ describe("harness registry", () => {
       "demo/scripts/render-tutorials.ts",
       "demo/scripts/render-marketing.ts",
       "demo/scripts/encode-hero.mjs",
-      "demo/scripts/vibe-track.ts"
+      "demo/scripts/vibe-track.ts",
+      "demo/scripts/build-pattern-cast-media.mjs",
+      "demo/webpack-stubs/"
     ]);
 
     const plan = planGate([
@@ -231,9 +233,12 @@ describe("gated capability matches a real CI trigger", () => {
     "reliability-ring0": "dev:nodetool -- harness gate",
     "app-build": "dev:nodetool -- harness gate",
     "backend-smoke": "npm run backend:smoke",
+    "packed-core-cli": "node scripts/smoke-packed-cli.mjs --core-only",
+    "release-pins": "scripts/__tests__/pin-catalog.test.mjs",
     "docker-smoke": "docker-smoke.mjs http://localhost:7777",
     "provider-contract": "provider-contract-probes",
     "provider-codegen": "npm run generate:fal:check -- --strict",
+    "node-catalog": "npm run check:node-catalog",
     recipes: "dev:nodetool -- harness gate",
     "node-pack-parity": "parity example-workflows"
   };

@@ -8,16 +8,18 @@ import {
   Collapse,
   MOTION,
   BORDER_RADIUS,
-  LinearProgress,
+  ProgressBar,
   FlexRow,
   FlexColumn,
   Text,
   Divider,
   ToolbarIconButton,
   Box,
+  Card,
   reducedMotion,
   activateOnKey,
-  SHADOW
+  SHADOW,
+  ICON_SIZE
 } from "../ui_primitives";
 import { PREVIEW_NODE_TYPE } from "../../constants/nodeTypes";
 import { getOutputFromResult } from "../node/outputResult";
@@ -133,28 +135,25 @@ export const ChainNodeCard: React.FC<ChainNodeCardProps> = memo(function ChainNo
         : undefined;
 
   return (
-    <Box
+    <Card
       css={cardCss}
+      variant="outlined"
+      padding="none"
+      radius="sm"
       sx={{
-        borderRadius: BORDER_RADIUS.sm,
         border: `1.5px solid ${node.expanded ? `${nsColor}50` : theme.vars.palette.divider}`,
-        backgroundColor: theme.vars.palette.background.paper,
         overflow: "hidden",
         transition: MOTION.border,
         boxShadow: SHADOW(theme).sm,
       }}
     >
       {isRunning && (
-        <LinearProgress
-          variant={progress ? "determinate" : "indeterminate"}
-          value={progress ? (progress.progress / progress.total) * 100 : undefined}
-          sx={{
-            height: 3,
-            backgroundColor: `${nsColor}20`,
-            "& .MuiLinearProgress-bar": {
-              backgroundColor: nsColor,
-            },
-          }}
+        <ProgressBar
+          progressVariant={progress ? "determinate" : "indeterminate"}
+          value={progress ? (progress.progress / progress.total) * 100 : 0}
+          showValue={false}
+          size="small"
+          accent={nsColor}
         />
       )}
 
@@ -190,16 +189,16 @@ export const ChainNodeCard: React.FC<ChainNodeCardProps> = memo(function ChainNo
         </FlexColumn>
 
         {isCompleted && (
-          <CheckCircleOutlineIcon sx={{ fontSize: 18, color: theme.vars.palette.success.main }} />
+          <CheckCircleOutlineIcon sx={{ fontSize: ICON_SIZE.md, color: theme.vars.palette.success.main }} />
         )}
         {isError && (
-          <ErrorOutlineIcon sx={{ fontSize: 18, color: theme.vars.palette.error.main }} />
+          <ErrorOutlineIcon sx={{ fontSize: ICON_SIZE.md, color: theme.vars.palette.error.main }} />
         )}
 
         {node.expanded ? (
-          <ExpandLessIcon sx={{ fontSize: 20, color: theme.vars.palette.text.secondary }} />
+          <ExpandLessIcon sx={{ fontSize: ICON_SIZE.lg, color: theme.vars.palette.text.secondary }} />
         ) : (
-          <ExpandMoreIcon sx={{ fontSize: 20, color: theme.vars.palette.text.secondary }} />
+          <ExpandMoreIcon sx={{ fontSize: ICON_SIZE.lg, color: theme.vars.palette.text.secondary }} />
         )}
       </FlexRow>
 
@@ -251,15 +250,15 @@ export const ChainNodeCard: React.FC<ChainNodeCardProps> = memo(function ChainNo
           <Divider spacing="compact" color="subtle" />
 
           <FlexRow gap={0.5} align="center">
-            <ToolbarIconButton ariaLabel={t("editor:ui.moveNodeUp", { defaultValue: "Move node up" })} size="small" onClick={onMoveUp} disabled={index === 0} tooltip={t("editor:ui.moveUp", { defaultValue: "Move up" })} icon={<ArrowUpwardIcon sx={{ fontSize: 18 }} />} />
-            <ToolbarIconButton ariaLabel={t("editor:ui.moveNodeDown", { defaultValue: "Move node down" })} size="small" onClick={onMoveDown} disabled={index === totalNodes - 1} tooltip={t("editor:ui.moveDown", { defaultValue: "Move down" })} icon={<ArrowDownwardIcon sx={{ fontSize: 18 }} />} />
+            <ToolbarIconButton ariaLabel="Move node up" size="small" onClick={onMoveUp} disabled={index === 0} tooltip={t("editor:ui.moveUp", { defaultValue: "Move up" })} icon={<ArrowUpwardIcon sx={{ fontSize: ICON_SIZE.md }} />} />
+            <ToolbarIconButton ariaLabel="Move node down" size="small" onClick={onMoveDown} disabled={index === totalNodes - 1} tooltip={t("editor:ui.moveDown", { defaultValue: "Move down" })} icon={<ArrowDownwardIcon sx={{ fontSize: ICON_SIZE.md }} />} />
             <Box sx={{ flex: 1 }} />
-            <ToolbarIconButton ariaLabel={t("editor:ui.duplicateNode", { defaultValue: "Duplicate node" })} size="small" onClick={onDuplicate} tooltip={t("editor:ui.duplicate", { defaultValue: "Duplicate" })} icon={<ContentCopyIcon sx={{ fontSize: 18 }} />} />
-            <ToolbarIconButton ariaLabel={t("editor:ui.removeNode", { defaultValue: "Remove node" })} size="small" onClick={onRemove} tooltip={t("editor:ui.remove", { defaultValue: "Remove" })} icon={<DeleteOutlineIcon sx={{ fontSize: 18 }} />} sx={{ color: theme.vars.palette.error.main }} />
+            <ToolbarIconButton ariaLabel="Duplicate node" size="small" onClick={onDuplicate} tooltip={t("editor:ui.duplicate", { defaultValue: "Duplicate" })} icon={<ContentCopyIcon sx={{ fontSize: ICON_SIZE.md }} />} />
+            <ToolbarIconButton ariaLabel="Delete node" size="small" onClick={onRemove} tooltip="Delete" icon={<DeleteOutlineIcon sx={{ fontSize: ICON_SIZE.md }} />} sx={{ color: theme.vars.palette.error.main }} />
           </FlexRow>
         </FlexColumn>
       </Collapse>
-    </Box>
+    </Card>
   );
 }, (prev, next) => {
   if (prev.node !== next.node) return false;

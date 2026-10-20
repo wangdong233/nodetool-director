@@ -22,12 +22,11 @@ interface Tool {
 }
 import Search from "@mui/icons-material/Search";
 import Language from "@mui/icons-material/Language";
-import Add from "@mui/icons-material/Add";
+import Add from "@mui/icons-material/AddOutlined";
 import Description from "@mui/icons-material/Description";
 import EditNote from "@mui/icons-material/EditNote";
-import Folder from "@mui/icons-material/Folder";
+import Folder from "@mui/icons-material/FolderOutlined";
 import Lock from "@mui/icons-material/Lock";
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 const BROWSER_TOOL_IDS = [
@@ -74,60 +73,48 @@ const SANDBOX_TOOL_IDS = [
 interface ToolEntry {
   /** Synthetic id for the menu row. */
   id: string;
-  description: string;
+  labelKey?: string;
   descriptionKey?: string;
+  description: string;
   icon: React.JSX.Element;
   /** Underlying tool names this entry expands to. */
   toolIds: string[];
 }
 
-
-/** Resolve a tool entry's description at render so zh lands (module table stays pure data). */
-const toolDescription = (entry: ToolEntry): string =>
-  entry.descriptionKey
-    ? i18n.t(entry.descriptionKey, { defaultValue: entry.description })
-    : entry.description;
-
 const AVAILABLE_TOOLS: ToolEntry[] = [
   {
     id: "read_file",
-    description: "Read file in workspace",
-    descriptionKey: "editor:ui.readFileInWorkspace",
+    description: "Read file in workspace", descriptionKey: "editor:ui.readFileInWorkspace",
     icon: <Description fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: ["read_file"]
   },
   {
     id: "write_file",
-    description: "Write file in workspace",
-    descriptionKey: "editor:ui.writeFileInWorkspace",
+    description: "Write file in workspace", descriptionKey: "editor:ui.writeFileInWorkspace",
     icon: <EditNote fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: ["write_file"]
   },
   {
     id: "list_directory",
-    description: "List files in workspace",
-    descriptionKey: "editor:ui.listFilesInWorkspace",
+    description: "List files in workspace", descriptionKey: "editor:ui.listFilesInWorkspace",
     icon: <Folder fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: ["list_directory"]
   },
   {
     id: "google_search",
-    description: "Search the web",
-    descriptionKey: "editor:ui.searchTheWeb",
+    description: "Search the web", descriptionKey: "editor:ui.searchTheWeb",
     icon: <Search fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: ["google_search"]
   },
   {
     id: "browser",
-    description: "Browse the web",
-    descriptionKey: "editor:ui.browseTheWeb",
+    description: "Browse the web", descriptionKey: "editor:ui.browseTheWeb",
     icon: <Language fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: BROWSER_TOOL_IDS
   },
   {
     id: "sandbox",
-    description: "Sandbox shell, files, and browser",
-    descriptionKey: "editor:ui.sandboxShellFilesBrowser",
+    description: "Sandbox shell, files, and browser", descriptionKey: "editor:ui.sandboxShellFilesBrowser",
     icon: <Lock fontSize="small" sx={{ mr: 0.5 }} />,
     toolIds: SANDBOX_TOOL_IDS
   }
@@ -196,7 +183,7 @@ const ToolsListProperty = (props: PropertyProps<Tool[]>) => {
         {selectedEntries.map((entry) => (
           <ToolbarIconButton
             key={entry.id}
-            tooltip={toolDescription(entry)}
+            tooltip={entry.description}
             tooltipPlacement="top"
             icon={entry.icon}
             size="small"
@@ -218,7 +205,7 @@ const ToolsListProperty = (props: PropertyProps<Tool[]>) => {
         ))}
 
         <ToolbarIconButton
-          tooltip={t("editor:ui.addRemoveTools", { defaultValue: "Add / Remove Tools" })}
+          tooltip={t("editor:ui.addRemoveTools", { defaultValue: "Add / remove tools" })}
           tooltipPlacement="top"
           icon={<Add fontSize="small" />}
           size="small"
@@ -252,12 +239,12 @@ const ToolsListProperty = (props: PropertyProps<Tool[]>) => {
               onClick={handleToolClick}
               data-tool={entry.id}
             >
-              <ListItemIcon sx={{ minWidth: 24 }}>{entry.icon}</ListItemIcon>
-              <ListItemText>{toolDescription(entry)}</ListItemText>
+              <ListItemIcon>{entry.icon}</ListItemIcon>
+              <ListItemText>{entry.description}</ListItemText>
               <Checkbox
                 checked={selected}
                 size="small"
-                sx={{ p: 0, ml: 1 }}
+                sx={{ p: 0 }}
                 disableRipple
               />
             </EditorMenuItem>

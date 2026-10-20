@@ -2,7 +2,6 @@
 import React from "react";
 import { parseChoiceCardOptions, type ChoiceCardOption } from "@nodetool-ai/app-runtime";
 export type { ChoiceCardOption } from "@nodetool-ai/app-runtime";
-import { keyframes } from "@emotion/react";
 import type { Theme } from "@mui/material/styles";
 import type { SystemStyleObject } from "@mui/system";
 import ReactMarkdown, { type Options } from "react-markdown";
@@ -11,6 +10,7 @@ import remarkGfm from "remark-gfm";
 import {
   Text,
   TextInput,
+  NumberField,
   Slider,
   SelectField,
   LabeledSwitch,
@@ -26,7 +26,9 @@ import {
   Card,
   DataTable,
   Divider,
+  LoadingSpinner,
   ProgressBar,
+  MagicGenerationFill,
   Caption,
   SectionHeader,
   FormGroup,
@@ -37,12 +39,12 @@ import {
   SPACING,
   SPACING_PX,
   TYPOGRAPHY,
-  reducedMotion,
   AudioPlayback,
   ResponsiveImage,
-  VideoPlayer, getSpacingPx
+  VideoPlayer
 } from "../../ui_primitives";
 import { AppEvent } from "../types";
+import { PHONE_WIDTH_QUERY } from "../appThemes";
 import { useWidgetRuntime, WidgetBindingMode } from "./useWidgetRuntime";
 import { useResolvedMediaUri } from "../../../hooks/useResolvedMediaUri";
 import { downloadResolvedMedia } from "../../storyboard/shotMediaDownload";
@@ -51,7 +53,7 @@ import {
   isObjectLike,
   isString
 } from "../../../utils/typePredicates";
-import { tAttr, tAttrTpl } from "../i18nAttrs";
+import { useTranslation } from "react-i18next";
 
 const REMARK_PLUGINS: Options["remarkPlugins"] = [remarkGfm];
 
@@ -153,16 +155,11 @@ const asItems = (value: unknown): unknown[] =>
 /** Height of an empty media slot in a running app, before anything was made. */
 const IDLE_PLACEHOLDER_PX = 96;
 
-const placeholderPulse = keyframes`
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
-`;
-
 /**
  * An empty media slot. The builder canvas keeps the author's full height so the
  * layout can be judged. A running app shows a short dashed strip until the
- * operation that fills it starts, then the full-height frame pulses so the
- * page does not jump when the result lands.
+ * operation that fills it starts, then the full-height frame draws the shared
+ * generation fill so the page does not jump when the result lands.
  */
 const MediaPlaceholder: React.FC<{
   height: number;
@@ -170,6 +167,7 @@ const MediaPlaceholder: React.FC<{
   designMode?: boolean;
   producing?: boolean;
 }> = ({ height, text, designMode, producing }) => {
+  const { t } = useTranslation("editor");
   const full = designMode || producing;
   return (
     <FlexColumn
@@ -182,18 +180,16 @@ const MediaPlaceholder: React.FC<{
         border: "1px dashed",
         borderColor: "divider",
         borderRadius: BORDER_RADIUS.md,
+        position: "relative",
         bgcolor: producing ? "action.hover" : "transparent",
         color: "text.secondary",
         transition: `height ${MOTION.normal}, ${MOTION.background}`,
-        ...(producing && {
-          borderStyle: "solid",
-          animation: `${placeholderPulse} ${MOTION.pulse} infinite`,
-          ...reducedMotion({ animation: "none" })
-        })
+        ...(producing && { borderStyle: "solid" })
       }}
     >
-      <Caption color="secondary">
-        {producing ? tAttr("Generating…") : text}
+      {producing && <MagicGenerationFill borderRadius={BORDER_RADIUS.md} />}
+      <Caption color="secondary" sx={{ position: "relative" }}>
+        {producing ? t("editor:ui.generating", { defaultValue: "Generating…" }) : text}
       </Caption>
     </FlexColumn>
   );
@@ -213,7 +209,7 @@ const MediaDownloadButton: React.FC<{
       size="small"
       variant="text"
       density="compact"
-      aria-label={tAttrTpl("downloadFile", "Download {{filename}}", { filename })}
+      aria-label={`Download ${filename}`}
       onClick={(event) => {
         event.preventDefault();
         void downloadResolvedMedia(href, filename);
@@ -325,7 +321,7 @@ const VideoItem: React.FC<{
         overflow: "hidden"
       }}
     >
-      <VideoPlayer locator={src} />
+      <VideoPlayer locator={src} label={filename ?? "Video"} />
     </Box>
     {download ? (
       <MediaDownloadButton
@@ -711,7 +707,7 @@ export const OutputWidget: React.FC<
   if (items.length === 0) {
     return (
       <Caption color="secondary">
-        {tAttr(props.placeholder ?? "No result yet")}
+        {props.placeholder ?? "No result yet"}
       </Caption>
     );
   }
@@ -792,7 +788,7 @@ export const TableWidget: React.FC<
       };
     }
     return {
-      columns: [{ key: "value", label: tAttr(props.label || "Value") }],
+      columns: [{ key: "value", label: props.label || "Value" }],
       rows: items.map((item) => ({
         value: typeof item === "object" ? JSON.stringify(item) : str(item)
       }))
@@ -801,12 +797,12 @@ export const TableWidget: React.FC<
 
   if (rows.length === 0) {
     return (
-      <Caption color="secondary">{tAttr(props.placeholder ?? "No rows yet")}</Caption>
+      <Caption color="secondary">{props.placeholder ?? "No rows yet"}</Caption>
     );
   }
   return (
     <FlexColumn gap={SPACING.xs} fullWidth>
-      {props.label ? <Caption color="secondary">{tAttr(props.label)}</Caption> : null}
+      {props.label ? <Caption color="secondary">{props.label}</Caption> : null}
       <DataTable
         compact
         striped
@@ -846,7 +842,7 @@ export const ProgressWidget: React.FC<WidgetCommon & { label?: string }> = (
   if (!designMode && !isRunning) return null;
   // An agent run reports what it is doing; without it the app shows a spinner
   // and nothing else. The label the run reports wins over the static one.
-  const caption = (isRunning && activity) || (props.label ? tAttr(props.label) : undefined);
+  const caption = (isRunning && activity) || props.label;
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
       {caption ? <Caption color="secondary">{caption}</Caption> : null}
@@ -856,7 +852,6 @@ export const ProgressWidget: React.FC<WidgetCommon & { label?: string }> = (
           !hasValue && isRunning ? "indeterminate" : "determinate"
         }
         showValue={hasValue}
-        barHeight={6}
       />
     </FlexColumn>
   );
@@ -887,7 +882,7 @@ export const AlertWidget: React.FC<
     <AlertBanner
       severity={severity}
       variant="outlined"
-      title={props.title ? tAttr(props.title) : undefined}
+      title={props.title || undefined}
       sx={{ width: "100%" }}
     >
       {text || "Alert"}
@@ -958,12 +953,12 @@ export const ListWidget: React.FC<
   ).filter((item) => item != null && item !== "");
   if (items.length === 0) {
     return (
-      <Caption color="secondary">{tAttr(props.placeholder ?? "No items yet")}</Caption>
+      <Caption color="secondary">{props.placeholder ?? "No items yet"}</Caption>
     );
   }
   return (
     <FlexColumn gap={SPACING.xs} fullWidth>
-      {props.label ? <Caption color="secondary">{tAttr(props.label)}</Caption> : null}
+      {props.label ? <Caption color="secondary">{props.label}</Caption> : null}
       <Box
         component={props.ordered ? "ol" : "ul"}
         sx={{
@@ -1016,13 +1011,13 @@ export const KeyValueWidget: React.FC<
   if (entries.length === 0) {
     return (
       <Caption color="secondary">
-        {tAttr(props.placeholder ?? "No values yet")}
+        {props.placeholder ?? "No values yet"}
       </Caption>
     );
   }
   return (
     <FlexColumn gap={SPACING.xs} fullWidth>
-      {props.label ? <Caption color="secondary">{tAttr(props.label)}</Caption> : null}
+      {props.label ? <Caption color="secondary">{props.label}</Caption> : null}
       <FlexColumn gap={0} fullWidth>
         {entries.map(([key, entry], index) => (
           <FlexRow
@@ -1062,7 +1057,7 @@ export const StatWidget: React.FC<
     props.formattedValue ?? (value != null && value !== "" ? str(value) : "");
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
-      {props.label ? <Caption color="secondary">{tAttr(props.label)}</Caption> : null}
+      {props.label ? <Caption color="secondary">{props.label}</Caption> : null}
       <Text size="giant" weight={600}>
         {shown || props.placeholder || "—"}
       </Text>
@@ -1089,7 +1084,7 @@ export const DownloadWidget: React.FC<
   if (!href && !designMode) {
     return (
       <Caption color="secondary">
-        {tAttr(props.placeholder ?? "Nothing to download yet")}
+        {props.placeholder ?? "Nothing to download yet"}
       </Caption>
     );
   }
@@ -1106,7 +1101,7 @@ export const DownloadWidget: React.FC<
       rel="noopener"
       download={props.filename || ""}
     >
-      {tAttr(props.label ?? "Download")}
+      {props.label ?? "Download"}
     </EditorButton>
   );
 };
@@ -1126,7 +1121,7 @@ export const TextInputWidget: React.FC<
   return (
     <TextInput
       data-focus-id={`app-widget-${props.id}`}
-      label={tAttr(props.label ?? "")}
+      label={props.label ?? ""}
       placeholder={props.placeholder ?? ""}
       helperText={props.hint || undefined}
       slotProps={{ formHelperText: { sx: { mx: 0 } } }}
@@ -1154,17 +1149,14 @@ export const NumberInputWidget: React.FC<
 > = (props) => {
   const { value, setValue, emit } = useBinding(props, "write");
   return (
-    <TextInput
-      label={tAttr(props.label ?? "")}
-      type="number"
+    <NumberField
+      label={props.label ?? ""}
       value={value == null ? "" : String(value)}
       size="small"
       fullWidth
-      inputProps={{
-        min: numOr(props.min, 0),
-        max: numOr(props.max, 100),
-        step: numOr(props.step, 1)
-      }}
+      min={numOr(props.min, 0)}
+      max={numOr(props.max, 100)}
+      step={numOr(props.step, 1)}
       onChange={(e) => {
         setValue(e.target.value === "" ? null : Number(e.target.value));
         emit("change");
@@ -1187,7 +1179,7 @@ export const SliderWidget: React.FC<
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
       <Caption color="secondary">
-        {tAttr(props.label ?? "")}: {numOr(value, min)}
+        {props.label ?? ""}: {numOr(value, min)}
       </Caption>
       <Slider
         value={numOr(value, min)}
@@ -1214,7 +1206,7 @@ export const SwitchWidget: React.FC<WidgetCommon & { label?: string }> = (
   const { value, setValue, emit } = useBinding(props, "write");
   return (
     <LabeledSwitch
-      label={tAttr(props.label ?? "")}
+      label={props.label ?? ""}
       checked={Boolean(value)}
       onChange={(checked) => {
         setValue(checked);
@@ -1244,7 +1236,7 @@ export const SelectWidget: React.FC<
   const options = optionValues(props.options);
   return (
     <SelectField
-      label={tAttr(props.label ?? "")}
+      label={props.label ?? ""}
       value={str(value)}
       options={options.map((o) => ({ label: o, value: o }))}
       onChange={(v) => {
@@ -1266,7 +1258,7 @@ export const RadioGroupWidget: React.FC<
   const options = optionValues(props.options);
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
-      {props.label ? <Label>{tAttr(props.label)}</Label> : null}
+      {props.label ? <Label>{props.label}</Label> : null}
       <RadioSet
         row={Boolean(props.row)}
         value={str(value)}
@@ -1492,7 +1484,25 @@ export const StepperWidget: React.FC<
           listStyle: "none",
           m: 0,
           p: 0,
-          width: "100%"
+          width: "100%",
+          // A title truncates rather than pushing the rail past the screen
+          // edge on a phone.
+          "& > li:not([aria-hidden])": { flexShrink: 1 },
+          "& button": { maxWidth: "100%" },
+          "& .step-title": {
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis"
+          },
+          // When the titles would not fit on one line, only the current step
+          // keeps its title.
+          [`@container (max-width: ${steps.length * STEP_MIN_WIDTH_PX}px)`]: {
+            gap: `${SPACING_PX.micro}px`,
+            "& > li[aria-hidden]": { minWidth: SPACING_PX.micro },
+            "& button": { p: SPACING.micro },
+            "& .step-title": { display: "none" },
+            "& [aria-current=step] .step-title": { display: "inline" }
+          }
         }}
       >
         {steps.map((step, index) => {
@@ -1524,6 +1534,7 @@ export const StepperWidget: React.FC<
                 <Box
                   component="button"
                   type="button"
+                  className="app-stepper-step"
                   disabled={blocked(index)}
                   aria-current={index === current ? "step" : undefined}
                   aria-label={`Step ${index + 1} of ${steps.length}: ${title}${state === "done" ? ", done" : ""}`}
@@ -1549,12 +1560,7 @@ export const StepperWidget: React.FC<
                       outlineColor: "primary.main",
                       outlineOffset: 2
                     },
-                    "&:disabled": { cursor: "default", opacity: index === current ? 1 : 0.5 },
-                    // When the titles would not fit on one line, only the
-                    // current step keeps its title.
-                    [`@container (max-width: ${steps.length * STEP_MIN_WIDTH_PX}px)`]: {
-                      "& .step-title": { display: index === current ? "inline" : "none" }
-                    }
+                    "&:disabled": { cursor: "default", opacity: index === current ? 1 : 0.5 }
                   }}
                 >
                   <StepMarker state={state} index={index} />
@@ -1657,7 +1663,7 @@ export const CheckboxGroupWidget: React.FC<
   };
   return (
     <FlexColumn gap={SPACING.micro} fullWidth>
-      {props.label ? <Label>{tAttr(props.label)}</Label> : null}
+      {props.label ? <Label>{props.label}</Label> : null}
       <FormGroup row={Boolean(props.row)}>
         {options.map((option) => (
           <Checkbox
@@ -1683,7 +1689,7 @@ export const DateInputWidget: React.FC<
   const { value, setValue, emit } = useBinding(props, "write");
   return (
     <TextInput
-      label={tAttr(props.label ?? "")}
+      label={props.label ?? ""}
       type={props.withTime ? "datetime-local" : "date"}
       value={str(value)}
       size="small"
@@ -1700,42 +1706,6 @@ export const DateInputWidget: React.FC<
 
 // ── Action widget ───────────────────────────────────────────────────────────
 
-// A light sweep travelling across the button face — the "working" signal while
-// the run is in flight.
-const buttonShimmer = keyframes`
-  from { transform: translateX(-100%); }
-  to { transform: translateX(200%); }
-`;
-
-// The trailing ellipsis breathes one dot at a time so the label reads as live.
-const ellipsisPulse = keyframes`
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 1; }
-`;
-
-const RunningLabel: React.FC = () => (
-  <Box
-    component="span"
-    sx={{ display: "inline-flex", alignItems: "baseline", gap: getSpacingPx(SPACING.micro) }}
-  >
-    {tAttr("Running")}
-    <Box component="span" aria-hidden sx={{ display: "inline-flex" }}>
-      {[0, 1, 2].map((i) => (
-        <Box
-          key={i}
-          component="span"
-          sx={{
-            animation: `${ellipsisPulse} ${MOTION.pulse} ${i * 0.18}s infinite`,
-            ...reducedMotion({ animation: "none", opacity: 1 })
-          }}
-        >
-          .
-        </Box>
-      ))}
-    </Box>
-  </Box>
-);
-
 export const ButtonWidget: React.FC<
   WidgetCommon & {
     label?: string;
@@ -1747,6 +1717,7 @@ export const ButtonWidget: React.FC<
     align?: "start" | "end";
   }
 > = (props) => {
+  const { t } = useTranslation("editor");
   const { emit, designMode, runnerState } = useBinding(props, "none");
   const isRunning = runnerState === "running";
   const runsOnClick = (props.events ?? []).some(
@@ -1776,26 +1747,14 @@ export const ButtonWidget: React.FC<
         py: SPACING.sm,
         // A step-navigation button is compact, like the stepper above it.
         ...(!fullWidth && { px: SPACING.lg, py: SPACING.xs, fontSize: "var(--fontSizeSmall)" }),
-        position: "relative",
-        overflow: "hidden",
         // Keep the run state vivid rather than dimmed-out while it works.
-        ...(showRunning && {
-          "&.Mui-disabled": { opacity: 1 },
-          "&::after": {
-            content: '""',
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(100deg, transparent 20%, rgba(var(--palette-primary-contrastTextChannel) / 0.28) 50%, transparent 80%)",
-            transform: "translateX(-100%)",
-            animation: `${buttonShimmer} ${MOTION.pulse} infinite`,
-            pointerEvents: "none",
-            ...reducedMotion({ animation: "none", opacity: 0 })
-          }
-        })
+        ...(showRunning && { "&.Mui-disabled": { opacity: 1 } })
       }}
+      startIcon={
+        showRunning ? <LoadingSpinner inline size={16} color="inherit" /> : undefined
+      }
     >
-      {showRunning ? <RunningLabel /> : tAttr(props.label ?? "Button")}
+      {showRunning ? t("editor:node.running", { defaultValue: "Running…" }) : (props.label ?? "Button")}
     </EditorButton>
   );
   if (fullWidth) return button;
@@ -1863,7 +1822,12 @@ export const ContainerWidget: React.FC<{
     <Card
       variant="outlined"
       padding="none"
-      sx={{ width: "100%", p: SPACING.xl, borderRadius: BORDER_RADIUS.md }}
+      sx={{
+        width: "100%",
+        p: SPACING.xl,
+        borderRadius: BORDER_RADIUS.md,
+        [PHONE_WIDTH_QUERY]: { p: SPACING.lg }
+      }}
     >
       {title ? (
         <SectionHeader
@@ -1945,6 +1909,7 @@ export const TabsWidget: React.FC<{
   tab2?: SlotComponent;
   tab3?: SlotComponent;
 }> = ({ tab1Label, tab2Label, tab3Label, tab1, tab2, tab3 }) => {
+  const { t } = useTranslation();
   const panes = [
     { value: "tab1", label: tab1Label, Slot: tab1 },
     { value: "tab2", label: tab2Label, Slot: tab2 },
@@ -1958,7 +1923,7 @@ export const TabsWidget: React.FC<{
     : panes[0]?.value;
 
   if (panes.length === 0) {
-    return <Caption color="secondary">{tAttr("Name a tab to show its content")}</Caption>;
+    return <Caption color="secondary">{t("appbuilder:attrs.nameATabToShowItsContent", { defaultValue: "Name a tab to show its content" })}</Caption>;
   }
   return (
     <FlexColumn gap={SPACING.lg} fullWidth>
@@ -1999,7 +1964,7 @@ export const AccordionWidget: React.FC<{
   content?: SlotComponent;
 }> = ({ title, defaultOpen, content: Content }) => (
   <CollapsibleSection
-    title={tAttr(title || "Section")}
+    title={title || "Section"}
     defaultOpen={defaultOpen !== false}
     compact
   >

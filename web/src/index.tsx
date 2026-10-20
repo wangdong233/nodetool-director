@@ -29,9 +29,8 @@ import {
 
 import ErrorBoundary from "./ErrorBoundary";
 
-import { LoadingSpinner, ThemeRoot } from "./components/ui_primitives";
-import { I18nextProvider, i18n, useAppLanguage } from "./i18n";
-import { ThemeNodetool, ThemeNodetoolZhCN } from "./components/themes/ThemeNodetool";
+import { LoadingSpinner } from "./components/ui_primitives";
+import AppThemeRoot from "./components/themes/AppThemeRoot";
 
 import "@xyflow/react/dist/style.css";
 import "@xyflow/react/dist/base.css";
@@ -45,16 +44,18 @@ import { queryClient } from "./queryClient";
 import { TRPCProvider } from "./trpc/Provider";
 import { useAssetStore } from "./stores/AssetStore";
 import Login from "./components/Login";
+import { consumePostLoginReturn } from "./utils/postLoginReturn";
 import ProtectedRoute from "./components/ProtectedRoute";
 import useAuth from "./stores/useAuth";
 import { isLocalhost } from "./lib/env";
 import { loadRuntimeConfig, isAuthRequired } from "./lib/runtimeConfig";
-import { initAnalytics } from "./lib/analytics";
+import { initProductAnalytics } from "./lib/analytics";
 import { initSupabaseFromConfig } from "./lib/supabaseClient";
 import { initKeyListeners } from "./stores/KeyPressedStore";
 import { useSettingsStore } from "./stores/SettingsStore";
 import useRemoteSettingsStore from "./stores/RemoteSettingStore";
 import { loadMetadata, prefetchMetadata } from "./serverState/useMetadata";
+import { useSeedDefaultModels } from "./hooks/useSeedDefaultModels";
 import { useCustomNodeMetadata } from "./serverState/useCustomNodeMetadata";
 import { WorkflowManagerProvider } from "./contexts/WorkflowManagerContext";
 import KeyboardProvider from "./components/KeyboardProvider";
@@ -71,6 +72,9 @@ const SearchProviderSetupDialog = React.lazy(
 const ProviderOnboardingDialog = React.lazy(
   () => import("./components/provider_onboarding/ProviderOnboardingDialog")
 );
+const SubscriptionOnboardingDialog = React.lazy(
+  () => import("./components/provider_onboarding/SubscriptionOnboardingDialog")
+);
 const ProviderSignInDialog = React.lazy(
   () => import("./components/provider_onboarding/ProviderSignInDialog")
 );
@@ -80,7 +84,9 @@ const InstallRuntimePackageDialog = React.lazy(
 import FirstRunProviderSignIn from "./components/provider_onboarding/FirstRunProviderSignIn";
 import HelpDialogHost from "./components/content/Help/HelpDialogHost";
 import BugReportDialogHost from "./components/support/BugReportDialogHost";
+import AnalyticsConsentPrompt from "./components/privacy/AnalyticsConsentPrompt";
 import CommandMenuHost from "./components/menus/CommandMenuHost";
+import ConfirmDialogHost from "./components/dialogs/ConfirmDialogHost";
 import StaleDeployDialog from "./components/dialogs/StaleDeployDialog";
 import ReportBugButton from "./components/support/ReportBugButton";
 import { installConsoleCapture } from "./utils/consoleCapture";
@@ -179,6 +185,8 @@ const registerFrontendTools = () => {
 import { useModelDownloadStore } from "./stores/ModelDownloadStore";
 
 import { BORDER_RADIUS, SPACING, getSpacingPx } from "./components/ui_primitives";
+import { useTranslation } from "react-i18next";
+import { i18n } from "./i18n";
 installIpcLogBridge();
 
 if (isLocalhost) {
@@ -201,7 +209,9 @@ const NavigateToStart = () => {
       return;
     }
     if (!isAuthRequired() || state === "logged_in") {
-      navigate("/workspace", { replace: true });
+      // A public share page that sent the user to sign in gets them back.
+      const returnTo = state === "logged_in" ? consumePostLoginReturn() : null;
+      navigate(returnTo ?? "/workspace", { replace: true });
     } else if (state === "logged_out" || state === "error") {
       navigate("/login", { replace: true });
     }
@@ -590,6 +600,16 @@ const CustomNodeMetadataBridge = () => {
   return null;
 };
 
+/**
+ * Pins the first usable model of a connected provider as the default language
+ * and image model, once, and starts the chat on it. Rendered only after
+ * sign-in because it queries the model catalog.
+ */
+const SeedDefaultModelsBridge = () => {
+  useSeedDefaultModels();
+  return null;
+};
+
 const MenuNavigationBridge = () => {
   const snapToGrid = useSettingsStore((state) => state.settings.snapToGrid);
   const setSnapToGrid = useSettingsStore((state) => state.setSnapToGrid);
@@ -615,6 +635,7 @@ const MenuNavigationBridge = () => {
 };
 
 const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
+  const { t } = useTranslation("common");
   const [status, setStatus] = useState<string>("pending");
   const [metadataError, setMetadataError] = useState<string>("");
   const [configLoaded, setConfigLoaded] = useState(false);
@@ -682,26 +703,24 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
       });
   }, [authState, configLoaded, isPublicLinkRoute]);
 
-  const { language } = useAppLanguage(); // re-render on language change: theme + i18n renders (R5-2)
-
   const shouldRenderRouter =
     isDevTestRoute || status === "success" || status === "logged_out";
 
   return (
     <React.StrictMode>
       <TRPCProvider>
-        <I18nextProvider i18n={i18n}>
-        <ThemeRoot theme={language === "zh-CN" ? ThemeNodetoolZhCN : ThemeNodetool}>
+        <AppThemeRoot>
           <MobileClassProvider>
             <MenuProvider>
               <MenuNavigationBridge />
               <CustomNodeMetadataBridge />
               <WorkflowManagerProvider queryClient={queryClient}>
                 <KeyboardProvider active={true}>
+                  {status === "success" && <SeedDefaultModelsBridge />}
                   {status === "pending" && !isDevTestRoute && (
                     <div
                       role="status"
-                      aria-label={i18n.t("common:boot.loading")}
+                      aria-label={i18n.t("editor:ui.loadingNodetool", { defaultValue: "Loading NodeTool" })}
                       style={{
                         display: "flex",
                         flexDirection: "column",
@@ -718,7 +737,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                           fontSize: "var(--fontSizeNormal)"
                         }}
                       >
-                        {i18n.t("common:boot.loading")}
+                        Loading NodeTool…
                       </span>
                     </div>
                   )}
@@ -740,7 +759,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                           fontSize: "var(--fontSizeNormal)"
                         }}
                       >
-                        {i18n.t("common:boot.errorDetail")}
+                        Error loading application metadata.
                       </span>
                       <button
                         type="button"
@@ -755,11 +774,11 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                           fontSize: "var(--fontSizeNormal)"
                         }}
                       >
-                        {i18n.t("common:boot.refresh")}
+                        Refresh Page
                       </button>
                       <ReportBugButton
                         variant="outlined"
-                        label={i18n.t("common:action.reportBug")}
+                        label={t("common:action.reportBug", { defaultValue: "Report a bug" })}
                         context={{
                           source: "app-crash",
                           summary: i18n.t("editor:ui.errorLoadingApplicationMetadata", { defaultValue: "Error loading application metadata" }),
@@ -775,7 +794,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                         fallback={
                           <div
                             role="status"
-                            aria-label={i18n.t("common:status.loading")}
+                            aria-label="Loading"
                             style={{
                               display: "flex",
                               flexDirection: "column",
@@ -793,7 +812,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                                 fontSize: "var(--fontSizeNormal)"
                               }}
                             >
-                              {i18n.t("common:boot.preparing")}
+                              Preparing workspace…
                             </span>
                           </div>
                         }
@@ -804,10 +823,13 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                       <RunWarningDialog />
                       <SearchProviderSetupDialog />
                       <ProviderOnboardingDialog />
+                      <SubscriptionOnboardingDialog />
                       <ProviderSignInDialog />
                       <InstallRuntimePackageDialog />
                       <FirstRunProviderSignIn />
                       <CommandMenuHost />
+                      <ConfirmDialogHost />
+                      <AnalyticsConsentPrompt />
                     </>
                   )}
                   {/* Outside the router gate: a boot failure is exactly when
@@ -819,8 +841,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
               </WorkflowManagerProvider>
             </MenuProvider>
           </MobileClassProvider>
-        </ThemeRoot>
-        </I18nextProvider>
+        </AppThemeRoot>
       </TRPCProvider>
     </React.StrictMode>
   );
@@ -841,8 +862,8 @@ const configReady = loadRuntimeConfig().then((config) => {
   initSupabaseFromConfig(config);
   useAuth.getState().initialize();
   initKeyListeners();
-  // Load Plausible on the production website only (never local/dev/Electron).
-  initAnalytics();
+  // Opt-in analytics: sends nothing until Settings → Privacy grants consent.
+  initProductAnalytics();
   return config;
 });
 configReady.catch((err) => console.error(err));

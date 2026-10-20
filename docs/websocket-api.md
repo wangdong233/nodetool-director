@@ -167,6 +167,10 @@ is drained before it is restarted.
   carries it to a machine that is staying.
 - A connection with nothing in flight is closed with **1012** (service
   restart). One driving a turn or a run is closed when that settles.
+- A turn whose client has disconnected is aborted with the reason
+  `shutdown`, at the start of the drain or when the client leaves during it.
+  No client can reach it any more to answer an approval or press Stop, so it
+  would otherwise hold the drain open.
 - `chat_message` and `run_job` answer an `error` frame, and the socket closes
   under the rule above. The refusal comes before the user message is
   persisted, so the client's retry on the other machine is the only copy.
@@ -449,6 +453,7 @@ A plain chat turn without a `provider` and `model` pair is answered with an
 | `workflow_target` | `"workflow"` runs the workflow as a chatbot. It also takes `workflow_message_input_name` and `workflow_messages_input_name` |
 | `media_generation` | `{ "mode": ... }` where a mode other than `"chat"` produces an image, video, or audio message instead of an LLM reply |
 | `permission_mode` | `"plan"`, `"default"` (the fallback), or `"auto"`. Governs whether gated tool calls run, ask, or are blocked |
+| `reasoning_effort` | `"low"`, `"medium"`, or `"high"`. Sent only to models that `supportsReasoningEffort` in `@nodetool-ai/protocol` accepts, and dropped for the rest. Omit it for the provider default |
 | `system_prompt` | Extra system prompt text layered after the base prompt |
 | `ui_context` | Which documents the user has open and which has focus |
 
@@ -930,6 +935,7 @@ user does not own. Clients must render the readout only once a frame arrives.
 | `job_resumed`, `chat_resumed`, `chat_turn_active` | Replies to `reconnect_job`, `resume_chat`, `list_chat_turns` | See those commands |
 | `rpc_response` | Reply to an RPC command | `request_id`, `command`, `result` or `error` |
 | `resource_change` | A stored resource changed, from any tab, agent, or CLI call | `event` (`created`, `updated`, or `deleted`), `resource_type`, `resource`, and optional `ops` |
+| `model_load_progress` | A local model loads inside a run, such as a Transformers.js model on its first use. A connecting client first gets the loads already in progress. Gated like `system_stats` | `repo_id`, `runtime`, `phase` (`downloading`, `loading`, `ready`, or `error`), `loaded_bytes`, `total_bytes`, optional `error` |
 | `ping`, `pong` | Heartbeat | `ts` |
 | `sdk_execution_target` | Connection open, when the server runs the SDK execution registry | `runner_id` |
 

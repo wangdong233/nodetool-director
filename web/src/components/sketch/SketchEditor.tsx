@@ -43,7 +43,6 @@ import type { Theme } from "@mui/material/styles";
 import LayersOutlinedIcon from "@mui/icons-material/LayersOutlined";
 import ViewSidebarOutlinedIcon from "@mui/icons-material/ViewSidebarOutlined";
 import {
-  Chip,
   CollapsibleSection,
   ColorSwatch,
   Container,
@@ -53,7 +52,6 @@ import {
   InspectorSectionTitle,
   MobileBottomSheet,
   Tooltip,
-  TYPOGRAPHY,
   Z_INDEX
 } from "../ui_primitives";
 import TransformContextMenu from "./TransformContextMenu";
@@ -64,7 +62,8 @@ import {
   useColorIntentRouter,
   useEditorSession,
   useEditorCommands,
-  useSketchIsMobile
+  useSketchIsMobile,
+  useSketchAssistantCramped
 } from "./hooks";
 import {
   ConnectedStatusBar,
@@ -106,6 +105,10 @@ export interface SketchEditorHandle {
   redo: () => void;
   clearLayer: () => void;
   exportPng: () => void;
+  /** Download the document as a layered PSD. */
+  exportPsd: () => void;
+  /** Pick a PSD file and import its layers. */
+  importPsd: () => void;
   flipHorizontal: () => void;
   flipVertical: () => void;
   mergeDown: () => void;
@@ -148,17 +151,7 @@ const ColorSectionHeader = memo(function ColorSectionHeader() {
   const { t } = useTranslation();
   const foregroundColor = useSketchStore((s) => s.foregroundColor) || "#ffffff";
   return (
-    <FlexRow
-      align="center"
-      justify="space-between"
-      sx={{ width: "100%", pr: 1 }}
-    >
-      <InspectorSectionTitle title={t("sketch:attrs.color", { defaultValue: "Color" })} />      <Chip
-        compact
-        label={colorToHex6(foregroundColor)}
-        sx={{ fontFamily: TYPOGRAPHY.mono.code.fontFamily, border: "none", backgroundColor: "transparent", color: "text.secondary" }}
-      />
-    </FlexRow>
+    <InspectorSectionTitle title={t("sketch:attrs.color", { defaultValue: "Color" })} meta={colorToHex6(foregroundColor)} />
   );
 });
 
@@ -243,6 +236,16 @@ function SketchEditor({
       setAssistantPanelOpen(false, { persist: false });
     }
   }, [isMobile, setAssistantPanelOpen]);
+
+  // A workspace side panel (Chats, Assets) can narrow a desktop editor until
+  // the docked assistant leaves the canvas a few hundred pixels wide. Close
+  // the dock when that happens, keeping the remembered preference.
+  const assistantCramped = useSketchAssistantCramped(containerRef);
+  useEffect(() => {
+    if (assistantCramped) {
+      setAssistantPanelOpen(false, { persist: false });
+    }
+  }, [assistantCramped, setAssistantPanelOpen]);
 
   // Register the agent bridge under this document's id so the `ui_sketch_*`
   // tools can address it whether or not this surface is focused. The session
@@ -414,7 +417,8 @@ function SketchEditor({
 
       <CollapsibleSection
         className="sketch-editor__layers-section"
-        title={<InspectorSectionTitle title={t("sketch:attrs.layers", { defaultValue: "Layers" })} />}        defaultOpen
+        title={<InspectorSectionTitle title={t("sketch:attrs.layers", { defaultValue: "Layers" })} />}
+        defaultOpen
         compact
         sx={{ ...sectionSx, minHeight: 0 }}
       >
@@ -480,7 +484,8 @@ function SketchEditor({
 
       <CollapsibleSection
         className="sketch-editor__canvas-section"
-        title={<InspectorSectionTitle title={t("sketch:attrs.canvas", { defaultValue: "Canvas" })} />}        defaultOpen={false}
+        title={<InspectorSectionTitle title={t("sketch:attrs.canvas", { defaultValue: "Canvas" })} />}
+        defaultOpen={false}
         compact
         sx={sectionSx}
       >

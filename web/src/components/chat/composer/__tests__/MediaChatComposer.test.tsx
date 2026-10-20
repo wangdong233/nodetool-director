@@ -76,8 +76,21 @@ jest.mock("../ComposerAttachDialog", () => ({
 // This suite is about the composer opening the right one, so each is a marker.
 jest.mock("../../../model_menu/LanguageModelMenuDialog", () => ({
   __esModule: true,
-  default: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="language-model-dialog" /> : null
+  default: ({
+    open,
+    selectedModel
+  }: {
+    open: boolean;
+    selectedModel?: { id: string; provider?: string };
+  }) =>
+    open ? (
+      <div
+        data-testid="language-model-dialog"
+        data-current={
+          selectedModel ? `${selectedModel.provider}/${selectedModel.id}` : ""
+        }
+      />
+    ) : null
 }));
 jest.mock("../../../model_menu/ImageModelMenuDialog", () => ({
   __esModule: true,
@@ -213,6 +226,19 @@ describe("MediaChatComposer", () => {
     expect(
       container.querySelector(".permission-selector-trigger")
     ).toBeInTheDocument();
+  });
+
+  // UX study 4 D6: the composer's picker marked the current model only with
+  // a pin, where a node's picker marks it with a check.
+  it("tells the language model picker which model is current", async () => {
+    const user = userEvent.setup();
+    renderComposer(jest.fn());
+
+    await user.click(screen.getByRole("button", { name: "GPT-4" }));
+    expect(screen.getByTestId("language-model-dialog")).toHaveAttribute(
+      "data-current",
+      "openai/gpt-4"
+    );
   });
 
   it("opens the attach dialog from the plus button", async () => {
@@ -370,7 +396,7 @@ describe("MediaChatComposer", () => {
     useMediaGenerationStore.setState({ mode: "image" });
     renderComposer(jest.fn());
 
-    expect(screen.getByRole("button", { name: "Select Model" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Select model" })).toBeVisible();
     expect(screen.getByRole("button", { name: "1K" })).toBeVisible();
     expect(screen.getByRole("button", { name: "16:9" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Generate" })).toBeDisabled();
@@ -401,7 +427,7 @@ describe("MediaChatComposer", () => {
     renderComposer(onSendMessage);
     await user.click(screen.getByRole("button", { name: "Chat" }));
     await user.click(
-      screen.getByRole("menuitemradio", { name: "Generate Music" })
+      screen.getByRole("menuitemradio", { name: "Generate music" })
     );
     expect(mockUseProvidersByCapability).toHaveBeenLastCalledWith(
       "text_to_music"

@@ -14,7 +14,8 @@ import {
   Text,
   LoadingSpinner,
   EmptyState,
-  ToolbarIconButton
+  ToolbarIconButton,
+  focusRing
 } from "../../ui_primitives";
 import { useSketchSessionStore } from "../../../stores/sketch/SketchSessionStore";
 import {
@@ -39,7 +40,8 @@ const headerStyles = (theme: Theme) =>
     userSelect: "none",
     "&:hover": {
       backgroundColor: theme.vars.palette.action.hover
-    }
+    },
+    "&:focus-visible": focusRing(theme)
   });
 
 interface LayerVersionListProps {
@@ -110,7 +112,11 @@ export const LayerVersionList: React.FC<LayerVersionListProps> = memo(
           tabIndex={0}
           aria-expanded={expanded}
           onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") toggleExpanded();
+            if (e.target !== e.currentTarget) return;
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              toggleExpanded();
+            }
           }}
         >
           <Text size="small" weight={500}>

@@ -45,7 +45,7 @@ export const useAssetUpdate = () => {
       addNotification({
         type: "info",
         alert: true,
-        content: `${updates.length > 1 ? "Assets" : "Asset"} updated!`,
+        content: `${updates.length > 1 ? i18n.t("editor:explorer.title", { defaultValue: "Assets" }) : "Asset"} updated!`,
         dismissable: false,
       });
     },

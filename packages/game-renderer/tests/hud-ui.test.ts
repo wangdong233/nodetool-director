@@ -4,7 +4,8 @@ import type { GameUiFrame } from "@nodetool-ai/protocol";
 import { describe, expect, it } from "vitest";
 import { GameInput, type GamepadLike } from "../src/input-bindings.js";
 import { captureGameFrame } from "../src/node.js";
-import { GameUiController, layoutGameUi, nextGameUiFocus, type GameUiMeasureText } from "../src/ui/index.js";
+import { GameUiController } from "../src/ui/controller.js";
+import { layoutGameUi, nextGameUiFocus, type GameUiMeasureText } from "../src/ui/layout.js";
 import { hudWidgetsGame2D } from "./fixtures/hud-widgets.js";
 
 // Eight HUD pixels per character, so text sizes are exact.
@@ -114,7 +115,10 @@ describe("HUD buttons", () => {
     const button = (id: string, x: number) => ({ kind: "button" as const, id, action: "pause", offset: { x, y: 100 }, width: 40, height: 20 });
     const ui = frame([button("first", 0), button("second", 100)], { focusNavigation: true });
     controller.update(ui, viewport);
-    const forwarded = controller.pollGamepads([pad([15, 3])]);
+    const nativePad = Object.create({ axes: [0.25, 0], connected: true, buttons: pad([15, 3]).buttons });
+    const forwarded = controller.pollGamepads([nativePad]);
+    expect(() => input.pollGamepads(forwarded)).not.toThrow();
+    expect(forwarded[0]?.axes).toEqual([0.25, 0]);
     expect(controller.focusedId).toBe("first");
     expect(forwarded[0]?.buttons.map((entry) => entry.pressed).flatMap((on, index) => on ? [index] : [])).toEqual([3]);
     controller.pollGamepads([pad([])]);

@@ -15,6 +15,7 @@ import { CloseButton } from "./CloseButton";
 import { Text } from "./Text";
 import { FlexRow } from "./FlexRow";
 import { BORDER_RADIUS } from "./tokens";
+import { SPACING, getSpacingPx } from "./spacing";
 import { useTranslation } from "react-i18next";
 
 export interface MobileBottomSheetProps {
@@ -56,7 +57,7 @@ const getSx = (theme: Theme, maxHeight: string): SxProps<Theme> => ({
   "& .sheet-drag-handle": {
     display: "flex",
     justifyContent: "center",
-    padding: "8px 0 4px 0",
+    padding: `${getSpacingPx(SPACING.md)} 0 ${getSpacingPx(SPACING.xs)} 0`,
     flexShrink: 0,
     "&::after": {
       content: '""',
@@ -71,7 +72,7 @@ const getSx = (theme: Theme, maxHeight: string): SxProps<Theme> => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "8px 16px 8px 20px",
+    padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xl)}`,
     borderBottom: `1px solid ${theme.vars.palette.divider}`,
     flexShrink: 0
   },

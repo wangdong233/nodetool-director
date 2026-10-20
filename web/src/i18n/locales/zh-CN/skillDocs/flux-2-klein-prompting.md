@@ -75,3 +75,9 @@ klein 按此顺序读提示词,而且内容词(名词)比修饰词更能推动�
 
 改编自 fal 的 FLUX.2 [klein] 提示词指南:
 https://fal.ai/learn/devs/flux-2-klein-prompt-guide
+
+检查点分两类:蒸馏版(不带 `/base` 的路由)与 `/base` 完整版。字段只在该路由自己的节点上:用 `search_nodes` 找到,`get_node_info` 读字段,`run_node` 运行。
+
+| `guidance_scale` | fal `/base` 路由(默认 5);Replicate `-base` 叫 `guidance`(默认 4) | 提示词贴合度 |
+| `num_inference_steps` | 仅 fal:`/base` 4–50(默认 28),蒸馏版 4–8(默认 4),`realtime` 1–8 |
+| `negative_prompt` | fal `/base` 路由 | 仅失败模式 |

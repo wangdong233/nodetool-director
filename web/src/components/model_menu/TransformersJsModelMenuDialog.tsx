@@ -66,8 +66,8 @@ function TransformersJsModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title={t("editor:ui.selectTransformersjsModel", { defaultValue: "Select Transformers.js Model" })}
-      searchPlaceholder={t("editor:ui.searchTransformersJsModels", { defaultValue: "Search Transformers.js models..." })}
+      title={t("editor:ui.selectTransformersjsModel", { defaultValue: "Select Transformers.js model" })}
+      searchPlaceholder="Search Transformers.js models"
       storeHook={useTransformersJsModelMenuStore}
       recommendedModels={recommendedModels}
     />

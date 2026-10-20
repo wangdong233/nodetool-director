@@ -20,7 +20,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ImageIcon from "@mui/icons-material/Image";
 
-import { SelectField, StateIconButton, MOTION, reducedMotion, BORDER_RADIUS } from "../../ui_primitives";
+import { SelectField, StateIconButton, MOTION, reducedMotion, BORDER_RADIUS, ICON_SIZE } from "../../ui_primitives";
 import NumberInput from "../../inputs/NumberInput";
 import { useTranslation } from "react-i18next";
 
@@ -29,10 +29,6 @@ import {
   type CompositorBlendMode,
   type CompositorLayerState
 } from "./CompositorBody";
-import {
-  type ImageRefLike,
-  useImageUrl
-} from "./CompositorBody.helpers";
 
 const styles = (theme: Theme) =>
   css({
@@ -91,7 +87,7 @@ const styles = (theme: Theme) =>
         minHeight: "unset"
       },
       "& .MuiInput-root": { marginTop: 0 },
-      "& .MuiSvgIcon-root": { fontSize: 16, right: 0 }
+      "& .MuiSvgIcon-root": { fontSize: ICON_SIZE.sm, right: 0 }
     },
     ".vis-btn, .del-btn": {
       justifySelf: "center",
@@ -111,7 +107,8 @@ export interface LayerRowProps {
   /** The `image_N` dynamic-property key this row binds to. */
   propertyKey: string;
   state: CompositorLayerState;
-  image?: ImageRefLike;
+  /** Resolved thumbnail URL (`useImageUrls`), if the input is wired. */
+  imageUrl?: string;
   onOpacityChange: (index: number, value: number) => void;
   onOpacityComplete: () => void;
   onBlendChange: (index: number, value: CompositorBlendMode) => void;
@@ -123,7 +120,7 @@ const LayerRowImpl: React.FC<LayerRowProps> = ({
   index,
   propertyKey,
   state,
-  image,
+  imageUrl,
   onOpacityChange,
   onOpacityComplete,
   onBlendChange,
@@ -133,7 +130,6 @@ const LayerRowImpl: React.FC<LayerRowProps> = ({
   const { t } = useTranslation();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
-  const thumbnail = useImageUrl(image);
 
   const handleOpacity = useCallback(
     (_: React.ChangeEvent<HTMLInputElement> | null, value: number) =>
@@ -160,8 +156,8 @@ const LayerRowImpl: React.FC<LayerRowProps> = ({
       data-layer-key={propertyKey}
     >
       <div className="thumb" aria-label={`Layer ${index + 1} thumbnail`}>
-        {thumbnail ? (
-          <img src={thumbnail} alt="" />
+        {imageUrl ? (
+          <img src={imageUrl} alt="" />
         ) : (
           <ImageIcon fontSize="small" />
         )}
@@ -188,7 +184,7 @@ const LayerRowImpl: React.FC<LayerRowProps> = ({
 
       <div className="blend">
         <SelectField
-          label=""
+          label={`Layer ${index + 1} blend mode`}
           hideLabel
           value={state.blend_mode}
           onChange={handleBlend}

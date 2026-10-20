@@ -9,7 +9,6 @@
  */
 
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import MovieFilterOutlinedIcon from "@mui/icons-material/MovieFilterOutlined";
 
 import type { VideoModelValue } from "../../../stores/ApiTypes";
@@ -37,6 +36,7 @@ import CostEstimateLine from "../../costs/CostEstimateLine";
 import { generationCostLine } from "../../costs/costLine";
 import VideoModelSelect from "../../properties/VideoModelSelect";
 import CuratedModelSelect from "../../properties/curated/CuratedModelSelect";
+import ErrorBanner from "../../support/ErrorBanner";
 import {
   Caption,
   CollapsibleSection,
@@ -46,10 +46,12 @@ import {
   FlexRow,
   LoadingSpinner,
   SPACING,
-  TextInput
+  TextArea
 } from "../../ui_primitives";
 import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ImageToVideoPanelProps {
   clipId: string;
@@ -308,17 +310,16 @@ const ImageToVideoPanel: React.FC<ImageToVideoPanelProps> = ({ clipId }) => {
           />
         ) : (
           <>
-            <TextInput
+            <TextArea
               value={prompt}
-              onChange={(event) => setPrompt(event.target.value)}
+              onChange={(value) => setPrompt(value)}
               placeholder={t("timeline:attrs.describeTheMotion", { defaultValue: "Describe the motion…" })}
-              multiline
               minRows={2}
               maxRows={6}
               compact
               fullWidth
               inputProps={{
-                "aria-label": t("timeline:attrs.motionPrompt", { defaultValue: "Motion prompt" }),
+                "aria-label": i18n.t("timeline:attrs.motionPrompt", { defaultValue: "Motion prompt" }),
                 "data-testid": "image-to-video-prompt"
               }}
               disabled={submitting}
@@ -333,8 +334,7 @@ const ImageToVideoPanel: React.FC<ImageToVideoPanelProps> = ({ clipId }) => {
                 title={t("timeline:attrs.noImageToVideoModel", { defaultValue: "No image-to-video model" })}
                 description={
                   error
-                    ? t("timeline:attrs.videoModelCatalogCouldNotBeLoaded", { defaultValue: "The video model catalog could not be loaded." })
-                    : t("timeline:attrs.addProviderOrLocalI2V", { defaultValue: "Add a provider or install a local model that supports image_to_video." })
+                    ? t("timeline:attrs.videoModelCatalogCouldNotBeLoaded", { defaultValue: "The video model catalog could not be loaded." }) : i18n.t("timeline:attrs.addProviderOrLocalI2V", { defaultValue: "Add a provider or install a local model that supports image_to_video." })
                 }
                 actionText={error ? t("timeline:attrs.retryModelCatalog", { defaultValue: "Retry model catalog" }) : undefined}
                 onAction={error ? () => void refetch() : undefined}
@@ -362,12 +362,11 @@ const ImageToVideoPanel: React.FC<ImageToVideoPanelProps> = ({ clipId }) => {
             )}
             {durationChanged && (
               <Caption color="secondary">
-                {t("timeline:attrs.modelCannotRender", {
-                  defaultValue:
-                    "This model cannot render {{duration}}, so the video clip is {{clipDuration}} long.",
-                  duration: formatSeconds(clip.durationMs),
-                  clipDuration: formatSeconds(settings.clipDurationMs)
-                })}
+                {`This model cannot render ${formatSeconds(
+                  clip.durationMs
+                )}, so the video clip is ${formatSeconds(
+                  settings.clipDurationMs
+                )} long.`}
               </Caption>
             )}
 
@@ -388,20 +387,29 @@ const ImageToVideoPanel: React.FC<ImageToVideoPanelProps> = ({ clipId }) => {
               onClick={() => void handleGenerate()}
               data-testid="image-to-video-submit"
             >
-              {submitting
-                ? t("timeline:attrs.starting", { defaultValue: "Starting…" })
-                : t("timeline:attrs.generateVideoAction", { defaultValue: "Generate video" })}
+              {submitting ? t("timeline:attrs.starting", { defaultValue: "Starting…" }) : i18n.t("timeline:attrs.generateVideoAction", { defaultValue: "Generate video" })}
             </EditorButton>
 
             {!imageSize && measured.failed && (
-              <Caption color="error" sx={{ textAlign: "center" }}>
-                {t("timeline:attrs.imageCouldNotBeLoaded", { defaultValue: "The image could not be loaded, so its size is unknown." })}
-              </Caption>
+              <ErrorBanner
+                report={{
+                  source: "operation-failure",
+                  summary: "Image-to-video source image failed to load"
+                }}
+              >
+                The image could not be loaded, so its size is unknown.
+              </ErrorBanner>
             )}
             {errorMessage && (
-              <Caption color="error" sx={{ textAlign: "center" }}>
+              <ErrorBanner
+                report={{
+                  source: "operation-failure",
+                  summary: "Image-to-video generation could not start",
+                  errorText: errorMessage
+                }}
+              >
                 {errorMessage}
-              </Caption>
+              </ErrorBanner>
             )}
           </>
         )}

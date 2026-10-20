@@ -71,19 +71,58 @@ function assetLayerUri(asset: Asset): string {
   return `asset://${key}`;
 }
 
-function loadImageSize(
-  url: string
-): Promise<{ width: number; height: number }> {
+interface ImageInfo {
+  width: number;
+  height: number;
+  /** Ink that shows on the image: black on a light image, white on a dark one. */
+  ink?: string;
+}
+
+function loadImageInfo(url: string): Promise<ImageInfo> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () =>
-      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      resolve({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        ink: contrastingInk(img)
+      });
     img.onerror = () =>
       reject(new Error(`Failed to load image for measurement: ${url}`));
     img.src = url;
   });
 }
+
+/**
+ * Black or white, whichever shows on the image's average color. A white
+ * "New sketch" once opened with white ink, so first strokes were invisible.
+ * Undefined when the pixels cannot be read, which keeps the default ink.
+ */
+export function contrastingInk(img: CanvasImageSource): string | undefined {
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return undefined;
+    }
+    ctx.drawImage(img, 0, 0, 1, 1);
+    const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+    if (a === 0) {
+      return undefined;
+    }
+    const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+    return luma > 127 ? "#000000" : "#ffffff";
+  } catch {
+    // A cross-origin image taints the canvas. Keep the default ink.
+    return undefined;
+  }
+}
+
+/** First-use creations still in flight, by asset id. */
+const pendingCreations = new Map<string, Promise<string>>();
 
 /**
  * Return the sketch document that backs an image asset, creating one on first
@@ -92,14 +131,29 @@ function loadImageSize(
  * `sketch_document_id`, sketch → asset via `thumbnailAssetId`) so the document
  * can later be reopened and saving renders back into this asset.
  */
-export async function ensureSketchDocumentForAsset(
+export function ensureSketchDocumentForAsset(
   asset: Asset,
   updateAsset: (update: AssetUpdate) => Promise<Asset>
 ): Promise<string> {
   const existing = readSketchDocumentId(asset);
-  if (existing) return existing;
+  if (existing) return Promise.resolve(existing);
+  // A second call while the first is still creating joins it. The editor's
+  // effect runs twice on mount under StrictMode, and each run made its own
+  // document, so one "New sketch" listed two "Untitled.png" documents.
+  const pending = pendingCreations.get(asset.id);
+  if (pending) return pending;
+  const creation = createSketchDocumentForAsset(asset, updateAsset).finally(
+    () => pendingCreations.delete(asset.id)
+  );
+  pendingCreations.set(asset.id, creation);
+  return creation;
+}
 
-  const { width, height } = await loadImageSize(assetImageUrl(asset));
+async function createSketchDocumentForAsset(
+  asset: Asset,
+  updateAsset: (update: AssetUpdate) => Promise<Asset>
+): Promise<string> {
+  const { width, height, ink } = await loadImageInfo(assetImageUrl(asset));
 
   const created = await trpcClient.sketch.create.mutate({
     id: newDocumentId(),
@@ -113,7 +167,8 @@ export async function ensureSketchDocumentForAsset(
     imageUri: assetLayerUri(asset),
     width,
     height,
-    name: asset.name || "Image"
+    name: asset.name || "Image",
+    ink
   });
 
   await trpcClient.sketch.update.mutate({

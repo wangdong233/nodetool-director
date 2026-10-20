@@ -8,24 +8,21 @@ import React, {
   useRef,
   memo
 } from "react";
-import {
-  useTheme,
-  type Theme
-} from "@mui/material/styles";
-import FolderIcon from "@mui/icons-material/Folder";
+import { useTheme, type Theme } from "@mui/material/styles";
+import FolderIcon from "@mui/icons-material/FolderOutlined";
 import FileIcon from "@mui/icons-material/InsertDriveFile";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import EditIcon from "@mui/icons-material/EditOutlined";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 import { TreeViewBaseItem } from "@mui/x-tree-view/models";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { trpcClient } from "../../trpc/client";
 import type { FileInfo } from "../../stores/ApiTypes";
-import { i18n } from "../../i18n";
 
 import {
   Breadcrumbs,
-  CloseButton,
+  Button,
   CopyButton,
   Dialog,
   EditorButton,
@@ -45,6 +42,7 @@ import {
   getSpacingPx
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 export type SelectionMode = "file" | "directory";
 
@@ -132,7 +130,9 @@ const createFolder = async (path: string, name: string): Promise<string> => {
 };
 
 const formatBytes = (bytes: number, decimals = 2) => {
-  if (!+bytes) {return "0 Bytes";}
+  if (!+bytes) {
+    return "0 Bytes";
+  }
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
   const sizes = ["Bytes", "KiB", "MiB", "GiB", "TiB"];
@@ -144,7 +144,7 @@ function FileBrowserDialog({
   open,
   onClose,
   onConfirm,
-  title = i18n.t("editor:ui.selectFile", { defaultValue: "Select File" }),
+  title = "Select file",
   initialPath = "~",
   selectionMode = "file"
 }: FileBrowserDialogProps) {
@@ -170,13 +170,17 @@ function FileBrowserDialog({
   // Folders first, then files.
   const sortedFiles = useMemo(() => {
     return [...files].sort((a, b) => {
-      if (a.is_dir === b.is_dir) {return a.name.localeCompare(b.name);}
+      if (a.is_dir === b.is_dir) {
+        return a.name.localeCompare(b.name);
+      }
       return a.is_dir ? -1 : 1;
     });
   }, [files]);
 
   const filteredFiles = useMemo(() => {
-    if (!searchQuery) {return sortedFiles;}
+    if (!searchQuery) {
+      return sortedFiles;
+    }
     const searchQueryLower = searchQuery.toLowerCase();
     return sortedFiles.filter((f) =>
       f.name.toLowerCase().includes(searchQueryLower)
@@ -229,7 +233,9 @@ function FileBrowserDialog({
 
   // Auto-scroll to selected item in tree
   useEffect(() => {
-    if (!treeScrollRef.current) {return;}
+    if (!treeScrollRef.current) {
+      return;
+    }
 
     // Allow some time for expansion/rendering
     const timeoutId = setTimeout(() => {
@@ -254,7 +260,7 @@ function FileBrowserDialog({
             label: f.name,
             path: f.path,
             children: [
-              { id: `${f.path}_loading`, label: "Loading...", path: "" }
+              { id: `${f.path}_loading`, label: "Loading…", path: "" }
             ] as ExtendedTreeItem[]
           }));
         setTreeItems(roots);
@@ -270,7 +276,9 @@ function FileBrowserDialog({
   // Helper to update tree items recursively
   const updateTreeItemsBulk = useCallback(
     (updates: { id: string; children: ExtendedTreeItem[] }[]) => {
-      if (updates.length === 0) {return;}
+      if (updates.length === 0) {
+        return;
+      }
       setTreeItems((prevItems) => {
         let currentItems = prevItems;
 
@@ -319,10 +327,12 @@ function FileBrowserDialog({
 
   // Load ancestors of currentPath to ensure it is visible in tree
   useEffect(() => {
-    if (!open || treeItems.length === 0) {return;}
+    if (!open || treeItems.length === 0) {
+      return;
+    }
 
     const loadMissingAncestors = async () => {
-      // Find ancestors that are in the tree but have "Loading..." children
+      // Find ancestors that are in the tree but have "Loading…" children
       // We skip the current path itself since we only need its parent loaded to show it
       // (or if we want to show children of current path in tree, we could include it)
 
@@ -334,10 +344,14 @@ function FileBrowserDialog({
         id: string
       ): ExtendedTreeItem | undefined => {
         for (const item of items) {
-          if (item.id === id) {return item;}
+          if (item.id === id) {
+            return item;
+          }
           if (item.children) {
             const found = findNode(item.children, id);
-            if (found) {return found;}
+            if (found) {
+              return found;
+            }
           }
         }
         return undefined;
@@ -351,7 +365,9 @@ function FileBrowserDialog({
 
       for (const breadcrumb of breadcrumbs) {
         // Skip Root/Home placeholders if they aren't in tree (tree roots are their children)
-        if (breadcrumb.path === "~" || breadcrumb.path === "/") {continue;}
+        if (breadcrumb.path === "~" || breadcrumb.path === "/") {
+          continue;
+        }
 
         const node = findNode(treeItems, breadcrumb.path);
         // If node is found, check if it's a placeholder
@@ -370,7 +386,9 @@ function FileBrowserDialog({
         }
       }
 
-      if (pathsToFetch.length === 0) {return;}
+      if (pathsToFetch.length === 0) {
+        return;
+      }
 
       try {
         const results = await Promise.all(
@@ -384,7 +402,7 @@ function FileBrowserDialog({
                   label: f.name,
                   path: f.path,
                   children: [
-                    { id: `${f.path}_loading`, label: "Loading...", path: "" }
+                    { id: `${f.path}_loading`, label: "Loading…", path: "" }
                   ] as ExtendedTreeItem[]
                 }));
               return { id: path, children: folders.length > 0 ? folders : [] };
@@ -415,8 +433,9 @@ function FileBrowserDialog({
 
   // Sync expansion when navigating
   useEffect(() => {
-    if (currentPath === "~" || currentPath === "/" || currentPath === "")
-      {return;}
+    if (currentPath === "~" || currentPath === "/" || currentPath === "") {
+      return;
+    }
 
     // Expand all ancestor paths derived from breadcrumbs
     const ancestorPaths = breadcrumbs.map((b) => b.path);
@@ -464,8 +483,12 @@ function FileBrowserDialog({
           let parent = parts.join(separator);
 
           // Handle root/drive cases
-          if (path.startsWith("/") && parent === "") {parent = "/";}
-          if (parent.endsWith(":")) {parent += separator;}
+          if (path.startsWith("/") && parent === "") {
+            parent = "/";
+          }
+          if (parent.endsWith(":")) {
+            parent += separator;
+          }
 
           setCurrentPath(parent);
           setSelectedPath(path);
@@ -480,30 +503,39 @@ function FileBrowserDialog({
     setIsEditingPath(false);
   };
 
-  const handleNavigate = useCallback((path: string) => {
-    setCurrentPath(path);
-    setSearchQuery("");
-    if (selectionMode === "directory") {
-      setSelectedPath(path);
-    } else {
-      setSelectedPath("");
-    }
-  }, [selectionMode]);
+  const handleNavigate = useCallback(
+    (path: string) => {
+      setCurrentPath(path);
+      setSearchQuery("");
+      if (selectionMode === "directory") {
+        setSelectedPath(path);
+      } else {
+        setSelectedPath("");
+      }
+    },
+    [selectionMode]
+  );
 
   const handleStartEditPath = useCallback(() => {
     setIsEditingPath(true);
   }, []);
 
   const handleUp = useCallback(() => {
-    if (currentPath === "~" || currentPath === "/") {return;}
+    if (currentPath === "~" || currentPath === "/") {
+      return;
+    }
     // Naive parent path
     const separator = currentPath.includes("\\") ? "\\" : "/";
     const parts = currentPath.split(/[/\\]/);
     parts.pop();
 
     let parent = parts.join(separator);
-    if (currentPath.startsWith("/") && parent === "") {parent = "/";}
-    if (parent.endsWith(":")) {parent += "\\";} // Windows drive root often needs backslash
+    if (currentPath.startsWith("/") && parent === "") {
+      parent = "/";
+    }
+    if (parent.endsWith(":")) {
+      parent += "\\";
+    } // Windows drive root often needs backslash
 
     handleNavigate(parent || "~");
   }, [currentPath, handleNavigate]);
@@ -535,7 +567,9 @@ function FileBrowserDialog({
   // not exist a moment ago.
   const handleCreateFolder = useCallback(async () => {
     const name = (newFolderName ?? "").trim();
-    if (!name) {return;}
+    if (!name) {
+      return;
+    }
     try {
       const created = await createFolder(currentPath, name);
       setNewFolderName(null);
@@ -550,34 +584,44 @@ function FileBrowserDialog({
 
   const handleNewFolderKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") {handleCreateFolder();}
-      if (e.key === "Escape") {handleCancelNewFolder();}
+      if (e.key === "Enter") {
+        handleCreateFolder();
+      }
+      if (e.key === "Escape") {
+        handleCancelNewFolder();
+      }
     },
     [handleCreateFolder, handleCancelNewFolder]
   );
 
-  const handleFileClick = useCallback((file: FileInfo) => {
-    if (file.is_dir) {
-      if (selectionMode === "directory") {
-        setSelectedPath(file.path);
+  const handleFileClick = useCallback(
+    (file: FileInfo) => {
+      if (file.is_dir) {
+        if (selectionMode === "directory") {
+          setSelectedPath(file.path);
+        }
+      } else {
+        if (selectionMode === "file") {
+          setSelectedPath(file.path);
+        }
       }
-    } else {
-      if (selectionMode === "file") {
-        setSelectedPath(file.path);
-      }
-    }
-  }, [selectionMode]);
+    },
+    [selectionMode]
+  );
 
-  const handleFileDoubleClick = useCallback((file: FileInfo) => {
-    if (file.is_dir) {
-      handleNavigate(file.path);
-    } else {
-      if (selectionMode === "file") {
-        setSelectedPath(file.path);
-        onConfirm(file.path);
+  const handleFileDoubleClick = useCallback(
+    (file: FileInfo) => {
+      if (file.is_dir) {
+        handleNavigate(file.path);
+      } else {
+        if (selectionMode === "file") {
+          setSelectedPath(file.path);
+          onConfirm(file.path);
+        }
       }
-    }
-  }, [selectionMode, handleNavigate, onConfirm]);
+    },
+    [selectionMode, handleNavigate, onConfirm]
+  );
 
   const handleConfirmClick = useCallback(() => {
     if (selectedPath) {
@@ -585,9 +629,12 @@ function FileBrowserDialog({
     }
   }, [selectedPath, onConfirm]);
 
-  const handlePathInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setPathInputValue(e.target.value);
-  }, []);
+  const handlePathInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPathInputValue(e.target.value);
+    },
+    []
+  );
 
   const handleSearchQueryChange = useCallback((value: string) => {
     setSearchQuery(value);
@@ -604,10 +651,14 @@ function FileBrowserDialog({
         items: ExtendedTreeItem[]
       ): ExtendedTreeItem | undefined => {
         for (const item of items) {
-          if (item.id === itemId) {return item;}
+          if (item.id === itemId) {
+            return item;
+          }
           if (item.children) {
             const found = findNode(item.children);
-            if (found) {return found;}
+            if (found) {
+              return found;
+            }
           }
         }
         return undefined;
@@ -632,7 +683,7 @@ function FileBrowserDialog({
               label: f.name,
               path: f.path,
               children: [
-                { id: `${f.path}_loading`, label: "Loading...", path: "" }
+                { id: `${f.path}_loading`, label: "Loading…", path: "" }
               ] as ExtendedTreeItem[]
             }));
 
@@ -652,10 +703,15 @@ function FileBrowserDialog({
     );
   };
 
-  const handleTreeItemClick = useCallback((_event: React.MouseEvent, itemId: string) => {
-    if (itemId.endsWith("_loading")) {return;}
-    handleNavigate(itemId);
-  }, [handleNavigate]);
+  const handleTreeItemClick = useCallback(
+    (_event: React.MouseEvent, itemId: string) => {
+      if (itemId.endsWith("_loading")) {
+        return;
+      }
+      handleNavigate(itemId);
+    },
+    [handleNavigate]
+  );
 
   const handleBreadcrumbNavigate = useCallback(
     (item: { path?: string }, index: number) => {
@@ -673,7 +729,7 @@ function FileBrowserDialog({
     getScrollElement: () => fileListScrollRef.current,
     estimateSize: () => 32,
     overscan: theme.virtualScroll.overscan.normal,
-    getItemKey: (index) => filteredFiles[index]?.path ?? index,
+    getItemKey: (index) => filteredFiles[index]?.path ?? index
   });
 
   return (
@@ -682,25 +738,51 @@ function FileBrowserDialog({
       open={open}
       onClose={onClose}
       title={title}
-      maxWidth="lg"
+      maxWidth="md"
       fullWidth
-      slotProps={{
-        paper: {
-          sx: { height: "80vh", maxHeight: "800px" }
-        }
-      }}
+      actions={
+        <>
+          <FlexRow
+            className="file-browser-footer"
+            align="center"
+            gap={SPACING.xs}
+            sx={{ mr: "auto", minWidth: 0 }}
+          >
+            <Text size="small" color="secondary" truncate>
+              {selectedPath ? `Selected: ${selectedPath}` : i18n.t("editor:ui.nothingSelectedStatus", { defaultValue: "No selection" })}
+            </Text>
+            {selectedPath && (
+              <CopyButton
+                value={selectedPath}
+                tooltip={t("editor:ui.copyPath", { defaultValue: "Copy path" })}
+                buttonSize="small"
+              />
+            )}
+          </FlexRow>
+          <Button variant="text" color="inherit" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleConfirmClick}
+            disabled={!selectedPath}
+          >
+            Select
+          </Button>
+        </>
+      }
     >
       <FlexColumn
         css={styles(theme)}
-        sx={{ height: "100%", minHeight: 0, overflow: "hidden" }}
-        gap={0}
+        sx={{ height: "70vh", minHeight: 0, overflow: "hidden" }}
+        gap={SPACING.none}
       >
         <FlexRow
           align="center"
-          gap={2}
+          gap={SPACING.md}
           sx={{
-            px: 2,
-            py: 1,
+            px: SPACING.md,
+            py: SPACING.xs,
             flexWrap: "wrap",
             borderBottom: `1px solid ${theme.vars.palette.divider}`,
             backgroundColor: theme.vars.palette.background.default
@@ -716,12 +798,16 @@ function FileBrowserDialog({
 
           {isEditingPath ? (
             <TextInput
+              label={t("editor:ui.folderPath", { defaultValue: "Folder path" })}
+              hideLabel
               size="small"
               fullWidth
               value={pathInputValue}
               onChange={handlePathInputChange}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {handlePathSubmit();}
+                if (e.key === "Enter") {
+                  handlePathSubmit();
+                }
                 if (e.key === "Escape") {
                   setPathInputValue(currentPath);
                   setIsEditingPath(false);
@@ -744,6 +830,17 @@ function FileBrowserDialog({
                 separator="slash"
                 onNavigate={handleBreadcrumbNavigate}
               />
+              {/* Clicking the bar edits the path; this is the keyboard way. */}
+              <ToolbarIconButton
+                tooltip={t("editor:ui.typeAPath", { defaultValue: "Type a path" })}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleStartEditPath();
+                }}
+                icon={<EditIcon fontSize="small" />}
+                size="small"
+                sx={{ ml: "auto" }}
+              />
             </FlexRow>
           )}
 
@@ -751,7 +848,7 @@ function FileBrowserDialog({
             <SearchInput
               value={searchQuery}
               onChange={handleSearchQueryChange}
-              placeholder={t("editor:ui.searchInCurrentFolder", { defaultValue: "Search in current folder..." })}
+              placeholder={t("editor:ui.searchInCurrentFolder", { defaultValue: "Search in current folder" })}
               fullWidth
             />
           </div>
@@ -768,28 +865,31 @@ function FileBrowserDialog({
             buttonSize="small"
             tooltip={t("ui:attrs.refresh", { defaultValue: "Refresh" })}
           />
-          <CloseButton onClick={onClose} buttonSize="small" tooltip={t("sketch:attrs.close", { defaultValue: "Close" })} />
         </FlexRow>
 
         {newFolderName !== null && (
           <FlexColumn
             className="new-folder-row"
-            gap={0.5}
+            gap={SPACING.micro}
             sx={{
-              px: 2,
-              py: 1,
+              px: SPACING.md,
+              py: SPACING.xs,
               borderBottom: `1px solid ${theme.vars.palette.divider}`,
               backgroundColor: theme.vars.palette.background.default
             }}
           >
-            <FlexRow align="center" gap={1}>
+            <FlexRow align="flex-start" gap={SPACING.xs}>
               <TextInput
+                label={t("editor:ui.newFolderName", { defaultValue: "New folder name" })}
+                hideLabel
                 size="small"
                 autoFocus
                 value={newFolderName}
                 placeholder={t("editor:ui.newFolderName", { defaultValue: "New folder name" })}
                 onChange={handleNewFolderChange}
                 onKeyDown={handleNewFolderKeyDown}
+                helperText={`Creates a folder in ${currentPath}`}
+                errorMessage={newFolderError || undefined}
                 sx={{ flex: 1 }}
               />
               <EditorButton
@@ -798,19 +898,16 @@ function FileBrowserDialog({
                 density="compact"
                 disabled={!newFolderName.trim()}
               >
-                {t("common:action.create", { defaultValue: "Create" })}
+                Create
               </EditorButton>
               <EditorButton
                 onClick={handleCancelNewFolder}
                 variant="text"
                 density="compact"
               >
-                {t("common:action.cancel", { defaultValue: "Cancel" })}
+                Cancel
               </EditorButton>
             </FlexRow>
-            <Caption color={newFolderError ? "error" : "secondary"}>
-              {newFolderError || t("editor:ui.createsAFolderIn", { defaultValue: "Creates a folder in {{path}}", path: currentPath })}
-            </Caption>
           </FlexColumn>
         )}
 
@@ -851,14 +948,14 @@ function FileBrowserDialog({
                   width: "100%",
                   height: "100%",
                   overflow: "auto",
-                  outline: "none",
+                  outline: "none"
                 }}
               >
                 <div
                   style={{
                     height: fileVirtualizer.getTotalSize(),
                     width: "100%",
-                    position: "relative",
+                    position: "relative"
                   }}
                 >
                   {fileVirtualizer.getVirtualItems().map((vi) => {
@@ -876,11 +973,18 @@ function FileBrowserDialog({
                           left: 0,
                           width: "100%",
                           height: vi.size,
-                          transform: `translateY(${vi.start}px)`,
+                          transform: `translateY(${vi.start}px)`
                         }}
                         selected={isSelected}
                         onClick={() => handleFileClick(file)}
                         onDoubleClick={() => handleFileDoubleClick(file)}
+                        // Space selects (the row's own button); Enter also
+                        // opens, like a double-click.
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            handleFileDoubleClick(file);
+                          }
+                        }}
                         icon={
                           file.is_dir ? (
                             <FolderIcon color="primary" fontSize="small" />
@@ -889,11 +993,11 @@ function FileBrowserDialog({
                           )
                         }
                         sx={{
-                          px: 1.5,
+                          px: SPACING.sm,
                           fontSize: FONT_SIZE_SANS.body,
                           "&:hover": {
-                            backgroundColor: theme.vars.palette.action.hover,
-                          },
+                            backgroundColor: theme.vars.palette.action.hover
+                          }
                         }}
                       >
                         <FlexRow
@@ -905,12 +1009,16 @@ function FileBrowserDialog({
                           <Text
                             size="small"
                             truncate
-                            sx={{ flex: 1, minWidth: 0, fontSize: FONT_SIZE_SANS.body }}
+                            sx={{
+                              flex: 1,
+                              minWidth: 0,
+                              fontSize: FONT_SIZE_SANS.body
+                            }}
                           >
                             {file.name}
                           </Text>
                           {file.size !== undefined && !file.is_dir && (
-                            <Caption color="secondary" sx={{ ml: 1 }}>
+                            <Caption color="secondary" sx={{ ml: SPACING.xs }}>
                               {formatBytes(file.size)}
                             </Caption>
                           )}
@@ -922,38 +1030,6 @@ function FileBrowserDialog({
               </div>
             )}
           </FlexColumn>
-        </FlexRow>
-
-        <FlexRow
-          className="file-browser-footer"
-          align="center"
-          gap={1}
-          sx={{
-            p: 2,
-            borderTop: `1px solid ${theme.vars.palette.divider}`
-          }}
-        >
-          <Text size="small" color="secondary" sx={{ flex: 1, ml: 1 }}>
-            {selectedPath ? `Selected: ${selectedPath}` : "No selection"}
-          </Text>
-          {selectedPath && (
-            <CopyButton
-              value={selectedPath}
-              tooltip={t("editor:ui.copyPath", { defaultValue: "Copy path" })}
-              buttonSize="small"
-            />
-          )}
-          <EditorButton onClick={onClose} variant="text" density="compact">
-            {t("common:action.cancel", { defaultValue: "Cancel" })}
-          </EditorButton>
-          <EditorButton
-            onClick={handleConfirmClick}
-            variant="contained"
-            density="compact"
-            disabled={!selectedPath}
-          >
-            {t("common:action.select", { defaultValue: "Select" })}
-          </EditorButton>
         </FlexRow>
       </FlexColumn>
     </Dialog>

@@ -11,6 +11,7 @@ import { Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
 import { SPACING, resolveSpacing, type SpacingValue } from "./spacing";
+import { i18n } from "../../i18n";
 
 export interface AutoGridProps {
   /** Minimum column width in px, default 200 */
@@ -70,7 +71,7 @@ export const AutoGrid = memo(
           sx={[
             {
               display: "grid",
-              gridTemplateColumns: `repeat(auto-${fill}, minmax(${minItemWidth}px, 1fr))`,
+              gridTemplateColumns: `repeat(auto-${fill}, minmax(min(100%, ${minItemWidth}px), 1fr))`,
               gap: theme.spacing(resolveSpacing(gap))
             },
             // Compose caller sx as an array entry so the function form `(theme) =>

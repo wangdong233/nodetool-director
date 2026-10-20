@@ -19,7 +19,7 @@
  *   tags={tags}
  *   onTagsChange={setTags}
  *   placeholder="Add a tag..."
- *   label={i18n.t("editor:ui.tags", { defaultValue: "Tags" })}
+ *   label={t("editor:ui.tags", { defaultValue: "Tags" })}
  * />
  */
 
@@ -33,11 +33,12 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import { CONTROL, MOTION } from "./tokens";
-import { i18n } from "../../i18n";
+import { Tooltip } from "./Tooltip";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -144,7 +145,7 @@ export const TagInput: React.FC<TagInputProps> = memo(
   function TagInput({
     tags,
     onTagsChange,
-    placeholder = i18n.t("ui:attrs.typeAndPressEnterToAddATag", { defaultValue: "Type and press Enter to add a tag..." }),
+    placeholder = "Type and press Enter to add a tag…",
     label,
     allowDuplicates = false,
     maxTags,
@@ -332,15 +333,16 @@ export const TagInput: React.FC<TagInputProps> = memo(
             aria-describedby={displayHelperText ? `${label || "tag"}-helper-text` : undefined}
           />
           {!disabled && !isMaxReached && inputValue.trim() && (
-            <IconButton
-              className="add-button"
-              size="small"
-              onClick={handleAddButtonClick}
-              aria-label={t("ui:attrs.addTag", { defaultValue: "Add tag" })}
-              title={t("ui:attrs.addTag", { defaultValue: "Add tag" })}
-            >
-              <AddIcon fontSize="small" />
-            </IconButton>
+            <Tooltip title={t("ui:attrs.addTag", { defaultValue: "Add tag" })}>
+              <IconButton
+                className="add-button"
+                size="small"
+                onClick={handleAddButtonClick}
+                aria-label={t("ui:attrs.addTag", { defaultValue: "Add tag" })}
+              >
+                <AddIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           )}
         </Box>
         {displayHelperText && (

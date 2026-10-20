@@ -182,6 +182,43 @@ async function probeMediabunnyCodecs(bundleDir) {
   }
 }
 
+async function probeMediabunnyInChild(bundleDir, timeoutMs, nodeBinary) {
+  const controller = new AbortController();
+  // Windows keeps loaded native libraries locked until their process exits.
+  const child = spawn(nodeBinary, [fileURLToPath(import.meta.url), "--probe-mediabunny", bundleDir], {
+    cwd: bundleDir,
+    signal: controller.signal,
+    killSignal: "SIGKILL",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const output = [];
+  const capture = (chunk) => output.push(chunk.toString());
+  child.stdout.on("data", capture);
+  child.stderr.on("data", capture);
+  let spawnError;
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+  const exit = await new Promise((resolve) => {
+    child.once("error", (error) => { spawnError = error; });
+    child.once("close", (code, signal) => resolve({ code, signal }));
+  });
+  clearTimeout(timeout);
+  if (!timedOut && !spawnError && exit.code === 0) return;
+  const why = timedOut
+    ? `timed out after ${timeoutMs}ms`
+    : spawnError
+      ? spawnError.message
+      : `exited (code ${exit.code}, signal ${exit.signal})`;
+  throw new Error(
+    `staged Mediabunny codec probe failed: ${why}\n` +
+      `  node: ${nodeBinary}\n--- codec output ---\n${output.join("").trimEnd() || "(no output)"}`,
+    { cause: spawnError }
+  );
+}
+
 /**
  * The Node the packaged app launches the backend with, when the bundle carries
  * one. Falls back to the current interpreter for a staged (unpacked) bundle.
@@ -223,7 +260,7 @@ async function bootAndProbe(bundleDir, timeoutMs, nodeBinary) {
   child.stderr.on("data", capture);
 
   let exit = null;
-  child.on("exit", (code, signal) => {
+  child.on("close", (code, signal) => {
     exit = { code, signal };
   });
 
@@ -249,7 +286,7 @@ async function bootAndProbe(bundleDir, timeoutMs, nodeBinary) {
     child.kill("SIGTERM");
     // Don't let a backend that ignores SIGTERM hang the job.
     const hardKill = setTimeout(() => child.kill("SIGKILL"), 10_000);
-    await new Promise((r) => child.once("exit", r));
+    await new Promise((r) => child.once("close", r));
     clearTimeout(hardKill);
   }
   await fsp.rm(dataDir, { recursive: true, force: true });
@@ -257,41 +294,73 @@ async function bootAndProbe(bundleDir, timeoutMs, nodeBinary) {
   return { healthy, exit, output: output.join(""), port, lastProbeError };
 }
 
+/** Move resolution outside the checkout so ancestor dependencies cannot hide gaps. */
+export async function copyBackendBundleForSmoke(bundleDir, temporaryRoot = os.tmpdir()) {
+  const isolated = await fsp.mkdtemp(path.join(temporaryRoot, "nodetool-bundle-smoke-"));
+  try {
+    await fsp.cp(bundleDir, isolated, {
+      recursive: true, mode: fs.constants.COPYFILE_FICLONE, verbatimSymlinks: true
+    });
+    return isolated;
+  } catch (error) {
+    await fsp.rm(isolated, { recursive: true, force: true });
+    throw error;
+  }
+}
+
 export async function smokeBackendBundle(
   bundleDir,
   { timeoutMs = 120_000, nodePath } = {}
 ) {
-  const nodeBinary = resolveNodeBinary(bundleDir, nodePath);
-  const restore = await withPackagedModuleLayout(bundleDir);
+  const isolated = await copyBackendBundleForSmoke(bundleDir);
+  const nodeBinary = resolveNodeBinary(isolated, nodePath);
   let result;
+  let failure;
   try {
-    await probeMediabunnyCodecs(bundleDir);
-    result = await bootAndProbe(bundleDir, timeoutMs, nodeBinary);
+    await withPackagedModuleLayout(isolated);
+    await probeMediabunnyInChild(isolated, timeoutMs, nodeBinary);
+    result = await bootAndProbe(isolated, timeoutMs, nodeBinary);
+    result.nodeBinary = nodeBinary;
+
+    if (result.healthy) return result;
+
+    const why =
+      result.exit !== null
+        ? `server.mjs exited (code ${result.exit.code}, signal ${result.exit.signal}) ` +
+          `before answering /health`
+        : `server.mjs never answered /health within ${timeoutMs}ms ` +
+          `(last probe: ${result.lastProbeError || "no response"})`;
+    throw new Error(
+      `backend bundle smoke test failed: ${why}\n` +
+        `  bundle: ${bundleDir}\n  node:   ${nodeBinary}\n` +
+        `--- server output ---\n${result.output.trimEnd() || "(no output)"}`
+    );
+  } catch (error) {
+    failure = error;
+    throw error;
   } finally {
-    await restore();
+    try {
+      await fsp.rm(isolated, { recursive: true, force: true });
+    } catch (error) {
+      if (!failure) throw error;
+      console.error(`backend bundle smoke cleanup failed for ${isolated}: ${error.message}`);
+    }
   }
-  result.nodeBinary = nodeBinary;
-
-  if (result.healthy) return result;
-
-  const why =
-    result.exit !== null
-      ? `server.mjs exited (code ${result.exit.code}, signal ${result.exit.signal}) ` +
-        `before answering /health`
-      : `server.mjs never answered /health within ${timeoutMs}ms ` +
-        `(last probe: ${result.lastProbeError || "no response"})`;
-  throw new Error(
-    `backend bundle smoke test failed: ${why}\n` +
-      `  bundle: ${bundleDir}\n  node:   ${nodeBinary}\n` +
-      `--- server output ---\n${result.output.trimEnd() || "(no output)"}`
-  );
 }
 
 const isCli =
   process.argv[1] &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
-if (isCli) {
+if (isCli && process.argv[2] === "--probe-mediabunny") {
+  try {
+    await probeMediabunnyCodecs(process.argv[3]);
+    process.exit(0);
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
+} else if (isCli) {
   const { bundleDir, timeoutMs, nodePath } = parseArgs(process.argv);
   console.log(`Smoke-testing backend bundle: ${bundleDir}`);
   try {

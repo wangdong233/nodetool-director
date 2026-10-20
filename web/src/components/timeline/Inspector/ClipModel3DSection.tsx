@@ -27,6 +27,7 @@ import {
 } from "@nodetool-ai/timeline";
 
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
+import ErrorBanner from "../../support/ErrorBanner";
 import {
   Button,
   Caption,
@@ -55,6 +56,7 @@ import {
   useModel3DSessionNames,
   type Model3DSessionNames
 } from "./useModel3DSessionNames";
+import { i18n } from "../../../i18n";
 
 const CAMERA_MODES = [
   { value: "orbit", label: "Orbit" },
@@ -62,7 +64,7 @@ const CAMERA_MODES = [
 ] as const;
 
 const LIGHTING_PRESETS = [
-  { value: "studio", label: "Studio" },
+  { value: "studio", label: "Studio", labelKey: "editor:studio.studioBack" },
   { value: "soft", label: "Soft" },
   { value: "flat", label: "Flat" }
 ] as const;
@@ -387,7 +389,15 @@ export const ClipModel3DSection: React.FC<ClipModel3DSectionProps> = memo(
               proxy, and its lighting is close, not identical.
             </Caption>
             {bake.state.error && (
-              <Caption color="error">{bake.state.error}</Caption>
+              <ErrorBanner
+                report={{
+                  source: "operation-failure",
+                  summary: "3D clip bake failed",
+                  errorText: bake.state.error
+                }}
+              >
+                {bake.state.error}
+              </ErrorBanner>
             )}
           </FlexColumn>
         </CollapsibleSection>
@@ -421,7 +431,7 @@ const NamePickerRow: React.FC<NamePickerRowProps> = memo(
     if (session.status === "loading") {
       return (
         <InspectorRow label={label}>
-          <InspectorStaticValue value="Loading model…" />
+          <InspectorStaticValue value={i18n.t("editor:ui.loadingModel", { defaultValue: "Loading model…" })} />
         </InspectorRow>
       );
     }

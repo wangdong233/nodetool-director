@@ -57,16 +57,13 @@ const ProjectScopeChip = ({ projectId, fallbackName }: ProjectScopeChipProps) =>
         open={open}
         anchorEl={anchorRef.current}
         onClose={close}
-        compact
       >
         <MenuItemPrimitive
           label={t("editor:ui.openEditorHome", { defaultValue: "Open editor home" })}
-          compact
           onClick={handleOpenHome}
         />
         <MenuItemPrimitive
           label={t("editor:ui.closeGroup", { defaultValue: "Close group" })}
-          compact
           dividerAfter={(projects?.length ?? 0) > 1}
           onClick={() => {
             close();
@@ -80,7 +77,6 @@ const ProjectScopeChip = ({ projectId, fallbackName }: ProjectScopeChipProps) =>
               key={entry.id}
               label={entry.name}
               secondary={t("editor:ui.switchTo", { defaultValue: "Switch to" })}
-              compact
               onClick={() => {
                 close();
                 void openProject(entry);

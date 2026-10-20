@@ -8,15 +8,22 @@ import RedoIcon from "@mui/icons-material/Redo";
 import WrapTextIcon from "@mui/icons-material/WrapText";
 import SearchIcon from "@mui/icons-material/Search";
 import CodeIcon from "@mui/icons-material/Code";
-import { ToolbarIconButton, Box, MOTION, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
-import { i18n } from "../../i18n";
+import TitleIcon from "@mui/icons-material/Title";
+import FormatBoldIcon from "@mui/icons-material/FormatBold";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import { Toolbar, ToolbarDivider, ToolbarGroup, ToolbarIconButton, MOTION, BORDER_RADIUS } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
+
 interface EditorToolbarProps {
   onUndo?: () => void;
   onRedo?: () => void;
   onToggleWordWrap?: () => void;
   onToggleFind?: () => void;
   onFormatCodeBlock?: () => void;
+  /** Markdown formatting; the group renders only when these are provided. */
+  onHeading?: () => void;
+  onBold?: () => void;
+  onBulletList?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
   wordWrapEnabled?: boolean;
@@ -26,36 +33,6 @@ interface EditorToolbarProps {
 
 const styles = (theme: Theme) =>
   css({
-    display: "flex",
-    alignItems: "center",
-    padding: `${getSpacingPx(SPACING.micro)} ${getSpacingPx(SPACING.xl)}`,
-    backgroundColor: `rgba(${theme.vars.palette.background.defaultChannel} / 0.25)`,
-    gap: getSpacingPx(SPACING.sm),
-    minHeight: "2.4em",
-    borderBottom: `1px solid rgba(${theme.vars.palette.common.whiteChannel} / 0.03)`,
-    ".toolbar-group": {
-      display: "flex",
-      alignItems: "center",
-      gap: getSpacingPx(SPACING.xs),
-      "&:not(:last-child)": {
-        borderRight: "none",
-        paddingRight: getSpacingPx(SPACING.sm),
-        marginRight: getSpacingPx(SPACING.xs),
-        position: "relative",
-        "&::after": {
-          content: "''",
-          position: "absolute",
-          right: 0,
-          top: "20%",
-          bottom: "20%",
-          width: "1px",
-          background: `linear-gradient(180deg,
-            transparent,
-            rgba(${theme.vars.palette.common.whiteChannel} / 0.1) 50%,
-            transparent)`
-        }
-      }
-    },
     ".toolbar-button": {
       padding: theme.spacing(1),
       color: `${theme.vars.palette.grey[300]} !important`,
@@ -91,6 +68,9 @@ const EditorToolbar = ({
   onToggleWordWrap,
   onToggleFind,
   onFormatCodeBlock,
+  onHeading,
+  onBold,
+  onBulletList,
   canUndo = false,
   canRedo = false,
   wordWrapEnabled = true,
@@ -101,9 +81,9 @@ const EditorToolbar = ({
   const theme = useTheme();
 
   return (
-    <Box className="editor-toolbar" css={styles(theme)}>
+    <Toolbar className="editor-toolbar" density="compact" css={styles(theme)}>
       {!readOnly && (
-        <div className="toolbar-group">
+        <ToolbarGroup>
           <ToolbarIconButton
             icon={<UndoIcon fontSize="small" />}
             tooltip={t("timeline:shortcuts.undo", { defaultValue: "Undo" })}
@@ -120,36 +100,67 @@ const EditorToolbar = ({
             disabled={!canRedo}
             size="small"
           />
-        </div>
+        </ToolbarGroup>
+      )}
+      {!readOnly && <ToolbarDivider />}
+
+      {!readOnly && onHeading && onBold && onBulletList && (
+        <>
+          <ToolbarGroup>
+            <ToolbarIconButton
+              icon={<TitleIcon fontSize="small" />}
+              tooltip={t("appbuilder:attrs.heading", { defaultValue: "Heading" })}
+              className="toolbar-button"
+              onClick={onHeading}
+              size="small"
+            />
+            <ToolbarIconButton
+              icon={<FormatBoldIcon fontSize="small" />}
+              tooltip="Bold"
+              className="toolbar-button"
+              onClick={onBold}
+              size="small"
+            />
+            <ToolbarIconButton
+              icon={<FormatListBulletedIcon fontSize="small" />}
+              tooltip={t("editor:ui.bulletedList", { defaultValue: "Bulleted list" })}
+              className="toolbar-button"
+              onClick={onBulletList}
+              size="small"
+            />
+          </ToolbarGroup>
+          <ToolbarDivider />
+        </>
       )}
 
-      <div className="toolbar-group">
+      <ToolbarGroup>
         <ToolbarIconButton
           icon={<SearchIcon fontSize="small" />}
-          tooltip={t("editor:ui.findAndReplace", { defaultValue: "Find & Replace" })}
+          tooltip={t("editor:ui.findAndReplace", { defaultValue: "Find & replace" })}
           className="toolbar-button"
           onClick={onToggleFind}
           size="small"
         />
-      </div>
+      </ToolbarGroup>
+      <ToolbarDivider />
 
-      <div className="toolbar-group">
+      <ToolbarGroup>
         <ToolbarIconButton
           icon={<WrapTextIcon fontSize="small" />}
-          tooltip={t("editor:ui.toggleWordWrap", { defaultValue: "Toggle Word Wrap" })}
+          tooltip={t("editor:ui.toggleWordWrap", { defaultValue: "Toggle word wrap" })}
           className={`toolbar-button ${wordWrapEnabled ? "active" : ""}`}
           onClick={onToggleWordWrap}
           size="small"
         />
         <ToolbarIconButton
           icon={<CodeIcon fontSize="small" />}
-          tooltip={t("editor:ui.formatAsCodeBlock", { defaultValue: "Format as Code Block" })}
+          tooltip={t("editor:ui.formatAsCodeBlock", { defaultValue: "Format as code block" })}
           className={`toolbar-button ${isCodeBlock ? "active" : ""}`}
           onClick={onFormatCodeBlock}
           size="small"
         />
-      </div>
-    </Box>
+      </ToolbarGroup>
+    </Toolbar>
   );
 };
 

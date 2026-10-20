@@ -1,10 +1,10 @@
 import { memo, useCallback, useMemo } from "react";
 import type { UiDocumentRef } from "@nodetool-ai/protocol";
-import { useTranslation } from "react-i18next";
 
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
 import { useSketchSessionStore } from "../../stores/sketch/SketchSessionStore";
 import { useSketchStore } from "./state/useSketchStore";
+import { i18n } from "../../i18n";
 
 /**
  * Chat surface for the image / sketch editor. The shared assistant panel
@@ -12,8 +12,6 @@ import { useSketchStore } from "./state/useSketchStore";
  * `source: sketch_assistant`.
  */
 const SketchAgentPanel = () => {
-  // Language anchor for a memo'd panel (F-26).
-  const { t } = useTranslation();
   const documentId = useSketchSessionStore((s) => s.documentId);
   const name = useSketchSessionStore((s) => s.name);
 
@@ -43,9 +41,9 @@ const SketchAgentPanel = () => {
       getSelection={getSelection}
       workflowId={documentId}
       docsTopic="sketches"
-      docsLabel={t("sketch:attrs.docsLabel", { defaultValue: "Sketch editor" })}
-      welcomeTitle={t("sketch:attrs.editorAssistant", { defaultValue: "Editor Assistant" })}
-      welcomeBody={t("sketch:attrs.editorAssistantWelcome", { defaultValue: "Describe an image to generate, or ask for an edit to your layers." })}
+      docsLabel={i18n.t("storyboard:attrs.sketchEditor", { defaultValue: "Sketch editor" })}
+      welcomeTitle="Editor assistant"
+      welcomeBody={i18n.t("sketch:attrs.editorAssistantWelcome", { defaultValue: "Describe an image to generate, or ask for an edit to your layers." })}
     />
   );
 };

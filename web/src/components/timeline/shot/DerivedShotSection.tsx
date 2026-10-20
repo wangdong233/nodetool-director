@@ -8,17 +8,17 @@
  * selected when the dialog closes.
  */
 
-import React, { memo, useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { memo, useCallback, useState } from "react";
 import { MAX_DERIVED_FRAMES } from "@nodetool-ai/timeline";
 
+import ErrorBanner from "../../support/ErrorBanner";
 import {
   Caption,
   EditorButton,
   FlexColumn,
   FormField,
   SelectField,
-  TextInput,
+  TextArea,
   SPACING
 } from "../../ui_primitives";
 import ShotRenderDialog from "../../storyboard/ShotRenderDialog";
@@ -28,17 +28,16 @@ import {
   type DerivedShot
 } from "../../../hooks/timeline/useDeriveShotFromClip";
 import { getErrorMessage } from "../../../utils/errorHandling";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
-const FRAME_COUNT_OPTIONS = (
-  t: ReturnType<typeof useTranslation>["t"]
-) =>
-  Array.from({ length: MAX_DERIVED_FRAMES }, (_, i) => ({
+const FRAME_COUNT_OPTIONS = Array.from(
+  { length: MAX_DERIVED_FRAMES },
+  (_, i) => ({
     value: String(i + 1),
-    label: t("timeline:shot.frameCount", {
-      defaultValue: "{{count}} frames",
-      count: i + 1
-    })
-  }));
+    label: i === 0 ? "1 frame" : `${i + 1} frames`
+  })
+);
 
 interface DerivedShotSectionProps {
   clipId: string;
@@ -63,7 +62,7 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
       );
       setAction("");
     } catch (failure) {
-      setError(getErrorMessage(failure, t("timeline:shot.derivedShotCouldNotBeMade", { defaultValue: "The derived shot could not be made." })));
+      setError(getErrorMessage(failure, i18n.t("timeline:shot.derivedShotCouldNotBeMade", { defaultValue: "The derived shot could not be made." })));
     } finally {
       setWorking(false);
     }
@@ -79,7 +78,8 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
   return (
     <FlexColumn gap={SPACING.sm} data-testid="derived-shot-section">
       <Caption color="secondary">
-        {t("timeline:shot.framesBecomeReferences", { defaultValue: "Frames from this clip become the references for a new shot. Its clip goes on a new track above this one." })}
+        Frames from this clip become the references for a new shot. Its clip
+        goes on a new track above this one.
       </Caption>
       <FormField label={t("timeline:shot.referenceFrames", { defaultValue: "Reference frames" })}>
         <SelectField
@@ -88,16 +88,15 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
           hideLabel
           value={frameCount}
           onChange={setFrameCount}
-          options={FRAME_COUNT_OPTIONS(t)}
+          options={FRAME_COUNT_OPTIONS}
           disabled={working}
         />
       </FormField>
-      <TextInput
+      <TextArea
         label={t("storyboard:attrs.description", { defaultValue: "Description" })}
         value={action}
-        onChange={(event) => setAction(event.target.value)}
+        onChange={(value) => setAction(value)}
         placeholder={t("timeline:shot.whatTheNewShotShows", { defaultValue: "What the new shot shows (defaults to this shot's)" })}
-        multiline
         maxRows={6}
         compact
         fullWidth
@@ -110,14 +109,18 @@ const DerivedShotSectionInner = ({ clipId }: DerivedShotSectionProps) => {
         disabled={working}
         data-testid="derived-shot-create"
       >
-        {working
-          ? t("timeline:shot.takingFrames", { defaultValue: "Taking frames…" })
-          : t("timeline:shot.createDerivedShot", { defaultValue: "Create derived shot" })}
+        {working ? t("timeline:shot.takingFrames", { defaultValue: "Taking frames…" }) : i18n.t("timeline:shot.createDerivedShot", { defaultValue: "Create derived shot" })}
       </EditorButton>
       {error && (
-        <Caption color="error" sx={{ textAlign: "center" }}>
+        <ErrorBanner
+          report={{
+            source: "operation-failure",
+            summary: "Creating a derived shot failed",
+            errorText: error
+          }}
+        >
           {error}
-        </Caption>
+        </ErrorBanner>
       )}
       {derived && (
         <ShotRenderDialog

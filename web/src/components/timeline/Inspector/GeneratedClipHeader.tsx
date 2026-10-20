@@ -12,7 +12,7 @@
 import React, { memo } from "react";
 import type { ClipStatus, TimelineClip } from "@nodetool-ai/timeline";
 
-import type { StatusType } from "../../ui_primitives";
+import { GENERATION_STATUS } from "../../ui_primitives";
 import {
   FlexColumn,
   FlexRow,
@@ -24,18 +24,9 @@ import {
 import { relativeTime } from "../../../utils/formatDateAndTime";
 import { i18n } from "../../../i18n";
 
-// ── Status mapping (PRD §5.5) ─────────────────────────────────────────────
+// ── Status mapping (PRD §5.5), shared with sketch layers ──────────────────
 
-const CLIP_STATUS_MAP = {
-  draft: { status: "default", label: "Draft", pulse: false },
-  queued: { status: "pending", label: "Queued", pulse: false },
-  generating: { status: "pending", label: "Generating", pulse: true },
-  generated: { status: "success", label: "Generated", pulse: false },
-  stale: { status: "warning", label: "Stale", pulse: false },
-  failed: { status: "error", label: "Failed", pulse: false },
-  locked: { status: "info", label: "Locked", pulse: false },
-  missing: { status: "error", label: "Missing", pulse: false }
-} satisfies Record<ClipStatus, { status: StatusType; label: string; pulse: boolean }>;
+const CLIP_STATUS_MAP = GENERATION_STATUS satisfies Record<ClipStatus, unknown>;
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 

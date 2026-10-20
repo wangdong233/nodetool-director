@@ -14,12 +14,12 @@ import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
 import CuratedModelSelect from "./curated/CuratedModelSelect";
 import { useInStudio } from "../../studio/StudioContext";
-import { useTranslation } from "react-i18next";
 import {
   forAllTasks,
   forTasks,
   STUDIO_CLIP_MODELS
 } from "../../studio/curatedModels";
+import { useTranslation } from "react-i18next";
 
 interface VideoModelSelectProps {
   onChange: (value: VideoModelValue) => void;
@@ -78,8 +78,8 @@ const VideoModelSelect: React.FC<VideoModelSelectProps> = ({
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || t("editor:ui.selectModel")}
-        subLabel={t("editor:ui.selectVideoModel")}
+        label={currentSelectedModelDetails?.name || value || "Select model"}
+        subLabel="Select video model"
         onClick={handleClick}
       />
       <VideoModelMenuDialog

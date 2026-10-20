@@ -1,10 +1,10 @@
 /** @jsxImportSource @emotion/react */
 import { memo } from "react";
-import { useTranslation } from "react-i18next";
-import { useTheme } from "@mui/material/styles";
 
-import { Caption, Divider, FlexRow, SPACING } from "../ui_primitives";
+import { SPACING, StatusBar, StatusBarItem, ToolbarDivider } from "../ui_primitives";
 import type { SceneStats } from "./sceneOps";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const compact = (value: number): string => {
   if (value >= 1_000_000) {
@@ -25,45 +25,17 @@ interface EditorStatusBarProps {
 /** Bottom bar: what is selected, what the mouse does now, and scene totals. */
 const EditorStatusBar = ({ selection, hint, stats }: EditorStatusBarProps) => {
   const { t } = useTranslation();
-  const theme = useTheme();
   return (
-    <FlexRow
-      className="editor-status-bar"
-      align="center"
-      gap={SPACING.md}
-      fullWidth
-      sx={{
-        px: SPACING.lg,
-        py: SPACING.xs,
-        flexShrink: 0,
-        minHeight: 26,
-        borderTop: `1px solid ${theme.vars.palette.divider}`,
-        backgroundColor: theme.vars.palette.background.paper,
-        whiteSpace: "nowrap",
-        overflow: "hidden"
-      }}
-    >
-      <Caption sx={{ color: "text.primary", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>
-        {selection
-          ? `${selection.name} · ${selection.type}`
-          : t("editor:ui.nothingSelectedStatus", { defaultValue: "No selection" })}
-      </Caption>
-      <Divider orientation="vertical" flexItem />
-      <Caption sx={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis" }}>
-        {hint}
-      </Caption>
-      <Caption aria-label={t("editor:ui.sceneStatistics", { defaultValue: "Scene statistics" })}>
-        {t("editor:ui.sceneStats", {
-          defaultValue:
-            "Objects {{objects}}  ·  Meshes {{meshes}}  ·  Lights {{lights}}  ·  Verts {{verts}}  ·  Tris {{tris}}",
-          objects: stats.objects,
-          meshes: stats.meshes,
-          lights: stats.lights,
-          verts: compact(stats.vertices),
-          tris: compact(stats.triangles)
-        })}
-      </Caption>
-    </FlexRow>
+    <StatusBar className="editor-status-bar" sx={{ gap: SPACING.md }}>
+      <StatusBarItem sx={{ color: "text.primary", overflow: "hidden", textOverflow: "ellipsis" }}>
+        {selection ? `${selection.name} · ${selection.type}` : i18n.t("editor:ui.nothingSelectedStatus", { defaultValue: "No selection" })}
+      </StatusBarItem>
+      <ToolbarDivider />
+      <StatusBarItem grow>{hint}</StatusBarItem>
+      <StatusBarItem aria-label={t("editor:ui.sceneStatistics", { defaultValue: "Scene statistics" })}>
+        {`Objects ${stats.objects}  ·  Meshes ${stats.meshes}  ·  Lights ${stats.lights}  ·  Verts ${compact(stats.vertices)}  ·  Tris ${compact(stats.triangles)}`}
+      </StatusBarItem>
+    </StatusBar>
   );
 };
 

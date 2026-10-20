@@ -1,5 +1,3 @@
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import {
@@ -8,25 +6,26 @@ import {
   Text,
   FlexRow,
   Box,
-  Popover,
-  ListGroup,
+  ContextMenu,
+  MenuItemPrimitive,
   MOTION,
   BORDER_RADIUS,
   SPACING,
   getSpacingPx,
-  ListItemButton,
-  ListItemText,
   Z_INDEX,
-  reducedMotion
+  reducedMotion,
+  ICON_SIZE
 } from "../ui_primitives";
 import { useStore, useReactFlow } from "@xyflow/react";
 import { useTheme } from "@mui/material/styles";
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
 import FilterCenterFocusIcon from "@mui/icons-material/FilterCenterFocus";
 import LabelOutlinedIcon from "@mui/icons-material/LabelOutlined";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { getShortcutTooltip } from "../../config/shortcuts";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface ViewportStatusIndicatorProps {
   visible?: boolean;
@@ -91,14 +90,6 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
     [zoomTo]
   );
 
-  const handlePresetClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    const presetValue = event.currentTarget.dataset.preset;
-    if (presetValue) {
-      const preset = parseFloat(presetValue) as ZoomPreset;
-      handlePresetZoom(preset);
-    }
-  }, [handlePresetZoom]);
-
   const handleOpenZoomMenu = useCallback(
     (event: React.MouseEvent<HTMLElement>) => {
       setZoomMenuAnchor(event.currentTarget);
@@ -116,10 +107,10 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
       color: theme.vars.palette.text.secondary,
       "&:hover": {
         backgroundColor: theme.vars.palette.action.hover,
-        color: theme.palette.primary.main
+        color: theme.vars.palette.primary.main
       }
     }),
-    [theme.vars.palette.text.secondary, theme.vars.palette.action.hover, theme.palette.primary.main]
+    [theme.vars.palette.text.secondary, theme.vars.palette.action.hover, theme.vars.palette.primary.main]
   );
 
   const zoomLabelSx = useMemo(
@@ -131,7 +122,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
       fontSize: "var(--fontSizeSmall)",
       fontWeight: 500,
       color: currentPreset !== null
-        ? theme.palette.primary.main
+        ? theme.vars.palette.primary.main
         : theme.vars.palette.text.secondary,
       minWidth: "48px",
       textAlign: "center" as const,
@@ -140,10 +131,10 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
       transition: `all ${MOTION.fast}`,
       "&:hover": {
         backgroundColor: theme.vars.palette.action.hover,
-        color: theme.palette.primary.main
+        color: theme.vars.palette.primary.main
       }
     }),
-    [currentPreset, theme.palette.primary.main, theme.vars.palette.text.secondary, theme.vars.palette.action.hover]
+    [currentPreset, theme.vars.palette.primary.main, theme.vars.palette.text.secondary, theme.vars.palette.action.hover]
   );
 
   const containerSx = useMemo(
@@ -180,7 +171,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
         sx={containerSx}
       >
         <ToolbarIconButton
-          icon={<RemoveIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
+          icon={<RemoveIcon sx={{ fontSize: ICON_SIZE.sm }} />}
           tooltip={getShortcutTooltip("zoomOut")}
           tooltipPlacement="top"
           onClick={handleZoomOut}
@@ -209,7 +200,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
         </Tooltip>
 
         <ToolbarIconButton
-          icon={<AddIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
+          icon={<AddIcon sx={{ fontSize: ICON_SIZE.sm }} />}
           tooltip={getShortcutTooltip("zoomIn")}
           tooltipPlacement="top"
           onClick={handleZoomIn}
@@ -227,16 +218,8 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
         />
 
         <ToolbarIconButton
-          icon={<CenterFocusStrongIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
-          // The tooltip is a node (label · combo), so the button carries an
-          // explicit accessible name — a stringified element reads as
-          // "[object Object]" and names nothing.
-          tooltip={
-            <>
-              {t("editor:ui.fitAll", { defaultValue: "Fit all" })} · {getShortcutTooltip("fitView", undefined, "combo")}
-            </>
-          }
-          ariaLabel={t("editor:ui.fitAll", { defaultValue: "Fit all" })}
+          icon={<CenterFocusStrongIcon sx={{ fontSize: ICON_SIZE.sm }} />}
+          tooltip={getShortcutTooltip("fitView")}
           tooltipPlacement="top"
           onClick={handleFitView}
           size="small"
@@ -244,7 +227,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
         />
 
         <ToolbarIconButton
-          icon={<FilterCenterFocusIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
+          icon={<FilterCenterFocusIcon sx={{ fontSize: ICON_SIZE.sm }} />}
           tooltip={t("editor:ui.fitSelection", { defaultValue: "Fit selection" })}
           tooltipPlacement="top"
           onClick={handleFitSelection}
@@ -254,7 +237,7 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
 
         {onTogglePortLabels ? (
           <ToolbarIconButton
-            icon={<LabelOutlinedIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />}
+            icon={<LabelOutlinedIcon sx={{ fontSize: ICON_SIZE.sm }} />}
             tooltip={showPortLabels ? i18n.t("editor:ui.hidePortLabels", { defaultValue: "Hide port labels" }) : i18n.t("editor:ui.showPortLabels", { defaultValue: "Show port labels" })}
             tooltipPlacement="top"
             onClick={onTogglePortLabels}
@@ -266,46 +249,23 @@ const ViewportStatusIndicator: React.FC<ViewportStatusIndicatorProps> = ({
         ) : null}
       </FlexRow>
 
-      <Popover
+      <ContextMenu
         open={Boolean(zoomMenuAnchor)}
         anchorEl={zoomMenuAnchor}
         onClose={handleCloseZoomMenu}
-        placement="top-center"
-        paperSx={{
-          minWidth: 120,
-          py: SPACING.micro
-        }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+        minWidth={120}
       >
-        <ListGroup compact flush>
-          {ZOOM_PRESETS.map((preset) => (
-            <ListItemButton
-              key={preset}
-              onClick={handlePresetClick}
-              data-preset={preset.toString()}
-              selected={preset === currentPreset}
-              sx={{
-                py: SPACING.micro,
-                px: SPACING.md,
-                "&.Mui-selected": {
-                  backgroundColor: theme.vars.palette.action.selected,
-                  "&:hover": {
-                    backgroundColor: theme.vars.palette.action.selected
-                  }
-                }
-              }}
-            >
-              <ListItemText
-                primary={`${Math.round(preset * 100)}%`}
-                primaryTypographyProps={{
-                  fontSize: "var(--fontSizeSmall)",
-                  fontFamily: "var(--fontFamily2)",
-                  textAlign: "center"
-                }}
-              />
-            </ListItemButton>
-          ))}
-        </ListGroup>
-      </Popover>
+        {ZOOM_PRESETS.map((preset) => (
+          <MenuItemPrimitive
+            key={preset}
+            label={`${Math.round(preset * 100)}%`}
+            selected={preset === currentPreset}
+            onClick={() => handlePresetZoom(preset)}
+          />
+        ))}
+      </ContextMenu>
     </>
   );
 };

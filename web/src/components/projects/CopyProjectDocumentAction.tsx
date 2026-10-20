@@ -13,14 +13,18 @@ import {
 import type { ProjectDocument } from "./projectStatus";
 import { useTranslation } from "react-i18next";
 
-/** A document the copy route covers. Workflows are listed but not copied. */
+/**
+ * A document the copy route covers. Workflows and text files are listed but
+ * not copied.
+ */
 type CopyableDocument = ProjectDocument & {
-  type: Exclude<ProjectDocument["type"], "workflow">;
+  type: Exclude<ProjectDocument["type"], "workflow" | "text">;
 };
 
 export const isCopyableDocument = (
   document: ProjectDocument
-): document is CopyableDocument => document.type !== "workflow";
+): document is CopyableDocument =>
+  document.type !== "workflow" && document.type !== "text";
 
 interface CopyProjectDocumentActionProps {
   readonly document: CopyableDocument;
@@ -47,6 +51,7 @@ const CopyProjectDocumentAction = ({
     onSuccess: () => {
       setOpen(false);
       void utils.projects.get.invalidate();
+      void utils.projects.documentPage.invalidate();
       void utils.projects.summaries.invalidate();
     },
     onError: (error) => {
@@ -86,9 +91,9 @@ const CopyProjectDocumentAction = ({
         onClose={closeDialog}
         title={`Copy ${document.name}`}
         onConfirm={confirmCopy}
-        confirmText={t("common:action.copy", { defaultValue: "Copy" })}
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+        confirmText="Copy"
         confirmDisabled={!destinationProjectId}
+        cancelDisabled={copy.isPending}
         isLoading={copy.isPending}
       >
         <FlexColumn gap={SPACING.lg}>

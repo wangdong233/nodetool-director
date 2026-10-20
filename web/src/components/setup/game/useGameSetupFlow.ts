@@ -58,7 +58,7 @@ import {
   parseImageModelTileId
 } from "./gameSetupModel";
 
-const FLOW_TITLE = { title: "Game" } as const;
+const FLOW_TITLE = { title: "Game", titleKey: "home:flowError.kind.game" } as const;
 
 export interface GameSetupFlowOptions {
   workflowId: string;

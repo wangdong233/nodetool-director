@@ -27,17 +27,17 @@ import NodeResizeHandle from "./NodeResizeHandle";
 import { CopyButton, ToolbarIconButton, Container, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX, SHADOW } from "../ui_primitives";
 import TextEditorModal from "../properties/TextEditorModal";
 import useMetadataStore from "../../stores/MetadataStore";
-import { useNodes } from "../../contexts/NodeContext";
+import { useNodeStoreRef, useNodes } from "../../contexts/NodeContext";
 import { isHandleConnected } from "../../hooks/nodes/edgeIndex";
 import { colorForType } from "../../config/data_types";
 import { NodeTextPreview, editorClassNames, cn } from "../editor_ui";
 import HandleTooltip from "../HandleTooltip";
 import type { NodeStoreState } from "../../stores/NodeStore";
-import { useTranslation } from "react-i18next";
 import {
   NODE_COLLAPSED_BODY_HEIGHT_WIN,
   NODE_COLLAPSED_LAYOUT
 } from "../../styles/collapsedNodeTokens";
+import { useTranslation } from "react-i18next";
 
 const MAX_AUTO_HEIGHT = 600;
 
@@ -180,6 +180,8 @@ const ConstantStringNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
     )
   );
 
+  const nodeStore = useNodeStoreRef();
+
   const metadata = useMetadataStore((state) => state.getMetadata(type));
   if (!metadata) {
     throw new Error("Metadata not loaded for " + type);
@@ -260,9 +262,20 @@ const ConstantStringNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
 
     if (Math.abs(desiredNodeH - currentNodeH) > 2) {
       lastEmittedHeight.current = desiredNodeH;
-      updateNode(id, { height: desiredNodeH });
+      // Auto-grow follows the text, so it records no undo step of its own:
+      // undoing it would only re-run this effect and clear the redo stack.
+      const history = nodeStore.temporal.getState();
+      const wasTracking = history.isTracking;
+      history.pause();
+      try {
+        updateNode(id, { height: desiredNodeH });
+      } finally {
+        if (wasTracking) {
+          history.resume();
+        }
+      }
     }
-  }, [localValue, id, updateNode, data.collapsed, isEditing]);
+  }, [localValue, id, updateNode, nodeStore, data.collapsed, isEditing]);
 
   const startEditing = useCallback((caretOffset: number | null) => {
     caretRef.current = caretOffset;
@@ -371,7 +384,7 @@ const ConstantStringNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           </HandleTooltip>
         </div>
         <div className="header-actions nodrag nopan">
-          <ToolbarIconButton title={t("editor:ui.openEditor", { defaultValue: "Open Editor" })} size="small" onClick={toggleExpand}>
+          <ToolbarIconButton title={t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })} size="small" onClick={toggleExpand}>
             <OpenInFullIcon />
           </ToolbarIconButton>
           <CopyButton value={localValue} buttonSize="small" />
@@ -417,6 +430,7 @@ const ConstantStringNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
           />
         </div>
       )}
+
       <div className="node-content-container">
         <NodeOutputs id={id} outputs={metadata.outputs} />
       </div>

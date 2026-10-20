@@ -29,7 +29,9 @@ const CLOUD = [
   "moonshot",
   "elevenlabs",
   "meshy",
-  "rodin"
+  "rodin",
+  "azure_openai",
+  "bedrock"
 ];
 // Local engines are never registered under the cloud profile in the first
 // place; the CLI-backed subscription is registered and then pruned.
@@ -38,7 +40,8 @@ const OUT_OF_SCOPE = [
   "lmstudio",
   "llama_cpp",
   "node_llama_cpp",
-  "claude_agent_sdk"
+  "claude_agent_sdk",
+  "antigravity"
 ];
 
 // The provider registry registers (and, under the cloud profile, prunes) at

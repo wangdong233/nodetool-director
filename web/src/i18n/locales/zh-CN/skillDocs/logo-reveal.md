@@ -197,3 +197,9 @@ startMs>, "params": {"intensity": 0.04}}`。
 - 用 `preview_timeline_frame` 看勾画中点、一个保持时刻、最后一帧。中点
   暴露画了一半的路径或永不闭合的描边;最后一帧确认标识干净、完整。
 - 然后 `render_timeline`——片头标要在速度里评判。
+
+| 遮罩擦除 | 实心形状、渐变标记 | `wipe` 预设,或用一个 `set_mask` 矩形,其 `mask.width`(或 `x`)由文档 `styleTracks` 的轨迹驱动 |
+
+按 `motion-principles` 的片段间错峰推进,顺序如同手绘描出。
+
+`add_shape_clip` 原样存储路径的 `d`,不做解析。渲染器无法解析的 `d` 会在 `validate_timeline` 报 `shape_path_invalid`(错误);画不出东西的标记则报 `shape_path_invalid` 或 `unknown_shape_kind`。

@@ -7,8 +7,6 @@
  * no server holds a reporter's prompts. The hosted app sends the report to
  * its own backend (`bugReports.submit`), so a reporter needs no GitHub account.
  */
-import { useTranslation } from "react-i18next";
-import { i18n } from "../../i18n";
 import { memo, useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MAX_BUG_REPORT_BUNDLE_BYTES } from "@nodetool-ai/protocol/api-schemas/bug-reports.js";
@@ -20,8 +18,10 @@ import {
   EditorButton,
   FlexColumn,
   FlexRow,
+  SectionHeader,
   Text,
-  TextField,
+  TextInput,
+  UploadButton,
   BORDER_RADIUS,
   SPACING
 } from "../ui_primitives";
@@ -53,6 +53,8 @@ import {
   type BundleFile,
   type BundleSection
 } from "../../utils/bugReportBundle";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const GITHUB_ISSUE_URL = "https://github.com/nodetool-ai/nodetool/issues/new";
 
@@ -190,13 +192,12 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
   }, []);
 
   const handleAttach = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const picked = Array.from(event.target.files ?? []);
+    (picked: File[]) => {
       const tooBig = picked.filter((file) => file.size > MAX_ATTACHMENT_BYTES);
       if (tooBig.length > 0) {
         addNotification({
           type: "warning",
-          content: i18n.t("editor:ui.skippedFilesOverLimit", { defaultValue: "Skipped {{count}} file(s) over {{size}}", count: tooBig.length, size: formatBytes(MAX_ATTACHMENT_BYTES) }),
+          content: `Skipped ${tooBig.length} file(s) over ${formatBytes(MAX_ATTACHMENT_BYTES)}`,
           alert: true
         });
       }
@@ -204,7 +205,6 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         ...prev,
         ...picked.filter((file) => file.size <= MAX_ATTACHMENT_BYTES)
       ]);
-      event.target.value = "";
     },
     [addNotification]
   );
@@ -251,7 +251,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         const zipped = zipBundleBytes(files);
         if (zipped.length > MAX_BUG_REPORT_BUNDLE_BYTES) {
           throw new Error(
-            i18n.t("editor:ui.attachmentOverLimit", { defaultValue: "the attached data is over {{size}}. Remove a file and try again.", size: formatBytes(MAX_BUG_REPORT_BUNDLE_BYTES) })
+            `the attached data is over ${formatBytes(MAX_BUG_REPORT_BUNDLE_BYTES)}. Remove a file and try again.`
           );
         }
         await trpcClient.bugReports.submit.mutate({
@@ -297,10 +297,9 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
     } catch (error) {
       addNotification({
         type: "error",
-        content:
-          SUBMIT_TO_BACKEND
-            ? i18n.t("editor:ui.couldNotSendTheReport", { defaultValue: "Could not send the report: {{error}}", error: error instanceof Error ? error.message : String(error) })
-            : i18n.t("editor:ui.couldNotBuildTheReport", { defaultValue: "Could not build the report: {{error}}", error: error instanceof Error ? error.message : String(error) }),
+        content: `Could not ${SUBMIT_TO_BACKEND ? "send" : "build"} the report: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
         alert: true
       });
     } finally {
@@ -334,16 +333,9 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         maxWidth="sm"
         fullWidth
       >
-        <FlexColumn gap={SPACING.lg} sx={{ pb: 2 }}>
-          <AlertBanner severity="success">
-            {t("editor:ui.thanksYourReportWasSent", { defaultValue: "Thanks. Your report was sent." })}
-          </AlertBanner>
-          <FlexRow justify="flex-end" gap={SPACING.sm}>
-            <EditorButton variant="contained" onClick={onClose}>
-              {t("ui2:attrs.close", { defaultValue: "Close" })}
-            </EditorButton>
-          </FlexRow>
-        </FlexColumn>
+        <AlertBanner severity="success">
+          Thanks. Your report was sent.
+        </AlertBanner>
       </Dialog>
     );
   }
@@ -357,22 +349,18 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         title={t("editor:ui.reportSaved", { defaultValue: "Report saved" })}
         maxWidth="sm"
         fullWidth
+        onConfirm={handleOpenIssue}
+        confirmText={i18n.t("editor:ui.openGitHubIssue", { defaultValue: "Open GitHub issue" })}
+        cancelText="Later"
       >
-        <FlexColumn gap={SPACING.lg} sx={{ pb: 2 }}>
+        <FlexColumn gap={SPACING.lg}>
           <AlertBanner severity="success">
-            {t("editor:ui.savedZipA", { defaultValue: "Saved" })} <strong>{saved.zipName}</strong> {t("editor:ui.savedZipB", { defaultValue: "to your downloads." })}
+            Saved <strong>{saved.zipName}</strong> to your downloads.
           </AlertBanner>
           <Text>
-            {t("editor:ui.nowOpenTheGitHubIssueItIsPreFilledWithYourDescription", { defaultValue: "Now open the GitHub issue. It is pre-filled with your description. Drag the saved zip into it before you submit." })}
+            Now open the GitHub issue. It is pre-filled with your description.
+            Drag the saved zip into it before you submit.
           </Text>
-          <FlexRow justify="flex-end" gap={SPACING.sm}>
-            <EditorButton variant="outlined" onClick={onClose}>
-              {t("editor:ui.later", { defaultValue: "Later" })}
-            </EditorButton>
-            <EditorButton variant="contained" onClick={handleOpenIssue}>
-              {t("editor:ui.openGitHubIssue", { defaultValue: "Open GitHub issue" })}
-            </EditorButton>
-          </FlexRow>
         </FlexColumn>
       </Dialog>
     );
@@ -383,20 +371,24 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
       className="bug-report-dialog"
       open
       onClose={onClose}
-      title={t("editor:ui.reportABug", { defaultValue: "Report a Bug" })}
+      title={t("common:action.reportBug", { defaultValue: "Report a bug" })}
       maxWidth="md"
       fullWidth
+      onConfirm={() => void handleSaveBundle()}
+      confirmText={SUBMIT_TO_BACKEND ? t("editor:ui.sendReport", { defaultValue: "Send report" }) : i18n.t("editor:ui.saveReportBundle", { defaultValue: "Save report bundle" })}
+      confirmDisabled={description.trim() === ""}
+      isLoading={busy}
     >
-      <FlexColumn gap={SPACING.lg} sx={{ pb: 2 }}>
+      <FlexColumn gap={SPACING.lg}>
         <AlertBanner severity="info">
           {SUBMIT_TO_BACKEND
-            ? t("editor:ui.yourReportAndTheDataCheckedBelowAreSentToThisNodetoolServer", { defaultValue: "Your report and the data checked below are sent to this NodeTool server. Review what it contains before you send it." })
-            : t("editor:ui.nothingIsUploadedNodeToolSavesAZipToYourDownloads", { defaultValue: "Nothing is uploaded. NodeTool saves a zip to your downloads. You then open a pre-filled GitHub issue and attach the zip there. Review what it contains below." })}
+            ? i18n.t("editor:ui.yourReportAndTheDataCheckedBelowAreSentToThisNodetoolServer", { defaultValue: "Your report and the data checked below are sent to this NodeTool server. Review what it contains before you send it." })
+            : i18n.t("editor:ui.nothingIsUploaded", { defaultValue: "Nothing is uploaded. NodeTool saves a zip to your downloads. You then open a pre-filled GitHub issue and attach the zip there. Review what it contains below." })}
         </AlertBanner>
 
-        <Caption>{t("editor:ui.reportedFrom", { defaultValue: "Reported from: {{source}}", source: sourceLabel(context.source) })}</Caption>
+        <Caption>Reported from: {sourceLabel(context.source)}</Caption>
 
-        <TextField
+        <TextInput
           label={t("editor:ui.whatWentWrong", { defaultValue: "What went wrong?" })}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
@@ -406,16 +398,16 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
           autoFocus
           placeholder={t("editor:ui.describeTheProblemInASentenceOrTwo", { defaultValue: "Describe the problem in a sentence or two." })}
         />
-        <TextField
+        <TextInput
           label={t("editor:ui.stepsToReproduce", { defaultValue: "Steps to reproduce" })}
           value={steps}
           onChange={(event) => setSteps(event.target.value)}
           multiline
           minRows={3}
           fullWidth
-          placeholder={t("editor:ui.bugReportStepsPlaceholder", { defaultValue: "1. Open …\n2. Add a … node\n3. Run the workflow" })}
+          placeholder={i18n.t("editor:ui.bugReportStepsPlaceholder", { defaultValue: "1. Open …\n2. Add a … node\n3. Run the workflow" })}
         />
-        <TextField
+        <TextInput
           label={t("editor:ui.whatDidYouExpect", { defaultValue: "What did you expect?" })}
           value={expected}
           onChange={(event) => setExpected(event.target.value)}
@@ -425,10 +417,11 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         />
 
         <FlexColumn gap={SPACING.sm}>
-          <Text weight={600}>{t("ui2:attrs.attachedData", { defaultValue: "Attached data" })}</Text>
-          <Caption>
-            {t("editor:ui.apiKeysAndInlinedMediaAreRemovedBeforeTheFileIsWritten", { defaultValue: "API keys and inlined media are removed before the file is written. Open any file to read it first." })}
-          </Caption>
+          <SectionHeader
+            size="small"
+            title={t("ui2:attrs.attachedData", { defaultValue: "Attached data" })}
+            subtitle={i18n.t("editor:ui.apiKeysAndInlinedMediaAreRemoved", { defaultValue: "API keys and inlined media are removed before the file is written. Open any file to read it first." })}
+          />
 
           {allSections.length === 0 ? (
             <Caption>{t("editor:ui.nothingWasCapturedToAttachToThisReport", { defaultValue: "Nothing was captured to attach to this report." })}</Caption>
@@ -441,7 +434,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
                   border: "1px solid",
                   borderColor: "divider",
                   borderRadius: BORDER_RADIUS.md,
-                  p: 2
+                  p: SPACING.md
                 }}
               >
                 <FlexRow align="center" justify="space-between" gap={SPACING.sm}>
@@ -460,7 +453,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
                     <Caption>{formatBytes(section.content.length)}</Caption>
                     <EditorButton
                       variant="text"
-                      aria-label={`${revealed[section.id] ? t("editor:ui.hide2", { defaultValue: "Hide" }) : t("editor:ui.view", { defaultValue: "View" })} ${section.label}`}
+                      aria-label={`${revealed[section.id] ? "Hide" : "View"} ${section.label}`}
                       onClick={() =>
                         setRevealed((prev) => ({
                           ...prev,
@@ -468,7 +461,7 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
                         }))
                       }
                     >
-                      {revealed[section.id] ? t("editor:ui.hide2", { defaultValue: "Hide" }) : t("editor:ui.view", { defaultValue: "View" })}
+                      {revealed[section.id] ? "Hide" : "View"}
                     </EditorButton>
                   </FlexRow>
                 </FlexRow>
@@ -476,14 +469,14 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
                   <Text
                     component="pre"
                     size="small"
+                    family="secondary"
                     sx={{
                       m: 0,
-                      p: 1,
+                      p: SPACING.xs,
                       maxHeight: 220,
                       overflow: "auto",
                       whiteSpace: "pre-wrap",
                       wordBreak: "break-word",
-                      fontFamily: "var(--fontFamily2)",
                       bgcolor: "background.default",
                       borderRadius: BORDER_RADIUS.sm
                     }}
@@ -497,19 +490,19 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
         </FlexColumn>
 
         <FlexColumn gap={SPACING.sm}>
-          <Text weight={600}>{t("ui2:attrs.screenshotsAndOtherFiles", { defaultValue: "Screenshots and other files" })}</Text>
-          <Caption>
-            {t("editor:ui.aScreenshotOfTheBrokenScreenIsTheMostUsefulThingYouCanAdd", { defaultValue: "A screenshot of the broken screen is the most useful thing you can add." })}
-          </Caption>
-          <label>
-            <input
-              type="file"
-              multiple
-              onChange={handleAttach}
-              style={{ display: "block" }}
-              aria-label={t("editor:ui.attachFilesToTheBugReport", { defaultValue: "Attach files to the bug report" })}
-            />
-          </label>
+          <SectionHeader
+            size="small"
+            title={t("ui2:attrs.screenshotsAndOtherFiles", { defaultValue: "Screenshots and other files" })}
+            subtitle={i18n.t("editor:ui.aScreenshotOfTheBrokenScreen", { defaultValue: "A screenshot of the broken screen is the most useful thing you can add." })}
+          />
+          <UploadButton
+            label={t("editor:ui.addFiles", { defaultValue: "Add files" })}
+            tooltip={t("editor:ui.attachFilesToTheBugReport", { defaultValue: "Attach files to the bug report" })}
+            iconVariant="file"
+            nodrag={false}
+            onFileSelect={handleAttach}
+            sx={{ alignSelf: "flex-start" }}
+          />
           {attachments.map((file) => (
             <FlexRow key={file.name} align="center" gap={SPACING.sm}>
               <Caption>
@@ -519,30 +512,11 @@ const BugReportDialog = ({ context, onClose }: BugReportDialogProps) => {
                 variant="text"
                 onClick={() => removeAttachment(file.name)}
               >
-                {t("editor:ui.remove", { defaultValue: "Remove" })}
+                Remove
               </EditorButton>
             </FlexRow>
           ))}
         </FlexColumn>
-
-        <FlexRow justify="flex-end" gap={SPACING.sm}>
-          <EditorButton variant="outlined" onClick={onClose} disabled={busy}>
-            {t("common:action.cancel", { defaultValue: "Cancel" })}
-          </EditorButton>
-          <EditorButton
-            variant="contained"
-            onClick={() => void handleSaveBundle()}
-            disabled={busy || description.trim() === ""}
-          >
-            {SUBMIT_TO_BACKEND
-              ? busy
-                ? t("editor:ui.sending", { defaultValue: "Sending…" })
-                : t("editor:ui.sendReport", { defaultValue: "Send report" })
-              : busy
-                ? t("editor:ui.saving", { defaultValue: "Saving…" })
-                : t("editor:ui.saveReportBundle", { defaultValue: "Save report bundle" })}
-          </EditorButton>
-        </FlexRow>
       </FlexColumn>
     </Dialog>
   );

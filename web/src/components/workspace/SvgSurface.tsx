@@ -13,18 +13,21 @@ import {
   useWorkspaceTabsStore,
   type WorkspaceTabMode
 } from "../../stores/WorkspaceTabsStore";
+import ErrorBanner from "../support/ErrorBanner";
 import {
-  BORDER_RADIUS,
   Caption,
   EditorButton,
   FlexColumn,
   FlexRow,
   LoadingSpinner,
-  Text
+  SaveState,
+  Toolbar,
+  EmptyState
 } from "../ui_primitives";
 import MonacoPane from "./MonacoPane";
 import SvgPreview from "./SvgPreview";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const SVG_CONTENT_TYPE = "image/svg+xml";
 
@@ -48,18 +51,6 @@ const styles = (theme: Theme) =>
     flexDirection: "column",
     minHeight: 0,
     backgroundColor: theme.vars.palette.grey[900],
-    ".toolbar": {
-      flex: "0 0 auto",
-      padding: theme.spacing(0.5, 1),
-      borderBottom: `1px solid ${theme.vars.palette.grey[700]}`
-    },
-    ".dirty-dot": {
-      width: 8,
-      height: 8,
-      borderRadius: BORDER_RADIUS.circle,
-      backgroundColor: theme.vars.palette.warning.main,
-      flex: "0 0 auto"
-    },
     ".panes": {
       flex: 1,
       minHeight: 0,
@@ -69,7 +60,7 @@ const styles = (theme: Theme) =>
       flex: "1 1 50%",
       minWidth: 0,
       position: "relative",
-      borderRight: `1px solid ${theme.vars.palette.grey[700]}`
+      borderRight: `1px solid ${theme.vars.palette.divider}`
     },
     ".preview-pane": {
       flex: "1 1 50%",
@@ -184,9 +175,23 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
   if (error || !asset) {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
-        <Text size="normal" weight={600}>
-          {error ? t("editor:ui.failedToLoadSVG", { defaultValue: "Failed to load SVG" }) : t("editor:ui.svgNotFound", { defaultValue: "SVG not found" })}
-        </Text>
+        {error ? (
+          <ErrorBanner
+            report={{
+              source: "operation-failure",
+              summary: "SVG asset failed to load",
+              errorText: error.message
+            }}
+          >
+            Could not load this SVG.
+          </ErrorBanner>
+        ) : (
+          <EmptyState
+            variant="no-data"
+            title={t("editor:ui.svgNotFound", { defaultValue: "SVG not found" })}
+            description={t("editor:ui.mayHaveBeenDeleted", { defaultValue: "It may have been deleted." })}
+          />
+        )}
       </FlexColumn>
     );
   }
@@ -194,9 +199,15 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
   if (markupError) {
     return (
       <FlexColumn fullWidth fullHeight align="center" justify="center">
-        <Caption sx={{ color: "error.main" }}>
-          {t("editor:ui.failedToLoadSVGContent")}
-        </Caption>
+        <ErrorBanner
+          report={{
+            source: "operation-failure",
+            summary: "SVG content failed to load",
+            errorText: markupError.message
+          }}
+        >
+          Could not load the SVG content.
+        </ErrorBanner>
       </FlexColumn>
     );
   }
@@ -215,12 +226,10 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
 
   return (
     <div css={surfaceStyles}>
-      <FlexRow className="toolbar" align="center" justify="space-between">
+      <Toolbar sx={{ justifyContent: "space-between" }}>
         <Caption>{asset.name}</Caption>
         <FlexRow align="center" gap={0.5}>
-          {isDirty && (
-            <span className="dirty-dot" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
-          )}
+          <SaveState state={isDirty ? "dirty" : "idle"} showLabel={false} />
           <EditorButton
             variant="contained"
             size="small"
@@ -228,10 +237,10 @@ const SvgSurface = ({ refId, mode }: SvgSurfaceProps) => {
             disabled={!isDirty || isSaving}
             onClick={handleSave}
           >
-            {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : t("editor:ui.save", { defaultValue: "Save" })}
+            {isSaving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
           </EditorButton>
         </FlexRow>
-      </FlexRow>
+      </Toolbar>
       <div className="panes">
         <div className="source-pane">
           <MonacoPane

@@ -8,10 +8,8 @@
  * states outright and this component enforces by having no apply path at all.
  */
 
-import { useTranslation } from "react-i18next";
 import React, { memo } from "react";
 import type { WorkflowSetupRunMode } from "@nodetool-ai/protocol/api-schemas/workflows.js";
-import { i18n } from "../../../i18n";
 
 import {
   AlertBanner,
@@ -24,28 +22,25 @@ import {
   Text
 } from "../../ui_primitives";
 import type { BuildFromPlanResult } from "../../../hooks/workflow/useBuildFromPlan";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
+
 
 /** What each run mode leaves to do once the graph runs (PRD § 11.4). */
 const NEXT_STEP: Readonly<
-  Record<WorkflowSetupRunMode, { label: string; labelKey: string; detail: string; detailKey: string }>
+  Record<WorkflowSetupRunMode, { label: string; detail: string; labelKey?: string }>
 > = {
   manual: {
-    label: "Continue on canvas",
-    labelKey: "editor:ui.continueOnCanvas",
-    detail: "Adjust inputs or run the workflow from the canvas.",
-    detailKey: "editor:ui.adjustInputsOrRunTheWorkflowFromTheCanvas"
+    label: "Continue on canvas", labelKey: "editor:ui.continueOnCanvas",
+    detail: i18n.t("editor:ui.adjustInputsOrRunTheWorkflowFromTheCanvas", { defaultValue: "Adjust inputs or run the workflow from the canvas." })
   },
   app: {
-    label: "Create Mini App",
-    labelKey: "editor:ui.createMiniApp",
-    detail: "Create and open a Mini App backed by this workflow.",
-    detailKey: "editor:ui.createAndOpenAMiniAppBackedByThisWorkflow"
+    label: "Create mini app",
+    detail: i18n.t("editor:ui.createAndOpenAMiniAppBackedByThisWorkflow", { defaultValue: "Create and open a Mini App backed by this workflow." })
   },
   trigger: {
-    label: "Add a trigger",
-    labelKey: "editor:ui.addTrigger",
-    detail: "Open the trigger-node picker on this canvas.",
-    detailKey: "editor:ui.openTheTriggernodePickerOnThisCanvas"
+    label: "Add a trigger", labelKey: "editor:ui.addTrigger",
+    detail: i18n.t("editor:ui.openTheTriggernodePickerOnThisCanvas", { defaultValue: "Open the trigger-node picker on this canvas." })
   }
 };
 
@@ -113,31 +108,26 @@ const outputDetail = (output: unknown): string => {
     return i18n.t("storyboard:attrs.outputIsReady", { defaultValue: "Output is ready" });
   }
   if (typeof output === "string") {
-    return output.length > 0
-      ? i18n.t("setup:workflow.outputValue", { defaultValue: "Output: {{value}}", value: output })
-      : i18n.t("storyboard:attrs.outputIsReady", { defaultValue: "Output is ready" });
+    return output.length > 0 ? `Output: ${output}` : "Output is ready";
   }
   if (Array.isArray(output)) {
-    return i18n.t("setup:workflow.outputIsReadyValues", {
-      defaultValue: "Output is ready ({{count}} values)",
-      count: output.length
-    });
+    return `Output is ready (${output.length} value${
+      output.length === 1 ? "" : "s"
+    })`;
   }
   if (typeof output === "object") {
     const keys = Object.keys(output);
     return keys.length > 0
-      ? i18n.t("setup:workflow.outputIsReadyKeys", {
-          defaultValue: "Output is ready ({{keys}})",
-          keys: keys.join(", ")
-        })
-      : i18n.t("storyboard:attrs.outputIsReady", { defaultValue: "Output is ready" });
+      ? `Output is ready (${keys.join(", ")})`
+      : "Output is ready";
   }
-  return i18n.t("setup:workflow.outputValue", { defaultValue: "Output: {{value}}", value: String(output) });
+  return `Output: ${String(output)}`;
 };
 
 type LineTone = "done" | "rendering" | "failed" | "neutral";
 
 interface LineState {
+  detailKey?: string;
   tone: LineTone;
   /** The pill's word. */
   pill: string;
@@ -147,20 +137,10 @@ interface LineState {
 /** The `Validated` line, read from where the build got to. */
 const validationLine = (result: BuildFromPlanResult): LineState => {
   if (result.status === "built") {
-    return {
-      tone: "rendering",
-      pill: "checking",
-      detail: i18n.t("setup:workflow.checking", { defaultValue: "Checking…" })
-    };
+    return { tone: "rendering", pill: "checking", detail: i18n.t("setup:workflow.checking", { defaultValue: "Checking…" }) };
   }
   if (result.validationError !== undefined) {
-    return {
-      tone: "failed",
-      pill: "failed",
-      detail: i18n.t("setup:workflow.validationCouldNotRun", {
-        defaultValue: "Validation could not run"
-      })
-    };
+    return { tone: "failed", pill: "failed", detail: "Validation could not run", detailKey: "setup:workflow.validationCouldNotRun" };
   }
   if (result.validationPending) {
     return {
@@ -168,10 +148,7 @@ const validationLine = (result: BuildFromPlanResult): LineState => {
       pill: "unknown",
       detail:
         result.status === "unrecorded"
-          ? i18n.t("setup:workflow.theChecksResultWasNotRecorded", {
-              defaultValue: "The check's result was not recorded"
-            })
-          : i18n.t("setup:workflow.notChecked", { defaultValue: "Not checked" })
+          ? i18n.t("setup:workflow.theChecksResultWasNotRecorded", { defaultValue: "The check's result was not recorded" }) : i18n.t("setup:workflow.notChecked", { defaultValue: "Not checked" })
     };
   }
   if (result.validationErrors.length > 0) {
@@ -179,28 +156,17 @@ const validationLine = (result: BuildFromPlanResult): LineState => {
     return {
       tone: "failed",
       pill: "failed",
-      detail: i18n.t("setup:workflow.errorCount", {
-        defaultValue: "{{count}} errors",
-        count
-      })
+      detail: `${count} error${count === 1 ? "" : "s"}`
     };
   }
   if (result.issues.length > 0) {
     return {
       tone: "failed",
       pill: "failed",
-      detail: i18n.t("storyboard:attrs.validatesButPartOfThePlanIsUnwired", {
-        defaultValue: "Validates, but part of the plan is unwired"
-      })
+      detail: "Validates, but part of the plan is unwired", detailKey: "storyboard:attrs.validatesButPartOfThePlanIsUnwired"
     };
   }
-  return {
-    tone: "done",
-    pill: "validated",
-    detail: i18n.t("storyboard:attrs.noProblemsFound", {
-      defaultValue: "No problems found"
-    })
-  };
+  return { tone: "done", pill: "validated", detail: "No problems found", detailKey: "storyboard:attrs.noProblemsFound" };
 };
 
 /** The `Test run` line. Why a run did not start matters as much as that it did not. */
@@ -216,32 +182,18 @@ const testRunLine = (result: BuildFromPlanResult): LineState => {
       return {
         tone: "rendering",
         pill: "running",
-        detail: i18n.t("storyboard:attrs.runningWithYourSampleInputs", {
-          defaultValue: "Running with your sample inputs"
-        })
+        detail: "Running with your sample inputs", detailKey: "storyboard:attrs.runningWithYourSampleInputs"
       };
     case "built":
     case "validated":
-      return {
-        tone: "neutral",
-        pill: "waiting",
-        detail: i18n.t("setup:workflow.notRunYet", { defaultValue: "Not run yet" })
-      };
+      return { tone: "neutral", pill: "waiting", detail: "Not run yet", detailKey: "setup:workflow.notRunYet" };
     case "canceled":
-      return {
-        tone: "neutral",
-        pill: "canceled",
-        detail: i18n.t("setup:workflow.testRunCanceled", {
-          defaultValue: "Test run canceled"
-        })
-      };
+      return { tone: "neutral", pill: "canceled", detail: "Test run canceled", detailKey: "setup:workflow.testRunCanceled" };
     case "unrecorded":
       return {
         tone: "neutral",
         pill: "unknown",
-        detail: i18n.t("setup:workflow.theTestRunsResultWasNotRecorded", {
-          defaultValue: "The test run's result was not recorded"
-        })
+        detail: "The test run's result was not recorded", detailKey: "setup:workflow.theTestRunsResultWasNotRecorded"
       };
     case "failed":
       break;
@@ -251,28 +203,18 @@ const testRunLine = (result: BuildFromPlanResult): LineState => {
       tone: "failed",
       pill: "failed",
       detail: result.testRun.error
-        ? i18n.t("setup:workflow.runFailedError", {
-            defaultValue: "Run failed: {{error}}",
-            error: result.testRun.error
-          })
-        : i18n.t("setup:workflow.runFailed", { defaultValue: "Run failed" })
+        ? `Run failed: ${result.testRun.error}`
+        : i18n.t("editor:ui.runFailed", { defaultValue: "Run failed" })
     };
   }
   if (result.validationError !== undefined) {
-    return {
-      tone: "neutral",
-      pill: "skipped",
-      detail: i18n.t("setup:workflow.notRunYet", { defaultValue: "Not run yet" })
-    };
+    return { tone: "neutral", pill: "skipped", detail: "Not run yet", detailKey: "setup:workflow.notRunYet" };
   }
   if (result.testRun.error !== null) {
     return {
       tone: "failed",
       pill: "failed",
-      detail: i18n.t("setup:workflow.didNotStartError", {
-        defaultValue: "Did not start: {{error}}",
-        error: result.testRun.error
-      })
+      detail: `Did not start: ${result.testRun.error}`
     };
   }
   return {
@@ -282,14 +224,10 @@ const testRunLine = (result: BuildFromPlanResult): LineState => {
       result.validationErrors.length > 0
         ? i18n.t("setup:workflow.notStartedGraphDidNotValidate", {
             defaultValue: "Not started, the graph did not validate"
-          })
-        : result.issues.length > 0
+          }) : result.issues.length > 0
           ? i18n.t("setup:workflow.notStartedPlanUnwired", {
               defaultValue: "Not started, part of the plan is unwired"
-            })
-          : i18n.t("setup:workflow.notStartedBuildStopped", {
-              defaultValue: "Not started, the build stopped first"
-            })
+            }) : i18n.t("setup:workflow.notStartedBuildStopped", { defaultValue: "Not started, the build stopped first" })
   };
 };
 
@@ -309,23 +247,14 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
       <Line
         tone="done"
         pill="built"
-        label={t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
-        detail={t("setup:workflow.nodesPlaced", {
-          defaultValue: "{{count}} nodes placed",
-          count: result.nodeCount
-        })}
+        label={i18n.t("storyboard:attrs.graphBuilt", { defaultValue: "Graph built" })}
+        detail={`${result.nodeCount} node${result.nodeCount === 1 ? "" : "s"} placed`}
       />
-      <Line
-        label={t("storyboard:attrs.validated", { defaultValue: "Validated" })}
-        {...validationLine(result)}
-      />
+      <Line label={i18n.t("storyboard:attrs.validated", { defaultValue: "Validated" })} {...validationLine(result)} />
       {/* The creator was told on the setup step that building would run it
           once, so a missing run is a promise this screen has to account for
           (F1, F8). */}
-      <Line
-        label={t("storyboard:attrs.testRun", { defaultValue: "Test run" })}
-        {...testRunLine(result)}
-      />
+      <Line label={i18n.t("storyboard:attrs.testRun", { defaultValue: "Test run" })} {...testRunLine(result)} />
 
       {failure === null ? (
         <FlexRow gap={GAP.normal} align="center">
@@ -334,17 +263,17 @@ const ChecklistInternal: React.FC<WorkflowLandingChecklistProps> = ({
             onClick={() => void onNextStep()}
             disabled={nextStepPending}
           >
-            {t(next.labelKey, { defaultValue: next.label })}
+            {next.label}
           </EditorButton>
-          <Caption color="secondary">{t(next.detailKey, { defaultValue: next.detail })}</Caption>
+          <Caption color="secondary">{next.detail}</Caption>
         </FlexRow>
       ) : (
         <AlertBanner
           severity="error"
-          title={t("storyboard:attrs.thisNeedsAFixBeforeItWorks", { defaultValue: "This needs a fix before it works" })}
+          title={i18n.t("storyboard:attrs.thisNeedsAFixBeforeItWorks", { defaultValue: "This needs a fix before it works" })}
           action={
             <EditorButton variant="text" onClick={() => onAskAgent(failure)}>
-              {t("editor:ui.askTheAgent", { defaultValue: "Ask the agent" })}
+              Ask the agent
             </EditorButton>
           }
         >
@@ -363,34 +292,15 @@ interface LineProps extends LineState {
   label: string;
 }
 
-/** zh for each status pill, keyed by the pill id. */
-const PILL_KEYS: Readonly<Record<string, string>> = {
-  built: "setup:workflow.pill_built",
-  checking: "setup:workflow.pill_checking",
-  failed: "setup:workflow.pill_failed",
-  unknown: "setup:workflow.pill_unknown",
-  validated: "setup:workflow.pill_validated",
-  completed: "setup:workflow.pill_completed",
-  running: "setup:workflow.pill_running",
-  waiting: "setup:workflow.pill_waiting",
-  canceled: "setup:workflow.pill_canceled",
-  skipped: "setup:workflow.pill_skipped"
-};
-
-const Line: React.FC<LineProps> = ({ tone, pill, label, detail }) => {
-  const { t } = useTranslation();
-  return (
-    <FlexRow gap={GAP.normal} align="center">
-      <StatusPill tone={tone}>
-        {t(PILL_KEYS[pill] ?? "", { defaultValue: pill })}
-      </StatusPill>
-      <Text size="small" component="span">
-        {label}
-      </Text>
-      <Caption color="secondary">{detail}</Caption>
-    </FlexRow>
-  );
-};
+const Line: React.FC<LineProps> = ({ tone, pill, label, detail }) => (
+  <FlexRow gap={GAP.normal} align="center">
+    <StatusPill tone={tone}>{pill}</StatusPill>
+    <Text size="small" component="span">
+      {label}
+    </Text>
+    <Caption color="secondary">{detail}</Caption>
+  </FlexRow>
+);
 
 export const WorkflowLandingChecklist = memo(ChecklistInternal);
 WorkflowLandingChecklist.displayName = "WorkflowLandingChecklist";

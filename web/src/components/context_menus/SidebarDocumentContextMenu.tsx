@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 
-import { Text, ContextMenu, MenuItem } from "../ui_primitives";
+import { ContextMenu, Divider, ListSubheader } from "../ui_primitives";
 import ContextMenuItem from "./ContextMenuItem";
 import useContextMenuStore from "../../stores/ContextMenuStore";
 import {
@@ -8,8 +8,8 @@ import {
   type SidebarDocumentItem
 } from "../../stores/SidebarDocumentActionsStore";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
+import EditIcon from "@mui/icons-material/EditOutlined";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -64,9 +64,7 @@ const SidebarDocumentContextMenu: React.FC = () => {
       position={menuPosition}
       disableRestoreFocus
     >
-      <MenuItem disabled>
-        <Text>{payload.name}</Text>
-      </MenuItem>
+      <ListSubheader>{payload.name}</ListSubheader>
       {!payload.readOnly && (
         <ContextMenuItem
           onClick={handleRename}
@@ -79,11 +77,12 @@ const SidebarDocumentContextMenu: React.FC = () => {
         label={t("common:action.duplicate", { defaultValue: "Duplicate" })}
         IconComponent={<ContentCopyIcon />}
       />
+      {!payload.readOnly && <Divider />}
       {!payload.readOnly && (
         <ContextMenuItem
           onClick={handleDelete}
           label={t("common:action.delete", { defaultValue: "Delete" })}
-          addButtonClassName="delete"
+          destructive
           IconComponent={<DeleteIcon />}
         />
       )}

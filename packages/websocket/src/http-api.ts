@@ -1,3 +1,4 @@
+import { createMissingPackError } from "@nodetool-ai/node-catalog";
 import { getUserId } from "./lib/http-user-id.js";
 import {
   createServer,
@@ -19,6 +20,7 @@ import { GZIP_THRESHOLD } from "./lib/compression.js";
 import { withCacheBuster } from "./lib/example-thumbnail.js";
 import {
   loadExampleGraph,
+  shippedWorkflowExamplesDir,
   deriveExampleAssetsDir
 } from "./example-workflows.js";
 import { createLogger } from "@nodetool-ai/config";
@@ -51,7 +53,7 @@ import {
   updateAssetBytesModelInterface
 } from "./lib/asset-model-interface.js";
 import { probeAssetDurationSeconds } from "./lib/asset-duration.js";
-import { verdictSchema } from "@nodetool-ai/protocol";
+import { scanExampleNeeds, verdictSchema } from "@nodetool-ai/protocol";
 import {
   cancelDebugSession,
   debugSessions,
@@ -132,6 +134,7 @@ import {
 } from "./session/asset-autosave.js";
 import { toAssetResponse } from "./lib/asset-response.js";
 import { scheduleVideoProxy } from "./lib/video-proxy.js";
+import { isJsonContentType } from "./lib/json-body.js";
 
 export { toAssetResponse };
 export { getAssetFileName, getAssetStoragePath };
@@ -358,6 +361,10 @@ export async function getWorkflowRuntimeEnvironment(
         if (registry.has(node.type)) {
           return registry.resolve(node);
         }
+        const catalogEntry = registry.catalogEntry(node.type);
+        if (catalogEntry && registry.availability(node.type) === "catalog") {
+          throw createMissingPackError(catalogEntry.pack, [node.type]);
+        }
         if (pythonBridgeReady && pythonBridge.hasNodeType(node.type)) {
           const meta = pythonBridge
             .getNodeMetadata()
@@ -378,7 +385,7 @@ export async function getWorkflowRuntimeEnvironment(
             meta?.requires_vram_gb
           );
         }
-        if (registry.getMetadata(node.type) && !registry.has(node.type)) {
+        if (registry.availability(node.type) === "python") {
           const stderrSummary =
             (
               pythonBridge as { getRecentStderrSummary?: () => string | null }
@@ -484,7 +491,8 @@ function jsonResponse(data: unknown, init?: ResponseInit): Response {
   });
 }
 
-function errorResponse(status: number, detail: string): Response {
+function errorResponse(status: number, detail: string, missingPack?: import("@nodetool-ai/protocol").MissingPackDetails): Response {
+  if (missingPack) { return jsonResponse({ detail: { kind: "missing_pack", ...missingPack } }, { status: 424 }); }
   return jsonResponse({ detail }, { status });
 }
 
@@ -492,7 +500,7 @@ export { getUserId } from "./lib/http-user-id.js";
 /** The raw JSON body, or null when there is nothing readable to parse. */
 async function readJsonBody(request: Request): Promise<unknown> {
   const contentType = request.headers.get("content-type") ?? "";
-  if (!contentType.toLowerCase().includes("application/json")) {
+  if (!isJsonContentType(contentType)) {
     return null;
   }
   try {
@@ -711,7 +719,7 @@ export async function handleWorkflowRun(
   const outcome = await runWorkflow(runOptions);
 
   if (outcome.kind === "error") {
-    return errorResponse(outcome.status, outcome.detail);
+    return errorResponse(outcome.status, outcome.detail, outcome.missingPack);
   }
   return jsonResponse(outcome.payload);
 }
@@ -739,7 +747,7 @@ export async function handleDebugSessionRequest(
 
   const answer = (outcome: RunWorkflowOutcome): Response =>
     outcome.kind === "error"
-      ? errorResponse(outcome.status, outcome.detail)
+      ? errorResponse(outcome.status, outcome.detail, outcome.missingPack)
       : jsonResponse(outcome.payload);
 
   if (subPath === null) {
@@ -832,7 +840,8 @@ interface ExampleMetadata {
  */
 function buildExamplesFromDir(
   examplesDir: string,
-  examplesAssetsFallbackDir?: string
+  examplesAssetsFallbackDir?: string,
+  registry?: NodeRegistry
 ): unknown[] {
   if (!existsSync(examplesDir)) return [];
   const assetsDir = deriveExampleAssetsDir(
@@ -891,6 +900,10 @@ function buildExamplesFromDir(
         workspace_id: null,
         required_providers: null,
         required_models: null,
+        needs: scanExampleNeeds(
+          parsed.graph,
+          (nodeType) => registry?.getMetadata(nodeType)?.required_settings
+        ),
         html_app: null,
         app_doc: isObjectLike(parsed.app_doc) ? parsed.app_doc : null,
         etag: null
@@ -907,15 +920,16 @@ export function buildExampleWorkflows(
     HttpApiOptions,
     | "examplesDir"
     | "examplesAssetsFallbackDir"
+    | "registry"
     | "metadataRoots"
     | "metadataMaxDepth"
   >
 ): unknown[] {
-  // If a static examples directory is configured, use it directly — no Python needed.
   if (options.examplesDir) {
     return buildExamplesFromDir(
       options.examplesDir,
-      options.examplesAssetsFallbackDir
+      options.examplesAssetsFallbackDir,
+      options.registry
     );
   }
   const loaded = loadPythonPackageMetadata({
@@ -955,7 +969,25 @@ export function buildExampleWorkflows(
       });
     }
   }
-  return workflows;
+  const shippedDirectory = shippedWorkflowExamplesDir();
+  const shipped = shippedDirectory
+    ? buildExamplesFromDir(shippedDirectory, options.examplesAssetsFallbackDir, options.registry)
+    : [];
+  const seen = new Set<string>();
+  return [...workflows, ...shipped].filter((workflow) => {
+    if (!isObjectLike(workflow)) {
+      return false;
+    }
+    const key = JSON.stringify([
+      workflow.package_name ?? "nodetool-base",
+      isString(workflow.id) && workflow.id !== "" ? workflow.id : workflow.name
+    ]);
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
 }
 
 export async function handleWorkflowExamples(

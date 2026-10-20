@@ -12,8 +12,6 @@
  * happens in `TimelineInspector`.
  */
 
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { css } from "@emotion/react";
@@ -62,9 +60,9 @@ import {
 } from "../../../stores/MediaGenerationStore";
 import { useMediaOptions } from "../../../hooks/useModelsByProvider";
 
+import ErrorBanner from "../../support/ErrorBanner";
 import {
   SPACING,
-  Caption,
   CollapsibleSection,
   EditorButton,
   EmptyState,
@@ -72,7 +70,7 @@ import {
   FlexRow,
   Panel,
   SelectField,
-  TextInput,
+  TextArea,
   ToggleGroup,
   ToggleOption
 } from "../../ui_primitives";
@@ -81,6 +79,9 @@ import { InspectorSectionTitle } from "./InspectorPrimitives";
 import { usePersistedFold } from "./usePersistedFold";
 import { ClipAdjustments } from "./ClipAdjustments";
 import { ClipVersionHistory } from "./ClipVersionHistory";
+import { useTranslation } from "react-i18next";
+
+import { i18n } from "../../../i18n";
 
 interface VideoModelChange {
   type: "video_model";
@@ -335,8 +336,8 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
   }, [promptHistory]);
 
   const handlePromptChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setClipPrompt(clipId, e.target.value);
+    (value: string) => {
+      setClipPrompt(clipId, value);
       promptHistory.mark();
     },
     [clipId, setClipPrompt, promptHistory]
@@ -380,16 +381,11 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
 
   const promptPlaceholder =
     kind === "video"
-      ? i18n.t("timeline:attrs.describeTheVideo", { defaultValue: "Describe the video…" })
-      : kind === "music"
-        ? i18n.t("timeline:attrs.describeTheMusic", { defaultValue: "Describe the music…" })
-        : kind === "audio"
-          ? i18n.t("timeline:attrs.typeTextToSpeak", { defaultValue: "Type text to speak…" })
-          : i18n.t("timeline:attrs.describeTheImage", { defaultValue: "Describe the image…" });
+      ? i18n.t("timeline:attrs.describeTheVideo", { defaultValue: "Describe the video…" }) : kind === "music"
+        ? i18n.t("timeline:attrs.describeTheMusic", { defaultValue: "Describe the music…" }) : kind === "audio"
+          ? i18n.t("timeline:attrs.typeTextToSpeak", { defaultValue: "Type text to speak…" }) : i18n.t("editor:ui.describeTheImage", { defaultValue: "Describe the image…" });
 
-  const generateLabel = clip.currentAssetId
-    ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })
-    : t("ui2:attrs.generate", { defaultValue: "Generate" });
+  const generateLabel = clip.currentAssetId ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" }) : i18n.t("editor:ui.generate", { defaultValue: "Generate" });
 
   return (
     <Panel background="default" bordered={false} sx={panelSx}>
@@ -479,19 +475,18 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               />
             )}
 
-            <TextInput
+            <TextArea
               value={clip.prompt ?? ""}
               onChange={handlePromptChange}
               onFocus={handlePromptFocus}
               onBlur={handlePromptBlur}
               placeholder={promptPlaceholder}
-              multiline
               minRows={2}
               maxRows={10}
               compact
               fullWidth
               inputProps={{
-                "aria-label": t("timeline:attrs.prompt", { defaultValue: "Prompt" }),
+                "aria-label": "Prompt",
                 "data-testid": "direct-gen-prompt"
               }}
             />
@@ -520,7 +515,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               <FlexRow gap={0.5} align="center" sx={{ flexWrap: "wrap" }}>
                 <MediaOptionChip
                   icon={<TvIcon fontSize="small" />}
-                  header={t("editor:ui.resolution", { defaultValue: "Resolution" })}
+                  header="Resolution"
                   value={imageResolution}
                   options={resolutionOptions}
                   onChange={(r) => applyImageSize(r, imageAspect)}
@@ -561,7 +556,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                 <MediaOptionChip
                   icon={<AccessTimeIcon fontSize="small" />}
                   label={`${videoDuration} Sec`}
-                  header={t("timeline:attrs.duration", { defaultValue: "Duration" })}
+                  header="Duration"
                   value={videoDuration}
                   options={durationOptions}
                   onChange={handleDurationChange}
@@ -569,7 +564,7 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
                 />
                 <MediaOptionChip
                   icon={<TvIcon fontSize="small" />}
-                  header="Video resolution"
+                  header={t("timeline:attrs.videoResolution", { defaultValue: "Video resolution" })}
                   value={
                     (clip.resolution as VideoResolution | undefined) ??
                     DEFAULT_VIDEO_RESOLUTION
@@ -610,9 +605,14 @@ const DirectGenClipPanelInner: React.FC<DirectGenClipPanelProps> = ({
               {isActive ? t("timeline:attrs.cancel", { defaultValue: "Cancel" }) : generateLabel}
             </EditorButton>
             {isFailed && (
-              <Caption color="error" sx={{ textAlign: "center" }}>
-                {t("timeline:attrs.generationFailed", { defaultValue: "Generation failed." })}
-              </Caption>
+              <ErrorBanner
+                report={{
+                  source: "job-failure",
+                  summary: "Clip generation failed"
+                }}
+              >
+                Generation failed.
+              </ErrorBanner>
             )}
           </FlexColumn>
         </CollapsibleSection>

@@ -1,15 +1,18 @@
 /** @jsxImportSource @emotion/react */
 import React, { memo, useCallback, useRef, useState } from "react";
-import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import CheckIcon from "@mui/icons-material/Check";
-import { Caption, FlexColumn, Popover, Text, MOTION, BORDER_RADIUS, SPACING, getSpacingPx } from "../../ui_primitives";
+import {
+  ContextMenu,
+  ListSubheader,
+  MenuItemPrimitive,
+  StatusDot
+} from "../../ui_primitives";
 import MediaControlChip from "./MediaControlChip";
 import useGlobalChatStore from "../../../stores/GlobalChatStore";
 import type { PermissionMode } from "../../../stores/ApiTypes";
-import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface ModeItem {
   id: PermissionMode;
@@ -19,7 +22,7 @@ interface ModeItem {
   tone: "info" | "warning" | "success";
 }
 
-const modes = (): ModeItem[] => [
+const MODES: ModeItem[] = [
   {
     id: "plan",
     label: i18n.t("editor:ui.plan", { defaultValue: "Plan" }),
@@ -47,52 +50,12 @@ const dotColor = (theme: Theme, tone: ModeItem["tone"]): string => {
   return theme.vars.palette.grey[400];
 };
 
-const menuStyles = (theme: Theme) =>
-  css({
-    padding: `${getSpacingPx(SPACING.md)} 0`,
-    minWidth: 260,
-    ".permission-menu-header": {
-      padding: `${getSpacingPx(SPACING.md)} ${getSpacingPx(SPACING.xl)} ${getSpacingPx(SPACING.xs)}`,
-      color: theme.vars.palette.text.secondary,
-      textTransform: "uppercase",
-      letterSpacing: 1
-    },
-    ".permission-menu-item": {
-      display: "flex",
-      alignItems: "flex-start",
-      gap: theme.spacing(SPACING.md),
-      padding: theme.spacing(SPACING.md, SPACING.xl),
-      cursor: "pointer",
-      color: theme.vars.palette.text.primary,
-      transition: MOTION.background,
-      "&:hover": {
-        backgroundColor: theme.vars.palette.c_overlay
-      },
-      "&.selected": {
-        backgroundColor: theme.vars.palette.c_overlay
-      }
-    },
-    ".permission-menu-dot": {
-      // Nudge down so the dot aligns with the label's first line.
-      marginTop: theme.spacing(SPACING.sm)
-    },
-    ".permission-menu-check": {
-      marginLeft: "auto",
-      marginTop: theme.spacing(SPACING.micro),
-      color: theme.vars.palette.primary.main,
-      display: "inline-flex"
-    }
-  });
-
-const dotCss = (color: string) =>
-  css({
-    width: 8,
-    height: 8,
-    borderRadius: BORDER_RADIUS.circle,
-    flexShrink: 0,
-    backgroundColor: color,
-    boxShadow: `0 0 6px ${color}`
-  });
+const ModeDot = ({ color }: { color: string }) => (
+  <StatusDot
+    size="medium"
+    sx={{ bgcolor: color, boxShadow: `0 0 6px ${color}` }}
+  />
+);
 
 /**
  * Compact composer-footer dropdown for the per-thread permission mode. The
@@ -121,7 +84,7 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
   const mode = useGlobalChatStore((s) => s.getPermissionMode(selectedThreadId));
   const setPermissionMode = useGlobalChatStore((s) => s.setPermissionMode);
 
-  const activeMode = modes().find((m) => m.id === mode) ?? modes()[1];
+  const activeMode = MODES.find((m) => m.id === mode) ?? MODES[1];
 
   const handleSelect = useCallback(
     (next: PermissionMode) => {
@@ -136,76 +99,39 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
       <MediaControlChip
         ref={buttonRef}
         className="permission-selector-trigger"
-        icon={<span css={dotCss(dotColor(theme, activeMode.tone))} />}
+        icon={<ModeDot color={dotColor(theme, activeMode.tone)} />}
         label={compact ? undefined : activeMode.label}
         title={`Permission: ${activeMode.label} — ${activeMode.description}`}
         active={open}
         showChevron
         onClick={() => setOpen(true)}
       />
-      <Popover
+      <ContextMenu
         open={open}
         anchorEl={buttonRef.current}
         onClose={() => setOpen(false)}
-        placement="top-left"
-        paperSx={{
-          backgroundColor: theme.vars.palette.grey[900],
-          border: `1px solid ${theme.vars.palette.grey[800]}`,
-          borderRadius: BORDER_RADIUS.sm,
-          boxShadow: `0 12px 40px ${theme.vars.palette.c_scrim}`
-        }}
+        anchorOrigin={{ vertical: "top", horizontal: "left" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "left" }}
+        minWidth={260}
+        paperSx={{ maxWidth: 320 }}
+        slotProps={{ list: { "aria-label": "Permission mode" } }}
       >
-        <div
-          css={menuStyles(theme)}
-          role="menu"
-          aria-label={t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}
-        >
-          <Caption className="permission-menu-header" size="small">
-            {t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}
-          </Caption>
-          {modes().map((m) => {
-            const selected = m.id === mode;
-            return (
-              <div
-                key={m.id}
-                role="menuitemradio"
-                aria-checked={selected}
-                tabIndex={0}
-                className={`permission-menu-item${selected ? " selected" : ""}`}
-                onClick={() => handleSelect(m.id)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleSelect(m.id);
-                  }
-                }}
-              >
-                <span
-                  className="permission-menu-dot"
-                  css={dotCss(dotColor(theme, m.tone))}
-                />
-                <FlexColumn gap={SPACING.micro} sx={{ flex: 1, minWidth: 0 }}>
-                  <Text
-                    size="small"
-                    weight={500}
-                    sx={{ color: "inherit", lineHeight: 1.25 }}
-                  >
-                    {m.label}
-                  </Text>
-                  <Caption size="smaller" color="secondary" sx={{ lineHeight: 1.3 }}>
-                    {m.description}
-                  </Caption>
-                </FlexColumn>
-                {selected && (
-                  <span className="permission-menu-check">
-                    <CheckIcon fontSize="small" />
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </Popover>
+        <ListSubheader>{t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}</ListSubheader>
+        {MODES.map((m) => {
+          const selected = m.id === mode;
+          return (
+            <MenuItemPrimitive
+              key={m.id}
+              label={m.label}
+              secondary={m.description}
+              icon={<ModeDot color={dotColor(theme, m.tone)} />}
+              checkable="radio"
+              checked={selected}
+              onClick={() => handleSelect(m.id)}
+            />
+          );
+        })}
+      </ContextMenu>
     </>
   );
 };

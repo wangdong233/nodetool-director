@@ -9,6 +9,7 @@ const mockResolveKieSchemaClient = jest.fn();
 
 jest.mock("../../../ui_primitives", () => ({
   ...jest.requireActual("../../../ui_primitives/spacing"),
+  ICON_SIZE: jest.requireActual("../../../ui_primitives/tokens").ICON_SIZE,
   Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   Caption: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   LoadingSpinner: () => <span data-testid="loading-spinner" />,
@@ -26,9 +27,15 @@ jest.mock("../../../ui_primitives", () => ({
 }));
 
 const { render } = nodeStoreRenderers(
-  makeNodeStore({
-        updateNodeData: mockUpdateNodeData
-      })
+  makeNodeStore(
+    {
+      updateNodeData: mockUpdateNodeData,
+      findNode: () => undefined,
+      edges: [],
+      deleteEdges: jest.fn()
+    },
+    { beginGroup: jest.fn(), endGroup: jest.fn() }
+  )
 );
 jest.mock("../../../../stores/BASE_URL", () => ({
   BASE_URL: ""

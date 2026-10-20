@@ -19,6 +19,10 @@ glTF 并存回同一素材,所以 id 始终有效,打开的编辑器会重新加
 5. **渲染**,当需要的是一张图时。`render_model3d` 走无头 Blender(EEVEE 或
    Cycles),尊重场景相机与灯光,存出一张 PNG 素材。它需要服务器上装有 Blender。
 
+## 真实网格
+
+操作只添加图元。要有真实几何体的物体,先生成一个:`run_node` 配 `nodetool.model3d.TextTo3D {model, prompt}` 或 `nodetool.model3d.ImageTo3D {model, image}`,返回 `model_3d` 输出。先读 `get_node_info` 看 `model` 字段的形状。这些调用付费服务商,生成前先与用户确认。其余 `nodetool.model3d.*` 节点(`Decimate`、`RepairMesh`、`FormatConverter`、`Transform3D` 等)和 `nodetool.blender.*` 节点在工作流内处理网格。
+
 ## `edit_model3d` 操作
 
 | 操作 | 字段 |
@@ -65,3 +69,11 @@ glTF 版本、解析不到任何东西的引用(节点、网格、accessor、材
 
 - `docs/harnesses.md` § 3D scene tools
 - `docs/harnesses.md` § 3D clips in preview_timeline_frame
+
+3D 剪辑写在 `dimension: "3d"`;在成片中内嵌 3D 模型时,模型在这里构建,再放进剪辑。
+
+5. **出图**:`render_model3d {model_id}` 渲染。渲染配置 `engine` 为 `eevee`(默认,快)或 `cycles`(慢,质量高);`camera_mode` 为 `auto`、`scene` 或 `orbit`。Cycles 渲染会阻塞调用,可传 `background: true` 立即拿 `generation_id`,再用 `await_generation` 收 PNG。
+
+建模用 `run_node` 跑 `nodetool.model3d.TextTo3D {model, prompt}` 或 `nodetool.model3d.ImageTo3D {model, image}`,输出为 `model_3d`;先用 `get_node_info` 看 `model` 字段的形状。这些是付费调用。
+
+网格处理:`nodetool.model3d.*` 节点(`Decimate`、`RepairMesh`、`FormatConverter`、`Transform3D` 等)与 `nodetool.blender.*` 节点;场景内编辑走 `ui_3d_set_light`、`ui_3d_set_material`、`ui_3d_set_parent`。

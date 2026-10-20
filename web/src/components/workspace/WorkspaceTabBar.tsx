@@ -19,32 +19,26 @@ import {
   type WorkspaceTab,
   type WorkspaceTabType
 } from "../../stores/WorkspaceTabsStore";
-import { useWorkflowManager, useWorkflowManagerStore } from "../../contexts/WorkflowManagerContext";
-import { useAssetStore } from "../../stores/AssetStore";
-import { useJsScriptStore } from "../../stores/jsScript/JsScriptStore";
-import useGlobalChatStore from "../../stores/GlobalChatStore";
+import { useWorkflowManagerStore } from "../../contexts/WorkflowManagerContext";
 import { trpc, trpcClient } from "../../trpc/client";
-import { getActiveSketchInstance } from "../../stores/sketch/SketchInstance";
-import { renameSketchDocument } from "../../stores/sketch/SketchSessionStore";
-import { readSketchDocumentId } from "../../hooks/sketch/ensureSketchDocumentForAsset";
-import { tabCanRename, renameStrategy } from "./tabRename";
-import { personalDisplayName } from "../projects/projectIdentity";
-import { renameTitledDocument } from "./renameTitledDocument";
+import { tabCanRename } from "./tabRename";
+import { useRenameDocument } from "../../hooks/useRenameDocument";
 import { useWorkspaceDocumentClose } from "../../hooks/useWorkspaceDocumentClose";
-import { useNotificationStore } from "../../stores/NotificationStore";
-import { useUpdateApplication } from "../../hooks/useApplications";
 import { TOOLBAR_WIDTH } from "../../config/constants";
 import {
   BORDER_RADIUS,
   CONTROL,
   ContextMenu,
+  focusRing,
   InlineEditableText,
   MenuItemPrimitive,
   MOTION,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  ICON_SIZE
 } from "../ui_primitives";
 import NotificationButton from "../panels/NotificationButton";
+import SettingsHeaderButton from "../panels/SettingsHeaderButton";
 import OpenMenu from "./OpenMenu";
 import WorkspaceTabItem from "./WorkspaceTabItem";
 import MobileDocumentSelector from "./MobileDocumentSelector";
@@ -54,8 +48,9 @@ import { ActivityIndicator } from "../timeline/ActivityIndicator";
 import { PROJECT_COLOR } from "../projects/projectIdentity";
 import { TYPE_COLOR, TYPE_GLYPH } from "./tabTypeIdentity";
 import { useOpenNewProjectTab, useProjects } from "../../hooks/useProjects";
-import { i18n, useAppLanguage } from "../../i18n";
 import { useWorkspaceHeaderActions } from "./WorkspaceHeaderActionsContext";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /** Whether a document type supports both View and Edit (vs view-only). */
 const SUPPORTS_BOTH_MODES = {
@@ -82,7 +77,6 @@ const SUPPORTS_BOTH_MODES = {
   "guided-flow": false,
   "project-new": false
 } satisfies Record<WorkspaceTabType, boolean>;
-
 
 const styles = (theme: Theme) =>
   css({
@@ -182,8 +176,15 @@ const styles = (theme: Theme) =>
       padding: 0,
       fontSize: "inherit",
       width: "100%",
-      outline: "none"
+      outline: "none",
+      borderRadius: BORDER_RADIUS.sm,
+      "&:focus-visible": focusRing(theme, 2)
     },
+
+    // Every tab-bar control draws the shared inset keyboard ring; the strip
+    // scrolls, so a ring outside the box would be clipped.
+    "& .tab:focus-visible, & .project-scope:focus-visible, & .new-tab:focus-visible, & .home-button:focus-visible, & .mode-toggle button:focus-visible":
+      focusRing(theme),
 
     "& .glyph": { flexShrink: 0, fontSize: "var(--fontSizeSmall)" },
     "& .tab-name": {
@@ -192,13 +193,6 @@ const styles = (theme: Theme) =>
       textOverflow: "ellipsis",
       whiteSpace: "nowrap",
       minWidth: 0
-    },
-    "& .dirty-dot": {
-      width: "8px",
-      height: "8px",
-      borderRadius: BORDER_RADIUS.circle,
-      backgroundColor: theme.vars.palette.warning.main,
-      flexShrink: 0
     },
     "& .tab-close": {
       flexShrink: 0,
@@ -214,7 +208,7 @@ const styles = (theme: Theme) =>
       "& .MuiSvgIcon-root": {
         width: "14px",
         height: "14px",
-        fontSize: "var(--fontSizeNormal)"
+        fontSize: ICON_SIZE.sm
       }
     },
 
@@ -296,8 +290,13 @@ const styles = (theme: Theme) =>
         cursor: "pointer",
         fontSize: "var(--fontSizeSmaller)",
         padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.lg)}`,
-        "&:first-of-type": { borderRadius: `${BORDER_RADIUS.sm} 0 0 ${BORDER_RADIUS.sm}`, borderRight: "none" },
-        "&:last-of-type": { borderRadius: `0 ${BORDER_RADIUS.sm} ${BORDER_RADIUS.sm} 0` },
+        "&:first-of-type": {
+          borderRadius: `${BORDER_RADIUS.sm} 0 0 ${BORDER_RADIUS.sm}`,
+          borderRight: "none"
+        },
+        "&:last-of-type": {
+          borderRadius: `0 ${BORDER_RADIUS.sm} ${BORDER_RADIUS.sm} 0`
+        },
         "&.on": {
           color: theme.vars.palette.primary.contrastText,
           backgroundColor: theme.vars.palette.primary.main,
@@ -334,61 +333,64 @@ const styles = (theme: Theme) =>
       "& svg, & .MuiSvgIcon-root": {
         width: "16px",
         height: "16px",
-        fontSize: "var(--fontSizeNormal)"
+        fontSize: ICON_SIZE.sm
       }
     },
 
-    // Mobile: no left rail to clear, and the bar grows to 48px so the global
-    // 44px touch-target minimum fits inside it. The tab strip is replaced by a
-    // single document selector (see MobileDocumentSelector); text labels drop
-    // to icons.
-    [theme.breakpoints.down("sm")]: {
-      height: "48px",
+    // Mobile: no left rail to clear. The bar stacks 48px rows so the global
+    // 44px touch-target minimum fits and every control keeps its text label
+    // (see the isMobile branch of WorkspaceTabBar).
+    "&.is-mobile": {
+      height: "auto",
+      flexDirection: "column",
       paddingLeft: 0,
-      "&.has-document-actions": {
-        height: "auto",
-        flexWrap: "wrap",
-        "& > .mobile-rail-launcher, & > .project-selector, & > .home-button, & > .new-tab, & > .document-selector": {
-          height: "48px"
-        },
-        "& .document-actions": {
-          flexBasis: "100%",
-          minWidth: 0,
-          minHeight: "48px",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
+      "& .mobile-row": {
+        display: "flex",
+        alignItems: "stretch",
+        minWidth: 0,
+        height: "48px",
+        "& + .mobile-row": {
           borderTop: `1px solid ${theme.vars.palette.divider}`
-        },
-        "& .right-actions": {
-          maxWidth: "100%",
-          flexShrink: 1,
-          flexWrap: "wrap",
-          marginLeft: "auto"
         }
       },
-      "& .new-tab": {
-        justifyContent: "center",
-        minWidth: CONTROL.height.xl,
-        padding: `0 ${getSpacingPx(SPACING.md)}`
+      "& .app-row .project-selector": {
+        flex: 1,
+        minWidth: 0,
+        maxWidth: "none"
       },
-      // The project name yields width to the document selector, which is
-      // the control a phone user reaches for most.
-      "& .home-button": {
-        padding: `0 ${getSpacingPx(SPACING.md)}`,
-        maxWidth: "30vw"
+      "& .app-row .right-actions": {
+        gap: 0,
+        paddingRight: getSpacingPx(SPACING.xs),
+        "& .MuiIconButton-root, & .MuiButtonBase-root": {
+          minWidth: CONTROL.height.xl,
+          width: CONTROL.height.xl,
+          height: CONTROL.height.xl
+        },
+        "& svg, & .MuiSvgIcon-root": {
+          width: "20px",
+          height: "20px"
+        }
       },
-      "& .new-tab .new-tab-label, & .new-tab .new-tab-caret": {
-        display: "none"
+      "& .document-row .new-tab": {
+        borderRight: "none",
+        borderLeft: `1px solid ${theme.vars.palette.divider}`,
+        color: theme.vars.palette.primary.main,
+        padding: `0 ${getSpacingPx(SPACING.lg)}`,
+        "& .new-tab-caret": { display: "none" }
       },
-      "& .mode-toggle": {
+      "& .document-row .mode-toggle": {
         padding: `0 ${getSpacingPx(SPACING.sm)}`
+      },
+      "& .actions-row .right-actions": {
+        flex: 1,
+        justifyContent: "flex-end",
+        overflowX: "auto"
       }
     }
   });
 
 const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
-  // Subscribe so catalog reads re-render on language change.
-  useAppLanguage();
+  const { t } = useTranslation("editor");
   const theme = useTheme();
   const tabBarStyles = useMemo(() => styles(theme), [theme]);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -401,21 +403,14 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
     closeAllDocuments: handleCloseAll
   } = useWorkspaceDocumentClose();
   const setMode = useWorkspaceTabsStore((state) => state.setMode);
-  const setTitle = useWorkspaceTabsStore((state) => state.setTitle);
   const moveTab = useWorkspaceTabsStore((state) => state.moveTab);
-  const updateApplication = useUpdateApplication();
   const trpcUtils = trpc.useUtils();
-  const addNotification = useNotificationStore(
-    (state) => state.addNotification
-  );
+  const renameDocument = useRenameDocument();
   const headerActions = useWorkspaceHeaderActions()?.actions;
   const openHome = useOpenNewProjectTab();
   const { data: projects } = useProjects();
 
   const workflowManagerStore = useWorkflowManagerStore();
-  const getWorkflow = useWorkflowManager((state) => state.getWorkflow);
-  const updateWorkflow = useWorkflowManager((state) => state.updateWorkflow);
-  const saveWorkflow = useWorkflowManager((state) => state.saveWorkflow);
 
   const activeProjectId = useWorkspaceTabsStore(
     (state) => state.activeProjectId
@@ -423,14 +418,8 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
   const activeProject = projects?.find(
     (project) => project.id === activeProjectId
   );
-  // The home tab's title is the project's name — the personal default swaps
-  // for a localized label (projectIdentity guard), a renamed project is user
-  // data and renders verbatim.
-  const homeTitle = activeProject
-    ? personalDisplayName(activeProject, i18n.t)
-    : activeProjectId
-      ? i18n.t("editor:ui.project", { defaultValue: "Project" })
-      : i18n.t("editor:ui.home", { defaultValue: "Home" });
+  const homeTitle =
+    activeProject?.name ?? (activeProjectId ? t("editor:ui.project", { defaultValue: "Project" }) : i18n.t("editor:ui.home", { defaultValue: "Home" }));
   const visibleTabs = useMemo(
     () =>
       tabs.filter(
@@ -552,160 +541,13 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
 
   const commitRename = useCallback(
     async (tab: WorkspaceTab, newName: string) => {
-      const trimmed = newName.trim();
       setEditingTabId(null);
-      if (trimmed.length === 0 || trimmed === tab.title) {
-        return;
-      }
-
-      const strategy = renameStrategy(tab.type);
-      if (strategy === null) return;
-
-      // Workflows carry their name in the workflow store; the tab title is
-      // synced from there by WorkspaceShell, so update + save the workflow.
-      if (strategy === "workflow") {
-        const workflow = getWorkflow(tab.ref);
-        if (!workflow || workflow.name === trimmed) {
-          return;
-        }
-        const updatedWorkflow = { ...workflow, name: trimmed };
-        updateWorkflow(updatedWorkflow);
-        try {
-          await saveWorkflow(updatedWorkflow);
-        } catch (error) {
-          updateWorkflow(workflow);
-          addNotification({
-            type: "error",
-            alert: true,
-            content: `Failed to rename workflow: ${error instanceof Error ? error.message : "Unknown error"}`
-          });
-        }
-        return;
-      }
-
-      // Other document types own no store→tab sync: update the tab title
-      // optimistically, persist the rename to the backing document keyed by
-      // ref, and roll the title back if the server write fails.
-      const previousTitle = tab.title;
-      setTitle(tab.ref, tab.type, trimmed);
-      try {
-        switch (strategy) {
-          case "sketch":
-            await renameSketchDocument(getActiveSketchInstance(), trimmed);
-            break;
-          case "image": {
-            const asset = await useAssetStore.getState().update({
-              id: tab.ref,
-              name: trimmed
-            });
-            const sketchId = readSketchDocumentId(asset);
-            if (sketchId) {
-              const instance = getActiveSketchInstance();
-              if (instance.session.getState().documentId === sketchId) {
-                await renameSketchDocument(instance, trimmed);
-              } else {
-                await trpcClient.sketch.update.mutate({
-                  id: sketchId,
-                  name: trimmed
-                });
-              }
-            }
-            break;
-          }
-          case "timeline":
-            await trpcClient.timeline.update.mutate({
-              id: tab.ref,
-              name: trimmed
-            });
-            break;
-          case "asset":
-            await useAssetStore
-              .getState()
-              .update({ id: tab.ref, name: trimmed });
-            break;
-          case "storyboard":
-            await renameTitledDocument(strategy, tab.ref, trimmed);
-            void trpcUtils.storyboards.list.invalidate();
-            break;
-          case "script":
-            await renameTitledDocument(strategy, tab.ref, trimmed);
-            void trpcUtils.scripts.list.invalidate();
-            break;
-          case "jsscript": {
-            const store = useJsScriptStore.getState();
-            if (store.scripts[tab.ref]) {
-              store.setName(tab.ref, trimmed);
-            } else {
-              await trpcClient.jsScripts.update.mutate({
-                id: tab.ref,
-                name: trimmed
-              });
-            }
-            break;
-          }
-          case "skill": {
-            const currentSkill = trpcUtils.skills.get.getData({ id: tab.ref });
-            if (!currentSkill) {
-              throw new Error(
-                "Skill must finish loading before it can be renamed"
-              );
-            }
-            const updated = await trpcClient.skills.update.mutate({
-              id: tab.ref,
-              name: trimmed,
-              baseUpdatedAt: currentSkill.updatedAt
-            });
-            trpcUtils.skills.get.setData({ id: tab.ref }, updated);
-            void trpcUtils.skills.list.invalidate();
-            break;
-          }
-          case "chat":
-            await useGlobalChatStore
-              .getState()
-              .updateThreadTitle(tab.ref, trimmed);
-            break;
-          case "application":
-            await updateApplication.mutateAsync({
-              id: tab.ref,
-              name: trimmed
-            });
-            break;
-          case "project":
-            await trpcClient.projects.update.mutate({
-              id: tab.ref,
-              name: trimmed
-            });
-            void trpcUtils.projects.list.invalidate();
-            void trpcUtils.projects.summaries.invalidate();
-            break;
-          default: {
-            const unhandled: never = strategy;
-            throw new Error(`Unsupported rename strategy: ${unhandled}`);
-          }
-        }
-      } catch (error) {
-        setTitle(tab.ref, tab.type, previousTitle);
-        addNotification({
-          type: "error",
-          alert: true,
-          content: `Failed to rename document: ${error instanceof Error ? error.message : "Unknown error"}`
-        });
-      }
+      await renameDocument(
+        { type: tab.type, ref: tab.ref, currentName: tab.title },
+        newName
+      );
     },
-    [
-      getWorkflow,
-      updateWorkflow,
-      saveWorkflow,
-      setTitle,
-      updateApplication,
-      trpcUtils.skills.get,
-      trpcUtils.skills.list,
-      trpcUtils.projects.list,
-      trpcUtils.projects.summaries,
-      trpcUtils.storyboards.list,
-      trpcUtils.scripts.list,
-      addNotification
-    ]
+    [renameDocument]
   );
 
   const handleBeginRename = useCallback(
@@ -751,23 +593,107 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
       activeProject,
       activeProjectId,
       trpcUtils.projects.list,
-      trpcUtils.projects.summaries,
-      trpcUtils.storyboards.list,
-      trpcUtils.scripts.list,
-      addNotification
+      trpcUtils.projects.summaries
     ]
   );
+
+  const newTabButton = (
+    <button
+      ref={newTabButtonRef}
+      type="button"
+      className="new-tab"
+      aria-label={t("nav:tabs.openOrCreate", { defaultValue: "Open or create a tab" })}
+      aria-haspopup="menu"
+      aria-expanded={menuOpen}
+      onClick={() => setMenuOpen((v) => !v)}
+    >
+      <span className="new-tab-plus" aria-hidden>
+        +
+      </span>
+      <span className="new-tab-label">{t("nav:tabs.new", { defaultValue: "New" })}</span>
+      <span className="new-tab-caret" aria-hidden>
+        ▾
+      </span>
+    </button>
+  );
+
+  const openMenu = (
+    <OpenMenu
+      anchorEl={newTabButtonRef.current}
+      open={menuOpen}
+      onClose={() => setMenuOpen(false)}
+    />
+  );
+
+  const modeToggle = activeTab && SUPPORTS_BOTH_MODES[activeTab.type] && (
+    <div className="mode-toggle">
+      <button
+        type="button"
+        className={activeTab.mode === "view" ? "on" : ""}
+        aria-pressed={activeTab.mode === "view"}
+        onClick={() => setMode(activeTab.id, "view")}
+      >
+        View
+      </button>
+      <button
+        type="button"
+        className={activeTab.mode === "edit" ? "on" : ""}
+        aria-pressed={activeTab.mode === "edit"}
+        onClick={() => setMode(activeTab.id, "edit")}
+      >
+        Edit
+      </button>
+    </div>
+  );
+
+  if (isMobile) {
+    // Phones get two labelled rows instead of one strip of glyphs: the top
+    // row says where you are (menu, project, app status), the second says
+    // what you are looking at (current document, New). Document-specific
+    // actions, when a document supplies them, take a third row.
+    return (
+      <div css={tabBarStyles} className="workspace-tabbar is-mobile">
+        <div className="mobile-row app-row">
+          {/* The sheet this opens is mobile's one navigation surface:
+            document categories plus the app pages the desktop logo menu
+            holds. */}
+          <MobileRailLauncher />
+          <ProjectSelector mobile />
+          <div className="right-actions">
+            <ActivityIndicator />
+            <NotificationButton />
+            <SettingsHeaderButton />
+          </div>
+        </div>
+        <div className="mobile-row document-row">
+          <MobileDocumentSelector
+            tabs={visibleTabs}
+            activeTabId={activeTabId}
+            typeColor={TYPE_COLOR}
+            typeGlyph={TYPE_GLYPH}
+            homeIsActive={homeIsActive}
+            onActivate={setActiveTab}
+            onClose={handleClose}
+            onCloseAll={handleCloseAll}
+          />
+          {modeToggle}
+          {newTabButton}
+        </div>
+        {headerActions && (
+          <div className="mobile-row actions-row">
+            <div className="right-actions">{headerActions}</div>
+          </div>
+        )}
+        {openMenu}
+      </div>
+    );
+  }
 
   return (
     <div
       css={tabBarStyles}
       className={`workspace-tabbar${headerActions || (activeTab && SUPPORTS_BOTH_MODES[activeTab.type]) ? " has-document-actions" : ""}`}
     >
-      {/* Mobile has no vertical rail, so the panel toggle rides along in the
-        top row instead of floating over the content. The sheet it opens is
-        mobile's one navigation surface — document categories plus the app
-        pages the desktop logo menu holds. */}
-      {isMobile && <MobileRailLauncher />}
       <ProjectSelector />
       {editingHome ? (
         <div className="home-button active">
@@ -804,105 +730,53 @@ const WorkspaceTabBar = React.memo(function WorkspaceTabBar() {
         open={homeMenuPosition !== null}
         position={homeMenuPosition}
         onClose={() => setHomeMenuPosition(null)}
-        compact
       >
         <MenuItemPrimitive
-          label={i18n.t("common:action.rename", { defaultValue: "Rename" })}
-          compact
+          label="Rename"
           onClick={() => {
             setHomeMenuPosition(null);
             setEditingHome(true);
           }}
         />
       </ContextMenu>
-      <button
-        ref={newTabButtonRef}
-        type="button"
-        className="new-tab"
-        aria-label={i18n.t("nav:tabs.openOrCreate", { defaultValue: "Open or create a tab" })}
-        aria-haspopup="menu"
-        aria-expanded={menuOpen}
-        onClick={() => setMenuOpen((v) => !v)}
-      >
-        <span className="new-tab-plus" aria-hidden>
-          +
-        </span>
-        <span className="new-tab-label">{i18n.t("nav:tabs.new", { defaultValue: "New" })}</span>
-        <span className="new-tab-caret" aria-hidden>
-          ▾
-        </span>
-      </button>
-      {isMobile ? (
-        <MobileDocumentSelector
-          tabs={visibleTabs}
-          activeTabId={activeTabId}
-          typeColor={TYPE_COLOR}
-          typeGlyph={TYPE_GLYPH}
-          onActivate={setActiveTab}
-          onClose={handleClose}
-          onCloseAll={handleCloseAll}
-        />
-      ) : (
-        <div className="tabs">
-          {visibleTabs.map((tab) => (
-            <Fragment key={tab.id}>
-              <WorkspaceTabItem
-                tab={tab}
-                isActive={tab.id === activeTabId}
-                isEditing={editingTabId === tab.id}
-                canRename={tabCanRename(tab.type)}
-                dropPosition={
-                  dropTarget?.id === tab.id ? dropTarget.position : null
-                }
-                onActivate={setActiveTab}
-                onBeginRename={handleBeginRename}
-                onClose={handleClose}
-                onCloseOthers={handleCloseOthers}
-                onCloseAll={handleCloseAll}
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onCommitRename={commitRename}
-                onCancelRename={handleCancelRename}
-              />
-            </Fragment>
-          ))}
-        </div>
-      )}
+      {newTabButton}
+      <div className="tabs">
+        {visibleTabs.map((tab) => (
+          <Fragment key={tab.id}>
+            <WorkspaceTabItem
+              tab={tab}
+              isActive={tab.id === activeTabId}
+              isEditing={editingTabId === tab.id}
+              canRename={tabCanRename(tab.type)}
+              dropPosition={
+                dropTarget?.id === tab.id ? dropTarget.position : null
+              }
+              onActivate={setActiveTab}
+              onBeginRename={handleBeginRename}
+              onClose={handleClose}
+              onCloseOthers={handleCloseOthers}
+              onCloseAll={handleCloseAll}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onCommitRename={commitRename}
+              onCancelRename={handleCancelRename}
+            />
+          </Fragment>
+        ))}
+      </div>
 
-      <OpenMenu
-        anchorEl={newTabButtonRef.current}
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-      />
+      {openMenu}
 
       <div className="document-actions">
-        {activeTab && SUPPORTS_BOTH_MODES[activeTab.type] && (
-          <div className="mode-toggle">
-            <button
-              type="button"
-              className={activeTab.mode === "view" ? "on" : ""}
-              aria-pressed={activeTab.mode === "view"}
-              onClick={() => setMode(activeTab.id, "view")}
-            >
-              {i18n.t("editor:ui.view", { defaultValue: "View" })}
-            </button>
-            <button
-              type="button"
-              className={activeTab.mode === "edit" ? "on" : ""}
-              aria-pressed={activeTab.mode === "edit"}
-              onClick={() => setMode(activeTab.id, "edit")}
-            >
-              {i18n.t("editor:ui.edit", { defaultValue: "Edit" })}
-            </button>
-          </div>
-        )}
+        {modeToggle}
 
         <div className="right-actions">
           {headerActions}
           <ActivityIndicator />
           <NotificationButton />
+          <SettingsHeaderButton />
         </div>
       </div>
     </div>

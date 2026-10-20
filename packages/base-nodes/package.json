@@ -4,7 +4,7 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "version": "0.8.2",
+  "version": "0.8.4",
   "description": "Compatibility shell re-exporting the 11 domain-specific node packages (core, text, llm, data, document, image, audio, video, integration, code, automation)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,10 +18,13 @@
     "lint": "node ../../scripts/run-tsc.mjs --noEmit"
   },
   "dependencies": {
+    "@nodetool-ai/agents": "*",
+    "@nodetool-ai/transformers-js-provider": "*",
     "@nodetool-ai/atlascloud-nodes": "*",
     "@nodetool-ai/audio-nodes": "*",
     "@nodetool-ai/automation-nodes": "*",
     "@nodetool-ai/blender-nodes": "*",
+    "@nodetool-ai/manimgx-nodes": "*",
     "@nodetool-ai/code-nodes": "*",
     "@nodetool-ai/core-nodes": "*",
     "@nodetool-ai/data-nodes": "*",
@@ -57,6 +60,12 @@
     "vitest": "^5.0.1"
   },
   "exports": {
+    "./server-pack-source": {
+      "nodetool-dev": "./src/server-pack-source.ts",
+      "types": "./dist/server-pack-source.d.ts",
+      "import": "./dist/server-pack-source.js",
+      "default": "./dist/server-pack-source.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",

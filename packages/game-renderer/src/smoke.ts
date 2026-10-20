@@ -1,7 +1,9 @@
 import { createServer } from "node:http";
 import { readFile, realpath } from "node:fs/promises";
 import { extname, join, sep } from "node:path";
-import { chromium, type Browser, type LaunchOptions } from "playwright";
+import type { Browser, BrowserType, LaunchOptions } from "playwright";
+import { importOptionalModule } from "@nodetool-ai/config";
+import { missingRuntimePackageError } from "@nodetool-ai/protocol";
 import { z } from "zod";
 import type { GameInputFrame3D } from "@nodetool-ai/protocol";
 
@@ -24,6 +26,7 @@ const TYPES: Readonly<Record<string, string>> = {
   ".glb": "model/gltf-binary", ".wav": "audio/wav", ".mp3": "audio/mpeg", ".ogg": "audio/ogg",
   ".ttf": "font/ttf", ".otf": "font/otf"
 };
+const renderedFrame = z.object({ tick: z.number().int().nonnegative(), frameNumber: z.number().int().positive() });
 const smokeDocument = z.object({ schemaVersion: z.number(), inputActions: z.array(z.string()) });
 
 /** Serve the exported player without outside network access and exercise its renderer and simulation. */
@@ -64,7 +67,11 @@ export async function smokeStandaloneGame(directory: string, options: GameSmokeO
     const launchOptions: LaunchOptions = { headless: true, chromiumSandbox: true,
       args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] };
     if (options.executablePath) { launchOptions.executablePath = options.executablePath; }
-    browser = await chromium.launch(launchOptions);
+    // Playwright may live in the optional-node root (`nodetool runtime add playwright`).
+    let playwright: { readonly chromium: BrowserType };
+    try { playwright = await importOptionalModule<{ readonly chromium: BrowserType }>("playwright", { commonJs: true }); }
+    catch (error) { throw missingRuntimePackageError("playwright", "playwright", error); }
+    browser = await playwright.chromium.launch(launchOptions);
     controller.signal.throwIfAborted();
     const context = await browser.newContext({ serviceWorkers: "block" });
     await context.route("**/*", route => {
@@ -80,29 +87,45 @@ export async function smokeStandaloneGame(directory: string, options: GameSmokeO
     page.on("response", response => { if (!response.ok()) { errors.add(`HTTP ${response.status()}: ${response.url()}`); } });
     await page.goto(origin);
     await page.waitForFunction(() => Boolean(window.nativeGame3DPlayer || window.nativeGamePlayer));
-    await page.evaluate(async () => {
+    const reset = renderedFrame.parse(await page.evaluate(async () => {
+      const canvas = window.document.getElementById("game");
+      if (!(canvas instanceof HTMLCanvasElement) || canvas.width < 1 || canvas.height < 1) {
+        throw new Error("Player has no renderable game canvas");
+      }
       const player = window.nativeGame3DPlayer || window.nativeGamePlayer;
       player.pause();
-      await player.reset();
-    });
+      return player.reset();
+    }));
+    if (reset.tick !== 0) { throw new Error("Player reset did not render tick zero"); }
+    let lastFrameNumber = reset.frameNumber;
     for (let frame = 0; frame < frames; frame += 1) {
       controller.signal.throwIfAborted();
-      const input: GameInputFrame3D = document.schemaVersion === 3
+      // Smoke frames never carry save loads. Leaving the recursive JSON type out keeps page.evaluate typeable.
+      const input: Omit<GameInputFrame3D, "loaded"> = document.schemaVersion === 3
         ? { pressed: frame % 60 === 0 ? ["jump"] : [], justPressed: frame % 60 === 0 ? ["jump"] : [],
           axes: { moveX: Math.floor(frame / 75) % 2 ? -0.5 : 0.5, moveZ: -0.5 }, look: { x: 0, y: 0 } }
         : { pressed: document.inputActions.filter(action => [Math.floor(frame / 75) % 2 ? "left" : "right", Math.floor(frame / 75) % 2 ? "a" : "d"].includes(action)), justPressed: [], axes: {}, look: { x: 0, y: 0 } };
-      const tick = await page.evaluate(async ({ input, dimension }) => {
+      const completed = await page.evaluate(async ({ input, dimension }) => {
         await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
         if (dimension === 3) {
-          await window.nativeGame3DPlayer.step(input);
-          return window.nativeGame3DPlayer.snapshot().tick;
+          const receipt = await window.nativeGame3DPlayer.step(input);
+          return { receipt, tick: window.nativeGame3DPlayer.snapshot().tick };
         }
-        await window.nativeGamePlayer.step(input);
-        return window.nativeGamePlayer.snapshot().tick;
+        const receipt = await window.nativeGamePlayer.step(input);
+        return { receipt, tick: window.nativeGamePlayer.snapshot().tick };
       }, { input, dimension: document.schemaVersion });
+      const receipt = renderedFrame.safeParse(completed.receipt);
+      if (!receipt.success || receipt.data.frameNumber <= lastFrameNumber) {
+        errors.add(`Player render stalled without a new successful render receipt at frame ${rendered + 1}`);
+        break;
+      }
+      if (completed.tick !== ticks + 1 || receipt.data.tick !== completed.tick) {
+        errors.add(`Player tick stalled or jumped at frame ${rendered + 1}: expected ${ticks + 1}, received ${completed.tick}`);
+        break;
+      }
+      lastFrameNumber = receipt.data.frameNumber;
       rendered += 1;
-      if (tick !== ticks + 1) { errors.add(`Player tick stalled or jumped at frame ${rendered}: expected ${ticks + 1}, received ${tick}`); break; }
-      ticks = tick;
+      ticks = completed.tick;
       const status = await page.locator("#status").textContent();
       if (status && /failed|error|missing|unavailable|could not|lost/i.test(status)) { errors.add(`Player status: ${status}`); }
       if (errors.size) { break; }

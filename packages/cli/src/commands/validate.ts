@@ -89,12 +89,17 @@ export function registerValidateCommand(program: Command): void {
         const failed =
           !report.ok ||
           (opts.warningsAsErrors === true && report.counts.warnings > 0);
-        process.exit(failed ? 1 : 0);
+        process.exit(failed ? validationFailureExitCode(report, opts.warningsAsErrors) : 0);
       } catch (e) {
-        printCommandError(e, opts.json);
-        process.exit(1);
+        process.exit(printCommandError(e, opts.json));
       }
     });
+}
+
+/** Install-only validation failures share exit 3 with missing runtime libraries. */
+export function validationFailureExitCode(report: GraphValidationReport, warningsAsErrors = false): 1 | 3 {
+  const errors = report.issues.filter((issue) => issue.severity === "error" || (warningsAsErrors && issue.severity === "warning"));
+  return errors.length > 0 && errors.every((issue) => issue.code === "pack_not_installed") ? 3 : 1;
 }
 
 /**
@@ -104,6 +109,7 @@ export function registerValidateCommand(program: Command): void {
 const CODE_LEGEND: Readonly<Record<string, string>> = {
   invalid_graph: "the graph's nodes or edges is not an array",
   unknown_node: "node type is not in the registry",
+  pack_not_installed: "node metadata is known but its owning pack is not installed",
   duplicate_id: "two nodes share an id",
   property: "property is missing, empty, or the wrong shape",
   dangling_edge: "edge references a node the graph does not contain",

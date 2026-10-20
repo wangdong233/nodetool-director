@@ -145,7 +145,7 @@ const WaveRecorder = (props: WaveRecorderProps) => {
                   color: "var(--palette-grey-100)"
                 }}
               >
-                Input Device
+                Input device
               </Text>
               <div
                 className={`device-select${
@@ -157,7 +157,7 @@ const WaveRecorder = (props: WaveRecorderProps) => {
                   value={selectedInputDeviceId}
                   onChange={handleInputDeviceChange}
                   placeholder={t("ui2:attrs.systemDefaultInput", { defaultValue: "System default input" })}
-                  label={t("ui2:attrs.inputDevice", { defaultValue: "Input Device" })}
+                  label={t("ui2:attrs.inputDevice", { defaultValue: "Input device" })}
                   tabIndex={isRecording || isLoading ? -1 : 0}
                 />
               </div>
@@ -176,7 +176,7 @@ const WaveRecorder = (props: WaveRecorderProps) => {
                 left: "0.5em"
               }}
             >
-              {t("editor:ui.noAudioInputDevicesFound")}
+              No audio input devices found.
             </Text>
           )}
         </div>

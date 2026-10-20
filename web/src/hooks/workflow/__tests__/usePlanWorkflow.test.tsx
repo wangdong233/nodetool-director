@@ -567,10 +567,14 @@ describe("pinnedChipPlan", () => {
 
   it("matches a chip's localized brief (显示即所发: the label is the brief)", async () => {
     await changeAppLanguage("zh-CN");
-    const zhBrief = "总结 PDF 并发送邮件";
+    // Chip order and membership are upstream's to change; pin by an id that
+    // currently ships with a zh catalog label.
+    const chip = WORKFLOW_INSPIRATION_CHIPS.find((c) => c.id === "product-shots");
+    const zhBrief = "从 CSV 批量生成产品照";
     try {
-      expect(zhBrief).not.toBe(WORKFLOW_INSPIRATION_CHIPS[0].brief);
-      expect(pinnedChipPlan(zhBrief)).toEqual(WORKFLOW_INSPIRATION_CHIPS[0].plan);
+      expect(chip).toBeDefined();
+      expect(zhBrief).not.toBe(chip!.brief);
+      expect(pinnedChipPlan(zhBrief)).toEqual(chip!.plan);
       expect(pinnedChipPlan("随便写个俳句")).toBeNull();
     } finally {
       await changeAppLanguage("en");

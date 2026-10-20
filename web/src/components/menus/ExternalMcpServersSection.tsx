@@ -2,8 +2,8 @@
 import { memo, useCallback, useState, type ChangeEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "@mui/material/styles";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/AddOutlined";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import ExtensionIcon from "@mui/icons-material/Extension";
 import {
   MCP_SERVER_ID_PATTERN,
@@ -14,7 +14,6 @@ import {
   BORDER_RADIUS,
   Caption,
   Card,
-  Checkbox,
   Chip,
   ConfirmDialog,
   Dialog,
@@ -22,6 +21,7 @@ import {
   EmptyState,
   FlexColumn,
   FlexRow,
+  LabeledSwitch,
   MOTION,
   SPACING,
   SelectField,
@@ -31,6 +31,7 @@ import {
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { trpcClient, type RouterOutputs } from "../../trpc/client";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 type ProbeResult = RouterOutputs["externalMcp"]["probe"];
 
@@ -63,8 +64,8 @@ const EMPTY_DRAFT: DraftState = {
 };
 
 const TRANSPORT_OPTIONS = [
-  { value: "stdio", label: "Command (stdio)", labelKey: "editor:ui.transportCommandStdio" },
-  { value: "http", label: "HTTP URL", labelKey: "editor:ui.transportHttpUrl" }
+  { value: "stdio", label: i18n.t("editor:ui.transportCommandStdio", { defaultValue: "Command (stdio)" }) },
+  { value: "http", label: i18n.t("editor:ui.transportHttpUrl", { defaultValue: "HTTP URL" }) }
 ] as const;
 
 /** `KEY=value` lines → record. Blank lines and lines without `=` are skipped. */
@@ -93,18 +94,18 @@ function slugify(name: string): string {
 }
 
 function draftFrom(server: McpServerConfig): DraftState {
-  const t = server.transport;
+  const transport = server.transport;
   return {
     id: server.id,
     name: server.name,
     enabled: server.enabled,
-    type: t.type,
-    command: t.type === "stdio" ? t.command : "",
-    args: t.type === "stdio" ? t.args.join("\n") : "",
-    env: t.type === "stdio" ? formatKeyValues(t.env) : "",
-    cwd: t.type === "stdio" ? (t.cwd ?? "") : "",
-    url: t.type === "http" ? t.url : "",
-    headers: t.type === "http" ? formatKeyValues(t.headers) : ""
+    type: transport.type,
+    command: transport.type === "stdio" ? transport.command : "",
+    args: transport.type === "stdio" ? transport.args.join("\n") : "",
+    env: transport.type === "stdio" ? formatKeyValues(transport.env) : "",
+    cwd: transport.type === "stdio" ? (transport.cwd ?? "") : "",
+    url: transport.type === "http" ? transport.url : "",
+    headers: transport.type === "http" ? formatKeyValues(transport.headers) : ""
   };
 }
 
@@ -138,28 +139,24 @@ function configFrom(draft: DraftState): McpServerConfig {
   return { ...base, transport };
 }
 
-type Translate = (key: string, opts?: Record<string, unknown>) => string;
-
-function idError(id: string, t: Translate): string | null {
-  if (!id) return t("editor:ui.enterAnId", { defaultValue: "Enter an id." });
+function idError(id: string): string | null {
+  if (!id) return i18n.t("editor:ui.enterAnId", { defaultValue: "Enter an id." });
   if (!MCP_SERVER_ID_PATTERN.test(id)) {
-    return t("editor:ui.idCharsetRule", {
-      defaultValue: "Lowercase letters, digits and _ only, up to 32 characters."
-    });
+    return i18n.t("editor:ui.idCharsetRule", { defaultValue: "Lowercase letters, digits and _ only, up to 32 characters." });
   }
   return null;
 }
 
-function urlError(url: string, t: Translate): string | null {
-  if (!url.trim()) return t("editor:ui.enterAUrl", { defaultValue: "Enter a URL." });
+function urlError(url: string): string | null {
+  if (!url.trim()) return i18n.t("editor:ui.enterAUrl", { defaultValue: "Enter a URL." });
   try {
     const parsed = new URL(url.trim());
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return t("editor:ui.useHttpHttpsUrl", { defaultValue: "Use an http or https URL." });
+      return i18n.t("editor:ui.useHttpHttpsUrl", { defaultValue: "Use an http or https URL." });
     }
     return null;
   } catch {
-    return t("editor:ui.notAValidUrl", { defaultValue: "That is not a valid URL." });
+    return i18n.t("editor:ui.notAValidUrl", { defaultValue: "That is not a valid URL." });
   }
 }
 
@@ -180,19 +177,15 @@ const ServerRow = memo(function ServerRow({
   probing: boolean;
   probe: ProbeResult | null;
 }) {
-  const { t } = useTranslation();
   const theme = useTheme();
+  const { t } = useTranslation();
   const handleEdit = useCallback(() => onEdit(server), [onEdit, server]);
   const handleDelete = useCallback(() => onDelete(server), [onDelete, server]);
   const handleProbe = useCallback(() => onProbe(server), [onProbe, server]);
   const handleToggle = useCallback(() => onToggle(server), [onToggle, server]);
-  // Renamed from `t` (transport): the local binding shadowed the
-  // useTranslation `t` this component now also uses.
   const transport = server.transport;
   const summary =
-    transport.type === "stdio"
-      ? [transport.command, ...transport.args].join(" ")
-      : transport.url;
+    transport.type === "stdio" ? [transport.command, ...transport.args].join(" ") : transport.url;
 
   return (
     <Card
@@ -238,7 +231,7 @@ const ServerRow = memo(function ServerRow({
             {summary}
           </Caption>
           <Caption size="smaller" sx={{ opacity: 0.45 }}>
-            {t("editor:ui.toolsAppearAs", { ref: `${MCP_TOOL_PREFIX}${server.id}_<tool>` })}
+            Tools appear as {`${MCP_TOOL_PREFIX}${server.id}_<tool>`}
           </Caption>
           {probe && (
             <Caption
@@ -248,13 +241,10 @@ const ServerRow = memo(function ServerRow({
             >
               {probe.ok
                 ? probe.tools.length === 0
-                  ? t("editor:ui.connectedTheServerOffersNoTools", { defaultValue: "Connected. The server offers no tools." })
-                  : t("editor:ui.probeToolSummary", {
-                      defaultValue: "{{count}} tools: {{names}}",
-                      count: probe.tools.length,
-                      names: probe.tools.map((tool) => tool.name).join(", ")
-                    })
-                : (probe.error ?? t("editor:ui.couldNotConnect", { defaultValue: "Could not connect." }))}
+                  ? t("editor:ui.connectedTheServerOffersNoTools", { defaultValue: "Connected. The server offers no tools." }) : `${probe.tools.length} tool${probe.tools.length === 1 ? "" : "s"}: ${probe.tools
+                      .map((tool) => tool.name)
+                      .join(", ")}`
+                : (probe.error ?? i18n.t("editor:ui.couldNotConnect", { defaultValue: "Could not connect." }))}
             </Caption>
           )}
         </FlexColumn>
@@ -268,7 +258,7 @@ const ServerRow = memo(function ServerRow({
           onClick={handleProbe}
           disabled={probing}
         >
-          {probing ? t("editor:ui.connecting") : t("editor:ui.test")}
+          {probing ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : i18n.t("editor:ui.test2", { defaultValue: "Test" })}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -276,7 +266,7 @@ const ServerRow = memo(function ServerRow({
           size="small"
           onClick={handleToggle}
         >
-          {server.enabled ? t("editor:ui.disable") : t("editor:ui.enable")}
+          {server.enabled ? t("editor:ui.disable", { defaultValue: "Disable" }) : i18n.t("editor:ui.enable", { defaultValue: "Enable" })}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -284,17 +274,17 @@ const ServerRow = memo(function ServerRow({
           size="small"
           onClick={handleEdit}
         >
-          {t("editor:ui.edit")}
+          Edit
         </EditorButton>
         <EditorButton
           density="compact"
           variant="text"
           size="small"
           color="error"
-          startIcon={<DeleteIcon sx={{ fontSize: 14 }} />}
+          startIcon={<DeleteIcon />}
           onClick={handleDelete}
         >
-          {t("editor:ui.remove")}
+          Remove
         </EditorButton>
       </FlexRow>
     </Card>
@@ -341,10 +331,7 @@ export const ExternalMcpServersSection = memo(
         addNotification({
           type: "error",
           alert: true,
-          content: t("editor:notify.couldNotSaveServer", {
-            defaultValue: "Could not save the server: {{error}}",
-            error: err instanceof Error ? err.message : String(err)
-          })
+          content: `Could not save the server: ${err instanceof Error ? err.message : String(err)}`
         });
       }
     });
@@ -426,27 +413,22 @@ export const ExternalMcpServersSection = memo(
       setDraft((prev) => ({ ...prev, type: value === "http" ? "http" : "stdio" }));
     }, []);
 
-    const handleEnabledChange = useCallback(
-      (e: ChangeEvent<HTMLInputElement>) => {
-        const enabled = e.target.checked;
-        setDraft((prev) => ({ ...prev, enabled }));
-      },
-      []
-    );
+    const handleEnabledChange = useCallback((enabled: boolean) => {
+      setDraft((prev) => ({ ...prev, enabled }));
+    }, []);
 
     const servers = data?.servers ?? [];
     const stdioEnabled = data?.stdio_enabled ?? true;
-    const draftIdError = idError(draft.id, t);
+    const draftIdError = idError(draft.id);
     const duplicateId =
       !editingId && servers.some((s) => s.id === draft.id);
     const transportError =
       draft.type === "http"
-        ? urlError(draft.url, t)
+        ? urlError(draft.url)
         : !stdioEnabled
-          ? t("editor:ui.stdioServersAreNotAvailableOnThisDeployment", { defaultValue: "Stdio servers are not available on this deployment." })
-          : draft.command.trim()
+          ? t("editor:ui.stdioServersAreNotAvailableOnThisDeployment", { defaultValue: "Stdio servers are not available on this deployment." }) : draft.command.trim()
             ? null
-            : t("editor:ui.enterACommand", { defaultValue: "Enter a command." });
+            : i18n.t("editor:ui.enterACommand", { defaultValue: "Enter a command." });
 
     const handleSave = useCallback(() => {
       saveMutation.mutate(configFrom(draft));
@@ -468,17 +450,18 @@ export const ExternalMcpServersSection = memo(
           <FlexColumn gap={0.5}>
             <Text size="big">{t("ui2:attrs.externalServers", { defaultValue: "External servers" })}</Text>
             <Caption sx={{ opacity: 0.55 }}>
-              {t("editor:ui.giveTheAgentTheToolsOfAnyMcpServer")}
+              Give the agent the tools of any MCP server: Blender, Hugging
+              Face, or a script of your own. Works with every model provider.
             </Caption>
           </FlexColumn>
           <EditorButton
             density="compact"
             variant="outlined"
             size="small"
-            startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+            startIcon={<AddIcon />}
             onClick={handleAdd}
           >
-            {t("editor:ui.addServer")}
+            Add server
           </EditorButton>
         </FlexRow>
 
@@ -486,10 +469,7 @@ export const ExternalMcpServersSection = memo(
           <EmptyState
             variant="no-results"
             title={t("editor:ui.noExternalServers", { defaultValue: "No external servers" })}
-            description={t("tools:menus.addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage", {
-              defaultValue:
-                "Add a command or a URL. Its tools join the agent's toolbelt on the next message."
-            })}
+            description={t("tools:menus.addACommandOrAURLItsToolsJoinTheAgentsToolbeltOnTheNextMessage", { defaultValue: "Add a command or a URL. Its tools join the agent's toolbelt on the next message." })}
           />
         ) : (
           <FlexColumn sx={{ gap: theme.spacing(2) }}>
@@ -512,22 +492,14 @@ export const ExternalMcpServersSection = memo(
           open={dialogOpen}
           onClose={handleClose}
           fullWidth
-          title={
-            <Text size="big">
-              {editingId ? t("editor:ui.editMcpServer", { defaultValue: "Edit MCP server" }) : t("editor:ui.addMcpServer", { defaultValue: "Add MCP server" })}
-            </Text>
-          }
+          title={editingId ? t("editor:ui.editMcpServer", { defaultValue: "Edit MCP server" }) : i18n.t("editor:ui.addMcpServer", { defaultValue: "Add MCP server" })}
           onConfirm={handleSave}
-          onCancel={handleClose}
-          confirmText={editingId ? t("editor:ui.save", { defaultValue: "Save" }) : t("editor:ui.add", { defaultValue: "Add" })}
-          cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+          confirmText={editingId ? "Save" : "Add"}
           confirmDisabled={
             Boolean(draftIdError) || Boolean(transportError) || duplicateId
           }
         >
-          <FlexColumn
-            sx={{ marginTop: theme.spacing(4), gap: theme.spacing(3) }}
-          >
+          <FlexColumn gap={SPACING.lg}>
             <TextInput
               label={t("editor:asset.info.name", { defaultValue: "Name" })}
               value={draft.name}
@@ -539,38 +511,31 @@ export const ExternalMcpServersSection = memo(
               size="small"
             />
             <TextInput
-              label={t("editor:ui.serverIdLabel", { defaultValue: "Id" })}
+              label="ID"
               value={draft.id}
               onChange={field("id")}
               fullWidth
               disabled={Boolean(editingId)}
-              placeholder="blender"
+              placeholder={t("editor:ui.blenderLower", { defaultValue: "blender" })}
               variant="outlined"
               size="small"
               errorMessage={
                 duplicateId
-                  ? t("editor:ui.thatIdIsAlreadyInUse", { defaultValue: "That id is already in use." })
-                  : (draftIdError ?? undefined)
+                  ? t("editor:ui.thatIdIsAlreadyInUse", { defaultValue: "That id is already in use." }) : (draftIdError ?? undefined)
               }
-              helperText={t("editor:ui.toolsNamedHelper", {
-                defaultValue: "Tools are named {{prefix}}<tool>",
-                prefix: `${MCP_TOOL_PREFIX}${draft.id || "id"}_`
-              })}
+              helperText={`Tools are named ${MCP_TOOL_PREFIX}${draft.id || "id"}_<tool>`}
             />
             <SelectField
               label={t("editor:ui.connection", { defaultValue: "Connection" })}
               value={draft.type}
               onChange={handleTypeChange}
-              options={TRANSPORT_OPTIONS.map((o) => ({
-                value: o.value,
-                label: t(o.labelKey, { defaultValue: o.label })
-              }))}
+              options={TRANSPORT_OPTIONS}
               size="small"
               variant="outlined"
               description={
                 stdioEnabled
                   ? undefined
-                  : t("editor:ui.thisDeploymentCannotRunCommandsOnlyHTTPServersConnect", { defaultValue: "This deployment cannot run commands; only HTTP servers connect." })
+                  : i18n.t("editor:ui.thisDeploymentCannotRunCommandsOnlyHTTPServersConnect", { defaultValue: "This deployment cannot run commands; only HTTP servers connect." })
               }
             />
             {draft.type === "stdio" ? (
@@ -595,10 +560,7 @@ export const ExternalMcpServersSection = memo(
                   placeholder="blender-mcp"
                   variant="outlined"
                   size="small"
-                  helperText={t("tools:menus.oneArgumentPerLineSoAPathWithASpaceStaysOneArgument", {
-                    defaultValue:
-                      "One argument per line, so a path with a space stays one argument."
-                  })}
+                  helperText={t("tools:menus.oneArgumentPerLineSoAPathWithASpaceStaysOneArgument", { defaultValue: "One argument per line, so a path with a space stays one argument." })}
                 />
                 <TextInput
                   label={t("editor:ui.environment", { defaultValue: "Environment" })}
@@ -610,10 +572,7 @@ export const ExternalMcpServersSection = memo(
                   placeholder={"HF_TOKEN=${HF_TOKEN}\nDEBUG=1"}
                   variant="outlined"
                   size="small"
-                  helperText={t("tools:menus.oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys", {
-                    defaultValue:
-                      "One KEY=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys."
-                  })}
+                  helperText={t("tools:menus.oneKeyValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys", { defaultValue: "One KEY=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys." })}
                 />
                 <TextInput
                   label={t("editor:ui.workingDirectory", { defaultValue: "Working directory" })}
@@ -636,9 +595,7 @@ export const ExternalMcpServersSection = memo(
                   variant="outlined"
                   size="small"
                   errorMessage={transportError ?? undefined}
-                  helperText={t("tools:menus.streamableHTTPWithSSEAsTheFallback", {
-                    defaultValue: "Streamable HTTP, with SSE as the fallback."
-                  })}
+                  helperText={t("tools:menus.streamableHTTPWithSSEAsTheFallback", { defaultValue: "Streamable HTTP, with SSE as the fallback." })}
                 />
                 <TextInput
                   label={t("editor:ui.headers", { defaultValue: "Headers" })}
@@ -650,14 +607,11 @@ export const ExternalMcpServersSection = memo(
                   placeholder={"Authorization=Bearer ${HF_TOKEN}"}
                   variant="outlined"
                   size="small"
-                  helperText={t("tools:menus.oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys", {
-                    defaultValue:
-                      "One Header=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys."
-                  })}
+                  helperText={t("tools:menus.oneHeaderValuePerLineALiteralValueIsStoredEncryptedNameReadsTheSecretNameFromYourAPIKeys", { defaultValue: "One Header=value per line. A literal value is stored encrypted; ${NAME} reads the secret NAME from your API keys." })}
                 />
               </>
             )}
-            <Checkbox
+            <LabeledSwitch
               label={t("editor:ui.enabled", { defaultValue: "Enabled" })}
               checked={draft.enabled}
               onChange={handleEnabledChange}
@@ -668,10 +622,11 @@ export const ExternalMcpServersSection = memo(
 
         <ConfirmDialog
           open={Boolean(pendingDelete)}
-          title={t("editor:ui.removeServer", { defaultValue: "Remove server" })}
-          content={t("editor:ui.removeServerConfirmBody", { name: pendingDelete?.name ?? "" })}
-          confirmText={t("editor:ui.remove", { defaultValue: "Remove" })}
-          cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
+          title={i18n.t("tools:ui.removeServer", { defaultValue: "Remove server?" })}
+          content={`Remove ${pendingDelete?.name ?? ""}? Its tools leave the agent's toolbelt.`}
+          confirmText="Remove"
+          cancelText="Cancel"
+          destructive
           onConfirm={confirmDelete}
           onClose={handleCancelDelete}
         />

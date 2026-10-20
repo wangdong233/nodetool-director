@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { DRAG_DATA_MIME } from "../../../lib/dragdrop";
 
 // Mocks
 jest.mock("../../themes/ThemeNodetool", () => ({
@@ -30,6 +31,10 @@ jest.mock("../../../hooks/handlers/useFileDrop", () => ({
     onDragOver: jest.fn(),
     filename: ""
   })
+}));
+const addExampleModelAsset = jest.fn();
+jest.mock("../../../hooks/useAddExampleModelAsset", () => ({
+  useAddExampleModelAsset: () => addExampleModelAsset
 }));
 jest.mock("../../assets/AssetViewer", () => ({
   __esModule: true,
@@ -84,7 +89,17 @@ jest.mock("@mui/material/styles", () => ({
   })
 }));
 
+import { ThemeProvider } from "@mui/material/styles";
+import mockTheme from "../../../__mocks__/themeMock";
 import Model3DProperty from "../Model3DProperty";
+
+// DropZone reads the theme through `sx`, which takes it from the provider.
+const renderProperty = (props: Partial<typeof defaultProps> = {}) =>
+  render(
+    <ThemeProvider theme={mockTheme}>
+      <Model3DProperty {...defaultProps} {...props} />
+    </ThemeProvider>
+  );
 
 const defaultProps = {
   property: {
@@ -101,21 +116,52 @@ const defaultProps = {
 
 describe("Model3DProperty", () => {
   it("renders property label", () => {
-    render(<Model3DProperty {...defaultProps} />);
+    renderProperty();
     expect(screen.getByText("Model")).toBeInTheDocument();
   });
 
   it("renders drop zone when not connected", () => {
-    render(<Model3DProperty {...defaultProps} />);
+    renderProperty();
     expect(
       screen.getByText("Drop 3D model (GLB, GLTF)")
     ).toBeInTheDocument();
   });
 
   it("renders URL toggle button", () => {
-    render(<Model3DProperty {...defaultProps} />);
+    renderProperty();
     expect(
       screen.getByRole("button", { name: "Show input to enter a URL" })
     ).toBeInTheDocument();
+  });
+
+  it("copies a dropped example model into the assets and selects it", async () => {
+    const onChange = jest.fn();
+    const model = {
+      slug: "chest",
+      name: "Chest",
+      file: "chest.glb",
+      uri: "package://nodetool-base/game-models/dungeon/chest.glb",
+      triangles: 120,
+      clips: [],
+      use: "Loot"
+    };
+    addExampleModelAsset.mockResolvedValue({ id: "a".repeat(32) });
+    renderProperty({ onChange });
+    const drag = JSON.stringify({ type: "example-model", payload: model });
+    fireEvent.drop(screen.getByText("Drop 3D model (GLB, GLTF)"), {
+      dataTransfer: {
+        getData: (key: string) => (key === DRAG_DATA_MIME ? drag : ""),
+        items: [],
+        files: []
+      }
+    });
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith({
+        type: "model_3d",
+        uri: `asset://${"a".repeat(32)}`,
+        asset_id: "a".repeat(32)
+      })
+    );
+    expect(addExampleModelAsset).toHaveBeenCalledWith(model);
   });
 });

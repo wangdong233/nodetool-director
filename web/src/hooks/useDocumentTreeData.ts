@@ -1,8 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import type { Entity } from "@nodetool-ai/protocol";
 
 import { trpc } from "../trpc/client";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../i18n";
 
 export type DocumentTreeLeafType =
   | "workflow"
@@ -12,7 +12,9 @@ export type DocumentTreeLeafType =
   | "storyboard"
   | "timeline"
   | "entity"
-  | "jsscript";
+  | "jsscript"
+  | "game"
+  | "text";
 
 export interface DocumentTreeLeaf {
   readonly id: string;
@@ -24,7 +26,7 @@ export interface DocumentTreeLeaf {
 }
 
 export interface DocumentTreeGroup {
-  readonly id: "workflows" | "apps" | "creative" | "agents";
+  readonly id: "workflows" | "apps" | "creative" | "text" | "agents" | "entities";
   readonly label: string;
   readonly labelKey?: string;
   readonly children: readonly DocumentTreeLeaf[];
@@ -48,35 +50,33 @@ const UNTITLED: Record<DocumentTreeLeafType, string> = {
   storyboard: "Untitled storyboard",
   timeline: "Untitled video",
   entity: "Untitled entity",
-  jsscript: "Untitled JS script"
+  jsscript: "Untitled JS script",
+  game: "Untitled game",
+  text: "Untitled text file"
 };
 
-const UNTITLED_KEYS: Record<DocumentTreeLeafType, string> = {
-  workflow: "editor:ui.untitledWorkflow",
-  application: "editor:ui.untitledApp",
-  sketch: "editor:ui.untitledSketch",
-  script: "editor:ui.untitledScript",
-  storyboard: "storyboard:attrs.untitledStoryboard",
-  timeline: "timeline:list.untitled",
-  entity: "storyboard:attrs.untitledEntity",
-  jsscript: "editor:ui.untitledJsScript"
-};
-
-const TYPE_LABEL_KEYS: Record<DocumentTreeLeafType, string> = {
-  workflow: "editor:ui.workflow",
-  application: "editor:ui.app",
-  sketch: "editor:ui.sketch",
-  script: "editor:ui.script",
-  storyboard: "editor:ui.storyboard",
-  timeline: "editor:ui.timeline",
-  entity: "editor:ui.entity",
-  jsscript: "editor:ui.jsScriptTypeLabel"
+const TYPE_LABELS: Record<DocumentTreeLeafType, string> = {
+  workflow: "Workflow",
+  application: "App",
+  sketch: "Sketch",
+  script: "Script",
+  storyboard: "Storyboard",
+  timeline: "Timeline",
+  entity: "Entity",
+  jsscript: "JS script",
+  game: "Game",
+  text: "Text file"
 };
 
 /**
  * The groups, and the kinds each one holds in the order it shows them. The
  * index arrives newest-first across every kind at once, so a group's order
  * comes from partitioning it by kind rather than from the order it arrived in.
+ *
+ * Every group but Entities holds the kinds the home documents strip counts,
+ * so the panel and the strip agree on what a document is. Entities open in
+ * place rather than as a tab, and the strip does not list them, so they get a
+ * group of their own instead of sitting among the documents.
  */
 const GROUPS: readonly {
   readonly id: DocumentTreeGroup["id"];
@@ -84,15 +84,16 @@ const GROUPS: readonly {
   readonly labelKey?: string;
   readonly types: readonly DocumentTreeLeafType[];
 }[] = [
-  { id: "workflows", label: "Workflows", labelKey: "nav:qa.workflows.label", types: ["workflow"] },
-  { id: "apps", label: "Apps", labelKey: "nav:qa.apps.label", types: ["application"] },
+  { id: "workflows", label: "Workflows", types: ["workflow"] },
+  { id: "apps", label: "Apps", types: ["application"] },
   {
     id: "creative",
-    label: "Creative documents",
-    labelKey: "editor:ui.creativeDocuments",
-    types: ["sketch", "script", "storyboard", "timeline", "entity"]
+    label: "Creative documents", labelKey: "editor:ui.creativeDocuments",
+    types: ["sketch", "script", "storyboard", "timeline", "game"]
   },
-  { id: "agents", label: "Agents & code", labelKey: "editor:ui.agentsAndCode", types: ["jsscript"] }
+  { id: "text", label: "Text files", types: ["text"] },
+  { id: "agents", label: i18n.t("editor:ui.agentsAndCode", { defaultValue: "Agents & code" }), types: ["jsscript"] },
+  { id: "entities", label: "Entities", types: ["entity"] }
 ];
 
 /**
@@ -108,34 +109,51 @@ const GROUPS: readonly {
 export const useDocumentTreeData = (
   projectId: string
 ): UseDocumentTreeDataResult => {
-  const { t } = useTranslation();
   const indexQuery = trpc.documents.index.useQuery(
     { projectId },
     { staleTime: INDEX_STALE_TIME, retry: false }
   );
 
+  // Every save refetches the index as new objects. A row re-renders when its
+  // leaf is a new object, and a project holds hundreds of rows, so a document
+  // the refetch did not change keeps the leaf it had.
+  const leafCache = useRef(new Map<string, DocumentTreeLeaf>());
+
   const groups = useMemo<readonly DocumentTreeGroup[]>(() => {
+    const previous = leafCache.current;
+    const next = new Map<string, DocumentTreeLeaf>();
     const byType = new Map<DocumentTreeLeafType, DocumentTreeLeaf[]>();
     for (const document of indexQuery.data?.documents ?? []) {
       const type = document.type;
+      const key = `${type}:${document.id}`;
+      const name = document.name || UNTITLED[type];
+      const cached = previous.get(key);
+      const leaf =
+        cached &&
+        cached.name === name &&
+        cached.projectId === projectId &&
+        cached.entity === document.entity
+          ? cached
+          : {
+              id: document.id,
+              name,
+              type,
+              typeLabel: TYPE_LABELS[type],
+              projectId,
+              entity: document.entity
+            };
+      next.set(key, leaf);
       const leaves = byType.get(type) ?? [];
-      leaves.push({
-        id: document.id,
-        name: document.name || t(UNTITLED_KEYS[type], { defaultValue: UNTITLED[type] }),
-        type,
-        typeLabel: t(TYPE_LABEL_KEYS[type]),
-        projectId,
-        entity: document.entity
-      });
+      leaves.push(leaf);
       byType.set(type, leaves);
     }
+    leafCache.current = next;
     return GROUPS.map((group) => ({
       id: group.id,
       label: group.label,
-      labelKey: group.labelKey,
       children: group.types.flatMap((type) => byType.get(type) ?? [])
     })).filter((group) => group.children.length > 0);
-  }, [indexQuery.data, projectId, t]);
+  }, [indexQuery.data, projectId]);
 
   const error = indexQuery.error instanceof Error ? indexQuery.error : null;
 

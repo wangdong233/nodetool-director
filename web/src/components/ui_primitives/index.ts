@@ -11,6 +11,12 @@ export type { NodeSliderProps } from "./NodeSlider";
 
 export { Slider } from "./Slider";
 export type { SliderProps } from "./Slider";
+export { Knob } from "./Knob";
+export type { KnobProps } from "./Knob";
+export { Fader } from "./Fader";
+export type { FaderProps, FaderMark } from "./Fader";
+export { LevelMeter, linearToDb } from "./LevelMeter";
+export type { LevelMeterProps } from "./LevelMeter";
 
 // Export dialog primitives
 export { Dialog } from "./Dialog";
@@ -20,7 +26,26 @@ export { DialogActionButtons } from "./DialogActionButtons";
 export type { DialogActionButtonsProps } from "./DialogActionButtons";
 
 export { ToolbarIconButton } from "./ToolbarIconButton";
+export { Toolbar, ToolbarGroup, ToolbarDivider, TOOLBAR_HEIGHT } from "./Toolbar";
+export type {
+  ToolbarProps,
+  ToolbarGroupProps,
+  ToolbarDensity
+} from "./Toolbar";
+export { FloatingToolbar } from "./FloatingToolbar";
+export type { FloatingToolbarProps } from "./FloatingToolbar";
+export { StatusBar, StatusBarItem, SaveState } from "./StatusBar";
+export type {
+  StatusBarProps,
+  StatusBarItemProps,
+  SaveStateProps,
+  SaveStateValue
+} from "./StatusBar";
 export type { ToolbarIconButtonProps } from "./ToolbarIconButton";
+export { PageLayout } from "./PageLayout";
+export type { PageLayoutProps } from "./PageLayout";
+export { PageHeader } from "./PageHeader";
+export type { PageHeaderProps, PageHeaderVariant } from "./PageHeader";
 
 // Export shortcut hint component
 export { ShortcutHint } from "./ShortcutHint";
@@ -41,8 +66,6 @@ export type { RunWorkflowButtonProps } from "./RunWorkflowButton";
 export { ExpandCollapseButton } from "./ExpandCollapseButton";
 export type { ExpandCollapseButtonProps } from "./ExpandCollapseButton";
 
-export { ViewModeToggle } from "./ViewModeToggle";
-export type { ViewModeToggleProps, ViewModeOption } from "./ViewModeToggle";
 
 export { RefreshButton } from "./RefreshButton";
 export type { RefreshButtonProps } from "./RefreshButton";
@@ -53,6 +76,12 @@ export type { SelectionControlsProps } from "./SelectionControls";
 // New action buttons
 export { CopyButton } from "./CopyButton";
 export type { CopyButtonProps } from "./CopyButton";
+export { Code } from "./Code";
+export type { CodeProps } from "./Code";
+export { CodeBlock } from "./CodeBlock";
+export type { CodeBlockProps } from "./CodeBlock";
+export { LogView, LOG_LINE_STYLE, logLevelColor } from "./LogView";
+export type { LogViewProps, LogLine, LogLevel } from "./LogView";
 
 export { CloseButton } from "./CloseButton";
 export type { CloseButtonProps } from "./CloseButton";
@@ -85,7 +114,7 @@ export { EmptyState } from "./EmptyState";
 export type { EmptyStateProps, EmptyStateVariant } from "./EmptyState";
 
 export { LoadingSpinner } from "./LoadingSpinner";
-export type { LoadingSpinnerProps, LoadingVariant } from "./LoadingSpinner";
+export type { LoadingSpinnerProps } from "./LoadingSpinner";
 
 export { default as MagicGenerationFill } from "./MagicGenerationFill";
 export {
@@ -110,6 +139,8 @@ export type { StatusPillProps, StatusPillTone } from "./StatusPill";
 
 export { StatusIndicator } from "./StatusIndicator";
 export type { StatusIndicatorProps, StatusType } from "./StatusIndicator";
+export { GENERATION_STATUS } from "./generationStatus";
+export type { GenerationStatus, GenerationStatusVisual } from "./generationStatus";
 
 export { HighlightText } from "./HighlightText";
 
@@ -129,11 +160,14 @@ export type { SearchInputProps } from "./SearchInput";
 export { Breadcrumbs } from "./Breadcrumbs";
 export type { BreadcrumbsProps, BreadcrumbItem } from "./Breadcrumbs";
 
-export { WarningBanner } from "./WarningBanner";
-export type { WarningBannerProps, BannerVariant } from "./WarningBanner";
+export { CountBadge } from "./CountBadge";
+export type { CountBadgeProps } from "./CountBadge";
 
-export { NotificationBadge } from "./NotificationBadge";
-export type { NotificationBadgeProps } from "./NotificationBadge";
+export { StatusDot } from "./StatusDot";
+export type { StatusDotProps, StatusDotTone } from "./StatusDot";
+
+export { MediaLabel } from "./MediaLabel";
+export type { MediaLabelProps, MediaLabelCorner } from "./MediaLabel";
 
 export { UndoRedoButtons } from "./UndoRedoButtons";
 export type { UndoRedoButtonsProps } from "./UndoRedoButtons";
@@ -206,10 +240,15 @@ export { InspectorSectionTitle, InspectorSection } from "./InspectorSection";
 export type { InspectorSectionTitleProps, InspectorSectionProps, InspectorSectionAction } from "./InspectorSection";
 export { InspectorToggleRow } from "./InspectorToggleRow";
 export type { InspectorToggleRowProps } from "./InspectorToggleRow";
+export { InspectorStaticValue } from "./InspectorStaticValue";
+export type { InspectorStaticValueProps } from "./InspectorStaticValue";
 export { BatchedColorInput } from "./BatchedColorInput";
 export type { BatchedColorInputProps } from "./BatchedColorInput";
 export { InspectorValueInput } from "./InspectorValueInput";
 export type { InspectorValueInputProps, InspectorValueScrub, InspectorValueGesture } from "./InspectorValueInput";
+export { NumberField } from "./NumberField";
+export type { NumberFieldProps } from "./NumberField";
+export { numberFieldHeight, numberFieldSurfaceStyles, numberFieldTextStyles, numberFieldUnitStyles, numberFieldPaddingX } from "./NumberField";
 export { NumericField } from "./NumericField";
 export type { NumericFieldProps } from "./NumericField";
 export { TreeRow } from "./TreeRow";
@@ -228,8 +267,10 @@ export { Container } from "./Container";
 export type { ContainerProps } from "./Container";
 
 // Surface primitives
-export { Card } from "./Card";
-export type { CardProps } from "./Card";
+export { Card, CardHeader, CardBody, CardActions } from "./Card";
+export type { CardProps, CardHeaderProps } from "./Card";
+export { StatCard } from "./StatCard";
+export type { StatCardProps } from "./StatCard";
 
 export { Panel } from "./Panel";
 export type { PanelProps } from "./Panel";
@@ -268,6 +309,7 @@ export {
   Z_INDEX,
   BORDER_RADIUS,
   CONTROL,
+  ICON_SIZE,
   TYPOGRAPHY,
   EYEBROW,
   FONT_WEIGHT,
@@ -280,6 +322,23 @@ export {
 
 // Shared styles for the sidebar document list panels
 export { listPanelStyles } from "./listPanelStyles";
+export {
+  focusRing,
+  selectableRowStyles,
+  selectedRowStyles,
+  selectableTileStyles,
+  selectedTileStyles
+} from "./selectionStyles";
+export {
+  MENU_ICON_SIZE,
+  MENU_MIN_WIDTH,
+  menuPaperStyles,
+  menuListStyles,
+  menuGroupHeaderStyles,
+  menuItemStyles,
+  menuItemDestructiveStyles,
+  menuShortcutStyles
+} from "./menuStyles";
 export { ListPanelItem } from "./ListPanelItem";
 export type { ListPanelItemProps } from "./ListPanelItem";
 export { DocumentListPanel } from "./DocumentListPanel";
@@ -342,6 +401,13 @@ export type { OverlayProps } from "./Overlay";
 export { ResponsiveImage } from "./ResponsiveImage";
 export type { ResponsiveImageProps } from "./ResponsiveImage";
 
+export { MediaThumbnail, mediaKindFromContentType } from "./MediaThumbnail";
+export type {
+  MediaThumbnailProps,
+  MediaThumbnailAsset,
+  MediaThumbnailKind
+} from "./MediaThumbnail";
+
 // Phase 3 - Additional primitives
 
 export { Tooltip } from "./Tooltip";
@@ -360,9 +426,6 @@ export type { CollapseProps } from "./Collapse";
 
 export { ListGroup, ListItemRow } from "./ListGroup";
 export type { ListGroupProps, ListItemRowProps } from "./ListGroup";
-
-export { Toast } from "./Toast";
-export type { ToastProps } from "./Toast";
 
 export { TextLink } from "./TextLink";
 export type { TextLinkProps } from "./TextLink";
@@ -385,6 +448,8 @@ export type { ContextMenuProps } from "./ContextMenu";
 
 export { TextInput } from "./TextInput";
 export type { TextInputProps } from "./TextInput";
+export { TextArea } from "./TextArea";
+export type { TextAreaProps } from "./TextArea";
 
 export { DataTable } from "./DataTable";
 export type { DataTableProps, DataTableColumn } from "./DataTable";
@@ -404,7 +469,9 @@ export type { AutocompleteProps, AutocompleteOption } from "./Autocomplete";
 export { LabeledSwitch } from "./LabeledSwitch";
 export type { LabeledSwitchProps } from "./LabeledSwitch";
 
-export { SelectField, SelectFieldDensityContext } from "./SelectField";
+export { SelectField } from "./SelectField";
+export { FieldDensityContext, useFieldDensity } from "./fieldDensity";
+export type { FieldDensity } from "./fieldDensity";
 export type { SelectFieldProps, SelectOption } from "./SelectField";
 
 // Accessibility
@@ -423,6 +490,19 @@ export type { SelectableListItemProps } from "./SelectableListItem";
 
 export { CheckerDropzone } from "./CheckerDropzone";
 export type { CheckerDropzoneProps } from "./CheckerDropzone";
+export {
+  DropZone,
+  DropZoneOverlay,
+  dropZoneOutline,
+  dropZoneOverStyle,
+  dropZoneRejectStyle,
+  dropZoneSurfaceStyle
+} from "./DropZone";
+export type {
+  DropZoneProps,
+  DropZoneState,
+  DropZoneOverlayProps
+} from "./DropZone";
 
 export { VideoPlayer } from "./VideoPlayer";
 export type { VideoPlayerProps } from "./VideoPlayer";
@@ -483,7 +563,6 @@ export {
   SvgIcon,
   Modal,
   Fade,
-  Toolbar,
   LinearProgress,
   MuiAutocomplete,
   MuiDialog
@@ -530,7 +609,6 @@ export type {
   SvgIconProps,
   ModalProps,
   FadeProps,
-  ToolbarProps,
   LinearProgressProps,
   MuiAutocompleteProps,
   MuiDialogProps
@@ -554,6 +632,10 @@ export type { InlineEditableTextProps } from "./InlineEditableText";
 // Resize primitives
 export { ResizeHandle } from "./ResizeHandle";
 export type { ResizeHandleProps } from "./ResizeHandle";
+export { DockTabStrip, DOCK_TAB_HEIGHT, DOCK_TAB_DRAG_THRESHOLD, dockTabElementId } from "./DockTabStrip";
+export type { DockTab, DockTabStripProps } from "./DockTabStrip";
+export { DockDropOverlay, dockZoneAt, DOCK_EDGE_FRACTION } from "./DockDropOverlay";
+export type { DockDropOverlayProps, DockRect, DockZone } from "./DockDropOverlay";
 export { ResizableDock } from "./ResizableDock";
 export type { ResizableDockProps } from "./ResizableDock";
 

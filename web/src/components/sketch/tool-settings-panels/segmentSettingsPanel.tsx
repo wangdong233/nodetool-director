@@ -21,7 +21,6 @@ import {
 import { EditorButton } from "../../editor_ui";
 import {
   sketchButtonSmallSx,
-  sketchSliderSx,
   SKETCH_COLORS
 } from "../sketchStyles";
 import ImageModelSelect from "../../properties/ImageModelSelect";
@@ -29,6 +28,7 @@ import type { ImageModelValue } from "../../../stores/ApiTypes";
 import { useSketchStore } from "../state";
 import { getLayerDataImageUrl } from "../serialization";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 function promptModeHelpText(mode: SegmentPromptMode): string {
   if (mode === "point") {
@@ -113,7 +113,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
     modelReady &&
     (settings.promptMode === "auto" ? canSplitSelectedLayer : true);
   const segmentActionLabel =
-    settings.promptMode === "auto" ? t("sketch:attrs.splitSelectedLayer", { defaultValue: "Split selected layer" }) : t("sketch:attrs.segmentTool", { defaultValue: "Segment" });
+    settings.promptMode === "auto" ? t("sketch:attrs.splitSelectedLayer", { defaultValue: "Split selected layer" }) : i18n.t("sketch:attrs.segmentTool", { defaultValue: "Segment" });
   const showClearPrompts = settings.promptMode !== "auto";
   // The picker names the model, so its status line is only worth a row when
   // the model cannot run.
@@ -167,9 +167,9 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
               }}
             >
               {modelInfo.status === "not-installed" &&
-                (modelInfo.errorMessage ?? t("sketch:attrs.modelNotAvailable", { defaultValue: "Model not available" }))}
+                (modelInfo.errorMessage ?? i18n.t("sketch:attrs.modelNotAvailable", { defaultValue: "Model not available" }))}
               {modelInfo.status === "error" &&
-                (modelInfo.errorMessage ?? t("sketch:attrs.connectionFailed", { defaultValue: "Connection failed" }))}
+                (modelInfo.errorMessage ?? i18n.t("sketch:attrs.connectionFailed", { defaultValue: "Connection failed" }))}
               {modelInfo.status === "checking" && "Checking…"}
             </Text>
           )}
@@ -192,9 +192,8 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
       {/* What counts as an object. */}
       <Box className="setting-group">
         <Box className="setting-row">
-          <Text className="setting-label">{t("ui2:attrs.maxObjects", { defaultValue: "Max Objects" })}</Text>
+          <Text className="setting-label">{t("ui2:attrs.maxObjects", { defaultValue: "Max objects" })}</Text>
           <Slider
-            sx={sketchSliderSx}
             size="small"
             min={1}
             max={20}
@@ -207,7 +206,6 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
         <Box className="setting-row">
           <Text className="setting-label">{t("ui2:attrs.confidence", { defaultValue: "Confidence" })}</Text>
           <Slider
-            sx={sketchSliderSx}
             size="small"
             min={0}
             max={1}
@@ -221,9 +219,8 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
         </Box>
 
         <Box className="setting-row">
-          <Text className="setting-label">{t("ui2:attrs.minSize", { defaultValue: "Min Size" })}</Text>
+          <Text className="setting-label">{t("ui2:attrs.minSize", { defaultValue: "Min size" })}</Text>
           <Slider
-            sx={sketchSliderSx}
             size="small"
             min={0}
             max={10000}
@@ -237,7 +234,6 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
         <Box className="setting-row">
           <Text className="setting-label">{t("ui2:attrs.feather", { defaultValue: "Feather" })}</Text>
           <Slider
-            sx={sketchSliderSx}
             size="small"
             min={0}
             max={20}
@@ -252,7 +248,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
       {/* What the run leaves behind. */}
       <Box className="setting-group">
         <Box className="setting-row">
-          <Text className="setting-label">{t("ui2:attrs.sourceLayer", { defaultValue: "Source Layer" })}</Text>
+          <Text className="setting-label">{t("ui2:attrs.sourceLayer", { defaultValue: "Source layer" })}</Text>
           <SketchModeToggle
             value={settings.sourceLayerAction}
             onChange={(_, v) => {
@@ -277,7 +273,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
           }
           label={
             <Text sx={{ ...TYPOGRAPHY.sans.label }}>
-              {settings.outputCutouts ? t("sketch:attrs.cutoutLayers", { defaultValue: "Cutout layers" }) : t("sketch:attrs.maskLayers", { defaultValue: "Mask layers" })}
+              {settings.outputCutouts ? t("sketch:attrs.cutoutLayers", { defaultValue: "Cutout layers" }) : i18n.t("sketch:attrs.maskLayers", { defaultValue: "Mask layers" })}
             </Text>
           }
           sx={{ ml: 0, mr: 0 }}
@@ -294,7 +290,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
               onChange({ conceptPrompt: event.target.value })
             }
             placeholder={t("editor:ui.describeTheObject", { defaultValue: "Describe the object" })}
-            inputProps={{ "aria-label": t("sketch:attrs.conceptPrompt", { defaultValue: "Concept prompt" }) }}
+            inputProps={{ "aria-label": i18n.t("sketch:attrs.conceptPrompt", { defaultValue: "Concept prompt" }) }}
             // Wide enough for the placeholder to read in full, and it keeps
             // the bar from being dominated by one text field.
             sx={{ width: 200 }}
@@ -342,7 +338,9 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
               color="inherit"
               onClick={onCancelSegmentation}
               sx={{ ...sketchButtonSmallSx, minWidth: "56px" }}
-            >{t("sketch:attrs.cancel", { defaultValue: "Cancel" })}</EditorButton>
+            >
+              Cancel
+            </EditorButton>
           </>
         )}
         {isPreviewing && (
@@ -378,8 +376,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
             }}
           >
             {settings.promptMode === "auto" && !canSplitSelectedLayer
-              ? t("sketch:attrs.selectExactlyOneRasterLayerToSplit", { defaultValue: "Select exactly one raster layer to split." })
-              : promptModeHelpText(settings.promptMode)}
+              ? t("sketch:attrs.selectExactlyOneRasterLayerToSplit", { defaultValue: "Select exactly one raster layer to split." }) : promptModeHelpText(settings.promptMode)}
           </Text>
         )}
       </FlexRow>
@@ -400,7 +397,7 @@ export const SegmentSettingsPanel = memo(function SegmentSettingsPanel({
             wordBreak: "break-word"
           }}
         >
-          {segmentationError ?? t("sketch:attrs.segmentationFailed", { defaultValue: "Segmentation failed." })}
+          {segmentationError ?? i18n.t("sketch:attrs.segmentationFailed", { defaultValue: "Segmentation failed." })}
         </Text>
       )}
     </>

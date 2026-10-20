@@ -13,18 +13,20 @@
  */
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { shallow } from "zustand/shallow";
+import { useTheme } from "@mui/material/styles";
 import type { codeGen } from "@nodetool-ai/protocol/api-schemas";
 
+import ErrorBanner from "../../support/ErrorBanner";
 import {
   BORDER_RADIUS,
   Box,
   Chip,
   Dialog,
-  EditorButton,
   FlexColumn,
   FlexRow,
   Label,
   LoadingSpinner,
+  SectionHeader,
   SPACING,
   Text,
   TYPOGRAPHY
@@ -46,6 +48,7 @@ import CodeAssistantChatPanel from "./CodeAssistantChatPanel";
 import ResizableSideDock from "../../chat/assistant/ResizableSideDock";
 import { isString } from "../../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const CHAT_PANEL_WIDTH = 360;
 
@@ -89,6 +92,7 @@ const CodeAssistantDialogInner = ({
   expectedOutput
 }: CodeAssistantDialogProps) => {
   const { t } = useTranslation();
+  const theme = useTheme();
   const { findNode, updateNodeData } = useNodes(
     (state) => ({
       findNode: state.findNode,
@@ -244,15 +248,12 @@ const CodeAssistantDialogInner = ({
       open={open}
       onClose={onClose}
       title={t("editor:ui.codeAssistant", { defaultValue: "Code assistant" })}
-      minWidth="min(1100px, 100vw - 32px)"
-      actions={
-        <FlexRow gap={SPACING.md}>
-          <EditorButton onClick={onClose}>{t("common:action.cancel", { defaultValue: "Cancel" })}</EditorButton>
-          <EditorButton variant="contained" onClick={handleApply}>
-            {t("common:action.apply", { defaultValue: "Apply" })}
-          </EditorButton>
-        </FlexRow>
-      }
+      maxWidth="lg"
+      fullWidth
+      onConfirm={handleApply}
+      confirmText="Apply"
+      // Apply overwrites the node's code, so it does not take focus on open.
+      actionButtonsProps={{ confirmButtonProps: { autoFocus: false } }}
     >
       <FlexRow
         gap={SPACING.md}
@@ -260,7 +261,7 @@ const CodeAssistantDialogInner = ({
       >
         <FlexColumn gap={SPACING.sm} sx={{ flex: 1, minWidth: 0 }}>
           <FlexRow gap={SPACING.md} align="center" sx={{ flexWrap: "wrap" }}>
-            <Text weight={600}>{nodeTitle}</Text>
+            <SectionHeader size="small" title={nodeTitle} />
             <PortChips label={t("editor:ui.inputs", { defaultValue: "Inputs" })} ports={draftInputs} />
             <PortChips label={t("editor:ui.outputs", { defaultValue: "Outputs" })} ports={draftOutputs} />
           </FlexRow>
@@ -268,7 +269,7 @@ const CodeAssistantDialogInner = ({
             sx={{
               flex: 1,
               minHeight: 0,
-              border: "1px solid var(--palette-grey-500)",
+              border: `1px solid ${theme.vars.palette.divider}`,
               borderRadius: BORDER_RADIUS.sm,
               overflow: "hidden"
             }}
@@ -284,9 +285,15 @@ const CodeAssistantDialogInner = ({
                 options={editorOptions}
               />
             ) : monacoLoadError ? (
-              <Text size="small" color="error">
+              <ErrorBanner
+                report={{
+                  source: "panel-crash",
+                  summary: "Code assistant editor could not start",
+                  errorText: monacoLoadError
+                }}
+              >
                 {monacoLoadError}
-              </Text>
+              </ErrorBanner>
             ) : isMonacoLoading ? (
               <LoadingSpinner />
             ) : (
@@ -309,7 +316,7 @@ const CodeAssistantDialogInner = ({
         <ResizableSideDock
           storageKey="code_assistant"
           defaultWidth={CHAT_PANEL_WIDTH}
-          ariaLabel={t("editor:ui.resizeCodeAssistant", { defaultValue: "Resize code assistant" })}
+          ariaLabel={i18n.t("editor:ui.resizeCodeAssistant", { defaultValue: "Resize code assistant" })}
         >
           <CodeAssistantChatPanel nodeId={nodeId} workflowId={workflowId} />
         </ResizableSideDock>

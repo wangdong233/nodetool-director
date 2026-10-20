@@ -83,7 +83,9 @@
    片段;它是视频到视频,不碰其他镜头。
 10. **出剪。** `assemble_storyboard_timeline`,然后 `validate_timeline`。重跑
     会原地重建同一条序列,并保留板不拥有的轨道。
-11. **收尾**用 `edit_timeline` 各操作(见下面**工具契约**的时间线一节)。
+11. **收尾**用 `edit_timeline` 各操作(见下面**工具契约**的时间线一节)。完整
+    操作清单、预设与预览契约,用 `load_skill` 加载 `timeline-edit-ops`,搭建循环
+    见 `motion-graphics`。交付片段的修补归 `nodetool-video-post`。
     完整操作清单、预设与预览契约,用 `load_skill` 加载 `motion-graphics`
     系统技能。交付片段上的修复归 `nodetool-video-post`。
 
@@ -95,11 +97,16 @@
 
 提示词由具名字段拼装,不是整镜直接进:
 
-- **静帧:** `action`,然后是 `"<camera.framing> shot"`,然后是板的 `style`。
-  `camera.lens`、`camera.angle` 与 `camera.movement` **到不了它那里**。
-- **片段(keyframe 模式):** `motion`,然后 `action`。风格到不了它那里——
-  选中的静帧已携带观感。
-- **片段(direct 模式):** `action`、`"<framing> shot"`、`motion`、`style`。
+| 字段 | 静帧 | 片段,`keyframe` 模式 | 片段,`direct` 或 `reference` 模式 |
+|---|---|---|---|
+| `action` | 有 | 有 | 有 |
+| `camera.framing` | `"<framing> shot"` | — | `"<framing> shot"` |
+| `camera.angle` | 有 | — | 有 |
+| `camera.lens` | `"<lens> lens"` | — | `"<lens> lens"` |
+| 镜头所在场景的 `lighting` | 有 | — | 有 |
+| `motion` | — | 有(最先) | 有 |
+| `camera.movement`、`camera.equipment` | — | 有 | 有 |
+| 板 `style` | 有 | — | 有 |
 
 所以焦段、角度或运镜只有写进 `action` 或 `motion` 才会真正生效。结构化的
 `camera` 对象照留——那是用户在镜头卡上读的东西。
@@ -216,11 +223,13 @@ slug。
 | 工具 | 参数 |
 |---|---|
 | `list_storyboards` | `limit?` → id、name、shots、with_keyframe、with_clip、timeline_id、updated_at |
-| `create_storyboard` | `name`(必填)、`brief?`、`style?`、`aspect_ratio?`(默认 `16:9`)、`project_id?`、`id?` |
-| `get_storyboard` | `storyboard_id` → brief、style、宽高比、旁白、music_prompt、image_model、video_model、剧本链接,以及每镜的 id/index/slug/action/camera/motion/duration/status/has_keyframe/has_clip/covered_by |
-| `edit_storyboard` | `storyboard_id`、`ops[]`——见下 |
-| `render_storyboard_stills` | `storyboard_id`、`targets?`、`provider?`、`model?`、`style?`、`concurrency?` |
-| `render_storyboard_clips` | `storyboard_id`、`targets?`、`provider?`、`model?`、`resolution?`、`mode?`(`keyframe`\|`direct`)、`concurrency?` |
+| `create_storyboard` | `name`(必填)、`brief?`、`style?`、`aspect_ratio?`(默认 `16:9`)、`project_id?`、`id?` → `{ok, storyboard_id, id, name, project_id, shots, updated_at, revision}`;`storyboard_id` 与 `id` 同值 |
+| `get_storyboard` | `storyboard_id` → brief、style、宽高比、旁白、music_prompt、motion_design、image_model、video_model、剧本链接、revision,以及每镜的 id/index/slug/action/camera/motion/duration/status/has_keyframe/has_clip/covered_by |
+| `edit_storyboard` | `storyboard_id`、`ops[]`——见下,`expected_revision?`(板自该 revision 后有变则拒绝) |
+| `direct_storyboard` | `storyboard_id`、`redirect?`、`shot_count?`(默认 6)、`provider?`、`model?` —— Director 依据板的 brief、genre 与 style 写场景与镜头;先用 `set_setup` 把 brief 设上。不渲染 |
+| `render_storyboard_stills` | `storyboard_id`、`targets?`、`provider?`、`model?`、`style?`、`stale_only?`、`concurrency?` |
+| `render_storyboard_clips` | `storyboard_id`、`targets?`、`provider?`、`model?`、`resolution?`、`mode?`(`keyframe`\|`direct`\|`reference`)、`stale_only?`、`concurrency?` |
+| `derive_shot_from_clip` | `timeline_id`、`clip_id`、`frame_count?`(1-8,默认 3)、`action?` —— 在源镜头之后加一个参考模式新镜头,以该片段的帧为条件。不渲染 |
 | `revise_storyboard_clip` | `storyboard_id`、`target`、`instruction`、`provider?`、`model?` |
 | `assemble_storyboard_timeline` | `storyboard_id`、`name?`、`fps?`(默认 30) |
 | `extract_script_from_storyboard` | `storyboard_id`、`name?`、`relink?` |
@@ -239,24 +248,52 @@ slug。
 
 #### `edit_storyboard` 操作
 
-`{"op": "add_shot", ...}` · `update_shot {target, ...}` · `remove_shot {target}` ·
-`reorder_shot {target, index}` · `set_board {...}`
+十五个操作,按序应用,每次调用至多 60 条:
 
-镜头字段(新增与更新通用):`action`、`slug`、`camera`、`motion`、`graphics`、`dialogue`、
-`narration`、`notes`、`duration_seconds`、`duration_source`(`audio`\|`manual`)、
-`render_mode`(`keyframe`\|`direct`\|`reference`)、`entity_ids`、`location_id`、`covered_by`、
-`index`。`graphics` 是语义化的设计意图(`mode`、`direction`,以及 `elements` 里
+| 操作 | 参数 |
+|---|---|
+| `add_shot` | 下面列的镜头字段;`action` 必填;`index?` 或 `after_shot_id?`(插到那镜之后,归入它的场景) |
+| `update_shot` | `target` + 任意镜头字段 |
+| `remove_shot` | `target` |
+| `reorder_shot` | `target`、`index`(板上的位置) |
+| `move_shot` | `target`、`scene_id?`、`position`(目标场景内 0 起)——镜头换场景就靠它 |
+| `duplicate_shot` | `target` —— 副本紧随其后落下,不带剧本链接也没有覆盖 |
+| `set_board` | 下面列的板字段 |
+| `set_setup` | `brief?`、`genre?`、`stage?`(`direct_storyboard` 会读的引导式设置答案) |
+| `update_scene` | `scene_id`、`slugline?`、`lighting?` |
+| `create_scene` | `after_scene_id?`、`slugline?` —— 开出来先装一镜空镜 |
+| `merge_scene` | `scene_id` —— 把它并进前一场景 |
+| `set_style` | `entity_id`(风格实体成为板的预设、其 descriptor 成为板风格)或 `style`(只给 descriptor) |
+| `select_version` | `target`、`kind`(`keyframe`\|`clip`)、`version`(0 起、最旧在前)——不触发重渲 |
+| `delete_version` | `target`、`kind`、`version` —— 资产留在库里 |
+| `add_keyframe_version` | `target`、`asset_id`、`flip_of?` —— 把一张已存图像挂为新静帧并选中 |
+
+`set_entities` 被接受为 `set_board` 的别名,另外几个近似名同样归并;未知操作被拒绝。
+
+镜头字段(新增与更新通用):`action`、`slug`、`camera`、`motion`、`end_state`、
+`sound`、`graphics`、`production`、`dialogue`、`narration`、`notes`、`duration_seconds`、
+`duration_source`(`audio`\|`manual`)、`render_mode`(`keyframe`\|`direct`\|`reference`)、
+`entity_ids`、`location_id`、`covered_by`、`scene_id`。
+`graphics` 是语义化的设计意图(`mode`、`direction`,以及 `elements` 里
 确切的文字/素材),不是 Timeline 关键帧;`update_shot` 传 `null` 即清除。
+`production` 装着镜头的生产要求(`media_strategy`、`protected_inputs` 等)。
+选区里只要有一镜的 `protected_inputs` 中带资产,`render_storyboard_stills` 就报错;
+带一镜 `media_strategy: "still_motion_graphics"` 则对 `render_storyboard_clips` 同理。
+`end_state`(镜头收尾的画面)与 `sound`(听到的声音)是一次成片的提示;
+`update_storyboard_one_take` 也会设它们。
 
-`camera` 即 `{framing?, lens?, angle?, movement?}`。
+`camera` 即 `{framing?, lens?, angle?, movement?, equipment?}`。
 
 `covered_by` 即 `{shot_id, start_seconds?, end_seconds?}`——本镜的画面是
 另一镜片段上的一扇窗。见下面"镜头合并"一节。`null` 撤销。
 
 板字段(仅 `set_board`):`brief`、`style`、`aspect_ratio`、`entity_ids`、
-`image_model`、`video_model`、`narration`、`music_prompt`。两个模型字段收
-`find_model` 返回的模型**对象**,或 null。`narration` 与 `music_prompt` 收
-字符串并写入剧本。空字符串清除该方向。
+`image_model`、`video_model`、`narration`、`music_prompt`、`motion_design`。其余
+键一律报错拒绝,错误里点名这个集合。两个模型字段收 `find_model` 返回的模型
+**对象**(它的 `.ref`),或 null,并成为两个渲染工具的默认值。`narration` 与
+`music_prompt` 收字符串并更新剧本;空字符串清除一个。`motion_design` 是
+`{direction?, transitions?: [{from_shot_id, to_shot_id, direction?}], continuities?:
+[{id, shot_ids, direction}]}`,传 null 清除。
 
 **编辑操作设不了 `keyframe`、`clip` 或 `status`。** 它们归渲染工具;传了会
 报错并点名正确的工具。唯一的例外是 `covered_by`:覆盖是一张未经渲染就
@@ -305,10 +342,19 @@ slug。
 | `ui_storyboard_get_state` | `storyboard_id` |
 | `ui_storyboard_set_screenplay` | `storyboard_id`、`screenplay` |
 | `ui_storyboard_set_entities` | `storyboard_id`、`entity_ids`(整体替换阵容;`[]` 清空) |
-| `ui_storyboard_add_shot` | `storyboard_id`、`action`、`camera?`、`motion?`、`durationSeconds?`、`index?` |
-| `ui_storyboard_update_shot` | `storyboard_id`、`target`、`action?`、`camera?`、`motion?`、`status?` |
-| `ui_storyboard_generate_keyframe` | `storyboard_id`、`target` |
-| `ui_storyboard_generate_clip` | `storyboard_id`、`target` |
+| `ui_storyboard_add_shot` | `storyboard_id`、`action`、`slug?`、`camera?`、`motion?`、`graphics?`、`production?`、`durationSeconds?`、`index?`、`afterShotId?` |
+| `ui_storyboard_update_shot` | `storyboard_id`、`target`、`action?`、`slug?`、`camera?`、`motion?`、`graphics?`、`production?`、`dialogue?`、`notes?`、`durationSeconds?`、`durationSource?`、`status?` |
+| `ui_storyboard_remove_shot` / `_duplicate_shot` | `storyboard_id`、`target` |
+| `ui_storyboard_move_shot` | `storyboard_id`、`target`、`sceneId?`、`position` |
+| `ui_storyboard_set_setup` | `storyboard_id`、`brief?`、`genre?`、`stage?`、`shotCount?`、`importSource?`、`directedFrom?` |
+| `ui_storyboard_direct` | `storyboard_id`、`redirect`、`shotCount?` |
+| `ui_storyboard_update_scene` | `storyboard_id`、`sceneId`、`slugline?`、`lighting?` |
+| `ui_storyboard_create_scene` / `_merge_scene` | `storyboard_id`、`afterSceneId?` / `sceneId` |
+| `ui_storyboard_set_style` | `storyboard_id`、`entityId?` 或 `descriptor?` |
+| `ui_storyboard_select_version` / `_delete_version` | `storyboard_id`、`target`、`kind`、`version` |
+| `ui_storyboard_add_keyframe_version` | `storyboard_id`、`target`、`assetId`、`flipOf?` —— 挂上静帧但不选中 |
+| `ui_storyboard_generate_keyframe` | `storyboard_id`、`target`、`staleOnly?` |
+| `ui_storyboard_generate_clip` | `storyboard_id`、`target`、`staleOnly?` |
 | `ui_storyboard_revise_shot` | `storyboard_id`、`target`、`instruction` |
 | `ui_storyboard_assemble_timeline` | `storyboard_id` |
 | `ui_storyboard_select_shot` | `storyboard_id`、`target`(可空) |
@@ -482,9 +528,9 @@ Grotesk、Bebas Neue、Playfair Display、Lora 与 JetBrains Mono。指名的系
 
 `find_model {capability, query?, task?, provider_hint?, model_hint?,
 prefer_local?, limit?}` 是指名模型的唯一方式。**`capability` 必填**,取值为
-`text_to_image`、`image_to_image`、`text_to_video`、`image_to_video`、
-`text_to_speech`、`text_to_music`、`automatic_speech_recognition`、
-`generate_embedding`、`generate_message` 之一。`query` 是搜索框
+`text_to_image`、`image_to_image`、`segment_image`、`text_to_video`、`image_to_video`、
+`reference_to_video`、`text_to_speech`、`text_to_music`、`audio_to_audio`、
+`automatic_speech_recognition`、`generate_embedding`、`generate_message` 之一。`query` 是搜索框
 (`"flux schnell"`);`task` 是与模型所支持任务比对的提示,不是搜索。
 
 NodeTool 在 `nodetool` 服务商下内置了一批精选 id,用户无偏好时它们是
@@ -520,6 +566,10 @@ quality?, output_file?}`,外加 `edit_image`、`generate_video`、
 `screenplay`、`narration`、`music_prompt`、`title`)。只在可复用的图里才
 用它。聊天里,用 `edit_storyboard` 自己写镜头——产物相同,却不用搭图也
 不用校验。
+
+### 静帧动效板
+
+镜头带 `production.media_strategy: "still_motion_graphics"` 的板不渲片段:它的静帧与 `graphics` 元素直接成为时间线图层。`preview_storyboard_design {storyboardId, expectedStoryboardRevision}` 不保存、只把设计读成时间线预览。`layout_storyboard` 用视觉模型把每个图层摆在对应镜头的保持帧上。`finish_storyboard` 写出可编辑时间线:`strategy: "deterministic"`(默认,不调服务商)返回未经评审的脚手架,`"agentic"` 编排运动并评审渲染帧。三者都要先从 `get_storyboard` 拿板当前的 `revision`。
 
 ## 常设指令
 

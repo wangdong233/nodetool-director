@@ -29,9 +29,12 @@ import type {
   ProcessingMessage,
   ControlEvent,
   CorrelationLineage,
-  Intervention
+  Intervention,
+  MissingRuntimeDetails,
+  MissingPackDetails,
+  JobUpdate
 } from "@nodetool-ai/protocol";
-import { TypeMetadata } from "@nodetool-ai/protocol";
+import { TypeMetadata, missingRuntimeDetailsOf, missingPackDetailsOf, MissingPackError } from "@nodetool-ai/protocol";
 import { ensureBounded, redactValue } from "./supervisor.js";
 import type { SupervisorHandle } from "./supervisor.js";
 
@@ -130,6 +133,8 @@ import {
  * for which the runner sends `signalLineageDone` instead of a value.
  */
 export interface OutputRoutingHints {
+  /** A recoverable pack refusal for one pending controlled invocation. */
+  controlError?: MissingPackDetails;
   /** Lineage carried by the consumed envelope when the node had exactly one. */
   invocationLineage?: CorrelationLineage;
   /** Explicit per-slot lineage overrides (e.g. from outputs.forward). */
@@ -271,6 +276,8 @@ export interface RunResult {
 
   /** Error message if status is 'failed'. */
   error?: string;
+  missingRuntime?: MissingRuntimeDetails;
+  missingPack?: MissingPackDetails;
 
   /**
    * Every supervisor escalation and the verdict it received, in order. A
@@ -344,6 +351,8 @@ export class WorkflowRunner {
 
   /** All emitted messages. */
   private _messages: ProcessingMessage[] = [];
+  private _missingRuntime: MissingRuntimeDetails | undefined;
+  private _missingPack: MissingPackDetails | undefined;
 
   /** Cancellation flag. */
   private _cancelled = false;
@@ -757,20 +766,31 @@ export class WorkflowRunner {
           .join("; ");
         // Stryker disable next-line StringLiteral,ObjectLiteral: diagnostic log args only
         log.error("Workflow failed", { jobId: request.job_id, error });
-        this._emit({
+        const update: JobUpdate = {
           type: "job_update",
           status: "failed",
           job_id: request.job_id,
           workflow_id: request.workflow_id ?? null,
           error
-        });
-        return {
+        };
+        if (this._missingPack) {
+          update.missing_pack = this._missingPack;
+        }
+        this._emit(update);
+        const result: RunResult = {
           outputs: Object.fromEntries(this._outputs),
           messages: this._messages,
           status: "failed",
           error,
           interventions: this._recordedInterventions()
         };
+        if (this._missingRuntime) {
+          result.missingRuntime = this._missingRuntime;
+        }
+        if (this._missingPack) {
+          result.missingPack = this._missingPack;
+        }
+        return result;
       }
 
       const status = this._cancelled ? "cancelled" : "completed";
@@ -792,6 +812,8 @@ export class WorkflowRunner {
       };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
+      this._missingRuntime ??= missingRuntimeDetailsOf(err) ?? undefined;
+      this._missingPack ??= missingPackDetailsOf(err) ?? undefined;
       // Stryker disable next-line StringLiteral,ObjectLiteral: diagnostic log args only
       log.error("Workflow failed", { jobId: request.job_id, error: message });
       // Drain active edges on error for front-end cleanup
@@ -807,21 +829,32 @@ export class WorkflowRunner {
                 message: i.message
               }))
           : null;
-      this._emit({
+      const update: JobUpdate = {
         type: "job_update",
         status: "failed",
         job_id: request.job_id,
         workflow_id: request.workflow_id ?? null,
         error: message,
         validation_issues: validationIssues
-      });
-      return {
+      };
+      if (this._missingPack) {
+        update.missing_pack = this._missingPack;
+      }
+      this._emit(update);
+      const result: RunResult = {
         outputs: Object.fromEntries(this._outputs),
         messages: this._messages,
         status: "failed",
         error: message,
         interventions: this._recordedInterventions()
       };
+      if (this._missingRuntime) {
+        result.missingRuntime = this._missingRuntime;
+      }
+      if (this._missingPack) {
+        result.missingPack = this._missingPack;
+      }
+      return result;
     } finally {
       this._running = false;
     }
@@ -835,6 +868,8 @@ export class WorkflowRunner {
     this._multiEdgeListInputs = new Map();
     this._outputs = new Map();
     this._messages = [];
+    this._missingRuntime = undefined;
+    this._missingPack = undefined;
     this._cancelled = false;
     this._abortController = new AbortController();
     this._pendingControlResponses = new Map();
@@ -1535,6 +1570,7 @@ export class WorkflowRunner {
 
             if (result.error !== undefined) {
               this._nodeErrors.set(node.id, result.error);
+              this._missingPack ??= result.errorDetail?.missing_pack ?? undefined;
             }
 
             // After actor completes, send EOS to all downstream inboxes
@@ -1563,7 +1599,7 @@ export class WorkflowRunner {
               this._pendingControlResponses.delete(node.id);
               for (const pending of pendingQueue) {
                 pending.reject(
-                  new Error(
+                  result.errorDetail?.missing_pack ? new MissingPackError(result.errorDetail.missing_pack) : new Error(
                     result.error ??
                       `Controlled node ${node.id} completed without responding`
                   )
@@ -1741,6 +1777,15 @@ export class WorkflowRunner {
     routingHints: OutputRoutingHints = {}
   ): Promise<void> {
     if (this._cancelled) return;
+
+    if (routingHints.controlError) {
+      const pendingQueue = this._pendingControlResponses.get(sourceNodeId);
+      const pending = pendingQueue?.shift();
+      if (pendingQueue?.length === 0) {
+        this._pendingControlResponses.delete(sourceNodeId);
+      }
+      pending?.reject(new MissingPackError(routingHints.controlError));
+    }
 
     if (routingHints.skipInvocation) {
       this._skipInvocationOutputs(
@@ -2504,6 +2549,9 @@ export class WorkflowRunner {
   }
 
   private _emit(msg: ProcessingMessage): void {
+    if (msg.type === "node_update" && msg.error_detail?.missing_runtime) {
+      this._missingRuntime ??= msg.error_detail.missing_runtime;
+    }
     // Retain for RunResult.messages — except the realtime-audio firehose: a
     // live synth patch emits ~50 audio-chunk output_updates per node per
     // second, each holding a sample buffer, so retaining them grows the heap

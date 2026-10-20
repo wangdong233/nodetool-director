@@ -11,33 +11,31 @@ import React, { memo, useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import ImageIcon from "@mui/icons-material/Image";
 
 import { SPACING,
-  CheckerDropzone,
   FlexColumn,
   FlexRow,
   ToggleGroup,
   ToggleOption, BORDER_RADIUS } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
-import ImageRefPreview from "../../node/ImageRefPreview";
+import ImagePreview from "./ImagePreview";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
 
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
-import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
+import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { CHANNELS_NODE_TYPE } from "../../../constants/nodeTypes";
 import { useTranslation } from "react-i18next";
 
 type Channel = "red" | "green" | "blue" | "alpha" | "luminance";
 
-const CHANNELS: ReadonlyArray<{ value: Channel; short: string; label: string }> = [
-  { value: "red", short: "R", label: "Red" },
-  { value: "green", short: "G", label: "Green" },
-  { value: "blue", short: "B", label: "Blue" },
-  { value: "alpha", short: "A", label: "Alpha" },
+const CHANNELS: ReadonlyArray<{ value: Channel; short: string; label: string; labelKey?: string; }> = [
+  { value: "red", short: "R", label: "Red", labelKey: "sketch:attrs.redChannel" },
+  { value: "green", short: "G", label: "Green", labelKey: "sketch:attrs.greenChannel" },
+  { value: "blue", short: "B", label: "Blue", labelKey: "sketch:attrs.blueChannel" },
+  { value: "alpha", short: "A", label: "Alpha", labelKey: "timeline:attrs.alpha" },
   { value: "luminance", short: "L", label: "Luminance" }
 ];
 
@@ -89,15 +87,6 @@ const styles = (theme: Theme) =>
     }
   });
 
-const ImagePreview: React.FC<{ value: unknown }> = ({ value }) => (
-  <ImageRefPreview
-    value={value}
-    placeholder={
-      <CheckerDropzone message="Connect an image, then run" icon={<ImageIcon />} />
-    }
-  />
-);
-
 interface ChannelsBodyProps {
   id: string;
   nodeType: string;
@@ -135,7 +124,7 @@ const ChannelsBodyInner: React.FC<ChannelsBodyProps> = ({
 
   const previewValue = useNodeOutput(workflowId, id);
 
-  const { setProperty, setPropertyComplete } = useBespokePropertyWriter({
+  const { setProperty, setPropertyComplete } = useLiveSliderWriter({
     nodeId: id,
     nodeType
   });

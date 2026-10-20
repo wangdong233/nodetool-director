@@ -9,13 +9,18 @@
 import { getDefaultAssetsPath } from "@nodetool-ai/config";
 import { PERMISSION_GATE_CONTEXT_KEY, ProcessingContext, headlessGate } from "@nodetool-ai/runtime";
 import { FileStorageAdapter } from "@nodetool-ai/storage";
+import { missingRuntimeDetailsOf, missingPackDetailsOf, type MissingRuntimeDetails, type MissingPackDetails } from "@nodetool-ai/protocol";
 import { buildFullRegistry } from "../node-registry.js";
+import { findMissingPacks } from "@nodetool-ai/execution";
+import { MissingPackError } from "@nodetool-ai/protocol";
 
 interface NodeRunResult {
   nodeType: string;
   title: string | null;
   ok: boolean;
   error: string | null;
+  missingRuntime?: MissingRuntimeDetails;
+  missingPack?: MissingPackDetails;
   durationMs: number;
   /** Every record emitted by the node (one entry for a one-shot process()). */
   chunks: Array<Record<string, unknown>>;
@@ -47,7 +52,9 @@ export async function runSingleNode(
   nodeType: string,
   options: RunSingleNodeOptions = {}
 ): Promise<NodeRunResult> {
-  const registry = buildFullRegistry();
+  const registry = await buildFullRegistry();
+  const missing = await findMissingPacks({ nodes: [{ type: nodeType, properties: options.props ?? {} }] }, registry);
+  if (missing) { throw new MissingPackError(missing); }
   if (!registry.has(nodeType)) {
     throw new Error(
       `Unknown node type "${nodeType}". It is not in the local TS registry (Python-only nodes can't be run this way).`
@@ -98,7 +105,9 @@ export async function runSingleNode(
       outputs
     };
   } catch (err) {
-    return {
+    const missingRuntime = missingRuntimeDetailsOf(err);
+    const missingPack = missingPackDetailsOf(err);
+    const result: NodeRunResult = {
       nodeType,
       title,
       ok: false,
@@ -107,5 +116,12 @@ export async function runSingleNode(
       chunks,
       outputs
     };
+    if (missingRuntime) {
+      result.missingRuntime = missingRuntime;
+    }
+    if (missingPack) {
+      result.missingPack = missingPack;
+    }
+    return result;
   }
 }

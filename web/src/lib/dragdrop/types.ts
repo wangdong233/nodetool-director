@@ -5,8 +5,10 @@
  * Maps to existing dataTransfer keys for backward compatibility.
  */
 
+import type { ExampleModel } from "../../utils/exampleModels";
 import type {
   Asset,
+  Graph,
   NodeMetadata,
   MessageImageContent,
   MessageVideoContent,
@@ -26,7 +28,12 @@ export type DragDataType =
   | "file" // External file from OS
   | "tab" // Editor tab reordering
   | "collection-file" // File being added to collection
-  | "chat-media"; // Generated media block dragged out of the chat view
+  | "chat-media" // Generated media block dragged out of the chat view
+  | "example-model" // Shipped glTF example model from the Examples panel
+  | "example-sketch" // Shipped example sketch, installed on drop
+  | "example-timeline" // Shipped example timeline, installed on drop
+  | "example-storyboard" // Shipped example storyboard, installed on drop
+  | "example-workflow"; // Shipped example workflow, its nodes pasted on drop
 
 /** A single image/video/audio block from a chat message, draggable to canvas. */
 export type ChatMediaDragPayload =
@@ -49,6 +56,18 @@ export interface TimelineDragPayload {
   updatedAt?: string;
 }
 
+/** A shipped example that is copied into the project when it is dropped. */
+export interface ExampleDocumentDragPayload {
+  slug: string;
+  name: string;
+}
+
+/** A shipped example workflow, whose graph is pasted onto the canvas. */
+export interface ExampleWorkflowDragPayload {
+  name: string;
+  graph: Graph;
+}
+
 export interface DragPayloadMap {
   "create-node": NodeMetadata;
   asset: Asset;
@@ -59,6 +78,11 @@ export interface DragPayloadMap {
   tab: string; // Workflow ID
   "collection-file": File;
   "chat-media": ChatMediaDragPayload;
+  "example-model": ExampleModel;
+  "example-sketch": ExampleDocumentDragPayload;
+  "example-timeline": ExampleDocumentDragPayload;
+  "example-storyboard": ExampleDocumentDragPayload;
+  "example-workflow": ExampleWorkflowDragPayload;
 }
 
 interface DragDataFor<T extends DragDataType> {

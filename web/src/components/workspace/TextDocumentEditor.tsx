@@ -1,6 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { i18n, useAppLanguage } from "../../i18n";
-import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -21,17 +19,25 @@ import {
 import { useContextCommands } from "../../hooks/useContextCommands";
 import type { ContextCommand } from "../../stores/CommandMenuStore";
 import { isMac } from "../../utils/platform";
+import {
+  toggleBold,
+  toggleBulletList,
+  toggleHeading
+} from "../../utils/markdownFormatting";
 import MonacoPane from "./MonacoPane";
 import DataTable from "../node/DataTable/DataTable";
 import EditorToolbar from "../textEditor/EditorToolbar";
+import ErrorBanner from "../support/ErrorBanner";
 import {
-  Caption,
   EditorButton,
   FlexColumn,
   FlexRow,
   LoadingSpinner,
-  BORDER_RADIUS
+  SaveState,
+  Toolbar
 } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
+import { i18n, useAppLanguage } from "../../i18n";
 
 interface TextDocumentEditorProps {
   asset: Asset;
@@ -50,9 +56,6 @@ const styles = (theme: Theme) =>
     backgroundColor: theme.vars.palette.grey[900],
     color: theme.vars.palette.common.white,
     ".editor-toolbar-row": {
-      flex: "0 0 auto",
-      borderBottom: `1px solid ${theme.vars.palette.grey[700]}`,
-      backgroundColor: theme.vars.palette.grey[900],
       ".editor-toolbar": {
         flex: 1,
         borderBottom: "none",
@@ -60,13 +63,6 @@ const styles = (theme: Theme) =>
       }
     },
 
-    ".dirty-dot": {
-      width: 8,
-      height: 8,
-      borderRadius: BORDER_RADIUS.circle,
-      backgroundColor: theme.vars.palette.warning.main,
-      flex: "0 0 auto"
-    },
     ".editor-host": {
       flex: 1,
       minHeight: 0,
@@ -97,8 +93,7 @@ const TextDocumentEditor = ({
   asset,
   active = false
 }: TextDocumentEditorProps) => {
-  const { t } = useTranslation();
-  const { version: languageVersion } = useAppLanguage();
+  const { t } = useTranslation("editor");
   const theme = useTheme();
   const editorStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();
@@ -110,6 +105,7 @@ const TextDocumentEditor = ({
   const language = useMemo(() => languageFromAsset(asset), [asset]);
   const kind = previewKind(asset);
   const isCsv = kind === "csv";
+  const isMarkdown = language === "markdown";
   const getUrl = asset.get_url ?? undefined;
 
   const [content, setContent] = useState<string | null>(null);
@@ -196,6 +192,44 @@ const TextDocumentEditor = ({
   const isDirty = content !== null && content !== savedContent;
   const isSaving = saveMutation.isPending;
 
+  // Switching the tab to View or closing it unmounts this editor, and its
+  // draft lived only here (study-7-I1). Save an unsaved draft on the way out,
+  // and put it in the shared query so the preview shows it at once.
+  const unsavedDraft = useRef<string | null>(null);
+  const assetRef = useRef(asset);
+  useEffect(() => {
+    unsavedDraft.current = isDirty ? content : null;
+    assetRef.current = asset;
+  }, [isDirty, content, asset]);
+  useEffect(
+    () => () => {
+      const draft = unsavedDraft.current;
+      if (draft === null) {
+        return;
+      }
+      const leaving = assetRef.current;
+      const key = textAssetKey(leaving.id);
+      queryClient.setQueryData(key, draft);
+      update({
+        id: leaving.id,
+        data: draft,
+        content_type: leaving.content_type ?? "text/plain"
+      })
+        // The preview mounts in the same commit and refetches the file
+        // before the save lands, so read it again once the save is in.
+        .then(() => queryClient.invalidateQueries({ queryKey: key }))
+        .catch((error: Error) => {
+          addNotification({
+            type: "error",
+            alert: true,
+            content: `Failed to save ${leaving.name}: ${error.message}`,
+            dismissable: false
+          });
+        });
+    },
+    [queryClient, update, addNotification]
+  );
+
   const updateHistoryState = useCallback(() => {
     const model = editorRef.current?.getModel();
     const alternativeVersionId = model?.getAlternativeVersionId() ?? 1;
@@ -209,9 +243,75 @@ const TextDocumentEditor = ({
       editorRef.current = editor;
       updateHistoryState();
       editor.onDidChangeModelContent(updateHistoryState);
+      // A new file opens empty; put the caret in it so typing just works.
+      if (editor.getModel()?.getValueLength() === 0) {
+        editor.focus();
+      }
     },
     [updateHistoryState]
   );
+
+  // Markdown buttons for people who do not know the syntax (study-7-I3).
+  const formatLines = useCallback(
+    (transform: (lines: readonly string[]) => string[]) => {
+      const editor = editorRef.current;
+      const model = editor?.getModel();
+      const selection = editor?.getSelection();
+      if (!editor || !model || !selection) {
+        return;
+      }
+      const first = selection.startLineNumber;
+      const last = selection.endLineNumber;
+      const lines: string[] = [];
+      for (let line = first; line <= last; line++) {
+        lines.push(model.getLineContent(line));
+      }
+      editor.executeEdits("toolbar", [
+        {
+          range: {
+            startLineNumber: first,
+            startColumn: 1,
+            endLineNumber: last,
+            endColumn: model.getLineMaxColumn(last)
+          },
+          text: transform(lines).join(model.getEOL())
+        }
+      ]);
+      editor.focus();
+    },
+    []
+  );
+
+  const handleHeading = useCallback(
+    () => formatLines(toggleHeading),
+    [formatLines]
+  );
+
+  const handleBulletList = useCallback(
+    () => formatLines(toggleBulletList),
+    [formatLines]
+  );
+
+  const handleBold = useCallback(() => {
+    const editor = editorRef.current;
+    const model = editor?.getModel();
+    const selection = editor?.getSelection();
+    if (!editor || !model || !selection) {
+      return;
+    }
+    const selected = model.getValueInRange(selection);
+    editor.executeEdits("toolbar", [
+      { range: selection, text: toggleBold(selected) }
+    ]);
+    if (selected === "") {
+      // Leave the caret between the markers, ready for the bold words.
+      editor.setPosition({
+        lineNumber: selection.startLineNumber,
+        column: selection.startColumn + 2
+      });
+    }
+    editor.focus();
+  }, []);
 
   const handleUndo = useCallback(() => {
     editorRef.current?.trigger("toolbar", "undo", null);
@@ -244,24 +344,12 @@ const TextDocumentEditor = ({
     }
     if (!isCsv) {
       commands.push(
-        {
-          id: "undo",
-          label: i18n.t("editor:ui.undo", { defaultValue: "Undo" }),
-          run: handleUndo,
-          shortcut: `${mod}Z`
-        },
-        {
-          id: "redo",
-          label: i18n.t("editor:ui.redo", { defaultValue: "Redo" }),
-          run: handleRedo,
-          shortcut: `${shiftMod}Z`
-        }
+        { id: "undo", label: i18n.t("editor:ui.undo", { defaultValue: "Undo" }), run: handleUndo, shortcut: `${mod}Z` },
+        { id: "redo", label: i18n.t("editor:ui.redo", { defaultValue: "Redo" }), run: handleRedo, shortcut: `${shiftMod}Z` }
       );
       commands.push({
         id: "word-wrap",
-        label: wordWrap
-          ? i18n.t("editor:ui.turnOffWordWrap", { defaultValue: "Turn Off Word Wrap" })
-          : i18n.t("editor:ui.turnOnWordWrap", { defaultValue: "Turn On Word Wrap" }),
+        label: wordWrap ? t("editor:ui.turnOffWordWrap", { defaultValue: "Turn off word wrap" }) : i18n.t("editor:ui.turnOnWordWrap", { defaultValue: "Turn on word wrap" }),
         run: () => setWordWrap((wrap) => !wrap)
       });
     }
@@ -273,8 +361,7 @@ const TextDocumentEditor = ({
     wordWrap,
     handleSave,
     handleUndo,
-    handleRedo,
-    languageVersion
+    handleRedo
   ]);
   useContextCommands("Text", menuCommands, active);
 
@@ -311,9 +398,15 @@ const TextDocumentEditor = ({
           fullHeight
           sx={{ alignItems: "center", justifyContent: "center" }}
         >
-          <Caption sx={{ color: "error.main" }}>
-            Failed to load text content
-          </Caption>
+          <ErrorBanner
+            report={{
+              source: "operation-failure",
+              summary: "Text document failed to load",
+              errorText: textError.message
+            }}
+          >
+            Could not load this text file.
+          </ErrorBanner>
         </FlexColumn>
       );
     }
@@ -338,9 +431,7 @@ const TextDocumentEditor = ({
             onChange={handleDataframeChange}
             toolbarEnd={
               <>
-                {isDirty && (
-                  <span className="dirty-dot" aria-label={t("ui2:attrs.unsavedChanges", { defaultValue: "Unsaved changes" })} />
-                )}
+                <SaveState state={isDirty ? "dirty" : "idle"} showLabel={false} />
                 <EditorButton
                   variant="contained"
                   size="small"
@@ -348,7 +439,7 @@ const TextDocumentEditor = ({
                   disabled={!isDirty || isSaving}
                   onClick={handleSave}
                 >
-                  {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("common:action.save", { defaultValue: "Save" })}
+                  {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
                 </EditorButton>
               </>
             }
@@ -362,6 +453,11 @@ const TextDocumentEditor = ({
           value={content}
           language={language ?? "plaintext"}
           wordWrap={wordWrap}
+          placeholder={
+            isMarkdown
+              ? t("editor:ui.startWriting", { defaultValue: "Start writing. Use the buttons above for headings, bold and lists." })
+              : undefined
+          }
           onChange={setContent}
           onSave={handleSave}
           onEditorMount={handleEditorMount}
@@ -373,28 +469,23 @@ const TextDocumentEditor = ({
   return (
     <div css={editorStyles}>
       {!isCsv && (
-        <FlexRow
+        <Toolbar
           className="editor-toolbar-row"
-          align="center"
-          justify="space-between"
+          sx={{ justifyContent: "space-between", px: 0, gap: 0 }}
         >
           <EditorToolbar
             onUndo={handleUndo}
             onRedo={handleRedo}
             onToggleWordWrap={() => setWordWrap((w) => !w)}
+            onHeading={isMarkdown ? handleHeading : undefined}
+            onBold={isMarkdown ? handleBold : undefined}
+            onBulletList={isMarkdown ? handleBulletList : undefined}
             canUndo={canUndo}
             canRedo={canRedo}
             wordWrapEnabled={wordWrap}
           />
           <FlexRow align="center" gap={0.5} sx={{ px: 1 }}>
-            {isDirty && (
-              <span
-                className="dirty-dot"
-                aria-label={t("ui2:attrs.unsavedChanges", {
-                  defaultValue: "Unsaved changes"
-                })}
-              />
-            )}
+            <SaveState state={isDirty ? "dirty" : "idle"} showLabel={false} />
             <EditorButton
               variant="contained"
               size="small"
@@ -402,10 +493,10 @@ const TextDocumentEditor = ({
               disabled={!isDirty || isSaving}
               onClick={handleSave}
             >
-              {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("common:action.save", { defaultValue: "Save" })}
+              {isSaving ? i18n.t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("appbuilder:attrs.save", { defaultValue: "Save" })}
             </EditorButton>
           </FlexRow>
-        </FlexRow>
+        </Toolbar>
       )}
 
       {body()}

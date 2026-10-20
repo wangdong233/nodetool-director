@@ -1,6 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useEffect, useMemo } from "react";
 import { useTheme } from "@mui/material/styles";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -18,7 +16,8 @@ import {
   TextLink,
   BORDER_RADIUS,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  ICON_SIZE
 } from "../../ui_primitives";
 import useNodePacksStore from "../../../stores/NodePacksStore";
 import { useShallow } from "zustand/react/shallow";
@@ -29,22 +28,16 @@ import {
   type OnboardingEngine,
   type OnboardingNodePack
 } from "./onboardingCatalog";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const EngineCard: React.FC<{ engine: OnboardingEngine }> = ({ engine }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const statusChip = engine.separateInstallUrl ? (
-    <Chip
-      label={t("editor:ui.separateApp", { defaultValue: "Separate app" })}
-      compact
-      variant="outlined"
-    />
+    <Chip label={t("editor:ui.separateApp", { defaultValue: "Separate app" })} compact variant="outlined" />
   ) : engine.runtimeId ? (
-    <Chip
-      label={t("editor:ui.runtime", { defaultValue: "Runtime" })}
-      compact
-      variant="outlined"
-    />
+    <Chip label={t("editor:ui.runtime", { defaultValue: "Runtime" })} compact variant="outlined" />
   ) : null;
 
   return (
@@ -148,9 +141,9 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
       {isInstalled ? (
         <FlexRow gap={SPACING.micro} align="center" sx={{ flexShrink: 0 }}>
           <CheckCircleIcon
-            sx={{ fontSize: 16, color: theme.vars.palette.success.main }}
+            sx={{ fontSize: ICON_SIZE.sm, color: theme.vars.palette.success.main }}
           />
-          <Caption color="secondary">{i18n.t("ui2:attrs.installed", { defaultValue: "Installed" })}</Caption>
+          <Caption color="secondary">Installed</Caption>
         </FlexRow>
       ) : (
         <EditorButton
@@ -163,16 +156,12 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
             isBusy ? (
               <LoadingSpinner inline size={14} />
             ) : (
-              <ExtensionOutlinedIcon sx={{ fontSize: 15 }} />
+              <ExtensionOutlinedIcon />
             )
           }
           sx={{ flexShrink: 0 }}
         >
-          {available
-            ? t("editor:ui.install", { defaultValue: "Install" })
-            : t("editor:ui.openPackageManager", {
-                defaultValue: "Open Manager"
-              })}
+          {available ? t("editor:ui.install", { defaultValue: "Install" }) : i18n.t("editor:ui.openPackageManager", { defaultValue: "Open manager" })}
         </EditorButton>
       )}
     </FlexRow>
@@ -180,7 +169,6 @@ const NodePackRow: React.FC<{ pack: OnboardingNodePack }> = ({ pack }) => {
 };
 
 const EngineGuide: React.FC = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const { available, refresh } = useNodePacksStore(
     useShallow((state) => ({
@@ -231,18 +219,17 @@ const EngineGuide: React.FC = () => {
             </Text>
             <Caption sx={{ opacity: 0.7 }}>
               {available
-                ? i18n.t("editor:ui.installThePacksThatAddTheNodesYouWantToUse", { defaultValue: "Install the packs that add the nodes you want to use." })
-                : i18n.t("editor:ui.nodePacksInstallFromTheDesktopAppsPackageManager", { defaultValue: "Node packs install from the desktop app's Package Manager." })}
+                ? i18n.t("editor:ui.installThePacksThatAddTheNodesYouWantToUse", { defaultValue: "Install the packs that add the nodes you want to use." }) : i18n.t("editor:ui.nodePacksInstallFromTheDesktopAppsPackageManager", { defaultValue: "Node packs install from the desktop app's Package Manager." })}
             </Caption>
           </FlexColumn>
           <EditorButton
             variant="text"
             density="compact"
             size="small"
-            endIcon={<OpenInNewIcon fontSize="inherit" />}
+            endIcon={<OpenInNewIcon />}
             onClick={openPackageManager}
           >
-            Package Manager
+            Package manager
           </EditorButton>
         </FlexRow>
         <FlexColumn gap={SPACING.xs}>

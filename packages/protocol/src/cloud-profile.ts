@@ -233,6 +233,7 @@ export const NON_CLOUD_PROVIDER_IDS: readonly string[] = [
   "lmstudio",
   "llama_cpp",
   "node_llama_cpp",
+  "stable_diffusion_cpp",
   "whisper_cpp",
   "whisper_cpp_server",
   "vllm",
@@ -240,9 +241,17 @@ export const NON_CLOUD_PROVIDER_IDS: readonly string[] = [
   "transformers_js",
   // A personal subscription reached by spawning the local `claude` CLI.
   "claude_agent_sdk",
+  // A personal account reached by spawning the local `agy` CLI.
+  "antigravity",
   // A logged-in Dreamina tab in the user's own Chrome, reached through the
   // NodeTool extension.
   "dreamina",
+  // A logged-in chatgpt.com tab in the user's own Chrome, reached through the
+  // NodeTool extension.
+  "chatgpt",
+  // A logged-in gemini.google.com tab in the user's own Chrome, reached through
+  // the NodeTool extension.
+  "gemini_web",
   // Test double, dev-gated at registration.
   "fake"
 ];
@@ -269,6 +278,38 @@ export const CLOUD_ONLY_PROVIDER_IDS: readonly string[] = ["nodetool"];
  */
 export function isSelfServeProvider(providerId: string): boolean {
   return !CLOUD_ONLY_PROVIDER_IDS.includes(providerId);
+}
+
+/**
+ * Settings catalog groups the cloud product neither shows nor accepts.
+ *
+ * Each one configures the machine the server runs on rather than the user's
+ * account: a host path (`Folders`), a local engine's address or model folder,
+ * the Python worker's device, or the server's own deployment token. On a
+ * managed multi-tenant server the operator sets these in the environment, so a
+ * tenant reading them learns the operator's host layout, and a tenant writing
+ * them points server-side code at a path or address of their choosing.
+ */
+export const CLOUD_HIDDEN_SETTING_GROUPS: readonly string[] = [
+  "Folders",
+  "TransformersJs",
+  "vLLM",
+  "Ollama",
+  "LlamaCpp",
+  "NodeLlamaCpp",
+  "StableDiffusionCpp",
+  "LMStudio",
+  "WhisperCpp",
+  "WhisperCppServer",
+  "Wan2GP",
+  "PythonNodes",
+  "ClaudeAgent",
+  "Deployment"
+];
+
+/** Whether a settings catalog group is offered in the cloud product. */
+export function isCloudSettingGroup(group: string): boolean {
+  return !CLOUD_HIDDEN_SETTING_GROUPS.includes(group);
 }
 
 /**

@@ -15,9 +15,6 @@
  * a screenplay's speakers and a subtitle's cue timings away (F3).
  */
 
-import { i18n } from "../../../i18n";
-import type { TFunction } from "i18next";
-import { useTranslation } from "react-i18next";
 import React, {
   memo,
   useCallback,
@@ -37,16 +34,15 @@ import {
   FlexColumn,
   FlexRow,
   GAP,
-  Label,
   PADDING,
+  SectionHeader,
   Text,
-  TextInput
+  TextArea
 } from "../../ui_primitives";
 import {
   useScriptStore,
   useScriptSetup
 } from "../../../stores/script/ScriptStore";
-import ScriptCreativeContextFields from "./ScriptCreativeContextFields";
 import {
   readScriptSource,
   scriptSourcePatch,
@@ -62,21 +58,16 @@ import {
   SCRIPT_TEXT_ACCEPT,
   useScriptFileImport
 } from "./useScriptFileImport";
+import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../../i18n";
+
+import { i18n } from "../../../i18n";
 
 /** The § 9.1 inspiration chips. */
-const INSPIRATIONS: readonly { id: string; brief: string }[] = [
-  {
-    id: "tide-clock-explainer",
-    brief: "A 60-second explainer about how tide clocks work"
-  },
-  {
-    id: "failed-products-podcast",
-    brief: "A podcast intro for a show about failed products"
-  },
-  {
-    id: "coffee-subscription-ad",
-    brief: "An ad read for a coffee subscription"
-  }
+const INSPIRATIONS = [
+  "A 60-second explainer about how tide clocks work",
+  "A podcast intro for a show about failed products",
+  "An ad read for a coffee subscription"
 ];
 
 export interface IdeaStepProps {
@@ -90,32 +81,15 @@ export interface IdeaStepProps {
 }
 
 /** What the panel says a source is, in one line. */
-const sourceSummary = (source: ImportedScript, t: TFunction): string => {
-  const parts = [
-    `${source.label}`,
-    t("setup:script.countLines", {
-      defaultValue: "{{count}} lines",
-      count: source.lines.length
-    })
-  ];
+const sourceSummary = (source: ImportedScript): string => {
+  const parts = [`${source.label}`, `${source.lines.length} lines`];
   if (source.attributed && source.speakers.length > 0) {
-    parts.push(
-      t("setup:script.speakersList", {
-        defaultValue: "speakers: {{speakers}}",
-        speakers: source.speakers.join(", ")
-      })
-    );
+    parts.push(`speakers: ${source.speakers.join(", ")}`);
   } else {
-    parts.push(
-      t("setup:script.speakersFoundByTheWriter", {
-        defaultValue: "speakers found by the writer"
-      })
-    );
+    parts.push("speakers found by the writer");
   }
   if (source.lines.some((line) => line.targetDurationMs !== undefined)) {
-    parts.push(
-      t("setup:script.cueTimingsKept", { defaultValue: "cue timings kept" })
-    );
+    parts.push("cue timings kept");
   }
   return parts.join(" · ");
 };
@@ -143,14 +117,12 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
   onRemove,
   readOnly,
   importing
-}) => {
-  const { t } = useTranslation();
-  return (
+}) => (
   <FlexColumn
     gap={GAP.normal}
     padding={PADDING.comfortable}
     component="section"
-    aria-label={t("storyboard:attrs.importedScript", { defaultValue: "Imported script" })}
+    aria-label={i18n.t("storyboard:attrs.importedScript", { defaultValue: "Imported script" })}
     sx={{
       border: "1px solid",
       borderColor: "divider",
@@ -158,9 +130,9 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
     }}
   >
     <FlexColumn gap={GAP.micro}>
-      <Label>{t("storyboard:attrs.yourScriptKeptWordForWord", { defaultValue: "Your script, kept word for word" })}</Label>
+      <SectionHeader size="small" title={i18n.t("storyboard:attrs.yourScriptKeptWordForWord", { defaultValue: "Your script, kept word for word" })} />
       <Caption color="secondary" component="p">
-        {sourceSummary(source, t)}
+        {sourceSummary(source)}
       </Caption>
     </FlexColumn>
     <FlexColumn
@@ -175,10 +147,7 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
       ))}
       {source.lines.length > PREVIEW_LINES ? (
         <Caption color="secondary" component="li">
-          {t("setup:script.andCountMore", {
-            defaultValue: "and {{count}} more",
-            count: source.lines.length - PREVIEW_LINES
-          })}
+          {`and ${source.lines.length - PREVIEW_LINES} more`}
         </Caption>
       ) : null}
     </FlexColumn>
@@ -189,7 +158,7 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
         disabled={readOnly}
         onClick={onReplace}
       >
-        {t("storyboard:attrs.replaceTheseWords", { defaultValue: "Replace these words" })}
+        Replace these words
       </EditorButton>
       <EditorButton
         variant="text"
@@ -197,12 +166,11 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
         disabled={readOnly || importing}
         onClick={onRemove}
       >
-        {t("storyboard:attrs.removeThem", { defaultValue: "Remove them" })}
+        Remove them
       </EditorButton>
     </FlexRow>
   </FlexColumn>
 );
-};
 
 /**
  * What the project composer sent along (F4). It is shown rather than used: the
@@ -212,35 +180,25 @@ const SourcePanel: React.FC<SourcePanelProps> = ({
 const CarriedContext: React.FC<{
   attachments: readonly ScriptSetupAttachment[];
   entityCount: number;
-}> = ({ attachments, entityCount }) => {
-  const { t } = useTranslation();
-  return (
+}> = ({ attachments, entityCount }) => (
   <FlexColumn
     gap={GAP.micro}
     component="section"
-    aria-label={t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })}
+    aria-label={i18n.t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })}
   >
-    <Label>
-      {t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })}
-    </Label>
+    <SectionHeader size="small" title={i18n.t("ui2:attrs.broughtFromYourProject", { defaultValue: "Brought from your project" })} />
     <Caption color="secondary" component="p">
       {[
         attachments.length > 0
-          ? t("setup:script.referenceCount", {
-              defaultValue: "{{count}} references",
-              count: attachments.length
-            })
+          ? `${attachments.length} ${attachments.length === 1 ? "reference" : "references"}`
           : null,
         entityCount > 0
-          ? t("setup:script.entityCount", {
-              defaultValue: "{{count}} entities",
-              count: entityCount
-            })
+          ? `${entityCount} ${entityCount === 1 ? "entity" : "entities"}`
           : null
       ]
         .filter((part) => part !== null)
         .join(" · ")}
-      {t("storyboard:attrs.keptOnTheScriptForTheEditorAndTheAgent", { defaultValue: " — kept on the script for the editor and the agent." })}
+      {i18n.t("storyboard:attrs.keptOnTheScriptForTheEditorAndTheAgent", { defaultValue: " — kept on the script for the editor and the agent." })}
     </Caption>
     {attachments.length > 0 ? (
       <FlexColumn
@@ -256,26 +214,18 @@ const CarriedContext: React.FC<{
       </FlexColumn>
     ) : null}
   </FlexColumn>
-  );
-};
+);
 
 /**
  * A Final Draft or subtitle source carries speakers or cue timings that pasted
  * text cannot, so its replacement starts empty and says what is given up.
  */
-const replaceNote = (source: ImportedScript, t: TFunction): string | null => {
+const replaceNote = (source: ImportedScript): string | null => {
   if (!source.attributed) {
     return null;
   }
   return source.kind === "subtitles"
-    ? t("setup:script.pastedReplacesSubtitles", {
-        defaultValue:
-          "Pasted text replaces your subtitle file, and its cue timings are not kept. Cancel to keep the file."
-      })
-    : t("setup:script.pastedReplacesFinalDraft", {
-        defaultValue:
-          "Pasted text replaces your Final Draft file, and its speakers are not kept. Cancel to keep the file."
-      });
+    ? i18n.t("setup:script.pastedReplacesSubtitles", { defaultValue: "Pasted text replaces your subtitle file, and its cue timings are not kept. Cancel to keep the file." }) : i18n.t("setup:script.pastedReplacesFinalDraft", { defaultValue: "Pasted text replaces your Final Draft file, and its speakers are not kept. Cancel to keep the file." });
 };
 
 const IdeaStepInternal: React.FC<IdeaStepProps> = ({
@@ -285,12 +235,9 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   readOnly = false
 }) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const setup = useScriptSetup(scriptId);
   const setSetup = useScriptStore((state) => state.setSetup);
-  const creativeContext = useScriptStore(
-    (state) => state.scripts[scriptId]?.creativeContext
-  );
-  const setCreativeContext = useScriptStore((state) => state.setCreativeContext);
   const imports = useScriptFileImport(scriptId);
   useEffect(() => {
     onImportingChange?.(imports.importing);
@@ -305,11 +252,11 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   const brief = setup?.brief ?? "";
   const source = readScriptSource(setup);
   const carried = readScriptSetupContext(setup);
-  const sourceNote = source ? replaceNote(source, t) : null;
+  const sourceNote = source ? replaceNote(source) : null;
 
   const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setSetup(scriptId, { brief: event.target.value });
+    (value: string) => {
+      setSetup(scriptId, { brief: value });
     },
     [scriptId, setSetup]
   );
@@ -348,10 +295,8 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
   // none while a file is still being read.
   const startLocked = readOnly || imports.importing;
   const startLockedReason = readOnly
-    ? t("setup:script.thisTabIsViewOnly", { defaultValue: "This tab is view only" })
-    : imports.importing
-      ? t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" })
-      : undefined;
+    ? i18n.t("setup:script.thisTabIsViewOnly", { defaultValue: "This tab is view only" }) : imports.importing
+      ? i18n.t("storyboard:attrs.readingYourFile", { defaultValue: "Reading your file…" }) : undefined;
 
   const alternatives: AlternativeEntry[] = useMemo(
     () => [
@@ -368,7 +313,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       },
       {
         id: "upload",
-        title: t("storyboard:attrs.uploadAFile", { defaultValue: "Upload a file" }),
+        title: "Upload a file",
         description: i18n.t("editor:ui.txtPdfDocxFinalDraft", { defaultValue: "TXT, PDF, DOCX or Final Draft" }),
         onSelect: () => textInput.current?.click(),
         disabled: startLocked,
@@ -376,7 +321,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       },
       {
         id: "subtitles",
-        title: t("storyboard:attrs.importSubtitles", { defaultValue: "Import subtitles" }),
+        title: "Import subtitles",
         description: i18n.t("editor:ui.srtOrVttEachCueTimedLine", { defaultValue: "SRT or VTT — each cue becomes a timed line" }),
         onSelect: () => subtitleInput.current?.click(),
         disabled: startLocked,
@@ -391,7 +336,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         disabledReason: startLockedReason
       }
     ],
-    [onStartBlank, source, startLocked, startLockedReason, t]
+    [onStartBlank, source, startLocked, startLockedReason, languageVersion]
   );
 
   return (
@@ -409,10 +354,10 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            {t("editor:ui.whatSTheScriptAbout", { defaultValue: "What's the script about?" })}
+            What&apos;s the script about?
           </Text>
           <Text size="normal" color="secondary">
-            {t("editor:ui.weLlWriteItInLinesYouCanVoice", { defaultValue: "We'll write it in lines you can voice." })}
+            We&apos;ll write it in lines you can voice.
           </Text>
         </FlexColumn>
 
@@ -433,11 +378,10 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           />
         ) : null}
 
-        <TextInput
+        <TextArea
           inputRef={briefField}
           value={brief}
           autoFocus
-          multiline
           rows={5}
           disabled={readOnly}
           // The words here are a brief the writer may reword. Named "Your
@@ -448,30 +392,15 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
           // and is applied with no model, so nothing reads a note about it.
           placeholder={
             source?.attributed
-              ? t("setup:script.optionalNotesToKeep", {
-                  defaultValue: "Optional: notes to keep with the script."
-                })
-              : source
-                ? i18n.t("storyboard:attrs.optionalSayWhoReadsWhatOrHowToSplitTheLines", { defaultValue: "Optional: say who reads what, or how to split the lines." })
-                : i18n.t("storyboard:attrs.describeTheTopicAudienceAndMessageForANewScript", { defaultValue: "Describe the topic, audience and message for a new script." })
+              ? i18n.t("setup:script.optionalNotesToKeep", { defaultValue: "Optional: notes to keep with the script." }) : source
+                ? i18n.t("storyboard:attrs.optionalSayWhoReadsWhatOrHowToSplitTheLines", { defaultValue: "Optional: say who reads what, or how to split the lines." }) : i18n.t("storyboard:attrs.describeTheTopicAudienceAndMessageForANewScript", { defaultValue: "Describe the topic, audience and message for a new script." })
           }
           helperText={
             source?.attributed
-              ? t("setup:script.yourImportedWordsAndSpeakersKept", {
-                  defaultValue:
-                    "Your imported words and speakers are kept as written. A note here does not change how the lines are prepared."
-                })
-              : source
-                ? i18n.t("storyboard:attrs.yourImportedWordsAreKeptAsWrittenAnythingHereOnlyGuidesHowTheyAreSplitAndWhoReadsThem", { defaultValue: "Your imported words are kept as written. Anything here only guides how they are split and who reads them." })
-                : i18n.t("storyboard:attrs.textEnteredHereIsAWritingBriefAndMayBeRewritten", { defaultValue: "Text entered here is a writing brief and may be rewritten. Use Paste your script or Upload a file to preserve existing words." })
+              ? t("setup:script.yourImportedWordsAndSpeakersKept", { defaultValue: "Your imported words and speakers are kept as written. A note here does not change how the lines are prepared." }) : source
+                ? t("storyboard:attrs.yourImportedWordsAreKeptAsWrittenAnythingHereOnlyGuidesHowTheyAreSplitAndWhoReadsThem", { defaultValue: "Your imported words are kept as written. Anything here only guides how they are split and who reads them." }) : i18n.t("storyboard:attrs.textEnteredHereIsAWritingBriefAndMayBeRewritten", { defaultValue: "Text entered here is a writing brief and may be rewritten. Use Paste your script or Upload a file to preserve existing words." })
           }
           onChange={handleChange}
-        />
-
-        <ScriptCreativeContextFields
-          value={creativeContext}
-          readOnly={readOnly}
-          onChange={(next) => setCreativeContext(scriptId, next)}
         />
 
         {imports.error ? (
@@ -482,11 +411,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
 
         {readOnly ? null : (
           <ExampleBriefs
-            examples={INSPIRATIONS.map((chip) =>
-            t(`catalog:scriptInspirations.${chip.id}`, {
-              defaultValue: chip.brief
-            })
-          )}
+            examples={INSPIRATIONS}
             brief={brief}
             briefRef={briefField}
             onSelect={(value) => setSetup(scriptId, { brief: value })}
@@ -495,7 +420,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
       </FlexColumn>
 
       <AlternativesColumn
-        label={t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
+        label={i18n.t("storyboard:attrs.otherWaysToStart", { defaultValue: "Other ways to start" })}
         alternatives={alternatives}
       />
 
@@ -505,7 +430,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={textInput}
         accept={SCRIPT_TEXT_ACCEPT}
-        aria-label={t("storyboard:attrs.uploadAFile", { defaultValue: "Upload a file" })}
+        aria-label={i18n.t("storyboard:attrs.uploadAFile", { defaultValue: "Upload a file" })}
         onChange={handlePicked(imports.importText)}
       />
       <input
@@ -513,7 +438,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         hidden
         ref={subtitleInput}
         accept={SCRIPT_SUBTITLE_ACCEPT}
-        aria-label={t("storyboard:attrs.importSubtitles", { defaultValue: "Import subtitles" })}
+        aria-label={i18n.t("storyboard:attrs.importSubtitles", { defaultValue: "Import subtitles" })}
         onChange={handlePicked(imports.importSubtitles)}
       />
 
@@ -522,7 +447,7 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         onClose={() => setPasting(false)}
         title={source ? i18n.t("storyboard:attrs.replaceYourScript", { defaultValue: "Replace your script" }) : i18n.t("storyboard:attrs.pasteYourScript", { defaultValue: "Paste your script" })}
         showActions
-        confirmText={t("editor:ui.useThisText", { defaultValue: "Use this text" })}
+        confirmText={i18n.t("editor:ui.useThisText", { defaultValue: "Use this text" })}
         // Empty text changes nothing, so the button is held until there is some.
         confirmDisabled={pasted.trim() === ""}
         onConfirm={usePasted}
@@ -530,23 +455,16 @@ const IdeaStepInternal: React.FC<IdeaStepProps> = ({
         fullWidth
         maxWidth="sm"
       >
-        <FlexColumn gap={GAP.normal}>
-          {sourceNote ? (
-            <Caption color="secondary" component="p">
-              {sourceNote}
-            </Caption>
-          ) : null}
-          <TextInput
-            value={pasted}
-            autoFocus
-            multiline
-            rows={12}
-            label={t("storyboard:attrs.yourScript", { defaultValue: "Your script" })}
-            hideLabel
-            placeholder={t("storyboard:attrs.pasteItHereWe'llSplitItIntoLinesAndLeaveTheWordsAlone", { defaultValue: "Paste it here. We'll split it into lines and leave the words alone." })}
-            onChange={(event) => setPasted(event.target.value)}
-          />
-        </FlexColumn>
+        <TextArea
+          value={pasted}
+          autoFocus
+          rows={12}
+          label={i18n.t("storyboard:attrs.yourScript", { defaultValue: "Your script" })}
+          hideLabel
+          placeholder={i18n.t("storyboard:attrs.pasteItHereWe'llSplitItIntoLinesAndLeaveTheWordsAlone", { defaultValue: "Paste it here. We'll split it into lines and leave the words alone." })}
+          helperText={sourceNote ?? undefined}
+          onChange={(value) => setPasted(value)}
+        />
       </Dialog>
     </Box>
   );

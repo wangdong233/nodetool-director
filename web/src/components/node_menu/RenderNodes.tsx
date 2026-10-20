@@ -285,18 +285,18 @@ const RenderNodes: React.FC<RenderNodesProps> = ({
         <div className="no-selection">
           <div className="explanation">
             <Text size="normal" weight={600} style={{ marginTop: 0 }}>
-              Browse Nodes
+              Browse nodes
             </Text>
             <ul>
               <li>{t("editor:ui.clickOnTheNamespacesToTheLeft", { defaultValue: "Click on the namespaces to the left" })}</li>
             </ul>
 
-            <Text size="normal" weight={600}>{t("ui2:attrs.searchNodes", { defaultValue: "Search Nodes" })}</Text>
+            <Text size="normal" weight={600}>{t("ui2:attrs.searchNodes", { defaultValue: "Search nodes" })}</Text>
             <ul>
               <li>{t("editor:ui.typeInTheSearchBarToSearchForNodes", { defaultValue: "Type in the search bar to search for nodes." })}</li>
             </ul>
 
-            <Text size="normal" weight={600}>{t("ui2:attrs.createNodes", { defaultValue: "Create Nodes" })}</Text>
+            <Text size="normal" weight={600}>{t("ui2:attrs.createNodes", { defaultValue: "Create nodes" })}</Text>
             <ul>
               <li>{t("ui2:attrs.clickOnANode", { defaultValue: "Click on a node" })}</li>
               <li>{t("ui2:attrs.dragANodeOntoTheCanvas", { defaultValue: "Drag a node onto the canvas" })}</li>

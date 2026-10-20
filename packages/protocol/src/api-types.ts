@@ -6,8 +6,14 @@
  * Used by both the backend HTTP handlers and the frontend stores.
  */
 
-import type { Edge, InputMode, OutputCorrelation } from "./graph.js";
+import type {
+  Edge,
+  GraphLink,
+  InputMode,
+  OutputCorrelation
+} from "./graph.js";
 import type { NodeEffect } from "./platform.js";
+import type { ExampleNeeds } from "./example-needs.js";
 
 // ---------------------------------------------------------------------------
 // Media Refs
@@ -443,6 +449,8 @@ export interface AssetUpdateRequest {
 export interface WorkflowGraph {
   nodes: Node[];
   edges: Edge[];
+  /** Lineage links: no value, no execution order. See `GraphLink`. */
+  links?: GraphLink[];
 }
 
 export interface Workflow {
@@ -470,6 +478,8 @@ export interface Workflow {
   workspace_id?: string | null;
   required_providers?: string[] | null;
   required_models?: string[] | null;
+  /** Set on shipped examples: the models and keys the graph asks for. */
+  needs?: ExampleNeeds | null;
   html_app?: string | null;
   /** App-builder document (Puck layout + bindings): `{ version, data }`. */
   app_doc?: Record<string, unknown> | null;
@@ -709,6 +719,11 @@ export interface Message {
    * Omitted defaults to `"default"`.
    */
   permission_mode?: "plan" | "default" | "auto" | null;
+  /**
+   * Reasoning level for the chat turn. The server forwards it only to models
+   * that `supportsReasoningEffort` accepts. Omitted keeps the provider default.
+   */
+  reasoning_effort?: "low" | "medium" | "high" | null;
   /**
    * The read-only `run_search` fan-out primitive — a `run_search` tool next to
    * `run_subtask` whose child loop is restricted to read-only tools and cannot
@@ -986,6 +1001,7 @@ export interface Node {
 export interface Graph {
   nodes: Node[];
   edges: Edge[];
+  links?: GraphLink[];
 }
 
 // ---------------------------------------------------------------------------
@@ -1136,9 +1152,18 @@ export const PROVIDER_IDS = {
   // Claude via the Claude Agent SDK / `claude` CLI (no API key — uses the
   // machine's logged-in Claude subscription, spawning the CLI as a subprocess).
   CLAUDE_AGENT_SDK: "claude_agent_sdk",
+  // Google models via the Antigravity CLI (`agy`) in headless mode (no API
+  // key — uses the machine's signed-in Antigravity account, spawning the CLI).
+  ANTIGRAVITY: "antigravity",
   // Dreamina (CapCut) driven through the NodeTool Chrome extension in the
   // user's own logged-in Chrome tab (no API key, local installs only).
   DREAMINA: "dreamina",
+  // ChatGPT driven through the NodeTool Chrome extension in the user's own
+  // logged-in chatgpt.com tab (no API key, local installs only).
+  CHATGPT: "chatgpt",
+  // Gemini driven through the NodeTool Chrome extension in the user's own
+  // logged-in gemini.google.com tab (no API key, local installs only).
+  GEMINI_WEB: "gemini_web",
   GEMINI: "gemini",
   GROQ: "groq",
   MISTRAL: "mistral",
@@ -1157,6 +1182,10 @@ export const PROVIDER_IDS = {
   EVOLINK: "evolink",
   GMI: "gmi",
   META: "meta",
+  // Cloud marketplaces: Azure OpenAI / Microsoft Foundry deployments and
+  // Amazon Bedrock models, reached with the user's own cloud credentials.
+  AZURE_OPENAI: "azure_openai",
+  BEDROCK: "bedrock",
   // NodeTool's own managed models: curated delegates run on platform keys and
   // metered against the user's credit balance (BYOK providers stay unmetered).
   NODETOOL: "nodetool",
@@ -1174,6 +1203,7 @@ export const PROVIDER_IDS = {
   ATLASCLOUD: "atlascloud",
   HIGGSFIELD: "higgsfield",
   USEAPI: "useapi",
+  VGENV: "vgenv",
   AKI: "aki",
   MESHY: "meshy",
   RODIN: "rodin",
@@ -1185,6 +1215,7 @@ export const PROVIDER_IDS = {
   LMSTUDIO: "lmstudio",
   LLAMA_CPP: "llama_cpp",
   NODE_LLAMA_CPP: "node_llama_cpp",
+  STABLE_DIFFUSION_CPP: "stable_diffusion_cpp",
   WHISPER_CPP: "whisper_cpp",
   WHISPER_CPP_SERVER: "whisper_cpp_server",
   VLLM: "vllm",
@@ -1225,7 +1256,7 @@ export const CODEX_DEFAULT_ORIGINATOR = "codex_cli_rs";
  * "model not supported" on `/responses`. Must be ≥ the served models'
  * `minimal_client_version`. Override via `CODEX_CLIENT_VERSION`.
  */
-export const CODEX_CLIENT_VERSION = "0.155.0";
+export const CODEX_CLIENT_VERSION = "0.162.1";
 /** Loopback port/path the Codex client's redirect URI is registered against. */
 export const CODEX_CALLBACK_PORT = 1455;
 export const CODEX_CALLBACK_PATH = "/auth/callback";
@@ -1399,6 +1430,13 @@ export interface ModelAdapterInfo {
   reason_code?: string | null;
   reason?: string | null;
   artifact_ref?: ModelArtifactRef | null;
+  /** Further repositories the model loads files from. A download fetches each one. */
+  extra_artifact_refs?: ModelArtifactRef[] | null;
+  /**
+   * Set when the adapter checks its own files: whether every file it loads is
+   * on disk. It replaces the repository cache check, which cannot see single files.
+   */
+  files_present?: boolean | null;
 }
 
 export interface ModelExecutionAvailability {

@@ -2,10 +2,10 @@ import { useState, useCallback, useMemo, memo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAssetStore } from "../../stores/AssetStore";
 import TextEditorModal from "./TextEditorModal";
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { Tooltip, Text, getSpacingPx, SPACING } from "../ui_primitives";
 import isEqual from "../../utils/isEqual";
 import { useTranslation } from "react-i18next";
+import { i18n, useAppLanguage } from "../../i18n";
 
 const MAX_TEXT_LENGTH = 1000;
 const MAX_TEXT_HEIGHT = 50;
@@ -16,6 +16,7 @@ interface TextAssetDisplayProps {
 
 const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const getAsset = useAssetStore((state) => state.get);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -39,8 +40,8 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
   }, [data]);
 
   const memoizedPreviewText = useMemo(() => {
-    return data ? data.substring(0, MAX_TEXT_LENGTH) : "Loading preview...";
-  }, [data]);
+    return data ? data.substring(0, MAX_TEXT_LENGTH) : i18n.t("editor:ui.loadingPreview", { defaultValue: "Loading preview…" });
+  }, [data, languageVersion]);
 
   return (
     <div
@@ -51,7 +52,7 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
         overflow: "auto"
       }}
     >
-      <Tooltip title={t("editor:ui.openEditor", { defaultValue: "Open Editor" })} delay={TOOLTIP_ENTER_DELAY}>
+      <Tooltip title={t("storyboard:attrs.openEditor", { defaultValue: "Open editor" })}>
         <button type="button" className="button-expand" onClick={toggleExpand}>
           {isExpanded ? "↙" : "↗"}
         </button>
@@ -61,9 +62,8 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
         sx={{ whiteSpace: "pre-wrap" }}
       >
         {error
-          ? t("editor:ui.errorLoadingPreview", { defaultValue: "Error loading preview." })
-          : isLoading
-          ? t("editor:ui.loadingPreview", { defaultValue: "Loading preview..." })
+          ? t("editor:ui.errorLoadingPreview", { defaultValue: "Error loading preview." }) : isLoading
+          ? "Loading preview…"
           : memoizedPreviewText}
       </Text>
 
@@ -71,7 +71,7 @@ const TextAssetDisplay = ({ assetId }: TextAssetDisplayProps) => {
         <TextEditorModal
           value={memoizedModalText}
           onClose={toggleExpand}
-          propertyName="Text Asset"
+          propertyName="Text asset"
           propertyDescription="READ ONLY"
           readOnly={true}
           isLoading={isLoading}

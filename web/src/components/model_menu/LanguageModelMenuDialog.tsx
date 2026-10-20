@@ -5,6 +5,9 @@ import { useLanguageModelMenuStore } from "../../stores/ModelMenuStore";
 import { useLanguageModelsByProvider } from "../../hooks/useModelsByProvider";
 import { useTranslation } from "react-i18next";
 
+/** The provider capability this picker serves, for local providers to install. */
+const LOCAL_CAPABILITIES = ["generate_message"];
+
 interface LanguageModelMenuDialogProps {
   open: boolean;
   onClose: () => void;
@@ -19,6 +22,8 @@ interface LanguageModelMenuDialogProps {
   anchorEl?: HTMLElement | null;
   recommendedModels?: UnifiedModel[];
   modelPacks?: ModelPack[];
+  /** The model the control holds now. Its row is marked in the list. */
+  selectedModel?: { id: string; provider?: string };
 }
 
 function LanguageModelMenuDialog({
@@ -29,7 +34,8 @@ function LanguageModelMenuDialog({
   requireToolSupport,
   anchorEl,
   recommendedModels,
-  modelPacks
+  modelPacks,
+  selectedModel
 }: LanguageModelMenuDialogProps) {
   const { t } = useTranslation();
   const modelData = useLanguageModelsByProvider({
@@ -43,12 +49,15 @@ function LanguageModelMenuDialog({
       onClose={onClose}
       modelData={modelData}
       onModelChange={onModelChange}
-      title={t("editor:ui.selectLanguageModel", { defaultValue: "Select Language Model" })}
-      searchPlaceholder={t("editor:ui.searchLanguageModels", { defaultValue: "Search language models..." })}
+      title={t("editor:ui.selectLanguageModel", { defaultValue: "Select language model" })}
+      searchPlaceholder="Search language models"
       storeHook={useLanguageModelMenuStore}
       modelType="language_model"
+      localCapabilities={LOCAL_CAPABILITIES}
       recommendedModels={recommendedModels}
       modelPacks={modelPacks}
+      selectedModel={selectedModel}
+      promptForApiKey
     />
   );
 }

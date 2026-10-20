@@ -1,5 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import ErrorBanner from "../support/ErrorBanner";
 import {
   Box,
   Caption,
@@ -7,25 +8,25 @@ import {
   FlexColumn,
   FlexRow,
   LoadingSpinner,
-  SPACING
+  SPACING,
+  EmptyState
 } from "../ui_primitives";
 import {
   LOOSE_PROJECT_ID,
   useWorkspaceTabsStore
 } from "../../stores/WorkspaceTabsStore";
 import { trpc } from "../../trpc/client";
+import { useRenameDocument } from "../../hooks/useRenameDocument";
 import ProjectDocumentCard from "./ProjectDocumentCard";
 import ProjectSelector from "./ProjectSelector";
 import type { ProjectDocument } from "./projectStatus";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const DOCUMENTS_PER_PAGE = 4;
 
 const CurrentProjectDocuments = () => {
   const { t } = useTranslation();
-  // Subscribe so catalog reads re-render on language change.
-  useAppLanguage();
   const activeProjectId = useWorkspaceTabsStore(
     (state) => state.activeProjectId
   );
@@ -38,10 +39,46 @@ const CurrentProjectDocuments = () => {
       ? activeProjectId
       : personalProjectId;
   const [pageState, setPageState] = useState({ projectId, page: 0 });
-  const { data, isPending, error } = trpc.projects.get.useQuery(
-    { id: projectId ?? "" },
-    { enabled: Boolean(projectId), staleTime: 15_000 }
+  const requestedPage = pageState.projectId === projectId ? pageState.page : 0;
+  const utils = trpc.useUtils();
+  // One page of cards per request: the server reads whole only the documents
+  // on it, rather than every document, entity and ledger row in the project.
+  // Unbatched, so the cards do not wait on the start page's slower queries.
+  const { data, isPending, error } = trpc.projects.documentPage.useQuery(
+    {
+      id: projectId ?? "",
+      offset: requestedPage * DOCUMENTS_PER_PAGE,
+      limit: DOCUMENTS_PER_PAGE
+    },
+    {
+      enabled: Boolean(projectId),
+      staleTime: 15_000,
+      trpc: { context: { skipBatch: true } }
+    }
   );
+  const total = data?.total ?? 0;
+  const pageCount = Math.ceil(total / DOCUMENTS_PER_PAGE);
+  const page = Math.min(requestedPage, Math.max(pageCount - 1, 0));
+  const hasNextPage = page < pageCount - 1;
+  // Documents removed while a later page was open: step back to the last page
+  // that still has cards rather than showing an empty one.
+  useEffect(() => {
+    if (data && requestedPage > page) {
+      setPageState({ projectId, page });
+    }
+  }, [data, requestedPage, page, projectId]);
+  // Fetch the next page ahead, so Next shows cached cards instead of a spinner.
+  useEffect(() => {
+    if (!projectId || !hasNextPage) return;
+    void utils.projects.documentPage.prefetch(
+      {
+        id: projectId,
+        offset: (page + 1) * DOCUMENTS_PER_PAGE,
+        limit: DOCUMENTS_PER_PAGE
+      },
+      { staleTime: 15_000, trpc: { context: { skipBatch: true } } }
+    );
+  }, [utils, projectId, page, hasNextPage]);
   const openDocument = useCallback(
     (document: ProjectDocument) => {
       if (!projectId) return;
@@ -54,36 +91,42 @@ const CurrentProjectDocuments = () => {
     },
     [openTab, projectId]
   );
+  const renameDocument = useRenameDocument();
+  const handleRename = useCallback(
+    (document: ProjectDocument, name: string) =>
+      void renameDocument(
+        { type: document.type, ref: document.ref, currentName: document.name },
+        name
+      ),
+    [renameDocument]
+  );
 
   if (!projectId) return null;
 
-  const documents = data?.project.id === projectId ? data.documents : [];
-  const pageCount = Math.ceil(documents.length / DOCUMENTS_PER_PAGE);
-  const page =
-    pageState.projectId === projectId
-      ? Math.min(pageState.page, Math.max(pageCount - 1, 0))
-      : 0;
+  const documents = data?.documents ?? [];
   const firstDocument = page * DOCUMENTS_PER_PAGE;
-  const visibleDocuments = documents.slice(
-    firstDocument,
-    firstDocument + DOCUMENTS_PER_PAGE
-  );
   return (
     <FlexColumn gap={SPACING.md} aria-label={t("home:docs.sectionAria", { defaultValue: "Current project documents" })}>
       <FlexRow align="center" gap={SPACING.md} wrap>
         <ProjectSelector inline />
         <Caption color="muted">
-          {documents.length > 0
-            ? t("home:docs.title", { defaultValue: "Documents · {{count}}", count: String(documents.length) })
-            : t("home:docs.titleEmpty", { defaultValue: "Documents" })}
+          Documents{total > 0 ? ` · ${total} · most recent first` : ""}
         </Caption>
       </FlexRow>
       {isPending ? (
         <LoadingSpinner />
       ) : error ? (
-        <Caption color="error">{error.message}</Caption>
+        <ErrorBanner
+          report={{
+            source: "operation-failure",
+            summary: i18n.t("editor:ui.projectDocumentsFailedToLoad", { defaultValue: "Project documents failed to load" }),
+            errorText: error.message
+          }}
+        >
+          {error.message}
+        </ErrorBanner>
       ) : documents.length === 0 ? (
-        <Caption color="muted">{t("home:docs.empty", { defaultValue: "No documents in this project yet." })}</Caption>
+        <EmptyState size="small" title={t("editor:ui.noDocumentsInProject", { defaultValue: "No documents in this project yet" })} />
       ) : (
         <Box
           sx={{
@@ -93,12 +136,13 @@ const CurrentProjectDocuments = () => {
               "repeat(auto-fill, minmax(min(100%, 190px), 1fr))"
           }}
         >
-          {visibleDocuments.map((document) => (
+          {documents.map((document) => (
             <ProjectDocumentCard
               key={`${document.type}:${document.ref}`}
               document={document}
               sourceProjectId={projectId}
               onOpen={openDocument}
+              onRename={handleRename}
               compact
             />
           ))}
@@ -112,23 +156,19 @@ const CurrentProjectDocuments = () => {
             disabled={page === 0}
             onClick={() => setPageState({ projectId, page: page - 1 })}
           >
-            {t("home:docs.previous", { defaultValue: "Previous" })}
+            Previous
           </EditorButton>
           <Caption color="secondary">
-            {t("home:docs.range", {
-              defaultValue: "{{first}}–{{last}} of {{total}}",
-              first: String(firstDocument + 1),
-              last: String(Math.min(firstDocument + DOCUMENTS_PER_PAGE, documents.length)),
-              total: String(documents.length)
-            })}
+            {firstDocument + 1}–
+            {Math.min(firstDocument + DOCUMENTS_PER_PAGE, total)} of {total}
           </Caption>
           <EditorButton
             variant="outlined"
             density="compact"
-            disabled={page >= pageCount - 1}
+            disabled={!hasNextPage}
             onClick={() => setPageState({ projectId, page: page + 1 })}
           >
-            {t("home:docs.next", { defaultValue: "Next" })}
+            Next
           </EditorButton>
         </FlexRow>
       )}

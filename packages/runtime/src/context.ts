@@ -1112,6 +1112,8 @@ function findListedAsset(
 }
 
 export class ProcessingContext {
+  /** Host policy inherited by native calls and copied contexts. */
+  readonly nodeExecutorGuard?: (executor: import("./node-executor.js").NodeExecutor, nodeType: string, inputs: Record<string, unknown>) => import("./node-executor.js").NodeExecutor;
   readonly jobId: string;
   readonly workflowId: string | null;
   /** Chat thread id, when this context is serving a chat-driven agent run. */
@@ -1322,6 +1324,7 @@ export class ProcessingContext {
     environment?: Record<string, string>;
     authToken?: string | null;
     sandboxModuleCatalog?: SandboxModuleCatalog | null;
+    nodeExecutorGuard?: ProcessingContext["nodeExecutorGuard"];
     secretResolver?: (
       key: string,
       userId: string
@@ -1383,6 +1386,7 @@ export class ProcessingContext {
     }
     this.environment = { ...env, ...(opts.environment ?? {}) };
     this.authToken = opts.authToken ?? null;
+    this.nodeExecutorGuard = opts.nodeExecutorGuard;
     // An explicit option — including null — wins over the host default.
     this.sandboxModuleCatalog =
       opts.sandboxModuleCatalog !== undefined
@@ -1443,6 +1447,7 @@ export class ProcessingContext {
       environment: { ...this.environment },
       authToken: this.authToken,
       sandboxModuleCatalog: this.sandboxModuleCatalog,
+      nodeExecutorGuard: this.nodeExecutorGuard,
       fetchFn: this._fetch,
       secretResolver: this._secretResolver ?? undefined,
       tempUrlResolver: this._tempUrlResolver ?? undefined,
@@ -3999,10 +4004,17 @@ export class ProcessingContext {
         mimeOverride ??
         generationMime(req.capability, bytes);
       const ext = extForGenerationMime(mime);
+      // The asset's `uri` takes its extension from the name, so a caller's
+      // bare name (`shot-1-still`) gets the one the bytes have; otherwise the
+      // row reads `asset://<id>` while this result says `asset://<id>.<ext>`.
+      const persistName =
+        req.persist?.name && !/\.[a-z0-9]+$/i.test(req.persist.name)
+          ? `${req.persist.name}.${ext}`
+          : req.persist?.name;
       const name =
-        buffers.length === 1 || !req.persist?.name
-          ? (req.persist?.name ?? `${req.capability}-${startedName(id)}.${ext}`)
-          : req.persist.name.replace(/(\.[a-z0-9]+)?$/i, `-${index + 1}$1`);
+        buffers.length === 1 || !persistName
+          ? (persistName ?? `${req.capability}-${startedName(id)}.${ext}`)
+          : persistName.replace(/(\.[a-z0-9]+)?$/i, `-${index + 1}$1`);
       try {
         const created = await this.createAsset({
           name,

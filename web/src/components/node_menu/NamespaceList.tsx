@@ -3,7 +3,19 @@ import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import React, { memo, useMemo } from "react";
-import { Text, EditorButton, BORDER_RADIUS, Box, ListGroup, MOTION, SPACING, getSpacingPx, SHADOW } from "../ui_primitives";
+import {
+  Text,
+  EditorButton,
+  BORDER_RADIUS,
+  Box,
+  ListGroup,
+  MOTION,
+  SPACING,
+  TYPOGRAPHY,
+  getSpacingPx,
+  selectedRowStyles,
+  thinScrollbarStyles
+} from "../ui_primitives";
 import { NodeMetadata } from "../../stores/ApiTypes";
 import NamespacePanel from "./NamespacePanel";
 import RenderNodes from "./RenderNodes";
@@ -14,15 +26,14 @@ import QuickActionTiles from "./QuickActionTiles";
 import RecentNodesTiles from "./RecentNodesTiles";
 import FavoritesTiles from "./FavoritesTiles";
 import isEqual from "../../utils/isEqual";
-import useMetadataStore from "../../stores/MetadataStore";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import { NamespaceTree } from "../../hooks/useNamespaceTree";
 import { useOpenPackageManager } from "../../hooks/useOpenPackageManager";
+import { isCloudProfile } from "../../lib/runtimeConfig";
 import { useTranslation } from "react-i18next";
 
 interface NamespaceListProps {
   namespaceTree: NamespaceTree;
-  metadata: NodeMetadata[];
 }
 
 const namespaceStyles = (theme: Theme) =>
@@ -40,14 +51,9 @@ const namespaceStyles = (theme: Theme) =>
       color: "var(--palette-primary-main)"
     },
     ".info-box": {
-      position: "absolute",
-      right: "0",
-      bottom: "0",
-      minHeight: "30px",
-      alignItems: "center",
-      flexDirection: "column",
-      margin: `0 ${getSpacingPx(SPACING.xl)} ${getSpacingPx(SPACING.md)}`,
-      justifyContent: "flex-start"
+      flex: "0 0 auto",
+      alignSelf: "flex-end",
+      margin: `0 ${getSpacingPx(SPACING.xl)} ${getSpacingPx(SPACING.md)}`
     },
     ".node-packs-info": {
       textAlign: "right",
@@ -75,20 +81,12 @@ const namespaceStyles = (theme: Theme) =>
       transition: `max-width ${MOTION.slow}, width ${MOTION.slow}`,
       overflowX: "hidden",
       overflowY: "auto",
-      padding: `0 ${getSpacingPx(SPACING.sm)}`
+      padding: `0 ${getSpacingPx(SPACING.sm)}`,
+      ...thinScrollbarStyles(theme)
     },
     ".node-list.expanded": {
       width: "100%",
       maxWidth: "none"
-    },
-    ".node-list::-webkit-scrollbar": { width: "6px" },
-    ".node-list::-webkit-scrollbar-track": { background: "transparent" },
-    ".node-list::-webkit-scrollbar-thumb": {
-      backgroundColor: theme.vars.palette.action.disabledBackground,
-      borderRadius: BORDER_RADIUS.lg
-    },
-    ".node-list::-webkit-scrollbar-thumb:hover": {
-      backgroundColor: theme.vars.palette.action.disabled
     },
     ".no-selection": {
       maxWidth: "200px",
@@ -160,7 +158,7 @@ const namespaceStyles = (theme: Theme) =>
       padding: theme.spacing(1, 1.5),
       borderRadius: BORDER_RADIUS.md,
       backgroundColor: theme.vars.palette.action.hover,
-      margin: `${getSpacingPx(SPACING.xl)} ${getSpacingPx(SPACING.md)} 0 0`,
+      margin: `${getSpacingPx(SPACING.sm)} 0 0 0`,
       border: `1px solid ${theme.vars.palette.divider}`
     },
     ".result-info span": {
@@ -169,8 +167,7 @@ const namespaceStyles = (theme: Theme) =>
     },
     ".result-label": {
       color: `${theme.vars.palette.text.secondary} !important`,
-      fontSize: "0.8em",
-      fontWeight: 400,
+      ...TYPOGRAPHY.sans.caption,
       marginLeft: getSpacingPx(SPACING.md),
       userSelect: "none"
     },
@@ -181,8 +178,8 @@ const namespaceStyles = (theme: Theme) =>
     ".no-results": {
       padding: `0 0 0 ${getSpacingPx(SPACING.xxxl)}`,
       margin: "0",
-      fontSize: "0.8em",
-      color: theme.vars.palette.grey[200]
+      ...TYPOGRAPHY.sans.caption,
+      color: theme.vars.palette.text.secondary
     },
     h6: {
       color: theme.vars.palette.grey[400]
@@ -237,13 +234,7 @@ const namespaceStyles = (theme: Theme) =>
       backgroundColor: theme.vars.palette.action.hover,
       border: `1px solid ${theme.vars.palette.divider}`
     },
-    ".node.focused": {
-      color: "var(--palette-primary-main)",
-      backgroundColor: "rgba(var(--palette-primary-mainChannel) / 0.1)",
-      borderRadius: BORDER_RADIUS.lg,
-      border: "1px solid rgba(var(--palette-primary-mainChannel) / 0.2)",
-      boxShadow: SHADOW(theme).sm
-    },
+    ".node.focused": selectedRowStyles(theme),
     ".namespace-text": {
       color: "var(--palette-grey-500)",
       fontWeight: 400,
@@ -330,7 +321,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
           <p>
             {selectedPathString ? (
               <>
-                {t("editor:ui.nothingFoundInThisNamespaceFor")}
+                Nothing found in this namespace for
                 <strong className="highlighted-text">
                   {" "}
                   &quot;{searchTerm}&quot;
@@ -338,7 +329,7 @@ const NoSelectionContent = memo(function NoSelectionContent({
               </>
             ) : (
               <>
-                {t("editor:ui.nothingFoundFor")}
+                Nothing found for
                 <strong className="highlighted-text">
                   {" "}
                   &quot;{searchTerm}&quot;
@@ -349,9 +340,8 @@ const NoSelectionContent = memo(function NoSelectionContent({
           <ul className="no-results">
             {selectedPathString && (
               <li>
-                {t("editor:ui.clickOn", { defaultValue: "click on " })}
-                <span className="highlighted">{t("editor:ui.highlightedWord", { defaultValue: "highlighted " })}</span>
-                {t("editor:ui.namespacesToFindResults", { defaultValue: "namespaces to find results." })}
+                click on <span className="highlighted">highlighted </span>
+                namespaces to find results.
               </li>
             )}
             <li>{t("editor:ui.justStartTypingToEnterANewSearchTerm", { defaultValue: "just start typing to enter a new search term" })}</li>
@@ -359,23 +349,25 @@ const NoSelectionContent = memo(function NoSelectionContent({
           </ul>
         </>
       ) : null}
-      <div className="node-packs-info">
-        <EditorButton
-          startIcon={<AddCircleOutline />}
-          size="small"
-          variant="outlined"
-          onClick={openPacksPanel}
-          style={{
-            marginTop: getSpacingPx(SPACING.md),
-            marginBottom: getSpacingPx(SPACING.md),
-            textTransform: "none",
-            lineHeight: "1.5",
-            padding: getSpacingPx(SPACING.xl)
-          }}
-        >
-          {t("editor:ui.installAdditionalNodePacks")}
-        </EditorButton>
-      </div>
+      {!isCloudProfile() && (
+        <div className="node-packs-info">
+          <EditorButton
+            startIcon={<AddCircleOutline />}
+            size="small"
+            variant="outlined"
+            onClick={openPacksPanel}
+            style={{
+              marginTop: getSpacingPx(SPACING.md),
+              marginBottom: getSpacingPx(SPACING.md),
+              textTransform: "none",
+              lineHeight: "1.5",
+              padding: getSpacingPx(SPACING.xl)
+            }}
+          >
+            Install additional node packs
+          </EditorButton>
+        </div>
+      )}
     </div>
   );
 });
@@ -385,16 +377,13 @@ const InfoBox = memo(function InfoBox({
   minSearchTermLength,
   selectedPathString,
   searchResults,
-  allSearchMatches,
-  totalNodes
+  allSearchMatches
 }: {
   searchTerm: string;
   minSearchTermLength: number;
   selectedPathString: string;
   searchResults: NodeMetadata[];
   allSearchMatches: NodeMetadata[];
-  metadata: NodeMetadata[];
-  totalNodes: number;
 }) {
   const buildContextMessage = () => {
     if (searchTerm.length > minSearchTermLength) {
@@ -408,7 +397,8 @@ const InfoBox = memo(function InfoBox({
     if (selectedPathString) {
       return `${searchResults.length} nodes in ${selectedPathString}`;
     }
-    return `${totalNodes} nodes available`;
+    const count = searchResults.length;
+    return `${count} ${count === 1 ? "node matches" : "nodes match"} the filters`;
   };
 
   return (
@@ -421,8 +411,7 @@ const InfoBox = memo(function InfoBox({
 });
 
 const NamespaceList: React.FC<NamespaceListProps> = ({
-  namespaceTree,
-  metadata
+  namespaceTree
 }) => {
   const theme = useTheme();
   const cssStyles = useMemo(() => namespaceStyles(theme), [theme]);
@@ -435,18 +424,18 @@ const NamespaceList: React.FC<NamespaceListProps> = ({
     selectedInputType,
     selectedOutputType,
     selectedProviderType
-  } = useNodeMenuStore(useShallow((state) => ({
-    searchTerm: state.searchTerm,
-    selectedPath: state.selectedPath,
-    searchResults: state.searchResults,
-    allSearchMatches: state.allSearchMatches,
-    hoveredNode: state.hoveredNode,
-    selectedInputType: state.selectedInputType,
-    selectedOutputType: state.selectedOutputType,
-    selectedProviderType: state.selectedProviderType
-  })));
-
-  const allMetadata = useMetadataStore((state) => state.metadata);
+  } = useNodeMenuStore(
+    useShallow((state) => ({
+      searchTerm: state.searchTerm,
+      selectedPath: state.selectedPath,
+      searchResults: state.searchResults,
+      allSearchMatches: state.allSearchMatches,
+      hoveredNode: state.hoveredNode,
+      selectedInputType: state.selectedInputType,
+      selectedOutputType: state.selectedOutputType,
+      selectedProviderType: state.selectedProviderType
+    }))
+  );
 
   const selectedPathString = useMemo(
     () => selectedPath.join("."),
@@ -460,10 +449,6 @@ const NamespaceList: React.FC<NamespaceListProps> = ({
     searchTerm.includes("/")
       ? 0
       : 1;
-
-  const totalNodes = useMemo(() => {
-    return Object.keys(allMetadata).length;
-  }, [allMetadata]);
 
   const isHomeLayout = !(
     selectedPathString ||
@@ -518,15 +503,16 @@ const NamespaceList: React.FC<NamespaceListProps> = ({
           </>
         )}
       </Box>
-      <InfoBox
-        searchTerm={searchTerm}
-        minSearchTermLength={minSearchTermLength}
-        selectedPathString={selectedPathString}
-        searchResults={searchResults}
-        allSearchMatches={allSearchMatches}
-        metadata={metadata}
-        totalNodes={totalNodes}
-      />
+      {/* The toolbar already shows the total node count on the home view. */}
+      {!isHomeLayout && (
+        <InfoBox
+          searchTerm={searchTerm}
+          minSearchTermLength={minSearchTermLength}
+          selectedPathString={selectedPathString}
+          searchResults={searchResults}
+          allSearchMatches={allSearchMatches}
+        />
+      )}
     </div>
   );
 };

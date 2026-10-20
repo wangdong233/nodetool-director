@@ -69,3 +69,7 @@
 `motion-graphics` 承载时间线操作契约:铺音床、把镜头音频压到旁白轨下。
 音床就位后,`beat-sync-editing` 把剪切坐上去,`caption-titles` 对它取
 文字时码——无论选哪种搭法,标题卡永远不渲染进片段。
+
+合成前(而非合成后)先把素材裁到目标画幅:代码动作里用 `nodetool.media.ffmpeg`(其契约见 `api-media`)。
+
+`timeline-edit-ops` 承载铺底轨与静音相关的 timeline op 契约。

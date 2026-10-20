@@ -1,6 +1,4 @@
 /** @jsxImportSource @emotion/react */
-import { i18n } from "../../i18n";
-import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 
 import { useTheme } from "@mui/material/styles";
@@ -26,6 +24,7 @@ import {
 import { NodeData } from "../../stores/NodeData";
 import { debounce } from "../../utils/lodashAlternatives";
 import isEqual from "../../utils/isEqual";
+import { runAsOneUndoEntry } from "../../utils/runAsOneUndoEntry";
 import {
   parse,
   alpha,
@@ -37,6 +36,7 @@ import {
 import { hexToRgba } from "../../utils/ColorUtils";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { useWebsocketRunner } from "../../stores/WorkflowRunner";
+import { useRunSelectedNodes } from "../../hooks/nodes/useRunSelectedNodes";
 import ColorPicker from "../inputs/ColorPicker";
 import NodeResizer from "./NodeResizer";
 import NodeResizeHandle from "./NodeResizeHandle";
@@ -47,6 +47,8 @@ import RunGroupButton from "./RunGroupButton";
 import BypassGroupButton from "./BypassGroupButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Tooltip, ToolbarIconButton, Popover, MOTION, BORDER_RADIUS, SPACING, getSpacingPx, Z_INDEX, SHADOW } from "../ui_primitives";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const MIN_WIDTH = 200;
 const MIN_HEIGHT = 200;
@@ -339,26 +341,17 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
   const isWorkflowRunning = useWebsocketRunner(
     (state) => state.state === "running"
   );
-  const run = useWebsocketRunner((state) => state.run);
+  const { runSelectedNodes } = useRunSelectedNodes();
 
+  // Runs the group's children through the Run selected path, so inputs wired
+  // from outside the group are seeded from cache or block the run.
   const runWorkflow = useCallback(() => {
-    // Access state imperatively to avoid re-renders
-    const state = store.getState();
-    const { nodes, edges, workflow } = state;
-
-    const groupNodes = nodes.filter(
-      (node) => node.id === props.id || node.parentId === props.id
-    );
-
-    const groupNodeIds = new Set(groupNodes.map((n) => n.id));
-    const groupEdges = edges.filter(
-      (edge) =>
-        groupNodeIds.has(edge.source) &&
-        groupNodeIds.has(edge.target)
-    );
-
-    run({}, workflow, groupNodes, groupEdges);
-  }, [run, props.id, store]);
+    const childIds = store
+      .getState()
+      .nodes.filter((node) => node.parentId === props.id)
+      .map((node) => node.id);
+    void runSelectedNodes(1, childIds);
+  }, [runSelectedNodes, props.id, store]);
 
   const toggleBypassChildren = useCallback(() => {
     const state = store.getState();
@@ -367,8 +360,10 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
     const isBypassed = childNodes.some((n) => n.data.bypassed);
     const shouldBypass = !isBypassed;
 
-    childNodes.forEach((node) => {
-      setBypass(node.id, shouldBypass);
+    runAsOneUndoEntry(store, () => {
+      childNodes.forEach((node) => {
+        setBypass(node.id, shouldBypass);
+      });
     });
   }, [props.id, setBypass, store]);
 
@@ -424,7 +419,24 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
       }, 500),
     [props.id, updateNodeData]
   );
-  useEffect(() => () => debouncedHeadlineSave.cancel(), [debouncedHeadlineSave]);
+  // Write a pending rename instead of dropping it when the node unmounts.
+  useEffect(() => () => debouncedHeadlineSave.flush(), [debouncedHeadlineSave]);
+
+  // Follow outside changes (undo, agent edits) while the title isn't being
+  // edited.
+  const storedHeadline =
+    (props.data.properties.headline as string | undefined) || "Group";
+  useEffect(() => {
+    if (document.activeElement !== headerInputRef.current) {
+      setHeadline(storedHeadline);
+    }
+  }, [storedHeadline]);
+  const storedColor = props.data.properties.group_color as string | undefined;
+  useEffect(() => {
+    if (storedColor) {
+      setColor(storedColor);
+    }
+  }, [storedColor]);
 
   const handleHeadlineChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -476,8 +488,10 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
   useEffect(() => {
     // Selectable group when ctrl/meta is held AND this group owns a
     // selected child — enables drag-out and selection rectangle inside.
-    updateNode(props.id, { selectable: modifierActive });
-  }, [updateNode, props.id, modifierActive]);
+    if ((props.selectable ?? true) !== modifierActive) {
+      updateNode(props.id, { selectable: modifierActive });
+    }
+  }, [updateNode, props.id, props.selectable, modifierActive]);
 
   // Bound the label to the group body width. Only reserve room for the
   // action cluster when it's actually visible — otherwise the label can use
@@ -593,6 +607,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
             aria-label={t("editor:ui.groupHeadline", { defaultValue: "Group headline" })}
             value={headline}
             onChange={handleHeadlineChange}
+            onBlur={debouncedHeadlineSave.flush}
             placeholder={t("editor:ui.groupPlaceholder", { defaultValue: "Group" })}
             style={inputStyle}
           />
@@ -610,7 +625,7 @@ const GroupNode: React.FC<NodeProps<Node<NodeData>>> = (props) => {
         className="group-actions nodrag"
         style={actionsStyle}
       >
-        <Tooltip title={t("editor:ui.groupOptions", { defaultValue: "Group options" })} delay={TOOLTIP_ENTER_DELAY}>
+        <Tooltip title={t("editor:ui.groupOptions", { defaultValue: "Group options" })}>
           <ToolbarIconButton
             ref={menuButtonRef}
             title=""

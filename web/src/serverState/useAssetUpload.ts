@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { Asset } from "../stores/ApiTypes";
 import { useAssetStore } from "../stores/AssetStore";
+import { useRecentAssetsStore } from "../stores/RecentAssetsStore";
 import { UploadSource } from "../utils/imageUploadValidation";
 import { creationProjectId } from "../stores/WorkspaceTabsStore";
 
@@ -84,6 +85,10 @@ export const useAssetUpload = create<UploadState>((set, get) => ({
       (file) => file.status === undefined
     );
     if (nextUploadIndex === -1) {
+      // Another upload is still running; its own completion clears the queue.
+      if (files.some((file) => file.status === "uploading")) {
+        return;
+      }
       set({
         files: [],
         isUploading: false,
@@ -111,6 +116,7 @@ export const useAssetUpload = create<UploadState>((set, get) => ({
     )
       .then((asset: Asset) => {
         get().updateStatus(nextUploadIndex, 100, "completed");
+        useRecentAssetsStore.getState().addRecentAsset(asset);
         uploadFile.onCompleted?.(asset);
       })
       .catch((err) => {

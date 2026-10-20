@@ -15,6 +15,7 @@
  * never been enabled before.
  */
 import React, { useCallback, useMemo, useState } from "react";
+import ErrorBanner from "../support/ErrorBanner";
 import {
   Popover,
   ToolbarIconButton,
@@ -33,6 +34,7 @@ import {
   BORDER_RADIUS,
   getSpacingPx
 } from "../ui_primitives";
+import type { StatusType } from "../ui_primitives";
 import BoltIcon from "@mui/icons-material/Bolt";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -51,8 +53,8 @@ import {
   isTriggerNodeType
 } from "@nodetool-ai/protocol";
 import { formatSchedule } from "../../utils/triggerSchedule";
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /** Stable empty fallback, so a pending query doesn't hand every render a new
  * array identity and re-create the callbacks that close over it. */
@@ -75,19 +77,11 @@ type ActivationState =
 const KIND_LABELS: Readonly<Record<string, string>> = {
   webhook: "Webhook",
   schedule: "Schedule",
-  file_watch: "File watch",
+  file_watch: i18n.t("editor:ui.fileWatch", { defaultValue: "File watch" }),
   manual: "Manual"
 };
 
-const KIND_LABEL_KEYS: Readonly<Record<string, string>> = {
-  webhook: "editor:ui.webhook",
-  schedule: "editor:ui.schedule",
-  file_watch: "editor:ui.fileWatch",
-  manual: "timeline:history.manual"
-};
-
-const kindLabel = (kind: string): string =>
-  KIND_LABELS[kind] ? i18n.t(KIND_LABEL_KEYS[kind] ?? kind, { defaultValue: KIND_LABELS[kind] }) : kind;
+const kindLabel = (kind: string): string => KIND_LABELS[kind] ?? kind;
 
 const formatLastFired = (iso: string | null): string => {
   if (!iso) return i18n.t("editor:ui.neverFired", { defaultValue: "Never" });
@@ -98,52 +92,32 @@ const formatLastFired = (iso: string | null): string => {
 
 /** Text on the workflow-level switch — honest about what we actually know. */
 const SWITCH_DESCRIPTIONS = {
-  loading: "Checking trigger status…",
-  error: "Could not load trigger status. Check your connection and retry.",
+  loading: i18n.t("editor:ui.checkingTriggerStatus", { defaultValue: "Checking trigger status…" }),
+  error: i18n.t("editor:ui.couldNotLoadTriggerStatusCheckYourConnectionAndRetry", { defaultValue: "Could not load trigger status. Check your connection and retry." }),
   unregistered:
-    "Save the workflow first — activation needs a saved trigger registration.",
-  inactive: "Listens for events and starts a run per event.",
-  mixed: "Some triggers are armed. Turn this on to arm the rest.",
-  active: "Listens for events and starts a run per event."
+    i18n.t("editor:ui.saveTheWorkflowFirstActivationNeedsASavedTriggerRegistration", { defaultValue: "Save the workflow first — activation needs a saved trigger registration." }),
+  inactive: i18n.t("editor:ui.listensForEventsAndStartsARunPerEvent", { defaultValue: "Listens for events and starts a run per event." }),
+  mixed: i18n.t("editor:ui.someTriggersAreArmedTurnThisOnToArmTheRest", { defaultValue: "Some triggers are armed. Turn this on to arm the rest." }),
+  active: i18n.t("editor:ui.listensForEventsAndStartsARunPerEvent", { defaultValue: "Listens for events and starts a run per event." })
 } satisfies Readonly<Record<ActivationState, string>>;
-
-const SWITCH_DESCRIPTION_KEYS: Record<ActivationState, string> = {
-  loading: "editor:ui.checkingTriggerStatus",
-  error: "editor:ui.couldNotLoadTriggerStatusCheckYourConnectionAndRetry",
-  unregistered: "editor:ui.saveTheWorkflowFirstActivationNeedsASavedTriggerRegistration",
-  inactive: "editor:ui.listensForEventsAndStartsARunPerEvent",
-  mixed: "editor:ui.someTriggersAreArmedTurnThisOnToArmTheRest",
-  active: "editor:ui.listensForEventsAndStartsARunPerEvent"
-};
 
 const STATUS_LABELS = {
   loading: "Loading",
   error: "Unavailable",
-  unregistered: "Not registered",
+  unregistered: i18n.t("editor:ui.notRegistered", { defaultValue: "Not registered" }),
   inactive: "Inactive",
-  mixed: "Partly active",
+  mixed: i18n.t("editor:ui.partlyActive", { defaultValue: "Partly active" }),
   active: "Active"
 } satisfies Readonly<Record<ActivationState, string>>;
 
-const STATUS_LABEL_KEYS: Record<ActivationState, string> = {
-  loading: "editor:ui.loading",
-  error: "editor:ui.unavailable",
-  unregistered: "editor:ui.notRegistered",
-  inactive: "editor:ui.inactive",
-  mixed: "editor:ui.partlyActive",
-  active: "editor:ui.active"
-};
-
 const STATUS_KINDS = {
-  loading: "pending",
+  loading: "running",
   error: "error",
   unregistered: "default",
   inactive: "default",
   mixed: "warning",
   active: "success"
-} satisfies Readonly<
-  Record<ActivationState, "success" | "error" | "warning" | "pending" | "default">
->;
+} satisfies Readonly<Record<ActivationState, StatusType>>;
 
 interface WebhookDeliveryDetailsProps {
   webhookToken: string;
@@ -191,8 +165,8 @@ const WebhookDeliveryDetails: React.FC<WebhookDeliveryDetailsProps> = ({
               <VisibilityIcon fontSize="small" />
             )
           }
-          tooltip={revealed ? t("editor:ui.hideSecret", { defaultValue: "Hide secret" }) : t("editor:ui.showSecret", { defaultValue: "Show secret" })}
-          ariaLabel={revealed ? t("editor:ui.hideWebhookSecret", { defaultValue: "Hide webhook secret" }) : t("editor:ui.showWebhookSecret", { defaultValue: "Show webhook secret" })}
+          tooltip={revealed ? t("editor:ui.hideSecret", { defaultValue: "Hide secret" }) : i18n.t("editor:ui.showSecret", { defaultValue: "Show secret" })}
+          ariaLabel={revealed ? t("editor:ui.hideWebhookSecret", { defaultValue: "Hide webhook secret" }) : i18n.t("editor:ui.showWebhookSecret", { defaultValue: "Show webhook secret" })}
           onClick={() => setRevealed((r) => !r)}
         />
         <CopyButton value={webhookSecret} tooltip={t("editor:ui.copyWebhookSecret", { defaultValue: "Copy webhook secret" })} />
@@ -261,8 +235,7 @@ const TriggerActivationButton: React.FC = () => {
       : rows.length === 0
         ? "unregistered"
         : enabledCount === 0
-          ? "inactive"
-          : enabledCount === rows.length
+          ? "inactive" : enabledCount === rows.length
             ? "active"
             : "mixed";
   // A trigger the dispatcher gave up on is a failure the user has to see, even
@@ -346,14 +319,14 @@ const TriggerActivationButton: React.FC = () => {
             <Text size="big">{t("ui2:attrs.triggers", { defaultValue: "Triggers" })}</Text>
             <StatusIndicator
               status={STATUS_KINDS[state]}
-              label={t(STATUS_LABEL_KEYS[state], { defaultValue: STATUS_LABELS[state] })}
+              label={STATUS_LABELS[state]}
               size="small"
             />
           </FlexRow>
 
           <LabeledSwitch
             label={t("editor:ui.workflowActive", { defaultValue: "Workflow active" })}
-            description={t(SWITCH_DESCRIPTION_KEYS[state], { defaultValue: SWITCH_DESCRIPTIONS[state] })}
+            description={SWITCH_DESCRIPTIONS[state]}
             checked={state === "active"}
             onChange={(next) => {
               void handleToggle(next);
@@ -400,10 +373,8 @@ const TriggerActivationButton: React.FC = () => {
                       }
                       label={
                         reg?.enabled
-                          ? t("editor:ui.active", { defaultValue: "Active" })
-                          : stoppedBecause
-                            ? t("editor:ui.stopped", { defaultValue: "Stopped" })
-                            : t("editor:ui.inactive", { defaultValue: "Inactive" })
+                          ? t("editor:ui.active", { defaultValue: "Active" }) : stoppedBecause
+                            ? t("editor:ui.stopped", { defaultValue: "Stopped" }) : i18n.t("editor:ui.inactive", { defaultValue: "Inactive" })
                       }
                       size="small"
                     />
@@ -418,17 +389,19 @@ const TriggerActivationButton: React.FC = () => {
                   />
                   {isLoading && <Caption>{t("editor:ui.checkingStatus", { defaultValue: "Checking status…" })}</Caption>}
                   {isError && (
-                    <Caption color="error">
-                      {t("editor:ui.couldNotLoadTriggerStatus")}
-                    </Caption>
+                    <ErrorBanner
+                      report={{
+                        source: "operation-failure",
+                        summary: "Trigger status failed to load"
+                      }}
+                    >
+                      Could not load trigger status.
+                    </ErrorBanner>
                   )}
                   {schedule && <Caption>{schedule}</Caption>}
                   {!isLoading && !isError && (
                     <Caption>
-                      {t("editor:ui.lastFired", {
-                        defaultValue: "Last fired: {{time}}",
-                        time: formatLastFired(reg?.last_fired_at ?? null)
-                      })}
+                      Last fired: {formatLastFired(reg?.last_fired_at ?? null)}
                     </Caption>
                   )}
                   {stoppedBecause && (
@@ -437,7 +410,15 @@ const TriggerActivationButton: React.FC = () => {
                     </Caption>
                   )}
                   {reg?.last_error && (
-                    <Caption color="error">Last error: {reg.last_error}</Caption>
+                    <ErrorBanner
+                      report={{
+                        source: "operation-failure",
+                        summary: "Trigger run failed",
+                        errorText: reg.last_error
+                      }}
+                    >
+                      Last error: {reg.last_error}
+                    </ErrorBanner>
                   )}
                   {kind === "webhook" &&
                     reg?.webhook_token &&
@@ -453,7 +434,7 @@ const TriggerActivationButton: React.FC = () => {
                       disabled={!reg?.enabled || fireTrigger.isPending}
                       onClick={() => reg && handleFire(reg.id)}
                     >
-                      {t("editor:ui.fireNow")}
+                      Fire now
                     </EditorButton>
                   </FlexRow>
                 </FlexColumn>

@@ -8,7 +8,8 @@ import {
   BORDER_RADIUS,
   SPACING,
   getSpacingPx,
-  SHADOW
+  SHADOW,
+  CloseButton
 } from "../../ui_primitives";
 import { useReactFlow } from "@xyflow/react";
 import useNodeMenuStore from "../../../stores/NodeMenuStore";
@@ -18,6 +19,7 @@ import useMetadataStore from "../../../stores/MetadataStore";
 import { usePanelStore } from "../../../stores/PanelStore";
 import { useNodes } from "../../../contexts/NodeContext";
 import { shallow } from "zustand/shallow";
+import { i18n } from "../../../i18n";
 
 // Above every tier on the shared Z_INDEX scale, so it keeps its own value.
 const DOCUMENTATION_PANEL_Z_INDEX = 1000;
@@ -62,13 +64,8 @@ const styles = (theme: Theme) => css`
 
   .close-button {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    background: none;
-    border: none;
-    font-size: var(--fontSizeBig);
-    cursor: pointer;
-    color: ${theme.vars.palette.text.secondary};
+    top: ${getSpacingPx(SPACING.xs)};
+    right: ${getSpacingPx(SPACING.xs)};
   }
 
   .open-node-menu-button {
@@ -157,7 +154,7 @@ const DraggableNodeDocumentation: React.FC<DraggableNodeDocumentationProps> = ({
           onClick={handleAddNode}
           sx={{ marginTop: getSpacingPx(SPACING.lg), marginRight: getSpacingPx(SPACING.lg) }}
         >
-          Add Node
+          Add node
         </EditorButton>
       </>
     );
@@ -172,9 +169,7 @@ const DraggableNodeDocumentation: React.FC<DraggableNodeDocumentationProps> = ({
   return (
     <div css={cssStyles} ref={nodeRef}>
       <div className="handle"></div>
-      <button type="button" className="close-button" onClick={onClose}>
-        ×
-      </button>
+      <CloseButton className="close-button" onClick={onClose} tooltip={i18n.t("editor:ui.closeDocumentation", { defaultValue: "Close documentation" })} />
       <div className="content">{content}</div>
     </div>
   );

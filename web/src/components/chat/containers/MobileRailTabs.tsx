@@ -8,16 +8,14 @@
 import { memo } from "react";
 
 import { ToggleGroup, ToggleOption } from "../../ui_primitives";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
-export type MobileRail = "chat" | "documents" | "todos" | "task";
+export type MobileRail = "chat" | "todos" | "task";
 
-/** Catalog key per rail (editor:ui.<key>); rendered at render time. */
-const RAIL_LABEL_KEYS: Record<MobileRail, string> = {
-  chat: "chat",
-  documents: "documents",
-  todos: "tasks",
-  task: "task"
+const RAIL_LABELS: Record<MobileRail, string> = {
+  chat: "Chat",
+  todos: "Tasks",
+  task: "Task"
 };
 
 interface MobileRailTabsProps {
@@ -27,31 +25,26 @@ interface MobileRailTabsProps {
   onChange: (rail: MobileRail) => void;
 }
 
-const MobileRailTabs = ({ value, available, onChange }: MobileRailTabsProps) => {
-  const { t } = useTranslation();
-  return (
-    <ToggleGroup
-      className="mobile-rail-tabs"
-      value={value}
-      exclusive
-      segmented
-      size="small"
-      aria-label={t("editor:ui.conversationPanel", { defaultValue: "Conversation panel" })}
-      onChange={(_event, next: MobileRail | null) => {
-        if (next !== null) {
-          onChange(next);
-        }
-      }}
-    >
-      {available.map((rail) => (
-        <ToggleOption key={rail} value={rail}>
-          {t(`editor:ui.${RAIL_LABEL_KEYS[rail]}`, {
-            defaultValue: rail === "todos" ? "Tasks" : rail.charAt(0).toUpperCase() + rail.slice(1)
-          })}
-        </ToggleOption>
-      ))}
-    </ToggleGroup>
-  );
-};
+const MobileRailTabs = ({ value, available, onChange }: MobileRailTabsProps) => (
+  <ToggleGroup
+    className="mobile-rail-tabs"
+    value={value}
+    exclusive
+    segmented
+    size="small"
+    aria-label={i18n.t("editor:ui.conversationPanel", { defaultValue: "Conversation panel" })}
+    onChange={(_event, next: MobileRail | null) => {
+      if (next !== null) {
+        onChange(next);
+      }
+    }}
+  >
+    {available.map((rail) => (
+      <ToggleOption key={rail} value={rail}>
+        {RAIL_LABELS[rail]}
+      </ToggleOption>
+    ))}
+  </ToggleGroup>
+);
 
 export default memo(MobileRailTabs);

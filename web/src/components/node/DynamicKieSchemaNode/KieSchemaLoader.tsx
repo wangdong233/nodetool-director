@@ -1,15 +1,14 @@
 import React, { useCallback, useState, memo } from "react";
-import { Tooltip, Caption, LoadingSpinner, ToolbarIconButton, Box, SPACING, getSpacingPx } from "../../ui_primitives";
+import { Caption, LoadingSpinner, ToolbarIconButton, Box, SPACING, getSpacingPx, ICON_SIZE } from "../../ui_primitives";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { useNodes } from "../../../contexts/NodeContext";
+import { useNodeStoreRef } from "../../../contexts/NodeContext";
 import { BASE_URL } from "../../../stores/BASE_URL";
 import { TypeMetadata } from "../../../stores/ApiTypes";
 import { resolveKieSchemaClient } from "../../../utils/kieDynamicSchema";
 import { normalizeDynamicSlots } from "../../../utils/dynamicSlots";
+import { replaceDynamicSlots } from "../../../utils/replaceDynamicSlots";
 import { NodeData } from "../../../stores/NodeData";
-import { TOOLTIP_ENTER_DELAY } from "../../../config/constants";
 import { i18n } from "../../../i18n";
-import { useTranslation } from "react-i18next";
 
 export { DYNAMIC_KIE_NODE_TYPE } from "../../../constants/nodeTypes";
 
@@ -24,8 +23,7 @@ interface KieSchemaLoaderProps {
  */
 export const KieSchemaLoader: React.FC<KieSchemaLoaderProps> = memo(
   ({ nodeId, data }) => {
-    const { t } = useTranslation();
-    const updateNodeData = useNodes((state) => state.updateNodeData);
+    const nodeStore = useNodeStoreRef();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -108,7 +106,7 @@ export const KieSchemaLoader: React.FC<KieSchemaLoaderProps> = memo(
         const dynamic_properties = force
           ? resolved.dynamic_properties
           : { ...resolved.dynamic_properties, ...(existingDynamicPropsRef.current ?? {}) };
-        updateNodeData(nodeId, {
+        replaceDynamicSlots(nodeStore, nodeId, {
           dynamic_properties,
           dynamic_inputs:
             Object.keys(dynamic_inputs).length > 0
@@ -121,12 +119,12 @@ export const KieSchemaLoader: React.FC<KieSchemaLoaderProps> = memo(
         });
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : i18n.t("editor:ui.failedToLoadSchema", { defaultValue: "Failed to load schema" })
+          err instanceof Error ? err.message : "Failed to load schema"
         );
       } finally {
         setLoading(false);
       }
-    }, [nodeId, modelInfo, updateNodeData]);
+    }, [nodeId, modelInfo, nodeStore]);
 
     React.useEffect(() => {
       if (!modelInfo) {
@@ -167,28 +165,26 @@ export const KieSchemaLoader: React.FC<KieSchemaLoaderProps> = memo(
 
     return (
       <Box sx={{ display: "inline-flex", alignItems: "center" }}>
-        <Tooltip title={t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })} arrow delay={TOOLTIP_ENTER_DELAY}>
-          <ToolbarIconButton
-            title={t("editor:ui.reloadSchema", { defaultValue: "Reload Schema" })}
-            size="small"
-            disabled={loading}
-            onClick={() => void handleLoad(true)}
-            sx={{
-              padding: getSpacingPx(SPACING.xs),
-              color: "var(--palette-text-secondary)",
-              "&:hover": {
-                color: "var(--palette-text-primary)",
-                backgroundColor: "var(--palette-c_overlay)"
-              }
-            }}
-          >
-            {loading ? (
-              <LoadingSpinner size="small" />
-            ) : (
-              <RefreshIcon sx={{ fontSize: 16 }} />
-            )}
-          </ToolbarIconButton>
-        </Tooltip>
+        <ToolbarIconButton
+          title={i18n.t("editor:ui.reloadSchema", { defaultValue: "Reload schema" })}
+          size="small"
+          disabled={loading}
+          onClick={() => void handleLoad(true)}
+          sx={{
+            padding: getSpacingPx(SPACING.xs),
+            color: "var(--palette-text-secondary)",
+            "&:hover": {
+              color: "var(--palette-text-primary)",
+              backgroundColor: "var(--palette-c_overlay)"
+            }
+          }}
+        >
+          {loading ? (
+            <LoadingSpinner size="small" />
+          ) : (
+            <RefreshIcon sx={{ fontSize: ICON_SIZE.sm }} />
+          )}
+        </ToolbarIconButton>
         {error && (
           <Caption
             color="error"

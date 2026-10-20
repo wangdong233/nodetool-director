@@ -13,7 +13,6 @@ import BorderStyleIcon from "@mui/icons-material/BorderStyle";
 import {
   iconButtonCompactSx,
   sketchButtonSmallSx,
-  sketchSliderSx,
   SKETCH_COLORS
 } from "../sketchStyles";
 import { SelectSettings, SelectToolMode } from "../types";
@@ -26,11 +25,13 @@ import {
   Tooltip,
   Box,
   BORDER_RADIUS,
-  Slider
+  Slider,
+  ICON_SIZE
 } from "../../ui_primitives";
 import { RefineSelectionPopover } from "./refine-selection";
 import { useSketchStore } from "../state";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface SelectSettingsPanelProps {
   settings: SelectSettings;
@@ -91,8 +92,8 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
         <SketchModeOption
           value="lasso"
           variant="icon"
-          aria-label={t("editor:ui.Freehand (lasso)", { defaultValue: "Freehand lasso" })}
-          title={t("editor:ui.freehandLasso", { defaultValue: "Freehand (lasso)" })}
+          aria-label={t("editor:ui.freehandLasso", { defaultValue: "Freehand lasso" })}
+          title={t("editor:ui.freehandLasso", { defaultValue: "Freehand lasso" })}
         >
           <GestureOutlinedIcon fontSize="inherit" />
         </SketchModeOption>
@@ -119,7 +120,6 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
           <Box className="setting-row">
             <Text className="setting-label">{t("sketch:attrs.tol", { defaultValue: "Tol." })}</Text>
             <Slider
-              sx={sketchSliderSx}
               size="small"
               min={0}
               max={255}
@@ -143,7 +143,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
             sx={{ flexWrap: "wrap" }}
           >
             <SketchModeOption value="contiguous">{t("ui2:attrs.contiguous", { defaultValue: "Contiguous" })}</SketchModeOption>
-            <SketchModeOption value="allLayers">{t("ui2:attrs.allLayers", { defaultValue: "All Layers" })}</SketchModeOption>
+            <SketchModeOption value="allLayers">{t("ui2:attrs.allLayers", { defaultValue: "All layers" })}</SketchModeOption>
           </SketchModeToggle>
         </>
       ) : null}
@@ -177,7 +177,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
               lineHeight: 1
             }}
           >
-            {t("sketch:attrs.invertSelection", { defaultValue: "Invert" })}
+            Invert
           </EditorButton>
           <Tooltip title={t("editor:ui.refineSelectionGrowShrinkFeatherSmoothBorder", { defaultValue: "Refine selection (grow, shrink, feather, smooth, border)" })}>
             <span>
@@ -187,7 +187,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
                 color="inherit"
                 disabled={!hasActiveSelection}
                 onClick={() => setRefineOpen(true)}
-                startIcon={<TuneIcon sx={{ fontSize: 14 }} />}
+                startIcon={<TuneIcon />}
                 sx={{
                   ...sketchButtonSmallSx,
                   minWidth: "76px",
@@ -203,8 +203,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
           <Tooltip
             title={
               showAsMask
-                ? t("sketch:attrs.showingSelectionAsRedOverlayClickToSwitchToMarchingAnts", { defaultValue: "Showing selection as red overlay — click to switch to marching ants" })
-                : t("sketch:attrs.showingSelectionAsMarchingAntsClickToSwitchToRedOverlay", { defaultValue: "Showing selection as marching ants — click to switch to red overlay" })
+                ? t("sketch:attrs.showingSelectionAsRedOverlayClickToSwitchToMarchingAnts", { defaultValue: "Showing selection as red overlay — click to switch to marching ants" }) : i18n.t("sketch:attrs.showingSelectionAsMarchingAntsClickToSwitchToRedOverlay", { defaultValue: "Showing selection as marching ants — click to switch to red overlay" })
             }
           >
             <span>
@@ -214,8 +213,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
                 }
                 aria-label={
                   showAsMask
-                    ? t("sketch:attrs.switchToMarchingAnts", { defaultValue: "Switch to marching ants" })
-                    : t("sketch:attrs.switchToMaskOverlay", { defaultValue: "Switch to mask overlay" })
+                    ? t("sketch:attrs.switchToMarchingAnts", { defaultValue: "Switch to marching ants" }) : i18n.t("sketch:attrs.switchToMaskOverlay", { defaultValue: "Switch to mask overlay" })
                 }
                 sx={{
                   ...iconButtonCompactSx,
@@ -228,9 +226,9 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
                 }}
               >
                 {showAsMask ? (
-                  <OpacityIcon sx={{ fontSize: 16 }} />
+                  <OpacityIcon sx={{ fontSize: ICON_SIZE.sm }} />
                 ) : (
-                  <BorderStyleIcon sx={{ fontSize: 16 }} />
+                  <BorderStyleIcon sx={{ fontSize: ICON_SIZE.sm }} />
                 )}
               </ToolbarIconButton>
             </span>
@@ -262,7 +260,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
                     color: SKETCH_COLORS.textSecondary
                   }}
                 >
-                  <CropIcon sx={{ fontSize: 18 }} />
+                  <CropIcon sx={{ fontSize: ICON_SIZE.md }} />
                 </ToolbarIconButton>
               </span>
             </Tooltip>

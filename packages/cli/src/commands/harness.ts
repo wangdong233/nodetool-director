@@ -23,6 +23,9 @@
  * `dist/` is not built (see ../nodetool.ts).
  */
 import type { Command } from "commander";
+import { existsSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { printCommandError } from "../command-errors.js";
 import {
   HARNESSES,
   SURFACES,
@@ -32,7 +35,11 @@ import {
   type GateCheck,
   type GatePlan
 } from "../harness/registry.js";
-import { readWorkspacePackages } from "../affected/affected.js";
+import {
+  computeAffected,
+  readWorkspacePackages,
+  type PackageInfo
+} from "../affected/affected.js";
 import {
   auditCapabilityCoverage,
   planCapabilityMappingGate,
@@ -41,7 +48,8 @@ import {
 import { CAPABILITY_COVERAGE } from "../harness/capability-table.js";
 import {
   readChangedFiles,
-  isGateRelevantCodeFile
+  isGateRelevantCodeFile,
+  isGlobalGateFile
 } from "../harness/changed-files.js";
 
 /** Sentinel exit code for a selfcheck the gate had to kill on timeout. */
@@ -62,6 +70,26 @@ const SELFCHECK_MAX_BUFFER = 256 * 1024 * 1024;
 const CAPABILITY_TABLE_PATH =
   "packages/cli/src/harness/capability-table.ts";
 
+function harnessRequiresCheckout(command: string): boolean {
+  return !/^(?:nodetool(?:-chat)?\b|echo .*\| nodetool-chat\b)/.test(command) ||
+    command.startsWith("nodetool affected");
+}
+
+function harnessRepositoryRoot(): string | null {
+  let directory = resolve(process.cwd());
+  for (;;) {
+    if (existsSync(join(directory, ".git")) &&
+      existsSync(join(directory, "packages/cli/src/harness/registry.ts"))) {
+      return directory;
+    }
+    const parent = dirname(directory);
+    if (parent === directory) {
+      return null;
+    }
+    directory = parent;
+  }
+}
+
 export function registerHarnessCommands(program: Command): void {
   const harness = program
     .command("harness")
@@ -69,11 +97,14 @@ export function registerHarnessCommands(program: Command): void {
 
   harness
     .command("list")
-    .description("List every headless harness and its capabilities")
+    .description("List CLI commands and repository checks, marking checks that require a NodeTool checkout")
     .option("--json", "Print the registry as JSON")
     .action((opts: { json?: boolean }) => {
       if (opts.json) {
-        console.log(JSON.stringify(HARNESSES, null, 2));
+        console.log(JSON.stringify(HARNESSES.map((harness) => ({
+          ...harness,
+          requiresCheckout: harnessRequiresCheckout(harness.command)
+        })), null, 2));
         return;
       }
       console.log(`\n${HARNESSES.length} harnesses:\n`);
@@ -83,10 +114,11 @@ export function registerHarnessCommands(program: Command): void {
           : "";
         const tool = h.agentTool ? `  (agent tool: ${h.agentTool})` : "";
         console.log(`  ${h.id.padEnd(18)} ${h.kind.padEnd(9)} ${h.title}`);
-        console.log(`  ${"".padEnd(18)} ${h.command}${caps}${tool}`);
+        const availability = harnessRequiresCheckout(h.command) ? " [NodeTool checkout required]" : " [installed CLI]";
+        console.log(`  ${"".padEnd(18)} ${h.command}${availability}${caps}${tool}`);
         console.log("");
       }
-      console.log("Docs: docs/HARNESS_FIRST.md\n");
+      console.log("Docs: https://github.com/nodetool-ai/nodetool/blob/main/docs/HARNESS_FIRST.md\n");
     });
 
   harness
@@ -257,12 +289,12 @@ export function registerHarnessCommands(program: Command): void {
           jobs?: string;
         }
       ) => {
-        const { fileURLToPath } = await import("node:url");
-        const { dirname, resolve } = await import("node:path");
-
-        const here = dirname(fileURLToPath(import.meta.url));
-        // dist layout: packages/cli/dist/commands → repo root is four up.
-        const repoRoot = resolve(here, "..", "..", "..", "..");
+        const repoRoot = harnessRepositoryRoot();
+        if (!repoRoot) {
+          process.exit(printCommandError(new Error(
+            "harness gate requires a NodeTool Git checkout with repository test scripts. Run it from the checkout root. For a local document, use nodetool validate, jsscript test, app debug, or timeline debug."
+          ), opts.json));
+        }
 
         const timeoutSeconds = Number(opts.timeout ?? "900");
         const timeoutMs =
@@ -317,9 +349,15 @@ export function registerHarnessCommands(program: Command): void {
               opts.deps ? readWorkspacePackages(repoRoot) : undefined
             );
 
-        const { toRun, skippedExpensive, skippedSuites } = selectChecks(
+        const { toRun, skippedExpensive, skippedSuites, prunedSuites } = selectChecks(
           plan.checks,
-          { expensive: opts.expensive, includeSuites: opts.includeSuites }
+          {
+            expensive: opts.expensive,
+            includeSuites: opts.includeSuites,
+            globalFiles: plan.globalFiles,
+            changedFiles: plan.changedFiles,
+            workspaces: readWorkspacePackages(repoRoot)
+          }
         );
         // A directory recorded in UNCLAIMED_PATHS has already been judged: no
         // harness reaches it, and the entry says why. `auditPathClaims` honors
@@ -337,6 +375,14 @@ export function registerHarnessCommands(program: Command): void {
             skippedSuites,
             opts.all
           );
+          if (prunedSuites.length > 0) {
+            console.log(
+              "\nSteps left out because `npm run test:affected` runs their whole suite:"
+            );
+            for (const p of prunedSuites) {
+              for (const c of p.commands) console.log(`  ${p.harnessId}: ${c}`);
+            }
+          }
           if (unmappedCodeFiles.length > 0) {
             console.log(
               "\nCode files no surface claims (the gate fails on these):"
@@ -354,6 +400,7 @@ export function registerHarnessCommands(program: Command): void {
                 {
                   plan,
                   skippedSuites: skippedSuiteIds,
+                  prunedSuites,
                   mappingViolations,
                   unmappedCodeFiles
                 },
@@ -388,6 +435,7 @@ export function registerHarnessCommands(program: Command): void {
                 plan,
                 results,
                 skippedSuites: skippedSuiteIds,
+                prunedSuites,
                 mappingViolations,
                 unmappedCodeFiles
               },
@@ -429,22 +477,210 @@ export function registerHarnessCommands(program: Command): void {
  * A suite-only check is skipped (and named) rather than silently dropped:
  * `npm run test:affected` runs the same suites for the same diff, so running
  * them here again is pure repetition unless `--include-suites` asks for it.
+ *
+ * The same holds for one `npm run test --workspace=<pkg>` step of a chained
+ * selfcheck when `test:affected` runs that package's whole suite for this
+ * diff: every backend package `computeAffected` returns for `changedFiles`
+ * (the CI `test-packages-*` shards run the same set), or every workspace on a
+ * global diff. Such a step is pruned from the command and listed in
+ * `prunedSuites`, and a check left with no step is skipped. Web and electron
+ * steps are kept outside a global diff, because `test:affected` may run only
+ * the tests related to their own changed files.
  */
 export function selectChecks(
   checks: readonly GateCheck[],
-  opts: { expensive?: boolean; includeSuites?: boolean }
+  opts: {
+    expensive?: boolean;
+    includeSuites?: boolean;
+    globalFiles?: readonly string[];
+    changedFiles?: readonly string[];
+    workspaces?: readonly PackageInfo[];
+  }
 ): {
   toRun: GateCheck[];
   skippedExpensive: GateCheck[];
   skippedSuites: GateCheck[];
+  prunedSuites: PrunedSuites[];
 } {
-  const skippedSuites = checks.filter((c) => c.suiteOnly && !opts.includeSuites);
-  const rest = checks.filter((c) => !skippedSuites.includes(c));
+  const covered = opts.includeSuites
+    ? new Set<string>()
+    : coveredWorkspaces(opts);
+  const skippedSuites: GateCheck[] = [];
+  const prunedSuites: PrunedSuites[] = [];
+  const rest: GateCheck[] = [];
+  for (const c of checks) {
+    if (!opts.includeSuites && c.suiteOnly) {
+      skippedSuites.push(c);
+      continue;
+    }
+    const pruned = pruneCoveredSuites(c.command, covered);
+    if (pruned.command === null) {
+      skippedSuites.push(c);
+    } else if (pruned.removed.length > 0) {
+      prunedSuites.push({ harnessId: c.harnessId, commands: pruned.removed });
+      rest.push({ ...c, command: pruned.command });
+    } else {
+      rest.push(c);
+    }
+  }
   return {
     toRun: rest.filter((c) => opts.expensive || c.cost === "cheap"),
     skippedExpensive: rest.filter((c) => !opts.expensive && c.cost === "expensive"),
-    skippedSuites
+    skippedSuites,
+    prunedSuites
   };
+}
+
+export interface PrunedSuites {
+  harnessId: string;
+  /** The test steps left out because `test:affected` runs them in full. */
+  commands: string[];
+}
+
+/**
+ * Workspaces, by name and directory, whose whole test suite `npm run
+ * test:affected` runs for this diff. A global gate file selects the full
+ * pass, so every package plus web and electron. Otherwise the backend
+ * packages `computeAffected` returns: `test:affected` runs exactly those
+ * through turbo, and `scripts/ci-plan.mjs` starts the shard of each of them.
+ */
+function coveredWorkspaces(opts: {
+  globalFiles?: readonly string[];
+  changedFiles?: readonly string[];
+  workspaces?: readonly PackageInfo[];
+}): Set<string> {
+  const isBackend = (p: PackageInfo): boolean =>
+    /^(packages|reliability)\/[^/]+$/.test(p.dir);
+  const workspaces = opts.workspaces ?? [];
+  if (opts.globalFiles?.some(isGlobalGateFile)) {
+    return new Set(
+      workspaces
+        .filter((p) => isBackend(p) || p.dir === "web" || p.dir === "electron")
+        .flatMap((p) => [p.name, p.dir])
+    );
+  }
+  if (!opts.changedFiles?.length) return new Set();
+  const affected = new Set(computeAffected(opts.changedFiles, workspaces).affected);
+  return new Set(
+    workspaces
+      .filter((p) => isBackend(p) && affected.has(p.name))
+      .flatMap((p) => [p.name, p.dir])
+  );
+}
+
+/**
+ * Remove the `npm run test --workspace=…` steps whose workspaces are all
+ * covered from a `&&` chain. Returns `command: null` when no step is left,
+ * and the command unchanged when it is outside the restricted grammar below.
+ */
+function pruneCoveredSuites(
+  command: string,
+  covered: ReadonlySet<string>
+): { command: string | null; removed: string[] } {
+  const steps = covered.size > 0 ? splitAndChain(command) : null;
+  if (!steps) return { command, removed: [] };
+  const removed = steps.filter((s) => isCoveredTestStep(s.tokens, covered));
+  if (removed.length === 0) return { command, removed: [] };
+  const kept = steps.filter((s) => !removed.includes(s));
+  return {
+    command: kept.length > 0 ? kept.map((s) => s.text).join(" && ") : null,
+    removed: removed.map((s) => s.text)
+  };
+}
+
+/**
+ * Split a command into its `&&` steps, each with its source text and words.
+ * Quotes may protect filter expressions such as 'one|two'. Shell expansion,
+ * redirection and every operator other than `&&` reject the whole command.
+ */
+function splitAndChain(
+  command: string
+): Array<{ text: string; tokens: string[] }> | null {
+  if (/[$`\\\n\r;<>%!^]/.test(command)) {
+    return null;
+  }
+  const steps: Array<{ text: string; tokens: string[] }> = [];
+  let segment: string[] = [];
+  let segmentStart = 0;
+  let token = "";
+  let quote = "";
+  const flush = (): void => {
+    if (token) {
+      segment.push(token);
+    }
+    token = "";
+  };
+  const close = (end: number): boolean => {
+    flush();
+    if (segment.length === 0) return false;
+    steps.push({ text: command.slice(segmentStart, end).trim(), tokens: segment });
+    segment = [];
+    return true;
+  };
+  for (let i = 0; i < command.length; i++) {
+    const char = command.charAt(i);
+    if (quote) {
+      if (char === quote) {
+        quote = "";
+      } else {
+        token += char;
+      }
+    } else if (char === "'" || char === '"') {
+      quote = char;
+    } else if (/\s/.test(char)) {
+      flush();
+    } else if (char === "&" && command[i + 1] === "&") {
+      if (!close(i)) return null;
+      i++;
+      segmentStart = i + 1;
+    } else if (";&|<>()*?{}[]#".includes(char)) {
+      return null;
+    } else {
+      token += char;
+    }
+  }
+  if (quote || !close(command.length)) {
+    return null;
+  }
+  return steps;
+}
+
+/** `npm [run] test --workspace=<covered>… [-- <file filters>]`. */
+function isCoveredTestStep(
+  tokens: readonly string[],
+  covered: ReadonlySet<string>
+): boolean {
+  let i = 0;
+  if (tokens[i++] !== "npm") {
+    return false;
+  }
+  if (tokens[i] === "run") {
+    i++;
+  }
+  if (tokens[i++] !== "test") {
+    return false;
+  }
+  let count = 0;
+  while (tokens[i]?.startsWith("--workspace=")) {
+    const workspace = tokens[i];
+    if (!workspace || !covered.has(workspace.slice("--workspace=".length))) {
+      return false;
+    }
+    i++;
+    count++;
+  }
+  if (count === 0) {
+    return false;
+  }
+  if (i === tokens.length) {
+    return true;
+  }
+  if (tokens[i++] !== "--") {
+    return false;
+  }
+  return tokens.slice(i).every((arg) => !arg.startsWith("-") ||
+    arg === "--runInBand" || /^(--testPathPattern|--testNamePattern)=.+/.test(arg)
+  );
 }
 
 export interface GateCheckResult {
@@ -455,6 +691,8 @@ export interface GateCheckResult {
   timedOut: boolean;
   /** Killed by a signal or a spawn error that is not the timeout. */
   killed: boolean;
+  /** Wall-clock execution time, excluding time waiting for a pool worker. */
+  durationMs: number;
 }
 
 export interface ExecuteChecksOptions {
@@ -494,30 +732,95 @@ function selfcheckEnv(): NodeJS.ProcessEnv {
   };
 }
 
-/** Run one selfcheck to completion, output inherited (serial, live). */
-async function runCheckSync(
+/** Run one serial selfcheck, retaining live output and bounded JSON capture. */
+async function runCheckSerial(
   check: GateCheck,
   o: ExecuteChecksOptions
 ): Promise<RawOutcome> {
-  const { spawnSync } = await import("node:child_process");
-  const r = spawnSync(check.command, {
-    cwd: o.repoRoot,
-    shell: true,
-    stdio: o.json ? "pipe" : "inherit",
-    encoding: "utf8",
-    timeout: o.timeoutMs,
-    maxBuffer: SELFCHECK_MAX_BUFFER,
-    killSignal: "SIGKILL",
-    env: selfcheckEnv()
+  const { spawn } = await import("node:child_process");
+  return new Promise<RawOutcome>((resolveOutcome) => {
+    const stdout: Buffer[] = [];
+    const stderr: Buffer[] = [];
+    let stdoutBytes = 0;
+    let stderrBytes = 0;
+    let errorCode: string | undefined;
+    const child = spawn(check.command, {
+      cwd: o.repoRoot,
+      shell: true,
+      stdio: o.json ? ["ignore", "pipe", "pipe"] : "inherit",
+      detached: true,
+      env: selfcheckEnv()
+    });
+    let groupKilled = false;
+    const killGroup = (): void => {
+      if (groupKilled) {
+        return;
+      }
+      groupKilled = true;
+      try {
+        if (child.pid !== undefined) {
+          process.kill(-child.pid, "SIGKILL");
+        }
+      } catch {
+        child.kill("SIGKILL");
+      }
+    };
+    const interrupt = (): never => {
+      killGroup();
+      process.exit(130);
+    };
+    const terminate = (): never => {
+      killGroup();
+      process.exit(143);
+    };
+    process.once("exit", killGroup);
+    process.once("SIGINT", interrupt);
+    process.once("SIGTERM", terminate);
+    const kill = (reason: string): void => {
+      if (errorCode !== undefined) {
+        return;
+      }
+      errorCode = reason;
+      killGroup();
+    };
+    const timer = setTimeout(() => kill("ETIMEDOUT"), o.timeoutMs);
+    const capture = (chunks: Buffer[], chunk: Buffer, bytes: number): number => {
+      if (errorCode !== undefined) {
+        return bytes;
+      }
+      const remaining = SELFCHECK_MAX_BUFFER - bytes;
+      if (remaining > 0) {
+        chunks.push(chunk.subarray(0, remaining));
+      }
+      if (chunk.length > remaining) {
+        kill("ENOBUFS");
+      }
+      return bytes + Math.min(chunk.length, remaining);
+    };
+    child.stdout?.on("data", (chunk: Buffer) => {
+      stdoutBytes = capture(stdout, chunk, stdoutBytes);
+    });
+    child.stderr?.on("data", (chunk: Buffer) => {
+      stderrBytes = capture(stderr, chunk, stderrBytes);
+    });
+    child.on("error", (error: NodeJS.ErrnoException) => {
+      errorCode ??= error.code ?? "UNKNOWN";
+    });
+    child.on("close", (status, signal) => {
+      clearTimeout(timer);
+      process.removeListener("exit", killGroup);
+      process.removeListener("SIGINT", interrupt);
+      process.removeListener("SIGTERM", terminate);
+      resolveOutcome({
+        status,
+        signal,
+        errorCode,
+        hasError: errorCode !== undefined,
+        stdout: Buffer.concat(stdout, stdoutBytes).toString("utf8"),
+        stderr: Buffer.concat(stderr, stderrBytes).toString("utf8")
+      });
+    });
   });
-  return {
-    status: r.status,
-    signal: r.signal,
-    errorCode: (r.error as NodeJS.ErrnoException | undefined)?.code,
-    hasError: r.error !== undefined,
-    stdout: r.stdout ?? "",
-    stderr: r.stderr ?? ""
-  };
 }
 
 /**
@@ -603,7 +906,8 @@ async function runCheckAsync(
 function interpretOutcome(
   check: GateCheck,
   raw: RawOutcome,
-  o: ExecuteChecksOptions
+  o: ExecuteChecksOptions,
+  durationMs: number
 ): { result: GateCheckResult; stdoutText: string; stderrText: string } {
   const timedOut = raw.errorCode === "ETIMEDOUT";
   const killed = raw.signal != null || raw.hasError;
@@ -626,7 +930,8 @@ function interpretOutcome(
       ok: !timedOut && !killed && exitCode === 0,
       exitCode,
       timedOut,
-      killed
+      killed,
+      durationMs
     },
     stdoutText,
     stderrText
@@ -650,15 +955,21 @@ export async function executeChecks(
 
   const runSerial = async (index: number): Promise<void> => {
     const check = checks[index]!;
+    process.stderr.write(`START ${check.harnessId}\n`);
+    const started = performance.now();
     if (!o.json) console.log(`\n── ${check.harnessId}: ${check.command}\n`);
     const { result, stdoutText, stderrText } = interpretOutcome(
       check,
-      await runCheckSync(check, o),
-      o
+      await runCheckSerial(check, o),
+      o,
+      Math.round(performance.now() - started)
     );
     if (stderrText) process.stderr.write(stderrText);
     if (stdoutText) process.stdout.write(stdoutText);
     results[index] = result;
+    process.stderr.write(
+      `${result.ok ? "PASS" : "FAIL"} ${check.harnessId} (${result.durationMs}ms)\n`
+    );
   };
 
   if (o.jobs <= 1) {
@@ -675,8 +986,12 @@ export async function executeChecks(
     while (next < cheap.length) {
       const index = cheap[next++]!;
       const check = checks[index]!;
+      process.stderr.write(`START ${check.harnessId}\n`);
+      const started = performance.now();
       const raw = await runCheckAsync(check, o);
-      const { result, stdoutText, stderrText } = interpretOutcome(check, raw, o);
+      const { result, stdoutText, stderrText } = interpretOutcome(
+        check, raw, o, Math.round(performance.now() - started)
+      );
       // One block per check, written without an await in between, so output
       // from checks that finish together does not interleave.
       if (!o.json) {
@@ -686,6 +1001,9 @@ export async function executeChecks(
       if (stderrText) process.stderr.write(stderrText);
       if (stdoutText) process.stdout.write(stdoutText);
       results[index] = result;
+      process.stderr.write(
+        `${result.ok ? "PASS" : "FAIL"} ${check.harnessId} (${result.durationMs}ms)\n`
+      );
     }
   };
   await Promise.all(

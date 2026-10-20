@@ -26,7 +26,7 @@ import { Box, CheckerDropzone, MOTION, SPACING, SHADOW, BORDER_RADIUS, getSpacin
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import EditIcon from "@mui/icons-material/Edit";
+import EditIcon from "@mui/icons-material/EditOutlined";
 import BrushIcon from "@mui/icons-material/Brush";
 import isEqual from "../../../utils/isEqual";
 import { NodeData } from "../../../stores/NodeData";
@@ -83,7 +83,6 @@ import {
   sketchNodeOutputImageTypeMetadata
 } from "./sketchNodeIO";
 import { isObjectLike, isString } from "../../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 
 const SKETCH_IMAGE_OUTPUT = {
   name: "image",
@@ -340,6 +339,7 @@ function ensureEditableActiveLayer(doc: SketchDocument): SketchDocument {
 }
 
 export { SKETCH_NODE_TYPE } from "../../../constants/nodeTypes";
+import { useTranslation } from "react-i18next";
 
 /** Composited `image` output from the editor (flattenToDataUrl); preferred over re-flattening sketch_data alone. */
 function getSketchOutputImageUri(
@@ -1329,7 +1329,7 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
                     <img
                       className="preview-image"
                       src={displayPreviewUri}
-                      alt={t("editor:ui.imageEditorPreview")}
+                      alt={t("editor:ui.imageEditorPreview", { defaultValue: "Image editor preview" })}
                     />
                     <div className="edit-overlay">
                       <EditIcon
@@ -1338,7 +1338,7 @@ const SketchNode: React.FC<SketchNodeProps> = (props) => {
                           color: theme.vars.palette.common.white
                         }}
                       />
-                      <span className="edit-overlay-label">{t("ui2:attrs.editSketch", { defaultValue: "Edit Sketch" })}</span>
+                      <span className="edit-overlay-label">{t("ui2:attrs.editSketch", { defaultValue: "Edit sketch" })}</span>
                     </div>
                   </>
                 ) : (

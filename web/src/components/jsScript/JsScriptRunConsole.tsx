@@ -14,17 +14,16 @@ import { usesStreamInputContract } from "@nodetool-ai/node-sdk/code-body";
 
 import {
   AlertBanner,
-  Box,
   Chip,
+  CodeBlock,
   EditorButton,
   FlexColumn,
   FlexRow,
   Label,
+  LogView,
   ScrollArea,
   Text,
-  BORDER_RADIUS,
-  SPACING,
-  TYPOGRAPHY
+  SPACING
 } from "../ui_primitives";
 import {
   useJsScriptCode,
@@ -61,19 +60,9 @@ const json = (value: unknown): string => {
 };
 
 const Mono = ({ children }: { children: string }) => (
-  <Box
-    component="pre"
-    sx={{
-      ...TYPOGRAPHY.mono.code,
-      margin: 0,
-      padding: SPACING.sm,
-      overflowX: "auto",
-      borderRadius: BORDER_RADIUS.sm,
-      backgroundColor: "var(--palette-action-hover)"
-    }}
-  >
+  <CodeBlock maxHeight="none" wrap={false}>
     {children}
-  </Box>
+  </CodeBlock>
 );
 
 const CaseReport = ({ report }: { report: JsScriptTestCaseReport }) => (
@@ -136,11 +125,11 @@ const JsScriptRunConsole = ({
       { id: "run", label: "Run Script…", run: () => setDialogOpen(true) }
     ];
     if (tests.length > 0) {
-      commands.push({ id: "test", label: "Run Tests", run: onTest });
+      commands.push({ id: "test", label: "Run tests", run: onTest });
     }
     return commands;
   }, [running, readOnly, tests.length, onTest]);
-  useContextCommands("JS Script", menuCommands, active);
+  useContextCommands("JS script", menuCommands, active);
 
   return (
     <FlexColumn fullWidth gap={SPACING.sm} sx={{ minHeight: 0, flex: 1 }}>
@@ -148,7 +137,7 @@ const JsScriptRunConsole = ({
         <EditorButton
           density="compact"
           variant="contained"
-          startIcon={<PlayArrowIcon fontSize="small" />}
+          startIcon={<PlayArrowIcon />}
           disabled={running || readOnly}
           onClick={() => setDialogOpen(true)}
         >
@@ -156,7 +145,7 @@ const JsScriptRunConsole = ({
         </EditorButton>
         <EditorButton
           density="compact"
-          startIcon={<ScienceOutlinedIcon fontSize="small" />}
+          startIcon={<ScienceOutlinedIcon />}
           disabled={running || readOnly || tests.length === 0}
           onClick={onTest}
         >
@@ -230,7 +219,7 @@ const JsScriptRunConsole = ({
               {lastRun.logs.length > 0 && (
                 <>
                   <Label>{t("editor:bottom.logs", { defaultValue: "Logs" })}</Label>
-                  <Mono>{lastRun.logs.join("\n")}</Mono>
+                  <LogView lines={lastRun.logs} />
                 </>
               )}
               {lastRun.streamed && lastRun.streamed.length > 0 && (

@@ -21,7 +21,6 @@ The `packages/` directory contains the TypeScript backend — a set of npm works
 | `@nodetool-ai/kernel` | Workflow graph model, NodeInbox, NodeActor, WorkflowRunner |
 | `@nodetool-ai/agents` | Planning agent system — TaskPlanner, TaskExecutor, CodeActExecutor, Tool registry |
 | `@nodetool-ai/chat` | Chat message processing and token counting |
-| `@nodetool-ai/mediagen-nodes` | Media-generation channel nodes (zhipu, agnes, cloudflare, siliconflow, hfspaces, pixverse, gemini web) — manifest-driven factory with per-channel adapters |
 | `@nodetool-ai/base-nodes` | Compatibility shell re-exporting the domain node packages (`core-nodes`, `text-nodes`, `llm-nodes`, `data-nodes`, `document-nodes`, `image-nodes`, `audio-nodes`, `video-nodes`, `integration-nodes`, `code-nodes`, `automation-nodes`) as `ALL_BASE_NODES` |
 | `@nodetool-ai/fal-nodes` | FAL AI integration nodes |
 | `@nodetool-ai/fal-codegen` | Code generator for FAL AI node definitions |
@@ -40,6 +39,8 @@ The `packages/` directory contains the TypeScript backend — a set of npm works
 | `@nodetool-ai/game-runtime` | Deterministic built-in game simulation, validation, and sample |
 | `@nodetool-ai/game-renderer` | Native 2D and 3D rendering, headless capture, and standalone web export |
 | `@nodetool-ai/app-runtime` | Mini-app document, bindings, instance state, and the streaming fold — dependency-free, shared by web, mobile, and `app debug` ([README](app-runtime/README.md)) |
+| `@nodetool-ai/analytics` | Opt-in anonymous product analytics: the shared event schema, validation, bucketing and client core ([docs](../docs/analytics.md)) |
+| `@nodetool-ai/app-export` | Exports a mini app as a standalone Vite + Node project that runs its workflows in process ([README](app-export/README.md)) |
 
 ## Package Overlays
 
@@ -60,6 +61,7 @@ first, then the overlay for the package you are touching.
 - [`kie-codegen`](kie-codegen/AGENTS.md) — KIE config & manifest generator
 - [`kie-nodes`](kie-nodes/AGENTS.md) — KIE node factory
 - [`llm-nodes`](llm-nodes/AGENTS.md) — LLM, image, TTS & agent nodes
+- [`manimgx-nodes`](manimgx-nodes/AGENTS.md) — ManimGX math and 3D animation scenes
 - [`models`](models/AGENTS.md) — persistence layer, tables, migrations
 - [`mutator`](mutator/AGENTS.md) — mutation testing tool
 - [`node-sdk`](node-sdk/AGENTS.md) — `BaseNode`, `NodeRegistry`, type system
@@ -167,7 +169,7 @@ Implements the workflow execution engine:
 Provides adapters for AI providers:
 - `AnthropicProvider`, `OpenAIProvider`, `GeminiProvider`
 - `OllamaProvider`, `MistralProvider`, `GroqProvider`
-- `ClaudeAgentProvider` — Claude Agent SDK integration (uses Claude subscription, not API key)
+- `ClaudeAgentProvider` — Claude through the headless Claude Code CLI (uses Claude subscription, not API key)
 - `PythonStdioBridge` — calls Python-based nodes (HuggingFace, MLX) via local stdio subprocess
 - `ProcessingContext` — execution context with secret resolution
 
@@ -202,7 +204,7 @@ close the build→verify loop. Run from source with `npm run dev:nodetool -- <cm
 | `node run <type> --props '{…}'` (`node.ts`) | Single-node harness — instantiate one node, feed a prop bag, print what it emits; `--no-secrets` skips the DB | Isolate one node without authoring a graph |
 | `run <file>` / `workflows run <id>` | Execute a workflow (id, JSON, or DSL `.ts`) | Quick run by id/file |
 | `affected [--base main]` (`affected.ts`) | Map changed files → minimal workspaces to rebuild/test (owning package + downstream + `build:packages` only if a decorator package is hit) | Before reflexively running the full 1–2 min build |
-| `deploy …` (`deploy.ts`) | Docker/SSH/RunPod/GCP/Supabase deployments + remote workflow sync/run, DB rows, vector collections | Self-host / cloud ops |
+| `deploy …` (`deploy.ts`) | Docker deployments (local or over SSH), remote workflow sync/run, and deployment users. GPU workers on Runpod, Vast or Verda use `nodetool worker` (`worker.ts`) | Self-host / cloud ops |
 | `--trace-file` / `--trace-stdout` | OTel span tree (timing, tokens, cost) on any run | Profiling agents/workflows |
 
 The same `validate`/`debug` capabilities are exposed to in-product agents as the

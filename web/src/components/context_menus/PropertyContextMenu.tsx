@@ -2,17 +2,17 @@ import React, { memo } from "react";
 //mui
 
 import {
-  Text,
+  Caption,
   Divider,
   ContextMenu,
+  ListSubheader,
   SPACING,
-  getSpacingPx,
-  MenuItem
+  getSpacingPx
 } from "../ui_primitives";
 import { shallow } from "zustand/shallow";
 import useContextMenuStore from "../../stores/ContextMenuStore";
 import ContextMenuItem from "./ContextMenuItem";
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -37,8 +37,10 @@ import { serializeValue } from "../../utils/serializeValue";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { useExposedInputToggle } from "../../hooks/nodes/useExposedInputToggle";
 import { isObjectLike } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
 import { runAsOneUndoEntry } from "../../utils/runAsOneUndoEntry";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
+
 /** Payload from inspector multi-edit: reset/copy/remove apply to every id. */
 function resolvePropertyMenuTargetNodeIds(
   nodeId: string | null,
@@ -72,15 +74,18 @@ const PropertyContextMenuComponent: React.FC = () => {
     description,
     isDynamicProperty,
     payload
-  } = useContextMenuStore((state) => ({
-    menuPosition: state.menuPosition,
-    closeContextMenu: state.closeContextMenu,
-    description: state.description,
-    nodeId: state.nodeId,
-    handleId: state.handleId,
-    isDynamicProperty: state.isDynamicProperty,
-    payload: state.payload
-  }), shallow);
+  } = useContextMenuStore(
+    (state) => ({
+      menuPosition: state.menuPosition,
+      closeContextMenu: state.closeContextMenu,
+      description: state.description,
+      nodeId: state.nodeId,
+      handleId: state.handleId,
+      isDynamicProperty: state.isDynamicProperty,
+      payload: state.payload
+    }),
+    shallow
+  );
   const { findNode, updateNodeData, updateNodeProperties, edges } = useNodes(
     (state) => ({
       findNode: state.findNode,
@@ -146,7 +151,8 @@ const PropertyContextMenuComponent: React.FC = () => {
 
   // Slot-type entries. Only for user-owned dynamic slots — schema-driven
   // nodes rewrite `dynamic_inputs` wholesale, so a pick there wouldn't stick.
-  const slotTypeNode = isDynamicProperty && nodeId ? findNode(nodeId) : undefined;
+  const slotTypeNode =
+    isDynamicProperty && nodeId ? findNode(nodeId) : undefined;
   const slotTypeOptions =
     slotTypeNode && handleId && !isSchemaDrivenDynamicNode(slotTypeNode)
       ? allowedSlotTypes(
@@ -196,7 +202,9 @@ const PropertyContextMenuComponent: React.FC = () => {
         if (node?.data.dynamic_properties) {
           const { [handleId]: _, ...remainingProperties } =
             node.data.dynamic_properties;
-          const remainingSlots = normalizeDynamicSlots(node.data.dynamic_inputs);
+          const remainingSlots = normalizeDynamicSlots(
+            node.data.dynamic_inputs
+          );
           delete remainingSlots[handleId];
           updateNodeData(nid, {
             dynamic_properties: remainingProperties,
@@ -233,18 +241,18 @@ const PropertyContextMenuComponent: React.FC = () => {
           await writeClipboard(serialized, true);
           addNotification({
             type: "success",
-            content: t("editor:property.copied", { defaultValue: "Value copied to clipboard" })
+            content: "Value copied to clipboard", contentKey: "editor:property.copied"
           });
         } catch {
           addNotification({
             type: "error",
-            content: t("editor:notify.copyFailed", { defaultValue: "Failed to copy to clipboard" })
+            content: "Failed to copy to clipboard", contentKey: "editor:notify.copyFailed"
           });
         }
       } else {
         addNotification({
           type: "warning",
-          content: t("editor:property.nothingToCopy", { defaultValue: "No value to copy" })
+          content: "No value to copy", contentKey: "editor:property.nothingToCopy"
         });
       }
     }
@@ -272,7 +280,9 @@ const PropertyContextMenuComponent: React.FC = () => {
             let defaultValue = dynamicInputDefaults?.[handleId]?.default;
 
             if (defaultValue === undefined) {
-              const nodeMetadata = node.type ? metadata?.[node.type] : undefined;
+              const nodeMetadata = node.type
+                ? metadata?.[node.type]
+                : undefined;
               if (nodeMetadata) {
                 const propertyDef = nodeMetadata.properties.find(
                   (prop: Property) => prop.name === handleId
@@ -314,111 +324,88 @@ const PropertyContextMenuComponent: React.FC = () => {
       onContextMenu={(event) => event.preventDefault()}
       position={menuPosition}
     >
-      <MenuItem disabled>
-        <Text>{t("editor:property.sectionTitle", { defaultValue: "Property" })}</Text>
-      </MenuItem>
+      <ListSubheader>{t("editor:property.sectionTitle", { defaultValue: "Property" })}</ListSubheader>
 
       {description && description.length > 0 && (
-        <MenuItem
-          disabled
+        <Caption
+          component="div"
+          color="secondary"
           sx={{
-            color: "text.primary",
-            opacity: "1 !important",
             whiteSpace: "normal",
-            maxWidth: "300px"
+            maxWidth: "300px",
+            padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.lg)}`
           }}
         >
-          <Text
-            size="small"
-            sx={{
-              padding: `${getSpacingPx(SPACING.xs)} 0`
-            }}
-          >
-            {description}
-          </Text>
-        </MenuItem>
+          {description}
+        </Caption>
       )}
 
       <Divider />
       <ContextMenuItem
         onClick={handleCopyValue}
-        label={t("editor:property.copyValue", { defaultValue: "Copy Value" })}
-        addButtonClassName="copy-value"
+        label={t("editor:property.copyValue", { defaultValue: "Copy value" })}
         IconComponent={<ContentCopyIcon />}
-        tooltip={t("editor:property.copyValueTip", { defaultValue: "Copy property value to clipboard" })}
+        tooltip={t("editor:property.copyPropertyValue", { defaultValue: "Copy property value" })}
       />
       <ContextMenuItem
         onClick={handleReset}
-        label={t("editor:property.resetDefault", { defaultValue: "Reset To Default Value" })}
-        addButtonClassName="reset"
+        label={t("editor:property.resetDefault", { defaultValue: "Reset to default value" })}
         IconComponent={<SettingsBackupRestoreIcon />}
         tooltip={getShortcutTooltip("resetDefault")}
       />
 
       {showExposedToggle && (
-        <>
-          <ContextMenuItem
-            onClick={handleToggleExposedInput}
-            label={
-              isExposedHandle
-                ? t("editor:ui.hideInputHandleTop", { defaultValue: "Hide Input Handle (Top)" })
-                : t("editor:ui.showAsInputHandleTop", { defaultValue: "Show As Input Handle (Top)" })
-            }
-            addButtonClassName="toggle-exposed-input"
-            IconComponent={<ArrowForwardIcon />}
-            tooltip={
-              isExposedHandle
-                ? isConnected
-                  ? t("editor:ui.hideTopInputHandleDisconnectsEdge", { defaultValue: "Hide top input handle (disconnects edge)" })
-                  : t("editor:ui.hideTopInputHandle", { defaultValue: "Hide top input handle" })
-                : t("editor:ui.showAsHandleOnTheLeftTopOfTheNodeNoLabel", { defaultValue: "Show as handle on the left/top of the node (no label)" })
-            }
-          />
-          <ContextMenuItem
-            onClick={handleToggleExposedInputLabeled}
-            label={
-              isExposedLabeled
-                ? t("editor:ui.hideLabeledInputBottom", { defaultValue: "Hide Labeled Input (Bottom)" })
-                : t("editor:ui.showLabeledInputBottom", { defaultValue: "Show Labeled Input (Bottom)" })
-            }
-            addButtonClassName="toggle-exposed-input-labeled"
-            IconComponent={<ArrowForwardIcon />}
-            tooltip={
-              isExposedLabeled
-                ? isConnected
-                  ? t("editor:ui.hideLabeledInputAtBottomDisconnectsEdge", { defaultValue: "Hide labeled input at bottom (disconnects edge)" })
-                  : t("editor:ui.hideLabeledInputAtBottom", { defaultValue: "Hide labeled input at bottom" })
-                : t("editor:ui.showInputAtBottomWithParameterTitleAndEditor", { defaultValue: "Show input at bottom with parameter title and editor" })
-            }
-          />
-        </>
+        <ContextMenuItem
+          onClick={handleToggleExposedInput}
+          label={
+            isExposedHandle
+              ? t("editor:ui.hideInputHandleTop", { defaultValue: "Hide input handle (top)" }) : "Show as input handle (top)"
+          }
+          IconComponent={<ArrowForwardIcon />}
+          tooltip={
+            isExposedHandle
+              ? isConnected
+                ? t("editor:ui.hideTopInputHandleDisconnectsEdge", { defaultValue: "Hide top input handle (disconnects edge)" }) : "Hide top input handle"
+              : i18n.t("editor:ui.showAsHandleOnTheLeftTopOfTheNodeNoLabel", { defaultValue: "Show as handle on the left/top of the node (no label)" })
+          }
+        />
+      )}
+      {showExposedToggle && (
+        <ContextMenuItem
+          onClick={handleToggleExposedInputLabeled}
+          label={
+            isExposedLabeled
+              ? t("editor:ui.hideLabeledInputBottom", { defaultValue: "Hide labeled input (bottom)" }) : "Show labeled input (bottom)"
+          }
+          IconComponent={<ArrowForwardIcon />}
+          tooltip={
+            isExposedLabeled
+              ? isConnected
+                ? t("editor:ui.hideLabeledInputAtBottomDisconnectsEdge", { defaultValue: "Hide labeled input at bottom (disconnects edge)" }) : "Hide labeled input at bottom"
+              : i18n.t("editor:ui.showInputAtBottomWithParameterTitleAndEditor", { defaultValue: "Show input at bottom with parameter title and editor" })
+          }
+        />
       )}
 
       {isDynamicProperty && <Divider />}
-      {slotTypeOptions !== null && (
-        <MenuItem disabled>
-          <Text size="small">{t("editor:property.slotType", { defaultValue: "Slot Type" })}</Text>
-        </MenuItem>
-      )}
+      {slotTypeOptions !== null && <ListSubheader>{t("editor:property.slotType", { defaultValue: "Slot type" })}</ListSubheader>}
       {slotTypeOptions?.map((option) => (
         <ContextMenuItem
           key={slotTypeKey(option)}
           onClick={() => handleSetSlotType(option)}
           label={slotTypeLabel(option)}
-          addButtonClassName={`set-slot-type set-slot-type-${slotTypeKey(
-            option
-          )}`}
           IconComponent={<CategoryIcon />}
-          tooltip={t("editor:property.declareAs", { defaultValue: 'Declare "{{prop}}" as {{type}}', prop: propertyName, type: slotTypeLabel(option) })}
+          tooltip={`Declare "${propertyName}" as ${slotTypeLabel(option)}`}
         />
       ))}
+      {isDynamicProperty && slotTypeOptions !== null && <Divider />}
       {isDynamicProperty && (
         <ContextMenuItem
           onClick={handleRemoveDynamicProperty}
-          label={t("editor:property.removeDynamic", { defaultValue: "Remove Dynamic Property" })}
-          addButtonClassName="remove-dynamic-property"
+          label={t("editor:property.deleteDynamicProperty", { defaultValue: "Delete dynamic property" })}
+          destructive
           IconComponent={<DeleteIcon />}
-          tooltip={t("editor:property.removeDynamicTip", { defaultValue: "Remove this property from being dynamic" })}
+          tooltip={t("editor:property.deleteFromNode", { defaultValue: "Delete this property from the node" })}
         />
       )}
     </ContextMenu>

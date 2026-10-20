@@ -1,4 +1,3 @@
-import { i18n } from "../i18n";
 // WorkspaceTabsStore.ts
 // -----------------------------------------------------------------
 // The unified tab registry for the tabbed-document workspace.
@@ -15,6 +14,7 @@ import { i18n } from "../i18n";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useAuth } from "./useAuth";
+import { i18n } from "../i18n";
 
 export type WorkspaceTabType =
   | "workflow"
@@ -79,7 +79,14 @@ export interface WorkspaceTab {
 }
 
 export interface GuidedFlowTarget {
-  kind: "entity" | "storyboard" | "video" | "script" | "workflow" | "game";
+  kind:
+    | "entity"
+    | "storyboard"
+    | "video"
+    | "script"
+    | "workflow"
+    | "game"
+    | "app";
   id: string;
   projectId: string;
   name: string;
@@ -129,6 +136,7 @@ export const isTabInScope = (
     : tab.projectId === undefined);
 
 export interface OpenTabInput {
+  titleKey?: string;
   type: WorkspaceTabType;
   ref: string;
   instanceId?: string;
@@ -483,9 +491,10 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
         const existing = get().tabs.find((t) => t.id === id);
         const project =
           projectId === undefined ? existing?.projectId : projectOf(projectId);
-        // A project's tab opened into a null or mismatched scope adopts that
-        // scope — the same switch clicking the tab performs in setActiveTab.
-        // Without it the newly opened tab is filtered out of the bar.
+        // The opened tab becomes the active one, so the scope follows its
+        // project as `setActiveTab` does. Keeping the old scope left an active
+        // tab the tab bar does not draw: Home lost its highlight and the
+        // workflow loaded with no tab to show it.
         const activeProjectId = foreground
           ? (project ?? null)
           : (project ?? get().activeProjectId);
@@ -840,10 +849,8 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
 
       resolvePersonalProject: (projectId) =>
         set((state) => {
-          // Same-id is a no-op only while some scope is on screen. With a
-          // null scope the recalibration below must still run, or a desynced
-          // session (null scope, surviving project tabs) never heals even
-          // after the server confirms the Personal project.
+          // Same id is not always a no-op: a persisted null scope must heal
+          // to the Personal project, or its tabs stay filtered out forever.
           if (
             state.personalProjectId === projectId &&
             state.activeProjectId !== null
@@ -1065,8 +1072,8 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
             ? persistedProjectId
             : stillOpen(merged.tabs ?? [], persistedProjectId)) ??
           // Startup recalibration: a persisted null scope with a known
-          // Personal project and surviving project tabs is a desync — the
-          // scope filter hides those tabs and the session cannot be used.
+          // Personal project and surviving project tabs revives that scope,
+          // or those tabs stay filtered out forever.
           revivePersonalScope(
             merged.tabs ?? [],
             merged.personalProjectId ?? null

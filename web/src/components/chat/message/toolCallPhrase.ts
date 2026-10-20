@@ -178,7 +178,7 @@ const plural = (count: number, word: string) => {
 export function toolCallCountLabel(name: string, count: number): string {
   switch (toolPhraseKind(name)) {
     case "plan":
-      return count === 1 ? "Wrote a plan" : `Wrote ${count} plans`;
+      return count === 1 ? i18n.t("editor:ui.wroteAPlan", { defaultValue: "Wrote a plan" }) : i18n.t("editor:ui.wroteNPlans", { defaultValue: "Wrote {{count}} plans", count });
     case "search":
       return `Ran ${count} ${plural(count, "search")}`;
     case "page":

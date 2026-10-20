@@ -1,6 +1,3 @@
-/** @jsxImportSource @emotion/react */
-import { css } from "@emotion/react";
-
 import React, { useState, useCallback, useEffect } from "react";
 import InsertDriveFile from "@mui/icons-material/InsertDriveFile";
 import { useQueryClient } from "@tanstack/react-query";
@@ -12,24 +9,16 @@ import { Asset } from "../../stores/ApiTypes";
 import { useAuth } from "../../stores/useAuth";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import {
+  AlertBanner,
   Dialog,
-  DialogActionButtons,
+  FlexColumn,
   LoadingSpinner,
   ListGroup,
   ListItemRow,
-  Text, getSpacingPx, SPACING
+  SPACING,
+  Text
 } from "../ui_primitives";
 import { isObjectLike } from "../../utils/typePredicates";
-import { useTranslation } from "react-i18next";
-
-const styles = css({
-  ".asset-delete-confirmation-content": {
-    position: "relative",
-    minWidth: "600px",
-    minHeight: "200px",
-    maxHeight: "60vh"
-  }
-});
 
 interface AssetDeleteConfirmationProps {
   assets: string[];
@@ -38,7 +27,6 @@ interface AssetDeleteConfirmationProps {
 const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
   assets
 }) => {
-  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [totalAssets, setTotalAssets] = useState(0);
   const [folderCount, setFolderCount] = useState(0);
@@ -59,7 +47,9 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
   );
 
   useEffect(() => {
-    if (!dialogOpen) {return;} // Only process when dialog is actually open
+    if (!dialogOpen) {
+      return;
+    } // Only process when dialog is actually open
 
     const countAssetTypes = () => {
       setIsPreparingDelete(true);
@@ -116,7 +106,10 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
       if (response === undefined) {
         console.error("Received undefined response from server");
       } else if (isObjectLike(response)) {
-        console.info("Deleted asset IDs:", (response as { deleted_asset_ids?: string[] }).deleted_asset_ids);
+        console.info(
+          "Deleted asset IDs:",
+          (response as { deleted_asset_ids?: string[] }).deleted_asset_ids
+        );
       }
       // Blur focused element to prevent aria-hidden focus warning
       if (document.activeElement instanceof HTMLElement) {
@@ -128,28 +121,22 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
       await refetchAssetsAndFolders();
       const parts = [
         folderCount > 0
-          ? t("editor:ui.folderCount", { defaultValue: "{{count}} folders", count: folderCount })
+          ? `${folderCount} folder${folderCount !== 1 ? "s" : ""}`
           : null,
-        fileCount > 0
-          ? t("editor:ui.fileCount", { defaultValue: "{{count}} files", count: fileCount })
-          : null
+        fileCount > 0 ? `${fileCount} file${fileCount !== 1 ? "s" : ""}` : null
       ].filter((part): part is string => part !== null);
       addNotification({
         type: "success",
         alert: true,
-        content: t("editor:ui.deletedSelection", {
-          defaultValue: "Deleted {{parts}}",
-          parts: parts.join(t("common:action.and", { defaultValue: " and " })) || t("editor:ui.theSelection", { defaultValue: "selection" })
-        })
+        content: `Deleted ${parts.join(" and ") || "selection"}`
       });
     } catch (error) {
       addNotification({
         type: "error",
         alert: true,
-        content: t("editor:ui.couldNotDeleteError", {
-          defaultValue: "Could not delete: {{error}}",
-          error: error instanceof Error ? error.message : "unknown error"
-        })
+        content: `Could not delete: ${
+          error instanceof Error ? error.message : "unknown error"
+        }`
       });
     } finally {
       setIsLoading(false);
@@ -162,53 +149,52 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
     queryClient,
     addNotification,
     folderCount,
-    fileCount,
-    t
+    fileCount
   ]);
 
-  const getDialogTitle = () => {
-    if (isAssetTreeLoading && folderCount > 0) {
-      return t("editor:ui.preparingToDelete", { defaultValue: "Preparing to delete..." });
-    } else if (showRootFolderWarning) {
-      return t("editor:ui.warningTheRootFolderCannotBeDeleted", { defaultValue: "Warning: The root folder cannot be deleted." });
-    } else if (folderCount === 1 && fileCount === 0) {
-      return t("editor:ui.deleteFolderContainingFiles", {
-        defaultValue: "Delete folder containing {{count}} files?",
-        count: totalAssets - 1
-      });
-    } else if (folderCount > 0) {
-      // Three independent counts: pluralize each noun with its own key, then
-      // compose — i18next resolves plural categories from ONE `count` only.
-      return t("editor:ui.deleteFoldersAndFilesContainingItems", {
-        defaultValue: "Delete {{foldersPhrase}} and {{filesPhrase}} containing {{itemsPhrase}}?",
-        foldersPhrase: t("editor:ui.folderCount", { defaultValue: "{{count}} folders", count: folderCount }),
-        filesPhrase: t("editor:ui.fileCount", { defaultValue: "{{count}} files", count: fileCount }),
-        itemsPhrase: t("editor:ui.itemCount", { defaultValue: "{{count}} items", count: totalAssets })
-      });
-    } else {
-      return t("editor:ui.deleteFiles", {
-        defaultValue: "Delete {{count}} files?",
-        count: fileCount
-      });
-    }
-  };
+  const itemCount = folderCount + fileCount || assets.length;
+  const plural = (count: number, word: string) =>
+    `${count} ${word}${count !== 1 ? "s" : ""}`;
+  const folderSummary =
+    folderCount === 0 || isAssetTreeLoading
+      ? null
+      : folderCount === 1 && fileCount === 0
+        ? `The folder contains ${plural(totalAssets - 1, "file")}.`
+        : `${plural(folderCount, "folder")} and ${plural(
+            fileCount,
+            "file"
+          )} containing ${plural(totalAssets, "item")}.`;
 
   return (
     <Dialog
-      css={styles}
       className="asset-delete-confirmation"
       open={dialogOpen}
       onClose={handleClose}
       disableRestoreFocus
-      title={getDialogTitle()}
+      maxWidth="sm"
+      fullWidth
+      title={`Delete ${plural(itemCount, "item")}?`}
+      onConfirm={executeDeletion}
+      confirmText="Delete"
+      destructive
+      isLoading={isLoading}
+      confirmDisabled={isAssetTreeLoading || showRootFolderWarning}
     >
-      <div className="asset-delete-confirmation-content">
-        <Text
-          color="secondary"
-          style={{ marginBottom: getSpacingPx(SPACING.xl) }}
-        >
-          {t("editor:ui.youCanRightClickSelectedAssetsAndDownloadThemBeforeDeleting")}
+      <FlexColumn
+        className="asset-delete-confirmation-content"
+        gap={SPACING.xl}
+      >
+        {showRootFolderWarning ? (
+          <AlertBanner severity="warning">
+            The root folder cannot be deleted.
+          </AlertBanner>
+        ) : null}
+        <Text color="secondary">
+          You can right click selected assets and download them before deleting.
         </Text>
+        {folderSummary && !showRootFolderWarning ? (
+          <Text>{folderSummary}</Text>
+        ) : null}
         {isPreparingDelete ? (
           <LoadingSpinner size="small" />
         ) : (
@@ -239,16 +225,7 @@ const AssetDeleteConfirmation: React.FC<AssetDeleteConfirmationProps> = ({
             )}
           </>
         )}
-      </div>
-      <DialogActionButtons
-        onConfirm={executeDeletion}
-        onCancel={handleClose}
-        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
-        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
-        isLoading={isLoading}
-        confirmDisabled={isAssetTreeLoading || showRootFolderWarning}
-        destructive={true}
-      />
+      </FlexColumn>
     </Dialog>
   );
 };

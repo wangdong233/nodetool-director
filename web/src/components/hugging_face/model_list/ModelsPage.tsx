@@ -1,27 +1,24 @@
 import React, { memo } from "react";
 import ViewInArOutlinedIcon from "@mui/icons-material/ViewInArOutlined";
-import ManagerPageLayout from "../../panels/ManagerPageLayout";
+import { PageLayout, ICON_SIZE } from "../../ui_primitives";
 import ModelListIndex from "./ModelListIndex";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 /**
  * Full-screen Model Manager page. Reachable from the logo menu; wraps the
  * model list in the shared manager chrome (header + back button).
  */
-const ModelsPage: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-  <ManagerPageLayout
-    icon={<ViewInArOutlinedIcon sx={{ fontSize: 22 }} />}
-    title={t("editor:ui.modelManager", { defaultValue: "Model Manager" })}
-    subtitle={t("editor:ui.browseDownloadAndManageLocalAIModels", { defaultValue: "Browse, download, and manage local AI models." })}
+const ModelsPage: React.FC = () => (
+  <PageLayout
+    icon={<ViewInArOutlinedIcon sx={{ fontSize: ICON_SIZE.lg }} />}
+    title={i18n.t("editor:ui.modelManager", { defaultValue: "Model manager" })}
+    subtitle={i18n.t("editor:ui.browseDownloadAndManageLocalAIModels", { defaultValue: "Browse, download, and manage local AI models." })}
     docsTopic="modelsManager"
     padded={false}
   >
     <ModelListIndex />
-  </ManagerPageLayout>
+  </PageLayout>
 );
-};
 
 ModelsPage.displayName = "ModelsPage";
 

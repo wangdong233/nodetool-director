@@ -2,8 +2,8 @@
 import React from "react";
 import { useTheme } from "@mui/material/styles";
 import { EditorButton } from "../editor_ui";
-import { ToolbarIconButton, Box, MOTION, BORDER_RADIUS } from "../ui_primitives";
-import AddIcon from "@mui/icons-material/Add";
+import { ToolbarIconButton, Box, MOTION, BORDER_RADIUS, ICON_SIZE } from "../ui_primitives";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import { FlexColumn } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
 
@@ -32,7 +32,7 @@ export const AddNodeButton: React.FC<AddNodeButtonProps> = ({ onClick, isHero = 
           textTransform: "none",
         }}
       >
-        Add First Node
+        Add first node
       </EditorButton>
     );
   }
@@ -42,10 +42,10 @@ export const AddNodeButton: React.FC<AddNodeButtonProps> = ({ onClick, isHero = 
       <Box sx={{ width: 2, height: 14, backgroundColor: theme.vars.palette.divider }} />
       <ToolbarIconButton
         size="small"
-        ariaLabel={t("editor:ui.Add Node", { defaultValue: "Add node" })}
-        tooltip={t("editor:ui.Add Node", { defaultValue: "Add node" })}
+        ariaLabel={t("editor:ui.addNode", { defaultValue: "Add node" })}
+        tooltip={t("editor:ui.addNode", { defaultValue: "Add node" })}
         onClick={onClick}
-        icon={<AddIcon sx={{ fontSize: 16, color: theme.vars.palette.primary.main }} />}
+        icon={<AddIcon sx={{ fontSize: ICON_SIZE.sm, color: theme.vars.palette.primary.main }} />}
         sx={{
           width: 28,
           height: 28,

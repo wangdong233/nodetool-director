@@ -3,7 +3,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import { useMemo, useState, useCallback, memo } from "react";
 
-import { Text, FlexColumn, FlexRow, getSpacingPx, SPACING } from "../ui_primitives";
+import { Text, FlexColumn, FlexRow, getSpacingPx, SPACING, LoadingSpinner } from "../ui_primitives";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import useRemoteSettingsStore from "../../stores/RemoteSettingStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
@@ -23,8 +23,9 @@ import { isElectron } from "../../utils/browser";
 import { isLocalhost } from "../../lib/env";
 import { NavButton, NodeTextField, ToolbarIconButton } from "../ui_primitives";
 import { SettingWithValue } from "../../stores/RemoteSettingStore";
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
+import { useAppLanguage } from "../../i18n";
 
 interface FolderButtonProps {
   label: string;
@@ -51,6 +52,7 @@ interface OpenFolderButtonProps {
 
 const OpenFolderButton = memo(({ settingValue }: OpenFolderButtonProps) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const handleClick = useCallback(() => {
     if (settingValue) {
       openInExplorer(settingValue);
@@ -75,6 +77,7 @@ OpenFolderButton.displayName = "OpenFolderButton";
 
 const FoldersSettings = () => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const queryClient = useQueryClient();
   const updateSettings = useRemoteSettingsStore((state) => state.updateSettings);
   const fetchSettings = useRemoteSettingsStore((state) => state.fetchSettings);
@@ -119,10 +122,10 @@ const FoldersSettings = () => {
     }
 
     const filteredEntries = Array.from(baseSettingsByGroup.entries()).filter(
-      ([groupName]) => groupName === "Folders"
+      ([groupName]) => groupName === i18n.t("editor:ui.foldersSectionTitle", { defaultValue: "Folders" })
     );
     return new Map(filteredEntries);
-  }, [data, storeSettingsByGroup]);
+  }, [data, storeSettingsByGroup, languageVersion]);
 
   const updateSettingsMutation = useMutation({
     mutationFn: ({
@@ -137,10 +140,7 @@ const FoldersSettings = () => {
     },
     onError: (error: Error) => {
       addNotification({
-        content: i18n.t("tools:menus.couldNotSaveFolderSettings", {
-          defaultValue: "Could not save folder settings: {{message}}",
-          message: error.message
-        }),
+        content: `Could not save folder settings: ${error.message}`,
         type: "error",
         alert: true
       });
@@ -175,9 +175,7 @@ const FoldersSettings = () => {
       {
         onSuccess: () => {
           addNotification({
-            content: i18n.t("tools:menus.folderSettingsHaveBeenSavedSuccessfully", {
-              defaultValue: "Folder settings have been saved successfully"
-            }),
+            content: "Folder settings have been saved successfully", contentKey: "tools:menus.folderSettingsHaveBeenSavedSuccessfully",
             type: "success",
             alert: true
           });
@@ -194,36 +192,34 @@ const FoldersSettings = () => {
   return (
     <>
       {isLoading && (
-        <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-          {t("editor:ui.loadingFolderSettings", { defaultValue: "Loading folder settings…" })}
-        </Text>
+        <LoadingSpinner text="Loading folder settings" />
       )}
       <div
         className="remote-settings-content"
         css={getSharedSettingsStyles(theme)}
       >
         <div className="settings-main-content">
-          <Text size="giant">{t("ui2:attrs.folderSettings", { defaultValue: "Folder Settings" })}</Text>
+          <Text size="giant">{t("ui2:attrs.folderSettings", { defaultValue: "Folder settings" })}</Text>
 
           {canOpenSystemFolders && (
             <div className="settings-section">
               <Text size="big" id="system-folders">
-                {t("editor:ui.systemFolders", { defaultValue: "System Folders" })}
+                System folders
               </Text>
               <Text className="description" sx={{ mb: 2 }}>
-                {t("editor:ui.openImportantNodetoolDirectoriesInYourFileExplorer")}
+                Open important Nodetool directories in your file explorer.
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton
-                  label={t("editor:ui.nodetoolInstallation", { defaultValue: "Nodetool Installation" })}
+                  label={t("editor:ui.nodetoolInstallation", { defaultValue: "NodeTool installation" })}
                   onClick={openInstallationPath}
                 />
                 <FolderButton
-                  label={t("editor:ui.nodetoolLogs", { defaultValue: "Nodetool Logs" })}
+                  label={t("editor:ui.nodetoolLogs", { defaultValue: "NodeTool logs" })}
                   onClick={openLogsPath}
                 />
                 <FolderButton
-                  label={t("editor:ui.assetsStorage", { defaultValue: "Assets Storage" })}
+                  label={t("editor:ui.assetsStorage", { defaultValue: "Assets storage" })}
                   onClick={openAssetsPath}
                 />
               </FlexColumn>
@@ -233,18 +229,18 @@ const FoldersSettings = () => {
           {canOpenFolders && (
             <div className="settings-section">
               <Text size="big" id="model-folders">
-                {t("editor:ui.modelFolders")}
+                Model folders
               </Text>
               <Text className="description" sx={{ mb: 2 }}>
-                {t("editor:ui.openModelCacheDirectoriesInYourFileExplorer")}
+                Open model cache directories in your file explorer.
               </Text>
               <FlexColumn gap={1.5}>
                 <FolderButton
-                  label={t("editor:ui.huggingfaceModels", { defaultValue: "HuggingFace Models" })}
+                  label={t("editor:ui.huggingfaceModels", { defaultValue: "HuggingFace models" })}
                   onClick={openHuggingfacePath}
                 />
                 <FolderButton
-                  label={t("editor:ui.ollamaModels", { defaultValue: "Ollama Models" })}
+                  label={t("editor:ui.ollamaModels", { defaultValue: "Ollama models" })}
                   onClick={openOllamaPath}
                 />
               </FlexColumn>
@@ -257,10 +253,7 @@ const FoldersSettings = () => {
                 ([groupName, groupSettings]) => {
                   // "Custom" prefix disambiguates from the system/model folder sections above.
                   const showCustomPrefix = canOpenFolders || canOpenSystemFolders;
-                  const localizedGroupName = t("editor:ui.foldersSectionTitle", { defaultValue: groupName });
-                  const sectionTitle = showCustomPrefix
-                    ? t("editor:ui.customFoldersSection", { defaultValue: "Custom {{group}}", group: localizedGroupName })
-                    : localizedGroupName;
+                  const sectionTitle = showCustomPrefix ? `Custom ${groupName}` : groupName;
                   
                   return (
                     <div key={groupName} className="settings-section">
@@ -272,7 +265,7 @@ const FoldersSettings = () => {
                               type="text"
                               autoComplete="off"
                               id={`${setting.env_var.toLowerCase()}-input`}
-                              label={t(`settings:remote.${setting.env_var}.label`, { defaultValue: setting.env_var.replace(/_/g, " ") })}
+                              label={setting.env_var.replace(/_/g, " ")}
                               value={settingValues[setting.env_var] || ""}
                               onChange={(e) =>
                                 handleChange(setting.env_var, e.target.value)
@@ -284,7 +277,7 @@ const FoldersSettings = () => {
                           </FlexRow>
                           {setting.description && (
                             <Text className="description">
-                              {t(`settings:remote.${setting.env_var}.description`, { defaultValue: setting.description })}
+                              {setting.description}
                             </Text>
                           )}
                         </div>
@@ -314,10 +307,8 @@ const FoldersSettings = () => {
             
             return showNoSettingsMessage ? (
               <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-                {t("editor:ui.noFolderSettingsAvailable", {
-                  defaultValue:
-                    "No folder settings available or defined in the 'Folders' group."
-                })}
+                No folder settings available or defined in the &apos;Folders&apos;
+                group.
               </Text>
             ) : null;
           })()}

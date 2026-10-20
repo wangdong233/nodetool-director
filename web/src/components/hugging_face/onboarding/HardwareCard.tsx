@@ -13,13 +13,14 @@ import {
   SelectField,
   Text,
   BORDER_RADIUS,
-  SPACING
+  SPACING,
+  ICON_SIZE
 } from "../../ui_primitives";
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
-import { i18n } from "../../../i18n";
 import { ModelStat } from "../ModelStat";
-import { TIER_LABELS, type HardwareProfile, TIER_LABEL_KEYS } from "./useHardwareProfile";
+import { TIER_LABELS, type HardwareProfile } from "./useHardwareProfile";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 interface HardwareCardProps {
   profile: HardwareProfile;
@@ -44,8 +45,6 @@ const OVERRIDE_OPTIONS = [
 ];
 
 const budgetNote = (profile: HardwareProfile): string => {
-  // Module helper called during render — global i18n.t reads the live
-  // language at each call (same convention as the D-registry module helpers).
   switch (profile.budgetSource) {
     case "gpu":
       return i18n.t("editor:ui.detectedFromYourGpu", { defaultValue: "Detected from your GPU." });
@@ -106,12 +105,12 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
       <FlexColumn sx={{ minWidth: 0 }}>
         <FlexRow gap={SPACING.xs} align="center" sx={{ flexWrap: "wrap" }}>
           <Text size="normal" weight={600}>
-            {t("editor:ui.yourMachine")}
+            Your machine
           </Text>
           {profile.tier && (
-            <Tooltip title={t(TIER_LABEL_KEYS[profile.tier], { defaultValue: TIER_LABELS[profile.tier] })} delay={400}>
+            <Tooltip title={TIER_LABELS[profile.tier]}>
               <Chip
-                label={tierName(t(TIER_LABEL_KEYS[profile.tier], { defaultValue: TIER_LABELS[profile.tier] }))}
+                label={tierName(TIER_LABELS[profile.tier])}
                 compact
                 variant="outlined"
                 sx={{ cursor: "help" }}
@@ -131,18 +130,18 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
   const stats = (
     <>
       <ModelStat
-        icon={<DeveloperBoardIcon sx={{ fontSize: 14 }} />}
+        icon={<DeveloperBoardIcon sx={{ fontSize: ICON_SIZE.xs }} />}
         label={t("editor:ui.gpuMemory", { defaultValue: "GPU memory" })}
         value={gb(profile.vramGb)}
       />
       <ModelStat
-        icon={<MemoryIcon sx={{ fontSize: 14 }} />}
+        icon={<MemoryIcon sx={{ fontSize: ICON_SIZE.xs }} />}
         label={t("editor:ui.systemRAM", { defaultValue: "System RAM" })}
         value={gb(profile.ramGb)}
       />
       <ModelStat
         label={t("editor:ui.modelBudget", { defaultValue: "Model budget" })}
-        value={profile.budgetGb != null ? `${profile.budgetGb} GB` : t("editor:ui.notSet", { defaultValue: "Not set" })}
+        value={profile.budgetGb != null ? `${profile.budgetGb} GB` : i18n.t("editor:ui.notSet", { defaultValue: "Not set" })}
         highlight
       />
     </>
@@ -151,7 +150,7 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
   const budgetSelect = (
     <FlexColumn gap={SPACING.micro} sx={{ minWidth: 128 }}>
       <Caption sx={{ opacity: 0.6, whiteSpace: "nowrap" }}>
-        {t("editor:ui.setGpuMemory", { defaultValue: "Set GPU memory" })}
+        Set GPU memory
       </Caption>
       <SelectField
         label={t("editor:ui.gpuMemoryBudget", { defaultValue: "GPU memory budget" })}

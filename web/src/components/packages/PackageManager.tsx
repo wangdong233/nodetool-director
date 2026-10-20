@@ -2,8 +2,8 @@
  * PackageManager — the unified "install everything here" surface, as a two-pane
  * workspace.
  *
- * The left {@link PackageRail} picks one of four lists: Included, Python
- * packs, Third-party and Software. The right pane shows that list with one
+ * The left {@link PackageRail} picks one of four lists: Engines & tools,
+ * Built-in nodes, Python nodes and Community nodes. The right pane shows that list with one
  * search box and one status filter. Search and filter stay set when the user
  * picks another list. Data and derivation live in {@link usePackageManager}. Rendered
  * full-screen by {@link PackagesPage} (title/back live in the page hero).
@@ -17,8 +17,6 @@ import {
   useState,
   type MouseEvent
 } from "react";
-import { useTheme } from "@mui/material/styles";
-import { useTranslation } from "react-i18next";
 
 import { useGlobalCombo } from "../../stores/KeyPressedStore";
 
@@ -49,6 +47,8 @@ import {
   type PMFilter,
   type PMRow
 } from "./usePackageManager";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /** Persist the active list so reopening the Package Manager lands where the
  *  user left off. */
@@ -60,7 +60,7 @@ const isCategory = (value: unknown): value is PMCategory =>
 const loadCategory = (): PMCategory => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return "included";
+    if (!raw) return "runtimes";
     const parsed = JSON.parse(raw) as { tab?: string; cat?: string };
     if (isCategory(parsed.cat)) return parsed.cat;
     // Older saves held a Software tab with runtime groups as categories.
@@ -68,7 +68,7 @@ const loadCategory = (): PMCategory => {
   } catch {
     // Corrupt/blocked storage — fall back to the default landing spot.
   }
-  return "included";
+  return "runtimes";
 };
 
 const saveCategory = (cat: PMCategory) => {
@@ -85,43 +85,19 @@ const saveCategory = (cat: PMCategory) => {
  * "Installed"). "Always on" / "Not installed" stay neutral.
  */
 const BadgeChip = ({ badge }: { badge: PMRow["badge"] }) => {
-  const { t } = useTranslation();
-  const theme = useTheme();
   if (!badge) return null;
   const styles: Record<
     Exclude<PMRow["badge"], null>,
-    { label: string; bg: string; fg: string }
+    { label: string; color: "default" | "success" | "warning" }
   > = {
-    alwaysOn: {
-      label: t("editor:ui.alwaysOn", { defaultValue: "Always on" }),
-      bg: theme.vars.palette.action.selected,
-      fg: theme.vars.palette.text.secondary
-    },
-    installed: {
-      label: t("editor:ui.installed", { defaultValue: "Installed" }),
-      bg: `rgba(${theme.vars.palette.success.mainChannel} / 0.14)`,
-      fg: theme.vars.palette.success.main
-    },
-    update: {
-      label: t("editor:ui.updateAvailable", { defaultValue: "Update available" }),
-      bg: `rgba(${theme.vars.palette.warning.mainChannel} / 0.16)`,
-      fg: theme.vars.palette.warning.main
-    },
-    notInstalled: {
-      label: t("editor:ui.notInstalled", { defaultValue: "Not installed" }),
-      bg: theme.vars.palette.action.hover,
-      fg: theme.vars.palette.text.secondary
-    }
+    alwaysOn: { label: "Always on", color: "default" },
+    installed: { label: "Installed", color: "success" },
+    included: { label: "Included", color: "default" },
+    update: { label: i18n.t("editor:ui.updateAvailable", { defaultValue: "Update available" }), color: "warning" },
+    notInstalled: { label: "Not installed", color: "default" }
   };
   const s = styles[badge];
-  return (
-    <Chip
-      label={s.label}
-      compact
-      variant="filled"
-      sx={{ backgroundColor: s.bg, color: s.fg, fontWeight: 500 }}
-    />
-  );
+  return <Chip label={s.label} compact variant="outlined" color={s.color} />;
 };
 
 const RowActions = ({ row }: { row: PMRow }) => {
@@ -148,9 +124,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUpdate}
         >
-          {busy
-            ? t("editor:ui.working", { defaultValue: "Working…" })
-            : t("editor:ui.update", { defaultValue: "Update" })}
+          {busy ? t("editor:ui.working", { defaultValue: "Working…" }) : i18n.t("editor:ui.update", { defaultValue: "Update" })}
         </EditorButton>
       )}
       {install && (
@@ -160,9 +134,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onInstall}
         >
-          {busy
-            ? t("editor:ui.installing", { defaultValue: "Installing…" })
-            : t("editor:ui.install", { defaultValue: "Install" })}
+          {busy ? t("editor:ui.installing", { defaultValue: "Installing…" }) : i18n.t("editor:ui.install", { defaultValue: "Install" })}
         </EditorButton>
       )}
       {uninstall && (
@@ -172,9 +144,7 @@ const RowActions = ({ row }: { row: PMRow }) => {
           disabled={busy}
           onClick={onUninstall}
         >
-          {busy
-            ? t("editor:ui.working", { defaultValue: "Working…" })
-            : t("editor:ui.uninstall", { defaultValue: "Uninstall" })}
+          {busy ? t("editor:ui.working", { defaultValue: "Working…" }) : i18n.t("editor:ui.uninstall", { defaultValue: "Uninstall" })}
         </EditorButton>
       )}
     </>
@@ -339,11 +309,7 @@ function PackageManager() {
                     onClick={model.bulkUpdate.onUpdateAll}
                   >
                     {model.bulkUpdate.busy
-                      ? t("editor:ui.updating", { defaultValue: "Updating…" })
-                      : t("editor:ui.updateAllItems", {
-                          defaultValue: "Update all ({{count}})",
-                          count: model.bulkUpdate.count
-                        })}
+                      ? t("editor:ui.updating", { defaultValue: "Updating…" }) : `Update all (${model.bulkUpdate.count})`}
                   </EditorButton>
                 )}
                 <Box sx={{ width: { xs: "100%", sm: 250 } }}>
@@ -351,9 +317,7 @@ function PackageManager() {
                     ref={searchRef}
                     value={q}
                     onChange={setQ}
-                    placeholder={t("editor:ui.searchPress", {
-                      defaultValue: "Search…  (press /)"
-                    })}
+                    placeholder={t("tools:packages.searchPlaceholder", { defaultValue: "Search (press /)" })}
                     showClear
                   />
                 </Box>
@@ -368,9 +332,7 @@ function PackageManager() {
                 exclusive
                 segmented
                 onChange={handleFilter}
-                aria-label={t("editor:ui.statusFilter", {
-                  defaultValue: "Status filter"
-                })}
+                aria-label={t("editor:ui.statusFilter", { defaultValue: "Status filter" })}
               >
                 {model.filters.map((option) => (
                   <ToggleOption key={option.id} value={option.id}>
@@ -442,26 +404,12 @@ function PackageManager() {
           ) : (
             <EmptyState
               variant={narrowed ? "no-results" : "empty"}
-              title={
-                narrowed
-                  ? t("editor:ui.nothingMatches", { defaultValue: "Nothing matches" })
-                  : t("editor:ui.nothingHereYet", { defaultValue: "Nothing here yet" })
-              }
+              title={narrowed ? t("editor:ui.nothingMatches", { defaultValue: "Nothing matches" }) : i18n.t("editor:ui.nothingHereYet", { defaultValue: "Nothing here yet" })}
               description={
                 narrowed
-                  ? t("editor:ui.noPackageInThisListMatchesTheSearchAndTheStatusFilter", {
-                      defaultValue:
-                        "No package in this list matches the search and the status filter."
-                    })
-                  : t("editor:ui.thisListHasNoPackages", {
-                      defaultValue: "This list has no packages."
-                    })
+                  ? t("editor:ui.noPackageInThisListMatchesTheSearchAndTheStatusFilter", { defaultValue: "No package in this list matches the search and the status filter." }) : i18n.t("editor:ui.thisListHasNoPackages", { defaultValue: "This list has no packages." })
               }
-              actionText={
-                narrowed
-                  ? t("editor:ui.showAll", { defaultValue: "Show all" })
-                  : undefined
-              }
+              actionText={narrowed ? t("editor:ui.showAll", { defaultValue: "Show all" }) : undefined}
               onAction={narrowed ? clearSearchAndFilter : undefined}
             />
           )}

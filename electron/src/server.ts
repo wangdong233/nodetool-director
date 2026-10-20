@@ -13,13 +13,14 @@ import {
 /**
  * Resolves the path to the Node.js-based backend server entry point.
  * In packaged mode: resources/backend/server.mjs
- * In dev mode: ../../packages/websocket/src/server.ts (run via tsx)
+ * In dev mode: ../../packages/server/src/main.ts (run via tsx), the source of
+ * the entry that server.mjs bundles
  */
 function getNodeBackendPath(): string {
   if (app.isPackaged) {
     return path.join(process.resourcesPath, "backend", "server.mjs");
   }
-  return path.join(__dirname, "..", "..", "packages", "websocket", "src", "server.ts");
+  return path.join(__dirname, "..", "..", "packages", "server", "src", "main.ts");
 }
 
 /** In dev mode we need tsx to run TypeScript source directly. */
@@ -36,6 +37,7 @@ import net from "net";
 import path from "path";
 import { pathToFileURL } from "url";
 import { emitServerStateChanged } from "./tray";
+import { getLocalClientToken } from "./localClientToken";
 import { LOG_FILE } from "./logger";
 import { createWorkflowWindow } from "./workflowWindow";
 import { Watchdog } from "./watchdog";
@@ -397,6 +399,8 @@ async function startServer(): Promise<void> {
     // around: the Python bridge, vector nodes, the file browser, workspaces,
     // MCP config, and local model scanning.
     NODETOOL_PACKS_REQUIRE_ALLOWLIST: "1",
+    // Proves the app's own windows to the backend (see localClientToken.ts).
+    NODETOOL_LOCAL_CLIENT_TOKEN: getLocalClientToken(),
     // Keep the full node catalog and the local providers (Ollama, LM Studio,
     // llama.cpp, vLLM, the Claude subscription) — the desktop app is the one
     // surface where they are the point. Set `NODETOOL_NODE_PROFILE=cloud` in

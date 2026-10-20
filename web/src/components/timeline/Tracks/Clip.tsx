@@ -27,7 +27,6 @@ import useErrorStore, {
   nodeErrorToDisplayString
 } from "../../../stores/ErrorStore";
 import { type NodeKey } from "../../../stores/nodeKey";
-import { Toast } from "../../ui_primitives";
 import { deriveClipStatus } from "../status/clipStatusReducer";
 import type { ClipErrorState } from "../status/clipStatusReducer";
 import { useClipSourceDuration } from "./useClipSourceDuration";
@@ -40,11 +39,14 @@ import type { ClipFadeEdge } from "./useClipFade";
 import { ClipFadeShapeMenu } from "./ClipFadeShapeMenu";
 import { keyframeTimesMs as deriveKeyframeTimes } from "@nodetool-ai/timeline";
 import { useTimelinePlaybackStore } from "../../../stores/timeline/TimelinePlaybackStore";
+import { useTimelineLayoutStore } from "../../../stores/timeline/TimelineLayoutStore";
 import { ClipBody, CLIP_STATUS_MAP, MIN_CLIP_WIDTH_PX } from "./ClipBody";
 import { ClipContextMenu } from "./ClipContextMenu";
 import { SendToWorkflowMenu } from "../../workflows/SendToWorkflowMenu";
 import type { WorkflowMediaItem } from "../../../hooks/handlers/useGenerationToCanvas";
 import { ReplaceClipAssetDialog } from "./ReplaceClipAssetDialog";
+import { useAlertNotifier } from "../../../hooks/useAlertNotifier";
+
 interface ClipProps {
   clipId: string;
 }
@@ -241,10 +243,9 @@ export const Clip: React.FC<ClipProps> = memo(({ clipId }) => {
   const handleCloseWorkflowSend = useCallback(() => setWorkflowSend(null), []);
   // Raised by context-menu actions; they must outlive the menu's unmount.
   const [replaceOpen, setReplaceOpen] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
+  const reportActionError = useAlertNotifier("error");
   const handleOpenReplace = useCallback(() => setReplaceOpen(true), []);
   const handleCloseReplace = useCallback(() => setReplaceOpen(false), []);
-  const handleClearError = useCallback(() => setActionError(null), []);
   const handleUnlink = useCallback(
     () => unlinkClip(clipId),
     [unlinkClip, clipId]
@@ -272,15 +273,23 @@ export const Clip: React.FC<ClipProps> = memo(({ clipId }) => {
   );
 
   // A midi clip's content is notes, and the way a DAW opens them is a
-  // double-click on the clip. Every other media type has nothing to open.
+  // double-click on the clip. Every other clip opens in the inspector.
   const handleDoubleClick = useCallback(
     (e: React.MouseEvent) => {
-      if (clip?.mediaType !== "midi") {
-        return;
-      }
       e.stopPropagation();
       selectClip(clipId);
-      openPianoRoll(clipId);
+      if (clip?.mediaType === "midi") {
+        openPianoRoll(clipId);
+        return;
+      }
+      const { panelTab, codePanelDirty, setPanelTab } =
+        useTimelineUIStore.getState();
+      // Unsaved code stays on screen. Only the tab switcher asks to leave it.
+      if (panelTab === "code" && codePanelDirty) {
+        return;
+      }
+      setPanelTab("inspector");
+      useTimelineLayoutStore.getState().showSidePanel();
     },
     [clip?.mediaType, clipId, openPianoRoll, selectClip]
   );
@@ -347,7 +356,7 @@ export const Clip: React.FC<ClipProps> = memo(({ clipId }) => {
           onSendToWorkflow={handleSendToWorkflow}
           onClose={handleCloseContextMenu}
           onRequestReplace={handleOpenReplace}
-          onError={setActionError}
+          onError={reportActionError}
         />
       )}
       {workflowSend && (
@@ -374,14 +383,6 @@ export const Clip: React.FC<ClipProps> = memo(({ clipId }) => {
           onClose={handleCloseReplace}
         />
       )}
-      <Toast
-        open={actionError !== null}
-        message={actionError ?? ""}
-        severity="error"
-        onClose={handleClearError}
-        vertical="top"
-        horizontal="center"
-      />
     </>
   );
 });

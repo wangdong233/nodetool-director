@@ -17,10 +17,10 @@ import {
   InlineEditableText,
   LoadingSpinner,
   MenuItemPrimitive,
+  StatusDot,
   Tooltip
 } from "../ui_primitives";
 import { tabDisplayTitle } from "./tabTypeIdentity";
-import { useAppLanguage } from "../../i18n";
 import { useTranslation } from "react-i18next";
 
 // Tabs are scanned, not studied — the title has to land while the pointer is
@@ -67,7 +67,6 @@ const WorkspaceTabItem = ({
   onCancelRename
 }: WorkspaceTabItemProps) => {
   const { t } = useTranslation();
-  useAppLanguage(); // re-render on language change: render-time tab titles (R5/R6-6)
   const workflowId = tab.type === "workflow" ? tab.ref : undefined;
   const isWorkflowDirty = useWorkflowDirty(workflowId);
   const isRunning = useIsWorkflowRunning(workflowId);
@@ -157,6 +156,15 @@ const WorkspaceTabItem = ({
     [onActivate, tab.id]
   );
 
+  const [titleTruncated, setTitleTruncated] = useState(false);
+  const handleNameMouseOver = useCallback(
+    (event: MouseEvent<HTMLSpanElement>) => {
+      const name = event.currentTarget;
+      setTitleTruncated(name.scrollWidth > name.clientWidth);
+    },
+    []
+  );
+
   return (
     <>
       <div
@@ -183,7 +191,7 @@ const WorkspaceTabItem = ({
         {isEditing ? (
           <InlineEditableText
             className="tab-input"
-            ariaLabel={t("nav:tabs.tabName")}
+            ariaLabel={t("nav:tabs.tabName", { defaultValue: "Tab name" })}
             value={tab.title}
             editing
             onEditingChange={handleEditingChange}
@@ -195,33 +203,33 @@ const WorkspaceTabItem = ({
             {isRunning && !instantUpdate && (
               <LoadingSpinner
                 inline
-                variant="circular"
-                size={12}
-                thickness={4}
+                size={14}
                 color="primary"
               />
             )}
+            {/* Only a cut-off name needs its full text. The tooltip drops
+                below the tab onto the page's own tabs, so it never takes the
+                pointer either. */}
             <Tooltip
-              title={displayTitle}
+              title={titleTruncated ? displayTitle : ""}
               placement="bottom"
               delay={TAB_TITLE_TOOLTIP_DELAY}
               nextDelay={TAB_TITLE_TOOLTIP_NEXT_DELAY}
+              disableInteractive
             >
-              <span className="tab-name">{displayTitle}</span>
+              <span className="tab-name" onMouseOver={handleNameMouseOver}>
+                {displayTitle}
+              </span>
             </Tooltip>
             {isWorkflowDirty && (
-              <span
-                className="dirty-dot"
-                role="img"
-                aria-label={t("nav:tabs.unsaved")}
-              />
+              <StatusDot tone="warning" size="medium" label={t("ui2:attrs.unsavedChanges", { defaultValue: "unsaved changes" })} />
             )}
           </>
         )}
         <CloseButton
           className="tab-close close-icon"
           buttonSize="small"
-          tooltip={t("common:action.closeTab", { title: displayTitle })}
+          tooltip={`Close ${displayTitle}`}
           onClick={(event) => {
             event.stopPropagation();
             onClose(tab);
@@ -233,12 +241,10 @@ const WorkspaceTabItem = ({
         open={contextMenuPosition !== null}
         position={contextMenuPosition}
         onClose={closeContextMenu}
-        compact
       >
         {canRename && (
           <MenuItemPrimitive
-            label={t("common:action.rename")}
-            compact
+            label="Rename"
             onClick={() => {
               closeContextMenu();
               onBeginRename(tab);
@@ -246,24 +252,21 @@ const WorkspaceTabItem = ({
           />
         )}
         <MenuItemPrimitive
-          label={t("nav:tabs.closeTab")}
-          compact
+          label={t("nav:tabs.closeTab", { defaultValue: "Close tab" })}
           onClick={() => {
             closeContextMenu();
             onClose(tab);
           }}
         />
         <MenuItemPrimitive
-          label={t("nav:tabs.closeOthers")}
-          compact
+          label={t("nav:tabs.closeOthers", { defaultValue: "Close other tabs" })}
           onClick={() => {
             closeContextMenu();
             onCloseOthers(tab);
           }}
         />
         <MenuItemPrimitive
-          label={t("nav:tabs.closeAll")}
-          compact
+          label={t("nav:tabs.closeAll", { defaultValue: "Close all tabs" })}
           onClick={() => {
             closeContextMenu();
             onCloseAll();

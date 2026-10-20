@@ -2,7 +2,7 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
@@ -143,6 +143,10 @@ const ChatPanelHeader: React.FC<ChatPanelHeaderProps> = ({
     <PanelHeader
       title={title}
       description={description}
+      sx={{
+        // Match the header's own title icon instead of MUI's 20px "small".
+        "& .panel-header-actions svg": { fontSize: "var(--fontSizeNormal)" }
+      }}
       actions={
         <>
           <ToolbarIconButton

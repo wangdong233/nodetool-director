@@ -17,7 +17,6 @@
   "settings": {
     "title": "设置",
     "general": "通用",
-    "providers": "模型与服务商",
     "integrations": "集成",
     "about": "关于",
     "docsProviders": "模型与服务商",
@@ -62,12 +61,9 @@
     "home": "首页",
     "tabName": "标签页名称",
     "unsaved": "未保存更改",
-    "openDocument": "打开文档：{{title}}",
     "openDocuments": "打开文档",
     "noDocumentOpen": "未打开文档",
     "switchDocs": "在打开的文档间切换",
-    "emptyDocs": "未打开任何文档——点 + 打开或新建。",
-    "closeNamed": "关闭{{title}}",
     "closeAllDocs": "关闭全部文档",
     "typeNames": {
       "workflow": "工作流",
@@ -146,7 +142,7 @@
     },
     "entities": {
       "label": "实体",
-      "description": "供提示词和镜头复用的角色、地点、风格与道具。"
+      "description": "可复用的角色、地点、风格与道具"
     },
     "timelines": {
       "label": "时间线",

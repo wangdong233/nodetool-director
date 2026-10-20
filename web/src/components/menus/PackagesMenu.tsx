@@ -12,10 +12,12 @@ import { memo, useCallback, useEffect, useState } from "react";
 import {
   AlertBanner,
   Chip,
+  Code,
   EditorButton,
   FlexColumn,
   FlexRow,
   LabeledSwitch,
+  SectionHeader,
   Text,
   TextInput,
   BORDER_RADIUS,
@@ -29,8 +31,8 @@ import usePacksStore, {
   type SkipReason
 } from "../../stores/PacksStore";
 import { useShallow } from "zustand/react/shallow";
-import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 function statusColor(
   pack: PackInfo
@@ -110,7 +112,7 @@ const PackRow = memo(function PackRow({
         </FlexColumn>
         <FlexRow gap={1.5} align="center" sx={{ flexShrink: 0 }}>
           <LabeledSwitch
-            label={t("editor:ui.trusted", { defaultValue: "Trusted" })}
+            label={i18n.t("editor:ui.trusted", { defaultValue: "Trusted" })}
             checked={trusted}
             onChange={onTrustChange}
           />
@@ -231,7 +233,6 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
   packs: InstalledNodePack[];
   onChanged: () => void;
 }) {
-  const { t } = useTranslation();
   const [busy, setBusy] = useState<string | null>(null);
   const [result, setResult] = useState<
     { name: string; ok: boolean; message: string } | null
@@ -264,9 +265,10 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
 
   return (
     <FlexColumn gap={SPACING.md}>
-      <Text size="normal" weight={600}>
-        Installed by NodeTool ({packs.length})
-      </Text>
+      <SectionHeader
+        size="small"
+        title={`Installed by NodeTool (${packs.length})`}
+      />
       <FlexColumn gap={SPACING.sm}>
         {packs.map((pack) => {
           const status = pack.installation;
@@ -317,7 +319,7 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
                   <Text size="small" color="secondary">
                     {status
                       ? installStateText(status)
-                      : t("editor:ui.installedOutsideTheCurrentInstallLedgerSoItsModeIsUnknownHere", { defaultValue: "Installed outside the current install ledger, so its mode is unknown here." })}
+                      : i18n.t("editor:ui.installedOutsideTheCurrentInstallLedgerSoItsModeIsUnknownHere", { defaultValue: "Installed outside the current install ledger, so its mode is unknown here." })}
                   </Text>
                 </FlexColumn>
                 {needsTrust && (
@@ -328,7 +330,7 @@ const InstalledPacksPanel = memo(function InstalledPacksPanel({
                     disabled={busy !== null}
                     sx={{ flexShrink: 0 }}
                   >
-                    {busy === pack.name ? t("editor:ui.verifying", { defaultValue: "Verifying…" }) : t("editor:ui.trustAndRebuild", { defaultValue: "Trust and rebuild" })}
+                    {busy === pack.name ? i18n.t("editor:ui.verifying", { defaultValue: "Verifying…" }) : i18n.t("editor:ui.trustAndRebuild", { defaultValue: "Trust and rebuild" })}
                   </EditorButton>
                 )}
               </FlexRow>
@@ -354,7 +356,6 @@ const InstallPanel = memo(function InstallPanel({
 }: {
   onInstalled: () => void;
 }) {
-  const { t } = useTranslation();
   const [spec, setSpec] = useState("");
   const [status, setStatus] = useState<
     { kind: "idle" }
@@ -401,54 +402,41 @@ const InstallPanel = memo(function InstallPanel({
   }, [spec, onInstalled]);
 
   return (
-    <FlexColumn gap={1}>
-      <Text size="normal" weight={600}>
-        {t("editor:ui.installAPack")}
-      </Text>
+    <FlexColumn gap={SPACING.lg}>
+      <SectionHeader size="small" title={i18n.t("editor:ui.installAPack", { defaultValue: "Install a pack" })} />
       <Text size="small" color="secondary">
-        {t("editor:ui.pasteAnNpmPackageNameEg", {
-          defaultValue: "Paste an npm package name, e.g. "
-        })}
-        <code>@acme/cool-nodes</code>
-        {t("editor:ui.npmPackOr", { defaultValue: " or " })}
-        <code>cool-nodes@1.2.3</code>
-        {t("editor:ui.theServerMustBeRestartedToLoadTheNewPack", {
-          defaultValue: ". The server must be restarted to load the new pack."
-        })}
+        Installing runs no pack code. A pack that ships sandbox modules is
+        active right away, and those modules run inside your workflows with the
+        node&apos;s capabilities once a node imports one. A pack that registers
+        host nodes stays inactive until you approve trust.
       </Text>
-      <Text size="small" color="secondary">
-        {t(
-          "editor:ui.sandboxPackTrustDisclosure",
-          {
-            defaultValue:
-              "Installing runs no pack code. A pack that ships sandbox modules is active right away, and those modules run inside your workflows with the node's capabilities once a node imports one. A pack that registers host nodes stays inactive until you approve trust."
+      <TextInput
+        label={i18n.t("editor:ui.packageToInstall", { defaultValue: "Package to install" })}
+        helperText={
+          <>
+            Paste an npm package name, e.g. <Code>@acme/cool-nodes</Code> or{" "}
+            <Code>cool-nodes@1.2.3</Code>. The server must be restarted to
+            load the new pack.
+          </>
+        }
+        value={spec}
+        onChange={(e) => setSpec(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && spec.trim() && status.kind !== "installing") {
+            handleInstall();
           }
-        )}
-      </Text>
+        }}
+        placeholder={i18n.t("tools:menus.packageSpecPlaceholder", { defaultValue: "@scope/package or package@version" })}
+        fullWidth
+        disabled={status.kind === "installing"}
+      />
       <FlexRow gap={1} align="center">
-        <TextInput
-          value={spec}
-          onChange={(e) => setSpec(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && spec.trim() && status.kind !== "installing") {
-              handleInstall();
-            }
-          }}
-          placeholder={t("tools:menus.packageSpecPlaceholder", {
-            defaultValue: "@scope/package or package@version"
-          })}
-          slotProps={{ htmlInput: { "aria-label": t("editor:ui.packageToInstall", { defaultValue: "Package to install" }) } }}
-          fullWidth
-          disabled={status.kind === "installing"}
-        />
         <EditorButton
           variant="contained"
           onClick={handleInstall}
           disabled={!spec.trim() || status.kind === "installing"}
         >
-          {status.kind === "installing"
-            ? t("editor:ui.installing", { defaultValue: "Installing…" })
-            : t("editor:ui.install", { defaultValue: "Install" })}
+          {status.kind === "installing" ? i18n.t("editor:ui.installing", { defaultValue: "Installing…" }) : i18n.t("editor:ui.install", { defaultValue: "Install" })}
         </EditorButton>
       </FlexRow>
       {status.kind === "ok" && (
@@ -521,35 +509,13 @@ function PackagesMenu() {
   return (
     <FlexColumn gap={SPACING.xl} sx={{ maxWidth: 880 }}>
       <FlexColumn gap={SPACING.md}>
-        <Text size="normal" weight={600}>
-          {t("editor:ui.trustDefaults")}
-        </Text>
-        <FlexRow
-          gap={3}
-          align="center"
-          sx={(theme) => ({
-            px: SPACING.md,
-            py: 2,
-            borderRadius: BORDER_RADIUS.xl,
-            border: `1px solid rgba(${theme.vars.palette.warning.mainChannel} / 0.18)`,
-            backgroundColor: `rgba(${theme.vars.palette.warning.mainChannel} / 0.04)`
-          })}
-        >
-          <FlexColumn gap={0.5} sx={{ flex: 1, minWidth: 0 }}>
-            <Text size="normal" weight={500}>
-              Load packs that are not on the allowlist
-            </Text>
-            <Text size="small" color="secondary">
-              Off in production by default. When off, only packs you&apos;ve
-              explicitly trusted will load.
-            </Text>
-          </FlexColumn>
-          <LabeledSwitch
-            label=""
-            checked={trust.allowUnlisted}
-            onChange={(v) => void setAllowUnlisted(v)}
-          />
-        </FlexRow>
+        <SectionHeader size="small" title={i18n.t("editor:ui.trustDefaults", { defaultValue: "Trust defaults" })} />
+        <LabeledSwitch
+          label={i18n.t("tools:ui.loadUnlistedPacks", { defaultValue: "Load packs that are not on the allowlist" })}
+          description={i18n.t("tools:ui.unlistedPacksDesc", { defaultValue: "Off in production by default. When off, only packs you've explicitly trusted will load." })}
+          checked={trust.allowUnlisted}
+          onChange={(v) => void setAllowUnlisted(v)}
+        />
       </FlexColumn>
 
       {isElectron && (
@@ -572,24 +538,20 @@ function PackagesMenu() {
       )}
 
       <FlexColumn gap={SPACING.md}>
-        <FlexRow gap={1} align="center" justify="space-between">
-          <Text size="normal" weight={600}>
-            {t("editor:ui.discoveredPacksCount", {
-              defaultValue: "Discovered packs ({{count}})",
-              count: packs.length
-            })}
-          </Text>
-          <EditorButton
-            variant="outlined"
-            density="compact"
-            onClick={() => void reload()}
-            disabled={isLoading}
-          >
-            {isLoading
-              ? t("editor:ui.reloading", { defaultValue: "Reloading…" })
-              : t("editor:ui.reload", { defaultValue: "Reload" })}
-          </EditorButton>
-        </FlexRow>
+        <SectionHeader
+          size="small"
+          title={`Discovered packs (${packs.length})`}
+          action={
+            <EditorButton
+              variant="outlined"
+              density="compact"
+              onClick={() => void reload()}
+              disabled={isLoading}
+            >
+              {isLoading ? i18n.t("editor:ui.reloading", { defaultValue: "Reloading…" }) : i18n.t("appbuilder:attrs.reload", { defaultValue: "Reload" })}
+            </EditorButton>
+          }
+        />
 
         {error && (
           <AlertBanner severity="error" compact>
@@ -608,9 +570,9 @@ function PackagesMenu() {
             })}
           >
             <Text size="small" color="secondary">
-              {t("editor:ui.noNodePacksDiscoveredInstallOneWith", { defaultValue: "No node packs discovered. Install one with " })}{" "}
-              <code>npm install &lt;pack&gt;</code>
-              {isElectron ? t("editor:ui.orViaTheFieldAbove", { defaultValue: " or via the field above." }) : "."}
+              No node packs discovered. Install one with{" "}
+              <Code>{"npm install <pack>"}</Code>
+              {isElectron ? i18n.t("editor:ui.orViaTheFieldAbove", { defaultValue: " or via the field above." }) : "."}
             </Text>
           </FlexRow>
         ) : (

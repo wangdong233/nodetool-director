@@ -13,7 +13,6 @@
  * ({@link ShotEditPanel}).
  */
 
-import { useTranslation } from "react-i18next";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import type {
@@ -23,6 +22,7 @@ import type {
   VideoRef
 } from "@nodetool-ai/protocol";
 import {
+  isAspectRatio,
   resolveEffectiveProductionRequirement,
   shotRenderMode
 } from "@nodetool-ai/protocol";
@@ -31,12 +31,12 @@ import AutorenewIcon from "@mui/icons-material/Autorenew";
 import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 
+import ErrorBanner from "../support/ErrorBanner";
 import {
   Box,
   Card,
   Caption,
   Dialog,
-  EditorButton,
   FlexColumn,
   FlexRow,
   MagicGenerationFill,
@@ -76,6 +76,9 @@ import { useAssetUpload } from "../../serverState/useAssetUpload";
 import { useNotificationStore } from "../../stores/NotificationStore";
 import { mediaRefFromAsset } from "../../utils/mediaRef";
 import { captureLastFrame } from "./lastFrame";
+import { formatDuration } from "../../utils/formatUtils";
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface ShotCardProps {
   boardId: string;
@@ -86,6 +89,11 @@ interface ShotCardProps {
    * rather than counting shots it cannot see.
    */
   caption?: string;
+  /**
+   * The length this shot's clip renders at, in seconds. The board resolves it
+   * from the linked script's takes or the shot's own value.
+   */
+  durationSeconds?: number;
   /**
    * This shot's part of a scene clip, as `Clip 2/3 · 4-9s`. The board
    * resolves scene clips, so the card is told its part.
@@ -151,8 +159,6 @@ const isFileDrag = (event: React.DragEvent): boolean =>
   Array.from(event.dataTransfer?.types ?? []).includes("Files");
 
 
-/** The render bar sits on the thumbnail's bottom edge, 3px per the design. */
-const RENDER_BAR_HEIGHT = 3;
 const STILL_RENDER_COLORS = [
   colorForType("image"),
   colorForType("video"),
@@ -165,6 +171,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   boardId,
   shot,
   caption,
+  durationSeconds,
   sceneClipTag,
   renderContext,
   selected,
@@ -182,6 +189,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   const theme = useTheme();
   const shotRenderContext =
     typeof renderContext === "function" ? renderContext(shot) : renderContext;
+  const boardAspectRatio = shotRenderContext?.aspect_ratio;
   // The still or clip the fullscreen viewer shows; null when it is closed.
   const [viewerMedia, setViewerMedia] = useState<ImageRef | VideoRef | null>(
     null
@@ -264,7 +272,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
   // A ref with neither a locator nor an asset behind it has nothing to show:
   // the card says so rather than waiting on a resolution that never lands.
   const hasKeyframe = Boolean(shot.keyframe?.uri || shot.keyframe?.asset_id);
-  const shotName = `${shot.index + 1}. ${shot.slug ?? t("storyboard:attrs.untitledShot", { defaultValue: "Untitled shot" })}`;
+  const shotName = `${shot.index + 1}. ${shot.slug ?? "Untitled shot"}`;
   // What the preview shows is what fullscreen opens: the clip once there is
   // one, the selected still before that.
   const previewMedia: ImageRef | VideoRef | null =
@@ -363,14 +371,11 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             type: "error",
             alert: true,
             dismissable: true,
-            content: t("storyboard:attrs.theStillCouldNotBeUploaded", {
-              defaultValue: "The still could not be uploaded. {{error}}",
-              error
-            })
+            content: `The still could not be uploaded. ${error}`
           })
       });
     },
-    [uploadAsset, appendShotKeyframeVersion, boardId, shot.id, t]
+    [uploadAsset, appendShotKeyframeVersion, boardId, shot.id]
   );
 
   // The previous shot's last frame becomes this shot's current still, so the
@@ -384,11 +389,9 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
         type: "error",
         alert: true,
         dismissable: true,
-        content: t("storyboard:attrs.theLastFrameOfShotCouldNotBeUsed", {
-          defaultValue: "The last frame of shot {{index}} could not be used. {{error}}",
-          index: shot.index,
-          error: error instanceof Error ? error.message : String(error)
-        })
+        content: `The last frame of shot ${shot.index} could not be used. ${
+          error instanceof Error ? error.message : String(error)
+        }`
       });
     captureLastFrame(previousClipUri, `shot-${shot.index}-last-frame.png`)
       .then((file) =>
@@ -412,8 +415,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
     uploadAsset,
     setShotKeyframe,
     setShotStatus,
-    boardId,
-    t
+    boardId
   ]);
 
   const handleDragStart = useCallback(
@@ -490,11 +492,11 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
               ? CLIP_COLOR
               : "divider",
         boxShadow: dropTarget
-          ? `0 0 0 2px ${theme.palette.primary.main}`
+          ? `0 0 0 2px ${theme.vars.palette.primary.main}`
           : isGenerating
             ? `0 0 0 1px ${CLIP_COLOR}`
             : selected
-              ? `0 0 0 1px ${theme.palette.primary.main}`
+              ? `0 0 0 1px ${theme.vars.palette.primary.main}`
               : undefined,
         cursor: draggable ? "grab" : undefined
       }}
@@ -504,15 +506,17 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
         justify="center"
         sx={{
           ...mediaSx,
-          aspectRatio: (shotRenderContext?.aspect_ratio ?? "16:9").replace(
-            ":",
-            " / "
-          )
+          // A stored ratio that is not "W:H" is invalid CSS, which would
+          // leave the box with no height and the still invisible.
+          aspectRatio: isAspectRatio(boardAspectRatio)
+            ? boardAspectRatio.trim().replace(":", " / ")
+            : mediaSx.aspectRatio
         }}
         onDoubleClick={previewMedia ? handleOpenViewer : undefined}
       >
         {shot.graphics && shot.graphics.mode !== "none" ? (
           <ShotDesignFrame
+            hoverControls
             boardId={boardId}
             shot={
               previewClip && previewClip !== shot.clip
@@ -525,8 +529,9 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             <VideoPlayer
               locator={previewClip}
               poster={keyframeThumbUri ?? undefined}
-              label={t("storyboard:attrs.nameClip", { defaultValue: "{{name}} clip", name: shotName })}
+              label={`${shotName} clip`}
               prominentPlay
+              hoverControls
             />
           </Box>
         ) : hasKeyframe ? (
@@ -549,9 +554,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             role={stillRendering ? "status" : undefined}
             sx={{ textAlign: "center", p: SPACING.md }}
           >
-            {stillRendering
-              ? t("storyboard:attrs.renderingStill", { defaultValue: "Rendering still…" })
-              : t("storyboard:attrs.noStillYet", { defaultValue: "No still yet" })}
+            {stillRendering ? t("storyboard:attrs.renderingStill", { defaultValue: "Rendering still…" }) : i18n.t("storyboard:attrs.noStillYet", { defaultValue: "No still yet" })}
           </Caption>
         )}
         {isGenerating && <MagicGenerationFill />}
@@ -581,9 +584,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             previewMedia && !isGenerating ? handleOpenViewer : undefined
           }
           fullscreenLabel={
-            previewClip
-              ? t("storyboard:attrs.viewClipFullscreen", { defaultValue: "View clip fullscreen" })
-              : t("storyboard:attrs.viewStillFullscreen", { defaultValue: "View still fullscreen" })
+            previewClip ? t("storyboard:attrs.viewClipFullscreen", { defaultValue: "View clip fullscreen" }) : i18n.t("storyboard:attrs.viewStillFullscreen", { defaultValue: "View still fullscreen" })
           }
           onRenderStill={readOnly ? undefined : handleRenderStill}
           onRenderClip={readOnly ? undefined : handleRenderClip}
@@ -595,7 +596,7 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             readOnly || shot.index === 0
               ? undefined
               : {
-                  label: t("storyboard:attrs.useLastFrameOfShot", { defaultValue: "Use last frame of shot {{index}}", index: shot.index }),
+                  label: `Use last frame of shot ${shot.index}`,
                   disabled: isGenerating || !previousClipUri,
                   onSelect: handleUseLastFrame
                 }
@@ -607,31 +608,28 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             <>
               {onEdit && (
                 <ToolbarIconButton
-                  icon={<EditOutlinedIcon sx={{ fontSize: "1em" }} />}
+                  icon={<EditOutlinedIcon fontSize="inherit" />}
                   tooltip={t("storyboard:attrs.editShot", { defaultValue: "Edit shot" })}
-                  ariaLabel={t("storyboard:attrs.editShot", { defaultValue: "Edit shot" })}
+                  ariaLabel="Edit shot"
                   onClick={handleEdit}
                 />
               )}
               <ToolbarIconButton
-                icon={<AutorenewIcon sx={{ fontSize: "1em" }} />}
-                tooltip={`${
-                  stillCost
-                    ? t("storyboard:attrs.renderANewStillAndPickItsModelAbout", { defaultValue: "Render a new still and pick its model · about {{cost}}", cost: formatUsd(stillCost) })
-                    : t("storyboard:attrs.renderANewStillAndPickItsModel", { defaultValue: "Render a new still and pick its model" })
+                icon={<AutorenewIcon fontSize="inherit" />}
+                tooltip={`Render a new still and pick its model${
+                  stillCost ? ` · about ${formatUsd(stillCost)}` : ""
                 }`}
                 ariaLabel={t("storyboard:attrs.regenerateStill", { defaultValue: "Regenerate still" })}
                 onClick={handleRenderStill}
                 disabled={isGenerating}
               />
               <ToolbarIconButton
-                icon={<MovieOutlinedIcon sx={{ fontSize: "1em" }} />}
+                icon={<MovieOutlinedIcon fontSize="inherit" />}
                 tooltip={
                   clipNeedsStill
-                    ? t("storyboard:attrs.renderAStillFirst", { defaultValue: "Render a still first" })
-                    : t("storyboard:attrs.renderAClipAndPickItsModel", { defaultValue: "Render a clip and pick its model" })
+                    ? t("storyboard:attrs.renderAStillFirst", { defaultValue: "Render a still first" }) : i18n.t("storyboard:attrs.renderAClipAndPickItsModel", { defaultValue: "Render a clip and pick its model" })
                 }
-                ariaLabel={t("storyboard:attrs.renderClip", { defaultValue: "Render clip" })}
+                ariaLabel="Render clip"
                 onClick={handleRenderClip}
                 disabled={isGenerating || clipNeedsStill}
               />
@@ -661,11 +659,9 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
                 progress == null ? "indeterminate" : "determinate"
               }
               showValue={false}
-              sx={{
-                height: RENDER_BAR_HEIGHT,
-                backgroundColor: "c_overlay_subtle",
-                "& .MuiLinearProgress-bar": { backgroundColor: CLIP_COLOR }
-              }}
+              size="small"
+              accent={CLIP_COLOR}
+              aria-label={t("storyboard:attrs.renderingClip", { defaultValue: "Rendering clip" })}
             />
           </Box>
         )}
@@ -674,9 +670,17 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
       <FlexColumn gap={SPACING.xs} sx={{ p: SPACING.lg, minWidth: 0 }}>
         <FlexRow align="center" gap={SPACING.sm} wrap>
           <Caption color="secondary">
-            {caption ??
-              t("storyboard:attrs.shotNumber", { defaultValue: "Shot {{index}}", index: shot.index + 1 })}
+            {caption ?? `Shot ${shot.index + 1}`}
           </Caption>
+          {durationSeconds != null && (
+            <Caption
+              color="secondary"
+              data-testid="shot-card-duration"
+              aria-label={`${durationSeconds} seconds`}
+            >
+              {formatDuration(durationSeconds * 1000)}
+            </Caption>
+          )}
           {sceneClipTag && (
             <StatusPill
               tone="neutral"
@@ -697,35 +701,24 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
             minHeight: "2.7em"
           }}
         >
-          {shot.action.trim() || t("storyboard:attrs.noActionDescribed", { defaultValue: "No action described" })}
+          {shot.action.trim() || i18n.t("storyboard:attrs.noActionDescribed", { defaultValue: "No action described" })}
         </Text>
       </FlexColumn>
 
       {failed && (
-        <FlexRow
-          align="center"
-          justify="space-between"
-          gap={SPACING.sm}
-          sx={{ p: SPACING.lg, minWidth: 0 }}
+        <ErrorBanner
+          data-testid="shot-render-error"
+          sx={{ m: SPACING.lg, minWidth: 0 }}
+          onRetry={readOnly ? undefined : handleRetry}
+          retryLabel="Retry"
+          report={{
+            source: "job-failure",
+            summary: "Storyboard shot render failed",
+            errorText: renderError ?? undefined
+          }}
         >
-          <Caption
-            role="alert"
-            data-testid="shot-render-error"
-            sx={{ color: "error.main", minWidth: 0 }}
-          >
-            {renderError ?? t("storyboard:attrs.theRenderFailedTryAgain", { defaultValue: "The render failed. Try again." })}
-          </Caption>
-          {!readOnly && (
-            <EditorButton
-              size="small"
-              variant="outlined"
-              onClick={handleRetry}
-              sx={{ flexShrink: 0 }}
-            >
-              {t("storyboard:attrs.retry", { defaultValue: "Retry" })}
-            </EditorButton>
-          )}
-        </FlexRow>
+          {renderError ?? i18n.t("storyboard:attrs.theRenderFailedTryAgain", { defaultValue: "The render failed. Try again." })}
+        </ErrorBanner>
       )}
       <ShotMediaViewer
         boardId={boardId}
@@ -751,15 +744,11 @@ const ShotCardInner: React.FC<ShotCardProps> = ({
           onClose={handleCloseDeleteConfirm}
           title={t("editor:ui.deleteShot", { defaultValue: "Delete shot?" })}
           onConfirm={handleDeleteConfirmed}
-          confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+          confirmText="Delete"
           destructive
         >
           <Text>
-            {t("storyboard:attrs.removeNameFromTheBoardGeneratedStays", {
-              defaultValue:
-                "Remove \u201C{{name}}\u201D from the board. Generated stills and clips stay in your asset library.",
-              name: shotName
-            })}
+            {`Remove \u201C${shotName}\u201D from the board. Generated stills and clips stay in your asset library.`}
           </Text>
         </Dialog>
       </Box>

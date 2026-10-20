@@ -2,13 +2,13 @@
 import { css } from "@emotion/react";
 import React, { useEffect, useRef } from "react";
 import { Command, CommandInput } from "cmdk";
-import { useTranslation } from "react-i18next";
 
 import { useCommandMenuStore } from "../../stores/CommandMenuStore";
 import { useAutoFocusEnabled } from "../../hooks/useAutoFocusEnabled";
 import { Dialog } from "../ui_primitives";
 import ContextCommandGroups from "./ContextCommandGroups";
 import GlobalCommandGroups, { SwitchTabCommands } from "./GlobalCommandGroups";
+import { useTranslation } from "react-i18next";
 
 const styles = css({
   ".MuiDialog-paper": {
@@ -53,19 +53,14 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ children }) => {
       css={styles}
       aria-label={t("editor:ui.commandMenu", { defaultValue: "Command menu" })}
     >
-      <Command
-        label={t("editor:ui.commandMenuTitle", { defaultValue: "Command Menu" })}
-        className="command-menu"
-      >
+      <Command label={t("editor:ui.commandMenu", { defaultValue: "Command menu" })} className="command-menu">
         <CommandInput
           ref={input}
-          placeholder={t("editor:ui.typeACommandOrSearch", { defaultValue: "Type a command or search…" })}
+          placeholder={t("editor:ui.typeACommandOrSearch", { defaultValue: "Type a command or search" })}
           aria-label={t("editor:ui.commandMenuSearch", { defaultValue: "Command menu search" })}
         />
         <Command.List>
-          <Command.Empty>
-            {t("ui2:attrs.noResultsFound", { defaultValue: "No results found." })}
-          </Command.Empty>
+          <Command.Empty>{t("ui2:attrs.noResultsFound", { defaultValue: "No results found." })}</Command.Empty>
           <SwitchTabCommands />
           <ContextCommandGroups />
           {children}

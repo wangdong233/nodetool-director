@@ -70,3 +70,11 @@ Qwen-Image-3 Edit 收一到三张参考图,且**顺序有讲究** — 提示词�
 
 改编自 Runware 的 Qwen-Image-3.0 文字与排版指南:
 https://runware.ai/docs/models/alibaba-qwen-image-3-0/guides/text-and-typography
+
+路由级字段用 `search_nodes` 找到,`get_node_info` 读字段,`run_node` 运行。
+
+长度上限:Qwen-Image-3(`alibaba/qwen-image-3/*`)提示词 5000 字符、负面 500;`fal-ai/qwen-image-2/edit` 与 `qwen-image-max` 上限 800。
+
+旋钮拼写:`qwen-image-3.0` 与 `qwen-image-3.0-pro` 写作 `prompt_extend`;Replicate 的 `qwen/qwen-image`、`qwen/qwen-image-2512` 叫 `guidance`,`qwen/qwen-image` 另有默认关闭的 `enhance_prompt` 重写;部分 Replicate 编辑路由(`qwen/qwen-image-edit`、`-edit-plus`、`-edit-2511`)两个旋钮都没有。
+
+无旋钮的 Replicate 编辑路由:`qwen/qwen-image-edit-plus`、`qwen/qwen-image-edit-2511`。

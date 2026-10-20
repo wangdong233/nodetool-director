@@ -81,3 +81,11 @@ Veo 3 产出 4 到 8 秒带同步音频的片段:对口型的对白、环境效�
 
 改编自 fal 的 Veo 3 提示词指南:
 https://fal.ai/learn/devs/veo3-prompt-guide-master-google-video-generation
+
+生成走 `generate_video` / `animate_image` / `generate_video_from_references`,它们只转发提示词、媒体与分辨率。
+
+音频开关 `auto_fix`、种子、尾帧等字段只在该路由自己的节点上:用 `search_nodes` 找到,`get_node_info` 读字段,`run_node` 运行。每次运行都是付费生成,先确认范围。
+
+**音频是成本杠杆。** fal 与 Replicate 的 `generate_audio` 默认开,AtlasCloud 的 `google/veo3.1/*` 与 `google/veo3.1-fast/*` 默认关;AtlasCloud/Replicate 的 lite 路由与 kie 的 `veo-3-1` 无音频开关。fal 指南称关闭可省标准费用。
+
+fal 的 `fal-ai/veo3.1`(含 `/fast`、`/lite`)音频默认关。

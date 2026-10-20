@@ -4,7 +4,7 @@ import ReactDOM from "react-dom";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { css } from "@emotion/react";
-import CloseIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/CloseOutlined";
 import CodeIcon from "@mui/icons-material/Code";
 import TextFieldsIcon from "@mui/icons-material/TextFields";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
@@ -17,14 +17,14 @@ import SearchIcon from "@mui/icons-material/Search";
 import WrapTextIcon from "@mui/icons-material/WrapText";
 import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
 import DataObjectIcon from "@mui/icons-material/DataObject";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import TextDecreaseIcon from "@mui/icons-material/TextDecrease";
 import TextIncreaseIcon from "@mui/icons-material/TextIncrease";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import ChatBubbleIcon from "@mui/icons-material/ChatBubble";
-import { Tooltip, LoadingSpinner, MOTION, BORDER_RADIUS, SPACING, Z_INDEX, getSpacingPx, reducedMotion, SHADOW } from "../ui_primitives";
+import { Tooltip, InspectorSelect, LoadingSpinner, MOTION, BORDER_RADIUS, SPACING, Z_INDEX, getSpacingPx, reducedMotion, SHADOW, ResizeHandle } from "../ui_primitives";
 import { CodeHighlightNode, CodeNode } from "@lexical/code";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ListItemNode, ListNode } from "@lexical/list";
@@ -35,7 +35,6 @@ import type { editor as MonacoEditorNS } from "monaco-editor";
 import { debounce } from "../../utils/lodashAlternatives";
 import isEqual from "../../utils/isEqual";
 
-import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
 import { useGlobalCombo } from "../../stores/KeyPressedStore";
 import { useNotificationStore } from "../../stores/NotificationStore";
 
@@ -74,6 +73,7 @@ import {
 import { codeHighlightTheme } from "../textEditor/codeHighlightTheme";
 import { codeHighlightTokenStyles } from "../textEditor/codeHighlightStyles";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const initialConfigTemplate = {
   namespace: "TextEditorModal",
@@ -115,9 +115,9 @@ const LANGUAGES = [
 ] as const;
 
 const LANGUAGE_LABELS: Record<string, string> = {
-  "": "Plain Text",
-  plaintext: "Plain Text",
-  text: "Plain Text",
+  "": "Plain text",
+  plaintext: "Plain text",
+  text: "Plain text",
   markdown: "Markdown",
   javascript: "JavaScript",
   typescript: "TypeScript",
@@ -390,30 +390,6 @@ const styles = (theme: Theme) =>
         background: `rgba(${theme.vars.palette.common.whiteChannel} / 0.1)`
       }
     },
-    ".lang-select": {
-      appearance: "none",
-      WebkitAppearance: "none",
-      background: `rgba(${theme.vars.palette.background.paperChannel} / 0.5)`,
-      color: theme.vars.palette.text.secondary,
-      border: `1px solid rgba(${theme.vars.palette.common.whiteChannel} / 0.08)`,
-      borderRadius: BORDER_RADIUS.md,
-      padding: `${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.xxl)} ${getSpacingPx(SPACING.xs)} ${getSpacingPx(SPACING.lg)}`,
-      fontSize: "var(--fontSizeSmaller)",
-      fontWeight: 600,
-      outline: "none",
-      cursor: "pointer",
-      textTransform: "uppercase",
-      letterSpacing: "0.06em",
-      backgroundImage:
-        "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>\")",
-      backgroundRepeat: "no-repeat",
-      backgroundPosition: "right 0.55em center",
-      transition: MOTION.all,
-      "&:hover": {
-        color: theme.vars.palette.text.primary,
-        borderColor: `rgba(${theme.vars.palette.common.whiteChannel} / 0.18)`
-      }
-    },
     ".tool-btn": {
       display: "inline-flex",
       alignItems: "center",
@@ -662,38 +638,6 @@ const styles = (theme: Theme) =>
         background: `rgba(${theme.vars.palette.primary.mainChannel} / 0.1)`
       }
     },
-    ".resize-handle": {
-      position: "relative",
-      height: "18px",
-      width: "100%",
-      cursor: "row-resize",
-      backgroundColor: `rgba(${theme.vars.palette.background.defaultChannel} / 0.6)`,
-      borderTop: `1px solid rgba(${theme.vars.palette.common.whiteChannel} / 0.04)`,
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      transition: MOTION.all,
-      "&:hover": {
-        backgroundColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.05)`
-      },
-      "&:hover .resize-handle-thumb": {
-        backgroundColor: theme.vars.palette.primary.main,
-        width: "72px",
-        height: "4px",
-        boxShadow: `0 0 12px rgba(${theme.vars.palette.primary.mainChannel} / 0.35)`
-      }
-    },
-    ".resize-handle-thumb": {
-      position: "absolute",
-      width: "40px",
-      height: "3px",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      backgroundColor: `rgba(${theme.vars.palette.common.whiteChannel} / 0.15)`,
-      borderRadius: BORDER_RADIUS.pill,
-      transition: MOTION.all
-    },
     ".loading-container": {
       display: "flex",
       justifyContent: "center",
@@ -736,7 +680,7 @@ const styles = (theme: Theme) =>
         border: "none",
         animation: "none"
       },
-      ".resize-handle": { display: "none" },
+      ".modal-resize-handle": { display: "none" },
       ".breadcrumb": { display: "none" }
     }
   });
@@ -798,7 +742,7 @@ const TextEditorModal = ({
     }
   }, [isCodeEditor, loadMonacoIfNeeded]);
 
-  const { modalHeight, handleResizeMouseDown } = useModalResize({
+  const { modalHeight, resizeBy, minHeight, maxHeight } = useModalResize({
     storageKey: "textEditorModal_height"
   });
 
@@ -897,15 +841,25 @@ const TextEditorModal = ({
     [readOnly]
   );
 
+  // Callers pass inline onChange handlers, so the debounce reads the latest
+  // one through a ref instead of being recreated (and cancelled) per render.
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
   const debouncedExternalOnChange = useMemo(
     () =>
       debounce((text: string) => {
-        if (onChange) {
-          onChange(text);
-        }
+        onChangeRef.current?.(text);
       }, 300),
-    [onChange]
+    []
   );
+
+  // Declared before the undo-group effect so unmount sends the last edit
+  // before the group closes.
+  useEffect(() => {
+    return () => {
+      debouncedExternalOnChange.flush();
+    };
+  }, [debouncedExternalOnChange]);
 
   // Everything typed while the editor is open undoes as one step.
   const { begin: beginUndoGroup, end: endUndoGroup } = useUndoGroup();
@@ -1128,12 +1082,6 @@ const TextEditorModal = ({
     );
   }, [isCodeEditor, editorReady, currentText, includeSingle, language, monacoRef]);
 
-  useEffect(() => {
-    return () => {
-      debouncedExternalOnChange.cancel();
-    };
-  }, [debouncedExternalOnChange]);
-
   const { handleFind, handleReplace, handleNavigateNext, handleNavigatePrevious } =
     useEditorActions({
       setWordWrapEnabled,
@@ -1185,14 +1133,17 @@ const TextEditorModal = ({
   const typeLabel = propertyType
     ? TYPE_LABELS[propertyType] ?? propertyType
     : null;
-  // Resolve at render so zh lands (module map stays pure data). English
-  // matches the map key verbatim, so only "Plain Text" carries a key for now.
-  const languageLabel =
-    language === "plaintext" || language === "text" || language === ""
-      ? t("editor:ui.plainText", {
-          defaultValue: LANGUAGE_LABELS[language] ?? language
-        })
-      : (LANGUAGE_LABELS[language] ?? language);
+  const languageLabel = LANGUAGE_LABELS[language] ?? language;
+  // A language passed in from outside the list stays selectable, so the
+  // field never shows a value it has no option for.
+  const languageOptions = useMemo(
+    () =>
+      (LANGUAGES.includes(language as (typeof LANGUAGES)[number])
+        ? [...LANGUAGES]
+        : [language, ...LANGUAGES]
+      ).map((lang) => ({ value: lang, label: LANGUAGE_LABELS[lang] ?? lang })),
+    [language]
+  );
   const showVariablesPanel = variablesVisible && !focusMode;
   const showAssistant = assistantVisible && !focusMode;
 
@@ -1202,13 +1153,13 @@ const TextEditorModal = ({
       css={modalStyles}
     >
       <div
-        className={`modal-overlay ${isFullscreen ? "fullscreen" : ""}`}
+        className={`modal-overlay ${isFullscreen ? t("common:action.fullscreen", { defaultValue: "fullscreen" }) : ""}`}
         role="presentation"
         onClick={handleOverlayClick}
         ref={modalOverlayRef}
       >
         <div
-          className={`modal-content ${isFullscreen ? "fullscreen" : ""}`}
+          className={`modal-content ${isFullscreen ? t("common:action.fullscreen", { defaultValue: "fullscreen" }) : ""}`}
           role="dialog"
           aria-modal="true"
           style={
@@ -1243,7 +1194,6 @@ const TextEditorModal = ({
                 <div className="title-row">
                   {propertyDescription ? (
                     <Tooltip
-                      delay={TOOLTIP_ENTER_DELAY}
                       title={propertyDescription}
                     >
                       <h4 className="title">{propertyName}</h4>
@@ -1257,7 +1207,7 @@ const TextEditorModal = ({
             </div>
             <div className="actions">
               {!readOnly && (
-                <Tooltip delay={TOOLTIP_ENTER_DELAY} title={t("editor:ui.revertToOriginal", { defaultValue: "Revert to original" })}>
+                <Tooltip title={t("editor:ui.revertToOriginal", { defaultValue: "Revert to original" })}>
                   <button
                     type="button"
                     className="button"
@@ -1268,7 +1218,7 @@ const TextEditorModal = ({
                   </button>
                 </Tooltip>
               )}
-              <Tooltip delay={TOOLTIP_ENTER_DELAY} title={t("editor:ui.download", { defaultValue: "Download" })}>
+              <Tooltip title={t("editor:ui.download", { defaultValue: "Download" })}>
                 <button
                   type="button"
                   className="button"
@@ -1279,15 +1229,14 @@ const TextEditorModal = ({
                 </button>
               </Tooltip>
               <Tooltip
-                delay={TOOLTIP_ENTER_DELAY}
-                title={assistantVisible ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })}
+                title={assistantVisible ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })}
               >
                 <button
                   type="button"
                   className={`button ${assistantVisible ? "active" : ""}`}
                   onClick={toggleAssistantVisible}
                   aria-label={
-                    assistantVisible ? t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" }) : t("editor:ui.showAssistant", { defaultValue: "Show Assistant" })
+                    assistantVisible ? t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" }) : i18n.t("ui2:attrs.showAssistant", { defaultValue: "Show assistant" })
                   }
                 >
                   {assistantVisible ? (
@@ -1298,37 +1247,35 @@ const TextEditorModal = ({
                 </button>
               </Tooltip>
               <Tooltip
-                delay={TOOLTIP_ENTER_DELAY}
-                title={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : t("editor:ui.focusModeHidePanels", { defaultValue: "Focus mode (hide panels)" })}
+                title={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : i18n.t("editor:ui.focusModeHidePanels", { defaultValue: "Focus mode (hide panels)" })}
               >
                 <button
                   type="button"
                   className={`button ${focusMode ? "active" : ""}`}
                   onClick={() => setFocusMode((v) => !v)}
-                  aria-label={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : t("editor:ui.focusMode", { defaultValue: "Focus mode" })}
+                  aria-label={focusMode ? t("editor:ui.exitFocusMode", { defaultValue: "Exit focus mode" }) : i18n.t("editor:ui.focusMode", { defaultValue: "Focus mode" })}
                 >
                   {focusMode ? <OpenInFullIcon /> : <CloseFullscreenIcon />}
                 </button>
               </Tooltip>
               <Tooltip
-                delay={TOOLTIP_ENTER_DELAY}
-                title={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
+                title={isFullscreen ? t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
               >
                 <button
                   type="button"
                   className="button"
                   onClick={toggleFullscreen}
-                  aria-label={isFullscreen ? t("common:action.exitFullscreen", { defaultValue: "Exit Fullscreen" }) : t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
+                  aria-label={isFullscreen ? t("timeline:attrs.exitFullscreen", { defaultValue: "Exit fullscreen" }) : i18n.t("common:action.fullscreen", { defaultValue: "Fullscreen" })}
                 >
                   {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
                 </button>
               </Tooltip>
-              <Tooltip delay={TOOLTIP_ENTER_DELAY} title={t("editor:ui.closeEditorEsc", { defaultValue: "Close Editor | Esc" })}>
+              <Tooltip title={t("editor:ui.closeEditor", { defaultValue: "Close editor" })} shortcut={["Esc"]}>
                 <button
                   type="button"
                   className="button button-close"
                   onClick={onClose}
-                  aria-label={t("editor:ui.closeEditor", { defaultValue: "Close Editor" })}
+                  aria-label={t("editor:ui.closeEditor", { defaultValue: "Close editor" })}
                 >
                   <CloseIcon />
                 </button>
@@ -1341,11 +1288,9 @@ const TextEditorModal = ({
               <div className="toolbar-side">
                 {!readOnly && (
                   <Tooltip
-                    delay={TOOLTIP_ENTER_DELAY}
                     title={
                       isCodeEditor
-                        ? t("editor:ui.switchToRichText", { defaultValue: "Switch to Rich Text" })
-                        : t("editor:ui.switchToCodeEditor", { defaultValue: "Switch to Code Editor" })
+                        ? t("editor:ui.switchToRichText", { defaultValue: "Switch to rich text" }) : i18n.t("editor:ui.switchToCodeEditor", { defaultValue: "Switch to code editor" })
                     }
                   >
                     <button
@@ -1354,26 +1299,19 @@ const TextEditorModal = ({
                       onClick={handleToggleEditorMode}
                       aria-label={
                         isCodeEditor
-                          ? t("editor:ui.switchToRichText", { defaultValue: "Switch to Rich Text" })
-                          : t("editor:ui.switchToCodeEditor", { defaultValue: "Switch to Code Editor" })
+                          ? t("editor:ui.switchToRichText", { defaultValue: "Switch to rich text" }) : i18n.t("editor:ui.switchToCodeEditor", { defaultValue: "Switch to code editor" })
                       }
                     >
                       {isCodeEditor ? <TextFieldsIcon /> : <CodeIcon />}
                     </button>
                   </Tooltip>
                 )}
-                <select
-                  className="lang-select"
+                <InspectorSelect
+                  label={t("editor:ui.language", { defaultValue: "Language" })}
                   value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                  aria-label={t("editor:ui.language", { defaultValue: "Language" })}
-                >
-                  {LANGUAGES.map((lang) => (
-                    <option key={lang} value={lang}>
-                      {lang}
-                    </option>
-                  ))}
-                </select>
+                  options={languageOptions}
+                  onChange={setLanguage}
+                />
                 <span className="toolbar-divider" />
                 <button
                   type="button"
@@ -1381,7 +1319,7 @@ const TextEditorModal = ({
                   onClick={handleFindClick}
                 >
                   <SearchIcon />
-                  {t("editor:ui.find")}
+                  Find
                 </button>
                 {!readOnly && (
                   <button
@@ -1417,13 +1355,13 @@ const TextEditorModal = ({
                     onClick={handleInsertVarClick}
                   >
                     <AddIcon />
-                    {t("editor:ui.insertVar")}
+                    Insert var
                   </button>
                 )}
               </div>
               <div className="toolbar-side">
                 <div className="font-controls">
-                  <Tooltip delay={TOOLTIP_ENTER_DELAY} title={t("editor:ui.decreaseFontSize", { defaultValue: "Decrease font size" })}>
+                  <Tooltip title={t("editor:ui.decreaseFontSize", { defaultValue: "Decrease font size" })}>
                     <button
                       type="button"
                       className="button-ghost"
@@ -1434,7 +1372,7 @@ const TextEditorModal = ({
                     </button>
                   </Tooltip>
                   <span className="font-size-value">{fontSize}</span>
-                  <Tooltip delay={TOOLTIP_ENTER_DELAY} title={t("editor:ui.increaseFontSize", { defaultValue: "Increase font size" })}>
+                  <Tooltip title={t("editor:ui.increaseFontSize", { defaultValue: "Increase font size" })}>
                     <button
                       type="button"
                       className="button-ghost"
@@ -1581,7 +1519,7 @@ const TextEditorModal = ({
                     defaultWidth={360}
                     maxWidth={560}
                     enabled={!assistantStacks}
-                    ariaLabel={t("editor:ui.resizeTextEditorAssistant", { defaultValue: "Resize text editor assistant" })}
+                    ariaLabel={i18n.t("editor:ui.resizeTextEditorAssistant", { defaultValue: "Resize text editor assistant" })}
                   >
                   <div className="assistant-pane">
                     <div className="assistant-header">
@@ -1597,7 +1535,7 @@ const TextEditorModal = ({
                         </div>
                       </div>
                       <div className="assistant-head-actions">
-                        <Tooltip delay={TOOLTIP_ENTER_DELAY} title={t("editor:ui.newChat", { defaultValue: "New chat" })}>
+                        <Tooltip title={t("editor:ui.newChat", { defaultValue: "New chat" })}>
                           <button
                             type="button"
                             className="button-ghost"
@@ -1608,14 +1546,13 @@ const TextEditorModal = ({
                           </button>
                         </Tooltip>
                         <Tooltip
-                          delay={TOOLTIP_ENTER_DELAY}
-                          title={t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" })}
+                          title={t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" })}
                         >
                           <button
                             type="button"
                             className="button-ghost"
                             onClick={toggleAssistantVisible}
-                            aria-label={t("editor:ui.hideAssistant", { defaultValue: "Hide Assistant" })}
+                            aria-label={t("game:toolbar.hideAssistant", { defaultValue: "Hide assistant" })}
                           >
                             <ChevronRightIcon />
                           </button>
@@ -1627,8 +1564,7 @@ const TextEditorModal = ({
                       status={
                         runtime.status === "idle" ||
                         runtime.status === "stopping"
-                          ? "connected"
-                          : runtime.status
+                          ? "connected" : runtime.status
                       }
                       progress={runtime.progress.current}
                       total={runtime.progress.total}
@@ -1688,9 +1624,17 @@ const TextEditorModal = ({
               cursor={isCodeEditor ? cursor : null}
             />
           )}
-          <div className="resize-handle" onMouseDown={handleResizeMouseDown}>
-            <span className="resize-handle-thumb"></span>
-          </div>
+          <ResizeHandle
+            className="modal-resize-handle"
+            orientation="horizontal"
+            value={modalHeight}
+            min={minHeight}
+            max={maxHeight}
+            thickness={SPACING.md}
+            grip
+            ariaLabel="Resize text editor height"
+            onResize={resizeBy}
+          />
         </div>
       </div>
     </div>

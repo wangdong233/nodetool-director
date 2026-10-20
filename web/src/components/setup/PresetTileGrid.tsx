@@ -27,11 +27,12 @@
  */
 
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import { useTheme } from "@mui/material/styles";
 
 import {
   AudioPlayback,
+  AutoGrid,
   BORDER_RADIUS,
   Box,
   Caption,
@@ -43,7 +44,8 @@ import {
   ResponsiveImage,
   Text,
   Tooltip,
-  VideoPlayer
+  VideoPlayer,
+  focusRing
 } from "../ui_primitives";
 import type { MediaLocator } from "../../hooks/useResolvedMediaUri";
 import { GalleryExpandButton, MEDIA_GALLERY_HOST_CLASS } from "./MediaGallery";
@@ -154,6 +156,7 @@ const StillSample: React.FC<{
       alt=""
       aspectRatio={aspectRatio}
       borderRadius={BORDER_RADIUS.sm}
+      preferThumbnail
       showErrorFallback={false}
       onError={handleError}
     />
@@ -315,11 +318,16 @@ const FramedTile: React.FC<{
     <FlexColumn
       gap={GAP.none}
       onClick={handleFrameClick}
-      sx={setupCardSx(theme, {
-        selected: radio.selected,
-        disabled: preset.disabled,
-        padding: PADDING.none
-      })}
+      sx={{
+        ...setupCardSx(theme, {
+          selected: radio.selected,
+          disabled: preset.disabled,
+          padding: PADDING.none
+        }),
+        // The frame is not focusable itself; its select control is, so the
+        // ring goes on the frame whenever that control has keyboard focus.
+        "&:has(:focus-visible)": focusRing(theme, 2)
+      }}
     >
       <Box
         className={MEDIA_GALLERY_HOST_CLASS}
@@ -488,14 +496,11 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
     // in the grid so the last row is not ragged. A screen reader announces it
     // as the button it is; taking the radio group off the whole grid to keep
     // it out would cost every tile its selection semantics.
-    <Box
+    <AutoGrid
       role="radiogroup"
       aria-label={label}
-      sx={{
-        display: "grid",
-        gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${minColumnWidth}px), 1fr))`,
-        gap: GAP.comfortable
-      }}
+      minItemWidth={minColumnWidth}
+      gap={GAP.comfortable}
     >
       {kinds.map((entry) => renderTile(entry.preset, entry.kind))}
       {addOption !== null ? (
@@ -529,7 +534,7 @@ const PresetTileGridInternal: React.FC<PresetTileGridProps> = ({
           )}
         </SetupCardButton>
       )}
-    </Box>
+    </AutoGrid>
   );
 };
 

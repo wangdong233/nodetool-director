@@ -19,7 +19,6 @@
  */
 
 import React, { memo, useCallback, useMemo } from "react";
-import { i18n } from "../../i18n";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -30,7 +29,7 @@ import TextFieldsIcon from "@mui/icons-material/TextFields";
 import ViewInArIcon from "@mui/icons-material/ViewInAr";
 import LayersIcon from "@mui/icons-material/Layers";
 import DownloadIcon from "@mui/icons-material/Download";
-import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import {
   BORDER_RADIUS,
   CheckerDropzone,
@@ -95,6 +94,7 @@ import {
 import { resolveInlineMediaSource } from "../../utils/resolveMediaUri";
 import type { ResolvedMediaUrl } from "../../utils/resolveMediaUri";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -182,7 +182,7 @@ const styles = (theme: Theme) =>
         height: 24,
         padding: theme.spacing(SPACING.micro),
         backgroundColor: theme.vars.palette.c_scrim,
-        color: theme.vars.palette.grey[0],
+        color: theme.vars.palette.common.white,
         borderRadius: BORDER_RADIUS.sm,
         "&:hover": {
           backgroundColor: theme.vars.palette.c_scrim_strong
@@ -529,7 +529,7 @@ const VideoPreview: React.FC<{ value: unknown; nodeId: string }> = ({
   // nodrag/nopan keep ReactFlow from hijacking click-to-play and seek drag.
   return (
     <div className="video-preview nodrag nopan">
-      <VideoPlayer src={src} />
+      <VideoPlayer src={src} label={t("editor:ui.videoOutput", { defaultValue: "Video output" })} />
       {!suppressed && (
         <div className="video-preview-actions">
           <ToolbarIconButton
@@ -541,7 +541,7 @@ const VideoPreview: React.FC<{ value: unknown; nodeId: string }> = ({
             <DownloadIcon />
           </ToolbarIconButton>
           <ToolbarIconButton
-            title={t("editor:ui.saveToAssets", { defaultValue: "Save to Assets" })}
+            title={t("editor:ui.saveToAssets", { defaultValue: "Save to assets" })}
             size="small"
             onClick={handleAddToAssets}
             aria-label={t("editor:ui.saveVideoToAssets", { defaultValue: "Save video to assets" })}
@@ -639,12 +639,12 @@ const PreviewArea: React.FC<{
       );
     }
     const empty = {
-      image: { message: t("editor:nodeBody.runImage", { defaultValue: "Run to generate" }), icon: <ImageIcon /> },
-      video: { message: t("editor:nodeBody.runVideo", { defaultValue: "Run to generate video" }), icon: <MovieIcon /> },
-      text: { message: t("editor:nodeBody.runText", { defaultValue: "Run to generate text" }), icon: <TextFieldsIcon /> },
-      audio: { message: t("editor:nodeBody.runAudio", { defaultValue: "Run to generate audio" }), icon: <AudiotrackIcon /> },
-      model_3d: { message: t("editor:nodeBody.run3d", { defaultValue: "Run to generate 3D" }), icon: <ViewInArIcon /> },
-      generic: { message: t("editor:nodeBody.runModel", { defaultValue: "Run Model" }), icon: undefined }
+      image: { message: "Run to generate", icon: <ImageIcon /> },
+      video: { message: "Run to generate video", icon: <MovieIcon /> },
+      text: { message: "Run to generate text", icon: <TextFieldsIcon /> },
+      audio: { message: "Run to generate audio", icon: <AudiotrackIcon /> },
+      model_3d: { message: "Run to generate 3D", icon: <ViewInArIcon /> },
+      generic: { message: "Run model", icon: undefined }
     } satisfies Record<
       Exclude<ContentCardVariant, "image_mask">,
       { message: string; icon: React.ReactNode }
@@ -741,8 +741,10 @@ const ContentCardBodyInner: React.FC<ContentCardBodyProps> = ({
 
   const isDynamic = !!nodeMetadata.supports_dynamic_inputs;
   const supportsDynamicOutputs = !!nodeMetadata.supports_dynamic_outputs;
+  // A declared slot whose value was never set is still an input to show.
   const hasDynamicProps =
-    Object.keys(data.dynamic_properties ?? {}).length > 0;
+    Object.keys(data.dynamic_properties ?? {}).length > 0 ||
+    Object.keys(data.dynamic_inputs ?? {}).length > 0;
 
   // Two-pass field classification per field-classification.md:
   // 1. inlineFields: rendered as full editors in normal flow
@@ -934,6 +936,7 @@ const ContentCardBodyInner: React.FC<ContentCardBodyProps> = ({
           {supportsDynamicOutputs && (
             <AddDynamicOutputButton
               id={id}
+              nodeType={nodeMetadata.node_type}
               dynamicOutputs={data.dynamic_outputs ?? {}}
             />
           )}

@@ -129,7 +129,7 @@ export const ClipMidiSection: React.FC<ClipMidiSectionProps> = memo(
         <CollapsibleSection
           title={
             <InspectorSectionTitle
-              title="MIDI"
+              title={t("timeline:trackTypes.midi", { defaultValue: "MIDI" })}
               icon={<MusicNoteOutlinedIcon />}
             />
           }

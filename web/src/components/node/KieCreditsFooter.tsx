@@ -49,6 +49,7 @@ import {
 } from "../../utils/formatKieUnitPricing";
 import { isNumber } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /**
  * Format a kie node's actual last-run charge. Since #3426, `provider_cost.amount`
@@ -222,10 +223,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
         open={menuOpen}
         onClose={handleClose}
         placement={placement}
-        paperSx={{
-          minWidth: 220,
-          fontSize: "var(--fontSizeSmall)",
-        }}
+        paperSx={{ minWidth: 220 }}
       >
         {pricing ? (
           <>
@@ -238,11 +236,11 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   letterSpacing: "0.05em",
                 }}
               >
-                {t("editor:ui.kiePricing")}
+                KIE pricing
               </Caption>
               <Text
+                size="small"
                 sx={{
-                  fontSize: "var(--fontSizeSmall)",
                   mt: 0.5,
                   whiteSpace: "pre-line",
                   color: theme.vars.palette.text.secondary,
@@ -267,8 +265,8 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                 kie.ai
               </Caption>
               <Text
+                size="small"
                 sx={{
-                  fontSize: "var(--fontSizeSmall)",
                   mt: 0.5,
                   color: theme.vars.palette.text.secondary,
                 }}
@@ -290,14 +288,14 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
               letterSpacing: "0.05em",
             }}
           >
-            {t("editor:ui.accountCredits", { defaultValue: "Account credits" })}
+            Account credits
           </Caption>
           {creditsLoading ? (
             <FlexRow gap={1} align="center" sx={{ mt: 0.5 }}>
-              <LoadingSpinner size={12} />
+              <LoadingSpinner inline size={14} />
               <Text
+                size="small"
                 sx={{
-                  fontSize: "var(--fontSizeSmall)",
                   color: theme.vars.palette.text.secondary,
                 }}
               >
@@ -306,8 +304,8 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
             </FlexRow>
           ) : creditsData === "error" || creditsData === null ? (
             <Text
+              size="small"
               sx={{
-                fontSize: "var(--fontSizeSmall)",
                 color: theme.vars.palette.text.disabled,
                 mt: 0.5,
               }}
@@ -317,14 +315,14 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
           ) : creditsData.unavailable ? (
             <FlexColumn gap={0.5} sx={{ mt: 0.5 }}>
               <Text
+                size="small"
                 sx={{
-                  fontSize: "var(--fontSizeSmall)",
                   color: theme.vars.palette.warning.main,
                   lineHeight: 1.4,
                   wordBreak: "break-word",
                 }}
               >
-                {creditsData.detail ?? t("editor:ui.creditsUnavailable", { defaultValue: "Credits unavailable" })}
+                {creditsData.detail ?? i18n.t("editor:ui.creditsUnavailable", { defaultValue: "Credits unavailable" })}
               </Text>
               {kieCreditsDetailSuggestsKeysLink(creditsData.detail) && (
                 <ExternalLink
@@ -332,14 +330,14 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   iconVariant="launch"
                   size="small"
                 >
-                  {t("editor:ui.kieAiApiKeys", { defaultValue: "kie.ai API keys" })}
+                  kie.ai API keys
                 </ExternalLink>
               )}
             </FlexColumn>
           ) : (
             <Text
+              size="small"
               sx={{
-                fontSize: "var(--fontSizeSmall)",
                 fontWeight: 600,
                 color: theme.vars.palette.success.main,
                 mt: 0.5,
@@ -362,11 +360,11 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
                   letterSpacing: "0.05em",
                 }}
               >
-                {t("editor:ui.lastRun", { defaultValue: "Last run" })}
+                Last run
               </Caption>
               <Text
+                size="small"
                 sx={{
-                  fontSize: "var(--fontSizeSmall)",
                   fontWeight: 600,
                   color: theme.vars.palette.info.main,
                   mt: 0.5,
@@ -382,8 +380,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
 
         <MenuItemPrimitive
           label={t("editor:ui.viewPricingOnKieai", { defaultValue: "View pricing on kie.ai" })}
-          icon={<LaunchIcon sx={{ fontSize: 14 }} />}
-          compact
+          icon={<LaunchIcon />}
           onClick={() => {
             window.open(
               pricing ? kiePricingExternalUrl(pricing) : KIE_PRICING_URL,
@@ -396,8 +393,7 @@ const KieCreditsFooterInternal: React.FC<KieCreditsFooterProps> = ({
 
         <MenuItemPrimitive
           label={t("editor:ui.topUpCredits", { defaultValue: "Top up credits" })}
-          icon={<LaunchIcon sx={{ fontSize: 14 }} />}
-          compact
+          icon={<LaunchIcon />}
           onClick={() => {
             window.open(KIE_BILLING_URL, "_blank", "noopener,noreferrer");
             handleClose();

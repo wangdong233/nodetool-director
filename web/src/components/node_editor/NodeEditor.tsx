@@ -1,13 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import { memo, useCallback, useMemo, useState, useRef, useEffect } from "react";
 
-import {
-  LoadingSpinner,
-  Box,
-  BORDER_RADIUS,
-  Modal,
-  SPACING
-} from "../ui_primitives";
+import { LoadingSpinner, Box, Dialog } from "../ui_primitives";
 // store
 import useNodeMenuStore from "../../stores/NodeMenuStore";
 //css
@@ -67,24 +61,6 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ workflowId, active }) => {
   const editorBgStyle = useMemo<React.CSSProperties>(
     () => ({ backgroundColor: theme.vars.palette.c_editor_bg_color }),
     [theme.vars.palette.c_editor_bg_color]
-  );
-  const shortcutsModalSx = useMemo(
-    () => ({
-      position: "absolute" as const,
-      top: "250px",
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "80vw",
-      maxWidth: "1400px",
-      padding: SPACING.xl,
-      backgroundColor: theme.vars.palette.grey[800],
-      boxShadow: 24,
-      borderRadius: BORDER_RADIUS.lg,
-      border: 0,
-      outline: 0,
-      overflow: "hidden"
-    }),
-    [theme.vars.palette.grey]
   );
   /* USE STORE */
   const { isUploading } = useAssetUpload();
@@ -178,10 +154,10 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ workflowId, active }) => {
         >
           {isUploading && (
             <div className="loading-overlay">
-              <LoadingSpinner variant="circular" size="medium" /> Uploading assets…
+              <LoadingSpinner size="medium" text={t("ui2:attrs.uploadingAssets", { defaultValue: "Uploading assets" })} />
             </div>
           )}
-          <ReactFlowWrapper workflowId={workflowId} />
+          <ReactFlowWrapper workflowId={workflowId} active={active} />
           {active && (
             <>
               <SelectionActionToolbar
@@ -192,22 +168,15 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ workflowId, active }) => {
               <CommandMenu undo={undo} redo={redo} />
               <FindInWorkflowDialog workflowId={workflowId} />
               <WorkflowShareDialogHost />
-              <Modal
+              <Dialog
                 open={showShortcuts}
-                onClose={(_event, reason) => {
-                  if (reason === "backdropClick") {
-                    setShowShortcuts(false);
-                  }
-                }}
-                closeAfterTransition
-                aria-label={t("editor:ui.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
+                onClose={() => setShowShortcuts(false)}
+                title={t("editor:ui.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}
+                maxWidth="lg"
+                fullWidth
               >
-                <Box
-                  sx={shortcutsModalSx}
-                >
-                  <KeyboardShortcutsView shortcuts={NODE_EDITOR_SHORTCUTS} />
-                </Box>
-              </Modal>
+                <KeyboardShortcutsView shortcuts={NODE_EDITOR_SHORTCUTS} />
+              </Dialog>
             </>
           )}
         </Box>

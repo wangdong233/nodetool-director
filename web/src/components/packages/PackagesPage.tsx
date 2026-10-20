@@ -1,27 +1,24 @@
 import React, { memo } from "react";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
-import ManagerPageLayout from "../panels/ManagerPageLayout";
+import { PageLayout, ICON_SIZE } from "../ui_primitives";
 import PackageManager from "./PackageManager";
-import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /**
  * Full-screen Package Manager page: the unified installer (runtimes and node
  * packs) wrapped in the shared manager chrome (header + back button).
  */
-const PackagesPage: React.FC = () => {
-  const { t } = useTranslation();
-  return (
-  <ManagerPageLayout
-    icon={<Inventory2OutlinedIcon sx={{ fontSize: 22 }} />}
-    title={t("nav:rail.packages", { defaultValue: "Package Manager" })}
-    subtitle={t("editor:ui.installRuntimesAndNodePacksInOnePlace", { defaultValue: "Install runtimes and node packs in one place." })}
+const PackagesPage: React.FC = () => (
+  <PageLayout
+    icon={<Inventory2OutlinedIcon sx={{ fontSize: ICON_SIZE.lg }} />}
+    title={i18n.t("tools:packages.pageTitle", { defaultValue: "Package manager" })}
+    subtitle={i18n.t("editor:ui.installRuntimesAndNodePacksInOnePlace", { defaultValue: "Install runtimes and node packs in one place." })}
     docsTopic="nodePacks"
     padded={false}
   >
     <PackageManager />
-  </ManagerPageLayout>
-)
-  };
+  </PageLayout>
+);
 
 PackagesPage.displayName = "PackagesPage";
 

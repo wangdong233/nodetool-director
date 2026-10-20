@@ -18,8 +18,6 @@
  * anything; the one model call it can make is `Re-plan`.
  */
 
-import { useTranslation } from "react-i18next";
-import { i18n } from "../../../i18n";
 import React, {
   memo,
   useCallback,
@@ -28,6 +26,7 @@ import React, {
   useRef,
   useState
 } from "react";
+import AddIcon from "@mui/icons-material/AddOutlined";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -47,12 +46,15 @@ import {
   Caption,
   CONTROL,
   EditorButton,
+  FieldDensityContext,
   FlexColumn,
   FlexRow,
   GAP,
   LoadingSpinner,
   MOTION,
+  SPACING,
   Text,
+  TextArea,
   TextInput,
   TextLink,
   ThinkingIndicator,
@@ -63,15 +65,12 @@ import type { AutocompleteOption } from "../../ui_primitives";
 import useMetadataStore from "../../../stores/MetadataStore";
 import { openProviderOnboarding } from "../../../stores/ProviderOnboardingStore";
 import ReportBugButton from "../../support/ReportBugButton";
-import { PlanReview } from "../PlanReview";
-import {
-  EDITABLE_FIELD,
-  REVIEW_BLOCK,
-  REVIEW_CONTENT_WIDTH
-} from "../reviewStyles";
+import { PlanReview, PlanReviewHeading } from "../PlanReview";
+import { REVIEW_BLOCK, REVIEW_CONTENT_WIDTH } from "../reviewStyles";
 import type { PlanReviewSection } from "../PlanReview";
 import { MODEL_ROLE_ONBOARDING } from "./modelRoles";
-
+import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 export interface WorkflowReviewStepProps {
   plan: WorkflowSetupPlan;
@@ -105,7 +104,6 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
   roleLoading = () => false,
   error = null
 }) => {
-  const { t } = useTranslation();
   const metadata = useMetadataStore((state) => state.metadata);
 
   // Every type the registry has: the field is the fix for a step the planner
@@ -168,7 +166,7 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
     const next =
       target >= 0
         ? rootRef.current?.querySelector<HTMLElement>(
-            `[data-testid="remove-step-${target + 1}"]`
+            `button[aria-label="Delete step ${target + 1}"]`
           )
         : null;
     (next ?? addStepRef.current)?.focus();
@@ -227,13 +225,13 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
         ...plan.steps,
         {
           id: `step-${plan.steps.length + 1}-${Date.now()}`,
-          title: t("editor:ui.newStep", { defaultValue: "New step" }),
+          title: i18n.t("editor:ui.newStep", { defaultValue: "New step" }),
           summary: "",
           node_type: null
         }
       ]
     });
-  }, [onPlanChange, plan, t]);
+  }, [onPlanChange, plan]);
 
   // Inputs first, then the steps, then what comes out — the order the workflow
   // itself runs in (F32). The sample values are shown here and edited on the
@@ -243,38 +241,36 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
     () => [
       {
         id: "inputs",
-        header: t("editor:ui.inputs", { defaultValue: "Inputs" }),
-        subheader: t("setup:workflow.inputsSubheader", {
-          defaultValue:
-            "What the workflow is given when it runs. You set the sample values on the next step."
-        }),
+        header: "Inputs",
+        subheader:
+          i18n.t("setup:workflow.inputsSubheader", { defaultValue: "What the workflow is given when it runs. You set the sample values on the next step." }), subheaderKey: "setup:workflow.inputsSubheader",
         rows: plan.inputs.map((input, index) => ({
           id: `input-${index}`,
           label: `${input.name} (${input.type})`,
           value: String(input.sample ?? ""),
-          placeholder: t("editor:ui.noSampleYet", { defaultValue: "No sample yet" }),
+          placeholder: i18n.t("editor:ui.noSampleYet", { defaultValue: "No sample yet" }),
+          // A CSV or a list sample keeps its lines. On one line its rows ran
+          // together: "product,settingceramic mug,…".
+          multiline: String(input.sample ?? "").includes("\n"),
           readOnly: true,
           onChange: () => undefined
         }))
       }
     ],
-    [plan.inputs, t]
+    [plan.inputs]
   );
 
   const outputSections = useMemo<PlanReviewSection[]>(
     () => [
       {
         id: "outputs",
-        header: t("editor:ui.outputs", { defaultValue: "Outputs" }),
-        subheader: t("storyboard:attrs.whatItHandsBack", {
-          defaultValue: "What it hands back."
-        }),
+        header: "Outputs",
+        subheader: i18n.t("storyboard:attrs.whatItHandsBack", { defaultValue: "What it hands back." }), subheaderKey: "storyboard:attrs.whatItHandsBack",
         rows: plan.outputs.map((output, index) => ({
           id: `output-${index}`,
-          label: t("setup:workflow.outputN", {
-            defaultValue: "Output {{index}}",
-            index: index + 1
-          }),
+          label: `Output ${index + 1}`,
+          // One output needs no number. The section heading names it.
+          hideLabel: plan.outputs.length === 1,
           value: output.name,
           readOnly: replanPending,
           onChange: (value: string) =>
@@ -287,163 +283,189 @@ const ReviewStepInternal: React.FC<WorkflowReviewStepProps> = ({
         }))
       }
     ],
-    [onPlanChange, plan, replanPending, t]
+    [onPlanChange, plan, replanPending]
   );
 
   return (
-    <FlexColumn
-      ref={rootRef}
-      gap={GAP.spacious}
-      sx={{ width: "100%", maxWidth: REVIEW_CONTENT_WIDTH }}
-    >
-      <FlexColumn gap={GAP.tight}>
-        <Text size="big" component="h2">{t("storyboard:attrs.yourPlan", { defaultValue: "Your plan" })}</Text>
-        <Text size="normal" color="secondary">{t("storyboard:attrs.reviewThisPlanThenChooseModelsBeforeBuilding", { defaultValue: "Review this plan, then choose models before building." })}</Text>
-      </FlexColumn>
-
-      {replanPending ? (
-        <FlexRow gap={GAP.normal} align="center" wrap>
-          <ThinkingIndicator
-            label={t("storyboard:attrs.rePlanningTheSteps", {
-              defaultValue: "Re-planning the steps"
-            })}
-            announce
-          />
-          {onCancelReplan ? (
-            <EditorButton variant="text" onClick={onCancelReplan}>
-              {t("setup:workflow.stopRePlanning", { defaultValue: "Stop re-planning" })}
-            </EditorButton>
-          ) : null}
+    // The review is read far more than it is typed into, so its fields take
+    // the quiet compact look: still boxed, so they read as editable, but at
+    // control size on the page surface rather than as a stack of form fields.
+    <FieldDensityContext.Provider value="compact">
+      <FlexColumn
+        ref={rootRef}
+        gap={GAP.spacious}
+        sx={{ width: "100%", maxWidth: REVIEW_CONTENT_WIDTH }}
+      >
+        {/* Re-plan replaces the whole plan, so it sits with the plan's heading,
+          not under the last section. */}
+        <FlexRow gap={GAP.normal} align="flex-start" justify="space-between">
+          <FlexColumn gap={GAP.tight} sx={{ minWidth: 0 }}>
+            <Text size="big" component="h2">
+              Your plan
+            </Text>
+            <Text size="normal" color="secondary">
+              Review this plan, then choose models before building.
+            </Text>
+          </FlexColumn>
+          <EditorButton
+            variant="outlined"
+            onClick={onReplan}
+            disabled={replanPending}
+            sx={{ flexShrink: 0 }}
+          >
+            Re-plan
+          </EditorButton>
         </FlexRow>
-      ) : null}
 
-      {error ? (
-        <AlertBanner
-          severity="error"
-          role="alert"
-          action={
-            <ReportBugButton
-              context={{
-                source: "provider-call",
-                summary: "Workflow re-plan failed",
-                errorText: error
-              }}
-            />
-          }
-        >
-          {error}
-        </AlertBanner>
-      ) : null}
+        {replanPending ? (
+          <FlexRow gap={GAP.normal} align="center" wrap>
+            <ThinkingIndicator label={i18n.t("storyboard:attrs.rePlanningTheSteps", { defaultValue: "Re-planning the steps" })} announce />
+            {onCancelReplan ? (
+              <EditorButton variant="text" onClick={onCancelReplan}>
+                Stop re-planning
+              </EditorButton>
+            ) : null}
+          </FlexRow>
+        ) : null}
 
-      {planProblems.length > 0 ? (
-        <AlertBanner
-          severity="warning"
-          title={t("setup:workflow.thisPlanWouldFailWhenItRuns", {
-            defaultValue: "This plan would fail when it runs"
-          })}
-          action={
-            <EditorButton
-              variant="text"
-              onClick={onReplan}
-              disabled={replanPending}
-            >{t("storyboard:attrs.replan", { defaultValue: "Re-plan" })}</EditorButton>
-          }
-        >
-          <FlexColumn gap={GAP.tight}>
-            {planProblems.map((problem) => (
-              <Caption component="span" key={problem}>
-                {problem}
-              </Caption>
+        {error ? (
+          <AlertBanner
+            severity="error"
+            role="alert"
+            action={
+              <ReportBugButton
+                context={{
+                  source: "provider-call",
+                  summary: "Workflow re-plan failed",
+                  errorText: error
+                }}
+              />
+            }
+          >
+            {error}
+          </AlertBanner>
+        ) : null}
+
+        {planProblems.length > 0 ? (
+          <AlertBanner
+            severity="warning"
+            title={i18n.t("setup:workflow.thisPlanWouldFailWhenItRuns", { defaultValue: "This plan would fail when it runs" })}
+            action={
+              <EditorButton
+                variant="text"
+                onClick={onReplan}
+                disabled={replanPending}
+              >
+                Re-plan
+              </EditorButton>
+            }
+          >
+            <FlexColumn gap={GAP.tight}>
+              {planProblems.map((problem) => (
+                <Caption component="span" key={problem}>
+                  {problem}
+                </Caption>
+              ))}
+            </FlexColumn>
+          </AlertBanner>
+        ) : null}
+
+        {blocked.unknownNodeTypes > 0 ? (
+          <Caption color="secondary" component="p">
+            {blocked.unknownNodeTypes === 1
+              ? i18n.t("setup:workflow.oneStepNamesNoNode", { defaultValue: "1 step names no node this install has. Pick one below to continue." })
+              : `${blocked.unknownNodeTypes} steps name no node this install has. Pick one for each below to continue.`}
+          </Caption>
+        ) : null}
+
+        {blocked.missingProviders.length > 0 ? (
+          <Caption color="secondary" component="p">
+            {`No connected provider offers a ${blocked.missingProviders.join(" or a ")} model. Connect one below to continue.`}
+          </Caption>
+        ) : null}
+
+        {blocked.loadingRoles.length > 0 ? (
+          <FlexRow gap={GAP.normal} align="center">
+            <LoadingSpinner size="small" />
+            <Caption color="secondary" component="span">
+              {`Reading the ${blocked.loadingRoles.join(" and ")} models your providers offer…`}
+            </Caption>
+          </FlexRow>
+        ) : null}
+
+        {plan.inputs.length > 0 ? (
+          <PlanReview sections={inputSections} />
+        ) : null}
+
+        <FlexColumn gap={GAP.compact} component="section">
+          <PlanReviewHeading
+            header="Steps"
+            subheader="What runs, in order. Edit, reorder or remove any step."
+          />
+          {/* The blocks need air between them: the left rule says where a step
+          ends only if the next one does not start against it. */}
+          <FlexColumn
+            gap={GAP.normal}
+            component="ol"
+            sx={{
+              listStyle: "none",
+              m: 0,
+              p: 0,
+              "& li": { listStyle: "none" }
+            }}
+          >
+            {resolved.steps.map((entry, index) => (
+              <Box component="li" key={entry.step.id} sx={REVIEW_BLOCK}>
+                <StepRow
+                  entry={entry}
+                  nodeTitle={
+                    entry.step.node_type
+                      ? (metadata[entry.step.node_type]?.title ?? null)
+                      : null
+                  }
+                  index={index}
+                  stepCount={plan.steps.length}
+                  nodeTypeOptions={nodeTypeOptions}
+                  onChange={updateStep}
+                  onMove={moveStep}
+                  onRemove={removeStep}
+                  readOnly={replanPending}
+                  roleLoading={roleLoading}
+                />
+              </Box>
             ))}
           </FlexColumn>
-        </AlertBanner>
-      ) : null}
 
-      {blocked.unknownNodeTypes > 0 ? (
-        <Caption color="secondary" component="p">
-          {blocked.unknownNodeTypes === 1
-            ? t("setup:workflow.oneStepNamesNoNode", {
-                defaultValue:
-                  "1 step names no node this install has. Pick one below to continue."
-              })
-            : t("setup:workflow.countStepsNameNoNode", {
-                defaultValue:
-                  "{{count}} steps name no node this install has. Pick one for each below to continue.",
-                count: blocked.unknownNodeTypes
-              })}
-        </Caption>
-      ) : null}
+          {/* The next step goes where the list ends, drawn as the outline of one. */}
+          <EditorButton
+            ref={addStepRef}
+            variant="outlined"
+            fullWidth
+            startIcon={<AddIcon />}
+            onClick={addStep}
+            disabled={replanPending}
+            sx={{
+              borderStyle: "dashed",
+              justifyContent: "flex-start",
+              color: "text.secondary",
+              borderColor: "divider",
+              "&:hover": { borderStyle: "dashed", borderColor: "text.disabled" }
+            }}
+          >
+            Add a step
+          </EditorButton>
+        </FlexColumn>
 
-      {blocked.missingProviders.length > 0 ? (
-        <Caption color="secondary" component="p">
-          {t("setup:workflow.noConnectedProviderOffersRoles", {
-            defaultValue:
-              "No connected provider offers a {{roles}} model. Connect one below to continue.",
-            roles: blocked.missingProviders.join(" or a ")
-          })}
-        </Caption>
-      ) : null}
-
-      {blocked.loadingRoles.length > 0 ? (
-        <FlexRow gap={GAP.normal} align="center">
-          <LoadingSpinner size="small" />
-          <Caption color="secondary" component="span">
-            {t("setup:workflow.readingRoleModels", {
-              defaultValue:
-                "Reading the {{roles}} models your providers offer…",
-              roles: blocked.loadingRoles.join(" and ")
-            })}
-          </Caption>
-        </FlexRow>
-      ) : null}
-
-      {plan.inputs.length > 0 ? <PlanReview sections={inputSections} /> : null}
-
-      {/* The blocks need air between them: the left rule says where a step
-          ends only if the next one does not start against it. */}
-      <FlexColumn
-        gap={GAP.spacious}
-        component="ol"
-        sx={{ listStyle: "none", m: 0, p: 0, "& li": { listStyle: "none" } }}
-      >
-        {resolved.steps.map((entry, index) => (
-          <Box component="li" key={entry.step.id} sx={REVIEW_BLOCK}>
-            <StepRow
-              entry={entry}
-              index={index}
-              stepCount={plan.steps.length}
-              nodeTypeOptions={nodeTypeOptions}
-              onChange={updateStep}
-              onMove={moveStep}
-              onRemove={removeStep}
-              readOnly={replanPending}
-              roleLoading={roleLoading}
-            />
-          </Box>
-        ))}
+        <PlanReview sections={outputSections} />
       </FlexColumn>
-
-      <FlexRow gap={GAP.normal}>
-        <EditorButton
-          ref={addStepRef}
-          variant="outlined"
-          onClick={addStep}
-          disabled={replanPending}
-        >{t("storyboard:attrs.addAStep", { defaultValue: "Add a step" })}</EditorButton>
-      </FlexRow>
-
-      <PlanReview
-        sections={outputSections}
-        replanLabel={t("storyboard:attrs.replan", { defaultValue: "Re-plan" })}
-        onReplan={onReplan}
-        replanPending={replanPending}
-      />
-    </FlexColumn>
+    </FieldDensityContext.Provider>
   );
 };
 
 interface StepRowProps {
   entry: ResolvedWorkflowStep;
+  /** The node's display name from the registry, e.g. "Code". */
+  nodeTitle: string | null;
   index: number;
   stepCount: number;
   nodeTypeOptions: AutocompleteOption[];
@@ -463,6 +485,7 @@ interface StepRowProps {
 
 const StepRow: React.FC<StepRowProps> = ({
   entry,
+  nodeTitle,
   index,
   stepCount,
   nodeTypeOptions,
@@ -508,13 +531,14 @@ const StepRow: React.FC<StepRowProps> = ({
         </Text>
       </FlexRow>
 
-      <FlexColumn gap={GAP.normal} sx={{ flex: 1, minWidth: 0 }}>
+      <FlexColumn gap={GAP.comfortable} sx={{ flex: 1, minWidth: 0 }}>
         {/* The title is the field that edits it. A heading that repeated the
             title above the field that holds it made every step read twice. */}
         <FlexRow gap={GAP.normal} align="center">
+          {/* The title is the step's name, so it carries the weight the
+              description does not. */}
           <Box
             sx={{
-              ...EDITABLE_FIELD,
               flex: 1,
               minWidth: 0,
               "& .MuiInputBase-input": { fontWeight: 500 }
@@ -522,10 +546,7 @@ const StepRow: React.FC<StepRowProps> = ({
           >
             <TextInput
               compact
-              label={t("setup:workflow.stepNTitle", {
-                defaultValue: "Step {{index}} title",
-                index: index + 1
-              })}
+              label={`Step ${index + 1} title`}
               hideLabel
               value={step.title}
               disabled={readOnly}
@@ -538,80 +559,54 @@ const StepRow: React.FC<StepRowProps> = ({
             <ToolbarIconButton
               size="small"
               icon={<ArrowUpwardIcon fontSize="inherit" />}
-              tooltip={readOnly || index === 0 ? "" : t("editor:ui.moveUp", { defaultValue: "Move up" })}
+              tooltip={readOnly || index === 0 ? "" : "Move up"}
               onClick={() => onMove(index, -1)}
               disabled={readOnly || index === 0}
-              aria-label={t("setup:workflow.moveStepNUp", {
-                defaultValue: "Move step {{index}} up",
-                index: index + 1
-              })}
+              aria-label={`Move step ${index + 1} up`}
             />
             <ToolbarIconButton
               size="small"
               icon={<ArrowDownwardIcon fontSize="inherit" />}
-              tooltip={readOnly || index === stepCount - 1 ? "" : t("editor:ui.moveDown", { defaultValue: "Move down" })}
+              tooltip={readOnly || index === stepCount - 1 ? "" : "Move down"}
               onClick={() => onMove(index, 1)}
               disabled={readOnly || index === stepCount - 1}
-              aria-label={t("setup:workflow.moveStepNDown", {
-                defaultValue: "Move step {{index}} down",
-                index: index + 1
-              })}
+              aria-label={`Move step ${index + 1} down`}
             />
             <ToolbarIconButton
               size="small"
               icon={<DeleteOutlineIcon fontSize="inherit" />}
-              tooltip={readOnly ? "" : t("storyboard:attrs.removeStep", { defaultValue: "Remove step" })}
+              tooltip={readOnly ? "" : "Delete step"}
               onClick={() => onRemove(step.id)}
               disabled={readOnly}
-              data-testid={`remove-step-${index + 1}`}
-              aria-label={t("setup:workflow.removeStepN", {
-                defaultValue: "Remove step {{index}}",
-                index: index + 1
-              })}
+              aria-label={`Delete step ${index + 1}`}
             />
           </FlexRow>
         </FlexRow>
 
-        <Box sx={EDITABLE_FIELD}>
-          <TextInput
-            compact
-            label={t("setup:workflow.stepNDescription", {
-              defaultValue: "Step {{index}} description",
-              index: index + 1
-            })}
-            hideLabel
-            placeholder={t("storyboard:attrs.whatThisStepDoes", {
-              defaultValue: "What this step does"
-            })}
-            value={step.summary}
-            disabled={readOnly}
-            multiline
-            minRows={2}
-            onChange={(event) =>
-              onChange(step.id, { summary: event.target.value })
-            }
-          />
-        </Box>
+        <TextArea
+          compact
+          label={`Step ${index + 1} description`}
+          hideLabel
+          placeholder={i18n.t("storyboard:attrs.whatThisStepDoes", { defaultValue: "What this step does" })}
+          value={step.summary}
+          disabled={readOnly}
+          minRows={1}
+          onChange={(value) =>
+            onChange(step.id, { summary: value })
+          }
+        />
 
         {entry.unknownNodeType ? (
-          <AlertBanner severity="error" title={t("storyboard:attrs.noNodeForThisStep", { defaultValue: "No node for this step" })}>
+          <AlertBanner severity="error" title={i18n.t("storyboard:attrs.noNodeForThisStep", { defaultValue: "No node for this step" })}>
             <FlexColumn gap={GAP.normal}>
               <Caption component="span">
                 {step.node_type === null
-                  ? t("storyboard:attrs.thePlanCouldNotNameANodeForThisStepPickOne", { defaultValue: "The plan could not name a node for this step. Pick one." })
-                  : t("setup:workflow.nodeTypeNotInThisInstall", {
-                      defaultValue:
-                        '"{{type}}" is not a node type this install has. Pick one.',
-                      type: step.node_type
-                    })}
+                  ? i18n.t("storyboard:attrs.thePlanCouldNotNameANodeForThisStepPickOne", { defaultValue: "The plan could not name a node for this step. Pick one." }) : `"${step.node_type}" is not a node type this install has. Pick one.`}
               </Caption>
               <Autocomplete
                 options={nodeTypeOptions}
-                label={t("setup:workflow.nodeTypeForStepN", {
-                  defaultValue: "Node type for step {{index}}",
-                  index: index + 1
-                })}
-                placeholder={t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
+                label={`Node type for step ${index + 1}`}
+                placeholder={i18n.t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
                 disabled={readOnly}
                 onChange={(_event, value) => pickNodeType(value)}
               />
@@ -626,10 +621,7 @@ const StepRow: React.FC<StepRowProps> = ({
               <TextLink
                 asButton
                 aria-expanded={picking}
-                aria-label={t("setup:workflow.changeNode", {
-                  defaultValue: "Change node: {{type}}",
-                  type: step.node_type ?? ""
-                })}
+                aria-label={`Change node: ${step.node_type ?? ""}`}
                 aria-disabled={readOnly || undefined}
                 onClick={() => {
                   if (!readOnly) {
@@ -644,10 +636,21 @@ const StepRow: React.FC<StepRowProps> = ({
                   "&:hover, &:focus-visible": {
                     color: "primary.main",
                     textDecoration: "underline"
-                  }
+                  },
+                  "&:hover span, &:focus-visible span": { color: "inherit" }
                 }}
               >
-                {step.node_type}
+                {/* The name says what the step runs; the type id stays for the
+                    creator who knows the registry. */}
+                {nodeTitle ? (
+                  <Box
+                    component="span"
+                    sx={{ color: "text.secondary", mr: SPACING.md }}
+                  >
+                    {nodeTitle}
+                  </Box>
+                ) : null}
+                <span>{step.node_type}</span>
               </TextLink>
             </Caption>
             {/* The plan names a node the registry has — but not always the one
@@ -662,11 +665,8 @@ const StepRow: React.FC<StepRowProps> = ({
                     (option) => option.value === step.node_type
                   ) ?? null
                 }
-                label={t("setup:workflow.nodeTypeForStepN", {
-                  defaultValue: "Node type for step {{index}}",
-                  index: index + 1
-                })}
-                placeholder={t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
+                label={`Node type for step ${index + 1}`}
+                placeholder={i18n.t("storyboard:attrs.searchNodeTypes", { defaultValue: "Search node types" })}
                 disabled={readOnly}
                 onChange={(_event, value) => pickNodeType(value)}
               />
@@ -677,35 +677,23 @@ const StepRow: React.FC<StepRowProps> = ({
         {missingRole !== null ? (
           <AlertBanner
             severity="warning"
-            title={t("setup:workflow.noRoleProviderConnected", {
-              defaultValue: "No {{role}} provider connected",
-              role: missingRole
-            })}
+            title={`No ${missingRole} provider connected`}
             action={
               <EditorButton
                 variant="text"
                 onClick={() =>
                   openProviderOnboarding({
                     capability: MODEL_ROLE_ONBOARDING[missingRole],
-                    reason: i18n.t("setup:workflow.stepNNeedsARoleModel", {
-                      defaultValue:
-                        "Step {{index}} needs a {{role}} model.",
-                      index: index + 1,
-                      role: missingRole
-                    })
+                    reason: `Step ${index + 1} needs a ${missingRole} model.`
                   })
                 }
               >
-                {t("setup:workflow.connect", { defaultValue: "Connect" })}
+                Connect
               </EditorButton>
             }
           >
             <Caption component="span">
-              {t("setup:workflow.stepRunsOnRoleModel", {
-                defaultValue:
-                  "This step runs on a {{role}} model. Connect a provider that offers one.",
-                role: missingRole
-              })}
+              {`This step runs on a ${missingRole} model. Connect a provider that offers one.`}
             </Caption>
           </AlertBanner>
         ) : null}

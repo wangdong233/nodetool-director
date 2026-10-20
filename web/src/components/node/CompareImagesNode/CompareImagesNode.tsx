@@ -23,6 +23,7 @@ import { Slugify } from "../../../utils/TypeHandler";
 import { createImageUrl, ImageData } from "../../../utils/imageUtils";
 import { isObjectLike } from "../../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -228,7 +229,7 @@ const CompareImagesNode: React.FC<CompareImagesNodeProps> = (props) => {
           id={props.id}
           data={props.data}
           hasParent={hasParent}
-          metadataTitle="Compare Images"
+          metadataTitle={i18n.t("editor:asset.compareImages", { defaultValue: "Compare Images" })}
           selected={props.selected}
           iconType="image"
           iconBaseColor={theme.vars.palette.primary.main}

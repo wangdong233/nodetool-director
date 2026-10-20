@@ -1,10 +1,10 @@
 import type { MouseEvent } from "react";
 
 import {
-  Text,
   Divider,
   ContextMenu,
-  MenuItem, getSpacingPx, SPACING
+  ListSubheader,
+  MenuItemPrimitive
 } from "../ui_primitives";
 import ContextMenuItem from "./ContextMenuItem";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
@@ -31,7 +31,7 @@ const AssetGridContextMenu = () => {
 
   const withMenuClose =
     (action: () => void) =>
-    (event?: MouseEvent<HTMLElement>) => {
+    (event?: MouseEvent) => {
       event?.stopPropagation();
       action();
       closeContextMenu();
@@ -50,38 +50,37 @@ const AssetGridContextMenu = () => {
       open={menuPosition !== null}
       onContextMenu={(event) => event.preventDefault()}
       onClose={closeContextMenu}
-      style={{ padding: getSpacingPx(SPACING.xl) }}
       position={menuPosition}
     >
-      <MenuItem disabled>
-        <Text className="title">
-          Folder: {currentFolder?.name || "ASSETS"}
-        </Text>
-      </MenuItem>
-      <Divider />
+      <ListSubheader className="title">
+        Folder: {currentFolder?.name || "ASSETS"}
+      </ListSubheader>
       <ContextMenuItem
         onClick={handleCreateFolder}
         label={t("editor:asset.createNewFolder", { defaultValue: "Create new folder" })}
         IconComponent={<CreateNewFolderIcon />}
-        tooltip={t("editor:asset.createFolderInTip", { defaultValue: "Create a new folder in '{{name}}'", name: currentFolder?.name || "ASSETS" })}
+        tooltip={`Create a new folder in '${currentFolder?.name || "ASSETS"}' `}
       />
       <Divider />
-      <ContextMenuItem
+      <MenuItemPrimitive
         onClick={handleSortByName}
-        label={`${t("editor:asset.sortName", { defaultValue: "Sort by name" })}${assetsOrder === "name" ? " ✓" : ""}`}
-        IconComponent={<SortByAlphaIcon />}
+        label={t("editor:asset.sortName", { defaultValue: "Sort by name" })}
+        selected={assetsOrder === "name"}
+        icon={<SortByAlphaIcon />}
         tooltip={t("editor:asset.sortByName", { defaultValue: "Sort assets by name" })}
       />
-      <ContextMenuItem
+      <MenuItemPrimitive
         onClick={handleSortByDate}
-        label={`${t("editor:asset.sortDate", { defaultValue: "Sort by date" })}${assetsOrder === "date" ? " ✓" : ""}`}
-        IconComponent={<AccessTimeIcon />}
+        label={t("editor:asset.sortDate", { defaultValue: "Sort by date" })}
+        selected={assetsOrder === "date"}
+        icon={<AccessTimeIcon />}
         tooltip={t("editor:asset.sortByDate", { defaultValue: "Sort assets by creation date" })}
       />
-      <ContextMenuItem
+      <MenuItemPrimitive
         onClick={handleSortBySize}
-        label={`${t("editor:asset.sortSize", { defaultValue: "Sort by size" })}${assetsOrder === "size" ? " ✓" : ""}`}
-        IconComponent={<StorageIcon />}
+        label={t("editor:asset.sortSize", { defaultValue: "Sort by size" })}
+        selected={assetsOrder === "size"}
+        icon={<StorageIcon />}
         tooltip={t("editor:asset.sortBySize", { defaultValue: "Sort assets by file size" })}
       />
     </ContextMenu>

@@ -121,23 +121,23 @@ interface TaskUpdateDisplayProps {
 const getEventDisplayText = (event: string): string => {
   switch (event) {
     case "task_created":
-      return "Task Created";
+      return "Task created";
     case "step_started":
-      return "Step Started";
+      return "Step started";
     case "entered_conclusion_stage":
-      return "Entering Conclusion";
+      return "Entering conclusion";
     case "max_iterations_reached":
-      return "Max Iterations Reached";
+      return "Max iterations reached";
     case "max_tool_calls_reached":
-      return "Max Tool Calls Reached";
+      return "Max tool calls reached";
     case "step_completed":
-      return "Step Completed";
+      return "Step completed";
     case "step_failed":
-      return "Step Failed";
+      return "Step failed";
     case "task_completed":
-      return "Task Completed";
+      return "Task completed";
     case "task_failed":
-      return "Task Failed";
+      return "Task failed";
     default:
       return event.replace(/_/g, " ");
   }
@@ -163,7 +163,7 @@ const TaskUpdateDisplay: React.FC<TaskUpdateDisplayProps> = ({
     <div className="task-update-container noscroll" css={cssStyles}>
       <div className="task-header">
         <Text className="task-animated-heading">
-          Agent Task
+          Agent task
         </Text>
         <span className="task-event-badge">
           {getEventDisplayText(taskUpdate.event)}
@@ -185,7 +185,7 @@ const TaskUpdateDisplay: React.FC<TaskUpdateDisplayProps> = ({
 
       {task?.steps && task.steps.length > 0 && (
         <Box className="steps-section">
-          <Text className="steps-header">{t("ui2:attrs.executionPlan", { defaultValue: "Execution Plan" })}</Text>
+          <Text className="steps-header">{t("ui2:attrs.executionPlanLower", { defaultValue: "Execution plan" })}</Text>
           {task.steps.map((step, idx) => {
             const isCurrent =
               currentStep &&

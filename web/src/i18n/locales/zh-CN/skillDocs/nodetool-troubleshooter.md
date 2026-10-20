@@ -210,13 +210,7 @@ nodetool generations reconcile <generation_id>   # ask the provider what it bill
 
 **症状**: 401、403、"API key invalid"、"authentication failed"
 
-**修法**:
-```bash
-# Store key
-nodetool secrets store OPENAI_API_KEY
-# Or via environment
-export OPENAI_API_KEY=sk-...
-```
+**修法**: 调 `list_secrets` 看哪些密钥已设,再对缺失的名字调 `request_secret`。它会打开对话框让用户输入值,所以绝不在聊天里要密钥。有 shell 时,用户可以运行 `nodetool secrets store OPENAI_API_KEY`,或改为 export 该变量。
 
 **服务商密钥名**: `OPENAI_API_KEY`、`ANTHROPIC_API_KEY`、`GEMINI_API_KEY`、`HF_TOKEN`、`FAL_API_KEY`
 
@@ -241,14 +235,29 @@ export OPENAI_API_KEY=sk-...
 - 用更小的模型变体
 - Docker: 调高 `--memory` 上限
 
+## 服务器返回 401
+
+**症状**: UI 能加载,但 API 或 WebSocket 调用报 `401`,或客户端收到 "Remote access requires authentication"。
+
+服务器只凭 `SUPABASE_URL` 和 `SUPABASE_KEY` 决定鉴权模式,既不读 `AUTH_PROVIDER` 也不读 `NODETOOL_SERVER_MODE`。
+
+| 模式 | 开启条件 | 接受的凭证 |
+|------|------------|----------------------|
+| Local | 默认,Supabase 变量未设 | 回环连接以用户 `"1"` 运行、免令牌。`NODETOOL_TRUST_LOCALHOST=false` 关掉它。`NODETOOL_TRUST_LOCAL_NETWORKS` 里的来源(逗号分隔的 CIDR)同样以用户 `"1"` 免令牌运行。等于 `SERVER_AUTH_TOKEN` 的 bearer 以用户 `"1"` 运行。`nodetool deploy users-add` 签发的令牌以该 API 用户运行。其余一律 `401`。 |
+| Supabase | `SUPABASE_URL` 和 `SUPABASE_KEY` 都已设 | 每个非公开请求都要有效的 Supabase JWT。`SERVER_AUTH_TOKEN`、`NODETOOL_TRUST_LOCAL_NETWORKS` 和 API 用户令牌被忽略。回环只在 `NODETOOL_TRUST_LOCALHOST=true` 时受信。 |
+
+两种模式下,在 **Settings → MCP → Connect an agent remotely** 创建的访问令牌(`ntk_…`)以创建者的身份鉴权。令牌以 `Authorization: Bearer <token>` 发送。无法设置请求头的 WebSocket 客户端在 `/ws` URL 上传 `?api_key=<token>`。
+
+Docker 里,发布端口来自网桥网关而非回环,所以 Local 模式拒绝它,直到该网段进入 `NODETOOL_TRUST_LOCAL_NETWORKS` 或客户端带上令牌。配置步骤见 `nodetool-deployment`。
+
 ## 部署失败
 
 **症状**: 部署命令失败、服务器起不来
 
-**检查**:
-1. `deployment.yaml` 语法(是合法 YAML 吗?)
-2. 必需环境变量都设了吗?(`NODETOOL_ENV`、`AUTH_PROVIDER`、`SECRETS_MASTER_KEY`)
-3. Docker 在跑吗?(`docker ps`)
+**检查**(用户在自己的 shell 里运行):
+1. `nodetool deploy show <name>` 不发远程调用地解析 `deployment.yaml`
+2. `apply` 之前先 `nodetool deploy plan <name>`
+3. 宿主机上 Docker 在跑吗?(`docker ps`)
 4. 端口被占?(`lsof -i :7777`)
 5. 卷挂载路径存在吗?
 6. SSH 密钥权限对吗?(600)
@@ -262,16 +271,10 @@ Input → Preview(1) → Transform → Preview(2) → LLM → Preview(3) → Out
 在每个阶段加 Preview 节点,定位数据在哪一环断掉。
 
 ## 查日志
-```bash
-# Desktop app logs
-ls ~/.nodetool/logs/
 
-# CLI verbose mode (logging is controlled by an env var, not a serve flag)
-NODETOOL_LOG_LEVEL=debug nodetool serve
+桌面应用把 `nodetool.log` 写到 macOS 与 Linux 的 `~/.local/share/nodetool/logs/`,Windows 的 `%LOCALAPPDATA%\nodetool\logs\`。
 
-# Browser DevTools
-# View → Developer Tools → Console tab
-```
+在用户的 shell 里,`NODETOOL_LOG_LEVEL=debug nodetool serve` 以详细日志启动服务器。日志级别由该环境变量控制,不是 `serve` 的开关。浏览器报错看 DevTools 控制台(View → Developer Tools)。
 
 ## 导出 JSON
 把工作流导出为 JSON(`File → Export`)检查:
@@ -311,3 +314,20 @@ wscat -c ws://localhost:7777/ws
 4. **查日志** —— 服务器日志有完整堆栈
 5. **卡住就重启** —— 杀服务器,清缓存,重启
 6. **降低复杂度** —— 先用最小工作流测通,再加节点
+
+日志:`nodetool.runs.logs(run_id, {span_id, include_content: true})`。
+
+| 症状 | 首选 | 深挖 | 技能 |
+| 时间线:长度不对、缺片段、字体错 | `validate_timeline` | `timeline debug` | `timeline-edit-ops` |
+
+- [ ] **API 密钥**:`list_secrets` 查已配置的密钥。
+
+类型不匹配:插一个转换节点(`search_nodes` 按类型对查找)或 `nodetool.code.Code` 节点手转。
+
+密钥修复:`list_secrets` 看已设键,再 `request_secret` 让用户录入,或 `nodetool secrets store OPENAI_API_KEY`/导出环境变量。
+
+来自 NodeTool 服务器本身(非服务商)的 `401` 是服务端鉴权:云端模型 id 以 `find_model`/`list_provider_models` 为准,不要凭记忆;服务器只看 `SUPABASE_URL` 与 `SUPABASE_KEY` 选鉴权模式,不读 `AUTH_PROVIDER` 与 `NODETOOL_SERVER_MODE`。本地默认回环以用户 `"1"` 免令牌;`NODETOOL_TRUST_LOCALHOST=false`/`NODETOOL_TRUST_LOCAL_NETWORKS` 收紧;`SERVER_AUTH_TOKEN` 可设,`nodetool deploy users-add` 建用户;`NODETOOL_TRUST_LOCALHOST=true` 放开。令牌(`ntk_…`)以 `Authorization: Bearer <token>` 传递,WebSocket 在 `/ws` 上带 `?api_key=<token>`。配置步骤见 `nodetool-deployment`;`nodetool deploy show <name>` 本地解析,`nodetool deploy plan <name>` 在 `apply` 前预演。
+
+日志:桌面端在 macOS/Linux 写 `~/.local/share/nodetool/logs/nodetool.log`,Windows 写 `%LOCALAPPDATA%\nodetool\logs\`;用户 shell 里 `NODETOOL_LOG_LEVEL=debug nodetool serve` 起详细日志服务(由环境变量控制,非 `serve` 标志)。
+
+桌面端日志 `nodetool.log`:macOS/Linux 在 `~/.local/share/nodetool/logs/`,Windows 在 `%LOCALAPPDATA%\nodetool\logs\`。

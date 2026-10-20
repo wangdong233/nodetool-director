@@ -9,35 +9,47 @@ import SearchOffIcon from "@mui/icons-material/SearchOff";
 import FolderOffIcon from "@mui/icons-material/FolderOff";
 import CloudOffIcon from "@mui/icons-material/CloudOff";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import { useTranslation } from "react-i18next";
+import { SPACING, getSpacingPx } from "./spacing";
+import { TYPOGRAPHY } from "./tokens";
 
-const styles = (theme: Theme, size: string) =>
+const ICON_SIZE = { small: 32, medium: 48, large: 64 } as const;
+
+const PADDING_BY_SIZE = {
+  small: SPACING.md,
+  medium: SPACING.xl,
+  large: SPACING.xxl
+} as const;
+
+const styles = (theme: Theme, size: EmptyStateSize) =>
   css({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    padding: size === "small" ? theme.spacing(2) : size === "large" ? theme.spacing(6) : theme.spacing(4),
+    gap: getSpacingPx(SPACING.md),
+    padding: getSpacingPx(PADDING_BY_SIZE[size]),
     textAlign: "center",
-    ".empty-icon": {
+    // Any icon, a variant default or one passed in, takes the size's icon size.
+    "& > svg:first-of-type": {
       color: theme.vars.palette.text.disabled,
-      marginBottom: theme.spacing(2),
-      fontSize: size === "small" ? 40 : size === "large" ? 80 : 60
+      fontSize: ICON_SIZE[size],
+      marginBottom: getSpacingPx(SPACING.xs)
     },
     ".empty-title": {
-      color: theme.vars.palette.text.primary,
-      marginBottom: theme.spacing(1),
-      fontWeight: 500
+      ...(size === "small" ? TYPOGRAPHY.sans.label : TYPOGRAPHY.sans.title),
+      color: theme.vars.palette.text.primary
     },
     ".empty-description": {
+      ...(size === "small" ? TYPOGRAPHY.sans.caption : TYPOGRAPHY.sans.body),
       color: theme.vars.palette.text.secondary,
-      maxWidth: 400,
-      marginBottom: theme.spacing(2)
+      maxWidth: 400
     },
     ".empty-action": {
-      marginTop: theme.spacing(1)
+      marginTop: getSpacingPx(SPACING.md)
     }
   });
+
+type EmptyStateSize = "small" | "medium" | "large";
 
 export type EmptyStateVariant = "empty" | "no-results" | "no-data" | "offline" | "error";
 
@@ -55,7 +67,7 @@ export interface EmptyStateProps {
   /** Action button callback */
   onAction?: () => void;
   /** Size of the empty state */
-  size?: "small" | "medium" | "large";
+  size?: EmptyStateSize;
   /** Custom class name */
   className?: string;
 }
@@ -63,48 +75,32 @@ export interface EmptyStateProps {
 const defaultContent = {
   empty: {
     icon: <InboxIcon className="empty-icon" />,
-    title: "Nothing here yet",
-    titleKey: "editor:ui.nothingHereYet",
-    description: "Get started by creating your first item.",
-    descriptionKey: "editor:ui.getStartedByCreatingFirstItem"
+    title: "Nothing here yet", titleKey: "editor:ui.nothingHereYet",
+    description: "Get started by creating your first item.", descriptionKey: "editor:ui.getStartedByCreatingFirstItem",
   },
   "no-results": {
     icon: <SearchOffIcon className="empty-icon" />,
-    title: "No results found",
-    titleKey: "editor:ui.noResultsFound",
-    description: "Try adjusting your search or filters.",
-    descriptionKey: "editor:ui.tryAdjustingSearchOrFilters"
+    title: "No results found", titleKey: "editor:ui.noResultsFound",
+    description: "Try adjusting your search or filters.", descriptionKey: "editor:ui.tryAdjustingSearchOrFilters",
   },
   "no-data": {
     icon: <FolderOffIcon className="empty-icon" />,
-    title: "No data available",
-    titleKey: "editor:ui.noDataAvailable",
-    description: "Data will appear here when available.",
-    descriptionKey: "editor:ui.dataWillAppearWhenAvailable"
+    title: "No data available", titleKey: "editor:ui.noDataAvailable",
+    description: "Data will appear here when available.", descriptionKey: "editor:ui.dataWillAppearWhenAvailable",
   },
   offline: {
     icon: <CloudOffIcon className="empty-icon" />,
-    title: "You're offline",
-    titleKey: "editor:ui.youAreOffline",
-    description: "Check your internet connection and try again.",
-    descriptionKey: "editor:ui.checkInternetAndRetry"
+    title: "You're offline", titleKey: "editor:ui.youAreOffline",
+    description: "Check your internet connection and try again.", descriptionKey: "editor:ui.checkInternetAndRetry",
   },
   error: {
     icon: <ErrorOutlineIcon className="empty-icon" />,
-    title: "Something went wrong",
-    titleKey: "editor:ui.somethingWentWrong",
-    description: "An error occurred. Please try again.",
-    descriptionKey: "editor:explorer.errorGeneric"
+    title: "Something went wrong", titleKey: "editor:ui.somethingWentWrong",
+    description: "An error occurred. Please try again.", descriptionKey: "editor:explorer.errorGeneric",
   }
 } satisfies Record<
   EmptyStateVariant,
-  {
-    icon: React.ReactNode;
-    title: string;
-    titleKey?: string;
-    description: string;
-    descriptionKey?: string;
-  }
+  { icon: React.ReactNode; title: string; description: string; titleKey?: string; descriptionKey?: string }
 >;
 
 export const EmptyState: React.FC<EmptyStateProps> = memo(({
@@ -117,23 +113,14 @@ export const EmptyState: React.FC<EmptyStateProps> = memo(({
   size = "medium",
   className
 }) => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const defaults = defaultContent[variant];
 
   const displayIcon = icon || defaults.icon;
-  const displayTitle =
-    title ||
-    ("titleKey" in defaults && defaults.titleKey
-      ? t(defaults.titleKey, { defaultValue: defaults.title })
-      : defaults.title);
-  const displayDescription =
-    description ||
-    ("descriptionKey" in defaults && defaults.descriptionKey
-      ? t(defaults.descriptionKey, {
-          defaultValue: defaults.description
-        })
-      : defaults.description);
+  const displayTitle = title || defaults.title;
+  // The variant's description belongs to the variant's title. A caller with
+  // its own title gets only the description it passes.
+  const displayDescription = description || (title ? undefined : defaults.description);
 
   const titleVariant = size === "small" ? "body1" : size === "large" ? "h5" : "h6";
   const descriptionVariant = size === "small" ? "caption" : "body2";

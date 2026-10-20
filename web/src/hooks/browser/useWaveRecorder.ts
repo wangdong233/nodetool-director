@@ -94,7 +94,7 @@ export function useWaveRecorder({
           const fallbackLabel =
             device.label ||
             (device.deviceId === "default"
-              ? "System default input"
+              ? i18n.t("editor:ui.systemDefaultInput", { defaultValue: "System default input" })
               : `Microphone ${index + 1}`);
           return {
             deviceId: normalizedDeviceId,

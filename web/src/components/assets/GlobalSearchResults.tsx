@@ -1,8 +1,8 @@
 /** @jsxImportSource @emotion/react */
 import { css } from "@emotion/react";
 import React, { useCallback, memo, useMemo, useRef, useEffect } from "react";
-import { EditorButton, Text, Tooltip, Box, MOTION, BORDER_RADIUS, getSpacingPx, SPACING } from "../ui_primitives";
-import FolderIcon from "@mui/icons-material/Folder";
+import { EditorButton, Text, Tooltip, Box, MOTION, BORDER_RADIUS, getSpacingPx, SPACING, EmptyState, LoadingSpinner } from "../ui_primitives";
+import FolderIcon from "@mui/icons-material/FolderOutlined";
 import NavigateIcon from "@mui/icons-material/NavigateNext";
 import { AssetWithPath } from "../../stores/ApiTypes";
 import { useAssetSelection } from "../../hooks/assets/useAssetSelection";
@@ -13,8 +13,6 @@ import { IconForType } from "../../config/IconForType";
 import { getAssetCategory } from "./assetGridUtils";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useAssetSearch } from "../../serverState/useAssetSearch";
-import { systemPresetAssetInfo } from "../../serverState/useEntities";
-import { resolveStaticMediaUri } from "../../utils/resolveMediaUri";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import {
@@ -188,10 +186,6 @@ const styles = (theme: Theme) =>
       height: "200px",
       color: theme.vars.palette.grey[400],
       fontSize: theme.fontSizeNormal
-    },
-    "@keyframes spin": {
-      "0%": { transform: "rotate(0deg)" },
-      "100%": { transform: "rotate(360deg)" }
     }
   });
 
@@ -238,15 +232,6 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
     };
   }, []);
 
-  const flexCenterStyle = useMemo(() => ({ display: "flex", alignItems: "center", gap: getSpacingPx(SPACING.md) }), []);
-  const spinnerStyle = useMemo(() => ({
-    width: "20px",
-    height: "20px",
-    border: "2px solid " + "var(--palette-grey-500)",
-    borderTop: "2px solid var(--palette-grey-100)",
-    borderRadius: BORDER_RADIUS.circle,
-    animation: `spin ${MOTION.spin} infinite`
-  }), []);
 
   const handleContextMenu = useCallback(
     (event: React.MouseEvent, assetId?: string) => {
@@ -388,12 +373,12 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
         <div className="global-search-results-container search-results-container">
           <div className="global-search-results-header search-results-header">
             <Text className="global-search-results-title search-results-title">
-              {t("editor:ui.searchResults", { defaultValue: "Search Results" })}
+              Search results
             </Text>
             <Text className="global-search-results-count search-results-count">
               {isSearching
-                ? t("editor:ui.searchingFor", { defaultValue: "Searching for \"{{query}}\"…", query: globalSearchQuery })
-                : t("editor:ui.noResultsFor", { defaultValue: "No results for \"{{query}}\"", query: globalSearchQuery })}
+                ? `Searching for "${globalSearchQuery}"…`
+                : `No results for "${globalSearchQuery}"`}
             </Text>
           </div>
           <div
@@ -401,17 +386,13 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
             data-testid="global-search-no-results"
           >
             {isSearching ? (
-              <div
-                style={flexCenterStyle}
-              >
-                <div
-                  className="search-spinner"
-                  style={spinnerStyle}
-                ></div>
-                <Text>{t("editor:ui.searching2", { defaultValue: "Searching…" })}</Text>
-              </div>
+              <LoadingSpinner size="small" text="Searching" />
             ) : (
-              <Text>{t("ui2:attrs.noAssetsFoundMatchingYourSearch", { defaultValue: "No assets found matching your search." })}</Text>
+              <EmptyState
+                size="small"
+                variant="no-results"
+                title={t("editor:ui.noAssetsMatchSearch", { defaultValue: "No assets found matching your search" })}
+              />
             )}
           </div>
         </div>
@@ -428,13 +409,11 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
       <div className="global-search-results-container search-results-container">
         <div className="global-search-results-header search-results-header">
           <Text className="global-search-results-title search-results-title">
-            {t("editor:ui.searchResults", { defaultValue: "Search Results" })}
+            Search results
           </Text>
           <Text className="global-search-results-count search-results-count">
-            {t(results.length === 1 ? "editor:ui.resultCountFor" : "editor:ui.resultsCountFor", {
-              count: String(results.length),
-              query: globalSearchQuery
-            })}
+            {results.length} result{results.length !== 1 ? "s" : ""} for &quot;
+            {globalSearchQuery}&quot;
           </Text>
         </div>
 
@@ -446,19 +425,10 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
             const isSelected = selectedAssetIdSet.has(asset.id);
             const assetType = getAssetType(asset.content_type);
             const assetSize = asset.size;
-            // Seeded style presets carry no bytes (get_url 404s); render their
-            // package:// tile art and resolve names through catalog:styles.
-            const preset = systemPresetAssetInfo(asset);
-            const presetImageUrl = preset?.thumbnail
-              ? resolveStaticMediaUri(preset.thumbnail)
-              : null;
-            const displayName = preset
-              ? t(`catalog:styles.${preset.name}.name`, { defaultValue: preset.name })
-              : asset.name;
             const hasVisualContent =
               (assetType === "image" || assetType === "video") &&
-              (presetImageUrl !== null ||
-                (asset.get_url && asset.get_url !== "/images/placeholder.png"));
+              asset.get_url &&
+              asset.get_url !== "/images/placeholder.png";
 
             const assetHandlers = createAssetHandlers(asset);
 
@@ -469,7 +439,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                   }`}
                 role="button"
                 tabIndex={0}
-                aria-label={displayName}
+                aria-label={asset.name}
                 draggable={true}
                 onDragStart={assetHandlers.onDragStart}
                 onDragEnd={handleDragEnd}
@@ -485,8 +455,8 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                   <div
                     className="global-search-result-thumbnail result-item-thumbnail"
                     style={{
-                      backgroundImage: `url(${presetImageUrl ?? (asset.thumb_url || asset.get_url
-                        )})`
+                      backgroundImage: `url(${asset.thumb_url || asset.get_url
+                        })`
                     }}
                     title={`${asset.content_type} thumbnail`}
                     data-testid="global-search-result-thumbnail"
@@ -510,7 +480,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                     className="global-search-result-name result-item-name"
                     data-testid="global-search-result-name"
                   >
-                    {displayName}
+                    {asset.name}
                     {asset.duration && (
                       <span className="global-search-result-duration result-duration">
                         {" "}
@@ -554,7 +524,7 @@ const GlobalSearchResults: React.FC<GlobalSearchResultsProps> = ({
                           className="global-search-navigate-btn folder-navigate-btn"
                           density="compact"
                           variant="text"
-                          startIcon={<NavigateIcon fontSize="small" />}
+                          startIcon={<NavigateIcon />}
                           onClick={(e) => {
                             e.stopPropagation();
                             onNavigateToFolder(

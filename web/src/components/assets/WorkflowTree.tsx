@@ -17,13 +17,18 @@ import {
   MOTION,
   BORDER_RADIUS,
   SPACING,
-  getSpacingPx
+  getSpacingPx,
+  focusRing,
+  selectableRowStyles,
+  selectedRowStyles,
+  EmptyState
 } from "../ui_primitives";
 import { useAssetGridStore } from "../../stores/AssetGridStore";
 import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { WorkflowList, Workflow } from "../../stores/ApiTypes";
 import { useActivateOnKey } from "../../hooks/useActivateOnKey";
 import { workflowListQueryKey } from "../../serverState/workflowQueryKeys";
+import { useAssetProjectScope } from "../../hooks/assets/useAssetProjectScope";
 import { useTranslation } from "react-i18next";
 
 // Show the inline search field once the list grows past this many workflows.
@@ -56,6 +61,7 @@ const styles = (theme: Theme) =>
     ".root-row:hover": {
       backgroundColor: theme.vars.palette.action.hover
     },
+    ".root-row:focus-visible": focusRing(theme),
     ".root-row .root-icon": {
       width: ICON_SLOT,
       height: ICON_SLOT,
@@ -91,11 +97,7 @@ const styles = (theme: Theme) =>
       paddingLeft: getSpacingPx(SPACING.lg),
       paddingRight: getSpacingPx(SPACING.xs),
       cursor: "pointer",
-      borderRadius: BORDER_RADIUS.md,
-      transition: `${MOTION.background}, color ${MOTION.fast}`
-    },
-    ".workflow-leaf:hover": {
-      backgroundColor: theme.vars.palette.action.hover
+      ...selectableRowStyles(theme)
     },
     ".workflow-leaf .leaf-icon-slot": {
       display: "flex",
@@ -118,21 +120,10 @@ const styles = (theme: Theme) =>
       textOverflow: "ellipsis",
       whiteSpace: "nowrap"
     },
-    ".workflow-leaf.selected": {
-      backgroundColor: "rgba(var(--palette-primary-main-channel) / 0.12)"
-    },
-    ".workflow-leaf.selected .leaf-icon": {
-      color: theme.vars.palette.primary.main
-    },
+    ".workflow-leaf.selected": selectedRowStyles(theme),
     ".workflow-leaf.selected .leaf-name": {
-      color: theme.vars.palette.primary.main,
-      fontWeight: 600
+      color: theme.vars.palette.text.primary
     },
-    ".empty-row": {
-      paddingLeft: getSpacingPx(SPACING.xxl),
-      color: theme.vars.palette.grey[500],
-      fontSize: theme.fontSizeSmaller
-    }
   });
 
 // Compact the shared SearchInput so it sits as a tree control, not a hero field.
@@ -143,7 +134,7 @@ const searchInputSx = {
 
 /**
  * Sibling of the FOLDERS tree shown in the fullscreen asset navigator. Lists
- * every workflow as a leaf; selecting one scopes the asset grid to that
+ * the workflows of the explorer's project filter as leaves; selecting one scopes the asset grid to that
  * workflow's assets (mutually exclusive with folder browsing).
  */
 const WorkflowTree: React.FC = () => {
@@ -161,10 +152,12 @@ const WorkflowTree: React.FC = () => {
     (state) => state.setSelectedFolderIds
   );
 
+  // Follow the explorer's project filter; "All projects" lists every workflow.
+  const { projectId } = useAssetProjectScope();
   const load = useWorkflowManager((state) => state.load);
   const { data, isLoading } = useQuery<WorkflowList, Error>({
-    queryKey: workflowListQueryKey(200),
-    queryFn: async () => load("", 200)
+    queryKey: workflowListQueryKey(200, "", projectId),
+    queryFn: async () => load("", 200, projectId)
   });
 
   const workflows = useMemo(() => {
@@ -197,7 +190,7 @@ const WorkflowTree: React.FC = () => {
         role="button"
         tabIndex={0}
         aria-expanded={expanded}
-        aria-label={t("editor:ui.workflows", { defaultValue: "Workflows" })}
+        aria-label={t("ui2:attrs.workflows", { defaultValue: "Workflows" })}
         onClick={toggleExpanded}
         onKeyDown={handleRootKeyDown}
       >
@@ -212,7 +205,7 @@ const WorkflowTree: React.FC = () => {
             <SearchInput
               value={search}
               onChange={setSearch}
-              placeholder={t("editor:ui.searchWorkflows", { defaultValue: "Search workflows..." })}
+              placeholder={t("sketch:attrs.searchWorkflows", { defaultValue: "Search workflows" })}
               fullWidth
               size="small"
               sx={searchInputSx}
@@ -222,7 +215,7 @@ const WorkflowTree: React.FC = () => {
         {isLoading ? (
           <LoadingSpinner size="small" />
         ) : workflows.length === 0 ? (
-          <div className="empty-row">{t("ui2:attrs.noWorkflows", { defaultValue: "No workflows" })}</div>
+          <EmptyState size="small" title={t("ui2:attrs.noWorkflows", { defaultValue: "No workflows" })} />
         ) : (
           workflows.map((workflow) => (
             <div

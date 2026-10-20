@@ -43,7 +43,7 @@ const DOCUMENT_FILE_TYPES = new Set([
 /**
  * Matched on the top-level part of the content type, so a document dropzone
  * takes any `application/*` or `text/*` asset — deliberately looser than
- * {@link acceptsFile}, which admits three MIME types.
+ * {@link acceptsFile}, which admits PDF, Word and `text/*` files.
  */
 const acceptsAsset = (contentType: string, accept: AcceptedType): boolean => {
   if (accept === "all") return true;
@@ -57,7 +57,10 @@ const acceptsAsset = (contentType: string, accept: AcceptedType): boolean => {
 const acceptsFile = (file: File, accept: AcceptedType): boolean => {
   if (accept === "all") return true;
   if (file.type.startsWith(`${accept}/`)) return true;
-  return accept === "document" && DOCUMENT_FILE_TYPES.has(file.type);
+  return (
+    accept === "document" &&
+    (DOCUMENT_FILE_TYPES.has(file.type) || file.type.startsWith("text/"))
+  );
 };
 
 const invalidTypeNotification = (accept: AcceptedType) => ({
@@ -80,6 +83,14 @@ export function useFileDrop(props: FileDropProps): FileDropResult {
       event.stopPropagation();
 
       const dragData = deserializeDragData(event.dataTransfer);
+
+      // Examples are copied in by the targets that take them (a 3D model
+      // input handles "example-model" itself); everywhere else they are the
+      // wrong kind of value, not text to paste in.
+      if (dragData?.type.startsWith("example-")) {
+        addNotification(invalidTypeNotification(props.type));
+        return;
+      }
 
       // A multi-selection drag onto this single-value field uses the first
       // selected asset of an accepted type.

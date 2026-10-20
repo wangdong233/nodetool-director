@@ -11,23 +11,23 @@ import {
 } from "../../utils/ColorUtils";
 
 import {
+  Caption,
+  ContextMenu,
+  EYEBROW,
   Text,
   ToolbarIconButton,
+  FlexColumn,
   FlexRow,
+  MenuItemPrimitive,
   Popover,
   BORDER_RADIUS,
   SPACING,
   getSpacingPx,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  ListItemIcon,
-  Z_INDEX
+  Z_INDEX,
+  ICON_SIZE
 } from "../ui_primitives";
 import PaletteIcon from "@mui/icons-material/Palette";
 import LegendToggleIcon from "@mui/icons-material/LegendToggle";
-import CheckIcon from "@mui/icons-material/Check";
 import { useTranslation } from "react-i18next";
 
 const minimapStyle = {
@@ -119,36 +119,36 @@ const MiniMapNavigator: React.FC = () => {
     () => [
       {
         category: NodeTypeCategory.Input,
-        label: t("ui2:attrs.inputNodes", { defaultValue: "Input Nodes" }),
+        label: "Input nodes",
         color: getNodeCategoryColor(NodeTypeCategory.Input, isDarkMode)
       },
       {
         category: NodeTypeCategory.Constant,
-        label: t("editor:ui.constantNodes", { defaultValue: "Constant Nodes" }),
+        label: "Constant nodes",
         color: getNodeCategoryColor(NodeTypeCategory.Constant, isDarkMode)
       },
       {
         category: NodeTypeCategory.Processing,
-        label: t("editor:ui.processingNodes", { defaultValue: "Processing Nodes" }),
+        label: "Processing nodes",
         color: getNodeCategoryColor(NodeTypeCategory.Processing, isDarkMode)
       },
       {
         category: NodeTypeCategory.Group,
-        label: t("editor:ui.groupNodes", { defaultValue: "Group Nodes" }),
+        label: "Group nodes",
         color: getNodeCategoryColor(NodeTypeCategory.Group, isDarkMode)
       },
       {
         category: NodeTypeCategory.Comment,
-        label: t("editor:ui.commentNodes", { defaultValue: "Comment Nodes" }),
+        label: "Comment nodes",
         color: getNodeCategoryColor(NodeTypeCategory.Comment, isDarkMode)
       },
       {
         category: NodeTypeCategory.Output,
-        label: t("editor:ui.outputNodes", { defaultValue: "Output Nodes" }),
+        label: "Output nodes",
         color: getNodeCategoryColor(NodeTypeCategory.Output, isDarkMode)
       }
     ],
-    [t, isDarkMode]
+    [isDarkMode]
   );
 
   if (!visible) {
@@ -191,7 +191,7 @@ const MiniMapNavigator: React.FC = () => {
           >
             {colorMode === "type" && showLegend && (
               <ToolbarIconButton
-                title={t("editor:ui.nodeTypeLegend", { defaultValue: "Node Type Legend" })}
+                title={t("editor:ui.nodeTypeLegend", { defaultValue: "Node type legend" })}
                 size="small"
                 onClick={handleOpenLegend}
                 sx={{
@@ -204,11 +204,11 @@ const MiniMapNavigator: React.FC = () => {
                   }
                 }}
               >
-                <LegendToggleIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
+                <LegendToggleIcon sx={{ fontSize: ICON_SIZE.sm }} />
               </ToolbarIconButton>
             )}
             <ToolbarIconButton
-              title={t("editor:ui.colorModeSettings", { defaultValue: "Color Mode Settings" })}
+              title={t("editor:ui.colorModeSettings", { defaultValue: "Color mode settings" })}
               size="small"
               onClick={handleOpenSettings}
               sx={{
@@ -221,141 +221,57 @@ const MiniMapNavigator: React.FC = () => {
                 }
               }}
             >
-              <PaletteIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
+              <PaletteIcon sx={{ fontSize: ICON_SIZE.sm }} />
             </ToolbarIconButton>
           </FlexRow>
         </div>
       </div>
 
-      <Popover
+      <ContextMenu
         open={Boolean(settingsAnchor)}
         anchorEl={settingsAnchor}
         onClose={handleCloseSettings}
-        placement="bottom-right"
-        paperSx={{
-          minWidth: 180,
-          borderRadius: BORDER_RADIUS.lg
-        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <List dense disablePadding>
-          <ListItem disablePadding>
-            <ListItemButton
-              onClick={handleSetDefaultMode}
-              selected={colorMode === "default"}
-              sx={{
-                "&.Mui-selected": {
-                  backgroundColor: theme.vars.palette.action.selected
-                }
-              }}
-            >
-              <ListItemIcon>
-                {colorMode === "default" ? (
-                  <CheckIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
-                ) : (
-                  <span style={{ width: "1rem", display: "inline-block" }} />
-                )}
-              </ListItemIcon>
-              <ListItemText
-                primary={t("editor:ui.defaultColors", { defaultValue: "Default Colors" })}
-                primaryTypographyProps={{
-                  fontSize: "var(--fontSizeNormal)"
-                }}
-              />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton
-              onClick={handleSetTypeMode}
-              selected={colorMode === "type"}
-              sx={{
-                "&.Mui-selected": {
-                  backgroundColor: theme.vars.palette.action.selected
-                }
-              }}
-            >
-              <ListItemIcon>
-                {colorMode === "type" ? (
-                  <CheckIcon sx={{ fontSize: "var(--fontSizeNormal)" }} />
-                ) : (
-                  <span style={{ width: "1rem", display: "inline-block" }} />
-                )}
-              </ListItemIcon>
-              <ListItemText
-                primary={t("editor:ui.colorByType", { defaultValue: "Color by Type" })}
-                primaryTypographyProps={{
-                  fontSize: "var(--fontSizeNormal)"
-                }}
-              />
-            </ListItemButton>
-          </ListItem>
-        </List>
-      </Popover>
+        <MenuItemPrimitive
+          label={t("editor:ui.defaultColors", { defaultValue: "Default colors" })}
+          selected={colorMode === "default"}
+          onClick={handleSetDefaultMode}
+        />
+        <MenuItemPrimitive
+          label={t("editor:ui.colorByType", { defaultValue: "Color by type" })}
+          selected={colorMode === "type"}
+          onClick={handleSetTypeMode}
+        />
+      </ContextMenu>
 
       <Popover
         open={Boolean(legendAnchor)}
         anchorEl={legendAnchor}
         onClose={handleCloseLegend}
         placement="bottom-right"
-        paperSx={{
-          minWidth: 180,
-          borderRadius: BORDER_RADIUS.lg
-        }}
+        paperSx={{ minWidth: 180 }}
       >
-        <div style={{ padding: 8 }}>
-          <Text
-            size="small"
-            weight={600}
-            color="secondary"
-            sx={{
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              mb: 0.5,
-              px: 1
-            }}
-          >
-            {t("editor:ui.nodeTypes")}
-          </Text>
-          <List dense disablePadding>
-            {legendItems.map((item) => (
-              <ListItem
-                key={item.category}
-                disablePadding
-                sx={{ py: 0.5, px: 0 }}
-              >
-                <FlexRow
-                  align="center"
-                  fullWidth
-                  sx={{
-                    px: 1,
-                    py: 0.5,
-                    borderRadius: BORDER_RADIUS.sm,
-                    "&:hover": {
-                      backgroundColor: theme.vars.palette.action.hover
-                    }
-                  }}
-                >
-                  <span
-                    style={{
-                      width: "12px",
-                      height: "12px",
-                      backgroundColor: item.color,
-                      borderRadius: BORDER_RADIUS.xs,
-                      marginRight: 8,
-                      flexShrink: 0
-                    }}
-                  />
-                  <ListItemText
-                    primary={item.label}
-                    primaryTypographyProps={{
-                      fontSize: "var(--fontSizeSmall)",
-                      color: theme.vars.palette.text.primary
-                    }}
-                  />
-                </FlexRow>
-              </ListItem>
-            ))}
-          </List>
-        </div>
+        <FlexColumn gap={SPACING.xs} sx={{ padding: getSpacingPx(SPACING.md) }}>
+          <Caption component="div" color="secondary" sx={{ ...EYEBROW }}>
+            Node types
+          </Caption>
+          {legendItems.map((item) => (
+            <FlexRow key={item.category} align="center" gap={SPACING.md}>
+              <span
+                style={{
+                  width: "12px",
+                  height: "12px",
+                  backgroundColor: item.color,
+                  borderRadius: BORDER_RADIUS.xs,
+                  flexShrink: 0
+                }}
+              />
+              <Text size="small">{item.label}</Text>
+            </FlexRow>
+          ))}
+        </FlexColumn>
       </Popover>
     </>
   );

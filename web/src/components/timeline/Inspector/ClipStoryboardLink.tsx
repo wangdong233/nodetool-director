@@ -18,25 +18,16 @@ import {
   Chip,
   EditorButton,
   FlexRow,
-  BORDER_RADIUS,
-  CONTROL,
-  SPACING
+  SPACING,
+  Tooltip
 } from "../../ui_primitives";
 import LinkShotDialog from "../shot/LinkShotDialog";
 import { colorForType } from "../../../config/data_types";
-import { hexToRgba } from "../../../utils/ColorUtils";
 import { useClipStoryboardLink } from "../../../hooks/timeline/useClipStoryboardLink";
 import { useTranslation } from "react-i18next";
 
 /** Violet — the app's colour for anything picture-shaped. */
 const BOARD_COLOR = colorForType("video");
-
-const chipSx = {
-  height: `${CONTROL.height.xs}px`,
-  borderRadius: BORDER_RADIUS.md,
-  borderColor: hexToRgba(BOARD_COLOR, 0.4),
-  color: BOARD_COLOR
-} as const;
 
 interface ClipStoryboardLinkProps {
   clip: TimelineClip;
@@ -61,9 +52,9 @@ const ClipStoryboardLinkInner = ({ clip }: ClipStoryboardLinkProps) => {
           size="small"
           startIcon={<LinkOutlinedIcon />}
           onClick={() => setLinkOpen(true)}
-          title={t("timeline:attrs.makeThisClipFollowAShotOnAStoryboard", { defaultValue: "Make this clip follow a shot on a storyboard" })}
+          tooltip={t("timeline:attrs.makeThisClipFollowAShotOnAStoryboard", { defaultValue: "Make this clip follow a shot on a storyboard" })}
         >
-          {t("timeline:attrs.linkToShot", { defaultValue: "Link to shot" })}
+          Link to shot
         </EditorButton>
         {linkOpen && (
           <LinkShotDialog clipId={clip.id} onClose={() => setLinkOpen(false)} />
@@ -78,14 +69,15 @@ const ClipStoryboardLinkInner = ({ clip }: ClipStoryboardLinkProps) => {
 
   return (
     <FlexRow align="center" sx={{ pt: SPACING.micro }}>
-      <Chip
-        compact
-        variant="outlined"
-        label={link.label}
-        sx={chipSx}
-        onClick={link.open}
-        title={t("timeline:attrs.openShotOnTheStoryboard", { defaultValue: "Open {{shot}} on the storyboard", shot: link.shot.slug ?? t("timeline:attrs.thisShot", { defaultValue: "this shot" }) })}
-      />
+      <Tooltip title={`Open ${link.shot.slug ?? "this shot"} on the storyboard`} describeChild>
+        <Chip
+          compact
+          variant="outlined"
+          label={link.label}
+          accent={BOARD_COLOR}
+          onClick={link.open}
+        />
+      </Tooltip>
     </FlexRow>
   );
 };

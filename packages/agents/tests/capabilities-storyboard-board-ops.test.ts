@@ -678,6 +678,23 @@ describe("stale_only", () => {
   });
 });
 
+describe("set_board aspect_ratio", () => {
+  // A board whose ratio is not "W:H" blanks the editor's aspect-ratio select
+  // and gives every still's media box no height (UX study 4, D2 and D3).
+  it("stores a W:H ratio and refuses one that is not", async () => {
+    const context = ctx();
+    const board = await makeBoard();
+    await edit(context, board.id, [{ op: "set_board", aspect_ratio: "2.39:1" }]);
+    expect((await reread(board.id)).aspectRatio).toBe("2.39:1");
+
+    const refused = await edit(context, board.id, [
+      { op: "set_board", aspect_ratio: "fake" }
+    ]);
+    expect(refused.ops[0].error).toMatch(/aspect_ratio must be "W:H"/);
+    expect((await reread(board.id)).aspectRatio).toBe("2.39:1");
+  });
+});
+
 describe("direct_storyboard", () => {
   const answer = (shots: Record<string, unknown>[]) => ({
     title: "Dark Water",
@@ -726,6 +743,25 @@ describe("direct_storyboard", () => {
     expect(doc.screenplay?.genre).toBe("noir thriller");
   });
 
+  // The fake provider answers every free string with "fake"; the board's
+  // ratio is the Director's input and must survive it.
+  it("keeps the board's aspect ratio when the answer's is not W:H", async () => {
+    const context = ctx({
+      ...answer([{ slug: "One", action: "wide of the pier" }]),
+      aspect_ratio: "fake"
+    });
+    const board = await makeBoard({ shots: [], aspectRatio: "9:16" });
+
+    await run(context).invoke("direct_storyboard", {
+      storyboard_id: board.id,
+      shot_count: 1
+    });
+
+    const doc = await reread(board.id);
+    expect(doc.aspectRatio).toBe("9:16");
+    expect(doc.screenplay?.aspect_ratio).toBe("9:16");
+  });
+
   it("re-directs in place, keeping the media of a retained shot", async () => {
     const context = ctx(
       answer([
@@ -760,5 +796,23 @@ describe("direct_storyboard", () => {
     expect(retained?.keyframe?.asset_id).toBe("a1");
     expect(retained?.status).toBe("keyframe_ready");
     expect(doc.shots).toHaveLength(2);
+  });
+});
+
+
+describe("shot target admission", () => {
+  it("accepts the numeric first-shot target explicitly", async () => {
+    const board = await makeBoard({ shots: [shot({ id: "s1", index: 0 }), shot({ id: "s2", index: 1 })] });
+    expect(await edit(ctx(), board.id, [{ op: "remove_shot", target: 0 }])).toMatchObject({ applied: 1, failed: 0 });
+    expect((await reread(board.id)).shots.map(shot => shot.id)).toEqual(["s2"]);
+  });
+
+  it.each([{}, { shot_id: "s2" }, { target: "" }, { target: "  " }, { target: null }, { target: false }])("refuses invalid targeted operations without changing the first shot: %j", async (targetFields) => {
+    const board = await makeBoard({ shots: [shot({ id: "s1", index: 0 }), shot({ id: "s2", index: 1 })] });
+    const before = await reread(board.id);
+    const result = await edit(ctx(), board.id, [{ op: "remove_shot", ...targetFields }]);
+    expect(result).toMatchObject({ applied: 0, failed: 1 });
+    expect(result.ops[0]?.error).toContain("target");
+    expect(await reread(board.id)).toEqual(before);
   });
 });

@@ -14,6 +14,7 @@ import {
 import {
   APP_ROOT_STYLES,
   APP_THEMES,
+  PHONE_WIDTH_QUERY,
   appThemeFrame,
   resolveAppTheme
 } from "../appThemes";
@@ -88,6 +89,16 @@ import {
 } from "./RecorderWidgets";
 import { ChartWidget } from "./ChartWidget";
 import { tAttr } from "../i18nAttrs";
+import { i18n } from "../../../i18n";
+
+declare module "@puckeditor/core" {
+  interface RadioField { labelKey?: string }
+  interface SelectField { labelKey?: string }
+  interface TextareaField { labelKey?: string }
+  interface FieldOption { labelKey?: string }
+  interface Category<T = string> { titleKey?: string }
+}
+
 
 const ACTION_OPTIONS = [
   { label: "Run workflow", value: "run" },
@@ -190,7 +201,7 @@ const eventsField = (
 
   return {
     type: "array",
-    label: trigger === "click" ? "On click" : "On change",
+    label: trigger === "click" ? i18n.t("appbuilder:attrs.onClick", { defaultValue: "On click" }) : i18n.t("appbuilder:attrs.onChange", { defaultValue: "On change" }),
     arrayFields,
     defaultItemProps,
     // Array summaries render at edit time, so the action token resolves to
@@ -229,7 +240,7 @@ const stepperField: ArrayField = {
     value: { type: "text", label: "Value" }, title: { type: "text", label: "Title" },
     description: { type: "textarea", label: "Description" },
     disabled: { type: "radio", label: "Disabled", options: [{ label: "No", value: false }, { label: "Yes", value: true }] },
-    completed: { type: "radio", label: "Completed", options: [{ label: "No", value: false }, { label: "Yes", value: true }] }
+    completed: { type: "radio", label: "Completed", labelKey: "setup:workflow.pill_completed", options: [{ label: "No", value: false }, { label: "Yes", value: true }] }
   },
   defaultItemProps: { value: "step", title: "Step", description: "", disabled: false, completed: false },
   getItemSummary: (item: Record<string, unknown>) => String(item.title ?? item.value ?? "step")
@@ -326,6 +337,8 @@ const AppRoot: React.FC<{
       sx={{
         ...APP_ROOT_STYLES,
         p: appTheme.padding,
+        // A phone has no width to spare for the desktop gutter.
+        [PHONE_WIDTH_QUERY]: { p: SPACING.lg },
         minHeight: "100%",
         backgroundColor: appTheme.surface,
         color: "text.primary",
@@ -385,7 +398,7 @@ export const appConfig: Config = {
         "NumberInput",
         "Slider",
         "Switch",
-        "Select",
+        i18n.t("editor:ui.selectPlain", { defaultValue: "Select" }),
         "RadioGroup",
         "ChoiceCards",
         "Stepper",
@@ -437,7 +450,7 @@ export const appConfig: Config = {
         "Stat",
         "Alert",
         "CodeBlock",
-        "Download",
+        i18n.t("storyboard:attrs.download", { defaultValue: "Download" }),
         "Model3D",
         "Chart",
         "PDF",
@@ -465,7 +478,7 @@ export const appConfig: Config = {
         text: { type: "text", label: "Text" },
         level: {
           type: "select",
-          label: "Level",
+          label: i18n.t("editor:ui.gameLevel", { defaultValue: "Level" }),
           options: [
             { label: "H1", value: "1" },
             { label: "H2", value: "2" },
@@ -485,7 +498,7 @@ export const appConfig: Config = {
         text: { type: "textarea", label: "Text" },
         tone: {
           type: "select",
-          label: "Tone",
+          label: "Tone", labelKey: "storyboard:attrs.tone",
           options: [
             { label: "Default", value: "default" },
             { label: "Muted", value: "muted" },
@@ -524,10 +537,10 @@ export const appConfig: Config = {
         placeholder: { type: "text", label: "Placeholder" },
         download: {
           type: "radio",
-          label: "Download",
+          label: i18n.t("storyboard:attrs.download", { defaultValue: "Download" }),
           options: [
             { label: "Show", value: true },
-            { label: "Hide", value: false }
+            { label: i18n.t("editor:ui.hide2", { defaultValue: "Hide" }), value: false }
           ]
         },
         filename: { type: "text", label: "Download filename" },
@@ -555,7 +568,7 @@ export const appConfig: Config = {
           label: "Download",
           options: [
             { label: "Show", value: true },
-            { label: "Hide", value: false }
+            { label: i18n.t("editor:ui.hide2", { defaultValue: "Hide" }), value: false }
           ]
         },
         filename: { type: "text", label: "Download filename" },
@@ -782,10 +795,10 @@ export const appConfig: Config = {
           type: "select",
           label: "Severity",
           options: [
-            { label: "Info", value: "info" },
+            { label: i18n.t("editor:ui.logInfo", { defaultValue: "Info" }), value: "info" },
             { label: "Success", value: "success" },
-            { label: "Warning", value: "warning" },
-            { label: "Error", value: "error" }
+            { label: i18n.t("editor:ui.logWarning", { defaultValue: "Warning" }), value: "warning" },
+            { label: i18n.t("editor:ui.logError", { defaultValue: "Error" }), value: "error" }
           ]
         },
         ...conditionalFields()
@@ -797,7 +810,7 @@ export const appConfig: Config = {
       label: "Code",
       fields: {
         binding: bindingField("read"),
-        text: { type: "textarea", label: "Code" },
+        text: { type: "textarea", label: "Code", labelKey: "timeline:code.title" },
         language: { type: "text", label: "Language label" },
         maxHeight: { type: "number", label: "Max height (px)" },
         ...conditionalFields()
@@ -997,7 +1010,7 @@ export const appConfig: Config = {
       render: withConditions((props) => <SwitchWidget {...props} />)
     },
     Select: {
-      label: "Select",
+      label: i18n.t("editor:ui.selectPlain", { defaultValue: "Select" }),
       fields: {
         binding: bindingField("write"),
         label: { type: "text", label: "Label" },
@@ -1006,7 +1019,7 @@ export const appConfig: Config = {
         ...conditionalFields({ format: false })
       },
       defaultProps: {
-        label: "Select",
+        label: "Select", labelKey: "common:action.select",
         options: [{ value: "Option A" }, { value: "Option B" }]
       },
       render: withConditions((props) => <SelectWidget {...props} />)
@@ -1019,7 +1032,7 @@ export const appConfig: Config = {
         options: optionsField,
         row: {
           type: "radio",
-          label: "Layout",
+          label: "Layout", labelKey: "timeline:attrs.layout",
           options: [
             { label: "Stacked", value: false },
             { label: "Inline", value: true }
@@ -1084,7 +1097,7 @@ export const appConfig: Config = {
         options: optionsField,
         row: {
           type: "radio",
-          label: "Layout",
+          label: "Layout", labelKey: "timeline:attrs.layout",
           options: [
             { label: "Stacked", value: false },
             { label: "Inline", value: true }
@@ -1116,7 +1129,7 @@ export const appConfig: Config = {
         events: eventsField("change"),
         ...conditionalFields({ format: false })
       },
-      defaultProps: { label: "Date", withTime: false },
+      defaultProps: { label: "Date", labelKey: "ui2:attrs.date", withTime: false },
       render: withConditions((props) => <DateInputWidget {...props} />)
     },
     ResourcePicker: {
@@ -1374,7 +1387,7 @@ export const appConfig: Config = {
           options: [
             { label: "Primary", value: "primary" },
             { label: "Secondary", value: "secondary" },
-            { label: "Warning", value: "warning" }
+            { label: i18n.t("editor:ui.logWarning", { defaultValue: "Warning" }), value: "warning" }
           ]
         },
         fullWidth: {
@@ -1411,7 +1424,7 @@ export const appConfig: Config = {
         title: { type: "text", label: "Title" },
         variant: {
           type: "select",
-          label: "Style",
+          label: "Style", labelKey: "setup:video.refKind_style",
           options: [
             { label: "Panel", value: "panel" },
             { label: "Card", value: "card" },
@@ -1431,7 +1444,7 @@ export const appConfig: Config = {
         gap: { type: "number", label: "Gap (px)" },
         layout: {
           type: "select",
-          label: "Layout",
+          label: "Layout", labelKey: "timeline:attrs.layout",
           options: [
             { label: "Equal halves", value: "equal" },
             { label: "Main and aside", value: "main-aside" }

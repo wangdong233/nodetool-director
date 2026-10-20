@@ -39,6 +39,23 @@ const codes = (validation: {
 }): string[] => validation.errors.map((issue) => issue.code);
 
 describe("validateJsScriptDoc packDtsSources", () => {
+  it.each([
+    'import { nonexistent } from "@nodetool-ai/sandbox-nodetool/does-not-exist";',
+    'import "@nodetool-ai/sandbox-nodetool/does-not-exist";'
+  ])("rejects an unavailable capability module: %s", async (statement) => {
+    const validation = await validateJsScriptDoc(doc(`${statement}\nawait output("ok", true);`), { packDtsSources });
+    expect(codes(validation)).toContain("js_script_type_error");
+    expect(validation.errors.some((issue) => issue.message.includes("does-not-exist"))).toBe(true);
+  });
+  it("accepts top-level await without requiring a forbidden export in the body", async () => {
+    const validation = await validateJsScriptDoc(
+      doc('await output("ok", true);'),
+      { packDtsSources }
+    );
+    expect(validation.ok).toBe(true);
+    expect(codes(validation)).not.toContain("js_script_type_error");
+  });
+
   it("fails naming caret when typewriter's caret option is the wrong shape", async () => {
     const validation = await validateJsScriptDoc(
       doc(`
@@ -95,6 +112,24 @@ await output("ok", true);
       .map((issue) => issue.message)
       .join("\n");
     expect(message.toLowerCase()).toContain("align");
+  });
+
+  it("leaves imports with no installed .d.ts to the catalog check", async () => {
+    // A pack that ships no types, a host-mounted capability facade, and a
+    // typed pack in the same body: only the typed pack is checked here.
+    const validation = await validateJsScriptDoc(
+      doc(`
+import "@nodetool-ai/sandbox-nodetool/flow";
+import { callNode } from "@nodetool-ai/sandbox-flow";
+import yaml from "@nodetool-ai/sandbox-yaml";
+import { video } from "@nodetool-ai/sandbox-timeline";
+const r = await callNode("nodetool.constant.String", { value: yaml.dump({}) });
+video({ width: 1080, height: 1920, fps: 30 });
+await output("ok", Boolean(r));
+`),
+      { packDtsSources }
+    );
+    expect(codes(validation)).not.toContain("js_script_type_error");
   });
 
   it("skips the check entirely when no packDtsSources are given", async () => {

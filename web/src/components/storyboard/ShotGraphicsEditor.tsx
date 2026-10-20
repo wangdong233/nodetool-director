@@ -1,5 +1,4 @@
 import React from "react";
-import { useTranslation } from "react-i18next";
 import {
   resolveEffectiveProductionRequirement,
   type Shot
@@ -12,9 +11,11 @@ import {
   Label,
   SelectField,
   SPACING,
+  TextArea,
   TextInput
 } from "../ui_primitives";
 import type { ShotDraft } from "./shotDraft";
+import { i18n } from "../../i18n";
 
 interface ShotGraphicsEditorProps {
   shot: Shot;
@@ -29,7 +30,6 @@ export default function ShotGraphicsEditor({
   onChange,
   readOnly
 }: ShotGraphicsEditorProps): React.ReactElement {
-  const { t } = useTranslation();
   const production = resolveEffectiveProductionRequirement(
     undefined,
     shot.production
@@ -54,7 +54,7 @@ export default function ShotGraphicsEditor({
   };
   return (
     <FlexColumn gap={SPACING.sm}>
-      <Label>{t("storyboard:attrs.graphics", { defaultValue: "Graphics" })}</Label>
+      <Label>{i18n.t("storyboard:attrs.graphics", { defaultValue: "Graphics" })}</Label>
       {!graphics ? (
         <EditorButton
           disabled={readOnly}
@@ -62,19 +62,19 @@ export default function ShotGraphicsEditor({
             onChange({ ...draft, graphics: { mode: "overlay", elements: [] } })
           }
         >
-          {t("storyboard:attrs.addGraphicsIntent", { defaultValue: "Add graphics intent" })}
+          Add graphics intent
         </EditorButton>
       ) : (
         <>
           <SelectField
-            label={t("storyboard:attrs.compositionMode", { defaultValue: "Composition mode" })}
+            label={i18n.t("storyboard:attrs.compositionMode", { defaultValue: "Composition mode" })}
             value={graphics.mode ?? "overlay"}
             disabled={readOnly}
             options={[
-              { value: "none", label: t("storyboard:attrs.none", { defaultValue: "None" }) },
-              { value: "overlay", label: t("storyboard:attrs.graphicsModeOverlay", { defaultValue: "Overlay" }) },
-              { value: "graphics_first", label: t("storyboard:attrs.graphicsModeGraphicsFirst", { defaultValue: "Graphics first" }) },
-              { value: "hybrid", label: t("storyboard:attrs.graphicsModeHybrid", { defaultValue: "Hybrid" }) }
+              { value: "none", label: "None" },
+              { value: "overlay", label: "Overlay", labelKey: "storyboard:attrs.graphicsModeOverlay" },
+              { value: "graphics_first", label: "Graphics first", labelKey: "storyboard:attrs.graphicsModeGraphicsFirst" },
+              { value: "hybrid", label: "Hybrid", labelKey: "storyboard:attrs.graphicsModeHybrid" }
             ]}
             onChange={(value) => {
               if (
@@ -87,15 +87,14 @@ export default function ShotGraphicsEditor({
               }
             }}
           />
-          <TextInput
-            label={t("storyboard:attrs.graphicDirection", { defaultValue: "Graphic direction" })}
-            multiline
+          <TextArea
+            label={i18n.t("storyboard:attrs.graphicDirection", { defaultValue: "Graphic direction" })}
             value={graphics.direction ?? ""}
             disabled={readOnly}
-            onChange={(event) =>
+            onChange={(value) =>
               onChange({
                 ...draft,
-                graphics: { ...graphics, direction: event.target.value }
+                graphics: { ...graphics, direction: value }
               })
             }
           />
@@ -110,7 +109,7 @@ export default function ShotGraphicsEditor({
                 </Caption>
                 {element.kind === "text" && (
                   <TextInput
-                    label={t("storyboard:attrs.exactTextId", { defaultValue: "Exact text: {{id}}", id: element.id })}
+                    label={`Exact text: ${element.id}`}
                     value={
                       protection?.kind === "exact_text"
                         ? (protection.value ?? "")
@@ -119,11 +118,7 @@ export default function ShotGraphicsEditor({
                     disabled={readOnly || !!protection}
                     helperText={
                       protection
-                        ? t("storyboard:attrs.protectedCopyComesFromTheProductionInputs", {
-                            defaultValue:
-                              "Protected copy comes from the production inputs. Edit it there."
-                          })
-                        : undefined
+                        ? i18n.t("storyboard:attrs.protectedCopyComesFromTheProductionInputs", { defaultValue: "Protected copy comes from the production inputs. Edit it there." }) : undefined
                     }
                     onChange={(event) =>
                       patchElement(element.id, { text: event.target.value })
@@ -132,7 +127,7 @@ export default function ShotGraphicsEditor({
                 )}
                 {element.kind === "asset" && (
                   <TextInput
-                    label={t("storyboard:attrs.assetReferenceId", { defaultValue: "Asset reference: {{id}}", id: element.id })}
+                    label={`Asset reference: ${element.id}`}
                     value={protection?.asset_id ?? element.asset_id ?? ""}
                     disabled={readOnly || !!protection}
                     onChange={(event) =>
@@ -142,11 +137,11 @@ export default function ShotGraphicsEditor({
                 )}
                 {(element.entity_id ?? protection?.entity_id) && (
                   <Caption>
-                    {t("storyboard:attrs.entityId", { defaultValue: "Entity: {{id}}", id: element.entity_id ?? protection?.entity_id })}
+                    Entity: {element.entity_id ?? protection?.entity_id}
                   </Caption>
                 )}
                 <TextInput
-                  label={t("storyboard:attrs.graphicNotesId", { defaultValue: "Graphic notes: {{id}}", id: element.id })}
+                  label={`Graphic notes: ${element.id}`}
                   value={element.direction ?? ""}
                   disabled={readOnly}
                   onChange={(event) =>
@@ -177,13 +172,13 @@ export default function ShotGraphicsEditor({
                 });
               }}
             >
-              {t("storyboard:attrs.addText", { defaultValue: "Add text" })}
+              Add text
             </EditorButton>
             <EditorButton
               disabled={readOnly}
               onClick={() => onChange({ ...draft, graphics: undefined })}
             >
-              {t("storyboard:attrs.removeGraphicsIntent", { defaultValue: "Remove graphics intent" })}
+              Remove graphics intent
             </EditorButton>
           </FlexRow>
         </>

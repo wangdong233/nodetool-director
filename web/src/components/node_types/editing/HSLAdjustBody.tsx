@@ -11,24 +11,22 @@ import React, { memo, useCallback, useMemo } from "react";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
-import ImageIcon from "@mui/icons-material/Image";
 
 import { SPACING,
-  CheckerDropzone,
   NodeSlider,
   BORDER_RADIUS,
-  MenuItem,
-  Select,
+  NodeSelect,
+  NodeMenuItem,
   type SelectChangeEvent
 } from "../../ui_primitives";
 import HandleColumn from "../../node/HandleColumn";
-import ImageRefPreview from "../../node/ImageRefPreview";
+import ImagePreview from "./ImagePreview";
 import { NodeOutputs } from "../../node/NodeOutputs";
 import NodeProgress from "../../node/NodeProgress";
 
 import type { NodeMetadata } from "../../../stores/ApiTypes";
 import type { NodeData } from "../../../stores/NodeData";
-import { useBespokePropertyWriter } from "../../../hooks/nodes/useBespokePropertyWriter";
+import { useLiveSliderWriter } from "../../../hooks/nodes/useLiveSliderWriter";
 import { useNodeOutput } from "../../../hooks/nodes/useNodeIO";
 import { HSL_ADJUST_NODE_TYPE } from "../../../constants/nodeTypes";
 import { useTranslation } from "react-i18next";
@@ -116,26 +114,12 @@ const styles = (theme: Theme) =>
     },
     ".range-select": {
       gridColumn: "2 / span 2",
-      width: "100%",
-      fontSize: theme.fontSizeSmaller,
-      textTransform: "capitalize",
-      ".MuiSelect-select": {
-        padding: `${theme.spacing(SPACING.micro)} ${theme.spacing(SPACING.xs)} ${theme.spacing(SPACING.micro)} 0`
-      }
+      width: "100%"
     },
     ".outputs-row": {
       flex: "0 0 auto"
     }
   });
-
-const ImagePreview: React.FC<{ value: unknown }> = ({ value }) => (
-  <ImageRefPreview
-    value={value}
-    placeholder={
-      <CheckerDropzone message="Connect an image, then run" icon={<ImageIcon />} />
-    }
-  />
-);
 
 interface HSLAdjustBodyProps {
   id: string;
@@ -178,14 +162,14 @@ const HSLAdjustBodyInner: React.FC<HSLAdjustBodyProps> = ({
 
   const previewValue = useNodeOutput(workflowId, id);
 
-  const { setProperty, setPropertyComplete } = useBespokePropertyWriter({
+  const { setProperty, setPropertyComplete } = useLiveSliderWriter({
     nodeId: id,
     nodeType
   });
 
   const handleRangeChange = useCallback(
-    (event: SelectChangeEvent<ColorRange>) => {
-      setProperty("color_range", event.target.value);
+    (event: SelectChangeEvent<unknown>) => {
+      setProperty("color_range", event.target.value as ColorRange);
       setPropertyComplete();
     },
     [setProperty, setPropertyComplete]
@@ -211,21 +195,18 @@ const HSLAdjustBodyInner: React.FC<HSLAdjustBodyProps> = ({
 
       <div className="controls">
         <span className="ctrl-label">{t("ui2:attrs.range", { defaultValue: "Range" })}</span>
-        <Select
-          className="range-select nodrag"
-          size="small"
-          variant="standard"
+        <NodeSelect
+          className="range-select"
           value={colorRange}
           onChange={handleRangeChange}
           aria-label={t("editor:ui.colorRange", { defaultValue: "Color range" })}
-          disableUnderline
         >
           {COLOR_RANGES.map((r) => (
-            <MenuItem key={r} value={r} dense sx={{ textTransform: "capitalize" }}>
-              {r}
-            </MenuItem>
+            <NodeMenuItem key={r} value={r}>
+              {r.charAt(0).toUpperCase() + r.slice(1)}
+            </NodeMenuItem>
           ))}
-        </Select>
+        </NodeSelect>
 
         {SLIDERS.map((spec) => {
           const value = clamp1(Number(props[spec.name] ?? 0));

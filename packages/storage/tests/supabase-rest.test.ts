@@ -147,10 +147,68 @@ describe("createSupabaseStorageClient", () => {
   });
 });
 
+describe("createSignedUrls", () => {
+  it("POSTs every key to the bulk sign endpoint and maps each result", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse([
+        {
+          path: "u/a.png",
+          signedURL: "/object/sign/assets/u/a.png?token=ta",
+          error: null
+        },
+        {
+          path: "u/gone.jpg",
+          signedURL: null,
+          error: "Either the object does not exist or you do not have access to it"
+        }
+      ])
+    );
+
+    const { data, error } = await client()
+      .storage.from("assets")
+      .createSignedUrls(["u/a.png", "u/gone.jpg"], 600);
+
+    expect(error).toBeNull();
+    expect(data).toEqual([
+      {
+        key: "u/a.png",
+        signedUrl:
+          "https://xyz.supabase.co/storage/v1/object/sign/assets/u/a.png?token=ta",
+        error: null
+      },
+      {
+        key: "u/gone.jpg",
+        signedUrl: null,
+        error: "Either the object does not exist or you do not have access to it"
+      }
+    ]);
+    const { url, init } = lastRequest();
+    expect(url).toBe("https://xyz.supabase.co/storage/v1/object/sign/assets");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      expiresIn: 600,
+      paths: ["u/a.png", "u/gone.jpg"]
+    });
+  });
+
+  it("maps a failed request to a top-level error", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ statusCode: 404, message: "Bucket not found" }, 404)
+    );
+    const { data, error } = await client()
+      .storage.from("nope")
+      .createSignedUrls(["a.png"], 60);
+    expect(data).toBeNull();
+    expect(error?.message).toBe("Bucket not found");
+  });
+});
+
 describe("createAssetUrlBuilder (supabase)", () => {
   it("returns the signed URL for a key", async () => {
     fetchMock.mockResolvedValue(
-      jsonResponse({ signedURL: "/object/sign/assets/k.png?token=t" })
+      jsonResponse([
+        { path: "k.png", signedURL: "/object/sign/assets/k.png?token=t" }
+      ])
     );
 
     const build = createAssetUrlBuilder({
@@ -166,13 +224,16 @@ describe("createAssetUrlBuilder (supabase)", () => {
 
     const { init } = lastRequest();
     expect(JSON.parse(init.body as string)).toEqual({
-      expiresIn: SIGNED_URL_TTL
+      expiresIn: SIGNED_URL_TTL,
+      paths: ["k.png"]
     });
   });
 
   it("throws a mapped error when signing fails", async () => {
     fetchMock.mockResolvedValue(
-      jsonResponse({ statusCode: 400, message: "Object not found" }, 400)
+      jsonResponse([
+        { path: "missing.png", signedURL: null, error: "Object not found" }
+      ])
     );
 
     const build = createAssetUrlBuilder({
@@ -339,6 +400,50 @@ describe("transient failures", () => {
       .upload("assets/a.bin", new Uint8Array([1]), { upsert: true });
     expect(error?.message).toBe("Too many connections issued to the database");
     expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("stops retrying a thrown network error after maxAttempts", async () => {
+    fetchMock.mockRejectedValue(new TypeError("fetch failed"));
+    await expect(
+      retrying(3).storage.from("assets").createSignedUploadUrl("a.bin")
+    ).rejects.toThrow("fetch failed");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("makes a single attempt when maxAttempts is 0", async () => {
+    fetchMock.mockImplementation(async () => tooManyConnections());
+    await retrying(0)
+      .storage.from("assets")
+      .upload("assets/a.bin", new Uint8Array([1]), { upsert: true });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("backs off exponentially with jitter, capped at four seconds", async () => {
+    const sleeps: number[] = [];
+    const random = vi.spyOn(Math, "random");
+    fetchMock.mockImplementation(async () => tooManyConnections());
+    const upload = (maxAttempts: number) =>
+      createSupabaseStorageClient("https://xyz.supabase.co", "service-key", {
+        maxAttempts,
+        sleep: async (ms) => {
+          sleeps.push(ms);
+        }
+      })
+        .storage.from("assets")
+        .upload("assets/a.bin", new Uint8Array([1]), { upsert: true });
+    try {
+      random.mockReturnValue(0);
+      await upload(7);
+      // Half of 250, 500, 1000, 2000, 4000, then the 4000 cap.
+      expect(sleeps).toEqual([125, 250, 500, 1000, 2000, 2000]);
+
+      sleeps.length = 0;
+      random.mockReturnValue(1);
+      await upload(3);
+      expect(sleeps).toEqual([250, 500]);
+    } finally {
+      random.mockRestore();
+    }
   });
 
   it("does not retry a client error", async () => {

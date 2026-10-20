@@ -23,12 +23,14 @@ import {
   EditorButton,
   FlexRow,
   Label,
-  SPACING
+  SPACING,
+  Tooltip
 } from "../../ui_primitives";
 import { useBatchedGesture } from "../../../hooks/timeline/useBatchedGesture";
 
 import "./fablesynth-editor.css";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../../i18n";
 
 type FableInstrument = Exclude<MidiInstrument, { type: "subtractive" | "sampler" }>;
 type KnobSize = "lg" | "md" | "sm" | "xs";
@@ -138,57 +140,61 @@ const Knob: React.FC<KnobProps> = ({
             transform={`rotate(${degrees} 40 40)`}
           />
         </svg>
-        <input
-          type="range"
-          aria-label={def.label}
-          aria-valuetext={def.fmt?.(value) ?? String(value)}
+        <Tooltip
           title={t("timeline:attrs.dragUpOrDownShiftForFineAdjustmentDoubleclickToReset", { defaultValue: "Drag up or down. Shift for fine adjustment. Double-click to reset." })}
-          min="0"
-          max="1"
-          step={def.curve === "int" ? 1 / (def.max - def.min) : 0.01}
-          value={norm}
-          onChange={(event) =>
-            onChange(normToValue(def, Number(event.target.value)))
-          }
-          onPointerDown={(event) => {
-            if (event.button !== 0) return;
-            event.preventDefault();
-            event.currentTarget.focus();
-            event.currentTarget.setPointerCapture(event.pointerId);
-            drag.current = { y: event.clientY, norm };
-            gesture.begin();
-          }}
-          onPointerMove={(event) => {
-            if (!drag.current) return;
-            const next = Math.min(
-              1,
-              Math.max(
-                0,
-                drag.current.norm +
-                  (drag.current.y - event.clientY) *
-                    (event.shiftKey ? 0.001 : 0.005)
-              )
-            );
-            drag.current = { y: event.clientY, norm: next };
-            gesture.schedule(normToValue(def, next));
-          }}
-          onPointerUp={(event) => {
-            drag.current = null;
-            gesture.commit();
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-              event.currentTarget.releasePointerCapture(event.pointerId);
+          describeChild
+        >
+          <input
+            type="range"
+            aria-label={def.label}
+            aria-valuetext={def.fmt?.(value) ?? String(value)}
+            min="0"
+            max="1"
+            step={def.curve === "int" ? 1 / (def.max - def.min) : 0.01}
+            value={norm}
+            onChange={(event) =>
+              onChange(normToValue(def, Number(event.target.value)))
             }
-          }}
-          onLostPointerCapture={() => {
-            drag.current = null;
-            gesture.commit();
-          }}
-          onPointerCancel={() => {
-            drag.current = null;
-            gesture.commit();
-          }}
-          onDoubleClick={() => onChange(def.def)}
-        />
+            onPointerDown={(event) => {
+              if (event.button !== 0) return;
+              event.preventDefault();
+              event.currentTarget.focus();
+              event.currentTarget.setPointerCapture(event.pointerId);
+              drag.current = { y: event.clientY, norm };
+              gesture.begin();
+            }}
+            onPointerMove={(event) => {
+              if (!drag.current) return;
+              const next = Math.min(
+                1,
+                Math.max(
+                  0,
+                  drag.current.norm +
+                    (drag.current.y - event.clientY) *
+                      (event.shiftKey ? 0.001 : 0.005)
+                )
+              );
+              drag.current = { y: event.clientY, norm: next };
+              gesture.schedule(normToValue(def, next));
+            }}
+            onPointerUp={(event) => {
+              drag.current = null;
+              gesture.commit();
+              if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                event.currentTarget.releasePointerCapture(event.pointerId);
+              }
+            }}
+            onLostPointerCapture={() => {
+              drag.current = null;
+              gesture.commit();
+            }}
+            onPointerCancel={() => {
+              drag.current = null;
+              gesture.commit();
+            }}
+            onDoubleClick={() => onChange(def.def)}
+          />
+        </Tooltip>
       </span>
       <span className="fs-k-label">{def.label}</span>
       <span className="fs-k-value">{def.fmt?.(value) ?? value.toFixed(2)}</span>
@@ -299,13 +305,11 @@ export const InstrumentKeyboard = ({
 }: {
   start: number;
   onPlay: (pitch: number) => void;
-}) => {
-  const { t } = useTranslation();
-  return (
+}) => (
   <Panel
     title="KEYS"
     className="fs-keys-panel"
-    head={<Caption>{t("timeline:attrs.clickOrFocusAKeyAndPressEnter", { defaultValue: "Click or focus a key and press Enter" })}</Caption>}
+    head={<Caption>{i18n.t("timeline:attrs.clickOrFocusAKeyAndPressEnter", { defaultValue: "Click or focus a key and press Enter" })}</Caption>}
   >
     <div className="fs-keys">
       <div className="fs-white-keys">
@@ -335,7 +339,6 @@ export const InstrumentKeyboard = ({
     </div>
   </Panel>
 );
-};
 
 interface EditorProps<T extends FableInstrument> {
   instrument: T;
@@ -362,11 +365,11 @@ const Filter = <T extends BassMidiInstrument | WavetableMidiInstrument>({
   onChange
 }: EditorProps<T>) => (
   <Panel
-    title="FILTER"
+    title={i18n.t("timeline:attrs.filter", { defaultValue: "FILTER" })}
     accent="f"
     head={
       <Stepper
-        label="TYPE"
+        label={i18n.t("editor:asset.info.typeUpper", { defaultValue: "TYPE" })}
         options={FILTERS}
         value={filterTypes.indexOf(instrument.filterType)}
         onChange={(index) =>
@@ -464,7 +467,7 @@ const Oscillator = ({
     accent={accent}
     head={
       <Stepper
-        label="TABLE"
+        label={i18n.t("appbuilder:attrs.table", { defaultValue: "TABLE" })}
         options={TABLES}
         value={tableNames.indexOf(osc.table)}
         onChange={(index) => onChange({ ...osc, table: tableNames[index] })}
@@ -516,9 +519,7 @@ const Oscillator = ({
 const BassEditor = ({
   instrument,
   onChange
-}: EditorProps<BassMidiInstrument>) => {
-  const { t } = useTranslation();
-  return (
+}: EditorProps<BassMidiInstrument>) => (
   <>
     <div className="fs-voice-grid">
       <Panel
@@ -527,7 +528,7 @@ const BassEditor = ({
         accent="a"
         head={
           <Stepper
-            label="TABLE"
+            label={i18n.t("appbuilder:attrs.table", { defaultValue: "TABLE" })}
             options={TABLES}
             value={tableNames.indexOf(instrument.table)}
             onChange={(index) =>
@@ -555,7 +556,7 @@ const BassEditor = ({
       <Panel title="SUB">
         <FlexRow className="fs-sub-controls" gap={SPACING.md} wrap>
           <Stepper
-            label="SHAPE"
+            label={i18n.t("timeline:attrs.shapeUpper", { defaultValue: "SHAPE" })}
             options={["SINE", "SQUARE"]}
             value={instrument.subShape === "square" ? 1 : 0}
             onChange={(index) =>
@@ -579,7 +580,7 @@ const BassEditor = ({
         </FlexRow>
       </Panel>
       <Filter instrument={instrument} onChange={onChange} />
-      <Panel title="ENV" className="fs-panel-inline" head={<Caption>{t("timeline:attrs.filterEnvelope", { defaultValue: "Filter envelope" })}</Caption>}>
+      <Panel title="ENV" className="fs-panel-inline" head={<Caption>{i18n.t("timeline:attrs.filterEnvelope", { defaultValue: "Filter envelope" })}</Caption>}>
         <div className="fs-knob-row">
           <Knob
             def={P("fattack", "F·ATT", 0, 500, 1, (v) => sec(v / 1000), "time")}
@@ -642,7 +643,6 @@ const BassEditor = ({
     </div>
   </>
 );
-};
 
 const WavetableEditor = ({
   instrument,
@@ -767,7 +767,7 @@ const DrumEditor = ({
             accent="a"
             head={
               <Stepper
-                label="TABLE"
+                label={t("appbuilder:attrs.table", { defaultValue: "TABLE" })}
                 options={drumTables.map((table) => table.toUpperCase())}
                 value={drumTables.indexOf(pad.table)}
                 onChange={(index) =>
@@ -872,12 +872,12 @@ const DrumEditor = ({
             </div>
           </Panel>
           <Panel
-            title="FILTER"
+            title={t("timeline:attrs.filter", { defaultValue: "FILTER" })}
             accent="f"
             head={
               <Power
                 on={Boolean(filter)}
-                label={t("timeline:attrs.filter", { defaultValue: "Filter" })}
+                label={t("timeline:attrs.filterCapitalized", { defaultValue: "Filter" })}
                 onChange={() =>
                   commit({
                     ...pad,
@@ -893,7 +893,7 @@ const DrumEditor = ({
             {filter ? (
               <>
                 <Stepper
-                  label="TYPE"
+                  label={t("editor:asset.info.typeUpper", { defaultValue: "TYPE" })}
                   options={FILTERS}
                   value={filterTypes.indexOf(filter.type)}
                   onChange={(index) =>
@@ -927,7 +927,7 @@ const DrumEditor = ({
               <Caption>{t("timeline:attrs.filterBypassedEnableToShapeThisPad", { defaultValue: "Filter bypassed. Enable to shape this pad." })}</Caption>
             )}
           </Panel>
-          <Panel title="OUTPUT" accent="b">
+          <Panel title={t("editor:io.output", { defaultValue: "OUTPUT" })} accent="b">
             <div className="fs-knob-row">
               <Knob
                 def={P("level", "LEVEL", 0, 1, 0.8)}
@@ -976,10 +976,8 @@ const FableSynthInstrumentEditor = ({
         <Label>{model}</Label>
         <Caption className="fs-description">
           {instrument.type === "bass"
-            ? t("timeline:attrs.bassSynthesizer", { defaultValue: "Bass synthesizer" })
-            : instrument.type === "wavetable"
-              ? t("timeline:attrs.wavetableSynthesizer", { defaultValue: "Wavetable synthesizer" })
-              : t("timeline:attrs.drumSynthesizer", { defaultValue: "Drum synthesizer" })}
+            ? t("timeline:attrs.bassSynthesizer", { defaultValue: "Bass synthesizer" }) : instrument.type === "wavetable"
+              ? t("timeline:attrs.wavetableSynthesizer", { defaultValue: "Wavetable synthesizer" }) : i18n.t("timeline:attrs.drumSynthesizer", { defaultValue: "Drum synthesizer" })}
         </Caption>
         <EditorButton
           size="small"
@@ -989,7 +987,9 @@ const FableSynthInstrumentEditor = ({
               instrument.type === "drum" ? instrument.baseNote : 60
             )
           }
-        >{t("timeline:attrs.audition", { defaultValue: "Audition" })}</EditorButton>
+        >
+          Audition
+        </EditorButton>
         <Knob
           def={P(
             "output",

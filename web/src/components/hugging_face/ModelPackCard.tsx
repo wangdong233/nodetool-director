@@ -15,7 +15,8 @@ import {
   BORDER_RADIUS,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  ICON_SIZE
 } from "../ui_primitives";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -34,6 +35,7 @@ import {
 import { Tooltip } from "../ui_primitives";
 import { useModelDownloadTarget } from "../../hooks/useModelDownloadTarget";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface ModelPackCardProps {
   pack: ModelPack;
@@ -137,14 +139,13 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
   return (
     <Card
       padding="none"
+      variant="outlined"
+      radius="sm"
       sx={{
         mb: 2,
-        backgroundColor: "var(--palette-grey-900)",
-        border: "1px solid var(--palette-grey-700)",
-        borderRadius: BORDER_RADIUS.sm,
         transition: MOTION.border,
         "&:hover": {
-          borderColor: "var(--palette-grey-500)"
+          borderColor: "text.disabled"
         }
       }}
     >
@@ -166,7 +167,7 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
               </Text>
               {allDownloaded && (
                 <CheckCircleIcon
-                  sx={{ color: "var(--palette-success-main)", fontSize: 20 }}
+                  sx={{ color: "var(--palette-success-main)", fontSize: ICON_SIZE.lg }}
                 />
               )}
             </FlexRow>
@@ -182,29 +183,17 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
                 <Chip
                   key={tag}
                   label={tag}
-                  size="small"
-                  sx={{
-                    backgroundColor: "var(--palette-grey-800)",
-                    color: "var(--palette-grey-200)"
-                  }}
+                  compact
                 />
               ))}
               <Chip
                 label={`${pack.models.length} model${pack.models.length > 1 ? "s" : ""}`}
-                size="small"
-                sx={{
-                  backgroundColor: "var(--palette-grey-700)",
-                  color: "var(--palette-grey-100)"
-                }}
+                compact
               />
               {pack.total_size && (
                 <Chip
                   label={formatBytes(pack.total_size)}
-                  size="small"
-                  sx={{
-                    backgroundColor: "var(--palette-grey-700)",
-                    color: "var(--palette-grey-100)"
-                  }}
+                  compact
                 />
               )}
             </FlexRow>
@@ -216,10 +205,6 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
             <ProgressBar
               value={downloadProgress}
               showValue={false}
-              sx={{
-                borderRadius: BORDER_RADIUS.lg,
-                backgroundColor: "var(--palette-grey-700)"
-              }}
             />
             <Caption color="secondary">
               Downloading {activeDownloads.length} of {pack.models.length} models…
@@ -248,16 +233,15 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
             }}
           >
             {allDownloaded
-              ? t("editor:ui.allDownloaded", { defaultValue: "All Downloaded" })
-              : someDownloaded
-                ? t("editor:ui.downloadNRemaining", { defaultValue: "Download {{n}} Remaining", n: pack.models.length - downloadedModels.size })
-                : t("editor:ui.downloadAll", { defaultValue: "Download All" })}
+              ? t("editor:ui.allDownloaded", { defaultValue: "All downloaded" }) : someDownloaded
+                ? `Download ${pack.models.length - downloadedModels.size} Remaining`
+                : "Download all"}
           </EditorButton>
         </Tooltip>
 
         <ToolbarIconButton
           icon={<ExpandMoreIcon />}
-          tooltip={expanded ? t("editor:ui.collapseModelPackDetails", { defaultValue: "Collapse model pack details" }) : t("editor:ui.expandModelPackDetails", { defaultValue: "Expand model pack details" })}
+          tooltip={expanded ? t("editor:ui.collapseModelPackDetails", { defaultValue: "Collapse model pack details" }) : i18n.t("editor:ui.expandModelPackDetails", { defaultValue: "Expand model pack details" })}
           onClick={handleToggleExpanded}
           sx={{
             transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
@@ -274,7 +258,7 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
             color="secondary"
             sx={{ mb: 1 }}
           >
-            {t("editor:ui.includedModels")}
+            Included Models:
           </Text>
           <List dense disablePadding>
             {pack.models.map((model) => (
@@ -304,7 +288,7 @@ const ModelPackCard: React.FC<ModelPackCardProps> = ({
                   <CheckCircleIcon
                     sx={{
                       color: "var(--palette-success-main)",
-                      fontSize: 18,
+                      fontSize: ICON_SIZE.md,
                       ml: 1
                     }}
                   />

@@ -1,7 +1,7 @@
 /**
  * Every document a project holds, as a navigator needs them.
  *
- * The left rail lists eight kinds of document and shows a name and an icon for
+ * The left rail lists every kind of document and shows a name and an icon for
  * each. It used to build that list from eight list endpoints, and every one of
  * them answered with whole rows: `SELECT *` over tables whose bulk is a JSON
  * document column — a board's every shot and take, a sketch's every layer, a
@@ -16,14 +16,24 @@
  * entities. The marker is a substring of the stored JSON, so the database
  * filters on it and only entities cross the wire.
  *
- * Eight reads also mean eight ways to fail. They are gathered so that a kind
- * whose read errors costs the navigator that kind, not the panel: the index
+ * One read per kind also means one way to fail per kind. The reads are
+ * gathered so that a kind whose read errors costs the navigator that kind, not
+ * the panel: the index
  * says it is partial and names the failure in the log, rather than answering
  * the whole request with a database error. Only a request where every kind
  * failed throws, because then there is no index to show.
  */
 
-import { and, desc, eq, isNull, like, or, type SQL } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  like,
+  or,
+  type SQL
+} from "drizzle-orm";
 import { createLogger } from "@nodetool-ai/config";
 import type { Entity } from "@nodetool-ai/protocol";
 
@@ -31,6 +41,7 @@ import { getPortableDb } from "./db.js";
 import { entityFromAsset } from "./entity.js";
 import { applications } from "./schema/applications.js";
 import { assets } from "./schema/assets.js";
+import { games } from "./schema/games.js";
 import { imageDocuments } from "./schema/image-documents.js";
 import { jsScripts } from "./schema/js-scripts.js";
 import { scripts } from "./schema/scripts.js";
@@ -39,10 +50,13 @@ import { timelineSequences } from "./schema/timeline-sequences.js";
 import { workflows } from "./schema/workflows.js";
 
 /**
- * The kinds the navigator opens, spelled as the workspace tab type where one
- * exists. `entity` has no tab — it opens an editor in place.
+ * What counts as a project document: every kind that opens in a workspace tab,
+ * spelled as that tab type. The Documents panel and the home documents strip
+ * both list exactly these, read by {@link projectDocumentKinds}, so the two
+ * agree on what a document is. A `text` document is a text file asset — a
+ * Markdown or plain-text note the user created in the project.
  */
-export type DocumentIndexType =
+export type ProjectDocumentKind =
   | "workflow"
   | "application"
   | "sketch"
@@ -50,7 +64,14 @@ export type DocumentIndexType =
   | "storyboard"
   | "timeline"
   | "jsscript"
-  | "entity";
+  | "game"
+  | "text";
+
+/**
+ * The kinds the navigator lists: every {@link ProjectDocumentKind}, plus
+ * `entity`, which has no tab — it opens an editor in place.
+ */
+export type DocumentIndexType = ProjectDocumentKind | "entity";
 
 /** One row of the navigator. */
 export interface DocumentIndexEntry {
@@ -88,16 +109,18 @@ const log = createLogger("nodetool.models.document-index");
  * The document tables. They differ in everything but the five columns this
  * reads, which is why one query shape serves all of them.
  */
-type DocumentTable =
+export type DocumentTable =
   | typeof workflows
+  | typeof games
   | typeof applications
   | typeof imageDocuments
   | typeof scripts
   | typeof storyboards
   | typeof timelineSequences
-  | typeof jsScripts;
+  | typeof jsScripts
+  | typeof assets;
 
-interface NamedRow {
+export interface NamedRow {
   id: string;
   name: string;
   updated_at: string;
@@ -121,8 +144,42 @@ function listedRunModes(): SQL<unknown> {
   return condition;
 }
 
-/** The named rows of one table, newest first, one over the cap. */
-async function listNamed(
+/**
+ * Content types a text file is stored under: everything `text/*`, plus the
+ * structured text formats browsers label as `application/*`. These are the
+ * MIME types the "New text file" templates create, and the ones the text tab
+ * edits.
+ */
+const TEXT_APPLICATION_CONTENT_TYPES = [
+  "application/json",
+  "application/xml",
+  "application/javascript",
+  "application/typescript",
+  "application/x-yaml",
+  "application/yaml"
+];
+
+/**
+ * A text file the user keeps in the project. Assets a workflow run wrote carry
+ * the run's `job_id` and are run output, not notes, so they stay in the
+ * Library only.
+ */
+function textFileCondition(): SQL<unknown> {
+  const condition = and(
+    isNull(assets.job_id),
+    or(
+      like(assets.content_type, "text/%"),
+      inArray(assets.content_type, TEXT_APPLICATION_CONTENT_TYPES)
+    )
+  );
+  if (!condition) {
+    throw new Error("Expected SQL condition");
+  }
+  return condition;
+}
+
+/** The named rows of one table, newest first, up to `limit`. */
+export async function listNamed(
   table: DocumentTable,
   userId: string,
   projectId: string,
@@ -159,6 +216,55 @@ export async function listProjectWorkflows(
   limit: number
 ): Promise<NamedRow[]> {
   return listNamed(workflows, userId, projectId, limit, listedRunModes());
+}
+
+/** The project's text files, newest first: the `text` documents. */
+export async function listProjectTextFiles(
+  userId: string,
+  projectId: string,
+  limit: number
+): Promise<NamedRow[]> {
+  return listNamed(assets, userId, projectId, limit, textFileCondition());
+}
+
+/** One kind of project document, and the read that lists its rows. */
+export interface ProjectDocumentKindRead {
+  type: ProjectDocumentKind;
+  read: () => Promise<NamedRow[]>;
+}
+
+/**
+ * Every kind of project document with the read that lists it, newest first,
+ * up to `limit` rows each. The one definition of what a document is: the
+ * navigator's index and the home strip's pages both read through it.
+ */
+export function projectDocumentKinds(
+  userId: string,
+  projectId: string,
+  limit: number
+): ProjectDocumentKindRead[] {
+  const named = (
+    type: ProjectDocumentKind,
+    table: DocumentTable,
+    extra?: SQL<unknown>
+  ): ProjectDocumentKindRead => ({
+    type,
+    read: () => listNamed(table, userId, projectId, limit, extra)
+  });
+  // Rows are sorted newest first after the reads, and the sort is stable, so
+  // this order breaks ties. It matches the project overview's, so a page of
+  // the home strip lists the same cards in the same order.
+  return [
+    named("storyboard", storyboards),
+    named("script", scripts),
+    named("timeline", timelineSequences),
+    named("sketch", imageDocuments),
+    named("application", applications),
+    named("jsscript", jsScripts),
+    named("game", games),
+    named("workflow", workflows, listedRunModes()),
+    named("text", assets, textFileCondition())
+  ];
 }
 
 /**
@@ -261,25 +367,16 @@ function describeError(error: unknown): string {
 
 /** The kinds the index gathers, each with the read that lists it. */
 function documentKinds(userId: string, projectId: string, cap: number): Kind[] {
-  const named = (
-    type: DocumentIndexType,
-    table: DocumentTable,
-    extra?: SQL<unknown>
-  ): Kind => ({
-    type,
-    read: async () => {
-      const rows = await listNamed(table, userId, projectId, cap, extra);
-      return { entries: toEntries(type, rows), rowCount: rows.length };
-    }
-  });
   return [
-    named("workflow", workflows, listedRunModes()),
-    named("application", applications),
-    named("sketch", imageDocuments),
-    named("script", scripts),
-    named("storyboard", storyboards),
-    named("timeline", timelineSequences),
-    named("jsscript", jsScripts),
+    ...projectDocumentKinds(userId, projectId, cap).map(
+      (kind): Kind => ({
+        type: kind.type,
+        read: async () => {
+          const rows = await kind.read();
+          return { entries: toEntries(kind.type, rows), rowCount: rows.length };
+        }
+      })
+    ),
     { type: "entity", read: () => listEntities(userId, projectId, cap) }
   ];
 }

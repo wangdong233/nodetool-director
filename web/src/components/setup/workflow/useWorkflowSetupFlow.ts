@@ -62,7 +62,7 @@ import type { ModelRoleAvailability, ModelRoleChoices } from "./SetupStep";
 import { i18n } from "../../../i18n";
 import { useTranslation } from "react-i18next";
 
-const FLOW_TITLE = { title: "Workflow" } as const;
+const FLOW_TITLE = { title: "Workflow", titleKey: "home:flowError.kind.workflow" } as const;
 
 /** One planner call's output allowance. */
 const PLANNER_MAX_OUTPUT_TOKENS = 4096;

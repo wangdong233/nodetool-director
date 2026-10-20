@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { EmptyState, FlexColumn, FlexRow, LoadingSpinner } from "../ui_primitives";
 import { EditorButton } from "../editor_ui";
@@ -11,6 +11,7 @@ import {
 import { useSaveSketchToAsset } from "../../hooks/sketch/useSaveSketchToAsset";
 import type { Asset } from "../../stores/ApiTypes";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 import { useAppLanguage } from "../../i18n";
 
 interface ImageSketchEditorProps {
@@ -21,13 +22,12 @@ interface ImageSketchEditorProps {
 /**
  * Edit-mode body for the workspace image tab: the sketch editor embedded inline
  * on the asset's backing sketch document (created and linked on first edit).
- * "Save to image" renders the composite back into the asset; "Done" returns the
- * tab to view mode. Both live in the editor's tool bar. The sketch document
+ * "Save to image" renders the composite back into the asset. "Done" saves the
+ * same way and returns the tab to view mode, or stays when the save fails. Both live in the editor's tool bar. The sketch document
  * autosaves independently.
  */
 const ImageSketchEditor = ({ asset, onClose }: ImageSketchEditorProps) => {
   const { t } = useTranslation();
-  // Header actions memo resolves catalog copy; re-resolve on language change.
   const { version: languageVersion } = useAppLanguage();
   const updateAsset = useAssetStore((state) => state.update);
   const [documentId, setDocumentId] = useState<string | null>(() =>
@@ -35,6 +35,11 @@ const ImageSketchEditor = ({ asset, onClose }: ImageSketchEditorProps) => {
   );
   const [error, setError] = useState<string | null>(null);
   const { save, saving } = useSaveSketchToAsset(asset.id);
+  const saveAndClose = useCallback(async () => {
+    if (await save()) {
+      onClose();
+    }
+  }, [save, onClose]);
 
   const headerActions = useMemo(
     () => (
@@ -53,16 +58,19 @@ const ImageSketchEditor = ({ asset, onClose }: ImageSketchEditorProps) => {
           onClick={save}
           disabled={saving}
         >
-          {saving
-            ? t("editor:ui.saving", { defaultValue: "Saving…" })
-            : t("editor:ui.saveToImage", { defaultValue: "Save to image" })}
+          {saving ? t("editor:ui.saving", { defaultValue: "Saving…" }) : i18n.t("editor:ui.saveToImage", { defaultValue: "Save to image" })}
         </EditorButton>
-        <EditorButton variant="text" size="small" onClick={onClose}>
-          {t("editor:ui.done", { defaultValue: "Done" })}
+        <EditorButton
+          variant="text"
+          size="small"
+          onClick={saveAndClose}
+          disabled={saving}
+        >
+          Done
         </EditorButton>
       </FlexRow>
     ),
-    [save, saving, onClose, languageVersion]
+    [save, saving, saveAndClose, languageVersion]
   );
 
   useEffect(() => {

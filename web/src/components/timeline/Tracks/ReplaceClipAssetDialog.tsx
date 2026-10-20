@@ -8,7 +8,6 @@
  */
 
 import React, { memo, useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
 import type { ClipMediaType } from "@nodetool-ai/timeline";
 import { useTimelineStore } from "../../../stores/timeline/TimelineStore";
 import { findClipById } from "../../../stores/timeline/clipLookup";
@@ -24,6 +23,7 @@ import {
   SearchInput,
   SPACING
 } from "../../ui_primitives";
+import { i18n } from "../../../i18n";
 
 /** Fixed so the dialog does not resize while results load. */
 const PANEL_HEIGHT = 360;
@@ -48,20 +48,12 @@ export const replacementContentType = (
   }
 };
 
-/** Resolve the lowercase kind noun used in the dialog's sentences. */
-const kindLabelFor = (
-  t: ReturnType<typeof useTranslation>["t"],
-  contentType: string | undefined
-): string =>
-  contentType === "image/"
-    ? t("timeline:attrs.kindImages", { defaultValue: "images" })
-    : contentType === "video/"
-      ? t("timeline:attrs.kindVideos", { defaultValue: "videos" })
-      : contentType === "audio/"
-        ? t("timeline:attrs.kindAudioFiles", { defaultValue: "audio files" })
-        : contentType === "model/"
-          ? t("timeline:attrs.kind3dModels", { defaultValue: "3D models" })
-          : t("timeline:attrs.kindAssets", { defaultValue: "assets" });
+const KIND_LABEL: Record<string, string> = {
+  "image/": "images",
+  "video/": "videos",
+  "audio/": "audio files",
+  "model/": i18n.t("editor:ui.models3d", { defaultValue: "3D models" })
+};
 
 interface ReplaceClipAssetDialogProps {
   clipId: string;
@@ -70,7 +62,6 @@ interface ReplaceClipAssetDialogProps {
 
 export const ReplaceClipAssetDialog: React.FC<ReplaceClipAssetDialogProps> =
   memo(({ clipId, onClose }) => {
-    const { t } = useTranslation();
     const replaceClipOutput = useTimelineStore((s) => s.replaceClipOutput);
     const mediaType = useTimelineStore(
       (s) => findClipById(s.clips, clipId)?.mediaType
@@ -79,7 +70,7 @@ export const ReplaceClipAssetDialog: React.FC<ReplaceClipAssetDialogProps> =
       (s) => findClipById(s.clips, clipId)?.currentAssetId
     );
     const contentType = replacementContentType(mediaType);
-    const kindLabel = kindLabelFor(t, contentType);
+    const kindLabel = contentType ? KIND_LABEL[contentType] : "assets";
 
     const [query, setQuery] = useState("");
     const { displayedAssets, hasMoreSaved, loadMoreSaved, handleRename } =
@@ -112,23 +103,20 @@ export const ReplaceClipAssetDialog: React.FC<ReplaceClipAssetDialogProps> =
       <Dialog
         open
         onClose={onClose}
-        title={t("editor:ui.replaceClip", { defaultValue: "Replace Clip" })}
+        title={i18n.t("editor:ui.replaceClip", { defaultValue: "Replace clip" })}
         maxWidth="sm"
         fullWidth
       >
         <FlexColumn gap={SPACING.md}>
           <Caption color="secondary">
-            {t("timeline:attrs.pickOneOfYourKind", {
-              defaultValue:
-                "Pick one of your {{kind}} to use as the clip's output. The generation state and param overrides will not be changed.",
-              kind: kindLabel
-            })}
+            Pick one of your {kindLabel} to use as the clip&apos;s output. The
+            generation state and param overrides will not be changed.
           </Caption>
           <SearchInput
             value={query}
             onChange={setQuery}
-            placeholder={t("timeline:attrs.searchKind", { defaultValue: "Search {{kind}}", kind: kindLabel })}
-            ariaLabel={t("timeline:attrs.searchKind", { defaultValue: "Search {{kind}}", kind: kindLabel })}
+            placeholder={`Search ${kindLabel}`}
+            ariaLabel={`Search ${kindLabel}`}
             size="small"
             autoFocus
             fullWidth
@@ -136,13 +124,11 @@ export const ReplaceClipAssetDialog: React.FC<ReplaceClipAssetDialogProps> =
           {displayedAssets.length === 0 ? (
             <EmptyState
               variant={query ? "no-results" : "empty"}
-              title={query
-                ? t("timeline:attrs.noKindMatch", { defaultValue: "No {{kind}} match", kind: kindLabel })
-                : t("timeline:attrs.noKindYet", { defaultValue: "No {{kind}} yet", kind: kindLabel })}
+              title={query ? `No ${kindLabel} match` : `No ${kindLabel} yet`}
               description={
                 query
-                  ? t("editor:ui.tryAnotherName", { defaultValue: "Try another name." })
-                  : t("editor:ui.uploadAFileOrGenerateOneFirst", { defaultValue: "Upload a file or generate one first." })
+                  ? i18n.t("timeline:editor.tryAnotherName", { defaultValue: "Try another name." })
+                  : "Upload a file or generate one first."
               }
               size="small"
             />
@@ -152,7 +138,7 @@ export const ReplaceClipAssetDialog: React.FC<ReplaceClipAssetDialogProps> =
                 wrap
                 gap={SPACING.xs}
                 role="listbox"
-                aria-label={t("timeline:attrs.replacementKind", { defaultValue: "Replacement {{kind}}", kind: kindLabel })}
+                aria-label={`Replacement ${kindLabel}`}
               >
                 {displayedAssets.map((asset) => (
                   <MentionAssetTile

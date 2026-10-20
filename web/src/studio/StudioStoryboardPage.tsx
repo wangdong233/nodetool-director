@@ -19,7 +19,7 @@ import {
   EditorButton,
   FlexColumn,
   FlexRow,
-  WarningBanner,
+  AlertBanner,
   STUDIO_ASSISTANT_WIDTH
 } from "../components/ui_primitives";
 import StoryboardBoard from "../components/storyboard/StoryboardBoard";
@@ -47,6 +47,7 @@ import {
   STUDIO_DIRECTOR_MODEL,
   STUDIO_STILL_MODEL
 } from "./curatedModels";
+import { i18n } from "../i18n";
 
 /** Stamp the curated models onto a board that has none selected. */
 const useStudioModelPolicy = (
@@ -152,7 +153,7 @@ const StudioStoryboardPage = () => {
       <StudioShell title={title || "Storyboard"}>
         <DocumentLoadStatus
           state={loadState}
-          label="storyboard"
+          label={i18n.t("home:flowError.kind.storyboard", { defaultValue: "storyboard" })}
           onRetry={() => setRetryToken((value) => value + 1)}
           onClose={() => navigate("/workspace")}
           closeLabel="Back to workspace"
@@ -172,9 +173,9 @@ const StudioStoryboardPage = () => {
   return (
     <StudioShell title={title || "Untitled storyboard"}>
       {assemblyNotice && (
-        <WarningBanner
-          message="Timeline created with omissions"
-          description={assemblyNotice.warnings.join(" ")}
+        <AlertBanner
+          severity="warning"
+          title={i18n.t("timeline:editor.createdWithOmissions", { defaultValue: "Timeline created with omissions" })}
           action={
             <EditorButton
               onClick={() =>
@@ -184,7 +185,9 @@ const StudioStoryboardPage = () => {
               Open timeline
             </EditorButton>
           }
-        />
+        >
+          {assemblyNotice.warnings.join(" ")}
+        </AlertBanner>
       )}
       <FlexRow
         sx={{

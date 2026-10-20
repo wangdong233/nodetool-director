@@ -13,11 +13,6 @@ import { useWorkflowManager } from "../../contexts/WorkflowManagerContext";
 import { useWorkflowActions } from "../../hooks/useWorkflowActions";
 import { BASE_URL } from "../../stores/BASE_URL";
 import { estimateGraphCost } from "../../hooks/useGraphCostEstimate";
-import { i18n, useAppLanguage } from "../../i18n";
-import {
-  workflowTemplateCopy,
-  workflowTemplateSearchAlias
-} from "../../i18n/workflowTemplateCopy";
 import {
   TOP_CATEGORIES,
   workflowsForCategory,
@@ -25,17 +20,20 @@ import {
   getCategoryForWorkflow
 } from "../../utils/templateCategories";
 import {
+  AutoGrid,
   EmptyState,
   LoadingSpinner,
-  MOTION,
   BORDER_RADIUS,
   SPACING,
-  Z_INDEX,
-  getSpacingPx
+  TYPOGRAPHY,
+  getSpacingPx,
+  selectableTileStyles,
+  Tooltip,
+  Chip
 } from "../ui_primitives";
 import {
   useSectionWrap,
-  SectionHeader,
+  DashboardSectionHeader,
   DashboardSearchBox,
   SectionLink
 } from "./dashboardChrome";
@@ -43,7 +41,10 @@ import {
   CompatibilityDetails,
   getWorkflowCompatibility
 } from "./entryCompatibility";
+import ExampleNeedsPill from "./ExampleNeedsPill";
+import { runsAsIs } from "../../utils/exampleNeeds";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 /** Rows shown on the dashboard before the user searches or opens the Examples tab. */
 const MAX_VISIBLE = 18;
@@ -60,27 +61,6 @@ const styles = (theme: Theme) =>
       gap: getSpacingPx(SPACING.micro),
       paddingBottom: getSpacingPx(SPACING.sm)
     },
-    ".cat": {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: getSpacingPx(SPACING.xs),
-      height: 26,
-      padding: `0 ${getSpacingPx(SPACING.sm)}`,
-      background: theme.vars.palette.c_node_bg,
-      border: `1px solid ${theme.vars.palette.divider}`,
-      borderRadius: BORDER_RADIUS.pill,
-      color: theme.vars.palette.text.secondary,
-      fontSize: "var(--fontSizeSmaller)",
-      cursor: "pointer",
-      transition: `background ${MOTION.fast}, color ${MOTION.fast}, border-color ${MOTION.fast}`,
-      "&:hover": { color: theme.vars.palette.text.primary },
-      // Neutral "All" active state; category pills override colours inline.
-      "&.on": {
-        background: theme.vars.palette.c_node_bg_group,
-        borderColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.5)`,
-        color: theme.vars.palette.text.primary
-      }
-    },
     ".cat-dot": {
       width: 7,
       height: 7,
@@ -88,12 +68,10 @@ const styles = (theme: Theme) =>
       flexShrink: 0
     },
     ".tpl-list": {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))",
-      gap: getSpacingPx(SPACING.md),
       paddingBottom: getSpacingPx(SPACING.sm)
     },
     ".tpl-row": {
+      ...selectableTileStyles(theme),
       display: "flex",
       flexDirection: "column",
       alignItems: "stretch",
@@ -101,15 +79,9 @@ const styles = (theme: Theme) =>
       textAlign: "left",
       padding: 0,
       background: theme.vars.palette.c_node_bg,
-      border: `1px solid ${theme.vars.palette.divider}`,
-      borderRadius: BORDER_RADIUS.lg,
+      color: "inherit",
       cursor: "pointer",
       overflow: "hidden",
-      transition: `border-color ${MOTION.fast}, background ${MOTION.fast}`,
-      "&:hover": {
-        borderColor: `rgba(${theme.vars.palette.primary.mainChannel} / 0.5)`,
-        background: theme.vars.palette.action.hover
-      },
       "&.loading": { cursor: "wait", pointerEvents: "none" }
     },
     ".tpl-icon": {
@@ -129,14 +101,14 @@ const styles = (theme: Theme) =>
     },
     ".tpl-title": {
       display: "block",
-      fontSize: "var(--fontSizeNormal)",
+      ...TYPOGRAPHY.sans.label,
       color: theme.vars.palette.text.primary,
       overflow: "hidden",
       textOverflow: "ellipsis",
       whiteSpace: "nowrap"
     },
     ".tpl-desc": {
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.sans.caption,
       color: theme.vars.palette.text.secondary,
       overflow: "hidden",
       textOverflow: "ellipsis",
@@ -158,9 +130,7 @@ const styles = (theme: Theme) =>
       display: "grid",
       gap: getSpacingPx(SPACING.micro),
       paddingTop: getSpacingPx(SPACING.xs),
-      fontFamily: theme.fontFamily2,
-      fontSize: "var(--fontSizeSmaller)",
-      lineHeight: 1.4,
+      ...TYPOGRAPHY.mono.caption,
       color: theme.vars.palette.text.disabled,
       "& .entry-compat": {
         display: "grid",
@@ -173,54 +143,23 @@ const styles = (theme: Theme) =>
       alignSelf: "flex-start",
       alignItems: "center",
       gap: getSpacingPx(SPACING.xs),
-      fontFamily: theme.fontFamily2,
-      fontSize: "var(--fontSizeSmaller)",
+      ...TYPOGRAPHY.mono.caption,
       color: theme.vars.palette.text.disabled
     },
     ".tpl-loading, .tpl-empty": {
       display: "flex",
       justifyContent: "center",
       padding: `${getSpacingPx(SPACING.xxl)} 0`,
-      color: theme.vars.palette.text.secondary,
-      fontSize: "var(--fontSizeNormal)"
+      color: theme.vars.palette.text.secondary
     }
   });
 
-// In full-page (/examples) mode the section flows inline in the padded
-// manager layout, which owns the scroll. The viewport-owning variant
-// (flex:1 + minHeight:0 + inner overflow) collapses to a sliver when a
-// sibling section sits above it inside the scrolling content area.
-// The controls band (title + search + category pills) pins to the top of
-// that scroll container once scrolled past. Sticky `top: 0` alone lands at
-// the container's CONTENT-box top — the padded scroll container keeps its
-// 12px (SPACING.lg, = ManagerPageLayout's theme.spacing(3) top padding)
-// visible above the pin, and rows would peek through that strip above the
-// band. So the sticky offset goes negative to own that strip, and the space
-// comes back as internal padding: pinned flush with the visible top edge,
-// opaque over the full strip, divider separating band from list. Dashboard
-// (non-fullPage) rendering never sees these styles — the .tpl-head wrapper
-// is an inert plain div there.
-const fullPageStyles = (theme: Theme) =>
-  css({
-    paddingTop: getSpacingPx(SPACING.xxl),
-    paddingBottom: getSpacingPx(SPACING.xxxl),
-    ".tpl-head": {
-      position: "sticky",
-      // Sticky `top: 0` pins at the scroll container's CONTENT-box top
-      // (Chrome keeps the padded container's 12px top padding above the
-      // pin), which would leave rows peeking through that strip above the
-      // band. Offset the pin up through the padding so the opaque band owns
-      // the strip, and hand the space back as internal padding. SPACING.lg
-      // (12px) = ManagerPageLayout's theme.spacing(3) top padding; expressed
-      // through the --spacing-lg token because stylis drops literal negative
-      // `top` values while var()-based ones compile (verified in-browser).
-      top: "calc(-1 * var(--spacing-lg))",
-      paddingTop: getSpacingPx(SPACING.lg),
-      zIndex: Z_INDEX.sticky,
-      background: theme.vars.palette.background.default,
-      borderBottom: `1px solid ${theme.vars.palette.divider}`
-    }
-  });
+// In full-page (Examples tab) mode this section gets extra breathing room below
+// the example apps. The manager content owns scrolling for the full page.
+const fullPageStyles = css({
+  paddingTop: getSpacingPx(SPACING.xxl),
+  paddingBottom: getSpacingPx(SPACING.xxxl)
+});
 
 /** Stand-in when a template ships no thumbnail (or it fails to load). */
 const templateGlyph = (
@@ -246,18 +185,15 @@ interface TemplateRowProps {
 
 const formatTemplateCost = (estimate: WorkflowCostEstimateDetail): string => {
   if (estimate.unknown_count === 0) {
-    return i18n.t("editor:ui.estimatedCost", { v: formatUsd(estimate.total) });
+    return `Estimated cost: ${formatUsd(estimate.total)}`;
   }
 
-  const unknownNodes = i18n.t(
-    estimate.unknown_count === 1
-      ? "editor:ui.nodeHasNoPublishedPrice"
-      : "editor:ui.nodesHaveNoPublishedPrice",
-    { n: estimate.unknown_count }
-  );
+  const unknownNodes = `${estimate.unknown_count} node${
+    estimate.unknown_count === 1 ? " has" : "s have"
+  } no published price`;
   return estimate.total > 0
-    ? i18n.t("editor:ui.estimatedCostAtLeast", { cost: formatUsd(estimate.total), unknown: unknownNodes })
-    : i18n.t("editor:ui.estimatedCostUnknown", { unknown: unknownNodes });
+    ? `Estimated cost: at least ${formatUsd(estimate.total)}; ${unknownNodes}`
+    : `Estimated cost: unknown — ${unknownNodes}`;
 };
 
 const TemplateRow = memo(function TemplateRow({
@@ -266,13 +202,8 @@ const TemplateRow = memo(function TemplateRow({
   isLoading,
   onClick
 }: TemplateRowProps) {
-  const { t } = useTranslation();
   const [thumbFailed, setThumbFailed] = useState(false);
   const category = getCategoryForWorkflow(workflow);
-  // Render-time zh overlay resolution (r28): English and zh-missing ids fall
-  // back to the backend values; the useTranslation subscription above is the
-  // re-render anchor that re-reads this on a language switch (F-26).
-  const copy = workflowTemplateCopy(workflow);
 
   // The server sets thumbnail_url only when the image exists (with an
   // md5-based ?v=<hash> cache buster), so a missing one means there is
@@ -295,63 +226,54 @@ const TemplateRow = memo(function TemplateRow({
   );
 
   return (
-    <button
-      type="button"
-      className={isLoading ? "tpl-row loading" : "tpl-row"}
-      title={copy.description || copy.name}
-      onClick={() => onClick(workflow)}
-    >
-      <span
-        className="tpl-icon"
-        aria-hidden
-        style={
-          category && (!thumbUrl || thumbFailed)
-            ? { background: `${category.color}24`, color: category.color }
-            : undefined
-        }
+    <Tooltip title={workflow.description || workflow.name} describeChild>
+      <button
+        type="button"
+        className={isLoading ? "tpl-row loading" : "tpl-row"}
+        onClick={() => onClick(workflow)}
       >
-        {isLoading ? (
-          <LoadingSpinner size="small" />
-        ) : !thumbUrl || thumbFailed ? (
-          <span className="tpl-glyph">{templateGlyph}</span>
-        ) : (
-          <img
-            className="tpl-thumb"
-            src={thumbUrl}
-            alt=""
-            loading="lazy"
-            onError={() => setThumbFailed(true)}
-          />
-        )}
-      </span>
-      <span className="tpl-copy">
-        <span className="tpl-title">{copy.name}</span>
-        <span className="tpl-desc">{copy.description}</span>
-        <span className="tpl-compat">
-          <CompatibilityDetails compatibility={compatibility} />
-          {workflow.graph.nodes.length > 0 && (
-            <>
-              <span>{t("editor:ui.durationUnknownExecutionTimeIsNotDeclared", { defaultValue: "Duration: unknown — execution time is not declared" })}</span>
-              <span>{formatTemplateCost(costEstimate)}</span>
-            </>
+        <span
+          className="tpl-icon"
+          aria-hidden
+          style={
+            category && (!thumbUrl || thumbFailed)
+              ? { background: `${category.color}24`, color: category.color }
+              : undefined
+          }
+        >
+          {isLoading ? (
+            <LoadingSpinner size="small" />
+          ) : !thumbUrl || thumbFailed ? (
+            <span className="tpl-glyph">{templateGlyph}</span>
+          ) : (
+            <img
+              className="tpl-thumb"
+              src={thumbUrl}
+              alt=""
+              loading="lazy"
+              onError={() => setThumbFailed(true)}
+            />
           )}
         </span>
-        {category && (
-          <span className="tpl-cat">
-            <span className="cat-dot" style={{ background: category.color }} />
-            {category.label}
+        <span className="tpl-copy">
+          <span className="tpl-title">{workflow.name}</span>
+          <span className="tpl-desc">{workflow.description}</span>
+          <ExampleNeedsPill needs={workflow.needs} />
+          <span className="tpl-compat">
+            <CompatibilityDetails compatibility={compatibility} />
+            {workflow.graph.nodes.length > 0 && (
+              <span>{formatTemplateCost(costEstimate)}</span>
+            )}
           </span>
-        )}
-      </span>
-      {category && (
-        <span className="tpl-cat">
-          <span className="cat-dot" style={{ background: category.color }} />
-          {category.labelKey
-            ? t(category.labelKey, { defaultValue: category.label })
-            : category.label}
+          {category && (
+            <span className="tpl-cat">
+              <span className="cat-dot" style={{ background: category.color }} />
+              {category.label}
+            </span>
+          )}
         </span>
-      )}
-    </button>
+      </button>
+    </Tooltip>
   );
 });
 
@@ -369,7 +291,6 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
   const { t } = useTranslation();
   const theme = useTheme();
   const sectionWrap = useSectionWrap();
-  const { version: languageVersion } = useAppLanguage();
   const metadata = useMetadataStore((state) => state.metadata);
   const loadTemplates = useWorkflowManager((state) => state.loadTemplates);
   const { handleExampleClick, handleViewAllTemplates, loadingExampleId } =
@@ -401,19 +322,20 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
     const q = query.trim().toLowerCase();
     const searched = q
       ? base.filter((w) => {
-          // Bilingual search: the English fields keep their original weights,
-          // and the zh overlay copy joins as an alias field (F-32 rule ③).
           const haystack = [w.name, w.description, ...(w.tags ?? [])]
             .filter(Boolean)
             .join(" ")
             .toLowerCase();
-          const alias = workflowTemplateSearchAlias(w.id).toLowerCase();
-          return `${haystack} ${alias}`.includes(q);
+          return haystack.includes(q);
         })
       : base;
 
-    // Surface getting-started picks first when browsing everything unfiltered.
+    // Examples that run as is come first. Getting-started picks lead within
+    // each group when browsing everything unfiltered.
     return [...searched].sort((a, b) => {
+      const ra = runsAsIs(a.needs) ? 0 : 1;
+      const rb = runsAsIs(b.needs) ? 0 : 1;
+      if (ra !== rb) return ra - rb;
       if (category === "all" && !q) {
         const ga = isGettingStarted(a) ? 0 : 1;
         const gb = isGettingStarted(b) ? 0 : 1;
@@ -421,88 +343,72 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
       }
       return a.name.localeCompare(b.name);
     });
-  }, [allTemplates, category, query, languageVersion]);
+  }, [allTemplates, category, query]);
 
   const visible = fullPage ? filtered : filtered.slice(0, MAX_VISIBLE);
   const countLabel = fullPage
-    ? t("editor:ui.nExamples", { n: filtered.length })
+    ? `${filtered.length} example${filtered.length === 1 ? "" : "s"}`
     : visible.length === filtered.length
       ? `${filtered.length}`
-      : t("editor:ui.nOfMExamples", { shown: visible.length, total: filtered.length });
+      : `${visible.length} of ${filtered.length}`;
 
   return (
     <section
       id={DASHBOARD_TEMPLATES_SECTION_ID}
-      css={fullPage ? [styles(theme), fullPageStyles(theme)] : styles(theme)}
+      css={fullPage ? [styles(theme), fullPageStyles] : styles(theme)}
     >
       <div css={sectionWrap}>
-        {/* The header + search + category pills travel together as one
-            band so the fullPage sticky scope can pin all three rows. */}
-        <div className="tpl-head">
-          <SectionHeader title={t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" })} count={countLabel}>
-            <DashboardSearchBox
-              ref={searchRef}
-              value={query}
-              onChange={setQuery}
-              placeholder={t("editor:ui.searchTemplatesByNameTag", { defaultValue: "Search templates by name, tag…" })}
-              kbd="/"
-              aria-label={t("editor:ui.searchTemplates", { defaultValue: "Search templates" })}
-            />
-            {!fullPage && (
-              <SectionLink onClick={handleViewAllTemplates}>
-                {t("editor:ui.browseAll", { defaultValue: "Browse all" })}
-              </SectionLink>
-            )}
-          </SectionHeader>
+        <DashboardSectionHeader title={t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" })} count={countLabel}>
+          <DashboardSearchBox
+            ref={searchRef}
+            value={query}
+            onChange={setQuery}
+            placeholder={t("home:entry.searchTemplates", { defaultValue: "Search templates by name, tag" })}
+            kbd="/"
+            aria-label={t("editor:ui.searchTemplates", { defaultValue: "Search templates" })}
+          />
+          {!fullPage && (
+            <SectionLink onClick={handleViewAllTemplates}>
+              Browse all
+            </SectionLink>
+          )}
+        </DashboardSectionHeader>
 
-          <div className="cats" role="group" aria-label={t("editor:ui.filterByCategory", { defaultValue: "Filter by category" })}>
-            <button
-              type="button"
-              className={`cat${category === "all" ? " on" : ""}`}
-              aria-pressed={category === "all"}
-              onClick={() => setCategory("all")}
-            >
-              {t("editor:ui.catAll")}
-            </button>
-            {TOP_CATEGORIES.map((cat) => {
-              const active = category === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  className={`cat${active ? " on" : ""}`}
-                  aria-pressed={active}
-                  onClick={() => setCategory(cat.id)}
-                  style={
-                    active
-                      ? {
-                          background: `${cat.color}24`,
-                          borderColor: `${cat.color}73`,
-                          color: cat.color
-                        }
-                      : undefined
-                  }
-                >
+        <div className="cats" role="group" aria-label={t("editor:ui.filterByCategory", { defaultValue: "Filter by category" })}>
+          <Chip
+            compact
+            label={t("storyboard:attrs.all", { defaultValue: "All" })}
+            active={category === "all"}
+            onClick={() => setCategory("all")}
+          />
+          {TOP_CATEGORIES.map((cat) => {
+            const active = category === cat.id;
+            return (
+              <Chip
+                key={cat.id}
+                compact
+                label={cat.label}
+                icon={
                   <span className="cat-dot" style={{ background: cat.color }} />
-                  {cat.labelKey
-                    ? t(cat.labelKey, { defaultValue: cat.label })
-                    : cat.label}
-                </button>
-              );
-            })}
-          </div>
+                }
+                active={active}
+                accent={active ? cat.color : undefined}
+                onClick={() => setCategory(cat.id)}
+              />
+            );
+          })}
         </div>
 
         {isLoading ? (
           <div className="tpl-loading">
-            <LoadingSpinner size="medium" text={t("editor:ui.loadingTemplates")} />
+            <LoadingSpinner size="medium" text={i18n.t("editor:ui.loadingTemplates", { defaultValue: "Loading templates" })} />
           </div>
         ) : isError ? (
           <div className="tpl-empty">
             <EmptyState
               variant="error"
               title={t("editor:ui.couldntLoadTemplates", { defaultValue: "Couldn't load templates" })}
-              description={t("editor:ui.tryAgainInAMoment")}
+              description={t("editor:ui.tryAgainInAMoment", { defaultValue: "Try again in a moment." })}
               actionText={t("editor:explorer.retry", { defaultValue: "Retry" })}
               onAction={() => refetch()}
             />
@@ -513,7 +419,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
               <EmptyState
                 variant="no-results"
                 title={t("editor:ui.noTemplatesMatchYourSearch", { defaultValue: "No templates match your search" })}
-                description={t("editor:ui.tryADifferentSearchTerm")}
+                description={t("editor:ui.tryADifferentSearchTerm", { defaultValue: "Try a different search term." })}
                 actionText={t("editor:ui.clearSearch", { defaultValue: "Clear search" })}
                 onAction={() => setQuery("")}
               />
@@ -528,12 +434,12 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
               <EmptyState
                 variant="no-data"
                 title={t("editor:ui.noTemplatesAvailable", { defaultValue: "No templates available" })}
-                description={t("editor:ui.templatesWillAppearHereWhenAvailable")}
+                description={t("editor:ui.templatesWillAppearHereWhenAvailable", { defaultValue: "Templates will appear here when available." })}
               />
             )}
           </div>
         ) : (
-          <div className="tpl-list">
+          <AutoGrid minItemWidth={220} className="tpl-list">
             {visible.map((workflow: Workflow) => (
               <TemplateRow
                 key={workflow.id}
@@ -543,7 +449,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
                 onClick={handleExampleClick}
               />
             ))}
-          </div>
+          </AutoGrid>
         )}
       </div>
     </section>

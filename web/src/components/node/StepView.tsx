@@ -17,6 +17,7 @@ import {
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
 import { Step } from "../../stores/ApiTypes";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -100,7 +101,7 @@ const StepView: React.FC<StepViewProps> = memo(({ step }) => {
   return (
     <div css={cssStyles}>
       <Surface
-        className={`step-item ${isRunning ? "running" : ""} ${step.completed ? "completed" : ""}`}
+        className={`step-item ${isRunning ? i18n.t("setup:workflow.pill_running", { defaultValue: "running" }) : ""} ${step.completed ? "completed" : ""}`}
       >
         <div className="step-content">
           <FlexRow
