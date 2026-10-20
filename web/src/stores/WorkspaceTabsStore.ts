@@ -325,6 +325,7 @@ const stillOpen = (
     ? activeProjectId
     : null;
 
+// fork:begin:fork-fix/workspace-personal-scope-revival
 /**
  * The scope a desynced rehydration falls back to. `activeProjectId` is
  * persisted and can be null while project tabs survive — the scope filter
@@ -345,6 +346,7 @@ const revivePersonalScope = (
   )
     ? personalProjectId
     : null;
+// fork:end:fork-fix/workspace-personal-scope-revival
 
 /**
  * The store's tab order, canonicalized: the active project's tabs gathered
@@ -849,6 +851,7 @@ export const useWorkspaceTabsStore = create<WorkspaceTabsState>()(
 
       resolvePersonalProject: (projectId) =>
         set((state) => {
+// fork:fork-fix/workspace-personal-scope-revival
           // Same id is not always a no-op: a persisted null scope must heal
           // to the Personal project, or its tabs stay filtered out forever.
           if (

@@ -157,6 +157,7 @@ const styles = (theme: Theme) =>
 
 // In full-page (Examples tab) mode this section gets extra breathing room below
 // the example apps. The manager content owns scrolling for the full page.
+// fork:begin:fork-fix/template-sticky-band
 // The controls band (title + search + category pills) pins to the top of
 // that scroll container once scrolled past. Sticky `top: 0` alone lands at
 // the container's CONTENT-box top — the padded scroll container keeps its
@@ -180,6 +181,7 @@ const fullPageStyles = (theme: Theme) =>
       borderBottom: `1px solid ${theme.vars.palette.divider}`
     }
   });
+// fork:end:fork-fix/template-sticky-band
 
 /** Stand-in when a template ships no thumbnail (or it fails to load). */
 const templateGlyph = (

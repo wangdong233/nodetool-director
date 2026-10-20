@@ -1,0 +1,59 @@
+# Fork change-point index — master only, never enters feat/i18n-zh.
+#
+# Records every protected fork change-point on the integration line, the
+# marker baseline for each, and the anchor symbols a merge must not drop.
+# Scanned by scripts/fork-integrity.mjs (check mode) on every push to
+# master; survival mode audits merges. Procedure: docs/fork-branches.md §4.
+#
+# Fields per feature:
+#   kind     extension | fix | mount
+#   branch   owning feature branch, or "master" for integration-line fixes
+#   status   active | pending-merge (pack not on master yet — skipped by check)
+#   markers  baseline count of fork:begin blocks + fork: line tags; update
+#            with `npm run fork:integrity -- update-baseline` after an
+#            intentional change, and review that diff like any other
+#   files.* / anchors.*  path -> symbol that must exist in that file
+
+features:
+  fork-fix/workspace-personal-scope-revival:
+    kind: fix
+    branch: master
+    status: active
+    markers: 2
+    note: b5ae7104bd — desynced Personal-scope revival on rehydration; lost once in a merge, tests survived and caught it
+    files:
+      web/src/stores/WorkspaceTabsStore.ts: revivePersonalScope + resolvePersonalScope null-scope healing
+    anchors:
+      web/src/stores/WorkspaceTabsStore.ts: revivePersonalScope
+
+  fork-fix/template-sticky-band:
+    kind: fix
+    branch: master
+    status: active
+    markers: 1
+    note: b897b9710b — sticky controls band on the full examples page; implementation lost in the 890f merge, tests caught it
+    files:
+      web/src/components/portal/DashboardTemplates.tsx: tpl-head wrapper + fullPageStyles band
+    anchors:
+      web/src/components/portal/DashboardTemplates.tsx: tpl-head
+
+  fork-fix/language-setting-mount:
+    kind: mount
+    branch: master
+    status: active
+    markers: 1
+    note: director/93 language picker; the upstream Settings rewrite dropped the mount once, leaving the control orphaned
+    files:
+      web/src/components/menus/SettingsMenu.tsx: LanguageSetting section at the General tab top
+    anchors:
+      web/src/components/menus/SettingsMenu.tsx: LanguageSetting
+
+  ext/mediagen-nodes:
+    kind: extension
+    branch: feat/mediagen-nodes
+    status: pending-merge
+    note: five-channel media-generation pack (16 node classes). On merge, register markers around the builtin-packs registrar entry, the package.json workspace line and the lockfile link; until then check mode skips it
+    files:
+      packages/mediagen-nodes: pack source (16 nodes, 7 channels, 10 test files)
+      packages/base-nodes/src/builtin-packs.ts: registrar wiring
+      package.json: workspace entry

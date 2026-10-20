@@ -51,7 +51,7 @@ git checkout feat/i18n-zh && git merge main
 # ⑤ 双侧推送
 ```
 
-冲突原则:上游结构保 + 我们的接线适配(三方);词典冲突用 JSON 并集;**合并后必查"我们自己的修复被整文件回退"**(实测四座:PreviewArea 画质选择器/WorkspaceTabsStore 范围复活/fit-all 复合 tooltip/动词命名条 —— 检测法:对上游改过的文件 `diff <(git show main:path) path` 看 main-only 行数)。
+冲突原则:上游结构保 + 我们的接线适配(三方);词典冲突用 JSON 并集;**合并后必跑 `npm run fork:integrity:survival -- <upstream-base> <fork-tip> <merge-commit>`**(§4,自动化的"整文件回退"检查 —— 手查法已由它取代;2026-10-19 复盘:WorkspaceTabsStore 范围复活、模板吸顶带、语言选择器挂载三座均系合并丢失)。
 
 ### 3.2 日常开发环境
 
@@ -97,3 +97,17 @@ cd web && npx vite --host 0.0.0.0 --port 3100 --strictPort
 | 2026-10-12 | feat/i18n-zh 去污染;master registrar 修复(API 启动崩根因) |
 | 2026-10-12~13 | 覆盖扩展轮 B1-B8:审计 1,315 条全清;揪出 4 座存量合并丢失 |
 | 2026-10-13 | 四分支首推;四尾巴清零(blockers/FORMAT_LABEL/报告 sections/键形漂移) |
+
+
+## 4. 改动点保护机制(fork-integrity)
+
+合并丢失是本 fork 的主要风险(三起实测:修复实现被冲掉而测试幸存、挂载点被上游重写冲掉、注册器与包体半分离)。三层防护:
+
+1. **标记**:每个受保护改动点用注释包围 —— 块级 `fork:begin:<id>` / `fork:end:<id>`,单行 `fork:<id>`。标记随代码走;上游整文件重写时标记与功能一同消失,**计数下降即检测信号**。
+2. **索引**:`docs/fork-index.yaml`(仅 master)记录每个特性的类型、归属分支、状态、标记计数基线与锚点符号(必须存在的标识符)。`status: pending-merge` 的特性(如 mediagen)在并入前跳过 check、并入时补标记与基线。
+3. **扫描**:`npm run fork:integrity -- check` 对照基线数标记 + 验锚点,任何下降/未注册标记即红(CI `fork-integrity.yml` 每次 master push 必跑);`npm run fork:integrity:survival -- <upstream-base> <fork-tip> <result>` 是合并深审 —— 对 fork 改过的每个源码文件,算我方新增行在合并结果中的存活率,<90% 即报告(2026-10-17 大合并实测:979 文件受损,含 WorkspaceTabsStore 10/40)。
+
+规矩:
+- 新增 fork 修复/挂载/扩展接线时,**同一提交内**打标记并在索引登记(`update-baseline` 重算计数,基线 diff 要人审)。
+- 上游合并六步:SOP §3.1 原五步之后,第六步跑 survival;红线即回到冲突裁定修文件,不以"测试碰巧绿"放行。
+- 索引、扫描器、workflow 仅存在于 master,永不进 feat/i18n-zh;标记注释随源码走、双侧同在。
