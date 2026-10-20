@@ -56,7 +56,7 @@ import { i18n } from "../../i18n";
 const RANGE_OPTIONS: DateRange[] = ["7d", "14d", "30d", "90d"];
 const GROUP_OPTIONS: { value: GroupByKey; label: string; labelKey?: string; }[] = [
   { value: "execution", label: "Execution", labelKey: "settings:general.secExecution" },
-  { value: "nodeType", label: "Node type" },
+  { value: "nodeType", label: i18n.t("editor:ui.nodeType", { defaultValue: "Node type" }) },
   { value: "workflow", label: "Workflow", labelKey: "home:flowError.kind.workflow" },
   { value: "provider", label: "Provider" },
   { value: "model", label: "Model" }
@@ -349,7 +349,7 @@ const CostsDashboard: React.FC = () => {
                   }}
                 >
                   <FileDownloadIcon sx={{ fontSize: ICON_SIZE.md }} />
-                  Export CSV
+                  {i18n.t("editor:ui.exportCsv", { defaultValue: "Export CSV" })}
                 </Box>
               </>
             )}
@@ -520,7 +520,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               color: theme.vars.palette.text.disabled
             }}
           >
-            Group by
+            {i18n.t("editor:ui.groupBy", { defaultValue: "Group by" })}
           </Text>
           <ToggleGroup
             exclusive

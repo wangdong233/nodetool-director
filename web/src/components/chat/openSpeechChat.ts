@@ -2,6 +2,7 @@ import useChatDraftStore from "../../stores/ChatDraftStore";
 import useGlobalChatStore from "../../stores/GlobalChatStore";
 import useMediaGenerationStore from "../../stores/MediaGenerationStore";
 import { useWorkspaceTabsStore } from "../../stores/WorkspaceTabsStore";
+import { i18n } from "../../i18n";
 
 /**
  * Open a new chat with its composer on "Read aloud", holding `line` as its
@@ -23,7 +24,7 @@ export async function openSpeechChat(
     type: "chat",
     ref: threadId,
     mode: "view",
-    title: "Read aloud",
+    title: i18n.t("editor:ui.readAloud", { defaultValue: "Read aloud" }),
     projectId
   });
 }

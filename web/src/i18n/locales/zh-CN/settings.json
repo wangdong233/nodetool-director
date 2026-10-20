@@ -98,7 +98,7 @@
     "removeBgHint": "填充“移除背景”节点。未设置时回退到图像模型。",
     "mUpscale": "超分模型",
     "mRemoveBg": "去背景模型",
-    "mTts": "语音合成模型",
+    "mTts": "TTS 语音合成模型",
     "mAsr": "语音识别模型",
     "mVideo": "视频模型",
     "mCode": "代码生成",

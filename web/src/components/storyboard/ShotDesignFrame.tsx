@@ -31,7 +31,6 @@ import {
   SPACING
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
-import { i18n, useAppLanguage } from "../../i18n";
 
 const PreviewCompositor = lazy(async () => {
   const module = await import("../timeline/preview/PreviewCompositor");

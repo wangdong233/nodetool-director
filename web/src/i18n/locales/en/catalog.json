@@ -473,7 +473,10 @@
     "llamaModelHF": "Llama model (HF)",
     "mistralModel": "Mistral model",
     "transformersjsModelTjs": "Transformers.js model (tjs.*)",
-    "file": "File"
+    "file": "File",
+    "video": "Video",
+    "languageModel": "Language Model",
+    "date": "Date"
   },
   "hfTask": {
     "any-to-any": "Any To Any",

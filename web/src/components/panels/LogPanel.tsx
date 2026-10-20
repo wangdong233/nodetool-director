@@ -75,7 +75,6 @@ const LogPanel: React.FC = memo(function LogPanel() {
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
   const setActiveTab = useWorkspaceTabsStore((state) => state.setActiveTab);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const { t } = useTranslation();
 
   // Map workflow id -> name for quick lookup
   const wfName = useMemo(() => {

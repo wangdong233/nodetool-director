@@ -32,6 +32,7 @@ import { PROVIDER_TAGLINE_KEYS, PROVIDER_COST_HINT_KEYS } from "./providerOnboar
 import type { OnboardingProvider } from "./providerOnboardingCatalog";
 import { i18n } from "../../i18n";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
 type StoredCredentialStatus = "configured" | "verified" | "unavailable" | "rejected";
 
@@ -63,15 +64,16 @@ const statusFromValidation = (
 };
 
 const detailFromValidation = (
-  status: SecretValidation["status"]
+  status: SecretValidation["status"],
+  t: TFunction
 ): string | null => {
   switch (status) {
     case "valid":
       return null;
     case "invalid":
-      return "The provider rejected the key.";
+      return t("editor:ui.providerKeyRejected", { defaultValue: "The provider rejected the key." });
     case "unverifiable":
-      return "The key was saved, but it could not be verified.";
+      return t("editor:ui.providerKeySavedUnverified", { defaultValue: "The key was saved, but it could not be verified." });
   }
 };
 
@@ -101,6 +103,20 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
   const updateSecret = useSecretsStore((s) => s.updateSecret);
   const validateSecret = useSecretsStore((s) => s.validateSecret);
   const addNotification = useNotificationStore((s) => s.addNotification);
+
+  // Status labels resolve at render time — the module map above only supplies
+  // the English defaultValue for each fixed key.
+  const statusLabelFor = useCallback(
+    (status: StoredCredentialStatus): string =>
+      status === "configured"
+        ? t("editor:ui.providerConfigured", { defaultValue: statusLabel.configured })
+        : status === "verified"
+          ? t("editor:ui.providerVerified", { defaultValue: statusLabel.verified })
+          : status === "unavailable"
+            ? t("editor:ui.providerUnavailable", { defaultValue: statusLabel.unavailable })
+            : t("editor:ui.providerRejected", { defaultValue: statusLabel.rejected }),
+    [t]
+  );
 
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [keyValue, setKeyValue] = useState("");
@@ -150,12 +166,16 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
         type: status === "verified" ? "success" : "warning",
         content:
           status === "verified"
-            ? `${provider.name} connected`
-            : `${provider.name} key saved — ${statusLabel[status].toLowerCase()}`,
+            ? t("editor:ui.providerConnected", { defaultValue: "{{name}} connected", name: provider.name })
+            : t("editor:ui.providerKeySavedStatus", {
+                defaultValue: "{{name}} key saved — {{status}}",
+                name: provider.name,
+                status: statusLabelFor(status).toLowerCase()
+              }),
         alert: true
       });
     },
-    [updateSecret, provider, addNotification]
+    [updateSecret, provider, addNotification, t, statusLabelFor]
   );
 
   /**
@@ -174,14 +194,14 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
     try {
       const result = await validateSecret(provider.secretKey, trimmed);
       if (result.status === "invalid") {
-        setRejected(detailFromValidation(result.status));
+        setRejected(detailFromValidation(result.status, t));
         return;
       }
       await persistKey(
         trimmed,
         statusFromValidation(result),
         result.status === "unverifiable"
-          ? detailFromValidation(result.status)
+          ? detailFromValidation(result.status, t)
           : null
       );
     } catch {
@@ -189,7 +209,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
     } finally {
       setSaving(false);
     }
-  }, [keyValue, validateSecret, persistKey, provider, saving]);
+  }, [keyValue, validateSecret, persistKey, provider, saving, t]);
 
   /** Store a key the provider rejected — the user's call, not ours. */
   const handleSaveAnyway = useCallback(async () => {
@@ -206,7 +226,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
     } finally {
       setSaving(false);
     }
-  }, [keyValue, persistKey, saving]);
+  }, [keyValue, persistKey, saving, t]);
 
   const handleRecheck = useCallback(async () => {
     if (rechecking || !hasStoredKey) {
@@ -226,12 +246,12 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
       );
     } catch {
       setSaveError(
-        "Couldn't recheck the key. Check your connection and try again."
+        t("editor:ui.providerRecheckFailed", { defaultValue: "Couldn't recheck the key. Check your connection and try again." })
       );
     } finally {
       setRechecking(false);
     }
-  }, [hasStoredKey, provider.secretKey, rechecking, validateSecret]);
+  }, [hasStoredKey, provider.secretKey, rechecking, validateSecret, t]);
 
   const handleReplace = useCallback(() => {
     setReplacing(true);
@@ -312,7 +332,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                   }}
                 />
                 <Caption size="small">
-                  {statusLabel[storedStatus]}
+                  {statusLabelFor(storedStatus)}
                 </Caption>
                 <EditorButton
                   density="compact"
@@ -329,7 +349,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                   size="small"
                   onClick={handleReplace}
                 >
-                  Replace key
+                  {t("editor:ui.providerReplaceKey", { defaultValue: "Replace key" })}
                 </EditorButton>
               </FlexRow>
             ) : oauth.isConnected ? (
@@ -357,7 +377,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                     onClick={oauth.connect}
                     disabled={oauth.isConnecting}
                   >
-                    {oauth.isConnecting ? "Waiting…" : "Sign in"}
+                    {oauth.isConnecting ? t("editor:ui.providerWaiting", { defaultValue: "Waiting…" }) : t("editor:ui.providerSignIn", { defaultValue: "Sign in" })}
                   </EditorButton>
                 )}
                 {!provider.oauthOnly && (
@@ -397,9 +417,9 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
             <FlexRow gap={SPACING.xs} align="center">
               <TextInput
                 size="small"
-                label={`${provider.name} API key`}
+                label={t("editor:ui.providerApiKeyLabel", { defaultValue: "{{name}} API key", name: provider.name })}
                 type="password"
-                placeholder={`Paste your ${provider.name} API key`}
+                placeholder={t("editor:ui.providerApiKeyPlaceholder", { defaultValue: "Paste your {{name}} API key", name: provider.name })}
                 value={keyValue}
                 onChange={(e) => setKeyValue(e.target.value)}
                 onKeyDown={(e) => {
@@ -426,7 +446,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                 {saving ? (
                   <LoadingSpinner size="small" inline />
                 ) : replacing ? (
-                  "Replace"
+                  t("editor:ui.replace", { defaultValue: "Replace" })
                 ) : (
                   i18n.t("setup:workflow.connect", { defaultValue: "Connect" })
                 )}
@@ -447,7 +467,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                   window.open(provider.keyUrl, "_blank", "noopener,noreferrer")
                 }
               >
-                Get a key from {provider.name}
+                {t("editor:ui.providerGetKeyFrom", { defaultValue: "Get a key from {{name}}", name: provider.name })}
               </EditorButton>
               <Caption size="smaller" >
                 {t(PROVIDER_COST_HINT_KEYS[provider.id] ?? "", { defaultValue: provider.costHint })}
@@ -462,7 +482,7 @@ const ProviderOnboardingCard: React.FC<ProviderOnboardingCardProps> = ({
                   onClick={handleSaveAnyway}
                   disabled={saving}
                 >
-                  Save anyway
+                  {t("editor:ui.providerSaveAnyway", { defaultValue: "Save anyway" })}
                 </EditorButton>
               </FlexRow>
             )}

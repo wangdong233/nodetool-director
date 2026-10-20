@@ -34,13 +34,13 @@ const ProviderSignInDialog: React.FC = () => {
       <Dialog
         open
         onClose={handleClose}
-        title={`Sign in to ${provider.label} again`}
+        title={t("editor:ui.providerSignInAgain", { defaultValue: "Sign in to {{label}} again", label: provider.label })}
         onConfirm={oauth.connect}
         confirmText={
           oauth.isConnecting
-            ? t("editor:ui.waitingForSignIn", { defaultValue: "Waiting for sign-in…" }) : `Sign in with ${provider.account}`
+            ? t("editor:ui.waitingForSignIn", { defaultValue: "Waiting for sign-in…" }) : t("editor:ui.providerSignInWith", { defaultValue: "Sign in with {{account}}", account: provider.account })
         }
-        cancelText="Not now"
+        cancelText={t("editor:ui.notNow", { defaultValue: "Not now" })}
         confirmDisabled={oauth.isConnecting}
         isLoading={oauth.isConnecting}
         maxWidth="xs"
@@ -48,12 +48,14 @@ const ProviderSignInDialog: React.FC = () => {
       >
         <FlexColumn gap={SPACING.md}>
           <Text size="small">
-            Your {provider.account} sign-in expired, so {provider.label} refused
-            the request. Sign in again, then run the workflow again.
+            {t("editor:ui.providerSignInExpired", {
+              defaultValue: "Your {{account}} sign-in expired, so {{label}} refused the request. Sign in again, then run the workflow again.",
+              account: provider.account,
+              label: provider.label
+            })}
           </Text>
           <Caption color="secondary">
-            The sign-in opens in a new window. This dialog closes when it
-            finishes.
+            {t("editor:ui.providerSignInNewWindow", { defaultValue: "The sign-in opens in a new window. This dialog closes when it finishes." })}
           </Caption>
         </FlexColumn>
       </Dialog>

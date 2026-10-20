@@ -661,8 +661,8 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
                 ? // This search covers documents and text files only. Name
                   // where the rest lives, or an empty result reads as "it
                   // does not exist" (study-7-I5).
-                  "This searches documents only. Conversations are in Chats, and uploads are in the Library."
-                : "Workflows, text files and other documents created in this project will appear here. Uploads are in the Library."
+                  t("editor:ui.searchesDocumentsOnly", { defaultValue: "This searches documents only. Conversations are in Chats, and uploads are in the Library." })
+                : t("editor:ui.projectDocumentsEmpty", { defaultValue: "Workflows, text files and other documents created in this project will appear here. Uploads are in the Library." })
             }
           />
         </FlexColumn>

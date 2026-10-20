@@ -54,7 +54,9 @@ Is it a patterned long tail (provider catalogs, generated names)?
 6. Run the gates from `web/` before committing: `npm run i18n:gate`
    (paste the G3 tuple verbatim into the commit message), then
    `npm run i18n:preflight`. Run `npm run i18n:audit` to find remaining
-   bare strings in the area.
+   bare strings in the area, and `npm run i18n:blast` (dev server up) to
+   catch leftover English on rendered routes — it asserts visibility, so a
+   wired-but-hidden or zero-size control cannot pass as translated.
 7. Verify live, not by string inspection: open the surface in a browser
    (zh), exercise its primary action, and listen for pageerror. Wiring
    rounds have shipped functional breaks (context-bound hooks outside

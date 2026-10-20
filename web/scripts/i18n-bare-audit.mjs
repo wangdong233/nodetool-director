@@ -22,7 +22,18 @@ const BASE = dirname(fileURLToPath(import.meta.url)) + "/..";
 const LABEL_PROPS =
   /(?:^|[\s{,])(?:label|title|placeholder|helperText|aria-label|alt|tooltip|actionText|secondaryText|emptyText|description|countLabel|menuLabel|secondary|startHint|endHint)="([^"]{3,})"/g;
 
-const JSX_TEXT = />([^<>{}"'\n]{3,120})</g;
+// Multiline JSX text nodes: `>\n  Some label\n<` — the opening `>`, the
+// label and the closing `<` may sit on different lines, but the label itself
+// stays a single label-ish line (letters, punctuation — no code characters,
+// which keeps `=>`/expressions out). 2026-10-20 lesson: "Get started" & co.
+// sailed past the old single-line form.
+const JSX_TEXT =
+  />[ \t]*\r?\n?[ \t]*([A-Z][A-Za-z0-9&' .,!?:-]{2,119})[ \t]*\r?\n?[ \t]*</g;
+// Object-literal label form (colon, not JSX equals): config tables like
+// MODEL_TYPE_CONFIG's `label: "Language model"` were invisible to the
+// equals-only pattern (2026-10-20 lesson).
+const LABEL_FIELDS =
+  /(?:^|[\s{,])(?:label|title|placeholder|tooltip|menuLabel|secondary|emptyText|countLabel|actionText):\s*"([A-Z][^"\n]{3,80})"/g;
 const TERNARY_TEXT = /\?\s*"([A-Z][^"\n]{4,80})"\s*:/g;
 
 const TERM_RE =
@@ -61,6 +72,7 @@ function scanFile(path) {
   const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
   for (const m of code.matchAll(LABEL_PROPS)) scanText(rel, "prop", m[1]);
   for (const m of code.matchAll(JSX_TEXT)) scanText(rel, "jsx", m[1]);
+  for (const m of code.matchAll(LABEL_FIELDS)) scanText(rel, "prop", m[1]);
   for (const m of code.matchAll(TERNARY_TEXT)) scanText(rel, "ternary", m[1]);
 }
 

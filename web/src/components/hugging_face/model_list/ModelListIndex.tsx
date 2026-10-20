@@ -33,6 +33,7 @@ import ModelTypeSidebar from "./ModelTypeSidebar";
 import DeleteModelDialog from "./DeleteModelDialog";
 import { useWorkers } from "../../../hooks/useWorkers";
 import { prettifyModelType } from "../../../utils/modelFormatting";
+import { useModelTypeLabel } from "./modelTypeLabels";
 import { IconForType } from "../../../config/IconForType";
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
 import ModelListItem from "./ModelListItem";
@@ -155,6 +156,7 @@ type ListItem =
 const ModelListIndex: React.FC = () => {
   const { t } = useTranslation("editor");
   const { version: languageVersion } = useAppLanguage();
+  const modelTypeLabel = useModelTypeLabel();
   const theme = useTheme();
   const cssStyles = useMemo(() => styles(theme), [theme]);
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);
@@ -619,7 +621,7 @@ const ModelListIndex: React.FC = () => {
                   )}
                   <Text size="big" weight={600} sx={{ minWidth: 0 }}>
                     {selectedModelType !== "All"
-                      ? prettifyModelType(selectedModelType)
+                      ? prettifyModelType(selectedModelType, modelTypeLabel(selectedModelType))
                       : `Results for \u201C${modelSearchTerm}\u201D`}
                   </Text>
                 </FlexRow>
@@ -670,7 +672,7 @@ const ModelListIndex: React.FC = () => {
                                 m: 0
                               }}
                             >
-                              {prettifyModelType(item.modelType)}
+                              {prettifyModelType(item.modelType, modelTypeLabel(item.modelType))}
                             </Box>
                           </Box>
                         );

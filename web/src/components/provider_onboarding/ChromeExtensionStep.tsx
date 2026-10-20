@@ -38,6 +38,13 @@ export const EXTENSION_BENEFITS: readonly string[] = [
   "The agent can work on any site you are signed in to: it clicks, types and saves media inside your own tab."
 ];
 
+/** i18n key per benefit, in the same order as EXTENSION_BENEFITS. */
+const EXTENSION_BENEFIT_KEYS: readonly string[] = [
+  "editor:ui.providerBenefitSubscriptionMedia",
+  "editor:ui.providerBenefitSavedToAssets",
+  "editor:ui.providerBenefitAgentAnySite"
+];
+
 const isWindows = (): boolean =>
   typeof navigator !== "undefined" && navigator.userAgent.includes("Windows");
 
@@ -116,9 +123,7 @@ const ChromeExtensionStep: React.FC = () => {
     <FlexColumn gap={SPACING.xxl}>
       <FlexColumn gap={SPACING.md}>
         <Text sx={{ maxWidth: "60ch" }}>
-          ChatGPT and Gemini have no API for the images and video your plan
-          includes. The NodeTool extension for Chrome lets NodeTool use them
-          through your own signed-in browser.
+          {t("editor:ui.providerExtensionIntro", { defaultValue: "ChatGPT and Gemini have no API for the images and video your plan includes. The NodeTool extension for Chrome lets NodeTool use them through your own signed-in browser." })}
         </Text>
         <FlexRow gap={SPACING.md} align="center" wrap>
           <Chip
@@ -145,9 +150,9 @@ const ChromeExtensionStep: React.FC = () => {
       <FlexColumn gap={SPACING.md}>
         <Text component="h3" size="small">{t("editor:ui.whyAddIt", { defaultValue: "Why add it" })}</Text>
         <FlexColumn component="ul" gap={SPACING.sm} sx={{ m: 0, pl: SPACING.xl }}>
-          {EXTENSION_BENEFITS.map((benefit) => (
+          {EXTENSION_BENEFITS.map((benefit, index) => (
             <Text component="li" key={benefit} size="small" weight={400}>
-              {benefit}
+              {t(EXTENSION_BENEFIT_KEYS[index], { defaultValue: benefit })}
             </Text>
           ))}
         </FlexColumn>
@@ -156,15 +161,10 @@ const ChromeExtensionStep: React.FC = () => {
       <FlexColumn gap={SPACING.md}>
         <Text component="h3" size="small">{t("editor:ui.howItWorks", { defaultValue: "How it works" })}</Text>
         <Text size="small" weight={400} sx={{ maxWidth: "60ch" }}>
-          When a workflow or the chat asks ChatGPT or Gemini for an image or a
-          video, NodeTool finds your open chatgpt.com or gemini.google.com tab
-          and submits the prompt through the site&apos;s own page. The finished
-          file comes back to NodeTool. Your password and cookies stay in
-          Chrome, and each request appears in your ChatGPT or Gemini history.
+          {t("editor:ui.providerHowItWorksDetail", { defaultValue: "When a workflow or the chat asks ChatGPT or Gemini for an image or a video, NodeTool finds your open chatgpt.com or gemini.google.com tab and submits the prompt through the site's own page. The finished file comes back to NodeTool. Your password and cookies stay in Chrome, and each request appears in your ChatGPT or Gemini history." })}
         </Text>
         <Caption>
-          Chrome shows a &ldquo;Nodetool is debugging this browser&rdquo; bar while a
-          request runs. The extension does nothing on other tabs.
+          {t("editor:ui.providerDebuggerBarNote", { defaultValue: "Chrome shows a “Nodetool is debugging this browser” bar while a request runs. The extension does nothing on other tabs." })}
         </Caption>
       </FlexColumn>
 
@@ -184,8 +184,7 @@ const ChromeExtensionStep: React.FC = () => {
           <SetupStep index={1} title={t("editor:ui.letChromeStartBridge", { defaultValue: "Let Chrome start NodeTool's browser bridge." })}>
             {isWindows() ? (
               <Caption color="warning">
-                This is not supported on Windows yet. Media generation through
-                the extension works on macOS and Linux.
+                {t("editor:ui.providerWindowsNotSupported", { defaultValue: "This is not supported on Windows yet. Media generation through the extension works on macOS and Linux." })}
               </Caption>
             ) : hostInstalled ? (
               <FlexRow gap={SPACING.xs} align="center">
@@ -255,9 +254,7 @@ const ChromeExtensionStep: React.FC = () => {
               <CopyButton value={CHROME_EXTENSIONS_URL} tooltip={t("editor:ui.copyAddress", { defaultValue: "Copy address" })} />
             </FlexRow>
             <Caption>
-              Chrome does not open this address from a link, so paste it into
-              the address bar. If NodeTool is already in the list, click its
-              reload button instead.
+              {t("editor:ui.providerChromeAddressBarNote", { defaultValue: "Chrome does not open this address from a link, so paste it into the address bar. If NodeTool is already in the list, click its reload button instead." })}
             </Caption>
           </SetupStep>
           <SetupStep

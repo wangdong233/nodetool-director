@@ -2490,7 +2490,7 @@ const NewProjectSurface = ({
               color="muted"
               sx={{ textTransform: "uppercase", letterSpacing: "0.08em" }}
             >
-              Blank document
+              {t("editor:ui.blankDocument", { defaultValue: "Blank document" })}
             </Caption>
             <Caption color="muted">
               — opens as a loose tab, outside any project

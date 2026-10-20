@@ -1,8 +1,8 @@
 // i18n preflight — the mechanical checks every i18n commit must pass.
 // Born from r21-r24 findings; runs in seconds, catches the classes fresh
 // agents kept re-finding (frozen i18n.t, half-wired sibling attrs, strays).
-import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
 
 const ROOTS = ["src/components", "src/studio", "src/hooks", "src/lib", "src/utils", "src/config", "src/stores"];
 const SKIP = new Set(["__tests__", "stories", "demo", "i18n", "__mocks__", "node_modules"]);
@@ -169,6 +169,121 @@ for (const root of ROOTS) {
         }
       }
     }
+  }
+}
+// ---- key-composition check (2026-10-20 root cause RC-1) ---------------------
+// A template-key consumer like t(`settings:sidebar.${item.labelKey}`) composes
+// a namespace prefix onto the value it receives. Feeding it a value that is
+// already namespace-qualified (`settings:general.secAppearance`) resolves a
+// nonexistent key and silently falls back to English — the exact defect that
+// hid every General heading for weeks. Two passes over the whole tree: first
+// collect which props any template consumer prefix-composes, then flag
+// qualified values assigned to those props ANYWHERE. Same-file scanning can
+// never see this class: the defect had the consumer in SettingsSidebar.tsx and
+// the qualified labelKey values in SettingsMenu.tsx.
+{
+  const COMPOSED_RE = /\bt\(\s*`([a-z]+):([a-zA-Z]+)\.\$\{([^}]+)\}`/g;
+  const rxEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const files = [];
+  const collect = (d) => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      if (SKIP.has(e.name) || e.name.startsWith(".")) continue;
+      const p2 = join(d, e.name);
+      if (e.isDirectory()) collect(p2);
+      else if (/\.(tsx|ts)$/.test(e.name)) files.push(p2);
+    }
+  };
+  collect(join(process.cwd(), "src"));
+  // pass 1: prop -> template-consumer sites that prefix it
+  const consumers = new Map();
+  for (const f of files) {
+    const src = readFileSync(f, "utf8");
+    for (const m of src.matchAll(COMPOSED_RE)) {
+      const [, ns, sub, expr] = m;
+      const prop = expr.split(".").pop()
+        .replace(/\s*\?\?\s*.*/, "").replace(/\??$/, "").trim();
+      if (!prop) continue;
+      if (!consumers.has(prop)) consumers.set(prop, []);
+      consumers.get(prop).push({ ns, sub, file: f, rel: relative(process.cwd(), f) });
+    }
+  }
+  // pass 2: qualified values fed to those props, in any file the value can
+  // reach — same file, or one import hop in either direction (the RC-1 flow
+  // was SettingsMenu.tsx building the sections array and passing it into the
+  // SettingsSidebar.tsx consumer through props). Unrelated files sharing the
+  // prop NAME under the bare-key convention (data_types.ts labelKey) cannot
+  // receive the value, so they are not findings.
+  const importsCache = new Map();
+  const resolveSpec = (fromFile, spec) => {
+    for (const cand of [spec, `${spec}.ts`, `${spec}.tsx`, `${spec}/index.ts`, `${spec}/index.tsx`]) {
+      const r = resolve(dirname(fromFile), cand);
+      if (existsSync(r) && statSync(r).isFile()) return r;
+    }
+    return null;
+  };
+  const importsOf = (f) => {
+    if (importsCache.has(f)) return importsCache.get(f);
+    const src = readFileSync(f, "utf8");
+    const set = new Set();
+    for (const m of src.matchAll(/from\s+["'](\.[^"']+)["']/g)) {
+      const r = resolveSpec(f, m[1]);
+      if (r) set.add(r);
+    }
+    importsCache.set(f, set);
+    return set;
+  };
+  // Does f import a binding from `target` and render it as a JSX tag? That is
+  // the props-passing shape: the assignment file builds the object array and
+  // hands it to the consumer component (SettingsMenu → <SettingsSidebar
+  // sections={…}>). A plain helper import (Help.tsx → data_types.ts functions)
+  // moves no props, so it is not a flow edge for this defect class.
+  const rendersImport = (f, target) => {
+    const src = readFileSync(f, "utf8");
+    for (const m of src.matchAll(/import\s+([^"';]+?)\s+from\s+["'](\.[^"']+)["']/g)) {
+      if (resolveSpec(f, m[2]) !== target) continue;
+      const clause = m[1].trim();
+      const names = new Set();
+      const def = /^(\w+)\b/.exec(clause);
+      if (def && !clause.startsWith("{")) names.add(def[1]);
+      for (const nm of clause.matchAll(/\b([A-Z]\w*)\b/g)) names.add(nm[1]);
+      for (const nm of clause.matchAll(/\b\w+\s+as\s+([A-Z]\w*)/g)) names.add(nm[1]);
+      for (const name of names) {
+        if (new RegExp(`<${name}[\\s/>]`).test(src)) return true;
+      }
+    }
+    return false;
+  };
+  const composed = new Map(); // "file|value|prop" -> consumer sites
+  if (consumers.size) {
+    for (const f of files) {
+      const src = readFileSync(f, "utf8");
+      for (const [prop, sites] of consumers) {
+        const re = new RegExp(
+          `(?:^|[\\s{,])${rxEscape(prop)}:\\s*["']([a-z][a-z0-9_-]*:[^"']+)["']`, "g"
+        );
+        for (const v of src.matchAll(re)) {
+          const reachable = sites.filter((s) =>
+            s.file === f ||
+            importsOf(s.file).has(f) ||
+            (importsOf(f).has(s.file) && rendersImport(f, s.file))
+          );
+          if (!reachable.length) continue;
+          const key = `${relative(process.cwd(), f)}|${v[1]}|${prop}`;
+          if (!composed.has(key)) composed.set(key, []);
+          composed.get(key).push(...reachable.map((s) =>
+            `${s.rel} (composes ${s.ns}:${s.sub}.${v[1]})`
+          ));
+        }
+      }
+    }
+  }
+  if (composed.size) {
+    console.error("KEY-COMPOSITION (must fix — feed bare keys or drop the prefix):");
+    for (const [key, sites] of composed) {
+      const [file, value, prop] = key.split("|");
+      console.error(`  ${file}: '${value}' (${prop}) → template key at ${[...new Set(sites)].join("; ")}`);
+    }
+    process.exit(1);
   }
 }
 console.log(`scanned ${issues.scanned} files`);

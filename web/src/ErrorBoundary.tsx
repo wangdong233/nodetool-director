@@ -228,7 +228,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={() => window.location.reload()}
             className="reload-button"
           >
-            Reload page
+            {i18n.t("editor:ui.reloadPage", { defaultValue: "Reload page" })}
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -236,7 +236,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleReport}
             className="copy-error-button"
           >
-            Report a bug
+            {t("common:action.reportBug", { defaultValue: "Report a bug" })}
           </EditorButton>
           <EditorButton
             variant="outlined"
@@ -244,7 +244,7 @@ const ErrorBoundary: React.FC = () => {
             onClick={handleCopy}
             className="copy-error-button"
           >
-            {copied ? i18n.t("editor:ui.copied2", { defaultValue: "Copied!" }) : "Copy error"}
+            {copied ? i18n.t("editor:ui.copied2", { defaultValue: "Copied!" }) : i18n.t("editor:ui.copyError", { defaultValue: "Copy error" })}
           </EditorButton>
         </Box>
         <Box className="contact-row">
@@ -254,7 +254,7 @@ const ErrorBoundary: React.FC = () => {
             target="_blank"
             rel="noreferrer"
           >
-            Join our Discord
+            {i18n.t("editor:ui.joinOurDiscord", { defaultValue: "Join our Discord" })}
           </a>
           <a href="mailto:hello@nodetool.ai" className="contact-link">
             {i18n.t("editor:ui.emailHello@nodetoolAi", { defaultValue: "Email hello@nodetool.ai" })}
@@ -268,7 +268,7 @@ const ErrorBoundary: React.FC = () => {
           disableRipple
           onClick={() => setShowDetails((prev) => !prev)}
         >
-          {showDetails ? i18n.t("editor:ui.hideDetails", { defaultValue: "Hide details ▲" }) : "Show details ▼"}
+          {showDetails ? i18n.t("editor:ui.hideDetails", { defaultValue: "Hide details ▲" }) : i18n.t("editor:ui.showDetails", { defaultValue: "Show details ▼" })}
         </EditorButton>
 
         {showDetails && (

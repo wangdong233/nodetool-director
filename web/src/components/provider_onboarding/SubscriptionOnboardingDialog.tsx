@@ -92,7 +92,7 @@ const GeminiRow: React.FC<GeminiRowProps> = ({ extensionConnected, onSetUp }) =>
       <FlexColumn sx={{ flex: "1 1 180px", minWidth: 0 }} gap={SPACING.micro}>
         <Text>Gemini</Text>
         <Caption size="small" sx={{ lineHeight: 1.5 }}>
-          Chat, images and Veo video on your Google account&apos;s Gemini plan. Runs through the Chrome extension.
+          {t("editor:ui.providerGeminiRowCaption", { defaultValue: "Chat, images and Veo video on your Google account's Gemini plan. Runs through the Chrome extension." })}
         </Caption>
       </FlexColumn>
       <FlexRow align="center" gap={SPACING.micro} sx={{ marginLeft: "auto" }}>
@@ -109,7 +109,7 @@ const GeminiRow: React.FC<GeminiRowProps> = ({ extensionConnected, onSetUp }) =>
             startIcon={<ExtensionOutlinedIcon />}
             onClick={onSetUp}
           >
-            Set up
+            {t("editor:ui.providerSetUp", { defaultValue: "Set up" })}
           </EditorButton>
         )}
       </FlexRow>
@@ -154,6 +154,7 @@ const SubscriptionsStep: React.FC<SubscriptionsStepProps> = ({
  * request run through.
  */
 const SubscriptionOnboardingDialog: React.FC = () => {
+  const { t } = useTranslation();
   const { open, step, setStep, dismiss } = useSubscriptionOnboardingStore(
     useShallow((s) => ({ open: s.open, step: s.step, setStep: s.setStep, dismiss: s.dismiss }))
   );
@@ -183,26 +184,28 @@ const SubscriptionOnboardingDialog: React.FC = () => {
         onSubscriptions ? (
           <>
             <Button variant="text" color="inherit" onClick={handleUseApiKey} sx={{ mr: "auto" }}>
-              Use an API key instead
+              {t("editor:ui.providerUseApiKeyInstead", { defaultValue: "Use an API key instead" })}
             </Button>
             <Button variant="contained" onClick={handleNext}>
-              Next: Chrome extension
+              {t("editor:ui.providerNextChromeExtension", { defaultValue: "Next: Chrome extension" })}
             </Button>
           </>
         ) : (
           <>
             <Button variant="text" color="inherit" onClick={handleBack} sx={{ mr: "auto" }}>
-              Back
+              {t("editor:ui.providerBack", { defaultValue: "Back" })}
             </Button>
             <Button variant="contained" onClick={dismiss}>
-              Done
+              {t("ui2:attrs.done", { defaultValue: "Done" })}
             </Button>
           </>
         )
       }
     >
       <FlexColumn gap={SPACING.xl}>
-        <Caption>Step {onSubscriptions ? 1 : 2} of 2</Caption>
+        <Caption>
+          {t("editor:ui.providerStepOf", { defaultValue: "Step {{current}} of {{total}}", current: onSubscriptions ? 1 : 2, total: 2 })}
+        </Caption>
         {onSubscriptions ? (
           <SubscriptionsStep
             providers={providers}

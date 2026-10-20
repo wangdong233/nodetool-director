@@ -257,10 +257,10 @@ function PackageManager() {
                 weight={600}
                 sx={{ textTransform: "uppercase", letterSpacing: "0.09em" }}
               >
-                Install location
+                {i18n.t("editor:ui.installLocation", { defaultValue: "Install location" })}
               </Text>
               <Text size="small" family="secondary" truncate>
-                {model.installLocation || "Default conda environment"}
+                {model.installLocation || i18n.t("editor:ui.defaultCondaEnvironment", { defaultValue: "Default conda environment" })}
               </Text>
               <Box sx={{ ml: "auto" }}>
                 <EditorButton
