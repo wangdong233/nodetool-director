@@ -23,6 +23,7 @@ import {
   SPACING,
   DocsHelpLink
 } from "../ui_primitives";
+import { LanguageSetting } from "../settings/LanguageSetting";
 import type { DocsTopic } from "../../config/docsLinks";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { isLocalhost, isElectron } from "../../lib/env";
@@ -750,6 +751,9 @@ function SettingsPage() {
                     {t("settings:general.changesApplyImmediately", { defaultValue: "Changes on this tab apply immediately." })}
                   </Caption>
                   <div className="general-settings">
+                    <div className="settings-section">
+                      <LanguageSetting />
+                    </div>
                     <div className="settings-section">
                       <Text size="big" id="editor" className="settings-heading">
                         {i18n.t("editor:ui.editorHeading", { defaultValue: "Editor" })}
