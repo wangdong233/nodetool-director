@@ -80,7 +80,8 @@
     "entitiesNone": "实体 · 未选",
     "skillGroup": "从技能开始",
     "showFewer": "收起",
-    "placeholder": "提问,或描述要做什么:为台灯做一支 30 秒上市广告片。输入 / 选技能,@ 选文件或实体。"
+    "placeholder": "提问,或描述要做什么:为台灯做一支 30 秒上市广告片。输入 / 选技能,@ 选文件或实体。",
+    "pickSkillOrDescribe": "从技能开始,或直接描述你想要什么。"
   },
   "docs": {
     "titleEmpty": "文档",

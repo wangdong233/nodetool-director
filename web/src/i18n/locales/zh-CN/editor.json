@@ -3014,7 +3014,10 @@
     "planningCanceled": "规划已取消。",
     "closeDocumentsUnsaved": "关闭有未保存更改的文档?",
     "closeAnyway": "仍要关闭",
-    "keepOpen": "保持打开"
+    "keepOpen": "保持打开",
+    "signInWithExistingPlans": "用你已付费的订阅登录。NodeTool 直接使用它们,无需创建 API 密钥,也不按 token 计费。",
+    "chatgptImagesNeedExtension": "ChatGPT 的图像生成以及 Gemini 的全部功能需要 Chrome 扩展。下一步就会完成设置。",
+    "chatWithGPTModelsOnYourChatGPTPlan": "用你的 ChatGPT 订阅聊天。图像生成需要 Chrome 扩展。"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",
