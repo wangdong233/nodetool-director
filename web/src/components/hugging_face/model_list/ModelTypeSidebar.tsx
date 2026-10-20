@@ -73,7 +73,7 @@ const ModelTypeSidebar: React.FC = () => {
           pb: 1
         }}
       >
-        Model categories
+        {t("editor:ui.modelCategories", { defaultValue: "Model categories" })}
       </Box>
     <List className="model-type-list" sx={{ padding: 0 }}>
       {modelTypes

@@ -6,6 +6,7 @@ import { useEmbeddingModelsByProvider } from "../../hooks/useEmbeddingModels";
 import ModelSelectButton from "./shared/ModelSelectButton";
 import useModelSelectMenu from "./shared/useModelSelectMenu";
 import { getProviderDisplayName } from "../../utils/providerDisplay";
+import { i18n } from "../../i18n";
 
 interface EmbeddingModelSelection {
   type: "embedding_model";
@@ -50,9 +51,9 @@ const EmbeddingModelSelect: React.FC<EmbeddingModelSelectProps> = ({
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || "Select model"}
+        label={currentSelectedModelDetails?.name || value || i18n.t("editor:ui.selectModel", { defaultValue: "Select model" })}
         secondaryLabel={getProviderDisplayName(currentSelectedModelDetails?.provider)}
-        subLabel="Select embedding model"
+        subLabel={i18n.t("editor:ui.selectEmbeddingModel", { defaultValue: "Select embedding model" })}
         onClick={handleClick}
       />
       <EmbeddingModelMenuDialog

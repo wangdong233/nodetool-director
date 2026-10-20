@@ -38,7 +38,7 @@ const SourceToggleInternal: React.FC<SourceToggleProps> = ({
       aria-label={t("editor:ui.modelSource", { defaultValue: "model source" })}
     >
       <ToggleOption value="onboarding" aria-label={t("editor:ui.getStartedAria", { defaultValue: "get started" })}>
-        Get started
+        {t("editor:ui.getStarted", { defaultValue: "Get started" })}
       </ToggleOption>
       <ToggleOption value="installed" aria-label={t("editor:ui.installedModels", { defaultValue: "installed models" })}>
         Installed

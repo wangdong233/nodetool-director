@@ -3021,7 +3021,10 @@
     "appsTab": "小程序",
     "gamesTab": "游戏",
     "browseAll": "浏览全部",
-    "game": "游戏"
+    "game": "游戏",
+    "getStarted": "开始使用",
+    "modelCategories": "模型分类",
+    "learnMore": "了解更多"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

@@ -44,7 +44,7 @@ const SettingsSidebar = ({
           {section.category ? (
             <p className="settings-sidebar-category">
               <span className="settings-sidebar-category-label">
-                {t(`settings:sidebar.${section.categoryKey ?? ""}`, { defaultValue: section.category })}
+                {section.categoryKey ? t(section.categoryKey, { defaultValue: section.category }) : section.category}
               </span>
             </p>
           ) : null}
@@ -60,7 +60,7 @@ const SettingsSidebar = ({
                   aria-current={isActive ? "true" : undefined}
                   onClick={handleItemClick}
                 >
-                  {t(`settings:sidebar.${item.labelKey ?? ""}`, { defaultValue: item.label })}
+                  {item.labelKey ? t(item.labelKey, { defaultValue: item.label }) : item.label}
                 </button>
               );
             })}

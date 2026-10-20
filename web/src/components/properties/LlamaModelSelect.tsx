@@ -17,6 +17,7 @@ import ModelSelectButton from "./shared/ModelSelectButton";
 import { EditorMenu } from "../editor_ui";
 import { isString } from "../../utils/typePredicates";
 import { useTranslation } from "react-i18next";
+import { i18n } from "../../i18n";
 
 interface LlamaModelSelectProps {
   onChange: (value: LlamaModelValue) => void;
@@ -87,8 +88,8 @@ const LlamaModelSelect = ({ onChange, value }: LlamaModelSelectProps) => {
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || "Select model"}
-        subLabel="Select model"
+        label={currentSelectedModelDetails?.name || value || i18n.t("editor:ui.selectModel", { defaultValue: "Select model" })}
+        subLabel={i18n.t("editor:ui.selectModel", { defaultValue: "Select model" })}
         onClick={handleClick}
       />
       <EditorMenu

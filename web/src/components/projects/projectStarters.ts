@@ -12,6 +12,7 @@
  */
 
 import type { ProjectDetail } from "./projectStatus";
+import { i18n } from "../../i18n";
 
 /** One skill offered as a starter. */
 export interface ProjectStarter {
@@ -28,6 +29,10 @@ export interface ProjectStarter {
  * agent is handed and what the user would type themselves.
  */
 export const starterLabel = (name: string): string => {
+  // The catalog carries the localized skill name (zh overlays exist for every
+  // shipped skill); the mechanical slug-to-title form is only the fallback.
+  const localized = i18n.t(`catalog:skills.${name}.name`, { defaultValue: "" });
+  if (localized) return localized;
   const words = name.replace(/[-_]+/g, " ").trim();
   return words.length === 0 ? name : words[0].toUpperCase() + words.slice(1);
 };
