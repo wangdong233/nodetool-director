@@ -752,6 +752,7 @@ function SettingsPage() {
                   </Caption>
                   <div className="general-settings">
                     <div className="settings-section">
+                      {/* fork:fork-fix/language-setting-mount */}
                       <LanguageSetting />
                     </div>
                     <div className="settings-section">
