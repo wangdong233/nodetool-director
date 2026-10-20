@@ -2323,7 +2323,7 @@ const NewProjectSurface = ({
                   onClick={() => void handleStart()}
                   sx={{ borderRadius: BORDER_RADIUS.pill }}
                 >
-                  Send to chat
+                  {t("home:composer.sendToChat", { defaultValue: "Send to chat" })}
                 </EditorButton>
               </FlexRow>
             </FlexColumn>
@@ -2501,14 +2501,14 @@ const NewProjectSurface = ({
               density="compact"
               onClick={handleOpenExamples}
             >
-              Browse examples
+              {t("home:blank.examples", { defaultValue: "Browse examples" })}
             </EditorButton>
             <EditorButton
               variant="text"
               density="compact"
               onClick={handleOpenTutorials}
             >
-              Tutorials
+              {t("home:blank.tutorials", { defaultValue: "Tutorials" })}
             </EditorButton>
           </FlexRow>
           <Box

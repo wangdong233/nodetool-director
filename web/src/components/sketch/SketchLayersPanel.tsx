@@ -1272,13 +1272,13 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
 
         <Tooltip
           title={
-            activeLayer?.alphaLock ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock transparency" }) : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })
+            activeLayer?.alphaLock ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock Transparency" }) : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock Transparency" })
           }
         >
           <IconButton
             aria-label={
               activeLayer?.alphaLock
-                ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock transparency" }) : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })
+                ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock Transparency" }) : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock Transparency" })
             }
             size="small"
             onClick={() => onToggleAlphaLock(activeLayerId)}
@@ -1611,7 +1611,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             <MenuItemPrimitive
               label={
                 ctxLayer?.alphaLock
-                  ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock transparency" }) : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock transparency" })
+                  ? t("sketch:attrs.unlockTransparency", { defaultValue: "Unlock Transparency" }) : i18n.t("sketch:attrs.lockTransparency", { defaultValue: "Lock Transparency" })
               }
               onClick={handleCtxAlphaLock}
               disabled={ctxIsGroup || isMulti}

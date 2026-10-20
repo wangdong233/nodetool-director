@@ -60,7 +60,7 @@
     "closeAll": "Close all tabs",
     "home": "Home",
     "tabName": "Tab name",
-    "unsaved": "unsaved changes",
+    "unsaved": "Unsaved changes",
     "openDocuments": "Open documents",
     "noDocumentOpen": "No document open",
     "switchDocs": "Switch between open documents",
@@ -105,15 +105,15 @@
       "description": "Browse, search, and add nodes to the current workflow."
     },
     "favorites": {
-      "label": "Favorite Nodes",
+      "label": "Favorite nodes",
       "description": "Find nodes that you saved as favorites."
     },
     "history": {
-      "label": "Recent Nodes",
+      "label": "Recent nodes",
       "description": "Reuse nodes that you added recently."
     },
     "settings": {
-      "label": "Workflow Settings",
+      "label": "Workflow settings",
       "description": "Edit settings for the current workflow."
     },
     "workflows": {
@@ -142,7 +142,7 @@
     },
     "entities": {
       "label": "Entities",
-      "description": "Reusable characters, locations, styles, and props"
+      "description": "Reusable characters, locations, styles, and props for prompts and shots."
     },
     "timelines": {
       "label": "Timelines",
@@ -171,6 +171,10 @@
     "more": {
       "label": "More",
       "description": "Open additional workflow, editor, developer, and workspace panels."
+    },
+    "examples": {
+      "label": "Examples",
+      "description": "Open shipped examples, or drag 3D models, sketches and timelines into your work."
     }
   }
 }

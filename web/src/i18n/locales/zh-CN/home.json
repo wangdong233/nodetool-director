@@ -5,7 +5,8 @@
     "startGuidedFlow": "开始一个引导流程",
     "describeIdea": "描述你想做什么",
     "openExamples": "打开示例或空白文档",
-    "dismissAria": "忽略快速上手清单"
+    "dismissAria": "忽略快速上手清单",
+    "dismiss": "不再显示"
   },
   "surface": {
     "startGuided": "从引导流程开始",
@@ -81,7 +82,8 @@
     "skillGroup": "从技能开始",
     "showFewer": "收起",
     "placeholder": "提问,或描述要做什么:为台灯做一支 30 秒上市广告片。输入 / 选技能,@ 选文件或实体。",
-    "pickSkillOrDescribe": "从技能开始,或直接描述你想要什么。"
+    "pickSkillOrDescribe": "从技能开始,或直接描述你想要什么。",
+    "sendToChat": "发送到聊天"
   },
   "docs": {
     "titleEmpty": "文档",
@@ -92,7 +94,8 @@
   },
   "apps": {
     "title": "从小程序开始",
-    "useOrEditLede": "打开小程序即可使用，或编辑副本来定制它的工作流。"
+    "useOrEditLede": "打开小程序即可使用，或编辑副本来定制它的工作流。",
+    "seeAll": "查看全部应用"
   },
   "notices": {
     "checkingModels": "仍在检查语言模型，请稍后再试。",
@@ -101,6 +104,7 @@
   },
   "entitiesPickerTitle": "此项目的实体",
   "blank": {
-    "tutorials": "教程"
+    "tutorials": "教程",
+    "examples": "浏览示例"
   }
 }

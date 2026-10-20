@@ -1519,7 +1519,7 @@ const Model3DEditor = ({
               [false, true].flatMap((onlySelection) =>
                 EXPORT_FORMATS.map((info, index) => (
                   <MenuItemPrimitive
-                    key={`${onlySelection ? t("editor:selection.header", { defaultValue: "selection" }) : i18n.t("editor:ui.scene", { defaultValue: "scene" })}-${info.format}`}
+                    key={`${onlySelection ? "selection" : "scene"}-${info.format}`}
                     label={`${onlySelection ? t("game:viewport.selection", { defaultValue: "Selection" }) : i18n.t("editor:ui.scene", { defaultValue: "Scene" })} as ${info.label}`}
                     secondary={info.detail}
                     dividerBefore={onlySelection && index === 0}

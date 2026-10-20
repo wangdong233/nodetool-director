@@ -197,7 +197,7 @@ const LogPanel: React.FC = memo(function LogPanel() {
   return (
     <Box
       css={rootStyles}
-      className={isFullscreen ? t("common:action.fullscreen", { defaultValue: "fullscreen" }) : undefined}
+      className={isFullscreen ? "fullscreen" : undefined}
     >
       <PanelHeader
         title={t("editor:bottom.logs", { defaultValue: "Logs" })}

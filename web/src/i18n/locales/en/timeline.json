@@ -40,7 +40,7 @@
     "frameRate": "Frame rate preset",
     "beatsPerBar": "Beats per bar",
     "beatUnit": "Beat unit",
-    "apply": "Apply"
+    "apply": "APPLY"
   },
   "source": {
     "monitor": "Source monitor",
@@ -860,7 +860,7 @@
     "couldNotReadThatFilesLocation": "Could not read that file's location. Pick a file on this computer.",
     "relinkToNewLocation": "Relink to the file's new location",
     "chooseAnEntityHint": "Choose a character, location, style or prop to keep it consistent in the clip.",
-    "kindImages": "images",
+    "kindImages": "Images",
     "kindVideos": "Videos",
     "kind3dModels": "3D models",
     "kindAssets": "assets",
@@ -875,7 +875,7 @@
     "renameFolder": "Rename folder",
     "ungroupTracks": "Ungroup tracks",
     "rebake": "Rebake",
-    "previewCandidate": "Preview Candidate",
+    "previewCandidate": "Preview candidate",
     "sourceClip": "Source clip",
     "connectAProviderWithAVideoExtensionModelToUseExtend": "Connect a provider with a video extension model to use Extend.",
     "previewExtension": "Preview extension",
@@ -883,7 +883,7 @@
     "generateVideoAction": "Generate video",
     "exportingVideo": "Exporting video",
     "drumSynthesizer": "Drum synthesizer",
-    "dspChain": "DSP Chain",
+    "dspChain": "DSP chain",
     "showTrack": "Show track",
     "lockTrack": "Lock track",
     "solo": "Solo",

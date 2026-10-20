@@ -158,7 +158,7 @@ const CollectionItem = ({
         ) : (
           <DeleteButton
             onClick={handleDeleteClick}
-            tooltip={t("editor:ui.deleteThisCollection", { defaultValue: "Delete this collection" })}
+            tooltip={t("editor:ui.deleteThisCollection", { defaultValue: "Delete this collection?" })}
             disabled={isDeleting}
             sx={{ mt: -10 }}
             nodrag={false}

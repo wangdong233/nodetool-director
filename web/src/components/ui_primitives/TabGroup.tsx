@@ -10,6 +10,7 @@ import { Tabs, Tab, TabsProps, Box, BoxProps } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { CONTROL, FONT_SIZE_SANS, MOTION, TYPOGRAPHY, reducedMotion } from "./tokens";
 import { SPACING, getSpacingPx } from "./spacing";
+import { i18n } from "../../i18n";
 
 export interface TabItem {
   labelKey?: string;
@@ -120,10 +121,12 @@ export const TabGroup: React.FC<TabGroupProps> = ({
           value={tab.value}
           label={
             tab.count === undefined ? (
-              tab.label
+              tab.labelKey ? i18n.t(tab.labelKey, { defaultValue: tab.label }) : tab.label
             ) : (
               <>
-                <span className="tab-group-label">{tab.label}</span>
+                <span className="tab-group-label">
+                  {tab.labelKey ? i18n.t(tab.labelKey, { defaultValue: tab.label }) : tab.label}
+                </span>
                 <span className="tab-group-count">{tab.count}</span>
               </>
             )

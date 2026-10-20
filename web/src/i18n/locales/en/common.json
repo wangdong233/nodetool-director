@@ -13,7 +13,7 @@
     "copy": "Copy",
     "cut": "Cut",
     "remove": "Remove",
-    "exitFullscreen": "Exit Fullscreen",
+    "exitFullscreen": "Exit fullscreen",
     "fullscreen": "Fullscreen",
     "select": "Select",
     "add": "Add",
@@ -26,8 +26,7 @@
   "status": {
     "loading": "Loading…"
   },
-  "boot": {
-  },
+  "boot": {},
   "mime": {
     "image/png": "PNG image",
     "image/jpeg": "JPEG image",

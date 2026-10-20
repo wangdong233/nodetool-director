@@ -5,7 +5,8 @@
     "startGuidedFlow": "Start a guided flow",
     "describeIdea": "Describe what you want to make",
     "openExamples": "Open an example or a blank doc",
-    "dismissAria": "Dismiss getting started checklist"
+    "dismissAria": "Dismiss getting started checklist",
+    "dismiss": "Dismiss"
   },
   "surface": {
     "startGuided": "Start with a guided flow",
@@ -28,11 +29,11 @@
     "title": "Could not open it yet",
     "report": "Report this failure",
     "kind": {
-      "entity": "entity",
+      "entity": "Entity",
       "storyboard": "storyboard",
       "video": "video",
       "script": "script",
-      "workflow": "workflow",
+      "workflow": "Workflow",
       "game": "game"
     }
   },
@@ -81,18 +82,20 @@
     "skillGroup": "Start from a skill",
     "showFewer": "Show fewer",
     "placeholder": "Ask a question, or describe what to make: a 30-second launch spot for our desk lamp. Type / for a skill, @ for a file or entity.",
-    "pickSkillOrDescribe": "Pick a skill to start from, or just describe what you want."
+    "pickSkillOrDescribe": "Pick a skill to start from, or just describe what you want.",
+    "sendToChat": "Send to chat"
   },
   "docs": {
     "titleEmpty": "Documents",
-    "previous": "Previous",
+    "previous": "previous",
     "next": "next",
     "nextCapitalized": "Next",
     "sectionAria": "Current project documents"
   },
   "apps": {
     "title": "Start from an app",
-    "useOrEditLede": "Open an app to use it, or edit a copy to customize its workflows."
+    "useOrEditLede": "Open an app to use it, or edit a copy to customize its workflows.",
+    "seeAll": "See all apps"
   },
   "notices": {
     "checkingModels": "Still checking your language models. Try again in a moment.",
@@ -101,6 +104,7 @@
   },
   "entitiesPickerTitle": "Entities for this project",
   "blank": {
-    "tutorials": "Tutorials"
+    "tutorials": "Tutorials",
+    "examples": "Browse examples"
   }
 }
