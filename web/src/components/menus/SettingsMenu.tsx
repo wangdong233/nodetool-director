@@ -751,9 +751,16 @@ function SettingsPage() {
                     {t("settings:general.changesApplyImmediately", { defaultValue: "Changes on this tab apply immediately." })}
                   </Caption>
                   <div className="general-settings">
+                    {/* fork:fork-fix/language-setting-mount — the section must
+                        carry a SearchItem row: the General tab hides any
+                        .settings-section without one (search-collapse rule). */}
                     <div className="settings-section">
-                      {/* fork:fork-fix/language-setting-mount */}
-                      <LanguageSetting />
+                      <SearchItem
+                        search={search}
+                        keywords="language 界面语言 中文 english locale 切换语言"
+                      >
+                        <LanguageSetting />
+                      </SearchItem>
                     </div>
                     <div className="settings-section">
                       <Text size="big" id="editor" className="settings-heading">
