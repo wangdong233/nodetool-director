@@ -75,8 +75,10 @@ and why) lives in [i18n/COVERAGE.md](i18n/COVERAGE.md).
   index as alias fields; English matching keeps its original weights.
 - **Gates** (run from `web/`): `npm run i18n:gate` before committing i18n
   changes (syntax, tsc baseline, wiring tuples, dangling keys),
-  `npm run i18n:preflight` for frozen-pattern checks, `npm run i18n:audit`
-  for a report of remaining bare strings.
+  `npm run i18n:preflight` for frozen-pattern and key-composition checks,
+  `npm run i18n:audit` for a report of remaining bare strings, and
+  `npm run i18n:blast` (dev server up) for a visibility-asserted scan of
+  rendered routes with zh active.
 - **Behavior preservation**: i18n wiring must not change functionality.
   Context-bound hooks (Puck, ReactFlow) only work inside their host trees,
   and modules importing `i18n/` must never enter web-worker module graphs —

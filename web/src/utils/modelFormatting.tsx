@@ -5,8 +5,16 @@ import ModelIcon from "../icons/data_types/nodetool/model.svg";
 import PetsIcon from "@mui/icons-material/Pets";
 import { SPACING, getSpacingPx, ICON_SIZE } from "../components/ui_primitives";
 
-export const prettifyModelType = (type: string): JSX.Element | string => {
-  if (type === "All") {return type;}
+/**
+ * Category label with its leading icon. `labelOverride` replaces the computed
+ * English text (used for the localized label) while keeping the icon; without
+ * it the output is unchanged.
+ */
+export const prettifyModelType = (
+  type: string,
+  labelOverride?: string
+): JSX.Element | string => {
+  if (type === "All") {return labelOverride ?? type;}
 
   if (type === "llama_model") {
     return (
@@ -20,7 +28,7 @@ export const prettifyModelType = (type: string): JSX.Element | string => {
             filter: "invert(1)"
           }}
         />
-        Ollama
+        {labelOverride ?? "Ollama"}
       </>
     );
   }
@@ -29,7 +37,7 @@ export const prettifyModelType = (type: string): JSX.Element | string => {
     return (
       <>
         <PetsIcon style={{ fontSize: ICON_SIZE.md, marginRight: 8 }} />
-        Llama cpp
+        {labelOverride ?? "Llama cpp"}
       </>
     );
   }
@@ -44,14 +52,15 @@ export const prettifyModelType = (type: string): JSX.Element | string => {
           alt="Hugging Face"
           style={{ width: "20px", marginRight: getSpacingPx(SPACING.md) }}
         />
-        {parts
-          .map((part) =>
-            part
-              .split("_")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ")
-          )
-          .join(" ")}
+        {labelOverride ??
+          parts
+            .map((part) =>
+              part
+                .split("_")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+            )
+            .join(" ")}
       </>
     );
   }
@@ -67,10 +76,11 @@ export const prettifyModelType = (type: string): JSX.Element | string => {
           filter: "invert(1)"
         }}
       />
-      {type
-        .split("_")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ")}
+      {labelOverride ??
+        type
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ")}
     </>
   );
 };

@@ -281,6 +281,20 @@ export const CAPABILITY_LABELS = {
   image_to_3d: "3D generation from images"
 } satisfies Record<OnboardingCapability, string>;
 
+/** i18n key per capability, resolved at render time with CAPABILITY_LABELS as the English default. */
+export const CAPABILITY_LABEL_KEYS: Record<OnboardingCapability, string> = {
+  generate_message: "editor:ui.capabilityLabel.generate_message",
+  text_to_image: "editor:ui.capabilityLabel.text_to_image",
+  text_to_speech: "editor:ui.capabilityLabel.text_to_speech",
+  automatic_speech_recognition: "editor:ui.capabilityLabel.automatic_speech_recognition",
+  text_to_music: "editor:ui.capabilityLabel.text_to_music",
+  audio_to_audio: "editor:ui.capabilityLabel.audio_to_audio",
+  text_to_video: "editor:ui.capabilityLabel.text_to_video",
+  generate_embedding: "editor:ui.capabilityLabel.generate_embedding",
+  text_to_3d: "editor:ui.capabilityLabel.text_to_3d",
+  image_to_3d: "editor:ui.capabilityLabel.image_to_3d"
+};
+
 /**
  * Hosted deployments can't finish a same-machine sign-in — hide those entries
  * there. Mirrors the same rule in the settings provider catalog.

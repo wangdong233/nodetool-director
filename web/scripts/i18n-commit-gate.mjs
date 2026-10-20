@@ -12,7 +12,7 @@
 //               +useTranslation / +bare-t), printed verbatim for the commit
 //               message. Born from 4 claim-inflation incidents; anchor widened
 //               for the useTranslation migration (B-R11).
-import { execSync, spawnSync } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -56,45 +56,81 @@ const totalMb = memMb("MemTotal");
 const swapMb = memMb("SwapFree");
 const reserveMb = Math.max(600, Math.floor(totalMb / 10));
 const OFFHEAP_MB = 600; // tsc RSS beyond old-space (measured ~200MB at heap 4000; 3x margin)
-// Swap absorbs cold pages at a latency cost — count it at 50%, the same model
-// as tsc-guard's calibrated cap. The 10%-of-RAM reserve still bounds the run.
-const heapCapMb = Math.max(768, Math.min(7000, Math.floor((availMb + swapMb / 2) - reserveMb - OFFHEAP_MB)));
-if (heapCapMb < 3000) {
-  console.error(`G2 PRE-ASSESS REFUSED: MemAvailable=${availMb}MB (+swap ${swapMb}MB at 50%) cannot host a >=3000MB tsc heap while keeping the ${reserveMb}MB reserve. Free memory (or close memory-heavy processes) and re-run the gate.`);
+// NO swap credit. The 50% model was falsified on 2026-10-20: heap=4953 sized
+// from avail=3261 + swapFree/2 died by OOM signal mid-run (swap USED grew
+// 1.6GB as tsc touched the counted-but-cold pages). Heap now fits inside
+// MemAvailable alone. I18N_GATE_HEAP_MB overrides explicitly (still checked
+// against the reserve below).
+const heapOverrideMb = process.env.I18N_GATE_HEAP_MB ? parseInt(process.env.I18N_GATE_HEAP_MB, 10) : null;
+const heapCapMb = heapOverrideMb ?? Math.max(768, Math.min(7000, Math.floor(availMb - reserveMb - OFFHEAP_MB)));
+if (heapOverrideMb && (heapOverrideMb < 768 || heapOverrideMb + OFFHEAP_MB + reserveMb > availMb + Math.floor(swapMb / 2))) {
+  console.error(`G2 PRE-ASSESS REFUSED: I18N_GATE_HEAP_MB=${heapOverrideMb}MB + ${OFFHEAP_MB}MB off-heap + ${reserveMb}MB reserve exceeds MemAvailable=${availMb}MB (+swap ${swapMb}MB at 50%). Lower the override or free memory.`);
   process.exit(3);
 }
-console.log(`G2 pre-assessment: heap=${heapCapMb}MB MemAvailable=${availMb}MB reserve=${reserveMb}MB (10% rule)`);
-const current = (() => {
-  try {
-    // The compiler lives in the HOISTED root node_modules (web/ has no
-    // typescript of its own). A previous revision spawned
-    // `node_modules/typescript/bin/tsc` relative to webRoot — module-not-found
-    // produced an empty error set and the gate passed vacuously. Resolve the
-    // bin explicitly and abort if it is missing.
-    const tscBin = join(webRoot, "..", "node_modules", "typescript", "bin", "tsc6");
-    if (!existsSync(tscBin)) {
-      console.error(`G2 ABORTED: compiler not found at ${tscBin}.`);
-      process.exit(3);
-    }
-    const child = spawnSync(
+if (!heapOverrideMb && heapCapMb < 3000) {
+  console.error(`G2 PRE-ASSESS REFUSED: MemAvailable=${availMb}MB cannot host a >=3000MB tsc heap while keeping the ${reserveMb}MB reserve. Free memory (or close memory-heavy processes) and re-run the gate.`);
+  process.exit(3);
+}
+console.log(`G2 pre-assessment: heap=${heapCapMb}MB MemAvailable=${availMb}MB reserve=${reserveMb}MB (10% rule, no swap credit)`);
+const current = await (() => {
+  // The compiler lives in the HOISTED root node_modules (web/ has no
+  // typescript of its own). A previous revision spawned
+  // `node_modules/typescript/bin/tsc` relative to webRoot — module-not-found
+  // produced an empty error set and the gate passed vacuously. Resolve the
+  // bin explicitly and abort if it is missing.
+  const tscBin = join(webRoot, "..", "node_modules", "typescript", "bin", "tsc6");
+  if (!existsSync(tscBin)) {
+    console.error(`G2 ABORTED: compiler not found at ${tscBin}.`);
+    process.exit(3);
+  }
+  return new Promise((resolve) => {
+    // Real watchdog (user mandate 2026-10-19): continuous memory monitoring
+    // during the run — sample MemAvailable every 1s and SIGKILL the child the
+    // moment live headroom would breach the reserve. The old synchronous
+    // spawnSync could not monitor anything while blocked.
+    const child = spawn(
       process.execPath,
       ["--max-old-space-size=" + heapCapMb, tscBin, "--noEmit", "-p", "tsconfig.json"],
-      { cwd: webRoot, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"], timeout: 25 * 60 * 1000 }
+      { cwd: webRoot, stdio: ["pipe", "pipe", "pipe"] }
     );
-    const out = String(child.stdout || "") + String(child.stderr || "") + (child.signal ? `\n(signal ${child.signal})` : "");
-    if (/Cannot find module|MODULE_NOT_FOUND/.test(out)) {
-      console.error("G2 ABORTED: compiler invocation failed (module not found). Never a pass.");
-      process.exit(3);
-    }
-    return out;
-  } catch (e) {
-    return String(e.stdout || e.message);
-  }
+    let out = "";
+    let killReason = null;
+    let peakRssMb = 0;
+    child.stdout.on("data", (d) => { out += d; });
+    child.stderr.on("data", (d) => { out += d; });
+    const watchdog = setInterval(() => {
+      try {
+        const live = parseInt(execSync(`awk '/^MemAvailable/{print int($2/1024)}' /proc/meminfo`).toString(), 10);
+        try {
+          const rss = parseInt(execSync(`awk '/^VmRSS/{print int($2/1024)}' /proc/${child.pid}/status`).toString(), 10);
+          if (rss > peakRssMb) peakRssMb = rss;
+        } catch { /* child exited between the two reads */ }
+        if (live < reserveMb) {
+          killReason = `watchdog kill: MemAvailable=${live}MB < reserve ${reserveMb}MB (peak tsc RSS ${peakRssMb}MB)`;
+          child.kill("SIGKILL");
+        }
+      } catch { /* sampling failure must not kill a healthy run */ }
+    }, 1000);
+    const deadline = setTimeout(() => {
+      killReason = killReason ?? "25min deadline";
+      child.kill("SIGKILL");
+    }, 25 * 60 * 1000);
+    child.on("close", (code, signal) => {
+      clearInterval(watchdog);
+      clearTimeout(deadline);
+      resolve(out + (signal ? `\n(signal ${signal})` : "") + (killReason ? `\n(${killReason})` : "") + (peakRssMb ? `\n(peak tsc RSS ${peakRssMb}MB)` : "") + (code ? `\n(exit ${code})` : ""));
+    });
+  });
 })();
+if (/Cannot find module|MODULE_NOT_FOUND/.test(current)) {
+  console.error("G2 ABORTED: compiler invocation failed (module not found). Never a pass.");
+  process.exit(3);
+}
 // A killed or heap-exhausted tsc yields an empty error set — that is NOT a
 // pass. Fail loudly instead of comparing a truncated set against baseline.
 if (/\(signal |FATAL ERROR|JavaScript heap out of memory|heap Cap exceeded/.test(current)) {
   console.error("G2 ABORTED: tsc died (signal/OOM). Free memory and re-run; do not trust this run.");
+  console.error("G2 death detail (tail of compiler output):\n" + current.split("\n").slice(-12).join("\n"));
   process.exit(3);
 }
 const errLine = l => { const m = l.match(/^(.+?)\(\d+,\d+\): error (TS\d+)/); return m ? `${m[1]} ${m[2]}` : null; };

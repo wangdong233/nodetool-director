@@ -11,6 +11,7 @@ import {
   resolveShotSource
 } from "@nodetool-ai/timeline";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
+import { i18n, useAppLanguage } from "../../i18n";
 import {
   createTimelineInstance,
   TimelineProvider,
@@ -30,7 +31,6 @@ import {
   SPACING
 } from "../ui_primitives";
 import ReportBugButton from "../support/ReportBugButton";
-import { i18n, useAppLanguage } from "../../i18n";
 
 const PreviewCompositor = lazy(async () => {
   const module = await import("../timeline/preview/PreviewCompositor");

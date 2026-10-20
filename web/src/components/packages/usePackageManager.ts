@@ -69,10 +69,10 @@ const OPTIONAL_PREFIX = "optional:";
 
 /** Rail names say what the user does with a list, not where it comes from. */
 const LABELS: Record<PMCategory, string> = {
-  runtimes: "Engines & tools",
+  runtimes: i18n.t("editor:ui.enginesAndTools", { defaultValue: "Engines & tools" }),
   included: "Built-in nodes",
-  python: "Python nodes",
-  thirdparty: "Community nodes"
+  python: i18n.t("editor:ui.pythonNodes", { defaultValue: "Python nodes" }),
+  thirdparty: i18n.t("editor:ui.communityNodes", { defaultValue: "Community nodes" })
 };
 
 /** One line under each rail name, so a first-time user can pick a list. */

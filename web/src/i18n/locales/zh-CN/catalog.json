@@ -473,7 +473,10 @@
     "llamaModelHF": "Llama 模型（HF）",
     "mistralModel": "Mistral 模型",
     "transformersjsModelTjs": "Transformers.js 模型（tjs.*）",
-    "file": "文件"
+    "file": "文件",
+    "video": "视频",
+    "languageModel": "语言模型",
+    "date": "日期"
   },
   "skills": {
     "beat-sync-editing": {

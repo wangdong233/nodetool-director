@@ -14,7 +14,7 @@ import { isElectron, isLocalhost } from "../../lib/env";
 import { openSettingsTab } from "../workspace/openPageTab";
 import ollamaIcon from "../../icons/providers/ollama.svg";
 import ProviderOnboardingCard from "./ProviderOnboardingCard";
-import { CAPABILITY_LABELS, providersForCapability } from "./providerOnboardingCatalog";
+import { CAPABILITY_LABELS, CAPABILITY_LABEL_KEYS, providersForCapability } from "./providerOnboardingCatalog";
 import { useTranslation } from "react-i18next";
 import { i18n } from "../../i18n";
 
@@ -63,7 +63,10 @@ const ProviderOnboardingDialog: React.FC = () => {
         <FlexColumn gap={SPACING.md}>
           <Text sx={{ maxWidth: "60ch" }}>
             {reason ?? (capability
-              ? `Connect a provider for ${CAPABILITY_LABELS[capability]} to continue.`
+              ? t("editor:ui.providerConnectForCapability", {
+                  defaultValue: "Connect a provider for {{capability}} to continue.",
+                  capability: t(CAPABILITY_LABEL_KEYS[capability], { defaultValue: CAPABILITY_LABELS[capability] })
+                })
               : i18n.t("editor:ui.chooseAnAccountOrAPIKeyToUseModelsInYourWorkflows", { defaultValue: "Choose an account or API key to use models in your workflows." }))}
           </Text>
           <Caption size="small">{t("editor:ui.yourAPIUsageIsBilledDirectlyToYourProviderAccount", { defaultValue: "Your API usage is billed directly to your provider account." })}</Caption>

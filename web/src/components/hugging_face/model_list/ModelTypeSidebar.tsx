@@ -19,6 +19,7 @@ import {
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { IconForType } from "../../../config/IconForType";
 import { prettifyModelType } from "../../../utils/modelFormatting";
+import { useModelTypeLabel } from "./modelTypeLabels";
 import { useModels } from "./useModels";
 import { useModelManagerStore } from "../../../stores/ModelManagerStore";
 import { useTheme } from "@mui/material/styles";
@@ -32,23 +33,27 @@ const ModelTypeSidebar: React.FC = () => {
   const selectedModelType = useModelManagerStore((state) => state.selectedModelType);
   const setSelectedModelType = useModelManagerStore((state) => state.setSelectedModelType);
   const theme = useTheme();
+  const modelTypeLabel = useModelTypeLabel();
 
   const createModelTypeChangeHandler = useCallback((type: string) => {
     return () => setSelectedModelType(type);
   }, [setSelectedModelType]);
 
   // Plain-text label for the hover title (prettifyModelType returns JSX with a
-  // leading icon, which can't be used as a title attribute).
+  // leading icon, which can't be used as a title attribute). Mapped taxonomy
+  // types resolve through the label keys so zh shows the zh label; anything
+  // else (tjs.*, unknown) keeps the prettified English.
   const plainLabel = useCallback((type: string) => {
-    if (type === "All") {
-      return "All";
+    const mapped = modelTypeLabel(type);
+    if (mapped !== undefined) {
+      return mapped;
     }
     return type
       .replace(/^(hf|tjs)\./, "")
       .split(/[._]/)
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
-  }, []);
+  }, [modelTypeLabel]);
 
   const getHuggingFaceLink = useCallback((type: string) => {
     if (!type.startsWith("hf.")) {
@@ -102,7 +107,7 @@ const ModelTypeSidebar: React.FC = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={handleLinkClick}
-                    ariaLabel={`View ${prettifyModelType(type)} models on Hugging Face`}
+                    ariaLabel={t("editor:ui.viewTypeModelsOnHuggingFace", { defaultValue: "View {{type}} models on Hugging Face", type: plainLabel(type) })}
                     sx={{
                       color: isSelected ? theme.vars.palette.text.primary : "inherit",
                       opacity: 0.7,
@@ -153,7 +158,7 @@ const ModelTypeSidebar: React.FC = () => {
                   />
                 )}
                 <ListItemText
-                  primary={prettifyModelType(type)}
+                  primary={prettifyModelType(type, modelTypeLabel(type))}
                   title={plainLabel(type)}
                   sx={{ minWidth: 0, my: 0 }}
                   primaryTypographyProps={{

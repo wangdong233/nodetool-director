@@ -774,7 +774,7 @@ const AppWrapper = ({ configReady }: { configReady: Promise<unknown> }) => {
                           fontSize: "var(--fontSizeNormal)"
                         }}
                       >
-                        Refresh Page
+                        {t("editor:ui.refreshPage", { defaultValue: "Refresh Page" })}
                       </button>
                       <ReportBugButton
                         variant="outlined"
