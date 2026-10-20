@@ -534,7 +534,7 @@ function SettingsPage() {
     },
     {
       category: "History",
-      items: [{ id: "autosave", label: "Autosave & version history" }]
+      items: [{ id: "autosave", label: "Autosave & version history", labelKey: "settings:general.secAutosave" }]
     }
   ];
 
@@ -856,7 +856,7 @@ function SettingsPage() {
                         id="appearance"
                         className="settings-heading"
                       >
-                        Appearance
+                        {i18n.t("settings:general.secAppearance", { defaultValue: "Appearance" })}
                       </Text>
                       {resolvedThemeMode && (
                         <SearchItem
@@ -877,7 +877,7 @@ function SettingsPage() {
                         keywords="appearance text size font size zoom larger smaller bigger readability accessibility"
                       >
                         <SelectField
-                          label="Text size"
+                          label={i18n.t("settings:general.textSize", { defaultValue: "Text size" })}
                           value={settings.textSize}
                           onChange={handleTextSizeChange}
                           options={TEXT_SIZE_OPTIONS}
@@ -904,7 +904,7 @@ function SettingsPage() {
                         id="execution"
                         className="settings-heading"
                       >
-                        Execution
+                        {i18n.t("settings:general.secExecution", { defaultValue: "Execution" })}
                       </Text>
                       <SearchItem
                         search={search}
@@ -1003,7 +1003,7 @@ function SettingsPage() {
                         id="canvas-navigation"
                         className="settings-heading"
                       >
-                        Canvas & navigation
+                        {i18n.t("settings:general.secCanvasNav", { defaultValue: "Canvas & navigation" })}
                       </Text>
                       <SearchItem
                         search={search}
@@ -1087,7 +1087,7 @@ function SettingsPage() {
                         id="autosave"
                         className="settings-heading"
                       >
-                        Autosave & version history
+                        {i18n.t("settings:general.secAutosave", { defaultValue: "Autosave & version history" })}
                       </Text>
                       <SearchItem
                         search={search}

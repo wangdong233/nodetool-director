@@ -105,7 +105,7 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
       <FlexColumn sx={{ minWidth: 0 }}>
         <FlexRow gap={SPACING.xs} align="center" sx={{ flexWrap: "wrap" }}>
           <Text size="normal" weight={600}>
-            Your machine
+            {i18n.t("editor:ui.yourMachine", { defaultValue: "Your machine" })}
           </Text>
           {profile.tier && (
             <Tooltip title={TIER_LABELS[profile.tier]}>
@@ -150,7 +150,7 @@ const HardwareCard: React.FC<HardwareCardProps> = ({
   const budgetSelect = (
     <FlexColumn gap={SPACING.micro} sx={{ minWidth: 128 }}>
       <Caption sx={{ opacity: 0.6, whiteSpace: "nowrap" }}>
-        Set GPU memory
+        {i18n.t("editor:ui.setGpuMemory", { defaultValue: "Set GPU memory" })}
       </Caption>
       <SelectField
         label={t("editor:ui.gpuMemoryBudget", { defaultValue: "GPU memory budget" })}

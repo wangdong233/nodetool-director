@@ -446,7 +446,7 @@ const TutorialsPage: React.FC = () => {
                 </EditorButton>
               )}
               <EditorButton variant="outlined" onClick={() => openPageTab("examples")}>
-                Browse examples
+                {t("home:blank.examples", { defaultValue: "Browse examples" })}
               </EditorButton>
             </div>
           </div>

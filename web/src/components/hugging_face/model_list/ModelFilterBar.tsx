@@ -16,7 +16,7 @@ import type {
   ModelAvailabilityFilter,
   ModelSource
 } from "../../../stores/ModelManagerStore";
-import { MODEL_GOALS } from "./modelFit";
+import { MODEL_GOALS, GOAL_LABEL_KEYS, GOAL_DESCRIPTION_KEYS } from "./modelFit";
 import { MODEL_FORMATS } from "./modelFormat";
 import type { UseModelsResult } from "./useModels";
 import { useTranslation } from "react-i18next";
@@ -129,9 +129,9 @@ const ModelFilterBar: React.FC<ModelFilterBarProps> = ({
     >
       <FilterRow label={t("editor:ui.iWantTo", { defaultValue: "I want to" })}>
         {MODEL_GOALS.map((goal) => (
-          <Tooltip key={goal.id} title={goal.description}>
+          <Tooltip key={goal.id} title={i18n.t(GOAL_DESCRIPTION_KEYS[goal.id] ?? "", { defaultValue: goal.description })}>
             <Chip
-              label={goal.label}
+              label={i18n.t(GOAL_LABEL_KEYS[goal.id] ?? "", { defaultValue: goal.label })}
               compact
               active={selectedGoal === goal.id}
               color={selectedGoal === goal.id ? "primary" : "default"}

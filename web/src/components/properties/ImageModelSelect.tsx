@@ -19,6 +19,7 @@ import CuratedModelSelect from "./curated/CuratedModelSelect";
 import { useInStudio } from "../../studio/StudioContext";
 import { forTasks, STUDIO_STILL_MODELS } from "../../studio/curatedModels";
 import { useTranslation } from "react-i18next";
+import { i18n, useAppLanguage } from "../../i18n";
 
 interface ImageModelSelectProps {
   onChange: (value: ImageModelValue) => void;
@@ -40,6 +41,7 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
   disabled
 }) => {
   const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const addRecent = useModelPreferencesStore((s) => s.addRecent);
@@ -108,8 +110,8 @@ const ImageModelSelect: React.FC<ImageModelSelectProps> = ({
       return { label: value, secondaryLabel: undefined };
     }
 
-    return { label: "Select image model", secondaryLabel: undefined };
-  }, [currentSelectedModelDetails, value]);
+    return { label: i18n.t("editor:ui.selectImageModel", { defaultValue: "Select image model" }), secondaryLabel: undefined };
+  }, [currentSelectedModelDetails, value, languageVersion]);
 
   const handleClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);

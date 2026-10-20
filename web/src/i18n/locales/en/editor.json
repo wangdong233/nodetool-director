@@ -3026,7 +3026,10 @@
     "appsTab": "Apps",
     "gamesTab": "Games",
     "browseAll": "Browse all",
-    "game": "Game"
+    "game": "Game",
+    "getStarted": "Get started",
+    "modelCategories": "Model categories",
+    "learnMore": "Learn more"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

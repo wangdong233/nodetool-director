@@ -71,7 +71,7 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
             <ComputerIcon sx={{ fontSize: ICON_SIZE.lg }} />
           </FlexRow>
           <Text size="normal" weight={600}>
-            Local models
+            {t("editor:ui.localModels", { defaultValue: "Local models" })}
           </Text>
         </FlexRow>
 
@@ -108,7 +108,7 @@ const LocalModelsHero: React.FC<LocalModelsHeroProps> = ({ models }) => {
           endIcon={<OpenInNewIcon />}
           onClick={() => window.open(DOCS_URL, "_blank", "noopener,noreferrer")}
         >
-          Learn more
+          {t("editor:ui.learnMore", { defaultValue: "Learn more" })}
         </EditorButton>
       </FlexColumn>
     </Card>
