@@ -19,13 +19,13 @@ const ExamplesPage: React.FC = () => {
     <PageLayout padded={false} scrollable showHeader={false}>
       <TabGroup
         tabs={[
-          { value: "apps", label: "Apps" },
+          { value: "apps", label: "Apps", labelKey: "editor:ui.appsTab" },
           { value: "workflows", label: "Workflows", labelKey: "ui2:attrs.workflows" },
-          { value: "storyboards", label: "Storyboards" },
-          { value: "timelines", label: "Timelines" },
-          { value: "sketches", label: "Sketches" },
+          { value: "storyboards", label: "Storyboards", labelKey: "editor:ui.storyboards" },
+          { value: "timelines", label: "Timelines", labelKey: "editor:ui.timelines" },
+          { value: "sketches", label: "Sketches", labelKey: "editor:ui.sketches" },
           { value: "models", label: "3D models", labelKey: "timeline:attrs.kind3dModels" },
-          { value: "games", label: "Games" }
+          { value: "games", label: "Games", labelKey: "editor:ui.gamesTab" }
         ]}
         value={activeTab}
         onChange={setActiveTab}

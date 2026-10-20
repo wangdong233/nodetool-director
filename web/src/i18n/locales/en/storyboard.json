@@ -664,7 +664,7 @@
     "recastFrom": "Recast from {{name}}",
     "newStyleAppliesToEveryShot": "The new style applies to every shot. Stills and clips already rendered are marked stale — nothing re-renders until you ask for it.",
     "customStylesAreAddedWhileSettingUpABoard": "Custom styles are added while setting up a board.",
-    "clipLower": "clip",
+    "clipLower": "Clip",
     "templateLower": "template",
     "connectAProviderForEveryModelAbove": "Connect a provider for every model above",
     "eachShotRendersANewWithTheModelItLastUsed": "Each shot renders a new {{noun}} with the model it last used. It arrives as a new take, and the current {{noun}} stays selected until you choose the new one.",

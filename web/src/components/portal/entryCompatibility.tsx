@@ -242,7 +242,7 @@ const getCompatibility = (
   if (!inputs.length) {
     unknowns.push(
       workflows.some((workflow) => workflow.graph)
-        ? t("home:entry.noInputsDeclared", { defaultValue: "No inputs are declared" })
+        ? i18n.t("home:entry.noInputsDeclared", { defaultValue: "No inputs are declared" })
         : "Input requirements are unknown"
     );
   } else if (inputs.some((input) => input.required === null)) {

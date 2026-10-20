@@ -244,7 +244,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
             onClick={dismiss}
             aria-label={t("home:checklist.dismissAria", { defaultValue: "Dismiss getting started checklist" })}
           >
-            Dismiss
+            {t("home:checklist.dismiss", { defaultValue: "Dismiss" })}
           </EditorButton>
         </div>
       </div>

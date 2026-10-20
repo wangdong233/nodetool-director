@@ -87,7 +87,7 @@
     "see": "See"
   },
   "defModels": {
-    "title": "Default Models",
+    "title": "Default models",
     "desc": "Set default models for each type. These will auto-fill when you create new nodes.",
     "mLanguage": "Language Model",
     "mImage": "Image Model",

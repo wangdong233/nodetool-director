@@ -509,13 +509,13 @@ const DataframeEditorModal = ({
   const content = (
     <div className="dataframe-editor-modal" css={modalStyles}>
       <div
-        className={`modal-overlay ${isFullscreen ? t("common:action.fullscreen", { defaultValue: "fullscreen" }) : ""}`}
+        className={`modal-overlay ${isFullscreen ? "fullscreen" : ""}`}
         role="presentation"
         onClick={handleOverlayClick}
         ref={modalOverlayRef}
       >
         <div
-          className={`modal-content ${isFullscreen ? t("common:action.fullscreen", { defaultValue: "fullscreen" }) : ""}`}
+          className={`modal-content ${isFullscreen ? "fullscreen" : ""}`}
           role="dialog"
           aria-modal="true"
           style={{ height: isFullscreen ? "100vh" : modalHeight }}

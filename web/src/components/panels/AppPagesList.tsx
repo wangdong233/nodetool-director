@@ -23,6 +23,7 @@ import {
   selectableRowStyles,
   selectedRowStyles
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const styles = (theme: Theme) =>
   css({
@@ -86,7 +87,7 @@ const AppPagesList: React.FC<AppPagesListProps> = ({
   const filteredActions = actions.filter(
     (action) =>
       (scope === "all" || action.placement !== "logo") &&
-      `${action.label} ${action.secondary ?? ""}`
+      `${action.labelKey ? i18n.t(action.labelKey, { defaultValue: action.label }) : action.label} ${action.secondary ?? ""}`
         .toLowerCase()
         .includes(normalizedQuery)
   );
@@ -104,7 +105,7 @@ const AppPagesList: React.FC<AppPagesListProps> = ({
                 <span className="row-icon" aria-hidden>
                   {action.icon}
                 </span>
-                <ListItemText primary={action.label} />
+                <ListItemText primary={action.labelKey ? i18n.t(action.labelKey, { defaultValue: action.label }) : action.label} />
                 {action.secondary && (
                   <Caption color="secondary">{action.secondary}</Caption>
                 )}

@@ -159,7 +159,7 @@ export default function GameInspector({ document, activeSceneId, selectedIds, is
       {inspectedId && <Caption title={inspectedId} sx={{ overflowWrap: "anywhere" }}>ID: {inspectedId}</Caption>}
     </FlexColumn>
     <TabGroup aria-label={i18n.t("editor:ui.inspector", { defaultValue: "Inspector" })} size="small" fullWidth value={tab} onChange={(value) => setTab(value === "game" ? "game" : "selection")}
-      tabs={[{ value: "selection", label: entity ? i18n.t("editor:ui.entity", { defaultValue: "Entity" }) : i18n.t("editor:ui.scene", { defaultValue: "Scene" }) }, { value: "game", label: "Game", labelKey: "home:flowError.kind.game" }]} />
+      tabs={[{ value: "selection", label: entity ? i18n.t("editor:ui.entity", { defaultValue: "Entity" }) : i18n.t("editor:ui.scene", { defaultValue: "Scene" }) }, { value: "game", label: "Game", labelKey: "editor:ui.game" }]} />
     <Divider />
     <FlexColumn gap={SPACING.xs} sx={{ minHeight: 0, overflowY: "auto", px: SPACING.lg, py: SPACING.sm }}>
     {tab === "game" ? <>

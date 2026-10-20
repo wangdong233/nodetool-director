@@ -239,7 +239,11 @@ describe("DashboardTemplates", () => {
         out.push(rule.cssText);
       }
     }
-    return out.join("\n");
+    // MUI registers its global @keyframes (auto-fill etc.) lazily on the
+    // first qualifying render in the document — one-time noise unrelated to
+    // the band. The invariant under test is the .tpl-head rule set, so strip
+    // keyframes blocks from both sides of the comparison.
+    return out.join("\n").replace(/@(-webkit-)?keyframes [^{]+\{[^@]*\}\s*/g, "").trim();
   };
 
   it("pins the header band only in fullPage mode", async () => {

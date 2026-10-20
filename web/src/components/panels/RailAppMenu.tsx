@@ -21,6 +21,7 @@ import {
   MOTION,
   BORDER_RADIUS
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 const logoButtonStyles = (theme: Theme) =>
   css({
@@ -170,7 +171,7 @@ const RailAppMenu: React.FC<RailAppMenuProps> = ({ onAction }) => {
         {actions.map((action) => (
           <MenuItemPrimitive
             key={action.key}
-            label={action.label}
+            label={action.labelKey ? i18n.t(action.labelKey, { defaultValue: action.label }) : action.label}
             icon={action.icon}
             onClick={action.onClick}
             secondary={action.secondary}

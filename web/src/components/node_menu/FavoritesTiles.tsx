@@ -311,12 +311,12 @@ const FavoritesTiles = memo(function FavoritesTiles({
           </Text>
           <ToolbarIconButton
             icon={<ClearIcon fontSize="small" />}
-            tooltip={t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
+            tooltip={t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites?" })}
             tooltipPlacement="top"
             size="small"
             className="clear-button"
             onClick={() => setClearConfirmOpen(true)}
-            aria-label={t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites" })}
+            aria-label={t("editor:ui.clearAllFavorites", { defaultValue: "Clear all favorites?" })}
           />
         </div>
       )}

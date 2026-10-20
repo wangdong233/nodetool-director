@@ -314,12 +314,12 @@ const RecentNodesTiles = memo(function RecentNodesTiles() {
         <Text size="normal" weight={600}>{t("ui2:attrs.recentNodes", { defaultValue: "Recent nodes" })}</Text>
         <ToolbarIconButton
           icon={<ClearIcon fontSize="small" />}
-          tooltip={t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}
+          tooltip={t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes?" })}
           tooltipPlacement="top"
           size="small"
           className="clear-button"
           onClick={() => setClearConfirmOpen(true)}
-          aria-label={t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes" })}
+          aria-label={t("editor:ui.clearRecentNodes", { defaultValue: "Clear recent nodes?" })}
         />
       </div>
       <div className="tiles-container">

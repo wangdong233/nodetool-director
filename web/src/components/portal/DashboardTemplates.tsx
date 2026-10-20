@@ -26,6 +26,7 @@ import {
   BORDER_RADIUS,
   SPACING,
   TYPOGRAPHY,
+  Z_INDEX,
   getSpacingPx,
   selectableTileStyles,
   Tooltip,
@@ -156,10 +157,29 @@ const styles = (theme: Theme) =>
 
 // In full-page (Examples tab) mode this section gets extra breathing room below
 // the example apps. The manager content owns scrolling for the full page.
-const fullPageStyles = css({
-  paddingTop: getSpacingPx(SPACING.xxl),
-  paddingBottom: getSpacingPx(SPACING.xxxl)
-});
+// The controls band (title + search + category pills) pins to the top of
+// that scroll container once scrolled past. Sticky `top: 0` alone lands at
+// the container's CONTENT-box top — the padded scroll container keeps its
+// 12px (SPACING.lg, = ManagerPageLayout's theme.spacing(3) top padding)
+// visible above the pin, and rows would peek through that strip above the
+// band. So the sticky offset goes negative to own that strip, and the space
+// comes back as internal padding: pinned flush with the visible top edge,
+// opaque over the full strip, divider separating band from list. Dashboard
+// (non-fullPage) rendering never sees these styles — the .tpl-head wrapper
+// is an inert plain div there.
+const fullPageStyles = (theme: Theme) =>
+  css({
+    paddingTop: getSpacingPx(SPACING.xxl),
+    paddingBottom: getSpacingPx(SPACING.xxxl),
+    ".tpl-head": {
+      position: "sticky",
+      top: "calc(-1 * var(--spacing-lg))",
+      paddingTop: getSpacingPx(SPACING.lg),
+      zIndex: Z_INDEX.sticky,
+      background: theme.vars.palette.background.default,
+      borderBottom: `1px solid ${theme.vars.palette.divider}`
+    }
+  });
 
 /** Stand-in when a template ships no thumbnail (or it fails to load). */
 const templateGlyph = (
@@ -355,9 +375,12 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
   return (
     <section
       id={DASHBOARD_TEMPLATES_SECTION_ID}
-      css={fullPage ? [styles(theme), fullPageStyles] : styles(theme)}
+      css={fullPage ? [styles(theme), fullPageStyles(theme)] : styles(theme)}
     >
       <div css={sectionWrap}>
+        {/* The header + search + category pills travel together as one
+            band so the fullPage sticky scope can pin all three rows. */}
+        <div className="tpl-head">
         <DashboardSectionHeader title={t("editor:ui.startFromATemplate", { defaultValue: "Start from a template" })} count={countLabel}>
           <DashboardSearchBox
             ref={searchRef}
@@ -369,7 +392,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
           />
           {!fullPage && (
             <SectionLink onClick={handleViewAllTemplates}>
-              Browse all
+              {t("editor:ui.browseAll", { defaultValue: "Browse all" })}
             </SectionLink>
           )}
         </DashboardSectionHeader>
@@ -397,6 +420,7 @@ const DashboardTemplates: React.FC<DashboardTemplatesProps> = ({
               />
             );
           })}
+        </div>
         </div>
 
         {isLoading ? (

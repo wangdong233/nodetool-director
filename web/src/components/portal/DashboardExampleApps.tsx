@@ -236,7 +236,7 @@ const DashboardExampleApps: React.FC<DashboardExampleAppsProps> = ({
               density="compact"
               onClick={onBrowseAll}
             >
-              See all apps
+              {t("home:apps.seeAll", { defaultValue: "See all apps" })}
             </EditorButton>
           )}
         </DashboardSectionHeader>
