@@ -74,10 +74,11 @@ if (/\(signal |FATAL ERROR|JavaScript heap out of memory/.test(out)) {
 }
 
 const errLine = (l) => {
-  const m = l.match(/^(.+?)\(\d+,\d+\): error (TS\d+)/);
-  return m ? `${m[1].replace(/\\/g, "/")} ${m[2]}` : null;
+  const m = l.match(/^(.+?)\((\d+,\d+)\): error (TS\d+)/);
+  return m ? { key: `${m[1].replace(/\\/g, "/")} ${m[3]}`, raw: l } : null;
 };
-const current = [...new Set(out.split("\n").map(errLine).filter(Boolean))].sort();
+const parsed = out.split("\n").map(errLine).filter(Boolean);
+const current = [...new Set(parsed.map((p) => p.key))].sort();
 
 if (update) {
   writeFileSync(baselineFile, current.join("\n") + (current.length ? "\n" : ""));
@@ -93,8 +94,9 @@ const added = current.filter((x) => !baseline.includes(x));
 const removed = baseline.filter((x) => !current.includes(x));
 if (added.length || removed.length) {
   if (added.length) {
-    console.error(`NEW ERRORS (${added.length}):`);
-    added.forEach((e) => console.error("  + " + e));
+    console.error(`NEW ERRORS (${added.length} files/codes, all occurrences below):`);
+    const addedSet = new Set(added);
+    for (const p of parsed) if (addedSet.has(p.key)) console.error("  + " + p.raw);
   }
   if (removed.length) {
     console.error(`BASELINE ERRORS GONE (${removed.length}) — refresh the baseline only after review:`);
