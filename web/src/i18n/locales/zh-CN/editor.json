@@ -3119,7 +3119,8 @@
     "modelTypeTtsModel": "TTS 模型",
     "modelTypeAsrModel": "ASR 模型",
     "modelTypeWhisperCpp": "Whisper.cpp",
-    "modelTypeWhisperCppVad": "Whisper.cpp VAD"
+    "modelTypeWhisperCppVad": "Whisper.cpp VAD",
+    "openDocumentTitle": "打开文档：{{title}}"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

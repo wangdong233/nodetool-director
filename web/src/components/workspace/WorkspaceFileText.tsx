@@ -134,6 +134,7 @@ const WorkspaceFileText = ({
   kind,
   mode
 }: WorkspaceFileTextProps) => {
+  const { t } = useTranslation();
 
   const theme = useTheme();
   const paneStyles = useMemo(() => styles(theme), [theme]);

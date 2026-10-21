@@ -50,6 +50,7 @@ export const AdjustmentsSettingsPanel = memo(function AdjustmentsSettingsPanel({
   onApply,
   onCancel
 }: AdjustmentsSettingsPanelProps) {
+  const { t } = useTranslation();
   const hasChanges = brightness !== 0 || contrast !== 0 || saturation !== 0;
   return (
     <>

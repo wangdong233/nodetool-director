@@ -28,7 +28,7 @@ import {
   getSpacingPx,
   EmptyState
 } from "../ui_primitives";
-import { PROJECT_HOME_GLYPH, tabDisplayTitle } from "./tabTypeIdentity";
+import { PROJECT_HOME_GLYPH, tabDisplayTitle, tabTypeName } from "./tabTypeIdentity";
 import { PROJECT_COLOR } from "../projects/projectIdentity";
 import { useTranslation } from "react-i18next";
 import { i18n } from "../../i18n";
@@ -198,7 +198,7 @@ const MobileDocumentSelector = ({
         aria-expanded={open}
         aria-label={
           activeTab
-            ? `Open document: ${tabDisplayTitle(activeTab)}`
+            ? t("editor:ui.openDocumentTitle", { defaultValue: "Open document: {{title}}", title: tabDisplayTitle(activeTab) })
             : homeIsActive
               ? t("editor:ui.projectHomeSwitchDoc", { defaultValue: "Project home, switch document" })
               : t("editor:ui.openDocuments", { defaultValue: "Open documents" })
@@ -271,7 +271,7 @@ const MobileDocumentSelector = ({
                   </span>
                   <ListItemText
                     primary={tabDisplayTitle(tab)}
-                    secondary={tab.type}
+                    secondary={tabTypeName(tab.type)}
                   />
                   <DocumentStatus tab={tab} />
                 </ListItemButton>

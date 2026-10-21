@@ -3124,7 +3124,8 @@
     "modelTypeTtsModel": "TTS Model",
     "modelTypeAsrModel": "ASR Model",
     "modelTypeWhisperCpp": "Whisper Cpp",
-    "modelTypeWhisperCppVad": "Whisper Cpp Vad"
+    "modelTypeWhisperCppVad": "Whisper Cpp Vad",
+    "openDocumentTitle": "Open document: {{title}}"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",
