@@ -24,10 +24,14 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
       # Root install: web is a workspace, the compiler and the lockfile live
-      # at the root. Source-mapped workspace types (customConditions
-      # nodetool-dev) mean no package build is needed for the type check.
+      # at the root. Packages whose exports map points at dist (audio-nodes,
+      # image-nodes, node-sdk subpaths) need a build before their types
+      # resolve — same shape as the upstream quality-checks typecheck leg
+      # (npm ci && npm run build:packages).
       - name: Install toolchain
         run: npm ci --no-audit --no-fund
+      - name: Build workspace packages
+        run: npm run build:packages
       - name: Error-set check vs baseline
         working-directory: web
         run: |
