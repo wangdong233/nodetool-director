@@ -2,6 +2,7 @@
   "checklist": {
     "aria": "快速上手清单",
     "connectProvider": "连接 AI 服务商",
+    "aiProviderConnected": "AI 服务商已连接",
     "startGuidedFlow": "开始一个引导流程",
     "describeIdea": "描述你想做什么",
     "openExamples": "打开示例或空白文档",

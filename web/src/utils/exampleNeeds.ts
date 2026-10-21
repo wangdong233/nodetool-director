@@ -24,32 +24,62 @@ const MODEL_KIND_NOUNS: Record<string, string> = {
   embedding_model: "embedding"
 };
 
+/** Literal i18n key per model kind, parallel to MODEL_KIND_NOUNS. */
+const MODEL_KIND_KEYS: Record<string, string> = {
+  language_model: "editor:ui.needsALanguageModel",
+  llama_model: "editor:ui.needsALanguageModel",
+  image_model: "editor:ui.needsAnImageModel",
+  video_model: "editor:ui.needsAVideoModel",
+  tts_model: "editor:ui.needsAVoiceModel",
+  asr_model: "editor:ui.needsATranscriptionModel",
+  music_model: "editor:ui.needsAMusicModel",
+  embedding_model: "editor:ui.needsAnEmbeddingModel"
+};
+
 const article = (word: string): string =>
   /^[aeiou]/.test(word) ? "an" : "a";
 
 export interface ExampleNeedsLabel {
+  /** Literal i18n key for `label` — resolved at render, never composed. */
+  labelKey: string;
   label: string;
   runsAsIs: boolean;
 }
 
 export const exampleNeedsLabel = (needs: ExampleNeeds): ExampleNeedsLabel => {
   if (needs.modelKinds.length > 0) {
-    const nouns = [
-      ...new Set(needs.modelKinds.map((kind) => MODEL_KIND_NOUNS[kind]))
-    ];
+    const kinds = [...new Set(needs.modelKinds)];
+    const nouns = [...new Set(kinds.map((kind) => MODEL_KIND_NOUNS[kind]))];
     if (nouns.length > 1) {
-      return { label: "Needs models", runsAsIs: false };
+      return {
+        labelKey: "editor:ui.needsModels",
+        label: "Needs models",
+        runsAsIs: false
+      };
     }
     const noun = nouns[0];
+    if (!noun) {
+      return {
+        labelKey: "editor:ui.needsAModel",
+        label: "Needs a model",
+        runsAsIs: false
+      };
+    }
+    const kindKey = kinds.map((kind) => MODEL_KIND_KEYS[kind]).find(Boolean);
     return {
-      label: noun ? `Needs ${article(noun)} ${noun} model` : "Needs a model",
+      labelKey: kindKey ?? "editor:ui.needsAModel",
+      label: `Needs ${article(noun)} ${noun} model`,
       runsAsIs: false
     };
   }
   if (needs.requiredSettings.length > 0) {
-    return { label: "Needs an API key", runsAsIs: false };
+    return {
+      labelKey: "editor:ui.needsAnApiKey",
+      label: "Needs an API key",
+      runsAsIs: false
+    };
   }
-  return { label: "Runs as is", runsAsIs: true };
+  return { labelKey: "editor:ui.runsAsIs", label: "Runs as is", runsAsIs: true };
 };
 
 /**

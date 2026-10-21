@@ -41,13 +41,13 @@ const SourceToggleInternal: React.FC<SourceToggleProps> = ({
         {t("editor:ui.getStarted", { defaultValue: "Get started" })}
       </ToggleOption>
       <ToggleOption value="installed" aria-label={t("editor:ui.installedModels", { defaultValue: "installed models" })}>
-        Installed
+        {t("editor:ui.installed", { defaultValue: "Installed" })}
       </ToggleOption>
       <ToggleOption value="recommended" aria-label={t("editor:ui.recommendedModels", { defaultValue: "recommended models" })}>
-        Recommended
+        {t("editor:ui.recommended", { defaultValue: "Recommended" })}
       </ToggleOption>
       <ToggleOption value="hub" aria-label={t("editor:ui.searchHuggingFaceHub", { defaultValue: "search hugging face hub" })}>
-        Hub
+        {t("editor:ui.hub", { defaultValue: "Hub" })}
       </ToggleOption>
     </ToggleGroup>
   );

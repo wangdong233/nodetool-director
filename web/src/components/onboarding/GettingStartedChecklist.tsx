@@ -123,6 +123,8 @@ interface ChecklistStep {
   done: boolean;
   /** Stays clickable once done, under this label. */
   doneLabel?: string;
+  /** i18n key for `doneLabel`, resolved at render like `labelKey`. */
+  doneLabelKey?: string;
   onClick: () => void;
 }
 
@@ -167,7 +169,7 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
       done: hasConfiguredProvider,
       // The dialog is where a key is replaced or another provider added, and
       // a disabled pill left people hunting for another way back to it.
-      doneLabel: "AI provider connected",
+      doneLabel: "AI provider connected", doneLabelKey: "home:checklist.aiProviderConnected",
       onClick: onConnectProvider
     },
     {
@@ -231,7 +233,9 @@ const GettingStartedChecklist: React.FC<GettingStartedChecklistProps> = ({
                 )}
               </span>
               {step.done && step.doneLabel
-                ? step.doneLabel
+                ? step.doneLabelKey
+                  ? i18n.t(step.doneLabelKey, { defaultValue: step.doneLabel })
+                  : step.doneLabel
                 : step.labelKey
                   ? i18n.t(step.labelKey, { defaultValue: step.label })
                   : step.label}

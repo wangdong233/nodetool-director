@@ -16,6 +16,7 @@
  */
 
 import React, { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -148,7 +149,7 @@ export const PageHeader = memo(function PageHeader({
   actions,
   docsTopic,
   docsUrl,
-  docsLabel = "Documentation",
+  docsLabel,
   variant = "hero",
   hideSubtitleOnMobile = false,
   truncateTitle = false,
@@ -156,6 +157,7 @@ export const PageHeader = memo(function PageHeader({
   sx
 }: PageHeaderProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const cssStyles = useMemo(() => styles(theme, variant), [theme, variant]);
   const resolvedDocsUrl = docsTopic ? docsLink(docsTopic) : docsUrl;
 
@@ -197,7 +199,7 @@ export const PageHeader = memo(function PageHeader({
                 window.open(resolvedDocsUrl, "_blank", "noopener,noreferrer")
               }
             >
-              {docsLabel}
+              {docsLabel ?? t("editor:ui.documentation", { defaultValue: "Documentation" })}
             </EditorButton>
           )}
         </FlexRow>

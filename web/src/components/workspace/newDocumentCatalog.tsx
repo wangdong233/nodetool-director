@@ -90,6 +90,7 @@ const createBlankModelFile = async (): Promise<File> => {
 };
 
 export interface TextFileTemplate {
+  labelKey?: string;
   label: string;
   filename: string;
   mimeType: string;
@@ -98,7 +99,7 @@ export interface TextFileTemplate {
 
 export const TEXT_FILE_TEMPLATES: readonly TextFileTemplate[] = [
   {
-    label: i18n.t("editor:ui.markdownMd", { defaultValue: "Markdown (.md)" }),
+    label: "Markdown (.md)", labelKey: "editor:ui.markdownMd",
     filename: "Untitled.md",
     mimeType: "text/markdown",
     // Empty, not "# Untitled": a click after the seed heading put the caret
@@ -106,31 +107,31 @@ export const TEXT_FILE_TEMPLATES: readonly TextFileTemplate[] = [
     content: ""
   },
   {
-    label: i18n.t("editor:ui.jsonJson", { defaultValue: "JSON (.json)" }),
+    label: "JSON (.json)", labelKey: "editor:ui.jsonJson",
     filename: "Untitled.json",
     mimeType: "application/json",
     content: "{}\n"
   },
   {
-    label: i18n.t("editor:ui.yamlYaml", { defaultValue: "YAML (.yaml)" }),
+    label: "YAML (.yaml)", labelKey: "editor:ui.yamlYaml",
     filename: "Untitled.yaml",
     mimeType: "application/x-yaml",
     content: "---\n"
   },
   {
-    label: i18n.t("editor:ui.csvCsv", { defaultValue: "CSV (.csv)" }),
+    label: "CSV (.csv)", labelKey: "editor:ui.csvCsv",
     filename: "Untitled.csv",
     mimeType: "text/csv",
     content: "Column 1\n"
   },
   {
-    label: i18n.t("editor:ui.tsvTsv", { defaultValue: "TSV (.tsv)" }),
+    label: "TSV (.tsv)", labelKey: "editor:ui.tsvTsv",
     filename: "Untitled.tsv",
     mimeType: "text/tab-separated-values",
     content: "Column 1\n"
   },
   {
-    label: i18n.t("editor:ui.plainTextTxt", { defaultValue: "Plain text (.txt)" }),
+    label: "Plain text (.txt)", labelKey: "editor:ui.plainTextTxt",
     filename: "Untitled.txt",
     mimeType: "text/plain",
     content: ""
@@ -147,6 +148,8 @@ export interface NewDocumentEntry {
   label: string;
   /** The same as an action — what the menu shows. */
   menuLabel: string;
+  /** i18n key for `menuLabel`, resolved at render like `labelKey`. */
+  menuLabelKey?: string;
   /** The tab this opens; the grid draws its glyph and color from the type. */
   type: WorkspaceTabType;
   icon: ReactNode;
@@ -473,96 +476,96 @@ export const useNewDocumentCatalog = (
   const entries: NewDocumentEntry[] = [
     {
       key: "workflow",
-      label: "Workflow", labelKey: "home:flowError.kind.workflow",
-      menuLabel: "New workflow",
+      label: "Workflow", labelKey: "editor:ui.workflow",
+      menuLabel: "New workflow", menuLabelKey: "editor:ui.menuLabel.workflow",
       type: "workflow",
       icon: <AddOutlinedIcon fontSize="small" />,
       create: createWorkflow
     },
     {
       key: "chat",
-      label: "Chat",
-      menuLabel: "New chat",
+      label: "Chat", labelKey: "editor:ui.chat",
+      menuLabel: "New chat", menuLabelKey: "editor:ui.menuLabel.chat",
       type: "chat",
       icon: <ForumOutlinedIcon fontSize="small" />,
       create: createChat
     },
     {
       key: "text",
-      label: "Text",
-      menuLabel: i18n.t("editor:ui.newTextFile", { defaultValue: "New text file…" }),
+      label: "Text", labelKey: "editor:ui.text",
+      menuLabel: "New text file…", menuLabelKey: "editor:ui.menuLabel.text",
       type: "text",
       icon: <ArticleOutlinedIcon fontSize="small" />,
       submenu: "texts"
     },
     {
       key: "image",
-      label: "Sketch",
-      menuLabel: "New sketch",
+      label: "Sketch", labelKey: "editor:ui.sketch",
+      menuLabel: "New sketch", menuLabelKey: "editor:ui.menuLabel.image",
       type: "image",
       icon: <ImageOutlinedIcon fontSize="small" />,
       create: createImage
     },
     {
       key: "svg",
-      label: "SVG",
-      menuLabel: "New SVG",
+      label: "SVG", labelKey: "editor:ui.svg",
+      menuLabel: "New SVG", menuLabelKey: "editor:ui.menuLabel.svg",
       type: "svg",
       icon: <CategoryOutlinedIcon fontSize="small" />,
       create: createSvg
     },
     {
       key: "video",
-      label: "Timeline",
-      menuLabel: "New timeline",
+      label: "Timeline", labelKey: "editor:ui.timeline",
+      menuLabel: "New timeline", menuLabelKey: "editor:ui.menuLabel.video",
       type: "timeline",
       icon: <MovieOutlinedIcon fontSize="small" />,
       create: createVideo
     },
     {
       key: "storyboard",
-      label: "Storyboard",
-      menuLabel: i18n.t("editor:ui.newStoryboard2", { defaultValue: "New storyboard…" }),
+      label: "Storyboard", labelKey: "editor:ui.storyboard",
+      menuLabel: "New storyboard…", menuLabelKey: "editor:ui.menuLabel.storyboard",
       type: "storyboard",
       icon: <DashboardOutlinedIcon fontSize="small" />,
       submenu: "storyboards"
     },
     {
       key: "app",
-      label: "App",
-      menuLabel: "New app",
+      label: "App", labelKey: "editor:ui.app",
+      menuLabel: "New app", menuLabelKey: "editor:ui.menuLabel.app",
       type: "application",
       icon: <DashboardCustomizeOutlinedIcon fontSize="small" />,
       create: createApp
     },
     {
       key: "script",
-      label: "Script",
-      menuLabel: "New script",
+      label: "Script", labelKey: "editor:ui.script",
+      menuLabel: "New script", menuLabelKey: "editor:ui.menuLabel.script",
       type: "script",
       icon: <RecordVoiceOverOutlinedIcon fontSize="small" />,
       create: createScriptDocument
     },
     {
       key: "jsscript",
-      label: "JS script",
-      menuLabel: "New JS script",
+      label: "JS script", labelKey: "editor:ui.jsScript",
+      menuLabel: "New JS script", menuLabelKey: "editor:ui.menuLabel.jsscript",
       type: "jsscript",
       icon: <DataObjectOutlinedIcon fontSize="small" />,
       create: createJsScriptDocument
     },
     {
       key: "skill",
-      label: "Skill",
-      menuLabel: i18n.t("editor:ui.newSkill", { defaultValue: "New skill" }),
+      label: "Skill", labelKey: "editor:ui.skill",
+      menuLabel: "New skill", menuLabelKey: "editor:ui.menuLabel.skill",
       type: "skill",
       icon: <AutoAwesomeOutlinedIcon fontSize="small" />,
       create: createSkillDocument
     },
     {
       key: "model3d",
-      label: "3D model",
-      menuLabel: "New 3D model",
+      label: "3D model", labelKey: "editor:ui.model3d",
+      menuLabel: "New 3D model", menuLabelKey: "editor:ui.menuLabel.model3d",
       type: "model3d",
       icon: <ViewInArOutlinedIcon fontSize="small" />,
       create: createModel

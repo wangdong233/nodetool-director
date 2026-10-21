@@ -2,6 +2,7 @@
   "checklist": {
     "aria": "Getting started checklist",
     "connectProvider": "Connect an AI provider",
+    "aiProviderConnected": "AI provider connected",
     "startGuidedFlow": "Start a guided flow",
     "describeIdea": "Describe what you want to make",
     "openExamples": "Open an example or a blank doc",

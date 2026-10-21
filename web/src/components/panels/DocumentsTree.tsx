@@ -619,14 +619,20 @@ const DocumentsTree = ({ projectId, isMobile = false }: DocumentsTreeProps) => {
         <SearchInput
           value={query}
           onChange={setQuery}
-          ariaLabel="Search documents"
+          ariaLabel={t("editor:ui.searchDocuments", {
+            defaultValue: "Search documents"
+          })}
           placeholder={t("editor:ui.searchDocuments", { defaultValue: "Search documents" })}
           fullWidth
         />
       </FlexColumn>
       {isLoading ? (
         <FlexColumn fullHeight align="center" justify="center">
-          <LoadingSpinner text="Loading documents" />
+          <LoadingSpinner
+            text={t("editor:ui.loadingDocuments", {
+              defaultValue: "Loading documents"
+            })}
+          />
         </FlexColumn>
       ) : isError ? (
         <FlexColumn

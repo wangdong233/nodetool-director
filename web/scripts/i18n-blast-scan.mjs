@@ -18,21 +18,35 @@ const ROUTES = ["/", "/examples", "/models", "/chats", "/library", "/apps", "/se
 
 // Adjudicated keep-English (i18n/COVERAGE.md rulings). Empty until a ruling
 // is recorded there — unadjudicated leftovers are findings, not noise.
-const ALLOWED = new Set([]);
+// NOTE: these constants are INLINED again inside SCAN below — page.evaluate
+// serializes the function into the page context where module scope is gone.
+// Keep both copies in sync (the inline copy is the live one).
 
-// 2+ word capitalized English phrases. Single words and ALL-CAPS terms
-// (GPU, API) are out of scope — term vocabulary stays Latin by glossary.
-// The regex literal is inlined inside SCAN: page.evaluate serializes the
-// function into the page context, where module-scope constants don't exist.
+// 2026-10-21 blind-spot fix: the first version required 2+ words, so
+// single-word labels (Logs, Queue, Sketch, Workers…) sailed through while
+// the user saw them untranslated. Single Title-case words are now reported
+// unless adjudicated Latin. Brands and proper nouns the glossary keeps
+// Latin: ChatGPT, Claude, Gemini, Ollama, Whisper, Llama, Personal,
+// Project, NodeTool, Discord, GitHub, English, Chinese. ALL-CAPS terms
+// (GPU, API, TTS) stay out — term vocabulary is Latin by glossary.
 
 const SCAN = () => {
+  const ALLOWED = new Set([]);
+  const ALLOWED_SINGLE = new Set([
+    "ChatGPT", "Claude", "Gemini", "Ollama", "Whisper", "Llama", "Llamacpp",
+    "Personal", "Project", "NodeTool", "Discord", "GitHub", "conda", "Python",
+    "English", "Chinese", "HuggingFaceTB", "PyTorch", "Safetensors", "TensorRT", "Hub"
+  ]);
+  const ENGLISH_RE = /^[A-Z][a-zA-Z&]+(\s+[a-zA-Z&]+)*$/;
+  const ALLCAPS_RE = /^[A-Z]{2,6}$/;
   const out = new Set();
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let n;
   while ((n = walker.nextNode())) {
     const t = n.textContent.trim();
     if (!t || t.length > 120) continue;
-    if (!/^[A-Z][a-z]+(\s+[a-zA-Z&]+)+$/.test(t)) continue;
+    if (!ENGLISH_RE.test(t) || ALLCAPS_RE.test(t)) continue;
+    if (ALLOWED.has(t) || ALLOWED_SINGLE.has(t)) continue;
     const el = n.parentElement;
     if (!el) continue;
     const r = el.getBoundingClientRect();
@@ -59,7 +73,7 @@ try {
   for (const route of ROUTES) {
     await page.goto(BASE + route, { waitUntil: "domcontentloaded", timeout: 20000 });
     await page.waitForTimeout(2500); // SPA render + data settle
-    const hits = (await page.evaluate(SCAN)).filter((h) => !ALLOWED.has(h));
+    const hits = await page.evaluate(SCAN);
     total += hits.length;
     console.log(`== ${route} (${hits.length}) ==`);
     hits.forEach((h) => console.log("  " + h));
