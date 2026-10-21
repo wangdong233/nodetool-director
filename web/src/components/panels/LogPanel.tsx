@@ -61,6 +61,13 @@ const SEVERITY_LABELS = {
   error: "Error"
 } satisfies Record<Severity, string>;
 
+/** Literal i18n key per severity variant — never template-composed. */
+const SEVERITY_LABEL_KEYS = {
+  info: "editor:ui.severityInfo",
+  warning: "editor:ui.severityWarning",
+  error: "editor:ui.severityError"
+} satisfies Record<Severity, string>;
+
 const LogPanel: React.FC = memo(function LogPanel() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -222,11 +229,16 @@ const LogPanel: React.FC = memo(function LogPanel() {
           compact
           aria-label={t("editor:ui.filterBySeverity", { defaultValue: "Filter by severity" })}
         >
-          {SEVERITIES.map((s) => (
-            <ToggleOption key={s} value={s} aria-label={s}>
-              {SEVERITY_LABELS[s]}
-            </ToggleOption>
-          ))}
+          {SEVERITIES.map((s) => {
+            const label = t(SEVERITY_LABEL_KEYS[s], {
+              defaultValue: SEVERITY_LABELS[s]
+            });
+            return (
+              <ToggleOption key={s} value={s} aria-label={label}>
+                {label}
+              </ToggleOption>
+            );
+          })}
         </ToggleGroup>
         {filter?.nodeId && filteredNodeName ? (
           <Tooltip

@@ -174,7 +174,11 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
         ...entries.map((entry) => (
           <MenuItemPrimitive
             key={`blank-${entry.key}`}
-            label={entry.menuLabel}
+            label={
+              entry.menuLabelKey
+                ? t(entry.menuLabelKey, { defaultValue: entry.menuLabel })
+                : entry.menuLabel
+            }
             icon={entry.icon}
             hasSubmenu={entry.submenu !== undefined}
             onClick={() =>
@@ -190,7 +194,11 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
         ...TEXT_FILE_TEMPLATES.map((template) => (
           <MenuItemPrimitive
             key={template.filename}
-            label={template.label}
+            label={
+              template.labelKey
+                ? t(template.labelKey, { defaultValue: template.label })
+                : template.label
+            }
             onClick={() => void createTextFile(template)}
             disabled={busy}
           />

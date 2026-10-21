@@ -94,7 +94,7 @@ export const ModelListItemActions: React.FC<ModelListItemActionsProps> = ({
           variant="outlined"
           startIcon={<DownloadIcon />}
         >
-          Download
+          {t("editor:ui.download", { defaultValue: "Download" })}
         </EditorButton>
       )}
       {downloaded && executionReady && onSelect && (

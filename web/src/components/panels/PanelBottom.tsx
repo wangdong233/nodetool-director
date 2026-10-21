@@ -158,9 +158,9 @@ interface ViewSpec {
 }
 
 const VIEW_SPECS = {
-  logs: { id: "logs", label: "Logs", labelKey: "game:console.logMany", icon: <ArticleIcon /> },
-  queue: { id: "queue", label: "Queue", icon: <PlaylistPlayIcon /> },
-  workers: { id: "workers", label: "Workers", icon: <MemoryIcon /> },
+  logs: { id: "logs", label: "Logs", labelKey: "editor:bottom.logs", icon: <ArticleIcon /> },
+  queue: { id: "queue", label: "Queue", labelKey: "editor:bottom.queue", icon: <PlaylistPlayIcon /> },
+  workers: { id: "workers", label: "Workers", labelKey: "editor:bottom.workers", icon: <MemoryIcon /> },
   versions: { id: "versions", label: "Versions", labelKey: "editor:bottom.versions", icon: <HistoryIcon /> },
   trace: { id: "trace", label: "Trace", labelKey: "editor:bottom.trace", icon: <TimelineIcon /> }
 } satisfies Record<BottomPanelView, ViewSpec>;
@@ -438,12 +438,14 @@ const PanelBottom: React.FC = () => {
         const spec = VIEW_SPECS[view];
         return {
           value: view,
-          label: spec.label,
+          label: spec.labelKey
+            ? t(spec.labelKey, { defaultValue: spec.label })
+            : spec.label,
           icon: spec.icon,
           count: view === "queue" && queuedCount > 0 ? queuedCount : undefined
         };
       }),
-    [queuedCount]
+    [queuedCount, t]
   );
 
   useCombo(["Control", "Shift", "T"], () => handlePanelToggle("trace"), false);

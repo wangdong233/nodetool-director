@@ -9,6 +9,7 @@
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { Command } from "cmdk";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import BugReportIcon from "@mui/icons-material/BugReport";
 import FolderOpenRoundedIcon from "@mui/icons-material/FolderOpenRounded";
 import FolderZipRoundedIcon from "@mui/icons-material/FolderZipRounded";
@@ -255,11 +256,15 @@ const ProjectCommands = memo(function ProjectCommands() {
 
 /** The `+ New` catalog, flattened: submenus become one item per choice. */
 const CreateCommands = memo(function CreateCommands() {
+  const { t } = useTranslation();
   const catalog = useNewDocumentCatalog({}, showWorkspace);
 
   return (
     <Command.Group heading="Create">
       {catalog.entries.map((entry) => {
+        const menuLabel = entry.menuLabelKey
+          ? t(entry.menuLabelKey, { defaultValue: entry.menuLabel })
+          : entry.menuLabel;
         if (entry.submenu === "texts") {
           return TEXT_FILE_TEMPLATES.map((template) => (
             <Command.Item
@@ -293,10 +298,10 @@ const CreateCommands = memo(function CreateCommands() {
         return (
           <Command.Item
             key={entry.key}
-            value={entry.menuLabel}
+            value={menuLabel}
             onSelect={() => runCommandAndClose(create)}
           >
-            {entry.icon} {entry.menuLabel}
+            {entry.icon} {menuLabel}
           </Command.Item>
         );
       })}

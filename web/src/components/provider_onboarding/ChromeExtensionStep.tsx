@@ -137,7 +137,7 @@ const ChromeExtensionStep: React.FC = () => {
             label={
               isLoading
                 ? t("editor:ui.checking", { defaultValue: "Checking…" }) : connected
-                  ? t("editor:ui.extensionConnected", { defaultValue: "Extension connected" }) : i18n.t("tools:menus:extensionNotConnected", { defaultValue: "Extension not connected" })
+                  ? t("editor:ui.extensionConnected", { defaultValue: "Extension connected" }) : t("editor:ui.extensionNotConnected", { defaultValue: "Extension not connected" })
             }
             color={connected ? "success" : "default"}
           />

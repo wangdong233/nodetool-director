@@ -2522,7 +2522,11 @@ const NewProjectSurface = ({
               }
             }}
           >
-            {entries.map((entry) => (
+            {entries.map((entry) => {
+              const label = entry.labelKey
+                ? t(entry.labelKey, { defaultValue: entry.label })
+                : entry.label;
+              return (
               <Box
                 key={entry.key}
                 component="button"
@@ -2560,10 +2564,11 @@ const NewProjectSurface = ({
                   {TYPE_GLYPH[entry.type]}
                 </Box>
                 <Label>
-                  {entry.submenu ? `${entry.label} ▸` : entry.label}
+                  {entry.submenu ? `${label} ▸` : label}
                 </Label>
               </Box>
-            ))}
+              );
+            })}
           </Box>
         </FlexColumn>
       </FlexColumn>

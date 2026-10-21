@@ -198,7 +198,10 @@ const MobileDocumentSelector = ({
         aria-expanded={open}
         aria-label={
           activeTab
-            ? t("editor:ui.openDocumentTitle", { defaultValue: "Open document: {{title}}", title: tabDisplayTitle(activeTab) })
+            ? t("editor:ui.openDocumentTitle", {
+                defaultValue: "Open document: {{title}}",
+                title: tabDisplayTitle(activeTab)
+              })
             : homeIsActive
               ? t("editor:ui.projectHomeSwitchDoc", { defaultValue: "Project home, switch document" })
               : t("editor:ui.openDocuments", { defaultValue: "Open documents" })

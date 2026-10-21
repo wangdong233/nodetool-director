@@ -33,6 +33,7 @@ interface ModeItem {
   descriptionKey?: string;
   id: MediaMode;
   label: string;
+  labelKey?: string;
   description?: string;
   icon: React.ReactNode;
   enabled: boolean;
@@ -78,7 +79,7 @@ const MODES: ModeItem[] = [
   },
   {
     id: "audio",
-    label: "Read aloud",
+    label: "Read aloud", labelKey: "editor:ui.readAloud",
     icon: <RecordVoiceOverIcon fontSize="small" />,
     enabled: true
   },
@@ -145,8 +146,16 @@ const MediaModeMenu: React.FC<MediaModeMenuProps> = ({
         return (
           <MenuItemPrimitive
             key={m.id}
-            label={m.label}
-            secondary={m.enabled ? m.description : "Soon"}
+            label={
+              m.labelKey ? t(m.labelKey, { defaultValue: m.label }) : m.label
+            }
+            secondary={
+              m.enabled
+                ? m.descriptionKey && m.description
+                  ? t(m.descriptionKey, { defaultValue: m.description })
+                  : m.description
+                : "Soon"
+            }
             icon={m.icon}
             checkable="radio"
             checked={selected}
