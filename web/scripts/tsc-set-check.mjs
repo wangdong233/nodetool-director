@@ -56,7 +56,13 @@ const out = await new Promise((res) => {
   child.stderr.on("data", (d) => { buf += d; });
   child.on("close", (code, signal) => res(buf + (signal ? `\n(signal ${signal})` : "")));
 });
-if (/Cannot find module|MODULE_NOT_FOUND/.test(out)) {
+// Module-resolution DISCRIMINATOR: a failed compiler LOAD produces the
+// module-not-found text with NO "error TS" lines at all. Genuine TS2307s
+// ("Cannot find module 'x' or its corresponding type declarations") arrive
+// as normal error lines and must flow into the set comparison, not abort —
+// the first CI run caught real drift this way.
+const hasTsErrors = /^.*error TS\d+/m.test(out);
+if (!hasTsErrors && /Cannot find module|MODULE_NOT_FOUND/.test(out)) {
   console.error("ABORTED: compiler output contains module-resolution failures — never a pass.");
   console.error("tail of compiler output:\n" + out.split("\n").slice(-12).join("\n"));
   process.exit(3);
