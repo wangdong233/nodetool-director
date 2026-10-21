@@ -57,7 +57,8 @@ const out = await new Promise((res) => {
   child.on("close", (code, signal) => res(buf + (signal ? `\n(signal ${signal})` : "")));
 });
 if (/Cannot find module|MODULE_NOT_FOUND/.test(out)) {
-  console.error("ABORTED: compiler invocation failed (module not found). Never a pass.");
+  console.error("ABORTED: compiler output contains module-resolution failures — never a pass.");
+  console.error("tail of compiler output:\n" + out.split("\n").slice(-12).join("\n"));
   process.exit(3);
 }
 if (/\(signal |FATAL ERROR|JavaScript heap out of memory/.test(out)) {
