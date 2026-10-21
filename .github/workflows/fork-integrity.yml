@@ -17,4 +17,14 @@ jobs:
         with:
           node-version-file: ".nvmrc"
       - name: Marker and anchor check
-        run: node scripts/fork-integrity.mjs check
+        run: |
+          set +e
+          OUT=$(node scripts/fork-integrity.mjs check 2>&1)
+          CODE=$?
+          echo "$OUT"
+          if [ $CODE -ne 0 ]; then
+            # Surface the failure as an annotation — readable via the checks
+            # API even when the log blob is unavailable.
+            echo "::error::fork-integrity exit $CODE — $(echo "$OUT" | tr '\n' ' ' | head -c 700)"
+          fi
+          exit $CODE
