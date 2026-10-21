@@ -78,7 +78,11 @@ const current = await (() => {
   // `node_modules/typescript/bin/tsc` relative to webRoot — module-not-found
   // produced an empty error set and the gate passed vacuously. Resolve the
   // bin explicitly and abort if it is missing.
-  const tscBin = join(webRoot, "..", "node_modules", "typescript", "bin", "tsc6");
+  const tscBin = [
+    join(webRoot, "..", "node_modules", "typescript", "bin", "tsc6"),
+    join(webRoot, "..", "node_modules", "typescript", "bin", "tsc"),
+    join(webRoot, "..", "node_modules", "typescript", "lib", "tsc.js")
+  ].find((p) => existsSync(p));
   if (!existsSync(tscBin)) {
     console.error(`G2 ABORTED: compiler not found at ${tscBin}.`);
     process.exit(3);

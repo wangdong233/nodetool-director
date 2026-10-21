@@ -30,11 +30,20 @@ const project = flag("-p", "tsconfig.json");
 const baselineFile = resolve(webRoot, flag("--baseline", join("scripts", "i18n-tsc-baseline.txt")));
 const update = args.includes("--update");
 const heapMb = parseInt(process.env.TSC_SET_HEAP_MB || "7000", 10);
-// The hoisted root node_modules owns the compiler (same resolution as the
-// commit gate's G2).
-const tscBin = join(webRoot, "..", "node_modules", "typescript", "bin", "tsc6");
-if (!existsSync(tscBin)) {
-  console.error(`ABORTED: compiler not found at ${tscBin} — run npm ci first.`);
+// The compiler lives in the HOISTED root node_modules (web/ has no
+// typescript of its own). Resolution order: the local tsc6 shim (present on
+// the dev box, an untracked 2-line wrapper naming the v6 channel), then the
+// standard bin/tsc, then lib/tsc.js directly — a fresh CI `npm ci` has only
+// the last two.
+const tsRoot = join(webRoot, "..", "node_modules", "typescript");
+const tscCandidates = [
+  join(tsRoot, "bin", "tsc6"),
+  join(tsRoot, "bin", "tsc"),
+  join(tsRoot, "lib", "tsc.js")
+];
+const tscBin = tscCandidates.find((p) => existsSync(p));
+if (!tscBin) {
+  console.error(`ABORTED: no typescript compiler under ${tsRoot} — run npm ci first.`);
   process.exit(3);
 }
 
