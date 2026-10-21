@@ -66,8 +66,16 @@ case "$sub" in
     [ "$BRANCH" = "main" ] && deny R1 "main 只进不出,禁在 main 上 $sub" "§3.1:fetch upstream → main 上 merge --ff-only → 合并进 master"
     ;;&
   merge)
-    if [ "$BRANCH" = "main" ] && ! printf '%s' "$CMD" | grep -q -- '--ff-only'; then
-      deny R1 "main 上只许 fast-forward 合并(--ff-only)" "§3.1 步骤②:git merge --ff-only FETCH_HEAD"
+    # main 合法合并源:上游 ff-only 同步,或已验证的原生特性分支(feat/*)。
+    # master→main 反向与其它来源一律拒。
+    if [ "$BRANCH" = "main" ]; then
+      src=""
+      for t in "${TOKS[@]:$((i+1))}"; do
+        case "$t" in -*) ;; *) src="$t" ;; esac
+      done
+      if ! printf '%s' "$CMD" | grep -q -- '--ff-only' && [ "${src#feat/}" = "$src" ]; then
+        deny R1 "main 只接收上游同步(--ff-only FETCH_HEAD)与原生特性分支(feat/*),当前源:$src" "原生特性:feat/* 测试通过后合入 main 并提 upstream PR,再合入 master"
+      fi
     fi
     ;;&
   commit|merge|cherry-pick)

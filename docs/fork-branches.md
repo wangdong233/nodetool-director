@@ -16,7 +16,7 @@ feat/i18n-zh        ──(独立拆分后)──▶ 合并回 master(cherry-pic
 
 | 分支 | 角色 | 基线 | 推送目标 |
 |---|---|---|---|
-| `main` | 上游镜像,**纯净**:只跟 upstream,永不携带自己的提交 | upstream/main | 仅自己的 origin(镜像备份) |
+| `main` | **上游同步线 + 原生特性集结点**:接收上游 pull(--ff-only);已验证的原生 feat/* 合入于此、向上游发 PR | upstream/main | 仅自己的 origin |
 | `master` | **集成线(自己的主线)**:i18n + 扩展功能 + 治理文档,日常测试环境 | main | 仅自己的 origin |
 | `feat/mediagen-nodes` | **扩展类 feat**:媒体生成渠道节点包 | master | 仅自己的 origin |
 | `feat/i18n-zh` | **贡献类 feat**:zh-CN 本地化,**纯净 i18n**,可向上游发 PR | main | 自己的 origin + (未来)upstream PR |
@@ -25,7 +25,7 @@ feat/i18n-zh        ──(独立拆分后)──▶ 合并回 master(cherry-pic
 
 ## 2. 迭代规则(铁律)
 
-1. **main 只进不出**:仅由 upstream fetch → fast-forward 更新;任何自己的提交禁入 main。
+1. **main 的两个合法入口**:① upstream fetch → `merge --ff-only`(同步);② 已验证的**原生特性分支 feat/**(base=main 的功能/修复)合入——先单独部署该分支或合入本地 main 测试,通过后合入 main → 向 upstream 发 PR → 同步合入 master 即时生效。直接 commit/cherry-pick/rebase/reset 于 main、master→main 反向合并,一律禁止(hook R1)。
 2. **单向流入**:main 可以合并进 master;main 也可以合并进贡献类 feat(i18n 缺口按 `web/src/i18n/CONTRIBUTING.md` 规范补译)。反向( feat→main、master→main )禁止。
 3. **两类 feat 的基线**:
    - 扩展类(不愿给上游的功能)→ 从 **master** 拉;
@@ -118,7 +118,7 @@ cd web && npx vite --host 0.0.0.0 --port 3100 --strictPort
 
 | 规则 | 拦截内容 | 依据 |
 |---|---|---|
-| **R1 main 写保护** | main 上 commit / cherry-pick / rebase / reset 全拒;merge 仅放行 `--ff-only`(§3.1 同步路径) | 铁律 1"main 只进不出" |
+| **R1 main 入口管制** | main 上 commit / cherry-pick / rebase / reset 全拒;merge 仅放行 `--ff-only`(上游同步)与 `feat/*` 源(原生特性集结,2026-10-22 裁决) | 铁律 1 |
 | **R2 i18n feat-first** | master 上提交 `web/src/i18n/**` 时,逐文件校验暂存 blob 必须已存在于 feat/i18n-zh;不一致即拒,并给出合规路径 | 铁律 5(i18n 统一 feat 先行;2026-10-21 事故:多轮 master-first 反向同步,方向违规) |
 | **R3 feat 纯度** | feat/i18n-zh 上提交治理文件(fork-branches/fork-index/fork-integrity/两个 workflow)或 `packages/mediagen-nodes/**` 即拒 | 铁律 3 + §4 红线(2026-10-12 污染事故) |
 | **R4 破坏性 git** | `reset --hard` / `branch -D` / `clean -f` / `push --force` 拒;`--force-with-lease` 放行 | 铁律 7 |
@@ -135,4 +135,5 @@ R2 的合规路径(出现频率最高,记牢):**先在 feat/i18n-zh 提交并推
 |---|---|
 | 2026-10-17 | fork-integrity 三层防护上线;大合并 survival 审计实测 979 文件受损 |
 | 2026-10-19 | 内存硬性规定(10% 保留 + 连续监控 + hook 强制);tsc-guard 诞生 |
+| 2026-10-22 | **分支模型澄清**:main = 上游同步 + 已测原生 feat 集结(可合入测试→PR upstream→同步 master);R1 相应放宽 feat/* 合并源;索引补登 3 座未标记高危改动点(sidebar 键约定/models 接线/catalog 裸键) |
 | 2026-10-21 | **i18n 多轮 master-first 方向违规 → branch-flow-guard 六规则 + 30 探针矩阵**(本节);i18n 验证两大盲区曝光(单词标签、门后表面)→ blast 扫描器单词化 + 拉丁裁定清单;仓库转 Public,Web TSC Gate 上线(G2 移交 16GB CI);三级内存隔离(v4)实装 |

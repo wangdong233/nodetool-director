@@ -30,6 +30,8 @@ const RemoveBackgroundModelSelect = React.memo(
   }
 );
 
+// fork:fork-fix/default-models-wiring — labelKey/hintKey resolution +
+// render-time t() on every row (lost wiring = settings falls back to English)
 const MODEL_TYPE_CONFIG = [
   {
     type: "language_model",

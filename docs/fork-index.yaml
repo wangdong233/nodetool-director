@@ -57,3 +57,36 @@ features:
       packages/mediagen-nodes: pack source (16 nodes, 7 channels, 10 test files)
       packages/base-nodes/src/builtin-packs.ts: registrar wiring
       package.json: workspace entry
+
+  fork-fix/sidebar-key-convention:
+    kind: fix
+    branch: master
+    status: active
+    markers: 2
+    note: director RC-1 (2026-10-20) — sidebar consumed qualified keys through a template composer and every heading fell back to English; guarded by the KEY-COMPOSITION preflight gate, this marker guards the renderer side against merge loss
+    files:
+      web/src/components/menus/SettingsSidebar.tsx: labelKey passthrough render (category + item)
+    anchors:
+      web/src/components/menus/SettingsSidebar.tsx: labelKey ? t(item.labelKey
+
+  fork-fix/default-models-wiring:
+    kind: fix
+    branch: master
+    status: active
+    markers: 1
+    note: labelKey/hintKey on MODEL_TYPE_CONFIG + render-time resolution; upstream ships the file without wiring
+    files:
+      web/src/components/menus/DefaultModelsMenu.tsx: MODEL_TYPE_CONFIG wiring
+    anchors:
+      web/src/components/menus/DefaultModelsMenu.tsx: MODEL_TYPE_CONFIG
+
+  fork-fix/catalog-bare-keys:
+    kind: fix
+    branch: master
+    status: active
+    markers: 1
+    note: displayLabelForType composes catalog:dataTypes.<bareKey>; the video/languageModel/date rows carry bare keys (2026-10-21 third instance)
+    files:
+      web/src/config/data_types.ts: bare-key rows + composer
+    anchors:
+      web/src/config/data_types.ts: displayLabelForType

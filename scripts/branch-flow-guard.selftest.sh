@@ -28,6 +28,9 @@ probe "R1 rebase on main denied"        2 BRANCH_FLOW_BRANCH=main -- "$G rebase 
 probe "R1 reset on main denied"         2 BRANCH_FLOW_BRANCH=main -- "$G reset HEAD~1"
 probe "R1 ff-only merge on main ok"     0 BRANCH_FLOW_BRANCH=main -- "$G merge --ff-only FETCH_HEAD"
 probe "R1 plain merge on main denied"   2 BRANCH_FLOW_BRANCH=main -- "$G merge FETCH_HEAD"
+probe "R1 master->main merge denied"     2 BRANCH_FLOW_BRANCH=main -- "$G merge master"
+probe "R1 native feat->main merge ok"    0 BRANCH_FLOW_BRANCH=main -- "$G merge feat/some-fix"
+probe "R1 upstream sync merge ok"        0 BRANCH_FLOW_BRANCH=main -- "$G merge --ff-only FETCH_HEAD"
 probe "R1 commit on master ok"          0 BRANCH_FLOW_BRANCH=master -- "$G commit -m x"
 probe "R1 read-only status ok"          0 BRANCH_FLOW_BRANCH=main -- "$G status"
 
