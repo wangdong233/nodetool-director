@@ -111,3 +111,28 @@ cd web && npx vite --host 0.0.0.0 --port 3100 --strictPort
 - 新增 fork 修复/挂载/扩展接线时,**同一提交内**打标记并在索引登记(`update-baseline` 重算计数,基线 diff 要人审)。
 - 上游合并六步:SOP §3.1 原五步之后,第六步跑 survival;红线即回到冲突裁定修文件,不以"测试碰巧绿"放行。
 - 索引、扫描器、workflow 仅存在于 master,永不进 feat/i18n-zh;标记注释随源码走、双侧同在。
+
+## 6. 机械强制体系(branch-flow-guard)
+
+> 2026-10-21 裁决:文档只陈述规则,**hook 让 CC 会话无法违反规则**(参照 happier-platform 的 branch-flow-guard 体系)。守卫活动副本 `.agents/hooks-local/branch-flow-guard.sh`(本机生效,注册于同目录 settings.local.json;hooks-local 是 gitignored 的机器本地约定),仓库正式副本 `scripts/branch-flow-guard.sh`——**两副本同步修改**;回归矩阵:`bash scripts/branch-flow-guard.selftest.sh`(30 探针,改守卫必跑,自动选活动副本)。
+
+| 规则 | 拦截内容 | 依据 |
+|---|---|---|
+| **R1 main 写保护** | main 上 commit / cherry-pick / rebase / reset 全拒;merge 仅放行 `--ff-only`(§3.1 同步路径) | 铁律 1"main 只进不出" |
+| **R2 i18n feat-first** | master 上提交 `web/src/i18n/**` 时,逐文件校验暂存 blob 必须已存在于 feat/i18n-zh;不一致即拒,并给出合规路径 | 铁律 5(i18n 统一 feat 先行;2026-10-21 事故:多轮 master-first 反向同步,方向违规) |
+| **R3 feat 纯度** | feat/i18n-zh 上提交治理文件(fork-branches/fork-index/fork-integrity/两个 workflow)或 `packages/mediagen-nodes/**` 即拒 | 铁律 3 + §4 红线(2026-10-12 污染事故) |
+| **R4 破坏性 git** | `reset --hard` / `branch -D` / `clean -f` / `push --force` 拒;`--force-with-lease` 放行 | 铁律 7 |
+| **R5 push 目标** | 推送目标非 origin 即拒 | §1 表(无第二推送远端) |
+| **R6 分支锁** | checkout 时若另一**存活会话** 4h 内占用其它分支则拒(锁文件 `.git/branch-lock.json`,按会话 cgroup scope 认领;对方退出后自动失效,陈锁可手删) | 多会话协调(2026-10-21:分支在运行中的 dev 栈下被切换) |
+
+R2 的合规路径(出现频率最高,记牢):**先在 feat/i18n-zh 提交并推送 → 回 master `git checkout feat/i18n-zh -- <文件>` → 提交**。守卫放行的判定是 blob 逐字相等,merge/cherry-pick 自 feat 带来的 i18n 内容天然通过。
+
+自测矩阵设计:守卫支持 `BRANCH_FLOW_UNIT=1` 单元模式(env 注入分支/暂存/锁状态),矩阵对每条规则至少一拒一放;矩阵全绿是守卫自身改动合入的前提。
+
+## 7. 裁决时间线(续)
+
+| 日期 | 裁决/事故 |
+|---|---|
+| 2026-10-17 | fork-integrity 三层防护上线;大合并 survival 审计实测 979 文件受损 |
+| 2026-10-19 | 内存硬性规定(10% 保留 + 连续监控 + hook 强制);tsc-guard 诞生 |
+| 2026-10-21 | **i18n 多轮 master-first 方向违规 → branch-flow-guard 六规则 + 30 探针矩阵**(本节);i18n 验证两大盲区曝光(单词标签、门后表面)→ blast 扫描器单词化 + 拉丁裁定清单;仓库转 Public,Web TSC Gate 上线(G2 移交 16GB CI);三级内存隔离(v4)实装 |
