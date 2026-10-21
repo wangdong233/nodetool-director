@@ -9,6 +9,7 @@
  */
 
 import React, { memo, useCallback, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -97,6 +98,7 @@ const inputsContainerStyles = (theme: Theme) =>
 
 export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
   ({ clipId, additionalSections }) => {
+  const { t } = useTranslation();
     const theme = useTheme();
     const clip = useTimelineStore((s) => findClipById(s.clips, clipId));
     const setParamOverride = useTimelineStore((s) => s.setParamOverride);

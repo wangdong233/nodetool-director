@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Message,
   MessageContent,
@@ -845,6 +846,7 @@ export const MessageView: React.FC<MessageViewProps> = React.memo(
     hideActions = false,
     replyCopyText
   }) => {
+  const { t } = useTranslation();
     const insertIntoEditor = useEditorInsertion();
     const currentThreadId = useGlobalChatStore((state) => state.currentThreadId);
 

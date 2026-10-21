@@ -76,6 +76,7 @@ const styles = (theme: Theme) =>
   });
 
 const CsvTableView = ({ text, name }: { text: string; name: string }) => {
+  const { t } = useTranslation();
   const { columns, rows, truncated } = useMemo(() => {
     const df = parseCsvToDataframe(text, csvDelimiterFor(name));
     const cols = (df.columns ?? []).map((c, i) => ({
@@ -133,7 +134,7 @@ const WorkspaceFileText = ({
   kind,
   mode
 }: WorkspaceFileTextProps) => {
-  const { t } = useTranslation();
+
   const theme = useTheme();
   const paneStyles = useMemo(() => styles(theme), [theme]);
   const queryClient = useQueryClient();

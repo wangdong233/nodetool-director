@@ -99,10 +99,10 @@ function DefaultModelsMenu() {
           <DefaultModelRow
             key={config.type}
             modelType={config.type}
-            label={config.labelKey ? i18n.t(config.labelKey, { defaultValue: config.label }) : config.label}
+            label={i18n.t(config.labelKey, { defaultValue: config.label })}
             Select={config.Select}
             selectProps={"selectProps" in config ? config.selectProps : undefined}
-            hint={"hintKey" in config && config.hintKey ? i18n.t(config.hintKey, { defaultValue: config.hint }) : config.hint}
+            hint={"hintKey" in config ? i18n.t(config.hintKey, { defaultValue: config.hint }) : undefined}
             current={defaults[config.type]}
             onSelect={setDefault}
             onClear={clearDefault}

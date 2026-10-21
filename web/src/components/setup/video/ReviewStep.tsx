@@ -14,6 +14,7 @@
  */
 
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { KNOWN_TRANSITION_TYPE_LIST } from "@nodetool-ai/protocol/api-schemas/timeline.js";
 import type { TimelineBeat } from "@nodetool-ai/timeline";
 
@@ -96,6 +97,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
   onValidationChange,
   generation
 }) => {
+  const { t } = useTranslation();
   const beats = useTimelineStore((state) => state.setup?.beats);
   const formatId = useTimelineStore((state) => state.setup?.format);
   const updateBeat = useTimelineStore((state) => state.updateBeat);
