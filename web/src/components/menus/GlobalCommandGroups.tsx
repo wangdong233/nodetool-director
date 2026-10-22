@@ -48,7 +48,6 @@ import {
   importApplicationBundle
 } from "../../utils/applicationBundle";
 import type { Workflow, WorkflowList } from "../../stores/ApiTypes";
-import { useTranslation } from "react-i18next";
 import { useAppLanguage } from "../../i18n";
 import { i18n } from "../../i18n";
 

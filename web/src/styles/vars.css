@@ -1,7 +1,7 @@
 :root {
   /* Canonical font family definitions */
-  --fontFamily1: Inter, Arial, sans-serif;
-  --fontFamily2: "JetBrains Mono", Inter, Arial, sans-serif;
+  --fontFamily1: Inter, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --fontFamily2: "JetBrains Mono", Inter, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
 
   /* Spacing — 4px grid (mirrors SPACING_PX in ui_primitives/spacing.ts).
      Use these in .css files for every padding/margin/gap value. In TSX use the

@@ -68,8 +68,8 @@ const nodetoolThemeOptions: ThemeOptions = {
   fontSizeNormal: "15px", // → body
   fontSizeSmall: "13px", // → label
   fontSizeSmaller: "11px", // → caption
-  fontFamily1: "'Inter', Arial, sans-serif",
-  fontFamily2: "'JetBrains Mono', 'Inter', Arial, sans-serif",
+  fontFamily1: "'Inter', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif",
+  fontFamily2: "'JetBrains Mono', 'Inter', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif",
   // Canonical border-radius tokens. Prefer these over hardcoded values.
   // Size scale (xs…xxl) for generic surfaces; semantic aliases below map to
   // concrete product concepts. Also exposed as `--rounded-<key>` CSS vars via
