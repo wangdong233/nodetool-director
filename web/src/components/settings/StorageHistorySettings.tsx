@@ -41,7 +41,10 @@ export default function StorageHistorySettings() {
       void history.updatePolicy({ ...policy, ...changes }).catch((error) => {
         addNotification({
           type: "error",
-          content: `Could not update history limits: ${String(error)}`
+          content: i18n.t("settings:storage.notifLimitsFailed", {
+            defaultValue: "Could not update history limits: {{message}}",
+            message: String(error)
+          })
         });
       });
     },
@@ -58,14 +61,25 @@ export default function StorageHistorySettings() {
             type: "success",
             content:
               redactedPredictions > 0
-                ? `Removed ${total} old history records and cleared prompt data from ${redactedPredictions} generation records.`
-                : `Removed ${total} old history records.`
+                ? i18n.t("settings:storage.notifRemovedWithRedaction", {
+                    defaultValue:
+                      "Removed {{total}} old history records and cleared prompt data from {{redacted}} generation records.",
+                    total,
+                    redacted: redactedPredictions
+                  })
+                : i18n.t("settings:storage.notifRemoved", {
+                    defaultValue: "Removed {{total}} old history records.",
+                    total
+                  })
           });
         })
         .catch((error) => {
           addNotification({
             type: "error",
-            content: `History cleanup failed: ${String(error)}`
+            content: i18n.t("settings:storage.notifCleanupFailed", {
+              defaultValue: "History cleanup failed: {{message}}",
+              message: String(error)
+            })
           });
         });
     } else if (confirmation === "compact") {
@@ -80,19 +94,31 @@ export default function StorageHistorySettings() {
         .catch((error) => {
           addNotification({
             type: "error",
-            content: `Database compaction failed: ${String(error)}`
+            content: i18n.t("settings:storage.notifCompactFailed", {
+              defaultValue: "Database compaction failed: {{message}}",
+              message: String(error)
+            })
           });
         });
     }
   }, [addNotification, confirmation, history]);
 
   if (history.isLoading) {
-    return <LoadingSpinner size="small" text="Loading history status" />;
+    return (
+      <LoadingSpinner
+        size="small"
+        text={i18n.t("settings:storage.loadingStatus", {
+          defaultValue: "Loading history status"
+        })}
+      />
+    );
   }
   if (history.error || !policy || !status) {
     return (
       <AlertBanner severity="error" compact>
-        Could not load database history settings.
+        {i18n.t("settings:storage.loadFailed", {
+          defaultValue: "Could not load database history settings."
+        })}
       </AlertBanner>
     );
   }
@@ -207,19 +233,30 @@ export default function StorageHistorySettings() {
       </div>
       <div className="settings-item">
         <Text>
-          Database: {formatBytes(status.databaseBytes)} ·{" "}
-          {status.workflowVersions} workflow versions · {status.jobs} runs ·{" "}
-          {status.runEvents} run events
+          {t("settings:storage.statusLine", {
+            defaultValue:
+              "Database: {{size}} · {{versions}} workflow versions · {{runs}} runs · {{events}} run events",
+            size: formatBytes(status.databaseBytes),
+            versions: status.workflowVersions,
+            runs: status.jobs,
+            events: status.runEvents
+          })}
         </Text>
         <Text className="description">
-          {cleanupCount} records exceed the current limits. Deleted SQLite pages
-          currently use {formatBytes(status.unusedBytes)} and are returned to
-          disk only after compaction.
+          {t("settings:storage.descCleanup", {
+            defaultValue:
+              "{{count}} records exceed the current limits. Deleted SQLite pages currently use {{size}} and are returned to disk only after compaction.",
+            count: cleanupCount,
+            size: formatBytes(status.unusedBytes)
+          })}
         </Text>
         <Text className="description">
-          {redactionCount} of {status.predictionsWithPayload} generation records
-          still holding prompts and parameters are past the limit. Cleaning
-          clears that text and keeps the billing record.
+          {t("settings:storage.descRedaction", {
+            defaultValue:
+              "{{count}} of {{total}} generation records still holding prompts and parameters are past the limit. Cleaning clears that text and keeps the billing record.",
+            count: redactionCount,
+            total: status.predictionsWithPayload
+          })}
         </Text>
         <FlexRow gap={2} wrap sx={{ marginTop: 2 }}>
           <EditorButton
@@ -227,7 +264,10 @@ export default function StorageHistorySettings() {
             onClick={() => setConfirmation("cleanup")}
             disabled={disabled || pendingCount === 0}
           >
-            {history.isCleaning ? t("settings:storage.cleaning", { defaultValue: "Cleaning…" }) : `Clean now (${pendingCount})`}
+            {history.isCleaning ? t("settings:storage.cleaning", { defaultValue: "Cleaning…" }) : t("settings:storage.cleanNow", {
+              defaultValue: "Clean now ({{count}})",
+              count: pendingCount
+            })}
           </EditorButton>
           {isSqlite && (
             <EditorButton
@@ -250,10 +290,15 @@ export default function StorageHistorySettings() {
         }
         content={
           confirmation === "compact"
-            ? t("settings:storage.confirmCompactBody", { defaultValue: "Compaction returns unused SQLite pages to disk. It can pause database writes while it rebuilds a large local database." }) : `Remove ${cleanupCount} old workflow-history, completed-run, and run-event records, and clear prompts and parameters from ${redactionCount} generation records? The billing record for each generation is kept. Current workflows, assets, checkpoints, and active runs are not changed.`
+            ? t("settings:storage.confirmCompactBody", { defaultValue: "Compaction returns unused SQLite pages to disk. It can pause database writes while it rebuilds a large local database." }) : t("settings:storage.confirmCleanBody", {
+              defaultValue:
+                "Remove {{cleanup}} old workflow-history, completed-run, and run-event records, and clear prompts and parameters from {{redacted}} generation records? The billing record for each generation is kept. Current workflows, assets, checkpoints, and active runs are not changed.",
+              cleanup: cleanupCount,
+              redacted: redactionCount
+            })
         }
         confirmText={confirmation === "compact" ? t("settings:storage.confirmCompact", { defaultValue: "Compact" }) : i18n.t("settings:storage.confirmClean", { defaultValue: "Clean" })}
-        cancelText="Cancel"
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
       />
     </>
   );

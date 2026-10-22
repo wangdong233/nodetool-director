@@ -17,7 +17,6 @@ import type { agentAccess } from "@nodetool-ai/protocol/api-schemas";
 import {
   AlertBanner,
   Caption,
-  Code,
   CodeBlock,
   CopyButton,
   Dialog,
@@ -159,7 +158,10 @@ const AgentAccessSection = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: `Could not disconnect the client: ${err}`
+        content: i18n.t("tools:menus.couldNotDisconnectClient", {
+          defaultValue: "Could not disconnect the client: {{error}}",
+          error: String(err)
+        })
       });
     },
     onSettled: () => setGrantToRevoke(null)
@@ -186,23 +188,29 @@ const AgentAccessSection = () => {
     <div className="settings-section" style={{ marginTop: getSpacingPx(SPACING.xxl) }}>
       <SectionHeader size="small" title={t("ui2:attrs.connectAnAgentRemotely", { defaultValue: "Connect an agent remotely" })} />
       <Text className="description" sx={{ mb: 1 }}>
-        Point Claude Code, Claude Desktop, or any MCP client at this server over
-        HTTP. Create a token below and paste the configuration it produces.
+        {t("tools:menus.agentAccessIntro", {
+          defaultValue:
+            "Point Claude Code, Claude Desktop, or any MCP client at this server over HTTP. Create a token below and paste the configuration it produces."
+        })}
       </Text>
 
       {connection && !connection.enabled && (
         <AlertBanner severity="warning" sx={{ mb: 1 }}>
-          This server does not serve <Code>/mcp</Code>. Set{" "}
-          <Code>{connection.enable_flag}=1</Code> in its environment and restart
-          it.
+          {t("tools:menus.mcpNotServed", {
+            defaultValue:
+              "This server does not serve {{code}}. Set {{flag}}=1 in its environment and restart it.",
+            code: "/mcp",
+            flag: connection.enable_flag
+          })}
         </AlertBanner>
       )}
 
       {connection?.auth_mode === "none" && (
         <AlertBanner severity="info" sx={{ mb: 1 }}>
-          This server checks no credential — it trusts its own network. A token
-          still works and is the safer choice if you reach it from anywhere but
-          this machine.
+          {t("tools:menus.noAuthModeNotice", {
+            defaultValue:
+              "This server checks no credential — it trusts its own network. A token still works and is the safer choice if you reach it from anywhere but this machine."
+          })}
         </AlertBanner>
       )}
 
@@ -265,7 +273,12 @@ const AgentAccessSection = () => {
         </FlexColumn>
       )}
 
-      {tokensLoading && <LoadingSpinner size="small" text="Loading tokens" />}
+      {tokensLoading && (
+        <LoadingSpinner
+          size="small"
+          text={t("tools:menus.loadingTokens", { defaultValue: "Loading tokens" })}
+        />
+      )}
 
       {tokens.length > 0 && (
         <FlexColumn gap={0}>
@@ -276,11 +289,18 @@ const AgentAccessSection = () => {
                 <FlexColumn gap={0}>
                   <Text sx={{ fontWeight: 500 }}>{token.name}</Text>
                   <Text className="description">
-                    Created {formatStamp(token.created_at)} · Last used{" "}
-                    {formatStamp(token.last_used_at)} ·{" "}
-                    {token.expires_at
-                      ? `Expires ${formatStamp(token.expires_at)}`
-                      : i18n.t("editor:ui.noExpiry", { defaultValue: "No expiry" })}
+                    {t("tools:menus.tokenMeta", {
+                      defaultValue:
+                        "Created {{created}} · Last used {{lastUsed}} · {{expires}}",
+                      created: formatStamp(token.created_at),
+                      lastUsed: formatStamp(token.last_used_at),
+                      expires: token.expires_at
+                        ? i18n.t("tools:menus.tokenExpires", {
+                            defaultValue: "Expires {{date}}",
+                            date: formatStamp(token.expires_at)
+                          })
+                        : i18n.t("editor:ui.noExpiry", { defaultValue: "No expiry" })
+                    })}
                   </Text>
                 </FlexColumn>
                 <NavButton
@@ -337,7 +357,7 @@ const AgentAccessSection = () => {
         open={grantToRevoke !== null}
         onClose={() => setGrantToRevoke(null)}
         title={t("editor:ui.disconnectThisClient", { defaultValue: "Disconnect this client?" })}
-        confirmText="Disconnect"
+        confirmText={t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
         destructive
         isLoading={revokeGrant.isPending}
         onConfirm={() => {
@@ -345,8 +365,11 @@ const AgentAccessSection = () => {
         }}
       >
         <Text>
-          {grantToRevoke?.client_name} will no longer be able to reach this
-          server. It will need to reconnect and be approved again.
+          {t("tools:menus.revokeClientBody", {
+            defaultValue:
+              "{{client}} will no longer be able to reach this server. It will need to reconnect and be approved again.",
+            client: grantToRevoke?.client_name ?? ""
+          })}
         </Text>
       </Dialog>
     </div>

@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, FlexRow, EditorButton, FormField } from "../ui_primitives";
 import useModelPreferencesStore from "../../stores/ModelPreferencesStore";
 import LanguageModelSelect from "../properties/LanguageModelSelect";
@@ -149,6 +150,7 @@ function DefaultModelRow({
   onSelect,
   onClear
 }: DefaultModelRowProps) {
+  const { t } = useTranslation();
   const handleChange = useCallback(
     (value: unknown) => {
       const v = value as { provider?: string; id?: string; name?: string };
@@ -174,11 +176,14 @@ function DefaultModelRow({
           <Select
             onChange={handleChange}
             value={current?.id || ""}
-            {...selectProps}
+            {...(selectProps?.placeholderKey
+              ? { ...(({ placeholderKey: _ignored, ...rest }) => rest)(selectProps),
+                  placeholder: t(selectProps.placeholderKey, { defaultValue: selectProps.placeholder }) }
+              : selectProps)}
           />
           {current && (
             <EditorButton size="small" onClick={handleClear}>
-              Clear
+              {t("editor:ui.clear", { defaultValue: "Clear" })}
             </EditorButton>
           )}
         </FlexRow>

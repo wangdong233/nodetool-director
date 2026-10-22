@@ -91,12 +91,12 @@ const sameIds = (
 
 const PRIVACY_SIDEBAR_SECTIONS = [
   {
-    category: "Privacy",
+    category: "Privacy", categoryKey: "settings:general.catPrivacy",
     items: [
-      { id: "product-analytics", label: "Product analytics" },
-      { id: "what-is-collected", label: "What is collected" },
-      { id: "diagnostics", label: "Diagnostics" },
-      { id: "recent-events", label: "Recent events" }
+      { id: "product-analytics", label: "Product analytics", labelKey: "settings:privacy.secProductAnalytics" },
+      { id: "what-is-collected", label: "What is collected", labelKey: "settings:privacy.secWhatCollected" },
+      { id: "diagnostics", label: "Diagnostics", labelKey: "settings:privacy.secDiagnostics" },
+      { id: "recent-events", label: "Recent events", labelKey: "settings:privacy.secRecentEvents" }
     ]
   }
 ];
@@ -113,9 +113,9 @@ const UPDATE_CHANNEL_OPTIONS = [
 ] as const;
 
 const CLOSE_BEHAVIOR_OPTIONS = [
-  { value: "ask", label: "Ask every time" },
-  { value: "quit", label: "Quit application" },
-  { value: "background", label: "Keep running in background" }
+  { value: "ask", label: "Ask every time", labelKey: "settings:general.opts.ask" },
+  { value: "quit", label: "Quit application", labelKey: "settings:general.opts.quit" },
+  { value: "background", label: "Keep running in background", labelKey: "settings:general.opts.background" }
 ] as const;
 
 const PAN_CONTROLS_OPTIONS = [
@@ -138,13 +138,14 @@ const AUTOSAVE_INTERVAL_OPTIONS = [
 ] as const;
 
 const THEME_MODE_OPTIONS = [
-  { value: "dark", label: "Dark" },
-  { value: "light", label: "Light" }
+  { value: "dark", label: "Dark", labelKey: "settings:general.opts.dark" },
+  { value: "light", label: "Light", labelKey: "settings:general.opts.light" }
 ] as const;
 
 const TEXT_SIZE_OPTIONS = TEXT_SIZES.map((size) => ({
   value: size,
-  label: TEXT_SIZE_LABELS[size]
+  label: TEXT_SIZE_LABELS[size],
+  labelKey: `settings:general.opts.text_${size}`
 }));
 
 const TIME_FORMAT_OPTIONS = [
@@ -466,7 +467,10 @@ function SettingsPage() {
         addNotification({
           type: "info",
           alert: true,
-          content: "Nodetool API token copied to clipboard"
+          content: i18n.t("settings:general.apiTokenCopied", {
+            defaultValue: "Nodetool API token copied to clipboard"
+          }),
+          contentKey: "settings:general.apiTokenCopied"
         });
       } catch (error) {
         console.error("Failed to copy to clipboard:", error);
@@ -525,7 +529,7 @@ function SettingsPage() {
       ]
     },
     {
-      category: "Workflow",
+      category: "Workflow", categoryKey: "settings:general.catWorkflow",
       items: [
         { id: "execution", label: "Execution", labelKey: "settings:general.secExecution" },
         { id: "canvas-navigation", label: "Canvas & navigation", labelKey: "settings:general.secCanvasNav" },
@@ -533,7 +537,7 @@ function SettingsPage() {
       ]
     },
     {
-      category: "History",
+      category: "History", categoryKey: "settings:general.catHistory",
       items: [{ id: "autosave", label: "Autosave & version history", labelKey: "settings:general.secAutosave" }]
     }
   ];
@@ -558,15 +562,17 @@ function SettingsPage() {
       { category: i18n.t("nav:settings.docsConfig", { defaultValue: "Configuration" }), items: configItems },
       {
         category: i18n.t("settings:sidebar.intCatAccounts", { defaultValue: "Accounts" }),
-        items: [{ id: "connected-accounts", label: "Connected accounts" }]
+        items: [
+          { id: "connected-accounts", label: "Connected accounts", labelKey: "settings:sidebar.connectedAccounts" }
+        ]
       },
       ...(isLocalhost
         ? [
             {
               category: i18n.t("settings:sidebar.intCatServers", { defaultValue: "Servers" }),
               items: [
-                { id: "mcp-integration", label: "MCP integration" },
-                { id: "browser-extension", label: "Browser extension" }
+                { id: "mcp-integration", label: "MCP integration", labelKey: "settings:sidebar.mcpIntegration" },
+                { id: "browser-extension", label: "Browser extension", labelKey: "settings:sidebar.browserExtension" }
               ]
             }
           ]
@@ -687,7 +693,7 @@ function SettingsPage() {
               size="medium"
               fullWidth
               showClear
-              ariaLabel="Search settings"
+              ariaLabel={i18n.t("settings:search.ariaLabel", { defaultValue: "Search settings" })}
             />
           </div>
         </header>
@@ -724,7 +730,10 @@ function SettingsPage() {
                   <div className="settings-search-alts">
                     {!currentTabHasMatches && (
                       <Caption>
-                        No matches in {settingsTabLabel(section)}.
+                        {t("settings:search.noMatchesIn", {
+                          defaultValue: "No matches in {{tab}}.",
+                          tab: settingsTabLabel(section)
+                        })}
                       </Caption>
                     )}
                     {matchingOtherTabs.length > 0 && (
@@ -797,7 +806,7 @@ function SettingsPage() {
                     {isElectron && (
                       <div className="settings-section">
                         <Text size="big" id="updates" className="settings-heading">
-                          Updates
+                          {i18n.t("settings:general.secUpdates", { defaultValue: "Updates" })}
                         </Text>
                         {supportsDesktopUpdateSettings && (
                           <SearchItem
@@ -1178,7 +1187,7 @@ function SettingsPage() {
                   ) && (
                     <>
                       <Text size="big" id="folders" className="settings-heading">
-                        Folders
+                        {i18n.t("settings:general.secFolders", { defaultValue: "Folders" })}
                       </Text>
                       <FoldersSettings />
                     </>
@@ -1194,7 +1203,7 @@ function SettingsPage() {
                         id="connected-accounts"
                         className="settings-heading"
                       >
-                        Connected accounts
+                        {i18n.t("settings:sidebar.connectedAccounts", { defaultValue: "Connected accounts" })}
                       </Text>
                       <ConnectedAccountsSettings />
                     </>
@@ -1211,7 +1220,7 @@ function SettingsPage() {
                         id="mcp-integration"
                         className="settings-heading"
                       >
-                        MCP integration
+                        {i18n.t("settings:sidebar.mcpIntegration", { defaultValue: "MCP integration" })}
                       </Text>
                       <MCPSettingsMenu />
                     </>
@@ -1228,7 +1237,7 @@ function SettingsPage() {
                         id="browser-extension"
                         className="settings-heading"
                       >
-                        Browser extension
+                        {i18n.t("settings:sidebar.browserExtension", { defaultValue: "Browser extension" })}
                       </Text>
                       <BrowserExtensionSettingsMenu />
                     </>
@@ -1243,19 +1252,23 @@ function SettingsPage() {
                         id="nodetool-api-token"
                         className="settings-heading"
                       >
-                        Nodetool API
+                        {i18n.t("settings:general.apiIntTitle", { defaultValue: "Nodetool API" })}
                       </Text>
                       <div className="settings-section">
                         <div className="settings-item">
                           <Text>
-                            Use the Nodetool API to execute workflows
-                            programmatically.{" "}
+                            {i18n.t("settings:general.apiIntBody", {
+                              defaultValue:
+                                "Use the Nodetool API to execute workflows programmatically. "
+                            })}{" "}
                             <TextLink
                               href="https://github.com/nodetool-ai/nodetool#using-the-workflow-api-"
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              API documentation on GitHub
+                              {i18n.t("settings:general.apiDocsLink", {
+                                defaultValue: "API documentation on GitHub"
+                              })}
                             </TextLink>
                           </Text>
                           <div className="secrets">
@@ -1266,8 +1279,10 @@ function SettingsPage() {
                               }}
                             />
                             <Text component="span">
-                              This token authenticates your account. Keep it
-                              secure and do not share it publicly.
+                              {i18n.t("settings:general.apiTokenWarning", {
+                                defaultValue:
+                                  "This token authenticates your account. Keep it secure and do not share it publicly."
+                              })}
                             </Text>
                           </div>
                           <Box>
@@ -1278,7 +1293,7 @@ function SettingsPage() {
                                 startIcon={<ContentCopyIcon />}
                                 onClick={copyAuthToken}
                               >
-                                Copy token
+                                {i18n.t("settings:general.apiIntCopyToken", { defaultValue: "Copy token" })}
                               </EditorButton>
                             </Tooltip>
                           </Box>

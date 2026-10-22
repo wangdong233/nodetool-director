@@ -62,8 +62,9 @@ const SEARCH_RELATED_SETTINGS = new Set([
 const META_SECTION_GROUPS: ReadonlyArray<{
   key: string;
   label: string;
+  labelKey?: string;
   groups: ReadonlyArray<string>;
- labelKey?: string; }> = [
+}> = [
   {
     key: "local-model-servers",
     label: "Local model servers", labelKey: "tools:menus.localModelServers",
@@ -82,7 +83,7 @@ const META_SECTION_GROUPS: ReadonlyArray<{
   },
   {
     key: "provider-options",
-    label: "Provider options",
+    label: "Provider options", labelKey: "tools:menus.providerOptions",
     groups: ["ClaudeAgent", "ZAI", "KIE"]
   },
   {
@@ -92,7 +93,7 @@ const META_SECTION_GROUPS: ReadonlyArray<{
   },
   {
     key: "data-and-storage",
-    label: "Data & storage",
+    label: "Data & storage", labelKey: "tools:menus.dataAndStorage",
     groups: ["NodeSupabase", "Supabase"]
   },
   { key: "other", label: "Other", labelKey: "tools:menus.other", groups: [] }
@@ -117,12 +118,14 @@ interface MetaSectionEntry {
 interface MetaSection {
   key: string;
   label: string;
+  labelKey?: string;
   entries: MetaSectionEntry[];
 }
 
 interface DisplayedGroup {
   id: string;
   label: string;
+  labelKey?: string;
 }
 
 /**
@@ -153,7 +156,12 @@ const partitionByMetaSection = (
       }
     }
     if (entries.length > 0) {
-      sections.push({ key: section.key, label: section.label, entries });
+      sections.push({
+        key: section.key,
+        label: section.label,
+        labelKey: section.labelKey,
+        entries
+      });
     }
   }
   return sections;
@@ -191,7 +199,7 @@ export const getDisplayedSettingGroups = (
   const result: DisplayedGroup[] = [];
   for (const section of META_SECTION_GROUPS) {
     if (presentKeys.has(section.key)) {
-      result.push({ id: section.key, label: section.label });
+      result.push({ id: section.key, label: section.label, labelKey: section.labelKey });
     }
     // SearchProviderSection always renders alongside the registry list, so
     // the sidebar always lists it at this slot (after Local Model Servers).
@@ -247,26 +255,214 @@ const SETTING_BUTTON_TITLES: Record<string, string> = {
   AKI_API_KEY: "Get AKI.IO API key"
 };
 
+/** Literal i18n keys for the external-link button titles, resolved at render. */
+const SETTING_BUTTON_TITLE_KEYS: Record<string, string> = {
+  OPENAI_API_KEY: "settings:remote.OPENAI_API_KEY.button",
+  ANTHROPIC_API_KEY: "settings:remote.ANTHROPIC_API_KEY.button",
+  GEMINI_API_KEY: "settings:remote.GEMINI_API_KEY.button",
+  OPENROUTER_API_KEY: "settings:remote.OPENROUTER_API_KEY.button",
+  REQUESTY_API_KEY: "settings:remote.REQUESTY_API_KEY.button",
+  OPPER_API_KEY: "settings:remote.OPPER_API_KEY.button",
+  API_ROUTE_API_KEY: "settings:remote.API_ROUTE_API_KEY.button",
+  HF_TOKEN: "settings:remote.HF_TOKEN.button",
+  REPLICATE_API_TOKEN: "settings:remote.REPLICATE_API_TOKEN.button",
+  GOOGLE_APP_PASSWORD: "settings:remote.GOOGLE_APP_PASSWORD.button",
+  ELEVENLABS_API_KEY: "settings:remote.ELEVENLABS_API_KEY.button",
+  FAL_API_KEY: "settings:remote.FAL_API_KEY.button",
+  SERPAPI_API_KEY: "settings:remote.SERPAPI_API_KEY.button",
+  DATA_FOR_SEO_LOGIN: "settings:remote.DATA_FOR_SEO_LOGIN.button",
+  BRAVE_API_KEY: "settings:remote.BRAVE_API_KEY.button",
+  APIFY_API_TOKEN: "settings:remote.APIFY_API_TOKEN.button",
+  KIMI_API_KEY: "settings:remote.KIMI_API_KEY.button",
+  DASHSCOPE_API_KEY: "settings:remote.DASHSCOPE_API_KEY.button",
+  AKI_API_KEY: "settings:remote.AKI_API_KEY.button"
+};
+
 const SETTING_TOOLTIPS: Record<string, string> = {
-  OPENAI_API_KEY: i18n.t("settings:remote.OPENAI_API_KEY.get", { defaultValue: "Go to OpenAI API key page" }),
-  ANTHROPIC_API_KEY: i18n.t("settings:remote.ANTHROPIC_API_KEY.get", { defaultValue: "Go to Anthropic console" }),
-  GEMINI_API_KEY: i18n.t("settings:remote.GEMINI_API_KEY.get", { defaultValue: "Go to Google AI Studio to get your API key" }),
-  OPENROUTER_API_KEY: i18n.t("settings:remote.OPENROUTER_API_KEY.get", { defaultValue: "Go to OpenRouter keys page" }),
+  OPENAI_API_KEY: "Go to OpenAI API key page",
+  ANTHROPIC_API_KEY: "Go to Anthropic console",
+  GEMINI_API_KEY: "Go to Google AI Studio to get your API key",
+  OPENROUTER_API_KEY: "Go to OpenRouter keys page",
   REQUESTY_API_KEY: "Go to Requesty API keys page",
   OPPER_API_KEY: "Go to Opper platform to get your API key",
   API_ROUTE_API_KEY: "Go to API Route API keys page",
-  HF_TOKEN: i18n.t("settings:remote.HF_TOKEN.get", { defaultValue: "Go to Hugging Face tokens page" }),
-  REPLICATE_API_TOKEN: i18n.t("settings:remote.REPLICATE_API_TOKEN.get", { defaultValue: "Go to Replicate API tokens page" }),
-  GOOGLE_APP_PASSWORD: i18n.t("settings:remote.GOOGLE_APP_PASSWORD.get", { defaultValue: "Go to Google account app passwords page" }),
-  ELEVENLABS_API_KEY: i18n.t("settings:remote.ELEVENLABS_API_KEY.get", { defaultValue: "Go to ElevenLabs subscription page" }),
-  FAL_API_KEY: i18n.t("settings:remote.FAL_API_KEY.get", { defaultValue: "Go to Fal.ai dashboard" }),
-  SERPAPI_API_KEY: i18n.t("settings:remote.SERPAPI_API_KEY.get", { defaultValue: "Go to SerpAPI key management page" }),
-  DATA_FOR_SEO_LOGIN: i18n.t("settings:remote.DATA_FOR_SEO_LOGIN.get", { defaultValue: "Go to DataForSEO dashboard" }),
-  BRAVE_API_KEY: i18n.t("settings:remote.BRAVE_API_KEY.get", { defaultValue: "Go to Brave Search API dashboard" }),
-  APIFY_API_TOKEN: i18n.t("settings:remote.APIFY_API_TOKEN.get", { defaultValue: "Go to Apify console integrations page" }),
+  HF_TOKEN: "Go to Hugging Face tokens page",
+  REPLICATE_API_TOKEN: "Go to Replicate API tokens page",
+  GOOGLE_APP_PASSWORD: "Go to Google account app passwords page",
+  ELEVENLABS_API_KEY: "Go to ElevenLabs subscription page",
+  FAL_API_KEY: "Go to Fal.ai dashboard",
+  SERPAPI_API_KEY: "Go to SerpAPI key management page",
+  DATA_FOR_SEO_LOGIN: "Go to DataForSEO dashboard",
+  BRAVE_API_KEY: "Go to Brave Search API dashboard",
+  APIFY_API_TOKEN: "Go to Apify console integrations page",
   KIMI_API_KEY: "Go to Moonshot (Kimi) platform API keys page",
-  DASHSCOPE_API_KEY: i18n.t("settings:remote.DASHSCOPE_API_KEY.get", { defaultValue: "Go to Alibaba Cloud Model Studio API keys page" }),
-  AKI_API_KEY: i18n.t("settings:remote.AKI_API_KEY.get", { defaultValue: "Go to AKI.IO to sign up and get your API key" })
+  DASHSCOPE_API_KEY: "Go to Alibaba Cloud Model Studio API keys page",
+  AKI_API_KEY: "Go to AKI.IO to sign up and get your API key"
+};
+
+/** Literal i18n keys for the external-link tooltips, resolved at render. */
+const SETTING_TOOLTIP_KEYS: Record<string, string> = {
+  OPENAI_API_KEY: "settings:remote.OPENAI_API_KEY.get",
+  ANTHROPIC_API_KEY: "settings:remote.ANTHROPIC_API_KEY.get",
+  GEMINI_API_KEY: "settings:remote.GEMINI_API_KEY.get",
+  OPENROUTER_API_KEY: "settings:remote.OPENROUTER_API_KEY.get",
+  REQUESTY_API_KEY: "settings:remote.REQUESTY_API_KEY.get",
+  OPPER_API_KEY: "settings:remote.OPPER_API_KEY.get",
+  API_ROUTE_API_KEY: "settings:remote.API_ROUTE_API_KEY.get",
+  HF_TOKEN: "settings:remote.HF_TOKEN.get",
+  REPLICATE_API_TOKEN: "settings:remote.REPLICATE_API_TOKEN.get",
+  GOOGLE_APP_PASSWORD: "settings:remote.GOOGLE_APP_PASSWORD.get",
+  ELEVENLABS_API_KEY: "settings:remote.ELEVENLABS_API_KEY.get",
+  FAL_API_KEY: "settings:remote.FAL_API_KEY.get",
+  SERPAPI_API_KEY: "settings:remote.SERPAPI_API_KEY.get",
+  DATA_FOR_SEO_LOGIN: "settings:remote.DATA_FOR_SEO_LOGIN.get",
+  BRAVE_API_KEY: "settings:remote.BRAVE_API_KEY.get",
+  APIFY_API_TOKEN: "settings:remote.APIFY_API_TOKEN.get",
+  KIMI_API_KEY: "settings:remote.KIMI_API_KEY.get",
+  DASHSCOPE_API_KEY: "settings:remote.DASHSCOPE_API_KEY.get",
+  AKI_API_KEY: "settings:remote.AKI_API_KEY.get"
+};
+
+/** Literal i18n keys for the localized setting labels, resolved at render. */
+const SETTING_LABEL_KEYS: Record<string, string> = {
+  AUTOSAVE_ENABLED: "settings:remote.AUTOSAVE_ENABLED.label",
+  AUTOSAVE_INTERVAL_MINUTES: "settings:remote.AUTOSAVE_INTERVAL_MINUTES.label",
+  AUTOSAVE_KEEP_DAYS: "settings:remote.AUTOSAVE_KEEP_DAYS.label",
+  AUTOSAVE_MAX_VERSIONS_PER_WORKFLOW:
+    "settings:remote.AUTOSAVE_MAX_VERSIONS_PER_WORKFLOW.label",
+  AUTOSAVE_MIN_INTERVAL_SECONDS:
+    "settings:remote.AUTOSAVE_MIN_INTERVAL_SECONDS.label",
+  BLENDER_PATH: "settings:remote.BLENDER_PATH.label",
+  DASHSCOPE_BASE_URL: "settings:remote.DASHSCOPE_BASE_URL.label",
+  FONT_PATH: "settings:remote.FONT_PATH.label",
+  KIE_TIMEOUT_SECONDS: "settings:remote.KIE_TIMEOUT_SECONDS.label",
+  LLAMA_CPP_CONTEXT_LENGTH: "settings:remote.LLAMA_CPP_CONTEXT_LENGTH.label",
+  LLAMA_CPP_URL: "settings:remote.LLAMA_CPP_URL.label",
+  LMSTUDIO_API_URL: "settings:remote.LMSTUDIO_API_URL.label",
+  MAX_CONCURRENT_JOBS: "settings:remote.MAX_CONCURRENT_JOBS.label",
+  MAX_CONCURRENT_RUNS_PER_WORKFLOW:
+    "settings:remote.MAX_CONCURRENT_RUNS_PER_WORKFLOW.label",
+  NODETOOL_AGENT_MAX_CONCURRENCY:
+    "settings:remote.NODETOOL_AGENT_MAX_CONCURRENCY.label",
+  NODETOOL_AGENT_MAX_TURNS: "settings:remote.NODETOOL_AGENT_MAX_TURNS.label",
+  NODETOOL_AGENT_TURN_COST_CAP_USD:
+    "settings:remote.NODETOOL_AGENT_TURN_COST_CAP_USD.label",
+  NODETOOL_AGENT_TURN_DEADLINE_MS:
+    "settings:remote.NODETOOL_AGENT_TURN_DEADLINE_MS.label",
+  NODETOOL_AGENT_UNPRICED_TOKEN_CEILING:
+    "settings:remote.NODETOOL_AGENT_UNPRICED_TOKEN_CEILING.label",
+  NODETOOL_CHAT_COMPACTION_KEEP_TURNS:
+    "settings:remote.NODETOOL_CHAT_COMPACTION_KEEP_TURNS.label",
+  NODETOOL_CHAT_COMPACTION_TOKENS:
+    "settings:remote.NODETOOL_CHAT_COMPACTION_TOKENS.label",
+  NODETOOL_COMPACTION_MODEL: "settings:remote.NODETOOL_COMPACTION_MODEL.label",
+  NODE_LLAMA_CPP_GPU_BACKEND:
+    "settings:remote.NODE_LLAMA_CPP_GPU_BACKEND.label",
+  NODE_LLAMA_CPP_MODELS_DIR:
+    "settings:remote.NODE_LLAMA_CPP_MODELS_DIR.label",
+  NODE_SUPABASE_SCHEMA: "settings:remote.NODE_SUPABASE_SCHEMA.label",
+  NODE_SUPABASE_TABLE_PREFIX:
+    "settings:remote.NODE_SUPABASE_TABLE_PREFIX.label",
+  NODE_SUPABASE_URL: "settings:remote.NODE_SUPABASE_URL.label",
+  OLLAMA_API_URL: "settings:remote.OLLAMA_API_URL.label",
+  OLLAMA_CONTEXT_LENGTH: "settings:remote.OLLAMA_CONTEXT_LENGTH.label",
+  OLLAMA_KEEP_ALIVE: "settings:remote.OLLAMA_KEEP_ALIVE.label",
+  SERP_PROVIDER: "settings:remote.SERP_PROVIDER.label",
+  TRACELOOP_APP_NAME: "settings:remote.TRACELOOP_APP_NAME.label",
+  TRACELOOP_BASE_URL: "settings:remote.TRACELOOP_BASE_URL.label",
+  TRACELOOP_DISABLE_BATCH: "settings:remote.TRACELOOP_DISABLE_BATCH.label",
+  TRACELOOP_ENABLED: "settings:remote.TRACELOOP_ENABLED.label",
+  TRANSFORMERS_JS_CACHE_DIR:
+    "settings:remote.TRANSFORMERS_JS_CACHE_DIR.label",
+  USERS_FILE: "settings:remote.USERS_FILE.label",
+  VECTORSTORE_DB_PATH: "settings:remote.VECTORSTORE_DB_PATH.label",
+  VLLM_BASE_URL: "settings:remote.VLLM_BASE_URL.label",
+  WAN2GP_MCP_URL: "settings:remote.WAN2GP_MCP_URL.label",
+  WHISPER_CPP_GPU_BACKEND: "settings:remote.WHISPER_CPP_GPU_BACKEND.label",
+  WHISPER_CPP_MODELS_DIR: "settings:remote.WHISPER_CPP_MODELS_DIR.label",
+  WHISPER_CPP_SERVER_URL: "settings:remote.WHISPER_CPP_SERVER_URL.label",
+  AZURE_OPENAI_API_VERSION: "settings:remote.AZURE_OPENAI_API_VERSION.label",
+  BEDROCK_MODEL_IDS: "settings:remote.BEDROCK_MODEL_IDS.label",
+  CLAUDE_CLI_PATH: "settings:remote.CLAUDE_CLI_PATH.label",
+  NODETOOL_TORCH_DEVICE: "settings:remote.NODETOOL_TORCH_DEVICE.label",
+  SD_CPP_SERVER_PATH: "settings:remote.SD_CPP_SERVER_PATH.label",
+  USEAPI_GOOGLE_FLOW_EMAIL: "settings:remote.USEAPI_GOOGLE_FLOW_EMAIL.label",
+  USEAPI_DREAMINA_ACCOUNT: "settings:remote.USEAPI_DREAMINA_ACCOUNT.label",
+  ZAI_USE_CODING_PLAN: "settings:remote.ZAI_USE_CODING_PLAN.label"
+};
+
+/** Literal i18n keys for the localized setting descriptions, resolved at render. */
+const SETTING_DESCRIPTION_KEYS: Record<string, string> = {
+  AUTOSAVE_ENABLED: "settings:remote.AUTOSAVE_ENABLED.description",
+  AUTOSAVE_INTERVAL_MINUTES:
+    "settings:remote.AUTOSAVE_INTERVAL_MINUTES.description",
+  AUTOSAVE_KEEP_DAYS: "settings:remote.AUTOSAVE_KEEP_DAYS.description",
+  AUTOSAVE_MAX_VERSIONS_PER_WORKFLOW:
+    "settings:remote.AUTOSAVE_MAX_VERSIONS_PER_WORKFLOW.description",
+  AUTOSAVE_MIN_INTERVAL_SECONDS:
+    "settings:remote.AUTOSAVE_MIN_INTERVAL_SECONDS.description",
+  BLENDER_PATH: "settings:remote.BLENDER_PATH.description",
+  DASHSCOPE_BASE_URL: "settings:remote.DASHSCOPE_BASE_URL.description",
+  FONT_PATH: "settings:remote.FONT_PATH.description",
+  KIE_TIMEOUT_SECONDS: "settings:remote.KIE_TIMEOUT_SECONDS.description",
+  LLAMA_CPP_CONTEXT_LENGTH:
+    "settings:remote.LLAMA_CPP_CONTEXT_LENGTH.description",
+  LLAMA_CPP_URL: "settings:remote.LLAMA_CPP_URL.description",
+  LMSTUDIO_API_URL: "settings:remote.LMSTUDIO_API_URL.description",
+  MAX_CONCURRENT_JOBS: "settings:remote.MAX_CONCURRENT_JOBS.description",
+  MAX_CONCURRENT_RUNS_PER_WORKFLOW:
+    "settings:remote.MAX_CONCURRENT_RUNS_PER_WORKFLOW.description",
+  NODETOOL_AGENT_MAX_CONCURRENCY:
+    "settings:remote.NODETOOL_AGENT_MAX_CONCURRENCY.description",
+  NODETOOL_AGENT_MAX_TURNS:
+    "settings:remote.NODETOOL_AGENT_MAX_TURNS.description",
+  NODETOOL_AGENT_TURN_COST_CAP_USD:
+    "settings:remote.NODETOOL_AGENT_TURN_COST_CAP_USD.description",
+  NODETOOL_AGENT_TURN_DEADLINE_MS:
+    "settings:remote.NODETOOL_AGENT_TURN_DEADLINE_MS.description",
+  NODETOOL_AGENT_UNPRICED_TOKEN_CEILING:
+    "settings:remote.NODETOOL_AGENT_UNPRICED_TOKEN_CEILING.description",
+  NODETOOL_CHAT_COMPACTION_KEEP_TURNS:
+    "settings:remote.NODETOOL_CHAT_COMPACTION_KEEP_TURNS.description",
+  NODETOOL_CHAT_COMPACTION_TOKENS:
+    "settings:remote.NODETOOL_CHAT_COMPACTION_TOKENS.description",
+  NODETOOL_COMPACTION_MODEL:
+    "settings:remote.NODETOOL_COMPACTION_MODEL.description",
+  NODE_LLAMA_CPP_GPU_BACKEND:
+    "settings:remote.NODE_LLAMA_CPP_GPU_BACKEND.description",
+  NODE_LLAMA_CPP_MODELS_DIR:
+    "settings:remote.NODE_LLAMA_CPP_MODELS_DIR.description",
+  NODE_SUPABASE_SCHEMA: "settings:remote.NODE_SUPABASE_SCHEMA.description",
+  NODE_SUPABASE_TABLE_PREFIX:
+    "settings:remote.NODE_SUPABASE_TABLE_PREFIX.description",
+  NODE_SUPABASE_URL: "settings:remote.NODE_SUPABASE_URL.description",
+  OLLAMA_CONTEXT_LENGTH:
+    "settings:remote.OLLAMA_CONTEXT_LENGTH.description",
+  OLLAMA_API_URL: "settings:remote.OLLAMA_API_URL.description",
+  OLLAMA_KEEP_ALIVE: "settings:remote.OLLAMA_KEEP_ALIVE.description",
+  SERP_PROVIDER: "settings:remote.SERP_PROVIDER.description",
+  TRACELOOP_APP_NAME: "settings:remote.TRACELOOP_APP_NAME.description",
+  TRACELOOP_BASE_URL: "settings:remote.TRACELOOP_BASE_URL.description",
+  TRACELOOP_DISABLE_BATCH:
+    "settings:remote.TRACELOOP_DISABLE_BATCH.description",
+  TRACELOOP_ENABLED: "settings:remote.TRACELOOP_ENABLED.description",
+  TRANSFORMERS_JS_CACHE_DIR:
+    "settings:remote.TRANSFORMERS_JS_CACHE_DIR.description",
+  USERS_FILE: "settings:remote.USERS_FILE.description",
+  VECTORSTORE_DB_PATH: "settings:remote.VECTORSTORE_DB_PATH.description",
+  VLLM_BASE_URL: "settings:remote.VLLM_BASE_URL.description",
+  WAN2GP_MCP_URL: "settings:remote.WAN2GP_MCP_URL.description",
+  WHISPER_CPP_GPU_BACKEND: "settings:remote.WHISPER_CPP_GPU_BACKEND.description",
+  WHISPER_CPP_MODELS_DIR: "settings:remote.WHISPER_CPP_MODELS_DIR.description",
+  WHISPER_CPP_SERVER_URL: "settings:remote.WHISPER_CPP_SERVER_URL.description",
+  AZURE_OPENAI_API_VERSION: "settings:remote.AZURE_OPENAI_API_VERSION.description",
+  BEDROCK_MODEL_IDS: "settings:remote.BEDROCK_MODEL_IDS.description",
+  CLAUDE_CLI_PATH: "settings:remote.CLAUDE_CLI_PATH.description",
+  NODETOOL_TORCH_DEVICE: "settings:remote.NODETOOL_TORCH_DEVICE.description",
+  SD_CPP_SERVER_PATH: "settings:remote.SD_CPP_SERVER_PATH.description",
+  USEAPI_GOOGLE_FLOW_EMAIL: "settings:remote.USEAPI_GOOGLE_FLOW_EMAIL.description",
+  USEAPI_DREAMINA_ACCOUNT: "settings:remote.USEAPI_DREAMINA_ACCOUNT.description",
+  ZAI_USE_CODING_PLAN: "settings:remote.ZAI_USE_CODING_PLAN.description"
 };
 
 interface SettingItemProps {
@@ -303,6 +499,20 @@ const SettingItem = memo(function SettingItem({
     [setting.enum]
   );
 
+  // Registry labels are derived from env-var names and descriptions come from
+  // the backend in English; both resolve through the settings:remote catalog
+  // at render so a language switch re-renders immediately.
+  const fallbackLabel = formatSettingLabel(setting.env_var);
+  const label = SETTING_LABEL_KEYS[setting.env_var]
+    ? i18n.t(SETTING_LABEL_KEYS[setting.env_var], { defaultValue: fallbackLabel })
+    : fallbackLabel;
+  const description =
+    setting.description && SETTING_DESCRIPTION_KEYS[setting.env_var]
+      ? i18n.t(SETTING_DESCRIPTION_KEYS[setting.env_var], {
+          defaultValue: setting.description
+        })
+      : setting.description;
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     e.stopPropagation();
   }, []);
@@ -313,11 +523,11 @@ const SettingItem = memo(function SettingItem({
         <div onKeyDown={handleKeyDown}>
           <SelectField
             id={`${setting.env_var.toLowerCase()}-select`}
-            label={formatSettingLabel(setting.env_var)}
+            label={label}
             value={value || ""}
             onChange={handleSelectChange}
             options={selectOptions}
-            description={setting.description || undefined}
+            description={description || undefined}
           />
         </div>
       ) : (
@@ -325,8 +535,8 @@ const SettingItem = memo(function SettingItem({
           type={setting.is_secret ? "password" : "text"}
           autoComplete="off"
           id={`${setting.env_var.toLowerCase()}-input`}
-          label={formatSettingLabel(setting.env_var)}
-          helperText={setting.description || undefined}
+          label={label}
+          helperText={description || undefined}
           value={value || ""}
           onChange={handleChange}
           size="small"
@@ -338,11 +548,21 @@ const SettingItem = memo(function SettingItem({
           <ExternalLink
             href={SETTING_LINKS[setting.env_var]}
             tooltipText={
-              SETTING_TOOLTIPS[setting.env_var] || ""
+              SETTING_TOOLTIP_KEYS[setting.env_var]
+                ? i18n.t(SETTING_TOOLTIP_KEYS[setting.env_var], {
+                    defaultValue: SETTING_TOOLTIPS[setting.env_var] || ""
+                  })
+                : SETTING_TOOLTIPS[setting.env_var] || ""
             }
           >
-            {SETTING_BUTTON_TITLES[setting.env_var] ||
-              "Get your API key"}
+            {SETTING_BUTTON_TITLE_KEYS[setting.env_var]
+              ? i18n.t(SETTING_BUTTON_TITLE_KEYS[setting.env_var], {
+                  defaultValue: SETTING_BUTTON_TITLES[setting.env_var]
+                })
+              : SETTING_BUTTON_TITLES[setting.env_var] ||
+                i18n.t("tools:menus.getYourApiKey", {
+                  defaultValue: "Get your API key"
+                })}
           </ExternalLink>
         </div>
       )}
@@ -488,7 +708,10 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
     },
     onError: (error: Error) => {
       addNotification({
-        content: `Could not save settings: ${error.message}`,
+        content: i18n.t("tools:menus.couldNotSaveSettings", {
+          defaultValue: "Could not save settings: {{message}}",
+          message: error.message
+        }),
         type: "error",
         alert: true
       });
@@ -536,7 +759,10 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
       {
         onSuccess: () => {
           addNotification({
-            content: "Settings saved",
+            content: i18n.t("tools:menus.settingsSaved", {
+              defaultValue: "Settings saved"
+            }),
+            contentKey: "tools:menus.settingsSaved",
             type: "success",
             alert: true
           });
@@ -550,7 +776,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
   return (
     <>
       {isLoading && (
-        <LoadingSpinner text="Loading settings" />
+        <LoadingSpinner text={t("tools:menus.loadingSettings", { defaultValue: "Loading settings" })} />
       )}
       {isSuccess && hasVisibleSettings && (
         <div
@@ -583,7 +809,9 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                         id={sec.key}
                         className="settings-heading"
                       >
-                        {sec.label}
+                        {sec.labelKey
+                          ? i18n.t(sec.labelKey, { defaultValue: sec.label })
+                          : sec.label}
                       </Text>
                       {visibleSettings.map((setting) => (
                         <SettingItem
@@ -614,7 +842,7 @@ const RemoteSettings = ({ search = "" }: RemoteSettingsProps) => {
                   onClick={handleDiscard}
                   disabled={updateSettingsMutation.isPending}
                 >
-                  Discard
+                  {t("tools:menus.discard", { defaultValue: "Discard" })}
                 </EditorButton>
                 <EditorButton
                   variant="contained"

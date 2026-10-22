@@ -1,3 +1,4 @@
+import { i18n } from "../../i18n";
 import React from "react";
 import isEqual from "../../utils/isEqual";
 import RerankModelMenuDialog from "../model_menu/RerankModelMenuDialog";
@@ -43,7 +44,7 @@ const RerankModelSelect: React.FC<RerankModelSelectProps> = ({
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={selected?.name || value || "Select model"}
+        label={selected?.name || value || i18n.t("editor:ui.selectModel", { defaultValue: "Select model" })}
         secondaryLabel={getProviderDisplayName(selected?.provider)}
         subLabel="Select rerank model"
         onClick={handleClick}

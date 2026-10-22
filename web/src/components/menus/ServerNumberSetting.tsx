@@ -57,9 +57,11 @@ export const ServerNumberSetting = React.memo(function ServerNumberSetting({
         addNotification({
           type: "error",
           alert: true,
-          content: `Could not save ${label}: ${
-            error instanceof Error ? error.message : String(error)
-          }`
+          content: i18n.t("settings:general.couldNotSaveSetting", {
+            defaultValue: "Could not save {{label}}: {{message}}",
+            label,
+            message: error instanceof Error ? error.message : String(error)
+          })
         });
       });
     }

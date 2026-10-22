@@ -35,7 +35,7 @@ const SCAN = () => {
   const ALLOWED_SINGLE = new Set([
     "ChatGPT", "Claude", "Gemini", "Ollama", "Whisper", "Llama", "Llamacpp",
     "Personal", "Project", "NodeTool", "Discord", "GitHub", "conda", "Python",
-    "English", "Chinese", "HuggingFaceTB", "PyTorch", "Safetensors", "TensorRT", "Hub"
+    "English", "Chinese", "HuggingFaceTB", "PyTorch", "Safetensors", "TensorRT", "Hub", "Amazon", "Bedrock", "Google", "Mail", "Higgsfield", "Meta", "DashScope", "LM", "Studio", "Agent"
   ]);
   const ENGLISH_RE = /^[A-Z][a-zA-Z&]+(\s+[a-zA-Z&]+)*$/;
   const ALLCAPS_RE = /^[A-Z]{2,6}$/;

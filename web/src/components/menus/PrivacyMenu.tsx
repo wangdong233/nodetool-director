@@ -23,11 +23,26 @@ const CLIENT_LABEL: Record<AnalyticsClientType, string> = {
   cloud_backend: "the NodeTool Cloud server"
 };
 
+const CLIENT_LABEL_KEYS: Record<AnalyticsClientType, string> = {
+  cloud_web: "settings:privacy.client.cloudWeb",
+  local_desktop: "settings:privacy.client.localDesktop",
+  local_web: "settings:privacy.client.localWeb",
+  npm_cli: "settings:privacy.client.npmCli",
+  cloud_backend: "settings:privacy.client.cloudBackend"
+};
+
 const COLLECTED = [
   "Which kind of app sent the event (Cloud, desktop, local web), the app version and the operating system family.",
   "That the app started, a workflow was created, or a workflow ran.",
   "For a run: local or cloud, the node count as a range (such as 6-20), the duration as a range, and for a failure a category such as provider or timeout.",
   "A random ID kept in this browser that changes every 30 days, and a random ID for this session."
+];
+
+const COLLECTED_KEYS = [
+  "settings:privacy.collected1",
+  "settings:privacy.collected2",
+  "settings:privacy.collected3",
+  "settings:privacy.collected4"
 ];
 
 const NEVER_COLLECTED = [
@@ -37,11 +52,25 @@ const NEVER_COLLECTED = [
   "Keystrokes, clicks on the page, screen recordings, or error messages."
 ];
 
-const BulletList: React.FC<{ items: readonly string[] }> = ({ items }) => (
+const NEVER_COLLECTED_KEYS = [
+  "settings:privacy.neverCollected1",
+  "settings:privacy.neverCollected2",
+  "settings:privacy.neverCollected3",
+  "settings:privacy.neverCollected4"
+];
+
+const BulletList: React.FC<{
+  items: readonly string[];
+  itemKeys?: readonly string[];
+}> = ({ items, itemKeys }) => (
   <Box component="ul" sx={{ margin: 0, paddingLeft: SPACING.xl }}>
-    {items.map((item) => (
+    {items.map((item, index) => (
       <Box component="li" key={item} sx={{ marginBottom: SPACING.xs }}>
-        <Text size="small">{item}</Text>
+        <Text size="small">
+          {itemKeys && itemKeys[index]
+            ? i18n.t(itemKeys[index], { defaultValue: item })
+            : item}
+        </Text>
       </Box>
     ))}
   </Box>
@@ -66,7 +95,7 @@ const PrivacyMenu: React.FC = () => {
   return (
     <Box>
       <Text size="big" id="product-analytics">
-        Product analytics
+        {i18n.t("settings:privacy.secProductAnalytics", { defaultValue: "Product analytics" })}
       </Text>
       <div className="settings-section">
         {client ? (
@@ -74,56 +103,69 @@ const PrivacyMenu: React.FC = () => {
             <LabeledSwitch
               id="product-analytics-switch"
               label={i18n.t("settings:privacy.shareAnonymousStats", { defaultValue: "Share anonymous usage statistics" })}
-              description={`Off by default. Applies only to ${CLIENT_LABEL[resolveWebClientType()]}. Signing in or out does not change it, and it never carries over to another NodeTool app.`}
+              description={i18n.t("settings:privacy.descShareStats", {
+                defaultValue:
+                  "Off by default. Applies only to {{client}}. Signing in or out does not change it, and it never carries over to another NodeTool app.",
+                client: i18n.t(CLIENT_LABEL_KEYS[resolveWebClientType()], {
+                  defaultValue: CLIENT_LABEL[resolveWebClientType()]
+                })
+              })}
               checked={enabled}
               onChange={handleToggle}
             />
             <Caption>
-              Turning this off deletes the anonymous ID and any unsent events
-              from this browser right away.
+              {i18n.t("settings:privacy.turningOffDeletes", {
+                defaultValue:
+                  "Turning this off deletes the anonymous ID and any unsent events from this browser right away."
+              })}
             </Caption>
           </FlexColumn>
         ) : (
           <Caption>
-            Analytics is unavailable because this browser blocks local storage.
-            Nothing is sent.
+            {i18n.t("settings:privacy.analyticsUnavailable", {
+              defaultValue:
+                "Analytics is unavailable because this browser blocks local storage. Nothing is sent."
+            })}
           </Caption>
         )}
       </div>
 
       <Text size="big" id="what-is-collected">
-        What is collected
+        {i18n.t("settings:privacy.secWhatCollected", { defaultValue: "What is collected" })}
       </Text>
       <div className="settings-section">
         <FlexColumn gap={GAP.normal}>
           <Text size="small" weight={500}>
-            When it is on
+            {i18n.t("settings:privacy.whenOn", { defaultValue: "When it is on" })}
           </Text>
-          <BulletList items={COLLECTED} />
+          <BulletList items={COLLECTED} itemKeys={COLLECTED_KEYS} />
           <Text size="small" weight={500}>
-            Never
+            {i18n.t("settings:privacy.never", { defaultValue: "Never" })}
           </Text>
-          <BulletList items={NEVER_COLLECTED} />
+          <BulletList items={NEVER_COLLECTED} itemKeys={NEVER_COLLECTED_KEYS} />
           <Caption>
-            Events go to this app&apos;s own server, which checks them against a
-            fixed list and forwards nothing else. Raw events are deleted after 30
-            days. Only daily counts are kept after that.
+            {i18n.t("settings:privacy.eventsForwardNote", {
+              defaultValue:
+                "Events go to this app's own server, which checks them against a fixed list and forwards nothing else. Raw events are deleted after 30 days. Only daily counts are kept after that."
+            })}
           </Caption>
         </FlexColumn>
       </div>
 
       <Text size="big" id="diagnostics">
-        Diagnostics and crash reports
+        {i18n.t("settings:privacy.secDiagnosticsCrash", { defaultValue: "Diagnostics and crash reports" })}
       </Text>
       <div className="settings-section">
         <Text size="small">
-          NodeTool does not collect diagnostics or crash reports. They would
-          need their own permission, separate from usage statistics.
+          {i18n.t("settings:privacy.diagnosticsBody", {
+            defaultValue:
+              "NodeTool does not collect diagnostics or crash reports. They would need their own permission, separate from usage statistics."
+          })}
         </Text>
       </div>
 
       <Text size="big" id="recent-events">
-        Recent events
+        {i18n.t("settings:privacy.secRecentEvents", { defaultValue: "Recent events" })}
       </Text>
       <div className="settings-section">
         <FlexColumn gap={GAP.normal}>
@@ -141,7 +183,7 @@ const PrivacyMenu: React.FC = () => {
           {enabled && (
             <Box>
               <EditorButton size="small" variant="outlined" onClick={handleResetId}>
-                Reset anonymous ID
+                {i18n.t("settings:privacy.resetAnonymousId", { defaultValue: "Reset anonymous ID" })}
               </EditorButton>
             </Box>
           )}

@@ -65,7 +65,13 @@
       "LMB": "Pan canvas",
       "RMB": "Select nodes (box)",
       "full": "Full",
-      "partial": "Partial"
+      "partial": "Partial",
+      "dark": "Dark",
+      "light": "Light",
+      "text_small": "Small",
+      "text_default": "Default",
+      "text_large": "Large",
+      "text_larger": "Larger"
     },
     "descUpdateChannel": "Stable follows full releases. Nightly follows prerelease nightly builds. Nightly builds default to the Nightly channel.",
     "apiIntTitle": "Nodetool API",
@@ -79,13 +85,21 @@
     "descWhenDrawingASelectionBox": "When drawing a selection box: Full selects only nodes that are fully enclosed, Partial also selects intersecting nodes.",
     "lblDecodeTimelinePreview": "Decode timeline preview with WebCodecs",
     "lblMaxRunsPerWorkflow": "Max concurrent runs per workflow",
-    "textSize": "Text size"
+    "textSize": "Text size",
+    "catPrivacy": "Privacy",
+    "apiIntBody": "Use the Nodetool API to execute workflows programmatically. ",
+    "apiDocsLink": "API documentation on GitHub",
+    "apiTokenWarning": "This token authenticates your account. Keep it secure and do not share it publicly.",
+    "apiTokenCopied": "Nodetool API token copied to clipboard",
+    "rangeHint": "Range {{min}}–{{max}}, default {{dv}}.",
+    "couldNotSaveSetting": "Could not save {{label}}: {{message}}"
   },
   "search": {
     "ariaLabel": "Search settings",
     "alsoIn": "Also in",
     "tabsLabel": "settings tabs",
-    "see": "See"
+    "see": "See",
+    "noMatchesIn": "No matches in {{tab}}."
   },
   "defModels": {
     "title": "Default models",
@@ -139,7 +153,19 @@
     "confirmCompact": "Compact",
     "bytesNA": "Not available",
     "notifCompactDone": "Database compaction completed.",
-    "confirmClean": "Clean"
+    "confirmClean": "Clean",
+    "statusLine": "Database: {{size}} · {{versions}} workflow versions · {{runs}} runs · {{events}} run events",
+    "descCleanup": "{{count}} records exceed the current limits. Deleted SQLite pages currently use {{size}} and are returned to disk only after compaction.",
+    "descRedaction": "{{count}} of {{total}} generation records still holding prompts and parameters are past the limit. Cleaning clears that text and keeps the billing record.",
+    "cleanNow": "Clean now ({{count}})",
+    "confirmCleanBody": "Remove {{cleanup}} old workflow-history, completed-run, and run-event records, and clear prompts and parameters from {{redacted}} generation records? The billing record for each generation is kept. Current workflows, assets, checkpoints, and active runs are not changed.",
+    "notifRemovedWithRedaction": "Removed {{total}} old history records and cleared prompt data from {{redacted}} generation records.",
+    "notifRemoved": "Removed {{total}} old history records.",
+    "notifCleanupFailed": "History cleanup failed: {{message}}",
+    "notifCompactFailed": "Database compaction failed: {{message}}",
+    "notifLimitsFailed": "Could not update history limits: {{message}}",
+    "loadingStatus": "Loading history status",
+    "loadFailed": "Could not load database history settings."
   },
   "sidebar": {
     "aboutLinks": "Links",
@@ -149,7 +175,10 @@
     "aboutCatResources": "Resources",
     "folders": "Folders",
     "observability": "Observability",
-    "other": "Other"
+    "other": "Other",
+    "connectedAccounts": "Connected accounts",
+    "mcpIntegration": "MCP integration",
+    "browserExtension": "Browser extension"
   },
   "remote": {
     "FONT_PATH": {
@@ -305,58 +334,201 @@
       "description": "Global timeout in seconds for Kie.ai API calls (0 = use default per-model timeout)"
     },
     "OPENAI_API_KEY": {
-      "get": "Go to OpenAI API key page"
+      "get": "Go to OpenAI API key page",
+      "button": "Get OpenAI API key",
+      "label": "OpenAI API key"
     },
     "ANTHROPIC_API_KEY": {
-      "get": "Go to Anthropic console"
+      "get": "Go to Anthropic console",
+      "button": "Get Anthropic API key"
     },
     "GEMINI_API_KEY": {
-      "get": "Go to Google AI Studio to get your API key"
+      "get": "Go to Google AI Studio to get your API key",
+      "button": "Get Gemini API key",
+      "label": "Gemini API key"
     },
     "OPENROUTER_API_KEY": {
-      "get": "Go to OpenRouter keys page"
+      "get": "Go to OpenRouter keys page",
+      "button": "Get OpenRouter API key"
     },
     "HF_TOKEN": {
-      "get": "Go to Hugging Face tokens page"
+      "get": "Go to Hugging Face tokens page",
+      "button": "Get Hugging Face token"
     },
     "REPLICATE_API_TOKEN": {
-      "get": "Go to Replicate API tokens page"
+      "get": "Go to Replicate API tokens page",
+      "button": "Get Replicate API token"
     },
     "GOOGLE_APP_PASSWORD": {
-      "get": "Go to Google account app passwords page"
+      "get": "Go to Google account app passwords page",
+      "button": "Get Google app password"
     },
     "ELEVENLABS_API_KEY": {
-      "get": "Go to ElevenLabs subscription page"
+      "get": "Go to ElevenLabs subscription page",
+      "button": "Get ElevenLabs API key"
     },
     "FAL_API_KEY": {
-      "get": "Go to Fal.ai dashboard"
+      "get": "Go to Fal.ai dashboard",
+      "button": "Get Fal API key"
     },
     "SERPAPI_API_KEY": {
-      "get": "Go to SerpAPI key management page"
+      "get": "Go to SerpAPI key management page",
+      "button": "Get SerpAPI API key",
+      "label": "SerpAPI API key"
     },
     "DATA_FOR_SEO_LOGIN": {
-      "get": "Go to DataForSEO dashboard"
+      "get": "Go to DataForSEO dashboard",
+      "button": "Get DataForSEO credentials",
+      "label": "Data For Seo Login"
     },
     "BRAVE_API_KEY": {
-      "get": "Go to Brave Search API dashboard"
+      "get": "Go to Brave Search API dashboard",
+      "button": "Get Brave API key",
+      "label": "Brave API key"
     },
     "APIFY_API_TOKEN": {
-      "get": "Go to Apify console integrations page"
+      "get": "Go to Apify console integrations page",
+      "button": "Get Apify API token",
+      "label": "Apify API token"
     },
     "KIMI_API_KEY": {
-      "get": "Go to Moonshot (Kimi) platform API keys page"
+      "get": "Go to Moonshot (Kimi) platform API keys page",
+      "button": "Get Moonshot API key"
     },
     "DASHSCOPE_API_KEY": {
-      "get": "Go to Alibaba Cloud Model Studio API keys page"
+      "get": "Go to Alibaba Cloud Model Studio API keys page",
+      "button": "Get Alibaba Cloud API Key"
     },
     "AKI_API_KEY": {
-      "get": "Go to AKI.IO to sign up and get your API key"
+      "get": "Go to AKI.IO to sign up and get your API key",
+      "button": "Get AKI.IO API key"
+    },
+    "REQUESTY_API_KEY": {
+      "button": "Get Requesty API key"
+    },
+    "OPPER_API_KEY": {
+      "button": "Get Opper API key"
+    },
+    "API_ROUTE_API_KEY": {
+      "button": "Get API Route key"
+    },
+    "DATA_FOR_SEO_PASSWORD": {
+      "label": "Data For Seo Password"
+    },
+    "OLLAMA_API_URL": {
+      "label": "Ollama API URL",
+      "description": "Base URL of the Ollama server (default: http://127.0.0.1:11434). Set it when Ollama runs on another host or port, for example in WSL, Docker or on another machine."
+    },
+    "OLLAMA_KEEP_ALIVE": {
+      "label": "Ollama keep alive",
+      "description": "How long Ollama keeps a model loaded after a request, in Ollama's duration syntax (default: 10m). -1 keeps it loaded, 0 unloads it at once."
+    },
+    "WHISPER_CPP_MODELS_DIR": {
+      "label": "Whisper cpp models dir",
+      "description": "Additional directory containing local ggml whisper.cpp and VAD model files. The Hugging Face hub cache is always scanned."
+    },
+    "WHISPER_CPP_GPU_BACKEND": {
+      "label": "Whisper cpp GPU backend",
+      "description": "Backend for in-process whisper.cpp inference. 'auto' uses Metal on macOS, and on Windows and Linux tries the CUDA build, then the Vulkan build, then the default CPU build. Restart the backend after changing this setting."
+    },
+    "WHISPER_CPP_SERVER_URL": {
+      "label": "Whisper cpp server URL",
+      "description": "Base URL for a user-run whisper.cpp server (e.g., http://127.0.0.1:8080)."
+    },
+    "NODETOOL_TORCH_DEVICE": {
+      "label": "Nodetool torch device",
+      "description": "Device the Python worker runs PyTorch models on: cuda, cuda:N for a specific GPU, mps, or cpu. Unset, the worker picks MPS, then CUDA, then CPU. Restart the backend after changing this setting, because the Python worker reads it at start."
+    },
+    "WAN2GP_MCP_URL": {
+      "label": "Wan2gp MCP URL",
+      "description": "MCP endpoint of the Wan2GP server the Wan2GP nodes call (default: http://127.0.0.1:7866/mcp). A node's own server URL field overrides it. Restart the backend after changing this setting, because the Python worker reads it at start."
+    },
+    "CLAUDE_CLI_PATH": {
+      "label": "Claude cli path",
+      "description": "Path to the Claude Code CLI (claude) the Claude Agent provider runs. Leave empty to find it on PATH or in the usual install locations (~/.local/bin, ~/.claude/local, Homebrew, npm)."
+    },
+    "SD_CPP_SERVER_PATH": {
+      "label": "Sd cpp server path",
+      "description": "Path to an sd-server binary for the stable-diffusion.cpp provider. Unset, the provider uses the sd-server the stable-diffusion.cpp package installs, then PATH."
+    },
+    "AZURE_OPENAI_API_VERSION": {
+      "label": "Azure openai API version",
+      "description": "Azure OpenAI API version, e.g. 2025-04-01-preview. Leave empty to use the v1 API, which needs no version"
+    },
+    "BEDROCK_MODEL_IDS": {
+      "label": "Bedrock model ids",
+      "description": "Comma-separated Bedrock model or inference profile IDs to offer, e.g. eu.anthropic.claude-sonnet-4-6. Leave empty to list every model the region offers"
+    },
+    "USEAPI_GOOGLE_FLOW_EMAIL": {
+      "label": "Useapi google flow email",
+      "description": "Google Flow account email for reference image uploads"
+    },
+    "USEAPI_DREAMINA_ACCOUNT": {
+      "label": "Useapi dreamina account",
+      "description": "Dreamina account ID (region:email) for reference image uploads"
     }
   },
   "privacy": {
     "shareAnonymousStats": "Share anonymous usage statistics",
     "noEventsYet": "No events recorded in this session yet.",
     "nothingRecorded": "Nothing is recorded while usage statistics are off.",
-    "usageStatistics": "Usage statistics"
+    "usageStatistics": "Usage statistics",
+    "secProductAnalytics": "Product analytics",
+    "secWhatCollected": "What is collected",
+    "secDiagnostics": "Diagnostics",
+    "secDiagnosticsCrash": "Diagnostics and crash reports",
+    "secRecentEvents": "Recent events",
+    "descShareStats": "Off by default. Applies only to {{client}}. Signing in or out does not change it, and it never carries over to another NodeTool app.",
+    "turningOffDeletes": "Turning this off deletes the anonymous ID and any unsent events from this browser right away.",
+    "analyticsUnavailable": "Analytics is unavailable because this browser blocks local storage. Nothing is sent.",
+    "whenOn": "When it is on",
+    "never": "Never",
+    "collected1": "Which kind of app sent the event (Cloud, desktop, local web), the app version and the operating system family.",
+    "collected2": "That the app started, a workflow was created, or a workflow ran.",
+    "collected3": "For a run: local or cloud, the node count as a range (such as 6-20), the duration as a range, and for a failure a category such as provider or timeout.",
+    "collected4": "A random ID kept in this browser that changes every 30 days, and a random ID for this session.",
+    "neverCollected1": "Your account, email, name, organization, or any project or workflow ID.",
+    "neverCollected2": "Prompts, workflow content, node settings, file names, paths, or outputs.",
+    "neverCollected3": "IP addresses, hostnames, ports, page URLs, or the browser user agent.",
+    "neverCollected4": "Keystrokes, clicks on the page, screen recordings, or error messages.",
+    "eventsForwardNote": "Events go to this app's own server, which checks them against a fixed list and forwards nothing else. Raw events are deleted after 30 days. Only daily counts are kept after that.",
+    "diagnosticsBody": "NodeTool does not collect diagnostics or crash reports. They would need their own permission, separate from usage statistics.",
+    "resetAnonymousId": "Reset anonymous ID",
+    "client": {
+      "cloudWeb": "NodeTool Cloud in this browser",
+      "localDesktop": "the NodeTool desktop app on this computer",
+      "localWeb": "this local NodeTool web app in this browser",
+      "npmCli": "the nodetool command line",
+      "cloudBackend": "the NodeTool Cloud server"
+    }
+  },
+  "about": {
+    "osHeading": "Operating system",
+    "featuresVersions": "Features & versions",
+    "installationPaths": "Installation paths",
+    "build": "Build",
+    "data": "Data",
+    "copyAllSystemInfo": "Copy all system information",
+    "available": "Available",
+    "na": "N/A",
+    "sysInfoFailed": "System information failed to load",
+    "linkGithub": "GitHub repository",
+    "linkForum": "NodeTool forum",
+    "linkWebsite": "Website",
+    "linkPrivacy": "Privacy policy",
+    "linkTerms": "Terms of use"
+  },
+  "accounts": {
+    "loading": "Loading connected accounts",
+    "connectedAs": "Connected as Telegram account {{id}}",
+    "linkedAt": "Linked {{date}}",
+    "confirmDisconnect": "Disconnect this account? The bot will stop answering it.",
+    "keep": "Keep",
+    "disconnectFailed": "Could not disconnect this account. Try again.",
+    "telegramPitch": "Link your Telegram account to chat with your NodeTool agent from Telegram. Your threads, assets, and budget stay yours.",
+    "connectTelegram": "Connect Telegram",
+    "startFailed": "Could not start linking. Try again.",
+    "openTelegramStart": "Open Telegram and press Start",
+    "noBotUsername": "This server does not know its bot's username, so there is no link to open. Send the bot /start {{code}} yourself."
   }
 }

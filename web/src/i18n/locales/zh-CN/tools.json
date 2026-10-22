@@ -11,7 +11,10 @@
     "removeServer": "移除服务器?",
     "loadUnlistedPacks": "加载不在允许清单里的节点包",
     "unlistedPacksDesc": "生产环境默认关闭。关闭时,只有你明确信任过的包才会加载。",
-    "removeEndpoint": "移除端点?"
+    "removeEndpoint": "移除端点?",
+    "claudeDesktop": "Claude Desktop",
+    "registersNodeToolDescription": "将 NodeTool 注册到本机发现的每个智能体框架。智能体按需启动 NodeTool，因此本应用无需保持运行。",
+    "claudeDesktopBundleDescription": "安装随本应用附带的 NodeTool 扩展。Claude Desktop 会打开安装对话框，请在其中确认。"
   },
   "ctx": {
     "audioList": "音频列表",
@@ -88,7 +91,11 @@
         "description": "通过阿里云 Model Studio 使用 Qwen 模型。"
       },
       "DATA_FOR_SEO_LOGIN": {
-        "description": "通过 DataForSEO 进行网络搜索。"
+        "description": "通过 DataForSEO 进行网络搜索。",
+        "field": {
+          "DATA_FOR_SEO_LOGIN": "登录名",
+          "DATA_FOR_SEO_PASSWORD": "密码"
+        }
       },
       "DEEPSEEK_API_KEY": {
         "description": "最先进的开放模型。"
@@ -107,13 +114,22 @@
         "description": "Google Gemini AI 模型与服务。"
       },
       "GITHUB_CLIENT_ID": {
-        "description": "GitHub PKCE 流程的 OAuth App 凭据。"
+        "description": "GitHub PKCE 流程的 OAuth App 凭据。",
+        "name": "GitHub OAuth 应用",
+        "field": {
+          "GITHUB_CLIENT_ID": "客户端 ID",
+          "GITHUB_CLIENT_SECRET": "客户端密钥"
+        }
       },
       "GMI_API_KEY": {
         "description": "通过 GMI 的 OpenAI 兼容 API 使用开放权重 LLM。"
       },
       "GOOGLE_MAIL_USER": {
-        "description": "用于 Google 邮件集成的电子邮件地址与应用专用密码。"
+        "description": "用于 Google 邮件集成的电子邮件地址与应用专用密码。",
+        "field": {
+          "GOOGLE_MAIL_USER": "电子邮件地址",
+          "GOOGLE_APP_PASSWORD": "应用专用密码"
+        }
       },
       "GROQ_API_KEY": {
         "description": "LPU 硬件上的超快 LLM 推理。"
@@ -123,7 +139,13 @@
       },
       "HIGGSFIELD_API_KEY_ID": {
         "credentialLabel": "API 密钥",
-        "description": "精选的图像与视频生成模型。"
+        "description": "精选的图像与视频生成模型。",
+        "field": {
+          "HIGGSFIELD_API_KEY_ID": "API 密钥 ID",
+          "HIGGSFIELD_API_KEY_SECRET": "API 密钥 Secret"
+        },
+        "credentialPlaceholder": "粘贴 key-id:secret",
+        "credentialError": "请以 key-id:secret 格式粘贴完整的 Higgsfield API 密钥。"
       },
       "JINA_API_KEY": {
         "description": "Jina 嵌入与重排模型。"
@@ -153,7 +175,8 @@
         "description": "供用户自带节点使用的 Supabase 服务密钥。"
       },
       "OPENAI_API_KEY": {
-        "description": "GPT 模型、图像、嵌入等。"
+        "description": "GPT 模型、图像、嵌入等。",
+        "note": "使用你的 ChatGPT 账号登录即可使用 Codex 模型，或添加 API 密钥。"
       },
       "OPENROUTER_API_KEY": {
         "description": "通过一个 API 访问多种 AI 模型。"
@@ -201,6 +224,41 @@
       "COMFY_API_KEY": {
         "description": "用你自己的密钥在 Comfy 的云端 GPU 上运行 ComfyUI 工作流。",
         "note": "用你自己的密钥在 Comfy 的云端 GPU 上运行 ComfyUI 工作流。"
+      },
+      "AZURE_OPENAI_API_KEY": {
+        "description": "部署在 Azure 或 Microsoft Foundry 上的 OpenAI 模型。",
+        "note": "用逗号分隔列出部署名称，例如 gpt-5.5、gpt-image-2。",
+        "field": {
+          "AZURE_OPENAI_ENDPOINT": "端点",
+          "AZURE_OPENAI_DEPLOYMENTS": "部署"
+        }
+      },
+      "BEDROCK_ACCESS_KEY_ID": {
+        "description": "AWS 上的 Claude、Llama、Mistral、Nova 及图像模型。",
+        "field": {
+          "BEDROCK_ACCESS_KEY_ID": "访问密钥 ID",
+          "BEDROCK_SECRET_ACCESS_KEY": "秘密访问密钥",
+          "BEDROCK_REGION": "区域"
+        }
+      },
+      "VGENV_API_KEY": {
+        "description": "MiniMax H3 文本、图像与参考视频生成。"
+      },
+      "REQUESTY_API_KEY": {
+        "description": "通过一个 OpenAI 兼容路由访问多种 AI 模型。"
+      },
+      "OPPER_API_KEY": {
+        "description": "通过一个欧盟托管的 OpenAI 兼容网关访问多种 AI 模型。"
+      },
+      "API_ROUTE_API_KEY": {
+        "description": "通过 OpenAI 兼容 API 使用托管对话模型。"
+      },
+      "VERDA_CLIENT_ID": {
+        "description": "用于租用 GPU 实例作为工作节点的云端 API 客户端 ID。"
+      },
+      "VERDA_CLIENT_SECRET": {
+        "description": "与 Verda 客户端 ID 配套的云端 API 客户端密钥。",
+        "name": "Verda（密钥）"
       }
     },
     "searchProviders": {
@@ -218,11 +276,13 @@
       },
       "openai": {
         "description": "复用你的 OpenAI 密钥。以行文作答，并引用所读页面。",
-        "get": "获取 OpenAI API 密钥"
+        "get": "获取 OpenAI API 密钥",
+        "label": "OpenAI 网页搜索"
       },
       "gemini": {
         "description": "复用你的 Gemini 密钥。以行文作答，并引用所读页面。",
-        "get": "获取 Gemini API 密钥"
+        "get": "获取 Gemini API 密钥",
+        "label": "Gemini 接地搜索"
       },
       "serpapi": {
         "description": "快速可靠的网页搜索 API，覆盖 Google、Bing 等引擎。",
@@ -256,7 +316,45 @@
     "pmSubIncluded": "NodeTool 自带的节点包。关闭一个包会隐藏其节点，重启服务器后生效。添加对应 API 密钥后会出现服务商节点。",
     "pmSubPython": "从 PyPI 安装 Python 包，为 NodeTool 扩展社区节点。",
     "pmSubThirdparty": "内置集合之外、由其他作者分发的节点包。",
-    "pmSubRuntimes": "在这台电脑上运行的程序：本地 AI 引擎，如 llama.cpp 与 stable-diffusion-webui。"
+    "pmSubRuntimes": "在这台电脑上运行的程序：本地 AI 引擎，如 llama.cpp 与 stable-diffusion-webui。",
+    "providerOptions": "服务商选项",
+    "dataAndStorage": "数据与存储",
+    "getYourApiKey": "获取你的 API 密钥",
+    "loadingSettings": "正在加载设置",
+    "settingsSaved": "设置已保存",
+    "discard": "放弃更改",
+    "couldNotSaveSettings": "无法保存设置：{{message}}",
+    "visitProviderForCredentials": "前往 {{provider}} 获取你的凭据",
+    "supportedModels": "支持的模型",
+    "apiDocumentation": "API 文档",
+    "troubleshooting": "故障排查",
+    "quickLinks": "快捷链接",
+    "viewOffers": "查看优惠",
+    "addEndpoint": "添加端点",
+    "providerSavedAs": "已将 {{name}} 保存为 {{providerId}}",
+    "providerIdHelper": "服务商 ID：{{id}}",
+    "customApiKeyHelper": "URL 和密钥按账号加密存储。同样的值也可以改由环境变量提供，即 CUSTOM_{{slug}}_BASE_URL 和 CUSTOM_{{slug}}_API_KEY。",
+    "removeEndpointBody": "要移除 {{name}} 吗？引用其模型的工作流将无法解析。",
+    "addServer": "添加服务器",
+    "externalServersCaption": "为智能体接入任意 MCP 服务器的工具：Blender、Hugging Face 或你自己的脚本。兼容所有模型服务商。",
+    "toolsNamedHelper": "工具命名为 {{prefix}}{{id}}_<tool>",
+    "removeServerBody": "要移除 {{name}} 吗？其工具将退出智能体的工具箱。",
+    "mcpInstalledFor": "已为 {{targets}} 安装 MCP",
+    "mcpInstallFailed": "MCP 安装失败：{{error}}",
+    "mcpRemovedFrom": "已从 {{targets}} 移除 MCP",
+    "extensionInstallFailed": "扩展安装失败：{{error}}",
+    "agentAccessIntro": "将 Claude Code、Claude Desktop 或任何 MCP 客户端通过 HTTP 指向此服务器。在下方创建令牌，然后粘贴它生成的配置。",
+    "mcpNotServed": "此服务器未启用 {{code}}。请在其环境变量中设置 {{flag}}=1 并重启。",
+    "noAuthModeNotice": "此服务器不校验任何凭据——它信任自己的网络。令牌仍然可用；若你从本机以外的位置访问，令牌是更安全的选择。",
+    "loadingTokens": "正在加载令牌",
+    "tokenMeta": "创建于 {{created}} · 最后使用 {{lastUsed}} · {{expires}}",
+    "tokenExpires": "{{date}} 过期",
+    "couldNotDisconnectClient": "无法断开客户端：{{error}}",
+    "revokeClientBody": "{{client}} 将无法再访问此服务器。它需要重新连接并再次获得批准。",
+    "noFolderSettings": "没有可用的文件夹设置，且“文件夹”组中未定义任何设置。",
+    "mcpIntroLead": "在 Claude Code、Codex 或 OpenCode 中通过",
+    "mcpIntroTail": "使用 NodeTool。智能体可获得 NodeTool 工作流、媒体生成、资产、节点与集合作为工具。",
+    "installOnThisMachine": "在本机安装"
   },
   "misc": {
     "onboardingPacks": {}

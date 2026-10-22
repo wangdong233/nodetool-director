@@ -110,7 +110,9 @@ const CurrentProjectDocuments = () => {
       <FlexRow align="center" gap={SPACING.md} wrap>
         <ProjectSelector inline />
         <Caption color="muted">
-          Documents{total > 0 ? ` · ${total} · most recent first` : ""}
+          {total > 0
+            ? t("editor:ui.documentsCountRecentFirst", { defaultValue: "Documents · {{count}} · most recent first", count: total })
+            : t("editor:ui.documents", { defaultValue: "Documents" })}
         </Caption>
       </FlexRow>
       {isPending ? (

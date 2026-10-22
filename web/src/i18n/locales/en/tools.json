@@ -11,7 +11,10 @@
     "removeServer": "Remove server?",
     "loadUnlistedPacks": "Load packs that are not on the allowlist",
     "unlistedPacksDesc": "Off in production by default. When off, only packs you've explicitly trusted will load.",
-    "removeEndpoint": "Remove endpoint?"
+    "removeEndpoint": "Remove endpoint?",
+    "claudeDesktop": "Claude Desktop",
+    "registersNodeToolDescription": "Registers NodeTool with every agent harness found on the machine. The agent starts NodeTool on demand, so this app does not need to run.",
+    "claudeDesktopBundleDescription": "Install the NodeTool extension bundled with this app. Claude Desktop opens its install dialog; confirm it there."
   },
   "ctx": {
     "audioList": "Audio List",
@@ -88,7 +91,11 @@
         "description": "Qwen models via Alibaba Cloud Model Studio."
       },
       "DATA_FOR_SEO_LOGIN": {
-        "description": "Web search via DataForSEO."
+        "description": "Web search via DataForSEO.",
+        "field": {
+          "DATA_FOR_SEO_LOGIN": "Login",
+          "DATA_FOR_SEO_PASSWORD": "Password"
+        }
       },
       "DEEPSEEK_API_KEY": {
         "description": "State-of-the-art open models."
@@ -107,13 +114,22 @@
         "description": "Google Gemini AI models and services."
       },
       "GITHUB_CLIENT_ID": {
-        "description": "OAuth App credentials for GitHub PKCE flow."
+        "description": "OAuth App credentials for GitHub PKCE flow.",
+        "name": "GitHub OAuth App",
+        "field": {
+          "GITHUB_CLIENT_ID": "Client ID",
+          "GITHUB_CLIENT_SECRET": "Client secret"
+        }
       },
       "GMI_API_KEY": {
         "description": "Open-weight LLMs through GMI's OpenAI-compatible API."
       },
       "GOOGLE_MAIL_USER": {
-        "description": "Email address and app password for Google mail integration."
+        "description": "Email address and app password for Google mail integration.",
+        "field": {
+          "GOOGLE_MAIL_USER": "Email address",
+          "GOOGLE_APP_PASSWORD": "App password"
+        }
       },
       "GROQ_API_KEY": {
         "description": "Ultra-fast LLM inference on LPU hardware."
@@ -123,7 +139,13 @@
       },
       "HIGGSFIELD_API_KEY_ID": {
         "credentialLabel": "API key",
-        "description": "Curated image and video generation models."
+        "description": "Curated image and video generation models.",
+        "field": {
+          "HIGGSFIELD_API_KEY_ID": "API key ID",
+          "HIGGSFIELD_API_KEY_SECRET": "API key secret"
+        },
+        "credentialPlaceholder": "Paste key-id:secret",
+        "credentialError": "Paste the complete Higgsfield API key in the key-id:secret format."
       },
       "JINA_API_KEY": {
         "description": "Jina embeddings and reranker models."
@@ -153,7 +175,8 @@
         "description": "Supabase service key for user-provided nodes."
       },
       "OPENAI_API_KEY": {
-        "description": "GPT models, images, embeddings, and more."
+        "description": "GPT models, images, embeddings, and more.",
+        "note": "Sign in with your ChatGPT account to use Codex models, or add an API key."
       },
       "OPENROUTER_API_KEY": {
         "description": "Access multiple AI models through one API."
@@ -201,6 +224,41 @@
       "COMFY_API_KEY": {
         "description": "Run ComfyUI workflows on Comfy's hosted GPUs with your own key.",
         "note": "Run ComfyUI workflows on Comfy's hosted GPUs with your own key."
+      },
+      "AZURE_OPENAI_API_KEY": {
+        "description": "OpenAI models deployed on Azure or Microsoft Foundry.",
+        "note": "List deployment names separated by commas, e.g. gpt-5.5, gpt-image-2.",
+        "field": {
+          "AZURE_OPENAI_ENDPOINT": "Endpoint",
+          "AZURE_OPENAI_DEPLOYMENTS": "Deployments"
+        }
+      },
+      "BEDROCK_ACCESS_KEY_ID": {
+        "description": "Claude, Llama, Mistral, Nova and image models on AWS.",
+        "field": {
+          "BEDROCK_ACCESS_KEY_ID": "Access key ID",
+          "BEDROCK_SECRET_ACCESS_KEY": "Secret access key",
+          "BEDROCK_REGION": "Region"
+        }
+      },
+      "VGENV_API_KEY": {
+        "description": "MiniMax H3 text, image, and reference video generation."
+      },
+      "REQUESTY_API_KEY": {
+        "description": "Access multiple AI models through one OpenAI-compatible router."
+      },
+      "OPPER_API_KEY": {
+        "description": "Access multiple AI models through one EU-hosted OpenAI-compatible gateway."
+      },
+      "API_ROUTE_API_KEY": {
+        "description": "Use hosted chat models through an OpenAI-compatible API."
+      },
+      "VERDA_CLIENT_ID": {
+        "description": "Cloud API client id for renting GPU instances as workers."
+      },
+      "VERDA_CLIENT_SECRET": {
+        "description": "Cloud API client secret, paired with the Verda client id.",
+        "name": "Verda (secret)"
       }
     },
     "searchProviders": {
@@ -218,11 +276,13 @@
       },
       "openai": {
         "description": "Reuses your OpenAI key. Answers in prose and cites the pages it read.",
-        "get": "Get OpenAI API Key"
+        "get": "Get OpenAI API Key",
+        "label": "OpenAI web search"
       },
       "gemini": {
         "description": "Reuses your Gemini key. Answers in prose and cites the pages it read.",
-        "get": "Get Gemini API Key"
+        "get": "Get Gemini API Key",
+        "label": "Gemini grounded search"
       },
       "serpapi": {
         "description": "Fast and reliable search API with Google, Bing, and other engines.",
@@ -256,7 +316,45 @@
     "pmSubIncluded": "Packs that ship with NodeTool. Turn a pack off to hide its nodes. A pack toggle takes effect after the server restarts. Provider nodes appear when you add their API key.",
     "pmSubPython": "Node packs from PyPI that run in the Python worker. The server restarts after you install, update or uninstall a pack.",
     "pmSubThirdparty": "Third-party packs run in-process as the server user. Only trust packs you know.",
-    "pmSubRuntimes": "Programs that run on this computer: local AI engines such as llama.cpp and stable-diffusion.cpp, media tools such as FFmpeg, and languages. Local models and some nodes need them."
+    "pmSubRuntimes": "Programs that run on this computer: local AI engines such as llama.cpp and stable-diffusion.cpp, media tools such as FFmpeg, and languages. Local models and some nodes need them.",
+    "providerOptions": "Provider options",
+    "dataAndStorage": "Data & storage",
+    "getYourApiKey": "Get your API key",
+    "loadingSettings": "Loading settings",
+    "settingsSaved": "Settings saved",
+    "discard": "Discard",
+    "couldNotSaveSettings": "Could not save settings: {{message}}",
+    "visitProviderForCredentials": "Visit {{provider}} to get your credentials",
+    "supportedModels": "Supported models",
+    "apiDocumentation": "API documentation",
+    "troubleshooting": "Troubleshooting",
+    "quickLinks": "Quick links",
+    "viewOffers": "View offers",
+    "addEndpoint": "Add endpoint",
+    "providerSavedAs": "{{name}} saved as {{providerId}}",
+    "providerIdHelper": "Provider id: {{id}}",
+    "customApiKeyHelper": "The URL and key are encrypted and stored per account. The same values can come from the environment instead, as CUSTOM_{{slug}}_BASE_URL and CUSTOM_{{slug}}_API_KEY.",
+    "removeEndpointBody": "Remove {{name}}? Workflows that reference its models stop resolving.",
+    "addServer": "Add server",
+    "externalServersCaption": "Give the agent the tools of any MCP server: Blender, Hugging Face, or a script of your own. Works with every model provider.",
+    "toolsNamedHelper": "Tools are named {{prefix}}{{id}}_<tool>",
+    "removeServerBody": "Remove {{name}}? Its tools leave the agent's toolbelt.",
+    "mcpInstalledFor": "MCP installed for {{targets}}",
+    "mcpInstallFailed": "MCP install failed: {{error}}",
+    "mcpRemovedFrom": "MCP removed from {{targets}}",
+    "extensionInstallFailed": "Extension install failed: {{error}}",
+    "agentAccessIntro": "Point Claude Code, Claude Desktop, or any MCP client at this server over HTTP. Create a token below and paste the configuration it produces.",
+    "mcpNotServed": "This server does not serve {{code}}. Set {{flag}}=1 in its environment and restart it.",
+    "noAuthModeNotice": "This server checks no credential — it trusts its own network. A token still works and is the safer choice if you reach it from anywhere but this machine.",
+    "loadingTokens": "Loading tokens",
+    "tokenMeta": "Created {{created}} · Last used {{lastUsed}} · {{expires}}",
+    "tokenExpires": "Expires {{date}}",
+    "couldNotDisconnectClient": "Could not disconnect the client: {{error}}",
+    "revokeClientBody": "{{client}} will no longer be able to reach this server. It will need to reconnect and be approved again.",
+    "noFolderSettings": "No folder settings available or defined in the 'Folders' group.",
+    "mcpIntroLead": "Use NodeTool from Claude Code, Codex, or OpenCode through the ",
+    "mcpIntroTail": ". The agent gets NodeTool workflows, media generation, assets, nodes, and collections as tools.",
+    "installOnThisMachine": "Install on this machine"
   },
   "misc": {
     "onboardingPacks": {}

@@ -30,6 +30,7 @@ async function copyText(text: string): Promise<void> {
 }
 
 const STEP_KEYS: readonly string[] = [
+  "browserExtensionStep0",
   "browserExtensionStep1",
   "browserExtensionStep2",
   "browserExtensionStep3",

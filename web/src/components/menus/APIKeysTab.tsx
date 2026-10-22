@@ -142,7 +142,7 @@ export const ProviderCard = memo(function ProviderCard({
 
   const statusTone = isUnavailable ? "warning" : "secondary";
   const statusLabel = isUnavailable
-    ? "Unavailable"
+    ? t("editor:ui.unavailable", { defaultValue: "Unavailable" })
     : isConnected
       ? t("ui2:attrs.connected", { defaultValue: "Connected" }) : i18n.t("editor:ui.notConnected", { defaultValue: "Not connected" });
 
@@ -223,10 +223,10 @@ export const ProviderCard = memo(function ProviderCard({
           }}
         >
           <FlexRow align="center" gap={SPACING.md} wrap>
-            <Text>{meta.name}</Text>
+            <Text>{meta.labelKey ? i18n.t(meta.labelKey, { defaultValue: meta.name }) : meta.name}</Text>
             {meta.tag && (
               <Chip
-                label={meta.tag}
+                label={meta.tagKey ? i18n.t(meta.tagKey, { defaultValue: meta.tag }) : meta.tag}
                 compact
                 variant="outlined"
                 color="primary"
@@ -234,7 +234,9 @@ export const ProviderCard = memo(function ProviderCard({
             )}
           </FlexRow>
           <Caption size="small" sx={{ lineHeight: 1.5 }}>
-            {meta.description}
+            {meta.descriptionKey
+              ? i18n.t(meta.descriptionKey, { defaultValue: meta.description })
+              : meta.description}
           </Caption>
           {meta.note && (
             <Caption
@@ -243,7 +245,9 @@ export const ProviderCard = memo(function ProviderCard({
                 lineHeight: 1.4
               }}
             >
-              {meta.note}
+              {meta.noteKey
+                ? i18n.t(meta.noteKey, { defaultValue: meta.note })
+                : meta.note}
             </Caption>
           )}
         </FlexColumn>
@@ -289,7 +293,10 @@ export const ProviderCard = memo(function ProviderCard({
             </Caption>
             {hasKey && !isUnavailable && secret.updated_at && (
               <Caption size="smaller" sx={{ whiteSpace: "nowrap" }}>
-                Updated {new Date(secret.updated_at).toLocaleDateString()}
+                {t("editor:ui.updatedDate", {
+                  defaultValue: "Updated {{date}}",
+                  date: new Date(secret.updated_at).toLocaleDateString()
+                })}
               </Caption>
             )}
           </FlexRow>
@@ -309,7 +316,7 @@ export const ProviderCard = memo(function ProviderCard({
                   whiteSpace: "nowrap"
                 }}
               >
-                Connected via OAuth
+                {t("editor:ui.connectedViaOAuth", { defaultValue: "Connected via OAuth" })}
               </Caption>
             </FlexRow>
           )}
@@ -323,8 +330,16 @@ export const ProviderCard = memo(function ProviderCard({
                 overflowWrap: "anywhere"
               }}
             >
-              {hasKey ? t("editor:ui.keyStored", { defaultValue: "Key stored" }) : i18n.t("editor:ui.signedIn", { defaultValue: "Signed in" })}, but this server does not
-              offer {meta.name}. Its models stay out of the model menu.
+              {t("editor:ui.serverNotOffer", {
+                defaultValue:
+                  "{{status}}, but this server does not offer {{provider}}. Its models stay out of the model menu.",
+                status: hasKey
+                  ? i18n.t("editor:ui.keyStored", { defaultValue: "Key stored" })
+                  : i18n.t("editor:ui.signedIn", { defaultValue: "Signed in" }),
+                provider: meta.labelKey
+                  ? i18n.t(meta.labelKey, { defaultValue: meta.name })
+                  : meta.name
+              })}
             </Caption>
           )}
           {testResult && (
@@ -363,7 +378,7 @@ export const ProviderCard = memo(function ProviderCard({
               window.open(meta.docsUrl, "_blank", "noopener,noreferrer")
             }
           >
-            Docs
+            {t("editor:ui.docs", { defaultValue: "Docs" })}
           </EditorButton>
 
           {meta.oauth &&
@@ -376,7 +391,7 @@ export const ProviderCard = memo(function ProviderCard({
                   startIcon={<LinkOffIcon />}
                   onClick={oauth.disconnect}
                 >
-                  Disconnect
+                  {t("editor:ui.disconnect", { defaultValue: "Disconnect" })}
                 </EditorButton>
               )
             ) : (
@@ -389,7 +404,11 @@ export const ProviderCard = memo(function ProviderCard({
                 disabled={oauth.isConnecting}
               >
                 {oauth.isConnecting
-                  ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : `Sign in with ${meta.name}`}
+                  ? t("editor:ui.connecting", { defaultValue: "Connecting…" })
+                  : t("editor:ui.signInWith", {
+                      defaultValue: "Sign in with {{provider}}",
+                      provider: meta.name
+                    })}
               </EditorButton>
             ))}
 
@@ -410,7 +429,7 @@ export const ProviderCard = memo(function ProviderCard({
                 size="small"
                 onClick={handleManage}
               >
-                Manage
+                {t("editor:ui.manage", { defaultValue: "Manage" })}
               </EditorButton>
               <ToolbarIconButton
                 tooltip={t("editor:ui.deleteKey", { defaultValue: "Delete key" })}
@@ -418,7 +437,10 @@ export const ProviderCard = memo(function ProviderCard({
                 size="small"
                 color="error"
                 onClick={handleDelete}
-                aria-label={`Delete ${meta.name} API key`}
+                aria-label={t("editor:ui.deleteApiKeyAria", {
+                  defaultValue: "Delete {{provider}} API key",
+                  provider: meta.name
+                })}
               />
             </>
           ) : (
@@ -428,7 +450,7 @@ export const ProviderCard = memo(function ProviderCard({
               size="small"
               onClick={handleConnect}
             >
-              Connect
+              {t("editor:ui.connect2", { defaultValue: "Connect" })}
             </EditorButton>
           )}
         </FlexRow>
@@ -445,13 +467,17 @@ export const ProviderCard = memo(function ProviderCard({
 });
 
 const ProviderHero = memo(function ProviderHero() {
+  const { t } = useTranslation();
   return (
     <FlexColumn gap={SPACING.md}>
       <Text component="h2" size="big">
-        Models &amp; Providers
+        {t("editor:ui.modelsProviders", { defaultValue: "Models & Providers" })}
       </Text>
       <Text color="secondary" sx={{ maxWidth: "65ch" }}>
-        Connect your accounts or add API keys to use models in your workflows.
+        {t("editor:ui.connectYourAccountsOrAddAPIKeys", {
+          defaultValue:
+            "Connect your accounts or add API keys to use models in your workflows."
+        })}
       </Text>
     </FlexColumn>
   );
@@ -489,14 +515,14 @@ const STATUS_DOT_PX = 6;
 
 const SECTION_ORDER = ["popular", "language", "media", "gateways", "search", "compute", "advanced"] as const;
 const SECTION_TITLES = {
-  popular: "Popular",
-  language: "Language models",
-  media: "Media generation",
-  gateways: "Gateways & hubs",
-  search: "Web search",
-  compute: "Compute & local",
-  advanced: "Services & advanced"
-} satisfies Record<string, string>;
+  popular: { label: "Popular", labelKey: "tools:menus.sections.popular" },
+  language: { label: "Language models", labelKey: "tools:menus.sections.language" },
+  media: { label: "Media generation", labelKey: "tools:menus.sections.media" },
+  gateways: { label: "Gateways & hubs", labelKey: "tools:menus.sections.gateways" },
+  search: { label: "Web search", labelKey: "tools:menus.sections.search" },
+  compute: { label: "Compute & local", labelKey: "tools:menus.sections.compute" },
+  advanced: { label: "Services & advanced", labelKey: "tools:menus.sections.advanced" }
+} satisfies Record<string, { label: string; labelKey: string }>;
 
 /* ------------------------------------------------------------------ */
 //  Main content
@@ -667,7 +693,13 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
         // Multi-field provider: update all fields
         const combinedValues = meta.combinedCredential?.parse(formValue);
         if (meta.combinedCredential && !combinedValues) {
-          setFormError(meta.combinedCredential.errorMessage);
+          setFormError(
+            meta.combinedCredential.errorMessageKey
+              ? i18n.t(meta.combinedCredential.errorMessageKey, {
+                  defaultValue: meta.combinedCredential.errorMessage
+                })
+              : meta.combinedCredential.errorMessage
+          );
           return;
         }
         if (
@@ -694,7 +726,11 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
 
       addNotification({
         type: "success",
-        content: `${meta?.name || editingSecret.key} API key updated`,
+        content: i18n.t("editor:ui.apiKeyUpdated", {
+          defaultValue: "{{provider}} API key updated",
+          provider: meta?.name || editingSecret.key
+        }),
+        contentKey: "editor:ui.apiKeyUpdated",
         alert: true
       });
       setDialogOpen(false);
@@ -704,7 +740,10 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
     } catch (err) {
       addNotification({
         type: "error",
-        content: `Failed to update secret: ${err instanceof Error ? err.message : String(err)}`,
+        content: i18n.t("editor:notify.failedToUpdateSecret", {
+          defaultValue: "Failed to update secret: {{message}}",
+          message: err instanceof Error ? err.message : String(err)
+        }),
         dismissable: true
       });
     }
@@ -728,13 +767,20 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
       }
       addNotification({
         type: "success",
-        content: `${meta?.name || secretToDelete.key} API key deleted`,
+        content: i18n.t("editor:ui.apiKeyDeleted", {
+          defaultValue: "{{provider}} API key deleted",
+          provider: meta?.name || secretToDelete.key
+        }),
+        contentKey: "editor:ui.apiKeyDeleted",
         alert: true
       });
     } catch (err) {
       addNotification({
         type: "error",
-        content: `Failed to delete secret: ${err instanceof Error ? err.message : String(err)}`,
+        content: i18n.t("editor:notify.failedToDeleteSecret", {
+          defaultValue: "Failed to delete secret: {{message}}",
+          message: err instanceof Error ? err.message : String(err)
+        }),
         dismissable: true
       });
     }
@@ -780,7 +826,10 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
         <EmptyState
           variant="no-results"
           title={t("editor:ui.noProvidersFound", { defaultValue: "No providers found" })}
-          description={`No providers match "${searchTerm}"`}
+          description={t("editor:ui.noProvidersMatch", {
+            defaultValue: 'No providers match "{{term}}"',
+            term: searchTerm
+          })}
         />
       )}
 
@@ -833,12 +882,15 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
         if (allInSection.length === 0) return null;
 
         const sectionTitle = SECTION_TITLES[sectionKey];
+        const sectionTitleText = i18n.t(sectionTitle.labelKey, {
+          defaultValue: sectionTitle.label
+        });
         const isAdvanced = sectionKey === "advanced";
 
         const section = (
           <div key={sectionKey}>
             <SectionTitle
-              title={sectionTitle}
+              title={sectionTitleText}
               count={allInSection.length}
             />
             <FlexColumn
@@ -869,7 +921,7 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
               key={sectionKey}
               title={
                 <SectionTitle
-                  title={sectionTitle}
+                  title={sectionTitleText}
                   count={allInSection.length}
                 />
               }
@@ -921,9 +973,15 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
               open={dialogOpen}
               onClose={handleCloseDialog}
               fullWidth
-              title={`${editingSecret?.is_configured ? t("editor:ui.update", { defaultValue: "Update" }) : i18n.t("editor:ui.connect2", { defaultValue: "Connect" })} ${
-                meta?.name || editingSecret.key
-              }`}
+              title={t("editor:ui.providerDialogAction", {
+                defaultValue: "{{action}} {{provider}}",
+                action: editingSecret?.is_configured
+                  ? i18n.t("editor:ui.update", { defaultValue: "Update" })
+                  : i18n.t("editor:ui.connect2", { defaultValue: "Connect" }),
+                provider: meta?.labelKey
+                  ? i18n.t(meta.labelKey, { defaultValue: meta.name })
+                  : meta?.name || editingSecret.key
+              })}
               onConfirm={handleSave}
               confirmText={editingSecret?.is_configured ? t("editor:ui.update", { defaultValue: "Update" }) : i18n.t("editor:ui.connect2", { defaultValue: "Connect" })}
               confirmDisabled={!allFieldsFilled}
@@ -931,7 +989,13 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
               <FlexColumn gap={SPACING.lg}>
                 {meta?.combinedCredential ? (
                   <TextInput
-                    label={meta.combinedCredential.label}
+                    label={
+                      meta.combinedCredential.labelKey
+                        ? i18n.t(meta.combinedCredential.labelKey, {
+                            defaultValue: meta.combinedCredential.label
+                          })
+                        : meta.combinedCredential.label
+                    }
                     type="password"
                     value={formValue}
                     onChange={(e) => {
@@ -939,7 +1003,13 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                       setFormError(null);
                     }}
                     fullWidth
-                    placeholder={meta.combinedCredential.placeholder}
+                    placeholder={
+                      meta.combinedCredential.placeholderKey
+                        ? i18n.t(meta.combinedCredential.placeholderKey, {
+                            defaultValue: meta.combinedCredential.placeholder
+                          })
+                        : meta.combinedCredential.placeholder
+                    }
                     autoFocus
                     variant="outlined"
                     size="small"
@@ -948,10 +1018,14 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                   />
                 ) : isMultiField ? (
                   <>
-                    {meta?.fields?.map((field, index, fields) => (
+                    {meta?.fields?.map((field, index, fields) => {
+                      const fieldLabel = field.labelKey
+                        ? i18n.t(field.labelKey, { defaultValue: field.label })
+                        : field.label;
+                      return (
                       <TextInput
                         key={field.key}
-                        label={field.label}
+                        label={fieldLabel}
                         type={field.secret ? "password" : "text"}
                         value={formValues[field.key] || ""}
                         onChange={(e) => {
@@ -962,7 +1036,10 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                           setFormError(null);
                         }}
                         fullWidth
-                        placeholder={`Enter ${field.label.toLowerCase()}`}
+                        placeholder={t("editor:ui.enterFieldPlaceholder", {
+                          defaultValue: "Enter {{field}}",
+                          field: fieldLabel.toLowerCase()
+                        })}
                         autoFocus={field.key === meta.fields?.[0]?.key}
                         variant="outlined"
                         size="small"
@@ -976,7 +1053,8 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
                             : undefined
                         }
                       />
-                    ))}
+                      );
+                    })}
                   </>
                 ) : (
                   <TextInput
@@ -1007,9 +1085,19 @@ export const APIKeysTabContent = memo(function APIKeysTabContent({
         onClose={handleCloseDelete}
         onConfirm={confirmDelete}
         title={t("editor:ui.deleteApiKeyConfirm", { defaultValue: "Delete API key?" })}
-        content={`The ${secretToDelete ? getParentProviderMeta(secretToDelete.key)?.name || secretToDelete.key : ""} API key will be removed and its models will stop working until you add a key again.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        content={t("editor:ui.deleteApiKeyBody", {
+          defaultValue:
+            "The {{provider}} API key will be removed and its models will stop working until you add a key again.",
+          provider: secretToDelete
+            ? getParentProviderMeta(secretToDelete.key)?.labelKey
+              ? i18n.t(getParentProviderMeta(secretToDelete.key)!.labelKey!, {
+                  defaultValue: getParentProviderMeta(secretToDelete.key)!.name
+                })
+              : getParentProviderMeta(secretToDelete.key)?.name || secretToDelete.key
+            : ""
+        })}
+        confirmText={t("common:action.delete", { defaultValue: "Delete" })}
+        cancelText={t("common:action.cancel", { defaultValue: "Cancel" })}
         destructive
       />
     </FlexColumn>
@@ -1048,7 +1136,10 @@ export const SecurityNotice = memo(function SecurityNotice() {
             size="smaller"
             sx={{ lineHeight: 1.4, marginTop: theme.spacing(0.5) }}
           >
-            All API keys are encrypted in the database and never exposed.
+            {t("editor:ui.allAPIKeysAreEncrypted", {
+              defaultValue:
+                "All API keys are encrypted in the database and never exposed."
+            })}
           </Caption>
           <EditorButton
             density="compact"
@@ -1064,7 +1155,7 @@ export const SecurityNotice = memo(function SecurityNotice() {
             }
             sx={{ alignSelf: "flex-start", marginTop: theme.spacing(1) }}
           >
-            Learn more
+            {t("editor:ui.learnMore", { defaultValue: "Learn more" })}
           </EditorButton>
         </FlexColumn>
       </FlexRow>
@@ -1083,19 +1174,19 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
   const quickLinks = [
     {
       icon: <ModelTrainingIcon sx={{ fontSize: "1.2em" }} />,
-      title: "Supported models",
+      title: t("tools:menus.supportedModels", { defaultValue: "Supported models" }),
       subtitle: "See models by provider", subtitleKey: "tools:menus.seeModelsByProvider",
       href: docsLink("providers")
     },
     {
       icon: <MenuBookIcon sx={{ fontSize: "1.2em" }} />,
-      title: "API documentation",
+      title: t("tools:menus.apiDocumentation", { defaultValue: "API documentation" }),
       subtitle: "Provider guides & links", subtitleKey: "tools:menus.providerGuidesLinks",
       href: docsUrl("providers")
     },
     {
       icon: <HelpOutlineIcon sx={{ fontSize: "1.2em" }} />,
-      title: "Troubleshooting",
+      title: t("tools:menus.troubleshooting", { defaultValue: "Troubleshooting" }),
       subtitle: "Common issues & fixes", subtitleKey: "tools:menus.commonIssuesFixes",
       href: docsLink("troubleshooting")
     }
@@ -1122,7 +1213,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
         }}
       >
         <Text size="small" sx={{ marginBottom: theme.spacing(3) }}>
-          Quick links
+          {t("tools:menus.quickLinks", { defaultValue: "Quick links" })}
         </Text>
         <FlexColumn sx={{ gap: theme.spacing(0.5) }}>
           {quickLinks.map((link) => (
@@ -1162,7 +1253,9 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
                 <Caption
                   sx={{ fontSize: theme.fontSizeSmaller, lineHeight: 1.3 }}
                 >
-                  {link.subtitle}
+                  {link.subtitleKey
+                    ? t(link.subtitleKey, { defaultValue: link.subtitle })
+                    : link.subtitle}
                 </Caption>
               </FlexColumn>
               <Text
@@ -1196,7 +1289,10 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
           <Text size="small">{t("editor:ui.needAPICredits", { defaultValue: "Need API credits?" })}</Text>
         </FlexRow>
         <Caption sx={{ lineHeight: 1.5, marginBottom: theme.spacing(3) }}>
-          Get free credits and offers from our partner providers.
+          {t("editor:ui.partnerCreditsBody", {
+            defaultValue:
+              "Get free credits and offers from our partner providers."
+          })}
         </Caption>
         <EditorButton
           density="compact"
@@ -1212,7 +1308,7 @@ export const APIKeysRightSidebar = memo(function APIKeysRightSidebar() {
             )
           }
         >
-          View offers
+          {t("tools:menus.viewOffers", { defaultValue: "View offers" })}
         </EditorButton>
       </Card>
     </FlexColumn>

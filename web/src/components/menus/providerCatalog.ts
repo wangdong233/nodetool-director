@@ -42,22 +42,24 @@ import gmiIcon from "../../icons/gmi.svg";
 import metaColorIcon from "../../icons/providers/meta-color.svg";
 import azureColorIcon from "../../icons/providers/azure-color.svg";
 import bedrockColorIcon from "../../icons/providers/bedrock-color.svg";
-import { i18n } from "../../i18n";
 
 
 export interface ProviderMeta {
   descriptionKey?: string;
   key: string;
   name: string;
+  labelKey?: string;
   description: string;
   section: "popular" | "language" | "media" | "gateways" | "search" | "compute" | "advanced";
   tag?: string;
+  tagKey?: string;
   docsUrl: string;
   icon?: string;
   /** Mono (single-color black) icon — needs inversion in dark mode to be visible. */
   mono?: boolean;
   /** Extra hint rendered under the description (e.g. required key scope). */
   note?: string;
+  noteKey?: string;
   /** Provider supports OAuth sign-in in place of (or alongside) an API key. */
   oauth?: "openai" | "hf" | "claude";
   /**
@@ -78,7 +80,9 @@ export interface ProviderMeta {
   combinedCredential?: {
     label: string; labelKey?: string;
     placeholder: string;
+    placeholderKey?: string;
     errorMessage: string;
+    errorMessageKey?: string;
     parse: (value: string) => Record<string, string> | null;
   };
   labelKey?: string;
@@ -131,13 +135,14 @@ export const PROVIDER_META: ProviderMeta[] = [
     name: "OpenAI",
     description: "GPT models, images, embeddings, and more.", descriptionKey: "tools:menus.providers.OPENAI_API_KEY.description",
     section: "popular",
-    tag: "Popular",
+    tag: "Popular", tagKey: "tools:menus.tags.Popular",
     docsUrl: "https://platform.openai.com/docs",
     icon: openaiIcon,
     mono: true,
     // One card for both OpenAI paths, as in provider onboarding: two cards
     // with the same logo read as a duplicate to a new user.
     note: "Sign in with your ChatGPT account to use Codex models, or add an API key.",
+    noteKey: "tools:menus.providers.OPENAI_API_KEY.note",
     oauth: "openai",
     oauthProviderId: PROVIDER_IDS.CODEX
   },
@@ -150,7 +155,8 @@ export const PROVIDER_META: ProviderMeta[] = [
     docsUrl: "https://code.claude.com/docs/en/overview",
     icon: anthropicIcon,
     mono: true,
-    note: i18n.t("tools:menus.providers.CLAUDE_SUBSCRIPTION.note", { defaultValue: "Shares the credentials used by Claude Code." }),
+    note: "Shares the credentials used by Claude Code.",
+    noteKey: "tools:menus.providers.CLAUDE_SUBSCRIPTION.note",
     oauth: "claude",
     oauthOnly: true,
     localOnly: true
@@ -226,29 +232,30 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "AZURE_OPENAI_API_KEY",
     providerId: PROVIDER_IDS.AZURE_OPENAI,
     name: "Azure OpenAI",
-    description: "OpenAI models deployed on Azure or Microsoft Foundry.",
+    description: "OpenAI models deployed on Azure or Microsoft Foundry.", descriptionKey: "tools:menus.providers.AZURE_OPENAI_API_KEY.description",
     section: "language",
     docsUrl: "https://learn.microsoft.com/azure/ai-foundry/openai/",
     icon: azureColorIcon,
     note: "List deployment names separated by commas, e.g. gpt-5.5, gpt-image-2.",
+    noteKey: "tools:menus.providers.AZURE_OPENAI_API_KEY.note",
     fields: [
       { key: "AZURE_OPENAI_API_KEY", label: "API key", labelKey: "tools:menus.providers.HIGGSFIELD_API_KEY_ID.credentialLabel", secret: true },
-      { key: "AZURE_OPENAI_ENDPOINT", label: "Endpoint" },
-      { key: "AZURE_OPENAI_DEPLOYMENTS", label: "Deployments" }
+      { key: "AZURE_OPENAI_ENDPOINT", label: "Endpoint", labelKey: "tools:menus.providers.AZURE_OPENAI_API_KEY.field.AZURE_OPENAI_ENDPOINT" },
+      { key: "AZURE_OPENAI_DEPLOYMENTS", label: "Deployments", labelKey: "tools:menus.providers.AZURE_OPENAI_API_KEY.field.AZURE_OPENAI_DEPLOYMENTS" }
     ]
   },
   {
     key: "BEDROCK_ACCESS_KEY_ID",
     providerId: PROVIDER_IDS.BEDROCK,
     name: "Amazon Bedrock",
-    description: "Claude, Llama, Mistral, Nova and image models on AWS.",
+    description: "Claude, Llama, Mistral, Nova and image models on AWS.", descriptionKey: "tools:menus.providers.BEDROCK_ACCESS_KEY_ID.description",
     section: "language",
     docsUrl: "https://docs.aws.amazon.com/bedrock/",
     icon: bedrockColorIcon,
     fields: [
-      { key: "BEDROCK_ACCESS_KEY_ID", label: "Access key ID", secret: true },
-      { key: "BEDROCK_SECRET_ACCESS_KEY", label: "Secret access key", secret: true },
-      { key: "BEDROCK_REGION", label: "Region" }
+      { key: "BEDROCK_ACCESS_KEY_ID", label: "Access key ID", labelKey: "tools:menus.providers.BEDROCK_ACCESS_KEY_ID.field.BEDROCK_ACCESS_KEY_ID", secret: true },
+      { key: "BEDROCK_SECRET_ACCESS_KEY", label: "Secret access key", labelKey: "tools:menus.providers.BEDROCK_ACCESS_KEY_ID.field.BEDROCK_SECRET_ACCESS_KEY", secret: true },
+      { key: "BEDROCK_REGION", label: "Region", labelKey: "tools:menus.providers.BEDROCK_ACCESS_KEY_ID.field.BEDROCK_REGION" }
     ]
   },
   {
@@ -360,7 +367,8 @@ export const PROVIDER_META: ProviderMeta[] = [
     section: "media",
     docsUrl: "https://fal.ai/docs",
     icon: falColorIcon,
-    note: 'For exact cost tracking, use an admin key (fal.ai dashboard → Keys → scope "Admin"). NodeTool reads each request\'s actual billing from FAL; a standard key only yields estimates.'
+    note: 'For exact cost tracking, use an admin key (fal.ai dashboard → Keys → scope "Admin"). NodeTool reads each request\'s actual billing from FAL; a standard key only yields estimates.',
+    noteKey: "tools:menus.providers.FAL_API_KEY.note"
   },
   {
     key: "REPLICATE_API_TOKEN",
@@ -420,14 +428,15 @@ export const PROVIDER_META: ProviderMeta[] = [
     section: "media",
     docsUrl: "https://docs.higgsfield.ai/",
     fields: [
-      { key: "HIGGSFIELD_API_KEY_ID", label: "API key ID", secret: true },
-      { key: "HIGGSFIELD_API_KEY_SECRET", label: "API key secret", secret: true }
+      { key: "HIGGSFIELD_API_KEY_ID", label: "API key ID", labelKey: "tools:menus.providers.HIGGSFIELD_API_KEY_ID.field.HIGGSFIELD_API_KEY_ID", secret: true },
+      { key: "HIGGSFIELD_API_KEY_SECRET", label: "API key secret", labelKey: "tools:menus.providers.HIGGSFIELD_API_KEY_ID.field.HIGGSFIELD_API_KEY_SECRET", secret: true }
     ],
     combinedCredential: {
       label: "API key", labelKey: "tools:menus.providers.HIGGSFIELD_API_KEY_ID.credentialLabel",
       placeholder: "Paste key-id:secret",
-      errorMessage:
-        "Paste the complete Higgsfield API key in the key-id:secret format.",
+      placeholderKey: "tools:menus.providers.HIGGSFIELD_API_KEY_ID.credentialPlaceholder",
+      errorMessage: "Paste the complete Higgsfield API key in the key-id:secret format.",
+      errorMessageKey: "tools:menus.providers.HIGGSFIELD_API_KEY_ID.credentialError",
       parse: parseHiggsfieldCredential
     }
   },
@@ -435,7 +444,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "VGENV_API_KEY",
     providerId: PROVIDER_IDS.VGENV,
     name: "vgenv",
-    description: "MiniMax H3 text, image, and reference video generation.",
+    description: "MiniMax H3 text, image, and reference video generation.", descriptionKey: "tools:menus.providers.VGENV_API_KEY.description",
     section: "media",
     docsUrl: "https://vgenv.com/developers/docs"
   },
@@ -502,7 +511,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "REQUESTY_API_KEY",
     providerId: PROVIDER_IDS.REQUESTY,
     name: "Requesty",
-    description: "Access multiple AI models through one OpenAI-compatible router.",
+    description: "Access multiple AI models through one OpenAI-compatible router.", descriptionKey: "tools:menus.providers.REQUESTY_API_KEY.description",
     section: "gateways",
     docsUrl: "https://docs.requesty.ai"
   },
@@ -510,7 +519,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "OPPER_API_KEY",
     providerId: PROVIDER_IDS.OPPER,
     name: "Opper",
-    description: "Access multiple AI models through one EU-hosted OpenAI-compatible gateway.",
+    description: "Access multiple AI models through one EU-hosted OpenAI-compatible gateway.", descriptionKey: "tools:menus.providers.OPPER_API_KEY.description",
     section: "gateways",
     docsUrl: "https://docs.opper.ai"
   },
@@ -518,7 +527,7 @@ export const PROVIDER_META: ProviderMeta[] = [
     key: "API_ROUTE_API_KEY",
     providerId: PROVIDER_IDS.API_ROUTE,
     name: "API Route",
-    description: "Use hosted chat models through an OpenAI-compatible API.",
+    description: "Use hosted chat models through an OpenAI-compatible API.", descriptionKey: "tools:menus.providers.API_ROUTE_API_KEY.description",
     section: "gateways",
     docsUrl: "https://www.api-route.com/docs/quickstart"
   },
@@ -550,8 +559,8 @@ export const PROVIDER_META: ProviderMeta[] = [
     section: "search",
     docsUrl: "https://docs.dataforseo.com/",
     fields: [
-      { key: "DATA_FOR_SEO_LOGIN", label: "Login" },
-      { key: "DATA_FOR_SEO_PASSWORD", label: "Password", secret: true }
+      { key: "DATA_FOR_SEO_LOGIN", label: "Login", labelKey: "tools:menus.providers.DATA_FOR_SEO_LOGIN.field.DATA_FOR_SEO_LOGIN" },
+      { key: "DATA_FOR_SEO_PASSWORD", label: "Password", labelKey: "tools:menus.providers.DATA_FOR_SEO_LOGIN.field.DATA_FOR_SEO_PASSWORD", secret: true }
     ]
   },
   {
@@ -571,14 +580,15 @@ export const PROVIDER_META: ProviderMeta[] = [
   {
     key: "VERDA_CLIENT_ID",
     name: "Verda",
-    description: "Cloud API client id for renting GPU instances as workers.",
+    description: "Cloud API client id for renting GPU instances as workers.", descriptionKey: "tools:menus.providers.VERDA_CLIENT_ID.description",
     section: "compute",
     docsUrl: "https://docs.verda.com/welcome-to-verda/api-credentials/"
   },
   {
     key: "VERDA_CLIENT_SECRET",
     name: "Verda (secret)",
-    description: "Cloud API client secret, paired with the Verda client id.",
+    labelKey: "tools:menus.providers.VERDA_CLIENT_SECRET.name",
+    description: "Cloud API client secret, paired with the Verda client id.", descriptionKey: "tools:menus.providers.VERDA_CLIENT_SECRET.description",
     section: "compute",
     docsUrl: "https://docs.verda.com/welcome-to-verda/api-credentials/"
   },
@@ -598,21 +608,22 @@ export const PROVIDER_META: ProviderMeta[] = [
     docsUrl: "https://support.google.com/mail/",
     icon: googleColorIcon,
     fields: [
-      { key: "GOOGLE_MAIL_USER", label: "Email address" },
-      { key: "GOOGLE_APP_PASSWORD", label: "App password", secret: true }
+      { key: "GOOGLE_MAIL_USER", label: "Email address", labelKey: "tools:menus.providers.GOOGLE_MAIL_USER.field.GOOGLE_MAIL_USER" },
+      { key: "GOOGLE_APP_PASSWORD", label: "App password", labelKey: "tools:menus.providers.GOOGLE_MAIL_USER.field.GOOGLE_APP_PASSWORD", secret: true }
     ]
   },
   {
     key: "GITHUB_CLIENT_ID",
     name: "GitHub OAuth App",
+    labelKey: "tools:menus.providers.GITHUB_CLIENT_ID.name",
     description: "OAuth App credentials for GitHub PKCE flow.", descriptionKey: "tools:menus.providers.GITHUB_CLIENT_ID.description",
     section: "advanced",
     docsUrl: "https://docs.github.com/en/apps/oauth-apps",
     icon: githubIcon,
     mono: true,
     fields: [
-      { key: "GITHUB_CLIENT_ID", label: "Client ID" },
-      { key: "GITHUB_CLIENT_SECRET", label: "Client secret", secret: true }
+      { key: "GITHUB_CLIENT_ID", label: "Client ID", labelKey: "tools:menus.providers.GITHUB_CLIENT_ID.field.GITHUB_CLIENT_ID" },
+      { key: "GITHUB_CLIENT_SECRET", label: "Client secret", labelKey: "tools:menus.providers.GITHUB_CLIENT_ID.field.GITHUB_CLIENT_SECRET", secret: true }
     ]
   },
   {
@@ -632,6 +643,7 @@ export const PROVIDER_META: ProviderMeta[] = [
   {
     key: "SERVER_AUTH_TOKEN",
     name: "Server auth token",
+    labelKey: "tools:menus.providers.SERVER_AUTH_TOKEN.name",
     description: "Bearer token to secure NodeTool server endpoints.", descriptionKey: "tools:menus.providers.SERVER_AUTH_TOKEN.description",
     section: "advanced",
     docsUrl: "https://github.com/nodetool-ai/nodetool"

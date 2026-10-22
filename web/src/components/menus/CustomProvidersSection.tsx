@@ -141,23 +141,26 @@ const ProviderRow = memo(function ProviderRow({
           </Caption>
           {handListed > 0 && (
             <Caption size="smaller" sx={{ opacity: 0.45 }}>
-              {handListed} model{handListed === 1 ? "" : "s"} listed by hand
+              {i18n.t("editor:ui.modelsListedByHand", {
+                defaultValue: "{{count}} model listed by hand",
+                count: handListed
+              })}
             </Caption>
           )}
           {testResult?.counts && testResult.ok && (
             <FlexRow align="center" gap={0.5} sx={{ flexWrap: "wrap" }}>
               <Chip
-                label={`Chat ${testResult.counts.language}`}
+                label={i18n.t("editor:ui.chatCount", { defaultValue: "Chat {{count}}", count: testResult.counts.language })}
                 compact
                 variant="outlined"
               />
               <Chip
-                label={`Image ${testResult.counts.image}`}
+                label={i18n.t("editor:ui.imageCount", { defaultValue: "Image {{count}}", count: testResult.counts.image })}
                 compact
                 variant="outlined"
               />
               <Chip
-                label={`Video ${testResult.counts.video}`}
+                label={i18n.t("editor:ui.videoCount", { defaultValue: "Video {{count}}", count: testResult.counts.video })}
                 compact
                 variant="outlined"
               />
@@ -191,7 +194,7 @@ const ProviderRow = memo(function ProviderRow({
           size="small"
           onClick={handleEdit}
         >
-          Edit
+          {i18n.t("editor:ui.edit", { defaultValue: "Edit" })}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -201,7 +204,7 @@ const ProviderRow = memo(function ProviderRow({
           startIcon={<DeleteIcon />}
           onClick={handleDelete}
         >
-          Remove
+          {i18n.t("editor:ui.remove", { defaultValue: "Remove" })}
         </EditorButton>
       </FlexRow>
     </Card>
@@ -262,7 +265,12 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       addNotification({
         type: "success",
         alert: true,
-        content: `${saved.name} saved as ${saved.provider_id}`
+        content: i18n.t("tools:menus.providerSavedAs", {
+          defaultValue: "{{name}} saved as {{providerId}}",
+          name: saved.name,
+          providerId: saved.provider_id
+        }),
+        contentKey: "tools:menus.providerSavedAs"
       });
       // Show right away which chat, image and video models the endpoint
       // serves, so a missed image or video model is visible before the user
@@ -413,11 +421,13 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       >
         <FlexColumn gap={0.5}>
           <Text size="normal" weight={600}>
-            OpenAI-compatible endpoints
+            {i18n.t("editor:ui.openAICompatibleEndpoints", { defaultValue: "OpenAI-compatible endpoints" })}
           </Text>
           <Caption sx={{ opacity: 0.55 }}>
-            Point NodeTool at any proxy or gateway that speaks the OpenAI API.
-            Its chat, image and video models appear in the matching nodes.
+            {i18n.t("editor:ui.pointNodeToolAtAnyProxyOrGateway", {
+              defaultValue:
+                "Point NodeTool at any proxy or gateway that speaks the OpenAI API. Its chat, image and video models appear in the matching nodes."
+            })}
           </Caption>
         </FlexColumn>
         <EditorButton
@@ -427,7 +437,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
           startIcon={<AddIcon />}
           onClick={handleAdd}
         >
-          Add endpoint
+          {i18n.t("tools:menus.addEndpoint", { defaultValue: "Add endpoint" })}
         </EditorButton>
       </FlexRow>
 
@@ -459,7 +469,7 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
         fullWidth
         title={editingSlug ? i18n.t("editor:ui.editEndpoint", { defaultValue: "Edit endpoint" }) : i18n.t("editor:ui.addOpenAICompatibleEndpoint", { defaultValue: "Add OpenAI-compatible endpoint" })}
         onConfirm={handleSave}
-        confirmText={editingSlug ? "Save" : "Add"}
+        confirmText={editingSlug ? i18n.t("editor:ui.save", { defaultValue: "Save" }) : i18n.t("editor:ui.add", { defaultValue: "Add" })}
         confirmDisabled={
           Boolean(slugError) || Boolean(urlError) || duplicateSlug
         }
@@ -488,7 +498,10 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
               duplicateSlug
                 ? i18n.t("editor:ui.thatSlugIsAlreadyInUse", { defaultValue: "That slug is already in use." }) : (slugError ?? undefined)
             }
-            helperText={`Provider id: custom_${draft.slug || "…"}`}
+            helperText={i18n.t("tools:menus.providerIdHelper", {
+              defaultValue: "Provider id: {{id}}",
+              id: `custom_${draft.slug || "…"}`
+            })}
           />
           <TextInput
             label={i18n.t("editor:ui.baseURL", { defaultValue: "Base URL" })}
@@ -512,7 +525,11 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
             }
             variant="outlined"
             size="small"
-            helperText={`The URL and key are encrypted and stored per account. The same values can come from the environment instead, as CUSTOM_${envSlug}_BASE_URL and CUSTOM_${envSlug}_API_KEY.`}
+            helperText={i18n.t("tools:menus.customApiKeyHelper", {
+              defaultValue:
+                "The URL and key are encrypted and stored per account. The same values can come from the environment instead, as CUSTOM_{{slug}}_BASE_URL and CUSTOM_{{slug}}_API_KEY.",
+              slug: envSlug
+            })}
           />
           <TextInput
             label={i18n.t("editor:ui.models", { defaultValue: "Models" })}
@@ -550,9 +567,13 @@ export const CustomProvidersSection = memo(function CustomProvidersSection() {
       <ConfirmDialog
         open={Boolean(pendingDelete)}
         title={i18n.t("tools:ui.removeEndpoint", { defaultValue: "Remove endpoint?" })}
-        content={`Remove ${pendingDelete?.name ?? ""}? Workflows that reference its models stop resolving.`}
+        content={i18n.t("tools:menus.removeEndpointBody", {
+          defaultValue:
+            "Remove {{name}}? Workflows that reference its models stop resolving.",
+          name: pendingDelete?.name ?? ""
+        })}
         confirmText={i18n.t("timeline:attrs.remove", { defaultValue: "Remove" })}
-        cancelText="Cancel"
+        cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
         destructive
         onConfirm={confirmDelete}
         onClose={handleCancelDelete}

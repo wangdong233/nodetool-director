@@ -95,7 +95,11 @@ const MCPSettingsMenu = () => {
         addNotification({
           type: "success",
           alert: true,
-          content: `MCP installed for ${ok.map((r) => r.label).join(", ")}`
+          content: i18n.t("tools:menus.mcpInstalledFor", {
+            defaultValue: "MCP installed for {{targets}}",
+            targets: ok.map((r) => r.label).join(", ")
+          }),
+          contentKey: "tools:menus.mcpInstalledFor"
         });
       }
     },
@@ -103,7 +107,10 @@ const MCPSettingsMenu = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: `MCP install failed: ${err}`
+        content: i18n.t("tools:menus.mcpInstallFailed", {
+          defaultValue: "MCP install failed: {{error}}",
+          error: String(err)
+        })
       });
     }
   });
@@ -117,7 +124,11 @@ const MCPSettingsMenu = () => {
         addNotification({
           type: "info",
           alert: true,
-          content: `MCP removed from ${ok.map((r) => r.label).join(", ")}`
+          content: i18n.t("tools:menus.mcpRemovedFrom", {
+            defaultValue: "MCP removed from {{targets}}",
+            targets: ok.map((r) => r.label).join(", ")
+          }),
+          contentKey: "tools:menus.mcpRemovedFrom"
         });
       }
     }
@@ -184,7 +195,10 @@ const MCPSettingsMenu = () => {
       addNotification({
         type: "error",
         alert: true,
-        content: `Extension install failed: ${err}`
+        content: i18n.t("tools:menus.extensionInstallFailed", {
+          defaultValue: "Extension install failed: {{error}}",
+          error: String(err)
+        })
       });
     } finally {
       setBundleBusy(false);
@@ -198,9 +212,14 @@ const MCPSettingsMenu = () => {
     >
       <div className="settings-main-content">
         <Text className="description" sx={{ mb: 1 }}>
-          Use NodeTool from Claude Code, Codex, or OpenCode through the{" "}
-          <strong>{t("editor:ui.modelContextProtocol", { defaultValue: "Model Context Protocol" })}</strong>. The agent gets NodeTool
-          workflows, media generation, assets, nodes, and collections as tools.
+          {t("tools:menus.mcpIntroLead", {
+            defaultValue: "Use NodeTool from Claude Code, Codex, or OpenCode through the "
+          })}
+          <strong>{t("editor:ui.modelContextProtocol", { defaultValue: "Model Context Protocol" })}</strong>
+          {t("tools:menus.mcpIntroTail", {
+            defaultValue:
+              ". The agent gets NodeTool workflows, media generation, assets, nodes, and collections as tools."
+          })}
         </Text>
 
         {isLoading && <LoadingSpinner size="small" />}
@@ -209,7 +228,9 @@ const MCPSettingsMenu = () => {
           <>
             <div className="settings-section">
               <Text sx={{ fontWeight: 500, mb: 0.5 }}>
-                Install on this machine
+                {t("tools:menus.installOnThisMachine", {
+                  defaultValue: "Install on this machine"
+                })}
               </Text>
               <Text className="description" sx={{ mb: 1 }}>
                 {data.defaultLaunch.startsWith("http")
@@ -309,9 +330,10 @@ const MCPSettingsMenu = () => {
         >
           <Text sx={{ fontWeight: 500, mb: 0.5 }}>{t("tools:ui.installFromTerminal", { defaultValue: "Install from a terminal" })}</Text>
           <Text className="description" sx={{ mb: 1 }}>
-            Registers NodeTool with every agent harness found on the machine.
-            The agent starts NodeTool on demand, so this app does not need to
-            run.
+            {t("tools:ui.registersNodeToolDescription", {
+              defaultValue:
+                "Registers NodeTool with every agent harness found on the machine. The agent starts NodeTool on demand, so this app does not need to run."
+            })}
           </Text>
           <FlexColumn gap={0.5}>
             <Caption>{t("tools:ui.runThis", { defaultValue: "Run this" })}</Caption>
@@ -333,10 +355,12 @@ const MCPSettingsMenu = () => {
 
         {installBundle && (
           <div className="settings-section" style={{ marginTop: getSpacingPx(SPACING.xxl) }}>
-            <Text sx={{ fontWeight: 500, mb: 0.5 }}>Claude Desktop</Text>
+            <Text sx={{ fontWeight: 500, mb: 0.5 }}>{t("tools:ui.claudeDesktop", { defaultValue: "Claude Desktop" })}</Text>
             <Text className="description" sx={{ mb: 1 }}>
-              Install the NodeTool extension bundled with this app. Claude
-              Desktop opens its install dialog; confirm it there.
+              {t("tools:ui.claudeDesktopBundleDescription", {
+                defaultValue:
+                  "Install the NodeTool extension bundled with this app. Claude Desktop opens its install dialog; confirm it there."
+              })}
             </Text>
             <FlexRow justify="flex-start">
               <NavButton
