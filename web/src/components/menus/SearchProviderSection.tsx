@@ -33,6 +33,17 @@ interface SearchProviderSectionProps {
   search?: string;
 }
 
+/** Literal i18n keys for the credential-field labels, resolved at render. */
+const SEARCH_FIELD_LABEL_KEYS: Record<string, string> = {
+  BRAVE_API_KEY: "settings:remote.BRAVE_API_KEY.label",
+  SERPAPI_API_KEY: "settings:remote.SERPAPI_API_KEY.label",
+  DATA_FOR_SEO_LOGIN: "settings:remote.DATA_FOR_SEO_LOGIN.label",
+  DATA_FOR_SEO_PASSWORD: "settings:remote.DATA_FOR_SEO_PASSWORD.label",
+  APIFY_API_TOKEN: "settings:remote.APIFY_API_TOKEN.label",
+  OPENAI_API_KEY: "settings:remote.OPENAI_API_KEY.label",
+  GEMINI_API_KEY: "settings:remote.GEMINI_API_KEY.label"
+};
+
 const SearchProviderSection = memo(function SearchProviderSection({
   settingValues,
   onChange,
@@ -63,9 +74,12 @@ const SearchProviderSection = memo(function SearchProviderSection({
     () =>
       Object.entries(PROVIDER_CONFIGS).map(([key, cfg]) => ({
         value: key,
-        label: cfg.label
+        label: cfg.labelKey
+          ? i18n.t(cfg.labelKey, { defaultValue: cfg.label })
+          : cfg.label,
+        labelKey: cfg.labelKey
       })),
-    []
+    [t]
   );
 
   const handleCredentialChange = useCallback(
@@ -87,7 +101,7 @@ const SearchProviderSection = memo(function SearchProviderSection({
   return (
     <div className="settings-section">
       <Text size="big" id="search-provider" className="settings-heading">
-        Search provider
+        {t("editor:ui.searchProvider", { defaultValue: "Search provider" })}
       </Text>
 
       <div className="settings-item large">
@@ -97,7 +111,15 @@ const SearchProviderSection = memo(function SearchProviderSection({
           value={selectedProvider}
           onChange={handleProviderChange}
           options={providerOptions}
-          description={config?.description}
+          description={
+            config
+              ? config.descriptionKey
+                ? i18n.t(config.descriptionKey, {
+                    defaultValue: config.description
+                  })
+                : config.description
+              : undefined
+          }
         />
 
         <FlexRow
@@ -146,7 +168,13 @@ const SearchProviderSection = memo(function SearchProviderSection({
                 type="password"
                 autoComplete="off"
                 id={`${field.toLowerCase()}-input`}
-                label={formatSettingLabel(field)}
+                label={
+                  SEARCH_FIELD_LABEL_KEYS[field]
+                    ? i18n.t(SEARCH_FIELD_LABEL_KEYS[field], {
+                        defaultValue: formatSettingLabel(field)
+                      })
+                    : formatSettingLabel(field)
+                }
                 value={value}
                 onChange={(
                   e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -175,9 +203,18 @@ const SearchProviderSection = memo(function SearchProviderSection({
         <Box>
           <ExternalLink
             href={config.getApiKeyUrl}
-            tooltipText={`Visit ${config.label} to get your credentials`}
+            tooltipText={t("tools:menus.visitProviderForCredentials", {
+              defaultValue: "Visit {{provider}} to get your credentials",
+              provider: config.labelKey
+                ? i18n.t(config.labelKey, { defaultValue: config.label })
+                : config.label
+            })}
           >
-            {config.getApiKeyLabel}
+            {config.getApiKeyLabelKey
+              ? i18n.t(config.getApiKeyLabelKey, {
+                  defaultValue: config.getApiKeyLabel
+                })
+              : config.getApiKeyLabel}
           </ExternalLink>
         </Box>
         </FlexColumn>

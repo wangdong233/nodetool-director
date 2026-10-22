@@ -52,7 +52,8 @@
       "providers": "模型与服务商",
       "configuration": "配置",
       "troubleshooting": "故障排查"
-    }
+    },
+    "privacy": "隐私"
   },
   "tabs": {
     "closeTab": "关闭标签页",

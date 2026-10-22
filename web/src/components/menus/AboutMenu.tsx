@@ -83,7 +83,7 @@ const InfoRow: React.FC<{
             fontFamily: "var(--fontFamily2)"
           }}
         >
-          {value || "N/A"}
+          {value || i18n.t("settings:about.na", { defaultValue: "N/A" })}
         </Text>
         {copyable && value && (
           <ContentCopyIcon
@@ -131,7 +131,7 @@ const FeatureStatus: React.FC<{
           <>
             <Chip
               icon={<CheckCircleIcon />}
-              label={version || "Available"}
+              label={version || i18n.t("settings:about.available", { defaultValue: "Available" })}
               size="small"
               color="success"
               variant="outlined"
@@ -232,8 +232,8 @@ NPM Packages: ${systemInfo.optionalNodePath}
 Features & Versions
 -------------------
 Python: ${systemInfo.pythonVersion || i18n.t("editor:ui.notAvailable", { defaultValue: "Not available" })}
-CUDA: ${systemInfo.cudaAvailable ? systemInfo.cudaVersion || "Available" : i18n.t("editor:ui.notAvailable", { defaultValue: "Not available" })}
-Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" : "Not installed"}
+CUDA: ${systemInfo.cudaAvailable ? systemInfo.cudaVersion || i18n.t("settings:about.available", { defaultValue: "Available" }) : i18n.t("editor:ui.notAvailable", { defaultValue: "Not available" })}
+Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || i18n.t("editor:ui.installed", { defaultValue: "Installed" }) : i18n.t("editor:ui.notInstalled", { defaultValue: "Not installed" })}
 `;
 
     try {
@@ -273,7 +273,9 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
         <ErrorBanner
           report={{
             source: "operation-failure",
-            summary: "System information failed to load",
+            summary: i18n.t("settings:about.sysInfoFailed", {
+              defaultValue: "System information failed to load"
+            }),
             errorText: error
           }}
         >
@@ -286,7 +288,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
   return (
     <Box>
       <Text size="big" id="application">
-        Application
+        {i18n.t("editor:ui.application2", { defaultValue: "Application" })}
       </Text>
       <div className="settings-section">
         <InfoRow label={i18n.t("timeline:attrs.version", { defaultValue: "Version" })} value={VERSION} />
@@ -296,7 +298,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
           copyable
           onCopy={handleCopy}
         />
-        <InfoRow label="Build" value={BUILD_NUMBER} />
+        <InfoRow label={i18n.t("settings:about.build", { defaultValue: "Build" })} value={BUILD_NUMBER} />
         {systemInfo && (
           <>
             <InfoRow label="Electron" value={systemInfo.electronVersion} />
@@ -307,7 +309,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
       </div>
 
       <Text size="big" id="operating-system">
-        Operating system
+        {i18n.t("settings:about.osHeading", { defaultValue: "Operating system" })}
       </Text>
       <div className="settings-section">
         {systemInfo ? (
@@ -327,7 +329,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
       {systemInfo && !isProduction && (
         <>
           <Text size="big" id="installation-paths">
-            Installation paths
+            {i18n.t("settings:about.installationPaths", { defaultValue: "Installation paths" })}
           </Text>
           <div className="settings-section">
             <InfoRow
@@ -343,7 +345,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               onCopy={handleCopy}
             />
             <InfoRow
-              label="Data"
+              label={i18n.t("settings:about.data", { defaultValue: "Data" })}
               value={systemInfo.dataPath}
               copyable
               onCopy={handleCopy}
@@ -367,7 +369,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
       {systemInfo && (
         <>
           <Text size="big" id="features">
-            Features & versions
+            {i18n.t("settings:about.featuresVersions", { defaultValue: "Features & versions" })}
           </Text>
           <div className="settings-section">
             <InfoRow label="Python" value={systemInfo.pythonVersion} />
@@ -407,13 +409,13 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
             }}
           >
             <ContentCopyIcon sx={{ fontSize: "1.2em" }} />
-            Copy all system information
+            {i18n.t("settings:about.copyAllSystemInfo", { defaultValue: "Copy all system information" })}
           </Text>
         </Box>
       )}
 
       <Text size="big" id="links">
-        Links
+        {i18n.t("settings:sidebar.aboutLinks", { defaultValue: "Links" })}
       </Text>
       <div className="settings-section">
         <FlexColumn
@@ -431,7 +433,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            GitHub repository
+            {i18n.t("settings:about.linkGithub", { defaultValue: "GitHub repository" })}
           </a>
           <a
             href="https://forum.nodetool.ai"
@@ -442,7 +444,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            NodeTool forum
+            {i18n.t("settings:about.linkForum", { defaultValue: "NodeTool forum" })}
           </a>
           <a
             href="https://nodetool.ai"
@@ -453,7 +455,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            Website
+            {i18n.t("settings:about.linkWebsite", { defaultValue: "Website" })}
           </a>
           <a
             href="https://nodetool.ai/privacy"
@@ -464,7 +466,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            Privacy policy
+            {i18n.t("settings:about.linkPrivacy", { defaultValue: "Privacy policy" })}
           </a>
           <a
             href="https://nodetool.ai/terms"
@@ -475,7 +477,7 @@ Ollama: ${systemInfo.ollamaInstalled ? systemInfo.ollamaVersion || "Installed" :
               textDecoration: "none"
             }}
           >
-            Terms of use
+            {i18n.t("settings:about.linkTerms", { defaultValue: "Terms of use" })}
           </a>
         </FlexColumn>
       </div>

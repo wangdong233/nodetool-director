@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { NumberField } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 interface NumberSettingProps {
   label: string;
@@ -21,7 +22,15 @@ export const formatRangeHint = (
   min: number,
   max: number,
   defaultValue: number
-): string => `Range ${min}–${max}, default ${defaultValue}.`;
+): string =>
+  i18n.t("settings:general.rangeHint", {
+    // The interpolation var is `dv`, not `defaultValue` — the latter is
+    // i18next's own fallback option and a duplicate key here.
+    defaultValue: "Range {{min}}–{{max}}, default {{dv}}.",
+    min,
+    max,
+    dv: defaultValue
+  });
 
 /**
  * A numeric setting field that commits on blur or Enter.

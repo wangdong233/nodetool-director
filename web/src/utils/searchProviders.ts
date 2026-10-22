@@ -16,6 +16,7 @@ export type SerpProviderId =
 interface SearchProviderConfig {
   getApiKeyLabelKey?: string;
   descriptionKey?: string;
+  labelKey?: string;
   id: SerpProviderId;
   label: string;
   description: string;
@@ -49,7 +50,7 @@ export const SEARCH_PROVIDER_CONFIGS: Record<SerpProviderId, SearchProviderConfi
       "Fast and reliable search API with Google, Bing, and other engines.", descriptionKey: "tools:menus.searchProviders.serpapi.description",
     credentialFields: ["SERPAPI_API_KEY"],
     getApiKeyUrl: "https://serpapi.com/manage-api-key",
-    getApiKeyLabel: "Get SerpAPI key"
+    getApiKeyLabel: "Get SerpAPI key", getApiKeyLabelKey: "tools:menus.searchProviders.serpapi.get"
   },
   dataforseo: {
     id: "dataforseo",
@@ -57,7 +58,7 @@ export const SEARCH_PROVIDER_CONFIGS: Record<SerpProviderId, SearchProviderConfi
     description: "Professional SEO and search intelligence platform.", descriptionKey: "tools:menus.searchProviders.dataforseo.description",
     credentialFields: ["DATA_FOR_SEO_LOGIN", "DATA_FOR_SEO_PASSWORD"],
     getApiKeyUrl: "https://app.dataforseo.com/register",
-    getApiKeyLabel: "Get DataForSEO credentials"
+    getApiKeyLabel: "Get DataForSEO credentials", getApiKeyLabelKey: "tools:menus.searchProviders.dataforseo.get"
   },
   apify: {
     id: "apify",
@@ -65,25 +66,25 @@ export const SEARCH_PROVIDER_CONFIGS: Record<SerpProviderId, SearchProviderConfi
     description: "Reliable Google search scraping via Apify actors.", descriptionKey: "tools:menus.searchProviders.apify.description",
     credentialFields: ["APIFY_API_TOKEN"],
     getApiKeyUrl: "https://console.apify.com/account/integrations",
-    getApiKeyLabel: "Get Apify API token"
+    getApiKeyLabel: "Get Apify API token", getApiKeyLabelKey: "tools:menus.searchProviders.apify.get"
   },
   openai: {
     id: "openai",
-    label: "OpenAI web search",
+    label: "OpenAI web search", labelKey: "tools:menus.searchProviders.openai.label",
     description:
       "Reuses your OpenAI key. Answers in prose and cites the pages it read.", descriptionKey: "tools:menus.searchProviders.openai.description",
     credentialFields: ["OPENAI_API_KEY"],
     getApiKeyUrl: "https://platform.openai.com/api-keys",
-    getApiKeyLabel: "Get OpenAI API key"
+    getApiKeyLabel: "Get OpenAI API key", getApiKeyLabelKey: "tools:menus.searchProviders.openai.get"
   },
   gemini: {
     id: "gemini",
-    label: "Gemini grounded search",
+    label: "Gemini grounded search", labelKey: "tools:menus.searchProviders.gemini.label",
     description:
       "Reuses your Gemini key. Answers in prose and cites the pages it read.", descriptionKey: "tools:menus.searchProviders.gemini.description",
     credentialFields: ["GEMINI_API_KEY"],
     getApiKeyUrl: "https://aistudio.google.com/app/apikey",
-    getApiKeyLabel: "Get Gemini API key"
+    getApiKeyLabel: "Get Gemini API key", getApiKeyLabelKey: "tools:menus.searchProviders.gemini.get"
   }
 };
 

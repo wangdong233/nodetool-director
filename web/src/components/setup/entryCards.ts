@@ -53,7 +53,7 @@ export const ENTRY_CARDS: readonly EntryCard[] = [
   },
   {
     id: "speech",
-    title: "Read aloud",
+    title: "Read aloud", titleKey: "editor:ui.readAloud",
     description: "Type a line and hear it spoken.", descriptionKey: "home:entry.speech.desc"
   },
   {
@@ -73,7 +73,7 @@ export const ENTRY_CARDS: readonly EntryCard[] = [
   },
   {
     id: "app",
-    title: "App",
+    title: "App", titleKey: "editor:ui.app",
     description: "A page someone else can use, with the workflow behind it built and tested."
   }
 ];

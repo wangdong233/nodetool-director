@@ -1,3 +1,4 @@
+import { i18n } from "../../i18n";
 import React, { useMemo } from "react";
 import isEqual from "../../utils/isEqual";
 import VideoModelMenuDialog from "../model_menu/VideoModelMenuDialog";
@@ -78,7 +79,7 @@ const VideoModelSelect: React.FC<VideoModelSelectProps> = ({
       <ModelSelectButton
         ref={buttonRef}
         active={!!value}
-        label={currentSelectedModelDetails?.name || value || "Select model"}
+        label={currentSelectedModelDetails?.name || value || i18n.t("editor:ui.selectModel", { defaultValue: "Select model" })}
         subLabel="Select video model"
         onClick={handleClick}
       />

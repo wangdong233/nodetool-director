@@ -307,8 +307,10 @@ const FoldersSettings = () => {
             
             return showNoSettingsMessage ? (
               <Text sx={{ textAlign: "center", padding: getSpacingPx(SPACING.xxxl) }}>
-                No folder settings available or defined in the &apos;Folders&apos;
-                group.
+                {t("tools:menus.noFolderSettings", {
+                  defaultValue:
+                    "No folder settings available or defined in the 'Folders' group."
+                })}
               </Text>
             ) : null;
           })()}

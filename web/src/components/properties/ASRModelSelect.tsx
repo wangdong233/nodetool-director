@@ -1,3 +1,4 @@
+import { i18n } from "../../i18n";
 import React, { useMemo } from "react";
 import isEqual from "../../utils/isEqual";
 import ASRModelMenuDialog from "../model_menu/ASRModelMenuDialog";
@@ -53,7 +54,7 @@ const ASRModelSelect: React.FC<ASRModelSelectProps> = ({
         active={!!value}
         label={
           currentSelectedModelDetails?.name ||
-          (value ? modelLabelFromId(value) : "Select model")
+          (value ? modelLabelFromId(value) : i18n.t("editor:ui.selectModel", { defaultValue: "Select model" }))
         }
         secondaryLabel={getProviderDisplayName(
           currentSelectedModelDetails?.provider ?? provider

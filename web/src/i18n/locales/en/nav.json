@@ -52,7 +52,8 @@
       "providers": "Models & Providers",
       "configuration": "Configuration",
       "troubleshooting": "Troubleshooting"
-    }
+    },
+    "privacy": "Privacy"
   },
   "tabs": {
     "closeTab": "Close tab",

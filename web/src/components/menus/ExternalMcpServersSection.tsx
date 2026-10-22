@@ -450,8 +450,10 @@ export const ExternalMcpServersSection = memo(
           <FlexColumn gap={0.5}>
             <Text size="big">{t("ui2:attrs.externalServers", { defaultValue: "External servers" })}</Text>
             <Caption sx={{ opacity: 0.55 }}>
-              Give the agent the tools of any MCP server: Blender, Hugging
-              Face, or a script of your own. Works with every model provider.
+              {t("tools:menus.externalServersCaption", {
+                defaultValue:
+                  "Give the agent the tools of any MCP server: Blender, Hugging Face, or a script of your own. Works with every model provider."
+              })}
             </Caption>
           </FlexColumn>
           <EditorButton
@@ -461,7 +463,7 @@ export const ExternalMcpServersSection = memo(
             startIcon={<AddIcon />}
             onClick={handleAdd}
           >
-            Add server
+            {t("tools:menus.addServer", { defaultValue: "Add server" })}
           </EditorButton>
         </FlexRow>
 
@@ -494,7 +496,7 @@ export const ExternalMcpServersSection = memo(
           fullWidth
           title={editingId ? t("editor:ui.editMcpServer", { defaultValue: "Edit MCP server" }) : i18n.t("editor:ui.addMcpServer", { defaultValue: "Add MCP server" })}
           onConfirm={handleSave}
-          confirmText={editingId ? "Save" : "Add"}
+          confirmText={editingId ? t("editor:ui.save", { defaultValue: "Save" }) : t("editor:ui.add", { defaultValue: "Add" })}
           confirmDisabled={
             Boolean(draftIdError) || Boolean(transportError) || duplicateId
           }
@@ -523,7 +525,11 @@ export const ExternalMcpServersSection = memo(
                 duplicateId
                   ? t("editor:ui.thatIdIsAlreadyInUse", { defaultValue: "That id is already in use." }) : (draftIdError ?? undefined)
               }
-              helperText={`Tools are named ${MCP_TOOL_PREFIX}${draft.id || "id"}_<tool>`}
+              helperText={t("tools:menus.toolsNamedHelper", {
+                defaultValue: "Tools are named {{prefix}}{{id}}_<tool>",
+                prefix: MCP_TOOL_PREFIX,
+                id: draft.id || "id"
+              })}
             />
             <SelectField
               label={t("editor:ui.connection", { defaultValue: "Connection" })}
@@ -623,9 +629,13 @@ export const ExternalMcpServersSection = memo(
         <ConfirmDialog
           open={Boolean(pendingDelete)}
           title={i18n.t("tools:ui.removeServer", { defaultValue: "Remove server?" })}
-          content={`Remove ${pendingDelete?.name ?? ""}? Its tools leave the agent's toolbelt.`}
-          confirmText="Remove"
-          cancelText="Cancel"
+          content={i18n.t("tools:menus.removeServerBody", {
+            defaultValue:
+              "Remove {{name}}? Its tools leave the agent's toolbelt.",
+            name: pendingDelete?.name ?? ""
+          })}
+          confirmText={i18n.t("common:action.remove", { defaultValue: "Remove" })}
+          cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
           destructive
           onConfirm={confirmDelete}
           onClose={handleCancelDelete}

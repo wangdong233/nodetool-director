@@ -6,9 +6,9 @@ export const SETTINGS_TAB_ITEMS: ReadonlyArray<{
   label: string;
  labelKey?: string; }> = [
   { value: "general", label: "General", labelKey: "nav:settings.general" },
-  { value: "providers", label: "Models & providers" },
+  { value: "providers", label: "Models & providers", labelKey: "nav:settings.docsProviders" },
   { value: "integrations", label: "Integrations", labelKey: "nav:settings.integrations" },
-  { value: "privacy", label: "Privacy" },
+  { value: "privacy", label: "Privacy", labelKey: "nav:settings.privacy" },
   { value: "about", label: "About", labelKey: "nav:settings.about" }
 ];
 

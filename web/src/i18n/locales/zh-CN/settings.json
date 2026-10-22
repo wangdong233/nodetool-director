@@ -65,7 +65,13 @@
       "LMB": "平移画布",
       "RMB": "框选节点",
       "full": "完全包含",
-      "partial": "部分相交"
+      "partial": "部分相交",
+      "dark": "深色",
+      "light": "浅色",
+      "text_small": "小",
+      "text_default": "默认",
+      "text_large": "大",
+      "text_larger": "特大"
     },
     "descUpdateChannel": "稳定版跟随正式版本。Nightly 跟随预发布的每夜构建。每夜构建默认使用 Nightly 渠道。",
     "apiIntTitle": "Nodetool API",
@@ -79,13 +85,21 @@
     "descWhenDrawingASelectionBox": "绘制选框时：“完全包含”只选中完全落入框内的节点，“部分相交”也选中与框相交的节点。",
     "lblDecodeTimelinePreview": "用 WebCodecs 解码时间线预览",
     "lblMaxRunsPerWorkflow": "每个工作流的最大并发运行数",
-    "textSize": "文字大小"
+    "textSize": "文字大小",
+    "catPrivacy": "隐私",
+    "apiIntBody": "使用 Nodetool API 以编程方式执行工作流。",
+    "apiDocsLink": "GitHub 上的 API 文档",
+    "apiTokenWarning": "此令牌用于验证你的账号。请妥善保管，切勿公开分享。",
+    "apiTokenCopied": "Nodetool API 令牌已复制到剪贴板",
+    "rangeHint": "范围 {{min}}–{{max}}，默认 {{dv}}。",
+    "couldNotSaveSetting": "无法保存 {{label}}：{{message}}"
   },
   "search": {
     "ariaLabel": "搜索设置",
     "alsoIn": "另见",
     "tabsLabel": "设置标签页",
-    "see": "见"
+    "see": "见",
+    "noMatchesIn": "{{tab}} 中无匹配项。"
   },
   "defModels": {
     "title": "默认模型",
@@ -139,7 +153,19 @@
     "confirmCompact": "压缩",
     "bytesNA": "不可用",
     "notifCompactDone": "数据库压缩完成。",
-    "confirmClean": "清理"
+    "confirmClean": "清理",
+    "statusLine": "数据库：{{size}} · {{versions}} 个工作流版本 · {{runs}} 次运行 · {{events}} 条运行事件",
+    "descCleanup": "{{count}} 条记录超出当前限制。已删除的 SQLite 页面当前占用 {{size}}，仅在压缩后归还磁盘。",
+    "descRedaction": "{{total}} 条生成记录中有 {{count}} 条仍保留提示词与参数并已超期。清理会清除这些文本，但保留计费记录。",
+    "cleanNow": "立即清理（{{count}}）",
+    "confirmCleanBody": "要移除 {{cleanup}} 条旧的工作流历史、已完成运行与运行事件记录，并从 {{redacted}} 条生成记录中清除提示词与参数吗？每条生成的计费记录会保留。当前工作流、资产、检查点与进行中的运行不受影响。",
+    "notifRemovedWithRedaction": "已移除 {{total}} 条旧历史记录，并从 {{redacted}} 条生成记录中清除了提示词数据。",
+    "notifRemoved": "已移除 {{total}} 条旧历史记录。",
+    "notifCleanupFailed": "历史清理失败：{{message}}",
+    "notifCompactFailed": "数据库压缩失败：{{message}}",
+    "notifLimitsFailed": "无法更新历史限制：{{message}}",
+    "loadingStatus": "正在加载历史状态",
+    "loadFailed": "无法加载数据库历史设置。"
   },
   "sidebar": {
     "aboutLinks": "链接",
@@ -149,7 +175,10 @@
     "aboutCatResources": "资源",
     "folders": "文件夹",
     "observability": "可观测性",
-    "other": "其他"
+    "other": "其他",
+    "connectedAccounts": "已连接账号",
+    "mcpIntegration": "MCP 集成",
+    "browserExtension": "浏览器扩展"
   },
   "remote": {
     "FONT_PATH": {
@@ -305,58 +334,201 @@
       "description": "阿里云 Model Studio（DashScope）OpenAI 兼容端点的 Base URL。Model Studio 密钥按区域生效，请设为所在区域的端点（默认 https://dashscope-intl.aliyuncs.com/compatible-mode/v1，即国际/新加坡区域）。"
     },
     "OPENAI_API_KEY": {
-      "get": "获取 OpenAI API 密钥"
+      "get": "获取 OpenAI API 密钥",
+      "button": "获取 OpenAI API 密钥",
+      "label": "OpenAI API 密钥"
     },
     "ANTHROPIC_API_KEY": {
-      "get": "获取 Anthropic API 密钥"
+      "get": "获取 Anthropic API 密钥",
+      "button": "获取 Anthropic API 密钥"
     },
     "GEMINI_API_KEY": {
-      "get": "获取 Gemini API 密钥"
+      "get": "获取 Gemini API 密钥",
+      "button": "获取 Gemini API 密钥",
+      "label": "Gemini API 密钥"
     },
     "OPENROUTER_API_KEY": {
-      "get": "获取 OpenRouter API 密钥"
+      "get": "获取 OpenRouter API 密钥",
+      "button": "获取 OpenRouter API 密钥"
     },
     "HF_TOKEN": {
-      "get": "获取 Hugging Face 令牌"
+      "get": "获取 Hugging Face 令牌",
+      "button": "获取 Hugging Face 令牌"
     },
     "REPLICATE_API_TOKEN": {
-      "get": "获取 Replicate 令牌"
+      "get": "获取 Replicate 令牌",
+      "button": "获取 Replicate API 令牌"
     },
     "GOOGLE_APP_PASSWORD": {
-      "get": "获取 Google 应用密码"
+      "get": "获取 Google 应用密码",
+      "button": "获取 Google 应用专用密码"
     },
     "ELEVENLABS_API_KEY": {
-      "get": "获取 ElevenLabs 密钥"
+      "get": "获取 ElevenLabs 密钥",
+      "button": "获取 ElevenLabs API 密钥"
     },
     "FAL_API_KEY": {
-      "get": "获取 FAL 密钥"
+      "get": "获取 FAL 密钥",
+      "button": "获取 FAL API 密钥"
     },
     "SERPAPI_API_KEY": {
-      "get": "获取 SerpAPI 密钥"
+      "get": "获取 SerpAPI 密钥",
+      "button": "获取 SerpAPI API 密钥",
+      "label": "SerpAPI API 密钥"
     },
     "DATA_FOR_SEO_LOGIN": {
-      "get": "获取 DataForSEO 登录"
+      "get": "获取 DataForSEO 登录",
+      "button": "获取 DataForSEO 凭据",
+      "label": "DataForSEO 登录名"
     },
     "BRAVE_API_KEY": {
-      "get": "获取 Brave Search 密钥"
+      "get": "获取 Brave Search 密钥",
+      "button": "获取 Brave API 密钥",
+      "label": "Brave API 密钥"
     },
     "APIFY_API_TOKEN": {
-      "get": "获取 Apify 令牌"
+      "get": "获取 Apify 令牌",
+      "button": "获取 Apify API 令牌",
+      "label": "Apify API 令牌"
     },
     "KIMI_API_KEY": {
-      "get": "获取 Moonshot（Kimi）密钥"
+      "get": "获取 Moonshot（Kimi）密钥",
+      "button": "获取 Moonshot API 密钥"
     },
     "DASHSCOPE_API_KEY": {
-      "get": "获取 DashScope 密钥"
+      "get": "获取 DashScope 密钥",
+      "button": "获取阿里云 API 密钥"
     },
     "AKI_API_KEY": {
-      "get": "获取 AKI 密钥"
+      "get": "获取 AKI 密钥",
+      "button": "获取 AKI.IO API 密钥"
+    },
+    "REQUESTY_API_KEY": {
+      "button": "获取 Requesty API 密钥"
+    },
+    "OPPER_API_KEY": {
+      "button": "获取 Opper API 密钥"
+    },
+    "API_ROUTE_API_KEY": {
+      "button": "获取 API Route 密钥"
+    },
+    "DATA_FOR_SEO_PASSWORD": {
+      "label": "DataForSEO 密码"
+    },
+    "OLLAMA_API_URL": {
+      "label": "Ollama API URL",
+      "description": "Ollama 服务器的 Base URL（默认 http://127.0.0.1:11434）。当 Ollama 运行在其他主机或端口时设置，例如在 WSL、Docker 或另一台机器上。"
+    },
+    "OLLAMA_KEEP_ALIVE": {
+      "label": "Ollama 保持加载时长",
+      "description": "请求结束后 Ollama 将模型保持加载的时长，使用 Ollama 的时长语法（默认 10m）。-1 表示一直保持加载，0 表示立即卸载。"
+    },
+    "WHISPER_CPP_MODELS_DIR": {
+      "label": "Whisper.cpp 模型目录",
+      "description": "包含本地 ggml whisper.cpp 与 VAD 模型文件的附加目录。始终会扫描 Hugging Face hub 缓存。"
+    },
+    "WHISPER_CPP_GPU_BACKEND": {
+      "label": "Whisper.cpp GPU 后端",
+      "description": "进程内 whisper.cpp 推理的后端。'auto' 在 macOS 使用 Metal，在 Windows 和 Linux 依次尝试 CUDA 构建、Vulkan 构建、默认 CPU 构建。更改后需重启后端。"
+    },
+    "WHISPER_CPP_SERVER_URL": {
+      "label": "Whisper.cpp 服务器 URL",
+      "description": "用户自建 whisper.cpp 服务器的 Base URL（如 http://127.0.0.1:8080）。"
+    },
+    "NODETOOL_TORCH_DEVICE": {
+      "label": "Nodetool PyTorch 设备",
+      "description": "Python worker 运行 PyTorch 模型的设备：cuda、cuda:N（指定 GPU）、mps 或 cpu。未设置时依次选择 MPS、CUDA、CPU。更改后需重启后端，因为 Python worker 只在启动时读取。"
+    },
+    "WAN2GP_MCP_URL": {
+      "label": "Wan2GP MCP URL",
+      "description": "Wan2GP 节点调用的 Wan2GP 服务器 MCP 端点（默认 http://127.0.0.1:7866/mcp）。节点自带的服务器 URL 字段优先于此设置。更改后需重启后端，因为 Python worker 只在启动时读取。"
+    },
+    "CLAUDE_CLI_PATH": {
+      "label": "Claude CLI 路径",
+      "description": "Claude Agent 服务商运行的 Claude Code CLI（claude）路径。留空则从 PATH 或常见安装位置查找（~/.local/bin、~/.claude/local、Homebrew、npm）。"
+    },
+    "SD_CPP_SERVER_PATH": {
+      "label": "sd.cpp 服务器路径",
+      "description": "stable-diffusion.cpp 服务商所用的 sd-server 可执行文件路径。未设置时依次使用 stable-diffusion.cpp 包安装的 sd-server、PATH 中的可执行文件。"
+    },
+    "AZURE_OPENAI_API_VERSION": {
+      "label": "Azure OpenAI API 版本",
+      "description": "Azure OpenAI API 版本，例如 2025-04-01-preview。留空则使用无需版本号的 v1 API"
+    },
+    "BEDROCK_MODEL_IDS": {
+      "label": "Bedrock 模型 ID",
+      "description": "逗号分隔的 Bedrock 模型或推理配置 ID，例如 eu.anthropic.claude-sonnet-4-6。留空则列出该区域提供的全部模型"
+    },
+    "USEAPI_GOOGLE_FLOW_EMAIL": {
+      "label": "Useapi Google Flow 邮箱",
+      "description": "用于参考图上传的 Google Flow 账号邮箱"
+    },
+    "USEAPI_DREAMINA_ACCOUNT": {
+      "label": "Useapi Dreamina 账号",
+      "description": "用于参考图上传的 Dreamina 账号 ID（区域:邮箱）"
     }
   },
   "privacy": {
     "shareAnonymousStats": "分享匿名使用统计",
     "noEventsYet": "本次会话还没有记录任何事件。",
     "nothingRecorded": "使用统计关闭期间不记录任何内容。",
-    "usageStatistics": "使用统计"
+    "usageStatistics": "使用统计",
+    "secProductAnalytics": "产品分析",
+    "secWhatCollected": "收集哪些信息",
+    "secDiagnostics": "诊断",
+    "secDiagnosticsCrash": "诊断与崩溃报告",
+    "secRecentEvents": "最近事件",
+    "descShareStats": "默认关闭。仅适用于{{client}}。登录或退出不会改变该设置，也绝不会延续到其他 NodeTool 应用。",
+    "turningOffDeletes": "关闭后会立即从此浏览器删除匿名 ID 及所有未发送的事件。",
+    "analyticsUnavailable": "此浏览器阻止了本地存储，分析功能不可用。不会发送任何数据。",
+    "whenOn": "开启时",
+    "never": "绝不",
+    "collected1": "发送事件的应用类型（云端、桌面、本地网页）、应用版本和操作系统家族。",
+    "collected2": "应用启动、创建了工作流或运行了工作流。",
+    "collected3": "一次运行：本地还是云端、节点数量区间（如 6-20）、时长区间，以及失败时的类别（如服务商或超时）。",
+    "collected4": "保存在此浏览器中的随机 ID（每 30 天更换），以及本次会话的随机 ID。",
+    "neverCollected1": "你的账号、邮箱、姓名、组织，或任何项目/工作流 ID。",
+    "neverCollected2": "提示词、工作流内容、节点设置、文件名、路径或输出。",
+    "neverCollected3": "IP 地址、主机名、端口、页面 URL 或浏览器 User-Agent。",
+    "neverCollected4": "按键、页面点击、屏幕录制或错误消息。",
+    "eventsForwardNote": "事件发送到此应用自己的服务器，服务器会对照固定清单检查，不转发其他任何内容。原始事件 30 天后删除，此后只保留每日计数。",
+    "diagnosticsBody": "NodeTool 不收集诊断信息或崩溃报告。它们需要单独征得你的许可，与使用统计分开。",
+    "resetAnonymousId": "重置匿名 ID",
+    "client": {
+      "cloudWeb": "此浏览器中的 NodeTool Cloud",
+      "localDesktop": "此电脑上的 NodeTool 桌面应用",
+      "localWeb": "此浏览器中的本地 NodeTool 网页应用",
+      "npmCli": "nodetool 命令行",
+      "cloudBackend": "NodeTool Cloud 服务器"
+    }
+  },
+  "about": {
+    "osHeading": "操作系统",
+    "featuresVersions": "功能与版本",
+    "installationPaths": "安装路径",
+    "build": "构建号",
+    "data": "数据",
+    "copyAllSystemInfo": "复制全部系统信息",
+    "available": "可用",
+    "na": "无",
+    "sysInfoFailed": "系统信息加载失败",
+    "linkGithub": "GitHub 仓库",
+    "linkForum": "NodeTool 论坛",
+    "linkWebsite": "官方网站",
+    "linkPrivacy": "隐私政策",
+    "linkTerms": "使用条款"
+  },
+  "accounts": {
+    "loading": "正在加载已连接账号",
+    "connectedAs": "已连接为 Telegram 账号 {{id}}",
+    "linkedAt": "关联于 {{date}}",
+    "confirmDisconnect": "要断开此账号吗？机器人将不再回复它。",
+    "keep": "保留",
+    "disconnectFailed": "无法断开此账号，请重试。",
+    "telegramPitch": "关联你的 Telegram 账号，即可在 Telegram 中与你的 NodeTool 智能体对话。你的会话、资产与额度始终归你所有。",
+    "connectTelegram": "连接 Telegram",
+    "startFailed": "无法开始关联，请重试。",
+    "openTelegramStart": "打开 Telegram 并按 Start",
+    "noBotUsername": "此服务器不知道其机器人的用户名，因此没有可打开的链接。请自行向机器人发送 /start {{code}}。"
   }
 }
