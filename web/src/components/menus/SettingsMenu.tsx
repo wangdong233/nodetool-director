@@ -142,10 +142,17 @@ const THEME_MODE_OPTIONS = [
   { value: "light", label: "Light", labelKey: "settings:general.opts.light" }
 ] as const;
 
+const TEXT_SIZE_LABEL_KEYS: Record<TextSize, string> = {
+  small: "settings:general.opts.text_small",
+  default: "settings:general.opts.text_default",
+  large: "settings:general.opts.text_large",
+  larger: "settings:general.opts.text_larger"
+};
+
 const TEXT_SIZE_OPTIONS = TEXT_SIZES.map((size) => ({
   value: size,
   label: TEXT_SIZE_LABELS[size],
-  labelKey: `settings:general.opts.text_${size}`
+  labelKey: TEXT_SIZE_LABEL_KEYS[size]
 }));
 
 const TIME_FORMAT_OPTIONS = [
