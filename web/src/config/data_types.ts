@@ -888,6 +888,8 @@ export function labelForType(type: string): string {
  * `labelForType` stays untranslated because callers build node-type
  * identifiers (e.g. `nodetool.${label}Input`) from its result.
  */
+// fork:fork-fix/catalog-bare-keys — rows feed BARE labelKeys here; qualified
+// keys compose garbage (2026-10-20 third instance of the RC-1 class)
 export function displayLabelForType(type: string): string {
   const n = normalizeTypeName(type.replace(/^nodetool\./, ""));
   const hit = bundledDataTypeForTypeName(n);

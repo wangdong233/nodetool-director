@@ -44,6 +44,8 @@ const SettingsSidebar = ({
           {section.category ? (
             <p className="settings-sidebar-category">
               <span className="settings-sidebar-category-label">
+                {/* fork:fork-fix/sidebar-key-convention — RC-1 (2026-10-20): pass the key
+                    straight to t(); NEVER feed qualified keys into a template composer */}
                 {section.categoryKey ? t(section.categoryKey, { defaultValue: section.category }) : section.category}
               </span>
             </p>
@@ -60,6 +62,7 @@ const SettingsSidebar = ({
                   aria-current={isActive ? "true" : undefined}
                   onClick={handleItemClick}
                 >
+                  {/* fork:fork-fix/sidebar-key-convention */}
                   {item.labelKey ? t(item.labelKey, { defaultValue: item.label }) : item.label}
                 </button>
               );
