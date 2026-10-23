@@ -78,7 +78,10 @@ and why) lives in [i18n/COVERAGE.md](i18n/COVERAGE.md).
   `npm run i18n:preflight` for frozen-pattern and key-composition checks,
   `npm run i18n:audit` for a report of remaining bare strings, and
   `npm run i18n:blast` (dev server up) for a visibility-asserted scan of
-  rendered routes with zh active.
+  rendered routes with zh active, and `npm run i18n:walk` for the gated
+  surfaces (the settings page is a workspace tab behind the first-run
+  dialog — the walk dismisses it deterministically and scans every
+  settings tab with the single-word-aware detector).
 - **Behavior preservation**: i18n wiring must not change functionality.
   Context-bound hooks (Puck, ReactFlow) only work inside their host trees,
   and modules importing `i18n/` must never enter web-worker module graphs —

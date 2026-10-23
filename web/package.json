@@ -141,7 +141,8 @@
     "i18n:gate": "node scripts/i18n-commit-gate.mjs",
     "i18n:preflight": "node scripts/i18n-preflight.mjs",
     "i18n:audit": "node scripts/i18n-bare-audit.mjs",
-    "i18n:blast": "node scripts/i18n-blast-scan.mjs"
+    "i18n:blast": "node scripts/i18n-blast-scan.mjs",
+    "i18n:walk": "node scripts/i18n-deep-walk.mjs"
   },
   "browserslist": {
     "production": [
