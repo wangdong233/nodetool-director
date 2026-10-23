@@ -11,33 +11,38 @@ import {
   ListSubheader,
   MenuItemPrimitive
 } from "../../ui_primitives";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 interface LevelItem {
   id: ReasoningEffort | null;
   label: string;
+  /** i18n key for `label`, resolved at render time. */
+  labelKey: string;
   description: string;
+  /** i18n key for `description`, resolved at render time. */
+  descriptionKey: string;
 }
 
 const LEVELS: LevelItem[] = [
   {
     id: null,
-    label: "Default",
-    description: "The model's own setting."
+    label: "Default", labelKey: "editor:ui.reasoningDefault",
+    description: "The model's own setting.", descriptionKey: "editor:ui.reasoningDefaultDesc"
   },
   {
     id: "low",
-    label: "Low",
-    description: "Answers fast with little reasoning."
+    label: "Low", labelKey: "editor:ui.reasoningLow",
+    description: "Answers fast with little reasoning.", descriptionKey: "editor:ui.reasoningLowDesc"
   },
   {
     id: "medium",
-    label: "Medium",
-    description: "Balances speed and depth."
+    label: "Medium", labelKey: "editor:ui.reasoningMedium",
+    description: "Balances speed and depth.", descriptionKey: "editor:ui.reasoningMediumDesc"
   },
   {
     id: "high",
-    label: "High",
-    description: "Reasons longest. Slower and costs more."
+    label: "High", labelKey: "editor:ui.reasoningHigh",
+    description: "Reasons longest. Slower and costs more.", descriptionKey: "editor:ui.reasoningHighDesc"
   }
 ];
 
@@ -63,6 +68,9 @@ const ReasoningSelector: React.FC<ReasoningSelectorProps> = ({
   const [open, setOpen] = useState(false);
   const effort = useGlobalChatStore((s) => s.reasoningEffort);
   const setReasoningEffort = useGlobalChatStore((s) => s.setReasoningEffort);
+  // Re-renders the chip when the app language changes (labels resolve
+  // through the module-level catalog above).
+  useAppLanguage();
 
   const handleSelect = useCallback(
     (next: ReasoningEffort | null) => {
@@ -77,6 +85,7 @@ const ReasoningSelector: React.FC<ReasoningSelectorProps> = ({
   }
 
   const active = LEVELS.find((level) => level.id === effort) ?? LEVELS[0];
+  const activeLabel = i18n.t(active.labelKey, { defaultValue: active.label });
 
   return (
     <>
@@ -84,8 +93,8 @@ const ReasoningSelector: React.FC<ReasoningSelectorProps> = ({
         ref={buttonRef}
         className="reasoning-selector-trigger"
         icon={<PsychologyIcon fontSize="small" />}
-        label={compact ? undefined : active.label}
-        title={`Reasoning: ${active.label}`}
+        label={compact ? undefined : activeLabel}
+        title={i18n.t("editor:ui.reasoningWithLevel", { defaultValue: "Reasoning: {{level}}", level: activeLabel })}
         active={open}
         showChevron
         onClick={() => setOpen(true)}
@@ -98,14 +107,14 @@ const ReasoningSelector: React.FC<ReasoningSelectorProps> = ({
         transformOrigin={{ vertical: "bottom", horizontal: "left" }}
         minWidth={240}
         paperSx={{ maxWidth: 320 }}
-        slotProps={{ list: { "aria-label": "Reasoning level" } }}
+        slotProps={{ list: { "aria-label": i18n.t("editor:ui.reasoningLevel", { defaultValue: "Reasoning level" }) } }}
       >
-        <ListSubheader>Reasoning</ListSubheader>
+        <ListSubheader>{i18n.t("editor:ui.reasoning", { defaultValue: "Reasoning" })}</ListSubheader>
         {LEVELS.map((level) => (
           <MenuItemPrimitive
             key={level.label}
-            label={level.label}
-            secondary={level.description}
+            label={i18n.t(level.labelKey, { defaultValue: level.label })}
+            secondary={i18n.t(level.descriptionKey, { defaultValue: level.description })}
             checkable="radio"
             checked={level.id === effort}
             onClick={() => handleSelect(level.id)}

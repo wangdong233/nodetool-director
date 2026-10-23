@@ -376,7 +376,7 @@ export const PanelBodyContent = memo(function PanelBodyContent({
         />
       );
     case "trace":
-      return <PanelErrorBoundary panelName="Run trace"><TracePanel workflowId={currentWorkflowId} /></PanelErrorBoundary>;
+      return <PanelErrorBoundary panelName={t("editor:ui.runTrace", { defaultValue: "Run trace" })}><TracePanel workflowId={currentWorkflowId} /></PanelErrorBoundary>;
     default:
       return null;
   }

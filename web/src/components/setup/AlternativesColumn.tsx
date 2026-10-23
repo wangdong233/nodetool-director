@@ -14,6 +14,7 @@
 
 import React, { memo } from "react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Box, Caption, FlexColumn, FlexRow, GAP, Text } from "../ui_primitives";
 import { SetupCardButton } from "./SetupCardButton";
@@ -50,44 +51,51 @@ const AlternativesColumnInternal: React.FC<AlternativesColumnProps> = ({
   label,
   showLabel = false,
   alternatives
-}) => (
-  <FlexColumn gap={GAP.comfortable}>
-    {showLabel ? (
-      <Caption component="p" color="muted">
-        {label}
-      </Caption>
-    ) : null}
-    <FlexColumn
-      component="ul"
-      aria-label={label}
-      gap={GAP.comfortable}
-      sx={{ listStyle: "none", margin: 0, padding: 0, "& li": { listStyle: "none" } }}
-    >
-      {alternatives.map((alternative) => (
-        <Box component="li" key={alternative.id}>
-          <SetupCardButton
-            role="navigation"
-            disabled={alternative.disabled}
-            disabledReason={alternative.disabledReason}
-            onSelect={alternative.onSelect}
-          >
-            <FlexRow gap={GAP.normal} align="flex-start">
-              {alternative.icon}
-              <FlexColumn gap={GAP.micro}>
-                <Text size="normal" component="span">
-                  {alternative.title}
-                </Text>
-                <Caption component="span" color="secondary">
-                  {alternative.description}
-                </Caption>
-              </FlexColumn>
-            </FlexRow>
-          </SetupCardButton>
-        </Box>
-      ))}
+}) => {
+  const { t } = useTranslation();
+  return (
+    <FlexColumn gap={GAP.comfortable}>
+      {showLabel ? (
+        <Caption component="p" color="muted">
+          {label}
+        </Caption>
+      ) : null}
+      <FlexColumn
+        component="ul"
+        aria-label={label}
+        gap={GAP.comfortable}
+        sx={{ listStyle: "none", margin: 0, padding: 0, "& li": { listStyle: "none" } }}
+      >
+        {alternatives.map((alternative) => (
+          <Box component="li" key={alternative.id}>
+            <SetupCardButton
+              role="navigation"
+              disabled={alternative.disabled}
+              disabledReason={alternative.disabledReason}
+              onSelect={alternative.onSelect}
+            >
+              <FlexRow gap={GAP.normal} align="flex-start">
+                {alternative.icon}
+                <FlexColumn gap={GAP.micro}>
+                  <Text size="normal" component="span">
+                    {alternative.titleKey
+                      ? t(alternative.titleKey, { defaultValue: alternative.title })
+                      : alternative.title}
+                  </Text>
+                  <Caption component="span" color="secondary">
+                    {alternative.descriptionKey
+                      ? t(alternative.descriptionKey, { defaultValue: alternative.description })
+                      : alternative.description}
+                  </Caption>
+                </FlexColumn>
+              </FlexRow>
+            </SetupCardButton>
+          </Box>
+        ))}
+      </FlexColumn>
     </FlexColumn>
-  </FlexColumn>
-);
+  );
+};
 
 export const AlternativesColumn = memo(AlternativesColumnInternal);
 AlternativesColumn.displayName = "AlternativesColumn";

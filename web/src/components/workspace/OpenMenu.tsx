@@ -152,7 +152,11 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
             // "image", …); duplicate keys left guided rows behind in the
             // submenus.
             key={`guided-${starter.id}`}
-            label={starter.title}
+            label={
+              starter.titleKey
+                ? t(starter.titleKey, { defaultValue: starter.title })
+                : starter.title
+            }
             icon={
               starting === starter.id ? (
                 <LoadingSpinner size="small" />
@@ -161,7 +165,11 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
               )
             }
             secondary={
-              starting === starter.id ? t("editor:ui.creating", { defaultValue: "Creating…" }) : starter.description
+              starting === starter.id
+                ? t("editor:ui.creating", { defaultValue: "Creating…" })
+                : starter.descriptionKey
+                  ? t(starter.descriptionKey, { defaultValue: starter.description })
+                  : starter.description
             }
             onClick={() => void starter.start()}
             disabled={busy}
@@ -169,7 +177,7 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
         )),
         <Divider key="blank-divider" className="open-menu-section-divider" />,
         <ListSubheader key="blank-label" className="open-menu-blank-section">
-          Blank documents
+          {t("editor:ui.blankDocuments", { defaultValue: "Blank documents" })}
         </ListSubheader>,
         ...entries.map((entry) => (
           <MenuItemPrimitive

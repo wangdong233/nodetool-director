@@ -39,6 +39,7 @@ const DOC_TAB_DEFAULTS: Partial<
   // catalog's stored title, while the runtime thread title constants (Global
   // ChatStore, chatProtocol, threadUtils) default to "New conversation".
   chat: {
+    Chat: "editor:ui.chat",
     "New chat": "nav:qa.chats.label",
     "New conversation": "editor:ui.newConversation"
   },

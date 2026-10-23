@@ -85,14 +85,14 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
       },
       {
         key: "examples",
-        label: "Examples",
+        label: "Examples", labelKey: "nav:rail.examples",
         icon: <AutoAwesomeOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("examples")
       },
       {
         key: "costs",
-        label: "Costs",
+        label: "Costs", labelKey: "nav:rail.costs",
         icon: <PaidOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("costs"),
@@ -107,7 +107,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     if (!cloud) {
       actions.push({
         key: "models",
-        label: "Model manager",
+        label: "Model manager", labelKey: "editor:ui.modelManager",
         icon: <ViewInArOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("models")
@@ -117,7 +117,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     if (!isProduction) {
       actions.push({
         key: "packages",
-        label: "Package manager",
+        label: "Package manager", labelKey: "nav:rail.packages",
         icon: <Inventory2OutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("packages")
@@ -134,21 +134,21 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
       },
       {
         key: "collections",
-        label: "Collections",
+        label: "Collections", labelKey: "nav:rail.collections",
         icon: <LibraryBooksOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("collections")
       },
       {
         key: "workspaces",
-        label: "Workspaces",
+        label: "Workspaces", labelKey: "nav:rail.workspaces",
         icon: <FolderSpecialOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("workspaces")
       },
       {
         key: "memory",
-        label: "Memory",
+        label: "Memory", labelKey: "nav:rail.memory",
         icon: <PsychologyOutlinedIcon />,
         placement: "sidebar",
         onClick: () => openPage("memory"),
@@ -176,7 +176,7 @@ export const useAppMenuActions = (onFinish?: () => void): AppMenuAction[] => {
     if (!cloud) {
       actions.push({
         key: "downloads",
-        label: "Downloads",
+        label: "Downloads", labelKey: "nav:rail.downloads",
         icon: <DownloadIcon />,
         placement: "logo",
         onClick: () => {

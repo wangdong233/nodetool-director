@@ -649,7 +649,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
       <ModelMenuNavItem
         className="model-menu__quick-view model-menu__quick-view--favorites"
         orientation={railOrientation}
-        label="Favorites"
+        label={i18n.t("editor:ui.favorites", { defaultValue: "Favorites" })}
         icon={<StarIcon />}
         selected={customView === "favorites"}
         onClick={handleSetFavoritesView}
@@ -658,7 +658,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
       <ModelMenuNavItem
         className="model-menu__quick-view model-menu__quick-view--recent"
         orientation={railOrientation}
-        label="Recent"
+        label={i18n.t("editor:ui.recent", { defaultValue: "Recent" })}
         icon={<HistoryIcon />}
         selected={customView === "recent"}
         onClick={handleSetRecentView}
@@ -1008,7 +1008,7 @@ function ModelMenuDialogBase<TModel extends ModelSelectorModel>({
           startIcon={<AddIcon />}
           onClick={openSetup}
         >
-          Add providers
+          {i18n.t("ui2:attrs.addProviders", { defaultValue: "Add providers" })}
         </EditorButton>
       </FlexRow>
     </Popover>

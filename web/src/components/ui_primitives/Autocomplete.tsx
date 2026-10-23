@@ -13,6 +13,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 import { Label } from "./Label";
 
 export interface AutocompleteOption {
@@ -95,6 +96,7 @@ function AutocompleteInternal<
   ...props
 }: AutocompleteProps<T, Multiple, FreeSolo>) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const reactId = useId();
   // MUI Autocomplete owns its input's id (via params.inputProps), so the
   // label must target the Autocomplete id, not a TextField override.
@@ -144,6 +146,12 @@ function AutocompleteInternal<
         id={fieldId}
         size={effectiveSize}
         renderInput={renderInput || defaultRenderInput}
+        // MUI's defaults are hard-coded English ("Open"/"Close"/"Clear") on
+        // the popup and clear indicator buttons, which are user-visible
+        // accessible names. Localized unless the caller overrides the prop.
+        openText={t("common:action.open", { defaultValue: "Open" })}
+        closeText={t("common:action.close", { defaultValue: "Close" })}
+        clearText={t("common:action.clear", { defaultValue: "Clear" })}
         {...props}
       />
     </Box>

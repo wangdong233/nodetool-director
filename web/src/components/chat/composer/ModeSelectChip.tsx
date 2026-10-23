@@ -17,7 +17,7 @@ import VideocamIcon from "@mui/icons-material/Videocam";
 import MediaControlChip from "./MediaControlChip";
 import MediaModeMenu from "./MediaModeMenu";
 import type { MediaMode } from "../../../stores/MediaGenerationStore";
-import { i18n } from "../../../i18n";
+import { i18n, useAppLanguage } from "../../../i18n";
 
 export function modeIconFor(mode: MediaMode): React.ReactNode {
   if (mode === "music") return <AudiotrackIcon fontSize="small" />;
@@ -45,39 +45,38 @@ export function modeIconFor(mode: MediaMode): React.ReactNode {
   return <AutoAwesomeIcon fontSize="small" />;
 }
 
+/**
+ * One row per media mode: the English label plus its catalog key, resolved at
+ * render time so the chip follows the language switcher. Standard Latin terms
+ * (Image→Video etc.) carry keys whose zh value keeps the Latin form.
+ */
+const MODE_LABELS: Record<MediaMode, { label: string; labelKey: string }> = {
+  music: { label: "Music", labelKey: "editor:ui.music" },
+  image: { label: "Image", labelKey: "editor:ui.image" },
+  image_edit: { label: "Image edit", labelKey: "editor:ui.imageEditMode" },
+  video: { label: "Video", labelKey: "editor:ui.video" },
+  image_to_video: {
+    label: "Image→Video",
+    labelKey: "editor:ui.imageToVideoShort"
+  },
+  reference_to_video: {
+    label: "Refs→Video",
+    labelKey: "editor:ui.refsToVideo"
+  },
+  audio: { label: "Speech", labelKey: "editor:ui.speech" },
+  chat: { label: "Chat", labelKey: "editor:ui.chat" },
+  audio_to_video: {
+    label: "Audio→Video",
+    labelKey: "editor:ui.audioToVideoShort"
+  },
+  retake: { label: "Retake", labelKey: "editor:ui.retake" },
+  extend: { label: "Extend", labelKey: "editor:ui.extend" },
+  motion: { label: "Motion", labelKey: "editor:ui.motion" }
+};
+
 export function modeLabelFor(mode: MediaMode): string {
-  if (mode === "music") return "Music";
-  if (mode === "image") {
-    return "Image";
-  }
-  if (mode === "image_edit") {
-    return "Image edit";
-  }
-  if (mode === "video") {
-    return "Video";
-  }
-  if (mode === "image_to_video") {
-    return i18n.t("editor:ui.imageToVideoShort", { defaultValue: "Image→Video" });
-  }
-  if (mode === "reference_to_video") {
-    return i18n.t("editor:ui.refsToVideo", { defaultValue: "Refs→Video" });
-  }
-  if (mode === "audio") {
-    return "Speech";
-  }
-  if (mode === "chat") {
-    return "Chat";
-  }
-  if (mode === "audio_to_video") {
-    return i18n.t("editor:ui.audioToVideoShort", { defaultValue: "Audio→Video" });
-  }
-  if (mode === "retake") {
-    return "Retake";
-  }
-  if (mode === "extend") {
-    return "Extend";
-  }
-  return "Motion";
+  const entry = MODE_LABELS[mode];
+  return i18n.t(entry.labelKey, { defaultValue: entry.label });
 }
 
 interface ModeSelectChipProps {
@@ -96,6 +95,9 @@ export function ModeSelectChip({
   compact = false
 }: ModeSelectChipProps) {
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
+  // The label resolves through the module-level catalog; this subscription
+  // re-renders the chip when the app language changes.
+  useAppLanguage();
   const close = useCallback(() => setAnchor(null), []);
   const label = modeLabelFor(mode);
 

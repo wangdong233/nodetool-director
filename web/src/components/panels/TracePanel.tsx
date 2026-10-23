@@ -397,7 +397,7 @@ function RunPicker({ runs, value, onChange }: RunPickerProps): React.ReactElemen
     return runTitle(run, workflowId ? queryClient.getQueryData<Workflow>(workflowQueryKey(workflowId))?.name : undefined);
   };
   return <Autocomplete<RunRecord, false, false>
-    label="Run" size="small" sx={PICKER_SX} options={runs} value={runs.find((run) => run.id === value) ?? null}
+    label={i18n.t("editor:ui.run", { defaultValue: "Run" })} size="small" sx={PICKER_SX} options={runs} value={runs.find((run) => run.id === value) ?? null}
     noOptionsText={i18n.t("editor:ui.noMatchingRuns", { defaultValue: "No matching runs" })} placeholder={i18n.t("editor:ui.noRecentRuns", { defaultValue: "No recent runs" })}
     getOptionLabel={(run) => `${titleOf(run)} · ${run.status} · ${relativeTime(run.started_at)}`}
     isOptionEqualToValue={(option, selected) => option.id === selected.id}
