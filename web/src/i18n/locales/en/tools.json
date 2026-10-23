@@ -47,7 +47,7 @@
     "groupContainerForNodes": "Group container for nodes",
     "imageFileInput": "Image file input",
     "includeTheVersionPathTheEndpointServesUsuallyV1": "Include the version path the endpoint serves, usually /v1.",
-    "localModelServers": "Local Model Servers",
+    "localModelServers": "Local model servers",
     "npmPackages": "NPM packages",
     "observability": "Observability",
     "oneArgumentPerLineSoAPathWithASpaceStaysOneArgument": "One argument per line, so a path with a space stays one argument.",
