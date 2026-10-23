@@ -85,7 +85,6 @@ export interface ProviderMeta {
     errorMessageKey?: string;
     parse: (value: string) => Record<string, string> | null;
   };
-  labelKey?: string;
   /**
    * The registry provider this card credentials, when there is one. A card can
    * hold a valid credential for a provider the server does not offer — a cloud
