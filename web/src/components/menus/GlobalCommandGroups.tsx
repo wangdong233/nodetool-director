@@ -87,6 +87,8 @@ const uniqueValues = (labels: readonly string[]): string[] => {
 
 /** The open tabs of the current project, so any tab is a few keys away. */
 export const SwitchTabCommands = memo(function SwitchTabCommands() {
+  const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const tabs = useWorkspaceTabsStore((state) => state.tabs);
   const activeTabId = useWorkspaceTabsStore((state) => state.activeTabId);
   const activeProjectId = useWorkspaceTabsStore(
@@ -108,8 +110,17 @@ export const SwitchTabCommands = memo(function SwitchTabCommands() {
     [tabs, activeProjectId, activeTabId, onWorkspace]
   );
   const values = useMemo(
-    () => uniqueValues(targets.map((tab) => `Go to ${tabDisplayTitle(tab)}`)),
-    [targets]
+    () =>
+      uniqueValues(
+        targets.map((tab) =>
+          t("editor:ui.cmGoToTab", {
+            defaultValue: "Go to {{title}}",
+            title: tabDisplayTitle(tab)
+          })
+        )
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [targets, languageVersion]
   );
 
   const switchTo = useCallback(
@@ -125,7 +136,7 @@ export const SwitchTabCommands = memo(function SwitchTabCommands() {
   }
 
   return (
-    <Command.Group heading="Open tabs">
+    <Command.Group heading={t("editor:ui.cmOpenTabs", { defaultValue: "Open tabs" })}>
       {targets.map((tab, index) => (
         <Command.Item
           key={tab.id}
@@ -142,6 +153,7 @@ export const SwitchTabCommands = memo(function SwitchTabCommands() {
 
 /** App pages and destinations: the same list the rail and logo menu show. */
 const NavigateCommands = memo(function NavigateCommands() {
+  const { t } = useTranslation();
   const appActions = useAppMenuActions();
   const openTab = useWorkspaceTabsStore((state) => state.openTab);
 
@@ -156,40 +168,45 @@ const NavigateCommands = memo(function NavigateCommands() {
   }, [openTab]);
 
   return (
-    <Command.Group heading="Go to">
+    <Command.Group heading={t("editor:ui.cmGoTo", { defaultValue: "Go to" })}>
       {window.location.pathname !== WORKSPACE_PATH && (
         <Command.Item
           value="Workspace"
           onSelect={() => runCommandAndClose(() => navigateTo(WORKSPACE_PATH))}
         >
-          <SpaceDashboardOutlinedIcon /> Workspace
+          <SpaceDashboardOutlinedIcon /> {t("editor:ui.workspace", { defaultValue: "Workspace" })}
         </Command.Item>
       )}
       <Command.Item
         value="Projects"
         onSelect={() => runCommandAndClose(openProjects)}
       >
-        <Glyph>{PROJECT_GLYPH}</Glyph> Projects
+        <Glyph>{PROJECT_GLYPH}</Glyph> {t("nav:tabs.projects", { defaultValue: "Projects" })}
       </Command.Item>
-      {appActions.map((action) => (
-        <Command.Item
-          key={action.key}
-          value={action.label}
-          onSelect={() =>
-            runCommandAndClose(() => {
-              action.onClick();
-              // Page tabs open in the workspace; Help and Downloads are
-              // dialogs that show over any route.
-              if (action.key !== "help" && action.key !== "downloads") {
-                showWorkspace();
-              }
-            })
-          }
-        >
-          {action.icon} {action.label}
-          {action.secondary ? ` (${action.secondary})` : null}
-        </Command.Item>
-      ))}
+      {appActions.map((action) => {
+        const label = action.labelKey
+          ? t(action.labelKey, { defaultValue: action.label })
+          : action.label;
+        return (
+          <Command.Item
+            key={action.key}
+            value={label}
+            onSelect={() =>
+              runCommandAndClose(() => {
+                action.onClick();
+                // Page tabs open in the workspace; Help and Downloads are
+                // dialogs that show over any route.
+                if (action.key !== "help" && action.key !== "downloads") {
+                  showWorkspace();
+                }
+              })
+            }
+          >
+            {action.icon} {label}
+            {action.secondary ? ` (${action.secondary})` : null}
+          </Command.Item>
+        );
+      })}
       <Command.Item
         value="Studio"
         onSelect={() => runCommandAndClose(() => navigateTo("/studio"))}
@@ -217,11 +234,17 @@ const ProjectCommands = memo(function ProjectCommands() {
   const values = useMemo(
     () =>
       uniqueValues(
-        targets.map(
-          (project) =>
-            `Switch to project ${project.isPersonal ? i18n.t("editor:ui.personal", { defaultValue: "Personal" }) : project.name}`
-        )
+        targets.map((project) => {
+          const name = project.isPersonal
+            ? i18n.t("editor:ui.personal", { defaultValue: "Personal" })
+            : project.name;
+          return i18n.t("editor:ui.cmSwitchToProject", {
+            defaultValue: "Switch to project {{name}}",
+            name
+          });
+        })
       ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [targets, languageVersion]
   );
 
@@ -230,7 +253,7 @@ const ProjectCommands = memo(function ProjectCommands() {
   }
 
   return (
-    <Command.Group heading="Projects">
+    <Command.Group heading={t("nav:tabs.projects", { defaultValue: "Projects" })}>
       {targets.map((project, index) => {
         const name = project.isPersonal ? i18n.t("editor:ui.personal", { defaultValue: "Personal" }) : project.name;
         return (
@@ -259,34 +282,46 @@ const CreateCommands = memo(function CreateCommands() {
   const catalog = useNewDocumentCatalog({}, showWorkspace);
 
   return (
-    <Command.Group heading="Create">
+    <Command.Group heading={t("common:action.create", { defaultValue: "Create" })}>
       {catalog.entries.map((entry) => {
         const menuLabel = entry.menuLabelKey
           ? t(entry.menuLabelKey, { defaultValue: entry.menuLabel })
           : entry.menuLabel;
         if (entry.submenu === "texts") {
-          return TEXT_FILE_TEMPLATES.map((template) => (
-            <Command.Item
-              key={`text-${template.filename}`}
-              value={`New text file ${template.label}`}
-              onSelect={() =>
-                runCommandAndClose(() => catalog.createTextFile(template))
-              }
-            >
-              {entry.icon} New text file: {template.label}
-            </Command.Item>
-          ));
+          return TEXT_FILE_TEMPLATES.map((template) => {
+            const templateLabel = template.labelKey
+              ? t(template.labelKey, { defaultValue: template.label })
+              : template.label;
+            return (
+              <Command.Item
+                key={`text-${template.filename}`}
+                value={t("editor:ui.cmNewTextFile", {
+                  defaultValue: "New text file: {{label}}",
+                  label: templateLabel
+                })}
+                onSelect={() =>
+                  runCommandAndClose(() => catalog.createTextFile(template))
+                }
+              >
+                {entry.icon}{" "}
+                {t("editor:ui.cmNewTextFile", {
+                  defaultValue: "New text file: {{label}}",
+                  label: templateLabel
+                })}
+              </Command.Item>
+            );
+          });
         }
         if (entry.submenu === "storyboards") {
           return (
             <Command.Item
               key={entry.key}
-              value="New storyboard"
+              value={t("editor:ui.newStoryboard", { defaultValue: "New storyboard" })}
               onSelect={() =>
                 runCommandAndClose(catalog.createBlankStoryboard)
               }
             >
-              {entry.icon} New storyboard
+              {entry.icon} {t("editor:ui.newStoryboard", { defaultValue: "New storyboard" })}
             </Command.Item>
           );
         }
@@ -396,15 +431,15 @@ const AppCommands = memo(function AppCommands() {
         style={{ display: "none" }}
         onChange={handleAppBundleFileChange}
       />
-      <Command.Group heading="App">
+      <Command.Group heading={t("editor:ui.app", { defaultValue: "App" })}>
         {applicationId && (
           <Command.Item onSelect={() => runCommandAndClose(exportApp)}>
-            <FolderZipRoundedIcon /> Export App as Bundle (.app.json)
+            <FolderZipRoundedIcon /> {t("editor:ui.cmExportAppBundle", { defaultValue: "Export App as Bundle (.app.json)" })}
           </Command.Item>
         )}
         {applicationId && (
           <Command.Item onSelect={() => runCommandAndClose(exportProject)}>
-            <FolderZipRoundedIcon /> Export App as Standalone Project (.zip)
+            <FolderZipRoundedIcon /> {t("editor:ui.cmExportAppProject", { defaultValue: "Export App as Standalone Project (.zip)" })}
           </Command.Item>
         )}
         {/* The file picker must open inside the click's user activation, so
@@ -414,7 +449,7 @@ const AppCommands = memo(function AppCommands() {
             appBundleInputRef.current?.click();
           }}
         >
-          <FolderZipRoundedIcon /> Import App from Bundle (.app.json)
+          <FolderZipRoundedIcon /> {t("editor:ui.cmImportAppBundle", { defaultValue: "Import App from Bundle (.app.json)" })}
         </Command.Item>
       </Command.Group>
     </>
@@ -439,7 +474,7 @@ const HelpCommands = memo(function HelpCommands() {
           })
         }
       >
-        <KeyboardRoundedIcon /> Keyboard Shortcuts
+        <KeyboardRoundedIcon /> {t("editor:ui.cmKeyboardShortcuts", { defaultValue: "Keyboard Shortcuts" })}
       </Command.Item>
       <Command.Item
         onSelect={() =>
@@ -451,7 +486,7 @@ const HelpCommands = memo(function HelpCommands() {
           )
         }
       >
-        <BugReportIcon /> Report a Bug
+        <BugReportIcon /> {t("editor:ui.cmReportBug", { defaultValue: "Report a Bug" })}
       </Command.Item>
     </Command.Group>
   );
@@ -461,6 +496,8 @@ const HelpCommands = memo(function HelpCommands() {
 const COMMAND_MENU_WORKFLOW_LIMIT = 100;
 
 const OpenWorkflowCommands = memo(function OpenWorkflowCommands() {
+  const { t } = useTranslation();
+  const { version: languageVersion } = useAppLanguage();
   const load = useWorkflowManager((state) => state.load);
 
   const { data: workflows } = useQuery<WorkflowList>({
@@ -474,11 +511,15 @@ const OpenWorkflowCommands = memo(function OpenWorkflowCommands() {
   const values = useMemo(
     () =>
       uniqueValues(
-        (workflows?.workflows ?? []).map(
-          (workflow) => `Open workflow ${workflow.name}`
+        (workflows?.workflows ?? []).map((workflow) =>
+          i18n.t("editor:ui.cmOpenWorkflow", {
+            defaultValue: "Open workflow {{name}}",
+            name: workflow.name
+          })
         )
       ),
-    [workflows]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [workflows, languageVersion]
   );
 
   if (!workflows || workflows.workflows.length === 0) {
@@ -486,7 +527,7 @@ const OpenWorkflowCommands = memo(function OpenWorkflowCommands() {
   }
 
   return (
-    <Command.Group heading={i18n.t("editor:ui.cmWorkflows", { defaultValue: "Workflows" })}>
+    <Command.Group heading={t("editor:ui.cmWorkflows", { defaultValue: "Workflows" })}>
       {workflows.workflows.map((workflow, index) => (
         <Command.Item
           key={workflow.id}

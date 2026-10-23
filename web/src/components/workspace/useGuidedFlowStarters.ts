@@ -40,7 +40,11 @@ import { openSpeechChat } from "../chat/openSpeechChat";
 export interface GuidedFlowStarter {
   id: EntryFlowId;
   title: string;
+  /** i18n key for `title`, resolved at render by the menu. */
+  titleKey?: string;
   description: string;
+  /** i18n key for `description`, resolved at render by the menu. */
+  descriptionKey?: string;
   icon: ReactNode;
   /**
    * Start in the selected project, or the supplied project id. Resolves to
@@ -59,6 +63,11 @@ export interface GuidedFlowStarter {
  */
 const MENU_TITLES: Partial<Record<EntryFlowId, string>> = {
   video: "Timeline"
+};
+
+/** i18n keys for the menu titles that differ from the entry card's own. */
+const MENU_TITLE_KEYS: Partial<Record<EntryFlowId, string>> = {
+  video: "editor:ui.timeline"
 };
 
 export interface GuidedFlowStarters {
@@ -321,10 +330,13 @@ export const useGuidedFlowStarters = (
     };
     return ENTRY_CARDS.map((card) => {
       const title = MENU_TITLES[card.id] ?? card.title;
+      const titleKey = MENU_TITLE_KEYS[card.id] ?? card.titleKey;
       return {
         id: card.id,
         title,
+        titleKey,
         description: card.description ?? "",
+        descriptionKey: card.descriptionKey,
         icon: GUIDED_FLOW_ICONS[card.id],
         start: (projectId?: string) => startById[card.id](projectId)
       };

@@ -20,6 +20,8 @@ import { create } from "zustand";
 export interface ContextCommand {
   id: string;
   label: string;
+  /** i18n key for `label`; the menu renderer resolves it at render time. */
+  labelKey?: string;
   run: () => unknown;
   /** Extra words the search matches, e.g. the group a tool belongs to. */
   keywords?: string[];
@@ -30,6 +32,8 @@ export interface ContextCommand {
 export interface ContextCommandGroup {
   id: number;
   heading: string;
+  /** i18n key for `heading`; the menu renderer resolves it at render time. */
+  headingKey?: string;
   commands: readonly ContextCommand[];
 }
 
@@ -46,7 +50,8 @@ interface CommandMenuState {
   /** Add a group of view commands; returns the function that removes it. */
   registerContextGroup: (
     heading: string,
-    commands: readonly ContextCommand[]
+    commands: readonly ContextCommand[],
+    headingKey?: string
   ) => () => void;
 }
 
@@ -69,11 +74,14 @@ export const useCommandMenuStore = create<CommandMenuState>((set) => ({
       set((state) => ({ editorClaims: Math.max(0, state.editorClaims - 1) }));
     };
   },
-  registerContextGroup: (heading, commands) => {
+  registerContextGroup: (heading, commands, headingKey) => {
     nextGroupId += 1;
     const id = nextGroupId;
     set((state) => ({
-      contextGroups: [...state.contextGroups, { id, heading, commands }]
+      contextGroups: [
+        ...state.contextGroups,
+        { id, heading, headingKey, commands }
+      ]
     }));
     return () =>
       set((state) => ({

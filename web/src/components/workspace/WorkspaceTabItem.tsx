@@ -229,7 +229,10 @@ const WorkspaceTabItem = ({
         <CloseButton
           className="tab-close close-icon"
           buttonSize="small"
-          tooltip={`Close ${displayTitle}`}
+          tooltip={t("common:action.closeTab", {
+            defaultValue: "Close {{title}}",
+            title: displayTitle
+          })}
           onClick={(event) => {
             event.stopPropagation();
             onClose(tab);
@@ -244,7 +247,7 @@ const WorkspaceTabItem = ({
       >
         {canRename && (
           <MenuItemPrimitive
-            label="Rename"
+            label={t("common:action.rename", { defaultValue: "Rename" })}
             onClick={() => {
               closeContextMenu();
               onBeginRename(tab);

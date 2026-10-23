@@ -112,7 +112,7 @@ const FirstWorkflowGuide = ({
         ) : (
           <FlexRow gap={SPACING.md} wrap>
             <EditorButton variant="contained" onClick={onStart}>
-              Add the two-node starter
+              {t("editor:ui.addTwoNodeStarter", { defaultValue: "Add the two-node starter" })}
             </EditorButton>
             <EditorButton variant="outlined" onClick={onChooseOwn}>
               {t("editor:ui.chooseMyOwnNodes")}

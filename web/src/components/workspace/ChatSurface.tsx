@@ -253,14 +253,22 @@ const ChatSurface = ({ refId, active }: ChatSurfaceProps) => {
   const busy = runtime.status === "loading" || runtime.status === "streaming";
   const menuCommands = useMemo<ContextCommand[]>(() => {
     const commands: ContextCommand[] = [
-      { id: "new-chat", label: "New chat", run: handleNewChat }
+      {
+        id: "new-chat",
+        label: "New chat", labelKey: "ui2:attrs.newChat",
+        run: handleNewChat
+      }
     ];
     if (busy) {
-      commands.push({ id: "stop", label: "Stop generating", run: handleStop });
+      commands.push({
+        id: "stop",
+        label: "Stop generating", labelKey: "editor:ui.stopGenerating",
+        run: handleStop
+      });
     }
     return commands;
   }, [busy, handleNewChat, handleStop]);
-  useContextCommands("Chat", menuCommands, active);
+  useContextCommands("Chat", menuCommands, active, "editor:ui.chat");
 
   return (
     <FlexColumn fullWidth fullHeight sx={{ minHeight: 0, overflow: "hidden" }}>

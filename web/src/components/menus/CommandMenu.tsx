@@ -304,42 +304,42 @@ const WorkflowCommands = memo(function WorkflowCommands() {
         style={{ display: "none" }}
         onChange={handleBundleFileChange}
       />
-    <Command.Group heading="Workflow">
+    <Command.Group heading={t("editor:ui.workflow", { defaultValue: "Workflow" })}>
       <Command.Item onSelect={() => runCommandAndClose(handleRun)}>
-        <PlayArrowRoundedIcon /> Run Entire Workflow
+        <PlayArrowRoundedIcon /> {t("editor:ui.cmRunEntireWorkflow", { defaultValue: "Run Entire Workflow" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleSave)}>
-        <SaveRoundedIcon /> Save Workflow
+        <SaveRoundedIcon /> {t("editor:ui.cmSaveWorkflow", { defaultValue: "Save Workflow" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleNewWorkflow)}>
-        <AddOutlinedIcon /> New Workflow
+        <AddOutlinedIcon /> {t("editor:ui.newWorkflow2", { defaultValue: "New Workflow" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleCloseWorkflow)}>
-        <CloseOutlinedIcon /> Close Workflow
+        <CloseOutlinedIcon /> {t("editor:ui.cmCloseWorkflow", { defaultValue: "Close Workflow" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(downloadWorkflow)}>
-        <FileDownloadRoundedIcon /> Download Workflow as JSON
+        <FileDownloadRoundedIcon /> {t("editor:ui.cmDownloadWorkflowAsJson", { defaultValue: "Download Workflow as JSON" })}
       </Command.Item>
       <Command.Item onSelect={handleImportWorkflow}>
-        <FileUploadRoundedIcon /> Import Workflow from JSON
+        <FileUploadRoundedIcon /> {t("editor:ui.cmImportWorkflowFromJson", { defaultValue: "Import Workflow from JSON" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(exportBundle)}>
-        <FolderZipRoundedIcon /> Export Workflow as Bundle (.nodetool)
+        <FolderZipRoundedIcon /> {t("editor:ui.cmExportWorkflowAsBundle", { defaultValue: "Export Workflow as Bundle (.nodetool)" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(shareWorkflow)}>
-        Share Workflow…
+        {t("editor:ui.cmShareWorkflow", { defaultValue: "Share Workflow…" })}
       </Command.Item>
       <Command.Item onSelect={handleImportBundle}>
-        <FolderZipRoundedIcon /> Import Workflow from Bundle (.nodetool)
+        <FolderZipRoundedIcon /> {t("editor:ui.cmImportWorkflowFromBundle", { defaultValue: "Import Workflow from Bundle (.nodetool)" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(copyWorkflow)}>
-        <ContentCopyRoundedIcon /> Copy Workflow as JSON
+        <ContentCopyRoundedIcon /> {t("editor:ui.cmCopyWorkflowAsJson", { defaultValue: "Copy Workflow as JSON" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(cancel)}>
-        <CancelRoundedIcon /> Cancel Workflow
+        <CancelRoundedIcon /> {t("editor:ui.cmCancelWorkflow", { defaultValue: "Cancel Workflow" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(autoLayout)}>
-        <AutoFixHighRoundedIcon /> Auto Layout
+        <AutoFixHighRoundedIcon /> {t("editor:ui.cmAutoLayout", { defaultValue: "Auto Layout" })}
       </Command.Item>
     </Command.Group>
     </>
@@ -355,6 +355,7 @@ const EditCommands = memo(function EditCommands({
   undo,
   redo
 }: HistoryActions) {
+  const { t } = useTranslation();
   const { handleCopy, handlePaste, handleCut } = useCopyPaste();
   // Combine multiple useNodes subscriptions into a single selector with shallow equality
   // to reduce unnecessary re-renders when other parts of the node state change
@@ -382,87 +383,88 @@ const EditCommands = memo(function EditCommands({
   }, [surroundWithGroup, selectedNodes]);
 
   return (
-    <Command.Group heading="Edit">
+    <Command.Group heading={t("editor:ui.cmEdit", { defaultValue: "Edit" })}>
       <Command.Item onSelect={() => runCommandAndClose(undo)}>
-        <UndoRoundedIcon /> Undo
+        <UndoRoundedIcon /> {t("editor:ui.undo", { defaultValue: "Undo" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(redo)}>
-        <RedoRoundedIcon /> Redo
+        <RedoRoundedIcon /> {t("editor:ui.redo", { defaultValue: "Redo" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleCopy)}>
-        <FileCopyRoundedIcon /> Copy
+        <FileCopyRoundedIcon /> {t("common:action.copy", { defaultValue: "Copy" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleCut)}>
-        <ContentCutRoundedIcon /> Cut
+        <ContentCutRoundedIcon /> {t("common:action.cut", { defaultValue: "Cut" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handlePaste)}>
-        <ContentPasteRoundedIcon /> Paste
+        <ContentPasteRoundedIcon /> {t("editor:common.paste", { defaultValue: "Paste" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectAllNodes)}>
-        <SelectAllRoundedIcon /> Select All
+        <SelectAllRoundedIcon /> {t("editor:ui.cmSelectAll", { defaultValue: "Select All" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.deleteSelected)}>
-        <DeleteOutlineIcon /> Delete Selected
+        <DeleteOutlineIcon /> {t("editor:ui.cmDeleteSelected", { defaultValue: "Delete Selected" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(duplicateNodes)}>
-        <ContentCopyRoundedIcon /> Duplicate
+        <ContentCopyRoundedIcon /> {t("editor:ui.duplicate", { defaultValue: "Duplicate" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(duplicateNodesVertical)}>
-        <ContentCopyRoundedIcon /> Duplicate Vertical
+        <ContentCopyRoundedIcon /> {t("editor:ui.cmDuplicateVertical", { defaultValue: "Duplicate Vertical" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(handleGroup)}>
-        <GroupWorkRoundedIcon /> Group Selected
+        <GroupWorkRoundedIcon /> {t("editor:ui.cmGroupSelected", { defaultValue: "Group Selected" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(toggleBypassSelected)}>
-        <BlockRoundedIcon /> Disable Selected Nodes
+        <BlockRoundedIcon /> {t("editor:ui.cmDisableSelectedNodes", { defaultValue: "Disable Selected Nodes" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(openFind)}>
-        <SearchRoundedIcon /> Find in Workflow
+        <SearchRoundedIcon /> {t("editor:ui.cmFindInWorkflow", { defaultValue: "Find in Workflow" })}
       </Command.Item>
     </Command.Group>
   );
 });
 
 const LayoutCommands = memo(function LayoutCommands() {
+  const { t } = useTranslation();
   const alignNodes = useAlignNodes();
   const selectionActions = useSelectionActions();
 
   return (
-    <Command.Group heading="Layout & alignment">
+    <Command.Group heading={t("editor:ui.cmLayoutAlignment", { defaultValue: "Layout & alignment" })}>
       <Command.Item
         onSelect={() =>
           runCommandAndClose(() => alignNodes({ arrangeSpacing: false }))
         }
       >
-        <AlignVerticalCenterRoundedIcon /> Align Nodes
+        <AlignVerticalCenterRoundedIcon /> {t("editor:ui.cmAlignNodes", { defaultValue: "Align Nodes" })}
       </Command.Item>
       <Command.Item
         onSelect={() =>
           runCommandAndClose(() => alignNodes({ arrangeSpacing: true }))
         }
       >
-        <SpaceBarRoundedIcon /> Align Nodes with Spacing
+        <SpaceBarRoundedIcon /> {t("editor:ui.cmAlignNodesWithSpacing", { defaultValue: "Align Nodes with Spacing" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignLeft)}>
-        <AlignHorizontalLeftRoundedIcon /> Align Left
+        <AlignHorizontalLeftRoundedIcon /> {t("editor:ui.alignLeft", { defaultValue: "Align Left" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignCenter)}>
-        <AlignHorizontalCenterRoundedIcon /> Align Center
+        <AlignHorizontalCenterRoundedIcon /> {t("editor:ui.alignCenter", { defaultValue: "Align Center" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignRight)}>
-        <AlignHorizontalRightRoundedIcon /> Align Right
+        <AlignHorizontalRightRoundedIcon /> {t("editor:ui.alignRight", { defaultValue: "Align Right" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignTop)}>
-        <VerticalAlignTopRoundedIcon /> Align Top
+        <VerticalAlignTopRoundedIcon /> {t("editor:ui.alignTop", { defaultValue: "Align Top" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignMiddle)}>
-        <VerticalAlignCenterRoundedIcon /> Align Middle
+        <VerticalAlignCenterRoundedIcon /> {t("editor:ui.alignMiddle", { defaultValue: "Align Middle" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.alignBottom)}>
-        <VerticalAlignBottomRoundedIcon /> Align Bottom
+        <VerticalAlignBottomRoundedIcon /> {t("editor:ui.alignBottom", { defaultValue: "Align Bottom" })}
       </Command.Item>
       <Command.Item onSelect={() => runCommandAndClose(selectionActions.distributeHorizontal)}>
-        <ViewColumnRoundedIcon /> Distribute Horizontally
+        <ViewColumnRoundedIcon /> {t("editor:ui.cmDistributeHorizontally", { defaultValue: "Distribute Horizontally" })}
       </Command.Item>
     </Command.Group>
   );
@@ -494,32 +496,32 @@ const ViewCommands = memo(function ViewCommands() {
       <Command.Item
         onSelect={() => runCommandAndClose(() => handleFitView({ padding: 0.5 }))}
       >
-        <FitScreenRoundedIcon /> Fit View
+        <FitScreenRoundedIcon /> {t("editor:ui.cmFitView", { defaultValue: "Fit View" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => reactFlow.zoomIn({ duration: 200 }))}
       >
-        <ZoomInRoundedIcon /> Zoom In
+        <ZoomInRoundedIcon /> {t("editor:ui.cmZoomIn", { defaultValue: "Zoom In" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => reactFlow.zoomOut({ duration: 200 }))}
       >
-        <ZoomOutRoundedIcon /> Zoom Out
+        <ZoomOutRoundedIcon /> {t("editor:ui.cmZoomOut", { defaultValue: "Zoom Out" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => reactFlow.zoomTo(0.5, { duration: 200 }))}
       >
-        <RestartAltRoundedIcon /> Reset Zoom (50%)
+        <RestartAltRoundedIcon /> {t("editor:ui.cmResetZoom50", { defaultValue: "Reset Zoom (50%)" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => reactFlow.zoomTo(1, { duration: 200 }))}
       >
-        <ZoomInRoundedIcon /> Zoom to 100%
+        <ZoomInRoundedIcon /> {t("editor:ui.cmZoomTo100", { defaultValue: "Zoom to 100%" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => reactFlow.zoomTo(2, { duration: 200 }))}
       >
-        <ZoomInRoundedIcon /> Zoom to 200%
+        <ZoomInRoundedIcon /> {t("editor:ui.cmZoomTo200", { defaultValue: "Zoom to 200%" })}
       </Command.Item>
     </Command.Group>
   );
@@ -538,27 +540,27 @@ const PanelCommands = memo(function PanelCommands() {
       <Command.Item
         onSelect={() => runCommandAndClose(rightPanelToggle)}
       >
-        <InfoOutlinedIcon /> Toggle Inspector
+        <InfoOutlinedIcon /> {t("editor:ui.cmToggleInspector", { defaultValue: "Toggle Inspector" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => leftPanelToggle("settings"))}
       >
-        <SettingsRoundedIcon /> Toggle Workflow Settings
+        <SettingsRoundedIcon /> {t("editor:ui.cmToggleWorkflowSettings", { defaultValue: "Toggle Workflow Settings" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => toggleConversation())}
       >
-        <ChatRoundedIcon /> Toggle Conversation
+        <ChatRoundedIcon /> {t("editor:ui.cmToggleConversation", { defaultValue: "Toggle Conversation" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => leftPanelToggle("assets"))}
       >
-        <PermMediaRoundedIcon /> Toggle Assets
+        <PermMediaRoundedIcon /> {t("editor:ui.cmToggleAssets", { defaultValue: "Toggle Assets" })}
       </Command.Item>
       <Command.Item
         onSelect={() => runCommandAndClose(() => leftPanelToggle("workflows"))}
       >
-        <AccountTreeRoundedIcon /> Toggle Workflows Panel
+        <AccountTreeRoundedIcon /> {t("editor:ui.cmToggleWorkflowsPanel", { defaultValue: "Toggle Workflows Panel" })}
       </Command.Item>
     </Command.Group>
   );

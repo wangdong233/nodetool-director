@@ -712,7 +712,11 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
       <ModelMenuNavItem
         className="model-menu__provider-item model-menu__provider-item--all"
         orientation={orientation}
-        label={isHorizontal ? "All" : "All models"}
+        label={
+          isHorizontal
+            ? i18n.t("editor:ui.allModelsShort", { defaultValue: "All" })
+            : i18n.t("editor:ui.allModels", { defaultValue: "All models" })
+        }
         icon={<AppsIcon />}
         selected={selected === null && !forceUnselect}
         onClick={handleSelectNull}
@@ -721,7 +725,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
       {quickViews}
       {!isHorizontal && cloudList.length > 0 && (
         <SectionHeader
-          title="Cloud"
+          title={i18n.t("editor:ui.cloud2", { defaultValue: "Cloud" })}
           size="small"
           sx={{ px: SPACING.md, pt: SPACING.md, pb: SPACING.xs }}
         />
@@ -739,7 +743,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
       {cloudList.map(renderProvider)}
       {localList.length > 0 && !isHorizontal && (
         <SectionHeader
-          title="Local"
+          title={i18n.t("editor:ui.execLocal", { defaultValue: "Local" })}
           size="small"
           sx={{ px: SPACING.md, pt: SPACING.md, pb: SPACING.xs }}
         />
@@ -747,7 +751,7 @@ const ProviderList: React.FC<ProviderListProps> = React.memo(({
       {localList.map(renderProvider)}
       {disabledList.length > 0 && !isHorizontal && (
         <SectionHeader
-          title="Disabled"
+          title={i18n.t("editor:ui.disabled", { defaultValue: "Disabled" })}
           size="small"
           sx={{ px: SPACING.md, pt: SPACING.md, pb: SPACING.xs }}
         />

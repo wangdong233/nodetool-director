@@ -11,6 +11,7 @@ import {
   modelDownloadId,
   type ModelDownloadTarget
 } from "../../../utils/modelNormalization";
+import { i18n } from "../../../i18n";
 
 interface ModelRowDownloadProps {
   /** Every repository the model loads files from, the main one first. */
@@ -79,7 +80,7 @@ const ModelRowDownload: React.FC<ModelRowDownloadProps> = ({
         startIcon={<DownloadIcon />}
         sx={{ flexShrink: 0 }}
       >
-        Download
+        {i18n.t("editor:ui.download", { defaultValue: "Download" })}
       </EditorButton>
     </Tooltip>
   );

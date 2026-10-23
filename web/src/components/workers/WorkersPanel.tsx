@@ -480,7 +480,7 @@ const WorkersPanel: React.FC = () => {
               onClick={() => setProfilesOpen(true)}
               aria-label={t("editor:ui.manageProfiles", { defaultValue: "Manage profiles" })}
             >
-              Manage profiles
+              {t("editor:ui.manageProfiles", { defaultValue: "Manage profiles" })}
             </EditorButton>
             <EditorButton
               density="compact"
@@ -488,7 +488,7 @@ const WorkersPanel: React.FC = () => {
               onClick={() => setDialogOpen(true)}
               aria-label={t("editor:ui.startWorker", { defaultValue: "Start worker" })}
             >
-              Start worker
+              {t("editor:ui.startWorker", { defaultValue: "Start worker" })}
             </EditorButton>
             <EditorButton
               density="compact"
@@ -497,7 +497,7 @@ const WorkersPanel: React.FC = () => {
               disabled={busy}
               aria-label={t("editor:ui.reconcileWorkers", { defaultValue: "Reconcile workers" })}
             >
-              Reconcile
+              {t("editor:ui.reconcile", { defaultValue: "Reconcile" })}
             </EditorButton>
             <EditorButton
               density="compact"
@@ -506,7 +506,7 @@ const WorkersPanel: React.FC = () => {
               disabled={shownInstances.length === 0}
               aria-label={t("editor:notify.stopAllAria", { defaultValue: "Stop all workers" })}
             >
-              Stop all
+              {t("editor:ui.stopAll", { defaultValue: "Stop all" })}
             </EditorButton>
           </>
         }

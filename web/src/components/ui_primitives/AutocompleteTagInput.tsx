@@ -30,6 +30,7 @@ import {
   createFilterOptions
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
 import { Label } from "./Label";
 import { isString } from "../../utils/typePredicates";
 
@@ -65,6 +66,7 @@ const AutocompleteTagInputInternal: React.FC<AutocompleteTagInputProps> = ({
   size = "small"
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const fieldId = useId();
 
   const handleChange = useCallback(
@@ -123,6 +125,11 @@ const AutocompleteTagInputInternal: React.FC<AutocompleteTagInputProps> = ({
         clearOnBlur
         handleHomeEndKeys
         disabled={disabled}
+        // Same localized indicator names as the Autocomplete primitive —
+        // MUI's defaults are hard-coded English.
+        openText={t("common:action.open", { defaultValue: "Open" })}
+        closeText={t("common:action.close", { defaultValue: "Close" })}
+        clearText={t("common:action.clear", { defaultValue: "Clear" })}
         options={suggestions}
         value={value}
         onChange={handleChange}
