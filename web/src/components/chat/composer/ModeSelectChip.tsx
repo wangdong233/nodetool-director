@@ -71,7 +71,7 @@ const MODE_LABELS: Record<MediaMode, { label: string; labelKey: string }> = {
   },
   retake: { label: "Retake", labelKey: "editor:ui.retake" },
   extend: { label: "Extend", labelKey: "editor:ui.extend" },
-  motion: { label: "Motion", labelKey: "editor:ui.motion" }
+  motion_control: { label: "Motion", labelKey: "editor:ui.motion" }
 };
 
 export function modeLabelFor(mode: MediaMode): string {
