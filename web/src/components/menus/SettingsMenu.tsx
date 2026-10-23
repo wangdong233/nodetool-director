@@ -63,7 +63,8 @@ import {
   DEFAULT_TEXT_SIZE,
   TEXT_SIZES,
   TEXT_SIZE_LABELS,
-  isTextSize
+  isTextSize,
+  type TextSize
 } from "../themes/textSizes";
 import StorageHistorySettings from "../settings/StorageHistorySettings";
 import {
