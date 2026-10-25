@@ -37,7 +37,7 @@ import {
 } from "../../stores/WorkspaceTabsStore";
 import { EntityEditorDialog } from "../entities/EntityEditorDialog";
 import ReportBugButton from "../support/ReportBugButton";
-import { TYPE_COLOR } from "../workspace/tabTypeIdentity";
+import { TYPE_COLOR, seededDocDisplayName } from "../workspace/tabTypeIdentity";
 import { tabCanRename } from "../workspace/tabRename";
 import {
   BORDER_RADIUS,
@@ -166,6 +166,7 @@ const DocumentTreeRow = memo(function DocumentTreeRow({
   onDuplicate,
   onRename
 }: DocumentTreeRowProps) {
+  const { t } = useTranslation();
   const Icon = LEAF_ICONS[leaf.type];
   const [editing, setEditing] = useState(false);
   const handleClick = useCallback(() => onOpen(leaf), [leaf, onOpen]);
@@ -290,11 +291,13 @@ const DocumentTreeRow = memo(function DocumentTreeRow({
               showTooltip
               sx={{ ...TYPOGRAPHY.sans.label, minWidth: 0, flex: 1 }}
             >
-              {leaf.name}
+              {seededDocDisplayName(leaf.type, leaf.name)}
             </TruncatedText>
           )}
           <Text size="smaller" color="secondary" sx={{ flexShrink: 0 }}>
-            {leaf.typeLabel}
+            {leaf.typeLabelKey
+              ? t(leaf.typeLabelKey, { defaultValue: leaf.typeLabel })
+              : leaf.typeLabel}
           </Text>
         </FlexRow>
       </Box>
@@ -361,8 +364,15 @@ const DocumentTreeGroupRow = ({
   onDuplicate,
   onRename
 }: DocumentTreeGroupRowProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const Icon = GROUP_ICONS[group.id];
+  // The header label resolves at render time from the literal key, so the
+  // rail section titles follow the language switcher (stored labels are
+  // English snapshots).
+  const label = group.labelKey
+    ? t(group.labelKey, { defaultValue: group.label })
+    : group.label;
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
       if (event.currentTarget !== event.target) {
@@ -419,12 +429,12 @@ const DocumentTreeGroupRow = ({
           expanded={expanded}
           iconVariant="chevron"
           onClick={handleDisclosureClick}
-          aria-label={`${expanded ? i18n.t("editor:ui.collapse", { defaultValue: "Collapse" }) : i18n.t("editor:ui.expand", { defaultValue: "Expand" })} ${group.label}`}
+          aria-label={`${expanded ? i18n.t("editor:ui.collapse", { defaultValue: "Collapse" }) : i18n.t("editor:ui.expand", { defaultValue: "Expand" })} ${label}`}
           tabIndex={-1}
         />
         <Icon aria-hidden="true" sx={{ fontSize: ICON_SIZE.md }} />
         <TruncatedText component="span" sx={TYPOGRAPHY.sans.label}>
-          {group.label}
+          {label}
         </TruncatedText>
         <Text size="smaller" color="secondary" sx={{ marginLeft: "auto" }}>
           {group.children.length}

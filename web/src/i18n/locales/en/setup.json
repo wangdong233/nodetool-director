@@ -64,7 +64,9 @@
       "productView": "Product view",
       "turnaroundSheet": "Turnaround sheet"
     },
-    "otherWaysToStart": "Other ways to start"
+    "otherWaysToStart": "Other ways to start",
+    "whatShouldStayConsistent": "What should stay consistent?",
+    "giveTheEntityAStableName": "Give the entity a stable name and the description generation prompts should reuse."
   },
   "game": {
     "openingYourGameSetup": "Opening your game setup",
@@ -268,7 +270,9 @@
     "backToYourIdea": "Back to your idea",
     "aWorkflowJSONFile": "A workflow JSON file",
     "notChecked": "Not checked",
-    "ideaPlaceholder": "Make a cover image for each title in a list"
+    "ideaPlaceholder": "Make a cover image for each title in a list",
+    "whatShouldThisWorkflowDo": "What should this workflow do?",
+    "describeTheTask": "Describe the task. We'll plan the steps and check what it needs before building."
   },
   "app": {
     "describeTheAppFirst": "Describe the app first",

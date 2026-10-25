@@ -120,6 +120,7 @@ describe("useDocumentTreeData", () => {
       name: "Untitled workflow",
       type: "workflow",
       typeLabel: "Workflow",
+      typeLabelKey: "editor:ui.workflow",
       projectId: "p1",
       entity: undefined
     });

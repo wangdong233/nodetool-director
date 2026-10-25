@@ -33,7 +33,11 @@ const DOC_TAB_DEFAULTS: Partial<
 > = {
   workflow: {
     Workflow: "nav:qa.workflows.label",
-    "New workflow": "nav:qa.workflows.label"
+    "New workflow": "nav:qa.workflows.label",
+    // The creation flow (useGuidedFlowStarters.startWorkflow) stores this
+    // name on the document and the tab; the tree row and the project doc
+    // card resolve it through seededDocDisplayName.
+    "Untitled workflow": "editor:ui.untitledWorkflow"
   },
   // Both chat seeds occur in the tree: "New chat" is the blank-document
   // catalog's stored title, while the runtime thread title constants (Global

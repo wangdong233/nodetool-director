@@ -39,7 +39,7 @@ import {
   TEXT_FILE_TEMPLATES,
   useNewDocumentCatalog
 } from "../workspace/newDocumentCatalog";
-import { TYPE_GLYPH, tabDisplayTitle } from "../workspace/tabTypeIdentity";
+import { TYPE_GLYPH, seededDocDisplayName, tabDisplayTitle } from "../workspace/tabTypeIdentity";
 import { PROJECT_GLYPH } from "../projects/projectIdentity";
 import { navigateTo } from "../../lib/appNavigation";
 import {
@@ -534,7 +534,8 @@ const OpenWorkflowCommands = memo(function OpenWorkflowCommands() {
           value={values[index]}
           onSelect={() => runCommandAndClose(() => openWorkflow(workflow))}
         >
-          <FolderOpenRoundedIcon /> {workflow.name}
+          <FolderOpenRoundedIcon />{" "}
+          {seededDocDisplayName("workflow", workflow.name)}
         </Command.Item>
       ))}
     </Command.Group>
