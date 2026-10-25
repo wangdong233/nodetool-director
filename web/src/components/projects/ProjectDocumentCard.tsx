@@ -6,6 +6,7 @@
 
 import { memo, useCallback, useState, type MouseEvent } from "react";
 
+import { useAppLanguage } from "../../i18n";
 import {
   BORDER_RADIUS,
   Box,
@@ -21,7 +22,7 @@ import {
   StatusPill,
   TYPOGRAPHY
 } from "../ui_primitives";
-import { TYPE_COLOR, TYPE_GLYPH } from "../workspace/tabTypeIdentity";
+import { TYPE_COLOR, TYPE_GLYPH, seededDocDisplayName } from "../workspace/tabTypeIdentity";
 import { tabCanRename } from "../workspace/tabRename";
 import ProjectDocumentPreview from "./ProjectDocumentPreview";
 import CopyProjectDocumentAction, {
@@ -61,6 +62,9 @@ const ProjectDocumentCard = ({
   onRename,
   compact = false
 }: ProjectDocumentCardProps) => {
+  // The card name resolves through seededDocDisplayName at render time; the
+  // subscription re-renders this memoized card when the language changes.
+  useAppLanguage();
   const handleOpen = useCallback(() => onOpen(document), [onOpen, document]);
   const progress = documentProgress(document);
   const editedLine = documentEditedLine(document);
@@ -143,8 +147,11 @@ const ProjectDocumentCard = ({
                 sx={{ ...TYPOGRAPHY.sans.label, flex: 1 }}
               />
             ) : (
-              <Label title={document.name} sx={nameSx}>
-                {document.name}
+              <Label
+                title={seededDocDisplayName(document.type, document.name)}
+                sx={nameSx}
+              >
+                {seededDocDisplayName(document.type, document.name)}
               </Label>
             )}
             {progress && !compact && (

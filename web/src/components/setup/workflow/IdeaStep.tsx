@@ -169,11 +169,10 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
       <FlexColumn gap={GAP.comfortable}>
         <FlexColumn gap={GAP.tight}>
           <Text size="big" component="h2">
-            What should this workflow do?
+            {t("setup:workflow.whatShouldThisWorkflowDo", { defaultValue: "What should this workflow do?" })}
           </Text>
           <Text size="normal" color="secondary">
-            Describe the task. We&apos;ll plan the steps and check what it needs
-            before building.
+            {t("setup:workflow.describeTheTask", { defaultValue: "Describe the task. We'll plan the steps and check what it needs before building." })}
           </Text>
         </FlexColumn>
 
@@ -209,7 +208,14 @@ const IdeaStepInternal: React.FC<WorkflowIdeaStepProps> = ({
         ) : null}
 
         <ExampleBriefs
-          examples={WORKFLOW_INSPIRATION_CHIPS.map((chip) => chip.brief)}
+          examples={WORKFLOW_INSPIRATION_CHIPS.map((chip) =>
+            // 显示即所发: the chip's display text is the brief it writes, so
+            // the label resolves through the zh-only catalog overlay keyed by
+            // the chip id (pinnedChipPlan matches either language).
+            i18n.t(`catalog:workflowInspiration.${chip.id}`, {
+              defaultValue: chip.brief
+            })
+          )}
           brief={brief}
           onSelect={onBriefChange}
           briefRef={briefField}

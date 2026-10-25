@@ -144,11 +144,19 @@ const ExampleAppCard = memo(function ExampleAppCard({
   app,
   onUse
 }: ExampleAppCardProps) {
+  // Name and description resolve at render time through the zh-only
+  // catalog:apps overlay keyed by the stable slug; English and any
+  // zh-missing slug render the shipped values unchanged.
+  const { t } = useTranslation();
   const [thumbFailed, setThumbFailed] = useState(false);
   const src = thumbSrc(app.thumbnailUrl);
   const workflows = app.workflows.length;
+  const name = t(`catalog:apps.${app.slug}.name`, { defaultValue: app.name });
+  const description = t(`catalog:apps.${app.slug}.description`, {
+    defaultValue: app.description
+  });
   return (
-    <Tooltip title={`Use ${app.name}`} describeChild>
+    <Tooltip title={`Use ${name}`} describeChild>
       <button
         type="button"
         className="app-card"
@@ -167,8 +175,8 @@ const ExampleAppCard = memo(function ExampleAppCard({
           )}
         </span>
         <span className="app-body">
-          <span className="app-name">{app.name}</span>
-          <span className="app-desc">{app.description}</span>
+          <span className="app-name">{name}</span>
+          <span className="app-desc">{description}</span>
           <ExampleNeedsPill needs={app.needs} />
           <span className="app-meta">
             {workflows} workflow{workflows === 1 ? "" : "s"}

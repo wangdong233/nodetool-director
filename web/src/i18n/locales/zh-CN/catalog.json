@@ -773,6 +773,10 @@
     }
   },
   "apps": {
+    "ad-a-capability-journey-on-connected-paths": {
+      "name": "连通路径上的能力序列",
+      "description": "用一张紧凑的示意图讲清一段上手或服务流程，再基于你的图片、标志和文案生成一条可编辑的 12 秒竖版广告。AI 可以读取你的网站，为各字段建议文案与图片。成品不含 AI 生成视频。"
+    },
     "ad-maker": {
       "name": "广告创作台",
       "description": "从一个卖点出发，对比多路文案与标题角度，再用已过审的文案配上视觉简报，执导一支定向广告主片。"
@@ -1026,7 +1030,9 @@
     }
   },
   "workflowInspiration": {
-    "product-shots": "从 CSV 批量生成产品照"
+    "product-shots": "从 CSV 批量生成产品照",
+    "description-to-ad": "把一行产品描述变成一支五秒视频广告",
+    "script-to-voiceover": "把 30 秒剧本变成一段配音"
   },
   "nodes": {
     "__taskSuffixes": {

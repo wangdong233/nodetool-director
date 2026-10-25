@@ -87,11 +87,10 @@ export const DetailsStep = ({
     <FlexColumn gap={GAP.comfortable}>
       <FlexColumn gap={GAP.tight}>
         <Text size="big" component="h1">
-          What should stay consistent?
+          {i18n.t("setup:entity.whatShouldStayConsistent", { defaultValue: "What should stay consistent?" })}
         </Text>
         <Text color="secondary">
-          Give the entity a stable name and the description generation prompts
-          should reuse.
+          {i18n.t("setup:entity.giveTheEntityAStableName", { defaultValue: "Give the entity a stable name and the description generation prompts should reuse." })}
         </Text>
       </FlexColumn>
 

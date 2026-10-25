@@ -2,7 +2,6 @@ import { useMemo, useRef } from "react";
 import type { Entity } from "@nodetool-ai/protocol";
 
 import { trpc } from "../trpc/client";
-import { i18n } from "../i18n";
 
 export type DocumentTreeLeafType =
   | "workflow"
@@ -21,6 +20,8 @@ export interface DocumentTreeLeaf {
   readonly name: string;
   readonly type: DocumentTreeLeafType;
   readonly typeLabel: string;
+  /** Literal i18n key for the secondary line; resolved at render time. */
+  readonly typeLabelKey?: string;
   readonly projectId?: string;
   readonly entity?: Entity;
 }
@@ -69,6 +70,24 @@ const TYPE_LABELS: Record<DocumentTreeLeafType, string> = {
 };
 
 /**
+ * Literal i18n key per leaf kind — the row's secondary line resolves it at
+ * render time with TYPE_LABELS as the English default, so a language switch
+ * re-renders the label without rebuilding the tree data.
+ */
+const TYPE_LABEL_KEYS: Record<DocumentTreeLeafType, string> = {
+  workflow: "editor:ui.workflow",
+  application: "editor:ui.app",
+  sketch: "editor:ui.sketch",
+  script: "editor:ui.script",
+  storyboard: "editor:ui.storyboard",
+  timeline: "editor:ui.timeline",
+  entity: "editor:ui.entity",
+  jsscript: "editor:ui.jsScript",
+  game: "editor:ui.game",
+  text: "editor:ui.textFile"
+};
+
+/**
  * The groups, and the kinds each one holds in the order it shows them. The
  * index arrives newest-first across every kind at once, so a group's order
  * comes from partitioning it by kind rather than from the order it arrived in.
@@ -84,16 +103,24 @@ const GROUPS: readonly {
   readonly labelKey?: string;
   readonly types: readonly DocumentTreeLeafType[];
 }[] = [
-  { id: "workflows", label: "Workflows", types: ["workflow"] },
-  { id: "apps", label: "Apps", types: ["application"] },
+  {
+    id: "workflows",
+    label: "Workflows", labelKey: "editor:ui.workflows",
+    types: ["workflow"]
+  },
+  { id: "apps", label: "Apps", labelKey: "editor:ui.appsTab", types: ["application"] },
   {
     id: "creative",
     label: "Creative documents", labelKey: "editor:ui.creativeDocuments",
     types: ["sketch", "script", "storyboard", "timeline", "game"]
   },
-  { id: "text", label: "Text files", types: ["text"] },
-  { id: "agents", label: i18n.t("editor:ui.agentsAndCode", { defaultValue: "Agents & code" }), types: ["jsscript"] },
-  { id: "entities", label: "Entities", types: ["entity"] }
+  { id: "text", label: "Text files", labelKey: "editor:ui.textFiles", types: ["text"] },
+  {
+    id: "agents",
+    label: "Agents & code", labelKey: "editor:ui.agentsAndCode",
+    types: ["jsscript"]
+  },
+  { id: "entities", label: "Entities", labelKey: "editor:ui.entities", types: ["entity"] }
 ];
 
 /**
@@ -139,6 +166,7 @@ export const useDocumentTreeData = (
               name,
               type,
               typeLabel: TYPE_LABELS[type],
+              typeLabelKey: TYPE_LABEL_KEYS[type],
               projectId,
               entity: document.entity
             };
@@ -151,6 +179,7 @@ export const useDocumentTreeData = (
     return GROUPS.map((group) => ({
       id: group.id,
       label: group.label,
+      labelKey: group.labelKey,
       children: group.types.flatMap((type) => byType.get(type) ?? [])
     })).filter((group) => group.children.length > 0);
   }, [indexQuery.data, projectId]);

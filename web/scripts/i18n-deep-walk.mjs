@@ -39,19 +39,37 @@ const SCAN = () => {
     // provider ids, same class as Ollama/Llama above): "fake" is the dev
     // test provider, "transformers_js" the transformers.js runtime. Product
     // names stay Latin per the glossary.
-    "Fake","Transformers Js"
+    "Fake","Transformers Js",
+    // Local embedding model names with their download sizes (the settings
+    // model picker lists them verbatim from the local-model catalog). Model
+    // names stay Latin per the glossary; "MB" is a unit, not translatable
+    // prose. Adjudicated 2026-10-25.
+    "Nomic Embed Text v1.5 (150 MB)","Qwen3 Embedding 0.6B (640 MB)"
   ]);
+  // v3 (2026-10-25): sentence detection. The v2 regex required punctuation-
+  // free title-case phrases, so every DESCRIPTION ("From a task to a running
+  // graph, with the plan reviewed first.") was invisible — the exact class
+  // the user caught in the new-workflow flow. Two detectors now:
+  //   phrase:  title-case, no punctuation (labels/headings)
+  //   sentence: 4+ words, starts capital, allows , . : ; ' () % / — but
+  //             rejects code/URL/path/CLI shapes and ALL-CAPS.
+  const CODEISH = /[{}=<>|#$@`~^[\]]|\bhttps?:|www\.|\.com\b|\bnpm\b|\bnpx\b|\bpip\b|\bgit\b|^[\/~.]+\w|\w\s*[-]{2}\s*\w|;\s*$|\bconst\b|\bimport\b|_\w{3,}/;
+  const isPhrase = (t) => /^[A-Z][a-zA-Z&]+(\s+[a-zA-Z&]+)*$/.test(t);
+  const isSentence = (t) =>
+    /^[A-Z][\w&'(),.:;%\u2019\u2014-]*(\s+[\w&'(),.:;%\u2019\u2014-]+){3,}[.?!]?$/.test(t) &&
+    /[a-z]{2}/.test(t);
   const out = [];
   const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let n;
   while ((n = w.nextNode())) {
     const t = n.textContent.trim();
-    if (!t || t.length > 100) continue;
-    if (!/^[A-Z][a-zA-Z&]+(\s+[a-zA-Z&]+)*$/.test(t)) continue;
+    if (!t || t.length > 160 || /[一-鿿]/.test(t)) continue;
     if (/^[A-Z]{2,6}$/.test(t)) continue;
+    if (!(isPhrase(t) || isSentence(t))) continue;
+    if (isSentence(t) && CODEISH.test(t)) continue;
     if (ALLOWED.has(t) || ALLOWED.has(t.split(" ")[0])) continue;
     const el = n.parentElement, r = el.getBoundingClientRect();
-    if (r.width > 0 && r.height > 0) out.push(t);
+    if (r.width > 0 && r.height > 0) out.push(t.slice(0, 140));
   }
   return [...new Set(out)].sort();
 };
@@ -149,7 +167,7 @@ try {
     (els) => [...new Set(els.map((e) => e.textContent.trim()))].filter((t) => t && t.length < 24)).catch(() => []);
   for (const item of newItems.slice(0, 16)) {
     await page.locator("[role='menu'] [role='menuitem'], [role='menu'] button", { hasText: item }).first().click({ timeout: 3000 }).catch(() => {});
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(3500);
     const dialog = await page.evaluate(() => !!document.querySelector(".MuiDialog-root")).catch(() => false);
     await scan(`newdoc:${item}${dialog ? " (dialog)" : ""}`);
     if (dialog) {

@@ -109,6 +109,15 @@ describe("seeded doc-name drift (round-11)", () => {
       expect(seededDocDisplayName("timeline", "Untitled timeline")).toBe(
         "未命名时间线"
       );
+      // The workflow creation flow seeds "Untitled workflow" as the stored
+      // name (useGuidedFlowStarters.startWorkflow); the tab title, the
+      // documents-tree row, and the project doc card all resolve it here.
+      expect(seededDocDisplayName("workflow", "Untitled workflow")).toBe(
+        "未命名工作流"
+      );
+      expect(tabDisplayTitle({ type: "workflow", title: "Untitled workflow" })).toBe(
+        "未命名工作流"
+      );
     } finally {
       await resetI18nForTest();
     }

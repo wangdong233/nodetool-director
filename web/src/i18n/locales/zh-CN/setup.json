@@ -64,7 +64,9 @@
       "productView": "产品视图",
       "turnaroundSheet": "转面设定图"
     },
-    "otherWaysToStart": "其他开场方式"
+    "otherWaysToStart": "其他开场方式",
+    "whatShouldStayConsistent": "应保持什么一致？",
+    "giveTheEntityAStableName": "给实体一个稳定的名称，描述生成提示词会复用它。"
   },
   "game": {
     "openingYourGameSetup": "正在打开你的游戏设置",
@@ -268,7 +270,9 @@
     "backToYourIdea": "返回你的点子",
     "aWorkflowJSONFile": "工作流 JSON 文件",
     "notChecked": "未检查",
-    "ideaPlaceholder": "为列表里的每个标题生成一张封面图"
+    "ideaPlaceholder": "为列表里的每个标题生成一张封面图",
+    "whatShouldThisWorkflowDo": "这个工作流要做什么？",
+    "describeTheTask": "描述任务。我们会先规划步骤、确认所需条件，再开始构建。"
   },
   "app": {
     "describeTheAppFirst": "先描述这个应用",
