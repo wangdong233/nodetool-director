@@ -277,5 +277,23 @@
     "deleteLayer": "Delete layer",
     "fromImage": "From image",
     "colorPickerTool": "Color picker"
+  },
+  "toolSettings": {
+    "brush": "Brush",
+    "pencil": "Pencil",
+    "eraser": "Eraser",
+    "fill": "Fill",
+    "blurBrush": "Blur brush",
+    "gradient": "Gradient",
+    "crop": "Crop",
+    "selection": "Selection",
+    "adjustments": "Adjustments",
+    "segment": "Segment",
+    "shape": "Shape",
+    "transform": "Transform",
+    "move": "Move",
+    "colorPicker": "Color picker",
+    "cloneStamp": "Clone stamp",
+    "settings": "Settings"
   }
 }

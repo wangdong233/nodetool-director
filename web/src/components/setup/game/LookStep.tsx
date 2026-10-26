@@ -31,6 +31,7 @@ import { STYLE_DESCRIPTIONS } from "../styleDescriptions";
 import { NO_GAME_STYLE_ID } from "./gameSetupModel";
 import { useTranslation } from "react-i18next";
 import { i18n } from "../../../i18n";
+import { stylePresetName } from "../styleDescriptions";
 
 const IMAGE_MODEL_TASKS: ImageModelTask[] = ["text_to_image"];
 
@@ -61,7 +62,7 @@ const LookStepInternal: React.FC<GameLookStepProps> = ({
     () =>
       presets.map((preset) => ({
         id: preset.entityId,
-        title: preset.name,
+        title: stylePresetName(preset.name),
         description:
           STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim(),
         image: preset.thumbnail,

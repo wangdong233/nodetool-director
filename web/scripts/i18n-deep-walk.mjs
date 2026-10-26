@@ -91,6 +91,8 @@ const SCAN = () => {
     if (!isPhrase(t) && CODEISH.test(t)) continue;
     if (ALLOWED.has(t) || ALLOWED.has(t.split(" ")[0])) continue;
     const el = n.parentElement, r = el.getBoundingClientRect();
+    // stored document names are DATA (user-created titles), not chrome
+    if (el.closest(".documents-tree-leaf")) continue;
     if (r.width === 0 || r.height === 0) continue;
     // v4.1: inactive workspace tabs stay mounted, hidden by opacity:0
     // (WorkspaceTabLayer) — they pass a rect check, so run 1 attributed every

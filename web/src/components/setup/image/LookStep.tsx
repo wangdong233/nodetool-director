@@ -54,6 +54,7 @@ import ImageModelSelect from "../../properties/ImageModelSelect";
 import ReportBugButton from "../../support/ReportBugButton";
 import { SetupFooterField } from "../SetupFooterField";
 import {
+import { stylePresetName } from "../styleDescriptions";
   sizePresetFor,
   sizePresetsForAspectRatios,
   type SizePreset
@@ -454,7 +455,7 @@ export const LookStep: React.FC<LookStepProps> = ({ look }) => {
     () =>
       (presets ?? []).map((preset) => ({
         id: preset.entityId,
-        title: preset.name,
+        title: stylePresetName(preset.name),
         description:
           STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim(),
         image: preset.thumbnail

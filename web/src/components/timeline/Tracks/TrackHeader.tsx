@@ -53,6 +53,7 @@ import {
   type TrackDropPosition
 } from "./trackReorder";
 import {
+import { stylePresetName } from "../../setup/styleDescriptions";
   ConfirmDialog,
   ContextMenu,
   MenuItemPrimitive,
@@ -376,7 +377,7 @@ const CUSTOM_PRESET = "custom";
 const PRESET_OPTIONS: readonly SelectOption[] = [
   ...TIMELINE_INSTRUMENT_PRESETS.map((preset) => ({
     value: preset.id,
-    label: preset.name
+    label: stylePresetName(preset.name)
   })),
   { value: CUSTOM_PRESET, label: "Custom", labelKey: "editor:ui.customPreset" }
 ];
@@ -420,6 +421,13 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
     // Catalog-resolved type label for menu sentences; acronyms such as MIDI
     // stay upper case inside the catalog value itself.
     const menuTypeLabel = trackTypeLabel(track.type);
+    // Sentence case in menu sentences (repo convention): acronyms such as
+    // MIDI keep their casing, every other type label lowercases. Chinese
+    // labels are unaffected (toLowerCase is a no-op on CJK).
+    const menuTypeSentence =
+      menuTypeLabel === menuTypeLabel.toUpperCase()
+        ? menuTypeLabel
+        : menuTypeLabel.toLowerCase();
     const accent = trackTypeAccent(theme, track.type);
     const TypeIcon = meta.Icon;
 
@@ -1034,12 +1042,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             />
           ))}
           <MenuItemPrimitive
-            label={i18n.t("timeline:attrs.insertTrackAbove", { defaultValue: "Insert {{type}} track above", type: menuTypeLabel })}
+            label={i18n.t("timeline:attrs.insertTrackAbove", { defaultValue: "Insert {{type}} track above", type: menuTypeSentence })}
             icon={<VerticalAlignTopIcon fontSize="small" />}
             onClick={handleMenuInsertAbove}
           />
           <MenuItemPrimitive
-            label={i18n.t("timeline:attrs.insertTrackBelow", { defaultValue: "Insert {{type}} track below", type: menuTypeLabel })}
+            label={i18n.t("timeline:attrs.insertTrackBelow", { defaultValue: "Insert {{type}} track below", type: menuTypeSentence })}
             icon={<VerticalAlignBottomIcon fontSize="small" />}
             onClick={handleMenuInsertBelow}
           />

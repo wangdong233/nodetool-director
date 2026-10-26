@@ -17,6 +17,7 @@ import PanelErrorBoundary from "../../common/PanelErrorBoundary";
 import { instrumentView } from "../daw/devices/deviceViews";
 import { i18n } from "../../../i18n";
 import "../daw/devices/registerDeviceViews";
+import { stylePresetName } from "../../setup/styleDescriptions";
 export const AUDITION_DEBOUNCE_MS = 120;
 const containerStyles = (theme: Theme) => css({
   width: "100%", height: "100%", padding: theme.spacing(SPACING.xs),
@@ -90,7 +91,7 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
             options={[
               ...TIMELINE_INSTRUMENT_PRESETS.map((preset) => ({
                 value: preset.id,
-                label: preset.name
+                label: stylePresetName(preset.name)
               })),
               { value: "custom", label: "Custom", labelKey: "editor:ui.customPreset" }
             ]}
