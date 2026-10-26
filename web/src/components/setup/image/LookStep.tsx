@@ -53,8 +53,8 @@ import { PresetTileGrid, type PresetTile } from "../PresetTileGrid";
 import ImageModelSelect from "../../properties/ImageModelSelect";
 import ReportBugButton from "../../support/ReportBugButton";
 import { SetupFooterField } from "../SetupFooterField";
-import {
 import { stylePresetName } from "../styleDescriptions";
+import {
   sizePresetFor,
   sizePresetsForAspectRatios,
   type SizePreset
