@@ -1,0 +1,60 @@
+name: Web I18N Walk
+
+# The exhaustive gated-surface walk (settings tabs + sub-dialogs, new-doc
+# flows, command palette, bottom panels, editor tabs) — the 8GB dev box
+# cannot host it (every local run OOM-killed the session), so the 16GB
+# runner owns it, exactly like the tsc gate. The walk script
+# (web/scripts/i18n-deep-walk.mjs) is the same one developers run locally
+# against a dev stack; here the stack is booted fresh on the runner.
+on:
+  push:
+    branches: [master]
+    paths:
+      - "web/**"
+      - ".github/workflows/web-i18n-walk.yml"
+  workflow_dispatch:
+
+jobs:
+  walk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+      - name: Install toolchain
+        run: npm ci --no-audit --no-fund
+      - name: Install Chromium for Playwright
+        run: npx playwright install chromium --with-deps
+      - name: Start backend + vite
+        run: |
+          nohup npm run dev:server > /tmp/backend.log 2>&1 &
+          cd web && nohup npx vite --host 0.0.0.0 --port 3100 --strictPort > /tmp/vite.log 2>&1 &
+      - name: Wait for both services
+        run: |
+          for i in $(seq 1 60); do
+            A=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:7777/health || true)
+            V=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3100/ || true)
+            [ "$A" = "200" ] && [ "$V" = "200" ] && break
+            sleep 5
+          done
+          curl -s -o /dev/null -w 'api:%{http_code}\n' http://127.0.0.1:7777/health
+          curl -s -o /dev/null -w 'vite:%{http_code}\n' http://127.0.0.1:3100/
+          # give vite a beat for dep pre-bundling so the first page load is not the slow one
+          sleep 20
+      - name: Deep walk (zh)
+        working-directory: web
+        run: |
+          set +e
+          OUT=$(node scripts/i18n-deep-walk.mjs 2>&1)
+          CODE=$?
+          echo "$OUT" | tail -50
+          if [ $CODE -ne 0 ]; then
+            echo "::error::i18n walk exit $CODE — $(echo "$OUT" | grep -E 'X \[|TOTAL' | tail -25 | tr '\n' ' ')"
+          fi
+          exit $CODE
+      - name: Backend log tail (on failure)
+        if: failure()
+        run: tail -30 /tmp/backend.log || true
