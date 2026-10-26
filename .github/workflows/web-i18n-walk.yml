@@ -33,6 +33,9 @@ jobs:
           chromium --version
       - name: Start backend + vite
         run: |
+          # the backend refuses to boot without a master key (local-mode
+          # secrets store); a throwaway key is fine on an ephemeral runner
+          echo "SECRETS_MASTER_KEY=$(openssl rand -hex 32)" > .env
           nohup npm run dev:server > /tmp/backend.log 2>&1 &
           cd web && nohup npx vite --host 0.0.0.0 --port 3100 --strictPort > /tmp/vite.log 2>&1 &
       - name: Wait for both services
