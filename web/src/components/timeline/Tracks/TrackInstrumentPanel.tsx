@@ -17,6 +17,7 @@ import PanelErrorBoundary from "../../common/PanelErrorBoundary";
 import { instrumentView } from "../daw/devices/deviceViews";
 import { i18n } from "../../../i18n";
 import "../daw/devices/registerDeviceViews";
+import { stylePresetName } from "../../setup/styleDescriptions";
 export const AUDITION_DEBOUNCE_MS = 120;
 const containerStyles = (theme: Theme) => css({
   width: "100%", height: "100%", padding: theme.spacing(SPACING.xs),
@@ -90,9 +91,9 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
             options={[
               ...TIMELINE_INSTRUMENT_PRESETS.map((preset) => ({
                 value: preset.id,
-                label: preset.name
+                label: stylePresetName(preset.name)
               })),
-              { value: "custom", label: "Custom" }
+              { value: "custom", label: "Custom", labelKey: "editor:ui.customPreset" }
             ]}
             onChange={(id) => {
               const preset = findInstrumentPreset(id);
@@ -101,7 +102,7 @@ export const TrackInstrumentPanel: React.FC<TrackInstrumentPanelProps> = memo(
           />
           <Button size="small" variant="text" aria-pressed={showKeyboard}
             sx={{ alignSelf: "flex-start", color: showKeyboard ? "primary.main" : "text.secondary", backgroundColor: showKeyboard ? "action.selected" : "transparent" }}
-            onClick={() => toggleKeyboard(trackId)}>Keyboard</Button>
+            onClick={() => toggleKeyboard(trackId)}>{i18n.t("timeline:attrs.keyboard", { defaultValue: "Keyboard" })}</Button>
           {showKeyboard && <div className={`fs-editor fs-${instrument.type}`}>
             <InstrumentKeyboard start={instrument.type === "sampler" ? Math.min(103, auditionPitch(instrument)) : instrument.type === "drum" ? instrument.baseNote : instrument.type === "bass" ? 36 : 48}
               onPlay={pitch => commit(instrument, pitch)} />

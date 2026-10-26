@@ -274,6 +274,26 @@
     "generateLayerFromWorkflow": "从任意带图像输出的工作流生成一个图层",
     "replacesLayerSvg": "会替换此图层的 SVG。撤销可还原。",
     "deleteSelectedLayers": "删除所选图层",
-    "deleteLayer": "删除图层"
+    "deleteLayer": "删除图层",
+    "fromImage": "从图像",
+    "colorPickerTool": "取色器"
+  },
+  "toolSettings": {
+    "brush": "画笔",
+    "pencil": "铅笔",
+    "eraser": "橡皮擦",
+    "fill": "填充",
+    "blurBrush": "模糊画笔",
+    "gradient": "渐变",
+    "crop": "裁剪",
+    "selection": "选区",
+    "adjustments": "调整",
+    "segment": "抠图",
+    "shape": "形状",
+    "transform": "变换",
+    "move": "移动",
+    "colorPicker": "取色器",
+    "cloneStamp": "仿制图章",
+    "settings": "设置"
   }
 }

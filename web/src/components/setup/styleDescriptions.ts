@@ -1,3 +1,4 @@
+import { i18n } from "../../i18n";
 /** Display copy stays separate from the complete generation descriptor. */
 export const STYLE_DESCRIPTION_KEYS: Readonly<Record<string, string>> = {
   comic: "storyboard:attrs.styleComic",
@@ -53,3 +54,10 @@ export const STYLE_DESCRIPTIONS: Readonly<Record<string, string>> = {
   "pixel-modern": "Saturated modern pixel art with coloured outlines and rim light.",
   "painted-2d": "Hand-painted gouache with visible brush texture and no outlines."
 };
+
+/** Localized display name for a shipped style preset. The zh overlay in
+ *  catalog.json is keyed by the English display name (the BoardStyleDialog
+ *  convention); English renders the stored name byte-identically. */
+export function stylePresetName(name: string): string {
+  return i18n.t(`catalog:styles.${name}.name`, { defaultValue: name });
+}

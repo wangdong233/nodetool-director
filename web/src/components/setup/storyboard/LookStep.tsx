@@ -58,6 +58,7 @@ import { AddStyleDialog } from "./AddStyleDialog";
 import { useCustomStyle, useStyleSaving } from "./useCustomStyle";
 import { setShotlistImport, useShotlistImportSummary } from "./setupChoices";
 import { useTranslation } from "react-i18next";
+import { stylePresetName } from "../styleDescriptions";
 import { i18n } from "../../../i18n";
 
 export interface LookStepProps {
@@ -266,7 +267,7 @@ export const LookStep: React.FC<LookStepProps> = ({
     () =>
       (presets ?? []).map((preset) => ({
         id: preset.entityId,
-        title: preset.name,
+        title: stylePresetName(preset.name),
         description:
           STYLE_DESCRIPTIONS[preset.presetId] ?? preset.descriptor.trim(),
         image: preset.thumbnail
