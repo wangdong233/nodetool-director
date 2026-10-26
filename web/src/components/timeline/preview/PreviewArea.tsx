@@ -1275,7 +1275,9 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
       sequenceWidth,
       sequenceHeight,
       isPlaying
-    ) === 1 ? "Full" : "Half";
+    ) === 1
+      ? i18n.t("timeline:editor.qualityFull", { defaultValue: "Full" })
+      : i18n.t("timeline:editor.qualityHalf", { defaultValue: "Half" });
     const isFullscreen = isNativeFullscreen || isExpanded;
     const [scrubMs, setScrubMs] = useState<number | null>(null);
 
@@ -1582,10 +1584,13 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
               }
             }}
             options={[
-              { value: "auto", label: `Auto (${autoQualityLabel})` },
-              { value: "full", label: "Full", labelKey: "settings:general.opts.full" },
-              { value: "half", label: "Half" },
-              { value: "quarter", label: "Quarter" }
+              // Resolved here (not via labelKey): the interpolated quality
+              // word must localize with the same scale vocabulary as the
+              // fixed options below.
+              { value: "auto", label: i18n.t("timeline:editor.qualityAuto", { defaultValue: "Auto ({{quality}})", quality: autoQualityLabel }) },
+              { value: "full", label: "Full", labelKey: "timeline:editor.qualityFull" },
+              { value: "half", label: "Half", labelKey: "timeline:editor.qualityHalf" },
+              { value: "quarter", label: "Quarter", labelKey: "timeline:editor.qualityQuarter" }
             ]}
             className="timeline-preview__quality"
           />
@@ -1600,15 +1605,15 @@ export const PreviewArea: React.FC<PreviewAreaProps> = memo(
                 <VolumeUpIcon />
               )
             }
-            tooltip={isSilent ? "Unmute" : "Mute"}
+            tooltip={isSilent ? i18n.t("timeline:attrs.unmute", { defaultValue: "Unmute" }) : i18n.t("timeline:attrs.mute", { defaultValue: "Mute" })}
             onClick={toggleMute}
-            aria-label={isSilent ? "Unmute" : "Mute"}
+            aria-label={isSilent ? i18n.t("timeline:attrs.unmute", { defaultValue: "Unmute" }) : i18n.t("timeline:attrs.mute", { defaultValue: "Mute" })}
             aria-pressed={isSilent}
             size="small"
           />
           <div className="timeline-preview__volume">
             <Slider
-              aria-label="Volume"
+              aria-label={i18n.t("timeline:attrs.volume", { defaultValue: "Volume" })}
               min={0}
               max={1}
               step={0.01}

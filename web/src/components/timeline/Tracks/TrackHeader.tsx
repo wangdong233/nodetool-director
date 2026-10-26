@@ -75,7 +75,7 @@ import { useLongPress } from "../../../hooks/timeline/useLongPress";
 import type { LongPressPoint } from "../../../hooks/timeline/useLongPress";
 import { trackRowHeightPx } from "./trackHeight";
 import { useTimelineLayoutStore } from "../../../stores/timeline/TimelineLayoutStore";
-import { trackTypeMeta, trackTypeAccent } from "./trackVisuals";
+import { trackTypeMeta, trackTypeAccent, trackTypeLabel } from "./trackVisuals";
 import { i18n } from "../../../i18n";
 export const TRACK_HEADER_WIDTH_PX = DEFAULT_TRACK_HEADER_WIDTH_PX;
 /**
@@ -378,7 +378,7 @@ const PRESET_OPTIONS: readonly SelectOption[] = [
     value: preset.id,
     label: preset.name
   })),
-  { value: CUSTOM_PRESET, label: "Custom" }
+  { value: CUSTOM_PRESET, label: "Custom", labelKey: "editor:ui.customPreset" }
 ];
 
 interface TrackHeaderProps {
@@ -417,11 +417,9 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
     const authoredHeightPx = trackRowHeightPx(track, dawMode);
     const heightPx = authoredHeightPx * verticalZoom;
     const meta = trackTypeMeta(track.type);
-    // Sentence case in menu labels; acronyms such as MIDI stay upper case.
-    const menuTypeLabel =
-      meta.label === meta.label.toUpperCase()
-        ? meta.label
-        : meta.label.toLowerCase();
+    // Catalog-resolved type label for menu sentences; acronyms such as MIDI
+    // stay upper case inside the catalog value itself.
+    const menuTypeLabel = trackTypeLabel(track.type);
     const accent = trackTypeAccent(theme, track.type);
     const TypeIcon = meta.Icon;
 
@@ -1036,12 +1034,12 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
             />
           ))}
           <MenuItemPrimitive
-            label={`Insert ${menuTypeLabel} track above`}
+            label={i18n.t("timeline:attrs.insertTrackAbove", { defaultValue: "Insert {{type}} track above", type: menuTypeLabel })}
             icon={<VerticalAlignTopIcon fontSize="small" />}
             onClick={handleMenuInsertAbove}
           />
           <MenuItemPrimitive
-            label={`Insert ${menuTypeLabel} track below`}
+            label={i18n.t("timeline:attrs.insertTrackBelow", { defaultValue: "Insert {{type}} track below", type: menuTypeLabel })}
             icon={<VerticalAlignBottomIcon fontSize="small" />}
             onClick={handleMenuInsertBelow}
           />
@@ -1061,14 +1059,14 @@ export const TrackHeader: React.FC<TrackHeaderProps> = memo(
               useNotificationStore.getState().addNotification({
                 type: "warning",
                 alert: true,
-                content: `Unlock track "${track.name}" and its clips to delete it`
+                content: i18n.t("timeline:attrs.unlockTrackToDelete", { defaultValue: "Unlock track \"{{name}}\" and its clips to delete it", name: track.name })
               });
             }
           }}
           title={i18n.t("timeline:editor.deleteTrackConfirm", { defaultValue: "Delete track?" })}
-          content={`Track "${track.name}" and all its clips are deleted.`}
-          confirmText="Delete"
-          cancelText="Cancel"
+          content={i18n.t("timeline:attrs.deleteTrackContent", { defaultValue: "Track \"{{name}}\" and all its clips are deleted.", name: track.name })}
+          confirmText={i18n.t("common:action.delete", { defaultValue: "Delete" })}
+          cancelText={i18n.t("common:action.cancel", { defaultValue: "Cancel" })}
           destructive
         />
       </>

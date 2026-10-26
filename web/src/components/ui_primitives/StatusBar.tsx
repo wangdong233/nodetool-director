@@ -85,11 +85,23 @@ StatusBarItem.displayName = "StatusBarItem";
 
 export type SaveStateValue = "idle" | "dirty" | "saving" | "saved" | "error";
 
+// English defaults only — resolved through the catalog at render time below.
+// The previous module-level i18n.t calls froze the pre-zh-bundle locale at
+// import, so zh users kept reading English here (walk v4 finding).
 const DEFAULT_LABELS: Record<Exclude<SaveStateValue, "idle">, string> = {
   dirty: "Unsaved changes",
   saving: "Saving…",
-  saved: i18n.t("editor:ui.savedZipA", { defaultValue: "Saved" }),
-  error: i18n.t("editor:ui.saveFailed", { defaultValue: "Save failed" })
+  saved: "Saved",
+  error: "Save failed"
+};
+
+// Catalog key per state; every call re-resolves, so a language switch
+// re-renders with the new locale.
+const LABEL_KEYS: Record<Exclude<SaveStateValue, "idle">, string> = {
+  dirty: "ui2:attrs.unsavedChangesCapitalized",
+  saving: "ui2:attrs.saving",
+  saved: "ui2:attrs.saved",
+  error: "editor:ui.saveFailed"
 };
 
 const DOT_COLOR: Record<Exclude<SaveStateValue, "idle">, string> = {
@@ -123,7 +135,9 @@ export const SaveState: React.FC<SaveStateProps> = ({
   if (state === "idle") {
     return null;
   }
-  const label = labels?.[state] ?? DEFAULT_LABELS[state];
+  const label =
+    labels?.[state] ??
+    i18n.t(LABEL_KEYS[state], { defaultValue: DEFAULT_LABELS[state] });
   return (
     <Box
       className={className}

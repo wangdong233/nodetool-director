@@ -105,7 +105,7 @@ const TRACK_TYPES: TrackTypeOption[] = [
   },
   {
     type: "chord",
-    label: "Chord track",
+    label: "Chord track", labelKey: "timeline:editor.chordTrackLabel",
     icon: <QueueMusicOutlinedIcon fontSize="small" />
   }
 ];
@@ -149,7 +149,7 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
           data-testid="add-track-button"
         >
           <AddIcon />
-          {!compact && <span>Track</span>}
+          {!compact && <span>{i18n.t("timeline:attrs.track", { defaultValue: "Track" })}</span>}
         </button>
       </Tooltip>
       <ContextMenu
@@ -163,6 +163,7 @@ export const AddTrackButton: React.FC<AddTrackButtonProps> = memo(({ compact = f
           <MenuItemPrimitive
             key={opt.type}
             label={opt.label}
+            labelKey={opt.labelKey}
             icon={opt.icon}
             onClick={() => handleSelect(opt.type)}
           />

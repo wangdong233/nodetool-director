@@ -238,7 +238,7 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
               startIcon={<KeyRoundedIcon />}
               onClick={handleConnectProvider}
             >
-              Connect a provider
+              {t("editor:chat.connectAProvider", { defaultValue: "Connect a provider" })}
             </EditorButton>
           </FlexColumn>
         ) : (
@@ -246,7 +246,7 @@ const WelcomePlaceholder: React.FC<WelcomePlaceholderProps> = ({
             <AutoAwesomeIcon className="welcome-icon" />
             <Text className="welcome-title">{t("editor:ui.howCanIHelpYouToday", { defaultValue: "How can I help you today?" })}</Text>
             <Text className="welcome-subtitle">
-              Ask anything, drop in files, or start with one of these:
+              {t("editor:chat.welcomeSubtitle", { defaultValue: "Ask anything, drop in files, or start with one of these:" })}
             </Text>
             <div className="suggestions">
               {SUGGESTIONS.map((suggestion) => (

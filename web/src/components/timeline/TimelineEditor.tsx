@@ -349,20 +349,20 @@ type InspectorTab = "inspector" | "shot" | "source" | "instrument" | "agent" | "
 const INSPECTOR_TABS = [
   { value: "inspector", label: "Inspector", labelKey: "timeline:editor.inspector", icon: <TuneOutlinedIcon fontSize="small" /> },
   { value: "instrument", label: "Instruments", labelKey: "timeline:editor.instruments", icon: <PianoOutlinedIcon fontSize="small" /> },
-  { value: "source", label: "Source", icon: <MovieFilterOutlinedIcon fontSize="small" /> },
-  { value: "agent", label: "Assistant", icon: <AutoAwesomeIcon fontSize="small" /> },
+  { value: "source", label: "Source", labelKey: "timeline:editor.source", icon: <MovieFilterOutlinedIcon fontSize="small" /> },
+  { value: "agent", label: "Assistant", labelKey: "timeline:editor.assistant", icon: <AutoAwesomeIcon fontSize="small" /> },
   { value: "history", label: "History", labelKey: "timeline:editor.history", icon: <HistoryOutlinedIcon fontSize="small" /> }
 ];
 
 const SCRIPT_TAB = {
   value: "script",
-  label: "Script",
+  label: "Script", labelKey: "timeline:editor.script",
   icon: <SubtitlesOutlinedIcon fontSize="small" />
 };
 
 const SHOT_TAB = {
   value: "shot",
-  label: "Shot",
+  label: "Shot", labelKey: "timeline:editor.shot",
   icon: <MovieCreationOutlinedIcon fontSize="small" />
 };
 

@@ -1,38 +1,16 @@
+import { i18n } from "../../../i18n";
 import type { SketchTool } from "../types";
+import { getToolDefinition } from "../toolDefinitions";
 
+/**
+ * Label for the active tool's settings header. Resolved through the tool
+ * definition's labelKey at call time (this runs during render), falling back
+ * to the stored English label — the walk v4 run caught the previous hardcoded
+ * switch rendering English under zh.
+ */
 export function getToolSettingsLabel(tool: SketchTool): string {
-  switch (tool) {
-    case "brush":
-      return "Brush";
-    case "pencil":
-      return "Pencil";
-    case "eraser":
-      return "Eraser";
-    case "fill":
-      return "Fill";
-    case "blur":
-      return "Blur brush";
-    case "gradient":
-      return "Gradient";
-    case "crop":
-      return "Crop";
-    case "select":
-      return "Selection";
-    case "adjust":
-      return "Adjustments";
-    case "segment":
-      return "Segment";
-    case "shape":
-      return "Shape";
-    case "transform":
-      return "Transform";
-    case "move":
-      return "Move";
-    case "eyedropper":
-      return "Color picker";
-    case "clone_stamp":
-      return "Clone stamp";
-    default:
-      return "Settings";
-  }
+  const def = getToolDefinition(tool);
+  return def.labelKey
+    ? i18n.t(def.labelKey, { defaultValue: def.label })
+    : def.label;
 }

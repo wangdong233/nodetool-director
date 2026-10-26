@@ -73,13 +73,13 @@ const LinkedWorkflowsMenu = ({
         aria-haspopup="menu"
         aria-expanded={anchorEl !== null}
       >
-        {`Linked workflows (${links.length})`}
+        {t("editor:ui.linkedWorkflowsCount", { defaultValue: "Linked workflows ({{count}})", count: links.length })}
       </Button>
       <ContextMenu
         anchorEl={anchorEl}
         open={anchorEl !== null}
         onClose={close}
-        slotProps={{ list: { "aria-label": "Linked workflows" } }}
+        slotProps={{ list: { "aria-label": t("editor:ui.linkedWorkflows", { defaultValue: "Linked workflows" }) } }}
       >
         {links.length === 0 && (
           <MenuItem disabled>

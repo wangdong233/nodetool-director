@@ -965,6 +965,106 @@
     "sneaker-drop": {
       "name": "Sneaker Drop — 15 秒广告",
       "logline": "十五秒跑鞋发布：影棚揭晓、一个材质特写，最后走到天刚亮的街头。"
+    },
+    "bowl-time": {
+      "name": "Bowl Time — 宠物开饭小品",
+      "logline": "狗粮落碗的一声，让整栋房子都知道开饭了。"
+    },
+    "clay-monday": {
+      "name": "Clay Monday — 定格动画晨间小品",
+      "logline": "定格动画角色把自己从床上拖起来，去煮一杯咖啡。"
+    },
+    "clockwork-heart": {
+      "name": "Clockwork Heart — 黄铜机械心脏微距",
+      "logline": "一次深入黄铜机械心脏的微距旅程，看它开始跳动。"
+    },
+    "cold-brew-pour": {
+      "name": "Cold Brew Pour — 冷萃咖啡广告",
+      "logline": "一瓶冰萃咖啡广告：一道慢倒，一口冰爽。"
+    },
+    "dawn-run": {
+      "name": "Dawn Run — 日出奔跑长镜头",
+      "logline": "日出时分，一位跑者以一记不间断的步伐穿过安静的城市大桥。"
+    },
+    "dew-drop-serum": {
+      "name": "Dew Drop Serum — 精华液护肤广告",
+      "logline": "一支护肤广告，跟随一滴精华液落上肌肤。"
+    },
+    "diver-and-the-whale": {
+      "name": "The Diver and the Whale — 自由潜水与座头鲸",
+      "logline": "自由潜水者悬停在蔚蓝深处，座头鲸近得触手可及。"
+    },
+    "duel-in-the-wheat": {
+      "name": "Duel in the Wheat — 麦田决斗",
+      "logline": "两位剑客在风起的麦田对峙。一击定胜负。"
+    },
+    "dust-ballet": {
+      "name": "Dust Ballet — 废弃剧院独舞",
+      "logline": "一位舞者在废弃剧院独自起舞，光从屋顶的破洞洒落。"
+    },
+    "fox-in-snow": {
+      "name": "Fox in Snow — 雪中扑猎的狐狸",
+      "logline": "红狐听见雪下的鼠动，头朝下扎了进去。"
+    },
+    "ink-dragon": {
+      "name": "Ink Dragon — 墨滴化龙",
+      "logline": "一滴黑墨入水，晕开成一条水墨巨龙。"
+    },
+    "mars-greenhouse": {
+      "name": "Mars Greenhouse — 火星温室的第一颗番茄",
+      "logline": "宇航员在火星温室里发现第一颗熟透的番茄。"
+    },
+    "morning-syrup": {
+      "name": "Morning Syrup — 枫糖煎饼广告",
+      "logline": "一张煎饼广告，围绕一次完美的枫糖倾倒。"
+    },
+    "mountain-pass-drift": {
+      "name": "Mountain Pass Drift — 夜雾山道漂移",
+      "logline": "夜色中一辆孤车漂过发卡弯，车灯劈开浓雾。"
+    },
+    "movement-in-gold": {
+      "name": "Movement in Gold — 机械腕表广告",
+      "logline": "把一枚奢华腕表看作活的机械：从齿轮到手腕。"
+    },
+    "noise-off": {
+      "name": "Noise Off — 降噪耳机广告",
+      "logline": "耳机一戴上，高峰期的列车瞬间安静。"
+    },
+    "puddle-strike": {
+      "name": "Puddle Strike — 水坑慢镜跑鞋广告",
+      "logline": "跑鞋广告：一步踏过城市水坑，溅起一顶水冠。"
+    },
+    "rooftop-run": {
+      "name": "Rooftop Run — 黄金时刻跑酷",
+      "logline": "一位跑酷者在黄金时刻连跨三座天台。"
+    },
+    "silent-arrival": {
+      "name": "Silent Arrival — 电动车沙漠黎明",
+      "logline": "一辆电动车在黎明穿过沙漠，几乎悄无声息。"
+    },
+    "silk-and-glass": {
+      "name": "Silk and Glass — 香水广告",
+      "logline": "一支香水广告：坠落的丝绸与玻璃上的水珠。"
+    },
+    "suite-morning": {
+      "name": "Suite Morning — 海景套房的清晨",
+      "logline": "一间海景套房的清晨：从窗帘到阳台上的咖啡。"
+    },
+    "summit-reveal": {
+      "name": "Summit Reveal — 破云登顶",
+      "logline": "攀登者翻上山顶的那一刻，云在脚下裂开。"
+    },
+    "the-interrogation": {
+      "name": "The Interrogation — 审讯室对话戏",
+      "logline": "两个人、一张桌子，两行台词戳穿一个谎言。"
+    },
+    "the-long-hallway": {
+      "name": "The Long Hallway — 医院走廊夜戏",
+      "logline": "夜班护士看见医院走廊尽头有什么东西。"
+    },
+    "under-the-bed": {
+      "name": "Under the Bed — 床下的小怪物",
+      "logline": "孩子用手电照向床底，找到一只比她还害怕的怪物。"
     }
   },
   "scriptInspirations": {

@@ -178,16 +178,16 @@ const SceneClipDialog: React.FC<SceneClipDialogProps> = ({
         ? [...declared]
         : [...ONE_TAKE_FALLBACK_DURATIONS];
     return [
-      { value: "", label: `Shot total (${seconds(shotTotal)})` },
+      { value: "", label: t("storyboard:attrs.shotTotalOption", { defaultValue: "Shot total ({{seconds}})", seconds: seconds(shotTotal) }) },
       ...values.map((value) => ({ value: String(value), label: seconds(value) }))
     ];
-  }, [catalogModel?.durations, shotTotal]);
+  }, [catalogModel?.durations, shotTotal, t]);
   const resolutionOptions = useMemo(() => {
     const declared = catalogModel?.resolutions;
     const values =
       declared && declared.length > 0 ? declared : ONE_TAKE_FALLBACK_RESOLUTIONS;
     return [
-      { value: "", label: "Default" },
+      { value: "", label: "Default", labelKey: "storyboard:attrs.default" },
       ...values.map((value) => ({ value, label: value }))
     ];
   }, [catalogModel?.resolutions]);

@@ -399,7 +399,7 @@ export const TimelineGeneratePanel: React.FC<TimelineGeneratePanelProps> = memo(
       <MediaControlChip
         ref={videoModelAnchorRef}
         icon={<MovieIcon fontSize="small" />}
-        label={selectedModel?.name || "Select model"}
+        label={selectedModel?.name || i18n.t("editor:ui.selectModel", { defaultValue: "Select model" })}
         active={videoModelOpen}
         onClick={() => setVideoModelOpen(true)}
         truncate

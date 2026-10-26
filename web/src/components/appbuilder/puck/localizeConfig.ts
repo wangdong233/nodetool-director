@@ -95,6 +95,7 @@ export function localizeAppConfig(config: Config): Config {
   if (config.root) {
     next.root = {
       ...config.root,
+      label: tAttr(config.root.label ?? "Page"),
       fields: localizeFields(
         (config.root.fields ?? {}) as Record<string, unknown>
       ) as typeof config.root.fields

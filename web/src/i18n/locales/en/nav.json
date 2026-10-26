@@ -94,7 +94,9 @@
     "library": "Library",
     "more": "More",
     "openOrCreate": "Open or create a tab",
-    "new": "New"
+    "new": "New",
+    "viewMode": "View",
+    "editMode": "Edit"
   },
   "qa": {
     "documents": {

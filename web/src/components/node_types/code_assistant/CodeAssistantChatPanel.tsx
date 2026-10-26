@@ -45,7 +45,7 @@ const CodeAssistantChatPanel = ({ nodeId }: CodeAssistantChatPanelProps) => {
       chatSource="code_assistant"
       getSelection={getSelection}
       systemPrompt={systemPrompt}
-      welcomeTitle="Code assistant"
+      welcomeTitle={i18n.t("editor:ui.codeAssistant", { defaultValue: "Code assistant" })}
       welcomeBody='Ask me to write or change this node code — e.g. "merge the two lists on id", "add an error output", or "test this with a sample list".'
     />
   );

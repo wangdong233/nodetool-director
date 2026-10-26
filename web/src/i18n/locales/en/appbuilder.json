@@ -408,6 +408,9 @@
     "runHistoryPanel": "Run history",
     "someRecordedContentLimited": "Some recorded content was limited.",
     "emptyCollection": "Empty collection",
-    "signInToLoadInstance": "Sign in to load this app instance."
+    "signInToLoadInstance": "Sign in to load this app instance.",
+    "page": "Page",
+    "blocksTab": "Blocks",
+    "outlineTab": "Outline"
   }
 }

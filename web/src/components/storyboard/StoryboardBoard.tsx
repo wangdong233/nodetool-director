@@ -1196,7 +1196,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
           }}
         >
           <FlexRow align="center" gap={SPACING.lg} wrap>
-            <Text size="big">{title || "Untitled film"}</Text>
+            <Text size="big">{title || t("storyboard:attrs.untitledFilm", { defaultValue: "Untitled film" })}</Text>
             <BoardGenreChip
               boardId={boardId}
               genre={genre}
@@ -1224,7 +1224,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       onClick={handleAddShot}
                       disabled={directing}
                     >
-                      Add shot
+                      {t("storyboard:attrs.addShot", { defaultValue: "Add shot" })}
                     </EditorButton>
                     <EditorButton
                       variant="outlined"
@@ -1240,7 +1240,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       aria-expanded={settingsVisible}
                       aria-controls={settingsPanelId}
                     >
-                      Board settings
+                      {t("storyboard:attrs.boardSettings", { defaultValue: "Board settings" })}
                     </EditorButton>
                     <EditorButton
                       variant={oneTakeOpen ? "contained" : "outlined"}
@@ -1249,7 +1249,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                       aria-expanded={oneTakeOpen}
                       aria-controls={oneTakePanelId}
                     >
-                      One take
+                      {t("storyboard:attrs.oneTake", { defaultValue: "One take" })}
                     </EditorButton>
                     {onToggleAssistant && (
                       <EditorButton
@@ -1258,7 +1258,7 @@ const StoryboardBoardInner: React.FC<StoryboardBoardProps> = ({
                         onClick={onToggleAssistant}
                         aria-pressed={assistantOpen}
                       >
-                        Assistant
+                        {t("storyboard:attrs.assistant", { defaultValue: "Assistant" })}
                       </EditorButton>
                     )}
                     {downloadingStatus}

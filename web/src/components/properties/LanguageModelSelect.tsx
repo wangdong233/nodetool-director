@@ -12,6 +12,7 @@ import useModelSelectMenu from "./shared/useModelSelectMenu";
 import { getProviderDisplayName } from "../../utils/providerDisplay";
 import { useProviderKeyMissing } from "../../hooks/useProviderKeyMissing";
 import { missingKeyWarning } from "./shared/missingKeyWarning";
+import { i18n } from "../../i18n";
 
 interface LanguageModelSelectProps {
   onChange: (value: LanguageModelValue) => void;
@@ -37,7 +38,7 @@ const LanguageModelSelect: React.FC<LanguageModelSelectProps> = ({
   provider,
   allowedProviders,
   requireToolSupport,
-  placeholder = "Select model",
+  placeholder = i18n.t("editor:ui.selectModel", { defaultValue: "Select model" }),
   recommendedModels,
   modelPacks,
   disabled

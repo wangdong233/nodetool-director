@@ -3,6 +3,7 @@ import type { UiDocumentRef } from "@nodetool-ai/protocol";
 
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
 import { useScriptTitle } from "../../stores/script/ScriptStore";
+import { i18n } from "../../i18n";
 
 interface ScriptAgentPanelProps {
   scriptId: string;
@@ -23,7 +24,7 @@ const ScriptAgentPanel = ({ scriptId }: ScriptAgentPanelProps) => {
       workflowId={scriptId}
       docsTopic="scripts"
       docsLabel="Scripts"
-      welcomeTitle="Script assistant"
+      welcomeTitle={i18n.t("editor:ui.scriptAssistant", { defaultValue: "Script assistant" })}
       welcomeBody='Ask me to write and voice the script — e.g. "draft a 30-second intro for two hosts", "add a line for Narrator", or "voice every line and send it to a timeline".'
     />
   );

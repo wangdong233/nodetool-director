@@ -408,6 +408,9 @@
     "someRecordedContentLimited": "部分录制内容受限。",
     "recordingIncomplete": "录制不完整。",
     "emptyCollection": "空集合",
-    "signInToLoadInstance": "登录后加载这个应用实例。"
+    "signInToLoadInstance": "登录后加载这个应用实例。",
+    "page": "页面",
+    "blocksTab": "组件",
+    "outlineTab": "大纲"
   }
 }

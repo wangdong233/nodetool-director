@@ -300,7 +300,7 @@ const ScriptCastPanel = ({
           component="h3"
           sx={{ ...EYEBROW, margin: SPACING.none, color: "text.secondary" }}
         >
-          Cast
+          {t("editor:ui.cast", { defaultValue: "Cast" })}
         </Box>
         {!readOnly && (
           <EditorButton
@@ -309,7 +309,7 @@ const ScriptCastPanel = ({
             startIcon={<PersonAddIcon />}
             onClick={onAdd}
           >
-            Add
+            {t("common:action.add", { defaultValue: "Add" })}
           </EditorButton>
         )}
       </FlexRow>
@@ -317,7 +317,7 @@ const ScriptCastPanel = ({
         <EmptyState
           title={t("editor:ui.noSpeakers", { defaultValue: "No speakers" })}
           description={t("editor:ui.addSpeakerPickVoiceAssign", { defaultValue: "Add a speaker, pick a voice, then click a line's name to assign it." })}
-          actionText={readOnly ? undefined : "Add speaker"}
+          actionText={readOnly ? undefined : t("editor:ui.addSpeaker", { defaultValue: "Add speaker" })}
           onAction={readOnly ? undefined : onAdd}
         />
       ) : (

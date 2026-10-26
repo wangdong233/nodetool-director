@@ -51,7 +51,7 @@ export class ColorPickerTool implements ToolHandler {
 
 export const definition: ToolDefinition = {
   tool: "eyedropper",
-  label: "Color picker",
+  label: "Color picker", labelKey: "sketch:attrs.colorPickerTool",
   Icon: ColorizeIcon,
   group: "painting"
 };

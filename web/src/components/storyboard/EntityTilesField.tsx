@@ -26,6 +26,7 @@ import {
   MOTION,
   SPACING
 } from "../ui_primitives";
+import { i18n } from "../../i18n";
 
 export interface EntityTilesFieldProps {
   /** The entities shown as tiles, in order. */
@@ -166,7 +167,7 @@ const EntityTilesFieldInner: React.FC<EntityTilesFieldProps> = ({
                 aria-expanded={pickerOpen}
                 sx={{ justifyContent: "space-between" }}
               >
-                Choose entities
+                {i18n.t("storyboard:attrs.chooseEntities", { defaultValue: "Choose entities" })}
               </EditorButton>
               {extraAction}
             </FlexRow>

@@ -27,7 +27,7 @@ const TimelineAgentPanel = () => {
       workflowId={sequenceId}
       docsTopic="timelines"
       docsLabel={i18n.t("timeline:editor.videoEditor", { defaultValue: "Video editor" })}
-      welcomeTitle="Editor assistant"
+      welcomeTitle={i18n.t("editor:ui.editorAssistant", { defaultValue: "Editor assistant" })}
       welcomeBody='Ask me to edit the timeline — e.g. "generate a 5-second clip of a city at night", "split the selected clip at the playhead", or "fade out the last clip".'
     />
   );

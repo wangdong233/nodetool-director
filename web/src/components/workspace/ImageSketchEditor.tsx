@@ -66,7 +66,7 @@ const ImageSketchEditor = ({ asset, onClose }: ImageSketchEditorProps) => {
           onClick={saveAndClose}
           disabled={saving}
         >
-          Done
+          {t("editor:ui.done", { defaultValue: "Done" })}
         </EditorButton>
       </FlexRow>
     ),

@@ -171,7 +171,7 @@ export const TimelineViewControls: React.FC<TimelineViewControlsProps> = memo(
             aria-controls={open ? "timeline-view-controls" : undefined}
           >
             <ViewTimelineOutlinedIcon fontSize="small" />
-            {!compact && <span>View</span>}
+            {!compact && <span>{i18n.t("timeline:view.view", { defaultValue: "View" })}</span>}
           </button>
         </Tooltip>
         <Popover

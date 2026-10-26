@@ -145,7 +145,14 @@
     "scrollTracksDesc": "播放时轨道滚动,保持播放头可见",
     "detectBeats": "检测节拍",
     "tryAnotherName": "换个名字试试。",
-    "createdWithOmissions": "时间线已创建(有省略)"
+    "createdWithOmissions": "时间线已创建(有省略)",
+    "script": "剧本",
+    "shot": "镜头",
+    "qualityAuto": "自动（{{quality}}）",
+    "qualityFull": "完整",
+    "qualityHalf": "二分之一",
+    "qualityQuarter": "四分之一",
+    "dawMode": "DAW 模式"
   },
   "tools": {
     "select": "选择",
@@ -164,7 +171,11 @@
     "overlapDesc": "放下即堆叠并交叉淡化",
     "snapDesc": "拖动时按住 Alt 可绕过",
     "barsDesc": "标尺按小节与拍计数，而不是秒",
-    "linkedDesc": "视频与其音频一起移动"
+    "linkedDesc": "视频与其音频一起移动",
+    "cut": "剪切",
+    "snap": "吸附",
+    "bars": "小节",
+    "follow": "跟随"
   },
   "topbar": {
     "saving": "保存中…",
@@ -892,7 +903,18 @@
     "aVideoOrOverlayTrack": "视频或叠加",
     "filterMode": "滤波模式",
     "moveEarlierInChain": "在链路上前移",
-    "moveLaterInChain": "在链路上后移"
+    "moveLaterInChain": "在链路上后移",
+    "emptyTracksHint": "从媒体库拖入素材，或先添加一条轨道。",
+    "undo": "撤销",
+    "undoTooltip": "撤销（{{shortcut}}）",
+    "redo": "重做",
+    "redoTooltip": "重做（{{shortcut}}）",
+    "track": "轨道",
+    "mute": "静音",
+    "insertTrackAbove": "在上方插入{{type}}轨道",
+    "insertTrackBelow": "在下方插入{{type}}轨道",
+    "deleteTrackContent": "轨道“{{name}}”及其所有片段都将被删除。",
+    "unlockTrackToDelete": "请先解锁轨道“{{name}}”及其片段才能删除"
   },
   "shortcuts": {
     "tools": "工具",
@@ -1042,7 +1064,8 @@
     "trackHeight": "轨道高度",
     "decreaseTrackHeight": "降低轨道高度",
     "verticalZoom": "垂直缩放",
-    "increaseTrackHeight": "增高轨道高度"
+    "increaseTrackHeight": "增高轨道高度",
+    "view": "视图"
   },
   "keyframeChannels": {},
   "trackTypes": {

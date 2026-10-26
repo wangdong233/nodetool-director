@@ -18,28 +18,36 @@ interface ModeItem {
   id: PermissionMode;
   label: string;
   description: string;
+  /** i18n key for `label`, resolved at render. */
+  labelKey: string;
+  /** i18n key for `description`, resolved at render. */
+  descriptionKey: string;
   /** Theme palette key driving the status dot color. */
   tone: "info" | "warning" | "success";
 }
 
+// Pure data (no i18n.t at module init — the pre-zh-bundle locale would freeze
+// into these labels, which is exactly what walk v4 caught rendering "Default"
+// on the chat tab). Resolved at render below, like ReasoningSelector.
 const MODES: ModeItem[] = [
   {
     id: "plan",
-    label: i18n.t("editor:ui.plan", { defaultValue: "Plan" }),
-    description: i18n.t("editor:ui.investigateAndProposePlan", { defaultValue: "Investigate and propose a plan. Nothing runs." }),
+    label: "Plan", labelKey: "editor:ui.plan",
+    description: "Investigate and propose a plan. Nothing runs.", descriptionKey: "editor:ui.investigateAndProposePlan",
     tone: "info"
   },
   {
     id: "default",
-    label: i18n.t("appbuilder:attrs.default", { defaultValue: "Default" }),
-    description: i18n.t("editor:ui.readsRunActionsAskFirst", { defaultValue: "Reads run. Actions ask first." }),
+    label: "Default", labelKey: "appbuilder:attrs.default",
+    description: "Reads run. Actions ask first.", descriptionKey: "editor:ui.readsRunActionsAskFirst",
     tone: "warning"
   },
   {
     id: "auto",
-    label: i18n.t("timeline:history.auto", { defaultValue: "Auto" }),
+    label: "Auto", labelKey: "timeline:history.auto",
     description:
       "Routine work runs unattended. A step that deletes, publishes, or spends asks once.",
+    descriptionKey: "editor:ui.autoModeRunsUnattended",
     tone: "success"
   }
 ];
@@ -49,6 +57,11 @@ const dotColor = (theme: Theme, tone: ModeItem["tone"]): string => {
   if (tone === "success") return theme.vars.palette.grey[200];
   return theme.vars.palette.grey[400];
 };
+
+const modeLabel = (m: ModeItem): string =>
+  i18n.t(m.labelKey, { defaultValue: m.label });
+const modeDescription = (m: ModeItem): string =>
+  i18n.t(m.descriptionKey, { defaultValue: m.description });
 
 const ModeDot = ({ color }: { color: string }) => (
   <StatusDot
@@ -100,8 +113,8 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
         ref={buttonRef}
         className="permission-selector-trigger"
         icon={<ModeDot color={dotColor(theme, activeMode.tone)} />}
-        label={compact ? undefined : activeMode.label}
-        title={`Permission: ${activeMode.label} — ${activeMode.description}`}
+        label={compact ? undefined : modeLabel(activeMode)}
+        title={i18n.t("editor:ui.permissionTitle", { defaultValue: "Permission: {{label}} — {{description}}", label: modeLabel(activeMode), description: modeDescription(activeMode) })}
         active={open}
         showChevron
         onClick={() => setOpen(true)}
@@ -114,7 +127,7 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
         transformOrigin={{ vertical: "bottom", horizontal: "left" }}
         minWidth={260}
         paperSx={{ maxWidth: 320 }}
-        slotProps={{ list: { "aria-label": "Permission mode" } }}
+        slotProps={{ list: { "aria-label": t("editor:ui.permissionMode", { defaultValue: "Permission mode" }) } }}
       >
         <ListSubheader>{t("editor:ui.permissionMode", { defaultValue: "Permission mode" })}</ListSubheader>
         {MODES.map((m) => {
@@ -122,8 +135,8 @@ const PermissionSelector: React.FC<PermissionSelectorProps> = ({
           return (
             <MenuItemPrimitive
               key={m.id}
-              label={m.label}
-              secondary={m.description}
+              label={modeLabel(m)}
+              secondary={modeDescription(m)}
               icon={<ModeDot color={dotColor(theme, m.tone)} />}
               checkable="radio"
               checked={selected}

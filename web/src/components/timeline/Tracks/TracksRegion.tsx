@@ -1591,22 +1591,22 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
           <ToolToggle compact={toolbarCompact} />
           {/* The tooltip sits on a span so it still shows over a disabled
               button, which fires no pointer events of its own. */}
-          <Tooltip title={`Undo (${modKeyLabel}+Z)`}>
+          <Tooltip title={t("timeline:attrs.undoTooltip", { defaultValue: "Undo ({{shortcut}})", shortcut: `${modKeyLabel}+Z` })}>
             <span>
               <ToolbarIconButton
                 icon={<UndoIcon />}
-                ariaLabel="Undo"
+                ariaLabel={t("timeline:attrs.undo", { defaultValue: "Undo" })}
                 onClick={handleUndo}
                 disabled={!canUndo}
                 data-testid="timeline-undo"
               />
             </span>
           </Tooltip>
-          <Tooltip title={`Redo (${modKeyLabel}+Shift+Z)`}>
+          <Tooltip title={t("timeline:attrs.redoTooltip", { defaultValue: "Redo ({{shortcut}})", shortcut: `${modKeyLabel}+Shift+Z` })}>
             <span>
               <ToolbarIconButton
                 icon={<RedoIcon />}
-                ariaLabel="Redo"
+                ariaLabel={t("timeline:attrs.redo", { defaultValue: "Redo" })}
                 onClick={handleRedo}
                 disabled={!canRedo}
                 data-testid="timeline-redo"
@@ -1830,7 +1830,7 @@ export const TracksRegion: React.FC<TracksRegionProps> = memo(
                 data-testid="tracks-empty-hint"
               >
                 <Caption size="small" color="secondary">
-                  Drag media here from the Library, or add a track to start.
+                  {t("timeline:attrs.emptyTracksHint", { defaultValue: "Drag media here from the Library, or add a track to start." })}
                 </Caption>
               </FlexRow>
             )}

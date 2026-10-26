@@ -4,6 +4,7 @@ import { Box, MenuItem, ListItemIcon, ListItemText, Divider } from "@mui/materia
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import CheckIcon from "@mui/icons-material/Check";
 import { TOOLTIP_ENTER_DELAY } from "../../config/constants";
+import { i18n } from "../../i18n";
 import { Tooltip } from "./Tooltip";
 import {
   MENU_ICON_SIZE,
@@ -14,6 +15,13 @@ import {
 export interface MenuItemPrimitiveProps {
   /** Label text, sentence case */
   label: string;
+  /**
+   * i18n key for `label`, resolved at render with `label` as the English
+   * default — the same contract as SelectField/TabGroup options. Catalog
+   * arrays carry label+labelKey; the renderer resolves, so a stored English
+   * label never overrides the active locale.
+   */
+  labelKey?: string;
   /** Optional icon */
   icon?: React.ReactNode;
   /** Click handler */
@@ -63,6 +71,7 @@ export interface MenuItemPrimitiveProps {
  */
 export const MenuItemPrimitive: React.FC<MenuItemPrimitiveProps> = ({
   label,
+  labelKey,
   icon,
   onClick,
   disabled = false,
@@ -80,6 +89,11 @@ export const MenuItemPrimitive: React.FC<MenuItemPrimitiveProps> = ({
   "data-testid": testId
 }) => {
   const theme = useTheme();
+  // Resolved per render (not memoized): the language can change without this
+  // row unmounting, and a frozen key would pin the old locale.
+  const displayLabel = labelKey
+    ? i18n.t(labelKey, { defaultValue: label })
+    : label;
 
   const menuItem = (
     <MenuItem
@@ -107,7 +121,7 @@ export const MenuItemPrimitive: React.FC<MenuItemPrimitiveProps> = ({
       ]}
     >
       {icon && <ListItemIcon>{icon}</ListItemIcon>}
-      <ListItemText primary={label} secondary={secondary} />
+      <ListItemText primary={displayLabel} secondary={secondary} />
       {shortcut && (
         <Box component="span" className="shortcut" sx={menuShortcutStyles(theme)}>
           {shortcut}

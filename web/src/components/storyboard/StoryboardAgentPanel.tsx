@@ -3,6 +3,7 @@ import type { UiDocumentRef } from "@nodetool-ai/protocol";
 
 import AssistantChatPanel from "../chat/assistant/AssistantChatPanel";
 import { useStoryboardStore } from "../../stores/storyboard/StoryboardStore";
+import { i18n } from "../../i18n";
 
 interface StoryboardAgentPanelProps {
   boardId: string;
@@ -32,7 +33,7 @@ const StoryboardAgentPanel = ({ boardId }: StoryboardAgentPanelProps) => {
       workflowId={boardId}
       docsTopic="storyboards"
       docsLabel="Storyboards"
-      welcomeTitle="Storyboard assistant"
+      welcomeTitle={i18n.t("editor:ui.storyboardAssistant", { defaultValue: "Storyboard assistant" })}
       welcomeBody='Ask me to direct the board — e.g. "break this brief into six shots", "add a close-up after shot 3", "generate keyframes for every planned shot", or "assemble the shots into a timeline".'
     />
   );

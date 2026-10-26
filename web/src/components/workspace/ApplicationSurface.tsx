@@ -54,6 +54,7 @@ import {
 } from "../ui_primitives";
 import { useTranslation } from "react-i18next";
 import { i18n } from "../../i18n";
+import { seededDocDisplayName } from "./tabTypeIdentity";
 
 interface ApplicationSurfaceProps {
   refId: string;
@@ -340,7 +341,9 @@ const ApplicationSurface = ({
           >
             <Box sx={{ minWidth: 0 }}>
               <Text size="small" weight={600} truncate>
-                {application.name || "Untitled app"}
+                {application.name
+                  ? seededDocDisplayName("application", application.name)
+                  : t("editor:ui.untitledApp", { defaultValue: "Untitled app" })}
               </Text>
               {application.description && (
                 <Caption color="secondary" sx={{ display: "block" }}>

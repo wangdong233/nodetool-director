@@ -273,7 +273,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <PointerIcon />
       </ToolButton>
       <ToolButton
-        label="Cut"
+        label={i18n.t("timeline:tools.cut", { defaultValue: "Cut" })}
         shortcut={formatActionShortcut(preset, "cutTool")}
         active={activeTool === "cut"}
         compact={compact}
@@ -332,7 +332,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
       </FlexRow>
       <span css={dividerStyles} aria-hidden />
       <ToolButton
-        label="Snap"
+        label={i18n.t("timeline:tools.snap", { defaultValue: "Snap" })}
         shortcut={formatActionShortcut(preset, "toggleSnap")}
         description={i18n.t("timeline:tools.snapDesc", { defaultValue: "Hold Alt while dragging to bypass" })}
         active={snapEnabled}
@@ -342,7 +342,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         <GridGoldenratioOutlinedIcon />
       </ToolButton>
       <ToolButton
-        label="Bars"
+        label={i18n.t("timeline:tools.bars", { defaultValue: "Bars" })}
         description={i18n.t("timeline:tools.barsDesc", { defaultValue: "The ruler counts bars and beats, not seconds" })}
         active={rulerMode === "bars"}
         compact={compact}
@@ -370,7 +370,7 @@ export const ToolToggle: React.FC<ToolToggleProps> = memo(({ compact = false }) 
         {linkedSelection ? <LinkOutlinedIcon /> : <LinkOffOutlinedIcon />}
       </ToolButton>
       <ToolButton
-        label="Follow"
+        label={i18n.t("timeline:tools.follow", { defaultValue: "Follow" })}
         description={i18n.t("timeline:editor.scrollTracksDesc", { defaultValue: "The tracks scroll to keep the playhead in view during playback" })}
         active={followPlayhead}
         compact={compact}

@@ -42,7 +42,7 @@ const SketchAgentPanel = () => {
       workflowId={documentId}
       docsTopic="sketches"
       docsLabel={i18n.t("storyboard:attrs.sketchEditor", { defaultValue: "Sketch editor" })}
-      welcomeTitle="Editor assistant"
+      welcomeTitle={i18n.t("editor:ui.editorAssistant", { defaultValue: "Editor assistant" })}
       welcomeBody={i18n.t("sketch:attrs.editorAssistantWelcome", { defaultValue: "Describe an image to generate, or ask for an edit to your layers." })}
     />
   );

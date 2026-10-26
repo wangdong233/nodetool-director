@@ -94,7 +94,9 @@
     "library": "资源库",
     "more": "更多",
     "openOrCreate": "打开或新建标签页",
-    "new": "新建"
+    "new": "新建",
+    "viewMode": "视图",
+    "editMode": "编辑"
   },
   "qa": {
     "documents": {

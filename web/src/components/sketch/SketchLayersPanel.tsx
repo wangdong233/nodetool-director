@@ -1068,7 +1068,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               }
               sx={GENERATE_ACTION_SX}
             >
-              From text
+              {t("sketch:attrs.fromText", { defaultValue: "From text" })}
             </Button>
           </Tooltip>
           <Tooltip
@@ -1083,7 +1083,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               }
               sx={GENERATE_ACTION_SX}
             >
-              From image
+              {t("sketch:attrs.fromImage", { defaultValue: "From image" })}
             </Button>
           </Tooltip>
         </FlexRow>
@@ -1102,7 +1102,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
               startIcon={<AddIcon />}
               sx={NEW_LAYER_ACTION_SX}
             >
-              New layer
+              {t("sketch:attrs.newLayer", { defaultValue: "New layer" })}
             </Button>
           </Tooltip>
           <Tooltip
@@ -1347,7 +1347,7 @@ const SketchLayersPanel: React.FC<SketchLayersPanelProps> = ({
             <Text
               sx={{ fontSize: FONT_SIZE_SANS.label, color: SKETCH_COLORS.textMuted }}
             >
-              Opacity
+              {t("sketch:attrs.opacity", { defaultValue: "Opacity" })}
             </Text>
             <Slider
               size="small"

@@ -151,9 +151,9 @@ export const TopBar: React.FC<TopBarProps> = memo(
               aria-label={i18n.t("timeline:editor.editorLayout", { defaultValue: "Editor layout" })}
             >
               <ToggleOption value="video" aria-label={i18n.t("timeline:editor.videoLayout", { defaultValue: "Video layout" })}>
-                Video
+                {i18n.t("editor:ui.video", { defaultValue: "Video" })}
               </ToggleOption>
-              <ToggleOption value="daw" aria-label="DAW mode">
+              <ToggleOption value="daw" aria-label={i18n.t("timeline:editor.dawMode", { defaultValue: "DAW mode" })}>
                 DAW
               </ToggleOption>
             </ToggleGroup>

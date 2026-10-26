@@ -274,6 +274,8 @@
     "generateLayerFromWorkflow": "Generate a layer from any workflow with an image output",
     "replacesLayerSvg": "Replaces this layer's SVG. Undo restores it.",
     "deleteSelectedLayers": "Delete selected layers",
-    "deleteLayer": "Delete layer"
+    "deleteLayer": "Delete layer",
+    "fromImage": "From image",
+    "colorPickerTool": "Color picker"
   }
 }

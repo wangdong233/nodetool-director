@@ -145,7 +145,14 @@
     "scrollTracksDesc": "The tracks scroll to keep the playhead in view during playback",
     "detectBeats": "Detect beats",
     "tryAnotherName": "Try another name.",
-    "createdWithOmissions": "Timeline created with omissions"
+    "createdWithOmissions": "Timeline created with omissions",
+    "script": "Script",
+    "shot": "Shot",
+    "qualityAuto": "Auto ({{quality}})",
+    "qualityFull": "Full",
+    "qualityHalf": "Half",
+    "qualityQuarter": "Quarter",
+    "dawMode": "DAW mode"
   },
   "tools": {
     "select": "Select",
@@ -164,7 +171,11 @@
     "overlapDesc": "A drop stacks and cross-fades",
     "snapDesc": "Hold Alt while dragging to bypass",
     "barsDesc": "The ruler counts bars and beats, not seconds",
-    "linkedDesc": "Video and its audio move together"
+    "linkedDesc": "Video and its audio move together",
+    "cut": "Cut",
+    "snap": "Snap",
+    "bars": "Bars",
+    "follow": "Follow"
   },
   "topbar": {
     "saving": "Saving…",
@@ -892,7 +903,18 @@
     "aVideoOrOverlayTrack": "a video or overlay",
     "filterMode": "Filter mode",
     "moveEarlierInChain": "Move earlier in the chain",
-    "moveLaterInChain": "Move later in the chain"
+    "moveLaterInChain": "Move later in the chain",
+    "emptyTracksHint": "Drag media here from the Library, or add a track to start.",
+    "undo": "Undo",
+    "undoTooltip": "Undo ({{shortcut}})",
+    "redo": "Redo",
+    "redoTooltip": "Redo ({{shortcut}})",
+    "track": "Track",
+    "mute": "Mute",
+    "insertTrackAbove": "Insert {{type}} track above",
+    "insertTrackBelow": "Insert {{type}} track below",
+    "deleteTrackContent": "Track \"{{name}}\" and all its clips are deleted.",
+    "unlockTrackToDelete": "Unlock track \"{{name}}\" and its clips to delete it"
   },
   "shortcuts": {
     "tools": "Tools",
@@ -1042,7 +1064,8 @@
     "trackHeight": "Track height",
     "decreaseTrackHeight": "Decrease track height",
     "verticalZoom": "Vertical zoom",
-    "increaseTrackHeight": "Increase track height"
+    "increaseTrackHeight": "Increase track height",
+    "view": "View"
   },
   "keyframeChannels": {},
   "trackTypes": {

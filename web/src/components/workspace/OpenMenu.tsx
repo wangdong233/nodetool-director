@@ -234,16 +234,17 @@ const OpenMenu = ({ anchorEl, open, onClose }: OpenMenuProps) => {
             color="secondary"
             sx={{ px: SPACING.lg, py: SPACING.sm }}
           >
-            No example storyboards are available.
+            {t("storyboard:attrs.noExampleStoryboards", { defaultValue: "No example storyboards are available." })}
           </Caption>
         ),
         ...exampleStoryboards.map((example) => (
           <MenuItemPrimitive
             key={example.slug}
-            label={example.name}
-            secondary={`${example.shotCount} shot${
-              example.shotCount === 1 ? "" : "s"
-            }, stills included`}
+            label={t(`catalog:storyboardExamples.${example.slug}.name`, { defaultValue: example.name })}
+            secondary={t("storyboard:attrs.shotsStillsIncluded", {
+              defaultValue: "{{count}} shots, stills included",
+              count: example.shotCount
+            })}
             onClick={() =>
               void installStoryboardExample(example.slug, example.name)
             }

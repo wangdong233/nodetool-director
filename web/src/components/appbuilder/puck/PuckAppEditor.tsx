@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import React, { useCallback, useMemo, useState } from "react";
-import { Puck, useGetPuck, type Data, type Overrides } from "@puckeditor/core";
+import { Puck, useGetPuck, type Data, type Overrides, blocksPlugin, outlinePlugin } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
 import "./puckTheme.css";
 import CloseIcon from "@mui/icons-material/CloseOutlined";
@@ -34,6 +34,8 @@ import {
   ICON_SIZE
 } from "../../ui_primitives";
 import { i18n } from "../../../i18n";
+import { localizeAppConfig } from "./localizeConfig";
+import { useAppLanguage } from "../../../i18n";
 
 interface PuckAppEditorProps {
   /** The application being edited — the id the agent's `ui_app_*` tools take. */
@@ -194,6 +196,30 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
   const nodeStore = useWorkflowManager((s) => s.nodeStores[workflow.id]);
   const [previewWidth, setPreviewWidth] = useState<PreviewWidth>("fit");
 
+  // Render-time config localization: the module-level appConfig bakes
+  // English labels at import; Puck swaps a changed config prop into its live
+  // store, so a clone keyed on the language revision localizes every field
+  // label, option, component label, category title and the root "Page"
+  // heading (localizeConfig.ts). Without this the whole table is dead code —
+  // walk v4 caught the editor chrome rendering English under zh.
+  const { version: languageVersion } = useAppLanguage();
+  const localizedConfig = useMemo(
+    () => localizeAppConfig(appConfig),
+    [languageVersion]
+  );
+  // Puck always merges its own blocks/outline drawer plugins in, and the
+  // drawer nav resolves `label` per plugin NAME with later-wins semantics —
+  // re-registering the same factories with a translated label is the
+  // supported way to localize the two drawer tabs without reimplementing
+  // their render.
+  const localizedPlugins = useMemo(
+    () => [
+      { ...blocksPlugin(), label: i18n.t("appbuilder:attrs.blocksTab", { defaultValue: "Blocks" }) },
+      { ...outlinePlugin(), label: i18n.t("appbuilder:attrs.outlineTab", { defaultValue: "Outline" }) }
+    ],
+    [languageVersion]
+  );
+
   const overrides = useMemo<Partial<Overrides>>(
     () => ({
       headerActions: () => (
@@ -217,7 +243,7 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
               onClick={onToggleData}
               aria-pressed={dataOpen}
             >
-              App data
+              {i18n.t("appbuilder:attrs.appData", { defaultValue: "App data" })}
             </EditorButton>
           )}
           {onClose && (
@@ -227,7 +253,7 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
               startIcon={<CloseIcon />}
               onClick={onClose}
             >
-              Back
+              {i18n.t("appbuilder:attrs.back", { defaultValue: "Back" })}
             </EditorButton>
           )}
           <SaveButton onSave={onPublish} saving={saving} />
@@ -266,7 +292,8 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
             sx={{ width: "100%", height: "100%" }}
           >
             <Puck
-              config={appConfig}
+              config={localizedConfig}
+              plugins={localizedPlugins}
               data={data}
               ui={INITIAL_UI}
               onPublish={onPublish}

@@ -590,7 +590,9 @@ const VoiceAllButton = ({
         startIcon={<GraphicEqIcon fontSize="small" />}
         onClick={onClick}
       >
-        {priced ? `Voice all · ~${formatUsd(cost)}` : "Voice all"}
+        {priced
+          ? `${i18n.t("editor:ui.voiceAll", { defaultValue: "Voice all" })} · ~${formatUsd(cost)}`
+          : i18n.t("editor:ui.voiceAll", { defaultValue: "Voice all" })}
       </EditorButton>
     </Tooltip>
   );
@@ -1066,18 +1068,20 @@ const ScriptDocumentPane = ({
             color: "text.primary"
           }}
         >
-          {title ? `${title} — Script` : "Untitled script"}
+          {title
+            ? `${seededDocDisplayName("script", title)} — ${i18n.t("editor:ui.script", { defaultValue: "Script" })}`
+            : i18n.t("editor:ui.untitledScript", { defaultValue: "Untitled script" })}
         </TruncatedText>
         {!isEmpty && (
           <MetaChip>
-            {lineCount} {lineCount === 1 ? "line" : "lines"} · {wordCount}{" "}
-            {wordCount === 1 ? "word" : "words"}
+            {i18n.t("editor:ui.lineCount", { count: lineCount })} ·{" "}
+            {i18n.t("editor:ui.wordCount", { count: wordCount })}
             {durationLabel ? ` · ${durationLabel}` : ""}
           </MetaChip>
         )}
         {castCount > 0 && (
           <MetaChip icon={<MicNoneIcon fontSize="inherit" />}>
-            {castCount} {castCount === 1 ? "voice" : "voices"}
+            {i18n.t("editor:ui.voiceCount", { count: castCount })}
           </MetaChip>
         )}
         {!readOnly && <ScriptSaveIndicator scriptId={scriptId} />}
@@ -1123,7 +1127,7 @@ const ScriptDocumentPane = ({
             startIcon={<StopIcon fontSize="small" />}
             onClick={stop}
           >
-            Stop
+            {i18n.t("editor:ui.stop", { defaultValue: "Stop" })}
           </EditorButton>
         ) : (
           <Tooltip
@@ -1140,7 +1144,7 @@ const ScriptDocumentPane = ({
                 onClick={play}
                 disabled={!hasVoicedLine}
               >
-                Play through
+                {i18n.t("editor:ui.playThrough", { defaultValue: "Play through" })}
               </EditorButton>
             </span>
           </Tooltip>
@@ -1150,7 +1154,7 @@ const ScriptDocumentPane = ({
           <FlexRow align="center" gap={SPACING.xs}>
             <LoadingSpinner inline size={16} />
             <Text size="smaller">
-              Exporting {exportingAudio.toUpperCase()}…
+              {i18n.t("editor:ui.exportingFormat", { defaultValue: "Exporting {{format}}…", format: exportingAudio.toUpperCase() })}
             </Text>
           </FlexRow>
         )}

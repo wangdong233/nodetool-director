@@ -203,7 +203,9 @@
     "searchConversations": "Search conversations",
     "askToStart": "Ask a question to start one.",
     "noTasksYet": "No tasks yet",
-    "agentListsPlanHere": "The agent will list its plan here as it works."
+    "agentListsPlanHere": "The agent will list its plan here as it works.",
+    "welcomeSubtitle": "Ask anything, drop in files, or start with one of these:",
+    "connectAProvider": "Connect a provider"
   },
   "notify": {
     "saveUpdatePrefFailed": "Failed to save automatic update preference.",
@@ -2558,7 +2560,6 @@
     "cmReportBug": "Report a Bug",
     "blankDocuments": "Blank documents",
     "imageEditMode": "Image edit",
-    "reconcile": "Reconcile",
     "stopAll": "Stop all",
     "reasoning": "Reasoning",
     "reasoningLevel": "Reasoning level",
@@ -3234,7 +3235,19 @@
     "videoCount": "Video {{count}}",
     "openAICompatibleEndpoints": "OpenAI-compatible endpoints",
     "pointNodeToolAtAnyProxyOrGateway": "Point NodeTool at any proxy or gateway that speaks the OpenAI API. Its chat, image and video models appear in the matching nodes.",
-    "browserExtensionStep0": "Click “Connect to Chrome” below once, so Chrome can start NodeTool’s browser bridge."
+    "browserExtensionStep0": "Click “Connect to Chrome” below once, so Chrome can start NodeTool’s browser bridge.",
+    "editorAssistant": "Editor assistant",
+    "scriptAssistant": "Script assistant",
+    "storyboardAssistant": "Storyboard assistant",
+    "playThrough": "Play through",
+    "exportingFormat": "Exporting {{format}}…",
+    "linkedWorkflowsCount": "Linked workflows ({{count}})",
+    "linkedWorkflows": "Linked workflows",
+    "voiceCount_one": "{{count}} voice",
+    "voiceCount_other": "{{count}} voices",
+    "customPreset": "Custom",
+    "autoModeRunsUnattended": "Routine work runs unattended. A step that deletes, publishes, or spends asks once.",
+    "permissionTitle": "Permission: {{label}} — {{description}}"
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",
