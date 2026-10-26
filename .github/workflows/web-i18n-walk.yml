@@ -31,6 +31,8 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq chromium
           chromium --version
+      - name: Build workspace packages
+        run: npm run build:packages
       - name: Start backend + vite
         run: |
           # the backend refuses to boot without a master key (local-mode
