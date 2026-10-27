@@ -3247,7 +3247,16 @@
     "voiceCount_other": "{{count}} voices",
     "customPreset": "Custom",
     "autoModeRunsUnattended": "Routine work runs unattended. A step that deletes, publishes, or spends asks once.",
-    "permissionTitle": "Permission: {{label}} — {{description}}"
+    "permissionTitle": "Permission: {{label}} — {{description}}",
+    "addPrimitive": "Add {{name}}",
+    "exportSceneAs": "Export scene as {{format}}",
+    "hintSnappingDrag": "Snapping to {{amount}} · release Ctrl to move freely",
+    "hintGizmoTransform": "{{tool}} ({{space}}) · drag the gizmo, hold Ctrl to snap · F frame · Ctrl+D duplicate · Del delete",
+    "scriptNoInputs": "This script declares no inputs. Run it as it is.",
+    "timeoutSecondsMax": "Timeout (seconds, max {{max}})",
+    "runConsoleEmpty": "Run the script to see its logs, emitted values, and outputs here.",
+    "theBodyReadsNoSecrets": "The body reads no secrets.",
+    "newSkillBody": "# New skill\n\nDescribe what this skill does and when the agent should use it."
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

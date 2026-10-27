@@ -57,14 +57,14 @@ const JsScriptSecretsEditor = ({
               startIcon={<AddIcon />}
               onClick={() => onChange([...secrets, ""])}
             >
-              Add
+              {t("common:action.add", { defaultValue: "Add" })}
             </EditorButton>
           )
         }
       />
       {secrets.length === 0 ? (
         <Text size="small" color="secondary">
-          The body reads no secrets.
+          {t("editor:ui.theBodyReadsNoSecrets", { defaultValue: "The body reads no secrets." })}
         </Text>
       ) : (
         secrets.map((name, index) => (

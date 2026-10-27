@@ -314,6 +314,7 @@
     "curveEditorHint": "Arrow keys move a key, Shift moves further. Insert adds a key, Delete removes it. Double-click the plot to add a key there.",
     "showAssistant": "Show assistant",
     "loadFailedRetry": "The document could not be loaded. Close the tab and open it again to retry.",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "firstWorkflowStarterHint": "Connect a text input to an output, run it, and see the result. This starter needs no model or provider setup."
   }
 }

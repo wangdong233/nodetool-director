@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { i18n } from "../../i18n";
 
 export type PrimitiveKind =
   | "box"
@@ -106,3 +107,22 @@ export const createPrimitive = (kind: PrimitiveKind): THREE.Object3D => {
       return new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), standardMaterial());
   }
 };
+
+/**
+ * Localized display label for a primitive kind (editor:ui.primitive.*).
+ * Full-literal switch — dynamic template keys would escape the dead-key guard.
+ */
+export function primitiveLabel(kind: PrimitiveKind): string {
+  switch (kind) {
+    case "box": return i18n.t("editor:ui.primitive.box", { defaultValue: PRIMITIVE_LABELS.box });
+    case "sphere": return i18n.t("editor:ui.primitive.sphere", { defaultValue: PRIMITIVE_LABELS.sphere });
+    case "plane": return i18n.t("editor:ui.primitive.plane", { defaultValue: PRIMITIVE_LABELS.plane });
+    case "cylinder": return i18n.t("editor:ui.primitive.cylinder", { defaultValue: PRIMITIVE_LABELS.cylinder });
+    case "torus": return i18n.t("editor:ui.primitive.torus", { defaultValue: PRIMITIVE_LABELS.torus });
+    case "cone": return i18n.t("editor:ui.primitive.cone", { defaultValue: PRIMITIVE_LABELS.cone });
+    case "empty": return i18n.t("editor:ui.primitive.empty", { defaultValue: PRIMITIVE_LABELS.empty });
+    case "directionalLight": return i18n.t("editor:ui.primitive.directionalLight", { defaultValue: PRIMITIVE_LABELS.directionalLight });
+    case "pointLight": return i18n.t("editor:ui.primitive.pointLight", { defaultValue: PRIMITIVE_LABELS.pointLight });
+    case "spotLight": return i18n.t("editor:ui.primitive.spotLight", { defaultValue: PRIMITIVE_LABELS.spotLight });
+  }
+}

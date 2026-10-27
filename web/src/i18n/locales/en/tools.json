@@ -354,7 +354,8 @@
     "noFolderSettings": "No folder settings available or defined in the 'Folders' group.",
     "mcpIntroLead": "Use NodeTool from Claude Code, Codex, or OpenCode through the ",
     "mcpIntroTail": ". The agent gets NodeTool workflows, media generation, assets, nodes, and collections as tools.",
-    "installOnThisMachine": "Install on this machine"
+    "installOnThisMachine": "Install on this machine",
+    "connectToChrome": "Connect to Chrome"
   },
   "misc": {
     "onboardingPacks": {}

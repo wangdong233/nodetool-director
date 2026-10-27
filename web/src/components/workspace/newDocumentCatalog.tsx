@@ -76,14 +76,14 @@ const BLANK_SVG =
  * the user actually creates a model.
  */
 const createBlankModelFile = async (): Promise<File> => {
-  const [THREE, { createPrimitive }, { exportSceneToGlb }] = await Promise.all([
+  const [THREE, { createPrimitive, primitiveLabel }, { exportSceneToGlb }] = await Promise.all([
     import("three"),
     import("../model_editor/objectFactory"),
     import("../model_editor/exportGltf")
   ]);
   const scene = new THREE.Scene();
   const box = createPrimitive("box");
-  box.name = "Box";
+  box.name = primitiveLabel("box");
   scene.add(box);
   const blob = await exportSceneToGlb(scene);
   return new File([blob], "Untitled.glb", { type: "model/gltf-binary" });
@@ -387,7 +387,7 @@ export const useNewDocumentCatalog = (
     () =>
       runCreate("app", async (destinationProjectId) => {
         const created = await createApplication.mutateAsync({
-          name: "Untitled app",
+          name: i18n.t("editor:ui.untitledApp", { defaultValue: "Untitled app" }),
           description: "",
           projectId: destinationProjectId
         });
@@ -445,14 +445,13 @@ export const useNewDocumentCatalog = (
           id: newDocumentId(),
           name: `skill-${Date.now().toString(36)}`,
           description: i18n.t("editor:ui.reusableSkillDescription", { defaultValue: "A reusable skill for the NodeTool agent." }),
-          content:
-            "# New skill\n\nDescribe what this skill does and when the agent should use it."
+          content: i18n.t("editor:ui.newSkillBody", { defaultValue: "# New skill\n\nDescribe what this skill does and when the agent should use it." })
         });
         openGlobalTab({
           type: "skill",
           ref: created.id,
           mode: "edit",
-          title: created.name || "Untitled skill"
+          title: created.name || i18n.t("editor:ui.untitledSkill", { defaultValue: "Untitled skill" })
         });
       }),
     [runCreate, createSkill, openGlobalTab]

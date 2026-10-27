@@ -22,7 +22,8 @@
     "apply": "Apply",
     "and": " and ",
     "save": "Save",
-    "retry": "Retry"
+    "retry": "Retry",
+    "run": "Run"
   },
   "status": {
     "loading": "Loading…"

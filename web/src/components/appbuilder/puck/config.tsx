@@ -1414,7 +1414,7 @@ export const appConfig: Config = {
         ...conditionalFields({ format: false })
       },
       defaultProps: {
-        label: "Run",
+        label: i18n.t("common:action.run", { defaultValue: "Run" }),
         variant: "contained",
         color: "primary",
         events: [{ trigger: "click", kind: "run", key: "", value: "" }]

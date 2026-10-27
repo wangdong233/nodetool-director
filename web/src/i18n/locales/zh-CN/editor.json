@@ -3242,7 +3242,16 @@
     "voiceCount_other": "{{count}} 位配音",
     "customPreset": "自定义",
     "autoModeRunsUnattended": "常规工作无人值守运行。删除、发布或付费的步骤会先询问一次。",
-    "permissionTitle": "权限：{{label}}——{{description}}"
+    "permissionTitle": "权限：{{label}}——{{description}}",
+    "addPrimitive": "添加{{name}}",
+    "exportSceneAs": "将场景导出为 {{format}}",
+    "hintSnappingDrag": "吸附到 {{amount}} · 松开 Ctrl 自由移动",
+    "hintGizmoTransform": "{{tool}}（{{space}}）· 拖动 gizmo，按住 Ctrl 吸附 · F 取景 · Ctrl+D 复制 · Del 删除",
+    "scriptNoInputs": "此脚本未声明输入，可直接运行。",
+    "timeoutSecondsMax": "超时（秒，最大 {{max}}）",
+    "runConsoleEmpty": "运行脚本后，日志、产出值与输出会显示在这里。",
+    "theBodyReadsNoSecrets": "脚本主体读不到任何密钥。",
+    "newSkillBody": "# 新技能\n\n描述这个技能做什么、智能体在什么时候该用它。"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

@@ -239,7 +239,7 @@ const JsScriptRunConsole = ({
 
           {!lastRun && !lastTest && (
             <Text size="small" color="secondary">
-              Run the script to see its logs, emitted values, and outputs here.
+              {t("editor:ui.runConsoleEmpty", { defaultValue: "Run the script to see its logs, emitted values, and outputs here." })}
             </Text>
           )}
         </FlexColumn>

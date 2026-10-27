@@ -159,7 +159,7 @@ const BrowserExtensionSettingsMenu = () => {
           {!isLoading && !data?.hostInstalled && (
             <NavButton
               icon={<LinkIcon />}
-              label={host.isInstalling ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : i18n.t("tools:menus:connectToChrome", { defaultValue: "Connect to Chrome" })}
+              label={host.isInstalling ? t("editor:ui.connecting", { defaultValue: "Connecting…" }) : i18n.t("tools:menus.connectToChrome", { defaultValue: "Connect to Chrome" })}
               color="primary"
               onClick={() => host.install()}
               disabled={host.isInstalling}

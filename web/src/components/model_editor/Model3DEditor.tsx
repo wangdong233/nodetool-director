@@ -102,7 +102,7 @@ import {
 } from "./sceneTree";
 import {
   createPrimitive,
-  PRIMITIVE_LABELS,
+  primitiveLabel,
   type PrimitiveKind
 } from "./objectFactory";
 import { exportSceneToGlb } from "./exportGltf";
@@ -135,6 +135,7 @@ import {
 import {
   EDITOR_SHORTCUTS,
   shortcutKeys,
+  shortcutLabel,
   withShortcut,
   type EditorAction
 } from "./editorShortcuts";
@@ -689,7 +690,7 @@ const Model3DEditor = ({
   const addPrimitiveObject = useCallback(
     (kind: PrimitiveKind, name?: string): THREE.Object3D => {
       const obj = createPrimitive(kind);
-      obj.name = nextAvailableName(name?.trim() || PRIMITIVE_LABELS[kind], takenNames());
+      obj.name = nextAvailableName(name?.trim() || primitiveLabel(kind), takenNames());
       // New objects appear where the user is looking, resting on the ground.
       const target = orbitTargetRef.current;
       if (target) {
@@ -702,7 +703,7 @@ const Model3DEditor = ({
         obj.position.y += -box.min.y;
       }
       root.add(obj);
-      pushCommand(addObjectCommand(`Add ${PRIMITIVE_LABELS[kind]}`, obj, root));
+      pushCommand(addObjectCommand(i18n.t("editor:ui.addPrimitive", { defaultValue: "Add {{name}}", name: primitiveLabel(kind) }), obj, root));
       setSelectedUuid(obj.uuid);
       return obj;
     },
@@ -1266,7 +1267,7 @@ const Model3DEditor = ({
       ...EDITOR_SHORTCUTS.filter((shortcut) => shortcut.action !== "deselect").map(
         (shortcut) => ({
           id: shortcut.action,
-          label: shortcut.label,
+          label: shortcutLabel(shortcut),
           keywords: [shortcut.group],
           shortcut: shortcut.keys.join("+"),
           run: () => actionsRef.current[shortcut.action]()
@@ -1274,7 +1275,7 @@ const Model3DEditor = ({
       ),
       ...EXPORT_FORMATS.map((info) => ({
         id: `export-${info.format}`,
-        label: `Export scene as ${info.label}`,
+        label: i18n.t("editor:ui.exportSceneAs", { defaultValue: "Export scene as {{format}}", format: info.label }),
         keywords: ["download", info.format],
         run: () => void exportRef.current(info.format, false)
       }))
@@ -1291,12 +1292,19 @@ const Model3DEditor = ({
     }
     if (isDragging) {
       return snapActive
-        ? `Snapping to ${gizmoMode === "rotate" ? `${SNAP.rotateDeg}°` : gizmoMode === "scale" ? SNAP.scale : `${SNAP.translate} units`} · release Ctrl to move freely`
+        ? i18n.t("editor:ui.hintSnappingDrag", {
+            defaultValue: "Snapping to {{amount}} · release Ctrl to move freely",
+            amount: gizmoMode === "rotate" ? `${SNAP.rotateDeg}°` : gizmoMode === "scale" ? SNAP.scale : `${SNAP.translate} units`
+          })
         : i18n.t("editor:ui.hintHoldCtrlToSnap", { defaultValue: "Hold Ctrl to snap" });
     }
     if (selectedObject) {
-      const tool = gizmoMode === "translate" ? "Move" : gizmoMode === "rotate" ? t("editor:ui.rotate", { defaultValue: "Rotate" }) : i18n.t("editor:ui.scale", { defaultValue: "Scale" });
-      return `${tool} (${gizmoSpace}) · drag the gizmo, hold Ctrl to snap · F frame · Ctrl+D duplicate · Del delete`;
+      const tool = gizmoMode === "translate" ? i18n.t("editor:ui.move", { defaultValue: "Move" }) : gizmoMode === "rotate" ? t("editor:ui.rotate", { defaultValue: "Rotate" }) : i18n.t("editor:ui.scale", { defaultValue: "Scale" });
+      return i18n.t("editor:ui.hintGizmoTransform", {
+        defaultValue: "{{tool}} ({{space}}) · drag the gizmo, hold Ctrl to snap · F frame · Ctrl+D duplicate · Del delete",
+        tool,
+        space: gizmoSpace
+      });
     }
     return i18n.t("editor:ui.hintIdle", { defaultValue: "Click to select · drag to orbit · right-drag to pan · scroll to zoom · press ? for shortcuts" });
   }, [previewActive, isDragging, snapActive, gizmoMode, gizmoSpace, selectedObject, languageVersion]);
@@ -1428,7 +1436,7 @@ const Model3DEditor = ({
               group.kinds.map((kind, index) => (
                 <MenuItemPrimitive
                   key={kind}
-                  label={PRIMITIVE_LABELS[kind]}
+                  label={primitiveLabel(kind)}
                   dividerBefore={groupIndex > 0 && index === 0}
                   icon={
                     group.title === "Light" ? (
