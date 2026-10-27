@@ -90,6 +90,7 @@ import { useContextCommands } from "../../hooks/useContextCommands";
 import type { ContextCommand } from "../../stores/CommandMenuStore";
 import { useTranslation } from "react-i18next";
 import { i18n, useAppLanguage } from "../../i18n";
+import { seededDocDisplayName } from "../workspace/tabTypeIdentity";
 
 interface ScriptDocumentPaneProps {
   scriptId: string;
