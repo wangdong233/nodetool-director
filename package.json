@@ -207,8 +207,6 @@
     "check:execution-boundary": "node scripts/check-execution-boundary.mjs",
     "check:document-sync": "node scripts/check-document-sync-boundary.mjs",
     "check:agents-docs": "node scripts/check-agents-docs.mjs",
-    "fork:integrity": "node scripts/fork-integrity.mjs check",
-    "fork:integrity:survival": "node scripts/fork-integrity.mjs survival",
     "sync:genspend": "node scripts/sync-genspend-pricing.mjs",
     "sync:genspend:check": "node scripts/sync-genspend-pricing.mjs --check",
     "sync:gguf-trending": "node scripts/sync-gguf-trending.mjs",
