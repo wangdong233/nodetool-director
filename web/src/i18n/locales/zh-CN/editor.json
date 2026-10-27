@@ -203,7 +203,9 @@
     "searchConversations": "搜索会话",
     "askToStart": "提一个问题即可开始。",
     "noTasksYet": "还没有任务",
-    "agentListsPlanHere": "智能体工作时会把计划列在这里。"
+    "agentListsPlanHere": "智能体工作时会把计划列在这里。",
+    "welcomeSubtitle": "随便问、丢文件进来，或从下面这些开始：",
+    "connectAProvider": "连接一个服务商"
   },
   "notify": {
     "saveUpdatePrefFailed": "无法保存自动更新偏好。",
@@ -2555,7 +2557,6 @@
     "cmReportBug": "报告问题",
     "blankDocuments": "空白文档",
     "imageEditMode": "图像编辑",
-    "reconcile": "对账",
     "stopAll": "全部停止",
     "reasoning": "推理",
     "reasoningLevel": "推理级别",
@@ -3229,7 +3230,28 @@
     "videoCount": "视频 {{count}}",
     "openAICompatibleEndpoints": "OpenAI 兼容端点",
     "pointNodeToolAtAnyProxyOrGateway": "将 NodeTool 指向任何使用 OpenAI API 的代理或网关。其对话、图像和视频模型会出现在相应节点中。",
-    "browserExtensionStep0": "先点击下方“连接到 Chrome”，Chrome 才能启动 NodeTool 的浏览器桥接。"
+    "browserExtensionStep0": "先点击下方“连接到 Chrome”，Chrome 才能启动 NodeTool 的浏览器桥接。",
+    "editorAssistant": "编辑助手",
+    "scriptAssistant": "剧本助手",
+    "storyboardAssistant": "分镜助手",
+    "playThrough": "连播试听",
+    "exportingFormat": "正在导出 {{format}}…",
+    "linkedWorkflowsCount": "关联工作流（{{count}}）",
+    "linkedWorkflows": "关联工作流",
+    "voiceCount_one": "{{count}} 位配音",
+    "voiceCount_other": "{{count}} 位配音",
+    "customPreset": "自定义",
+    "autoModeRunsUnattended": "常规工作无人值守运行。删除、发布或付费的步骤会先询问一次。",
+    "permissionTitle": "权限：{{label}}——{{description}}",
+    "addPrimitive": "添加{{name}}",
+    "exportSceneAs": "将场景导出为 {{format}}",
+    "hintSnappingDrag": "吸附到 {{amount}} · 松开 Ctrl 自由移动",
+    "hintGizmoTransform": "{{tool}}（{{space}}）· 拖动 gizmo，按住 Ctrl 吸附 · F 取景 · Ctrl+D 复制 · Del 删除",
+    "scriptNoInputs": "此脚本未声明输入，可直接运行。",
+    "timeoutSecondsMax": "超时（秒，最大 {{max}}）",
+    "runConsoleEmpty": "运行脚本后，日志、产出值与输出会显示在这里。",
+    "theBodyReadsNoSecrets": "脚本主体读不到任何密钥。",
+    "newSkillBody": "# 新技能\n\n描述这个技能做什么、智能体在什么时候该用它。"
   },
   "studio": {
     "creditLoadFailed": "无法加载额度余额。点击从账户页重试。",

@@ -47,7 +47,7 @@ const SCAN = () => {
     "Requesty","Cerebras","GMI","Alibaba","Azure","Brave","AtlasCloud","Comfy",
     "DataForSEO","Evolink","NodeSupabase","Rodin","Zai","Useapi","Codex","OpenCode",
     "Lmstudio","Dashscope","Telegram","Supabase","Ctrl","Enter","Shift","Alt",
-    "Tab","Esc","Del","Docs","Learn","View","Use","API Route","User Agent",
+    "Tab","Esc","Del","Home","Docs","Learn","View","Use","API Route","User Agent",
     "Seedream","Kokoro","onnx-community",
     // Provider identifiers rendered by the provider registry (title-cased
     // provider ids, same class as Ollama/Llama above): "fake" is the dev
@@ -73,7 +73,7 @@ const SCAN = () => {
   //             capitalized, so these were invisible
   //   parenShort: Label (Qual) combobox values ("Auto (Full)") — short
   //             parenthesized labels no class matched
-  const CODEISH = /[{}=<>|#$@`~^[\]]|\bhttps?:|www\.|\.com\b|\bnpm\b|\bnpx\b|\bpip\b|\bgit\b|^[\/~.]+\w|\w\s*[-]{2}\s*\w|;\s*$|\bconst\b|\bimport\b|_\w{3,}/;
+  const CODEISH = /[{}=<>|#$@`~^[\]]|\bhttps?:|www\.|\.com\b|\bnpm\b|\bnpx\b|\bpip\b|\bgit\b|^[/~.]+\w|\w\s*[-]{2}\s*\w|;\s*$|\bconst\b|\bimport\b|_\w{3,}/;
   const isPhrase = (t) => /^[A-Z][a-zA-Z&]+(\s+[a-zA-Z&]+)*$/.test(t);
   const isSentence = (t) =>
     /^[A-Z][\w&'(),.:;%\u2019\u2014-]*(\s+[\w&'(),.:;%\u2019\u2014-]+){3,}[.?!]?$/.test(t) &&

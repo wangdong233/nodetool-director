@@ -84,7 +84,6 @@
     "contain": "Contain",
     "contained": "Contained",
     "contains": "contains",
-    "contentExceedsTheReadLimit": "Content exceeds the read limit.",
     "conversation": "Conversation",
     "conversationVariable": "Conversation variable",
     "costPending": "Cost pending",
@@ -216,7 +215,6 @@
     "noMessagesYet": "No messages yet",
     "noResultYet": "No result yet",
     "noRowsYet": "No rows yet",
-    "noRunsRecordedForThisInstance": "No runs recorded for this instance.",
     "noSketchYet": "No sketch yet",
     "noTimelineYet": "No timeline yet",
     "noValuesRecorded": "No values recorded.",
@@ -269,7 +267,6 @@
     "recordedActivityIsOutsideTheRecentRunsLoaded": "Recorded activity is outside the recent runs loaded.",
     "recordedAudio": "Recorded audio",
     "recordedVideo": "Recorded video",
-    "recordingIsIncomplete": "Recording is incomplete.",
     "redo": "Redo",
     "reload": "Reload",
     "rememberBetweenVisits": "Remember between visits",
@@ -286,7 +283,6 @@
     "resources": "Resources",
     "retry": "Retry",
     "run": "Run",
-    "runHistory": "Run history",
     "runInParallel": "Run in parallel",
     "runResultThumbnail": "Run result thumbnail",
     "runWorkflow": "Run workflow",
@@ -322,7 +318,6 @@
     "sketches": "sketches",
     "slider": "Slider",
     "someBrowserActivityCouldNotBeRecorded": "Some browser activity could not be recorded.",
-    "someRecordedContentWasLimited": "Some recorded content was limited.",
     "spacer": "Spacer",
     "speechTTS": "Speech (TTS)",
     "stacked": "Stacked",
@@ -408,6 +403,9 @@
     "runHistoryPanel": "Run history",
     "someRecordedContentLimited": "Some recorded content was limited.",
     "emptyCollection": "Empty collection",
-    "signInToLoadInstance": "Sign in to load this app instance."
+    "signInToLoadInstance": "Sign in to load this app instance.",
+    "page": "Page",
+    "blocksTab": "Blocks",
+    "outlineTab": "Outline"
   }
 }

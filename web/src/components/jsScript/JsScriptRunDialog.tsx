@@ -170,14 +170,14 @@ const JsScriptRunDialog = ({
       fullWidth
       maxWidth="sm"
       onConfirm={handleRun}
-      confirmText="Run"
+      confirmText={t("common:action.run", { defaultValue: "Run" })}
     >
       <NodeContext.Provider value={store}>
         <EditorUiProvider scope="inspector">
           <FlexColumn gap={SPACING.md}>
             {inputs.length === 0 ? (
               <Text size="small" color="secondary">
-                This script declares no inputs. Run it as it is.
+                {t("editor:ui.scriptNoInputs", { defaultValue: "This script declares no inputs. Run it as it is." })}
               </Text>
             ) : (
               <>

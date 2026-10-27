@@ -22,13 +22,13 @@
     "apply": "应用",
     "and": " 和 ",
     "save": "保存",
-    "retry": "重试"
+    "retry": "重试",
+    "run": "运行"
   },
   "status": {
     "loading": "加载中…"
   },
-  "boot": {
-  },
+  "boot": {},
   "mime": {
     "image/png": "PNG 图片",
     "image/jpeg": "JPEG 图片",

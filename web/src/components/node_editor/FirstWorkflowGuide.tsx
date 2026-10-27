@@ -82,8 +82,7 @@ const FirstWorkflowGuide = ({
           <FlexColumn gap={SPACING.xs}>
             <Text size="big">{t("ui2:attrs.buildYourFirstUsefulWorkflow", { defaultValue: "Build your first useful workflow" })}</Text>
             <Caption>
-              Connect a text input to an output, run it, and see the result.
-              This starter needs no model or provider setup.
+              {t("ui2:attrs.firstWorkflowStarterHint", { defaultValue: "Connect a text input to an output, run it, and see the result. This starter needs no model or provider setup." })}
             </Caption>
           </FlexColumn>
           {started ? (

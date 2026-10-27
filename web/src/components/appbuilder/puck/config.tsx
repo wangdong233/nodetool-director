@@ -363,6 +363,10 @@ const AppRoot: React.FC<{
 // `id`/`puck` into render props, and our widget components take optional props.
 export const appConfig: Config = {
   root: {
+    // Puck's drawer headings read `config.root.label` (falling back to its
+    // own "Page"); an explicit label gives localizeAppConfig a hook to
+    // translate at render time.
+    label: "Page",
     fields: {
       title: { type: "text", label: "App title" },
       theme: {
@@ -1410,7 +1414,7 @@ export const appConfig: Config = {
         ...conditionalFields({ format: false })
       },
       defaultProps: {
-        label: "Run",
+        label: i18n.t("common:action.run", { defaultValue: "Run" }),
         variant: "contained",
         color: "primary",
         events: [{ trigger: "click", kind: "run", key: "", value: "" }]

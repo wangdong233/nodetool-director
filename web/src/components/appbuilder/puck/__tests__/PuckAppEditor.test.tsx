@@ -14,7 +14,9 @@ jest.mock("../../../../contexts/WorkflowManagerContext", () => ({
 }));
 jest.mock("@puckeditor/core", () => ({
   Puck: () => null,
-  useGetPuck: jest.fn()
+  useGetPuck: jest.fn(),
+  blocksPlugin: () => ({}),
+  outlinePlugin: () => ({})
 }));
 jest.mock("../config", () => ({ appConfig: {} }));
 jest.mock("../PuckAgentBinder", () => ({

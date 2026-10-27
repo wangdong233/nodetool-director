@@ -133,7 +133,7 @@ const JsScriptSettingsPanel = ({
 
         <Divider />
         <NumberField
-          label={`Timeout (seconds, max ${JS_SCRIPT_MAX_TIMEOUT_SECONDS})`}
+          label={t("editor:ui.timeoutSecondsMax", { defaultValue: "Timeout (seconds, max {{max}})", max: JS_SCRIPT_MAX_TIMEOUT_SECONDS })}
           size="small"
           min={0}
           max={JS_SCRIPT_MAX_TIMEOUT_SECONDS}

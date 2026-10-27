@@ -354,7 +354,8 @@
     "noFolderSettings": "没有可用的文件夹设置，且“文件夹”组中未定义任何设置。",
     "mcpIntroLead": "在 Claude Code、Codex 或 OpenCode 中通过",
     "mcpIntroTail": "使用 NodeTool。智能体可获得 NodeTool 工作流、媒体生成、资产、节点与集合作为工具。",
-    "installOnThisMachine": "在本机安装"
+    "installOnThisMachine": "在本机安装",
+    "connectToChrome": "连接 Chrome"
   },
   "misc": {
     "onboardingPacks": {}
