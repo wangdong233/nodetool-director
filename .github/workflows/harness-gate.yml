@@ -1,0 +1,33 @@
+name: Harness Gate
+
+# The repo's mandatory post-change gate (selfchecks through the harness
+# registry) — it boots turbo dependency builds and the CLI, which is
+# exactly the memory class the 8GB dev box must not host. The runner owns
+# it like the type gate, the exhaustive walk, and the heavy suites; local
+# work stops at the light suites (i18n contract, touched-area jest runs,
+# esbuild parse checks).
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+      - name: Install toolchain
+        run: npm ci --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Build workspace packages
+        run: npm run build:packages
+      - name: Harness gate vs origin/main
+        run: npm run dev:nodetool -- harness gate --base origin/main
