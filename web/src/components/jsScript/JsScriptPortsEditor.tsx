@@ -86,7 +86,7 @@ const JsScriptPortsEditor = ({
               startIcon={<AddIcon />}
               onClick={add}
             >
-              Add
+              {t("common:action.add", { defaultValue: "Add" })}
             </EditorButton>
           )
         }

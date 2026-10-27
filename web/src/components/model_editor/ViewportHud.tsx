@@ -92,7 +92,7 @@ const ViewportHud = ({
           />
         ]}
       </MenuButton>
-      <Tooltip title={withShortcut("Frame all objects", "frameAll")}>
+      <Tooltip title={withShortcut(i18n.t("editor:ui.frameAllObjects", { defaultValue: "Frame all objects" }), "frameAll")}>
         <EditorButton
           density="compact"
           variant="text"
@@ -100,10 +100,10 @@ const ViewportHud = ({
           sx={{ whiteSpace: "nowrap" }}
           onClick={onFrameAll}
         >
-          Frame all
+          {i18n.t("editor:ui.frameAll", { defaultValue: "Frame all" })}
         </EditorButton>
       </Tooltip>
-      <Tooltip title={withShortcut("Frame selection", "focusSelection")}>
+      <Tooltip title={withShortcut(i18n.t("editor:ui.frameSelection", { defaultValue: "Frame selection" }), "focusSelection")}>
         {/* The span keeps the tooltip on a disabled button. */}
         <span>
           <EditorButton
@@ -114,7 +114,7 @@ const ViewportHud = ({
             onClick={onFocus}
             disabled={!canFocus}
           >
-            Frame selection
+            {i18n.t("editor:ui.frameSelection", { defaultValue: "Frame selection" })}
           </EditorButton>
         </span>
       </Tooltip>
