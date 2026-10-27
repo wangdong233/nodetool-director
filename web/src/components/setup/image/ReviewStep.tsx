@@ -140,7 +140,7 @@ const ReviewStepInternal: React.FC<ReviewStepProps> = ({
                 onClick={onReRefine}
                 disabled={refining}
               >
-                Try again
+                {t("storyboard:attrs.tryAgain", { defaultValue: "Try again" })}
               </EditorButton>
               <ReportBugButton
                 context={{

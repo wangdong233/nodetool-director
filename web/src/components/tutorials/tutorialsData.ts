@@ -24,6 +24,8 @@ export interface Tutorial {
   taskKey?: string;
   startingStateKey?: string;
   descriptionKey?: string;
+  /** i18n keys for the learn-by-example bullets, when the tutorial has them. */
+  learnKeys?: string[];
   taglineKey?: string;
   titleKey?: string;
   /** Stable id, used in the `/tutorials?id=` query param. */

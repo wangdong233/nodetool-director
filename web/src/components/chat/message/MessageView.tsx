@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Message,
   MessageContent,
@@ -845,6 +846,7 @@ export const MessageView: React.FC<MessageViewProps> = React.memo(
     hideActions = false,
     replyCopyText
   }) => {
+  const { t } = useTranslation();
     const insertIntoEditor = useEditorInsertion();
     const currentThreadId = useGlobalChatStore((state) => state.currentThreadId);
 
@@ -1173,8 +1175,8 @@ export const MessageView: React.FC<MessageViewProps> = React.memo(
               {message.role === "assistant" && onRegenerate && (
                 <ToolbarIconButton
                   icon={<RefreshIcon fontSize="small" />}
-                  tooltip="Regenerate"
-                  ariaLabel="Regenerate"
+                  tooltip={t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })}
+                  ariaLabel={t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })}
                   onClick={onRegenerate}
                 />
               )}

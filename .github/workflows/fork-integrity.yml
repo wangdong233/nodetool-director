@@ -1,0 +1,30 @@
+name: Fork Integrity
+
+# Master-only: guards the fork's protected change-points (docs/fork-index.yaml)
+# against merge loss. Runs the marker/anchor check on every push to master;
+# the survival audit runs locally per the merge SOP (needs three refs).
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+      - name: Marker and anchor check
+        run: |
+          set +e
+          OUT=$(node scripts/fork-integrity.mjs check 2>&1)
+          CODE=$?
+          echo "$OUT"
+          if [ $CODE -ne 0 ]; then
+            # Surface the failure as an annotation — readable via the checks
+            # API even when the log blob is unavailable.
+            echo "::error::fork-integrity exit $CODE — $(echo "$OUT" | tr '\n' ' ' | head -c 700)"
+          fi
+          exit $CODE

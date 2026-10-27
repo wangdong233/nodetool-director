@@ -196,7 +196,7 @@ export const SelectSettingsPanel = memo(function SelectSettingsPanel({
                   "& .MuiButton-startIcon": { mr: 0.5 }
                 }}
               >
-                Refine…
+                {t("sketch:attrs.refine", { defaultValue: "Refine…" })}
               </EditorButton>
             </span>
           </Tooltip>

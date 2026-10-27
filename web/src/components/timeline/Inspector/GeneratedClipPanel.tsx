@@ -9,6 +9,7 @@
  */
 
 import React, { memo, useCallback, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { css } from "@emotion/react";
 import { useTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
@@ -97,6 +98,7 @@ const inputsContainerStyles = (theme: Theme) =>
 
 export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
   ({ clipId, additionalSections }) => {
+  const { t } = useTranslation();
     const theme = useTheme();
     const clip = useTimelineStore((s) => findClipById(s.clips, clipId));
     const setParamOverride = useTimelineStore((s) => s.setParamOverride);
@@ -183,7 +185,9 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
     }
 
     const paramOverrides = clip.paramOverrides ?? EMPTY_PARAM_OVERRIDES;
-    const generateLabel = clip.currentAssetId ? "Regenerate" : "Generate";
+    const generateLabel = clip.currentAssetId
+      ? t("timeline:attrs.regenerate", { defaultValue: "Regenerate" })
+      : t("ui2:attrs.generate", { defaultValue: "Generate" });
 
     return (
       <Panel background="default" bordered={false} sx={panelSx}>
@@ -263,7 +267,7 @@ export const GeneratedClipPanel: React.FC<GeneratedClipPanelProps> = memo(
                 onClick={handleGenerateClick}
                 data-testid="generated-clip-generate"
               >
-                {isActive ? "Cancel" : generateLabel}
+                {isActive ? t("timeline:attrs.cancel", { defaultValue: "Cancel" }) : generateLabel}
               </EditorButton>
               {isFailed && (
                 <ErrorBanner

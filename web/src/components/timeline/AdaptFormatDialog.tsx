@@ -229,8 +229,7 @@ const AdaptFormatDialogInternal: React.FC<AdaptFormatDialogProps> = ({
 
         {error && <AlertBanner severity="error">{error}</AlertBanner>}
         <Caption color="muted">
-          New sequences share the source media. The original edit is not resized
-          or changed.
+          {t("timeline:adapt.newSequencesShareMedia", { defaultValue: "New sequences share the source media. The original edit is not resized or changed." })}
         </Caption>
       </FlexColumn>
     </Dialog>
