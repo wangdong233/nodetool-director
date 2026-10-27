@@ -3256,7 +3256,12 @@
     "timeoutSecondsMax": "Timeout (seconds, max {{max}})",
     "runConsoleEmpty": "Run the script to see its logs, emitted values, and outputs here.",
     "theBodyReadsNoSecrets": "The body reads no secrets.",
-    "newSkillBody": "# New skill\n\nDescribe what this skill does and when the agent should use it."
+    "newSkillBody": "# New skill\n\nDescribe what this skill does and when the agent should use it.",
+    "frameSelection": "Frame selection",
+    "frameAllObjects": "Frame all objects",
+    "runTests": "Run tests",
+    "testCount": "Test ({{count}})",
+    "runsUseSavedScript": "Runs use the saved script — this one is {{status}}."
   },
   "studio": {
     "creditLoadFailed": "Couldn't load the credit balance. Click to retry from the account page.",

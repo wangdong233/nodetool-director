@@ -300,6 +300,13 @@ const PuckAppEditor: React.FC<PuckAppEditorProps> = ({
               onChange={onChange}
               overrides={overrides}
               iframe={{ enabled: false }}
+              // Puck's header falls back to its own untranslated "Page" when
+              // the document has no root title; supply the localized fallback
+              // ourselves (the doc title, when set, is user data and wins).
+              headerTitle={
+                (data.root as { props?: { title?: string } } | undefined)?.props
+                  ?.title || i18n.t("appbuilder:attrs.page", { defaultValue: "Page" })
+              }
             />
           </Box>
         </AppRuntimeContext.Provider>

@@ -122,13 +122,13 @@ const JsScriptRunConsole = ({
       return [];
     }
     const commands: ContextCommand[] = [
-      { id: "run", label: "Run Script…", run: () => setDialogOpen(true) }
+      { id: "run", label: t("editor:ui.runScript", { defaultValue: "Run script" }), run: () => setDialogOpen(true) }
     ];
     if (tests.length > 0) {
-      commands.push({ id: "test", label: "Run tests", run: onTest });
+      commands.push({ id: "test", label: t("editor:ui.runTests", { defaultValue: "Run tests" }), run: onTest });
     }
     return commands;
-  }, [running, readOnly, tests.length, onTest]);
+  }, [running, readOnly, tests.length, onTest, t]);
   useContextCommands("JS script", menuCommands, active);
 
   return (
@@ -141,7 +141,7 @@ const JsScriptRunConsole = ({
           disabled={running || readOnly}
           onClick={() => setDialogOpen(true)}
         >
-          Run
+          {t("common:action.run", { defaultValue: "Run" })}
         </EditorButton>
         <EditorButton
           density="compact"
@@ -149,16 +149,16 @@ const JsScriptRunConsole = ({
           disabled={running || readOnly || tests.length === 0}
           onClick={onTest}
         >
-          {tests.length === 0 ? t("editor:ui.noTests", { defaultValue: "No tests" }) : `Test (${tests.length})`}
+          {tests.length === 0 ? t("editor:ui.noTests", { defaultValue: "No tests" }) : t("editor:ui.testCount", { defaultValue: "Test ({{count}})", count: tests.length })}
         </EditorButton>
         {running && (
           <Text size="small" color="secondary">
-            Running…
+            {t("editor:ui.running", { defaultValue: "Running" })}
           </Text>
         )}
         {saveStatus !== "saved" && (
           <Text size="small" color="secondary">
-            Runs use the saved script — this one is {saveStatus}.
+            {t("editor:ui.runsUseSavedScript", { defaultValue: "Runs use the saved script — this one is {{status}}.", status: saveStatus })}
           </Text>
         )}
       </FlexRow>
